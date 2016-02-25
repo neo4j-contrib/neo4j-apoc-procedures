@@ -1,0 +1,23 @@
+== Collection of useful Procedures for Neo4j 3.x
+
+Just build it with `./gradlew jar`.
+Then copy `build/libs/neo4j-apoc-procs-0.1.jar` to your server's `plugins` directory.
+
+If you want to run embedded or use shell on a disk store, configure your `plugins` directory in `neo4j.properties` with `dbms.plugin.directory=path/to/plugins`.
+
+== Included Procedures
+
+* `apoc.util.IN(value, coll)` optimized IN operation (using a HashSet)
+* `apoc.util.sort(coll)` sort on Collections
+
+== Plans
+
+* optimized collection functions
+* Time Conversion Functions (ISO<->ts, padded long representation)
+* custom expanders, e.g. with rel-type suffixes
+
+== Later Plans
+
+* Graph Refactorings
+* Job Queue
+* Procedures in other languages (e.g. JS)

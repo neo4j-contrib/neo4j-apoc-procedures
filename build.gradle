@@ -1,0 +1,21 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    maven { url "http://m2.neo4j.org/snapshots" }
+    mavenCentral()
+}
+project.ext {
+    neo4j_version = "3.0.0-M04"
+}
+
+dependencies {
+	compile group: "org.neo4j", name:"neo4j", version:project.neo4j_version
+	testCompile group: "org.neo4j", name:"neo4j-kernel", version:project.neo4j_version, classifier:"tests"
+	testCompile group: "org.neo4j", name:"neo4j-io", version:project.neo4j_version, classifier:"tests"
+	testCompile group: "junit", name:"junit", version:4.12
+}
+
+group 'org.neo4j.procedure.apoc'
+version '0.1'
