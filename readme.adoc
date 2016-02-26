@@ -10,6 +10,15 @@ If you want to run embedded or use shell on a disk store, configure your `plugin
 * `apoc.util.IN(value, coll)` optimized IN operation (using a HashSet)
 * `apoc.util.sort(coll)` sort on Collections
 
+* `CREATE (n {name:'foo'}),(m {name:'bar'}) WITH n,m CALL apoc.util.sortNodes([n,m], 'name') YIELD value RETURN value` sort nodes by property _(experimental)_
+
+=== from/toJson
+
+* `CALL apoc.util.toJson([1,2,3])`
+* `CALL apoc.util.toJson({a:42,b:\"foo\",c:[1,2,3]})`
+* `CALL apoc.util.fromJsonList('[1,2,3]')`
+* `CALL apoc.util.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}')`
+
 == Plans
 
 * optimized collection functions
