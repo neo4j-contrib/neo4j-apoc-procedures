@@ -58,11 +58,19 @@ public class JsonTest {
     }
     @Test public void testLoadJson() throws Exception {
 //		URL url = getClass().getResource("map.json");
-		testCall(db, "CALL apoc.util.loadJson('file:map.json') YIELD value RETURN value",
+		testCall(db, "CALL apoc.util.loadJson('file:map.json')", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
                     System.err.println(value.getClass());
                     assertEquals(singletonMap("foo",asList(1,2,3)), value);
                 });
     }
+//    @Test public void testConvertMap() throws Exception {
+//		testCall(db, "CALL apoc.util.test YIELD value RETURN value", //
+//                (row) -> {
+//                    Object value = row.get("value");
+//                    System.err.println(value.getClass());
+//                    assertEquals(singletonMap("foo",42), value);
+//                });
+//    }
 }

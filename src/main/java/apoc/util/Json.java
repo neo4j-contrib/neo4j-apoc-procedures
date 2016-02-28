@@ -70,11 +70,19 @@ public class Json {
         try {
             Object value = OBJECT_MAPPER.readValue(new URL(url), Object.class);
                 if (value instanceof Iterable) {
-                return StreamSupport.stream(((Iterable<Object>)value).spliterator(),false).map(ObjectResult::new);
+                return StreamSupport.stream(((Iterable<Object>)value).spliterator(),false).<ObjectResult>map(ObjectResult::new);
             }
-            return Stream.of(new ObjectResult(value));
+            if (value instanceof Map) {
+                return Stream.of(new ObjectResult(value));
+            }
+            throw new RuntimeException("Incompatible Type "+(value==null ? "null" : value.getClass()));
         } catch (IOException e) {
             throw new RuntimeException("Can't read url " + url + " as json", e);
         }
     }
+
+//    @Procedure
+//    public Stream<ObjectResult> test() {
+//        return Stream.of(new ObjectResult(Collections.singletonMap("foo",42)));
+//    }
 }

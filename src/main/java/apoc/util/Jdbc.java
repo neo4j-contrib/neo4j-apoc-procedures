@@ -16,7 +16,7 @@ import java.util.stream.StreamSupport;
 public class Jdbc {
 
     @Procedure
-    public Stream<MapResult> loadJdbc(@Name("jdbc") String url, String tableOrSelect) {
+    public Stream<MapResult> loadJdbc(@Name("jdbc") String url, @Name("tableOrSql") String tableOrSelect) {
         String query = tableOrSelect.indexOf(' ') == -1 ?
                 "SELECT * FROM " + tableOrSelect : tableOrSelect;
         try {
@@ -68,7 +68,7 @@ public class Jdbc {
             try {
                 if (handleEndOfResults()) return null;
                 Map<String, Object> row = new LinkedHashMap<>(columns.length);
-                for (int col = 1; col <= columns.length; col++) {
+                for (int col = 1; col < columns.length; col++) {
                     row.put(columns[col], rs.getObject(col));
                 }
                 return row;
@@ -83,7 +83,7 @@ public class Jdbc {
             }
             if (!rs.next()) {
                 if (!rs.isClosed()) {
-                    rs.close();
+//                    rs.close();
                     rs.getStatement().close();
                 }
                 return true;

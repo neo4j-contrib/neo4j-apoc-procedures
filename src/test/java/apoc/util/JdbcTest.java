@@ -9,10 +9,7 @@ import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.Map;
 import java.util.Properties;
 
@@ -26,29 +23,35 @@ public class JdbcTest {
     private GraphDatabaseService db;
 	@Before public void setUp() throws Exception {
 	    db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-	    ((GraphDatabaseAPI)db).getDependencyResolver().resolveDependency(Procedures.class).register(Json.class);
+	    ((GraphDatabaseAPI)db).getDependencyResolver().resolveDependency(Procedures.class).register(Jdbc.class);
 	}
     @After public void tearDown() {
 	    db.shutdown();
     }
 
     @Test public void testLoadJdbc() throws Exception {
-		Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-		Connection conn = DriverManager.getConnection("jdbc:derby:derbyDB;create=true", new Properties());
-		conn.createStatement().execute("CREATE TABLE PERSON (name varchar(50));");
-		PreparedStatement ps = conn.prepareStatement("INSERT INTO PERSON values(?);");
-		ps.setString(1,"John");
-		int rows = ps.executeUpdate();
-		assertEquals(1,rows);
-		ResultSet rs = conn.createStatement().executeQuery("SELECT name FROM PERSON");
-		assertEquals(true, rs.next());
-		assertEquals("John",rs.getString("name"));
-		assertEquals(false, rs.next());
-		rs.close();
-//		URL url = getClass().getResource("map.json");
-		testCall(db, "CALL apoc.util.loadJdbc('jdbc:derby:derbyDB','PERSON') YIELD value RETURN value",
-                (row) -> assertEquals(singletonMap("name","John"), row.get("value")) );
+        createPersonTableAndData();
+		testCall(db, "CALL apoc.util.loadJdbc('jdbc:derby:derbyDB','PERSON')", //  YIELD value RETURN value
+                (row) -> assertEquals(singletonMap("NAME","John"), row.get("value")) );
 
-		DriverManager.getConnection("jdbc:derby:derbyDB;shutdown=true");
+//		DriverManager.getConnection("jdbc:derby:derbyDB;shutdown=true");
+    }
+
+    private void createPersonTableAndData() throws ClassNotFoundException, SQLException {
+        Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
+        Connection conn = DriverManager.getConnection("jdbc:derby:derbyDB;create=true", new Properties());
+        try {
+conn.createStatement().execute("DROP TABLE PERSON");
+} catch(SQLException se) {/*ignore*/}
+        conn.createStatement().execute("CREATE TABLE PERSON (NAME varchar(50))");
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO PERSON values(?)");
+        ps.setString(1,"John");
+        int rows = ps.executeUpdate();
+        assertEquals(1,rows);
+        ResultSet rs = conn.createStatement().executeQuery("SELECT NAME FROM PERSON");
+        assertEquals(true, rs.next());
+        assertEquals("John",rs.getString("NAME"));
+        assertEquals(false, rs.next());
+        rs.close();
     }
 }
