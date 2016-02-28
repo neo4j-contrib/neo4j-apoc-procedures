@@ -18,6 +18,7 @@ dependencies {
 	testCompile group: "org.neo4j", name:"neo4j-kernel", version:project.neo4j_version, classifier:"tests"
 	testCompile group: "org.neo4j", name:"neo4j-io", version:project.neo4j_version, classifier:"tests"
 	testCompile group: "junit", name:"junit", version:4.12
+    testCompile 'org.apache.derby:derby:10.12.1.1'
 }
 
 group 'org.neo4j.procedure.apoc'
