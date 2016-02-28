@@ -19,6 +19,13 @@ If you want to run embedded or use shell on a disk store, configure your `plugin
 * `CALL apoc.util.fromJsonList('[1,2,3]')`
 * `CALL apoc.util.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}')`
 
+=== Loading Formats
+
+* `CALL apoc.util.loadJdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})` load from relational database, either a full table or a sql statement
+* `CALL apoc.util.loadJdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18')` load from relational database, either a full table or a sql statement
+* `CALL apoc.util.loadJson('http://example.com/map.json') YIELD value as person CREATE (p:Person) SET p = person` load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map
+* `CALL apoc.util.loadXml('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name` load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `_type`, `_text` and `_children`x fields.
+
 == Plans
 
 * optimized collection functions

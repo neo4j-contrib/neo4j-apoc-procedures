@@ -8,8 +8,8 @@ repositories {
     mavenCentral()
 }
 project.ext {
-//    neo4j_version = "3.0.0-M04"
-      neo4j_version = "3.0.0-SNAPSHOT"
+    neo4j_version = "3.0.0-M04"
+//      neo4j_version = "3.0.0-SNAPSHOT"
 }
 
 dependencies {
