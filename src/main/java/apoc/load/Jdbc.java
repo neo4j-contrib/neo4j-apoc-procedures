@@ -1,7 +1,6 @@
-package apoc.util;
+package apoc.load;
 
-import apoc.util.result.MapResult;
-import apoc.util.result.RowResult;
+import apoc.result.RowResult;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
@@ -17,7 +16,7 @@ import java.util.stream.StreamSupport;
 public class Jdbc {
 
     @Procedure
-    public Stream<RowResult> loadJdbc(@Name("jdbc") String url, @Name("tableOrSql") String tableOrSelect) {
+    public Stream<RowResult> jdbc(@Name("jdbc") String url, @Name("tableOrSql") String tableOrSelect) {
         String query = tableOrSelect.indexOf(' ') == -1 ?
                 "SELECT * FROM " + tableOrSelect : tableOrSelect;
         try {

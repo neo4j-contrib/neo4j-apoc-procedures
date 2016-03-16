@@ -1,4 +1,4 @@
-package apoc.util.result;
+package apoc.result;
 
 /**
  * @author mh

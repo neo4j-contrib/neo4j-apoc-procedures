@@ -8,15 +8,15 @@ repositories {
     mavenCentral()
 }
 project.ext {
-    neo4j_version = "3.0.0-M04"
-//      neo4j_version = "3.0.0-SNAPSHOT"
+//    neo4j_version = "3.0.0-M04"
+    neo4j_version = "3.0.0-SNAPSHOT"
 }
 
 dependencies {
-	compile group: "org.neo4j", name:"neo4j", version:project.neo4j_version
+	compile group: "org.neo4j", name:"neo4j", version:project.neo4j_version, changing : true
     compile "org.codehaus.jackson:jackson-mapper-asl:1.9.7"
-	testCompile group: "org.neo4j", name:"neo4j-kernel", version:project.neo4j_version, classifier:"tests"
-	testCompile group: "org.neo4j", name:"neo4j-io", version:project.neo4j_version, classifier:"tests"
+	testCompile group: "org.neo4j", name:"neo4j-kernel", version:project.neo4j_version, classifier:"tests", changing : true
+	testCompile group: "org.neo4j", name:"neo4j-io", version:project.neo4j_version, classifier:"tests", changing : true
 	testCompile group: "junit", name:"junit", version:4.12
     testCompile 'org.apache.derby:derby:10.12.1.1'
 }

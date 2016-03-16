@@ -1,6 +1,6 @@
-package apoc.util;
+package apoc.load;
 
-import apoc.util.result.MapResult;
+import apoc.result.MapResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -26,7 +26,7 @@ public class Xml {
     @Context public GraphDatabaseService db;
 
     @Procedure
-    public Stream<MapResult> loadXml(@Name("url") String url) {
+    public Stream<MapResult> xml(@Name("url") String url) {
         try {
             URLConnection urlConnection = new URL(url).openConnection();
             XMLStreamReader reader = FACTORY.createXMLStreamReader(urlConnection.getInputStream());

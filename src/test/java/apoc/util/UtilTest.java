@@ -4,15 +4,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.*;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.List;
+import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class UtilTest {
 
@@ -33,7 +35,6 @@ public class UtilTest {
         testCall(db, "CALL apoc.util.sort([3,2,1])",
                 (row) -> assertEquals(asList(1L,2L,3L), row.get("value")));
     }
-    @Ignore
     @Test public void testSortNodes() throws Exception {
         testCall(db,
             "CREATE (n {name:'foo'}),(m {name:'bar'}) WITH n,m CALL apoc.util.sortNodes([n,m], 'name') YIELD value RETURN value",

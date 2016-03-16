@@ -1,5 +1,6 @@
 package apoc.util;
 
+import apoc.load.Xml;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -7,8 +8,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static apoc.util.TestUtil.testCall;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 
 public class XmlTest {
@@ -30,7 +29,7 @@ public class XmlTest {
     }
 
     @Test public void testLoadXml() throws Exception {
-		testCall(db, "CALL apoc.util.loadXml('file:databases.xml')", //  YIELD value RETURN value
+		testCall(db, "CALL apoc.load.xml('file:databases.xml')", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
                     assertEquals(XML_AS_NESTED_MAP, value.toString());

@@ -1,36 +1,84 @@
 == Collection of useful Procedures for Neo4j 3.x
 
-Just build it with `./gradlew jar`.
-Then copy `build/libs/neo4j-apoc-procs-0.1.jar` to your server's `plugins` directory.
+Just build it with `mvn package`.
+Then copy `target/apoc-1.0.0-SNAPSHOT-shaded.jar` to your server's `plugins` directory.
 
 If you want to run embedded or use shell on a disk store, configure your `plugins` directory in `neo4j.properties` with `dbms.plugin.directory=path/to/plugins`.
 
 == Included Procedures
+
+=== Meta Graph
+
+* `CALL apoc.meta.graph` - examines the full graph to create the meta-graph
+* TODO a sampling variant
+
+=== from/toJson
+
+* `CALL apoc.convert.toJson([1,2,3])`
+* `CALL apoc.convert.toJson({a:42,b:\"foo\",c:[1,2,3]})`
+* `CALL apoc.convert.fromJsonList('[1,2,3]')`
+* `CALL apoc.convert.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}')`
+
+=== Loading Data
+
+* `CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})` load from relational database, either a full table or a sql statement
+* `CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18')` load from relational database, either a full table or a sql statement
+* `CALL apoc.load.json('http://example.com/map.json') YIELD value as person CREATE (p:Person) SET p = person` load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map
+* `CALL apoc.load.xml('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name` load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `_type`, `_text` and `_children`x fields.
+
+=== Creating Data
+
+* `CALL apoc.create.node(['Label'], {key:value,...})` create node with dynamic labels
+* `CALL apoc.create.nodes(['Label'], [{key:value,...}])` create multiple nodes with dynamic labels
+* `CALL apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2)` create relationship with dynamic rel-type
+
+=== Virtual Nodes/Rels
+
+Virtual Nodes and Relationships don't exist in the graph, they are only returned to the UI/user for representing a graph projection.
+They can be visualized or processed otherwise.
+Please note that they have negative id's.
+
+* `CALL apoc.create.vNode(['Label'], {key:value,...})` returns a virtual node
+* `CALL apoc.create.vNodes(['Label'], [{key:value,...}])` returns virtual nodes
+* `CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo)` returns a virtual relationship
+* `CALL apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value})` returns a virtual pattern
+* `CALL apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value})` returns a virtual pattern
+
+Example
+
+----
+MATCH (a)-[r]->(b)
+WITH head(labels(a)) AS l, head(labels(b)) AS l2, type(r) AS rel_type, count(*) as count
+CALL apoc.create.vNode(['Meta_Node'],{name:l}) yield node as a
+CALL apoc.create.vNode(['Meta_Node'],{name:l2}) yield node as b
+CALL apoc.create.vRelationship(a,'META_RELATIONSHIP',{name:rel_type, count:count},b) yield rel
+RETURN *;
+----
+
+=== Job Management (WIP)
+
+* `CALL apoc.jobs.list` list all jobs
+* `CALL apoc.jobs.submit('name',statement)` submit a one-off background statement
+* `CALL apoc.jobs.schedule('name',statement,repeat-time-in-seconds)` submit a repeatedly-called background statement
+* there are also static methods Jobs.submit, and Jobs.schedule to be used from other procedures
+* jobs list is checked / cleared every 10s for finished jobs
+
+=== Helpers
 
 * `apoc.util.IN(value, coll)` optimized IN operation (using a HashSet)
 * `apoc.util.sort(coll)` sort on Collections
 
 * `CREATE (n {name:'foo'}),(m {name:'bar'}) WITH n,m CALL apoc.util.sortNodes([n,m], 'name') YIELD value RETURN value` sort nodes by property _(experimental)_
 
-=== from/toJson
-
-* `CALL apoc.util.toJson([1,2,3])`
-* `CALL apoc.util.toJson({a:42,b:\"foo\",c:[1,2,3]})`
-* `CALL apoc.util.fromJsonList('[1,2,3]')`
-* `CALL apoc.util.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}')`
-
-=== Loading Formats
-
-* `CALL apoc.util.loadJdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})` load from relational database, either a full table or a sql statement
-* `CALL apoc.util.loadJdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18')` load from relational database, either a full table or a sql statement
-* `CALL apoc.util.loadJson('http://example.com/map.json') YIELD value as person CREATE (p:Person) SET p = person` load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map
-* `CALL apoc.util.loadXml('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name` load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `_type`, `_text` and `_children`x fields.
-
 == Plans
 
 * optimized collection functions
 * Time Conversion Functions (ISO<->ts, padded long representation)
 * custom expanders, e.g. with rel-type suffixes
+* √ virtual nodes and rels
+* √ meta graph
+* meta graph with sampling
+* help procs
 
 == Later Plans
 

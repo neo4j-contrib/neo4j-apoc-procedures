@@ -1,21 +1,21 @@
-package apoc.util;
+package apoc.convert;
 
 import java.net.URL;
 import java.util.*;
 import java.io.*;
 import java.util.stream.*;
 
-import apoc.util.result.ListResult;
-import apoc.util.result.MapResult;
-import apoc.util.result.ObjectResult;
-import apoc.util.result.StringResult;
+import apoc.result.ListResult;
+import apoc.result.MapResult;
+import apoc.result.ObjectResult;
+import apoc.result.StringResult;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.*;
 import org.codehaus.jackson.map.ObjectMapper;
 
 public class Json {
 
-    private static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     @Context public org.neo4j.graphdb.GraphDatabaseService db;
 
     @Procedure

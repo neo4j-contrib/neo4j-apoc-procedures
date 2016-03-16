@@ -1,5 +1,6 @@
 package apoc.util;
 
+import apoc.load.Jdbc;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +32,7 @@ public class JdbcTest {
     @Test
     public void testLoadJdbc() throws Exception {
         createPersonTableAndData();
-        testCall(db, "CALL apoc.util.loadJdbc('jdbc:derby:derbyDB','PERSON')", //  YIELD row RETURN row
+        testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON')", //  YIELD row RETURN row
                 (row) -> assertEquals(singletonMap("NAME", "John"), row.get("row")));
 
 //		DriverManager.getConnection("jdbc:derby:derbyDB;shutdown=true");
