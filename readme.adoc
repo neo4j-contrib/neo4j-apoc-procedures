@@ -1,7 +1,7 @@
 == Collection of useful Procedures for Neo4j 3.x
 
 Just build it with `mvn package`.
-Then copy `target/apoc-1.0.0-SNAPSHOT-shaded.jar` to your server's `plugins` directory.
+Then copy `target/apoc-1.0.0-SNAPSHOT.jar` to your server's `plugins` directory.
 
 If you want to run embedded or use shell on a disk store, configure your `plugins` directory in `neo4j.properties` with `dbms.plugin.directory=path/to/plugins`.
 
