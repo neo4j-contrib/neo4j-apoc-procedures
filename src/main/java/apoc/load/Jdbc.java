@@ -16,6 +16,15 @@ import java.util.stream.StreamSupport;
 public class Jdbc {
 
     @Procedure
+    public void driver(@Name("driverClass") String driverClass) {
+        try {
+            Class.forName(driverClass);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException("Could not load driver class "+driverClass+" "+e.getMessage());
+        }
+    }
+
+    @Procedure
     public Stream<RowResult> jdbc(@Name("jdbc") String url, @Name("tableOrSql") String tableOrSelect) {
         String query = tableOrSelect.indexOf(' ') == -1 ?
                 "SELECT * FROM " + tableOrSelect : tableOrSelect;

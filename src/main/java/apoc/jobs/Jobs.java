@@ -20,7 +20,7 @@ public class Jobs {
 
     final static ScheduledExecutorService jobs = Executors.newScheduledThreadPool(Math.max(1,Runtime.getRuntime().availableProcessors()/4));
 
-    @Context public GraphDatabaseService db;
+    @Context public GraphDatabaseAPI db;
 
     final static Map<JobInfo,Future> list = new ConcurrentHashMap<>();
     static {
@@ -51,17 +51,7 @@ public class Jobs {
 
     @Procedure
     public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement) {
-        JobInfo info = submit(name, () -> {
-            try (Transaction tx = db.beginTx()) {
-//                GraphDatabaseFacade.SPI spi = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(GraphDatabaseFacade.SPI.class);
-//                spi.currentTransaction().restrict(AccessMode.Static.FULL);
-//                System.err.println(statement);
-                Iterators.count(db.execute(statement));
-                tx.success();
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
-        });
+        JobInfo info = submit(name, () ->  Iterators.count(db.execute(statement)) );
         return Stream.of(info);
     }
 
@@ -71,16 +61,9 @@ public class Jobs {
         return Stream.of(info);
     }
 
-    public static <T> JobInfo submit(String name, Callable<T> task) {
-        JobInfo info = new JobInfo(name);
-        Future<T> future = list.remove(info);
-        if (future != null) future.cancel(false);
-
-        Future newFuture = jobs.submit(task);
-        list.put(info,newFuture);
-        return info;
-    }
-
+    /**
+     * Call from a procedure that gets a <code>@Context GraphDatbaseAPI db;</code> injected and provide that db to the runnable.
+     */
     public static <T> JobInfo submit(String name, Runnable task) {
         JobInfo info = new JobInfo(name);
         Future<T> future = list.remove(info);
@@ -91,6 +74,9 @@ public class Jobs {
         return info;
     }
 
+    /**
+     * Call from a procedure that gets a <code>@Context GraphDatbaseAPI db;</code> injected and provide that db to the runnable.
+     */
     public static JobInfo schedule(String name, Runnable task, long delay, long repeat) {
         JobInfo info = new JobInfo(name,delay,repeat);
         Future future = list.remove(info);

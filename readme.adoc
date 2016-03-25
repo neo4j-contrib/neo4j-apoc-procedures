@@ -5,9 +5,38 @@ Then copy `target/apoc-1.0.0-SNAPSHOT-shaded.jar` to your server's `plugins` dir
 
 If you want to run embedded or use shell on a disk store, configure your `plugins` directory in `neo4j.properties` with `dbms.plugin.directory=path/to/plugins`.
 
+== Calling Procedures within Cypher
+
+This repository uses a bleeding edge build (SNAPSHOT or RC1) of Neo4j, so that it can leverage procedures being called within Cypher statements.
+You can download it yourself from http://alpha.neohq.net
+
+[source,cypher]
+----
+CALL apoc.load.json('http://example.com/map.json') YIELD value as person
+MERGE (p:Person {name:person.name})
+ON CREATE SET p.age = person.age, p.children = size(person.children)
+----
+
 == Included Procedures
 
+=== Manual Indexes
+
+Procedures to add to and query manual indexes
+
+* `apoc.index.addNode(node,['prop1',...])` add node to an index for each label it has
+* `apoc.index.addNodeByLabel(node,'Label',['prop1',...])` add node to an index for the given label
+* `apoc.index.addRelationship(rel,['prop1',...])` add relationship to an index for its type
+
+* `apoc.index.nodes('Label','prop:value*') YIELD node` lucene query on node index with the given label name
+* `apoc.index.relationships('TYPE','prop:value*') YIELD rel` lucene query on relationship index with the given type name
+* `apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel` lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)
+* `apoc.index.out(node,'TYPE','prop:value*') YIELD node` lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*
+* `apoc.index.in(node,'TYPE','prop:value*') YIELD node` lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*
+
 === Meta Graph
+
+Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.
+NOTE: This doesn't work with the current Neo4j-Browser due to a JS issue, but you can test it with curl or other browsers.
 
 * `CALL apoc.meta.graph` - examines the full graph to create the meta-graph
 * TODO a sampling variant
@@ -19,10 +48,14 @@ If you want to run embedded or use shell on a disk store, configure your `plugin
 * `CALL apoc.convert.fromJsonList('[1,2,3]')`
 * `CALL apoc.convert.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}')`
 
-=== Loading Data
+=== Loading Data from RDBMS
 
 * `CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})` load from relational database, either a full table or a sql statement
 * `CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18')` load from relational database, either a full table or a sql statement
+* `CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver')` register JDBC driver of source database
+
+=== Loading Data from Web-APIs (JSON, XML)
+
 * `CALL apoc.load.json('http://example.com/map.json') YIELD value as person CREATE (p:Person) SET p = person` load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map
 * `CALL apoc.load.xml('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name` load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `_type`, `_text` and `_children`x fields.
 
@@ -46,6 +79,7 @@ Please note that they have negative id's.
 
 Example
 
+[source,cypher]
 ----
 MATCH (a)-[r]->(b)
 WITH head(labels(a)) AS l, head(labels(b)) AS l2, type(r) AS rel_type, count(*) as count
@@ -63,6 +97,20 @@ RETURN *;
 * there are also static methods Jobs.submit, and Jobs.schedule to be used from other procedures
 * jobs list is checked / cleared every 10s for finished jobs
 
+=== Graph Refactoring
+
+* √ `call apoc.refactor.cloneNodes([node1,node2,...])` clone nodes with their labels and properties
+* √ `call apoc.refactor.cloneNodesWithRelationships([node1,node2,...])` clone nodes with their labels, properties and relationships
+* √ `call apoc.refactor.mergeNodes([node1,node2])` merge nodes onto first in list
+* √ `call apoc.refactor.to(rel, endNode)` redirect relationship to use new end-node
+* √ `call apoc.refactor.from(rel, startNode)` redirect relationship to use new start-node
+* √ `call apoc.refactor.setType(rel, 'NEW-TYPE')` change relationship-type
+* merge nodes by label + property
+* merge relationships
+* extract node from relationship
+* collapse node to relationship
+
+
 === Helpers
 
 * `apoc.util.IN(value, coll)` optimized IN operation (using a HashSet)
@@ -72,16 +120,26 @@ RETURN *;
 
 == Plans
 
+* √ virtual nodes and rels
+* √ meta graph
+* √ manual indexes
+
+* in browser guide as apoc-help-page
 * optimized collection functions
 * Time Conversion Functions (ISO<->ts, padded long representation)
 * custom expanders, e.g. with rel-type suffixes
-* √ virtual nodes and rels
-* √ meta graph
 * meta graph with sampling
 * help procs
+* json to graph (mapping)
+* virtual graph from collection of nodes and rels, handle node-uniqueness
+* RDF / Ontology loader
 
 == Later Plans
 
-* Graph Refactorings
-* Job Queue
+* Graph Refactorings (WIP)
+* Job Queue (WIP)
 * Procedures in other languages (e.g. JS)
+
+== License
+
+Apache License 2.0

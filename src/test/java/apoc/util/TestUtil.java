@@ -18,7 +18,7 @@ import static org.junit.Assert.assertFalse;
  * @since 26.02.16
  */
 public class TestUtil {
-    static void testCall(GraphDatabaseService db, String call, Consumer<Map<String, Object>> consumer) {
+    public static void testCall(GraphDatabaseService db, String call, Consumer<Map<String, Object>> consumer) {
         testResult(db, call, (res) -> {
             if (res.hasNext()) {
                 Map<String, Object> row = res.next();
@@ -35,7 +35,7 @@ public class TestUtil {
         }
     }
 
-    static void registerProcedure(GraphDatabaseService db, Class<?> procedure) throws KernelException {
+    public static void registerProcedure(GraphDatabaseService db, Class<?> procedure) throws KernelException {
         ((GraphDatabaseAPI)db).getDependencyResolver().resolveDependency(Procedures.class).register(procedure);
     }
 }
