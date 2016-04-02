@@ -124,20 +124,26 @@ RETURN *;
 * √ meta graph
 * √ manual indexes
 
+* access to property value type and conversions
+* lockNodes(), lockRels(), or lock(nodes, rels) (either of which can be empty or null)
+* parallel(fragment, params-list, result list)
 * in browser guide as apoc-help-page
 * optimized collection functions
 * Time Conversion Functions (ISO<->ts, padded long representation)
 * custom expanders, e.g. with rel-type suffixes
 * meta graph with sampling
+* ordered, limited retrieval from index (both manual and schema index)
 * help procs
 * json to graph (mapping)
 * virtual graph from collection of nodes and rels, handle node-uniqueness
 * RDF / Ontology loader
+* Encryption / decryption of single properties or a subset or all properties (provide decryption key as param or config)
+* Graph Algorithms
 
 == Later Plans
 
 * Graph Refactorings (WIP)
-* Job Queue (WIP)
+* Job Queue (WIP) See https://github.com/jakewins/neo4j-procedure-template/blob/batch/src/main/java/example/BatchedWrites.java[BatchedWriter from Jake/Max]
 * Procedures in other languages (e.g. JS)
 
 == License

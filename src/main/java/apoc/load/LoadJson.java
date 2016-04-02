@@ -25,14 +25,26 @@ public class LoadJson {
     @Context public GraphDatabaseService db;
 
     @Procedure
-    public Stream<ObjectResult> json(@Name("url") String url) {
+    public Stream<ObjectResult> jsonArray(@Name("url") String url) {
         try {
             Object value = Json.OBJECT_MAPPER.readValue(new URL(url), Object.class);
-                if (value instanceof Iterable) {
-                return StreamSupport.stream(((Iterable<Object>)value).spliterator(),false).<ObjectResult>map(ObjectResult::new);
+            if (value instanceof List) {
+                return ((List)value).stream().map(ObjectResult::new);
             }
+            throw new RuntimeException("Incompatible Type "+(value==null ? "null" : value.getClass()));
+        } catch (IOException e) {
+            throw new RuntimeException("Can't read url " + url + " as json", e);
+        }
+    }
+    @Procedure
+    public Stream<MapResult> json(@Name("url") String url) {
+        try {
+            Object value = Json.OBJECT_MAPPER.readValue(new URL(url), Object.class);
             if (value instanceof Map) {
-                return Stream.of(new ObjectResult(value));
+                return Stream.of(new MapResult((Map)value));
+            }
+            if (value instanceof List) {
+                return ((List)value).stream().map( (v) -> new MapResult((Map)v));
             }
             throw new RuntimeException("Incompatible Type "+(value==null ? "null" : value.getClass()));
         } catch (IOException e) {
