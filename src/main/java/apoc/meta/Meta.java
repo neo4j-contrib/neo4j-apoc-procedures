@@ -2,9 +2,12 @@ package apoc.meta;
 
 import apoc.result.*;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.schema.ConstraintDefinition;
+import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.graphdb.schema.Schema;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
-import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
 import java.util.*;
@@ -12,7 +15,6 @@ import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.min;
-import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 
 public class Meta {
@@ -21,6 +23,171 @@ public class Meta {
 
     @Context
     public GraphDatabaseService db;
+
+    @Context
+    public KernelTransaction kernelTx;
+
+    public enum Types {
+        INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,NULL,UNKNOWN;
+
+        public static Types of(Object value) {
+            if (value==null) return NULL;
+            Class type = value.getClass();
+            if (type.isArray()) {
+                type = type.getComponentType();
+            }
+            if (Number.class.isAssignableFrom(type)) {
+                return double.class.isAssignableFrom(type) || Double.class.isAssignableFrom(type) ||
+                       Float.class.isAssignableFrom(type) || float.class.isAssignableFrom(type) ? FLOAT : INTEGER;
+            }
+            if (type == Boolean.class || type == boolean.class) return BOOLEAN;
+            if (value instanceof String) return STRING;
+            return UNKNOWN;
+        }
+    }
+    public static class MetaResult {
+        public String label;
+        public String property;
+        public boolean unique;
+        public boolean index;
+        public boolean existence;
+        public String type;
+        public boolean array;
+        public List<Object> sample;
+        public long left; // 0,1,
+        public long right; // 0,1,many
+        public List<String> other;
+
+        public MetaResult(String label, String name) {
+            this.label = label;
+            this.property = name;
+        }
+
+        public MetaResult rel(int out, int in) {
+            this.type = Types.RELATIONSHIP.name();
+            if (out>1) array = true;
+            left = out;
+            right = in;
+            return this;
+        }
+
+        public MetaResult other(List<String> labels) {
+            this.other = labels;
+            return this;
+        }
+
+        public MetaResult type(String type) {
+            this.type = type;
+            return this;
+        }
+
+        public MetaResult array(boolean array) {
+            this.array = array;
+            return this;
+        }
+    }
+    static final int SAMPLE = 100;
+
+
+    @Procedure
+    public Stream<StringResult> type(@Name("value") Object value) {
+        String typeName = Types.of(value).name();
+        if (value != null && value.getClass().isArray()) typeName +="[]";
+        return Stream.of(new StringResult(typeName));
+    }
+    @Procedure
+    public Stream<MetaResult> data() {
+        // db size, all labels, all rel-types
+        Map<String,Map<String,MetaResult>> labels = new LinkedHashMap<>(100);
+        Schema schema = db.schema();
+        for (Label label : db.getAllLabels()) {
+            Map<String,MetaResult> properties = new LinkedHashMap<>(50);
+            String labelName = label.name();
+            labels.put(labelName, properties);
+            Iterable<ConstraintDefinition> constraints = schema.getConstraints(label);
+            Set<String> indexed = new LinkedHashSet<>();
+            for (IndexDefinition index : schema.getIndexes(label)) {
+                for (String prop : index.getPropertyKeys()) {
+                    indexed.add(prop);
+                }
+            }
+            try (ResourceIterator<Node> nodes = db.findNodes(label)) {
+                int count = 0;
+                while (nodes.hasNext() && count++ < SAMPLE) {
+                    Node node = nodes.next();
+                    addRelationships(properties, labelName, node);
+                    addProperties(properties, labelName, constraints, indexed, node);
+                }
+            }
+        }
+        return labels.values().stream().flatMap(x -> x.values().stream());
+    }
+
+    private void addProperties(Map<String, MetaResult> properties, String labelName, Iterable<ConstraintDefinition> constraints, Set<String> indexed, Node node) {
+        for (String prop : node.getPropertyKeys()) {
+            if (properties.containsKey(prop)) continue;
+            MetaResult res = metaResultForProp(node, labelName, prop);
+            addSchemaInfo(res, prop, constraints, indexed);
+            properties.put(prop,res);
+        }
+    }
+
+    private void addRelationships(Map<String, MetaResult> properties, String labelName, Node node) {
+        for (RelationshipType type : node.getRelationshipTypes()) {
+            if (properties.containsKey(type.name())) continue;
+            MetaResult res = metaResultForRelationship(labelName, node, type);
+            addOtherNodeInfo(node, type, res);
+            properties.put(type.name(),res);
+        }
+    }
+
+    private void addOtherNodeInfo(Node node, RelationshipType type, MetaResult res) {
+        if (res.left == 0) return;
+        Iterator<Relationship> rels = node.getRelationships(type, Direction.OUTGOING).iterator();
+        res.other = toStrings(rels.next().getEndNode().getLabels());
+    }
+
+    private MetaResult metaResultForRelationship(String labelName, Node node, RelationshipType type) {
+        int in = node.getDegree(type, Direction.INCOMING);
+        int out = node.getDegree(type, Direction.OUTGOING);
+        return new MetaResult(labelName,type.name()).rel(out,in);
+    }
+
+    private void addSchemaInfo(MetaResult res, String prop, Iterable<ConstraintDefinition> constraints, Set<String> indexed) {
+        if (indexed.contains(prop)) {
+            res.index = true;
+        }
+        for (ConstraintDefinition constraint : constraints) {
+            for (String key : constraint.getPropertyKeys()) {
+                if (key.equals(prop)) {
+                    switch (constraint.getConstraintType()) {
+                        case UNIQUENESS: res.unique = true; break;
+                        case NODE_PROPERTY_EXISTENCE:res.existence = true; break;
+                        case RELATIONSHIP_PROPERTY_EXISTENCE: res.existence = true; break;
+                    }
+                }
+            }
+        }
+    }
+
+    private MetaResult metaResultForProp(Node node, String labelName, String prop) {
+        MetaResult res = new MetaResult(labelName, prop);
+        Object value = node.getProperty(prop);
+        res = res.type(Types.of(value).name());
+        if (value.getClass().isArray()) {
+            res.array = true;
+        }
+        return res;
+    }
+
+    private List<String> toStrings(Iterable<Label> labels) {
+        List<String> res=new ArrayList<>(10);
+        for (Label label : labels) {
+            String name = label.name();
+            res.add(name);
+        }
+        return res;
+    }
 
     @Procedure
     public Stream<GraphResult> graph() {

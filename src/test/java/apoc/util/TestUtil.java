@@ -8,6 +8,7 @@ import org.neo4j.kernel.api.exceptions.KernelException;
 import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -19,7 +20,10 @@ import static org.junit.Assert.assertFalse;
  */
 public class TestUtil {
     public static void testCall(GraphDatabaseService db, String call, Consumer<Map<String, Object>> consumer) {
-        testResult(db, call, (res) -> {
+        testCall(db,call,null,consumer);
+    }
+    public static void testCall(GraphDatabaseService db, String call,Map<String,Object> params, Consumer<Map<String, Object>> consumer) {
+        testResult(db, call, params, (res) -> {
             if (res.hasNext()) {
                 Map<String, Object> row = res.next();
                 consumer.accept(row);
@@ -29,8 +33,12 @@ public class TestUtil {
     }
 
     public static void testResult(GraphDatabaseService db, String call, Consumer<Result> resultConsumer) {
+        testResult(db,call,null,resultConsumer);
+    }
+    public static void testResult(GraphDatabaseService db, String call, Map<String,Object> params, Consumer<Result> resultConsumer) {
         try (Transaction tx = db.beginTx()) {
-            resultConsumer.accept(db.execute(call));
+            Map<String, Object> p = (params == null) ? Collections.<String, Object>emptyMap() : params;
+            resultConsumer.accept(db.execute(call, p));
             tx.success();
         }
     }

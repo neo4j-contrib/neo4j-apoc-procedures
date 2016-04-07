@@ -7,7 +7,7 @@ If you want to run embedded or use shell on a disk store, configure your `plugin
 
 == Calling Procedures within Cypher
 
-This repository uses a bleeding edge build (SNAPSHOT or RC1) of Neo4j, so that it can leverage procedures being called within Cypher statements.
+This repository uses a recent build (SNAPSHOT or RC1) of Neo4j, so that it can leverage procedures being called within Cypher statements.
 You can download it yourself from http://alpha.neohq.net
 
 [source,cypher]
@@ -39,7 +39,16 @@ Returns a virtual graph that represents the labels and relationship-types availa
 NOTE: This doesn't work with the current Neo4j-Browser due to a JS issue, but you can test it with curl or other browsers.
 
 * `CALL apoc.meta.graph` - examines the full graph to create the meta-graph
+* `CALL apoc.meta.data`  - examines a subset of the graph to provide a tabular meta information
+* `CALL apoc.meta.type(value)`  - type name of a value
 * TODO a sampling variant
+
+=== Locking
+
+
+* `call apoc.lock.nodes([nodes])` acquires a write lock on the given nodes
+* `call apoc.lock.rels([relationships])` acquires a write lock on the given relationship
+* `call apoc.lock.all([nodes],[relationships])` acquires a write lock on the given nodes and relationships
 
 === from/toJson
 
@@ -94,7 +103,7 @@ RETURN *;
 * `CALL apoc.jobs.list` list all jobs
 * `CALL apoc.jobs.submit('name',statement)` submit a one-off background statement
 * `CALL apoc.jobs.schedule('name',statement,repeat-time-in-seconds)` submit a repeatedly-called background statement
-* there are also static methods Jobs.submit, and Jobs.schedule to be used from other procedures
+* there are also static methods `Jobs.submit`, and `Jobs.schedule` to be used from other procedures
 * jobs list is checked / cleared every 10s for finished jobs
 
 === Graph Refactoring
@@ -113,19 +122,34 @@ RETURN *;
 
 === Helpers
 
-* `apoc.util.IN(value, coll)` optimized IN operation (using a HashSet)
-* `apoc.util.sort(coll)` sort on Collections
 
-* `CREATE (n {name:'foo'}),(m {name:'bar'}) WITH n,m CALL apoc.util.sortNodes([n,m], 'name') YIELD value RETURN value` sort nodes by property _(experimental)_
+* `apoc.map.fromPairs([[key,value],[key2,value2],...])`
+* `apoc.map.fromLists([keys],[values])`
+* `apoc.map.fromValues([key,value,key1,value1])`
+* `apoc.map.setKey(map,key,value)`
+
+* `apoc.coll.sum([0.5,1,2.3])`
+* `apoc.coll.min([0.5,1,2.3])`
+* `apoc.coll.max([0.5,1,2.3])`
+* `apoc.coll.sumLongs([1,3,3])`
+* `apoc.coll.partition(list,batchSize)`
+* `apoc.coll.zip([list1],[list2])`
+* `apoc.coll.pairs([list])` returns `[first,second],[second,third], ...
+* `apoc.coll.sort(coll)` sort on Collections
+* `apoc.coll.sortNodes([nodes], 'name')` sort nodes by property
+* `apoc.coll.contains(coll, value)` optimized contains operation (using a HashSet)
+* `apoc.coll.containsSorted(coll, value)` optimized contains on a sorted list operation (Collections.binarySearch)
+
 
 == Plans
 
 * √ virtual nodes and rels
 * √ meta graph
 * √ manual indexes
-
-* access to property value type and conversions
-* lockNodes(), lockRels(), or lock(nodes, rels) (either of which can be empty or null)
+* map functions, e.g. create map from pairs, from two lists, alternating key-value entries in a list, set map keys dynamically
+* collection functions, like `pairs(collection, step)` or `zip(coll1,coll2, colln)`
+* access to property value type and additional conversions
+* √ lockNodes(), lockRels(), or lock(nodes, rels) (either of which can be empty or null)
 * parallel(fragment, params-list, result list)
 * in browser guide as apoc-help-page
 * optimized collection functions
@@ -144,6 +168,7 @@ RETURN *;
 
 * Graph Refactorings (WIP)
 * Job Queue (WIP) See https://github.com/jakewins/neo4j-procedure-template/blob/batch/src/main/java/example/BatchedWrites.java[BatchedWriter from Jake/Max]
+* eval javascript
 * Procedures in other languages (e.g. JS)
 
 == License

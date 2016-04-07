@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.Collections;
 import java.util.List;
 
 import static apoc.util.TestUtil.testCall;
@@ -24,6 +25,21 @@ public class MetaTest {
 
     @After public void tearDown() {
         db.shutdown();
+    }
+
+    @Test public void testMetaType() throws Exception {
+        testTypeName(1L, "INTEGER");
+        testTypeName(1, "INTEGER");
+        testTypeName(1.0D, "FLOAT");
+        testTypeName(1.0, "FLOAT");
+        testTypeName("a", "STRING");
+        testTypeName(false, "BOOLEAN");
+        testTypeName(true, "BOOLEAN");
+        testTypeName(null, "NULL");
+    }
+
+    private void testTypeName(Object value, String type) {
+        testCall(db, "CALL apoc.meta.type", Collections.singletonMap("value", value), row -> assertEquals(type, row.get("value")));
     }
 
     @Test public void testMetaGraph() throws Exception {
