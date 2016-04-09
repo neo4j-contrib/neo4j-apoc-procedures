@@ -1,5 +1,6 @@
 package apoc.result;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -7,7 +8,12 @@ import java.util.Map;
  * @since 26.02.16
  */
 public class MapResult {
-    public final Map value;
+	private static final MapResult EMPTY = new MapResult(Collections.emptyMap());
+	public final Map value;
+
+	public static MapResult empty() {
+		return EMPTY;
+	}
 
     public MapResult(Map value) {
         this.value = value;
