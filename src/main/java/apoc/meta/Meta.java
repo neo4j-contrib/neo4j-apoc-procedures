@@ -248,29 +248,33 @@ public class Meta {
 
 
     @Procedure
-    public Stream<GraphResult> graph2() {
+    public Stream<GraphResult> graphSample(@Name("sample") Long sampleSize ) {
         Map<String, Node> labels = new TreeMap<>();
         Map<List<String>,Relationship> rels = new HashMap<>();
         Sampler sampler = new Sampler() {
             public void sample(Label label, int count, Node node) {
-                mergeMetaNode(label, labels);
+                mergeMetaNode(label, labels,true);
             }
             public void sample(Label label, int count, Node node, RelationshipType type, Direction direction, int degree, Relationship rel) {
-                addRel(rels,labels, rel);
+                if (rel!=null) {
+                    addRel(rels, labels, rel);
+                }
             }
         };
-        sample(db,sampler, SAMPLE);
+        long sample = sampleSize == null || sampleSize < 100 ? SAMPLE : sampleSize;
+        sample(db,sampler, (int) sample);
         return Stream.of(new GraphResult(new ArrayList<>(labels.values()), new ArrayList<>(rels.values())));
     }
 
-    private void mergeMetaNode(Label label, Map<String, Node> labels) {
+    private Node mergeMetaNode(Label label, Map<String, Node> labels, boolean increment) {
         String name = label.name();
         Node vNode = labels.get(name);
         if (vNode == null) {
             vNode = new VirtualNode(new Label[] {label,META[0]}, Collections.singletonMap("name", name),db);
             labels.put(name, vNode);
         }
-        vNode.setProperty("count",((int)vNode.getProperty("count",0))+1);
+        if (increment) vNode.setProperty("count",((int)vNode.getProperty("count",0))+1);
+        return vNode;
     }
 
     private void addRel(Map<List<String>, Relationship> rels, Map<String, Node> labels, Relationship rel) {
@@ -278,12 +282,12 @@ public class Meta {
         Node startNode = rel.getStartNode();
         Node endNode = rel.getEndNode();
         for (Label labelA : startNode.getLabels()) {
-            Node nodeA = labels.get(labelA.name());
+            Node nodeA = mergeMetaNode(labelA,labels,false);
             for (Label labelB : endNode.getLabels()) {
                 List<String> key = asList(labelA.name(), labelB.name(), typeName);
                 Relationship vRel = rels.get(key);
                 if (vRel==null) {
-                    Node nodeB = labels.get(labelB.name());
+                    Node nodeB = mergeMetaNode(labelB,labels,false);
                     vRel = new VirtualRelationship(nodeA,nodeB,rel.getType()).withProperties(singletonMap("type",typeName));
                     rels.put(key,vRel);
                 }
@@ -294,7 +298,7 @@ public class Meta {
 
     private void addLabels(Map<String, Node> labels, Node node) {
         for (Label label : node.getLabels()) {
-            mergeMetaNode(label, labels);
+            mergeMetaNode(label, labels,true);
         }
     }
 

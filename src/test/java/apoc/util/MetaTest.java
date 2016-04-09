@@ -103,4 +103,25 @@ public class MetaTest {
                     assertEquals(1,rel.getProperty("count"));
                 });
     }
+    @Test public void testMetaGraph2() throws Exception {
+        db.execute("CREATE (:Actor)-[:ACTED_IN]->(:Movie) ").close();
+        testCall(db, "CALL apoc.meta.graphSample(100)",
+                (row) -> {
+                    List<Node> nodes = (List<Node>) row.get("nodes");
+                    Node n1 = nodes.get(0);
+                    assertEquals(true,n1.hasLabel(Label.label("Meta")));
+                    assertEquals(true,n1.hasLabel(Label.label("Actor")));
+                    assertEquals(1,n1.getProperty("count"));
+                    assertEquals("Actor",n1.getProperty("name"));
+                    Node n2 = nodes.get(1);
+                    assertEquals(true,n2.hasLabel(Label.label("Meta")));
+                    assertEquals(true,n2.hasLabel(Label.label("Movie")));
+                    assertEquals("Movie",n2.getProperty("name"));
+                    assertEquals(1,n1.getProperty("count"));
+                    List<Relationship> rels = (List<Relationship>) row.get("relationships");
+                    Relationship rel = rels.iterator().next();
+                    assertEquals("ACTED_IN",rel.getType().name());
+                    assertEquals(1,rel.getProperty("count"));
+                });
+    }
 }
