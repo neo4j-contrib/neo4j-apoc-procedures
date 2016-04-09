@@ -202,6 +202,38 @@ public class Meta {
         return res;
     }
 
+    interface Sampler {
+        void sample(Label label, int count, Node node);
+        void sample(Label label, int count, Node node, RelationshipType type, Direction direction, int degree, Relationship rel);
+    }
+    public void sample(GraphDatabaseService db, Sampler sampler, int sampleSize) {
+        for (Label label : db.getAllLabelsInUse()) {
+            ResourceIterator<Node> nodes = db.findNodes(label);
+            int count = 0;
+            while (nodes.hasNext() && count++ < sampleSize) {
+                Node node = nodes.next();
+                sampler.sample(label,count,node);
+                for (RelationshipType type : node.getRelationshipTypes()) {
+                    sampleRels(sampleSize, sampler, label, count, node, type);
+                }
+            }
+            nodes.close();
+        }
+    }
+
+    private void sampleRels(int sampleSize, Sampler sampler, Label label, int count, Node node, RelationshipType type) {
+        Direction direction = Direction.OUTGOING;
+        int degree = node.getDegree(type, direction);
+        sampler.sample(label,count,node,type,direction,degree,null);
+        if (degree==0) return;
+        ResourceIterator<Relationship> relIt = ((ResourceIterable<Relationship>)node.getRelationships(direction, type)).iterator();
+        int relCount = 0;
+        while (relIt.hasNext() && relCount++ < sampleSize) {
+            sampler.sample(label,count,node,type,direction,degree,relIt.next());
+        }
+        relIt.close();
+    }
+
     @Procedure
     public Stream<GraphResult> graph() {
         Map<String,Node> labels = new TreeMap<>();
@@ -212,6 +244,33 @@ public class Meta {
             addRel(rels,labels, rel);
         }
         return Stream.of(new GraphResult(new ArrayList<>(labels.values()), new ArrayList<>(rels.values())));
+    }
+
+
+    @Procedure
+    public Stream<GraphResult> graph2() {
+        Map<String, Node> labels = new TreeMap<>();
+        Map<List<String>,Relationship> rels = new HashMap<>();
+        Sampler sampler = new Sampler() {
+            public void sample(Label label, int count, Node node) {
+                mergeMetaNode(label, labels);
+            }
+            public void sample(Label label, int count, Node node, RelationshipType type, Direction direction, int degree, Relationship rel) {
+                addRel(rels,labels, rel);
+            }
+        };
+        sample(db,sampler, SAMPLE);
+        return Stream.of(new GraphResult(new ArrayList<>(labels.values()), new ArrayList<>(rels.values())));
+    }
+
+    private void mergeMetaNode(Label label, Map<String, Node> labels) {
+        String name = label.name();
+        Node vNode = labels.get(name);
+        if (vNode == null) {
+            vNode = new VirtualNode(new Label[] {label,META[0]}, Collections.singletonMap("name", name),db);
+            labels.put(name, vNode);
+        }
+        vNode.setProperty("count",((int)vNode.getProperty("count",0))+1);
     }
 
     private void addRel(Map<List<String>, Relationship> rels, Map<String, Node> labels, Relationship rel) {
@@ -235,13 +294,7 @@ public class Meta {
 
     private void addLabels(Map<String, Node> labels, Node node) {
         for (Label label : node.getLabels()) {
-            String name = label.name();
-            Node vNode = labels.get(name);
-            if (vNode == null) {
-                vNode = new VirtualNode(META, Collections.singletonMap("name", name),db);
-                labels.put(name, vNode);
-            }
-            vNode.setProperty("count",((int)vNode.getProperty("count",0))+1);
+            mergeMetaNode(label, labels);
         }
     }
 

@@ -74,8 +74,8 @@ public class CollTest {
     }
 
     @Test public void testIN() throws Exception {
-        testCall(db, "CALL apoc.coll.contains([1,2,3],1)",
-                (row) -> assertEquals(true, row.get("value")));
+        testResult(db, "CALL apoc.coll.contains([1,2,3],1)",
+                (res) -> assertEquals(true, res.hasNext()));
     }
     @Test public void testIN2() throws Exception {
         int elements = 1_000_000;
@@ -87,8 +87,8 @@ public class CollTest {
         params.put("list", list);
         params.put("value", list.get(list.size()-1));
         long start = System.currentTimeMillis();
-        testCall(db, "CALL apoc.coll.contains({list},{value})", params,
-                (row) -> assertEquals(true, row.get("value")));
+        testResult(db, "CALL apoc.coll.contains({list},{value})", params,
+                (res) -> assertEquals(true, res.hasNext()));
         System.out.printf("contains test on %d elements took %d ms%n", elements, System.currentTimeMillis() - start);
     }
     @Test public void testContainsSorted() throws Exception {
@@ -101,8 +101,8 @@ public class CollTest {
         params.put("list", list);
         params.put("value", list.get(list.size()/2));
         long start = System.currentTimeMillis();
-        testCall(db, "CALL apoc.coll.containsSorted({list},{value})", params,
-                (row) -> assertEquals(true, row.get("value")));
+        testResult(db, "CALL apoc.coll.containsSorted({list},{value})", params,
+                (res) -> assertEquals(true, res.hasNext()));
         System.out.printf("contains sorted test on %d elements took %d ms%n", elements, System.currentTimeMillis() - start);
     }
 
