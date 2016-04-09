@@ -28,7 +28,7 @@ public class Meta {
     public KernelTransaction kernelTx;
 
     public enum Types {
-        INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,NULL,UNKNOWN;
+        INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST;
 
         public static Types of(Object value) {
             if (value==null) return NULL;
@@ -42,6 +42,11 @@ public class Meta {
             }
             if (type == Boolean.class || type == boolean.class) return BOOLEAN;
             if (value instanceof String) return STRING;
+            if (Map.class.isAssignableFrom(type)) return MAP;
+            if (Node.class.isAssignableFrom(type)) return NODE;
+            if (Relationship.class.isAssignableFrom(type)) return RELATIONSHIP;
+            if (Path.class.isAssignableFrom(type)) return PATH;
+            if (Iterable.class.isAssignableFrom(type)) return LIST;
             return UNKNOWN;
         }
     }
@@ -95,6 +100,14 @@ public class Meta {
         if (value != null && value.getClass().isArray()) typeName +="[]";
         return Stream.of(new StringResult(typeName));
     }
+
+    @Procedure
+    public Stream<Empty> isType(@Name("value") Object value, @Name("type") String type) {
+        String typeName = Types.of(value).name();
+        if (value != null && value.getClass().isArray()) typeName +="[]";
+        return Empty.stream(type.equalsIgnoreCase(typeName));
+    }
+
     @Procedure
     public Stream<MetaResult> data() {
         // db size, all labels, all rel-types

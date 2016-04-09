@@ -40,8 +40,16 @@ NOTE: This doesn't work with the current Neo4j-Browser due to a JS issue, but yo
 
 * `CALL apoc.meta.graph` - examines the full graph to create the meta-graph
 * `CALL apoc.meta.data`  - examines a subset of the graph to provide a tabular meta information
-* `CALL apoc.meta.type(value)`  - type name of a value
+* `CALL apoc.meta.type(value)`  - type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST`)
+* `CALL apoc.meta.isType(value,type)` - returns a row if type name matches none if not
 * TODO a sampling variant
+
+[source,cypher]
+----
+MATCH (n:Person)
+CALL apoc.meta.isType(n.age,"INTEGER")
+RETURN n LIMIT 5
+----
 
 === Locking
 
@@ -85,6 +93,8 @@ Please note that they have negative id's.
 * `CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo)` returns a virtual relationship
 * `CALL apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value})` returns a virtual pattern
 * `CALL apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value})` returns a virtual pattern
+
+* TODO `CALL apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])
 
 Example
 
@@ -137,8 +147,8 @@ RETURN *;
 * `apoc.coll.pairs([list])` returns `[first,second],[second,third], ...
 * `apoc.coll.sort(coll)` sort on Collections
 * `apoc.coll.sortNodes([nodes], 'name')` sort nodes by property
-* `apoc.coll.contains(coll, value)` optimized contains operation (using a HashSet)
-* `apoc.coll.containsSorted(coll, value)` optimized contains on a sorted list operation (Collections.binarySearch)
+* `apoc.coll.contains(coll, value)` optimized contains operation (using a HashSet) (returns single row or not)
+* `apoc.coll.containsSorted(coll, value)` optimized contains on a sorted list operation (Collections.binarySearch) (returns single row or not)
 
 
 == Plans

@@ -9,6 +9,7 @@ import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -22,6 +23,15 @@ public class TestUtil {
     public static void testCall(GraphDatabaseService db, String call, Consumer<Map<String, Object>> consumer) {
         testCall(db,call,null,consumer);
     }
+
+    public static Map<String,Object> map(Object ... values) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        for (int i = 0; i < values.length; i+=2) {
+            map.put(values[i].toString(),values[i+1]);
+        }
+        return map;
+    }
+
     public static void testCall(GraphDatabaseService db, String call,Map<String,Object> params, Consumer<Map<String, Object>> consumer) {
         testResult(db, call, params, (res) -> {
             if (res.hasNext()) {

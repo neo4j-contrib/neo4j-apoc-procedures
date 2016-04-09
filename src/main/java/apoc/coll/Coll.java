@@ -1,7 +1,6 @@
 package apoc.coll;
 
 import apoc.result.*;
-import org.neo4j.cypher.internal.frontend.v2_3.perty.recipe.Pretty;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
@@ -11,7 +10,6 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -76,20 +74,20 @@ public class Coll {
     }
 
     @Procedure
-    public Stream<BooleanResult> contains(@Name("coll") List<Object> coll,@Name("value") Object value) {
+    public Stream<Empty> contains(@Name("coll") List<Object> coll, @Name("value") Object value) {
         boolean result =  new HashSet<>(coll).contains(value);
 //        int batchSize = 250;
 //        boolean result = (coll.size() < batchSize) ? coll.contains(value) : partitionList(coll, batchSize).parallel().anyMatch(list -> list.contains(value));
-        return Stream.of(result ? BooleanResult.TRUE : BooleanResult.FALSE);
+        return Empty.stream(result);
     }
     @Procedure
-    public Stream<BooleanResult> containsSorted(@Name("coll") List<Object> coll,@Name("value") Object value) {
+    public Stream<Empty> containsSorted(@Name("coll") List<Object> coll, @Name("value") Object value) {
         int batchSize = 5000-1; // Collections.binarySearchThreshold
         List list = (coll instanceof RandomAccess || coll.size() < batchSize) ? coll : new ArrayList(coll);
         boolean result = Collections.binarySearch(list, value) >= 0;
 //        Predicate<List> contains = l -> Collections.binarySearch(l, value) >= 0;
 //        boolean result = (list.size() < batchSize) ? contains.test(list) : partitionList(list, batchSize).parallel().anyMatch(contains);
-        return Stream.of(result ? BooleanResult.TRUE : BooleanResult.FALSE);
+        return Empty.stream(result);
     }
 
 

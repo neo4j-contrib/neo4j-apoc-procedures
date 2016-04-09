@@ -11,9 +11,13 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import java.util.Collections;
 import java.util.List;
 
+import static apoc.util.TestUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
+import static org.neo4j.graphdb.traversal.Evaluators.toDepth;
 
 public class MetaTest {
 
@@ -28,6 +32,17 @@ public class MetaTest {
     }
 
     @Test public void testMetaType() throws Exception {
+        try (Transaction tx = db.beginTx()) {
+            Node node = db.createNode();
+            Relationship rel = node.createRelationshipTo(node, RelationshipType.withName("FOO"));
+            testTypeName(node, "NODE");
+            testTypeName(rel, "RELATIONSHIP");
+            Path path = db.traversalDescription().evaluator(toDepth(1)).traverse(node).iterator().next();
+            testTypeName(path, "PATH");
+            tx.failure();
+        }
+        testTypeName(singletonMap("a",10), "MAP");
+        testTypeName(asList(1,2), "LIST");
         testTypeName(1L, "INTEGER");
         testTypeName(1, "INTEGER");
         testTypeName(1.0D, "FLOAT");
@@ -37,9 +52,34 @@ public class MetaTest {
         testTypeName(true, "BOOLEAN");
         testTypeName(null, "NULL");
     }
+    @Test public void testMetaIsType() throws Exception {
+        try (Transaction tx = db.beginTx()) {
+            Node node = db.createNode();
+            Relationship rel = node.createRelationshipTo(node, RelationshipType.withName("FOO"));
+            testIsTypeName(node, "NODE");
+            testIsTypeName(rel, "RELATIONSHIP");
+            Path path = db.traversalDescription().evaluator(toDepth(1)).traverse(node).iterator().next();
+            testIsTypeName(path, "PATH");
+            tx.failure();
+        }
+        testIsTypeName(singletonMap("a",10), "MAP");
+        testIsTypeName(asList(1,2), "LIST");
+        testIsTypeName(1L, "INTEGER");
+        testIsTypeName(1, "INTEGER");
+        testIsTypeName(1.0D, "FLOAT");
+        testIsTypeName(1.0, "FLOAT");
+        testIsTypeName("a", "STRING");
+        testIsTypeName(false, "BOOLEAN");
+        testIsTypeName(true, "BOOLEAN");
+        testIsTypeName(null, "NULL");
+    }
 
     private void testTypeName(Object value, String type) {
-        testCall(db, "CALL apoc.meta.type", Collections.singletonMap("value", value), row -> assertEquals(type, row.get("value")));
+        testCall(db, "CALL apoc.meta.type", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
+    }
+    private void testIsTypeName(Object value, String type) {
+        testResult(db, "CALL apoc.meta.isType", map("value", value,"type",type), result -> assertEquals(true, result.hasNext()));
+        testResult(db, "CALL apoc.meta.isType", map("value", value,"type",type+"foo"), result -> assertEquals(false, result.hasNext()));
     }
 
     @Test public void testMetaGraph() throws Exception {
