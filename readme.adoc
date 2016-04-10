@@ -145,10 +145,14 @@ RETURN *;
 * `apoc.coll.partition(list,batchSize)`
 * `apoc.coll.zip([list1],[list2])`
 * `apoc.coll.pairs([list])` returns `[first,second],[second,third], ...
+* `apoc.coll.toSet([list])` returns a unique list backed by a set
 * `apoc.coll.sort(coll)` sort on Collections
 * `apoc.coll.sortNodes([nodes], 'name')` sort nodes by property
 * `apoc.coll.contains(coll, value)` optimized contains operation (using a HashSet) (returns single row or not)
+* `apoc.coll.containsAll(coll, values)` optimized contains-all operation (using a HashSet) (returns single row or not)
 * `apoc.coll.containsSorted(coll, value)` optimized contains on a sorted list operation (Collections.binarySearch) (returns single row or not)
+
+* `apoc.coll.containsAllSorted(coll, value)` optimized contains-all on a sorted list operation (Collections.binarySearch) (returns single row or not)
 
 
 === Date/time Support
@@ -162,12 +166,16 @@ RETURN *;
 
 * `apoc.date.toMillis('2015-03-25 03:15:59')` get Unix time equivalent of given date (in milliseconds)
 * `apoc.date.toMillisFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss')` same as previous, but accepts custom datetime format
-* `apoc.date.fromMillis(12345)` get string representation of date corresponding to given Unix time (in seconds)
+* `apoc.date.fromMillis(12345)` get string representation of date corresponding to given time in milliseconds
 * `apoc.date.fromMillisFormatted(12345, 'yyyy/MM/dd HH/mm/ss')` the same as previous, but accepts custom datetime format
 
 ==== Reading separate datetime fields:
 
 Splits date (optionally, using given custom format) into fields returning a map from field name to its value.
+
+* `apoc.date.fields('2015-03-25 03:15:59')`
+* `apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')`
+
 Following fields are supported:
 
 [options="header"]
@@ -231,30 +239,21 @@ apoc.date.fieldsFormatted('2015/01/02_EET', 'yyyy/MM/dd_z') =>
 == Plans
 
 * warmup procedures that load nodes / rels by skipping one page at a time (8kb/15bytes) (8kb/35bytes)
-* √ virtual nodes and rels
-* √ meta graph
-* √ manual indexes
-* √ map functions, e.g. create map from pairs, from two lists, alternating key-value entries in a list, set map keys dynamically
-* √ collection functions, like `pairs(collection, step)` or `zip(coll1,coll2, colln)`
-* √ access to property value type and additional conversions
-* √ lockNodes(), lockRels(), or lock(nodes, rels) (either of which can be empty or null)
 * parallel(fragment, params-list, result list)
 * in browser guide as apoc-help-page
-* √ optimized collection functions
+* (√) optimized collection functions (WIP)
 * Time Conversion Functions (ISO<->ts, padded long representation)
 * custom expanders, e.g. with rel-type suffixes
-* meta graph with sampling
 * ordered, limited retrieval from index (both manual and schema index)
-* help procs
 * json to graph (mapping)
 * virtual graph from collection of nodes and rels, handle node-uniqueness with pk
 * RDF / Ontology loader
 * Encryption / decryption of single properties or a subset or all properties (provide decryption key as param or config)
 * Graph Algorithms
-
-== Later Plans
-
-* Graph Refactorings (WIP)
+* Path Finding
+* Use Cypher as scripting language `{cypher:"RETURN a*10+b",params:{a:3,b:5}}` for algorithms, parallelization and custom expansion
+* help procs
+* (√) Graph Refactorings (WIP)
 * Job Queue (WIP) See https://github.com/jakewins/neo4j-procedure-template/blob/batch/src/main/java/example/BatchedWrites.java[BatchedWriter from Jake/Max]
 * eval javascript
 * Procedures in other languages (e.g. JS)

@@ -80,6 +80,13 @@ public class Coll {
 //        boolean result = (coll.size() < batchSize) ? coll.contains(value) : partitionList(coll, batchSize).parallel().anyMatch(list -> list.contains(value));
         return Empty.stream(result);
     }
+
+    @Procedure
+    public Stream<Empty> containsAll(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
+        boolean result =  new HashSet<>(coll).containsAll(values);
+        return Empty.stream(result);
+    }
+
     @Procedure
     public Stream<Empty> containsSorted(@Name("coll") List<Object> coll, @Name("value") Object value) {
         int batchSize = 5000-1; // Collections.binarySearchThreshold
@@ -89,7 +96,22 @@ public class Coll {
 //        boolean result = (list.size() < batchSize) ? contains.test(list) : partitionList(list, batchSize).parallel().anyMatch(contains);
         return Empty.stream(result);
     }
+    @Procedure
+    public Stream<Empty> containsAllSorted(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
+        int batchSize = 5000-1; // Collections.binarySearchThreshold
+        List list = (coll instanceof RandomAccess || coll.size() < batchSize) ? coll : new ArrayList(coll);
+        for (Object value : values) {
+            boolean result = Collections.binarySearch(list, value) >= 0;
+            if (!result) return Stream.empty();
+        }
+        return Empty.stream(true);
+    }
 
+
+    @Procedure
+    public Stream<ListResult> toSet(@Name("values") List<Object> list) {
+        return Stream.of(new ListResult(new SetBackedList(new LinkedHashSet(list))));
+    }
 
     @Procedure
     public Stream<LongResult> sumLongs(@Name("numbers") List<Number> list) {

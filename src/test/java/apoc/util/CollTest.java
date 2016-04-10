@@ -39,6 +39,10 @@ public class CollTest {
         testCall(db, "CALL apoc.coll.pairs([1,2,3])",
                 (row) -> assertEquals(asList(asList(1L,2L),asList(2L,3L),asList(3L,null)), row.get("value")));
     }
+    @Test public void testToSet() throws Exception {
+        testCall(db, "CALL apoc.coll.toSet([1,2,1,3])",
+                (row) -> assertEquals(asList(1L,2L,3L), row.get("value")));
+    }
     @Test public void testSum() throws Exception {
         testCall(db, "CALL apoc.coll.sum([1,2,3])",
                 (row) -> assertEquals(6D, row.get("value")));
@@ -76,6 +80,20 @@ public class CollTest {
     @Test public void testIN() throws Exception {
         testResult(db, "CALL apoc.coll.contains([1,2,3],1)",
                 (res) -> assertEquals(true, res.hasNext()));
+    }
+    @Test public void testContainsAll() throws Exception {
+        testResult(db, "CALL apoc.coll.containsAll([1,2,3],[1,2])", (res) -> assertEquals(true, res.hasNext()));
+        testResult(db, "CALL apoc.coll.containsAll([1,2,3],[1,4])", (res) -> assertEquals(false, res.hasNext()));
+        testResult(db, "CALL apoc.coll.containsAll([1,2,3],[])", (res) -> assertEquals(true, res.hasNext()));
+        testResult(db, "CALL apoc.coll.containsAll([1,2,3],[1])", (res) -> assertEquals(true, res.hasNext()));
+        testResult(db, "CALL apoc.coll.containsAll([1,2,3],[1,2,3,4])", (res) -> assertEquals(false, res.hasNext()));
+    }
+    @Test public void testContainsAllSorted() throws Exception {
+        testResult(db, "CALL apoc.coll.containsAllSorted([1,2,3],[1,2])", (res) -> assertEquals(true, res.hasNext()));
+        testResult(db, "CALL apoc.coll.containsAllSorted([1,2,3],[1,4])", (res) -> assertEquals(false, res.hasNext()));
+        testResult(db, "CALL apoc.coll.containsAllSorted([1,2,3],[])", (res) -> assertEquals(true, res.hasNext()));
+        testResult(db, "CALL apoc.coll.containsAllSorted([1,2,3],[1])", (res) -> assertEquals(true, res.hasNext()));
+        testResult(db, "CALL apoc.coll.containsAllSorted([1,2,3],[1,2,3,4])", (res) -> assertEquals(false, res.hasNext()));
     }
     @Test public void testIN2() throws Exception {
         int elements = 1_000_000;
