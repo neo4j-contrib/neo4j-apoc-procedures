@@ -26,7 +26,7 @@ import apoc.Description;
 
 public class PathExplorer {
 	private static final String VERSION = "0.5";
-	public static final Uniqueness UNIQUENESS = Uniqueness.RELATIONSHIP_GLOBAL; // I think it has to be RELATIONSHIP_PATH;
+	public static final Uniqueness UNIQUENESS = Uniqueness.RELATIONSHIP_PATH;
 	@Context
     public GraphDatabaseService db;
 

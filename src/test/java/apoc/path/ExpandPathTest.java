@@ -53,7 +53,7 @@ public class ExpandPathTest {
 	@Test
 	public void testExplorePathLabelWhiteListTest() throws Throwable {
 		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,'ACTED_IN|PRODUCED|FOLLOWS','+Person|Movie',0,3) yield path return count(*) as c";
-		TestUtil.testCall(db, query, (row) -> assertEquals(59L,row.get("c")));
+		TestUtil.testCall(db, query, (row) -> assertEquals(107L,row.get("c"))); // 59 with Uniqueness.RELATIONSHIP_GLOBAL
 	}
 
 	@Test
