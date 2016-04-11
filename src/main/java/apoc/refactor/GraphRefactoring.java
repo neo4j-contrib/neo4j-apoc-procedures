@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import apoc.Description;
 import apoc.result.NodeResult;
 import org.neo4j.graphdb.*;
 import org.neo4j.logging.Log;
@@ -40,6 +41,7 @@ public class GraphRefactoring {
      */
     @Procedure
     @PerformsWrites
+    @Description("apoc.refactor.cloneNodes([node1,node2,...]) clone nodes with their labels and properties")
     public Stream<NodeRefactorResult> cloneNodes(@Name("nodes") List<Node> nodes) {
         return doCloneNodes(nodes,false);
     }
@@ -49,6 +51,7 @@ public class GraphRefactoring {
      */
     @Procedure
     @PerformsWrites
+    @Description("apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) clone nodes with their labels, properties and relationships")
     public Stream<NodeRefactorResult> cloneNodesWithRelationships(@Name("nodes") List<Node> nodes) {
         return doCloneNodes(nodes,true);
     }
@@ -59,6 +62,7 @@ public class GraphRefactoring {
      */
     @Procedure
     @PerformsWrites
+    @Description("apoc.refactor.mergeNodes([node1,node2]) merge nodes onto first in list")
     public Stream<NodeResult> mergeNodes(@Name("nodes") List<Node> nodes) {
         if (nodes.isEmpty()) return Stream.empty();
         Iterator<Node> it = nodes.iterator();
@@ -76,6 +80,7 @@ public class GraphRefactoring {
      */
     @Procedure
     @PerformsWrites
+    @Description("apoc.refactor.setType(rel, 'NEW-TYPE') change relationship-type")
     public Stream<RelationshipRefactorResult> setType(@Name("relationship") Relationship rel, @Name("newType") String newType) {
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
         try {
@@ -93,6 +98,7 @@ public class GraphRefactoring {
      */
     @Procedure
     @PerformsWrites
+    @Description("apoc.refactor.to(rel, endNode) redirect relationship to use new end-node")
     public Stream<RelationshipRefactorResult> to(@Name("relationship") Relationship rel, @Name("newNode") Node newNode) {
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
         try {
@@ -110,6 +116,7 @@ public class GraphRefactoring {
      */
     @Procedure
     @PerformsWrites
+    @Description("apoc.refactor.from(rel, startNode) redirect relationship to use new start-node")
     public Stream<RelationshipRefactorResult> from(@Name("relationship") Relationship rel, @Name("newNode") Node newNode) {
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
         try {

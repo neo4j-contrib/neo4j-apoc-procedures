@@ -5,6 +5,7 @@ import java.util.*;
 import java.io.*;
 import java.util.stream.*;
 
+import apoc.Description;
 import apoc.result.ListResult;
 import apoc.result.MapResult;
 import apoc.result.ObjectResult;
@@ -19,6 +20,7 @@ public class Json {
     @Context public org.neo4j.graphdb.GraphDatabaseService db;
 
     @Procedure
+    @Description("apoc.convert.toJson([1,2,3]) or toJson({a:42,b:\"foo\",c:[1,2,3]})")
     public Stream<StringResult> toJson(@Name("value") Object value) {
         try {
             return Stream.of(new StringResult(OBJECT_MAPPER.writeValueAsString(value)));
@@ -48,6 +50,7 @@ public class Json {
     }
 
     @Procedure
+    @Description("apoc.convert.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}')")
     public Stream<MapResult> fromJsonMap(@Name("map") String value) {
         try {
             return Stream.of(new MapResult(OBJECT_MAPPER.readValue(value, Map.class)));
@@ -57,6 +60,7 @@ public class Json {
     }
 
     @Procedure
+    @Description("apoc.convert.fromJsonList('[1,2,3]')")
     public Stream<ListResult> fromJsonList(@Name("list") String value) {
         try {
             return Stream.of(new ListResult(OBJECT_MAPPER.readValue(value, List.class)));
@@ -64,25 +68,4 @@ public class Json {
             throw new RuntimeException("Can't deserialize to List:\n"+value,e);
         }
     }
-
-    @Procedure
-    public Stream<ObjectResult> loadJson(@Name("url") String url) {
-        try {
-            Object value = OBJECT_MAPPER.readValue(new URL(url), Object.class);
-                if (value instanceof Iterable) {
-                return StreamSupport.stream(((Iterable<Object>)value).spliterator(),false).<ObjectResult>map(ObjectResult::new);
-            }
-            if (value instanceof Map) {
-                return Stream.of(new ObjectResult(value));
-            }
-            throw new RuntimeException("Incompatible Type "+(value==null ? "null" : value.getClass()));
-        } catch (IOException e) {
-            throw new RuntimeException("Can't read url " + url + " as json", e);
-        }
-    }
-
-//    @Procedure
-//    public Stream<ObjectResult> test() {
-//        return Stream.of(new ObjectResult(Collections.singletonMap("foo",42)));
-//    }
 }

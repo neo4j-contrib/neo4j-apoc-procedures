@@ -19,6 +19,10 @@ ON CREATE SET p.age = person.age, p.children = size(person.children)
 
 == Included Procedures
 
+=== Built in Help
+
+* `call apoc.help('name')` lists name, description-text and if the procedure performs writes (descriptions are WIP)
+
 === Manual Indexes
 
 Procedures to add to and query manual indexes

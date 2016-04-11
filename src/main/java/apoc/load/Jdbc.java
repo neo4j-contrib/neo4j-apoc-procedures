@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.Description;
 import apoc.result.RowResult;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -16,6 +17,7 @@ import java.util.stream.StreamSupport;
 public class Jdbc {
 
     @Procedure
+    @Description("apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database")
     public void driver(@Name("driverClass") String driverClass) {
         try {
             Class.forName(driverClass);
@@ -25,6 +27,7 @@ public class Jdbc {
     }
 
     @Procedure
+    @Description("apoc.load.jdbc('jdbc:derby:derbyDB','PERSON' || 'SELECT * FROM PERSON WHERE AGE > 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement")
     public Stream<RowResult> jdbc(@Name("jdbc") String url, @Name("tableOrSql") String tableOrSelect) {
         String query = tableOrSelect.indexOf(' ') == -1 ?
                 "SELECT * FROM " + tableOrSelect : tableOrSelect;

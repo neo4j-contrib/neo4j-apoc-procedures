@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.Description;
 import apoc.convert.Json;
 import apoc.result.ListResult;
 import apoc.result.MapResult;
@@ -25,6 +26,7 @@ public class LoadJson {
     @Context public GraphDatabaseService db;
 
     @Procedure
+    @Description("apoc.load.jsonArray('url') YIELD value - load array from JSON URL (e.g. web-api) to import JSON as stream of values")
     public Stream<ObjectResult> jsonArray(@Name("url") String url) {
         try {
             Object value = Json.OBJECT_MAPPER.readValue(new URL(url), Object.class);
@@ -37,6 +39,7 @@ public class LoadJson {
         }
     }
     @Procedure
+    @Description("apoc.load.json('http://example.com/map.json') YIELD value as person CREATE (p:Person) SET p = person - load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map")
     public Stream<MapResult> json(@Name("url") String url) {
         try {
             Object value = Json.OBJECT_MAPPER.readValue(new URL(url), Object.class);

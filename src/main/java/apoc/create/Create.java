@@ -1,5 +1,6 @@
 package apoc.create;
 
+import apoc.Description;
 import apoc.result.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.Context;
@@ -19,12 +20,14 @@ public class Create {
 
     @Procedure
     @PerformsWrites
+    @Description("apoc.create.node(['Label'], {key:value,...}) - create node with dynamic labels")
     public Stream<NodeResult> node(@Name("label") List<String> labelNames, @Name("props") Map<String, Object> props) {
         return Stream.of(new NodeResult(setProperties(db.createNode(labels(labelNames)),props)));
     }
 
     @Procedure
     @PerformsWrites
+    @Description("apoc.create.nodes(['Label'], [{key:value,...}]) create multiple nodes with dynamic labels")
     public Stream<NodeResult> nodes(@Name("label") List<String> labelNames, @Name("props") List<Map<String, Object>> props) {
         Label[] labels = labels(labelNames);
         return props.stream().map(p -> new NodeResult(setProperties(db.createNode(labels), p)));
@@ -32,6 +35,7 @@ public class Create {
 
     @Procedure
     @PerformsWrites
+    @Description("apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) create relationship with dynamic rel-type")
     public Stream<RelationshipResult> relationship(@Name("from") Node from,
                                                    @Name("relType") String relType, @Name("props") Map<String, Object> props,
                                                    @Name("to") Node to) {
@@ -39,24 +43,28 @@ public class Create {
     }
 
     @Procedure
+    @Description("apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node")
     public Stream<NodeResult> vNode(@Name("label") List<String> labelNames, @Name("props") Map<String, Object> props) {
         Label[] labels = labels(labelNames);
         return Stream.of(new NodeResult(new VirtualNode(labels, props, db)));
     }
 
     @Procedure
+    @Description("apoc.create.vNodes(['Label'], [{key:value,...}]) returns virtual nodes")
     public Stream<NodeResult> vNodes(@Name("label") List<String> labelNames, @Name("props") List<Map<String, Object>> props) {
         Label[] labels = labels(labelNames);
         return props.stream().map(p -> new NodeResult(new VirtualNode(labels, p, db)));
     }
 
     @Procedure
+    @Description("apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship")
     public Stream<RelationshipResult> vRelationship(@Name("from") Node from, @Name("relType") String relType, @Name("props") Map<String, Object> props, @Name("to") Node to) {
         RelationshipType type = RelationshipType.withName(relType);
         return Stream.of(new RelationshipResult(new VirtualRelationship(from,to,type).withProperties(props)));
     }
 
     @Procedure
+    @Description("apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) returns a virtual pattern")
     public Stream<PathResult> vPattern(@Name("from") Map<String,Object> n,
                                        @Name("relType") String relType, @Name("props") Map<String, Object> props,
                                        @Name("to") Map<String,Object> m) {
@@ -69,6 +77,7 @@ public class Create {
     }
 
     @Procedure
+    @Description("apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual pattern")
     public Stream<PathResult> vPatternFull(@Name("labelsN") List<String> labelsN, @Name("n") Map<String,Object> n,
                                                    @Name("relType") String relType, @Name("props") Map<String, Object> props,
                                                    @Name("labelsM") List<String> labelsM, @Name("m") Map<String,Object> m) {
@@ -77,6 +86,11 @@ public class Create {
         VirtualNode to = new VirtualNode(labels(labelsM), m, db);
         Relationship rel = new VirtualRelationship(from, to, type).withProperties(props);
         return Stream.of(new PathResult(from,rel,to));
+    }
+
+    @Description("TODO apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])")
+    public Stream<PathResult> vGraph() {
+        return Stream.empty();
     }
 
     private <T extends PropertyContainer> T setProperties(T pc, Map<String, Object> p) {

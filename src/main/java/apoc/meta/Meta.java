@@ -1,5 +1,6 @@
 package apoc.meta;
 
+import apoc.Description;
 import apoc.result.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
@@ -95,6 +96,7 @@ public class Meta {
 
 
     @Procedure
+    @Description("apoc.meta.type(value)  - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
     public Stream<StringResult> type(@Name("value") Object value) {
         String typeName = Types.of(value).name();
         if (value != null && value.getClass().isArray()) typeName +="[]";
@@ -102,6 +104,7 @@ public class Meta {
     }
 
     @Procedure
+    @Description("apoc.meta.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
     public Stream<Empty> isType(@Name("value") Object value, @Name("type") String type) {
         String typeName = Types.of(value).name();
         if (value != null && value.getClass().isArray()) typeName +="[]";
@@ -109,6 +112,7 @@ public class Meta {
     }
 
     @Procedure
+    @Description("apoc.meta.data  - examines a subset of the graph to provide a tabular meta information")
     public Stream<MetaResult> data() {
         // db size, all labels, all rel-types
         Map<String,Map<String,MetaResult>> labels = new LinkedHashMap<>(100);
@@ -235,6 +239,7 @@ public class Meta {
     }
 
     @Procedure
+    @Description("apoc.meta.graph - examines the full graph to create the meta-graph")
     public Stream<GraphResult> graph() {
         Map<String,Node> labels = new TreeMap<>();
         Map<List<String>,Relationship> rels = new HashMap<>();
@@ -248,6 +253,7 @@ public class Meta {
 
 
     @Procedure
+    @Description("apoc.meta.graphSample(sampleSize) - examines a sample graph to create the meta-graph, default sampleSize is 100")
     public Stream<GraphResult> graphSample(@Name("sample") Long sampleSize ) {
         Map<String, Node> labels = new TreeMap<>();
         Map<List<String>,Relationship> rels = new HashMap<>();

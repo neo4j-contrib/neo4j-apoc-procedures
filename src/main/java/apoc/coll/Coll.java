@@ -1,5 +1,6 @@
 package apoc.coll;
 
+import apoc.Description;
 import apoc.result.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -28,6 +29,7 @@ public class Coll {
     }
 
     @Procedure
+    @Description("apoc.coll.zip([list1],[list2])")
     public Stream<ListResult> zip(@Name("list1") List<Object> list1, @Name("list2") List<Object> list2) {
         List<List<Object>> result = new ArrayList<>(list1.size());
         ListIterator<Object> it = list2.listIterator();
@@ -37,11 +39,13 @@ public class Coll {
         return Stream.of(new ListResult(result));
     }
     @Procedure
+    @Description("apoc.coll.pairs([list]) returns [first,second],[second,third], ...")
     public Stream<ListResult> pairs(@Name("list") List<Object> list) {
         return zip(list,list.subList(1,list.size()));
     }
 
     @Procedure
+    @Description("apoc.coll.sum([0.5,1,2.3])")
     public Stream<DoubleResult> sum(@Name("numbers") List<Number> list) {
         double sum = 0;
         for (Number number : list) {
@@ -50,15 +54,18 @@ public class Coll {
         return Stream.of(new DoubleResult(sum));
     }
     @Procedure
+    @Description("apoc.coll.min([0.5,1,2.3])")
     public Stream<ObjectResult> min(@Name("values") List<Object> list) {
         return Stream.of(new ObjectResult(Collections.min((List)list)));
     }
 
     @Procedure
+    @Description("apoc.coll.max([0.5,1,2.3])")
     public Stream<ObjectResult> max(@Name("values") List<Object> list) {
         return Stream.of(new ObjectResult(Collections.max((List)list)));
     }
     @Procedure
+    @Description("apoc.coll.partition(list,batchSize)")
     public Stream<ListResult> partition(@Name("values") List<Object> list, @Name("batchSize") long batchSize) {
         return partitionList(list, (int) batchSize).map(ListResult::new);
     }
@@ -74,6 +81,7 @@ public class Coll {
     }
 
     @Procedure
+    @Description("apoc.coll.contains(coll, value) optimized contains operation (using a HashSet) (returns single row or not)")
     public Stream<Empty> contains(@Name("coll") List<Object> coll, @Name("value") Object value) {
         boolean result =  new HashSet<>(coll).contains(value);
 //        int batchSize = 250;
@@ -82,12 +90,14 @@ public class Coll {
     }
 
     @Procedure
+    @Description("apoc.coll.containsAll(coll, values) optimized contains-all operation (using a HashSet) (returns single row or not)")
     public Stream<Empty> containsAll(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
         boolean result =  new HashSet<>(coll).containsAll(values);
         return Empty.stream(result);
     }
 
     @Procedure
+    @Description("apoc.coll.containsSorted(coll, value) optimized contains on a sorted list operation (Collections.binarySearch) (returns single row or not)")
     public Stream<Empty> containsSorted(@Name("coll") List<Object> coll, @Name("value") Object value) {
         int batchSize = 5000-1; // Collections.binarySearchThreshold
         List list = (coll instanceof RandomAccess || coll.size() < batchSize) ? coll : new ArrayList(coll);
@@ -96,7 +106,9 @@ public class Coll {
 //        boolean result = (list.size() < batchSize) ? contains.test(list) : partitionList(list, batchSize).parallel().anyMatch(contains);
         return Empty.stream(result);
     }
+
     @Procedure
+    @Description("apoc.coll.containsAllSorted(coll, value) optimized contains-all on a sorted list operation (Collections.binarySearch) (returns single row or not)")
     public Stream<Empty> containsAllSorted(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
         int batchSize = 5000-1; // Collections.binarySearchThreshold
         List list = (coll instanceof RandomAccess || coll.size() < batchSize) ? coll : new ArrayList(coll);
@@ -109,11 +121,13 @@ public class Coll {
 
 
     @Procedure
+    @Description("apoc.coll.toSet([list]) returns a unique list backed by a set")
     public Stream<ListResult> toSet(@Name("values") List<Object> list) {
         return Stream.of(new ListResult(new SetBackedList(new LinkedHashSet(list))));
     }
 
     @Procedure
+    @Description("apoc.coll.sumLongs([1,3,3])")
     public Stream<LongResult> sumLongs(@Name("numbers") List<Number> list) {
         long sum = 0;
         for (Number number : list) {
@@ -123,6 +137,7 @@ public class Coll {
     }
 
     @Procedure
+    @Description("apoc.coll.sort(coll) sort on Collections")
     public Stream<ListResult> sort(@Name("coll") List coll) {
         List sorted = new ArrayList(coll);
         Collections.sort((List<? extends Comparable>) sorted);
@@ -130,6 +145,7 @@ public class Coll {
     }
 
     @Procedure
+    @Description("apoc.coll.sortNodes([nodes], 'name') sort nodes by property")
     public Stream<ListResult> sortNodes(@Name("coll") List coll, @Name("prop") String prop) {
         List sorted = new ArrayList(coll);
         Collections.sort((List<? extends PropertyContainer>) sorted,

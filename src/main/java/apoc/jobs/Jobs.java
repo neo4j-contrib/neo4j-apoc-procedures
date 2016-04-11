@@ -1,5 +1,6 @@
 package apoc.jobs;
 
+import apoc.Description;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.Iterables;
@@ -34,6 +35,7 @@ public class Jobs {
     }
 
     @Procedure
+    @Description("apoc.jobs.list - list all jobs")
     public Stream<JobInfo> list() {
         return list.entrySet().stream().map( (e) -> e.getKey().update(e.getValue()));
     }
@@ -50,13 +52,22 @@ public class Jobs {
     }
 
     @Procedure
+    @Description("apoc.jobs.submit('name',statement) - submit a one-off background statement")
     public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement) {
         JobInfo info = submit(name, () ->  Iterators.count(db.execute(statement)) );
         return Stream.of(info);
     }
 
     @Procedure
+    @Description("apoc.jobs.schedule('name',statement,repeat-time-in-seconds) submit a repeatedly-called background statement")
     public Stream<JobInfo> repeat(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
+        JobInfo info = schedule(name, () -> Iterators.count(db.execute(statement)),0,rate);
+        return Stream.of(info);
+    }
+
+    // TODO
+    @Description("apoc.jobs.countdown('name',statement,repeat-time-in-seconds) submit a repeatedly-called background statement until it returns 0")
+    public Stream<JobInfo> countdown(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
         JobInfo info = schedule(name, () -> Iterators.count(db.execute(statement)),0,rate);
         return Stream.of(info);
     }

@@ -1,9 +1,11 @@
 package apoc.map;
 
+import apoc.Description;
 import apoc.result.MapResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
+import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
 import java.util.*;
@@ -15,6 +17,7 @@ public class MapUtil {
     public GraphDatabaseService db;
 
     @Procedure
+    @Description("apoc.map.fromPairs([[key,value],[key2,value2],...])")
     public Stream<MapResult> fromPairs(@Name("pairs") List<List<Object>> pairs) {
         return Stream.of(new MapResult(mapFromPairs(pairs)));
     }
@@ -33,9 +36,12 @@ public class MapUtil {
     }
 
     @Procedure
+    @Description("apoc.map.fromLists([keys],[values])")
     public Stream<MapResult> fromLists(@Name("keys") List<String> keys, @Name("values") List<Object> values) {
         return Stream.of(new MapResult(mapFromLists(keys, values)));
     }
+
+    // TODO    @Description("apoc.map.fromValues([key,value,key1,value1])")
 
     private Map<String, Object> mapFromLists(@Name("keys") List<String> keys, @Name("values") List<Object> values) {
         assert keys.size() == values.size();
@@ -49,6 +55,9 @@ public class MapUtil {
         return res;
     }
 
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.map.setKey(map,key,value)")
     public Stream<MapResult> setKey(@Name("map") Map<String,Object> map, @Name("key") String key, @Name("value") Object value) {
         LinkedHashMap<String, Object> res = new LinkedHashMap<>(map);
         res.put(key,value);

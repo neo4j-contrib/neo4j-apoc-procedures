@@ -15,6 +15,8 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import apoc.Description;
 import apoc.result.LongResult;
 import apoc.result.MapResult;
 import apoc.result.StringResult;
@@ -63,21 +65,25 @@ public class Date {
 	}
 
 	@Procedure
+	@Description("apoc.date.fromSeconds(12345) get string representation of date corresponding to given Unix time (in seconds)")
 	public Stream<StringResult> fromSeconds(final @Name("seconds") long unixtime) {
 		return fromSecondsFormatted(unixtime, null);
 	}
 
 	@Procedure
+	@Description("apoc.date.fromSecondsFormatted(12345, 'yyyy/MM/dd HH/mm/ss') the same as previous, but accepts custom datetime format")
 	public Stream<StringResult> fromSecondsFormatted(final @Name("seconds") long unixtime, final @Name("pattern") String pattern) {
 		return fromMillisFormatted(TimeUnit.SECONDS.toMillis(unixtime),pattern);
 	}
 
 	@Procedure
+	@Description("apoc.date.fromMillis(12345) get string representation of date corresponding to given time in milliseconds")
 	public Stream<StringResult> fromMillis(final @Name("millis") long millis) {
 		return fromMillisFormatted(millis, null);
 	}
 
 	@Procedure
+	@Description("apoc.date.fromMillisFormatted(12345, 'yyyy/MM/dd HH/mm/ss') the same as previous, but accepts custom datetime format")
 	public Stream<StringResult> fromMillisFormatted(final @Name("millis") long millis, final @Name("pattern") String pattern) {
 		if (millis < 0) {
 			throw new IllegalArgumentException("The time argument should be >= 0, got: " + millis);
@@ -86,19 +92,24 @@ public class Date {
 	}
 
 	@Procedure
+	@Description("apoc.date.toSeconds('2015-03-25 03:15:59') get Unix time equivalent of given date (in seconds)")
 	public Stream<LongResult> toSeconds(final @Name("date") String dateField) {
 		return toSecondsFormatted(dateField, null);
 	}
 	@Procedure
+	@Description("apoc.date.toMillis('2015-03-25 03:15:59') get Unix time equivalent of given date (in milliseconds)")
 	public Stream<LongResult> toMillis(final @Name("date") String dateField) {
 		return toMillisFormatted(dateField, null);
 	}
 
 	@Procedure
+	@Description("apoc.date.toSecondsFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss') same as previous, but accepts custom datetime format")
 	public Stream<LongResult> toSecondsFormatted(final @Name("date") String dateField, final @Name("pattern") String pattern) {
 		return toMillisFormatted(dateField,pattern).map(l -> l.value != null ? new LongResult(TimeUnit.MILLISECONDS.toSeconds(l.value)) : l);
 	}
+
 	@Procedure
+	@Description("apoc.date.toMillisFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss') same as previous, but accepts custom datetime format")
 	public Stream<LongResult> toMillisFormatted(final @Name("date") String dateField, final @Name("pattern") String pattern) {
 		if (dateField == null) {
 			return Stream.of(LongResult.NULL);

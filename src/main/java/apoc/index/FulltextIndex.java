@@ -1,5 +1,6 @@
 package apoc.index;
 
+import apoc.Description;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import org.neo4j.graphdb.*;
@@ -28,6 +29,7 @@ public class FulltextIndex {
     public Log log;
 
     // CALL apoc.index.nodes('Person','name:jo*')
+    @Description("apoc.index.nodes('Label','prop:value*') YIELD node - lucene query on node index with the given label name")
     @Procedure @PerformsWrites
     public Stream<NodeResult> nodes(@Name("label") String label, @Name("query") String query) {
         if (!db.index().existsForNodes(label)) return Stream.empty();
@@ -40,6 +42,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.relationships('CHECKIN','on:2010-*')
+    @Description("apoc.index.relationships('TYPE','prop:value*') YIELD rel - lucene query on relationship index with the given type name")
     @Procedure @PerformsWrites
     public Stream<RelationshipResult> relationships(@Name("type") String type, @Name("query") String query) {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
@@ -53,6 +56,7 @@ public class FulltextIndex {
 
     // CALL apoc.index.between(joe, 'KNOWS', null, 'since:2010-*')
     // CALL apoc.index.between(joe, 'CHECKIN', philz, 'on:2016-01-*')
+    @Description("apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel - lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)")
     @Procedure @PerformsWrites
     public Stream<RelationshipResult> between(@Name("from") Node from, @Name("type") String type, @Name("to") Node to, @Name("query") String query) {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
@@ -66,6 +70,7 @@ public class FulltextIndex {
 
     // CALL apoc.index.out(joe, 'CHECKIN', 'on:2010-*')
     @Procedure @PerformsWrites
+    @Description("apoc.index.out(node,'TYPE','prop:value*') YIELD node - lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*")
     public Stream<NodeResult> out(@Name("from") Node from, @Name("type") String type, @Name("query") String query) {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
 
@@ -78,6 +83,7 @@ public class FulltextIndex {
 
     // CALL apoc.index.in(philz, 'CHECKIN', 'on:2010-*')
     @Procedure @PerformsWrites
+    @Description("apoc.index.in(node,'TYPE','prop:value*') YIELD node lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*")
     public Stream<NodeResult> in(@Name("to") Node to, @Name("type") String type, @Name("query") String query) {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
 
@@ -91,6 +97,7 @@ public class FulltextIndex {
     // CALL apoc.index.addNode(joe, ['name','age','city'])
     @Procedure
     @PerformsWrites
+    @Description("apoc.index.addNode(node,['prop1',...]) add node to an index for each label it has")
     public void addNode(@Name("node") Node node, @Name("properties") List<String> propKeys) {
         for (Label label : node.getLabels()) {
             addNodeByLabel(label.name(),node,propKeys);
@@ -100,6 +107,7 @@ public class FulltextIndex {
     // CALL apoc.index.addNode(joe, 'Person', ['name','age','city'])
     @Procedure
     @PerformsWrites
+    @Description("apoc.index.addNodeByLabel(node,'Label',['prop1',...]) add node to an index for the given label")
     public void addNodeByLabel(@Name("label") String label, @Name("node") Node node, @Name("properties") List<String> propKeys) {
         org.neo4j.graphdb.index.Index<Node> index = db.index().forNodes(label, FULL_TEXT);
         indexContainer(node, propKeys, index);
@@ -108,6 +116,7 @@ public class FulltextIndex {
     // CALL apoc.index.addRelationship(checkin, ['on'])
     @Procedure
     @PerformsWrites
+    @Description("apoc.index.addRelationship(rel,['prop1',...]) add relationship to an index for its type")
     public void addRelationship(@Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
         String indexName = rel.getType().name();
         org.neo4j.graphdb.index.Index<Relationship> index = db.index().forRelationships(indexName, FULL_TEXT);
