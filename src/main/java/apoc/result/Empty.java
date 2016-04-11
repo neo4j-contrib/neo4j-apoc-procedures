@@ -1,7 +1,5 @@
 package apoc.result;
 
-import apoc.meta.Meta;
-
 import java.util.stream.Stream;
 
 /**
@@ -11,5 +9,7 @@ import java.util.stream.Stream;
 public class Empty {
     public static Empty INSTANCE = new Empty();
 
-    public static Stream<Empty> stream(boolean value) { return value ? Stream.of(INSTANCE) : Stream.empty(); }
+    public static Stream<Empty> stream(boolean fillWithStub) {
+		return fillWithStub ? Stream.of(INSTANCE) : Stream.empty();
+	}
 }

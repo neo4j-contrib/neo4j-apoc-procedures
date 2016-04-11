@@ -290,6 +290,10 @@ call apoc.path.expand(p,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",1,2) yiel
 return p, pp 
 ----
 
+=== Javascript evaluation
+call apoc.js.eval('1 + 1') => 2
+call apoc.js.evalWithParams('x + y', {x: 1, y: 2}) => 3
+call apoc.js.evalWithParams('n.getProperty("x")', {n: someNode}) // equivalent to n.x
 
 
 == Plans
@@ -311,7 +315,7 @@ return p, pp
 * parallel(fragment, params-list, result list)
 * (√) Graph Refactorings (WIP)
 * (√) Job Queue (WIP) See https://github.com/jakewins/neo4j-procedure-template/blob/batch/src/main/java/example/BatchedWrites.java[BatchedWriter from Jake/Max]
-* eval javascript
+* eval javascript (WIP)
 * Procedures in other languages (e.g. JS)
 
 == License
