@@ -1,20 +1,15 @@
 package apoc.result;
 
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Path;
 
 /**
  * @author mh
- * @since 26.02.16
+ * @since 11.04.16
  */
 public class PathResult {
-    public final Node from;
-    public final Relationship rel;
-    public final Node to;
+    public Path path;
 
-    public PathResult(Node from, Relationship rel, Node to) {
-        this.from = from;
-        this.rel = rel;
-        this.to = to;
+    public PathResult(Path path) {
+        this.path = path;
     }
 }

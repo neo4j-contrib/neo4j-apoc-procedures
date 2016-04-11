@@ -3,6 +3,7 @@ package apoc.path;
 import java.util.*;
 import java.util.stream.Stream;
 
+import apoc.result.PathResult;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -10,7 +11,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.PathExpanderBuilder;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.impl.StandardExpander;
 import org.neo4j.graphdb.traversal.Evaluation;
 import org.neo4j.graphdb.traversal.Evaluator;
 import org.neo4j.graphdb.traversal.Evaluators;
@@ -40,11 +40,11 @@ public class PathExplorer {
 
 	@Procedure("apoc.path.expand")
 	@Description("apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path expand from start node following the given relationships from min to max-level adhering to the label filters")
-	public Stream<PathContainer> explorePath(@Name("start") Object start
-			                   ,@Name("relationshipFilter") String pathFilter
-			                   ,@Name("labelFilter") String labelFilter
-			                   ,@Name("minLevel") long minLevel
-			                   ,@Name("maxLevel") long maxLevel ) throws Exception {
+	public Stream<PathResult> explorePath(@Name("start") Object start
+			                   , @Name("relationshipFilter") String pathFilter
+			                   , @Name("labelFilter") String labelFilter
+			                   , @Name("minLevel") long minLevel
+			                   , @Name("maxLevel") long maxLevel ) throws Exception {
 		List<Node> nodes = startToNodes(start);
 		return explorePathPrivate(nodes, pathFilter, labelFilter, minLevel, maxLevel);
 	}
@@ -79,11 +79,11 @@ public class PathExplorer {
 		return Direction.BOTH;
 	}
 
-	private Stream<PathContainer> explorePathPrivate(Iterable<Node> startNodes
+	private Stream<PathResult> explorePathPrivate(Iterable<Node> startNodes
 			                   , String pathFilter
-			                   ,String labelFilter
-			                   ,long minLevel
-			                   ,long maxLevel ) {
+			                   , String labelFilter
+			                   , long minLevel
+			                   , long maxLevel ) {
 		// LabelFilter
 		// -|Label|:Label|:Label excluded label list
 		// +:Label or :Label include labels
@@ -112,7 +112,7 @@ public class PathExplorer {
 				.evaluator(labelEvaluator);
 		td = td.uniqueness(UNIQUENESS); // this is how Cypher works !!
 		// uniqueness should be set as last on the TraversalDescription
-		return td.traverse(startNodes).stream().map( PathContainer::new );
+		return td.traverse(startNodes).stream().map( PathResult::new );
 	}
 	
 	public class DynRelationshipType implements RelationshipType {
@@ -131,15 +131,8 @@ public class PathExplorer {
 		}
 		
 	}
-	public static class PathContainer 
-	{	
-		public Path path;
 
-		public PathContainer(Path path) {
-			this.path = path;
-		}
-	}
-	public static class InfoContainer 
+	public static class InfoContainer
 	{	
 		public String info;
 		public InfoContainer(String inf) {
