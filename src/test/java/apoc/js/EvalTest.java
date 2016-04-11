@@ -8,7 +8,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.TestGraphDatabaseFactory;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.*;
@@ -99,6 +101,28 @@ public class EvalTest {
 		testCall(db,
 				"CALL apoc.js.eval('\"str\".capitalize()') YIELD value as result",
 				row -> assertEquals("Doe, John", row.get("result"))
-				);
+		);
+	}
+
+	@Test
+	public void shouldCaptureEntitiesFromQuery() throws Exception {	// basic == context-independent
+		try (Transaction tx = db.beginTx()) {
+			Node node = db.createNode(() -> "JsNodeTest");
+			node.setProperty("X", 1);
+			node.setProperty("Y", 2);
+			node.setProperty("Z", 3);
+			tx.success();
+		}
+		testCall(db,
+				"MATCH (n:JsNodeTest) WITH n CALL apoc.js.evalWithParams('" +
+						"var x = n.getProperty(\"X\");\n" +
+						"var y = n.getProperty(\"Y\");\n" +
+						"var z = n.getProperty(\"Z\");\n" +
+						"x + y === z\n" +
+						"', {n: n}) " +
+				"YIELD value " +
+				"RETURN value as result",
+				row -> assertTrue((Boolean) row.get("result"))
+		);
 	}
 }
