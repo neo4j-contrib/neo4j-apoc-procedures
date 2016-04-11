@@ -125,4 +125,27 @@ public class EvalTest {
 				row -> assertTrue((Boolean) row.get("result"))
 		);
 	}
+
+	@Test
+	public void shouldSaveCompiledProcedures() throws Exception {	// basic == context-independent
+		testCall(db,
+				"CALL apoc.js.compile('function id(n) { return n.getId(); }')",
+				row -> assertEquals("function id(n) { return n.getId(); }", row.get("value"))
+		);
+	}
+
+	@Test
+	public void compiledJsFucntionsAreVisibleAcrossCalls() throws Exception {	// basic == context-independent
+
+		// given
+		testCall(db,
+				"CALL apoc.js.compile('function testCall() { return \"testCall\"; }')",
+				row -> {}
+		);
+
+		// when
+		testCall(db,
+				"CALL apoc.js.eval('testCall()')",
+				row -> assertEquals("testCall", row.get("value")));
+	}
 }
