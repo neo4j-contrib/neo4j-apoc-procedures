@@ -21,7 +21,15 @@ ON CREATE SET p.age = person.age, p.children = size(person.children)
 
 === Built in Help
 
-* `call apoc.help('name')` lists name, description-text and if the procedure performs writes (descriptions are WIP)
+* `call apoc.help('search')` lists name, description-text and if the procedure performs writes (descriptions are WIP), search string is checked against beginning (package) or end (name) of procedure
+
+.helpful
+[source,cypher]
+---
+CALL apoc.help("apoc") YIELD name, text
+WITH * WHERE text IS null
+RETURN name AS undocumented
+----
 
 === Manual Indexes
 
@@ -243,22 +251,22 @@ apoc.date.fieldsFormatted('2015/01/02_EET', 'yyyy/MM/dd_z') =>
 == Plans
 
 * warmup procedures that load nodes / rels by skipping one page at a time (8kb/15bytes) (8kb/35bytes)
-* parallel(fragment, params-list, result list)
+* conversions for type-system toMap, toList, toNode etc. to avoid the semantic erros we sometimes get
 * in browser guide as apoc-help-page
 * (√) optimized collection functions (WIP)
 * Time Conversion Functions (ISO<->ts, padded long representation)
-* custom expanders, e.g. with rel-type suffixes
 * ordered, limited retrieval from index (both manual and schema index)
 * json to graph (mapping)
 * virtual graph from collection of nodes and rels, handle node-uniqueness with pk
 * RDF / Ontology loader
 * Encryption / decryption of single properties or a subset or all properties (provide decryption key as param or config)
-* Graph Algorithms
-* Path Finding
+* Graph Algorithms (Stefan, Max?)
+* custom expanders, e.g. with dynamic rel-type suffixes and prefixes
+* Path Finding / Expansion (Kees)
 * Use Cypher as scripting language `{cypher:"RETURN a*10+b",params:{a:3,b:5}}` for algorithms, parallelization and custom expansion
-* help procs
+* parallel(fragment, params-list, result list)
 * (√) Graph Refactorings (WIP)
-* Job Queue (WIP) See https://github.com/jakewins/neo4j-procedure-template/blob/batch/src/main/java/example/BatchedWrites.java[BatchedWriter from Jake/Max]
+* (√) Job Queue (WIP) See https://github.com/jakewins/neo4j-procedure-template/blob/batch/src/main/java/example/BatchedWrites.java[BatchedWriter from Jake/Max]
 * eval javascript
 * Procedures in other languages (e.g. JS)
 

@@ -22,6 +22,7 @@ public class Coll {
     public GraphDatabaseService db;
 
     @Procedure
+    @Description("apoc.coll.zipToRows(list1,list2) - creates pairs like zip but emits one row per pair")
     public Stream<ListResult> zipToRows(@Name("list1") List<Object> list1, @Name("list2") List<Object> list2) {
         if (list1.isEmpty()) return Stream.empty();
         ListIterator<Object> it = list2.listIterator();

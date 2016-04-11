@@ -41,6 +41,7 @@ public class Jobs {
     }
 
     @Procedure
+    @Description("apoc.jobs.cancel(name) - cancel job with the given name")
     public Stream<JobInfo> cancel(@Name("name") String name) {
         JobInfo info = new JobInfo(name);
         Future future = list.remove(info);

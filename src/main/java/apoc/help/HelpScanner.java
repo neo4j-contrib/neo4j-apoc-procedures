@@ -20,7 +20,7 @@ import java.util.stream.Stream;
  */
 public class HelpScanner {
 
-    final static Map<String,HelpResult> procedures = new HashMap<>();
+    final static Map<String,HelpResult> procedures = new TreeMap<>();
 
     static {
         new HelpScanner().scanAll();

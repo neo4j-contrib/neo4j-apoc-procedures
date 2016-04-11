@@ -31,6 +31,7 @@ public class Json {
 
     @Procedure
     @PerformsWrites
+    @Description("apoc.json.setJsonProperty(node,key,complexValue) - sets value serialized to JSON as property with the given name on the node")
     public void setJsonProperty(@Name("node") Node node, @Name("key") String key, @Name("value") Object value) {
         try {
             node.setProperty(key,OBJECT_MAPPER.writeValueAsString(value));
@@ -40,6 +41,7 @@ public class Json {
     }
 
     @Procedure
+    @Description("apoc.json.getJsonProperty(node,key) - converts serialized JSON in property to structure again")
     public Stream<ObjectResult> getJsonProperty(@Name("node") Node node, @Name("key") String key) {
         String value = (String)node.getProperty(key, null);
         try {

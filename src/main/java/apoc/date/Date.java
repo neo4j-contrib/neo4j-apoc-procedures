@@ -44,11 +44,13 @@ public class Date {
 	);
 
 	@Procedure
+	@Description("apoc.date.fields('2012-12-23 13:10:50') - create structured map representation of date with entries for year,month,day,hour,minute,second,zoneid")
 	public Stream<MapResult> fields(final @Name("date") String date) {
 		return fieldsFormatted(date, null);
 	}
 
 	@Procedure
+	@Description("apoc.date.fieldsFormatted('2012-12-23','yyyy-MM-dd') - create structured map representation of date parsed with the given format with entries for year,month,day,hour,minute,second,zoneid")
 	public Stream<MapResult> fieldsFormatted(final @Name("date") String date, final @Name("pattern") String pattern) {
 		if (date == null) {
 			return Stream.of(MapResult.empty());
