@@ -1,7 +1,6 @@
 package apoc.algo;
 
 import apoc.Description;
-import apoc.path.PathExplorer;
 import org.neo4j.graphalgo.GraphAlgoFactory;
 import org.neo4j.graphalgo.WeightedPath;
 import org.neo4j.graphdb.Node;
@@ -17,7 +16,7 @@ public class Algo {
 
     @Procedure
     @Description("")
-    public Stream<WeightedPathContainer> dijekstra(
+    public Stream<WeightedPathResult> dijkstra(
             @Name("startNode") Node startNode,
             @Name("endNode") Node endNode,
             @Name("weightPropertyName") String weightPropertyName) {
@@ -27,14 +26,14 @@ public class Algo {
                 weightPropertyName
         ).findAllPaths(startNode, endNode);
         return StreamSupport.stream(allPaths.spliterator(), false)
-                .map( weightedPath -> new WeightedPathContainer(weightedPath) );
+                .map( weightedPath -> new WeightedPathResult(weightedPath) );
     }
 
-    public static class WeightedPathContainer {
+    public static class WeightedPathResult { // TODO: derive from PathResult when access to derived properties is fixed for yield
         public Path path;
         public double weight;
 
-        public WeightedPathContainer(WeightedPath weightedPath) {
+        public WeightedPathResult(WeightedPath weightedPath) {
             this.path = weightedPath;
             this.weight = weightedPath.weight();
         }

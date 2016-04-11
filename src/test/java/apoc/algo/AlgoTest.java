@@ -38,7 +38,7 @@ public class AlgoTest {
                 "(a)-[:ROAD {d:20}]->(c) ");
         testCall(db,
             "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
-            "CALL apoc.algo.dijekstra(from, to, 'd') yield path as path, weight as weight " +
+            "CALL apoc.algo.dijkstra(from, to, 'd') yield path as path, weight as weight " +
             "RETURN path, weight" ,
             row ->  {
                 Assert.assertEquals(50.0, row.get("weight")) ;
