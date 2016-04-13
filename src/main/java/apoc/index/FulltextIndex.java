@@ -98,7 +98,7 @@ public class FulltextIndex {
         IndexHits<Relationship> hits = db.index().forRelationships(type).query(query, null, to);
         List<WeightedNodeResult> results = new ArrayList<>(hits.size());
         while (hits.hasNext()) {
-            results.add(new WeightedNodeResult(hits.next().getEndNode(),(double)hits.currentScore()));
+            results.add(new WeightedNodeResult(hits.next().getStartNode(),(double)hits.currentScore()));
         }
         return results.stream();
     }

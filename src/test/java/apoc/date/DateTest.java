@@ -187,7 +187,7 @@ public class DateTest {
 					assertEquals(3L, split.get("hours"));
 					assertEquals(4L, split.get("minutes"));
 					assertEquals(5L, split.get("seconds"));
-					assertEquals("Europe/Bucharest", split.get("zoneid"));
+					assertEquals("EET", split.get("zoneid"));
 				});
 
 		testCall(db,
@@ -197,7 +197,7 @@ public class DateTest {
 					assertEquals(2015L, split.get("years"));
 					assertEquals(1L, split.get("months"));
 					assertEquals(2L, split.get("days"));
-					assertEquals("Europe/Bucharest", split.get("zoneid"));
+					assertEquals("EET", split.get("zoneid"));
 				});
 	}
 

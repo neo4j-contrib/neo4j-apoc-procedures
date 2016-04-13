@@ -29,7 +29,7 @@ import org.neo4j.procedure.Procedure;
  * @since 9.04.2016
  */
 public class Date {
-	private static final String DEFAULT_FORMAT = "yyyy-MM-dd HH:mm:ss";
+	public static final String DEFAULT_FORMAT = "yyyy-MM-dd HH:mm:ss";
 	private static final int MILLIS_IN_SECOND = 1000;
 	private static final String UTC_ZONE_ID = "UTC";
 	private static final List<TemporalQuery<Consumer<Map<String, Object>>>> DT_FIELDS_SELECTORS = Arrays.asList(
@@ -39,7 +39,7 @@ public class Date {
 			temporalQuery(ChronoField.HOUR_OF_DAY),
 			temporalQuery(ChronoField.MINUTE_OF_HOUR),
 			temporalQuery(ChronoField.SECOND_OF_MINUTE),
-			temporal -> map -> Optional.ofNullable(TemporalQueries.zone().queryFrom(temporal))
+			temporal -> map -> Optional.ofNullable(TemporalQueries.zoneId().queryFrom(temporal))
 					.ifPresent(zoneId -> map.put("zoneid", zoneId.getId()))
 	);
 
