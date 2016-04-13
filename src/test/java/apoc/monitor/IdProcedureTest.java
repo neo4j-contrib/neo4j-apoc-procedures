@@ -11,14 +11,11 @@ import static org.junit.Assert.*;
 
 import static apoc.util.TestUtil.testCall;
 
-public class IdProcedureTest {
+public class IdProcedureTest extends MonitorTestCase {
 
-    private static GraphDatabaseService db;
-
-    @Before
-    public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure(db, Id.class);
+    @Override
+    Class procedureClass() {
+        return Id.class;
     }
 
     @Test
@@ -41,11 +38,6 @@ public class IdProcedureTest {
         testCall(db, "CREATE (n)-[:REL_TYPE1]->(n2)", (row) -> {});
         testCall(db, "CREATE (n)-[:REL_TYPE2]->(n2)", (row) -> {});
         testCall(db, "CREATE (n) SET n.key = 123", (row) -> {});
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
 }
