@@ -337,7 +337,7 @@ image::http://www.oocities.org/matrixextreme/images/apoc.gif[float=left]
 
 http://matrix.wikia.com/wiki/Apoc[Apoc] was the technician and driver on board of the Nebuchadnezzar in the Matrix movie. He was killed by Cypher.
 
-*APOC* was also the first bundled "http://neo4j.com/blog/convenient-package-neo4j-apoc-0-1-released/[A Package Of Components]" for Neo4j.
+*APOC* was also the first bundled http://neo4j.com/blog/convenient-package-neo4j-apoc-0-1-released/[A Package Of Components] for Neo4j in 2009.
 
 *APOC* also stands for "Awesome Procedures On Cypher"
 
