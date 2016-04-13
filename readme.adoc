@@ -39,11 +39,18 @@ Procedures to add to and query manual indexes
 * `apoc.index.addNodeByLabel(node,'Label',['prop1',...])` add node to an index for the given label
 * `apoc.index.addRelationship(rel,['prop1',...])` add relationship to an index for its type
 
-* `apoc.index.nodes('Label','prop:value*') YIELD node` lucene query on node index with the given label name
-* `apoc.index.relationships('TYPE','prop:value*') YIELD rel` lucene query on relationship index with the given type name
-* `apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel` lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)
-* `apoc.index.out(node,'TYPE','prop:value*') YIELD node` lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*
-* `apoc.index.in(node,'TYPE','prop:value*') YIELD node` lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*
+* `apoc.index.nodes('Label','prop:value*') YIELD node, weight` lucene query on node index with the given label name
+* `apoc.index.relationships('TYPE','prop:value*') YIELD rel, weight` lucene query on relationship index with the given type name
+* `apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel, weight` lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)
+* `apoc.index.out(node,'TYPE','prop:value*') YIELD node, weight` lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*
+* `apoc.index.in(node,'TYPE','prop:value*') YIELD node, weight` lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*
+
+[source,cypher
+----
+match (p:Person) call apoc.index.addNode(p,["name","age"]) RETURN count(*);
+// 129s for 1M People
+call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limit 2
+----
 
 === Meta Graph
 
@@ -290,12 +297,11 @@ call apoc.path.expand(p,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",1,2) yiel
 return p, pp 
 ----
 
-
-
 == Plans
 
+* (√) add weight/score to manual index operations, expose it, TODO add Sort.RELEVANCE sorter conditionally or unconditionally
 * warmup procedures that load nodes / rels by skipping one page at a time (8kb/15bytes) (8kb/35bytes)
-* conversions for type-system toMap, toList, toNode etc. to avoid the semantic erros we sometimes get
+* conversions for type-system of "objects" to map, list, node etc. to avoid the semantic errors we sometimes get
 * in browser guide as apoc-help-page
 * (√) optimized collection functions (WIP)
 * Time Conversion Functions (ISO<->ts, padded long representation)
@@ -311,9 +317,27 @@ return p, pp
 * parallel(fragment, params-list, result list)
 * (√) Graph Refactorings (WIP)
 * (√) Job Queue (WIP) See https://github.com/jakewins/neo4j-procedure-template/blob/batch/src/main/java/example/BatchedWrites.java[BatchedWriter from Jake/Max]
+* run shell scripts apoc.load.shell(path)
+* apox.save.dump() whole database, dump("statement"), dump("", "data/import/file") dump("", "URL TO PUT"), formats - binary(packstream), human readable(graphml, graphjson), compression
+
+* Procedures in other languages (e.g. JS, JSR-223 scripting -> apoc-unsafe project)
 * eval javascript
-* Procedures in other languages (e.g. JS)
+* apoc.meta.validate(metagraph) validate a metagraph against the current graph and report violations
+* apoc.monitor.{ids,tx,store} simplar calls for the JMX info with tabular output
+* apoc.run.register(name, query[,params]), apoc.run.named(name,[params])
+* apoc.create.graph(nodes,rels,data-map) -> {nodes:[], rels:[], data:{}} a graph data structure, e.g. for rendering, export, validation, ...
 
 == License
 
 Apache License 2.0
+
+== "APOC" Name history
+
+image::http://www.oocities.org/matrixextreme/images/apoc.gif[float=left]
+
+http://matrix.wikia.com/wiki/Apoc[Apoc] was the technician and driver on board of the Nebuchadnezzar in the Matrix movie. He was killed by Cypher.
+
+*APOC* was also the first bundled "http://neo4j.com/blog/convenient-package-neo4j-apoc-0-1-released/[A Package Of Components]" for Neo4j.
+
+*APOC* also stands for "Awesome Procedures On Cypher"
+

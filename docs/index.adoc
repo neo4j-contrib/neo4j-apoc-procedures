@@ -1,0 +1,3 @@
+= APOC User Guide
+
+include::../readme.adoc[]

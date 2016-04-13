@@ -98,7 +98,9 @@ public class Meta {
     @Procedure
     @Description("apoc.meta.type(value)  - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
     public Stream<StringResult> type(@Name("value") Object value) {
-        String typeName = Types.of(value).name();
+        Types type = Types.of(value);
+        String typeName = type == Types.UNKNOWN ? value.getClass().getSimpleName() : type.name();
+
         if (value != null && value.getClass().isArray()) typeName +="[]";
         return Stream.of(new StringResult(typeName));
     }
