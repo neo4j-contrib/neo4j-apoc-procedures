@@ -7,9 +7,7 @@ import org.neo4j.jmx.JmxUtils;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Procedure;
 
-import javax.management.MBeanServer;
 import javax.management.ObjectName;
-import java.util.HashMap;
 import java.util.stream.Stream;
 
 public class Id {
