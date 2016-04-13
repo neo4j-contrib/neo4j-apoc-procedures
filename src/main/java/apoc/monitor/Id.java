@@ -22,7 +22,7 @@ public class Id extends Monitor {
 
     @Procedure
     @Description("apoc.monitor.ids() returns the object ids in use for this neo4j instance")
-    public Stream<IdsResult> ids() throws Exception {
+    public Stream<IdsResult> ids() {
         return Stream.of(getIdsInUse());
     }
 
