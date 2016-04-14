@@ -1,14 +1,22 @@
 == Collection of useful Procedures for Neo4j 3.x
 
-Just build it with `mvn package`.
-Then copy `target/apoc-1.0.0-SNAPSHOT.jar` to your server's `plugins` directory.
 
-If you want to run embedded or use shell on a disk store, configure your `plugins` directory in `neo4j.properties` with `dbms.plugin.directory=path/to/plugins`.
+Build & install apoc procedures
+
+[source,shell]
+----
+git clone http://github.com/jexp/neo4j-apoc-procedures
+cd neo4j-apoc-procedures
+mvn clean install
+cp target/target/apoc-1.0.0-SNAPSHOT.jar $NEO4J_HOME/plugins/
+$NEO4J_HOME/bin/neo4j restart
+----
+
+If you want to run embedded or use shell on a disk store, configure your `plugins` directory in `conf/neo4j.conf` with `dbms.plugin.directory=path/to/plugins`.
 
 == Calling Procedures within Cypher
 
-This repository uses a recent build (SNAPSHOT or RC1) of Neo4j, so that it can leverage procedures being called within Cypher statements.
-You can download it yourself from http://alpha.neohq.net
+This repository uses a recent build (post RC1) of Neo4j, so that it can leverage procedures being called within Cypher statements.
 
 [source,cypher]
 ----
@@ -55,7 +63,6 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 === Meta Graph
 
 Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.
-NOTE: This doesn't work with the current Neo4j-Browser due to a JS issue, but you can test it with curl or other browsers.
 
 * `CALL apoc.meta.graph` - examines the full graph to create the meta-graph
 * `CALL apoc.meta.graphSample(sampleSize)` - examines a sample graph to create the meta-graph, default sampleSize is 100
