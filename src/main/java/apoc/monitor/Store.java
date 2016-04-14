@@ -9,6 +9,7 @@ import org.neo4j.procedure.Procedure;
 import javax.management.ObjectName;
 import java.util.stream.Stream;
 
+
 import static org.neo4j.jmx.JmxUtils.getAttribute;
 import static org.neo4j.jmx.JmxUtils.getObjectName;
 
@@ -25,6 +26,7 @@ public class Store  {
 
     @Context
     public GraphDatabaseService db;
+
 
     @Procedure
     @Description("apoc.monitor.store() returns informations about the sizes of the different parts of the neo4j graph store")
