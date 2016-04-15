@@ -1,15 +1,9 @@
-package apoc.jobs;
+package apoc.periodic;
 
 import apoc.Description;
-import apoc.result.LongResult;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.api.security.AccessMode;
-import org.neo4j.kernel.impl.factory.GraphDatabaseFacade;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -20,7 +14,9 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
-public class Jobs {
+import static java.lang.System.currentTimeMillis;
+
+public class Periodic {
 
     final static ScheduledExecutorService jobs = Executors.newScheduledThreadPool(Math.max(1,Runtime.getRuntime().availableProcessors()/4));
 
@@ -41,32 +37,35 @@ public class Jobs {
     public KernelTransaction tx;
 
     @Procedure
-    @Description("apoc.jobs.list - list all jobs")
+    @Description("apoc.periodic.list - list all jobs")
     public Stream<JobInfo> list() {
         return list.entrySet().stream().map( (e) -> e.getKey().update(e.getValue()));
     }
 
     @Procedure
     @PerformsWrites
-    @Description("apoc.jobs.rundown(statement,params) - runs the given statement in separate transactions until it returns 0")
-    public Stream<RundownResult> rundown(@Name("statement") String statement, @Name("params") Map<String,Object> parameters) throws ExecutionException, InterruptedException {
+    @Description("apoc.periodic.commit(statement,params) - runs the given statement in separate transactions until it returns 0")
+    public Stream<RundownResult> commit(@Name("statement") String statement, @Name("params") Map<String,Object> parameters) throws ExecutionException, InterruptedException {
         Map<String,Object> params = parameters == null ? Collections.emptyMap() : parameters;
         long sum = 0, executions = 0, count;
+        long start = currentTimeMillis();
         do {
             count = jobs.submit(() -> executeNumericResultStatement(statement, params)).get();
             sum += count;
             if (count>0) executions++;
         } while (count > 0);
-        return Stream.of(new RundownResult(sum,executions));
+        return Stream.of(new RundownResult(sum,executions, currentTimeMillis() - start));
     }
 
     public static class RundownResult {
-        public long updates;
-        public long executions;
+        public final long updates;
+        public final long executions;
+        public final long runtime;
 
-        public RundownResult(long updates, long executions) {
+        public RundownResult(long updates, long executions, long runtime) {
             this.updates = updates;
             this.executions = executions;
+            this.runtime = runtime;
         }
     }
 
@@ -86,7 +85,7 @@ public class Jobs {
     }
 
     @Procedure
-    @Description("apoc.jobs.cancel(name) - cancel job with the given name")
+    @Description("apoc.periodic.cancel(name) - cancel job with the given name")
     public Stream<JobInfo> cancel(@Name("name") String name) {
         JobInfo info = new JobInfo(name);
         Future future = list.remove(info);
@@ -98,23 +97,29 @@ public class Jobs {
     }
 
     @Procedure
-    @Description("apoc.jobs.submit('name',statement) - submit a one-off background statement")
+    @Description("apoc.periodic.submit('name',statement) - submit a one-off background statement")
     public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement) {
-        JobInfo info = submit(name, () ->  Iterators.count(db.execute(statement)) );
+        JobInfo info = submit(name, () -> {
+            try {
+                Iterators.count(db.execute(statement));
+            } catch(Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
         return Stream.of(info);
     }
 
     @Procedure
-    @Description("apoc.jobs.schedule('name',statement,repeat-time-in-seconds) submit a repeatedly-called background statement")
+    @Description("apoc.periodic.schedule('name',statement,repeat-time-in-seconds) submit a repeatedly-called background statement")
     public Stream<JobInfo> repeat(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
         JobInfo info = schedule(name, () -> Iterators.count(db.execute(statement)),0,rate);
         return Stream.of(info);
     }
 
     // TODO
-    @Description("apoc.jobs.countdown('name',statement,repeat-time-in-seconds) submit a repeatedly-called background statement until it returns 0")
+    @Description("apoc.periodic.countdown('name',statement,repeat-time-in-seconds) submit a repeatedly-called background statement until it returns 0")
     public Stream<JobInfo> countdown(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
-        JobInfo info = schedule(name, () -> Iterators.count(db.execute(statement)),0,rate);
+        JobInfo info = submit(name, new Countdown(name, statement, rate));
         return Stream.of(info);
     }
 
@@ -124,7 +129,7 @@ public class Jobs {
     public static <T> JobInfo submit(String name, Runnable task) {
         JobInfo info = new JobInfo(name);
         Future<T> future = list.remove(info);
-        if (future != null) future.cancel(false);
+        if (future != null && !future.isDone()) future.cancel(false);
 
         Future newFuture = jobs.submit(task);
         list.put(info,newFuture);
@@ -137,9 +142,22 @@ public class Jobs {
     public static JobInfo schedule(String name, Runnable task, long delay, long repeat) {
         JobInfo info = new JobInfo(name,delay,repeat);
         Future future = list.remove(info);
-        if (future != null) future.cancel(false);
+        if (future != null && !future.isDone()) future.cancel(false);
 
         ScheduledFuture<?> newFuture = jobs.scheduleWithFixedDelay(task, delay, repeat, TimeUnit.SECONDS);
+        list.put(info,newFuture);
+        return info;
+    }
+
+    /**
+     * Call from a procedure that gets a <code>@Context GraphDatbaseAPI db;</code> injected and provide that db to the runnable.
+     */
+    public static JobInfo schedule(String name, Runnable task, long delay) {
+        JobInfo info = new JobInfo(name,delay,0);
+        Future future = list.remove(info);
+        if (future != null) future.cancel(false);
+
+        ScheduledFuture<?> newFuture = jobs.schedule(task, delay, TimeUnit.SECONDS);
         list.put(info,newFuture);
         return info;
     }
@@ -175,6 +193,25 @@ public class Jobs {
         @Override
         public int hashCode() {
             return name.hashCode();
+        }
+    }
+
+    private class Countdown implements Runnable {
+        private final String name;
+        private final String statement;
+        private final long rate;
+
+        public Countdown(String name, String statement, long rate) {
+            this.name = name;
+            this.statement = statement;
+            this.rate = rate;
+        }
+
+        @Override
+        public void run() {
+            if (Periodic.this.executeNumericResultStatement(statement, null) > 0) {
+                jobs.schedule(() -> submit(name, this), rate, TimeUnit.SECONDS);
+            }
         }
     }
 }

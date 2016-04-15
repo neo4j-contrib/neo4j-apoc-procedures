@@ -1,3 +1,15 @@
 = APOC User Guide
 
 include::../readme.adoc[]
+
+////
+
+call apoc.periodic.commit("match (u:User) where not u:Processed with u limit {limit} SET u:Processed RETURN count(*)",{limit:10000})
+
++=======+==========+
+|updates|executions|
++=======+==========+
+|2000000|200       |
++-------+----------+
+
+////

@@ -141,12 +141,13 @@ RETURN *;
 * `apoc.monitor.store` -  store size information for the different types of stores
 * `apoc.monitor.tx` - number of transactions total,opened,committed,concurrent,rolled-back,last-tx-id
 
-=== Job Management (WIP)
+=== Job Management
 
-* `CALL apoc.jobs.rundown(statement, params)` - repeats an batch update statement until it returns 0, this procedure is blocking
-* `CALL apoc.jobs.list()` - list all jobs
-* `CALL apoc.jobs.submit('name',statement)` - submit a one-off background statement
-* `CALL apoc.jobs.schedule('name',statement,repeat-time-in-seconds)` - submit a repeatedly-called background statement
+* `CALL apoc.periodic.commit(statement, params)` - repeats an batch update statement until it returns 0, this procedure is blocking
+* `CALL apoc.periodic.list()` - list all jobs
+* `CALL apoc.periodic.submit('name',statement)` - submit a one-off background statement
+* `CALL apoc.periodic.schedule('name',statement,repeat-time-in-seconds)` - submit a repeatedly-called background statement
+* `CALL apoc.periodic.countdown('name',statement,delay-in-seconds)` - submit a repeatedly-called background statement until it returns 0
 * there are also static methods `Jobs.submit`, and `Jobs.schedule` to be used from other procedures
 * jobs list is checked / cleared every 10s for finished jobs
 
@@ -315,6 +316,7 @@ return p, pp
 == Plans
 
 * (√) add weight/score to manual index operations, expose it, TODO add Sort.RELEVANCE sorter conditionally or unconditionally
+* pass in last count to rundown so you can also do batch-creates
 * warmup procedures that load nodes / rels by skipping one page at a time (8kb/15bytes) (8kb/35bytes)
 * conversions for type-system of "objects" to map, list, node etc. to avoid the semantic errors we sometimes get
 * in browser guide as apoc-help-page
@@ -334,6 +336,7 @@ return p, pp
 * (√) Job Queue (WIP) See https://github.com/jakewins/neo4j-procedure-template/blob/batch/src/main/java/example/BatchedWrites.java[BatchedWriter from Jake/Max]
 * run shell scripts apoc.load.shell(path)
 * apox.save.dump() whole database, dump("statement"), dump("", "data/import/file") dump("", "URL TO PUT"), formats - binary(packstream), human readable(graphml, graphjson), compression
+* store arbitrary objects in properties with kryo/packstream or similar serialization
 
 * Procedures in other languages (e.g. JS, JSR-223 scripting -> apoc-unsafe project)
 * eval javascript
