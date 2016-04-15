@@ -33,7 +33,7 @@ ON CREATE SET p.age = person.age, p.children = size(person.children)
 
 .helpful
 [source,cypher]
----
+----
 CALL apoc.help("apoc") YIELD name, text
 WITH * WHERE text IS null
 RETURN name AS undocumented
@@ -143,9 +143,10 @@ RETURN *;
 
 === Job Management (WIP)
 
-* `CALL apoc.jobs.list` list all jobs
-* `CALL apoc.jobs.submit('name',statement)` submit a one-off background statement
-* `CALL apoc.jobs.schedule('name',statement,repeat-time-in-seconds)` submit a repeatedly-called background statement
+* `CALL apoc.jobs.rundown(statement, params)` - repeats an batch update statement until it returns 0, this procedure is blocking
+* `CALL apoc.jobs.list()` - list all jobs
+* `CALL apoc.jobs.submit('name',statement)` - submit a one-off background statement
+* `CALL apoc.jobs.schedule('name',statement,repeat-time-in-seconds)` - submit a repeatedly-called background statement
 * there are also static methods `Jobs.submit`, and `Jobs.schedule` to be used from other procedures
 * jobs list is checked / cleared every 10s for finished jobs
 

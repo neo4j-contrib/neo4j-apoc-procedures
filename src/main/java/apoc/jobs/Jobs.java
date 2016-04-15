@@ -1,19 +1,22 @@
 package apoc.jobs;
 
 import apoc.Description;
+import apoc.result.LongResult;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Iterators;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.security.AccessMode;
 import org.neo4j.kernel.impl.factory.GraphDatabaseFacade;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
+import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
@@ -34,10 +37,52 @@ public class Jobs {
         jobs.scheduleAtFixedRate(runnable,10,10,TimeUnit.SECONDS);
     }
 
+    @Context
+    public KernelTransaction tx;
+
     @Procedure
     @Description("apoc.jobs.list - list all jobs")
     public Stream<JobInfo> list() {
         return list.entrySet().stream().map( (e) -> e.getKey().update(e.getValue()));
+    }
+
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.jobs.rundown(statement,params) - runs the given statement in separate transactions until it returns 0")
+    public Stream<RundownResult> rundown(@Name("statement") String statement, @Name("params") Map<String,Object> parameters) throws ExecutionException, InterruptedException {
+        Map<String,Object> params = parameters == null ? Collections.emptyMap() : parameters;
+        long sum = 0, executions = 0, count;
+        do {
+            count = jobs.submit(() -> executeNumericResultStatement(statement, params)).get();
+            sum += count;
+            if (count>0) executions++;
+        } while (count > 0);
+        return Stream.of(new RundownResult(sum,executions));
+    }
+
+    public static class RundownResult {
+        public long updates;
+        public long executions;
+
+        public RundownResult(long updates, long executions) {
+            this.updates = updates;
+            this.executions = executions;
+        }
+    }
+
+    private long executeNumericResultStatement(@Name("statement") String statement, @Name("params") Map<String, Object> parameters) {
+        long sum = 0;
+        try (Result result = db.execute(statement, parameters)) {
+            while (result.hasNext()) {
+                Collection<Object> row = result.next().values();
+                for (Object value : row) {
+                    if (value instanceof Number) {
+                        sum += ((Number)value).longValue();
+                    }
+                }
+            }
+        }
+        return sum;
     }
 
     @Procedure
