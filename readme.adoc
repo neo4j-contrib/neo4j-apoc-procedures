@@ -190,7 +190,7 @@ RETURN *;
 * `apoc.coll.containsAllSorted(coll, value)` optimized contains-all on a sorted list operation (Collections.binarySearch) (returns single row or not)
 
 * `apoc.get.nodes(node|id|[ids])` quickly returns all nodes with these id's
-* `apoc.get.nodes(node|id|[ids])` quickly returns all relationships with these id's
+* `apoc.get.rels(rels|id|[ids])` quickly returns all relationships with these id's
 
 === Date/time Support (thanks @tkroman)
 
