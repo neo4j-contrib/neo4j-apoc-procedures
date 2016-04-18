@@ -137,7 +137,7 @@ RETURN *;
 === Monitoring (thanks @ikwattro)
 
 * `apoc.monitor.ids` - node and relationships-ids in total and in use
-* `apoc.monitor.kenrel` - store information such as kernel version, start time, read-only, database-name, store-log-version etc.
+* `apoc.monitor.kernel` - store information such as kernel version, start time, read-only, database-name, store-log-version etc.
 * `apoc.monitor.store` -  store size information for the different types of stores
 * `apoc.monitor.tx` - number of transactions total,opened,committed,concurrent,rolled-back,last-tx-id
 
@@ -189,8 +189,8 @@ RETURN *;
 
 * `apoc.coll.containsAllSorted(coll, value)` optimized contains-all on a sorted list operation (Collections.binarySearch) (returns single row or not)
 
-* `apoc.get.nodes(node|id|[ids])` quickly returns all nodes with these id's
-* `apoc.get.rels(rels|id|[ids])` quickly returns all relationships with these id's
+* `apoc.get.nodes(node|id|[ids]) yield node` quickly returns all nodes with these id's
+* `apoc.get.rels(rels|id|[ids]) yield rel` quickly returns all relationships with these id's
 
 === Date/time Support (thanks @tkroman)
 
@@ -317,6 +317,8 @@ return p, pp
 
 == Plans
 
+* move apoc.get to apoc.nodes and apoc.rels
+* add apoc.nodes.delete(id|ids|node|nodes)
 * (√) add weight/score to manual index operations, expose it, TODO add Sort.RELEVANCE sorter conditionally or unconditionally
 * pass in last count to rundown so you can also do batch-creates
 * warmup procedures that load nodes / rels by skipping one page at a time (8kb/15bytes) (8kb/35bytes)

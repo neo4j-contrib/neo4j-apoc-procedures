@@ -137,6 +137,7 @@ public class FulltextIndex {
         for (String key : propKeys) {
             Object value = pc.getProperty(key, null);
             if (value == null) continue;
+            index.remove(pc,key);
             index.add(pc, key, value);
         }
     }
