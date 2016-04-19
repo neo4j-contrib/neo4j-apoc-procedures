@@ -9,6 +9,7 @@ import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
 import java.util.*;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 public class Create {
@@ -97,6 +98,26 @@ public class Create {
         if (p == null) return pc;
         for (Map.Entry<String, Object> entry : p.entrySet()) pc.setProperty(entry.getKey(), entry.getValue());
         return pc;
+    }
+
+    @Procedure
+    @Description("apoc.create.uuid yield uuid - creates an UUID")
+    public Stream<UUIDResult> uuid() {
+        return Stream.of(new UUIDResult());
+    }
+
+    @Procedure
+    @Description("apoc.create.uuids(count) yield uuid - creates 'count' UUIDs ")
+    public Stream<UUIDResult> uuids(@Name("count") long count) {
+        return LongStream.range(0,count).mapToObj( (i) -> new UUIDResult());
+    }
+
+    public static class UUIDResult {
+        public final String uuid;
+
+        public UUIDResult() {
+            this.uuid = UUID.randomUUID().toString();
+        }
     }
 
     private Label[] labels(Object labelNames) {
