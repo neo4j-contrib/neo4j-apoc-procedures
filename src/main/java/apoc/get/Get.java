@@ -19,6 +19,13 @@ public class Get {
     @Context
     public GraphDatabaseService db;
 
+    public Get(GraphDatabaseService db) {
+        this.db = db;
+    }
+
+    public Get() {
+    }
+
     @Procedure
     @Description("apoc.get.nodes(node|id|[ids]) - quickly returns all nodes with these id's")
     public Stream<NodeResult> nodes(@Name("nodes") Object ids) {

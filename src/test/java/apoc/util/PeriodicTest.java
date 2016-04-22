@@ -33,7 +33,7 @@ public class PeriodicTest {
             assertEquals("foo", r.get("name"));
             assertEquals(false, r.get("done"));
         });
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         assertEquals(1L,db.execute("MATCH (:Foo) RETURN count(*) as c").columnAs("c").next());
         testCall(db, "CALL apoc.periodic.list", (r) -> assertEquals(true,r.get("done")));
     }

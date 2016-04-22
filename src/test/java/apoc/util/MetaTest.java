@@ -31,6 +31,11 @@ public class MetaTest {
         db.shutdown();
     }
 
+/*
+    @Test public void testMetaStats() throws Exception {
+        testResult(db,"CALL apoc.meta.stats", (r) -> assertEquals(true, r.hasNext()));
+    }
+*/
     @Test public void testMetaType() throws Exception {
         try (Transaction tx = db.beginTx()) {
             Node node = db.createNode();

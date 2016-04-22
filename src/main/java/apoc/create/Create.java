@@ -1,6 +1,7 @@
 package apoc.create;
 
 import apoc.Description;
+import apoc.get.Get;
 import apoc.result.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.Context;
@@ -26,6 +27,34 @@ public class Create {
         return Stream.of(new NodeResult(setProperties(db.createNode(labels(labelNames)),props)));
     }
 
+
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.create.setLabels( [node,id,ids,nodes], ['Label',...]) - sets the given labels on the node or nodes")
+    public Stream<NodeResult> setLabels(@Name("nodes") Object nodes, @Name("label") List<String> labelNames) {
+        Label[] labels = labels(labelNames);
+        return new Get(db).nodes(nodes).map((r) -> {
+            Node node = r.node;
+            for (Label label : labels) {
+                node.addLabel(label);
+            }
+            return r;
+        });
+    }
+
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...]) - removes the given labels from the node or nodes")
+    public Stream<NodeResult> removeLabels(@Name("nodes") Object nodes, @Name("label") List<String> labelNames) {
+        Label[] labels = labels(labelNames);
+        return new Get(db).nodes(nodes).map((r) -> {
+            Node node = r.node;
+            for (Label label : labels) {
+                node.removeLabel(label);
+            }
+            return r;
+        });
+    }
     @Procedure
     @PerformsWrites
     @Description("apoc.create.nodes(['Label'], [{key:value,...}]) create multiple nodes with dynamic labels")
@@ -103,20 +132,23 @@ public class Create {
     @Procedure
     @Description("apoc.create.uuid yield uuid - creates an UUID")
     public Stream<UUIDResult> uuid() {
-        return Stream.of(new UUIDResult());
+        return Stream.of(new UUIDResult(0));
     }
 
     @Procedure
     @Description("apoc.create.uuids(count) yield uuid - creates 'count' UUIDs ")
     public Stream<UUIDResult> uuids(@Name("count") long count) {
-        return LongStream.range(0,count).mapToObj( (i) -> new UUIDResult());
+        return LongStream.range(0,count).mapToObj(UUIDResult::new);
     }
 
     public static class UUIDResult {
+        public final long row;
         public final String uuid;
 
-        public UUIDResult() {
+        public UUIDResult(long row) {
+            this.row = row;
             this.uuid = UUID.randomUUID().toString();
+                    // TODO Long.toHexString(uuid.getMostSignificantBits())+Long.toHexString(uuid.getLeastSignificantBits());
         }
     }
 

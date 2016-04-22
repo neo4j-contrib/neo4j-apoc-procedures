@@ -106,6 +106,8 @@ RETURN n LIMIT 5
 
 * `CALL apoc.create.node(['Label'], {key:value,...})` create node with dynamic labels
 * `CALL apoc.create.nodes(['Label'], [{key:value,...}])` create multiple nodes with dynamic labels
+* `CALL apoc.create.addLabels( [node,id,ids,nodes], ['Label',...])` - adds the given labels to the node or nodes
+* `CALL apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...])` - removes the given labels from the node or nodes
 * `CALL apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2)` create relationship with dynamic rel-type
 * `CALL apoc.create.uuid YIELD uuid` - creates an UUID
 * `CALL apoc.create.uuids(count) YIELD uuid` - creates count UUIDs

@@ -7,10 +7,16 @@ import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.impl.store.NeoStores;
+import org.neo4j.kernel.impl.store.StoreAccess;
+import org.neo4j.kernel.impl.store.counts.CountsTracker;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -24,6 +30,8 @@ public class Meta {
 
     @Context
     public GraphDatabaseService db;
+    @Context
+    public GraphDatabaseAPI api;
 
     @Context
     public KernelTransaction kernelTx;
@@ -103,6 +111,18 @@ public class Meta {
 
         if (value != null && value.getClass().isArray()) typeName +="[]";
         return Stream.of(new StringResult(typeName));
+    }
+
+//* `CALL apoc.meta.stats` - returns a dump of Neo4j's database statistic
+//    @Procedure
+//    @Description("apoc.meta.stats - returns a dump of Neo4j's database statistics")
+    public Stream<StringResult> stats() {
+        StoreAccess storeAccess = api.getDependencyResolver().resolveDependency(StoreAccess.class);
+        NeoStores neoStores = storeAccess.getRawNeoStores();
+        CountsTracker counts = neoStores.getCounts();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        counts.accept(new DumpCountsStore(new PrintStream(bos), neoStores));
+        return Stream.of(new StringResult(bos.toString()));
     }
 
     @Procedure
