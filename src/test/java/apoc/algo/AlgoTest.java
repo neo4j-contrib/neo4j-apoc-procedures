@@ -49,6 +49,15 @@ public class AlgoTest {
                 assertEquals(5, ((List)(row.get("path"))).size()) ; // 3nodes, 2 rels
             }
         );
+        testCall(db,
+            "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
+            "CALL apoc.algo.dijkstra(from, to, '', 'd') yield path as path, weight as weight " +
+            "RETURN path, weight" ,
+            row ->  {
+                assertEquals(5.0, row.get("weight")) ;
+                assertEquals(3, ((List)(row.get("path"))).size()) ; // 2nodes, 1 rels
+            }
+        );
     }
 
     @Test

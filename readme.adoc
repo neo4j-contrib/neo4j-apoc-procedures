@@ -319,6 +319,24 @@ call apoc.path.expand(p,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",1,2) yiel
 return p, pp 
 ----
 
+=== Graph Alorithms (work in progress)
+
+Provides a wrapper around GraphAlgoFactory.
+
+* `CALL apoc.algo.dijkstra(startNode, endNode, relAndDirections, costProperty)` - run dijkstra with a relationship property as cost function,
+`relAndDirections` is a path expander specification from above.
+* `CALL apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, relAndDirections, costProperty, defaultCost)` - run dijkstra with a relationship property as cost function. If the relationship property does not exist, use the specified default value instead.
+
+Example: find the weighted shortest path based on relationship property `d` from `A` to `B` following just `:ROAD` relationships
+
+[source,cypher]
+----
+MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'})
+CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as weight
+RETURN path, weight
+MATCH (n:Person)
+----
+
 == Plans
 
 * move apoc.get to apoc.nodes and apoc.rels
@@ -335,7 +353,7 @@ return p, pp
 * virtual graph from collection of nodes and rels, handle node-uniqueness with pk
 * RDF / Ontology loader
 * Encryption / decryption of single properties or a subset or all properties (provide decryption key as param or config)
-* Graph Algorithms (Stefan, Max?)
+* (in progress) Graph Algorithms (Stefan, Max?)
 * custom expanders, e.g. with dynamic rel-type suffixes and prefixes
 * Path Finding / Expansion (Kees)
 * Use Cypher as scripting language `{cypher:"RETURN a*10+b",params:{a:3,b:5}}` for algorithms, parallelization and custom expansion
