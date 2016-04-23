@@ -1,27 +1,17 @@
 package apoc.path;
 
-import java.util.*;
-import java.util.stream.Stream;
-
+import apoc.Description;
 import apoc.result.PathResult;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.PathExpanderBuilder;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.traversal.Evaluation;
-import org.neo4j.graphdb.traversal.Evaluator;
-import org.neo4j.graphdb.traversal.Evaluators;
-import org.neo4j.graphdb.traversal.TraversalDescription;
-import org.neo4j.graphdb.traversal.Uniqueness;
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.traversal.*;
+import org.neo4j.helpers.collection.Pair;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import apoc.Description;
+import java.util.*;
+import java.util.stream.Stream;
 
 
 public class PathExplorer {
@@ -73,12 +63,6 @@ public class PathExplorer {
 		throw new Exception("Unsupported data type for start parameter a Node or an Identifier (long) of a Node must be given!");
 	}
 
-	private Direction directionFor(String type) {
-		if (type.contains("<")) return Direction.INCOMING;
-		if (type.contains(">")) return Direction.OUTGOING;
-		return Direction.BOTH;
-	}
-
 	private Stream<PathResult> explorePathPrivate(Iterable<Node> startNodes
 			                   , String pathFilter
 			                   , String labelFilter
@@ -92,20 +76,18 @@ public class PathExplorer {
 		int to = new Long(maxLevel).intValue();
 		TraversalDescription td = db.traversalDescription().breadthFirst();
 		// based on the pathFilter definition now the possible relationships and directions must be shown
-		if (pathFilter !=null ) {
-			String[] defs = pathFilter.split("\\|");
-			if (!defs[0].isEmpty()) {
-				for (String def : defs) {
-					Direction direction = directionFor(def);
-					RelationshipType relType = new DynRelationshipType(def);
-					if (relType.name().isEmpty()) {
-						td = td.expand(PathExpanderBuilder.allTypes(direction).build());
-					} else {
-						td = td.relationships(relType, direction);
-					}
-				}
-			} // else td = td.expand(StandardExpander.DEFAULT); }
-		} // else { td = td.expand(StandardExpander.DEFAULT); }
+
+		Iterable<Pair<RelationshipType, Direction>> relDirIterable = RelationshipTypeAndDirections.parse(pathFilter);
+
+		for (Pair<RelationshipType, Direction> pair: relDirIterable) {
+			if (pair.first() == null) {
+				td = td.expand(PathExpanderBuilder.allTypes(pair.other()).build());
+			} else {
+				td = td.relationships(pair.first(), pair.other());
+			}
+
+		}
+
 		LabelEvaluator labelEvaluator = new LabelEvaluator(labelFilter);
 		td = td.evaluator(Evaluators.fromDepth(from))
 				.evaluator(Evaluators.toDepth(to))
@@ -113,23 +95,6 @@ public class PathExplorer {
 		td = td.uniqueness(UNIQUENESS); // this is how Cypher works !!
 		// uniqueness should be set as last on the TraversalDescription
 		return td.traverse(startNodes).stream().map( PathResult::new );
-	}
-	
-	public class DynRelationshipType implements RelationshipType {
-		private String name;
-		public DynRelationshipType(String sname) {
-			if (sname.startsWith(":")) {
-				sname = sname.substring(1);
-			}
-			if (sname.endsWith(">") || sname.endsWith("<")) {
-				sname = sname.substring(0, sname.length() -1);
-			}
-			this.name = sname;
-		}
-		public String name() {
-			return this.name;
-		}
-		
 	}
 
 	public static class InfoContainer
