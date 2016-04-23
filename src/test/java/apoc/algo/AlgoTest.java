@@ -35,13 +35,14 @@ public class AlgoTest {
                 "(c:Loc{name:'C'}), " +
                 "(d:Loc{name:'D'}), " +
                 "(a)-[:ROAD {d:100}]->(d), " +
+                "(a)-[:RAIL {d:5}]->(d), " +
                 "(a)-[:ROAD {d:10}]->(b), " +
                 "(b)-[:ROAD {d:20}]->(c), " +
                 "(c)-[:ROAD {d:30}]->(d), " +
                 "(a)-[:ROAD {d:20}]->(c) ");
         testCall(db,
             "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
-            "CALL apoc.algo.dijkstra(from, to, 'd') yield path as path, weight as weight " +
+            "CALL apoc.algo.dijkstra(from, to, 'ROAD>', 'd') yield path as path, weight as weight " +
             "RETURN path, weight" ,
             row ->  {
                 assertEquals(50.0, row.get("weight")) ;
@@ -58,13 +59,14 @@ public class AlgoTest {
                 "(c:Loc{name:'C'}), " +
                 "(d:Loc{name:'D'}), " +
                 "(a)-[:ROAD {d:100}]->(d), " +
+                "(a)-[:RAIL {d:5}]->(d), " +
                 "(a)-[:ROAD {d:10}]->(b), " +
                 "(b)-[:ROAD {d:20}]->(c), " +
                 "(c)-[:ROAD]->(d), " +
                 "(a)-[:ROAD {d:20}]->(c) ");
         testCall(db,
                 "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
-                        "CALL apoc.algo.dijkstraWithDefaultWeight(from, to, 'd', 10.5) yield path as path, weight as weight " +
+                        "CALL apoc.algo.dijkstraWithDefaultWeight(from, to, 'ROAD>', 'd', 10.5) yield path as path, weight as weight " +
                         "RETURN path, weight",
                 row -> {
                     assertEquals(30.5, row.get("weight"));
