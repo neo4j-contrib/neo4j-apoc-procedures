@@ -16,7 +16,7 @@ import java.util.stream.StreamSupport;
 public class Algo {
 
     @Procedure
-    @Description("apoc.algo.dijkstra(startNode, endNode, 'KNOWS|WORKS_WITH<|IS_MANAGER_OF>', 'distance') YIELD yield, weight - run dijkstra with relationship property name as cost function")
+    @Description("apoc.algo.dijkstra(startNode, endNode, 'KNOWS|WORKS_WITH<|IS_MANAGER_OF>', 'distance') YIELD path, weight - run dijkstra with relationship property name as cost function")
     public Stream<WeightedPathResult> dijkstra(
             @Name("startNode") Node startNode,
             @Name("endNode") Node endNode,
@@ -31,7 +31,7 @@ public class Algo {
     }
 
     @Procedure
-    @Description("apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS|WORKS_WITH<|IS_MANAGER_OF>', 'distance', 10) YIELD yield, weight - run dijkstra with relationship property name as cost function and a default weight if the property does not exist")
+    @Description("apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS|WORKS_WITH<|IS_MANAGER_OF>', 'distance', 10) YIELD path, weight - run dijkstra with relationship property name as cost function and a default weight if the property does not exist")
     public Stream<WeightedPathResult> dijkstraWithDefaultWeight(
             @Name("startNode") Node startNode,
             @Name("endNode") Node endNode,

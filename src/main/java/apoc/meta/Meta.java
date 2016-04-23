@@ -58,6 +58,14 @@ public class Meta {
             if (Iterable.class.isAssignableFrom(type)) return LIST;
             return UNKNOWN;
         }
+
+        public static Types from(String typeName) {
+            typeName = typeName.toUpperCase();
+            for (Types type : values()) {
+                if (type.name().startsWith(typeName)) return type;
+            }
+            return STRING;
+        }
     }
     public static class MetaResult {
         public String label;

@@ -9,14 +9,16 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.net.URL;
 import java.util.Map;
 
+import static apoc.util.TestUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 
-public class LoadTest {
+public class LoadJsonTest {
 
     private GraphDatabaseService db;
 	@Before public void setUp() throws Exception {
@@ -29,10 +31,10 @@ public class LoadTest {
     }
 
     @Test public void testLoadJson() throws Exception {
-//		URL url = getClass().getResource("map.json");
-		testCall(db, "CALL apoc.load.json('file:map.json')", // YIELD value RETURN value
+		URL url = ClassLoader.getSystemResource("map.json");
+		testCall(db, "CALL apoc.load.json({url})",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
                 (row) -> {
-                    assertEquals(singletonMap("foo",asList(1,2,3)), row.get("value"));
+                    assertEquals(map("foo",asList(1,2,3)), row.get("value"));
                 });
     }
 }

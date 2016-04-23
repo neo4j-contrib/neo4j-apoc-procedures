@@ -8,7 +8,7 @@ Build & install apoc procedures
 git clone http://github.com/jexp/neo4j-apoc-procedures
 cd neo4j-apoc-procedures
 mvn clean install
-cp target/target/apoc-1.0.0-SNAPSHOT.jar $NEO4J_HOME/plugins/
+cp target/apoc-1.0.0-SNAPSHOT.jar $NEO4J_HOME/plugins/
 $NEO4J_HOME/bin/neo4j restart
 ----
 
@@ -97,10 +97,12 @@ RETURN n LIMIT 5
 * `CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18')` load from relational database, either a full table or a sql statement
 * `CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver')` register JDBC driver of source database
 
-=== Loading Data from Web-APIs (JSON, XML)
+=== Loading Data from Web-APIs (JSON, XML, CSV)
 
 * `CALL apoc.load.json('http://example.com/map.json') YIELD value as person CREATE (p:Person) SET p = person` load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map
 * `CALL apoc.load.xml('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name` load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `_type`, `_text` and `_children`x fields.
+* `CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, map` - load CSV fom URL as stream of values
+** config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}`
 
 === Creating Data
 
