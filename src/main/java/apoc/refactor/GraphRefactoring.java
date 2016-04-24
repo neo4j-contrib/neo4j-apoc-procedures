@@ -7,7 +7,9 @@ import java.util.stream.Stream;
 
 import apoc.Description;
 import apoc.result.NodeResult;
+import apoc.util.Util;
 import org.neo4j.graphdb.*;
+import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -30,6 +32,53 @@ public class GraphRefactoring {
                     copyRelationships(node, copy,false);
                 }
                 return result.withOther(copy);
+            } catch (Exception e) {
+                return result.withError(e);
+            }
+        });
+    }
+
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.refactor.extractNode([rel1,rel2,...], [labels],'OUT','IN') extract node from relationships")
+    public Stream<NodeRefactorResult> extractNode(@Name("relationships") Object rels, @Name("labels") List<String> labels, @Name("outType") String outType, @Name("inType") String inType) {
+        return Util.relsStream(db, rels).map((rel) -> {
+            NodeRefactorResult result = new NodeRefactorResult(rel.getId());
+            try {
+                Node copy = copyProperties(rel, db.createNode(Util.labels(labels)));
+                copy.createRelationshipTo(rel.getEndNode(),RelationshipType.withName(outType));
+                rel.getStartNode().createRelationshipTo(copy,RelationshipType.withName(inType));
+                rel.delete();
+                return result.withOther(copy);
+            } catch (Exception e) {
+                return result.withError(e);
+            }
+        });
+    }
+
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.refactor.collapseNode([node1,node2],'TYPE') collapse node to relationship, node with one rel becomes self-relationship")
+    public Stream<RelationshipRefactorResult> collapseNode(@Name("nodes") Object nodes, @Name("type") String type) {
+        return Util.nodeStream(db, nodes).map((node) -> {
+            RelationshipRefactorResult result = new RelationshipRefactorResult(node.getId());
+            try {
+                Iterable<Relationship> outRels = node.getRelationships(Direction.OUTGOING);
+                Iterable<Relationship> inRels = node.getRelationships(Direction.INCOMING);
+                if (node.getDegree(Direction.OUTGOING) == 1 &&  node.getDegree(Direction.INCOMING) == 1) {
+                    Relationship outRel = outRels.iterator().next();
+                    Relationship inRel = inRels.iterator().next();
+                    Relationship newRel = inRel.getStartNode().createRelationshipTo(outRel.getEndNode(), RelationshipType.withName(type));
+                    newRel = copyProperties(node, copyProperties(inRel, copyProperties(outRel, newRel)));
+
+                    for (Relationship r : inRels) r.delete();
+                    for (Relationship r : outRels) r.delete();
+                    node.delete();
+
+                    return result.withOther(newRel);
+                } else {
+                    return result.withError(String.format("Node %d has more that 1 outgoing %d or incoming %d relationships",node.getId(),node.getDegree(Direction.OUTGOING),node.getDegree(Direction.INCOMING)));
+                }
             } catch (Exception e) {
                 return result.withError(e);
             }
@@ -148,7 +197,7 @@ public class GraphRefactoring {
         return target;
     }
 
-    private <T extends PropertyContainer> T copyProperties(T source, T target) {
+    private <T extends PropertyContainer> T copyProperties(PropertyContainer source, T target) {
         for (Map.Entry<String, Object> prop : source.getAllProperties().entrySet())
             target.setProperty(prop.getKey(), prop.getValue());
         return target;

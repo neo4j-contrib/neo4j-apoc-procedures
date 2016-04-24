@@ -5,18 +5,30 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.List;
+import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
 
 public class AlgoTest {
 
-   	private GraphDatabaseService db;
+    private GraphDatabaseService db;
+    public static final String SETUP = "CREATE (b:City {name:'Berlin',lat:52.52464,lon:13.40514})\n" +
+            "CREATE (m:City {name:'München',lat:48.1374,lon:11.5755})\n" +
+            "CREATE (f:City {name:'Frankfurt',lat:50.1167,lon:8.68333})\n" +
+            "CREATE (h:City {name:'Hamburg',lat:53.554423,lon:9.994583})\n" +
+            "CREATE (b)-[:DIRECT {dist:255.64*1000}]->(h)\n" +
+            "CREATE (b)-[:DIRECT {dist:504.47*1000}]->(m)\n" +
+            "CREATE (b)-[:DIRECT {dist:424.12*1000}]->(f)\n" +
+            "CREATE (f)-[:DIRECT {dist:304.28*1000}]->(m)\n" +
+            "CREATE (f)-[:DIRECT {dist:393.15*1000}]->(h)";
 
-   	@Before
+    @Before
    	public void setUp() throws Exception {
    		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
    		TestUtil.registerProcedure(db, Algo.class);
@@ -28,7 +40,50 @@ public class AlgoTest {
    	}
 
     @Test
-    public void testDijekstra() {
+    public void testAStar() throws Exception {
+        db.execute(SETUP).close();
+        testResult(db,
+                "MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'}) " +
+                        "CALL apoc.algo.aStar(from, to, 'DIRECT', 'dist', 'lat', 'lon') yield path as path, weight as weight " +
+                        "RETURN path, weight" ,
+                r ->  {
+                    assertEquals(true, r.hasNext());
+                    Map<String, Object> row = r.next();
+                    assertEquals(697, ((Number)row.get("weight")).intValue()/1000) ;
+                    List path = (List)row.get("path");
+                    assertEquals(5, path.size()) ; // 3nodes, 2 rels
+                    assertEquals("München", ((Node)path.get(0)).getProperty("name")) ;
+                    assertEquals("Frankfurt", ((Node)path.get(2)).getProperty("name")) ;
+                    assertEquals("Hamburg", ((Node)path.get(4)).getProperty("name")) ;
+
+                    assertEquals(false,r.hasNext());
+                }
+        );
+    }
+    @Test
+    public void testAStarConfig() throws Exception {
+        db.execute(SETUP).close();
+        testResult(db,
+                "MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'}) " +
+                        "CALL apoc.algo.aStarConfig(from, to, 'DIRECT', {weight:'dist',y:'lat', x:'lon',default:100}) yield path as path, weight as weight " +
+                        "RETURN path, weight" ,
+                r ->  {
+                    assertEquals(true, r.hasNext());
+                    Map<String, Object> row = r.next();
+                    assertEquals(697, ((Number)row.get("weight")).intValue()/1000) ;
+                    List path = (List)row.get("path");
+                    assertEquals(5, path.size()) ; // 3nodes, 2 rels
+                    assertEquals("München", ((Node)path.get(0)).getProperty("name")) ;
+                    assertEquals("Frankfurt", ((Node)path.get(2)).getProperty("name")) ;
+                    assertEquals("Hamburg", ((Node)path.get(4)).getProperty("name")) ;
+
+                    assertEquals(false,r.hasNext());
+                }
+        );
+    }
+
+    @Test
+    public void testDijkstra() {
         db.execute("CREATE " +
                 "(a:Loc{name:'A'}), " +
                 "(b:Loc{name:'B'}), " +
@@ -61,7 +116,7 @@ public class AlgoTest {
     }
 
     @Test
-    public void testDijekstraWithDefaultWeight() {
+    public void testDijekstrWithDefaultWeight() {
         db.execute("CREATE " +
                 "(a:Loc{name:'A'}), " +
                 "(b:Loc{name:'B'}), " +

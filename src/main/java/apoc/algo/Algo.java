@@ -2,18 +2,57 @@ package apoc.algo;
 
 import apoc.Description;
 import apoc.path.RelationshipTypeAndDirections;
-import org.neo4j.graphalgo.GraphAlgoFactory;
-import org.neo4j.graphalgo.PathFinder;
-import org.neo4j.graphalgo.WeightedPath;
+import org.neo4j.graphalgo.*;
+import org.neo4j.graphalgo.impl.util.GeoEstimateEvaluator;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class Algo {
+
+    @Procedure
+    @Description("apoc.algo.aStar(startNode, endNode, 'KNOWS|WORKS_WITH<|IS_MANAGER_OF>', 'distance','lat','lon') YIELD path, weight - run A* with relationship property name as cost function")
+    public Stream<WeightedPathResult> aStar(
+            @Name("startNode") Node startNode,
+            @Name("endNode") Node endNode,
+            @Name("relationshipTypesAndDirections") String relTypesAndDirs,
+            @Name("weightPropertyName") String weightPropertyName,
+            @Name("latPropertyName") String latPropertyName,
+            @Name("lonPropertyName") String lonPropertyName) {
+
+        PathFinder<WeightedPath> algo = GraphAlgoFactory.aStar(
+                buildPathExpander(relTypesAndDirs),
+                CommonEvaluators.doubleCostEvaluator(weightPropertyName),
+                CommonEvaluators.geoEstimateEvaluator(latPropertyName,lonPropertyName));
+        return streamWeightedPathResult(startNode, endNode, algo);
+    }
+
+    @Procedure
+    @Description("apoc.algo.aStar(startNode, endNode, 'KNOWS|WORKS_WITH<|IS_MANAGER_OF>', {weight:'dist',default:10,x:'lon',y:'lat'}) YIELD path, weight - run A* with relationship property name as cost function")
+    public Stream<WeightedPathResult> aStarConfig(
+            @Name("startNode") Node startNode,
+            @Name("endNode") Node endNode,
+            @Name("relationshipTypesAndDirections") String relTypesAndDirs,
+            @Name("config") Map<String,Object> config) {
+
+        config = config == null ? Collections.emptyMap() : config;
+        String relationshipCostPropertyKey = config.getOrDefault("weight", "distance").toString();
+        double defaultCost = ((Number) config.getOrDefault("default", Double.MAX_VALUE)).doubleValue();
+        String latPropertyName = config.getOrDefault("y", "latitude").toString();
+        String lonPropertyName = config.getOrDefault("x", "longitude").toString();
+
+        PathFinder<WeightedPath> algo = GraphAlgoFactory.aStar(
+                buildPathExpander(relTypesAndDirs),
+                CommonEvaluators.doubleCostEvaluator(relationshipCostPropertyKey, defaultCost),
+                CommonEvaluators.geoEstimateEvaluator(latPropertyName, lonPropertyName));
+        return streamWeightedPathResult(startNode, endNode, algo);
+    }
 
     @Procedure
     @Description("apoc.algo.dijkstra(startNode, endNode, 'KNOWS|WORKS_WITH<|IS_MANAGER_OF>', 'distance') YIELD path, weight - run dijkstra with relationship property name as cost function")
@@ -50,9 +89,18 @@ public class Algo {
         PathExpanderBuilder builder = PathExpanderBuilder.empty();
         for (Pair<RelationshipType, Direction> pair : RelationshipTypeAndDirections.parse(relationshipsAndDirections)) {
             if (pair.first()==null) {
-                builder = PathExpanderBuilder.allTypes(pair.other());
+                if (pair.other() == null ) {
+                    builder = PathExpanderBuilder.allTypesAndDirections();
+                }
+                else {
+                    builder = PathExpanderBuilder.allTypes(pair.other());
+                }
             } else {
-                builder = builder.add(pair.first(), pair.other());
+                if (pair.other() == null) {
+                    builder = builder.add(pair.first());
+                } else {
+                    builder = builder.add(pair.first(), pair.other());
+                }
             }
         }
         return builder.build();
@@ -72,5 +120,33 @@ public class Algo {
             this.path = weightedPath;
             this.weight = weightedPath.weight();
         }
+    }
+
+    private static class DoubleEstimateEvaluator implements EstimateEvaluator<Double> {
+
+        private final String xProperty;
+        private final String yProperty;
+
+        public DoubleEstimateEvaluator(String xProperty, String yProperty) {
+            this.xProperty = xProperty;
+            this.yProperty = yProperty;
+        }
+
+        @Override
+        public Double getCost(final Node node, final Node goal) {
+            double dx = doubleValue(node, xProperty) - doubleValue(goal, xProperty);
+            double dy = doubleValue(node, yProperty) - doubleValue(goal, yProperty);
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+    }
+
+    private static double doubleValue(PropertyContainer pc, String prop, Number defaultValue) {
+        Object costProp = pc.getProperty(prop,defaultValue);
+        if (costProp instanceof Number) return ((Number) costProp).doubleValue();
+        return Double.parseDouble(costProp.toString());
+
+    }
+    private static double doubleValue(PropertyContainer pc, String prop) {
+        return doubleValue(pc,prop,0);
     }
 }

@@ -20,6 +20,11 @@ public class RelationshipRefactorResult {
         return this;
     }
 
+    public RelationshipRefactorResult withError(String message) {
+        this.error = message;
+        return this;
+    }
+
     public RelationshipRefactorResult withOther(Relationship rel) {
         this.output = rel;
         return this;

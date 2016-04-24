@@ -1,11 +1,15 @@
 package apoc.index;
 
 import apoc.Description;
+import apoc.meta.Meta;
 import apoc.result.NodeResult;
 import apoc.result.WeightedNodeResult;
 import apoc.result.WeightedRelationshipResult;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.graphdb.index.RelationshipIndex;
 import org.neo4j.index.impl.lucene.legacy.LuceneIndexImplementation;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
@@ -14,6 +18,7 @@ import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -24,6 +29,8 @@ import java.util.stream.Stream;
  */
 public class FulltextIndex {
     private static final Map<String, String> FULL_TEXT = LuceneIndexImplementation.FULLTEXT_CONFIG;
+    public static final String NODE = Meta.Types.NODE.name();
+    public static final String RELATIONSHIP = Meta.Types.RELATIONSHIP.name();
 
     @Context
     public GraphDatabaseService db;
@@ -39,6 +46,67 @@ public class FulltextIndex {
 
         IndexHits<Node> hits = db.index().forNodes(label).query(query);
         return toWeightedNodeResult(hits).stream();
+    }
+
+    public static class IndexInfo {
+        public final String type;
+        public final String name;
+        public final Map<String,String> config;
+
+        public IndexInfo(String type, String name, Map<String, String> config) {
+            this.type = type;
+            this.name = name;
+            this.config = config;
+        }
+    }
+
+    @Description("apoc.index.forNodes('name',{config}) YIELD type,name,config - gets or creates node index")
+    @Procedure @PerformsWrites
+    public Stream<IndexInfo> forNodes(@Name("name") String name, @Name("config") Map<String,String> config) {
+        IndexManager mgr = db.index();
+        Index<Node> index = mgr.existsForNodes(name) ? mgr.forNodes(name) : mgr.forNodes(name, config == null ? Collections.emptyMap() : config);
+        return Stream.of(new IndexInfo(NODE, name, mgr.getConfiguration(index)));
+    }
+    @Description("apoc.index.forRelationships('name',{config}) YIELD type,name,config - gets or creates relationship index")
+    @Procedure @PerformsWrites
+    public Stream<IndexInfo> forRelationships(@Name("name") String name, @Name("config") Map<String,String> config) {
+        IndexManager mgr = db.index();
+        Index<Relationship> index = mgr.existsForRelationships(name) ? mgr.forRelationships(name) : mgr.forRelationships(name, config == null ? Collections.emptyMap() : config);
+        return Stream.of(new IndexInfo(RELATIONSHIP, name, mgr.getConfiguration(index)));
+    }
+
+    @Description("apoc.index.remove('name') YIELD type,name,config - removes an manual index")
+    @Procedure @PerformsWrites
+    public Stream<IndexInfo> remove(@Name("name") String name) {
+        IndexManager mgr = db.index();
+        List<IndexInfo> indexInfos = new ArrayList<>(2);
+        if (mgr.existsForNodes(name)) {
+            Index<Node> index = mgr.forNodes(name);
+            indexInfos.add(new IndexInfo(NODE, name, mgr.getConfiguration(index)));
+            index.delete();
+        }
+        if (mgr.existsForRelationships(name)) {
+            Index<Relationship> index = mgr.forRelationships(name);
+            indexInfos.add(new IndexInfo(RELATIONSHIP, name, mgr.getConfiguration(index)));
+            index.delete();
+        }
+        return indexInfos.stream();
+    }
+
+    @Description("apoc.index.list() - YIELD type,name,config - lists all manual indexes")
+    @Procedure @PerformsWrites
+    public Stream<IndexInfo> list() {
+        IndexManager mgr = db.index();
+        List<IndexInfo> indexInfos = new ArrayList<>(100);
+        for (String name : mgr.nodeIndexNames()) {
+            Index<Node> index = mgr.forNodes(name);
+            indexInfos.add(new IndexInfo(NODE,name,mgr.getConfiguration(index)));
+        }
+        for (String name : mgr.relationshipIndexNames()) {
+            RelationshipIndex index = mgr.forRelationships(name);
+            indexInfos.add(new IndexInfo(RELATIONSHIP,name,mgr.getConfiguration(index)));
+        }
+        return indexInfos.stream();
     }
 
     private List<WeightedNodeResult> toWeightedNodeResult(IndexHits<Node> hits) {
