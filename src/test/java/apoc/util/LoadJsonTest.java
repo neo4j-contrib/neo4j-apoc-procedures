@@ -1,21 +1,19 @@
 package apoc.util;
 
-import apoc.convert.Json;
+import java.net.URL;
+
 import apoc.load.LoadJson;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.net.URL;
-import java.util.Map;
+import static java.util.Arrays.asList;
 
 import static apoc.util.TestUtil.map;
 import static apoc.util.TestUtil.testCall;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 
 public class LoadJsonTest {
