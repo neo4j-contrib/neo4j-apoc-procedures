@@ -290,9 +290,9 @@ apoc.date.fieldsFormatted('2015/01/02_EET', 'yyyy/MM/dd_z') =>
 
 === Path Expander (thanks @keesvegter)
 
-The apoc.path.expand procedure makes it possible to do variable length path traversals where you can specify the direction of the relationship per relationship type and a list of Label names which act as a "whitelist" or a "blacklist". The procedure will return a list of Paths in a variable name called "expandedPath".
+The apoc.path.expand procedure makes it possible to do variable length path traversals where you can specify the direction of the relationship per relationship type and a list of Label names which act as a "whitelist" or a "blacklist". The procedure will return a list of Paths in a variable name called "path".
 
-* `call apoc.path.expand(startNode <id>|Node, relationshipFilter, labelFilter, minLevel, maxLevel ) yield expandedPath as <identifier>`
+* `call apoc.path.expand(startNode <id>|Node, relationshipFilter, labelFilter, minLevel, maxLevel ) yield path as <identifier>`
 
 ** startnode &lt;id&gt; |Node
 
@@ -320,13 +320,13 @@ call apoc.path.expand(1,"ACTED_IN>|PRODUCED<|FOLLOWS<","",0,3)
 combined with cypher:
 
 match (tom:Person {name :"Tom Hanks"})
-call apoc.path.expand(tom,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",0,3) yield expandedPath as pp 
+call apoc.path.expand(tom,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",0,3) yield path as pp 
 return pp;
 
 or
 
 match (p:Person) with p limit 3
-call apoc.path.expand(p,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",1,2) yield expandedPath as pp
+call apoc.path.expand(p,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",1,2) yield path as pp
 return p, pp 
 ----
 
