@@ -4,8 +4,15 @@ include::../readme.adoc[]
 
 ////
 
-call apoc.periodic.commit("match (u:User) where not u:Processed with u limit {limit} SET u:Processed RETURN count(*)",{limit:10000})
-
+[source,cypher]
+----
+call apoc.periodic.commit("
+match (u:User)
+where not u:Processed
+with u limit {limit}
+SET u:Processed RETURN count(*)
+",{limit:10000})
+---
 +=======+==========+
 |updates|executions|
 +=======+==========+
@@ -13,3 +20,22 @@ call apoc.periodic.commit("match (u:User) where not u:Processed with u limit {li
 +-------+----------+
 
 ////
+
+[source,cypher]
+----
+WITH
+        "21 rue Paul Bellamy 44000 NANTES FRANCE" AS fromAddr,
+        "125 rue du docteur guichard 49000 ANGERS FRANCE" AS toAddr
+
+call apoc.load.json("http://www.yournavigation.org/transport.php?url=http://nominatim.openstreetmap.org/search&format=json&q=" + replace(fromAddr, ' ', '%20')) YIELD value AS from
+
+WITH from, toAddr  LIMIT 1
+
+call apoc.load.json("http://www.yournavigation.org/transport.php?url=http://nominatim.openstreetmap.org/search&format=json&q=" + replace(toAddr, ' ', '%20')) YIELD value AS to
+
+CALL apoc.load.json("https://router.project-osrm.org/viaroute?instructions=true&alt=true&z=17&loc=" + from.lat + "," + from.lon + "&loc=" + to.lat + "," + to.lon ) YIELD value AS doc
+
+UNWIND doc.route_instructions as instruction
+
+RETURN instruction
+----
