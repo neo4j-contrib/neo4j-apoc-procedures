@@ -1,13 +1,16 @@
 package apoc.util;
 
 import apoc.periodic.Periodic;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static apoc.util.TestUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 public class PeriodicTest {
 
@@ -21,6 +24,10 @@ public class PeriodicTest {
     }
 
     @Test public void testSubmitStatement() throws Exception {
+        String callList = "CALL apoc.periodic.list";
+        // force pre-caching the queryplan
+        assertFalse(db.execute(callList).hasNext());
+
         testCall(db, "CALL apoc.periodic.submit('foo','create (:Foo)')",
                 (row) -> {
                     assertEquals("foo", row.get("name"));
@@ -29,13 +36,13 @@ public class PeriodicTest {
                     assertEquals(0L, row.get("delay"));
                     assertEquals(0L, row.get("rate"));
                 });
-        testCall(db, "CALL apoc.periodic.list", (r) -> {
+        testCall(db, callList, (r) -> {
             assertEquals("foo", r.get("name"));
             assertEquals(false, r.get("done"));
         });
         Thread.sleep(2000);
         assertEquals(1L,db.execute("MATCH (:Foo) RETURN count(*) as c").columnAs("c").next());
-        testCall(db, "CALL apoc.periodic.list", (r) -> assertEquals(true,r.get("done")));
+        testCall(db, callList, (r) -> assertEquals(true,r.get("done")));
     }
 
     public static final long RUNDONW_COUNT = 1000;
