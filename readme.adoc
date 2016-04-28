@@ -16,7 +16,7 @@ If you want to run embedded or use shell on a disk store, configure your `plugin
 
 == Calling Procedures within Cypher
 
-This repository uses a recent build (post RC1) of Neo4j, so that it can leverage procedures being called within Cypher statements.
+This repository uses a recent build (>= 3.0.0) of Neo4j, so that it can leverage procedures being called within Cypher statements.
 
 [source,cypher]
 ----
