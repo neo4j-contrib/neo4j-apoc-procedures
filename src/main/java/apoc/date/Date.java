@@ -5,10 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalAccessor;
-import java.time.temporal.TemporalQueries;
-import java.time.temporal.TemporalQuery;
+import java.time.temporal.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -18,6 +15,7 @@ import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
 import apoc.Description;
 import apoc.result.LongResult;
 import apoc.result.MapResult;
@@ -41,8 +39,8 @@ public class Date {
 			temporalQuery(ChronoField.HOUR_OF_DAY),
 			temporalQuery(ChronoField.MINUTE_OF_HOUR),
 			temporalQuery(ChronoField.SECOND_OF_MINUTE),
-			temporal -> map -> Optional.ofNullable(TemporalQueries.zone().queryFrom(temporal))
-					.ifPresent(zoneId -> map.put("zoneid", zoneId.normalized().getId()))
+			temporal -> map -> Optional.ofNullable(TemporalQueries.zoneId().queryFrom(temporal))
+					.ifPresent(zoneId -> map.put("zoneid", zoneId.getId()))
 	);
 
 	@Procedure
