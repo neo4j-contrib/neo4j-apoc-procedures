@@ -2,16 +2,22 @@ package apoc.periodic;
 
 import apoc.Description;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.*;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import static java.lang.System.currentTimeMillis;
@@ -20,7 +26,11 @@ public class Periodic {
 
     final static ScheduledExecutorService jobs = Executors.newScheduledThreadPool(Math.max(1,Runtime.getRuntime().availableProcessors()/4));
 
+    final static ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+
     @Context public GraphDatabaseAPI db;
+
+    @Context public Log log;
 
     final static Map<JobInfo,Future> list = new ConcurrentHashMap<>();
     static {
@@ -147,6 +157,71 @@ public class Periodic {
         ScheduledFuture<?> newFuture = jobs.scheduleWithFixedDelay(task, delay, repeat, TimeUnit.SECONDS);
         list.put(info,newFuture);
         return info;
+    }
+
+
+    /**
+     * invoke cypherAction in batched transactions being feeded from cypherIteration running in main thread
+     * @param cypherIterate
+     * @param cypherAction
+     * @param batchSize
+     */
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
+    public Stream<BatchAndTotalResult> rock_n_roll(
+            @Name("cypherIterate") String cypherIterate,
+            @Name("cypherAction") String cypherAction,
+            @Name("batchSize") long batchSize) {
+
+        log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
+        try (Result result = db.execute(cypherIterate)) {
+            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, result, params -> {
+                db.execute(cypherAction, params);
+            });
+        }
+    }
+
+    private <T> Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, Iterator<T> iterator, Consumer<T> consumer) {
+        final int[] opsCount = {0};
+        final int[] batchesCount = {0};
+        try {
+            // create transaction in separate thread
+            // using 1 element arrays to enable modification
+            final Transaction[] workerTransaction = {singleThreadExecutor.submit(() -> db.beginTx()).get()};
+
+            iterator.forEachRemaining(t -> singleThreadExecutor.submit(() -> {
+                log.debug("iteration " + opsCount[0]);
+                consumer.accept(t);
+                if ((++opsCount[0]) % batchsize == 0) {
+                    log.info("rolling over transaction at opsCount %d", opsCount[0]);
+                    batchesCount[0]++;
+                    workerTransaction[0].success();
+                    workerTransaction[0].close();
+                    workerTransaction[0] = db.beginTx();
+                }
+            }));
+            singleThreadExecutor.submit(() -> {
+                workerTransaction[0].success();
+                workerTransaction[0].close();
+                log.info("finalizing - closing transaction");
+            }).get();
+
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("exception happened", e);
+            throw new RuntimeException(e);
+        }
+        return Collections.singletonList(new BatchAndTotalResult(batchesCount[0], opsCount[0])).stream();
+    }
+
+    public static class BatchAndTotalResult {
+        public long batches;
+        public long total;
+
+        public BatchAndTotalResult(long batches, long total) {
+            this.batches = batches;
+            this.total = total;
+        }
     }
 
     /**

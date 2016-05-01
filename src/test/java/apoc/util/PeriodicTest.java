@@ -5,10 +5,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import static apoc.util.TestUtil.map;
-import static apoc.util.TestUtil.testCall;
+import java.util.Map;
+
+import static apoc.util.TestUtil.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -63,4 +65,23 @@ public class PeriodicTest {
         assertEquals(RUNDONW_COUNT,count);
 
     }
+
+    @Test
+    public void testRock_n_roll() throws Exception {
+        // setup
+        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+
+        // when&then
+        testResult(db, "CALL apoc.periodic.rock_n_roll('match (p:Person) return p', 'MATCH (p) where p={p} SET p.lastname =p.name', 10)", result -> {
+                    Map<String, Object> row = Iterators.single(result);
+                    assertEquals(10l, row.get("batches"));
+                    assertEquals(100l, row.get("total"));
+                });
+        // then
+        testCall(db,
+                "MATCH (p:Person) where p.lastname is not null return count(p) as count" ,
+                row -> assertEquals(100l, row.get("count"))
+        );
+    }
+
 }
