@@ -62,7 +62,7 @@ Procedures to add to and query manual indexes
 * `CALL apoc.index.forNodes('name',{config}) YIELD type,name,config` - gets or creates manual node index
 * `CALL apoc.index.forRelationships('name',{config}) YIELD type,name,config` - gets or creates manual relationship index
 
-[source,cypher
+[source,cypher]
 ----
 match (p:Person) call apoc.index.addNode(p,["name","age"]) RETURN count(*);
 // 129s for 1M People
