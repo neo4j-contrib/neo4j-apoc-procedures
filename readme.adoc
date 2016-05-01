@@ -165,8 +165,14 @@ RETURN *;
 * `CALL apoc.periodic.countdown('name',statement,delay-in-seconds)` - submit a repeatedly-called background statement until it returns 0
 * there are also static methods `Jobs.submit`, and `Jobs.schedule` to be used from other procedures
 * jobs list is checked / cleared every 10s for finished jobs
-* `CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total` - iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g. `CALL apoc.periodic.rock_n_roll('match (p:Person) return p', 'MATCH (p) where p={p} SET p.lastname =p.name', 20000` copies over the `name` property of each persion to `lastname`
+* `CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total` - iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g. 
 
+[source,cypher]
+----
+CALL apoc.periodic.rock_n_roll('match (p:Person) return p', 'MATCH (p) where p={p} SET p.lastname =p.name', 20000)
+----
+
+copies over the `name` property of each person to `lastname`.
 
 === Graph Refactoring
 
