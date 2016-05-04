@@ -195,6 +195,7 @@ copies over the `name` property of each person to `lastname`.
 * `apoc.map.fromLists([keys],[values])`
 * `apoc.map.fromValues([key,value,key1,value1])`
 * `apoc.map.setKey(map,key,value)`
+* `apoc.map.clean(map,[keys],[values]) yield value` removes the keys and values (e.g. null-placeholders) contained in those lists, good for data cleaning from CSV/JSON
 
 * `apoc.coll.sum([0.5,1,2.3])`
 * `apoc.coll.min([0.5,1,2.3])`
