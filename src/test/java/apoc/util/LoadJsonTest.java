@@ -12,7 +12,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static java.util.Arrays.asList;
 
-import static apoc.util.TestUtil.map;
+import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 

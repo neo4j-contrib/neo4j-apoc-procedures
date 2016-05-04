@@ -1,6 +1,5 @@
 package apoc.refactor;
 
-import apoc.convert.Json;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -8,7 +7,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import static apoc.util.TestUtil.map;
+import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;

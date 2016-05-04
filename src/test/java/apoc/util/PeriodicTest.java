@@ -52,11 +52,11 @@ public class PeriodicTest {
 
     @Test
     public void testRunDown() throws Exception {
-        db.execute("UNWIND range(1,{count}) as id CREATE (n:Person {id:id})",map("count",RUNDONW_COUNT)).close();
+        db.execute("UNWIND range(1,{count}) as id CREATE (n:Person {id:id})", MapUtil.map("count",RUNDONW_COUNT)).close();
 
         String query = "MATCH (p:Person) WHERE NOT p:Processed WITH p LIMIT {limit} SET p:Processed RETURN count(*)";
 
-        testCall(db,"CALL apoc.periodic.commit({query},{params})", map("query",query,"params",map("limit",BATCH_SIZE)), r -> {
+        testCall(db,"CALL apoc.periodic.commit({query},{params})", MapUtil.map("query",query,"params", MapUtil.map("limit",BATCH_SIZE)), r -> {
             assertEquals((long)Math.ceil((double)RUNDONW_COUNT/BATCH_SIZE), r.get("executions"));
             assertEquals(RUNDONW_COUNT, r.get("updates"));
         });

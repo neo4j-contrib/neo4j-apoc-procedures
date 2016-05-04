@@ -1,6 +1,5 @@
 package apoc.get;
 
-import apoc.create.Create;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -11,7 +10,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Collection;
 
-import static apoc.util.TestUtil.map;
+import static apoc.util.MapUtil.map;
 import static org.junit.Assert.*;
 
 /**

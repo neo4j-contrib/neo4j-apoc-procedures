@@ -8,7 +8,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import static apoc.util.TestUtil.map;
+import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;

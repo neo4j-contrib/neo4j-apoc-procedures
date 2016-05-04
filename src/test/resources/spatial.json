@@ -1,0 +1,26 @@
+{
+  "addresses": [
+    {
+      "address": "21 rue Paul Bellamy 44000 NANTES FRANCE",
+      "latitude": 47.2221667,
+      "longitude": -1.5566624
+    },
+    {
+      "address": "125 rue du docteur guichard 49000 ANGERS FRANCE",
+      "latitude": 47.4516488,
+      "longitude": -0.5492642
+    },
+    {
+      "address": "FRANCE",
+      "count": 10
+    },
+    {
+      "address": "this place should really not exist",
+      "noresults": true
+    },
+    {
+      "address": "",
+      "noresults": true
+    }
+  ]
+}
