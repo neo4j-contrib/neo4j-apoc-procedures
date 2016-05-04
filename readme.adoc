@@ -216,6 +216,7 @@ copies over the `name` property of each person to `lastname`.
 * `apoc.get.nodes(node|id|[ids]) yield node` quickly returns all nodes with these id's
 * `apoc.get.rels(rels|id|[ids]) yield rel` quickly returns all relationships with these id's
 
+* `apoc.data.domain(email_or_url) yield value` - returns domain part of the value
 === Date/time Support (thanks @tkroman)
 
 ==== Conversion between formatted dates and timestamps
@@ -248,7 +249,7 @@ Following fields are supported:
 | 'hours' 		| hour of day
 | 'minutes' 	| minute of hour
 | 'seconds'		| second of minute
-| 'zone'		| https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html#timezone[time zone]
+| 'zone'		| https://dohcs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html#timezone[time zone]
 |===============================================================================================================
 
 ==== Examples
