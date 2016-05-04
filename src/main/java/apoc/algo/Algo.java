@@ -2,8 +2,8 @@ package apoc.algo;
 
 import apoc.Description;
 import apoc.path.RelationshipTypeAndDirections;
+import apoc.result.PathResult;
 import org.neo4j.graphalgo.*;
-import org.neo4j.graphalgo.impl.util.GeoEstimateEvaluator;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.procedure.Name;
@@ -17,7 +17,7 @@ import java.util.stream.StreamSupport;
 public class Algo {
 
     @Procedure
-    @Description("apoc.algo.aStar(startNode, endNode, 'KNOWS|WORKS_WITH<|IS_MANAGER_OF>', 'distance','lat','lon') YIELD path, weight - run A* with relationship property name as cost function")
+    @Description("apoc.algo.aStar(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 'distance','lat','lon') YIELD path, weight - run A* with relationship property name as cost function")
     public Stream<WeightedPathResult> aStar(
             @Name("startNode") Node startNode,
             @Name("endNode") Node endNode,
@@ -34,7 +34,7 @@ public class Algo {
     }
 
     @Procedure
-    @Description("apoc.algo.aStar(startNode, endNode, 'KNOWS|WORKS_WITH<|IS_MANAGER_OF>', {weight:'dist',default:10,x:'lon',y:'lat'}) YIELD path, weight - run A* with relationship property name as cost function")
+    @Description("apoc.algo.aStar(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', {weight:'dist',default:10,x:'lon',y:'lat'}) YIELD path, weight - run A* with relationship property name as cost function")
     public Stream<WeightedPathResult> aStarConfig(
             @Name("startNode") Node startNode,
             @Name("endNode") Node endNode,
@@ -55,7 +55,7 @@ public class Algo {
     }
 
     @Procedure
-    @Description("apoc.algo.dijkstra(startNode, endNode, 'KNOWS|WORKS_WITH<|IS_MANAGER_OF>', 'distance') YIELD path, weight - run dijkstra with relationship property name as cost function")
+    @Description("apoc.algo.dijkstra(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 'distance') YIELD path, weight - run dijkstra with relationship property name as cost function")
     public Stream<WeightedPathResult> dijkstra(
             @Name("startNode") Node startNode,
             @Name("endNode") Node endNode,
@@ -69,8 +69,26 @@ public class Algo {
         return streamWeightedPathResult(startNode, endNode, algo);
     }
 
+
     @Procedure
-    @Description("apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS|WORKS_WITH<|IS_MANAGER_OF>', 'distance', 10) YIELD path, weight - run dijkstra with relationship property name as cost function and a default weight if the property does not exist")
+    @Description("apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 5) YIELD path, weight - run allSimplePaths with relationships given and maxNodes")
+    public Stream<PathResult> allSimplePaths(
+            @Name("startNode") Node startNode,
+            @Name("endNode") Node endNode,
+            @Name("relationshipTypesAndDirections") String relTypesAndDirs,
+            @Name("maxNodes") long maxNodes) {
+
+        PathFinder<Path> algo = GraphAlgoFactory.allSimplePaths(
+                buildPathExpander(relTypesAndDirs),
+                (int) maxNodes
+        );
+        Iterable<Path> allPaths = algo.findAllPaths(startNode, endNode);
+        return StreamSupport.stream(allPaths.spliterator(), false)
+                .map(PathResult::new);
+    }
+
+    @Procedure
+    @Description("apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 'distance', 10) YIELD path, weight - run dijkstra with relationship property name as cost function and a default weight if the property does not exist")
     public Stream<WeightedPathResult> dijkstraWithDefaultWeight(
             @Name("startNode") Node startNode,
             @Name("endNode") Node endNode,

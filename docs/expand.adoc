@@ -1,0 +1,26 @@
+== apoc.path.expand
+
+expand from start node following the given relationships from min to max-level adhering to the label filters
+
+=== Usage
+
+[source,cypher]
+----
+CALL apoc.path.expand(startNode <id>|Node, relationshipFilter, labelFilter, minLevel, maxLevel )
+
+CALL apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path
+---
+
+=== Parameters
+
+* startnode <id> (long, int) or Node
+** relationshipFilter `RELATIONSHIP_TYPE1[<>]|RELATIONSHIP_TYPE2[<>]|...`
+** `RELATIONSHIP_TYPE>` = only direction Outgoing
+** `<RELATIONSHIP_TYPE` = only direction Incoming
+** `RELATIONSHIP_TYPE` = both directions
+* labelFilter `[+-] LABEL1|LABEL2|...`
+** `+` include label list (white list)
+** ``-` exclude label list (black list)
+* minLevel minimum path level
+* maxLevel maximum path level
+* RETURNS a variable with then name 'exploredPath'

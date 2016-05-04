@@ -44,7 +44,7 @@ public class AlgoTest {
         db.execute(SETUP).close();
         testResult(db,
                 "MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'}) " +
-                        "CALL apoc.algo.aStar(from, to, 'DIRECT', 'dist', 'lat', 'lon') yield path as path, weight as weight " +
+                        "CALL apoc.algo.aStar(from, to, 'DIRECT', 'dist', 'lat', 'lon') yield path, weight " +
                         "RETURN path, weight" ,
                 r ->  {
                     assertEquals(true, r.hasNext());
@@ -65,7 +65,7 @@ public class AlgoTest {
         db.execute(SETUP).close();
         testResult(db,
                 "MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'}) " +
-                        "CALL apoc.algo.aStarConfig(from, to, 'DIRECT', {weight:'dist',y:'lat', x:'lon',default:100}) yield path as path, weight as weight " +
+                        "CALL apoc.algo.aStarConfig(from, to, 'DIRECT', {weight:'dist',y:'lat', x:'lon',default:100}) yield path, weight " +
                         "RETURN path, weight" ,
                 r ->  {
                     assertEquals(true, r.hasNext());
@@ -97,7 +97,7 @@ public class AlgoTest {
                 "(a)-[:ROAD {d:20}]->(c) ");
         testCall(db,
             "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
-            "CALL apoc.algo.dijkstra(from, to, 'ROAD>', 'd') yield path as path, weight as weight " +
+            "CALL apoc.algo.dijkstra(from, to, 'ROAD>', 'd') yield path, weight " +
             "RETURN path, weight" ,
             row ->  {
                 assertEquals(50.0, row.get("weight")) ;
@@ -106,7 +106,7 @@ public class AlgoTest {
         );
         testCall(db,
             "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
-            "CALL apoc.algo.dijkstra(from, to, '', 'd') yield path as path, weight as weight " +
+            "CALL apoc.algo.dijkstra(from, to, '', 'd') yield path, weight " +
             "RETURN path, weight" ,
             row ->  {
                 assertEquals(5.0, row.get("weight")) ;
@@ -130,11 +130,40 @@ public class AlgoTest {
                 "(a)-[:ROAD {d:20}]->(c) ");
         testCall(db,
                 "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
-                        "CALL apoc.algo.dijkstraWithDefaultWeight(from, to, 'ROAD>', 'd', 10.5) yield path as path, weight as weight " +
+                        "CALL apoc.algo.dijkstraWithDefaultWeight(from, to, 'ROAD>', 'd', 10.5) yield path, weight " +
                         "RETURN path, weight",
                 row -> {
                     assertEquals(30.5, row.get("weight"));
                     assertEquals(5, ((List) (row.get("path"))).size()); // 3nodes, 2 rels
+                }
+        );
+    }
+    @Test
+    public void testAllSimplePaths() {
+        db.execute("CREATE " +
+                "(a:Loc{name:'A'}), " +
+                "(b:Loc{name:'B'}), " +
+                "(c:Loc{name:'C'}), " +
+                "(d:Loc{name:'D'}), " +
+                "(a)-[:ROAD {d:100}]->(d), " +
+                "(a)-[:RAIL {d:5}]->(d), " +
+                "(a)-[:ROAD {d:10}]->(b), " +
+                "(b)-[:ROAD {d:20}]->(c), " +
+                "(c)-[:ROAD]->(d), " +
+                "(a)-[:ROAD {d:20}]->(c) ");
+        testResult(db,
+                "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
+                        "CALL apoc.algo.allSimplePaths(from, to, 'ROAD>', 3) yield path " +
+                        "RETURN path ORDER BY length(path)",
+                res -> {
+                    List path;
+                    path = (List) res.next().get("path");
+                    assertEquals(3, path.size());
+                    path = (List) res.next().get("path");
+                    assertEquals(5, path.size());
+                    path = (List) res.next().get("path");
+                    assertEquals(7, path.size());
+                    assertEquals(false, res.hasNext());
                 }
         );
     }

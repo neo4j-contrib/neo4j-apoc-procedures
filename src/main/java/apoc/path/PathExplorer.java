@@ -22,11 +22,6 @@ public class PathExplorer {
 
 	@Context
     public Log log;
-	
-	
-	public Stream<InfoContainer> info() {
-		return getInfo().stream().map(InfoContainer::new);
-	}
 
 	@Procedure("apoc.path.expand")
 	@Description("apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path expand from start node following the given relationships from min to max-level adhering to the label filters")
@@ -97,33 +92,6 @@ public class PathExplorer {
 		return td.traverse(startNodes).stream().map( PathResult::new );
 	}
 
-	public static class InfoContainer
-	{	
-		public String info;
-		public InfoContainer(String inf) {
-			this.info = inf;
-		}
-	}
-	private List<String> getInfo() {
-		LinkedList<String> infolist = new LinkedList<String>();
-		infolist.add("explorePath version " + VERSION);
-		
-		infolist.add("usage call explorePath(startNode <id>|Node, relationshipFilter, labelFilter, minLevel, maxLevel )");
-		
-		infolist.add("- startnode <id> (long, int) or Node");
-		infolist.add("> > relationshipFilter RELATIONSHIP_TYPE1{<,>,}|RELATIONSHIP_TYPE2{<,>,}|... ");
-		infolist.add("> > RELATIONSHIP_TYPE> = only direction Outgoing");
-		infolist.add("> > RELATIONSHIP_TYPE< = only direction Incoming");
-		infolist.add("> > RELATIONSHIP_TYPE = both directions");
-		infolist.add("- labelFilter {+,-} LABEL1|LABEL2|...");
-		infolist.add("> > '+' include label list (white list");
-		infolist.add("> > '-' exclude label list (black list");
-		infolist.add("- minLevel minimum path level");
-		infolist.add("- maxLevel maximum path level");
-		infolist.add(": RETURNS a variable with then name 'exploredPath' ");
-		
-		return infolist;
-	}
 	public static class LabelEvaluator implements Evaluator {
 		private boolean included = true;
 		private Set<String> labels = new HashSet<String>();

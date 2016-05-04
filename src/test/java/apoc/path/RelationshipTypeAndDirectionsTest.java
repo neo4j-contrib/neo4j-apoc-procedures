@@ -29,9 +29,9 @@ public class RelationshipTypeAndDirectionsTest {
                   {"SIMPLE", iterable(Pair.of(withName("SIMPLE"), BOTH))},
                   {"SIMPLE>", iterable(Pair.of(withName("SIMPLE"), OUTGOING))},
                   {"SIMPLE<", iterable(Pair.of(withName("SIMPLE"), INCOMING))},
-//                  {"<SIMPLE", iterable(Pair.of(withName("SIMPLE"), INCOMING))},
-//                  {">SIMPLE", iterable(Pair.of(withName("SIMPLE"), OUTGOING))},
-//                  {"<SIMPLE>", iterable(Pair.of(withName("SIMPLE"), BOTH))},
+                  {"<SIMPLE", iterable(Pair.of(withName("SIMPLE"), INCOMING))},
+                  {">SIMPLE", iterable(Pair.of(withName("SIMPLE"), OUTGOING))},
+                  {"SIMPLE", iterable(Pair.of(withName("SIMPLE"), BOTH))},
                   {"TYPE1|TYPE2", iterable(
                           Pair.of(withName("TYPE1"), BOTH),
                           Pair.of(withName("TYPE2"), BOTH))

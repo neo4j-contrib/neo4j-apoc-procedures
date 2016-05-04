@@ -15,6 +15,8 @@ import static org.neo4j.graphdb.Direction.*;
 
 public abstract class RelationshipTypeAndDirections {
 
+	public static final char BACKTICK = '`';
+
 	public static Iterable<Pair<RelationshipType, Direction>> parse(String pathFilter) {
 		Collection<Pair<RelationshipType, Direction>> relsAndDirs = new ArrayList<>();
 		if (pathFilter == null) {
@@ -35,12 +37,10 @@ public abstract class RelationshipTypeAndDirections {
 	}
 
 	private static RelationshipType relationshipTypeFor(String name) {
-		if (name.startsWith(":")) {
-			name = name.substring(1);
+		if (name.indexOf(BACKTICK) > -1) name = name.substring(name.indexOf(BACKTICK)+1,name.lastIndexOf(BACKTICK));
+		else {
+			name = name.replaceAll("[<>:]", "");
 		}
-		if (name.endsWith(">") || name.endsWith("<")) {
-			name = name.substring(0, name.length() -1);
-		}
-		return name.isEmpty() ? null : RelationshipType.withName(name);
+		return name.trim().isEmpty() ? null : RelationshipType.withName(name);
 	}
 }
