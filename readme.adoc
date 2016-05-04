@@ -217,6 +217,10 @@ copies over the `name` property of each person to `lastname`.
 * `apoc.get.rels(rels|id|[ids]) yield rel` quickly returns all relationships with these id's
 
 * `apoc.data.domain(email_or_url) yield value` - returns domain part of the value
+
+* `CALL apoc.text.phonetic(value) yield value` - Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
+* `CALL apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta` - Compute the US_ENGLISH soundex character difference between two given strings
+
 === Date/time Support (thanks @tkroman)
 
 ==== Conversion between formatted dates and timestamps

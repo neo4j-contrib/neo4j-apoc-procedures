@@ -23,6 +23,6 @@ public class Extract {
                 if (DOMAIN.matcher(part).matches()) return Stream.of(new StringResult(part));
             }
         }
-        return Stream.of(new StringResult(null));
+        return Stream.of(StringResult.EMPTY);
     }
 }
