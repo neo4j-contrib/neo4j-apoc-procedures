@@ -13,7 +13,9 @@ import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 public class AlgoTest {
 
@@ -94,7 +96,7 @@ public class AlgoTest {
                 "(a)-[:ROAD {d:10}]->(b), " +
                 "(b)-[:ROAD {d:20}]->(c), " +
                 "(c)-[:ROAD {d:30}]->(d), " +
-                "(a)-[:ROAD {d:20}]->(c) ");
+                "(a)-[:ROAD {d:20}]->(c) ").close();
         testCall(db,
             "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
             "CALL apoc.algo.dijkstra(from, to, 'ROAD>', 'd') yield path, weight " +
@@ -116,7 +118,7 @@ public class AlgoTest {
     }
 
     @Test
-    public void testDijekstrWithDefaultWeight() {
+    public void testDijkstraWithDefaultWeight() {
         db.execute("CREATE " +
                 "(a:Loc{name:'A'}), " +
                 "(b:Loc{name:'B'}), " +
@@ -127,7 +129,7 @@ public class AlgoTest {
                 "(a)-[:ROAD {d:10}]->(b), " +
                 "(b)-[:ROAD {d:20}]->(c), " +
                 "(c)-[:ROAD]->(d), " +
-                "(a)-[:ROAD {d:20}]->(c) ");
+                "(a)-[:ROAD {d:20}]->(c) ").close();
         testCall(db,
                 "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
                         "CALL apoc.algo.dijkstraWithDefaultWeight(from, to, 'ROAD>', 'd', 10.5) yield path, weight " +
@@ -138,6 +140,7 @@ public class AlgoTest {
                 }
         );
     }
+
     @Test
     public void testAllSimplePaths() {
         db.execute("CREATE " +
@@ -150,7 +153,7 @@ public class AlgoTest {
                 "(a)-[:ROAD {d:10}]->(b), " +
                 "(b)-[:ROAD {d:20}]->(c), " +
                 "(c)-[:ROAD]->(d), " +
-                "(a)-[:ROAD {d:20}]->(c) ");
+                "(a)-[:ROAD {d:20}]->(c) ").close();
         testResult(db,
                 "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
                         "CALL apoc.algo.allSimplePaths(from, to, 'ROAD>', 3) yield path " +
@@ -165,6 +168,24 @@ public class AlgoTest {
                     assertEquals(7, path.size());
                     assertEquals(false, res.hasNext());
                 }
+        );
+    }
+
+    @Test
+    public void testPropagationKernel() {
+        db.execute("CREATE (n {id: 0, partition: 1}) " +
+                   "CREATE (n)-[:X]->({id: 1, weight: 1.0, partition: 1})" +
+                   "CREATE (n)-[:X]->({id: 2, weight: 2.0, partition: 1})" +
+                   "CREATE (n)-[:X]->({id: 3, weight: 1.0, partition: 1})" +
+                   "CREATE (n)-[:X]->({id: 4, weight: 1.0, partition: 1})" +
+                   "CREATE (n)-[:X]->({id: 5, weight: 8.0, partition: 2})"
+        ).close();
+
+        db.execute("MATCH (n) CALL apoc.algo.community(n,'partition','X','OUTGOING','weight') RETURN count(n)").close();
+        testCall(
+            db,
+            "MATCH (n) WHERE n.id = 0 RETURN n.partition AS partition",
+            (r) -> assertThat(r.get("partition"), equalTo(2L))
         );
     }
 }

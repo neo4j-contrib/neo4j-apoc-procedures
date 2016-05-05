@@ -6,11 +6,7 @@ import apoc.algo.pagerank.PageRankUtils;
 import apoc.path.RelationshipTypeAndDirections;
 import apoc.result.PathResult;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -27,19 +23,13 @@ import org.neo4j.graphalgo.impl.shortestpath.SingleSourceShortestPath;
 import org.neo4j.graphalgo.impl.shortestpath.SingleSourceShortestPathDijkstra;
 import org.neo4j.graphalgo.impl.util.DoubleAdder;
 import org.neo4j.graphalgo.impl.util.DoubleComparator;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.PathExpander;
-import org.neo4j.graphdb.PathExpanderBuilder;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
+import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
 import static java.lang.String.format;
@@ -292,10 +282,65 @@ public class Algo
         }
     }
 
-    private void assertParametersNotNull( List<String> types, List<Node> nodes )
-    {
-        if ( null == types || null == nodes )
-        {
+    @Procedure("apoc.algo.community")
+    @PerformsWrites
+    @Description("CALL apoc.algo.community(node,partitionKey,type,direction,weightKey) - simple label propagation kernel")
+    public void community(
+            @Name("node") Node node,
+            @Name("partitionKey") String partitionKey,
+            @Name("type") String relationshipTypeName,
+            @Name("direction") String directionName,
+            @Name("weightKey") String weightKey
+    ) {
+       Direction direction = parseDirection(directionName);
+       Map<Object,Double> votes = new HashMap<>();
+       for (Relationship rel :
+               relationshipTypeName == null
+               ? node.getRelationships(direction)
+               : node.getRelationships(RelationshipType.withName(relationshipTypeName), direction)) {
+           Node other = rel.getOtherNode(node);
+           Object partition = partition(other, partitionKey);
+           double weight = weight(rel, weightKey) * weight(other, weightKey);
+           vote(votes, partition, weight);
+       }
+
+        Object originalPartition = partition(node, partitionKey);
+        Object partition = originalPartition;
+        double weight = 0.0d;
+        for (Map.Entry<Object,Double> entry : votes.entrySet()) {
+            if (weight < entry.getValue()) {
+                weight = entry.getValue();
+                partition = entry.getKey();
+            }
+        }
+
+        if (partition != originalPartition)
+            node.setProperty(partitionKey, partition);
+    }
+
+    private void vote(Map<Object, Double> votes, Object partition, double weight) {
+        double currentWeight = votes.getOrDefault(partition, 0.0d);
+        double newWeight = currentWeight + weight;
+        votes.put(partition, newWeight);
+    }
+
+    private double weight(PropertyContainer container, String propertyKey) {
+        if (propertyKey != null) {
+            Object propertyValue = container.getProperty(propertyKey, null);
+            if (propertyValue instanceof Number) {
+                return ((Number) propertyValue).doubleValue();
+            }
+        }
+        return 1.0d;
+    }
+
+    private Object partition(Node node, String partitionKey) {
+        Object partition = node.getProperty(partitionKey, null);
+        return partition == null ? node.getId() : partition;
+    }
+
+    private void assertParametersNotNull(List<String> types, List<Node> nodes) {
+        if (null == types || null == nodes) {
             String errMsg = "Neither 'types' nor 'nodes' procedure parameters may not be null.";
             if ( null == types )
             {
