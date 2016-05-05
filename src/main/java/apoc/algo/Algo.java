@@ -264,7 +264,7 @@ public class Algo
             throw new RuntimeException( errMsg, e );
         }
     }
-    
+
     @Procedure("apoc.algo.community")
     @PerformsWrites
     @Description("CALL apoc.algo.community(node,partitionKey,type,direction,weightKey) - simple label propagation kernel")

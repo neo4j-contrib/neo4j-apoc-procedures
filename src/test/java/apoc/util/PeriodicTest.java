@@ -5,6 +5,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
@@ -43,7 +44,9 @@ public class PeriodicTest {
             assertEquals(false, r.get("done"));
         });
         Thread.sleep(2000);
-        assertEquals(1L,db.execute("MATCH (:Foo) RETURN count(*) as c").columnAs("c").next());
+        ResourceIterator<Object> it = db.execute("MATCH (:Foo) RETURN count(*) as c").columnAs("c");
+        assertEquals(1L, it.next());
+        it.close();
         testCall(db, callList, (r) -> assertEquals(true,r.get("done")));
     }
 
@@ -61,7 +64,9 @@ public class PeriodicTest {
             assertEquals(RUNDONW_COUNT, r.get("updates"));
         });
 
-        long count = db.execute("MATCH (p:Processed) return count(*) as c").<Long>columnAs("c").next();
+        ResourceIterator<Long> it = db.execute("MATCH (p:Processed) return count(*) as c").<Long>columnAs("c");
+        long count = it.next();
+        it.close();
         assertEquals(RUNDONW_COUNT,count);
 
     }
