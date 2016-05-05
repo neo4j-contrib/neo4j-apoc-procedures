@@ -19,6 +19,8 @@ include::datetime.adoc[leveloffset=2]
 
 include::expand.adoc[leveloffset=2]
 include::centrality.adoc[leveloffset=2]
+include::pagerank.adoc[leveloffset=2]
+
 
 == Spatial
 

@@ -24,15 +24,16 @@ Closeness Centrality defines the farness of a node as the sum of its distances f
 The more central a node is the lower its total distance from all other nodes.
 
 Complexity: This procedure uses a BFS shortest path algorithm. With BFS the complexes becomes `O(n * m)`
+Caution: Due to the complexity of this algorithm it is recommended to run it on only the nodes you are interested in.
 
 [source,cypher]
 ----
 MATCH (node:Node)
 WHERE node.id %2 = 0
 WITH collect(node) AS nodes
-CALL apoc.algo.closeness(['TYPE'],nodes,INCOMING) YIELD node, centrality
-RETURN node, centrality
-ORDER BY centrality DESC
+CALL apoc.algo.closeness(['TYPE'],nodes,INCOMING) YIELD node, score
+RETURN node, score
+ORDER BY score DESC
 ----
 
 
@@ -48,14 +49,15 @@ High centrality suggests a large influence on the transfer of items through the 
 Centrality is applicable to numerous domains, including: social networks, biology, transport and scientific cooperation.
 
 Complexity: This procedure uses a BFS shortest path algorithm. With BFS the complexes becomes O(n * m)
+Caution: Due to the complexity of this algorithm it is recommended to run it on only the nodes you are interested in.
 
 [source,cypher]
 ----
 MATCH (node:Node)
 WHERE node.id %2 = 0
 WITH collect(node) AS nodes
-CALL apoc.algo.betweenness(['TYPE'],nodes,BOTH) YIELD node, centrality
-RETURN node, centrality
-ORDER BY centrality DESC
+CALL apoc.algo.betweenness(['TYPE'],nodes,BOTH) YIELD node, score
+RETURN node, score
+ORDER BY score DESC
 ----
 
