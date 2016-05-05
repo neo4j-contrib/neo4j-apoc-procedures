@@ -31,6 +31,11 @@ public class DateTest {
 	private static GraphDatabaseService db;
 	private DateFormat defaultFormat = formatInUtcZone("yyyy-MM-dd HH:mm:ss");
 	private String epochAsString = defaultFormat.format(new java.util.Date(0L));
+	private java.util.Date testDate = new java.util.Date(1464739200000L);
+	private String testDateAsString = defaultFormat.format( testDate );
+	private static final long SECONDS_PER_MINUTE = 60;
+	private static final long SECONDS_PER_HOUR = SECONDS_PER_MINUTE * 60;
+	private static final long SECONDS_PER_DAY = SECONDS_PER_HOUR * 24;
 
 	@BeforeClass
 	public static void sUp() throws Exception {
@@ -43,12 +48,31 @@ public class DateTest {
 		db.shutdown();
 	}
 
+	@Test public void testToDays() throws Exception {
+		testCall(db,
+				"CALL apoc.date.toDays('" + testDateAsString + "') yield value as dob RETURN dob",
+				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_DAY * (long) row.get("dob"))));
+	}
+
+	@Test public void testToHours() throws Exception {
+		testCall(db,
+				"CALL apoc.date.toHours('" + testDateAsString + "') yield value as dob RETURN dob",
+				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_HOUR * (long) row.get("dob"))));
+	}
+
+	@Test public void testToMinutes() throws Exception {
+		testCall(db,
+				"CALL apoc.date.toMinutes('" + testDateAsString + "') yield value as dob RETURN dob",
+				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_MINUTE * (long) row.get("dob"))));
+	}
+
 	@Test public void testToUnixtime() throws Exception {
 		testCall(db,
 				"CALL apoc.date.parseDefault({date},'s')",
 				map("date",epochAsString),
 				row -> assertEquals(Instant.EPOCH, Instant.ofEpochSecond((long) row.get("value"))));
 	}
+
 	@Test public void testToMillis() throws Exception {
 		testCall(db,
 				"CALL apoc.date.parseDefault({date},'ms')",

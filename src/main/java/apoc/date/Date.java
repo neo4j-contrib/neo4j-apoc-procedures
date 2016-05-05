@@ -82,23 +82,25 @@ public class Date {
 	}
 
 	@Procedure
-	@Description("apoc.date.formatDefault(12345,'ms|s|m|h|d') get string representation of time value the default unit in default format")
+	@Description("apoc.date.formatDefault(12345,'ms|s|m|h|d') get string representation of time value in the specified unit using default format")
 	public Stream<StringResult> formatDefault(final @Name("time") long time, @Name("unit") String unit) {
 		return parse(unit(unit).toMillis(time), DEFAULT_FORMAT);
 	}
+
 	@Procedure
-	@Description("apoc.date.format(12345,'ms|s|m|h|d') get string representation of time value the default unit in default format")
+	@Description("apoc.date.format(12345,'ms|s|m|h|d','yyyy-MM-dd') get string representation of time value in the specified unit using specified format")
 	public Stream<StringResult> format(final @Name("time") long time, @Name("unit") String unit, @Name("format") String format) {
 		return parse(unit(unit).toMillis(time), format);
 	}
+
 	@Procedure
-	@Description("apoc.date.parseDefault('2012-12-23 13:10:50','ms|s|m|h|d') parse date string into using the default format into the given time unit")
+	@Description("apoc.date.parseDefault('2012-12-23 13:10:50','ms|s|m|h|d') parse date string using the default format into the specified time unit")
 	public Stream<LongResult> parseDefault(final @Name("time") String time, @Name("unit") String unit) {
 		return parse(time, unit, DEFAULT_FORMAT);
 	}
 
 	@Procedure
-	@Description("apoc.date.parse('2012-12-23','ms|s|m|h|d','yyyy-MM-dd') parse date string into using the provided format into the given time unit")
+	@Description("apoc.date.parse('2012-12-23','ms|s|m|h|d','yyyy-MM-dd') parse date string using the specified format into the specified time unit")
 	public Stream<LongResult> parse(@Name("time") String time, @Name("unit") String unit, @Name("format") String format) {
 		Long value = parseOrThrow(time, getFormat(format));
 		Long valueInUnit = value == null ? null : unit(unit).convert(value, TimeUnit.MILLISECONDS);
