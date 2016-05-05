@@ -71,10 +71,7 @@ public class GraphRefactoringTest {
 
     @Test
     public void testNormalizeAsBoolean() throws Exception {
-        db.execute("CREATE ({prop: 'Y', id:1})");
-        db.execute("CREATE ({prop: 'Yes', id: 2})");
-        db.execute("CREATE ({prop: 'NO', id: 3})");
-        db.execute("CREATE ({prop: 'X', id: 4})");
+        db.execute("CREATE ({prop: 'Y', id:1}),({prop: 'Yes', id: 2}),({prop: 'NO', id: 3}),({prop: 'X', id: 4})").close();
 
         testResult(
             db,
@@ -90,12 +87,13 @@ public class GraphRefactoringTest {
 
     @Test
     public void testCategorizeOutgoing() throws Exception {
-        db.execute("CREATE ({prop: 'A', id: 1})");
-        db.execute("CREATE ({prop: 'A', id: 2})");
-        db.execute("CREATE ({prop: 'C', id: 3})");
-        db.execute("CREATE ({           id: 4})");
-        db.execute("CREATE ({prop: 'B', id: 5})");
-        db.execute("CREATE ({prop: 'C', id: 6})");
+        db.execute(
+                "CREATE ({prop: 'A', id: 1}) " +
+                "CREATE ({prop: 'A', id: 2}) " +
+                "CREATE ({prop: 'C', id: 3}) " +
+                "CREATE ({           id: 4}) " +
+                "CREATE ({prop: 'B', id: 5}) " +
+                "CREATE ({prop: 'C', id: 6})").close();
 
         testCall(
             db,
@@ -105,6 +103,7 @@ public class GraphRefactoringTest {
 
         Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)-[:IS_A]->(cat:Letter) RETURN collect(cat.name) AS cats");
         List<?> cats = (List<?>) result.next().get("cats");
+        result.close();
 
         assertThat(cats, equalTo(asList("A", "A", "C", "B", "C")));
 
@@ -113,12 +112,13 @@ public class GraphRefactoringTest {
 
     @Test
     public void testCategorizeIncoming() throws Exception {
-        db.execute("CREATE ({prop: 'A', id: 1})");
-        db.execute("CREATE ({prop: 'A', id: 2})");
-        db.execute("CREATE ({prop: 'C', id: 3})");
-        db.execute("CREATE ({           id: 4})");
-        db.execute("CREATE ({prop: 'B', id: 5})");
-        db.execute("CREATE ({prop: 'C', id: 6})");
+        db.execute(
+                "CREATE ({prop: 'A', id: 1}) " +
+                "CREATE ({prop: 'A', id: 2}) " +
+                "CREATE ({prop: 'C', id: 3}) " +
+                "CREATE ({           id: 4}) " +
+                "CREATE ({prop: 'B', id: 5}) " +
+                "CREATE ({prop: 'C', id: 6})").close();
 
         testCall(
                 db,
@@ -128,6 +128,7 @@ public class GraphRefactoringTest {
 
         Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)<-[:IS_A]-(cat:Letter) RETURN collect(cat.name) AS cats");
         List<?> cats = (List<?>) result.next().get("cats");
+        result.close();
 
         assertThat(cats, equalTo(asList("A", "A", "C", "B", "C")));
 
@@ -141,12 +142,13 @@ public class GraphRefactoringTest {
             tx.success();
         }
 
-        db.execute("CREATE ({prop: 'A', id: 1})");
-        db.execute("CREATE ({prop: 'A', id: 2})");
-        db.execute("CREATE ({prop: 'C', id: 3})");
-        db.execute("CREATE ({           id: 4})");
-        db.execute("CREATE ({prop: 'B', id: 5})");
-        db.execute("CREATE ({prop: 'C', id: 6})");
+        db.execute(
+            "CREATE ({prop: 'A', id: 1})"+
+            "CREATE ({prop: 'A', id: 2}) "+
+            "CREATE ({prop: 'C', id: 3}) "+
+            "CREATE ({           id: 4}) "+
+            "CREATE ({prop: 'B', id: 5}) "+
+            "CREATE ({prop: 'C', id: 6}) ").close();
 
         testCall(
                 db,
@@ -156,6 +158,7 @@ public class GraphRefactoringTest {
 
         Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)-[:IS_A]->(cat:Letter) RETURN collect(cat.name) AS cats");
         List<?> cats = (List<?>) result.next().get("cats");
+        result.close();
 
         assertThat(cats, equalTo(asList("A", "A", "C", "B", "C")));
 
