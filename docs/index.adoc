@@ -1,9 +1,13 @@
 = APOC User Guide
-
 :toc: left
 :experimental:
+:sectid:
+:toclevels: 3
 
 include::../readme.adoc[leveloffset=1]
+
+
+= Detailed Documentation
 
 == Utility Functions
 

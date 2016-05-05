@@ -1,4 +1,4 @@
-= Collection of useful Procedures for Neo4j 3.x
+= Awesome Procedures for Neo4j 3.x
 
 image::http://www.oocities.org/matrixextreme/images/apoc.gif[float=right]
 
@@ -47,7 +47,10 @@ You can find the https://neo4j-contrib.github.io/neo4j-apoc-procedures[full docu
 
 === Built in Help
 
-* `call apoc.help('search')` lists name, description-text and if the procedure performs writes (descriptions are WIP), search string is checked against beginning (package) or end (name) of procedure
+[cols="1m,5"]
+|===
+| call apoc.help('search') | lists name, description-text and if the procedure performs writes (descriptions are WIP), search string is checked against beginning (package) or end (name) of procedure
+|===
 
 .helpful
 [source,cypher]
@@ -63,22 +66,27 @@ RETURN name AS undocumented
 
 Procedures to add to and query manual indexes
 
-* `apoc.index.addNode(node,['prop1',...])` - add node to an index for each label it has
-* `apoc.index.addNodeByLabel(node,'Label',['prop1',...])` - add node to an index for the given label
-* `apoc.index.addRelationship(rel,['prop1',...])` - add relationship to an index for its type
-
-* `apoc.index.nodes('Label','prop:value*') YIELD node, weight` - lucene query on node index with the given label name
-* `apoc.index.relationships('TYPE','prop:value*') YIELD rel, weight` - lucene query on relationship index with the given type name
-* `apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel, weight` - lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)
-* `apoc.index.out(node,'TYPE','prop:value*') YIELD node, weight` - lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*
-* `apoc.index.in(node,'TYPE','prop:value*') YIELD node, weight` - lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*
+[cols="1m,5"]
+|===
+| apoc.index.addNode(node,['prop1',...]) | add node to an index for each label it has
+| apoc.index.addNodeByLabel(node,'Label',['prop1',...]) | add node to an index for the given label
+| apoc.index.addRelationship(rel,['prop1',...]) | add relationship to an index for its type
+| apoc.index.nodes('Label','prop:value*') YIELD node, weight | lucene query on node index with the given label name
+| apoc.index.relationships('TYPE','prop:value*') YIELD rel, weight | lucene query on relationship index with the given type name
+| apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel, weight | lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)
+| apoc.index.out(node,'TYPE','prop:value*') YIELD node, weight | lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*
+| apoc.index.in(node,'TYPE','prop:value*') YIELD node, weight | lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*
+|===
 
 ==== Index Management
 
-* `CALL apoc.index.list() - YIELD type,name,config` - lists all manual indexes
-* `CALL apoc.index.remove('name') YIELD type,name,config` - removes manual indexes
-* `CALL apoc.index.forNodes('name',{config}) YIELD type,name,config` - gets or creates manual node index
-* `CALL apoc.index.forRelationships('name',{config}) YIELD type,name,config` - gets or creates manual relationship index
+[cols="1m,5"]
+|===
+| CALL apoc.index.list() - YIELD type,name,config | lists all manual indexes
+| CALL apoc.index.remove('name') YIELD type,name,config | removes manual indexes
+| CALL apoc.index.forNodes('name',{config}) YIELD type,name,config | gets or creates manual node index
+| CALL apoc.index.forRelationships('name',{config}) YIELD type,name,config | gets or creates manual relationship index
+|===
 
 .Add node to index example
 [source,cypher]
@@ -92,12 +100,17 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 
 Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.
 
-* `CALL apoc.meta.graph` - examines the full graph to create the meta-graph
-* `CALL apoc.meta.graphSample(sampleSize)` - examines a sample graph to create the meta-graph, default sampleSize is 100
-* `CALL apoc.meta.data`  - examines a subset of the graph to provide a tabular meta information
-* `CALL apoc.meta.type(value)`  - type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST`)
-* `CALL apoc.meta.isType(value,type)` - returns a row if type name matches none if not
+[cols="1m,5"]
+|===
+| CALL apoc.meta.graph | examines the full graph to create the meta-graph
+| CALL apoc.meta.graphSample(sampleSize) | examines a sample graph to create the meta-graph, default sampleSize is 100
+| CALL apoc.meta.data | examines a subset of the graph to provide a tabular meta information
+| CALL apoc.meta.type(value) | type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST`)
+| CALL apoc.meta.isType(value,type) | returns a row if type name matches none if not
+|===
 
+
+.isType example
 [source,cypher]
 ----
 MATCH (n:Person)
@@ -108,44 +121,58 @@ RETURN n LIMIT 5
 
 === Locking
 
-
-* `call apoc.lock.nodes([nodes])` acquires a write lock on the given nodes
-* `call apoc.lock.rels([relationships])` acquires a write lock on the given relationship
-* `call apoc.lock.all([nodes],[relationships])` acquires a write lock on the given nodes and relationships
+[cols="1m,5"]
+|===
+| call apoc.lock.nodes([nodes]) | acquires a write lock on the given nodes
+| call apoc.lock.rels([relationships]) | acquires a write lock on the given relationship
+| call apoc.lock.all([nodes],[relationships]) | acquires a write lock on the given nodes and relationships
+|===
 
 === from/toJson
 
-* `CALL apoc.convert.toJson([1,2,3])`
-* `CALL apoc.convert.toJson({a:42,b:\"foo\",c:[1,2,3]})`
-* `CALL apoc.convert.fromJsonList('[1,2,3]')`
-* `CALL apoc.convert.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}')`
+[cols="1m,5"]
+|===
+| CALL apoc.convert.toJson([1,2,3]) | converts value to json string
+| CALL apoc.convert.toJson( {a:42,b:"foo",c:[1,2,3]}) | converts value to json map
+| CALL apoc.convert.fromJsonList('[1,2,3]') | converts json list to Cypher list
+| CALL apoc.convert.fromJsonMap( '{"a":42,"b":"foo","c":[1,2,3]}') | converts json map to Cypher map
+|===
 
 === Loading Data from RDBMS
 
 // tag::jdbc[]
 
-* `CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})` load from relational database, either a full table or a sql statement
-* `CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18')` load from relational database, either a full table or a sql statement
-* `CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver')` register JDBC driver of source database
+[cols="1m,5"]
+|===
+| CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name}) | load from relational database, either a full table or a sql statement
+| CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18') | load from relational database, either a full table or a sql statement
+| CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') | register JDBC driver of source database
+|===
 
 // end::jdbc[]
 
 === Loading Data from Web-APIs (JSON, XML, CSV)
 
-* `CALL apoc.load.json('http://example.com/map.json') YIELD value as person CREATE (p:Person) SET p = person` load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map
-* `CALL apoc.load.xml('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name` load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `_type`, `_text` and `_children`x fields.
-* `CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, map` - load CSV fom URL as stream of values
-** config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}`
+[cols="1m,5"]
+|===
+| CALL apoc.load.json('http://example.com/map.json') YIELD value as person CREATE (p:Person) SET p = person | load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map
+| CALL apoc.load.xml('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name | load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `_type`, `_text` and `_children`x fields.
+| CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, map | load CSV fom URL as stream of values +
+config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}`
+|===
 
 === Creating Data
 
-* `CALL apoc.create.node(['Label'], {key:value,...})` create node with dynamic labels
-* `CALL apoc.create.nodes(['Label'], [{key:value,...}])` create multiple nodes with dynamic labels
-* `CALL apoc.create.addLabels( [node,id,ids,nodes], ['Label',...])` - adds the given labels to the node or nodes
-* `CALL apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...])` - removes the given labels from the node or nodes
-* `CALL apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2)` create relationship with dynamic rel-type
-* `CALL apoc.create.uuid YIELD uuid` - creates an UUID
-* `CALL apoc.create.uuids(count) YIELD uuid` - creates count UUIDs
+[cols="1m,5"]
+|===
+| CALL apoc.create.node(['Label'], {key:value,...}) | create node with dynamic labels
+| CALL apoc.create.nodes(['Label'], [{key:value,...}]) | create multiple nodes with dynamic labels
+| CALL apoc.create.addLabels( [node,id,ids,nodes], ['Label',...]) | adds the given labels to the node or nodes
+| CALL apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...]) | removes the given labels from the node or nodes
+| CALL apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) | create relationship with dynamic rel-type
+| CALL apoc.create.uuid YIELD uuid | creates an UUID
+| CALL apoc.create.uuids(count) YIELD uuid | creates count UUIDs
+|===
 
 === Virtual Nodes/Rels
 
@@ -153,13 +180,16 @@ Virtual Nodes and Relationships don't exist in the graph, they are only returned
 They can be visualized or processed otherwise.
 Please note that they have negative id's.
 
-* `CALL apoc.create.vNode(['Label'], {key:value,...})` returns a virtual node
-* `CALL apoc.create.vNodes(['Label'], [{key:value,...}])` returns virtual nodes
-* `CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo)` returns a virtual relationship
-* `CALL apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value})` returns a virtual pattern
-* `CALL apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value})` returns a virtual pattern
+[cols="1m,5"]
+|===
+| CALL apoc.create.vNode(['Label'], {key:value,...}) | returns a virtual node
+| CALL apoc.create.vNodes(['Label'], [{key:value,...}]) | returns virtual nodes
+| CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) | returns a virtual relationship
+| CALL apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) | returns a virtual pattern
+| CALL apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) | returns a virtual pattern
+|===
 
-* TODO `CALL apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])
+// * TODO `CALL apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])
 
 Example
 
@@ -177,21 +207,28 @@ RETURN *;
 
 (thanks @ikwattro)
 
-* `apoc.monitor.ids` - node and relationships-ids in total and in use
-* `apoc.monitor.kernel` - store information such as kernel version, start time, read-only, database-name, store-log-version etc.
-* `apoc.monitor.store` -  store size information for the different types of stores
-* `apoc.monitor.tx` - number of transactions total,opened,committed,concurrent,rolled-back,last-tx-id
+[cols="1m,5"]
+|===
+| apoc.monitor.ids | node and relationships-ids in total and in use
+| apoc.monitor.kernel | store information such as kernel version, start time, read-only, database-name, store-log-version etc.
+| apoc.monitor.store | store size information for the different types of stores
+| apoc.monitor.tx | number of transactions total,opened,committed,concurrent,rolled-back,last-tx-id
+|===
 
 === Job Management
 
-* `CALL apoc.periodic.commit(statement, params)` - repeats an batch update statement until it returns 0, this procedure is blocking
-* `CALL apoc.periodic.list()` - list all jobs
-* `CALL apoc.periodic.submit('name',statement)` - submit a one-off background statement
-* `CALL apoc.periodic.schedule('name',statement,repeat-time-in-seconds)` - submit a repeatedly-called background statement
-* `CALL apoc.periodic.countdown('name',statement,delay-in-seconds)` - submit a repeatedly-called background statement until it returns 0
+[cols="1m,5"]
+|===
+| CALL apoc.periodic.commit(statement, params) | repeats an batch update statement until it returns 0, this procedure is blocking
+| CALL apoc.periodic.list() | list all jobs
+| CALL apoc.periodic.submit('name',statement) | submit a one-off background statement
+| CALL apoc.periodic.schedule('name',statement,repeat-time-in-seconds) | submit a repeatedly-called background statement
+| CALL apoc.periodic.countdown('name',statement,delay-in-seconds) | submit a repeatedly-called background statement until it returns 0
+| CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total | iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g.
+|===
+
 * there are also static methods `Jobs.submit`, and `Jobs.schedule` to be used from other procedures
 * jobs list is checked / cleared every 10s for finished jobs
-* `CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total` - iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g. 
 
 [source,cypher]
 ----
@@ -202,54 +239,76 @@ copies over the `name` property of each person to `lastname`.
 
 === Graph Refactoring
 
-* √ `call apoc.refactor.cloneNodes([node1,node2,...])` clone nodes with their labels and properties
-* √ `call apoc.refactor.cloneNodesWithRelationships([node1,node2,...])` clone nodes with their labels, properties and relationships
-* √ `call apoc.refactor.mergeNodes([node1,node2])` merge nodes onto first in list
-* √ `call apoc.refactor.to(rel, endNode)` redirect relationship to use new end-node
-* √ `call apoc.refactor.from(rel, startNode)` redirect relationship to use new start-node
-* √ `call apoc.refactor.setType(rel, 'NEW-TYPE')` change relationship-type
+[cols="1m,5"]
+|===
+| call apoc.refactor.cloneNodes([node1,node2,...]) |  clone nodes with their labels and properties
+| call apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) | clone nodes with their labels, properties and relationships
+| call apoc.refactor.mergeNodes([node1,node2]) | merge nodes onto first in list
+| call apoc.refactor.to(rel, endNode) | redirect relationship to use new end-node
+| call apoc.refactor.from(rel, startNode) | redirect relationship to use new start-node
+| call apoc.refactor.setType(rel, 'NEW-TYPE') | change relationship-type
+| call apoc.refactor.extractNode([rel1,rel2,...], [labels], 'OUT','IN') | extract node from relationships
+| call apoc.refactor.collapseNode([node1,node2],'TYPE') | collapse node to relationship, node with one rel becomes self-relationship
+|===
+
+TODO:
+
 * merge nodes by label + property
 * merge relationships
-* √ `call apoc.refactor.extractNode([rel1,rel2,...], [labels], 'OUT','IN')` extract node from relationships
-* √ `call apoc.refactor.collapseNode([node1,node2],'TYPE') ` - collapse node to relationship, node with one rel becomes self-relationship
-
 
 === Spatial
 
-* `CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData` - look up geographic location of location from openstreetmap geocoding service
+[cols="1m,5"]
+|===
+| CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData | look up geographic location of location from openstreetmap geocoding service
+|===
 
 === Helpers
 
 
-* `apoc.map.fromPairs([[key,value],[key2,value2],...])`
-* `apoc.map.fromLists([keys],[values])`
-* `apoc.map.fromValues([key,value,key1,value1])`
-* `apoc.map.setKey(map,key,value)`
-* `apoc.map.clean(map,[keys],[values]) yield value` removes the keys and values (e.g. null-placeholders) contained in those lists, good for data cleaning from CSV/JSON
+[cols="1m,5"]
+|===
+| apoc.map.fromPairs([[key,value],[key2,value2],...]) | creates map from list with key-value pairs
+| apoc.map.fromLists([keys],[values]) | creates map from a keys and a values list
+| apoc.map.fromValues([key,value,key1,value1]) | creates map from alternating keys and values in a list
+| apoc.map.setKey(map,key,value) | returns the map with the value for this key added or replaced
+| apoc.map.clean(map,[keys],[values]) yield value | removes the keys and values (e.g. null-placeholders) contained in those lists, good for data cleaning from CSV/JSON
+|===
 
-* `apoc.coll.sum([0.5,1,2.3])`
-* `apoc.coll.min([0.5,1,2.3])`
-* `apoc.coll.max([0.5,1,2.3])`
-* `apoc.coll.sumLongs([1,3,3])`
-* `apoc.coll.partition(list,batchSize)`
-* `apoc.coll.zip([list1],[list2])`
-* `apoc.coll.pairs([list])` returns `[first,second],[second,third], ...
-* `apoc.coll.toSet([list])` returns a unique list backed by a set
-* `apoc.coll.sort(coll)` sort on Collections
-* `apoc.coll.sortNodes([nodes], 'name')` sort nodes by property
-* `apoc.coll.contains(coll, value)` optimized contains operation (using a HashSet) (returns single row or not)
-* `apoc.coll.containsAll(coll, values)` optimized contains-all operation (using a HashSet) (returns single row or not)
-* `apoc.coll.containsSorted(coll, value)` optimized contains on a sorted list operation (Collections.binarySearch) (returns single row or not)
+[cols="1m,5"]
+|===
+| apoc.coll.sum([0.5,1,2.3]) | sum of all values in a list
+| apoc.coll.min([0.5,1,2.3]) | minimum of all values in a list
+| apoc.coll.max([0.5,1,2.3]) | maximum of all values in a list
+| apoc.coll.sumLongs([1,3,3]) | sums all numeric values in a list
+| apoc.coll.partition(list,batchSize) | partitions a list into sublists of `batchSize`
+| apoc.coll.zip([list1],[list2]) | all values in a list
+| apoc.coll.pairs([list]) | returns `[first,second],[second,third], ...
+| apoc.coll.toSet([list]) | returns a unique list backed by a set
+| apoc.coll.sort(coll) | sort on Collections
+| apoc.coll.sortNodes([nodes], 'name') | sort nodes by property
+| apoc.coll.contains(coll, value) | optimized contains operation (using a HashSet) (returns single row or not)
+| apoc.coll.containsAll(coll, values) | optimized contains-all operation (using a HashSet) (returns single row or not)
+| apoc.coll.containsSorted(coll, value) | optimized contains on a sorted list operation (Collections.binarySearch) (returns single row or not)
+| apoc.coll.containsAllSorted(coll, value) | optimized contains-all on a sorted list operation (Collections.binarySearch) (returns single row or not)
+|===
 
-* `apoc.coll.containsAllSorted(coll, value)` optimized contains-all on a sorted list operation (Collections.binarySearch) (returns single row or not)
+[cols="1m,5"]
+|===
+| apoc.get.nodes(node|id|[ids]) yield node | quickly returns all nodes with these id's
+| apoc.get.rels(rels|id|[ids]) yield rel | quickly returns all relationships with these id's
+|===
 
-* `apoc.get.nodes(node|id|[ids]) yield node` quickly returns all nodes with these id's
-* `apoc.get.rels(rels|id|[ids]) yield rel` quickly returns all relationships with these id's
+[cols="1m,5"]
+|===
+| apoc.data.domain(email_or_url) yield value | returns domain part of the value
+|===
 
-* `apoc.data.domain(email_or_url) yield value` - returns domain part of the value
-
-* `CALL apoc.text.phonetic(value) yield value` - Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
-* `CALL apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta` - Compute the US_ENGLISH soundex character difference between two given strings
+[cols="1m,5"]
+|===
+| CALL apoc.text.phonetic(value) yield value | Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
+| CALL apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta | Compute the US_ENGLISH soundex character difference between two given strings
+|===
 
 === Date/time Support
 
@@ -257,15 +316,18 @@ copies over the `name` property of each person to `lastname`.
 
 ==== Conversion between formatted dates and timestamps
 
-* `apoc.date.toSeconds('2015-03-25 03:15:59')` get Unix time equivalent of given date (in seconds)
-* `apoc.date.toSecondsFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss')` same as previous, but accepts custom datetime format
-* `apoc.date.fromSeconds(12345)` get string representation of date corresponding to given Unix time (in seconds)
-* `apoc.date.fromSecondsFormatted(12345, 'yyyy/MM/dd HH/mm/ss')` the same as previous, but accepts custom datetime format
+[cols="1m,5"]
+|===
+| apoc.date.toSeconds('2015-03-25 03:15:59') | get Unix time equivalent of given date (in seconds)
+| apoc.date.toSecondsFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss') | same as previous, but accepts custom datetime format
+| apoc.date.fromSeconds(12345) | get string representation of date corresponding to given Unix time (in seconds)
+| apoc.date.fromSecondsFormatted(12345, 'yyyy/MM/dd HH/mm/ss') | the same as previous, but accepts custom datetime format
 
-* `apoc.date.toMillis('2015-03-25 03:15:59')` get Unix time equivalent of given date (in milliseconds)
-* `apoc.date.toMillisFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss')` same as previous, but accepts custom datetime format
-* `apoc.date.fromMillis(12345)` get string representation of date corresponding to given time in milliseconds
-* `apoc.date.fromMillisFormatted(12345, 'yyyy/MM/dd HH/mm/ss')` the same as previous, but accepts custom datetime format
+| apoc.date.toMillis('2015-03-25 03:15:59') | get Unix time equivalent of given date (in milliseconds)
+| apoc.date.toMillisFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss') | same as previous, but accepts custom datetime format
+| apoc.date.fromMillis(12345) | get string representation of date corresponding to given time in milliseconds
+| apoc.date.fromMillisFormatted(12345, 'yyyy/MM/dd HH/mm/ss') | the same as previous, but accepts custom datetime format
+|===
 
 ==== Reading separate datetime fields:
 
@@ -280,7 +342,10 @@ Splits date (optionally, using given custom format) into fields returning a map 
 
 The apoc.path.expand procedure makes it possible to do variable length path traversals where you can specify the direction of the relationship per relationship type and a list of Label names which act as a "whitelist" or a "blacklist". The procedure will return a list of Paths in a variable name called "path".
 
-* `call apoc.path.expand(startNode <id>|Node, relationshipFilter, labelFilter, minDepth, maxDepth ) yield path as <identifier>`
+[cols="1m,5"]
+|===
+| call apoc.path.expand(startNode <id>|Node, relationshipFilter, labelFilter, minDepth, maxDepth ) yield path as <identifier> | expand from given nodes(s) taking the provided restrictions into account
+|===
 
 
 Relationship Filter
@@ -310,11 +375,14 @@ Syntax: `[+-]LABEL1|LABEL2|...`
 
 Provides a wrapper around GraphAlgoFactory.
 
-* `CALL apoc.algo.dijkstra(startNode, endNode, relAndDirections, costProperty)` - run dijkstra with a relationship property as cost function,
+[cols="1m,5"]
+|===
+| CALL apoc.algo.dijkstra(startNode, endNode, relAndDirections, costProperty) | run dijkstra with a relationship property as cost function,
 `relAndDirections` is a path expander specification from above.
-* `CALL apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, relAndDirections, costProperty, defaultCost)` - run dijkstra with a relationship property as cost function. If the relationship property does not exist, use the specified default value instead.
-* `CALL apoc.algo.closeness(['TYPE',...],nodes, INCOMING) YIELD node, centrality` - calculate closeness centrality for given nodes
-* `CALL apoc.algo.betweenness(['TYPE',...],nodes,BOTH) YIELD node, centrality` - calculate betweenness centrality for given nodes`
+| CALL apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, relAndDirections, costProperty, defaultCost) | run dijkstra with a relationship property as cost function. If the relationship property does not exist, use the specified default value instead.
+| CALL apoc.algo.closeness(['TYPE',...],nodes, INCOMING) YIELD node, centrality | calculate closeness centrality for given nodes
+| CALL apoc.algo.betweenness(['TYPE',...],nodes,BOTH) YIELD node, centrality | calculate betweenness centrality for given nodes`
+|===
 
 
 Example: find the weighted shortest path based on relationship property `d` from `A` to `B` following just `:ROAD` relationships
