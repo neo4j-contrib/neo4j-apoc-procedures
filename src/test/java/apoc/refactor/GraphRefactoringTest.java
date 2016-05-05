@@ -7,9 +7,17 @@ import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 
 /**
@@ -34,7 +42,7 @@ public class GraphRefactoringTest {
     @Test
     public void testExtractNode() throws Exception {
         Long id = db.execute("CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) RETURN id(rel) as id").<Long>columnAs("id").next();
-        testCall(db, "CALL apoc.refactor.extractNode({ids},['FooBar'],'FOO','BAR')", map("ids", asList(id)),
+        testCall(db, "CALL apoc.refactor.extractNode({ids},['FooBar'],'FOO','BAR')", map("ids", singletonList(id)),
                 (r) -> {
                     assertEquals(id, r.get("input"));
                     Node node = (Node) r.get("output");
@@ -43,12 +51,12 @@ public class GraphRefactoringTest {
                     assertNotNull(node.getSingleRelationship(RelationshipType.withName("FOO"), Direction.OUTGOING));
                     assertNotNull(node.getSingleRelationship(RelationshipType.withName("BAR"), Direction.INCOMING));
                 });
-
     }
+
     @Test
     public void testCollapseNode() throws Exception {
         Long id = db.execute("CREATE (f:Foo)-[:FOO {a:1}]->(b:Bar {c:3})-[:BAR {b:2}]->(f) RETURN id(b) as id").<Long>columnAs("id").next();
-        testCall(db, "CALL apoc.refactor.collapseNode({ids},'FOOBAR')", map("ids", asList(id)),
+        testCall(db, "CALL apoc.refactor.collapseNode({ids},'FOOBAR')", map("ids", singletonList(id)),
                 (r) -> {
                     assertEquals(id, r.get("input"));
                     Relationship rel = (Relationship) r.get("output");
@@ -59,7 +67,25 @@ public class GraphRefactoringTest {
                     assertNotNull(rel.getEndNode().hasLabel(Label.label("Foo")));
                     assertNotNull(rel.getStartNode().hasLabel(Label.label("Foo")));
                 });
+    }
 
+    @Test
+    public void testNormalizeAsBoolean() throws Exception {
+        db.execute("CREATE ({prop: 'Y', id:1})");
+        db.execute("CREATE ({prop: 'Yes', id: 2})");
+        db.execute("CREATE ({prop: 'NO', id: 3})");
+        db.execute("CREATE ({prop: 'X', id: 4})");
+
+        testResult(
+            db,
+            "MATCH (n) CALL apoc.refactor.normalizeAsBoolean(n,'prop',['Y','Yes'],['NO']) WITH n ORDER BY n.id RETURN n.prop AS prop",
+            (r) -> {
+                List<Boolean> result = new ArrayList<>();
+                while (r.hasNext())
+                    result.add((Boolean) r.next().get("prop"));
+                assertThat(result, equalTo(Arrays.asList(true, true, false, null)));
+            }
+        );
     }
 
     @Test

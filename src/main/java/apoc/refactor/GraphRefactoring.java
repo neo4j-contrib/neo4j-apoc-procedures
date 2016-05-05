@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import apoc.Description;
+import apoc.result.BooleanResult;
 import apoc.result.NodeResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
@@ -175,6 +176,36 @@ public class GraphRefactoring {
             return Stream.of(result.withOther(newRel));
         } catch (Exception e) {
             return Stream.of(result.withError(e));
+        }
+    }
+
+    /**
+     * Make properties boolean
+     */
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) normalize/convert a property to be boolean")
+    public void normalizeAsBoolean(
+            @Name("entity") Object entity,
+            @Name("propertyKey") String propertyKey,
+            @Name("true_values") List<Object> trueValues,
+            @Name("false_values") List<Object> falseValues) {
+        if (entity instanceof PropertyContainer) {
+            PropertyContainer pc = (PropertyContainer) entity;
+            Object value = pc.getProperty(propertyKey, null);
+            if (value != null) {
+                boolean isTrue  = trueValues.contains(value);
+                boolean isFalse = falseValues.contains(value);
+                if (isTrue && !isFalse) {
+                    pc.setProperty(propertyKey, true );
+                }
+                if (!isTrue && isFalse) {
+                    pc.setProperty(propertyKey, false );
+                }
+                if (!isTrue && !isFalse) {
+                    pc.removeProperty(propertyKey);
+                }
+            }
         }
     }
 

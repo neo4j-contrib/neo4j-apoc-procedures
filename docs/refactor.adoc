@@ -1,0 +1,12 @@
+= Graph Refactoring Procedures
+
+These procedures help refactor the structure of your graph.
+This is helpful when you need to change your data model or for cleaning up data that was imported from an external source.
+
+[source,cypher]
+----
+MATCH (n)
+CALL apoc.refactor.normalizeAsBoolean(n, "prop", ["Y", "YES"], ["N", NO"])
+RETURN n.prop // will be true if "Y", YES"; false if "N", "NO"; null otherwise
+----
+
