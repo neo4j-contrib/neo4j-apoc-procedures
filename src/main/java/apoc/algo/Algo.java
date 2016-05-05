@@ -264,24 +264,7 @@ public class Algo
             throw new RuntimeException( errMsg, e );
         }
     }
-
-    private Direction parseDirection( String direction )
-    {
-        if ( null == direction )
-        {
-            return Direction.BOTH;
-        }
-        try
-        {
-            return Direction.valueOf( direction.toUpperCase() );
-        }
-        catch ( Exception e )
-        {
-            throw new RuntimeException( format( "Cannot convert value '%s' to Direction. Legal values are '%s'",
-                    direction, Arrays.toString( Direction.values() ) ) );
-        }
-    }
-
+    
     @Procedure("apoc.algo.community")
     @PerformsWrites
     @Description("CALL apoc.algo.community(node,partitionKey,type,direction,weightKey) - simple label propagation kernel")
@@ -339,8 +322,27 @@ public class Algo
         return partition == null ? node.getId() : partition;
     }
 
-    private void assertParametersNotNull(List<String> types, List<Node> nodes) {
-        if (null == types || null == nodes) {
+    private Direction parseDirection( String direction )
+    {
+        if ( null == direction )
+        {
+            return Direction.BOTH;
+        }
+        try
+        {
+            return Direction.valueOf( direction.toUpperCase() );
+        }
+        catch ( Exception e )
+        {
+            throw new RuntimeException( format( "Cannot convert value '%s' to Direction. Legal values are '%s'",
+                    direction, Arrays.toString( Direction.values() ) ) );
+        }
+    }
+
+    private void assertParametersNotNull( List<String> types, List<Node> nodes )
+    {
+        if ( null == types || null == nodes )
+        {
             String errMsg = "Neither 'types' nor 'nodes' procedure parameters may not be null.";
             if ( null == types )
             {
