@@ -18,6 +18,8 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
+import static apoc.util.MapUtil.map;
+
 public class GraphRefactoring {
     @Context
     public GraphDatabaseService db;

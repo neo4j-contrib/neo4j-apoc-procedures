@@ -249,6 +249,8 @@ copies over the `name` property of each person to `lastname`.
 | call apoc.refactor.setType(rel, 'NEW-TYPE') | change relationship-type
 | call apoc.refactor.extractNode([rel1,rel2,...], [labels], 'OUT','IN') | extract node from relationships
 | call apoc.refactor.collapseNode([node1,node2],'TYPE') | collapse node to relationship, node with one rel becomes self-relationship
+| call apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) | normalize/convert a property to be boolean
+| call apoc.refactor.categorize(node, propertyKey, type, outgoing, label) | turn each unique propertyKey into a category node and connect to it
 |===
 
 TODO:

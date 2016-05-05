@@ -30,6 +30,10 @@ include::spatial.adoc[leveloffset=2]
 include::loadjson.adoc[leveloffset=2]
 include::loadjdbc.adoc[leveloffset=2]
 
+== Graph Refactorings
+
+include::refactor.adoc[leveloffset=2]
+
 == Operations
 
 include::periodic.adoc[leveloffset=2]
