@@ -1,0 +1,32 @@
+= String Utility Procedures
+
+Basic utility procedures for string manipulation, comparison, filtering etc.
+
+The clean functionality can be useful for cleaning up slightly dirty text data with inconsistent formatting for non-exact comparisons.
+
+Cleaning will strip the string of all non-alphanumeric characters (including spaces) and convert it to lower case.
+
+.will return 'HelloWorld'
+[source,cypher]
+----
+CALL apoc.text.replace('Hello World!', '[^a-zA-Z]', '')
+----
+
+.will return 'helloworld'
+[source,cypher]
+----
+CALL apoc.text.clean('Hello World!')
+----
+
+.will return true
+[source,cypher]
+----
+CALL apoc.text.compareCleaned('Hello World!', '_hello-world_')
+----
+
+.will return only 'Hello World!'
+[source,cypher]
+----
+UNWIND ['Hello World!', 'hello worlds'] as text
+CALL apoc.text.filterCleanMatches(text, 'hello_world')
+----

@@ -1,51 +1,55 @@
 package apoc.text;
 
 import apoc.Description;
-import apoc.result.LongResult;
+import apoc.result.BooleanResult;
 import apoc.result.StringResult;
-import org.apache.commons.codec.EncoderException;
-import org.apache.commons.codec.language.Soundex;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.util.Iterator;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
-import static org.apache.commons.codec.language.Soundex.US_ENGLISH;
-
+/**
+ * @author mh
+ * @since 05.05.16
+ */
 public class Strings {
-
     @Procedure
-    @Description("apoc.text.phonetic(value) yield value - Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings")
-    public Stream<StringResult> phonetic(final @Name("value") Object value) {
-        Stream<Object> stream = value instanceof Iterable ? StreamSupport.stream(((Iterable) value).spliterator(), false) : Stream.of(value);
-
-        return stream.map(str -> str == null ? StringResult.EMPTY :
-                new StringResult(Stream.of(str.toString().split("\\W+"))
-                .map(US_ENGLISH::soundex).reduce("", (a, s)->a+s)));
+    @Description("apoc.text.replace(text, regex, replacement) YIELD value - replace each substring of the given string that matches the given regular expression with the given replacement.")
+    public Stream<StringResult> replace(final @Name("text") String text, final @Name("regex") String regex, final @Name("replacement") String replacement) {
+        if (text == null || regex == null || replacement == null) {
+            return Stream.of(StringResult.EMPTY);
+        }
+        return Stream.of(new StringResult(text.replaceAll(regex, replacement)));
     }
 
     @Procedure
-    @Description("apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta - Compute the US_ENGLISH soundex character difference between two given strings")
-    public Stream<PhoneticResult> phoneticDelta(final @Name("text1") String text1, final @Name("text2") String text2) {
-        try {
-            return Stream.of(new PhoneticResult(US_ENGLISH.soundex(text1),US_ENGLISH.soundex(text2),US_ENGLISH.difference(text1,text2)));
-        } catch (EncoderException e) {
-            throw new RuntimeException("Error encoding text "+text1+" or "+text2+" for delta measure",e);
-        }
+    @Description("apoc.text.clean(text) YIELD value - strip the given string of everything except alpha numeric characters and convert it to lower case.")
+    public Stream<StringResult> clean(final @Name("text") String text) {
+        return Stream.of(text == null ? StringResult.EMPTY : new StringResult(removeNonWordCharacters(text)));
     }
 
-    public static class PhoneticResult {
-        public final String phonetic1, phonetic2;
-        public final long delta;
-
-        public PhoneticResult(String phonetic1, String phonetic2, Number delta) {
-            this.phonetic1 = phonetic1;
-            this.phonetic2 = phonetic2;
-            this.delta = delta.longValue();
+    @Procedure
+    @Description("apoc.text.compareCleaned(text1, text2) YIELD value - compare the given strings stripped of everything except alpha numeric characters converted to lower case.")
+    public Stream<BooleanResult> compareCleaned(final @Name("text1") String text1, final @Name("text2") String text2) {
+        if (text1 == null || text2 == null) {
+            return Stream.of(new BooleanResult(null));
         }
+        return Stream.of(new BooleanResult((removeNonWordCharacters(text1).equals(removeNonWordCharacters(text2)))));
+    }
+
+    @Procedure
+    @Description("apoc.text.filterCleanMatches(text1, text2) YIELD value - filter out non-matches of the given strings stripped of everything except alpha numeric characters converted to lower case.")
+    public Stream<StringResult> filterCleanMatches(final @Name("text1") String text1, final @Name("text2") String text2) {
+
+        return (text1 != null && text2 != null && removeNonWordCharacters(text1).equals(removeNonWordCharacters(text2))) ?
+                Stream.of(new StringResult(text1)) :
+                Stream.empty();
+    }
+
+    private static Pattern cleanPattern = Pattern.compile("[^A-Za-z0-9]+");
+
+    private static String removeNonWordCharacters(String s) {
+        return cleanPattern.matcher(s).replaceAll("").toLowerCase();
     }
 }
