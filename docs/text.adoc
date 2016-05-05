@@ -35,4 +35,5 @@ CALL apoc.text.compareCleaned('Hello World!', '_hello-world_')
 ----
 UNWIND ['Hello World!', 'hello worlds'] as text
 CALL apoc.text.filterCleanMatches(text, 'hello_world')
+RETURN text
 ----

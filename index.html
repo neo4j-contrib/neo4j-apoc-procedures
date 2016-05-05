@@ -487,7 +487,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_spatial_2">Spatial</a>
 <ul class="sectlevel2">
-<li><a href="#_spatial_functions">Spatial Functions</a></li>
+<li><a href="#_spatial_functions">Spatial Functions</a>
+<ul class="sectlevel3">
+<li><a href="#_using_geocode_within_a_bigger_cypher_query">Using Geocode within a bigger Cypher query</a></li>
+<li><a href="#_calculating_distance_between_locations">Calculating distance between locations</a></li>
+<li><a href="#_graph_refactoring_2">Graph Refactoring</a></li>
+<li><a href="#_combined_space_and_time_search">Combined Space and Time search</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_data_integration">Data Integration</a>
@@ -1225,6 +1232,22 @@ RETURN *;</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Compute the US_ENGLISH soundex character difference between two given strings</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.join(['text1','text2',&#8230;&#8203;], delimiter) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">join the given strings with the given delimiter.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CAL apoc.text.clean(text) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">strip the given string of everything except alpha numeric characters and convert it to lower case.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.compareCleaned(text1, text2) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">compare the given strings stripped of everything except alpha numeric characters converted to lower case.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.filterCleanMatches(text1, text2) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">filter out non-matches of the given strings stripped of everything except alpha numeric characters converted to lower case.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1427,6 +1450,18 @@ RETURN *;</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.algo.betweenness(['TYPE',&#8230;&#8203;],nodes,BOTH) YIELD node, centrality</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">calculate betweenness centrality for given nodes`</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.algo.pageRank(nodes) YIELD node, score</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">calculates page rank for given nodes with 20 iterations</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.algo.pageRankWithIterations(iterations, nodes) YIELD node, score</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">calculates page rank for given nodes and iterations</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.algo.community(node,partitionKey,type,direction,weightKey)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">community detection using label propagation</p></td>
 </tr>
 </tbody>
 </table>
@@ -2004,7 +2039,131 @@ ORDER BY score DESC</code></pre>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="_spatial_functions">Spatial Functions</h3>
-
+<div class="paragraph">
+<p>The spatial procedures are intended to enable geographic capabilities on your data.
+Currently there is only one procedure <em>geocode</em> which will convert a textual address
+into a location containing <em>latitude</em>, <em>longitude</em> and <em>description</em>. Despite being
+only a single function, together with the built-in functions <em>point</em> and <em>distance</em>
+we can achieve quite powerful results.</p>
+</div>
+<div class="paragraph">
+<p>First, how can we use the procedure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.spatial.geocode('21 rue Paul Bellamy 44000 NANTES FRANCE') YIELD location
+RETURN location.latitude, location.longitude // will return 47.2221667, -1.5566624</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_using_geocode_within_a_bigger_cypher_query">Using Geocode within a bigger Cypher query</h4>
+<div class="paragraph">
+<p>A more complex, or useful, example which geocodes addresses found in properties of nodes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (a:Place)
+WHERE exists(a.address)
+CALL apoc.spatial.geocode(a.address) YIELD location
+RETURN location.latitude AS latitude, location.longitude AS longitude, location.description AS description</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_calculating_distance_between_locations">Calculating distance between locations</h4>
+<div class="paragraph">
+<p>If we wish to calculate the distance between addresses, we need to use the point() function to convert
+latitude and longitude to Cyper Point types, and then use the distance() function to calculate the distance:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
+MATCH (a:Place)
+WHERE exists(a.address)
+CALL apoc.spatial.geocode(a.address) YIELD location
+WITH location, distance(point(location), eiffel) AS distance
+WHERE distance &lt; 5000
+RETURN location.description AS description, distance
+ORDER BY distance
+LIMIT 100</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_graph_refactoring_2">Graph Refactoring</h4>
+<div class="paragraph">
+<p>In order not to have to repeatedly geocode the same thing in multiple queries, especially
+if the database will be used by many people, it might be a good idea to persist the results
+in the database so that subsequent calls can use the saved results.</p>
+</div>
+<div class="paragraph">
+<p>Geocode and persist the result</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (a:Place)
+WHERE exists(a.address) AND NOT exists(a.latitude)
+WITH a LIMIT 1000
+CALL apoc.spatial.geocode(a.address) YIELD location
+SET a.latitude = location.latitude
+SET a.longitude = location.longitude</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that the above command only geocodes the first 1000 ‘Place’ nodes that have not already been geocoded.
+This query can be run multiple times until all places are geocoded. Why would we want to do this?
+Two good reasons:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The geocoding service is a public service that can throttle or blacklist sites that hit the service too heavily, so controlling how much we do is useful.</p>
+</li>
+<li>
+<p>The transaction is updating the database, and it is wise not to update the database with too many things in the same transaction, to avoid using up too much memory. This trick will keep the memory usage very low.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Now make use of the results in distance queries</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
+MATCH (a:Place)
+WHERE exists(a.latitude) AND exists(a.longitude)
+WITH a, distance(point(a), eiffel) AS distance
+WHERE distance &lt; 5000
+RETURN a.name, distance
+ORDER BY distance
+LIMIT 100</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_combined_space_and_time_search">Combined Space and Time search</h4>
+<div class="paragraph">
+<p>Combining spatial and date-time procedures can allow for more complex queries:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.parse('2016-06-01 00:00:00','h') YIELD value AS due_date
+WITH due_date,
+point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
+MATCH (e:Event)
+WHERE exists(e.address) AND exists(e.datetime)
+CALL apoc.spatial.geocode(e.address) YIELD value AS location
+CALL apoc.date.parse(e.datetime,'h') YIELD value AS hours
+WITH e, location,
+distance(point(location), eiffel) AS distance,
+            (due_date - hours)/24.0 AS days_before_due
+WHERE distance &lt; 5000 AND days_before_due &lt; 14 AND hours &lt; due_date
+RETURN e.name AS event, e.datetime AS date,
+location.description AS description, distance
+ORDER BY distance</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -2229,7 +2388,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-05-05 18:33:22 CEST
+Last updated 2016-05-05 19:03:21 CEST
 </div>
 </div>
 </body>

@@ -139,11 +139,11 @@ public class StringsTest {
         String stringToFind = " neo4j-<30";
         List<String> strings = asList(string1, string2, null);
         String query = "UNWIND {strings} as s " +
-                "CALL apoc.text.filterCleanMatches(s, {expected}) YIELD value " +
-                "RETURN value";
+                "CALL apoc.text.filterCleanMatches(s, {expected}) " +
+                "RETURN s";
         testCall(db, query,
                 map("strings", strings,"expected",stringToFind),
-                row -> assertEquals(string1, row.get("value")));
+                row -> assertEquals(string1, row.get("s")));
     }
 
     @Test
@@ -194,7 +194,7 @@ public class StringsTest {
     public void testDocFilterCleanMatches() throws Exception {
         testCall(db,
                 "UNWIND ['Hello World!', 'hello worlds'] as text " +
-                        "CALL apoc.text.filterCleanMatches(text, 'hello_world') YIELD value RETURN value",
-                row -> assertEquals("Hello World!", row.get("value")));
+                        "CALL apoc.text.filterCleanMatches(text, 'hello_world') RETURN text",
+                row -> assertEquals("Hello World!", row.get("text")));
     }
 }
