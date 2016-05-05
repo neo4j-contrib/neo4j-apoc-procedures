@@ -50,20 +50,23 @@ public class DateTest {
 
 	@Test public void testToDays() throws Exception {
 		testCall(db,
-				"CALL apoc.date.toDays('" + testDateAsString + "') yield value as dob RETURN dob",
-				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_DAY * (long) row.get("dob"))));
+				"CALL apoc.date.parseDefault({date},'d')",
+				map("date",testDateAsString),
+				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_DAY * (long) row.get("value"))));
 	}
 
 	@Test public void testToHours() throws Exception {
 		testCall(db,
-				"CALL apoc.date.toHours('" + testDateAsString + "') yield value as dob RETURN dob",
-				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_HOUR * (long) row.get("dob"))));
+				"CALL apoc.date.parseDefault({date},'h')",
+				map("date",testDateAsString),
+				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_HOUR * (long) row.get("value"))));
 	}
 
 	@Test public void testToMinutes() throws Exception {
 		testCall(db,
-				"CALL apoc.date.toMinutes('" + testDateAsString + "') yield value as dob RETURN dob",
-				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_MINUTE * (long) row.get("dob"))));
+				"CALL apoc.date.parseDefault({date},'m')",
+				map("date",testDateAsString),
+				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_MINUTE * (long) row.get("value"))));
 	}
 
 	@Test public void testToUnixtime() throws Exception {

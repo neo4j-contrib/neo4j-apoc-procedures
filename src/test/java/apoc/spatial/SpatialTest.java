@@ -12,9 +12,12 @@ import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static apoc.util.MapUtil.map;
@@ -31,16 +34,34 @@ public class SpatialTest {
     private Map<String, Map<String, Object>> spaceNodes = new LinkedHashMap<>();
     private Map<String, Map<String, Object>> spaceTimeNodes = new LinkedHashMap<>();
 
+    public static class MockGeocode {
+        public static Map<String, Map> geocodeResults = null;
+
+        public MockGeocode() {
+        }
+
+        @Procedure("apoc.spatial.geocode")
+        public Stream<Geocode.GeoCodeResult> geocode(@Name("location") String address) {
+            if (geocodeResults != null && geocodeResults.containsKey(address)) {
+                Map data = geocodeResults.get(address);
+                return Stream.of(new Geocode.GeoCodeResult(Geocode.toDouble(data.get("lat")), Geocode.toDouble(data.get("lon")), String.valueOf(data.get("display_name")), data));
+            } else {
+                return Stream.empty();
+            }
+        }
+    }
+
     @Before
     public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, Date.class);
-        TestUtil.registerProcedure(db, Geocode.class);
+        TestUtil.registerProcedure(db, MockGeocode.class);
         URL url = ClassLoader.getSystemResource("spatial.json");
         Map tests = (Map) JsonUtil.loadJson(url.toString());
         for (Object event : (List) tests.get("events")) {
             addEventData((Map) event);
         }
+        MockGeocode.geocodeResults = (Map<String, Map>) tests.get("geocode");
     }
 
     private void addEventData(Map<String, Object> event) {

@@ -19,7 +19,7 @@ public class Geocode {
     public GraphDatabaseService db;
 
     @Procedure
-    @Description("apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of location from openstreetmap geocoding service")
+    @Description("apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from openstreetmap geocoding service")
     public Stream<GeoCodeResult> geocode(@Name("location") String address) {
         String url = "http://nominatim.openstreetmap.org/search.php?q=" + address.replace(" ", "+") + "&format=json";
         Object value = JsonUtil.loadJson(url);
@@ -30,7 +30,7 @@ public class Geocode {
         throw new RuntimeException("Can't parse geocoding results " + value);
     }
 
-    private static Double toDouble(Object value) {
+    public static Double toDouble(Object value) {
         if (value == null) return null;
         if (value instanceof Number) return ((Number) value).doubleValue();
         return Double.parseDouble(value.toString());
