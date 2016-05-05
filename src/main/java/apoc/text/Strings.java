@@ -6,6 +6,7 @@ import apoc.result.StringResult;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -21,6 +22,17 @@ public class Strings {
             return Stream.of(StringResult.EMPTY);
         }
         return Stream.of(new StringResult(text.replaceAll(regex, replacement)));
+    }
+
+    @Procedure
+    @Description("apoc.text.join(['text1','text2',...], delimiter) YIELD value - join the given strings with the given delimiter.")
+    public Stream<StringResult> join(
+            final @Name("texts") List<String> texts,
+            final @Name("delimiter") String delimiter) {
+        if (texts == null || delimiter == null) {
+            return Stream.of(StringResult.EMPTY);
+        }
+        return Stream.of(new StringResult(String.join(delimiter, texts)));
     }
 
     @Procedure

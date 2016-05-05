@@ -5,6 +5,7 @@ import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static apoc.util.MapUtil.map;
@@ -42,9 +43,7 @@ public class StringsTest {
         testCall(db,
                 "CALL apoc.text.replace({text},{regex},{replacement})",
                 map("text",text,"regex",regex,"replacement",replacement),
-                row -> {
-                    assertEquals(expected, row.get("value"));
-                });
+                row -> assertEquals(expected, row.get("value")));
     }
 
     @Test
@@ -64,6 +63,38 @@ public class StringsTest {
                 "CALL apoc.text.replace({text},{regex},{replacement})",
                 map("text",text,"regex",regex,"replacement",null),
                 row -> assertEquals(null, row.get("value")));
+    }
+
+    @Test
+    public void testJoin() throws Exception {
+        List<String> texts = Arrays.asList("1", "2", "3", "4");
+        String delimiter = ",";
+        String expected = "1,2,3,4";
+
+        testCall(db,
+                "CALL apoc.text.join({texts},{delimiter})",
+                map("texts",texts,"delimiter",delimiter),
+                row -> assertEquals(expected, row.get("value")));
+    }
+
+    @Test
+    public void testJoinWithNull() throws Exception {
+        List<String> texts = Arrays.asList("Hello", null);
+        String delimiter = " ";
+        String expected = "Hello null";
+
+        testCall(db,
+                "CALL apoc.text.join({texts},{delimiter})",
+                map("texts",null,"delimiter",delimiter),
+                row -> assertEquals(null, row.get("value")));
+        testCall(db,
+                "CALL apoc.text.join({texts},{delimiter})",
+                map("texts",texts,"delimiter",null),
+                row -> assertEquals(null, row.get("value")));
+        testCall(db,
+                "CALL apoc.text.join({texts},{delimiter})",
+                map("texts",texts,"delimiter",delimiter),
+                row -> assertEquals(expected, row.get("value")));
     }
 
     @Test public void testClean() throws Exception {
@@ -134,6 +165,13 @@ public class StringsTest {
         testCall(db,
                 "CALL apoc.text.replace('Hello World!', '[^a-zA-Z]', '')",
                 row -> assertEquals("HelloWorld", row.get("value")));
+    }
+
+    @Test
+    public void testDocJoin() throws Exception {
+        testCall(db,
+                "CALL apoc.text.join(['Hello', 'World'], ' ')",
+                row -> assertEquals("Hello World", row.get("value")));
     }
 
     @Test

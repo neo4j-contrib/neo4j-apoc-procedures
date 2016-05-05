@@ -12,6 +12,12 @@ Cleaning will strip the string of all non-alphanumeric characters (including spa
 CALL apoc.text.replace('Hello World!', '[^a-zA-Z]', '')
 ----
 
+.will return 'Hello World'
+[source,cypher]
+----
+CALL apoc.text.join(['Hello', 'World'], ' ')
+----
+
 .will return 'helloworld'
 [source,cypher]
 ----
