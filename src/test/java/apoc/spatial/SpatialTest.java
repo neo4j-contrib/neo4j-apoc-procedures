@@ -5,6 +5,7 @@ import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URL;
@@ -36,7 +37,7 @@ public class SpatialTest {
         TestUtil.registerProcedure(db, Date.class);
         TestUtil.registerProcedure(db, Geocode.class);
         URL url = ClassLoader.getSystemResource("spatial.json");
-        Map tests = (Map) JsonUtil.OBJECT_MAPPER.readValue(url.openConnection().getInputStream(), Object.class);
+        Map tests = (Map) JsonUtil.loadJson(url.toString());
         for (Object event : (List) tests.get("events")) {
             addEventData((Map) event);
         }
@@ -62,7 +63,7 @@ public class SpatialTest {
         db.shutdown();
     }
 
-    @Test
+    @Test @Ignore
     public void testSimpleGeocode() {
         String query = "MATCH (a:Event) \n" +
                 "WHERE exists(a.address) AND exists(a.name) \n" +
@@ -72,7 +73,7 @@ public class SpatialTest {
         testCallCount(db, query, null, eventNodes.size());
     }
 
-    @Test
+    @Test @Ignore
     public void testGeocodePointAndDistance() {
         String query = "WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel\n" +
                 "MATCH (a:Event) \n" +
@@ -106,7 +107,7 @@ public class SpatialTest {
         testCallCount(db, query, null, spaceNodes.size());
     }
 
-    @Test
+    @Test @Ignore
     public void testAllTheThings() throws Exception {
         String query = "CALL apoc.date.parseDefault('2016-06-01 00:00:00','h') YIELD value as due_date\n" +
                 "WITH due_date, point({latitude: 48.8582532, longitude: 2.294287}) as eiffel\n" +
