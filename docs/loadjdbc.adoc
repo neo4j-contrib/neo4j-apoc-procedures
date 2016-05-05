@@ -1,4 +1,13 @@
--- tag::mysql[]
+= Load JDBC
+
+include::../readme.adoc[tags=jdbc,leveloffset=-1]
+
+== MySQL Example
+
+=== MySQL Northwind Data
+
+[source,sql]
+----
 select count(*) from products;
 +----------+
 | count(*) |
@@ -23,20 +32,24 @@ describe products;
 | Discontinued    | bit(1)        | NO   |     | b'0'    |                |
 +-----------------+---------------+------+-----+---------+----------------+
 10 rows in set (0,00 sec)
--- end::mysql[]
+----
 
-tag::jdbc[]
+== Load JDBC Examples
+
+.Load the JDBC driver
+[source,cypher]
+----
 cypher CALL apoc.load.driver("com.mysql.jdbc.Driver");
-cypher CALL apoc.load.jdbc("jdbc:mysql://localhost:3306/northwind?user=root","products") YIELD row 
-RETURN count(*);
-cypher CALL apoc.load.jdbc("jdbc:mysql://localhost:3306/northwind?user=root","products") YIELD row 
-RETURN row limit 1;
+----
 
-// tag::jdbc[]
-cypher CALL apoc.load.driver("com.mysql.jdbc.Driver");
-
-CALL apoc.load.jdbc("jdbc:mysql://localhost:3306/northwind?user=root","products") YIELD row 
+.Count rows in products table
+----
+with "jdbc:mysql://localhost:3306/northwind?user=root" as url
+cypher CALL apoc.load.jdbc(url,"products") YIELD row
 RETURN count(*);
+----
+
+----
 +----------+
 | count(*) |
 +----------+
@@ -44,9 +57,17 @@ RETURN count(*);
 +----------+
 1 row
 23 ms
+----
 
-CALL apoc.load.jdbc("jdbc:mysql://localhost:3306/northwind?user=root","products") YIELD row 
+.Return row from products table
+[source,cypher]
+----
+with "jdbc:mysql://localhost:3306/northwind?user=root" as url
+cypher CALL apoc.load.jdbc(url,"products") YIELD row
 RETURN row limit 1;
+----
+
+----
 +--------------------------------------------------------------------------------+
 | row                                                                            |
 +--------------------------------------------------------------------------------+
@@ -54,4 +75,4 @@ RETURN row limit 1;
 +--------------------------------------------------------------------------------+
 1 row
 10 ms
-// end::jdbc[]
+----

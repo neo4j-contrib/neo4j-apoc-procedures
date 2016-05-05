@@ -1,26 +1,56 @@
-== apoc.path.expand
+= Expand paths
 
 expand from start node following the given relationships from min to max-level adhering to the label filters
 
-=== Usage
+== Usage
 
 [source,cypher]
 ----
 CALL apoc.path.expand(startNode <id>|Node, relationshipFilter, labelFilter, minLevel, maxLevel )
 
 CALL apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path
----
+----
 
-=== Parameters
+Relationship Filter
 
-* startnode <id> (long, int) or Node
-** relationshipFilter `RELATIONSHIP_TYPE1[<>]|RELATIONSHIP_TYPE2[<>]|...`
-** `RELATIONSHIP_TYPE>` = only direction Outgoing
-** `<RELATIONSHIP_TYPE` = only direction Incoming
-** `RELATIONSHIP_TYPE` = both directions
-* labelFilter `[+-] LABEL1|LABEL2|...`
-** `+` include label list (white list)
-** ``-` exclude label list (black list)
-* minLevel minimum path level
-* maxLevel maximum path level
-* RETURNS a variable with then name 'exploredPath'
+Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
+
+[opts=header,cols="m,m,a"]
+|===
+| input | type | direction
+| LIKES> | LIKES | OUTGOING
+| <FOLLOWS | FOLLOWS  | INCOMING
+| KNOWS  | KNOWS | BOTH
+|===
+
+Label Filter
+
+Syntax: `[+-]LABEL1|LABEL2|...`
+
+[opts=header,cols="m,m,a"]
+|===
+| input | label | result
+| +Friend | Friend | include label (whitelist)
+| -Foe | Foe | exclude label (blacklist)
+|===
+
+== Examples
+
+[source,cypher]
+----
+call apoc.path.expand(1,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",0,3)
+call apoc.path.expand(1,"ACTED_IN>|PRODUCED<|FOLLOWS<","-BigBrother",0,3)
+call apoc.path.expand(1,"ACTED_IN>|PRODUCED<|FOLLOWS<","",0,3)
+
+// combined with cypher:
+
+match (tom:Person {name :"Tom Hanks"})
+call apoc.path.expand(tom,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",0,3) yield path as pp
+return pp;
+
+// or
+
+match (p:Person) with p limit 3
+call apoc.path.expand(p,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",1,2) yield path as pp
+return p, pp
+----

@@ -123,9 +123,7 @@ public class Algo {
     }
 
     @Procedure("apoc.algo.betweenness")
-    @Description("CALL apoc.algo.betweenness(['TYPE',...],nodes,BOTH) YIELD n, centrality - calc betweenness " +
-            "centrality for given nodes")
-    // TODO consider taking direction as input parameter too
+    @Description("CALL apoc.algo.betweenness(['TYPE',...],nodes,BOTH) YIELD node, centrality - calculate betweenness centrality for given nodes")
     public Stream<NodeCentrality> betweenness(@Name("types") List<String> types, @Name("nodes") List<Node> nodes
             , @Name("direction") String direction) {
         assertParametersNotNull(types, nodes);
@@ -163,8 +161,7 @@ public class Algo {
     }
 
     @Procedure("apoc.algo.closeness")
-    @Description("CALL apoc.algo.closeness(['TYPE',...],nodes, INCOMING) YIELD n, centrality - calc closeness " +
-            "centrality for given nodes")
+    @Description("CALL apoc.algo.closeness(['TYPE',...],nodes, INCOMING) YIELD node, centrality - calculate closeness centrality for given nodes")
     public Stream<NodeCentrality> closeness(@Name("types") List<String> types, @Name("nodes") List<Node> nodes,
                                             @Name("direction") String direction) {
         assertParametersNotNull(types, nodes);

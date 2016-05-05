@@ -1,0 +1,82 @@
+= Date and Time Conversions
+
+(thanks @tkroman)
+
+== Conversion between formatted dates and timestamps
+
+* `apoc.date.toSeconds('2015-03-25 03:15:59')` get Unix time equivalent of given date (in seconds)
+* `apoc.date.toSecondsFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss')` same as previous, but accepts custom datetime format
+* `apoc.date.fromSeconds(12345)` get string representation of date corresponding to given Unix time (in seconds)
+* `apoc.date.fromSecondsFormatted(12345, 'yyyy/MM/dd HH/mm/ss')` the same as previous, but accepts custom datetime format
+
+* `apoc.date.toMillis('2015-03-25 03:15:59')` get Unix time equivalent of given date (in milliseconds)
+* `apoc.date.toMillisFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss')` same as previous, but accepts custom datetime format
+* `apoc.date.fromMillis(12345)` get string representation of date corresponding to given time in milliseconds
+* `apoc.date.fromMillisFormatted(12345, 'yyyy/MM/dd HH/mm/ss')` the same as previous, but accepts custom datetime format
+
+== Reading separate datetime fields:
+
+Splits date (optionally, using given custom format) into fields returning a map from field name to its value.
+
+* `apoc.date.fields('2015-03-25 03:15:59')`
+* `apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')`
+
+Following fields are supported:
+
+[options="header"]
+|===============================================================================================================
+| Result field	| Represents
+| 'years'		| year
+| 'months' 		| month of year
+| 'days' 		| day of month
+| 'hours' 		| hour of day
+| 'minutes' 	| minute of hour
+| 'seconds'		| second of minute
+| 'zone'		| https://dohcs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html#timezone[time zone]
+|===============================================================================================================
+
+== Examples
+
+....
+  apoc.date.fields('2015-03-25 03:15:59') =>
+    {
+      'Months': 1,
+      'Days': 2,
+      'Hours': 3,
+      'Minutes': 4,
+      'Seconds': 5,
+      'Years': 2015
+    }
+....
+
+....
+apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') =>
+  {
+    'ZoneId': 'Europe/Bucharest',
+    'Months': 1,
+    'Days': 2,
+    'Hours': 3,
+    'Minutes': 4,
+    'Seconds': 5,
+    'Years': 2015
+  }
+....
+
+....
+apoc.date.fieldsFormatted('2015/01/02_EET', 'yyyy/MM/dd_z') =>
+  {
+    'Years': 2015,
+    'ZoneId': 'Europe/Bucharest',
+    'Months': 1,
+    'Days': 2
+  }
+....
+
+
+== Notes on formats:
+
+* the default format is `yyyy-MM-dd HH:mm:ss`
+* if the format pattern doesn't specify timezone, formatter considers dates to belong to the UTC timezone
+* if the timezone pattern is specified, the timezone is extracted from the date string, otherwise an error will be reported
+* the `to/fromSeconds` timestamp values are in POSIX (Unix time) system, i.e. timestamps represent the number of seconds elapsed since https://en.wikipedia.org/wiki/Unix_time[00:00:00 UTC, Thursday, 1 January 1970]
+* the full list of supported formats is described in https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html[SimpleDateFormat JavaDoc]

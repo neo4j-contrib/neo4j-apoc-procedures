@@ -1,11 +1,25 @@
-== Collection of useful Procedures for Neo4j 3.x
+= Collection of useful Procedures for Neo4j 3.x
+
+image::http://www.oocities.org/matrixextreme/images/apoc.gif[float=right]
+
+== License
+
+Apache License 2.0
+
+== "APOC" Name history
+
+http://matrix.wikia.com/wiki/Apoc[Apoc] was the technician and driver on board of the Nebuchadnezzar in the Matrix movie. He was killed by Cypher.
+
+*APOC* was also the first bundled http://neo4j.com/blog/convenient-package-neo4j-apoc-0-1-released/[A Package Of Components] for Neo4j in 2009.
+
+*APOC* also stands for "Awesome Procedures On Cypher"
 
 
-Build & install apoc procedures
+== Build & install apoc procedures
 
 [source,shell]
 ----
-git clone http://github.com/jexp/neo4j-apoc-procedures
+git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
 cd neo4j-apoc-procedures
 mvn clean install
 cp target/apoc-1.0.0-SNAPSHOT.jar $NEO4J_HOME/plugins/
@@ -16,7 +30,9 @@ If you want to run embedded or use shell on a disk store, configure your `plugin
 
 == Calling Procedures within Cypher
 
-This repository uses a recent build (>= 3.0.0) of Neo4j, so that it can leverage procedures being called within Cypher statements.
+Procedures can be called stand-alone with `CALL procedure.name();`
+
+But you can also integrate them into your Cypher statements which makes them so much more powerful.
 
 [source,cypher]
 ----
@@ -25,7 +41,9 @@ MERGE (p:Person {name:person.name})
 ON CREATE SET p.age = person.age, p.children = size(person.children)
 ----
 
-== Included Procedures
+== Included Procedures Overview
+
+You can find the https://neo4j-contrib.github.io/neo4j-apoc-procedures[full documentation (WIP) here].
 
 === Built in Help
 
@@ -45,15 +63,15 @@ RETURN name AS undocumented
 
 Procedures to add to and query manual indexes
 
-* `apoc.index.addNode(node,['prop1',...])` add node to an index for each label it has
-* `apoc.index.addNodeByLabel(node,'Label',['prop1',...])` add node to an index for the given label
-* `apoc.index.addRelationship(rel,['prop1',...])` add relationship to an index for its type
+* `apoc.index.addNode(node,['prop1',...])` - add node to an index for each label it has
+* `apoc.index.addNodeByLabel(node,'Label',['prop1',...])` - add node to an index for the given label
+* `apoc.index.addRelationship(rel,['prop1',...])` - add relationship to an index for its type
 
-* `apoc.index.nodes('Label','prop:value*') YIELD node, weight` lucene query on node index with the given label name
-* `apoc.index.relationships('TYPE','prop:value*') YIELD rel, weight` lucene query on relationship index with the given type name
-* `apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel, weight` lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)
-* `apoc.index.out(node,'TYPE','prop:value*') YIELD node, weight` lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*
-* `apoc.index.in(node,'TYPE','prop:value*') YIELD node, weight` lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*
+* `apoc.index.nodes('Label','prop:value*') YIELD node, weight` - lucene query on node index with the given label name
+* `apoc.index.relationships('TYPE','prop:value*') YIELD rel, weight` - lucene query on relationship index with the given type name
+* `apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel, weight` - lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)
+* `apoc.index.out(node,'TYPE','prop:value*') YIELD node, weight` - lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*
+* `apoc.index.in(node,'TYPE','prop:value*') YIELD node, weight` - lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*
 
 ==== Index Management
 
@@ -62,6 +80,7 @@ Procedures to add to and query manual indexes
 * `CALL apoc.index.forNodes('name',{config}) YIELD type,name,config` - gets or creates manual node index
 * `CALL apoc.index.forRelationships('name',{config}) YIELD type,name,config` - gets or creates manual relationship index
 
+.Add node to index example
 [source,cypher]
 ----
 match (p:Person) call apoc.index.addNode(p,["name","age"]) RETURN count(*);
@@ -86,6 +105,7 @@ CALL apoc.meta.isType(n.age,"INTEGER")
 RETURN n LIMIT 5
 ----
 
+
 === Locking
 
 
@@ -102,9 +122,13 @@ RETURN n LIMIT 5
 
 === Loading Data from RDBMS
 
+// tag::jdbc[]
+
 * `CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})` load from relational database, either a full table or a sql statement
 * `CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18')` load from relational database, either a full table or a sql statement
 * `CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver')` register JDBC driver of source database
+
+// end::jdbc[]
 
 === Loading Data from Web-APIs (JSON, XML, CSV)
 
@@ -149,7 +173,9 @@ CALL apoc.create.vRelationship(a,'META_RELATIONSHIP',{name:rel_type, count:count
 RETURN *;
 ----
 
-=== Monitoring (thanks @ikwattro)
+=== Monitoring
+
+(thanks @ikwattro)
 
 * `apoc.monitor.ids` - node and relationships-ids in total and in use
 * `apoc.monitor.kernel` - store information such as kernel version, start time, read-only, database-name, store-log-version etc.
@@ -188,6 +214,10 @@ copies over the `name` property of each person to `lastname`.
 * √ `call apoc.refactor.collapseNode([node1,node2],'TYPE') ` - collapse node to relationship, node with one rel becomes self-relationship
 
 
+=== Spatial
+
+* `CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData` - look up geographic location of location from openstreetmap geocoding service
+
 === Helpers
 
 
@@ -221,7 +251,9 @@ copies over the `name` property of each person to `lastname`.
 * `CALL apoc.text.phonetic(value) yield value` - Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
 * `CALL apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta` - Compute the US_ENGLISH soundex character difference between two given strings
 
-=== Date/time Support (thanks @tkroman)
+=== Date/time Support
+
+(thanks @tkroman)
 
 ==== Conversion between formatted dates and timestamps
 
@@ -242,115 +274,48 @@ Splits date (optionally, using given custom format) into fields returning a map 
 * `apoc.date.fields('2015-03-25 03:15:59')`
 * `apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')`
 
-Following fields are supported:
+=== Path Expander
 
-[options="header"]
-|===============================================================================================================
-| Result field	| Represents
-| 'years'		| year
-| 'months' 		| month of year
-| 'days' 		| day of month
-| 'hours' 		| hour of day
-| 'minutes' 	| minute of hour
-| 'seconds'		| second of minute
-| 'zone'		| https://dohcs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html#timezone[time zone]
-|===============================================================================================================
-
-==== Examples
-
-....
-  apoc.date.fields('2015-03-25 03:15:59') =>
-    {
-      'Months': 1,
-      'Days': 2,
-      'Hours': 3,
-      'Minutes': 4,
-      'Seconds': 5,
-      'Years': 2015
-    }
-....
-
-....
-apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') =>
-  {
-    'ZoneId': 'Europe/Bucharest',
-    'Months': 1,
-    'Days': 2,
-    'Hours': 3,
-    'Minutes': 4,
-    'Seconds': 5,
-    'Years': 2015
-  }
-....
-
-....
-apoc.date.fieldsFormatted('2015/01/02_EET', 'yyyy/MM/dd_z') =>
-  {
-    'Years': 2015,
-    'ZoneId': 'Europe/Bucharest',
-    'Months': 1,
-    'Days': 2
-  }
-....
-
-
-==== Notes on formats:
-
-* the default format is `yyyy-MM-dd HH:mm:ss`
-* if the format pattern doesn't specify timezone, formatter considers dates to belong to the UTC timezone
-* if the timezone pattern is specified, the timezone is extracted from the date string, otherwise an error will be reported
-* the `to/fromSeconds` timestamp values are in POSIX (Unix time) system, i.e. timestamps represent the number of seconds elapsed since https://en.wikipedia.org/wiki/Unix_time[00:00:00 UTC, Thursday, 1 January 1970]
-* the full list of supported formats is described in https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html[SimpleDateFormat JavaDoc]
-
-=== Path Expander (thanks @keesvegter)
+(thanks @keesvegter)
 
 The apoc.path.expand procedure makes it possible to do variable length path traversals where you can specify the direction of the relationship per relationship type and a list of Label names which act as a "whitelist" or a "blacklist". The procedure will return a list of Paths in a variable name called "path".
 
-* `call apoc.path.expand(startNode <id>|Node, relationshipFilter, labelFilter, minLevel, maxLevel ) yield path as <identifier>`
+* `call apoc.path.expand(startNode <id>|Node, relationshipFilter, labelFilter, minDepth, maxDepth ) yield path as <identifier>`
 
-** startnode &lt;id&gt; |Node
 
-** relationshipFilter: `RELATIONSHIP_TYPE1{<,>,}|RELATIONSHIP_TYPE2{<,>,}|...`
-*** `RELATIONSHIP_TYPE>` only direction Outgoing
-*** `RELATIONSHIP_TYPE<` only direction Incoming
-*** `RELATIONSHIP_TYPE` both directions
+Relationship Filter
 
-** labelFilter: `{+.-} LABEL1|LABEL2|...`
-*** `+` include label list (white list)
-*** `-` exclude label list (black list)
+Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 
-** minLevel minimum path level
+[opts=header,cols="m,m,a"]
+|===
+| input | type | direction
+| LIKES> | LIKES | OUTGOING
+| <FOLLOWS | FOLLOWS  | INCOMING
+| KNOWS  | KNOWS | BOTH
+|===
 
-** maxLevel maximum path level
+Label Filter
 
-=== Examples
+Syntax: `[+-]LABEL1|LABEL2|...`
 
-[source,cypher]
-----
-call apoc.path.expand(1,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",0,3)  
-call apoc.path.expand(1,"ACTED_IN>|PRODUCED<|FOLLOWS<","-BigBrother",0,3)  
-call apoc.path.expand(1,"ACTED_IN>|PRODUCED<|FOLLOWS<","",0,3)  
+[opts=header,cols="m,m,a"]
+|===
+| input | label | result
+| +Friend | Friend | include label (whitelist)
+| -Foe | Foe | exclude label (blacklist)
+|===
 
-combined with cypher:
-
-match (tom:Person {name :"Tom Hanks"})
-call apoc.path.expand(tom,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",0,3) yield path as pp 
-return pp;
-
-or
-
-match (p:Person) with p limit 3
-call apoc.path.expand(p,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",1,2) yield path as pp
-return p, pp 
-----
-
-=== Graph Alorithms (work in progress)
+=== Graph Algorithms (work in progress)
 
 Provides a wrapper around GraphAlgoFactory.
 
 * `CALL apoc.algo.dijkstra(startNode, endNode, relAndDirections, costProperty)` - run dijkstra with a relationship property as cost function,
 `relAndDirections` is a path expander specification from above.
 * `CALL apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, relAndDirections, costProperty, defaultCost)` - run dijkstra with a relationship property as cost function. If the relationship property does not exist, use the specified default value instead.
+* `CALL apoc.algo.closeness(['TYPE',...],nodes, INCOMING) YIELD node, centrality` - calculate closeness centrality for given nodes
+* `CALL apoc.algo.betweenness(['TYPE',...],nodes,BOTH) YIELD node, centrality` - calculate betweenness centrality for given nodes`
+
 
 Example: find the weighted shortest path based on relationship property `d` from `A` to `B` following just `:ROAD` relationships
 
@@ -395,18 +360,3 @@ MATCH (n:Person)
 * √ apoc.monitor.{ids,tx,store} simplar calls for the JMX info with tabular output
 * apoc.run.register(name, query[,params]), apoc.run.named(name,[params])
 * apoc.create.graph(nodes,rels,data-map) -> {nodes:[], rels:[], data:{}} a graph data structure, e.g. for rendering, export, validation, ...
-
-== License
-
-Apache License 2.0
-
-== "APOC" Name history
-
-image::http://www.oocities.org/matrixextreme/images/apoc.gif[float=left]
-
-http://matrix.wikia.com/wiki/Apoc[Apoc] was the technician and driver on board of the Nebuchadnezzar in the Matrix movie. He was killed by Cypher.
-
-*APOC* was also the first bundled http://neo4j.com/blog/convenient-package-neo4j-apoc-0-1-released/[A Package Of Components] for Neo4j in 2009.
-
-*APOC* also stands for "Awesome Procedures On Cypher"
-
