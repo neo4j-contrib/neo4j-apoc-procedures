@@ -44,14 +44,14 @@ public class Date {
 	);
 
 	@Procedure
-	@Description("apoc.date.fields('2012-12-23 13:10:50') - create structured map representation of date with entries for year,month,day,hour,minute,second,zoneid")
-	public Stream<MapResult> fields(final @Name("date") String date) {
-		return fieldsFormatted(date, null);
+	@Description("apoc.date.fieldsDefault('2012-12-23 13:10:50') - create structured map representation of date with entries for year,month,day,hour,minute,second,zoneid")
+	public Stream<MapResult> fieldsDefault(final @Name("date") String date) {
+		return fields(date, null);
 	}
 
 	@Procedure
-	@Description("apoc.date.fieldsFormatted('2012-12-23','yyyy-MM-dd') - create structured map representation of date parsed with the given format with entries for year,month,day,hour,minute,second,zoneid")
-	public Stream<MapResult> fieldsFormatted(final @Name("date") String date, final @Name("pattern") String pattern) {
+	@Description("apoc.date.fields('2012-12-23','yyyy-MM-dd') - create structured map representation of date parsed with the given format with entries for year,month,day,hour,minute,second,zoneid")
+	public Stream<MapResult> fields(final @Name("date") String date, final @Name("pattern") String pattern) {
 		if (date == null) {
 			return Stream.of(MapResult.empty());
 		}
@@ -66,59 +66,50 @@ public class Date {
 		return Stream.of(new MapResult(selectFields));
 	}
 
-	@Procedure
-	@Description("apoc.date.fromSeconds(12345) get string representation of date corresponding to given Unix time (in seconds)")
-	public Stream<StringResult> fromSeconds(final @Name("seconds") long unixtime) {
-		return fromSecondsFormatted(unixtime, null);
+	private TimeUnit unit(String unit) {
+		if (unit == null) return TimeUnit.MILLISECONDS;
+
+		switch (unit.toLowerCase()) {
+			case "ms": case "milli":  case "millis": case "milliseconds": return TimeUnit.MILLISECONDS;
+			case "s":  case "second": case "seconds": return TimeUnit.SECONDS;
+			case "m":  case "minute": case "minutes": return TimeUnit.MINUTES;
+			case "h":  case "hour":   case "hours":   return TimeUnit.HOURS;
+			case "d":  case "day":    case "days":    return TimeUnit.DAYS;
+//			case "month":case "months": return TimeUnit.MONTHS;
+//			case "years":case "year": return TimeUnit.YEARS;
+		}
+		return TimeUnit.MILLISECONDS;
 	}
 
 	@Procedure
-	@Description("apoc.date.fromSecondsFormatted(12345, 'yyyy/MM/dd HH/mm/ss') the same as previous, but accepts custom datetime format")
-	public Stream<StringResult> fromSecondsFormatted(final @Name("seconds") long unixtime, final @Name("pattern") String pattern) {
-		return fromMillisFormatted(TimeUnit.SECONDS.toMillis(unixtime),pattern);
+	@Description("apoc.date.formatDefault(12345,'ms|s|m|h|d') get string representation of time value the default unit in default format")
+	public Stream<StringResult> formatDefault(final @Name("time") long time, @Name("unit") String unit) {
+		return parse(unit(unit).toMillis(time), DEFAULT_FORMAT);
+	}
+	@Procedure
+	@Description("apoc.date.format(12345,'ms|s|m|h|d') get string representation of time value the default unit in default format")
+	public Stream<StringResult> format(final @Name("time") long time, @Name("unit") String unit, @Name("format") String format) {
+		return parse(unit(unit).toMillis(time), format);
+	}
+	@Procedure
+	@Description("apoc.date.parseDefault('2012-12-23 13:10:50','ms|s|m|h|d') parse date string into using the default format into the given time unit")
+	public Stream<LongResult> parseDefault(final @Name("time") String time, @Name("unit") String unit) {
+		return parse(time, unit, DEFAULT_FORMAT);
 	}
 
 	@Procedure
-	@Description("apoc.date.fromMillis(12345) get string representation of date corresponding to given time in milliseconds")
-	public Stream<StringResult> fromMillis(final @Name("millis") long millis) {
-		return fromMillisFormatted(millis, null);
+	@Description("apoc.date.parse('2012-12-23','ms|s|m|h|d','yyyy-MM-dd') parse date string into using the provided format into the given time unit")
+	public Stream<LongResult> parse(@Name("time") String time, @Name("unit") String unit, @Name("format") String format) {
+		Long value = parseOrThrow(time, getFormat(format));
+		Long valueInUnit = value == null ? null : unit(unit).convert(value, TimeUnit.MILLISECONDS);
+		return Stream.of(new LongResult(valueInUnit));
 	}
 
-	@Procedure
-	@Description("apoc.date.fromMillisFormatted(12345, 'yyyy/MM/dd HH/mm/ss') the same as previous, but accepts custom datetime format")
-	public Stream<StringResult> fromMillisFormatted(final @Name("millis") long millis, final @Name("pattern") String pattern) {
+	public Stream<StringResult> parse(final @Name("millis") long millis, final @Name("pattern") String pattern) {
 		if (millis < 0) {
 			throw new IllegalArgumentException("The time argument should be >= 0, got: " + millis);
 		}
 		return Stream.of(new StringResult(getFormat(pattern).format(new java.util.Date(millis))));
-	}
-
-	@Procedure
-	@Description("apoc.date.toSeconds('2015-03-25 03:15:59') get Unix time equivalent of given date (in seconds)")
-	public Stream<LongResult> toSeconds(final @Name("date") String dateField) {
-		return toSecondsFormatted(dateField, null);
-	}
-	@Procedure
-	@Description("apoc.date.toMillis('2015-03-25 03:15:59') get Unix time equivalent of given date (in milliseconds)")
-	public Stream<LongResult> toMillis(final @Name("date") String dateField) {
-		return toMillisFormatted(dateField, null);
-	}
-
-	@Procedure
-	@Description("apoc.date.toSecondsFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss') same as previous, but accepts custom datetime format")
-	public Stream<LongResult> toSecondsFormatted(final @Name("date") String dateField, final @Name("pattern") String pattern) {
-		return toMillisFormatted(dateField,pattern).map(l -> l.value != null ? new LongResult(TimeUnit.MILLISECONDS.toSeconds(l.value)) : l);
-	}
-
-	@Procedure
-	@Description("apoc.date.toMillisFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss') same as previous, but accepts custom datetime format")
-	public Stream<LongResult> toMillisFormatted(final @Name("date") String dateField, final @Name("pattern") String pattern) {
-		if (dateField == null) {
-			return Stream.of(LongResult.NULL);
-		}
-		DateFormat format = getFormat(pattern);
-		java.util.Date parse = parseOrThrow(dateField, format);
-		return Stream.of(new LongResult(parse.getTime()));
 	}
 
 	private static DateFormat getFormat(final String pattern) {
@@ -140,14 +131,13 @@ public class Date {
 		}
 	}
 
-	private static java.util.Date parseOrThrow(final String date, final DateFormat format) {
-		final java.util.Date parsed;
+	private static Long parseOrThrow(final String date, final DateFormat format) {
+		if (date == null) return null;
 		try {
-			parsed = format.parse(date);
+			return format.parse(date).getTime();
 		} catch (ParseException e) {
 			throw new IllegalArgumentException(e);
 		}
-		return parsed;
 	}
 
 	private static boolean containsTimeZonePattern(final String pattern) {

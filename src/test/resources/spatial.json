@@ -22,5 +22,15 @@
       "address": "",
       "noresults": true
     }
+  ],
+  "events": [
+    {"name": "Suffren Expo", "address": "18 Avenue de Suffren, 75007 Paris, France", "datetime": "2016-05-01 10:00:00", "toosoon": true},
+    {"name": "Bourdonnais Expo", "address": "27 Avenue de la Bourdonnais, 75007 Paris, France", "datetime": "2016-05-10 10:00:00", "toosoon": true},
+    {"name": "Franklin Expo", "address": "21 Rue Benjamin Franklin, 75116 Paris, France", "datetime": "2016-05-18 10:00:00"},
+    {"name": "Suffren Conference", "address": "18 Avenue de Suffren, 75007 Paris, France", "datetime": "2016-05-20 10:00:00"},
+    {"name": "Bourdonnais Conference", "address": "27 Avenue de la Bourdonnais, 75007 Paris, France", "datetime": "2016-05-25 10:00:00"},
+    {"name": "Villeneuve Expo", "address": "17 Rue Villeneuve, 92110 Clichy, France", "datetime": "2016-05-29 10:00:00", "toofar": true},
+    {"name": "Franklin Conference", "address": "21 Rue Benjamin Franklin, 75116 Paris, France", "datetime": "2016-06-01 10:00:00", "toolate": true},
+    {"name": "Villeneuve Conference", "address": "17 Rue Villeneuve, 92110 Clichy, France", "datetime": "2016-06-05 10:00:00", "toolate": true, "toofar": true}
   ]
 }

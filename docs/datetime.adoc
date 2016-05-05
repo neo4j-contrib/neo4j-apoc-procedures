@@ -4,15 +4,12 @@
 
 == Conversion between formatted dates and timestamps
 
-* `apoc.date.toSeconds('2015-03-25 03:15:59')` get Unix time equivalent of given date (in seconds)
-* `apoc.date.toSecondsFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss')` same as previous, but accepts custom datetime format
-* `apoc.date.fromSeconds(12345)` get string representation of date corresponding to given Unix time (in seconds)
-* `apoc.date.fromSecondsFormatted(12345, 'yyyy/MM/dd HH/mm/ss')` the same as previous, but accepts custom datetime format
+* `apoc.date.parseDefault('2015-03-25 03:15:59','s')` get Unix time equivalent of given date (in seconds)
+* `apoc.date.parse('2015/03/25 03-15-59','s','yyyy/MM/dd HH/mm/ss')` same as previous, but accepts custom datetime format
+* `apoc.date.formatDefault(12345,'s')` get string representation of date corresponding to given Unix time (in seconds)
+* `apoc.date.format(12345,'s', 'yyyy/MM/dd HH/mm/ss')` the same as previous, but accepts custom datetime format
 
-* `apoc.date.toMillis('2015-03-25 03:15:59')` get Unix time equivalent of given date (in milliseconds)
-* `apoc.date.toMillisFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss')` same as previous, but accepts custom datetime format
-* `apoc.date.fromMillis(12345)` get string representation of date corresponding to given time in milliseconds
-* `apoc.date.fromMillisFormatted(12345, 'yyyy/MM/dd HH/mm/ss')` the same as previous, but accepts custom datetime format
+* possible unit values: `ms,s,m,h,d` and their long forms.
 
 == Reading separate datetime fields:
 
@@ -38,7 +35,7 @@ Following fields are supported:
 == Examples
 
 ....
-  apoc.date.fields('2015-03-25 03:15:59') =>
+  apoc.date.fieldsDefault('2015-03-25 03:15:59') =>
     {
       'Months': 1,
       'Days': 2,
@@ -50,7 +47,7 @@ Following fields are supported:
 ....
 
 ....
-apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') =>
+apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') =>
   {
     'ZoneId': 'Europe/Bucharest',
     'Months': 1,
@@ -63,7 +60,7 @@ apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') 
 ....
 
 ....
-apoc.date.fieldsFormatted('2015/01/02_EET', 'yyyy/MM/dd_z') =>
+apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z') =>
   {
     'Years': 2015,
     'ZoneId': 'Europe/Bucharest',

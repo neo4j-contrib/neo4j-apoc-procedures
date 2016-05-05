@@ -495,6 +495,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ul>
 </li>
+<li><a href="#_graph_refactorings">Graph Refactorings</a>
+<ul class="sectlevel2">
+<li><a href="#_graph_refactoring_procedures">Graph Refactoring Procedures</a>
+<ul class="sectlevel3">
+<li><a href="#_normalize_boolean_properties">Normalize boolean properties</a></li>
+<li><a href="#_categorization">Categorization</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><a href="#_operations">Operations</a>
 <ul class="sectlevel2">
 <li><a href="#_job_management_and_periodic_execution">Job management and periodic execution</a></li>
@@ -1026,6 +1036,14 @@ RETURN *;</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.collapseNode([node1,node2],'TYPE')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">collapse node to relationship, node with one rel becomes self-relationship</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">normalize/convert a property to be boolean</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.categorize(node, propertyKey, type, outgoing, label)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">turn each unique propertyKey into a category node and connect to it</p></td>
+</tr>
 </tbody>
 </table>
 <div class="paragraph">
@@ -1218,39 +1236,46 @@ RETURN *;</code></pre>
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.toSeconds('2015-03-25 03:15:59')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parseDefault('2015-03-25 03:15:59','s')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">get Unix time equivalent of given date (in seconds)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.toSecondsFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parse('2015/03/25 03-15-59','s', 'yyyy/MM/dd HH/mm/ss')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">same as previous, but accepts custom datetime format</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.fromSeconds(12345)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.formatDefault(12345,'s')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">get string representation of date corresponding to given Unix time (in seconds)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.fromSecondsFormatted(12345, 'yyyy/MM/dd HH/mm/ss')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.format(12345,'s', 'yyyy/MM/dd HH/mm/ss')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">the same as previous, but accepts custom datetime format</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.toMillis('2015-03-25 03:15:59')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parseDefault('2015-03-25 03:15:59','ms')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">get Unix time equivalent of given date (in milliseconds)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.toMillisFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parse('2015/03/25 03-15-59','ms','yyyy/MM/dd HH/mm/ss')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">same as previous, but accepts custom datetime format</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.fromMillis(12345)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.formatDefault(12345,'ms')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">get string representation of date corresponding to given time in milliseconds</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.fromMillisFormatted(12345, 'yyyy/MM/dd HH/mm/ss')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.format(12345,'ms', 'yyyy/MM/dd HH/mm/ss')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">the same as previous, but accepts custom datetime format</p></td>
 </tr>
 </tbody>
 </table>
+<div class="ulist">
+<ul>
+<li>
+<p>possible unit values: <code>ms,s,m,h,d</code> and their long forms <code>millis,milliseconds,seconds,minutes,hours,days</code>.</p>
+</li>
+</ul>
+</div>
 </div>
 <div class="sect4">
 <h5 id="_reading_separate_datetime_fields">Reading separate datetime fields:</h5>
@@ -1565,28 +1590,19 @@ RETURN domain // will return 'www.example.com'</code></pre>
 <div class="ulist">
 <ul>
 <li>
-<p><code>apoc.date.toSeconds('2015-03-25 03:15:59')</code> get Unix time equivalent of given date (in seconds)</p>
+<p><code>apoc.date.parseDefault('2015-03-25 03:15:59','s')</code> get Unix time equivalent of given date (in seconds)</p>
 </li>
 <li>
-<p><code>apoc.date.toSecondsFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss')</code> same as previous, but accepts custom datetime format</p>
+<p><code>apoc.date.parse('2015/03/25 03-15-59','s','yyyy/MM/dd HH/mm/ss')</code> same as previous, but accepts custom datetime format</p>
 </li>
 <li>
-<p><code>apoc.date.fromSeconds(12345)</code> get string representation of date corresponding to given Unix time (in seconds)</p>
+<p><code>apoc.date.formatDefault(12345,'s')</code> get string representation of date corresponding to given Unix time (in seconds)</p>
 </li>
 <li>
-<p><code>apoc.date.fromSecondsFormatted(12345, 'yyyy/MM/dd HH/mm/ss')</code> the same as previous, but accepts custom datetime format</p>
+<p><code>apoc.date.format(12345,'s', 'yyyy/MM/dd HH/mm/ss')</code> the same as previous, but accepts custom datetime format</p>
 </li>
 <li>
-<p><code>apoc.date.toMillis('2015-03-25 03:15:59')</code> get Unix time equivalent of given date (in milliseconds)</p>
-</li>
-<li>
-<p><code>apoc.date.toMillisFormatted('2015/03/25 03-15-59', 'yyyy/MM/dd HH/mm/ss')</code> same as previous, but accepts custom datetime format</p>
-</li>
-<li>
-<p><code>apoc.date.fromMillis(12345)</code> get string representation of date corresponding to given time in milliseconds</p>
-</li>
-<li>
-<p><code>apoc.date.fromMillisFormatted(12345, 'yyyy/MM/dd HH/mm/ss')</code> the same as previous, but accepts custom datetime format</p>
+<p>possible unit values: <code>ms,s,m,h,d</code> and their long forms.</p>
 </li>
 </ul>
 </div>
@@ -1656,7 +1672,7 @@ RETURN domain // will return 'www.example.com'</code></pre>
 <h4 id="_examples">Examples</h4>
 <div class="literalblock">
 <div class="content">
-<pre>  apoc.date.fields('2015-03-25 03:15:59') =&gt;
+<pre>  apoc.date.fieldsDefault('2015-03-25 03:15:59') =&gt;
     {
       'Months': 1,
       'Days': 2,
@@ -1669,7 +1685,7 @@ RETURN domain // will return 'www.example.com'</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') =&gt;
+<pre>apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') =&gt;
   {
     'ZoneId': 'Europe/Bucharest',
     'Months': 1,
@@ -1683,7 +1699,7 @@ RETURN domain // will return 'www.example.com'</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>apoc.date.fieldsFormatted('2015/01/02_EET', 'yyyy/MM/dd_z') =&gt;
+<pre>apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z') =&gt;
   {
     'Years': 2015,
     'ZoneId': 'Europe/Bucharest',
@@ -2058,6 +2074,51 @@ RETURN row limit 1;</code></pre>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_graph_refactorings">Graph Refactorings</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_graph_refactoring_procedures">Graph Refactoring Procedures</h3>
+<div class="paragraph">
+<p>These procedures help refactor the structure of your graph.
+This is helpful when you need to change your data model or for cleaning up data that was imported from an external source.</p>
+</div>
+<div class="sect3">
+<h4 id="_normalize_boolean_properties">Normalize boolean properties</h4>
+<div class="paragraph">
+<p>Given raw data boolean properties are often represented by placeholder values.
+This procedure turns them into boolean properties.</p>
+</div>
+<div class="paragraph">
+<p>Will be true if "Y", YES"; false if "N", "NO"; null otherwise:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (n)
+CALL apoc.refactor.normalizeAsBoolean(n, "prop", ["Y", "YES"], ["N", NO"])
+RETURN n.prop</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_categorization">Categorization</h4>
+<div class="paragraph">
+<p>Categorize replaces string property values on nodes with relationship to a unique category node for that property value.</p>
+</div>
+<div class="paragraph">
+<p>Will turn all n.color properties into :HAS_ATTRIBUTE relationships to :Color nodes with a matching .name property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (n)
+CALL apoc.refactor.categorize(n,'color','HAS_ATTRIBUTE',true,'Color')
+RETURN n</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_operations">Operations</h2>
 <div class="sectionbody">
 <div class="sect2">
@@ -2099,7 +2160,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-05-05 11:43:39 CEST
+Last updated 2016-05-05 16:51:11 CEST
 </div>
 </div>
 </body>

@@ -6,7 +6,6 @@
 
 include::../readme.adoc[leveloffset=1]
 
-
 = Detailed Documentation
 
 == Utility Functions
