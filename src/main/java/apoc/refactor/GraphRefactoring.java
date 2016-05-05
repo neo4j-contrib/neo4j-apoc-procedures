@@ -1,5 +1,6 @@
 package apoc.refactor;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -206,6 +207,35 @@ public class GraphRefactoring {
                     pc.removeProperty(propertyKey);
                 }
             }
+        }
+    }
+
+    /**
+     * Create category nodes from a string-valued property
+     */
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.refactor.categorize(node, propertyKey, type, outgoing, label) turn each unique propertyKey into a category node and connect to it")
+    public void categorize(
+        @Name("node") Node node,
+        @Name("propertyKey") String propertyKey,
+        @Name("type") String relationshipType,
+        @Name("outgoing") Boolean outgoing,
+        @Name("label") String label
+    ) {
+        Object value = node.getProperty(propertyKey, null);
+        if (value != null) {
+            String q = "WITH {node} AS n " +
+                       "MERGE (cat:`" + label + "` {name: {value}}) " +
+           (outgoing ? "MERGE (n)-[:`" + relationshipType + "`]->(cat)"
+                     : "MERGE (n)<-[:`" + relationshipType + "`]-(cat)");
+            Map<String, Object> params = new HashMap<>(2);
+            params.put("node", node);
+            params.put("value", value);
+            Result result = db.execute(q, params);
+            while (result.hasNext()) result.next();
+            result.close();
+            node.removeProperty(propertyKey);
         }
     }
 

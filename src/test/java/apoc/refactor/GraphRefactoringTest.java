@@ -89,6 +89,80 @@ public class GraphRefactoringTest {
     }
 
     @Test
+    public void testCategorizeOutgoing() throws Exception {
+        db.execute("CREATE ({prop: 'A', id: 1})");
+        db.execute("CREATE ({prop: 'A', id: 2})");
+        db.execute("CREATE ({prop: 'C', id: 3})");
+        db.execute("CREATE ({           id: 4})");
+        db.execute("CREATE ({prop: 'B', id: 5})");
+        db.execute("CREATE ({prop: 'C', id: 6})");
+
+        testCall(
+            db,
+            "MATCH (n) WITH n ORDER BY n.id CALL apoc.refactor.categorize(n,'prop','IS_A',true,'Letter') RETURN count(n) AS count",
+            (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(6L))
+        );
+
+        Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)-[:IS_A]->(cat:Letter) RETURN collect(cat.name) AS cats");
+        List<?> cats = (List<?>) result.next().get("cats");
+
+        assertThat(cats, equalTo(asList("A", "A", "C", "B", "C")));
+
+        testCall(db, "MATCH (n) WHERE n.prop IS NOT NULL RETURN count(n) AS count", (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(0L)));
+    }
+
+    @Test
+    public void testCategorizeIncoming() throws Exception {
+        db.execute("CREATE ({prop: 'A', id: 1})");
+        db.execute("CREATE ({prop: 'A', id: 2})");
+        db.execute("CREATE ({prop: 'C', id: 3})");
+        db.execute("CREATE ({           id: 4})");
+        db.execute("CREATE ({prop: 'B', id: 5})");
+        db.execute("CREATE ({prop: 'C', id: 6})");
+
+        testCall(
+                db,
+                "MATCH (n) WITH n ORDER BY n.id CALL apoc.refactor.categorize(n,'prop','IS_A',false,'Letter') RETURN count(n) AS count",
+                (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(6L))
+        );
+
+        Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)<-[:IS_A]-(cat:Letter) RETURN collect(cat.name) AS cats");
+        List<?> cats = (List<?>) result.next().get("cats");
+
+        assertThat(cats, equalTo(asList("A", "A", "C", "B", "C")));
+
+        testCall(db, "MATCH (n) WHERE n.prop IS NOT NULL RETURN count(n) AS count", (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(0L)));
+    }
+
+    @Test
+    public void testCategorizeWithConstraint() throws Exception {
+        try(Transaction tx = db.beginTx()){
+            db.schema().constraintFor(Label.label("Letter")).assertPropertyIsUnique("name");
+            tx.success();
+        }
+
+        db.execute("CREATE ({prop: 'A', id: 1})");
+        db.execute("CREATE ({prop: 'A', id: 2})");
+        db.execute("CREATE ({prop: 'C', id: 3})");
+        db.execute("CREATE ({           id: 4})");
+        db.execute("CREATE ({prop: 'B', id: 5})");
+        db.execute("CREATE ({prop: 'C', id: 6})");
+
+        testCall(
+                db,
+                "MATCH (n) WITH n ORDER BY n.id CALL apoc.refactor.categorize(n,'prop','IS_A',true,'Letter') RETURN count(n) AS count",
+                (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(6L))
+        );
+
+        Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)-[:IS_A]->(cat:Letter) RETURN collect(cat.name) AS cats");
+        List<?> cats = (List<?>) result.next().get("cats");
+
+        assertThat(cats, equalTo(asList("A", "A", "C", "B", "C")));
+
+        testCall(db, "MATCH (n) WHERE n.prop IS NOT NULL RETURN count(n) AS count", (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(0L)));
+    }
+
+    @Test
     public void testCloneNodes() throws Exception {
 //        TestUtil.testCall(db,
 //                "",
