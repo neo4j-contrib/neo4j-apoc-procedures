@@ -477,6 +477,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_betweenness_centrality_procedure">Betweenness Centrality Procedure</a></li>
 </ul>
 </li>
+<li><a href="#_pagerank_algorithm">PageRank Algorithm</a>
+<ul class="sectlevel3">
+<li><a href="#_setup_2">Setup</a></li>
+<li><a href="#_pagerank_procedure">PageRank Procedure</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_spatial_2">Spatial</a>
@@ -1885,16 +1891,17 @@ CREATE (n1)-[:TYPE]-&gt;(n2)</code></pre>
 <p>The more central a node is the lower its total distance from all other nodes.</p>
 </div>
 <div class="paragraph">
-<p>Complexity: This procedure uses a BFS shortest path algorithm. With BFS the complexes becomes <code>O(n * m)</code></p>
+<p>Complexity: This procedure uses a BFS shortest path algorithm. With BFS the complexes becomes <code>O(n * m)</code>
+Caution: Due to the complexity of this algorithm it is recommended to run it on only the nodes you are interested in.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (node:Node)
 WHERE node.id %2 = 0
 WITH collect(node) AS nodes
-CALL apoc.algo.closeness(['TYPE'],nodes,INCOMING) YIELD node, centrality
-RETURN node, centrality
-ORDER BY centrality DESC</code></pre>
+CALL apoc.algo.closeness(['TYPE'],nodes,INCOMING) YIELD node, score
+RETURN node, score
+ORDER BY score DESC</code></pre>
 </div>
 </div>
 </div>
@@ -1914,16 +1921,78 @@ Centrality is an indicator of a node&#8217;s influence in a graph.</p>
 <p>Centrality is applicable to numerous domains, including: social networks, biology, transport and scientific cooperation.</p>
 </div>
 <div class="paragraph">
-<p>Complexity: This procedure uses a BFS shortest path algorithm. With BFS the complexes becomes O(n * m)</p>
+<p>Complexity: This procedure uses a BFS shortest path algorithm. With BFS the complexes becomes O(n * m)
+Caution: Due to the complexity of this algorithm it is recommended to run it on only the nodes you are interested in.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (node:Node)
 WHERE node.id %2 = 0
 WITH collect(node) AS nodes
-CALL apoc.algo.betweenness(['TYPE'],nodes,BOTH) YIELD node, centrality
-RETURN node, centrality
-ORDER BY centrality DESC</code></pre>
+CALL apoc.algo.betweenness(['TYPE'],nodes,BOTH) YIELD node, score
+RETURN node, score
+ORDER BY score DESC</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_pagerank_algorithm">PageRank Algorithm</h3>
+<div class="sect3">
+<h4 id="_setup_2">Setup</h4>
+<div class="paragraph">
+<p>Let&#8217;s create some test data to run the PageRank algorithm on.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">// create 100 nodes
+FOREACH (id IN range(0,1000) | CREATE (:Node {id:id}))
+
+// over the cross product (1M) create 100.000 relationships
+MATCH (n1:Node),(n2:Node) WITH n1,n2 LIMIT 1000000 WHERE rand() &lt; 0.1
+
+CREATE (n1)-[:TYPE]-&gt;(n2)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_pagerank_procedure">PageRank Procedure</h4>
+<div class="paragraph">
+<p>PageRank is an algorithm used by Google Search to rank websites in their search engine results.</p>
+</div>
+<div class="paragraph">
+<p>It is a way of measuring the importance of nodes in a graph.</p>
+</div>
+<div class="paragraph">
+<p>PageRank counts the number and quality of relationships to a node to approximate the importance of that node.</p>
+</div>
+<div class="paragraph">
+<p>PageRank assumes that more important nodes likely have more relationships.</p>
+</div>
+<div class="paragraph">
+<p>Caution: <code>nodes</code> specifies the nodes for which a PageRank score will be projected, but the procedure will <em>always</em> compute the PageRank algorithm on the <em>entire</em> graph. At present, there is no way to filter/reduce the number of elements that PageRank computes over.</p>
+</div>
+<div class="paragraph">
+<p>A future version of this procedure will provide the option of computing PageRank on a subset of the graph.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (node:Node)
+WHERE node.id %2 = 0
+WITH collect(node) AS nodes
+CALL apoc.algo.pageRank(nodes) YIELD node, score
+RETURN node, score
+ORDER BY score DESC</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (node:Node)
+WHERE node.id %2 = 0
+WITH collect(node) AS nodes
+CALL apoc.algo.pageRankWithIterations(50,nodes) YIELD node, score
+RETURN node, score
+ORDER BY score DESC</code></pre>
 </div>
 </div>
 </div>
@@ -2160,7 +2229,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-05-05 16:51:11 CEST
+Last updated 2016-05-05 18:33:22 CEST
 </div>
 </div>
 </body>
