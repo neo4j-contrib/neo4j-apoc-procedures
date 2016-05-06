@@ -76,7 +76,7 @@ Procedures to add to and query manual indexes
 
 [cols="1m,5"]
 |===
-| apoc.index.search('name', 'query') YIELD node, weight | search for nodes in the given full text index matching the given lucene query
+| apoc.index.search('index-name', 'query') YIELD node, weight | search for the first 100 nodes in the given full text index matching the given lucene query returned by relevance
 | apoc.index.nodes('Label','prop:value*') YIELD node, weight | lucene query on node index with the given label name
 | apoc.index.relationships('TYPE','prop:value*') YIELD rel, weight | lucene query on relationship index with the given type name
 | apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel, weight | lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)

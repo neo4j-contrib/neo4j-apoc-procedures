@@ -12,11 +12,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Iterator;
 
 import static apoc.index.FreeTextSearch.KEY;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonMap;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 import static org.neo4j.graphdb.Label.label;
@@ -96,11 +99,11 @@ public class FreeTextSearchTest {
         execute("CALL apoc.index.addAllNodes('people', {Person:['name','nick']})");
 
         // then
-        assertSingle(ftsNodes("people", "GeeGee"), hasProperty("name", "George Goldman"));
-        assertSingle(ftsNodes("people", "George"), hasProperty("name", "George Goldman"));
-        assertSingle(ftsNodes("people", "Goldman"), hasProperty("name", "George Goldman"));
-        assertSingle(ftsNodes("people", "Cyrus"), hasProperty("name", "Cyrus Jones"));
-        assertSingle(ftsNodes("people", "Jones"), hasProperty("name", "Cyrus Jones"));
+        assertSingle(search("people", "GeeGee"), hasProperty("name", "George Goldman"));
+        assertSingle(search("people", "George"), hasProperty("name", "George Goldman"));
+        assertSingle(search("people", "Goldman"), hasProperty("name", "George Goldman"));
+        assertSingle(search("people", "Cyrus"), hasProperty("name", "Cyrus Jones"));
+        assertSingle(search("people", "Jones"), hasProperty("name", "Cyrus Jones"));
     }
 
     @Test
@@ -110,8 +113,8 @@ public class FreeTextSearchTest {
         execute("CALL apoc.index.addAllNodes('stuff', {Person:['name'],Product:['name']})");
 
         // then
-        assertSingle(ftsNodes("stuff", "Person.name:Johnny"), hasLabel("Person"), not(hasLabel("Product")));
-        assertSingle(ftsNodes("stuff", "Product.name:Johnny"), hasLabel("Product"), not(hasLabel("Person")));
+        assertSingle(search("stuff", "Person.name:Johnny"), hasLabel("Person"), not(hasLabel("Product")));
+        assertSingle(search("stuff", "Product.name:Johnny"), hasLabel("Product"), not(hasLabel("Person")));
     }
 
     @Test
@@ -121,26 +124,71 @@ public class FreeTextSearchTest {
         execute("CALL apoc.index.addAllNodes('stuff', {Foo:['name'], Baz:['name'], Axe:['name']})");
 
         // then
-        assertSingle(ftsNodes("stuff", "Foo.name:thing"));
-        assertSingle(ftsNodes("stuff", "Baz.name:thing"));
-        assertNone(ftsNodes("stuff", "Bar.name:thing"));
-        assertNone(ftsNodes("stuff", "Axe.name:thing"));
-        assertSingle(ftsNodes("stuff", "thing"),
+        assertSingle(search("stuff", "Foo.name:thing"));
+        assertSingle(search("stuff", "Baz.name:thing"));
+        assertNone(search("stuff", "Bar.name:thing")); // not indexed
+        assertNone(search("stuff", "Axe.name:thing")); // not available on the node
+        assertSingle(search("stuff", "thing"),
                 hasLabel("Foo"), hasLabel("Bar"), hasLabel("Baz"), hasProperty("name", "thing"));
     }
 
     @Test
-    public void shouldIndexingInBatchesWork() {
+    public void shouldPopulateIndexInBatches() {
         // given
         // create 90k nodes - this force 2 batches during indexing
         execute("UNWIND range(1,90000) as x CREATE (:Person{name:'person'+x})");
         execute("CALL apoc.index.addAllNodes('people', {Person:['name']})");
 
         // then
-        assertSingle(ftsNodes("people", "person89999"), hasProperty("name", "person89999"));
+        assertSingle(search("people", "person89999"), hasProperty("name", "person89999"));
     }
 
-    private ResourceIterator<Node> ftsNodes(String index, String value) {
+    @Test
+    public void shouldReportScoreFromIndex() throws Exception {
+        // given
+        db.execute("UNWIND {things} AS thing CREATE (:Thing{name:thing})", singletonMap("things",
+                asList("food", "feed", "foot", "fork", "foo", "bar", "ford"))).close();
+        execute("CALL apoc.index.addAllNodes('things',{Thing:['name']})");
+
+        // when
+        ResourceIterator<String> things = db.execute(
+                "CALL apoc.index.search('things', 'food~')\n" +
+                        "YIELD node AS thing, weight AS score\n" +
+                        "RETURN thing.name").columnAs("thing.name");
+
+        // then
+        assertEquals(asList("food", "foot", "ford", "foo", "feed", "fork"), Iterators.asList(things));
+    }
+
+    @Test
+    public void shouldSearchInNumericRange() throws Exception {
+        // given
+        execute("UNWIND range(1, 10000) AS num CREATE (:Number{name:'The ' + num + 'th',number:num})");
+        execute("CALL apoc.index.addAllNodes('numbers', {Number:['name','number']})");
+
+        // when
+        ResourceIterator<Object> names = db.execute(
+                "CALL apoc.index.search('numbers', 'Number.number:{100 TO 105]') YIELD node\n" +
+                        "RETURN node.name").columnAs("node.name");
+
+        // then
+        assertEquals(asList("The 101th", "The 102th", "The 103th", "The 104th", "The 105th"), Iterators.asList(names));
+    }
+
+    @Test
+    public void shouldLimitNumberOfResults() throws Exception {
+        // given
+        execute("UNWIND range(1, 10000) AS num CREATE (:Number{name:'The ' + num + 'th',number:num})");
+        execute("CALL apoc.index.addAllNodes('numbers', {Number:['name','number']})");
+
+        // when
+        Result result = db.execute("CALL apoc.index.search('numbers', 'The')");
+
+        // then
+        assertEquals(100, Iterators.count(result));
+    }
+
+    private ResourceIterator<Node> search(String index, String value) {
         return db.execute("CALL apoc.index.search({index}, {value}) YIELD node RETURN node",
                 map("index", index, "value", value)).columnAs("node");
     }

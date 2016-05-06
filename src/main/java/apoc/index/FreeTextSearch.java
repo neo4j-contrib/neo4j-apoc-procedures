@@ -4,11 +4,16 @@ import apoc.Description;
 import apoc.result.WeightedNodeResult;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queryparser.classic.ParseException;
-import org.neo4j.graphdb.*;
+import org.apache.lucene.search.Sort;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.index.impl.lucene.legacy.LuceneDataSource;
 import org.neo4j.index.impl.lucene.legacy.LuceneIndexImplementation;
+import org.neo4j.index.lucene.QueryContext;
+import org.neo4j.index.lucene.ValueContext;
 import org.neo4j.kernel.impl.util.JobScheduler;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -25,11 +30,6 @@ import java.util.stream.StreamSupport;
 
 import static apoc.index.FreeTextQueryParser.parseFreeTextQuery;
 import static apoc.util.AsyncStream.async;
-import static java.util.Arrays.asList;
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.toMap;
-import static org.neo4j.graphdb.Label.label;
-import static org.neo4j.helpers.collection.Iterables.single;
 
 public class FreeTextSearch {
     /**
@@ -46,14 +46,12 @@ public class FreeTextSearch {
     @PerformsWrites
     @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}) YIELD type, name, config - create a free text search index")
     public Stream<FulltextIndex.IndexInfo> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure) {
-        switch (structure.size()) {
-            case 0:
-                throw new IllegalArgumentException("No structure given.");
-            case 1:
-                return create(new Indexer.Single(index, db, log, structure));
-            default:
-                return create(new Indexer(index, db, log, structure));
+        if (structure.isEmpty()) {
+            throw new IllegalArgumentException("No structure given.");
         }
+        return async(executor(), "Creating index '" + index + "'", result -> {
+            populate(index(index, structure, result), structure);
+        });
     }
 
     /**
@@ -72,7 +70,8 @@ public class FreeTextSearch {
         if (!db.index().existsForNodes(index)) {
             return Stream.empty();
         }
-        return result(db.index().forNodes(index).query(parseFreeTextQuery(query)));
+        return result(db.index().forNodes(index).query(
+                new QueryContext(parseFreeTextQuery(query)).sort(Sort.RELEVANCE).top(100)));
     }
 
     @Context
@@ -83,7 +82,12 @@ public class FreeTextSearch {
 
     // BEGIN: implementation
 
-    static Stream<WeightedNodeResult> result(IndexHits<Node> hits) {
+    private static final Map<String, String> CONFIG = LuceneIndexImplementation.FULLTEXT_CONFIG;
+    static final String KEY = "search";
+    private static final JobScheduler.Group GROUP = new JobScheduler.Group(
+            FreeTextSearch.class.getSimpleName(), JobScheduler.SchedulingStrategy.POOLED);
+
+    private static Stream<WeightedNodeResult> result(IndexHits<Node> hits) {
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(new Iterator<WeightedNodeResult>() {
             @Override
             public boolean hasNext() {
@@ -99,13 +103,69 @@ public class FreeTextSearch {
         }, 0), false);
     }
 
-    private static final Map<String, String> CONFIG = LuceneIndexImplementation.FULLTEXT_CONFIG;
-    static final String KEY = "search";
-    private static final JobScheduler.Group GROUP = new JobScheduler.Group(
-            FreeTextSearch.class.getSimpleName(), JobScheduler.SchedulingStrategy.POOLED);
+    private void populate(Index<Node> index, Map<String, List<String>> config) {
+        Map<String, String[]> structure = convertStructure(config);
+        Transaction tx = db.beginTx();
+        try {
+            int batch = 0;
+            for (Node node : db.getAllNodes()) {
+                boolean indexed = false;
+                for (Label label : node.getLabels()) {
+                    String[] keys = structure.get(label.name());
+                    if (keys == null) continue;
+                    indexed = true;
+                    Map<String, Object> properties = keys.length == 0 ? node.getAllProperties() : node.getProperties(keys);
+                    for (Map.Entry<String, Object> entry : properties.entrySet()) {
+                        Object value = entry.getValue();
+                        index.add(node, KEY, value.toString());
+                        if (value instanceof Number) {
+                            value = ValueContext.numeric(((Number) value).doubleValue());
+                        }
+                        index.add(node, label.name() + "." + entry.getKey(), value);
+                    }
+                }
+                if (indexed) {
+                    if (++batch == 50_000) {
+                        batch = 0;
+                        tx.success();
+                        tx.close();
+                        tx = db.beginTx();
+                    }
+                }
+            }
+            tx.success();
+        } finally {
+            tx.close();
+        }
+    }
 
-    private Stream<FulltextIndex.IndexInfo> create(Indexer indexer) {
-        return async(executor(), "Creating index '" + indexer.name + "'", indexer);
+    private Map<String, String[]> convertStructure(Map<String, List<String>> config) {
+        Map<String,String[]> structure = new LinkedHashMap<>();
+        for (Map.Entry<String, List<String>> entry : config.entrySet()) {
+            List<String> props = entry.getValue();
+            structure.put(entry.getKey(), props.toArray(new String[props.size()]));
+        }
+        return structure;
+    }
+
+    private Index<Node> index(String index, Map<String, List<String>> structure, Consumer<FulltextIndex.IndexInfo> result) {
+        try (Transaction tx = db.beginTx()) {
+            if (db.index().existsForNodes(index)) {
+                Index<Node> old = db.index().forNodes(index);
+                Map<String, String> config = db.index().getConfiguration(old);
+                log.info("Dropping existing index '%s', with config: %s", index, config);
+                old.delete();
+            }
+            Map<String, String> config = new HashMap<>(CONFIG);
+            config.put("labels", escape(structure.keySet()));
+            for (Map.Entry<String, List<String>> entry : structure.entrySet()) {
+                config.put("keysForLabel:" + escape(entry.getKey()), escape(entry.getValue()));
+            }
+            Index<Node> nodeIndex = db.index().forNodes(index, config);
+            result.accept(new FulltextIndex.IndexInfo(FulltextIndex.NODE, index, config));
+            tx.success();
+            return nodeIndex;
+        }
     }
 
     private Executor executor() {
@@ -116,188 +176,18 @@ public class FreeTextSearch {
         return LuceneDataSource.LOWER_CASE_WHITESPACE_ANALYZER;
     }
 
-    private static class Indexer implements Consumer<Consumer<FulltextIndex.IndexInfo>> {
-        private final String name;
-        final GraphDatabaseService db;
-        private final Log log;
-        final Set<String> labels = new HashSet<>();
-        final Map<Set<String/*labels*/>, Properties> properties = new HashMap<>();
-
-        Indexer(String name, GraphDatabaseService db, Log log, Map<String, List<String>> structure) {
-            this.name = name;
-            this.db = db;
-            this.log = log;
-            for (Map.Entry<String, List<String>> entry : structure.entrySet()) {
-                labels.add(entry.getKey());
-                properties.put(singleton(entry.getKey()),
-                        new Properties(entry.getKey(), new HashSet<>(entry.getValue())));
+    private static String escape(Collection<String> keys) {
+        StringBuilder result = new StringBuilder();
+        for (String key : keys) {
+            if (result.length() > 0) {
+                result.append(":");
             }
+            result.append(escape(key));
         }
-
-        ResourceIterator<Node> nodes() {
-            return db.getAllNodes().iterator();
-        }
-
-        Properties properties(Node node) {
-            Set<String> labels = labels(node);
-            if (labels == null) {
-                return null;
-            }
-            Properties properties = this.properties.get(labels);
-            if (properties == null) {
-                properties = new Properties(labels.stream().map(label -> this.properties.get(singleton(label))));
-                this.properties.put(labels, properties);
-            }
-            return properties;
-        }
-
-        private Set<String> labels(Node node) {
-            Set<String> labels = null;
-            for (Label label : node.getLabels()) {
-                String name = label.name();
-                if (this.labels.contains(name)) {
-                    if (labels == null) {
-                        labels = singleton(name);
-                        continue;
-                    } else if (labels.size() == 1) {
-                        labels = new HashSet<>(labels);
-                    }
-                    labels.add(name);
-                }
-            }
-            return labels;
-        }
-
-        @Override
-        public final void accept(Consumer<FulltextIndex.IndexInfo> result) {
-            Transaction tx = db.beginTx();
-            try {
-                int batch = 0;
-                if (db.index().existsForNodes(name)) {
-                    Index<Node> old = db.index().forNodes(name);
-                    Map<String, String> config = db.index().getConfiguration(old);
-                    log.info("Dropping existing index '%s', with config: %s", name, config);
-                    old.delete();
-                }
-
-                Index<Node> index = db.index().forNodes(name, configuration());
-
-                try (ResourceIterator<Node> nodes = nodes()) {
-                    for (int count = 0; nodes.hasNext(); ) {
-                        Node node = nodes.next();
-
-                        Properties properties = properties(node);
-                        if (properties != null) {
-                            properties.index(node, index);
-                            count++;
-                        }
-
-                        if (count == 50_000) {
-                            tx.success();
-                            tx.close();
-                            tx = db.beginTx();
-                            count = 0;
-                            log.info("Committing batch %s in creation of index '%s'", ++batch, name);
-                        }
-                    }
-                }
-
-                log.info("Committing batch %s in creation of index '%s' (last batch)", ++batch, name);
-
-                result.accept(new FulltextIndex.IndexInfo(FulltextIndex.NODE, name, CONFIG));
-
-                tx.success();
-            } finally {
-                tx.close();
-            }
-        }
-
-        private Map<String, String> configuration() {
-            Map<String, String> config = new HashMap<>(CONFIG);
-            config.put("labels", escape(labels));
-            for (String label : labels) {
-                Properties properties = this.properties.get(singleton(label));
-                config.put("keysForLabel:" + escape(label), escape(asList(properties.keys)));
-            }
-            return config;
-        }
-
-        private static String escape(Collection<String> keys) {
-            StringBuilder result = new StringBuilder();
-            for (String key : keys) {
-                if (result.length() > 0) {
-                    result.append(":");
-                }
-                result.append(escape(key));
-            }
-            return result.toString();
-        }
-
-        private static String escape(String key) {
-            return key.replace("$", "$$").replace(":", "$");
-        }
-
-        private static class Single extends Indexer {
-            private final Label label;
-            private final Properties single;
-
-            Single(String name, GraphDatabaseService db, Log log, Map<String, List<String>> structure) {
-                super(name, db, log, structure);
-                this.label = label(single(this.labels));
-                this.single = single(this.properties.values());
-            }
-
-            @Override
-            ResourceIterator<Node> nodes() {
-                return db.findNodes(label);
-            }
-
-            @Override
-            Properties properties(Node node) {
-                return node.hasLabel(label) ? single : null;
-            }
-        }
+        return result.toString();
     }
 
-    private static class Properties {
-        private final String[] keys;
-        private final Map<String/*key*/, List<String/*fields*/>> fields;
-
-        Properties(String label, Collection<String> properties) {
-            this.keys = properties.toArray(new String[properties.size()]);
-            this.fields = properties.stream().collect(toMap(key -> key, key -> singletonList(label + "." + key)));
-        }
-
-        Properties(Stream<Properties> properties) {
-            Set<String> keys = new HashSet<>();
-            this.fields = new HashMap<>();
-            properties.forEach(props -> {
-                addAll(keys, props.keys);
-                for (Map.Entry<String, List<String>> entry : props.fields.entrySet()) {
-                    fields.compute(entry.getKey(), (k, v) -> {
-                        if (v == null) {
-                            return entry.getValue();
-                        } else {
-                            List<String> value = new ArrayList<>(v.size() + entry.getValue().size());
-                            value.addAll(v);
-                            value.addAll(entry.getValue());
-                            return value;
-                        }
-                    });
-                }
-            });
-            this.keys = keys.toArray(new String[keys.size()]);
-        }
-
-        <T extends PropertyContainer> void index(T entity, Index<T> index) {
-            for (Map.Entry<String, Object> property : entity.getProperties(keys).entrySet()) {
-                Object value = property.getValue();
-                index.add(entity, KEY, value.toString());
-                for (String field : fields.get(property.getKey())) {
-                    index.add(entity, field, value
-                    );
-                }
-            }
-        }
+    private static String escape(String key) {
+        return key.replace("$", "$$").replace(":", "$");
     }
 }
