@@ -68,9 +68,15 @@ Procedures to add to and query manual indexes
 
 [cols="1m,5"]
 |===
+| apoc.index.addAllNode('index-name',{label1:['prop1',...],...}) | add all nodes to this full text index with the given fields, additionally populates a 'search' index field with all of them in one place
 | apoc.index.addNode(node,['prop1',...]) | add node to an index for each label it has
 | apoc.index.addNodeByLabel(node,'Label',['prop1',...]) | add node to an index for the given label
 | apoc.index.addRelationship(rel,['prop1',...]) | add relationship to an index for its type
+|===
+
+[cols="1m,5"]
+|===
+| apoc.index.search('name', 'query') YIELD node, weight | search for nodes in the given full text index matching the given lucene query
 | apoc.index.nodes('Label','prop:value*') YIELD node, weight | lucene query on node index with the given label name
 | apoc.index.relationships('TYPE','prop:value*') YIELD rel, weight | lucene query on relationship index with the given type name
 | apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel, weight | lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)
