@@ -630,6 +630,10 @@ RETURN name AS undocumented</code></pre>
 </colgroup>
 <tbody>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addAllNode('index-name',{label1:['prop1',&#8230;&#8203;],&#8230;&#8203;})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add all nodes to this full text index with the given fields, additionally populates a 'search' index field with all of them in one place</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addNode(node,['prop1',&#8230;&#8203;])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">add node to an index for each label it has</p></td>
 </tr>
@@ -640,6 +644,18 @@ RETURN name AS undocumented</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addRelationship(rel,['prop1',&#8230;&#8203;])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">add relationship to an index for its type</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.search('name', 'query') YIELD node, weight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">search for nodes in the given full text index matching the given lucene query</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.nodes('Label','prop:value*') YIELD node, weight</code></p></td>
@@ -2388,7 +2404,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-05-05 19:03:21 CEST
+Last updated 2016-05-06 09:01:52 CEST
 </div>
 </div>
 </body>

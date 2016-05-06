@@ -88,7 +88,6 @@ public class PageRankTest
         Map<String,Object> row = result.next();
         assertFalse( result.hasNext() );
         assertEquals( PageRankAlgoTest.EXPECTED, (double) row.get( "score" ), 0.1D );
-        System.out.println( row );
 
     }
 
