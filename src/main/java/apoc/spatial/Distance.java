@@ -23,11 +23,7 @@ public class Distance {
     @Procedure
     @Description("apoc.spatial.sortPathsByDistance(List<Path>) sort the given paths based on the geo informations (lat/long) in ascending order")
     public Stream<DistancePathResult> sortByDistance(@Name("paths")List<Path> paths) {
-        if (0 == paths.size()) {
-            return Stream.empty();
-        }
-
-        return sortPaths(paths).stream();
+        return paths.size() > 0 ? sortPaths(paths).stream() : Stream.empty();
     }
 
     public SortedSet<DistancePathResult> sortPaths(List<Path> paths) {
