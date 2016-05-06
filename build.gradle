@@ -4,12 +4,12 @@ sourceCompatibility = 1.8
 
 repositories {
     mavenLocal()
-    maven { url "http://m2.neo4j.org/snapshots" }
+//    maven { url "http://m2.neo4j.org/snapshots" }
     mavenCentral()
 }
 project.ext {
-//    neo4j_version = "3.0.0-M04"
-    neo4j_version = "3.0.0-SNAPSHOT"
+    neo4j_version = "3.0.0"
+//    neo4j_version = "3.0.0-SNAPSHOT"
 }
 
 dependencies {

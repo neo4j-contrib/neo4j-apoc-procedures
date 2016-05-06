@@ -12,15 +12,78 @@
   <description>A collection of useful Neo4j Procedures</description>
 
   <properties>
-    <neo4j.version>3.0.0-SNAPSHOT</neo4j.version>
+    <neo4j.version>3.0.0</neo4j.version>
   </properties>
 
+  <organization>
+    <name>Neo Technology, Inc.</name>
+    <url>http://neotechnology.com/</url>
+  </organization>
+  <developers>
+    <developer>
+      <id>michael.hunger</id>
+    </developer>
+    <developer>
+      <id>kees.vegter</id>
+    </developer>
+    <developer>
+      <id>christophe.willemsen</id>
+    </developer>
+  </developers>
+
+  <url>http://github.com/neo4j-contrib/neo4j-apoc-procedures</url>
+  <scm>
+    <url>https://github.com/neo4j-contrib/neo4j-apoc-procedures</url>
+  </scm>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <comments>
+        Note that this license is for the project itself,
+        and not for its dependencies.
+      </comments>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <profiles>
+    <profile>
+      <id>jdbc</id>
+      <dependencies>
+        <dependency>
+          <groupId>mysql</groupId>
+          <artifactId>mysql-connector-java</artifactId>
+          <version>5.1.34</version>
+        </dependency>
+        <!--dependency>
+          <groupId>org.postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+          <version>9.4-1200-jdbc41</version>
+        </dependency-->
+      </dependencies>
+    </profile>
+  </profiles>
   <dependencies>
     <dependency>
       <groupId>org.neo4j</groupId>
       <artifactId>neo4j</artifactId>
       <version>${neo4j.version}</version>
       <scope>provided</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.neo4j</groupId>
+      <artifactId>neo4j-enterprise</artifactId>
+      <version>${neo4j.version}</version>
+      <scope>test</scope>
+    </dependency>
+ 
+
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.9</version>
     </dependency>
 
     <dependency>
@@ -72,14 +135,42 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
         <configuration>
-          <!-- Neo4j Procedures require Java 8 -->
           <source>1.8</source>
           <target>1.8</target>
+          <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>2.2.1</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-shade-plugin</artifactId>
+        <version>2.4.3</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -91,14 +182,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <repositories>
-    <repository>
-      <id>neo4j-snapshot-repository</id>
-      <name>Maven 2 snapshot repository for Neo4j</name>
-      <url>http://m2.neo4j.org/content/repositories/snapshots</url>
-      <snapshots><enabled>true</enabled></snapshots>
-      <releases><enabled>false</enabled></releases>
-    </repository>
-  </repositories>
 </project>

@@ -1,0 +1,33 @@
+= Graph Refactoring Procedures
+
+These procedures help refactor the structure of your graph.
+This is helpful when you need to change your data model or for cleaning up data that was imported from an external source.
+
+== Normalize boolean properties
+
+Given raw data boolean properties are often represented by placeholder values.
+This procedure turns them into boolean properties.
+
+Will be true if "Y", YES"; false if "N", "NO"; null otherwise:
+
+[source,cypher]
+----
+MATCH (n)
+CALL apoc.refactor.normalizeAsBoolean(n, "prop", ["Y", "YES"], ["N", NO"])
+RETURN n.prop
+----
+
+== Categorization
+
+Categorize replaces string property values on nodes with relationship to a unique category node for that property value.
+
+Will turn all n.color properties into :HAS_ATTRIBUTE relationships to :Color nodes with a matching .name property:
+
+[source,cypher]
+----
+MATCH (n)
+CALL apoc.refactor.categorize(n,'color','HAS_ATTRIBUTE',true,'Color')
+RETURN n
+----
+
+

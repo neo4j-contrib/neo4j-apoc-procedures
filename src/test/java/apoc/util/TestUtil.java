@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -24,14 +25,6 @@ public class TestUtil {
         testCall(db,call,null,consumer);
     }
 
-    public static Map<String,Object> map(Object ... values) {
-        Map<String, Object> map = new LinkedHashMap<>();
-        for (int i = 0; i < values.length; i+=2) {
-            map.put(values[i].toString(),values[i+1]);
-        }
-        return map;
-    }
-
     public static void testCall(GraphDatabaseService db, String call,Map<String,Object> params, Consumer<Map<String, Object>> consumer) {
         testResult(db, call, params, (res) -> {
             if (res.hasNext()) {
@@ -40,6 +33,22 @@ public class TestUtil {
             }
             assertFalse(res.hasNext());
         });
+    }
+
+    public static void testCallEmpty(GraphDatabaseService db, String call, Map<String,Object> params) {
+        testResult(db, call, params, (res) -> assertFalse("Expected no results", res.hasNext()) );
+    }
+
+    public static void testCallCount( GraphDatabaseService db, String call, Map<String,Object> params, final int count ) {
+        testResult( db, call, params, ( res ) -> {
+            int left = count;
+            while ( left > 0 ) {
+                assertTrue( "Expected " + count + " results, but got only " + (count - left), res.hasNext() );
+                res.next();
+                left--;
+            }
+            assertFalse( "Expected " + count + " results, but there are more ", res.hasNext() );
+        } );
     }
 
     public static void testResult(GraphDatabaseService db, String call, Consumer<Result> resultConsumer) {

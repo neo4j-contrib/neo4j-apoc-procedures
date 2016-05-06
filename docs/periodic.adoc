@@ -1,0 +1,24 @@
+= Job management and periodic execution
+
+[NOTE]
+this document is work in progress
+
+
+
+[source,cypher]
+----
+call apoc.periodic.commit("
+match (u:User)
+where not u:Processed
+with u limit {limit}
+SET u:Processed RETURN count(*)
+",{limit:10000})
+----
+
+----
++=======+==========+
+|updates|executions|
++=======+==========+
+|2000000|200       |
++-------+----------+
+----

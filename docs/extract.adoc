@@ -1,0 +1,18 @@
+= Extract Domain
+
+The procedure `apoc.data.domain` will take a url or email address and try to determine the domain name.
+This can be useful to make easier correlations and equality tests between differently formatted email addresses, and between urls to the same domains but specifying different locations.
+
+[source,cypher]
+----
+WITH 'foo@bar.com' AS email
+CALL apoc.data.domain(email) YIELD domain
+RETURN domain // will return 'bar.com'
+----
+
+[source,cypher]
+----
+WITH 'http://www.example.com/all-the-things' AS url
+CALL apoc.data.domain(url) YIELD domain
+RETURN domain // will return 'www.example.com'
+----

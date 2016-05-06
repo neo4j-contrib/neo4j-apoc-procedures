@@ -11,7 +11,7 @@ import org.neo4j.procedure.Procedure;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class MapUtil {
+public class Maps {
 
     @Context
     public GraphDatabaseService db;
@@ -61,6 +61,21 @@ public class MapUtil {
     public Stream<MapResult> setKey(@Name("map") Map<String,Object> map, @Name("key") String key, @Name("value") Object value) {
         LinkedHashMap<String, Object> res = new LinkedHashMap<>(map);
         res.put(key,value);
+        return Stream.of(new MapResult(res));
+    }
+
+    @Procedure
+    @Description("apoc.map.clean(map,[skip,keys],[skip,values]) yield map removes the keys and values contained in those lists, good for data cleaning from CSV/JSON")
+    public Stream<MapResult> clean(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
+        HashSet<String> keySet = new HashSet<>(keys);
+        HashSet<Object> valueSet = new HashSet<>(values);
+
+        LinkedHashMap<String, Object> res = new LinkedHashMap<>(map.size());
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            Object value = entry.getValue();
+            if (keySet.contains(entry.getKey()) || value == null || valueSet.contains(value) || valueSet.contains(value.toString())) continue;
+            res.put(entry.getKey(),value);
+        }
         return Stream.of(new MapResult(res));
     }
 }

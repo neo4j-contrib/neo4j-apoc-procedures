@@ -7,9 +7,9 @@ package apoc.result;
 public class BooleanResult {
     public static BooleanResult TRUE = new BooleanResult(true);
     public static BooleanResult FALSE = new BooleanResult(false);
-    public final boolean value;
+    public final Boolean value;
 
-    public BooleanResult(boolean value) {
+    public BooleanResult(Boolean value) {
         this.value = value;
     }
 }

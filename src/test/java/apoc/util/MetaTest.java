@@ -1,6 +1,5 @@
 package apoc.util;
 
-import apoc.create.Create;
 import apoc.meta.Meta;
 import org.junit.After;
 import org.junit.Before;
@@ -8,10 +7,9 @@ import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.Collections;
 import java.util.List;
 
-import static apoc.util.TestUtil.map;
+import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
@@ -31,6 +29,11 @@ public class MetaTest {
         db.shutdown();
     }
 
+/*
+    @Test public void testMetaStats() throws Exception {
+        testResult(db,"CALL apoc.meta.stats", (r) -> assertEquals(true, r.hasNext()));
+    }
+*/
     @Test public void testMetaType() throws Exception {
         try (Transaction tx = db.beginTx()) {
             Node node = db.createNode();
