@@ -21,7 +21,7 @@ public class PathExplorer {
 
 	@Context
     public GraphDatabaseService db;
-
+  
 	@Context
     public Log log;
 	
