@@ -209,6 +209,15 @@ CALL apoc.create.vRelationship(a,'META_RELATIONSHIP',{name:rel_type, count:count
 RETURN *;
 ----
 
+=== Warmup
+
+(thanks @SaschaPeukert)
+
+[cols="1m,5"]
+|===
+| CALL apoc.warmup.run() | Warmup the node and relationship page-caches by loading one page at a time
+|===
+
 === Monitoring
 
 (thanks @ikwattro)
@@ -418,7 +427,6 @@ MATCH (n:Person)
 * add apoc.nodes.delete(id|ids|node|nodes)
 * (√) add weight/score to manual index operations, expose it, TODO add Sort.RELEVANCE sorter conditionally or unconditionally
 * pass in last count to rundown so you can also do batch-creates
-* warmup procedures that load nodes / rels by skipping one page at a time (8kb/15bytes) (8kb/35bytes)
 * conversions for type-system of "objects" to map, list, node etc. to avoid the semantic errors we sometimes get
 * in browser guide as apoc-help-page
 * (√) optimized collection functions (WIP)
