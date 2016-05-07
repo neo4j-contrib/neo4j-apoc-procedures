@@ -1,3 +1,4 @@
 language: java
+script: mvn test -Dmaven.javadoc.skip=true
 jdk:
   - oraclejdk8
