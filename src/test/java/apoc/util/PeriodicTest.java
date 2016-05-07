@@ -79,13 +79,37 @@ public class PeriodicTest {
         // when&then
         testResult(db, "CALL apoc.periodic.rock_n_roll('match (p:Person) return p', 'MATCH (p) where p={p} SET p.lastname =p.name', 10)", result -> {
                     Map<String, Object> row = Iterators.single(result);
-                    assertEquals(10l, row.get("batches"));
-                    assertEquals(100l, row.get("total"));
+                    assertEquals(10L, row.get("batches"));
+                    assertEquals(100L, row.get("total"));
                 });
         // then
         testCall(db,
                 "MATCH (p:Person) where p.lastname is not null return count(p) as count" ,
-                row -> assertEquals(100l, row.get("count"))
+                row -> assertEquals(100L, row.get("count"))
+        );
+    }
+
+    @Test
+    public void testRock_n_roll_while() throws Exception {
+        // setup
+        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+
+        // when&then
+        testResult(db, "CALL apoc.periodic.rock_n_roll_while('return coalesce({previous},3)-1 as loop', 'match (p:Person) return p', 'MATCH (p) where p={p} SET p.lastname =p.name', 10)", result -> {
+            long l = 0;
+            while (result.hasNext()) {
+                Map<String, Object> row = result.next();
+                assertEquals(2L-l, row.get("loop"));
+                assertEquals(10L, row.get("batches"));
+                assertEquals(100L, row.get("total"));
+                l += 1;
+            }
+            assertEquals(2L, l);
+        });
+        // then
+        testCall(db,
+                "MATCH (p:Person) where p.lastname is not null return count(p) as count" ,
+                row -> assertEquals(100L, row.get("count"))
         );
     }
 

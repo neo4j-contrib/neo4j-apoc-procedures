@@ -1,5 +1,6 @@
 package apoc.algo.pagerank;
 
+import apoc.Pools;
 import apoc.algo.Algo;
 import apoc.util.TestUtil;
 import org.junit.After;
@@ -57,7 +58,7 @@ public class PageRankAlgoTest
                                                  "  (k)-[:SIMILAR {score:0.80}]->(e)\n";
 
     public static final double EXPECTED = 2.87711;
-    static ExecutorService pool = PageRankUtils.createPool( 2, 50 );
+    static ExecutorService pool = Pools.DEFAULT;
 
     @Before
     public void setUp() throws Exception

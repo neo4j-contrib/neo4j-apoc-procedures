@@ -88,24 +88,34 @@ public class GraphRefactoringTest {
     @Test
     public void testCategorizeOutgoing() throws Exception {
         db.execute(
-                "CREATE ({prop: 'A', id: 1}) " +
-                "CREATE ({prop: 'A', id: 2}) " +
-                "CREATE ({prop: 'C', id: 3}) " +
-                "CREATE ({           id: 4}) " +
-                "CREATE ({prop: 'B', id: 5}) " +
-                "CREATE ({prop: 'C', id: 6})").close();
+                "CREATE ({prop: 'A', k: 'a', id: 1}) " +
+                "CREATE ({prop: 'A', k: 'a', id: 2}) " +
+                "CREATE ({prop: 'C', k: 'c', id: 3}) " +
+                "CREATE ({                   id: 4}) " +
+                "CREATE ({prop: 'B', k: 'b', id: 5}) " +
+                "CREATE ({prop: 'C', k: 'c', id: 6})").close();
 
         testCall(
             db,
-            "MATCH (n) WITH n ORDER BY n.id CALL apoc.refactor.categorize(n,'prop','IS_A',true,'Letter') RETURN count(n) AS count",
+            "CALL apoc.refactor.categorize('prop','IS_A',true,'Letter','name',['k'],1)",
             (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(6L))
         );
 
-        Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)-[:IS_A]->(cat:Letter) RETURN collect(cat.name) AS cats");
-        List<?> cats = (List<?>) result.next().get("cats");
-        result.close();
+        {
+            Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)-[:IS_A]->(cat:Letter) RETURN collect(cat.name) AS cats");
+            List<?> cats = (List<?>) result.next().get("cats");
+            result.close();
 
-        assertThat(cats, equalTo(asList("A", "A", "C", "B", "C")));
+            assertThat(cats, equalTo(asList("A", "A", "C", "B", "C")));
+        }
+
+        {
+            Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)-[:IS_A]->(cat:Letter) RETURN collect(cat.k) AS cats");
+            List<?> cats = (List<?>) result.next().get("cats");
+            result.close();
+
+            assertThat(cats, equalTo(asList("a", "a", "c", "b", "c")));
+        }
 
         testCall(db, "MATCH (n) WHERE n.prop IS NOT NULL RETURN count(n) AS count", (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(0L)));
     }
@@ -113,54 +123,34 @@ public class GraphRefactoringTest {
     @Test
     public void testCategorizeIncoming() throws Exception {
         db.execute(
-                "CREATE ({prop: 'A', id: 1}) " +
-                "CREATE ({prop: 'A', id: 2}) " +
-                "CREATE ({prop: 'C', id: 3}) " +
-                "CREATE ({           id: 4}) " +
-                "CREATE ({prop: 'B', id: 5}) " +
-                "CREATE ({prop: 'C', id: 6})").close();
+                "CREATE ({prop: 'A', k: 'a', id: 1}) " +
+                "CREATE ({prop: 'A', k: 'a', id: 2}) " +
+                "CREATE ({prop: 'C', k: 'c', id: 3}) " +
+                "CREATE ({                   id: 4}) " +
+                "CREATE ({prop: 'B', k: 'b', id: 5}) " +
+                "CREATE ({prop: 'C', k: 'c', id: 6})").close();
 
         testCall(
                 db,
-                "MATCH (n) WITH n ORDER BY n.id CALL apoc.refactor.categorize(n,'prop','IS_A',false,'Letter') RETURN count(n) AS count",
+                "CALL apoc.refactor.categorize('prop','IS_A',false,'Letter','name',['k'],1)",
                 (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(6L))
         );
 
-        Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)<-[:IS_A]-(cat:Letter) RETURN collect(cat.name) AS cats");
-        List<?> cats = (List<?>) result.next().get("cats");
-        result.close();
+        {
+            Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)<-[:IS_A]-(cat:Letter) RETURN collect(cat.name) AS cats");
+            List<?> cats = (List<?>) result.next().get("cats");
+            result.close();
 
-        assertThat(cats, equalTo(asList("A", "A", "C", "B", "C")));
-
-        testCall(db, "MATCH (n) WHERE n.prop IS NOT NULL RETURN count(n) AS count", (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(0L)));
-    }
-
-    @Test
-    public void testCategorizeWithConstraint() throws Exception {
-        try(Transaction tx = db.beginTx()){
-            db.schema().constraintFor(Label.label("Letter")).assertPropertyIsUnique("name");
-            tx.success();
+            assertThat(cats, equalTo(asList("A", "A", "C", "B", "C")));
         }
 
-        db.execute(
-            "CREATE ({prop: 'A', id: 1})"+
-            "CREATE ({prop: 'A', id: 2}) "+
-            "CREATE ({prop: 'C', id: 3}) "+
-            "CREATE ({           id: 4}) "+
-            "CREATE ({prop: 'B', id: 5}) "+
-            "CREATE ({prop: 'C', id: 6}) ").close();
+        {
+            Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)<-[:IS_A]-(cat:Letter) RETURN collect(cat.k) AS cats");
+            List<?> cats = (List<?>) result.next().get("cats");
+            result.close();
 
-        testCall(
-                db,
-                "MATCH (n) WITH n ORDER BY n.id CALL apoc.refactor.categorize(n,'prop','IS_A',true,'Letter') RETURN count(n) AS count",
-                (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(6L))
-        );
-
-        Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)-[:IS_A]->(cat:Letter) RETURN collect(cat.name) AS cats");
-        List<?> cats = (List<?>) result.next().get("cats");
-        result.close();
-
-        assertThat(cats, equalTo(asList("A", "A", "C", "B", "C")));
+            assertThat(cats, equalTo(asList("a", "a", "c", "b", "c")));
+        }
 
         testCall(db, "MATCH (n) WHERE n.prop IS NOT NULL RETURN count(n) AS count", (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(0L)));
     }

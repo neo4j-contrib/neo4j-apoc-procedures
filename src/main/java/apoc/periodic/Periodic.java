@@ -1,6 +1,7 @@
 package apoc.periodic;
 
 import apoc.Description;
+import apoc.Pools;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.Iterators;
@@ -12,10 +13,7 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -23,10 +21,6 @@ import java.util.stream.Stream;
 import static java.lang.System.currentTimeMillis;
 
 public class Periodic {
-
-    final static ScheduledExecutorService jobs = Executors.newScheduledThreadPool(Math.max(1,Runtime.getRuntime().availableProcessors()/4));
-
-    final static ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
 
     @Context public GraphDatabaseAPI db;
 
@@ -40,7 +34,7 @@ public class Periodic {
                 if (entry.getValue().isDone() || entry.getValue().isCancelled()) it.remove();
             }
         };
-        jobs.scheduleAtFixedRate(runnable,10,10,TimeUnit.SECONDS);
+        Pools.SCHEDULED.scheduleAtFixedRate(runnable,10,10,TimeUnit.SECONDS);
     }
 
     @Context
@@ -60,7 +54,7 @@ public class Periodic {
         long sum = 0, executions = 0, count;
         long start = currentTimeMillis();
         do {
-            count = jobs.submit(() -> executeNumericResultStatement(statement, params)).get();
+            count = Pools.SCHEDULED.submit(() -> executeNumericResultStatement(statement, params)).get();
             sum += count;
             if (count>0) executions++;
         } while (count > 0);
@@ -141,7 +135,7 @@ public class Periodic {
         Future<T> future = list.remove(info);
         if (future != null && !future.isDone()) future.cancel(false);
 
-        Future newFuture = jobs.submit(task);
+        Future newFuture = Pools.SCHEDULED.submit(task);
         list.put(info,newFuture);
         return info;
     }
@@ -154,11 +148,64 @@ public class Periodic {
         Future future = list.remove(info);
         if (future != null && !future.isDone()) future.cancel(false);
 
-        ScheduledFuture<?> newFuture = jobs.scheduleWithFixedDelay(task, delay, repeat, TimeUnit.SECONDS);
+        ScheduledFuture<?> newFuture = Pools.SCHEDULED.scheduleWithFixedDelay(task, delay, repeat, TimeUnit.SECONDS);
         list.put(info,newFuture);
         return info;
     }
 
+
+    /**
+     * as long as cypherLoop does not return 0, null, false, or the empty string as 'value' do:
+     *
+     * invoke cypherAction in batched transactions being feeded from cypherIteration running in main thread
+     *
+     * @param cypherLoop
+     * @param cypherIterate
+     * @param cypherAction
+     * @param batchSize
+     */
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
+    public Stream<LoopingBatchAndTotalResult> rock_n_roll_while(
+            @Name("cypherLoop") String cypherLoop,
+            @Name("cypherIterate") String cypherIterate,
+            @Name("cypherAction") String cypherAction,
+            @Name("batchSize") long batchSize) {
+
+        Stream<LoopingBatchAndTotalResult> allResults = Stream.empty();
+
+        Map<String,Object> loopParams = new HashMap<>(1);
+        Object value = null;
+
+        while (true) {
+            loopParams.put("previous", value);
+
+            try (Result result = db.execute(cypherLoop, loopParams)) {
+                value = result.next().get("loop");
+                if (value == null) {
+                    return allResults;
+                }
+                if (value instanceof Number && (((Number)value).longValue()) == 0L) {
+                    return allResults;
+                }
+                if (value instanceof String && value.equals("")) {
+                    return allResults;
+                }
+                if (value instanceof Boolean && value.equals(false)) {
+                    return allResults;
+                }
+            }
+
+            log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
+            try (Result result = db.execute(cypherIterate)) {
+                Stream<BatchAndTotalResult> oneResult =
+                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, result, params -> db.execute(cypherAction, params));
+                final Object loopParam = value;
+                allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
+            }
+        }
+    }
 
     /**
      * invoke cypherAction in batched transactions being feeded from cypherIteration running in main thread
@@ -176,9 +223,7 @@ public class Periodic {
 
         log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
         try (Result result = db.execute(cypherIterate)) {
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, result, params -> {
-                db.execute(cypherAction, params);
-            });
+            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, result, params -> db.execute(cypherAction, params));
         }
     }
 
@@ -188,9 +233,9 @@ public class Periodic {
         try {
             // create transaction in separate thread
             // using 1 element arrays to enable modification
-            final Transaction[] workerTransaction = {singleThreadExecutor.submit(() -> db.beginTx()).get()};
+            final Transaction[] workerTransaction = {Pools.SINGLE.submit(() -> db.beginTx()).get()};
 
-            iterator.forEachRemaining(t -> singleThreadExecutor.submit(() -> {
+            iterator.forEachRemaining(t -> Pools.SINGLE.submit(() -> {
                 log.debug("iteration " + opsCount[0]);
                 consumer.accept(t);
                 if ((++opsCount[0]) % batchsize == 0) {
@@ -201,7 +246,7 @@ public class Periodic {
                     workerTransaction[0] = db.beginTx();
                 }
             }));
-            singleThreadExecutor.submit(() -> {
+            Pools.SINGLE.submit(() -> {
                 workerTransaction[0].success();
                 workerTransaction[0].close();
                 log.info("finalizing - closing transaction");
@@ -222,6 +267,22 @@ public class Periodic {
             this.batches = batches;
             this.total = total;
         }
+
+        public LoopingBatchAndTotalResult inLoop(Object loop) {
+            return new LoopingBatchAndTotalResult(loop, batches, total);
+        }
+    }
+
+    public static class LoopingBatchAndTotalResult {
+        public Object loop;
+        public long batches;
+        public long total;
+
+        public LoopingBatchAndTotalResult(Object loop, long batches, long total) {
+            this.loop = loop;
+            this.batches = batches;
+            this.total = total;
+        }
     }
 
     /**
@@ -232,7 +293,7 @@ public class Periodic {
         Future future = list.remove(info);
         if (future != null) future.cancel(false);
 
-        ScheduledFuture<?> newFuture = jobs.schedule(task, delay, TimeUnit.SECONDS);
+        ScheduledFuture<?> newFuture = Pools.SCHEDULED.schedule(task, delay, TimeUnit.SECONDS);
         list.put(info,newFuture);
         return info;
     }
@@ -285,7 +346,7 @@ public class Periodic {
         @Override
         public void run() {
             if (Periodic.this.executeNumericResultStatement(statement, null) > 0) {
-                jobs.schedule(() -> submit(name, this), rate, TimeUnit.SECONDS);
+                Pools.SCHEDULED.schedule(() -> submit(name, this), rate, TimeUnit.SECONDS);
             }
         }
     }

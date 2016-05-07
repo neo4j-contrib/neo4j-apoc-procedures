@@ -26,12 +26,6 @@ public class PageRankUtils
         return value / 100_000.0;
     }
 
-    public static ExecutorService createPool( int threads, int queueSize )
-    {
-        return new ThreadPoolExecutor( 1, threads, 30L, TimeUnit.SECONDS, new ArrayBlockingQueue<>( queueSize ),
-                new ThreadPoolExecutor.CallerRunsPolicy() );
-    }
-
     public static int waitForTasks( List<Future> futures )
     {
         int total = 0;

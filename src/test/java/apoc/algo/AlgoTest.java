@@ -172,7 +172,7 @@ public class AlgoTest {
     }
 
     @Test
-    public void testPropagationKernel() {
+    public void testCommunity() {
         db.execute("CREATE (n {id: 0, partition: 1}) " +
                    "CREATE (n)-[:X]->({id: 1, weight: 1.0, partition: 1})" +
                    "CREATE (n)-[:X]->({id: 2, weight: 2.0, partition: 1})" +
@@ -181,7 +181,7 @@ public class AlgoTest {
                    "CREATE (n)-[:X]->({id: 5, weight: 8.0, partition: 2})"
         ).close();
 
-        db.execute("MATCH (n) CALL apoc.algo.community(n,'partition','X','OUTGOING','weight') RETURN count(n)").close();
+        db.execute("CALL apoc.algo.community(1,null,'partition','X','OUTGOING','weight',1)").close();
         testCall(
             db,
             "MATCH (n) WHERE n.id = 0 RETURN n.partition AS partition",

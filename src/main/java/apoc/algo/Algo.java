@@ -1,13 +1,15 @@
 package apoc.algo;
 
 import apoc.Description;
+import apoc.Pools;
 import apoc.algo.pagerank.PageRankArrayStorageParallelSPI;
-import apoc.algo.pagerank.PageRankUtils;
 import apoc.path.RelationshipTypeAndDirections;
 import apoc.result.PathResult;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -26,6 +28,7 @@ import org.neo4j.graphalgo.impl.util.DoubleComparator;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -36,12 +39,13 @@ import static java.lang.String.format;
 
 public class Algo
 {
-    static final int CPUS = Runtime.getRuntime().availableProcessors();
-    static final ExecutorService pool = PageRankUtils.createPool( CPUS, CPUS * 25 );
     static final Long DEFAULT_PAGE_RANK_ITERATIONS = 20L;
 
     @Context
     public GraphDatabaseService db;
+
+    @Context
+    public GraphDatabaseAPI dbAPI;
 
     @Context
     public Log log;
@@ -253,7 +257,7 @@ public class Algo
     {
         try
         {
-            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI( db, pool );
+            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI( db, Pools.DEFAULT);
             pageRank.compute( iterations.intValue() );
             return nodes.stream().map( node -> new NodeScore( node, pageRank.getResult( node.getId() ) ) );
         }
@@ -267,38 +271,87 @@ public class Algo
 
     @Procedure("apoc.algo.community")
     @PerformsWrites
-    @Description("CALL apoc.algo.community(node,partitionKey,type,direction,weightKey) - simple label propagation kernel")
+    @Description("CALL apoc.algo.community(times,labels,partitionKey,type,direction,weightKey,batchSize) - simple label propagation kernel")
     public void community(
-            @Name("node") Node node,
+            @Name("times") long times,
+            @Name("labels") List<String> labelNames,
             @Name("partitionKey") String partitionKey,
             @Name("type") String relationshipTypeName,
             @Name("direction") String directionName,
-            @Name("weightKey") String weightKey
-    ) {
-       Direction direction = parseDirection(directionName);
-       Map<Object,Double> votes = new HashMap<>();
-       for (Relationship rel :
-               relationshipTypeName == null
-               ? node.getRelationships(direction)
-               : node.getRelationships(RelationshipType.withName(relationshipTypeName), direction)) {
-           Node other = rel.getOtherNode(node);
-           Object partition = partition(other, partitionKey);
-           double weight = weight(rel, weightKey) * weight(other, weightKey);
-           vote(votes, partition, weight);
-       }
+            @Name("weightKey") String weightKey,
+            @Name("batchSize") long batchSize
+    ) throws ExecutionException {
+        Set<Label> labels = labelNames == null ? Collections.emptySet() : new HashSet<>(labelNames.size());
+        if (labelNames != null)
+            labelNames.forEach(name -> labels.add(Label.label(name)));
 
-        Object originalPartition = partition(node, partitionKey);
-        Object partition = originalPartition;
-        double weight = 0.0d;
-        for (Map.Entry<Object,Double> entry : votes.entrySet()) {
-            if (weight < entry.getValue()) {
-                weight = entry.getValue();
-                partition = entry.getKey();
+        RelationshipType relationshipType = relationshipTypeName == null ? null : RelationshipType.withName(relationshipTypeName);
+
+        Direction direction = parseDirection(directionName);
+
+        for (int i = 0; i < times; i++) {
+            List<Node> batch = null;
+            List<Future<Void>> futures = new ArrayList<>();
+            try(Transaction tx = dbAPI.beginTx()) {
+                for (Node node : dbAPI.getAllNodes()) {
+                    boolean add = labels.size() == 0;
+                    if (!add) {
+                        Iterator<Label> nodeLabels = node.getLabels().iterator();
+                        while (!add && nodeLabels.hasNext()) {
+                            if (labels.contains(nodeLabels.next()))
+                                add = true;
+                        }
+                    }
+                    if (add) {
+                        if (batch == null) {
+                            batch = new ArrayList<>((int) batchSize);
+                        }
+                        batch.add(node);
+                        if (batch.size() == batchSize) {
+                            futures.add(clusterBatch(batch,partitionKey,relationshipType,direction,weightKey));
+                            batch = null;
+                        }
+                    }
+                }
+                if (batch != null) {
+                    futures.add(clusterBatch(batch,partitionKey,relationshipType,direction,weightKey));
+                }
+                tx.success();
+            }
+
+            // Await processing of node batches
+            for (Future<Void> future : futures) {
+                Pools.force(future);
             }
         }
+    }
 
-        if (partition != originalPartition)
-            node.setProperty(partitionKey, partition);
+    private Future<Void> clusterBatch(List<Node> batch, String partitionKey, RelationshipType relationshipType, Direction direction, String weightKey) {
+        return Pools.processBatch(batch, dbAPI, (node) -> {
+           Map<Object,Double> votes = new HashMap<>();
+           for (Relationship rel :
+                   relationshipType == null
+                   ? node.getRelationships(direction)
+                   : node.getRelationships(relationshipType, direction)) {
+               Node other = rel.getOtherNode(node);
+               Object partition = partition(other, partitionKey);
+               double weight = weight(rel, weightKey) * weight(other, weightKey);
+               vote(votes, partition, weight);
+           }
+
+            Object originalPartition = partition(node, partitionKey);
+            Object partition = originalPartition;
+            double weight = 0.0d;
+            for (Map.Entry<Object,Double> entry : votes.entrySet()) {
+                if (weight < entry.getValue()) {
+                    weight = entry.getValue();
+                    partition = entry.getKey();
+                }
+            }
+
+            if (partition != originalPartition)
+                node.setProperty(partitionKey, partition);
+        });
     }
 
     private void vote(Map<Object, Double> votes, Object partition, double weight) {
