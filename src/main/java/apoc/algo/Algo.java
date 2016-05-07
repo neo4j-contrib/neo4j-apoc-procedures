@@ -3,6 +3,7 @@ package apoc.algo;
 import apoc.Description;
 import apoc.Pools;
 import apoc.algo.pagerank.PageRankArrayStorageParallelSPI;
+import apoc.algo.pagerank.PageRankUtils;
 import apoc.path.RelationshipTypeAndDirections;
 import apoc.result.PathResult;
 
@@ -10,6 +11,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -39,6 +41,10 @@ import static java.lang.String.format;
 
 public class Algo
 {
+    static final int CPUS = Runtime.getRuntime().availableProcessors();
+    private static final String SETTING_PAGE_RANK_ITERATIONS = "iterations";
+    private static final String SETTING_PAGE_RANK_TYPES = "types";
+    static final ExecutorService pool = Pools.DEFAULT;
     static final Long DEFAULT_PAGE_RANK_ITERATIONS = 20L;
 
     @Context
@@ -237,28 +243,34 @@ public class Algo
 
     @Procedure( "apoc.algo.pageRank" )
     @Description( "CALL apoc.algo.pageRank(nodes) YIELD node, score - calculates page rank for given nodes" )
-    public Stream<NodeScore> pageRank( @Name( "nodes" ) List<Node> nodes )
-    {
-        return innerPageRank( DEFAULT_PAGE_RANK_ITERATIONS, nodes );
-    }
-
-    @Procedure( "apoc.algo.pageRankWithIterations" )
-    @Description(
-            "CALL apoc.algo.pageRankWithIterations(iterations, nodes) YIELD node, score - calculates page rank for " +
-            "given nodes" )
-    public Stream<NodeScore> pageRankWithIterations(
-            @Name( "iterations" ) Long iterations,
+    public Stream<NodeScore> pageRank(
             @Name( "nodes" ) List<Node> nodes )
     {
-        return innerPageRank( iterations, nodes );
+        return innerPageRank(
+                DEFAULT_PAGE_RANK_ITERATIONS,
+                nodes );
     }
 
-    private Stream<NodeScore> innerPageRank( Long iterations, List<Node> nodes )
+    @Procedure( "apoc.algo.pageRankWithConfig" )
+    @Description(
+            "CALL apoc.algo.pageRankWithConfig(nodes,{iterations:_,types:_}) YIELD node, score - calculates page rank" +
+            " for given nodes" )
+    public Stream<NodeScore> pageRankWithConfig(
+            @Name( "nodes" ) List<Node> nodes,
+            @Name( "config" ) Map<String,Object> config )
+    {
+        return innerPageRank(
+                (Long) config.getOrDefault( SETTING_PAGE_RANK_ITERATIONS, DEFAULT_PAGE_RANK_ITERATIONS ),
+                nodes,
+                typesAndDirectionsDslToTypesArray( (String) config.getOrDefault( SETTING_PAGE_RANK_TYPES, "" ) ) );
+    }
+
+    private Stream<NodeScore> innerPageRank( Long iterations, List<Node> nodes, RelationshipType... types )
     {
         try
         {
-            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI( db, Pools.DEFAULT);
-            pageRank.compute( iterations.intValue() );
+            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI( db, pool );
+            pageRank.compute( iterations.intValue(), types );
             return nodes.stream().map( node -> new NodeScore( node, pageRank.getResult( node.getId() ) ) );
         }
         catch ( Exception e )
@@ -269,7 +281,7 @@ public class Algo
         }
     }
 
-    @Procedure("apoc.algo.community")
+    @Procedure( "apoc.algo.community" )
     @PerformsWrites
     @Description("CALL apoc.algo.community(times,labels,partitionKey,type,direction,weightKey,batchSize) - simple label propagation kernel")
     public void community(
@@ -354,24 +366,29 @@ public class Algo
         });
     }
 
-    private void vote(Map<Object, Double> votes, Object partition, double weight) {
-        double currentWeight = votes.getOrDefault(partition, 0.0d);
+    private void vote( Map<Object,Double> votes, Object partition, double weight )
+    {
+        double currentWeight = votes.getOrDefault( partition, 0.0d );
         double newWeight = currentWeight + weight;
-        votes.put(partition, newWeight);
+        votes.put( partition, newWeight );
     }
 
-    private double weight(PropertyContainer container, String propertyKey) {
-        if (propertyKey != null) {
-            Object propertyValue = container.getProperty(propertyKey, null);
-            if (propertyValue instanceof Number) {
+    private double weight( PropertyContainer container, String propertyKey )
+    {
+        if ( propertyKey != null )
+        {
+            Object propertyValue = container.getProperty( propertyKey, null );
+            if ( propertyValue instanceof Number )
+            {
                 return ((Number) propertyValue).doubleValue();
             }
         }
         return 1.0d;
     }
 
-    private Object partition(Node node, String partitionKey) {
-        Object partition = node.getProperty(partitionKey, null);
+    private Object partition( Node node, String partitionKey )
+    {
+        Object partition = node.getProperty( partitionKey, null );
         return partition == null ? node.getId() : partition;
     }
 
@@ -408,6 +425,17 @@ public class Algo
             log.error( errMsg );
             throw new RuntimeException( errMsg );
         }
+    }
+
+    private RelationshipType[] typesAndDirectionsDslToTypesArray( String typesAndDirections )
+    {
+        List<RelationshipType> relationshipTypes = new ArrayList<>();
+        for ( Pair<RelationshipType,Direction> pair : RelationshipTypeAndDirections.parse( typesAndDirections ) )
+        {
+            if ( null != pair.first() )
+            { relationshipTypes.add( pair.first() ); }
+        }
+        return relationshipTypes.toArray( new RelationshipType[relationshipTypes.size()] );
     }
 
     private RelationshipType[] stringsToRelationshipTypes( List<String> relTypeStrings )

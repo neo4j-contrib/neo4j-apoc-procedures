@@ -1,9 +1,11 @@
 package apoc.algo.pagerank;
 
+import org.neo4j.graphdb.RelationshipType;
+
 public interface Algorithm
 {
 
-    void compute( int iterations );
+    void compute( int iterations, RelationshipType... relationshipTypes );
 
     double getResult( long node );
 

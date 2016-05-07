@@ -13,6 +13,7 @@
 
   <properties>
     <neo4j.version>3.0.0</neo4j.version>
+    <fastutil.version>7.0.12</fastutil.version>
   </properties>
 
   <organization>
@@ -65,6 +66,12 @@
     </profile>
   </profiles>
   <dependencies>
+    <dependency>
+      <groupId>it.unimi.dsi</groupId>
+      <artifactId>fastutil</artifactId>
+      <version>${fastutil.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.neo4j</groupId>
       <artifactId>neo4j</artifactId>

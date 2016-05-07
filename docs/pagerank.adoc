@@ -12,7 +12,7 @@ FOREACH (id IN range(0,1000) | CREATE (:Node {id:id}))
 // over the cross product (1M) create 100.000 relationships
 MATCH (n1:Node),(n2:Node) WITH n1,n2 LIMIT 1000000 WHERE rand() < 0.1
 
-CREATE (n1)-[:TYPE]->(n2)
+CREATE (n1)-[:TYPE_1]->(n2)
 ----
 
 == PageRank Procedure
@@ -34,6 +34,7 @@ A future version of this procedure will provide the option of computing PageRank
 MATCH (node:Node)
 WHERE node.id %2 = 0
 WITH collect(node) AS nodes
+// compute over relationships of all types
 CALL apoc.algo.pageRank(nodes) YIELD node, score
 RETURN node, score
 ORDER BY score DESC
@@ -44,7 +45,19 @@ ORDER BY score DESC
 MATCH (node:Node)
 WHERE node.id %2 = 0
 WITH collect(node) AS nodes
-CALL apoc.algo.pageRankWithIterations(50,nodes) YIELD node, score
+// only compute over relationships of types TYPE_1 or TYPE_2
+CALL apoc.algo.pageRankWithConfig(nodes,{types:'TYPE_1|TYPE_2'}) YIELD node, score
+RETURN node, score
+ORDER BY score DESC
+----
+
+[source,cypher]
+----
+MATCH (node:Node)
+WHERE node.id %2 = 0
+WITH collect(node) AS nodes
+// peroform 10 page rank iterations, computing only over relationships of type TYPE_1
+CALL apoc.algo.pageRankWithConfig(nodes,{iterations:10,types:'TYPE_1'}) YIELD node, score
 RETURN node, score
 ORDER BY score DESC
 ----
