@@ -1,5 +1,6 @@
 package apoc.path;
 
+
 import apoc.Description;
 import apoc.result.PathResult;
 import org.neo4j.graphdb.*;
@@ -17,12 +18,13 @@ import java.util.stream.Stream;
 public class PathExplorer {
 	private static final String VERSION = "0.5";
 	public static final Uniqueness UNIQUENESS = Uniqueness.RELATIONSHIP_PATH;
+
 	@Context
     public GraphDatabaseService db;
-
+  
 	@Context
     public Log log;
-
+	
 	@Procedure("apoc.path.expand")
 	@Description("apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path expand from start node following the given relationships from min to max-level adhering to the label filters")
 	public Stream<PathResult> explorePath(@Name("start") Object start
@@ -92,7 +94,7 @@ public class PathExplorer {
 		return td.traverse(startNodes).stream().map( PathResult::new );
 	}
 
-	public static class LabelEvaluator implements Evaluator {
+		public static class LabelEvaluator implements Evaluator {
 		private boolean included = true;
 		private Set<String> labels = new HashSet<String>();
 		public LabelEvaluator(String labelFilter) {

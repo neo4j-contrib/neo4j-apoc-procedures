@@ -226,6 +226,7 @@ RETURN *;
 |===
 | apoc.monitor.ids | node and relationships-ids in total and in use
 | apoc.monitor.kernel | store information such as kernel version, start time, read-only, database-name, store-log-version etc.
+| apoc.monitor.lock(minWaitTime long) | db locking information such as avertedDeadLocks, lockCount, contendedLockCount and contendedLocks etc.
 | apoc.monitor.store | store size information for the different types of stores
 | apoc.monitor.tx | number of transactions total,opened,committed,concurrent,rolled-back,last-tx-id
 |===
@@ -392,6 +393,25 @@ Syntax: `[+-]LABEL1|LABEL2|...`
 | input | label | result
 | +Friend | Friend | include label (whitelist)
 | -Foe | Foe | exclude label (blacklist)
+|===
+
+=== Bitwise operations
+
+Provides a wrapper around the java bitwise operations.
+|===
+| call apoc.bitwise.cmp(a long, "operation", b long ) yield value as <identifier> 
+|===
+
+examples
+|===
+| operator | name | example | result 
+| a & b | AND | call apoc.bitwise.cmp(60,"&",13) | 12 
+| a \| b | OR | call apoc.bitwise.cmp(60,"\|",13) | 61 
+| a ^ b | XOR | call apoc.bitwise.cmp(60,"&",13) | 49
+| ~a | NOT | call apoc.bitwise.cmp(60,"&",0) | -61
+| a << b | LEFT SHIFT | call apoc.bitwise.cmp(60,"<<",2) | 240
+| a >> b | RIGHT SHIFT | call apoc.bitwise.cmp(60,">>",2) | 15 
+| a >>> b | UNSIGNED RIGHT SHIFT | call apoc.bitwise.cmp(60,">>>",2) | 15 
 |===
 
 === Graph Algorithms (work in progress)
