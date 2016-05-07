@@ -359,6 +359,25 @@ Splits date (optionally, using given custom format) into fields returning a map 
 * `apoc.date.fields('2015-03-25 03:15:59')`
 * `apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')`
 
+=== Bitwise operations
+
+Provides a wrapper around the java bitwise operations.
+|===
+| call apoc.bitwise.op(a long, "operation", b long ) yield value as <identifier> 
+|===
+
+examples
+|===
+| operator | name | example | result 
+| a & b | AND | call apoc.bitwise.op(60,"&",13) | 12 
+| a \| b | OR | call apoc.bitwise.op(60,"\|",13) | 61 
+| a ^ b | XOR | call apoc.bitwise.op(60,"&",13) | 49
+| ~a | NOT | call apoc.bitwise.op(60,"&",0) | -61
+| a << b | LEFT SHIFT | call apoc.bitwise.op(60,"<<",2) | 240
+| a >> b | RIGHT SHIFT | call apoc.bitwise.op(60,">>",2) | 15 
+| a >>> b | UNSIGNED RIGHT SHIFT | call apoc.bitwise.op(60,">>>",2) | 15 
+|===
+
 === Path Expander
 
 (thanks @keesvegter)
