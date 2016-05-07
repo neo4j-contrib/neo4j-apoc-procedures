@@ -171,6 +171,9 @@ public class FreeTextSearch {
                 log.info("Dropping existing index '%s', with config: %s", index, config);
                 old.delete();
             }
+            tx.success();
+        }
+        try (Transaction tx = db.beginTx()) {
             Map<String, String> config = new HashMap<>(CONFIG);
             config.put("labels", escape(structure.keySet()));
             for (Map.Entry<String, List<String>> entry : structure.entrySet()) {
