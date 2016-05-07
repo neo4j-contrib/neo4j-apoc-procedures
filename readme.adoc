@@ -228,6 +228,7 @@ RETURN *;
 | apoc.monitor.kernel | store information such as kernel version, start time, read-only, database-name, store-log-version etc.
 | apoc.monitor.store | store size information for the different types of stores
 | apoc.monitor.tx | number of transactions total,opened,committed,concurrent,rolled-back,last-tx-id
+| apoc.monitor.locks(minWaitTime long) | db locking information such as avertedDeadLocks, lockCount, contendedLockCount and contendedLocks etc. (enterprise)
 |===
 
 === Job Management
@@ -469,6 +470,5 @@ MATCH (n:Person)
 * Procedures in other languages (e.g. JS, JSR-223 scripting -> apoc-unsafe project)
 * eval javascript
 * apoc.meta.validate(metagraph) validate a metagraph against the current graph and report violations
-* √ apoc.monitor.{ids,tx,store} simplar calls for the JMX info with tabular output
 * apoc.run.register(name, query[,params]), apoc.run.named(name,[params])
 * apoc.create.graph(nodes,rels,data-map) -> {nodes:[], rels:[], data:{}} a graph data structure, e.g. for rendering, export, validation, ...
