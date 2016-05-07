@@ -1,4 +1,8 @@
 {
+
+  "_comment_1A": "'addresses' are used in GeocodeTest focusing on behavior of procedures in isolation",
+  "_comment_1B": "This test uses the real OSM and Google services for testing.",
+
   "addresses": [
     {
       "address": "21 rue Paul Bellamy 44000 NANTES FRANCE",
@@ -6,13 +10,16 @@
       "longitude": -1.5566624
     },
     {
-      "address": "125 rue du docteur guichard 49000 ANGERS FRANCE",
-      "latitude": 47.4516488,
-      "longitude": -0.5492642
+      "address": "12 Rue Cubain 49000 Angers France",
+      "latitude": 47.4607430,
+      "longitude": -0.5453014
     },
     {
       "address": "FRANCE",
-      "count": 10
+      "count": {
+        "google": 1,
+        "osm": 10
+      }
     },
     {
       "address": "this place should really not exist",
@@ -23,6 +30,11 @@
       "noresults": true
     }
   ],
+
+  "_comment_2A": "'events' and 'geocode' are used in SpatialTest testing procedures in more complex Cypher queries",
+  "_comment_2B": "The 'events' defined input data, and 'geocode' are mocked output results.",
+  "_comment_2C": "No real geocoding service is used, as a service is internally mocked to provide these results.",
+
   "events": [
     {"name": "Suffren Expo", "address": "18 Avenue de Suffren, 75007 Paris, France", "datetime": "2016-05-01 10:00:00", "toosoon": true},
     {"name": "Bourdonnais Expo", "address": "27 Avenue de la Bourdonnais, 75007 Paris, France", "datetime": "2016-05-10 10:00:00", "toosoon": true},

@@ -40,8 +40,13 @@ public class SpatialTest {
         public MockGeocode() {
         }
 
+        @Procedure("apoc.spatial.geocodeOnce")
+        public Stream<Geocode.GeoCodeResult> geocodeOnce(@Name("location") String address) {
+            return geocode(address, 1);
+        }
+
         @Procedure("apoc.spatial.geocode")
-        public Stream<Geocode.GeoCodeResult> geocode(@Name("location") String address) {
+        public Stream<Geocode.GeoCodeResult> geocode(@Name("location") String address, @Name("maxResults") long maxResults) {
             if (geocodeResults != null && geocodeResults.containsKey(address)) {
                 Map data = geocodeResults.get(address);
                 return Stream.of(new Geocode.GeoCodeResult(Geocode.toDouble(data.get("lat")), Geocode.toDouble(data.get("lon")), String.valueOf(data.get("display_name")), data));
@@ -84,22 +89,22 @@ public class SpatialTest {
         db.shutdown();
     }
 
-    @Test @Ignore
+    @Test
     public void testSimpleGeocode() {
         String query = "MATCH (a:Event) \n" +
                 "WHERE exists(a.address) AND exists(a.name) \n" +
-                "CALL apoc.spatial.geocode(a.address) YIELD location\n" +
+                "CALL apoc.spatial.geocodeOnce(a.address) YIELD location\n" +
                 "RETURN a.name, location.latitude AS latitude, \n" +
                 "location.longitude AS longitude, location.description AS description";
         testCallCount(db, query, null, eventNodes.size());
     }
 
-    @Test @Ignore
+    @Test
     public void testGeocodePointAndDistance() {
         String query = "WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel\n" +
                 "MATCH (a:Event) \n" +
                 "WHERE exists(a.address)\n" +
-                "CALL apoc.spatial.geocode(a.address) YIELD location\n" +
+                "CALL apoc.spatial.geocodeOnce(a.address) YIELD location\n" +
                 "WITH location, distance(point(location), eiffel) AS distance\n" +
                 "WHERE distance < 5000\n" +
                 "RETURN location.description AS description, distance\n" +
@@ -113,7 +118,7 @@ public class SpatialTest {
         String refactorQuery = "MATCH (a:Event) \n" +
                 "WHERE exists(a.address) AND NOT exists(a.latitude)\n" +
                 "WITH a LIMIT 1000\n" +
-                "CALL apoc.spatial.geocode(a.address) YIELD location \n" +
+                "CALL apoc.spatial.geocodeOnce(a.address) YIELD location \n" +
                 "SET a.latitude = location.latitude\n" +
                 "SET a.longitude = location.longitude";
         testCallEmpty(db, refactorQuery, null);
@@ -128,13 +133,13 @@ public class SpatialTest {
         testCallCount(db, query, null, spaceNodes.size());
     }
 
-    @Test @Ignore
+    @Test
     public void testAllTheThings() throws Exception {
         String query = "CALL apoc.date.parseDefault('2016-06-01 00:00:00','h') YIELD value as due_date\n" +
                 "WITH due_date, point({latitude: 48.8582532, longitude: 2.294287}) as eiffel\n" +
                 "MATCH (e:Event)\n" +
                 "WHERE exists(e.address) AND exists(e.datetime)\n" +
-                "CALL apoc.spatial.geocode(e.address) YIELD location\n" +
+                "CALL apoc.spatial.geocodeOnce(e.address) YIELD location\n" +
                 "CALL apoc.date.parseDefault(e.datetime,'h') YIELD value as hours\n" +
                 "WITH e, location,\n" +
                 "     distance(point(location), eiffel) as distance,\n" +
