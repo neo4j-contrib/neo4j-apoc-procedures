@@ -238,11 +238,17 @@ public class Geocode {
     }
 
     @Procedure
+    @Description("apoc.spatial.showConfig() - show the current configurations for spatial procedures")
+    public Stream<MapResult> showConfig() {
+        return Stream.of(new MapResult(getConfig()));
+    }
+
+    @Procedure
     @Description("apoc.spatial.config(map) - configure spatial procedures")
     public Stream<MapResult> config(@Name("config") Map<String, String> config) {
         Geocode.config.clear();
         addSpatialConfigs(Geocode.config, config);
-        return Stream.of(new MapResult(getConfig()));
+        return showConfig();
     }
 
     @Procedure
