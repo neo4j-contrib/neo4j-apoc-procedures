@@ -21,6 +21,7 @@ public class JsonUtil {
         try {
             URL src = new URL(url);
             URLConnection con = src.openConnection();
+            con.setRequestProperty("User-Agent", "APOC Procedures for Neo4j");
             con.setConnectTimeout(10_000);
             con.setReadTimeout(60_000);
 

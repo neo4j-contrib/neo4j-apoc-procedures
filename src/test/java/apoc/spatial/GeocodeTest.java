@@ -81,12 +81,14 @@ public class GeocodeTest {
             }
             testCallEmpty(db, "CALL apoc.spatial.geocode({url},0)", map("url", map.get("address").toString()));
         } else if (map.containsKey("count")) {
-            for (String field : new String[]{"address", "count"}) {
-                assertTrue("Expected " + field + " field", map.containsKey(field));
+            if (((Map) map.get("count")).containsKey(provider)) {
+                for (String field : new String[]{"address", "count"}) {
+                    assertTrue("Expected " + field + " field", map.containsKey(field));
+                }
+                testCallCount(db, "CALL apoc.spatial.geocode({url},0)",
+                        map("url", map.get("address").toString()),
+                        (int) ((Map) map.get("count")).get(provider));
             }
-            testCallCount(db, "CALL apoc.spatial.geocode({url},0)",
-                    map("url", map.get("address").toString()),
-                    (int) ((Map) map.get("count")).get(provider));
         } else {
             for (String field : new String[]{"address", "latitude", "longitude"}) {
                 assertTrue("Expected " + field + " field", map.containsKey(field));
@@ -98,7 +100,7 @@ public class GeocodeTest {
     }
 
     private void testGeocodeAddress(String address, double lat, double lon) {
-        testCall(db, "CALL apoc.spatial.geocode({url},0)", map("url", address),
+        testCall(db, "CALL apoc.spatial.geocodeOnce({url})", map("url", address),
                 (row) -> {
                     Map value = (Map) row.get("location");
                     assertEquals("Incorrect latitude found", lat, Double.parseDouble(value.get("latitude").toString()),
@@ -112,7 +114,7 @@ public class GeocodeTest {
         testCall(db, "CALL apoc.spatial.config({config})", map("config", map("apoc.spatial.geocode.test", provider)),
                 (row) -> {
                     Map<String, String> value = (Map) row.get("value");
-                    assertEquals("Expected provider to be set in '"+"apoc.spatial.geocode.test"+"'", provider, value.get("apoc.spatial.geocode.test"));
+                    assertEquals("Expected provider to be set in '" + "apoc.spatial.geocode.test" + "'", provider, value.get("apoc.spatial.geocode.test"));
                     assertEquals(provider, value.get(Geocode.GEOCODE_SUPPLIER_KEY));
                     String throttleKey = "apoc.spatial.geocode." + provider + ".throttle";
                     assertTrue("Expected a throttle setting", value.containsKey(throttleKey));

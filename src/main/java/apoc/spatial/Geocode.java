@@ -75,6 +75,77 @@ public class Geocode {
         }
     }
 
+    private static class SupplierWithKey implements GeocodeSupplier {
+        private static final String[] FORMATTED_KEYS = new String[]{"formatted", "formatted_address", "address", "description", "display_name"};
+        private static final String[] LAT_KEYS = new String[]{"lat", "latitude"};
+        private static final String[] LNG_KEYS = new String[]{"lng", "longitude", "lon"};
+        private Throttler throttler;
+        private String configBase;
+        private String urlTemplate;
+
+        public SupplierWithKey(Map<String, String> config, KernelTransaction kernelTransaction, String provider) {
+            this.configBase = "apoc.spatial.geocode." + provider;
+            if (!config.containsKey(configKey("url"))) {
+                throw new IllegalArgumentException("Missing 'url' for geocode provider: " + provider);
+            }
+            if (!config.containsKey(configKey("key"))) {
+                throw new IllegalArgumentException("Missing 'key' for geocode provider: " + provider);
+            }
+            String key = (String) config.get(configKey("key"));
+            urlTemplate = (String) config.get(configKey("url"));
+            if (urlTemplate.contains("KEY")) {
+                urlTemplate = urlTemplate.replace("KEY", key);
+            }
+            if (!urlTemplate.contains("PLACE")) {
+                throw new IllegalArgumentException("Missing 'PLACE' in url template: " + urlTemplate);
+            }
+            this.throttler = new Throttler(config, kernelTransaction, configKey("throttle"), 1);
+        }
+
+        public Stream<GeoCodeResult> geocode(String address, long maxResults) {
+            throttler.waitForThrottle();
+            String url = urlTemplate.replace("PLACE", address.replace(" ", "+"));
+            System.out.println("apoc.spatial.geocode: " + url);
+            Object value = JsonUtil.loadJson(url);
+            if (value instanceof List) {
+                return findResults((List<Map<String, Object>>) value, maxResults);
+            } else if (value instanceof Map) {
+                Object results = ((Map) value).get("results");
+                if (results instanceof List) {
+                    return findResults((List<Map<String, Object>>) results, maxResults);
+                }
+            }
+            throw new RuntimeException("Can't parse geocoding results " + value);
+        }
+
+        private Stream<GeoCodeResult> findResults(List<Map<String, Object>> results, long maxResults) {
+            return ((List<Map<String, Object>>) results).stream().limit(maxResults).map(data -> {
+                String description = findFirstEntry(data, FORMATTED_KEYS);
+                Map location = (Map) ((Map) data.get("geometry"));
+                if (location.containsKey("location")) {
+                    location = (Map) location.get("location");
+                }
+                String lat = findFirstEntry(location, LAT_KEYS);
+                String lng = findFirstEntry(location, LNG_KEYS);
+                return new GeoCodeResult(toDouble(lat), toDouble(lng), description, data);
+            });
+        }
+
+        private String findFirstEntry(Map<String, Object> map, String[] keys) {
+            for (String key : keys) {
+                if (map.containsKey(key)) {
+                    return String.valueOf(map.get(key));
+                }
+            }
+            return "";
+        }
+
+        private String configKey(String name) {
+            return configBase + "." + name;
+        }
+
+    }
+
     private static class OSMSupplier implements GeocodeSupplier {
         private Throttler throttler;
 
@@ -154,8 +225,13 @@ public class Geocode {
     private GeocodeSupplier getSupplier() {
         Map<String, String> activeConfig = getConfig();
         if (activeConfig.containsKey(GEOCODE_SUPPLIER_KEY)) {
-            if (activeConfig.get(GEOCODE_SUPPLIER_KEY).toLowerCase().startsWith("google")) {
+            String supplier = activeConfig.get(GEOCODE_SUPPLIER_KEY).toLowerCase();
+            if (supplier.startsWith("google")) {
                 return new GoogleSupplier(activeConfig, kernelTransaction);
+            } else if (supplier.startsWith("osm")) {
+                return new OSMSupplier(activeConfig, kernelTransaction);
+            } else {
+                return new SupplierWithKey(activeConfig, kernelTransaction, supplier);
             }
         }
         return new OSMSupplier(activeConfig, kernelTransaction);
