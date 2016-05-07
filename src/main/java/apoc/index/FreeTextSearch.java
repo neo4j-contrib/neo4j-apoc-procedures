@@ -32,6 +32,18 @@ import static apoc.index.FreeTextQueryParser.parseFreeTextQuery;
 import static apoc.util.AsyncStream.async;
 
 public class FreeTextSearch {
+    public static class IndexStats {
+        public final String label;
+        public final String property;
+        public final long nodeCount;
+
+        private IndexStats(String label, String property, long nodeCount) {
+            this.label = label;
+            this.property = property;
+            this.nodeCount = nodeCount;
+        }
+    }
+
     /**
      * Create (or recreate) a free text search index.
      * <p>
@@ -45,12 +57,12 @@ public class FreeTextSearch {
     @Procedure
     @PerformsWrites
     @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}) YIELD type, name, config - create a free text search index")
-    public Stream<FulltextIndex.IndexInfo> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure) {
+    public Stream<IndexStats> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure) {
         if (structure.isEmpty()) {
             throw new IllegalArgumentException("No structure given.");
         }
         return async(executor(), "Creating index '" + index + "'", result -> {
-            populate(index(index, structure, result), structure);
+            populate(index(index, structure), structure, result);
         });
     }
 
@@ -103,8 +115,9 @@ public class FreeTextSearch {
         }, 0), false);
     }
 
-    private void populate(Index<Node> index, Map<String, List<String>> config) {
+    private void populate(Index<Node> index, Map<String, List<String>> config, Consumer<IndexStats> result) {
         Map<String, String[]> structure = convertStructure(config);
+        Map<LabelProperty, Counter> stats = new HashMap<>();
         Transaction tx = db.beginTx();
         try {
             int batch = 0;
@@ -122,6 +135,7 @@ public class FreeTextSearch {
                             value = ValueContext.numeric(((Number) value).doubleValue());
                         }
                         index.add(node, label.name() + "." + entry.getKey(), value);
+                        stats.computeIfAbsent(new LabelProperty(label.name(), entry.getKey()), x -> new Counter()).count++;
                     }
                 }
                 if (indexed) {
@@ -137,10 +151,11 @@ public class FreeTextSearch {
         } finally {
             tx.close();
         }
+        stats.forEach((key,counter) -> result.accept(key.stats(counter)));
     }
 
     private Map<String, String[]> convertStructure(Map<String, List<String>> config) {
-        Map<String,String[]> structure = new LinkedHashMap<>();
+        Map<String, String[]> structure = new LinkedHashMap<>();
         for (Map.Entry<String, List<String>> entry : config.entrySet()) {
             List<String> props = entry.getValue();
             structure.put(entry.getKey(), props.toArray(new String[props.size()]));
@@ -148,7 +163,7 @@ public class FreeTextSearch {
         return structure;
     }
 
-    private Index<Node> index(String index, Map<String, List<String>> structure, Consumer<FulltextIndex.IndexInfo> result) {
+    private Index<Node> index(String index, Map<String, List<String>> structure) {
         try (Transaction tx = db.beginTx()) {
             if (db.index().existsForNodes(index)) {
                 Index<Node> old = db.index().forNodes(index);
@@ -162,7 +177,6 @@ public class FreeTextSearch {
                 config.put("keysForLabel:" + escape(entry.getKey()), escape(entry.getValue()));
             }
             Index<Node> nodeIndex = db.index().forNodes(index, config);
-            result.accept(new FulltextIndex.IndexInfo(FulltextIndex.NODE, index, config));
             tx.success();
             return nodeIndex;
         }
@@ -189,5 +203,36 @@ public class FreeTextSearch {
 
     private static String escape(String key) {
         return key.replace("$", "$$").replace(":", "$");
+    }
+
+    private static class LabelProperty {
+        private final String label, property;
+
+        LabelProperty(String label, String property) {
+            this.label = label;
+            this.property = property;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            LabelProperty that = (LabelProperty) o;
+            return Objects.equals(label, that.label) &&
+                    Objects.equals(property, that.property);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(label, property);
+        }
+
+        IndexStats stats(Counter counter) {
+            return new IndexStats(label, property, counter.count);
+        }
+    }
+
+    private static class Counter {
+        long count;
     }
 }
