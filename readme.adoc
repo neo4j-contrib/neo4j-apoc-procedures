@@ -412,13 +412,20 @@ RETURN path, weight
 MATCH (n:Person)
 ----
 
+=== Warmup
+
+[cols="1m,5"]
+|===
+| CALL apoc.warmup.run() |  quickly loads all nodes and rels into memory by skipping one page at a time
+|===
+
+
 == Plans
 
 * move apoc.get to apoc.nodes and apoc.rels
 * add apoc.nodes.delete(id|ids|node|nodes)
 * (√) add weight/score to manual index operations, expose it, TODO add Sort.RELEVANCE sorter conditionally or unconditionally
 * pass in last count to rundown so you can also do batch-creates
-* warmup procedures that load nodes / rels by skipping one page at a time (8kb/15bytes) (8kb/35bytes)
 * conversions for type-system of "objects" to map, list, node etc. to avoid the semantic errors we sometimes get
 * in browser guide as apoc-help-page
 * (√) optimized collection functions (WIP)
