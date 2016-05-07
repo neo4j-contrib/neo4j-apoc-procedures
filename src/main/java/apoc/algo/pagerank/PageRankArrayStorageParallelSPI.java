@@ -1,9 +1,7 @@
 package apoc.algo.pagerank;
 
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.function.IntPredicate;
@@ -80,12 +78,13 @@ public class PageRankArrayStorageParallelSPI implements PageRank
         }
         else
         {
-            IntSet relationshipTypeSet = new IntOpenHashSet( relationshipTypes.length );
+            BitSet relationshipTypeSet = new BitSet( relationshipTypes.length );
             for ( RelationshipType relationshipType : relationshipTypes )
             {
-                relationshipTypeSet.add( ops.relationshipTypeGetForName( relationshipType.name() ) );
+                int relTypeId = ops.relationshipTypeGetForName(relationshipType.name());
+                if (relTypeId >= 0) relationshipTypeSet.set(relTypeId);
             }
-            return relationshipTypeSet::contains;
+            return relationshipTypeSet::get;
         }
     }
 

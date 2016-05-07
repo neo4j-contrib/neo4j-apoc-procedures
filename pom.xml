@@ -5,7 +5,7 @@
 
   <groupId>org.neo4j.procedure</groupId>
   <artifactId>apoc</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
 
   <packaging>jar</packaging>
   <name>neo4j-apoc-procedures</name>
@@ -66,11 +66,11 @@
     </profile>
   </profiles>
   <dependencies>
-    <dependency>
+    <!--dependency>
       <groupId>it.unimi.dsi</groupId>
       <artifactId>fastutil</artifactId>
       <version>${fastutil.version}</version>
-    </dependency>
+    </dependency-->
 
     <dependency>
       <groupId>org.neo4j</groupId>

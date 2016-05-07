@@ -115,7 +115,7 @@ public class PageRankTest
         assertExpectedResult( 0, "CALL apoc.algo.pageRankWithConfig([],{iterations:10})" + "" );
 
         assertExpectedResult( 0, "CALL apoc.algo.pageRank([])" );
-        assertExpectedResult( 0, "CALL apoc.algo.pageRankWithConfig([],{iterations:10,types:'TYPE_1|TYPE_2'})" );
+        assertExpectedResult( 0, "CALL apoc.algo.pageRankWithConfig([],{iterations:10,types:'TYPE'})" );
     }
 
     @Test( expected = RuntimeException.class )
