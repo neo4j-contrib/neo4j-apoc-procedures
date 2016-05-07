@@ -26,7 +26,7 @@ public class KernelProcedureTest extends MonitorTestCase {
                 String kernelVersion = String.valueOf(row.get("kernelVersion"));
                 assertEquals("impermanent-db", String.valueOf(row.get("databaseName")));
                 assertTrue(format.parse(startTime).getTime() < now);
-                assertTrue(kernelVersion.contains("3.0.0"));
+                assertTrue(kernelVersion.contains("3."));
                 assertEquals(0, (long) row.get("storeLogVersion"));
             } catch (Exception e) {
                 throw new RuntimeException(e);
