@@ -27,8 +27,9 @@ ranking result.
 
 There are a few options that can be set in the neo4j.conf file to control the service:
 
-* apoc.spatial.geocode.supplier=osm (osm or google)
+* apoc.spatial.geocode.provider=osm (osm or google)
 * apoc.spatial.geocode.osm.throttle=5000 (ms to delay between queries to not overload OSM servers)
+* apoc.spatial.geocode.google.throttle=1 (ms to delay between queries to not overload Google servers)
 * apoc.spatial.geocode.google.key=xxxx (API key for google geocode access)
 * apoc.spatial.geocode.google.client=xxxx (client code for google geocode access)
 * apoc.spatial.geocode.google.signature=xxxx (client signature for google geocode access)

@@ -36,31 +36,27 @@ public class GeocodeTest {
         db.shutdown();
     }
 
-    private void setupSupplier(String name, long throttle) {
-        Config config = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(Config.class);
-        Map<String, String> newParams = new HashMap<>();
-        newParams.put("apoc.spatial.geocode.supplier", name);
-        newParams.put("apoc.spatial.geocode.osm.throttle", Long.toString(throttle));
-        config.augment(newParams);
-    }
-
     @Test
     public void testGeocodeOSM() throws Exception {
-        long fast = testGeocode("osm", 100);
-        System.out.println("Fast OSM test took " + fast + "ms");
-        long slow = testGeocode("osm", 2000);
-        System.out.println("Slow OSM test took " + slow + "ms");
-        assertTrue("Fast OSM took " + fast + "ms and slow took " + slow + "ms, but expected slow to be at least twice as long", (1.0 * slow / fast) > 2.0);
+        testGeocodeWithThrottling("osm");
     }
 
     @Test
     public void testGeocodeGoogle() throws Exception {
-        long duration = testGeocode("google", 0);
-        System.out.println("Google test took " + duration + "ms");
+        testGeocodeWithThrottling("google");
+    }
+
+    private void testGeocodeWithThrottling(String supplier) throws Exception {
+        long fast = testGeocode(supplier, 100);
+        System.out.println("Fast " + supplier + " test took " + fast + "ms");
+        long slow = testGeocode(supplier, 2000);
+        System.out.println("Slow " + supplier + " test took " + slow + "ms");
+        assertTrue("Fast " + supplier + " took " + fast + "ms and slow took " + slow + "ms, but expected slow to be at least twice as long", (1.0 * slow / fast) > 2.0);
     }
 
     private long testGeocode(String provider, long throttle) throws Exception {
         setupSupplier(provider, throttle);
+        testConfig(provider);
         URL url = ClassLoader.getSystemResource("spatial.json");
         Map tests = (Map) JsonUtil.OBJECT_MAPPER.readValue(url.openConnection().getInputStream(), Object.class);
         long start = System.currentTimeMillis();
@@ -68,6 +64,14 @@ public class GeocodeTest {
             testGeocodeAddress((Map) address, provider);
         }
         return System.currentTimeMillis() - start;
+    }
+
+    private void setupSupplier(String name, long throttle) {
+        Config config = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(Config.class);
+        Map<String, String> newParams = new HashMap<>();
+        newParams.put(Geocode.GEOCODE_SUPPLIER_KEY, name);
+        newParams.put("apoc.spatial.geocode." + name + ".throttle", Long.toString(throttle));
+        config.augment(newParams);
     }
 
     private void testGeocodeAddress(Map map, String provider) {
@@ -101,6 +105,18 @@ public class GeocodeTest {
                             0.0005);
                     assertEquals("Incorrect longitude found", lon, Double.parseDouble(value.get("longitude").toString()),
                             0.0005);
+                });
+    }
+
+    private void testConfig(String provider) {
+        testCall(db, "CALL apoc.spatial.config({config})", map("config", map("apoc.spatial.geocode.test", provider)),
+                (row) -> {
+                    Map<String, String> value = (Map) row.get("value");
+                    assertEquals("Expected provider to be set in '"+"apoc.spatial.geocode.test"+"'", provider, value.get("apoc.spatial.geocode.test"));
+                    assertEquals(provider, value.get(Geocode.GEOCODE_SUPPLIER_KEY));
+                    String throttleKey = "apoc.spatial.geocode." + provider + ".throttle";
+                    assertTrue("Expected a throttle setting", value.containsKey(throttleKey));
+                    assertTrue("Expected a valid throttle setting", Long.parseLong(value.get(throttleKey)) > 0);
                 });
     }
 }
