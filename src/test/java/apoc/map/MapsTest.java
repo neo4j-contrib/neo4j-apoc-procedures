@@ -7,6 +7,8 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.Map;
+
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.*;
 
@@ -52,6 +54,22 @@ public class MapsTest {
     public void testClean() throws Exception {
         TestUtil.testCall(db, "CALL apoc.map.clean({a:1,b:'',c:null,x:1234,z:false},['x'],['',false])", (r) -> {
             assertEquals(map("a",1L),r.get("value"));
+        });
+    }
+
+    @Test
+    public void testFlatten() {
+        Map<String, Object> nestedMap = map("somekey", "someValue", "somenumeric", 123);
+        nestedMap = map("anotherkey", "anotherValue", "nested", nestedMap);
+        Map<String, Object> map = map("string", "value", "int", 10, "nested", nestedMap);
+
+        TestUtil.testCall(db, "CALL apoc.map.flatten({map})", map("map", map), (r) -> {
+            Map<String, Object> resultMap = (Map<String, Object>)r.get("value");
+            assertEquals(map("string", "value",
+                    "int", 10,
+                    "nested.anotherkey", "anotherValue",
+                    "nested.nested.somekey", "someValue",
+                    "nested.nested.somenumeric", 123), resultMap);
         });
     }
 }
