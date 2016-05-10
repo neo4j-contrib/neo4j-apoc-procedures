@@ -2,6 +2,7 @@ package apoc.spatial;
 
 import apoc.Description;
 
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -104,7 +105,7 @@ public class Geocode {
 
         public Stream<GeoCodeResult> geocode(String address, long maxResults) {
             throttler.waitForThrottle();
-            String url = urlTemplate.replace("PLACE", address.replace(" ", "+"));
+            String url = urlTemplate.replace("PLACE", URLEncoder.encode(address));
             System.out.println("apoc.spatial.geocode: " + url);
             Object value = JsonUtil.loadJson(url);
             if (value instanceof List) {
@@ -155,7 +156,7 @@ public class Geocode {
 
         public Stream<GeoCodeResult> geocode(String address, long maxResults) {
             throttler.waitForThrottle();
-            String url = "http://nominatim.openstreetmap.org/search.php?q=" + address.replace(" ", "+") + "&format=json";
+            String url = "http://nominatim.openstreetmap.org/search.php?q=" + URLEncoder.encode(address) + "&format=json";
             System.out.println("apoc.spatial.geocode: " + url);
             Object value = JsonUtil.loadJson(url);
             if (value instanceof List) {
@@ -189,7 +190,7 @@ public class Geocode {
                 return Stream.empty();
             }
             throttler.waitForThrottle();
-            String url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + address.replace(" ", "+") + credentials;
+            String url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + URLEncoder.encode(address) + credentials;
             System.out.println("apoc.spatial.geocode: " + url);
             Object value = JsonUtil.loadJson(url);
             if (value instanceof Map) {
