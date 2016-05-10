@@ -2,7 +2,9 @@ package apoc.text;
 
 import apoc.util.TestUtil;
 import org.junit.*;
+import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Arrays;
@@ -19,6 +21,10 @@ import static org.junit.Assert.*;
  */
 public class StringsTest {
     private static GraphDatabaseService db;
+
+    @Rule
+    public ExpectedException thrown= ExpectedException.none();
+
 
     @BeforeClass
     public static void setUp() throws Exception
@@ -197,4 +203,31 @@ public class StringsTest {
                         "CALL apoc.text.filterCleanMatches(text, 'hello_world') RETURN text",
                 row -> assertEquals("Hello World!", row.get("text")));
     }
+
+    @Test
+    public void testUrlEncode() {
+        testCall(db,
+                "CALL apoc.text.urlencode('ab cd=gh&ij?') YIELD value RETURN value",
+                row -> assertEquals("ab+cd%3Dgh%26ij%3F", row.get("value"))
+        );
+    }
+
+    @Test
+    public void testUrlDecode() {
+        testCall(db,
+                "CALL apoc.text.urldecode('ab+cd%3Dgh%26ij%3F') YIELD value RETURN value",
+                row -> assertEquals("ab cd=gh&ij?", row.get("value"))
+        );
+    }
+
+    @Test
+    public void testUrlDecodeFailure() {
+        thrown.expect(QueryExecutionException.class);
+        thrown.expectMessage("Failed to invoke procedure `apoc.text.urldecode`: Caused by: java.lang.IllegalArgumentException: URLDecoder: Incomplete trailing escape (%) pattern");
+        testCall(db,
+                "CALL apoc.text.urldecode('ab+cd%3Dgh%26ij%3') YIELD value RETURN value",
+                row -> assertEquals("ab cd=gh&ij?", row.get("value"))
+        );
+    }
+
 }
