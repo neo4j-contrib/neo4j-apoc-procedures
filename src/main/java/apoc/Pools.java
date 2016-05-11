@@ -17,9 +17,9 @@ public class Pools {
     }
 
     public static ExecutorService createDefaultPool() {
-        int threads = Runtime.getRuntime().availableProcessors();
+        int threads = Runtime.getRuntime().availableProcessors()*2;
         int queueSize = threads * 25;
-        return new ThreadPoolExecutor(1, threads, 30L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(queueSize),
+        return new ThreadPoolExecutor(threads / 2, threads, 30L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(queueSize),
                 new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
