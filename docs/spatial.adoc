@@ -1,7 +1,10 @@
 = Spatial Functions
 
 The spatial procedures are intended to enable geographic capabilities on your data.
-Currently there is only one procedure _geocode_ which will convert a textual address
+
+=== geocode
+
+The first procedure _geocode_ which will convert a textual address
 into a location containing _latitude_, _longitude_ and _description_. Despite being
 only a single function, together with the built-in functions _point_ and _distance_
 we can achieve quite powerful results.
@@ -93,6 +96,37 @@ WHERE distance < 5000
 RETURN location.description AS description, distance
 ORDER BY distance
 LIMIT 100
+----
+
+=== sortPathsByDistance
+
+The second procedure enables you to sort a given collection of paths by the sum of their distance based on lat/long properties
+on the nodes.
+
+Sample data :
+
+[source, cypher]
+----
+CREATE (bruges:City {name:"bruges", latitude: 51.2605829, longitude: 3.0817189})
+CREATE (brussels:City {name:"brussels", latitude: 50.854954, longitude: 4.3051786})
+CREATE (paris:City {name:"paris", latitude: 48.8588376, longitude: 2.2773455})
+CREATE (dresden:City {name:"dresden", latitude: 51.0767496, longitude: 13.6321595})
+MERGE (bruges)-[:NEXT]->(brussels)
+MERGE (brussels)-[:NEXT]->(dresden)
+MERGE (brussels)-[:NEXT]->(paris)
+MERGE (bruges)-[:NEXT]->(paris)
+MERGE (paris)-[:NEXT]->(dresden)
+----
+
+Finding paths and sort them by distance
+
+[source, cypher]
+----
+MATCH (a:City {name:'bruges'}), (b:City {name:'dresden'})
+MATCH p=(a)-[*]->(b)
+WITH collect(p) as paths
+CALL apoc.spatial.sortPathsByDistance(paths) YIELD path, distance
+RETURN path, distance
 ----
 
 == Graph Refactoring
