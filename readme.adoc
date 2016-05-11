@@ -217,6 +217,7 @@ RETURN *;
 |===
 | apoc.monitor.ids | node and relationships-ids in total and in use
 | apoc.monitor.kernel | store information such as kernel version, start time, read-only, database-name, store-log-version etc.
+| apoc.monitor.lock(minWaitTime long) | db locking information such as avertedDeadLocks, lockCount, contendedLockCount and contendedLocks etc.
 | apoc.monitor.store | store size information for the different types of stores
 | apoc.monitor.tx | number of transactions total,opened,committed,concurrent,rolled-back,last-tx-id
 |===
@@ -385,6 +386,25 @@ Syntax: `[+-]LABEL1|LABEL2|...`
 | -Foe | Foe | exclude label (blacklist)
 |===
 
+=== Bitwise operations
+
+Provides a wrapper around the java bitwise operations.
+|===
+| call apoc.bitwise.cmp(a long, "operation", b long ) yield value as <identifier> 
+|===
+
+examples
+|===
+| operator | name | example | result 
+| a & b | AND | call apoc.bitwise.cmp(60,"&",13) | 12 
+| a \| b | OR | call apoc.bitwise.cmp(60,"\|",13) | 61 
+| a ^ b | XOR | call apoc.bitwise.cmp(60,"&",13) | 49
+| ~a | NOT | call apoc.bitwise.cmp(60,"&",0) | -61
+| a << b | LEFT SHIFT | call apoc.bitwise.cmp(60,"<<",2) | 240
+| a >> b | RIGHT SHIFT | call apoc.bitwise.cmp(60,">>",2) | 15 
+| a >>> b | UNSIGNED RIGHT SHIFT | call apoc.bitwise.cmp(60,">>>",2) | 15 
+|===
+
 === Graph Algorithms (work in progress)
 
 Provides a wrapper around GraphAlgoFactory.
@@ -411,50 +431,6 @@ CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as wei
 RETURN path, weight
 MATCH (n:Person)
 ----
-
-=== Path
-
-The apoc.path.expand procedure makes it possible to do variable length path traversals where you can specify the direction of the relationship per relationship type and a list of Label names which act as a "whitelist" or a "blacklist". The procedure will return a list of Paths in a variable name called "expandedPath".
-
-* `call apoc.path.expand(startNode <id>|Node, relationshipFilter, labelFilter, minLevel, maxLevel ) yield expandedPath as <identifier>`
-
-** startnode &lt;id&gt; |Node
-
-** relationshipFilter: `RELATIONSHIP_TYPE1{<,>,}|RELATIONSHIP_TYPE2{<,>,}|...`
-*** `RELATIONSHIP_TYPE>` only direction Outgoing
-*** `RELATIONSHIP_TYPE<` only direction Incoming
-*** `RELATIONSHIP_TYPE` both directions
-
-** labelFilter: `{+.-} LABEL1|LABEL2|...`
-*** `+` include label list (white list)
-*** `-` exclude label list (black list)
-
-** minLevel minimum path level
-
-** maxLevel maximum path level
-
-=== Examples
-
-[source,cypher]
-----
-call apoc.path.expand(1,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",0,3)  
-call apoc.path.expand(1,"ACTED_IN>|PRODUCED<|FOLLOWS<","-BigBrother",0,3)  
-call apoc.path.expand(1,"ACTED_IN>|PRODUCED<|FOLLOWS<","",0,3)  
-
-combined with cypher:
-
-match (tom:Person {name :"Tom Hanks"})
-call apoc.path.expand(tom,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",0,3) yield expandedPath as pp 
-return pp;
-
-or
-
-match (p:Person) with p limit 3
-call apoc.path.expand(p,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",1,2) yield expandedPath as pp
-return p, pp 
-----
-
-
 
 == Plans
 
