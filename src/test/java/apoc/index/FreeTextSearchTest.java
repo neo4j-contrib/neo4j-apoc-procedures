@@ -93,6 +93,17 @@ public class FreeTextSearchTest {
     }
 
     @Test
+    public void shouldHandleRepeatedCalls() throws Exception {
+        // given
+        execute("CREATE (:Person{name:'George Goldman', nick:'GeeGee'}), (:Person{name:'Cyrus Jones', age:103})");
+        execute("CALL apoc.index.addAllNodes('people', {Person:['name','nick']})");
+        execute("CALL apoc.index.addAllNodes('people', {Person:['name','nick']})");
+
+        // then
+        assertSingle(search("people", "GeeGee"), hasProperty("name", "George Goldman"));
+        assertSingle(search("people", "Jones"), hasProperty("name", "Cyrus Jones"));
+    }
+    @Test
     public void shouldQueryFreeTextIndex() throws Exception {
         // given
         execute("CREATE (:Person{name:'George Goldman', nick:'GeeGee'}), (:Person{name:'Cyrus Jones', age:103})");

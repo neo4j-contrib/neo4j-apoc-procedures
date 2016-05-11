@@ -7,6 +7,9 @@ import apoc.result.StringResult;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -57,6 +60,26 @@ public class Strings {
 
         boolean matched = text1 != null && text2 != null && removeNonWordCharacters(text1).equals(removeNonWordCharacters(text2));
         return Empty.stream(matched);
+    }
+
+    @Procedure
+    @Description("apoc.text.urlencode(text) - return the urlencoded text")
+    public Stream<StringResult> urlencode(@Name("text") String text) {
+        try {
+            return Stream.of(new StringResult(URLEncoder.encode(text, "UTF-8")));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("urlencoding failed", e);
+        }
+    }
+
+    @Procedure
+    @Description("apoc.text.urldecode(text) - return the urldecoded text")
+    public Stream<StringResult> urldecode(@Name("text") String text) {
+        try {
+            return Stream.of(new StringResult(URLDecoder.decode(text, "UTF-8")));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("urldecoding failed", e);
+        }
     }
 
     private static Pattern cleanPattern = Pattern.compile("[^A-Za-z0-9]+");

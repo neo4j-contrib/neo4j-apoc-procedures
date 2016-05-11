@@ -1,25 +1,42 @@
 apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'org.neo4j.procedure'
+version = '1.0.0-SNAPSHOT'
+
+description = """neo4j-apoc-procedures"""
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+
 
 repositories {
-    mavenLocal()
-//    maven { url "http://m2.neo4j.org/snapshots" }
-    mavenCentral()
+        
+     maven { url "http://repo.maven.apache.org/maven2" }
 }
-project.ext {
-    neo4j_version = "3.0.0"
-//    neo4j_version = "3.0.0-SNAPSHOT"
-}
-
 dependencies {
-	compile group: "org.neo4j", name:"neo4j", version:project.neo4j_version, changing : true
-    compile "org.codehaus.jackson:jackson-mapper-asl:1.9.7"
-	testCompile group: "org.neo4j", name:"neo4j-kernel", version:project.neo4j_version, classifier:"tests", changing : true
-	testCompile group: "org.neo4j", name:"neo4j-io", version:project.neo4j_version, classifier:"tests", changing : true
-	testCompile group: "junit", name:"junit", version:4.12
-    testCompile 'org.apache.derby:derby:10.12.1.1'
+    compile group: 'it.unimi.dsi', name: 'fastutil', version:'7.0.12'
+    compile group: 'commons-codec', name: 'commons-codec', version:'1.9'
+    testCompile group: 'org.apache.derby', name: 'derby', version:'10.12.1.1'
+    testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version:'3.0.1'
+    testCompile group: 'org.neo4j', name: 'neo4j-kernel', version:'3.0.1', classifier: "tests"
+    testCompile group: 'org.neo4j', name: 'neo4j-io', version:'3.0.1', classifier: "tests"
+    testCompile group: 'junit', name: 'junit', version:'4.12'
+    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version:'1.3'
+    compile(group: 'org.neo4j', name: 'neo4j', version:'3.0.1') {
+       /* This dependency was originally in the Maven provided scope, but the project was not of type war.
+       This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
+       Please review and delete this closure when resolved. */
+    }
+    compile(group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version:'1.9.7') {
+       /* This dependency was originally in the Maven provided scope, but the project was not of type war.
+       This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
+       Please review and delete this closure when resolved. */
+    }
+    compile(group: 'org.ow2.asm', name: 'asm', version:'5.0.2') {
+       /* This dependency was originally in the Maven provided scope, but the project was not of type war.
+       This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
+       Please review and delete this closure when resolved. */
+    }
 }
-
-group 'org.neo4j.procedure.apoc'
-version '0.1'

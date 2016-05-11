@@ -1,28 +1,28 @@
 package apoc.refactor;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
 import apoc.Description;
-import apoc.result.BooleanResult;
+import apoc.Pools;
 import apoc.result.NodeResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
-import static apoc.util.MapUtil.map;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.stream.Stream;
 
 public class GraphRefactoring {
     @Context
     public GraphDatabaseService db;
+
+    @Context
+    public GraphDatabaseAPI dbAPI;
 
     @Context
     public Log log;
@@ -213,32 +213,89 @@ public class GraphRefactoring {
     }
 
     /**
-     * Create category nodes from a string-valued property
+     * Create category nodes from unique property values
      */
     @Procedure
     @PerformsWrites
-    @Description("apoc.refactor.categorize(node, propertyKey, type, outgoing, label) turn each unique propertyKey into a category node and connect to it")
+    @Description("apoc.refactor.categorize(sourceKey, type, outgoing, label, targetKey, copiedKeys, batchSize) turn each unique propertyKey into a category node and connect to it")
     public void categorize(
-        @Name("node") Node node,
-        @Name("propertyKey") String propertyKey,
-        @Name("type") String relationshipType,
-        @Name("outgoing") Boolean outgoing,
-        @Name("label") String label
-    ) {
-        Object value = node.getProperty(propertyKey, null);
-        if (value != null) {
-            String q = "WITH {node} AS n " +
-                       "MERGE (cat:`" + label + "` {name: {value}}) " +
-           (outgoing ? "MERGE (n)-[:`" + relationshipType + "`]->(cat)"
-                     : "MERGE (n)<-[:`" + relationshipType + "`]-(cat)");
-            Map<String, Object> params = new HashMap<>(2);
-            params.put("node", node);
-            params.put("value", value);
-            Result result = db.execute(q, params);
-            while (result.hasNext()) result.next();
-            result.close();
-            node.removeProperty(propertyKey);
+            @Name("sourceKey") String sourceKey,
+            @Name("type") String relationshipType,
+            @Name("outgoing") Boolean outgoing,
+            @Name("label") String label,
+            @Name("targetKey") String targetKey,
+            @Name("copiedKeys") List<String> copiedKeys,
+            @Name("batchSize") long batchSize
+    ) throws ExecutionException {
+        // Verify and adjust arguments
+        if (sourceKey == null)
+            throw new IllegalArgumentException("Invalid (null) sourceKey");
+
+        if (targetKey == null)
+            throw new IllegalArgumentException("Invalid (null) targetKey");
+
+        copiedKeys.remove(targetKey); // Just to be sure
+
+        // Create batches of nodes
+        List<Node> batch = null;
+        List<Future<Void>> futures = new ArrayList<>();
+        try(Transaction tx = dbAPI.beginTx()) {
+            for (Node node : dbAPI.getAllNodes()) {
+                if (batch == null) {
+                    batch = new ArrayList<>((int) batchSize);
+                }
+                batch.add(node);
+                if (batch.size() == batchSize) {
+                    futures.add( categorizeNodes(batch, sourceKey, relationshipType, outgoing, label, targetKey, copiedKeys) );
+                    batch = null;
+                }
+            }
+            if (batch != null) {
+                futures.add( categorizeNodes(batch, sourceKey, relationshipType, outgoing, label, targetKey, copiedKeys) );
+            }
+
+            // Await processing of node batches
+            for (Future<Void> future : futures) {
+                Pools.force(future);
+            }
+            tx.success();
         }
+    }
+
+    private Future<Void> categorizeNodes(List<Node> batch, String sourceKey, String relationshipType, Boolean outgoing, String label, String targetKey, List<String> copiedKeys) {
+        return Pools.processBatch(batch, dbAPI, (Node node) -> {
+            Object value = node.getProperty(sourceKey, null);
+            if (value != null) {
+                String q =
+                        "WITH {node} AS n " +
+                                "MERGE (cat:`" + label + "` {`" + targetKey + "`: {value}}) " +
+                                (outgoing ? "MERGE (n)-[:`" + relationshipType + "`]->(cat) "
+                                        : "MERGE (n)<-[:`" + relationshipType + "`]-(cat) ") +
+                                "RETURN cat";
+                Map<String, Object> params = new HashMap<>(2);
+                params.put("node", node);
+                params.put("value", value);
+                Result result = dbAPI.execute(q, params);
+                if (result.hasNext()) {
+                    Node cat = (Node) result.next().get("cat");
+                    for (String copiedKey : copiedKeys) {
+                        Object copiedValue = node.getProperty(copiedKey, null);
+                        if (copiedValue != null) {
+                            Object catValue = cat.getProperty(copiedKey, null);
+                            if (catValue == null) {
+                                cat.setProperty(copiedKey, copiedValue);
+                                node.removeProperty(copiedKey);
+                            } else if (copiedValue.equals(catValue)) {
+                                node.removeProperty(copiedKey);
+                            }
+                        }
+                    }
+                }
+                assert (!result.hasNext());
+                result.close();
+                node.removeProperty(sourceKey);
+            }
+        });
     }
 
     private Node mergeNodes(Node source, Node target, boolean delete) {

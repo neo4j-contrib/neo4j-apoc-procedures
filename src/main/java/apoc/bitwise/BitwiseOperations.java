@@ -14,9 +14,9 @@ import apoc.result.LongResult;
  */
 public class BitwiseOperations {
 
-	@Procedure("apoc.bitwise.cmp")
-	@Description("apoc.bitwise.cmp(60,'&';,13) bitwise operations a & b, a | b, a ^ b, ~a, a >> b, a >>> b, a << b. returns the result of the bitwise operation" )
-	public Stream<LongResult> cmp(@Name("a") final Long a, @Name("operator") final String operator, @Name("b") final Long b) throws Exception {
+	@Procedure("apoc.bitwise.op")
+	@Description("apoc.bitwise.op(60,'|',13) bitwise operations a & b, a | b, a ^ b, ~a, a >> b, a >>> b, a << b. returns the result of the bitwise operation" )
+	public Stream<LongResult> op(@Name("a") final Long a, @Name("operator") final String operator, @Name("b") final Long b) throws Exception {
 		if (a == null || operator == null || operator.isEmpty()) {
 			return Stream.of(LongResult.NULL);
 		}
@@ -24,30 +24,37 @@ public class BitwiseOperations {
 			return Stream.of(LongResult.NULL);
 		}
 		long r = -1;
-		switch(operator) {
+		switch(operator.toLowerCase()) {
 			case "&":  
+			case "and":
 				r = a & b;
 			    break;
 			case "|":
+			case "or":
 				r = a | b;
 			    break;
 			case "^":
+			case "xor":
 				r = a ^ b;
 			    break;
 			case "~":
+			case "not":
 				r = ~a;
 			    break;
 			case ">>":
+			case "right shift":
 				r = a >> b;
 			    break;
 			case ">>>":
+			case "right shift unsigned":
 				r = a >>> b;
 			    break;
 			case "<<":
+			case "left shift":
 				r = a << b;
 			    break;
 			default:
-				throw new Exception("Invalid bitwise operator :" + operator + "'");
+				throw new Exception("Invalid bitwise operator : '" + operator + "'");
 		}
 		return Stream.of(new LongResult(r));
 	}

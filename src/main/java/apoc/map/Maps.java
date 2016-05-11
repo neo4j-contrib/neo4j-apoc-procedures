@@ -5,7 +5,6 @@ import apoc.result.MapResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
-import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
 import java.util.*;
@@ -56,7 +55,6 @@ public class Maps {
     }
 
     @Procedure
-    @PerformsWrites
     @Description("apoc.map.setKey(map,key,value)")
     public Stream<MapResult> setKey(@Name("map") Map<String,Object> map, @Name("key") String key, @Name("value") Object value) {
         LinkedHashMap<String, Object> res = new LinkedHashMap<>(map);
@@ -78,4 +76,23 @@ public class Maps {
         }
         return Stream.of(new MapResult(res));
     }
+
+    @Procedure
+    @Description("apoc.map.flatten(map) yield map - flattens nested items in map using dot notation")
+    public Stream<MapResult> flatten(@Name("map") Map<String, Object> map) {
+        Map<String, Object> flattenedMap = new HashMap<>();
+        flattenMapRecursively(flattenedMap, map, "");
+        return Stream.of(new MapResult(flattenedMap));
+    }
+
+    private void flattenMapRecursively(Map<String, Object> flattenedMap, Map<String, Object> map, String prefix) {
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+             if (entry.getValue() instanceof Map) {
+                 flattenMapRecursively(flattenedMap, (Map<String, Object>) entry.getValue(), prefix + entry.getKey() + ".");
+             } else {
+                 flattenedMap.put(prefix + entry.getKey(), entry.getValue());
+             }
+        }
+    }
+
 }

@@ -38,22 +38,22 @@ public class PageRankTest
                                                  "CREATE (k:Company {name:'k'})\n" +
 
                                                  "CREATE\n" +
-                                                 "  (b)-[:SIMILAR {score:0.80}]->(c),\n" +
-                                                 "  (c)-[:SIMILAR {score:0.80}]->(b),\n" +
-                                                 "  (d)-[:SIMILAR {score:0.80}]->(a),\n" +
-                                                 "  (e)-[:SIMILAR {score:0.80}]->(b),\n" +
-                                                 "  (e)-[:SIMILAR {score:0.80}]->(d),\n" +
-                                                 "  (e)-[:SIMILAR {score:0.80}]->(f),\n" +
-                                                 "  (f)-[:SIMILAR {score:0.80}]->(b),\n" +
-                                                 "  (f)-[:SIMILAR {score:0.80}]->(e),\n" +
-                                                 "  (g)-[:SIMILAR {score:0.80}]->(b),\n" +
-                                                 "  (g)-[:SIMILAR {score:0.80}]->(e),\n" +
-                                                 "  (h)-[:SIMILAR {score:0.80}]->(b),\n" +
-                                                 "  (h)-[:SIMILAR {score:0.80}]->(e),\n" +
-                                                 "  (i)-[:SIMILAR {score:0.80}]->(b),\n" +
-                                                 "  (i)-[:SIMILAR {score:0.80}]->(e),\n" +
-                                                 "  (j)-[:SIMILAR {score:0.80}]->(e),\n" +
-                                                 "  (k)-[:SIMILAR {score:0.80}]->(e)\n";
+                                                 "  (b)-[:TYPE_1 {score:0.80}]->(c),\n" +
+                                                 "  (c)-[:TYPE_1 {score:0.80}]->(b),\n" +
+                                                 "  (d)-[:TYPE_1 {score:0.80}]->(a),\n" +
+                                                 "  (e)-[:TYPE_1 {score:0.80}]->(b),\n" +
+                                                 "  (e)-[:TYPE_1 {score:0.80}]->(d),\n" +
+                                                 "  (e)-[:TYPE_1 {score:0.80}]->(f),\n" +
+                                                 "  (f)-[:TYPE_1 {score:0.80}]->(b),\n" +
+                                                 "  (f)-[:TYPE_1 {score:0.80}]->(e),\n" +
+                                                 "  (g)-[:TYPE_2 {score:0.80}]->(b),\n" +
+                                                 "  (g)-[:TYPE_2 {score:0.80}]->(e),\n" +
+                                                 "  (h)-[:TYPE_2 {score:0.80}]->(b),\n" +
+                                                 "  (h)-[:TYPE_2 {score:0.80}]->(e),\n" +
+                                                 "  (i)-[:TYPE_2 {score:0.80}]->(b),\n" +
+                                                 "  (i)-[:TYPE_2 {score:0.80}]->(e),\n" +
+                                                 "  (j)-[:TYPE_2 {score:0.80}]->(e),\n" +
+                                                 "  (k)-[:TYPE_2 {score:0.80}]->(e)\n";
 
     public static final String RANDOM_GRAPH =
             "FOREACH (_ IN range(0,100) | CREATE ()) " +
@@ -80,7 +80,8 @@ public class PageRankTest
     {
         db.execute( COMPANIES_QUERY ).close();
         String query = "MATCH (b:Company {name:'b'})\n" +
-                       "CALL apoc.algo.pageRankWithIterations(20, [b]) YIELD node, score\n" +
+                       "CALL apoc.algo.pageRankWithConfig([b],{iterations:20,types:'TYPE_1|TYPE_2'}) " +
+                       "YIELD node, score\n" +
                        "RETURN node.name AS name, score\n" +
                        "ORDER BY score DESC";
         Result result = db.execute( query );
@@ -88,30 +89,57 @@ public class PageRankTest
         Map<String,Object> row = result.next();
         assertFalse( result.hasNext() );
         assertEquals( PageRankAlgoTest.EXPECTED, (double) row.get( "score" ), 0.1D );
+    }
 
+    @Test
+    public void shouldGetPageRankExpectedResultWithTypes() throws IOException
+    {
+        db.execute( COMPANIES_QUERY ).close();
+        String query = "MATCH (b:Company {name:'b'})\n" +
+                       "CALL apoc.algo.pageRankWithConfig([b],{iterations:20}) YIELD node, score\n" +
+                       "RETURN node.name AS name, score\n" +
+                       "ORDER BY score DESC";
+        Result result = db.execute( query );
+        assertTrue( result.hasNext() );
+        Map<String,Object> row = result.next();
+        assertFalse( result.hasNext() );
+        assertEquals( PageRankAlgoTest.EXPECTED, (double) row.get( "score" ), 0.1D );
     }
 
     @Test
     public void shouldHandleEmptyNodeSet()
     {
         db.execute( RANDOM_GRAPH ).close();
+
         assertExpectedResult( 0, "CALL apoc.algo.pageRank([])" + "" );
-        assertExpectedResult( 0, "CALL apoc.algo.pageRankWithIterations(10,[])" + "" );
+        assertExpectedResult( 0, "CALL apoc.algo.pageRankWithConfig([],{iterations:10})" + "" );
+
+        assertExpectedResult( 0, "CALL apoc.algo.pageRank([])" );
+        assertExpectedResult( 0, "CALL apoc.algo.pageRankWithConfig([],{iterations:10,types:'TYPE'})" );
     }
 
     @Test( expected = RuntimeException.class )
     public void shouldHandleNullNodes()
     {
         db.execute( RANDOM_GRAPH ).close();
+
         assertExpectedResult( 0, algoQuery( "CALL apoc.algo.pageRank(null)" ) );
-        assertExpectedResult( 0, algoQuery( "CALL apoc.algo.pageRankWithIterations(10,null)" ) );
+        assertExpectedResult( 0, algoQuery( "CALL apoc.algo.pageRankWithConfig(null,{iterations:10})" ) );
+
+        assertExpectedResult( 0, algoQuery( "CALL apoc.algo.pageRank(null})" ) );
+        assertExpectedResult( 0, algoQuery( "CALL apoc.algo.pageRankWithConfig(null,{iterations:10," +
+                                            "types:'TYPE_1|TYPE_2'})" ) );
     }
 
     @Test( expected = RuntimeException.class )
     public void shouldHandleNullIterations()
     {
         db.execute( RANDOM_GRAPH ).close();
-        assertExpectedResult( 0, algoQuery( "CALL apoc.algo.pageRankWithIterations(null,nodes)" ) );
+
+        assertExpectedResult( 0, algoQuery( "CALL apoc.algo.pageRankWithConfig(nodes,{iterations:null})" ) );
+
+        assertExpectedResult( 0, algoQuery( "CALL apoc.algo.pageRankWithConfig(nodes,{iterations:null," +
+                                            "types:'TYPE_1|TYPE_2'})" ) );
     }
 
     public String algoQuery( String algo )

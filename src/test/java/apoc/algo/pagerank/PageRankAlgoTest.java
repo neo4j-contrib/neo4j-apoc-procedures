@@ -1,5 +1,6 @@
 package apoc.algo.pagerank;
 
+import apoc.Pools;
 import apoc.algo.Algo;
 import apoc.util.TestUtil;
 import org.junit.After;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
@@ -39,25 +41,25 @@ public class PageRankAlgoTest
                                                  "CREATE (k:Company {name:'k'})\n" +
 
                                                  "CREATE\n" +
-                                                 "  (b)-[:SIMILAR {score:0.80}]->(c),\n" +
-                                                 "  (c)-[:SIMILAR {score:0.80}]->(b),\n" +
-                                                 "  (d)-[:SIMILAR {score:0.80}]->(a),\n" +
-                                                 "  (e)-[:SIMILAR {score:0.80}]->(b),\n" +
-                                                 "  (e)-[:SIMILAR {score:0.80}]->(d),\n" +
-                                                 "  (e)-[:SIMILAR {score:0.80}]->(f),\n" +
-                                                 "  (f)-[:SIMILAR {score:0.80}]->(b),\n" +
-                                                 "  (f)-[:SIMILAR {score:0.80}]->(e),\n" +
-                                                 "  (g)-[:SIMILAR {score:0.80}]->(b),\n" +
-                                                 "  (g)-[:SIMILAR {score:0.80}]->(e),\n" +
-                                                 "  (h)-[:SIMILAR {score:0.80}]->(b),\n" +
-                                                 "  (h)-[:SIMILAR {score:0.80}]->(e),\n" +
-                                                 "  (i)-[:SIMILAR {score:0.80}]->(b),\n" +
-                                                 "  (i)-[:SIMILAR {score:0.80}]->(e),\n" +
-                                                 "  (j)-[:SIMILAR {score:0.80}]->(e),\n" +
-                                                 "  (k)-[:SIMILAR {score:0.80}]->(e)\n";
+                                                 "  (b)-[:TYPE_1 {score:0.80}]->(c),\n" +
+                                                 "  (c)-[:TYPE_1 {score:0.80}]->(b),\n" +
+                                                 "  (d)-[:TYPE_1 {score:0.80}]->(a),\n" +
+                                                 "  (e)-[:TYPE_1 {score:0.80}]->(b),\n" +
+                                                 "  (e)-[:TYPE_1 {score:0.80}]->(d),\n" +
+                                                 "  (e)-[:TYPE_1 {score:0.80}]->(f),\n" +
+                                                 "  (f)-[:TYPE_1 {score:0.80}]->(b),\n" +
+                                                 "  (f)-[:TYPE_1 {score:0.80}]->(e),\n" +
+                                                 "  (g)-[:TYPE_2 {score:0.80}]->(b),\n" +
+                                                 "  (g)-[:TYPE_2 {score:0.80}]->(e),\n" +
+                                                 "  (h)-[:TYPE_2 {score:0.80}]->(b),\n" +
+                                                 "  (h)-[:TYPE_2 {score:0.80}]->(e),\n" +
+                                                 "  (i)-[:TYPE_2 {score:0.80}]->(b),\n" +
+                                                 "  (i)-[:TYPE_2 {score:0.80}]->(e),\n" +
+                                                 "  (j)-[:TYPE_2 {score:0.80}]->(e),\n" +
+                                                 "  (k)-[:TYPE_2 {score:0.80}]->(e)\n";
 
     public static final double EXPECTED = 2.87711;
-    static ExecutorService pool = PageRankUtils.createPool( 2, 50 );
+    static ExecutorService pool = Pools.DEFAULT;
 
     @Before
     public void setUp() throws Exception
@@ -81,10 +83,25 @@ public class PageRankAlgoTest
         long id = (long) getEntry( "b" ).get( "id" );
         assertEquals( EXPECTED, pageRank.getResult( id ), 0.1D );
 
-        for ( int i = 0; i < pageRank.numberOfNodes(); i++ )
-        {
-            System.out.println( pageRank.getResult( i ) );
-        }
+//        for ( int i = 0; i < pageRank.numberOfNodes(); i++ )
+//        {
+//            System.out.println( pageRank.getResult( i ) );
+//        }
+    }
+
+    @Test
+    public void shouldGetPageRankArrayStorageSPIWithTypes() throws IOException
+    {
+        db.execute( COMPANIES_QUERY ).close();
+        PageRank pageRank = new PageRankArrayStorageParallelSPI( db, pool );
+        pageRank.compute( 20, RelationshipType.withName( "TYPE_1" ), RelationshipType.withName( "TYPE_2" ) );
+        long id = (long) getEntry( "b" ).get( "id" );
+        assertEquals( EXPECTED, pageRank.getResult( id ), 0.1D );
+
+//        for ( int i = 0; i < pageRank.numberOfNodes(); i++ )
+//        {
+//            System.out.println( pageRank.getResult( i ) );
+//        }
     }
 
     private Map<String,Object> getEntry( String name )

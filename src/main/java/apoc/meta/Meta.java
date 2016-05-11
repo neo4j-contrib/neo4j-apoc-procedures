@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.min;
 import static java.util.Collections.singletonMap;
 
@@ -298,6 +299,30 @@ public class Meta {
             }
         };
         long sample = sampleSize == null || sampleSize < 100 ? SAMPLE : sampleSize;
+        sample(db,sampler, (int) sample);
+        return Stream.of(new GraphResult(new ArrayList<>(labels.values()), new ArrayList<>(rels.values())));
+    }
+
+    @Procedure
+    @Description("apoc.meta.subGraph({labels:[labels],rels:[rel-types],sample:sample}) - examines a sample sub graph to create the meta-graph, default sampleSize is 100")
+    public Stream<GraphResult> subGraph(@Name("config") Map<String,Object> config ) {
+        Set<String> includeLabels = new HashSet<>((Collection<String>)config.getOrDefault("labels",emptyList()));
+        Set<String> includeRels = new HashSet<>((Collection<String>)config.getOrDefault("rels",emptyList()));
+        Map<String, Node> labels = new TreeMap<>();
+        Map<List<String>,Relationship> rels = new HashMap<>();
+        Sampler sampler = new Sampler() {
+            public void sample(Label label, int count, Node node) {
+                if (includeLabels.isEmpty() || includeLabels.contains(label.name())) {
+                    mergeMetaNode(label, labels, true);
+                }
+            }
+            public void sample(Label label, int count, Node node, RelationshipType type, Direction direction, int degree, Relationship rel) {
+                if (rel!=null && (includeRels.isEmpty() || includeRels.contains(type.name()))) {
+                    addRel(rels, labels, rel);
+                }
+            }
+        };
+        long sample = ((Number)config.getOrDefault("sample",100)).longValue();
         sample(db,sampler, (int) sample);
         return Stream.of(new GraphResult(new ArrayList<>(labels.values()), new ArrayList<>(rels.values())));
     }
