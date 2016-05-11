@@ -21,7 +21,6 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import apoc.Description;
-import apoc.result.MultiSearchResult;
 import apoc.result.NodeResult;
 
 public class MultiSearch {
@@ -40,9 +39,9 @@ public class MultiSearch {
     
     @Procedure("apoc.search.nodeAllReduced")
     @Description("Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, label and the searched property. apoc.search.nodeShortAll( map of label and properties which will be searched upon, searchType: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ). All 'hits' are returned.")
-	public Stream<MultiSearchResult> multiSearchAll( @Name("LabelPropertyMap") final String labelProperties, @Name("searchType") final String searchType, @Name("searchvalue") final String search) throws Exception {
+	public Stream<NodeReducedResult> multiSearchAll( @Name("LabelPropertyMap") final String labelProperties, @Name("searchType") final String searchType, @Name("searchvalue") final String search) throws Exception {
 
-		List<MultiSearchResult> res = new ArrayList<MultiSearchResult>(); 
+		List<NodeReducedResult> res = new ArrayList<NodeReducedResult>(); 
 
 		List<QueryWorker> defList = validateInput(labelProperties, searchType, search);
 		defList.parallelStream().forEach(new Consumer<QueryWorker>() {
@@ -57,12 +56,12 @@ public class MultiSearch {
     
 	@Procedure("apoc.search.nodeReduced")
     @Description("Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched properties. apoc.search.nodeShort( map of label and properties which will be searched upon, searchType: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ). Multiple search results for the same node are merged into one record.")
-	public Stream<MultiSearchResult> multiSearch( @Name("LabelPropertyMap") final String labelProperties, @Name("searchType") final String searchType, @Name("searchvalue") final String search) throws Exception {
-		Map<Long,MultiSearchResult> mres = new HashMap<Long,MultiSearchResult>(); 
+	public Stream<NodeReducedResult> multiSearch( @Name("LabelPropertyMap") final String labelProperties, @Name("searchType") final String searchType, @Name("searchvalue") final String search) throws Exception {
+		Map<Long,NodeReducedResult> mres = new HashMap<Long,NodeReducedResult>(); 
 		try {
 			List<QueryWorker> defList = validateInput(labelProperties, searchType, search);
 			
-			List<MultiSearchResult> res = new ArrayList<MultiSearchResult>(); 
+			List<NodeReducedResult> res = new ArrayList<NodeReducedResult>(); 
 			defList.parallelStream().forEach(new Consumer<QueryWorker>() {
 				@Override
 				public void accept(QueryWorker t) {
@@ -70,8 +69,8 @@ public class MultiSearch {
 				}
 			} );
 			// merge duplicate nodes
-			for (MultiSearchResult msr : res) {
-				MultiSearchResult mn = mres.get(msr.id);
+			for (NodeReducedResult msr : res) {
+				NodeReducedResult mn = mres.get(msr.id);
 				if (mn == null) {
 					mres.put(msr.id,msr);
 				} else {
@@ -194,10 +193,10 @@ public class MultiSearch {
 			this.searchType = searchType;
 			this.nlog = lg;
 		}
-	    public List<MultiSearchResult> doQuery()  	{
+	    public List<NodeReducedResult> doQuery()  	{
 			long tstart = System.currentTimeMillis();
 			
-	    	List<MultiSearchResult> m = new ArrayList<MultiSearchResult>();
+	    	List<NodeReducedResult> m = new ArrayList<NodeReducedResult>();
 	    	try (Transaction tx = api.beginTx()) {
 				ResourceIterator<Node>  niter = null;
 				if (searchType.equals(SEARCH_TYPE_EXACT)) {
@@ -215,7 +214,7 @@ public class MultiSearch {
 					List<String> labels = new ArrayList<String>();
 					labels.add(label);
 					props.put(prop, n.getProperty(prop));
-					MultiSearchResult msr = new MultiSearchResult(labels
+					NodeReducedResult msr = new NodeReducedResult(labels
 								, n.getId()
 								, props);
 					m.add(msr);
@@ -259,5 +258,20 @@ public class MultiSearch {
 			return this.name;
 		}
 		
+	}
+	public class NodeReducedResult{
+		public List<String> label;
+		public Map<String,Object> values;
+		public long   id;
+	
+		public NodeReducedResult( List<String> labels,
+				long id,
+				Map<String,Object> val
+				) {
+			this.label = labels;
+			this.id = id;
+			this.values = val;
+		}
+	
 	}
 }
