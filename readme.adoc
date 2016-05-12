@@ -393,7 +393,7 @@ examples
 
 The apoc.path.expand procedure makes it possible to do variable length path traversals where you can specify the direction of the relationship per relationship type and a list of Label names which act as a "whitelist" or a "blacklist". The procedure will return a list of Paths in a variable name called "path".
 
-[cols="1m,5"]
+[cols="5m,4"]
 |===
 | call apoc.path.expand(startNode <id>\|Node, relationshipFilter, labelFilter, minDepth, maxDepth ) yield path as <identifier> | expand from given nodes(s) taking the provided restrictions into account
 |===
@@ -421,6 +421,42 @@ Syntax: `[+-]LABEL1|LABEL2|...`
 | +Friend | Friend | include label (whitelist)
 | -Foe | Foe | exclude label (blacklist)
 |===
+
+=== Parallel Node Search 
+
+Utility to find nodes in parallel. These procedures return a single list of nodes or a list of 'reduced' records with node id, labels, and the properties where the search was executed upon. 
+Typically the reduced version is used when the node has a lot of data in it. 
+
+To have the most benefit of a fast search make sure you use properties which are indexed. The search will be executed as parallel as possible depending on the amount of available cores.
+
+[cols="5m,4"]
+|===
+| call apoc.search.node(LabelPropertyMap, searchType, searchValue ) yield node as <identifier> | A distinct set of Nodes will be returned.
+| call apoc.search.nodeAll(LabelPropertyMap, searchType, searchValue ) yield node as <identifier> | All the found Nodes will be returned.
+| call apoc.search.nodeReduced(LabelPropertyMap, searchType, searchValue ) yield id as <identifier>, labels as <identifier>, values as <identifier> | A merged set of 'reduced' Node information will be returned. Per node one record.
+| call apoc.search.nodeAllReduced(LabelPropertyMap, searchType, searchValue ) yield id as <identifier>, labels as <identifier>, values as <identifier> | All the found 'reduced' Node information will be returned.
+|===
+
+
+LabelPropertyMap
+
+The label property map can have multiple labels and one or more properties per label. 
+
+Syntax: `{ label1 : "propertyOne", label2 :["propOne","propTwo"] }`
+
+For every Label-Property combination a parallel search will be executed: Label1.propertyOne, label2.propOne and label2.propTwo.
+
+searchType
+
+The searchType must have one of the following values : "EXACT" | "CONTAINS" | "STARTS WITH" | "ENDS WITH"
+
+example:
+[source,cypher]
+----
+call apoc.search.node('{Address :["address"],Entity: ["name","address","original_name"], Intermediary : "name", Officer :"name"}'
+,"CONTAINS"
+,"Cameron") yield node as n return n
+----
 
 === Graph Algorithms (work in progress)
 
