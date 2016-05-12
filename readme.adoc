@@ -60,7 +60,9 @@ WITH * WHERE text IS null
 RETURN name AS undocumented
 ----
 
-=== Manual Indexes
+== Manual Indexes
+
+// tag::fulltext[]
 
 === Index Queries
 
@@ -84,7 +86,7 @@ Procedures to add to and query manual indexes
 | apoc.index.in(node,'TYPE','prop:value*') YIELD node, weight | lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*
 |===
 
-==== Index Management
+=== Index Management
 
 [cols="1m,5"]
 |===
@@ -101,6 +103,9 @@ match (p:Person) call apoc.index.addNode(p,["name","age"]) RETURN count(*);
 // 129s for 1M People
 call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limit 2
 ----
+
+// end::fulltext[]
+
 
 === Meta Graph
 
@@ -474,6 +479,7 @@ MATCH (n:Person)
 * subtraction, union, disjunction, conjunction of collections
 * remove from map
 * match (a)-[r*]->(b)  where all rels in the path are this pattern ()-[:Foo]->()-[:Bar]->()
+* all unique pairs of a list
 * TopK select
 * apoc.schema.create(indexConfig) - {unique:[{Label:keys}], index:[{Label:keys}],existence:[{Label:keys}], }
 * Procedures in other languages (e.g. JS, JSR-223 scripting -> apoc-unsafe project)

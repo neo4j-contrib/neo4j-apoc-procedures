@@ -424,8 +424,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_included_procedures_overview">Included Procedures Overview</a>
 <ul class="sectlevel3">
 <li><a href="#_built_in_help">Built in Help</a></li>
-<li><a href="#_manual_indexes">Manual Indexes</a></li>
+</ul>
+</li>
+<li><a href="#_manual_indexes">Manual Indexes</a>
+<ul class="sectlevel3">
 <li><a href="#_index_queries">Index Queries</a></li>
+<li><a href="#_index_management">Index Management</a></li>
 <li><a href="#_meta_graph">Meta Graph</a></li>
 <li><a href="#_locking">Locking</a></li>
 <li><a href="#_from_tojson">from/toJson</a></li>
@@ -450,6 +454,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_detailed_documentation">Detailed Documentation</a>
 <ul class="sectlevel1">
+<li><a href="#_text_and_lookup_indexes">Text and Lookup Indexes</a>
+<ul class="sectlevel2">
+<li><a href="#_index_queries_2">Index Queries</a></li>
+<li><a href="#_index_management_2">Index Management</a></li>
+<li><a href="#_full_text_search">Full Text Search</a>
+<ul class="sectlevel3">
+<li><a href="#_advanced_search">Advanced Search</a></li>
+<li><a href="#_fulltext_and_graph_search">Fulltext and Graph Search</a></li>
+<li><a href="#_complex_searches">Complex Searches</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li><a href="#_utility_functions">Utility Functions</a>
 <ul class="sectlevel2">
 <li><a href="#_phonetic_text_procedures">Phonetic Text Procedures</a></li>
@@ -491,6 +508,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_spatial_functions">Spatial Functions</a>
 <ul class="sectlevel3">
+<li><a href="#_geocode">geocode</a></li>
 <li><a href="#_configuring_geocode">Configuring Geocode</a></li>
 <li><a href="#_configuring_custom_geocode_provider">Configuring Custom Geocode Provider</a></li>
 <li><a href="#_using_geocode_within_a_bigger_cypher_query">Using Geocode within a bigger Cypher query</a></li>
@@ -618,10 +636,9 @@ RETURN name AS undocumented</code></pre>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_manual_indexes">Manual Indexes</h4>
-
 </div>
+<div class="sect2">
+<h3 id="_manual_indexes">Manual Indexes</h3>
 <div class="sect3">
 <h4 id="_index_queries">Index Queries</h4>
 <div class="paragraph">
@@ -683,8 +700,9 @@ RETURN name AS undocumented</code></pre>
 </tr>
 </tbody>
 </table>
-<div class="sect4">
-<h5 id="_index_management">Index Management</h5>
+</div>
+<div class="sect3">
+<h4 id="_index_management">Index Management</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -718,7 +736,6 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 </div>
 </div>
 </div>
-</div>
 <div class="sect3">
 <h4 id="_meta_graph">Meta Graph</h4>
 <div class="paragraph">
@@ -737,6 +754,11 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.graphSample(sampleSize)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">examines a sample graph to create the meta-graph, default sampleSize is 100</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.subGraph({config})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">examines a sample sub graph to create the meta-graph, default sampleSize is 100<br>
+config is: {labels:[labels],rels:[rel-types],sample:sample}</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.data</code></p></td>
@@ -1127,6 +1149,10 @@ RETURN *;</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">look up geographic location of location from openstreetmap geocoding service</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.spatial.sortPathsByDistance(Collection&lt;Path&gt;) YIELD path, distance</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sort a given collection of paths by geographic distance based on lat/long properties on the path nodes</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1457,8 +1483,8 @@ RETURN *;</code></pre>
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.expand(startNode &lt;id&gt;</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Node, relationshipFilter, labelFilter, minDepth, maxDepth ) yield path as &lt;identifier&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.expand(startNode &lt;id&gt;|Node, relationshipFilter, labelFilter, minDepth, maxDepth ) yield path as &lt;identifier&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expand from given nodes(s) taking the provided restrictions into account</p></td>
 </tr>
 </tbody>
 </table>
@@ -1671,6 +1697,30 @@ MATCH (n:Person)</code></pre>
 <p>store arbitrary objects in properties with kryo/packstream or similar serialization</p>
 </li>
 <li>
+<p>indexOf() function for array, same semantics like java.util.List.indexOf</p>
+</li>
+<li>
+<p>variable path length on patterns instead of single relationships. Don&#8217;t have a syntax for this to suggest, but assume you want to search for ()-[:TYPE_A]&#8594;()-[:TYPE_B]&#8594;() e.g. 2..5 times.</p>
+</li>
+<li>
+<p>subtraction, union, disjunction, conjunction of collections</p>
+</li>
+<li>
+<p>remove from map</p>
+</li>
+<li>
+<p>match (a)-[r*]&#8594;(b)  where all rels in the path are this pattern ()-[:Foo]&#8594;()-[:Bar]&#8594;()</p>
+</li>
+<li>
+<p>all unique pairs of a list</p>
+</li>
+<li>
+<p>TopK select</p>
+</li>
+<li>
+<p>apoc.schema.create(indexConfig) - {unique:[{Label:keys}], index:[{Label:keys}],existence:[{Label:keys}], }</p>
+</li>
+<li>
 <p>Procedures in other languages (e.g. JS, JSR-223 scripting &#8594; apoc-unsafe project)</p>
 </li>
 <li>
@@ -1691,6 +1741,220 @@ MATCH (n:Person)</code></pre>
 </div>
 </div>
 <h1 id="_detailed_documentation" class="sect0">Detailed Documentation</h1>
+<div class="sect1">
+<h2 id="_text_and_lookup_indexes">Text and Lookup Indexes</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_index_queries_2">Index Queries</h3>
+<div class="paragraph">
+<p>Procedures to add to and query manual indexes</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addAllNode('index-name',{label1:['prop1',&#8230;&#8203;],&#8230;&#8203;})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add all nodes to this full text index with the given fields, additionally populates a 'search' index field with all of them in one place</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addNode(node,['prop1',&#8230;&#8203;])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add node to an index for each label it has</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addNodeByLabel(node,'Label',['prop1',&#8230;&#8203;])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add node to an index for the given label</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addRelationship(rel,['prop1',&#8230;&#8203;])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add relationship to an index for its type</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.search('index-name', 'query') YIELD node, weight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">search for the first 100 nodes in the given full text index matching the given lucene query returned by relevance</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.nodes('Label','prop:value*') YIELD node, weight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">lucene query on node index with the given label name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.relationships('TYPE','prop:value*') YIELD rel, weight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">lucene query on relationship index with the given type name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel, weight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.out(node,'TYPE','prop:value*') YIELD node, weight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">lucene query on relationship index with the given type name for <strong>outgoing</strong> relationship of the given node, <strong>returns end-nodes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.in(node,'TYPE','prop:value*') YIELD node, weight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">lucene query on relationship index with the given type name for <strong>incoming</strong> relationship of the given node, <strong>returns start-nodes</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_index_management_2">Index Management</h3>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.index.list() - YIELD type,name,config</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">lists all manual indexes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.index.remove('name') YIELD type,name,config</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">removes manual indexes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.index.forNodes('name',{config}) YIELD type,name,config</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">gets or creates manual node index</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.index.forRelationships('name',{config}) YIELD type,name,config</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">gets or creates manual relationship index</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">Add node to index example</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">match (p:Person) call apoc.index.addNode(p,["name","age"]) RETURN count(*);
+// 129s for 1M People
+call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limit 2</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_full_text_search">Full Text Search</h3>
+<div class="paragraph">
+<p>Indexes are used for finding nodes in the graph that further operations can then continue from.
+Just like in a book where you look at the index to find a section that interest you, and then start reading from there.
+A full text index allows you to find occurrences of individual words or phrases across all attributes.</p>
+</div>
+<div class="paragraph">
+<p>In order to use the full text search feature, we have to first index our data by specifying all the attributes we want to index.
+Here we create a full text index called <code>“locations”</code> (we will use this name when searching in the index) with our data.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.index.addAllNodes('locations',{
+  Company: ["name", "description"],
+  Person:  ["name","address"],
+  Address: ["address"]})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Creating the index will take a little while since the procedure has to read through the entire database to create the index.</p>
+</div>
+<div class="paragraph">
+<p>We can now use this index to search for nodes in the database.
+The most simple case would be to search across all data for a particular word.</p>
+</div>
+<div class="paragraph">
+<p>It does not matter which property that word exists in, any node that has that word in any of its indexed properties will be found.</p>
+</div>
+<div class="paragraph">
+<p>If you use a name in the call, all occurrences will be found (but limited to 100 results).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.index.search("locations", 'name')</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_advanced_search">Advanced Search</h4>
+<div class="paragraph">
+<p>We can further restrict our search to only searching in a particular attribute.
+In order to search for a <code>Person</code> with an address in <strong>France</strong>, we use the following.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.index.search("locations", "Person.address:France")</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now we can search for nodes with a specific property value, and then explore their neighbourhoods visually.</p>
+</div>
+<div class="paragraph">
+<p>But integrating it with an graph query is so much more powerful.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_fulltext_and_graph_search">Fulltext and Graph Search</h4>
+<div class="paragraph">
+<p>We could for instance search for addresses in the database that contain the word "Paris", and then find all companies registered at those addresses:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.index.search("locations", "Address.address:Paris~") YIELD node AS addr
+MATCH (addr)&lt;-[:HAS_ADDRESS]-(company:Company)
+RETURN company LIMIT 50</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The tilde (~) instructs the index search procedure to do a fuzzy match, allowing us to find “Paris” even if the spelling is slightly off.</p>
+</div>
+<div class="paragraph">
+<p>We might notice that there are addresses that contain the word “Paris” that are not in Paris, France.
+For example there might be a Paris Street somewhere.</p>
+</div>
+<div class="paragraph">
+<p>We can further specify that we want the text to contain both the word Paris, and the word France:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.index.search("locations", "+Address.address:Paris~ +France~")
+YIELD node AS addr
+MATCH (addr)&lt;-[:HAS_ADDRESS]-(company:Company)
+RETURN company LIMIT 50</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_complex_searches">Complex Searches</h4>
+<div class="paragraph">
+<p>Things start to get interesting when we look at how the different entities in Paris are connected to one another.
+We can do that by finding all the entities with addresses in Paris, then creating all pairs of such entities and finding the shortest path between each such pair:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.index.search("locations", "+Address.address:Paris~ +France~") YIELD node AS addr
+MATCH (addr)&lt;-[:HAS_ADDRESS]-(company:Company)
+WITH collect(company) AS companies
+
+// create unique pairs
+UNWIND companies AS x UNWIND companies AS y
+WITH x, y WHERE ID(x) &lt; ID(y)
+
+MATCH path = shortestPath((x)-[*..10]-(y))
+RETURN path</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more details on the query syntax used in the second parameter of the <code>search</code> procedure,
+please see <a href="http://www.lucenetutorial.com/lucene-query-syntax.html">this Lucene query tutorial</a></p>
+</div>
+</div>
+</div>
+</div>
+</div>
 <div class="sect1">
 <h2 id="_utility_functions">Utility Functions</h2>
 <div class="sectionbody">
@@ -2166,8 +2430,12 @@ ORDER BY score DESC</code></pre>
 <div class="sect2">
 <h3 id="_spatial_functions">Spatial Functions</h3>
 <div class="paragraph">
-<p>The spatial procedures are intended to enable geographic capabilities on your data.
-Currently there is only one procedure <em>geocode</em> which will convert a textual address
+<p>The spatial procedures are intended to enable geographic capabilities on your data.</p>
+</div>
+<div class="sect3">
+<h4 id="_geocode">geocode</h4>
+<div class="paragraph">
+<p>The first procedure <em>geocode</em> which will convert a textual address
 into a location containing <em>latitude</em>, <em>longitude</em> and <em>description</em>. Despite being
 only a single function, together with the built-in functions <em>point</em> and <em>distance</em>
 we can achieve quite powerful results.</p>
@@ -2198,6 +2466,7 @@ RETURN location.latitude, location.longitude // will return 47.2221667, -1.55666
 <p>This is because the backing geocoding service (OSM, Google, OpenCage or other) might return multiple
 results for the same query. GeocodeOnce() is designed to return the first, or highest
 ranking result.</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_configuring_geocode">Configuring Geocode</h4>
@@ -2310,6 +2579,41 @@ WHERE distance &lt; 5000
 RETURN location.description AS description, distance
 ORDER BY distance
 LIMIT 100</code></pre>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_sortpathsbydistance">sortPathsByDistance</h5>
+<div class="paragraph">
+<p>The second procedure enables you to sort a given collection of paths by the sum of their distance based on lat/long properties
+on the nodes.</p>
+</div>
+<div class="paragraph">
+<p>Sample data :</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (bruges:City {name:"bruges", latitude: 51.2605829, longitude: 3.0817189})
+CREATE (brussels:City {name:"brussels", latitude: 50.854954, longitude: 4.3051786})
+CREATE (paris:City {name:"paris", latitude: 48.8588376, longitude: 2.2773455})
+CREATE (dresden:City {name:"dresden", latitude: 51.0767496, longitude: 13.6321595})
+MERGE (bruges)-[:NEXT]-&gt;(brussels)
+MERGE (brussels)-[:NEXT]-&gt;(dresden)
+MERGE (brussels)-[:NEXT]-&gt;(paris)
+MERGE (bruges)-[:NEXT]-&gt;(paris)
+MERGE (paris)-[:NEXT]-&gt;(dresden)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Finding paths and sort them by distance</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (a:City {name:'bruges'}), (b:City {name:'dresden'})
+MATCH p=(a)-[*]-&gt;(b)
+WITH collect(p) as paths
+CALL apoc.spatial.sortPathsByDistance(paths) YIELD path, distance
+RETURN path, distance</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -2613,7 +2917,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-05-07 11:18:55 CEST
+Last updated 2016-05-12 09:16:58 CEST
 </div>
 </div>
 </body>

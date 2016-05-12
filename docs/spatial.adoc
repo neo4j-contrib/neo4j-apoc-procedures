@@ -2,7 +2,7 @@
 
 The spatial procedures are intended to enable geographic capabilities on your data.
 
-=== geocode
+== geocode
 
 The first procedure _geocode_ which will convert a textual address
 into a location containing _latitude_, _longitude_ and _description_. Despite being
