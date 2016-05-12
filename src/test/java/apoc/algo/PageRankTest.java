@@ -65,7 +65,7 @@ public class PageRankTest
     public void setUp() throws Exception
     {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure( db, Algo.class );
+        TestUtil.registerProcedure( db, PageRank.class );
     }
 
     @After

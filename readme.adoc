@@ -469,7 +469,13 @@ MATCH (n:Person)
 * run/load shell scripts apoc.load.shell(path)
 * apox.save.dump() whole database, dump("statement"), dump("", "data/import/file") dump("", "URL TO PUT"), formats - binary(packstream), human readable(graphml, graphjson), compression
 * store arbitrary objects in properties with kryo/packstream or similar serialization
-
+* indexOf() function for array, same semantics like java.util.List.indexOf
+* variable path length on patterns instead of single relationships. Don't have a syntax for this to suggest, but assume you want to search for ()-[:TYPE_A]->()-[:TYPE_B]->() e.g. 2..5 times.
+* subtraction, union, disjunction, conjunction of collections
+* remove from map
+* match (a)-[r*]->(b)  where all rels in the path are this pattern ()-[:Foo]->()-[:Bar]->()
+* TopK select
+* apoc.schema.create(indexConfig) - {unique:[{Label:keys}], index:[{Label:keys}],existence:[{Label:keys}], }
 * Procedures in other languages (e.g. JS, JSR-223 scripting -> apoc-unsafe project)
 * eval javascript
 * apoc.meta.validate(metagraph) validate a metagraph against the current graph and report violations

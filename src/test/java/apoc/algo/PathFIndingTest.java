@@ -17,7 +17,7 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
-public class AlgoTest {
+public class PathFindingTest {
 
     private GraphDatabaseService db;
     public static final String SETUP = "CREATE (b:City {name:'Berlin',lat:52.52464,lon:13.40514})\n" +
@@ -33,7 +33,7 @@ public class AlgoTest {
     @Before
    	public void setUp() throws Exception {
    		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-   		TestUtil.registerProcedure(db, Algo.class);
+   		TestUtil.registerProcedure(db, PathFinding.class);
    	}
 
    	@After
@@ -168,24 +168,6 @@ public class AlgoTest {
                     assertEquals(7, path.size());
                     assertEquals(false, res.hasNext());
                 }
-        );
-    }
-
-    @Test
-    public void testCommunity() {
-        db.execute("CREATE (n {id: 0, partition: 1}) " +
-                   "CREATE (n)-[:X]->({id: 1, weight: 1.0, partition: 1})" +
-                   "CREATE (n)-[:X]->({id: 2, weight: 2.0, partition: 1})" +
-                   "CREATE (n)-[:X]->({id: 3, weight: 1.0, partition: 1})" +
-                   "CREATE (n)-[:X]->({id: 4, weight: 1.0, partition: 1})" +
-                   "CREATE (n)-[:X]->({id: 5, weight: 8.0, partition: 2})"
-        ).close();
-
-        db.execute("CALL apoc.algo.community(1,null,'partition','X','OUTGOING','weight',1)").close();
-        testCall(
-            db,
-            "MATCH (n) WHERE n.id = 0 RETURN n.partition AS partition",
-            (r) -> assertThat(r.get("partition"), equalTo(2L))
         );
     }
 }

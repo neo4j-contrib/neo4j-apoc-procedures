@@ -59,13 +59,13 @@ public class CypherTest {
     }
     @Test
     public void testMapParallel() throws Exception {
-        int size = 10000000;
+        int size = 1000000;
         testResult(db, "CALL apoc.cypher.mapParallel('UNWIND range(0,9) as b RETURN b',{},range(1,{size}))", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
     @Test
     public void testParallel2() throws Exception {
-        int size = 10000000;
+        int size = 1000000;
         List<Long> list = new ArrayList<>(size);
         for (int i = 0; i < size; i++) list.add(3L);
         testCall(db, "CALL apoc.cypher.parallel2('RETURN a + 7 as b',{a:{list}},'a') YIELD value RETURN sum(value.b) as b", map("list", list),

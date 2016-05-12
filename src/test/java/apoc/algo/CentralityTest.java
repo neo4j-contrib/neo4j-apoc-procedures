@@ -33,7 +33,7 @@ public class CentralityTest
     public static void setUp() throws Exception
     {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure( db, Algo.class );
+        TestUtil.registerProcedure( db, Centrality.class );
         db.execute( RANDOM_GRAPH ).close();
     }
 

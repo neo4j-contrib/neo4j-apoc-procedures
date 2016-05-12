@@ -1,7 +1,7 @@
 package apoc.algo.pagerank;
 
 import apoc.Pools;
-import apoc.algo.Algo;
+import apoc.algo.LabelPropagation;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -65,7 +65,7 @@ public class PageRankAlgoTest
     public void setUp() throws Exception
     {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure( db, Algo.class );
+        TestUtil.registerProcedure( db, LabelPropagation.class );
     }
 
     @After

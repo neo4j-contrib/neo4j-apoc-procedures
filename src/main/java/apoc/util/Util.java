@@ -1,15 +1,17 @@
 package apoc.util;
 
+import apoc.path.RelationshipTypeAndDirections;
 import org.neo4j.graphdb.*;
+import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.helpers.collection.Pair;
 import org.neo4j.procedure.Name;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static java.lang.String.format;
 
 /**
  * @author mh
@@ -60,5 +62,52 @@ public class Util {
 
     public static Stream<Node> nodeStream(GraphDatabaseService db, @Name("nodes") Object ids) {
         return ids(ids).parallel().mapToObj(db::getNodeById);
+    }
+
+    private static double doubleValue(PropertyContainer pc, String prop, Number defaultValue) {
+        Object costProp = pc.getProperty(prop, defaultValue);
+        if (costProp instanceof Number) {
+            return ((Number) costProp).doubleValue();
+        }
+        return Double.parseDouble(costProp.toString());
+
+    }
+
+    private static double doubleValue(PropertyContainer pc, String prop) {
+        return doubleValue(pc, prop, 0);
+    }
+
+    public static Direction parseDirection(String direction) {
+        if (null == direction) {
+            return Direction.BOTH;
+        }
+        try {
+            return Direction.valueOf(direction.toUpperCase());
+        } catch (Exception e) {
+            throw new RuntimeException(format("Cannot convert value '%s' to Direction. Legal values are '%s'",
+                    direction, Arrays.toString(Direction.values())));
+        }
+    }
+
+    public static RelationshipType[] toRelTypes(List<String> relTypeStrings) {
+        RelationshipType[] relTypes = new RelationshipType[relTypeStrings.size()];
+        for (int i = 0; i < relTypes.length; i++) {
+            relTypes[i] = RelationshipType.withName(relTypeStrings.get(i));
+        }
+        return relTypes;
+    }
+
+    public static RelationshipType[] allRelationshipTypes(GraphDatabaseService db) {
+        return Iterables.asArray(RelationshipType.class, db.getAllRelationshipTypes());
+    }
+
+    public static RelationshipType[] typesAndDirectionsToTypesArray(String typesAndDirections) {
+        List<RelationshipType> relationshipTypes = new ArrayList<>();
+        for (Pair<RelationshipType, Direction> pair : RelationshipTypeAndDirections.parse(typesAndDirections)) {
+            if (null != pair.first()) {
+                relationshipTypes.add(pair.first());
+            }
+        }
+        return relationshipTypes.toArray(new RelationshipType[relationshipTypes.size()]);
     }
 }
