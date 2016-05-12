@@ -426,27 +426,23 @@ Syntax: `[+-]LABEL1|LABEL2|...`
 === Parallel Node Search 
 
 Utilities to find nodes in parallel. These procedures return a single list of nodes or a 'reduced' node information with the node id, labels, and the properties where the search was executed upon. 
-Typically the reduced versions are used when the nodes contain a lot of data/properties. To have the most benefit of a fast search make sure you use properties which are indexed.
+Typically the reduced versions are used when the nodes contain a lot of data/properties. To have the most benefit of a fast search make sure you use properties which are indexed. The search will be executed as parallel as possible depending on the amount of available cores.
 
-[cols="1m"]
+[cols="1m",5]
 |===
-| call apoc.search.node(LabelPropertyMap, searchType: EXACT \| CONTAINS \| STARTS WITH \| ENDS WITH, searchValue ) yield node as <identifier> 
-|   For every label property defined in the LabelPropertyMap a search will be done as parallel as possible (depending on available cores). A distinct set of Nodes will be returned.
-| call apoc.search.nodeAll(LabelPropertyMap, searchType: EXACT \| CONTAINS \| STARTS WITH \| ENDS WITH, searchValue ) yield node as <identifier> 
-|   For every label property defined in the LabelPropertyMap a search will be done as parallel as possible (depending on available cores). All the found Nodes will be returned.
-| call apoc.search.nodeReduced(LabelPropertyMap, searchType: EXACT \| CONTAINS \| STARTS WITH \| ENDS WITH, searchValue ) yield id as <identifier>, labels as <identifier>, values as <identifier> 
-|   For every label property defined in the LabelPropertyMap a search will be done as parallel as possible (depending on available cores). A merged set of 'reduced' Node information will be returned.
-| call apoc.search.nodeAllReduced(LabelPropertyMap, searchType: EXACT \| CONTAINS \| STARTS WITH \| ENDS WITH, searchValue ) yield node as <identifier> 
-|   For every label property defined in the LabelPropertyMap a search will be done as parallel as possible (depending on available cores). All the found 'reduced' Node information will be returned.
+| call apoc.search.node(LabelPropertyMap, searchType: EXACT \| CONTAINS \| STARTS WITH \| ENDS WITH, searchValue ) yield node as <identifier> |   A distinct set of Nodes will be returned.
+| call apoc.search.nodeAll(LabelPropertyMap, searchType: EXACT \| CONTAINS \| STARTS WITH \| ENDS WITH, searchValue ) yield node as <identifier> |   All the found Nodes will be returned.
+| call apoc.search.nodeReduced(LabelPropertyMap, searchType: EXACT \| CONTAINS \| STARTS WITH \| ENDS WITH, searchValue ) yield id as <identifier>, labels as <identifier>, values as <identifier> |  A merged set of 'reduced' Node information will be returned.
+| call apoc.search.nodeAllReduced(LabelPropertyMap, searchType: EXACT \| CONTAINS \| STARTS WITH \| ENDS WITH, searchValue ) yield node as <identifier> |  All the found 'reduced' Node information will be returned.
 |===
 
 LabelPropertyMap
 
-The label property map can have multiple labels and on or more properies per label. 
+The label property map can have multiple labels and one or more properties per label. 
 
 Syntax: { label1 : "propertyOne", label2 :["propOne","propTwo"] }
 
-For everey Label-property combination a parallel search will be executed: Label1.propertyOne, label2.propOne and label2.propTwo
+For every Label-property combination a parallel search will be executed: Label1.propertyOne, label2.propOne and label2.propTwo
 
 example:
 [source,cypher]
