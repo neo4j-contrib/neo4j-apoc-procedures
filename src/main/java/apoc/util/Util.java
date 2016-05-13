@@ -1,12 +1,15 @@
 package apoc.util;
 
+import apoc.Pools;
 import apoc.path.RelationshipTypeAndDirections;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Name;
 
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -109,5 +112,19 @@ public class Util {
             }
         }
         return relationshipTypes.toArray(new RelationshipType[relationshipTypes.size()]);
+    }
+
+    public static <T> T intTx(GraphDatabaseAPI db, Callable<T> callable) {
+        try {
+            return Pools.SINGLE.submit(() -> {
+                try (Transaction tx = db.beginTx()) {
+                    T result = callable.call();
+                    tx.success();
+                    return result;
+                }
+            }).get();
+        } catch (Exception e) {
+            throw new RuntimeException("Error executing in separate transaction", e);
+        }
     }
 }

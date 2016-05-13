@@ -183,18 +183,7 @@ public class Periodic {
 
             try (Result result = db.execute(cypherLoop, loopParams)) {
                 value = result.next().get("loop");
-                if (value == null) {
-                    return allResults;
-                }
-                if (value instanceof Number && (((Number)value).longValue()) == 0L) {
-                    return allResults;
-                }
-                if (value instanceof String && value.equals("")) {
-                    return allResults;
-                }
-                if (value instanceof Boolean && value.equals(false)) {
-                    return allResults;
-                }
+                if (!toBoolean(value)) return allResults;
             }
 
             log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
@@ -205,6 +194,13 @@ public class Periodic {
                 allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
             }
         }
+    }
+
+    public boolean toBoolean(Object value) {
+        if ((value == null || value instanceof Number && (((Number) value).longValue()) == 0L || value instanceof String && value.equals("") || value instanceof Boolean && value.equals(false))) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -228,44 +224,41 @@ public class Periodic {
     }
 
     private <T> Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, Iterator<T> iterator, Consumer<T> consumer) {
-        final int[] opsCount = {0};
-        final int[] batchesCount = {0};
+        long batches = 0;
+        long opsCount = 0;
+        long start = System.nanoTime();
         try {
-            // create transaction in separate thread
-            // using 1 element arrays to enable modification
-            final Transaction[] workerTransaction = {Pools.SINGLE.submit(() -> db.beginTx()).get()};
-
-            iterator.forEachRemaining(t -> Pools.SINGLE.submit(() -> {
-                log.debug("iteration " + opsCount[0]);
-                consumer.accept(t);
-                if ((++opsCount[0]) % batchsize == 0) {
-                    log.info("rolling over transaction at opsCount %d", opsCount[0]);
-                    batchesCount[0]++;
-                    workerTransaction[0].success();
-                    workerTransaction[0].close();
-                    workerTransaction[0] = db.beginTx();
-                }
-            }));
-            Pools.SINGLE.submit(() -> {
-                workerTransaction[0].success();
-                workerTransaction[0].close();
-                log.info("finalizing - closing transaction");
-            }).get();
-
+            do {
+                if (log.isDebugEnabled()) log.debug("execute in batch no " + batches +" batch size "+batchsize);
+                batches++;
+                opsCount += Pools.SINGLE.submit(() -> {
+                    int ops = 0;
+                    try (Transaction tx = db.beginTx()) {
+                        while (ops < batchsize && iterator.hasNext()) {
+                            consumer.accept(iterator.next());
+                            ops++;
+                        }
+                        tx.success();
+                        return ops;
+                    }
+                }).get();
+            } while (iterator.hasNext());
         } catch (InterruptedException | ExecutionException e) {
-            log.error("exception happened", e);
-            throw new RuntimeException(e);
+            log.error("Error during batched execution", e);
+            throw new RuntimeException("Error during batched execution",e);
         }
-        return Collections.singletonList(new BatchAndTotalResult(batchesCount[0], opsCount[0])).stream();
+        return Collections.singletonList(new BatchAndTotalResult(batches, opsCount, TimeUnit.NANOSECONDS.toSeconds(System.nanoTime()-start))).stream();
     }
 
     public static class BatchAndTotalResult {
-        public long batches;
-        public long total;
+        public final long batches;
+        public final long total;
+        public final long timeTaken;
 
-        public BatchAndTotalResult(long batches, long total) {
+        public BatchAndTotalResult(long batches, long total, long timeTaken) {
             this.batches = batches;
             this.total = total;
+            this.timeTaken = timeTaken;
         }
 
         public LoopingBatchAndTotalResult inLoop(Object loop) {

@@ -1,10 +1,8 @@
 package apoc.schema;
 
 import apoc.Description;
-import apoc.Pools;
-import org.neo4j.graphdb.GraphDatabaseService;
+import apoc.util.Util;
 import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.*;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -17,11 +15,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+import static apoc.util.Util.intTx;
 import static java.util.Collections.singletonMap;
 import static org.neo4j.helpers.collection.Iterables.asList;
 
@@ -130,20 +127,6 @@ public class Schemas {
             return result;
         });
         return result;
-    }
-
-    public static <T> T intTx(GraphDatabaseAPI db, Callable<T> callable) {
-        try {
-            return Pools.SINGLE.submit(() -> {
-                try (Transaction tx = db.beginTx()) {
-                    T result = callable.call();
-                    tx.success();
-                    return result;
-                }
-            }).get();
-        } catch (Exception e) {
-            throw new RuntimeException("Error executing in separate transaction", e);
-        }
     }
 
     public void createIndex(Schema schema, String label, List<String> keys) {
