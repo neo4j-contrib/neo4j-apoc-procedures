@@ -434,10 +434,10 @@ Utility to find nodes in parallel (if possible). These procedures return a singl
 | call apoc.search.nodeAllReduced(labelPropertyMap, searchType, search ) yield id as <identifier>, labels as <identifier>, values as <identifier> | All the found 'reduced' Node information will be returned. Per node label and property one record.
 |===
 
-[cols="1m,4,5"]
+[cols="1m,4,3"]
 |===
 | labelPropertyMap |   `'{ label1 : "propertyOne", label2 :["propOne","propTwo"] }'` | For every Label-Property combination a search will be executed in parallel (if possible): Label1.propertyOne, label2.propOne and label2.propTwo.
-| searchType |  'exact' \| 'contains' \| 'contains' \| 'ends with' | This is case insensitive.
+| searchType |  'exact' \| 'contains' \| 'starts with' \| 'ends with' | This is case insensitive.
 | search | 'Keanu' | The actual search term (case sensitive).
 |===
 
