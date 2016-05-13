@@ -4,6 +4,7 @@ import apoc.bitwise.BitwiseOperations;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.helpers.collection.Iterators;
@@ -52,18 +53,21 @@ public class CypherTest {
     }
 
     @Test
+    @Ignore
     public void testParallel() throws Exception {
         int size = 1000000;
         testResult(db, "CALL apoc.cypher.parallel2('UNWIND range(0,9) as b RETURN b',{a:range(1,{size})},'a')", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
     @Test
+    @Ignore
     public void testMapParallel() throws Exception {
         int size = 1000000;
         testResult(db, "CALL apoc.cypher.mapParallel('UNWIND range(0,9) as b RETURN b',{},range(1,{size}))", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
     @Test
+    @Ignore
     public void testParallel2() throws Exception {
         int size = 1000000;
         List<Long> list = new ArrayList<>(size);
@@ -72,10 +76,5 @@ public class CypherTest {
                 r -> {
                     assertEquals( size * 10L, r.get("b") );
                 });
-    }
-
-    @Test
-    public void testDoit() throws Exception {
-
     }
 }
