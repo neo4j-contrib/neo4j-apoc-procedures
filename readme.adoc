@@ -422,6 +422,31 @@ Syntax: `[+-]LABEL1|LABEL2|...`
 | -Foe | Foe | exclude label (blacklist)
 |===
 
+=== Parallel Node Search 
+
+Utility to find nodes in parallel (if possible). These procedures return a single list of nodes or a list of 'reduced' records with node id, labels, and the properties where the search was executed upon. 
+
+[cols="5m,4"]
+|===
+| call apoc.search.node(labelPropertyMap, searchType, search ) yield node as <identifier> | A distinct set of Nodes will be returned.
+| call apoc.search.nodeAll(labelPropertyMap, searchType, search ) yield node as <identifier> | All the found Nodes will be returned.
+| call apoc.search.nodeReduced(labelPropertyMap, searchType, search ) yield id as <identifier>, labels as <identifier>, values as <identifier> | A merged set of 'reduced' Node information will be returned. Per node one record.
+| call apoc.search.nodeAllReduced(labelPropertyMap, searchType, search ) yield id as <identifier>, labels as <identifier>, values as <identifier> | All the found 'reduced' Node information will be returned. Per node label and property one record.
+|===
+
+[cols="1m,4,5"]
+|===
+| labelPropertyMap |   `'{ label1 : "propertyOne", label2 :["propOne","propTwo"] }'` | For every Label-Property combination a search will be executed in parallel (if possible): Label1.propertyOne, label2.propOne and label2.propTwo.
+| searchType |  'exact' \| 'contains' \| 'contains' \| 'ends with' | This is case insensitive.
+| search | 'Keanu' | The actual search term (case sensitive).
+|===
+
+example:
+[source,cypher]
+----
+CALL apoc.search.nodeAll('{Person: "name",Movie: ["title","tagline"]}','contains','her') YIELD node AS n RETURN n
+----
+
 === Graph Algorithms (work in progress)
 
 Provides a wrapper around GraphAlgoFactory.
