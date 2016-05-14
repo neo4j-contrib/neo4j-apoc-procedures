@@ -116,7 +116,7 @@ public class Util {
 
     public static <T> T intTx(GraphDatabaseAPI db, Callable<T> callable) {
         try {
-            return Pools.SINGLE.submit(() -> {
+            return Pools.DEFAULT.submit(() -> {
                 try (Transaction tx = db.beginTx()) {
                     T result = callable.call();
                     tx.success();

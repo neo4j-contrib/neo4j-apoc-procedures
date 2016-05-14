@@ -131,6 +131,13 @@ CALL apoc.meta.isType(n.age,"INTEGER")
 RETURN n LIMIT 5
 ----
 
+=== Schema
+
+[cols="1m,5"]
+|===
+| apoc.schema.assert([{indexLabel:[indexKey]},..],[{constraintLabel:[constraintKey]},..]) yield label, keys, unique, action | asserts that at the end of the operation the given indexes and unique constraints are there
+|===
+
 
 === Locking
 
