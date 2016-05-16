@@ -4,7 +4,7 @@
     </child>
     <child name="relational">
         <grandchild name="MySQL">
-            MySQL is a relational database
+            MySQL is a database &amp; relational
         </grandchild>
         <grandchild name="Postgres">
             Postgres is a relational database
