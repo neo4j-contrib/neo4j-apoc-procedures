@@ -5,17 +5,21 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.*;
+import java.time.format.TextStyle;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQueries;
+import java.time.temporal.TemporalQuery;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
 import apoc.Description;
 import apoc.result.LongResult;
 import apoc.result.MapResult;
@@ -39,8 +43,13 @@ public class Date {
 			temporalQuery(ChronoField.HOUR_OF_DAY),
 			temporalQuery(ChronoField.MINUTE_OF_HOUR),
 			temporalQuery(ChronoField.SECOND_OF_MINUTE),
-			temporal -> map -> Optional.ofNullable(TemporalQueries.zoneId().queryFrom(temporal))
-					.ifPresent(zoneId -> map.put("zoneid", zoneId.getId()))
+			temporal -> map -> {
+				Optional<ZoneId> zone = Optional.ofNullable(TemporalQueries.zone().queryFrom(temporal));
+				zone.ifPresent(zoneId -> {
+					String displayName = zoneId.getDisplayName(TextStyle.SHORT, Locale.ROOT);
+					map.put("zoneid", displayName);
+				});
+			}
 	);
 
 	@Procedure
@@ -138,10 +147,10 @@ public class Date {
 	private static DateTimeFormatter getDateTimeFormatter(final String pattern) {
 		String actualPattern = getPattern(pattern);
 		DateTimeFormatter fmt = DateTimeFormatter.ofPattern(actualPattern);
-		if (!containsTimeZonePattern(actualPattern)) {
-			return fmt.withZone(ZoneId.of(UTC_ZONE_ID));
-		} else {
+		if (containsTimeZonePattern(actualPattern)) {
 			return fmt;
+		} else {
+			return fmt.withZone(ZoneId.of(UTC_ZONE_ID));
 		}
 	}
 
@@ -155,7 +164,7 @@ public class Date {
 	}
 
 	private static boolean containsTimeZonePattern(final String pattern) {
-		return pattern.matches("[XZz]{1,3}");	// doesn't account for strings escaped with "'" (TODO?)
+		return pattern.matches("[XxZzVO]{1,3}");	// doesn't account for strings escaped with "'" (TODO?)
 	}
 
 	private static String getPattern(final String pattern) {
