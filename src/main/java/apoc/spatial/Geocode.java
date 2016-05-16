@@ -2,6 +2,7 @@ package apoc.spatial;
 
 import apoc.Description;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -33,8 +34,10 @@ public class Geocode {
 
     private static final Map<String, String> config = new LinkedHashMap<>();
 
+    public static final String ENCODING_CONFIG = "apoc.spatial.geocode.encoding";
+
     interface GeocodeSupplier {
-        public Stream<GeoCodeResult> geocode(String address, long maxResults);
+        Stream<GeoCodeResult> geocode(String encodedAddress, long maxResults);
     }
 
     private static class Throttler {
@@ -103,9 +106,9 @@ public class Geocode {
             this.throttler = new Throttler(config, kernelTransaction, configKey("throttle"), 1);
         }
 
-        public Stream<GeoCodeResult> geocode(String address, long maxResults) {
+        public Stream<GeoCodeResult> geocode(String encodedAddress, long maxResults) {
             throttler.waitForThrottle();
-            String url = urlTemplate.replace("PLACE", URLEncoder.encode(address));
+            String url = urlTemplate.replace("PLACE", encodedAddress);
             System.out.println("apoc.spatial.geocode: " + url);
             Object value = JsonUtil.loadJson(url);
             if (value instanceof List) {
@@ -154,9 +157,9 @@ public class Geocode {
             this.throttler = new Throttler(config, kernelTransaction, "apoc.spatial.geocode.osm.throttle", Throttler.DEFAULT_THROTTLE);
         }
 
-        public Stream<GeoCodeResult> geocode(String address, long maxResults) {
+        public Stream<GeoCodeResult> geocode(String encodedAddress, long maxResults) {
             throttler.waitForThrottle();
-            String url = "http://nominatim.openstreetmap.org/search.php?q=" + URLEncoder.encode(address) + "&format=json";
+            String url = "http://nominatim.openstreetmap.org/search.php?q=" + encodedAddress + "&format=json";
             System.out.println("apoc.spatial.geocode: " + url);
             Object value = JsonUtil.loadJson(url);
             if (value instanceof List) {
@@ -185,12 +188,12 @@ public class Geocode {
             }
         }
 
-        public Stream<GeoCodeResult> geocode(String address, long maxResults) {
-            if (address.length() < 1) {
+        public Stream<GeoCodeResult> geocode(String encodedAddress, long maxResults) {
+            if (encodedAddress.length() < 1) {
                 return Stream.empty();
             }
             throttler.waitForThrottle();
-            String url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + URLEncoder.encode(address) + credentials;
+            String url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + encodedAddress + credentials;
             System.out.println("apoc.spatial.geocode: " + url);
             Object value = JsonUtil.loadJson(url);
             if (value instanceof Map) {
@@ -223,8 +226,7 @@ public class Geocode {
 
     public static final String GEOCODE_SUPPLIER_KEY = "apoc.spatial.geocode.provider";
 
-    private GeocodeSupplier getSupplier() {
-        Map<String, String> activeConfig = getConfig();
+    private GeocodeSupplier getSupplier(Map<String, String> activeConfig) {
         if (activeConfig.containsKey(GEOCODE_SUPPLIER_KEY)) {
             String supplier = activeConfig.get(GEOCODE_SUPPLIER_KEY).toLowerCase();
             if (supplier.startsWith("google")) {
@@ -254,20 +256,25 @@ public class Geocode {
 
     @Procedure
     @Description("apoc.spatial.geocodeOnce('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from openstreetmap geocoding service")
-    public Stream<GeoCodeResult> geocodeOnce(@Name("location") String address) {
+    public Stream<GeoCodeResult> geocodeOnce(@Name("location") String address) throws UnsupportedEncodingException {
         return geocode(address, 1L);
     }
 
     @Procedure
     @Description("apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from openstreetmap geocoding service")
-    public Stream<GeoCodeResult> geocode(@Name("location") String address, @Name("maxResults") Long maxResults) {
+    public Stream<GeoCodeResult> geocode(@Name("location") String address, @Name("maxResults") Long maxResults) throws UnsupportedEncodingException {
         if (maxResults < 0) {
             throw new RuntimeException("Invalid maximum number of results requested: " + maxResults);
         }
         if (maxResults == 0) {
             maxResults = Long.MAX_VALUE;
         }
-        return getSupplier().geocode(address, maxResults);
+        Map<String, String> activeConfig = getConfig();
+        String encoding = java.nio.charset.StandardCharsets.UTF_8.toString();
+        if (activeConfig.containsKey(ENCODING_CONFIG)) {
+            encoding = activeConfig.get(ENCODING_CONFIG);
+        }
+        return getSupplier(activeConfig).geocode(URLEncoder.encode(address, encoding), maxResults);
     }
 
     public static Double toDouble(Object value) {
