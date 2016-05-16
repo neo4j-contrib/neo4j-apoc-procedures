@@ -17,7 +17,7 @@ public class XmlTest {
                     "_children=[" +
                     "{_type=child, name=Neo4j, _text=Neo4j is a graph database}, " +
                     "{_type=child, name=relational, _children=[" +
-                      "{_type=grandchild, name=MySQL, _text=MySQL is a relational database}, " +
+                      "{_type=grandchild, name=MySQL, _text=MySQL is a database & relational}, " +
                       "{_type=grandchild, name=Postgres, _text=Postgres is a relational database}]}]}";
     private GraphDatabaseService db;
 	@Before public void setUp() throws Exception {

@@ -31,6 +31,7 @@ public class Xml {
     public Stream<MapResult> xml(@Name("url") String url) {
         try {
             URLConnection urlConnection = new URL(url).openConnection();
+            FACTORY.setProperty("javax.xml.stream.isCoalescing", true);
             XMLStreamReader reader = FACTORY.createXMLStreamReader(urlConnection.getInputStream());
             if (reader.nextTag()==XMLStreamConstants.START_ELEMENT) {
                 return Stream.of(new MapResult(handleElement(reader)));
