@@ -4,6 +4,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -195,16 +197,19 @@ public class DateTest {
 	@Test
 	public void testfieldsCustomFormat() throws Exception {
 		testCall(db,
-				"CALL apoc.date.fields('2015-01-02 03:04:05 Europe/Bucharest', 'yyyy-MM-dd HH:mm:ss zzz')",
+				"CALL apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') yield value as m RETURN m",
 				row -> {
-					Map<String, Object> split = (Map<String, Object>) row.get("value");
+					Map<String, Object> split = (Map<String, Object>) row.get("m");
 					assertEquals(2015L, split.get("years"));
 					assertEquals(1L, split.get("months"));
 					assertEquals(2L, split.get("days"));
 					assertEquals(3L, split.get("hours"));
 					assertEquals(4L, split.get("minutes"));
 					assertEquals(5L, split.get("seconds"));
-//					assertEquals("Europe/Bucharest", split.get("zoneid"));
+					assertEquals(
+							TimeZone.getTimeZone("EET").getRawOffset(),
+							TimeZone.getTimeZone((String)split.get("zoneid")).getRawOffset()
+					);
 				});
 
 		testCall(db,
@@ -217,7 +222,10 @@ public class DateTest {
 					assertEquals(3L, split.get("hours"));
 					assertEquals(4L, split.get("minutes"));
 					assertEquals(5L, split.get("seconds"));
-					// assertEquals("EET", split.get("zoneid"));
+					assertEquals(
+							TimeZone.getTimeZone("EET").getRawOffset(),
+							TimeZone.getTimeZone((String)split.get("zoneid")).getRawOffset()
+					);
 				});
 
 		testCall(db,
@@ -227,7 +235,10 @@ public class DateTest {
 					assertEquals(2015L, split.get("years"));
 					assertEquals(1L, split.get("months"));
 					assertEquals(2L, split.get("days"));
-					// assertEquals("EET", split.get("zoneid"));
+					assertEquals(
+							TimeZone.getTimeZone("EET").getRawOffset(),
+							TimeZone.getTimeZone((String)split.get("zoneid")).getRawOffset()
+					);
 				});
 	}
 
