@@ -15,6 +15,12 @@
       "longitude": -0.5453014
     },
     {
+      "_comment": "Test for unicode characters",
+      "address": "Rämistrasse 71 8006 Zürich Switzerland",
+      "latitude": 47.37457,
+      "longitude": 8.54875
+    },
+    {
       "address": "FRANCE",
       "count": {
         "google": 1,
