@@ -310,16 +310,19 @@ public class Meta {
         Set<String> includeRels = new HashSet<>((Collection<String>)config.getOrDefault("rels",emptyList()));
         Map<String, Node> labels = new TreeMap<>();
         Map<List<String>,Relationship> rels = new HashMap<>();
-        boolean strict = ((Boolean)config.getOrDefault("strict",Boolean.FALSE)).booleanValue();
+        boolean restrictRels = ((Boolean)config.getOrDefault("strict",Boolean.FALSE)).booleanValue();
+        boolean restrictLabels = restrictRels ? includeLabels.isEmpty() : false;
+        restrictRels = restrictLabels ? includeRels.isEmpty() : restrictRels;
         Sampler sampler = new Sampler() {
             public void sample(Label label, int count, Node node) {
+                if (restrictLabels) return;
                 if (includeLabels.isEmpty() || includeLabels.contains(label.name())) {
                     mergeMetaNode(label, labels, true);
                 }
             }
             public void sample(Label label, int count, Node node, RelationshipType type, Direction direction, int degree, Relationship rel) {
                 if (rel!=null && (includeRels.isEmpty() || includeRels.contains(type.name()))) {
-                    addRel(rels, labels, rel, strict);
+                    addRel(rels, labels, rel, restrictRels);
                 }
             }
         };
