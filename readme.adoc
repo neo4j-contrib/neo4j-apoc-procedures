@@ -361,7 +361,7 @@ TODO:
 |===
 
 * possible unit values: `ms,s,m,h,d` and their long forms `millis,milliseconds,seconds,minutes,hours,days`.
-* possible time zone values: Either an abbreviation such as `PST`, a full name such as `America/Los_Angeles`, or a custom ID such as `GMT-8:00`. Full names are recommended.
+* possible time zone values: Either an abbreviation such as `PST`, a full name such as `America/Los_Angeles`, or a custom ID such as `GMT-8:00`. Full names are recommended. You can view a list of full names in https://en.wikipedia.org/wiki/List_of_tz_database_time_zones[this Wikipedia page].
 
 ==== Reading separate datetime fields:
 
