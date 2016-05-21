@@ -431,6 +431,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_index_queries">Index Queries</a></li>
 <li><a href="#_index_management">Index Management</a></li>
 <li><a href="#_meta_graph">Meta Graph</a></li>
+<li><a href="#_schema">Schema</a></li>
 <li><a href="#_locking">Locking</a></li>
 <li><a href="#_from_tojson">from/toJson</a></li>
 <li><a href="#_loading_data_from_rdbms">Loading Data from RDBMS</a></li>
@@ -439,6 +440,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_virtual_nodes_rels">Virtual Nodes/Rels</a></li>
 <li><a href="#_warmup">Warmup</a></li>
 <li><a href="#_monitoring">Monitoring</a></li>
+<li><a href="#_cypher_execution">Cypher Execution</a></li>
 <li><a href="#_job_management">Job Management</a></li>
 <li><a href="#_graph_refactoring">Graph Refactoring</a></li>
 <li><a href="#_spatial">Spatial</a></li>
@@ -446,6 +448,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_date_time_support">Date/time Support</a></li>
 <li><a href="#_bitwise_operations">Bitwise operations</a></li>
 <li><a href="#_path_expander">Path Expander</a></li>
+<li><a href="#_parallel_node_search">Parallel Node Search</a></li>
 <li><a href="#_graph_algorithms_work_in_progress">Graph Algorithms (work in progress)</a></li>
 </ul>
 </li>
@@ -470,7 +473,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_utility_functions">Utility Functions</a>
 <ul class="sectlevel2">
 <li><a href="#_phonetic_text_procedures">Phonetic Text Procedures</a></li>
-<li><a href="#_extract_domain">Extract Domain</a></li>
+<li><a href="#_extract_domain">Extract Domain</a>
+<ul class="sectlevel3">
+<li><a href="#_timetolive_ttl_expire_nodes">TimeToLive (TTL) - Expire Nodes</a></li>
+</ul>
+</li>
 <li><a href="#_date_and_time_conversions">Date and Time Conversions</a>
 <ul class="sectlevel3">
 <li><a href="#_conversion_between_formatted_dates_and_timestamps_2">Conversion between formatted dates and timestamps</a></li>
@@ -784,6 +791,21 @@ RETURN n LIMIT 5</code></pre>
 </div>
 </div>
 <div class="sect3">
+<h4 id="_schema">Schema</h4>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.schema.assert([{indexLabel:[indexKey]},..],[{constraintLabel:[constraintKey]},..]) yield label, keys, unique, action</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">asserts that at the end of the operation the given indexes and unique constraints are there</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
 <h4 id="_locking">Locking</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
@@ -1021,6 +1043,29 @@ RETURN *;</code></pre>
 </table>
 </div>
 <div class="sect3">
+<h4 id="_cypher_execution">Cypher Execution</h4>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.cypher.runFile(file or url) yield row, result</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>runs each statement in the file, all semicolon separated - currently no schema operations</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>executes fragment in parallel batches with the list segments being assigned to _</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.cypher.doIt(fragment, params) yield value</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
 <h4 id="_job_management">Job Management</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
@@ -1066,7 +1111,7 @@ RETURN *;</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.periodic.rock_n_roll('match (p:Person) return p', 'MATCH (p) where p={p} SET p.lastname =p.name', 20000)</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (p) where id(p)={id_p} SET p.lastname =p.name', 20000)</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1358,11 +1403,15 @@ RETURN *;</code></pre>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.formatDefault(12345,'ms')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">get string representation of date corresponding to given time in milliseconds</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">get string representation of date corresponding to given time in milliseconds in UTC time zone</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.format(12345,'ms', 'yyyy/MM/dd HH/mm/ss')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">the same as previous, but accepts custom datetime format</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.formatTimeZone(12345,'s', 'yyyy/MM/dd HH/mm/ss', 'ABC')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">the same as previous, but accepts custom time zone</p></td>
 </tr>
 </tbody>
 </table>
@@ -1370,6 +1419,9 @@ RETURN *;</code></pre>
 <ul>
 <li>
 <p>possible unit values: <code>ms,s,m,h,d</code> and their long forms <code>millis,milliseconds,seconds,minutes,hours,days</code>.</p>
+</li>
+<li>
+<p>possible time zone values: Either an abbreviation such as <code>PST</code>, a full name such as <code>America/Los_Angeles</code>, or a custom ID such as <code>GMT-8:00</code>. Full names are recommended. You can view a list of full names in <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">this Wikipedia page</a>.</p>
 </li>
 </ul>
 </div>
@@ -1569,6 +1621,68 @@ RETURN *;</code></pre>
 </table>
 </div>
 <div class="sect3">
+<h4 id="_parallel_node_search">Parallel Node Search</h4>
+<div class="paragraph">
+<p>Utility to find nodes in parallel (if possible). These procedures return a single list of nodes or a list of 'reduced' records with node id, labels, and the properties where the search was executed upon.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 55%;">
+<col style="width: 44%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.search.node(labelPropertyMap, searchType, search ) yield node as &lt;identifier&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A distinct set of Nodes will be returned.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.search.nodeAll(labelPropertyMap, searchType, search ) yield node as &lt;identifier&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All the found Nodes will be returned.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.search.nodeReduced(labelPropertyMap, searchType, search ) yield id as &lt;identifier&gt;, labels as &lt;identifier&gt;, values as &lt;identifier&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A merged set of 'reduced' Node information will be returned. Per node one record.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.search.nodeAllReduced(labelPropertyMap, searchType, search ) yield id as &lt;identifier&gt;, labels as &lt;identifier&gt;, values as &lt;identifier&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All the found 'reduced' Node information will be returned. Per node label and property one record.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 12%;">
+<col style="width: 50%;">
+<col style="width: 37%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>labelPropertyMap</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>'{ label1 : "propertyOne", label2 :["propOne","propTwo"] }'</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">For every Label-Property combination a search will be executed in parallel (if possible): Label1.propertyOne, label2.propOne and label2.propTwo.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>searchType</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">'exact' | 'contains' | 'starts with' | 'ends with'</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">This is case insensitive.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>search</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">'Keanu'</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The actual search term (case sensitive).</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.search.nodeAll('{Person: "name",Movie: ["title","tagline"]}','contains','her') YIELD node AS n RETURN n</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
 <h4 id="_graph_algorithms_work_in_progress">Graph Algorithms (work in progress)</h4>
 <div class="paragraph">
 <p>Provides a wrapper around GraphAlgoFactory.</p>
@@ -1734,6 +1848,12 @@ MATCH (n:Person)</code></pre>
 </li>
 <li>
 <p>apoc.create.graph(nodes,rels,data-map) &#8594; {nodes:[], rels:[], data:{}} a graph data structure, e.g. for rendering, export, validation, &#8230;&#8203;</p>
+</li>
+<li>
+<p>auto-increment id&#8217;s (per label? &#8594; graph properties)</p>
+</li>
+<li>
+<p>query neo4j databases</p>
 </li>
 </ul>
 </div>
@@ -1995,6 +2115,48 @@ RETURN domain // will return 'bar.com'</code></pre>
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH 'http://www.example.com/all-the-things' AS url
 CALL apoc.data.domain(url) YIELD domain
 RETURN domain // will return 'www.example.com'</code></pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_timetolive_ttl_expire_nodes">TimeToLive (TTL) - Expire Nodes</h4>
+<div class="paragraph">
+<p>Enable cleanup of expired nodes in <code>neo4j.conf</code> with <code>apoc.ttl.enabled=true</code></p>
+</div>
+<div class="paragraph">
+<p>30s after startup an index is created:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE INDEX ON :TTL(ttl)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>At startup a statement is scheduled to run every 60s (or configure in <code>neo4j.conf</code> -  <code>apoc.ttl.schedule=120</code>)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (t:TTL) where t.ttl &gt; timestamp() WITH t LIMIT 1000 DETACH DELETE t</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>ttl</code> property holds the <strong>time when the node is expired in milliseconds since epoch</strong>.</p>
+</div>
+<div class="paragraph">
+<p>You can expire your nodes by setting the :TTL label and the ttl property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (n:Foo) WHERE n.bar SET n:TTL, n.ttl = timestamp() + 10000;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There is also a procedure that does the same:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.expire(node,time,'time-unit');
+CALL apoc.date.expire(n,100,'s');</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -2825,6 +2987,9 @@ RETURN row limit 1;</code></pre>
 10 ms</pre>
 </div>
 </div>
+<div class="paragraph">
+<p>apoc.load.jdbc('jdbc:derby:derbyDB/key','PERSON' || 'SELECT * FROM PERSON WHERE AGE &gt; 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement</p>
+</div>
 </div>
 </div>
 </div>
@@ -2917,7 +3082,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-05-12 09:16:58 CEST
+Last updated 2016-05-22 00:34:55 CEST
 </div>
 </div>
 </body>
