@@ -84,7 +84,7 @@ public class DateTest {
 	}
 
 	@Test public void testToUnixtimeWithCorrectFormat() throws Exception {
-		String pattern = "HH:mm:ss/yyyy";
+		String pattern = "MM/dd/yyyy HH:mm:ss";
 		SimpleDateFormat customFormat = formatInUtcZone(pattern);
 		String reference = customFormat.format(new java.util.Date(0L));
 		testCall(db,
@@ -96,7 +96,7 @@ public class DateTest {
 	@Test public void testToUnixtimeWithIncorrectPatternFormat() throws Exception {
 		expected.expect(instanceOf(QueryExecutionException.class));
 		testCall(db,
-				"CALL apoc.date.parse('12:12:12/1945','s','HH:mm:ss/yyyy/neo4j')",
+				"CALL apoc.date.parse('12/12/1945 12:12:12','s','MM/dd/yyyy HH:mm:ss/neo4j')",
 				row -> assertEquals(Instant.EPOCH, Instant.ofEpochSecond((long) row.get("value"))));
 	}
 
@@ -119,7 +119,7 @@ public class DateTest {
 	}
 
 	@Test public void testFromUnixtimeWithCorrectFormat() throws Exception {
-		String pattern = "HH:mm:ss/yyyy";
+		String pattern = "MM/dd/yyyy HH:mm:ss";
 		SimpleDateFormat customFormat = formatInUtcZone(pattern);
 		testCall(db,
 				"CALL apoc.date.format(0,'s',{pattern})",
@@ -134,7 +134,7 @@ public class DateTest {
 	}
 
 	@Test public void testFromUnixtimeWithCorrectFormatAndTimeZone() throws Exception {
-		String pattern = "HH:mm:ss/yyyy";
+		String pattern = "MM/dd/yyyy HH:mm:ss";
 		String timezone = "America/New_York";
 		SimpleDateFormat customFormat = formatInCustomTimeZone(pattern, timezone);
 		testCall(db,
@@ -152,14 +152,14 @@ public class DateTest {
 	@Test public void testFromUnixtimeWithIncorrectPatternFormat() throws Exception {
 		expected.expect(instanceOf(QueryExecutionException.class));
 		testCall(db,
-				"CALL apoc.date.format(0,'s','HH:mm:ss/yyyy/neo4j')",
+				"CALL apoc.date.format(0,'s','MM/dd/yyyy HH:mm:ss/neo4j')",
 				row -> {});
 	}
 
 	@Test public void testFromUnixtimeWithIncorrectPatternFormatAndTimeZone() throws Exception {
 		expected.expect(instanceOf(QueryExecutionException.class));
 		testCall(db,
-				"CALL apoc.date.formatTimeZone(0,'s','HH:mm:ss/yyyy/neo4j','Neo4j/Apoc')",
+				"CALL apoc.date.formatTimeZone(0,'s','MM/dd/yyyy HH:mm:ss/neo4j','Neo4j/Apoc')",
 				row -> {});
 	}
 
