@@ -355,11 +355,13 @@ TODO:
 
 | apoc.date.parseDefault('2015-03-25 03:15:59','ms') | get Unix time equivalent of given date (in milliseconds)
 | apoc.date.parse('2015/03/25 03-15-59','ms','yyyy/MM/dd HH/mm/ss') | same as previous, but accepts custom datetime format
-| apoc.date.formatDefault(12345,'ms') | get string representation of date corresponding to given time in milliseconds
+| apoc.date.formatDefault(12345,'ms') | get string representation of date corresponding to given time in milliseconds in UTC time zone
 | apoc.date.format(12345,'ms', 'yyyy/MM/dd HH/mm/ss') | the same as previous, but accepts custom datetime format
+| apoc.date.formatTimeZone(12345,'s', 'yyyy/MM/dd HH/mm/ss', 'ABC') | the same as previous, but accepts custom time zone
 |===
 
 * possible unit values: `ms,s,m,h,d` and their long forms `millis,milliseconds,seconds,minutes,hours,days`.
+* possible time zone values: Either an abbreviation such as `PST`, a full name such as `America/Los_Angeles`, or a custom ID such as `GMT-8:00`. Full names are recommended.
 
 ==== Reading separate datetime fields:
 
