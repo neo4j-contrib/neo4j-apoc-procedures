@@ -88,9 +88,15 @@ public class Date {
 	}
 
 	@Procedure
-	@Description("apoc.date.format(12345,'ms|s|m|h|d','yyyy-MM-dd') get string representation of time value in the specified unit using specified format")
+	@Description("apoc.date.format(12345,'ms|s|m|h|d','yyyy-MM-dd') get string representation of time value in the specified unit using specified format and UTC time zone")
 	public Stream<StringResult> format(final @Name("time") long time, @Name("unit") String unit, @Name("format") String format) {
-		return parse(unit(unit).toMillis(time), format);
+		return parse(unit(unit).toMillis(time), format, null);
+	}
+
+	@Procedure
+	@Description("apoc.date.formatTimeZone(12345,'ms|s|m|h|d','yyyy-MM-dd HH:mm:ss zzz', 'ABC') get string representation of time value in the specified unit using specified format and specified time zone")
+	public Stream<StringResult> formatTimeZone(final @Name("time") long time, @Name("unit") String unit, @Name("format") String format, @Name("timezone") String timezone) {
+		return parse(unit(unit).toMillis(time), format, timezone);
 	}
 
 	@Procedure
@@ -102,22 +108,28 @@ public class Date {
 	@Procedure
 	@Description("apoc.date.parse('2012-12-23','ms|s|m|h|d','yyyy-MM-dd') parse date string using the specified format into the specified time unit")
 	public Stream<LongResult> parse(@Name("time") String time, @Name("unit") String unit, @Name("format") String format) {
-		Long value = parseOrThrow(time, getFormat(format));
+		Long value = parseOrThrow(time, getFormat(format, null));
 		Long valueInUnit = value == null ? null : unit(unit).convert(value, TimeUnit.MILLISECONDS);
 		return Stream.of(new LongResult(valueInUnit));
 	}
 
 	public Stream<StringResult> parse(final @Name("millis") long millis, final @Name("pattern") String pattern) {
+		return parse(millis, pattern, null);
+	}
+
+	private Stream<StringResult> parse(final @Name("millis") long millis, final @Name("pattern") String pattern, final @Name("timezone") String timezone) {
 		if (millis < 0) {
 			throw new IllegalArgumentException("The time argument should be >= 0, got: " + millis);
 		}
-		return Stream.of(new StringResult(getFormat(pattern).format(new java.util.Date(millis))));
+		return Stream.of(new StringResult(getFormat(pattern, timezone).format(new java.util.Date(millis))));
 	}
 
-	private static DateFormat getFormat(final String pattern) {
+	private static DateFormat getFormat(final String pattern, final String timezone) {
 		String actualPattern = getPattern(pattern);
 		SimpleDateFormat format = new SimpleDateFormat(actualPattern);
-		if (!(containsTimeZonePattern(actualPattern))) {
+		if (timezone != null) {
+			format.setTimeZone(TimeZone.getTimeZone(timezone));
+		} else if (!(containsTimeZonePattern(actualPattern))) {
 			format.setTimeZone(TimeZone.getTimeZone(UTC_ZONE_ID));
 		}
 		return format;
