@@ -277,7 +277,7 @@ public class Meta {
         for (Relationship rel : db.getAllRelationships()) {
             addLabels(labels,rel.getStartNode());
             addLabels(labels,rel.getEndNode());
-            addRel(rels,labels, rel);
+            addRel(rels, labels, rel, false);
         }
         return Stream.of(new GraphResult(new ArrayList<>(labels.values()), new ArrayList<>(rels.values())));
     }
@@ -294,7 +294,7 @@ public class Meta {
             }
             public void sample(Label label, int count, Node node, RelationshipType type, Direction direction, int degree, Relationship rel) {
                 if (rel!=null) {
-                    addRel(rels, labels, rel);
+                    addRel(rels, labels, rel, false);
                 }
             }
         };
@@ -304,12 +304,13 @@ public class Meta {
     }
 
     @Procedure
-    @Description("apoc.meta.subGraph({labels:[labels],rels:[rel-types],sample:sample}) - examines a sample sub graph to create the meta-graph, default sampleSize is 100")
+    @Description("apoc.meta.subGraph({labels:[labels],rels:[rel-types],sample:sample,strict:true/false}) - examines a sample sub graph to create the meta-graph, default sampleSize is 100, default strict mode is false")
     public Stream<GraphResult> subGraph(@Name("config") Map<String,Object> config ) {
         Set<String> includeLabels = new HashSet<>((Collection<String>)config.getOrDefault("labels",emptyList()));
         Set<String> includeRels = new HashSet<>((Collection<String>)config.getOrDefault("rels",emptyList()));
         Map<String, Node> labels = new TreeMap<>();
         Map<List<String>,Relationship> rels = new HashMap<>();
+        boolean strict = ((Boolean)config.getOrDefault("strict",Boolean.FALSE)).booleanValue();
         Sampler sampler = new Sampler() {
             public void sample(Label label, int count, Node node) {
                 if (includeLabels.isEmpty() || includeLabels.contains(label.name())) {
@@ -318,7 +319,7 @@ public class Meta {
             }
             public void sample(Label label, int count, Node node, RelationshipType type, Direction direction, int degree, Relationship rel) {
                 if (rel!=null && (includeRels.isEmpty() || includeRels.contains(type.name()))) {
-                    addRel(rels, labels, rel);
+                    addRel(rels, labels, rel, strict);
                 }
             }
         };
@@ -338,17 +339,19 @@ public class Meta {
         return vNode;
     }
 
-    private void addRel(Map<List<String>, Relationship> rels, Map<String, Node> labels, Relationship rel) {
+    private void addRel(Map<List<String>, Relationship> rels, Map<String, Node> labels, Relationship rel, boolean strict) {
         String typeName = rel.getType().name();
         Node startNode = rel.getStartNode();
         Node endNode = rel.getEndNode();
         for (Label labelA : startNode.getLabels()) {
-            Node nodeA = mergeMetaNode(labelA,labels,false);
+            Node nodeA = strict ? labels.get(labelA.name()) : mergeMetaNode(labelA,labels,false);
+            if (nodeA == null) continue;
             for (Label labelB : endNode.getLabels()) {
                 List<String> key = asList(labelA.name(), labelB.name(), typeName);
                 Relationship vRel = rels.get(key);
                 if (vRel==null) {
-                    Node nodeB = mergeMetaNode(labelB,labels,false);
+                    Node nodeB = strict ? labels.get(labelB.name()) : mergeMetaNode(labelB,labels,false);
+                    if (nodeB == null) continue;
                     vRel = new VirtualRelationship(nodeA,nodeB,rel.getType()).withProperties(singletonMap("type",typeName));
                     rels.put(key,vRel);
                 }
