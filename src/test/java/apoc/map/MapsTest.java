@@ -58,6 +58,7 @@ public class MapsTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testFlatten() {
         Map<String, Object> nestedMap = map("somekey", "someValue", "somenumeric", 123);
         nestedMap = map("anotherkey", "anotherValue", "nested", nestedMap);

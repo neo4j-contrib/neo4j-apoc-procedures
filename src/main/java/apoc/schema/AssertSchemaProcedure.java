@@ -135,6 +135,7 @@ public class AssertSchemaProcedure implements CallableProcedure {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public RawIterator<Object[], ProcedureException> apply(final Context ctx, final Object[] input) throws ProcedureException {
         List<Map<String, List<String>>> indexes = (List<Map<String, List<String>>>) input[1];
         List<Map<String, List<String>>> constraints = (List<Map<String, List<String>>>) input[0];

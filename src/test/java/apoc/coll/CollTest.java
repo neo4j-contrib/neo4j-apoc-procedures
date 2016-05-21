@@ -1,6 +1,7 @@
-package apoc.util;
+package apoc.coll;
 
 import apoc.coll.Coll;
+import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

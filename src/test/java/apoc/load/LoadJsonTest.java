@@ -1,8 +1,9 @@
-package apoc.util;
+package apoc.load;
 
 import java.net.URL;
 
 import apoc.load.LoadJson;
+import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

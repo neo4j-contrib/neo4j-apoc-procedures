@@ -2,6 +2,7 @@ package apoc.load;
 
 import apoc.Description;
 import apoc.result.RowResult;
+import apoc.ApocConfiguration;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
@@ -16,9 +17,22 @@ import java.util.stream.StreamSupport;
  */
 public class Jdbc {
 
+    public static final Map<String, Object> JDBC_CONFIG = ApocConfiguration.get("jdbc");
+
+    static {
+        JDBC_CONFIG.forEach((k, v) -> {
+            if (k.endsWith("driver")) loadDriver(v.toString());
+        });
+    }
+
+
     @Procedure
     @Description("apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database")
     public void driver(@Name("driverClass") String driverClass) {
+        loadDriver(driverClass);
+    }
+
+    private static void loadDriver(@Name("driverClass") String driverClass) {
         try {
             Class.forName(driverClass);
         } catch (ClassNotFoundException e) {
@@ -27,20 +41,48 @@ public class Jdbc {
     }
 
     @Procedure
-    @Description("apoc.load.jdbc('jdbc:derby:derbyDB','PERSON' || 'SELECT * FROM PERSON WHERE AGE > 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement")
-    public Stream<RowResult> jdbc(@Name("jdbc") String url, @Name("tableOrSql") String tableOrSelect) {
-        String query = tableOrSelect.indexOf(' ') == -1 ?
-                "SELECT * FROM " + tableOrSelect : tableOrSelect;
+    @Description("apoc.load.jdbc('key or url','table or statement') YIELD row - load from relational database, from a full table or a sql statement")
+    public Stream<RowResult> jdbc(@Name("jdbc") String urlOrKey, @Name("tableOrSql") String tableOrSelect) {
+        return executeQuery(urlOrKey, tableOrSelect);
+    }
+
+    @Procedure
+    @Description("apoc.load.jdbcParams('key or url','statement',[params]) YIELD row - load from relational database, from a sql statement with parameters")
+    public Stream<RowResult> jdbcParams(@Name("jdbc") String urlOrKey, @Name("sql") String select, @Name("params") List<Object> params) {
+        return executeQuery(urlOrKey, select,params.toArray(new Object[params.size()]));
+    }
+
+    private Stream<RowResult> executeQuery(@Name("jdbc") String urlOrKey, @Name("tableOrSql") String tableOrSelect, Object...params) {
+        String url = urlOrKey.contains(":") ? urlOrKey : getJdbcUrl(urlOrKey);
+        String query = tableOrSelect.indexOf(' ') == -1 ? "SELECT * FROM " + tableOrSelect : tableOrSelect;
         try {
-            Statement stmt = DriverManager.getConnection(url).createStatement();
-            ResultSet rs = stmt.executeQuery(query);
+            Connection connection = DriverManager.getConnection(url);
+            PreparedStatement stmt = connection.prepareStatement(query);
+            for (int i = 0; i < params.length; i++) stmt.setObject(i+1, params[i]);
+            ResultSet rs = stmt.executeQuery();
 
             Iterator<Map<String, Object>> supplier = new ResultSetIterator(rs);
             Spliterator<Map<String, Object>> spliterator = Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
-            return StreamSupport.stream(spliterator, false).map(RowResult::new);
+            return StreamSupport.stream(spliterator, false).map(RowResult::new).onClose( () -> closeIt(stmt,connection));
         } catch (SQLException e) {
             throw new RuntimeException("Cannot execute SQL statement " + query, e);
         }
+    }
+
+    static void closeIt(AutoCloseable...closeables) {
+        for (AutoCloseable c : closeables) {
+            try {
+                c.close();
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+    }
+
+    private static String getJdbcUrl(String key) {
+        Object value = JDBC_CONFIG.get(key + ".url");
+        if (value == null) throw new RuntimeException("No apoc.jdbc."+key+".url jdbc url specified");
+        return value.toString();
     }
 
     private static class ResultSetIterator implements Iterator<Map<String, Object>> {

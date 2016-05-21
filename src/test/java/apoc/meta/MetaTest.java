@@ -1,7 +1,9 @@
-package apoc.util;
+package apoc.meta;
 
 import apoc.meta.Meta;
+import apoc.util.TestUtil;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
@@ -78,16 +80,16 @@ public class MetaTest {
     }
 
     private void testTypeName(Object value, String type) {
-        testCall(db, "CALL apoc.meta.type", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
+        TestUtil.testCall(db, "CALL apoc.meta.type", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
     }
     private void testIsTypeName(Object value, String type) {
-        testResult(db, "CALL apoc.meta.isType", map("value", value,"type",type), result -> assertEquals(true, result.hasNext()));
-        testResult(db, "CALL apoc.meta.isType", map("value", value,"type",type+"foo"), result -> assertEquals(false, result.hasNext()));
+        TestUtil.testResult(db, "CALL apoc.meta.isType", map("value", value,"type",type), result -> assertEquals(true, result.hasNext()));
+        TestUtil.testResult(db, "CALL apoc.meta.isType", map("value", value,"type",type+"foo"), result -> assertEquals(false, result.hasNext()));
     }
 
     @Test public void testMetaGraph() throws Exception {
         db.execute("CREATE (:Actor)-[:ACTED_IN]->(:Movie) ").close();
-        testCall(db, "CALL apoc.meta.graph",
+        TestUtil.testCall(db, "CALL apoc.meta.graph",
                 (row) -> {
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     Node n1 = nodes.get(0);
@@ -108,7 +110,7 @@ public class MetaTest {
     }
     @Test public void testMetaGraph2() throws Exception {
         db.execute("CREATE (:Actor)-[:ACTED_IN]->(:Movie) ").close();
-        testCall(db, "CALL apoc.meta.graphSample(100)",
+        TestUtil.testCall(db, "CALL apoc.meta.graphSample(100)",
                 (row) -> {
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     Node n1 = nodes.get(0);

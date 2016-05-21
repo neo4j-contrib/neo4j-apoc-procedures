@@ -5,7 +5,6 @@ import org.neo4j.procedure.Name;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.net.URLConnection;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
@@ -19,11 +18,7 @@ public class JsonUtil {
 
     public static Object loadJson(@Name("url") String url) {
         try {
-            URL src = new URL(url);
-            URLConnection con = src.openConnection();
-            con.setRequestProperty("User-Agent", "APOC Procedures for Neo4j");
-            con.setConnectTimeout(10_000);
-            con.setReadTimeout(60_000);
+            URLConnection con = Util.openUrlConnection(url);
 
             InputStream stream = con.getInputStream();
 
@@ -41,4 +36,5 @@ public class JsonUtil {
         }
 
     }
+
 }

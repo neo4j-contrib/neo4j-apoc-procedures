@@ -31,6 +31,7 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
         return new LifecycleAdapter() {
             @Override
             public void start() throws Throwable {
+                ApocConfiguration.initialize(db);
                 dependencies.procedures().register(new AssertSchemaProcedure(db, log));
             }
         };

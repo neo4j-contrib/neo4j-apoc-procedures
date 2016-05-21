@@ -1,28 +1,33 @@
 package apoc.spatial;
 
+import apoc.ApocConfiguration;
 import apoc.Description;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.configuration.Config;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
 import static apoc.util.MapUtil.map;
+import static apoc.util.Util.toDouble;
+import static apoc.util.Util.toLong;
+import static java.lang.String.valueOf;
+import static java.lang.System.currentTimeMillis;
 
 public class Geocode {
+    public static final int MAX_RESULTS = 100;
+    public static final String PREFIX = "spatial.geocode";
+    public static final String GEOCODE_PROVIDER_KEY = "provider";
+
     @Context
     public GraphDatabaseService db;
 
@@ -32,9 +37,8 @@ public class Geocode {
     @Context
     public KernelTransaction kernelTransaction;
 
-    private static final Map<String, String> config = new LinkedHashMap<>();
-
-    public static final String ENCODING_CONFIG = "apoc.spatial.geocode.encoding";
+    @Context
+    public Log log;
 
     interface GeocodeSupplier {
         Stream<GeoCodeResult> geocode(String encodedAddress, long maxResults);
@@ -42,40 +46,33 @@ public class Geocode {
 
     private static class Throttler {
         private final KernelTransaction kernelTransaction;
-        private static long DEFAULT_THROTTLE = 5000;  // 5 seconds
-        private static long MAX_THROTTLE = 1000 * 60 * 60;  // 1 hour
-        private long throttle;
+        private long throttleInMs;
         private static long lastCallTime = 0L;
+        private static long DEFAULT_THROTTLE = 5*1000;  // 5 seconds
+        private static long MAX_THROTTLE = 60 * 60 * 1000;  // 1 hour
 
-        public Throttler(Map<String, String> config, KernelTransaction kernelTransaction, String throttleKey, long defaultThrottle) {
-            this.throttle = defaultThrottle;
+        public Throttler(KernelTransaction kernelTransaction, long throttle) {
             this.kernelTransaction = kernelTransaction;
-            if (config.containsKey(throttleKey)) {
-                throttle = Long.parseLong(config.get(throttleKey));
-                if (throttle < 0) {
-                    throttle = defaultThrottle;
-                }
-                if (throttle > MAX_THROTTLE) {
-                    throttle = defaultThrottle;
-                }
-            }
+
+            throttle = Math.min(throttle, MAX_THROTTLE);
+            if (throttle < 0) throttle = DEFAULT_THROTTLE;
+
+            this.throttleInMs = throttle;
         }
 
         private void waitForThrottle() {
-            long msSinceLastCall = System.currentTimeMillis() - lastCallTime;
-            while (msSinceLastCall < throttle) {
-                if (kernelTransaction.shouldBeTerminated()) {
-                    throw new RuntimeException("geocode called in terminated transaction");
-                }
+            long msSinceLastCall = currentTimeMillis() - lastCallTime;
+            while (msSinceLastCall < throttleInMs) {
                 try {
-                    long msToWait = throttle - msSinceLastCall;
-                    System.out.println("apoc.spatial.geocode: throttling calls to geocode service for " + msToWait + "ms");
+                    if (kernelTransaction.shouldBeTerminated()) return;
+                    long msToWait = throttleInMs - msSinceLastCall;
                     Thread.sleep(Math.min(msToWait, 1000));
                 } catch (InterruptedException e) {
+                    // ignore
                 }
-                msSinceLastCall = System.currentTimeMillis() - lastCallTime;
+                msSinceLastCall = currentTimeMillis() - lastCallTime;
             }
-            lastCallTime = System.currentTimeMillis();
+            lastCallTime = currentTimeMillis();
         }
     }
 
@@ -87,29 +84,28 @@ public class Geocode {
         private String configBase;
         private String urlTemplate;
 
-        public SupplierWithKey(Map<String, String> config, KernelTransaction kernelTransaction, String provider) {
-            this.configBase = "apoc.spatial.geocode." + provider;
+        public SupplierWithKey(Map<String, Object> config, KernelTransaction kernelTransaction, String provider) {
+            this.configBase = provider;
+
             if (!config.containsKey(configKey("url"))) {
                 throw new IllegalArgumentException("Missing 'url' for geocode provider: " + provider);
             }
-            if (!config.containsKey(configKey("key"))) {
+            urlTemplate = config.get(configKey("url")).toString();
+            if (!urlTemplate.contains("PLACE")) throw new IllegalArgumentException("Missing 'PLACE' in url template: " + urlTemplate);
+
+            if (urlTemplate.contains("KEY") && !config.containsKey(configKey("key"))) {
                 throw new IllegalArgumentException("Missing 'key' for geocode provider: " + provider);
             }
-            String key = (String) config.get(configKey("key"));
-            urlTemplate = (String) config.get(configKey("url"));
-            if (urlTemplate.contains("KEY")) {
-                urlTemplate = urlTemplate.replace("KEY", key);
-            }
-            if (!urlTemplate.contains("PLACE")) {
-                throw new IllegalArgumentException("Missing 'PLACE' in url template: " + urlTemplate);
-            }
-            this.throttler = new Throttler(config, kernelTransaction, configKey("throttle"), 1);
+            String key = config.get(configKey("key")).toString();
+            urlTemplate = urlTemplate.replace("KEY", key);
+
+            this.throttler = new Throttler(kernelTransaction, toLong(ApocConfiguration.get(configKey("throttle"), Throttler.DEFAULT_THROTTLE)));
         }
 
-        public Stream<GeoCodeResult> geocode(String encodedAddress, long maxResults) {
+        @SuppressWarnings("unchecked")
+        public Stream<GeoCodeResult> geocode(String address, long maxResults) {
             throttler.waitForThrottle();
-            String url = urlTemplate.replace("PLACE", encodedAddress);
-            System.out.println("apoc.spatial.geocode: " + url);
+            String url = urlTemplate.replace("PLACE", encodeUrlComponent(address));
             Object value = JsonUtil.loadJson(url);
             if (value instanceof List) {
                 return findResults((List<Map<String, Object>>) value, maxResults);
@@ -122,12 +118,13 @@ public class Geocode {
             throw new RuntimeException("Can't parse geocoding results " + value);
         }
 
+        @SuppressWarnings("unchecked")
         private Stream<GeoCodeResult> findResults(List<Map<String, Object>> results, long maxResults) {
-            return ((List<Map<String, Object>>) results).stream().limit(maxResults).map(data -> {
+            return results.stream().limit(maxResults).map(data -> {
                 String description = findFirstEntry(data, FORMATTED_KEYS);
-                Map location = (Map) ((Map) data.get("geometry"));
+                Map<String,Object> location = (Map<String,Object>) data.get("geometry");
                 if (location.containsKey("location")) {
-                    location = (Map) location.get("location");
+                    location = (Map<String,Object>) location.get("location");
                 }
                 String lat = findFirstEntry(location, LAT_KEYS);
                 String lng = findFirstEntry(location, LNG_KEYS);
@@ -138,7 +135,7 @@ public class Geocode {
         private String findFirstEntry(Map<String, Object> map, String[] keys) {
             for (String key : keys) {
                 if (map.containsKey(key)) {
-                    return String.valueOf(map.get(key));
+                    return valueOf(map.get(key));
                 }
             }
             return "";
@@ -150,21 +147,29 @@ public class Geocode {
 
     }
 
+    public static String encodeUrlComponent(String address) {
+        try {
+            return URLEncoder.encode(address,"UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Unsupported character set utf-8");
+        }
+    }
+
     private static class OSMSupplier implements GeocodeSupplier {
+        public static final String OSM_URL = "http://nominatim.openstreetmap.org/search.php?format=json&q=";
         private Throttler throttler;
 
-        public OSMSupplier(Map<String, String> config, KernelTransaction kernelTransaction) {
-            this.throttler = new Throttler(config, kernelTransaction, "apoc.spatial.geocode.osm.throttle", Throttler.DEFAULT_THROTTLE);
+        public OSMSupplier(Map<String, Object> config,KernelTransaction kernelTransaction) {
+            this.throttler = new Throttler(kernelTransaction, toLong(config.getOrDefault("osm.throttle", Throttler.DEFAULT_THROTTLE)));
         }
 
-        public Stream<GeoCodeResult> geocode(String encodedAddress, long maxResults) {
+        @SuppressWarnings("unchecked")
+        public Stream<GeoCodeResult> geocode(String address, long maxResults) {
             throttler.waitForThrottle();
-            String url = "http://nominatim.openstreetmap.org/search.php?q=" + encodedAddress + "&format=json";
-            System.out.println("apoc.spatial.geocode: " + url);
-            Object value = JsonUtil.loadJson(url);
+            Object value = JsonUtil.loadJson(OSM_URL +encodeUrlComponent(address));
             if (value instanceof List) {
                 return ((List<Map<String, Object>>) value).stream().limit(maxResults).map(data ->
-                        new GeoCodeResult(toDouble(data.get("lat")), toDouble(data.get("lon")), String.valueOf(data.get("display_name")), data));
+                        new GeoCodeResult(toDouble(data.get("lat")), toDouble(data.get("lon")), valueOf(data.get("display_name")), data));
             }
             throw new RuntimeException("Can't parse geocoding results " + value);
         }
@@ -172,36 +177,36 @@ public class Geocode {
 
     class GoogleSupplier implements GeocodeSupplier {
         private final Throttler throttler;
-        private String credentials = "";
-        private static final String GOOGLE_KEY = "apoc.spatial.geocode.google.key";
-        private static final String GOOGLE_CLIENT = "apoc.spatial.geocode.google.client";
-        private static final String GOOGLE_SIGNATURE = "apoc.spatial.geocode.google.signature";
+        private String baseUrl;
 
-        public GoogleSupplier(Map<String, String> config, KernelTransaction kernelTransaction) {
-            this.throttler = new Throttler(config, kernelTransaction, "apoc.spatial.geocode.google.throttle", 1);
-            if (config.containsKey(GOOGLE_CLIENT) && config.containsKey(GOOGLE_SIGNATURE)) {
-                credentials = "&client=" + config.containsKey(GOOGLE_CLIENT) + "&signature=" + config.containsKey(GOOGLE_SIGNATURE);
-            } else if (config.containsKey(GOOGLE_KEY)) {
-                credentials = "&key=" + config.containsKey(GOOGLE_KEY);
+        public GoogleSupplier(Map<String, Object> config, KernelTransaction kernelTransaction) {
+            this.throttler = new Throttler(kernelTransaction, toLong(config.getOrDefault("google.throttle", Throttler.DEFAULT_THROTTLE)));
+            this.baseUrl = String.format("https://maps.googleapis.com/maps/api/geocode/json?%s&address=", credentials(config));
+        }
+
+        private String credentials(Map<String, Object> config) {
+            if (config.containsKey("google.client") && config.containsKey("google.signature")) {
+                return "client=" + config.get("google.client") + "&signature=" + config.get("google.signature");
+            } else if (config.containsKey("google.key")) {
+                return "key=" + config.get("google.key");
             } else {
-                System.err.println("apoc.spatial.geocode: No google client or key specified in neo4j config file");
+                return "auth=free"; // throw new RuntimeException("apoc.spatial.geocode: No google client or key specified in neo4j.conf config file");
             }
         }
 
-        public Stream<GeoCodeResult> geocode(String encodedAddress, long maxResults) {
-            if (encodedAddress.length() < 1) {
+        @SuppressWarnings("unchecked")
+        public Stream<GeoCodeResult> geocode(String address, long maxResults) {
+            if (address.length() < 1) {
                 return Stream.empty();
             }
             throttler.waitForThrottle();
-            String url = "https://maps.googleapis.com/maps/api/geocode/json?address=" + encodedAddress + credentials;
-            System.out.println("apoc.spatial.geocode: " + url);
-            Object value = JsonUtil.loadJson(url);
+            Object value = JsonUtil.loadJson(baseUrl + encodeUrlComponent(address));
             if (value instanceof Map) {
                 Object results = ((Map) value).get("results");
                 if (results instanceof List) {
                     return ((List<Map<String, Object>>) results).stream().limit(maxResults).map(data -> {
                         Map location = (Map) ((Map) data.get("geometry")).get("location");
-                        return new GeoCodeResult(toDouble(location.get("lat")), toDouble(location.get("lng")), String.valueOf(data.get("formatted_address")), data);
+                        return new GeoCodeResult(toDouble(location.get("lat")), toDouble(location.get("lng")), valueOf(data.get("formatted_address")), data);
                     });
                 }
             }
@@ -209,49 +214,17 @@ public class Geocode {
         }
     }
 
-    private void addSpatialConfigs(Map<String, String> map, Map<String, String> other) {
-        for (String key : other.keySet()) {
-            if (key.startsWith("apoc.spatial")) {
-                map.put(key, other.get(key));
+    private GeocodeSupplier getSupplier() {
+        Map<String, Object> activeConfig = ApocConfiguration.get(PREFIX);
+        if (activeConfig.containsKey(GEOCODE_PROVIDER_KEY)) {
+            String supplier = activeConfig.get(GEOCODE_PROVIDER_KEY).toString().toLowerCase();
+            switch (supplier) {
+                case "google" : return new GoogleSupplier(activeConfig, kernelTransaction);
+                case "osm" : return new OSMSupplier(activeConfig,kernelTransaction);
+                default: return new SupplierWithKey(activeConfig, kernelTransaction, supplier);
             }
         }
-    }
-
-    private Map<String, String> getConfig() {
-        HashMap<String, String> activeConfig = new LinkedHashMap<>();
-        addSpatialConfigs(activeConfig, graph.getDependencyResolver().resolveDependency(Config.class).getParams());
-        addSpatialConfigs(activeConfig, Geocode.config);
-        return activeConfig;
-    }
-
-    public static final String GEOCODE_SUPPLIER_KEY = "apoc.spatial.geocode.provider";
-
-    private GeocodeSupplier getSupplier(Map<String, String> activeConfig) {
-        if (activeConfig.containsKey(GEOCODE_SUPPLIER_KEY)) {
-            String supplier = activeConfig.get(GEOCODE_SUPPLIER_KEY).toLowerCase();
-            if (supplier.startsWith("google")) {
-                return new GoogleSupplier(activeConfig, kernelTransaction);
-            } else if (supplier.startsWith("osm")) {
-                return new OSMSupplier(activeConfig, kernelTransaction);
-            } else {
-                return new SupplierWithKey(activeConfig, kernelTransaction, supplier);
-            }
-        }
-        return new OSMSupplier(activeConfig, kernelTransaction);
-    }
-
-    @Procedure
-    @Description("apoc.spatial.showConfig() - show the current configurations for spatial procedures")
-    public Stream<MapResult> showConfig() {
-        return Stream.of(new MapResult(getConfig()));
-    }
-
-    @Procedure
-    @Description("apoc.spatial.config(map) - configure spatial procedures")
-    public Stream<MapResult> config(@Name("config") Map<String, String> config) {
-        Geocode.config.clear();
-        addSpatialConfigs(Geocode.config, config);
-        return showConfig();
+        return new OSMSupplier(activeConfig,kernelTransaction);
     }
 
     @Procedure
@@ -262,25 +235,8 @@ public class Geocode {
 
     @Procedure
     @Description("apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from openstreetmap geocoding service")
-    public Stream<GeoCodeResult> geocode(@Name("location") String address, @Name("maxResults") Long maxResults) throws UnsupportedEncodingException {
-        if (maxResults < 0) {
-            throw new RuntimeException("Invalid maximum number of results requested: " + maxResults);
-        }
-        if (maxResults == 0) {
-            maxResults = Long.MAX_VALUE;
-        }
-        Map<String, String> activeConfig = getConfig();
-        String encoding = java.nio.charset.StandardCharsets.UTF_8.toString();
-        if (activeConfig.containsKey(ENCODING_CONFIG)) {
-            encoding = activeConfig.get(ENCODING_CONFIG);
-        }
-        return getSupplier(activeConfig).geocode(URLEncoder.encode(address, encoding), maxResults);
-    }
-
-    public static Double toDouble(Object value) {
-        if (value == null) return null;
-        if (value instanceof Number) return ((Number) value).doubleValue();
-        return Double.parseDouble(value.toString());
+    public Stream<GeoCodeResult> geocode(@Name("location") String address, @Name("maxResults") long maxResults) {
+        return getSupplier().geocode(address, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults,1), MAX_RESULTS));
     }
 
     public static class GeoCodeResult {

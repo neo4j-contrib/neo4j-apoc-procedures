@@ -48,29 +48,19 @@
     </license>
   </licenses>
 
-  <profiles>
-    <profile>
-      <id>jdbc</id>
-      <dependencies>
-        <dependency>
-          <groupId>mysql</groupId>
-          <artifactId>mysql-connector-java</artifactId>
-          <version>5.1.34</version>
-        </dependency>
-        <!--dependency>
-          <groupId>org.postgresql</groupId>
-          <artifactId>postgresql</artifactId>
-          <version>9.4-1200-jdbc41</version>
-        </dependency-->
-      </dependencies>
-    </profile>
-  </profiles>
-  <dependencies>
-    <!--dependency>
-      <groupId>it.unimi.dsi</groupId>
-      <artifactId>fastutil</artifactId>
-      <version>${fastutil.version}</version>
-    </dependency-->
+    <dependencies>
+      <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.34</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>9.4-1200-jdbc41</version>
+        <scope>provided</scope>
+      </dependency>
 
     <dependency>
       <groupId>org.neo4j</groupId>

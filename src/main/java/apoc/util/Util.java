@@ -1,5 +1,6 @@
 package apoc.util;
 
+import apoc.ApocConfiguration;
 import apoc.Pools;
 import apoc.path.RelationshipTypeAndDirections;
 import org.neo4j.graphdb.*;
@@ -8,6 +9,9 @@ import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Name;
 
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.LongStream;
@@ -114,7 +118,7 @@ public class Util {
         return relationshipTypes.toArray(new RelationshipType[relationshipTypes.size()]);
     }
 
-    public static <T> T intTx(GraphDatabaseAPI db, Callable<T> callable) {
+    public static <T> T inTx(GraphDatabaseAPI db, Callable<T> callable) {
         try {
             return Pools.DEFAULT.submit(() -> {
                 try (Transaction tx = db.beginTx()) {
@@ -126,5 +130,44 @@ public class Util {
         } catch (Exception e) {
             throw new RuntimeException("Error executing in separate transaction", e);
         }
+    }
+    public static <T> T inThread(Callable<T> callable) {
+        try {
+            return Pools.DEFAULT.submit(callable::call).get();
+        } catch (Exception e) {
+            throw new RuntimeException("Error executing in separate thread", e);
+        }
+    }
+
+    public static Double toDouble(Object value) {
+        if (value == null) return null;
+        if (value instanceof Number) return ((Number) value).doubleValue();
+        return Double.parseDouble(value.toString());
+    }
+
+    public static Map<String, Object> subMap(Map<String, ?> params, String prefix) {
+        Map<String, Object> config = new HashMap<>(10);
+        int len = prefix.length() + (prefix.endsWith(".") ? 0 : 1);
+        for (Map.Entry<String, ?> entry : params.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith(prefix)) {
+                config.put(key.substring(len), entry.getValue());
+            }
+        }
+        return config;
+    }
+
+    public static long toLong(Object value) {
+        if (value instanceof Number) return ((Number)value).longValue();
+        return Long.parseLong(value.toString());
+    }
+
+    static URLConnection openUrlConnection(String url) throws IOException {
+        URL src = new URL(url);
+        URLConnection con = src.openConnection();
+        con.setRequestProperty("User-Agent", "APOC Procedures for Neo4j");
+        con.setConnectTimeout((int)toLong(ApocConfiguration.get("http.timeout.connect",10_000)));
+        con.setReadTimeout((int)toLong(ApocConfiguration.get("http.timeout.read",60_000)));
+        return con;
     }
 }

@@ -76,3 +76,5 @@ RETURN row limit 1;
 1 row
 10 ms
 ----
+
+apoc.load.jdbc('jdbc:derby:derbyDB/key','PERSON' || 'SELECT * FROM PERSON WHERE AGE > 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement

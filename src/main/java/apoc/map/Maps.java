@@ -85,6 +85,7 @@ public class Maps {
         return Stream.of(new MapResult(flattenedMap));
     }
 
+    @SuppressWarnings("unchecked")
     private void flattenMapRecursively(Map<String, Object> flattenedMap, Map<String, Object> map, String prefix) {
         for (Map.Entry<String, Object> entry : map.entrySet()) {
              if (entry.getValue() instanceof Map) {

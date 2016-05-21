@@ -3,9 +3,9 @@ package apoc.spatial;
 import apoc.date.Date;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.net.URL;
@@ -49,7 +49,7 @@ public class SpatialTest {
         public Stream<Geocode.GeoCodeResult> geocode(@Name("location") String address, @Name("maxResults") long maxResults) {
             if (geocodeResults != null && geocodeResults.containsKey(address)) {
                 Map data = geocodeResults.get(address);
-                return Stream.of(new Geocode.GeoCodeResult(Geocode.toDouble(data.get("lat")), Geocode.toDouble(data.get("lon")), String.valueOf(data.get("display_name")), data));
+                return Stream.of(new Geocode.GeoCodeResult(Util.toDouble(data.get("lat")), Util.toDouble(data.get("lon")), String.valueOf(data.get("display_name")), data));
             } else {
                 return Stream.empty();
             }

@@ -1,6 +1,8 @@
-package apoc.util;
+package apoc.periodic;
 
 import apoc.periodic.Periodic;
+import apoc.util.MapUtil;
+import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

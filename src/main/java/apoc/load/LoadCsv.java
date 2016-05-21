@@ -163,7 +163,7 @@ public class LoadCsv {
         }
 
         private List<Object> createList(String[] header, String[] list, boolean ignore, Map<String, Mapping> mappings) {
-            if (!ignore && mappings.isEmpty()) return asList(list);
+            if (!ignore && mappings.isEmpty()) return asList((Object[])list);
             ArrayList<Object> result = new ArrayList<>(list.length);
             for (int i = 0; i < header.length; i++) {
                 String name = header[i];

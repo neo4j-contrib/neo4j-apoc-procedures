@@ -1,6 +1,6 @@
-package apoc.util;
+package apoc.load;
 
-import apoc.load.Xml;
+import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

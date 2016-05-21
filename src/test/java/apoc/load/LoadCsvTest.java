@@ -1,6 +1,7 @@
-package apoc.util;
+package apoc.load;
 
 import apoc.load.LoadCsv;
+import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
