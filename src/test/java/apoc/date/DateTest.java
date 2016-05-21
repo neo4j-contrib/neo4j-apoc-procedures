@@ -4,8 +4,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +84,7 @@ public class DateTest {
 	}
 
 	@Test public void testToUnixtimeWithCorrectFormat() throws Exception {
-		String pattern = "MM/dd/yyyy HH:mm:ss";
+		String pattern = "HH:mm:ss/yyyy";
 		SimpleDateFormat customFormat = formatInUtcZone(pattern);
 		String reference = customFormat.format(new java.util.Date(0L));
 		testCall(db,
@@ -98,7 +96,7 @@ public class DateTest {
 	@Test public void testToUnixtimeWithIncorrectPatternFormat() throws Exception {
 		expected.expect(instanceOf(QueryExecutionException.class));
 		testCall(db,
-				"CALL apoc.date.parse('12/12/1945 12:12:12','s','MM/dd/yyyy HH:mm:ss/neo4j')",
+				"CALL apoc.date.parse('12:12:12/1945','s','HH:mm:ss/yyyy/neo4j')",
 				row -> assertEquals(Instant.EPOCH, Instant.ofEpochSecond((long) row.get("value"))));
 	}
 
@@ -121,7 +119,7 @@ public class DateTest {
 	}
 
 	@Test public void testFromUnixtimeWithCorrectFormat() throws Exception {
-		String pattern = "MM/dd/yyyy HH:mm:ss";
+		String pattern = "HH:mm:ss/yyyy";
 		SimpleDateFormat customFormat = formatInUtcZone(pattern);
 		testCall(db,
 				"CALL apoc.date.format(0,'s',{pattern})",
@@ -135,33 +133,10 @@ public class DateTest {
 				});
 	}
 
-	@Test public void testFromUnixtimeWithCorrectFormatAndTimeZone() throws Exception {
-		String pattern = "MM/dd/yyyy HH:mm:ss";
-		String timezone = "America/New_York";
-		SimpleDateFormat customFormat = formatInCustomTimeZone(pattern, timezone);
-		testCall(db,
-				"CALL apoc.date.formatTimeZone(0,'s',{pattern},{timezone})",
-				map("pattern",pattern,"timezone",timezone),
-				row -> {
-					try {
-						assertEquals(new java.util.Date(0L), customFormat.parse((String) row.get("value")));
-					} catch (ParseException e) {
-						throw new RuntimeException(e);
-					}
-				});
-	}
-
 	@Test public void testFromUnixtimeWithIncorrectPatternFormat() throws Exception {
 		expected.expect(instanceOf(QueryExecutionException.class));
 		testCall(db,
-				"CALL apoc.date.format(0,'s','MM/dd/yyyy HH:mm:ss/neo4j')",
-				row -> {});
-	}
-
-	@Test public void testFromUnixtimeWithIncorrectPatternFormatAndTimeZone() throws Exception {
-		expected.expect(instanceOf(QueryExecutionException.class));
-		testCall(db,
-				"CALL apoc.date.formatTimeZone(0,'s','MM/dd/yyyy HH:mm:ss/neo4j','Neo4j/Apoc')",
+				"CALL apoc.date.format(0,'s','HH:mm:ss/yyyy/neo4j')",
 				row -> {});
 	}
 
@@ -220,19 +195,16 @@ public class DateTest {
 	@Test
 	public void testfieldsCustomFormat() throws Exception {
 		testCall(db,
-				"CALL apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') yield value as m RETURN m",
+				"CALL apoc.date.fields('2015-01-02 03:04:05 Europe/Bucharest', 'yyyy-MM-dd HH:mm:ss zzz')",
 				row -> {
-					Map<String, Object> split = (Map<String, Object>) row.get("m");
+					Map<String, Object> split = (Map<String, Object>) row.get("value");
 					assertEquals(2015L, split.get("years"));
 					assertEquals(1L, split.get("months"));
 					assertEquals(2L, split.get("days"));
 					assertEquals(3L, split.get("hours"));
 					assertEquals(4L, split.get("minutes"));
 					assertEquals(5L, split.get("seconds"));
-					assertEquals(
-							TimeZone.getTimeZone("EET").getRawOffset(),
-							TimeZone.getTimeZone((String)split.get("zoneid")).getRawOffset()
-					);
+//					assertEquals("Europe/Bucharest", split.get("zoneid"));
 				});
 
 		testCall(db,
@@ -245,10 +217,7 @@ public class DateTest {
 					assertEquals(3L, split.get("hours"));
 					assertEquals(4L, split.get("minutes"));
 					assertEquals(5L, split.get("seconds"));
-					assertEquals(
-							TimeZone.getTimeZone("EET").getRawOffset(),
-							TimeZone.getTimeZone((String)split.get("zoneid")).getRawOffset()
-					);
+					// assertEquals("EET", split.get("zoneid"));
 				});
 
 		testCall(db,
@@ -258,10 +227,7 @@ public class DateTest {
 					assertEquals(2015L, split.get("years"));
 					assertEquals(1L, split.get("months"));
 					assertEquals(2L, split.get("days"));
-					assertEquals(
-							TimeZone.getTimeZone("EET").getRawOffset(),
-							TimeZone.getTimeZone((String)split.get("zoneid")).getRawOffset()
-					);
+					// assertEquals("EET", split.get("zoneid"));
 				});
 	}
 
@@ -278,12 +244,6 @@ public class DateTest {
 	private SimpleDateFormat formatInUtcZone(final String pattern) {
 		SimpleDateFormat customFormat = new SimpleDateFormat(pattern);
 		customFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		return customFormat;
-	}
-
-	private SimpleDateFormat formatInCustomTimeZone(final String pattern, final String timezone) {
-		SimpleDateFormat customFormat = new SimpleDateFormat(pattern);
-		customFormat.setTimeZone(TimeZone.getTimeZone(timezone));
 		return customFormat;
 	}
 }
