@@ -19,6 +19,8 @@ include::fulltext.adoc[leveloffset=2]
 include::phonetic.adoc[leveloffset=2]
 include::extract.adoc[leveloffset=2]
 
+include::ttl.adoc[leveloffset=2]
+
 include::datetime.adoc[leveloffset=2]
 
 == Graph Algorithms

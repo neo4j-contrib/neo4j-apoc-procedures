@@ -1,0 +1,33 @@
+== TimeToLive (TTL) - Expire Nodes
+
+30s after startup an index is created:
+
+[source,cypher]
+----
+CREATE INDEX ON :TTL(ttl)
+----
+
+At startup a statement is scheduled to run every 60s (or configure in `neo4j.conf` -  `apoc.ttl.schedule=120`)
+
+[source,cypher]
+----
+MATCH (t:TTL) where t.ttl > timestamp() WITH t LIMIT 1000 DETACH DELETE t
+----
+
+The `ttl` property holds the *time when the node is expired in milliseconds since epoch*.
+
+You can expire your nodes by setting the :TTL label and the ttl property:
+
+
+[source,cypher]
+----
+MATCH (n:Foo) WHERE n.bar SET n:TTL, n.ttl = timestamp() + 10000;
+----
+
+There is also a procedure that does the same:
+
+[source,cypher]
+----
+CALL apoc.date.expire(node,time,'time-unit');
+CALL apoc.date.expire(n,100,'s');
+----

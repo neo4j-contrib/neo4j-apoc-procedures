@@ -24,7 +24,10 @@ import apoc.Description;
 import apoc.result.LongResult;
 import apoc.result.MapResult;
 import apoc.result.StringResult;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
 import org.neo4j.procedure.Name;
+import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
 
@@ -51,6 +54,15 @@ public class Date {
 				});
 			}
 	);
+
+
+	@Procedure
+	@PerformsWrites
+	@Description("CALL apoc.date.expire(node,time,'time-unit') - expire node in given time by setting :TTL label and `ttl` property")
+	public void expire(@Name("node") Node node, @Name("time") long time, @Name("timeUnit") String timeUnit) {
+		node.addLabel(Label.label("TTL"));
+		node.setProperty("ttl",unit(timeUnit).toMillis(time));
+	}
 
 	@Procedure
 	@Description("apoc.date.fieldsDefault('2012-12-23 13:10:50') - create structured map representation of date with entries for year,month,day,hour,minute,second,zoneid")

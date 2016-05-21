@@ -2,6 +2,7 @@ package apoc;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.kernel.impl.util.JobScheduler;
 
 import java.util.List;
 import java.util.concurrent.*;
@@ -11,6 +12,7 @@ public class Pools {
     public final static ExecutorService SINGLE = createSinglePool();
     public final static ExecutorService DEFAULT = createDefaultPool();
     public final static ScheduledExecutorService SCHEDULED = createScheduledPool();
+    public static JobScheduler NEO4J_SCHEDULER = null;
 
     private Pools() {
         throw new UnsupportedOperationException();
