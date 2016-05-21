@@ -2,6 +2,7 @@ package apoc.load;
 
 import apoc.Description;
 import apoc.meta.Meta;
+import apoc.util.Util;
 import au.com.bytecode.opencsv.CSVReader;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
@@ -31,7 +32,7 @@ public class LoadCsv {
     @Description("apoc.load.csv('url',{config}) YIELD lineNo, list, map - load CSV fom URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
     public Stream<CSVResult> csv(@Name("url") String url, @Name("config") Map<String, Object> config) {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()), 1024 * 1024);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(Util.openInputStream(url,null,null)), 1024 * 1024);
 
             char separator = separator(config, "sep", DEFAULT_SEP);
             char arraySep = separator(config, "arraySep", DEFAULT_ARRAY_SEP);

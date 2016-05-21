@@ -5,9 +5,7 @@ import org.neo4j.procedure.Name;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URLConnection;
-import java.util.zip.DeflaterInputStream;
-import java.util.zip.GZIPInputStream;
+import java.util.Map;
 
 /**
  * @author mh
@@ -16,25 +14,16 @@ import java.util.zip.GZIPInputStream;
 public class JsonUtil {
     public static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    public static Object loadJson(@Name("url") String url) {
+    public static Object loadJson(@Name("url") String url, Map<String,String> headers, String payload) {
         try {
-            URLConnection con = Util.openUrlConnection(url);
-
-            InputStream stream = con.getInputStream();
-
-            String encoding = con.getContentEncoding();
-            if ("gzip".equals(encoding)) {
-                stream = new GZIPInputStream(stream);
-            }
-            if ("deflate".equals(encoding)) {
-                stream = new DeflaterInputStream(stream);
-            }
-
+            InputStream stream = Util.openInputStream(url,headers,payload);
             return OBJECT_MAPPER.readValue(stream, Object.class);
         } catch (IOException e) {
             throw new RuntimeException("Can't read url " + url + " as json", e);
         }
-
+    }
+    public static Object loadJson(@Name("url") String url) {
+        return loadJson(url,null,null);
     }
 
 }
