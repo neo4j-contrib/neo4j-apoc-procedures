@@ -25,6 +25,7 @@ public class TTLTest {
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
                 .setConfig("apoc.ttl.schedule","5")
+                .setConfig("apoc.ttl.enabled","true")
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, Date.class);
         db.execute("CREATE (n:Foo:TTL) SET n.ttl = timestamp() + 100").close();

@@ -2,6 +2,7 @@ package apoc.periodic;
 
 import apoc.Description;
 import apoc.Pools;
+import apoc.util.Util;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.Iterators;
@@ -183,7 +184,7 @@ public class Periodic {
 
             try (Result result = db.execute(cypherLoop, loopParams)) {
                 value = result.next().get("loop");
-                if (!toBoolean(value)) return allResults;
+                if (!Util.toBoolean(value)) return allResults;
             }
 
             log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
@@ -194,13 +195,6 @@ public class Periodic {
                 allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
             }
         }
-    }
-
-    public boolean toBoolean(Object value) {
-        if ((value == null || value instanceof Number && (((Number) value).longValue()) == 0L || value instanceof String && value.equals("") || value instanceof Boolean && value.equals(false))) {
-            return false;
-        }
-        return true;
     }
 
     /**

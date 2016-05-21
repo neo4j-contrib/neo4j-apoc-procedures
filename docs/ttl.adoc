@@ -1,5 +1,7 @@
 == TimeToLive (TTL) - Expire Nodes
 
+Enable cleanup of expired nodes in `neo4j.conf` with `apoc.ttl.enabled=true`
+
 30s after startup an index is created:
 
 [source,cypher]

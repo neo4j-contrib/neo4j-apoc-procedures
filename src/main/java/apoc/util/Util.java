@@ -9,7 +9,7 @@ import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Name;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
@@ -17,6 +17,8 @@ import java.util.concurrent.Callable;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+import java.util.zip.DeflaterInputStream;
+import java.util.zip.GZIPInputStream;
 
 import static java.lang.String.format;
 
@@ -71,16 +73,12 @@ public class Util {
         return ids(ids).parallel().mapToObj(db::getNodeById);
     }
 
-    private static double doubleValue(PropertyContainer pc, String prop, Number defaultValue) {
-        Object costProp = pc.getProperty(prop, defaultValue);
-        if (costProp instanceof Number) {
-            return ((Number) costProp).doubleValue();
-        }
-        return Double.parseDouble(costProp.toString());
+    public static double doubleValue(PropertyContainer pc, String prop, Number defaultValue) {
+        return toDouble(pc.getProperty(prop, defaultValue));
 
     }
 
-    private static double doubleValue(PropertyContainer pc, String prop) {
+    public static double doubleValue(PropertyContainer pc, String prop) {
         return doubleValue(pc, prop, 0);
     }
 
@@ -162,12 +160,42 @@ public class Util {
         return Long.parseLong(value.toString());
     }
 
-    static URLConnection openUrlConnection(String url) throws IOException {
+    public static URLConnection openUrlConnection(String url, Map<String,String> headers) throws IOException {
         URL src = new URL(url);
         URLConnection con = src.openConnection();
         con.setRequestProperty("User-Agent", "APOC Procedures for Neo4j");
+        if (headers != null) headers.forEach(con::setRequestProperty);
+        con.setDoInput(true);
         con.setConnectTimeout((int)toLong(ApocConfiguration.get("http.timeout.connect",10_000)));
         con.setReadTimeout((int)toLong(ApocConfiguration.get("http.timeout.read",60_000)));
         return con;
+    }
+
+    public static InputStream openInputStream(String url,Map<String,String> headers, String payload) throws IOException {
+        URLConnection con = openUrlConnection(url, headers);
+        if (payload != null) {
+            con.setDoOutput(true);
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(con.getOutputStream()));
+            writer.write(payload);
+            writer.close();
+        }
+
+        InputStream stream = con.getInputStream();
+
+        String encoding = con.getContentEncoding();
+        if ("gzip".equals(encoding) || url.endsWith(".gz")) {
+            stream = new GZIPInputStream(stream);
+        }
+        if ("deflate".equals(encoding)) {
+            stream = new DeflaterInputStream(stream);
+        }
+        return stream;
+    }
+
+    public static boolean toBoolean(Object value) {
+        if ((value == null || value instanceof Number && (((Number) value).longValue()) == 0L || value instanceof String && (value.equals("") || ((String) value).equalsIgnoreCase("false"))|| value instanceof Boolean && value.equals(false))) {
+            return false;
+        }
+        return true;
     }
 }

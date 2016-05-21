@@ -36,21 +36,38 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
         GraphDatabaseAPI db = dependencies.graphdatabaseAPI();
         Log log = null; // dependencies.log();
         return new LifecycleAdapter() {
+
+            public JobScheduler.JobHandle ttlIndexJobHandle;
+            private JobScheduler.JobHandle ttlJobHandle;
+
             @Override
             public void start() throws Throwable {
                 ApocConfiguration.initialize(db);
                 dependencies.procedures().register(new AssertSchemaProcedure(db, log));
 
-                dependencies.scheduler().schedule(ApocGroup.TTL_GROUP,
-                        () -> { db.execute("CREATE INDEX ON :TTL(ttl)");} , 30, TimeUnit.SECONDS);
+                Object enabled = ApocConfiguration.get("ttl.enabled", null);
+                if (Util.toBoolean(enabled)) {
+                    ttlIndexJobHandle = dependencies.scheduler().schedule(ApocGroup.TTL_GROUP,
+                            () -> {
+                                db.execute("CREATE INDEX ON :TTL(ttl)");
+                            }, 30, TimeUnit.SECONDS);
 
-                long ttlSchedule = Util.toLong(ApocConfiguration.get("ttl.schedule", 60));
-                dependencies.scheduler().scheduleRecurring(ApocGroup.TTL_GROUP,
-                        () -> { db.execute("MATCH (t:TTL) where t.ttl < timestamp() WITH t LIMIT 1000 DETACH DELETE t");} ,
-                        ttlSchedule, TimeUnit.SECONDS);
-
+                    long ttlSchedule = Util.toLong(ApocConfiguration.get("ttl.schedule", 60));
+                    ttlJobHandle = dependencies.scheduler().scheduleRecurring(ApocGroup.TTL_GROUP,
+                            () -> {
+                                db.execute("MATCH (t:TTL) where t.ttl < timestamp() WITH t LIMIT 1000 DETACH DELETE t");
+                            },
+                            ttlSchedule, TimeUnit.SECONDS);
+                }
                 Pools.NEO4J_SCHEDULER = dependencies.scheduler();
+            }
+
+            @Override
+            public void stop() throws Throwable {
+                if (ttlIndexJobHandle != null) ttlIndexJobHandle.cancel(true);
+                if (ttlJobHandle != null) ttlJobHandle.cancel(true);
             }
         };
     }
+
 }
