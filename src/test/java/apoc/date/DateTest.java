@@ -133,10 +133,33 @@ public class DateTest {
 				});
 	}
 
+	@Test public void testFromUnixtimeWithCorrectFormatAndTimeZone() throws Exception {
+		String pattern = "HH:mm:ss/yyyy";
+		String timezone = "America/New_York";
+		SimpleDateFormat customFormat = formatInCustomTimeZone(pattern, timezone);
+		testCall(db,
+				"CALL apoc.date.formatTimeZone(0,'s',{pattern},{timezone})",
+				map("pattern",pattern,"timezone",timezone),
+				row -> {
+					try {
+						assertEquals(new java.util.Date(0L), customFormat.parse((String) row.get("value")));
+					} catch (ParseException e) {
+						throw new RuntimeException(e);
+					}
+				});
+	}
+
 	@Test public void testFromUnixtimeWithIncorrectPatternFormat() throws Exception {
 		expected.expect(instanceOf(QueryExecutionException.class));
 		testCall(db,
 				"CALL apoc.date.format(0,'s','HH:mm:ss/yyyy/neo4j')",
+				row -> {});
+	}
+
+	@Test public void testFromUnixtimeWithIncorrectPatternFormatAndTimeZone() throws Exception {
+		expected.expect(instanceOf(QueryExecutionException.class));
+		testCall(db,
+				"CALL apoc.date.formatTimeZone(0,'s','HH:mm:ss/yyyy/neo4j','Neo4j/Apoc')",
 				row -> {});
 	}
 
@@ -244,6 +267,12 @@ public class DateTest {
 	private SimpleDateFormat formatInUtcZone(final String pattern) {
 		SimpleDateFormat customFormat = new SimpleDateFormat(pattern);
 		customFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		return customFormat;
+	}
+
+	private SimpleDateFormat formatInCustomTimeZone(final String pattern, final String timezone) {
+		SimpleDateFormat customFormat = new SimpleDateFormat(pattern);
+		customFormat.setTimeZone(TimeZone.getTimeZone(timezone));
 		return customFormat;
 	}
 }
