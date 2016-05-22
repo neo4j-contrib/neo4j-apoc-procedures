@@ -316,18 +316,21 @@ public class Meta {
         boolean restrictRels = strict; // effectively final
         Sampler sampler = new Sampler() {
             public void sample(Label label, int count, Node node) {
+                sample(label, true);
+            }
+            private void sample(Label label, boolean increment) {
                 if (restrictLabels) return;
                 if (includeLabels.isEmpty() || includeLabels.contains(label.name())) {
-                    mergeMetaNode(label, labels, true);
+                    mergeMetaNode(label, labels, increment);
                 }
             }
             public void sample(Label label, int count, Node node, RelationshipType type, Direction direction, int degree, Relationship rel) {
                 if (rel!=null && (includeRels.isEmpty() || includeRels.contains(type.name()))) {
                     for (Label labelA : rel.getStartNode().getLabels()) {
-                        sample(labelA, count, node);
+                        sample(labelA, false);
                     }
                     for (Label labelB : rel.getEndNode().getLabels()) {
-                        sample(labelB, count, node);
+                        sample(labelB, false);
                     }
                     addRel(rels, labels, rel, restrictRels);
                 }
