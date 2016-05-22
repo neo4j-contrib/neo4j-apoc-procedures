@@ -310,9 +310,10 @@ public class Meta {
         Set<String> includeRels = new HashSet<>((Collection<String>)config.getOrDefault("rels",emptyList()));
         Map<String, Node> labels = new TreeMap<>();
         Map<List<String>,Relationship> rels = new HashMap<>();
-        boolean restrictRels = ((Boolean)config.getOrDefault("strict",Boolean.FALSE)).booleanValue();
-        boolean restrictLabels = restrictRels ? includeLabels.isEmpty() : false;
-        restrictRels = restrictLabels ? includeRels.isEmpty() : restrictRels;
+        boolean strict = ((Boolean)config.getOrDefault("strict",Boolean.FALSE)).booleanValue();
+        boolean restrictLabels = strict ? includeLabels.isEmpty() : false;
+        strict = restrictLabels ? includeRels.isEmpty() : strict;
+        boolean restrictRels = strict; // effectively final
         Sampler sampler = new Sampler() {
             public void sample(Label label, int count, Node node) {
                 if (restrictLabels) return;
