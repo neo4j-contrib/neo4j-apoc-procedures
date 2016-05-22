@@ -14,7 +14,7 @@ import java.util.Map;
 public class JsonUtil {
     public static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    public static Object loadJson(@Name("url") String url, Map<String,String> headers, String payload) {
+    public static Object loadJson(@Name("url") String url, Map<String,Object> headers, String payload) {
         try {
             InputStream stream = Util.openInputStream(url,headers,payload);
             return OBJECT_MAPPER.readValue(stream, Object.class);

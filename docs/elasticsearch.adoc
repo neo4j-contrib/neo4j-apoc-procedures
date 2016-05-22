@@ -1,0 +1,71 @@
+= ElasticSearch Integration
+
+
+include::../readme.adoc[tags=elasticsearch,leveloffset=-1]
+
+
+== Example
+
+[source,cypher]
+----
+call apoc.es.post("localhost","tweets","users","1",null,{name:"Chris"})
+----
+
+[source,cypher]
+----
+call apoc.es.get("localhost","tweets","users","1",null,null)
+----
+
+[source,cypher]
+----
+call apoc.es.stats("localhost")
+----
+
+image::http://i.imgur.com/qHAj9ma.png[width=500]
+
+
+== General Structure and Parameters
+
+[source,cypher]
+----
+call apoc.es.post(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value
+
+// GET/PUT/POST url/index/type/id?query -d payload
+----
+
+=== host or port parameter
+
+The parameter can be a direct host or url, or an entry to be lookup up in neo4j.conf
+
+* host
+* host:port
+* http://host:port
+* lookup via key to apoc.es.<key>.url
+* lookup via key apoc.es.<key>.host
+* lookup apoc.es.url
+* lookup apoc.es.host
+
+=== index parameter
+
+Main ES index, will be sent directly, if null then "_all" multiple indexes can be separated by comma in the string.
+
+=== type parameter
+
+Document type, will be sent directly, if null then "_all" multiple types can be separated by comma in the string.
+
+=== id parameter
+
+Document id, will be left off when null.
+
+=== query parameter
+
+Query can be a map which is turned into a query string, a direct string or null then it is left off.
+
+=== payload parameter
+
+Payload can be a *map* which will be turned into a json payload or a string which will be sent directly or null. 
+
+
+=== Results
+
+Results are stream of map in value.

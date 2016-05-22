@@ -3,6 +3,7 @@ package apoc.spatial;
 import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.util.JsonUtil;
+import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -12,7 +13,6 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -105,7 +105,7 @@ public class Geocode {
         @SuppressWarnings("unchecked")
         public Stream<GeoCodeResult> geocode(String address, long maxResults) {
             throttler.waitForThrottle();
-            String url = urlTemplate.replace("PLACE", encodeUrlComponent(address));
+            String url = urlTemplate.replace("PLACE", Util.encodeUrlComponent(address));
             Object value = JsonUtil.loadJson(url);
             if (value instanceof List) {
                 return findResults((List<Map<String, Object>>) value, maxResults);
@@ -147,14 +147,6 @@ public class Geocode {
 
     }
 
-    public static String encodeUrlComponent(String address) {
-        try {
-            return URLEncoder.encode(address,"UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Unsupported character set utf-8");
-        }
-    }
-
     private static class OSMSupplier implements GeocodeSupplier {
         public static final String OSM_URL = "http://nominatim.openstreetmap.org/search.php?format=json&q=";
         private Throttler throttler;
@@ -166,7 +158,7 @@ public class Geocode {
         @SuppressWarnings("unchecked")
         public Stream<GeoCodeResult> geocode(String address, long maxResults) {
             throttler.waitForThrottle();
-            Object value = JsonUtil.loadJson(OSM_URL +encodeUrlComponent(address));
+            Object value = JsonUtil.loadJson(OSM_URL + Util.encodeUrlComponent(address));
             if (value instanceof List) {
                 return ((List<Map<String, Object>>) value).stream().limit(maxResults).map(data ->
                         new GeoCodeResult(toDouble(data.get("lat")), toDouble(data.get("lon")), valueOf(data.get("display_name")), data));
@@ -200,7 +192,7 @@ public class Geocode {
                 return Stream.empty();
             }
             throttler.waitForThrottle();
-            Object value = JsonUtil.loadJson(baseUrl + encodeUrlComponent(address));
+            Object value = JsonUtil.loadJson(baseUrl + Util.encodeUrlComponent(address));
             if (value instanceof Map) {
                 Object results = ((Map) value).get("results");
                 if (results instanceof List) {

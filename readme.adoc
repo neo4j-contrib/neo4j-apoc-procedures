@@ -60,11 +60,11 @@ WITH * WHERE text IS null
 RETURN name AS undocumented
 ----
 
-== Manual Indexes
+=== Manual Indexes
 
 // tag::fulltext[]
 
-=== Index Queries
+==== Index Queries
 
 Procedures to add to and query manual indexes
 
@@ -86,7 +86,7 @@ Procedures to add to and query manual indexes
 | apoc.index.in(node,'TYPE','prop:value*') YIELD node, weight | lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*
 |===
 
-=== Index Management
+==== Index Management
 
 [cols="1m,5"]
 |===
@@ -181,6 +181,23 @@ RETURN n LIMIT 5
 config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}`
 |===
 
+=== Interacting with Elastic Search
+
+// tag::elasticsearch[]
+
+[cols="3m,2"]
+|===
+| apoc.es.stats(host-url-Key) | elastic search statistics
+| apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value | perform a GET operation
+| apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value | perform a SEARCH operation
+| apoc.es.getRaw(host-or-port,path,payload-or-null) yield value | perform a raw GET operation
+| apoc.es.postRaw(host-or-port,path,payload-or-null) yield value | perform a raw POST operation
+| apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value | perform a POST operation
+| apoc.es.put(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value | perform a PUT operation
+|===
+
+// end::elasticsearch[]
+
 === Creating Data
 
 [cols="1m,5"]
@@ -254,6 +271,7 @@ RETURN *;
 | CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value | executes fragment in parallel batches with the list segments being assigned to _
 | CALL apoc.cypher.doIt(fragment, params) yield value | executes writing fragment with the given parameters
 |===
+
 === Job Management
 
 [cols="1m,5"]
@@ -307,6 +325,7 @@ TODO:
 
 === Helpers
 
+==== Map Functions
 
 [cols="1m,5"]
 |===
@@ -316,6 +335,9 @@ TODO:
 | apoc.map.setKey(map,key,value) | returns the map with the value for this key added or replaced
 | apoc.map.clean(map,[keys],[values]) yield value | removes the keys and values (e.g. null-placeholders) contained in those lists, good for data cleaning from CSV/JSON
 |===
+
+
+==== Collection Functions
 
 [cols="1m,5"]
 |===
@@ -335,16 +357,16 @@ TODO:
 | apoc.coll.containsAllSorted(coll, value) | optimized contains-all on a sorted list operation (Collections.binarySearch) (returns single row or not)
 |===
 
+==== Lookup Functions
+
 [cols="1m,5"]
 |===
 | apoc.get.nodes(node|id|[ids]) yield node | quickly returns all nodes with these id's
 | apoc.get.rels(rels|id|[ids]) yield rel | quickly returns all relationships with these id's
 |===
 
-[cols="1m,5"]
-|===
-| apoc.data.domain(email_or_url) yield value | returns domain part of the value
-|===
+
+==== Phonetic Comparisons
 
 [cols="1m,5"]
 |===
@@ -354,6 +376,11 @@ TODO:
 | CAL apoc.text.clean(text) YIELD value | strip the given string of everything except alpha numeric characters and convert it to lower case.
 | CALL apoc.text.compareCleaned(text1, text2) YIELD value | compare the given strings stripped of everything except alpha numeric characters converted to lower case.
 | CALL apoc.text.filterCleanMatches(text1, text2) YIELD value | filter out non-matches of the given strings stripped of everything except alpha numeric characters converted to lower case.
+|===
+
+[cols="1m,5"]
+|===
+| apoc.data.domain(email_or_url) yield value | returns domain part of the value
 |===
 
 === Date/time Support
@@ -379,7 +406,7 @@ TODO:
 * possible unit values: `ms,s,m,h,d` and their long forms `millis,milliseconds,seconds,minutes,hours,days`.
 * possible time zone values: Either an abbreviation such as `PST`, a full name such as `America/Los_Angeles`, or a custom ID such as `GMT-8:00`. Full names are recommended. You can view a list of full names in https://en.wikipedia.org/wiki/List_of_tz_database_time_zones[this Wikipedia page].
 
-==== Reading separate datetime fields:
+==== Reading separate datetime fields
 
 Splits date (optionally, using given custom format) into fields returning a map from field name to its value.
 
@@ -417,7 +444,7 @@ The apoc.path.expand procedure makes it possible to do variable length path trav
 |===
 
 
-Relationship Filter
+==== Relationship Filter
 
 Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 
@@ -429,7 +456,7 @@ Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 | KNOWS  | KNOWS | BOTH
 |===
 
-Label Filter
+==== Label Filter
 
 Syntax: `[+-]LABEL1|LABEL2|...`
 
@@ -459,7 +486,7 @@ Utility to find nodes in parallel (if possible). These procedures return a singl
 | search | 'Keanu' | The actual search term (case sensitive).
 |===
 
-example:
+.example
 [source,cypher]
 ----
 CALL apoc.search.nodeAll('{Person: "name",Movie: ["title","tagline"]}','contains','her') YIELD node AS n RETURN n
@@ -467,20 +494,36 @@ CALL apoc.search.nodeAll('{Person: "name",Movie: ["title","tagline"]}','contains
 
 === Graph Algorithms (work in progress)
 
-Provides a wrapper around GraphAlgoFactory.
+Provides some graph algorithms (not very optimized yet)
 
-[cols="1m,5"]
+[cols="3m,3"]
 |===
-| CALL apoc.algo.dijkstra(startNode, endNode, relAndDirections, costProperty) | run dijkstra with a relationship property as cost function,
-`relAndDirections` is a path expander specification from above.
-| CALL apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, relAndDirections, costProperty, defaultCost) | run dijkstra with a relationship property as cost function. If the relationship property does not exist, use the specified default value instead.
-| CALL apoc.algo.closeness(['TYPE',...],nodes, INCOMING) YIELD node, centrality | calculate closeness centrality for given nodes
-| CALL apoc.algo.betweenness(['TYPE',...],nodes,BOTH) YIELD node, centrality | calculate betweenness centrality for given nodes`
-| CALL apoc.algo.pageRank(nodes) YIELD node, score | calculates page rank for given nodes with 20 iterations
-| CALL apoc.algo.pageRankWithIterations(iterations, nodes) YIELD node, score | calculates page rank for given nodes and iterations
-| CALL apoc.algo.community(node,partitionKey,type,direction,weightKey) | community detection using label propagation
+| apoc.algo.dijkstra(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance') YIELD path, weight | run dijkstra with relationship property name as cost function
+| apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>',  'distance', 10) YIELD path, weight | run dijkstra with relationship property name as cost function and a default weight if the property does not exist
+| apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance','lat','lon')  YIELD path, weight | run A* with relationship property name as cost function
+| apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', {weight:'dist',default:10, x:'lon',y:'lat'}) YIELD path, weight | run A* with relationship property name as cost function
+| apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 5) YIELD path,  weight | run allSimplePaths with relationships given and maxNodes
 |===
 
+
+[cols="3m,3"]
+|===
+| apoc.algo.betweenness(['TYPE',...],nodes,BOTH) YIELD node, score | calculate betweenness  centrality for given nodes
+| apoc.algo.closeness(['TYPE',...],nodes, INCOMING) YIELD node, score | calculate closeness  centrality for given nodes
+|===
+
+[cols="3m,3"]
+|===
+| apoc.algo.pageRank(nodes) YIELD node, score | calculates page rank for given nodes
+| apoc.algo.pageRankWithConfig(nodes,{iterations:_,types:_}) YIELD node, score | calculates page rank for given nodes
+|===
+
+[cols="3m,3"]
+|===
+| apoc.algo.community(times,labels,partitionKey,type,direction,weightKey,batchSize) | simple label propagation kernel
+| apoc.algo.cliques(minSize) YIELD cliques | search the graph and return all maximal cliques at least at  large as the minimum size argument.
+| apoc.algo.cliquesWithNode(startNode, minSize) YIELD cliques | search the graph and return all maximal cliques that  are at least as large than the minimum size argument and contain this node
+|===
 
 Example: find the weighted shortest path based on relationship property `d` from `A` to `B` following just `:ROAD` relationships
 
@@ -532,3 +575,4 @@ MATCH (n:Person)
 * apoc.create.graph(nodes,rels,data-map) -> {nodes:[], rels:[], data:{}} a graph data structure, e.g. for rendering, export, validation, ...
 * auto-increment id's (per label? -> graph properties)
 * query neo4j databases
+* find relationships within a set of nodes

@@ -9,8 +9,6 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -40,7 +38,11 @@ public class LoadJson {
     @SuppressWarnings("unchecked")
     @Procedure
     @Description("apoc.load.jsonParams('url',{header:value},payload) YIELD value - load from JSON URL (e.g. web-api) while sending headers / payload to import JSON as stream of values if the JSON was an array or a single value if it was a map")
-    public Stream<MapResult> jsonParams(@Name("url") String url, @Name("headers") Map<String,String> headers, @Name("payload") String payload) {
+    public Stream<MapResult> jsonParams(@Name("url") String url, @Name("headers") Map<String,Object> headers, @Name("payload") String payload) {
+        return loadJsonStream(url, headers, payload);
+    }
+
+    public static Stream<MapResult> loadJsonStream(@Name("url") String url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload) {
         Object value = JsonUtil.loadJson(url,headers,payload);
         if (value instanceof Map) {
             return Stream.of(new MapResult((Map) value));

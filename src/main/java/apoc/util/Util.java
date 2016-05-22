@@ -10,8 +10,10 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Name;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.LongStream;
@@ -160,18 +162,22 @@ public class Util {
         return Long.parseLong(value.toString());
     }
 
-    public static URLConnection openUrlConnection(String url, Map<String,String> headers) throws IOException {
+    public static URLConnection openUrlConnection(String url, Map<String, Object> headers) throws IOException {
         URL src = new URL(url);
         URLConnection con = src.openConnection();
         con.setRequestProperty("User-Agent", "APOC Procedures for Neo4j");
-        if (headers != null) headers.forEach(con::setRequestProperty);
+        if (headers != null) {
+            Object method = headers.get("method");
+            if (method != null && con instanceof HttpURLConnection) ((HttpURLConnection) con).setRequestMethod(method.toString());
+            headers.forEach((k,v) -> con.setRequestProperty(k, v == null ? "" : v.toString()));
+        }
         con.setDoInput(true);
         con.setConnectTimeout((int)toLong(ApocConfiguration.get("http.timeout.connect",10_000)));
         con.setReadTimeout((int)toLong(ApocConfiguration.get("http.timeout.read",60_000)));
         return con;
     }
 
-    public static InputStream openInputStream(String url,Map<String,String> headers, String payload) throws IOException {
+    public static InputStream openInputStream(String url, Map<String, Object> headers, String payload) throws IOException {
         URLConnection con = openUrlConnection(url, headers);
         if (payload != null) {
             con.setDoOutput(true);
@@ -197,5 +203,21 @@ public class Util {
             return false;
         }
         return true;
+    }
+
+    public static String encodeUrlComponent(String value) {
+        try {
+            return URLEncoder.encode(value,"UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Unsupported character set utf-8");
+        }
+    }
+
+    public static String toJson(Object value) {
+        try {
+            return JsonUtil.OBJECT_MAPPER.writeValueAsString(value);
+        } catch (IOException e) {
+            throw new RuntimeException("Can't convert "+value+" to JSON");
+        }
     }
 }
