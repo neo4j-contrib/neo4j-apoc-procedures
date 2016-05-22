@@ -66,10 +66,15 @@ public class PathExplorer {
 		// LabelFilter
 		// -|Label|:Label|:Label excluded label list
 		// +:Label or :Label include labels
-		
+
+		Traverser traverser = traverse(db.traversalDescription().breadthFirst(), startNodes, pathFilter, labelFilter, minLevel, maxLevel);
+		return traverser.stream().map( PathResult::new );
+	}
+
+	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel) {
 		int from = new Long(minLevel).intValue();
 		int to = new Long(maxLevel).intValue();
-		TraversalDescription td = db.traversalDescription().breadthFirst();
+		TraversalDescription td = traversalDescription;
 		// based on the pathFilter definition now the possible relationships and directions must be shown
 
 		Iterable<Pair<RelationshipType, Direction>> relDirIterable = RelationshipTypeAndDirections.parse(pathFilter);
@@ -80,7 +85,6 @@ public class PathExplorer {
 			} else {
 				td = td.relationships(pair.first(), pair.other());
 			}
-
 		}
 
 		LabelEvaluator labelEvaluator = new LabelEvaluator(labelFilter);
@@ -89,7 +93,7 @@ public class PathExplorer {
 				.evaluator(labelEvaluator);
 		td = td.uniqueness(UNIQUENESS); // this is how Cypher works !!
 		// uniqueness should be set as last on the TraversalDescription
-		return td.traverse(startNodes).stream().map( PathResult::new );
+		return td.traverse(startNodes);
 	}
 
 	public static class LabelEvaluator implements Evaluator {

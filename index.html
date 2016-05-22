@@ -436,6 +436,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_from_tojson">from/toJson</a></li>
 <li><a href="#_loading_data_from_rdbms">Loading Data from RDBMS</a></li>
 <li><a href="#_loading_data_from_web_apis_json_xml_csv">Loading Data from Web-APIs (JSON, XML, CSV)</a></li>
+<li><a href="#_interacting_with_elastic_search">Interacting with Elastic Search</a></li>
 <li><a href="#_creating_data">Creating Data</a></li>
 <li><a href="#_virtual_nodes_rels">Virtual Nodes/Rels</a></li>
 <li><a href="#_warmup">Warmup</a></li>
@@ -528,11 +529,23 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_data_integration">Data Integration</a>
 <ul class="sectlevel2">
-<li><a href="#_load_json">Load JSON</a></li>
+<li><a href="#_load_json">Load JSON</a>
+<ul class="sectlevel3">
+<li><a href="#_load_json_with_additional_parameters">Load Json with additional parameters</a></li>
+</ul>
+</li>
 <li><a href="#_load_jdbc">Load JDBC</a>
 <ul class="sectlevel3">
 <li><a href="#_mysql_example">MySQL Example</a></li>
 <li><a href="#_load_jdbc_examples">Load JDBC Examples</a></li>
+</ul>
+</li>
+<li><a href="#_elasticsearch_integration">ElasticSearch Integration</a>
+<ul class="sectlevel3">
+<li><a href="#_example">Example</a></li>
+<li><a href="#_general_structure_and_parameters">General Structure and Parameters</a></li>
+<li><a href="#_payload_parameter">payload parameter</a></li>
+<li><a href="#_results">Results</a></li>
 </ul>
 </li>
 </ul>
@@ -898,6 +911,45 @@ RETURN n LIMIT 5</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, map</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">load CSV fom URL as stream of values<br>
 config contains any of: <code>{skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}</code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_interacting_with_elastic_search">Interacting with Elastic Search</h4>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 60%;">
+<col style="width: 40%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.stats(host-url-Key)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">elastic search statistics</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a GET operation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a SEARCH operation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.getRaw(host-or-port,path,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a raw GET operation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.postRaw(host-or-port,path,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a raw POST operation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a POST operation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.put(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a PUT operation</p></td>
 </tr>
 </tbody>
 </table>
@@ -2176,13 +2228,19 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 <p><code>apoc.date.parse('2015/03/25 03-15-59','s','yyyy/MM/dd HH/mm/ss')</code> same as previous, but accepts custom datetime format</p>
 </li>
 <li>
-<p><code>apoc.date.formatDefault(12345,'s')</code> get string representation of date corresponding to given Unix time (in seconds)</p>
+<p><code>apoc.date.formatDefault(12345,'s')</code> get string representation of date corresponding to given Unix time (in seconds) in UTC time zone</p>
 </li>
 <li>
 <p><code>apoc.date.format(12345,'s', 'yyyy/MM/dd HH/mm/ss')</code> the same as previous, but accepts custom datetime format</p>
 </li>
 <li>
+<p><code>apoc.date.formatTimeZone(12345,'s', 'yyyy/MM/dd HH/mm/ss', 'ABC')</code> the same as previous, but accepts custom time zone</p>
+</li>
+<li>
 <p>possible unit values: <code>ms,s,m,h,d</code> and their long forms.</p>
+</li>
+<li>
+<p>possible time zone values: Either an abbreviation such as <code>PST</code>, a full name such as <code>America/Los_Angeles</code>, or a custom ID such as <code>GMT-8:00</code>. Full names are recommended.</p>
 </li>
 </ul>
 </div>
@@ -2884,6 +2942,22 @@ UNWIND doc.route_instructions as instruction
 RETURN instruction</code></pre>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_load_json_with_additional_parameters">Load Json with additional parameters</h4>
+<div class="paragraph">
+<p>with <code>apoc.load.jsonParams</code> you can send additional headers or payload with your JSON GET request, e.g. for the Twitter API:</p>
+</div>
+<div class="listingblock">
+<div class="title">Twitter Search via Cypher</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH 'xxxx' as bearer
+call apoc.load.jsonParams("https://api.twitter.com/1.1/search/tweets.json?q=oscon+OR+neo4j+OR+%23oscon+OR+%40neo4j&amp;count=2&amp;result_type=recent&amp;lang=en",{Authorization:"Bearer "+bearer},null) yield value
+UNWIND value.statuses as status
+WITH status, status.user as u, status.entities as e
+RETURN status.id, status.text, u.screen_name, [t IN e.hashtags | t.text] as tags, e.symbols, [m IN e.user_mentions | m.screen_name] as mentions, [u IN e.urls | u.expanded_url] as urls</code></pre>
+</div>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_load_jdbc">Load JDBC</h3>
@@ -2992,6 +3066,145 @@ RETURN row limit 1;</code></pre>
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_elasticsearch_integration">ElasticSearch Integration</h3>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 60%;">
+<col style="width: 40%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.stats(host-url-Key)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">elastic search statistics</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a GET operation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a SEARCH operation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.getRaw(host-or-port,path,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a raw GET operation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.postRaw(host-or-port,path,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a raw POST operation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a POST operation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.put(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a PUT operation</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="_example">Example</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.es.post("localhost","tweets","users","1",null,{name:"Chris"})</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.es.get("localhost","tweets","users","1",null,null)</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.es.stats("localhost")</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="http://i.imgur.com/qHAj9ma.png" alt="qHAj9ma" width="500">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_general_structure_and_parameters">General Structure and Parameters</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.es.post(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value
+
+// GET/PUT/POST url/index/type/id?query -d payload</code></pre>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_host_or_port_parameter">host or port parameter</h5>
+<div class="paragraph">
+<p>The parameter can be a direct host or url, or an entry to be lookup up in neo4j.conf</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>host</p>
+</li>
+<li>
+<p>host:port</p>
+</li>
+<li>
+<p><a href="http://host:port" class="bare">http://host:port</a></p>
+</li>
+<li>
+<p>lookup via key to apoc.es.&lt;key&gt;.url</p>
+</li>
+<li>
+<p>lookup via key apoc.es.&lt;key&gt;.host</p>
+</li>
+<li>
+<p>lookup apoc.es.url</p>
+</li>
+<li>
+<p>lookup apoc.es.host</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_index_parameter">index parameter</h5>
+<div class="paragraph">
+<p>Main ES index, will be sent directly, if null then "_all" multiple indexes can be separated by comma in the string.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_type_parameter">type parameter</h5>
+<div class="paragraph">
+<p>Document type, will be sent directly, if null then "_all" multiple types can be separated by comma in the string.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_id_parameter">id parameter</h5>
+<div class="paragraph">
+<p>Document id, will be left off when null.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_query_parameter">query parameter</h5>
+<div class="paragraph">
+<p>Query can be a map which is turned into a query string, a direct string or null then it is left off.</p>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_payload_parameter">payload parameter</h4>
+<div class="paragraph">
+<p>Payload can be a <strong>map</strong> which will be turned into a json payload or a string which will be sent directly or null.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_results">Results</h4>
+<div class="paragraph">
+<p>Results are stream of map in value.</p>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -3082,7 +3295,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-05-22 00:34:55 CEST
+Last updated 2016-05-22 04:00:11 CEST
 </div>
 </div>
 </body>

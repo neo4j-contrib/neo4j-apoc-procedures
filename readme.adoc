@@ -510,6 +510,7 @@ Provides some graph algorithms (not very optimized yet)
 |===
 | apoc.algo.betweenness(['TYPE',...],nodes,BOTH) YIELD node, score | calculate betweenness  centrality for given nodes
 | apoc.algo.closeness(['TYPE',...],nodes, INCOMING) YIELD node, score | calculate closeness  centrality for given nodes
+| apoc.algo.cover(nodes) YIELD rel | return relationships between this set of nodes
 |===
 
 [cols="3m,3"]

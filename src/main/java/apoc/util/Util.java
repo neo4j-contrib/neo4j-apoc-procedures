@@ -68,11 +68,11 @@ public class Util {
     }
 
     public static Stream<Relationship> relsStream(GraphDatabaseService db, Object ids) {
-        return ids(ids).parallel().mapToObj(db::getRelationshipById);
+        return ids(ids).mapToObj(db::getRelationshipById);
     }
 
     public static Stream<Node> nodeStream(GraphDatabaseService db, @Name("nodes") Object ids) {
-        return ids(ids).parallel().mapToObj(db::getNodeById);
+        return ids(ids).mapToObj(db::getNodeById);
     }
 
     public static double doubleValue(PropertyContainer pc, String prop, Number defaultValue) {

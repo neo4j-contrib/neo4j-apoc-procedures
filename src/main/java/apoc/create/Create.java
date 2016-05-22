@@ -5,12 +5,16 @@ import apoc.get.Get;
 import apoc.result.*;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
@@ -32,7 +36,7 @@ public class Create {
     @Description("apoc.create.addLabels( [node,id,ids,nodes], ['Label',...]) - adds the given labels to the node or nodes")
     public Stream<NodeResult> addLabels(@Name("nodes") Object nodes, @Name("label") List<String> labelNames) {
         Label[] labels = Util.labels(labelNames);
-        return new Get(db).nodes(nodes).map((r) -> {
+        return new Get((GraphDatabaseAPI) db).nodes(nodes).map((r) -> {
             Node node = r.node;
             for (Label label : labels) {
                 node.addLabel(label);
@@ -45,7 +49,7 @@ public class Create {
     @Description("apoc.create.setLabels( [node,id,ids,nodes], ['Label',...]) - sets the given labels, non matching labels are removed on the node or nodes")
     public Stream<NodeResult> setLabels(@Name("nodes") Object nodes, @Name("label") List<String> labelNames) {
         Label[] labels = Util.labels(labelNames);
-        return new Get(db).nodes(nodes).map((r) -> {
+        return new Get((GraphDatabaseAPI) db).nodes(nodes).map((r) -> {
             Node node = r.node;
             for (Label label : node.getLabels()) {
                 if (labelNames.contains(label.name())) continue;
@@ -64,7 +68,7 @@ public class Create {
     @Description("apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...]) - removes the given labels from the node or nodes")
     public Stream<NodeResult> removeLabels(@Name("nodes") Object nodes, @Name("label") List<String> labelNames) {
         Label[] labels = Util.labels(labelNames);
-        return new Get(db).nodes(nodes).map((r) -> {
+        return new Get((GraphDatabaseAPI) db).nodes(nodes).map((r) -> {
             Node node = r.node;
             for (Label label : labels) {
                 node.removeLabel(label);
