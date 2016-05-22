@@ -16,6 +16,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -219,5 +220,14 @@ public class Util {
         } catch (IOException e) {
             throw new RuntimeException("Can't convert "+value+" to JSON");
         }
+    }
+
+    public static Stream<List<Object>> partitionSubList(List<Object> data, int partitions) {
+        List<Object> list = new ArrayList<>(data);
+        int total = list.size();
+        int batchSize = Math.max((int)Math.ceil((double)total / partitions),1);
+        return IntStream.rangeClosed(0, partitions).parallel()
+                .mapToObj((part) -> list.subList(Math.min(part * batchSize,total), Math.min((part + 1) * batchSize, total)))
+                .filter(partition -> !partition.isEmpty());
     }
 }

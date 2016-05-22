@@ -22,7 +22,6 @@ import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -177,19 +176,10 @@ public class Cypher {
     public Stream<MapResult> mapParallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data) {
         final String statement = parallelStatement(fragment, params, "_");
         db.execute("EXPLAIN " + statement).close();
-        return partitionSubList(data, PARTITIONS)
+        return Util.partitionSubList(data, PARTITIONS)
                 .flatMap((partition) -> Iterators.addToCollection(api.execute(statement, parallelParams(params, "_", partition)),
                         new ArrayList<>(partition.size())).stream())
                 .map(MapResult::new);
-    }
-
-    public Stream<List<Object>> partitionSubList(@Name("list") List<Object> data, int partitions) {
-        List<Object> list = new ArrayList<>(data);
-        int total = list.size();
-        int batchSize = Math.max(total / partitions, 1);
-        return IntStream.rangeClosed(0, partitions).parallel()
-                .mapToObj((part) -> list.subList(part * batchSize, Math.min((part + 1) * batchSize, total)))
-                .filter(partition -> !partition.isEmpty());
     }
 
     // todo proper Collector
