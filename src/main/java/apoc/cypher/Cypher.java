@@ -186,9 +186,9 @@ public class Cypher {
     public Stream<List<Object>> partitionSubList(@Name("list") List<Object> data, int partitions) {
         List<Object> list = new ArrayList<>(data);
         int total = list.size();
-        int batchSize = Math.max(total / partitions, 1);
+        int batchSize = Math.max((int) Math.ceil(((double)total) / ((double)partitions)), 1);
         return IntStream.rangeClosed(0, partitions).parallel()
-                .mapToObj((part) -> list.subList(part * batchSize, Math.min((part + 1) * batchSize, total)))
+                .mapToObj((part) -> list.subList(Math.min(part * batchSize, total), Math.min((part + 1) * batchSize, total)))
                 .filter(partition -> !partition.isEmpty());
     }
 
