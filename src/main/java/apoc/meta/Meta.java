@@ -323,6 +323,12 @@ public class Meta {
             }
             public void sample(Label label, int count, Node node, RelationshipType type, Direction direction, int degree, Relationship rel) {
                 if (rel!=null && (includeRels.isEmpty() || includeRels.contains(type.name()))) {
+                    for (Label labelA : rel.getStartNode().getLabels()) {
+                        sample(labelA, count, node);
+                    }
+                    for (Label labelB : rel.getEndNode().getLabels()) {
+                        sample(labelB, count, node);
+                    }
                     addRel(rels, labels, rel, restrictRels);
                 }
             }
