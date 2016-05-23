@@ -31,6 +31,8 @@ import static java.lang.String.format;
  */
 public class Util {
     public static final Label[] NO_LABELS = new Label[0];
+    public static final String NODE_COUNT = "MATCH (n) RETURN count(*) as result";
+    public static final String REL_COUNT = "MATCH ()-->() RETURN count(*) as result";
 
     public static Label[] labels(Object labelNames) {
         if (labelNames==null) return NO_LABELS;
@@ -229,5 +231,19 @@ public class Util {
         return IntStream.rangeClosed(0, partitions).parallel()
                 .mapToObj((part) -> list.subList(Math.min(part * batchSize,total), Math.min((part + 1) * batchSize, total)))
                 .filter(partition -> !partition.isEmpty());
+    }
+
+    public static Long runNumericQuery(GraphDatabaseService db, String query, Map<String, Object> params) {
+        if (params == null) params = Collections.emptyMap();
+        try (ResourceIterator<Long> it = db.execute(query,params).<Long>columnAs("result")) {
+            return it.next();
+        }
+    }
+
+    public static long nodeCount(GraphDatabaseService db) {
+        return runNumericQuery(db,NODE_COUNT,null);
+    }
+    public static long relCount(GraphDatabaseService db) {
+        return runNumericQuery(db,REL_COUNT,null);
     }
 }

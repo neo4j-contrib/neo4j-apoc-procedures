@@ -1,15 +1,13 @@
 package apoc.warmup;
 
 import apoc.Description;
-import org.neo4j.graphdb.ResourceIterator;
+import apoc.util.Util;
 import org.neo4j.kernel.impl.store.format.standard.NodeRecordFormat;
 import org.neo4j.kernel.impl.store.format.standard.RelationshipRecordFormat;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Procedure;
 
-import java.util.Collections;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import static apoc.util.MapUtil.map;
@@ -21,8 +19,6 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
  */
 public class Warmup {
 
-    public static final String NODE_COUNT = "MATCH (n) RETURN count(*) as result";
-    public static final String REL_COUNT = "MATCH ()-->() RETURN count(*) as result";
     @Context
     public GraphDatabaseAPI db;
 
@@ -41,14 +37,14 @@ public class Warmup {
         int pageSize = 1 << 13; // default page size, todo read from config
         int nodesPerPage = pageSize / NodeRecordFormat.RECORD_SIZE;
         int relsPerPage = pageSize / RelationshipRecordFormat.RECORD_SIZE;
-        long nodesTotal = runNumericQuery(NODE_COUNT,null);
-        long relsTotal = runNumericQuery(REL_COUNT,null);
+        long nodesTotal = Util.nodeCount(db);
+        long relsTotal = Util.relCount(db);
 
         long start = System.nanoTime();
-        long nodesLoaded = runNumericQuery("UNWIND range(0,{maxId}-1,{step}) as id MATCH (n) WHERE id(n) = id return count(*) as result",
+        long nodesLoaded = Util.runNumericQuery(db, "UNWIND range(0,{maxId}-1,{step}) as id MATCH (n) WHERE id(n) = id return count(*) as result",
                 map("maxId",nodesTotal, "step", nodesPerPage));
         long timeNodes = System.nanoTime();
-        long relsLoaded = runNumericQuery("UNWIND range(0,{maxId}-1,{step}) as id MATCH ()-[r]->() WHERE id(r) = id return count(*) as result",
+        long relsLoaded = Util.runNumericQuery(db, "UNWIND range(0,{maxId}-1,{step}) as id MATCH ()-[r]->() WHERE id(r) = id return count(*) as result",
                 map("maxId",relsTotal, "step", relsPerPage));
         long timeRels = System.nanoTime();
 
@@ -87,10 +83,4 @@ public class Warmup {
         }
     }
 
-    public Long runNumericQuery(String query,Map<String,Object> params) {
-        if (params == null) params = Collections.emptyMap();
-        try (ResourceIterator<Long> it = db.execute(query,params).<Long>columnAs("result")) {
-            return it.next();
-        }
-    }
 }

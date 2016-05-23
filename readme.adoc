@@ -160,6 +160,17 @@ RETURN n LIMIT 5
 | CALL apoc.convert.fromJsonMap( '{"a":42,"b":"foo","c":[1,2,3]}') | converts json map to Cypher map
 |===
 
+=== Export / Import
+
+Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.runFile to the given file.
+
+[cols="1m,5"]
+|===
+| apoc.export.cypherAll(file,config) | exports whole database incl. indexes as cypher statements to the provided file
+| apoc.export.cypherData(nodes,rels,file,config) | exports given nodes and relationships incl. indexes as cypher statements to the provided file
+| apoc.export.cypherQuery(query,file,config) | exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file
+|===
+
 === Loading Data from RDBMS
 
 // tag::jdbc[]
@@ -273,6 +284,8 @@ RETURN *;
 | CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value | executes fragment in parallel batches with the list segments being assigned to _
 | CALL apoc.cypher.doIt(fragment, params) yield value | executes writing fragment with the given parameters
 |===
+
+TODO runFile: begin/commit/schema await/constraints/indexes
 
 === Job Management
 
