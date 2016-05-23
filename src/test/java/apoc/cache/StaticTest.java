@@ -11,6 +11,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
 
+import static apoc.util.MapUtil.map;
 import static org.junit.Assert.*;
 
 /**
@@ -26,6 +27,7 @@ public class StaticTest {
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
                 .setConfig("apoc.static.test",VALUE)
+                .setConfig("apoc.static.all.test",VALUE)
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, Static.class);
     }
@@ -35,6 +37,12 @@ public class StaticTest {
         db.shutdown();
     }
 
+    @Test
+    public void testGetAllFromConfig() throws Exception {
+        TestUtil.testCall(db, "call apoc.static.getAll('all')", r -> assertEquals(map("test",VALUE),r.get("value")));
+        TestUtil.testCall(db, "call apoc.static.set('all.test2',42)", r -> assertEquals(null,r.get("value")));
+        TestUtil.testCall(db, "call apoc.static.getAll('all')", r -> assertEquals(map("test",VALUE,"test2",42L),r.get("value")));
+    }
     @Test
     public void testGetFromConfig() throws Exception {
         TestUtil.testCall(db, "call apoc.static.get('test')", r -> assertEquals(VALUE,r.get("value")));

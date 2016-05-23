@@ -2,8 +2,9 @@ package apoc.cache;
 
 import apoc.ApocConfiguration;
 import apoc.Description;
+import apoc.result.MapResult;
 import apoc.result.ObjectResult;
-import org.neo4j.graphdb.GraphDatabaseService;
+import apoc.util.Util;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -28,6 +29,14 @@ public class Static {
     @Description("apoc.static.get(name) - returns statically stored value from config (apoc.static.<key>) or server lifetime storage")
     public Stream<ObjectResult> get(@Name("key") String key) {
         return Stream.of(new ObjectResult(storage.getOrDefault(key, fromConfig(key))));
+    }
+    @Procedure("apoc.static.getAll")
+    @Description("apoc.static.getAll(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage")
+    public Stream<MapResult> getAll(@Name("prefix") String prefix) {
+        Map<String,Object> config = ApocConfiguration.get("static." + prefix);
+        HashMap<String, Object> result = new HashMap<>(config);
+        result.putAll(Util.subMap(storage, prefix));
+        return Stream.of(new MapResult(result));
     }
 
     private Object fromConfig(@Name("key") String key) {

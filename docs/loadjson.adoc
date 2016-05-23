@@ -26,12 +26,19 @@ RETURN instruction
 
 with `apoc.load.jsonParams` you can send additional headers or payload with your JSON GET request, e.g. for the Twitter API:
 
+Configure Bearer token in `neo4j.conf`
+
+----
+apoc.static.twitter.bearer=XXXX
+apoc.static.twitter.url=
+----
 
 .Twitter Search via Cypher
 [source,cypher]
 ----
-WITH 'xxxx' as bearer
-call apoc.load.jsonParams("https://api.twitter.com/1.1/search/tweets.json?q=oscon+OR+neo4j+OR+%23oscon+OR+%40neo4j&count=2&result_type=recent&lang=en",{Authorization:"Bearer "+bearer},null) yield value
+CALL apoc.static.get("twitter.bearer") yield value AS bearer
+WITH "https://api.twitter.com/1.1/search/tweets.json?count=100&result_type=recent&lang=en&q=" as url
+CALL apoc.load.jsonParams(url + "oscon+OR+neo4j+OR+%23oscon+OR+%40neo4j",{Authorization:"Bearer "+bearer},null) yield value
 UNWIND value.statuses as status
 WITH status, status.user as u, status.entities as e
 RETURN status.id, status.text, u.screen_name, [t IN e.hashtags | t.text] as tags, e.symbols, [m IN e.user_mentions | m.screen_name] as mentions, [u IN e.urls | u.expanded_url] as urls
