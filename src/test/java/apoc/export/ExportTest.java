@@ -54,9 +54,9 @@ public class ExportTest {
                 .setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, Export.class);
-        db.execute("CREATE (f:Foo {name:'foo'})-[:KNOWS]->(b:Bar {name:'bar',age:42})").close();
         db.execute("CREATE INDEX ON :Foo(name)").close();
         db.execute("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name is unique").close();
+        db.execute("CREATE (f:Foo {name:'foo'})-[:KNOWS]->(b:Bar {name:'bar',age:42})").close();
     }
 
     @AfterClass
