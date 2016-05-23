@@ -32,7 +32,7 @@ public class SchemaIndexTest {
         db.execute("CREATE INDEX ON :Person(age)").close();
         db.execute("CREATE CONSTRAINT ON (p:Person) ASSERT p.id IS UNIQUE").close();
         try (Transaction tx=db.beginTx()) {
-            db.schema().awaitIndexesOnline(100,TimeUnit.MILLISECONDS);
+            db.schema().awaitIndexesOnline(2,TimeUnit.SECONDS);
             tx.success();
         }
     }
