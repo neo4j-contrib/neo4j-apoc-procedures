@@ -108,6 +108,17 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 
 // end::fulltext[]
 
+==== Schema Index Queries
+
+Schema Index lookups that keep order and can apply limits
+
+[cols="1m,5"]
+|===
+| apoc.index.orderedRange(label,key,min,max,sort-relevance,limit) yield node | schema range scan which keeps index order and adds limit, values can be null, boundaries are inclusive
+| apoc.index.orderedByText(label,key,operator,value,sort-relevance,limit) yield node | schema string search which keeps index order and adds limit, operator is 'STARTS WITH' or 'CONTAINS'
+|===
+
+
 
 === Meta Graph
 

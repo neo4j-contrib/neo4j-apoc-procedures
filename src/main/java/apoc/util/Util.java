@@ -3,6 +3,7 @@ package apoc.util;
 import apoc.ApocConfiguration;
 import apoc.Pools;
 import apoc.path.RelationshipTypeAndDirections;
+import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
@@ -245,5 +246,23 @@ public class Util {
     }
     public static long relCount(GraphDatabaseService db) {
         return runNumericQuery(db,REL_COUNT,null);
+    }
+
+    public static LongStream toLongStream(PrimitiveLongIterator it) {
+        PrimitiveIterator.OfLong iterator = new PrimitiveIterator.OfLong() {
+
+            @Override
+            public boolean hasNext() {
+                return it.hasNext();
+            }
+
+            @Override
+            public long nextLong() {
+                return it.next();
+            }
+        };
+        return StreamSupport.longStream(Spliterators.spliteratorUnknownSize(
+                iterator,
+                Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.NONNULL), false);
     }
 }

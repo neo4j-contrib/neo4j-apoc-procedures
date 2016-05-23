@@ -28,6 +28,11 @@ public class VirtualNode implements Node {
         this.props.putAll(props);
     }
 
+    public VirtualNode(long nodeId, GraphDatabaseService db) {
+        this.id = nodeId;
+        this.db = db;
+    }
+
     @Override
     public long getId() {
         return id;
