@@ -424,16 +424,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_included_procedures_overview">Included Procedures Overview</a>
 <ul class="sectlevel3">
 <li><a href="#_built_in_help">Built in Help</a></li>
-</ul>
-</li>
-<li><a href="#_manual_indexes">Manual Indexes</a>
-<ul class="sectlevel3">
-<li><a href="#_index_queries">Index Queries</a></li>
-<li><a href="#_index_management">Index Management</a></li>
+<li><a href="#_manual_indexes">Manual Indexes</a></li>
 <li><a href="#_meta_graph">Meta Graph</a></li>
 <li><a href="#_schema">Schema</a></li>
 <li><a href="#_locking">Locking</a></li>
 <li><a href="#_from_tojson">from/toJson</a></li>
+<li><a href="#_export_import">Export / Import</a></li>
 <li><a href="#_loading_data_from_rdbms">Loading Data from RDBMS</a></li>
 <li><a href="#_loading_data_from_web_apis_json_xml_csv">Loading Data from Web-APIs (JSON, XML, CSV)</a></li>
 <li><a href="#_interacting_with_elastic_search">Interacting with Elastic Search</a></li>
@@ -459,7 +455,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_detailed_documentation">Detailed Documentation</a>
 <ul class="sectlevel1">
 <li><a href="#_text_and_lookup_indexes">Text and Lookup Indexes</a>
-<ul class="sectlevel2">
+<ul class="sectlevel3">
 <li><a href="#_index_queries_2">Index Queries</a></li>
 <li><a href="#_index_management_2">Index Management</a></li>
 <li><a href="#_full_text_search">Full Text Search</a>
@@ -544,8 +540,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel3">
 <li><a href="#_example">Example</a></li>
 <li><a href="#_general_structure_and_parameters">General Structure and Parameters</a></li>
-<li><a href="#_payload_parameter">payload parameter</a></li>
-<li><a href="#_results">Results</a></li>
+</ul>
+</li>
+<li><a href="#_load_xml">Load XML</a>
+<ul class="sectlevel3">
+<li><a href="#_example_how_do_you_access_xml_doc_attributes_in_children_fields">Example: How do you access xml doc attributes in children fields ?</a></li>
 </ul>
 </li>
 </ul>
@@ -574,6 +573,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect1">
 <h2 id="_awesome_procedures_for_neo4j_3_x">Awesome Procedures for Neo4j 3.x</h2>
 <div class="sectionbody">
+<div class="imageblock">
+<div class="content">
+<img src="https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg" alt="neo4j apoc procedures">
+</div>
+</div>
 <div class="imageblock" style="float: right">
 <div class="content">
 <img src="http://www.oocities.org/matrixextreme/images/apoc.gif" alt="apoc">
@@ -656,11 +660,10 @@ RETURN name AS undocumented</code></pre>
 </div>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_manual_indexes">Manual Indexes</h3>
 <div class="sect3">
-<h4 id="_index_queries">Index Queries</h4>
+<h4 id="_manual_indexes">Manual Indexes</h4>
+<div class="sect4">
+<h5 id="_index_queries">Index Queries</h5>
 <div class="paragraph">
 <p>Procedures to add to and query manual indexes</p>
 </div>
@@ -721,8 +724,8 @@ RETURN name AS undocumented</code></pre>
 </tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_index_management">Index Management</h4>
+<div class="sect4">
+<h5 id="_index_management">Index Management</h5>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -754,6 +757,29 @@ RETURN name AS undocumented</code></pre>
 // 129s for 1M People
 call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limit 2</code></pre>
 </div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_schema_index_queries">Schema Index Queries</h5>
+<div class="paragraph">
+<p>Schema Index lookups that keep order and can apply limits</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.orderedRange(label,key,min,max,sort-relevance,limit) yield node</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">schema range scan which keeps index order and adds limit, values can be null, boundaries are inclusive</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.orderedByText(label,key,operator,value,sort-relevance,limit) yield node</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">schema string search which keeps index order and adds limit, operator is 'STARTS WITH' or 'CONTAINS'</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="sect3">
@@ -864,6 +890,32 @@ RETURN n LIMIT 5</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.convert.fromJsonMap( '{"a":42,"b":"foo","c":[1,2,3]}')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">converts json map to Cypher map</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_export_import">Export / Import</h4>
+<div class="paragraph">
+<p>Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.runFile to the given file.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.cypherAll(file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exports whole database incl. indexes as cypher statements to the provided file</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.cypherData(nodes,rels,file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exports given nodes and relationships incl. indexes as cypher statements to the provided file</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.cypherQuery(query,file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file</p></td>
 </tr>
 </tbody>
 </table>
@@ -1116,6 +1168,9 @@ RETURN *;</code></pre>
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p>TODO runFile: begin/commit/schema await/constraints/indexes</p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_job_management">Job Management</h4>
@@ -1255,6 +1310,31 @@ RETURN *;</code></pre>
 </div>
 <div class="sect3">
 <h4 id="_helpers">Helpers</h4>
+<div class="sect4">
+<h5 id="_static_value_storage">Static Value Storage</h5>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.static.get(name)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns statically stored value from config (apoc.static.&lt;key&gt;) or server lifetime storage</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.static.getAll(prefix)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns statically stored values from config (apoc.static.&lt;prefix&gt;) or server lifetime storage</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.static.set(name, value)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">stores value under key for server livetime storage, returns previously stored or configured value</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_map_functions">Map Functions</h5>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1283,6 +1363,9 @@ RETURN *;</code></pre>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="sect4">
+<h5 id="_collection_functions">Collection Functions</h5>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1347,6 +1430,9 @@ RETURN *;</code></pre>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="sect4">
+<h5 id="_lookup_functions">Lookup Functions</h5>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1371,18 +1457,9 @@ RETURN *;</code></pre>
 </tr>
 </tbody>
 </table>
-<table class="tableblock frame-all grid-all spread">
-<colgroup>
-<col style="width: 16%;">
-<col style="width: 83%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.data.domain(email_or_url) yield value</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">returns domain part of the value</p></td>
-</tr>
-</tbody>
-</table>
+</div>
+<div class="sect4">
+<h5 id="_phonetic_comparisons">Phonetic Comparisons</h5>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1415,6 +1492,19 @@ RETURN *;</code></pre>
 </tr>
 </tbody>
 </table>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.data.domain(email_or_url) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns domain part of the value</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_date_time_support">Date/time Support</h4>
@@ -1479,7 +1569,7 @@ RETURN *;</code></pre>
 </div>
 </div>
 <div class="sect4">
-<h5 id="_reading_separate_datetime_fields">Reading separate datetime fields:</h5>
+<h5 id="_reading_separate_datetime_fields">Reading separate datetime fields</h5>
 <div class="paragraph">
 <p>Splits date (optionally, using given custom format) into fields returning a map from field name to its value.</p>
 </div>
@@ -1592,9 +1682,8 @@ RETURN *;</code></pre>
 </tr>
 </tbody>
 </table>
-<div class="paragraph">
-<p>Relationship Filter</p>
-</div>
+<div class="sect4">
+<h5 id="_relationship_filter">Relationship Filter</h5>
 <div class="paragraph">
 <p>Syntax: <code>[&lt;]RELATIONSHIP_TYPE1[&gt;]|[&lt;]RELATIONSHIP_TYPE2[&gt;]|&#8230;&#8203;</code></p>
 </div>
@@ -1635,9 +1724,9 @@ RETURN *;</code></pre>
 </tr>
 </tbody>
 </table>
-<div class="paragraph">
-<p>Label Filter</p>
 </div>
+<div class="sect4">
+<h5 id="_label_filter">Label Filter</h5>
 <div class="paragraph">
 <p>Syntax: <code>[+-]LABEL1|LABEL2|&#8230;&#8203;</code></p>
 </div>
@@ -1671,6 +1760,7 @@ RETURN *;</code></pre>
 </tr>
 </tbody>
 </table>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_parallel_node_search">Parallel Node Search</h4>
@@ -1725,10 +1815,8 @@ RETURN *;</code></pre>
 </tr>
 </tbody>
 </table>
-<div class="paragraph">
-<p>example:</p>
-</div>
 <div class="listingblock">
+<div class="title">example</div>
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.search.nodeAll('{Person: "name",Movie: ["title","tagline"]}','contains','her') YIELD node AS n RETURN n</code></pre>
 </div>
@@ -1737,42 +1825,89 @@ RETURN *;</code></pre>
 <div class="sect3">
 <h4 id="_graph_algorithms_work_in_progress">Graph Algorithms (work in progress)</h4>
 <div class="paragraph">
-<p>Provides a wrapper around GraphAlgoFactory.</p>
+<p>Provides some graph algorithms (not very optimized yet)</p>
 </div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
-<col style="width: 16%;">
-<col style="width: 83%;">
+<col style="width: 50%;">
+<col style="width: 50%;">
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.algo.dijkstra(startNode, endNode, relAndDirections, costProperty)</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">run dijkstra with a relationship property as cost function,
-<code>relAndDirections</code> is a path expander specification from above.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.dijkstra(startNode, endNode, 'KNOWS|&lt;WORKS_WITH|IS_MANAGER_OF&gt;', 'distance') YIELD path, weight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">run dijkstra with relationship property name as cost function</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, relAndDirections, costProperty, defaultCost)</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">run dijkstra with a relationship property as cost function. If the relationship property does not exist, use the specified default value instead.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS|&lt;WORKS_WITH|IS_MANAGER_OF&gt;',  'distance', 10) YIELD path, weight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">run dijkstra with relationship property name as cost function and a default weight if the property does not exist</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.algo.closeness(['TYPE',&#8230;&#8203;],nodes, INCOMING) YIELD node, centrality</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">calculate closeness centrality for given nodes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.aStar(startNode, endNode, 'KNOWS|&lt;WORKS_WITH|IS_MANAGER_OF&gt;', 'distance','lat','lon')  YIELD path, weight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">run A* with relationship property name as cost function</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.algo.betweenness(['TYPE',&#8230;&#8203;],nodes,BOTH) YIELD node, centrality</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">calculate betweenness centrality for given nodes`</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.aStar(startNode, endNode, 'KNOWS|&lt;WORKS_WITH|IS_MANAGER_OF&gt;', {weight:'dist',default:10, x:'lon',y:'lat'}) YIELD path, weight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">run A* with relationship property name as cost function</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.algo.pageRank(nodes) YIELD node, score</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">calculates page rank for given nodes with 20 iterations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS|&lt;WORKS_WITH|IS_MANAGER_OF&gt;', 5) YIELD path,  weight</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">run allSimplePaths with relationships given and maxNodes</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.betweenness(['TYPE',&#8230;&#8203;],nodes,BOTH) YIELD node, score</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">calculate betweenness  centrality for given nodes</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.algo.pageRankWithIterations(iterations, nodes) YIELD node, score</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">calculates page rank for given nodes and iterations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.closeness(['TYPE',&#8230;&#8203;],nodes, INCOMING) YIELD node, score</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">calculate closeness  centrality for given nodes</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.algo.community(node,partitionKey,type,direction,weightKey)</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">community detection using label propagation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.cover(nodes) YIELD rel</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">return relationships between this set of nodes</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.pageRank(nodes) YIELD node, score</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">calculates page rank for given nodes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.pageRankWithConfig(nodes,{iterations:_,types:_}) YIELD node, score</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">calculates page rank for given nodes</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.community(times,labels,partitionKey,type,direction,weightKey,batchSize)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">simple label propagation kernel</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.cliques(minSize) YIELD cliques</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">search the graph and return all maximal cliques at least at  large as the minimum size argument.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.cliquesWithNode(startNode, minSize) YIELD cliques</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">search the graph and return all maximal cliques that  are at least as large than the minimum size argument and contain this node</p></td>
 </tr>
 </tbody>
 </table>
@@ -1907,6 +2042,9 @@ MATCH (n:Person)</code></pre>
 <li>
 <p>query neo4j databases</p>
 </li>
+<li>
+<p>find relationships within a set of nodes</p>
+</li>
 </ul>
 </div>
 </div>
@@ -1916,8 +2054,8 @@ MATCH (n:Person)</code></pre>
 <div class="sect1">
 <h2 id="_text_and_lookup_indexes">Text and Lookup Indexes</h2>
 <div class="sectionbody">
-<div class="sect2">
-<h3 id="_index_queries_2">Index Queries</h3>
+<div class="sect3">
+<h4 id="_index_queries_2">Index Queries</h4>
 <div class="paragraph">
 <p>Procedures to add to and query manual indexes</p>
 </div>
@@ -1978,8 +2116,8 @@ MATCH (n:Person)</code></pre>
 </tbody>
 </table>
 </div>
-<div class="sect2">
-<h3 id="_index_management_2">Index Management</h3>
+<div class="sect3">
+<h4 id="_index_management_2">Index Management</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -2945,13 +3083,22 @@ RETURN instruction</code></pre>
 <div class="sect3">
 <h4 id="_load_json_with_additional_parameters">Load Json with additional parameters</h4>
 <div class="paragraph">
-<p>with <code>apoc.load.jsonParams</code> you can send additional headers or payload with your JSON GET request, e.g. for the Twitter API:</p>
+<p>With <code>apoc.load.jsonParams</code> you can send additional headers or payload with your JSON GET request, e.g. for the Twitter API:</p>
+</div>
+<div class="paragraph">
+<p>Configure Bearer and Twitter Search Url token in <code>neo4j.conf</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.static.twitter.bearer=XXXX
+apoc.static.twitter.url=https://api.twitter.com/1.1/search/tweets.json?count=100&amp;result_type=recent&amp;lang=en&amp;q=</pre>
+</div>
 </div>
 <div class="listingblock">
 <div class="title">Twitter Search via Cypher</div>
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH 'xxxx' as bearer
-call apoc.load.jsonParams("https://api.twitter.com/1.1/search/tweets.json?q=oscon+OR+neo4j+OR+%23oscon+OR+%40neo4j&amp;count=2&amp;result_type=recent&amp;lang=en",{Authorization:"Bearer "+bearer},null) yield value
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.static.getAll("twitter") yield value AS twitter
+CALL apoc.load.jsonParams(twitter.url + "oscon+OR+neo4j+OR+%23oscon+OR+%40neo4j",{Authorization:"Bearer "+twitter.bearer},null) yield value
 UNWIND value.statuses as status
 WITH status, status.user as u, status.entities as e
 RETURN status.id, status.text, u.screen_name, [t IN e.hashtags | t.text] as tags, e.symbols, [m IN e.user_mentions | m.screen_name] as mentions, [u IN e.urls | u.expanded_url] as urls</code></pre>
@@ -3191,17 +3338,181 @@ RETURN row limit 1;</code></pre>
 <p>Query can be a map which is turned into a query string, a direct string or null then it is left off.</p>
 </div>
 </div>
-</div>
-<div class="sect3">
-<h4 id="_payload_parameter">payload parameter</h4>
+<div class="sect4">
+<h5 id="_payload_parameter">payload parameter</h5>
 <div class="paragraph">
 <p>Payload can be a <strong>map</strong> which will be turned into a json payload or a string which will be sent directly or null.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_results">Results</h4>
+<div class="sect4">
+<h5 id="_results">Results</h5>
 <div class="paragraph">
 <p>Results are stream of map in value.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_load_xml">Load XML</h3>
+<div class="sect3">
+<h4 id="_example_how_do_you_access_xml_doc_attributes_in_children_fields">Example: How do you access xml doc attributes in children fields ?</h4>
+<div class="paragraph">
+<p>(Thanks Nicolas Rouyer)</p>
+</div>
+<div class="paragraph">
+<p>For example, if my XML file is the example <a href="https://msdn.microsoft.com/en-us/library/ms762271%28v=vs.85%29.aspx">book.xml provided by microsoft</a>.</p>
+</div>
+<div class="paragraph">
+<p>We have the file here: <a href="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml" class="bare">https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml</a></p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s just load it and see what it looks like, it&#8217;s returned as value map with nested <code>_type</code> and <code>_children</code> fields, per group of elements.
+Attributes are turned into map-entries.
+And elements into their own little map with <code>_type</code>, attributes and <code>_children</code> if applicable.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml")</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>{_type: catalog, _children: [
+  {_type: book, id: bk101, _children: [
+    {_type: author, _text: Gambardella, Matthew},
+    {_type: title, _text: XML Developer's Guide},
+    {_type: genre, _text: Computer},
+    {_type: price, _text: 44.95},
+    {_type: publish_date, _text: 2000-10-01},
+    {_type: description, _text: An in-depth look at creating applications ....</pre>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_for_each_book_how_do_i_access_book_id">For each book, how do I access book id ?</h5>
+<div class="paragraph">
+<p>You can access attributes per element directly.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml") yield value as catalog
+UNWIND catalog._children as book
+RETURN book.id</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>╒═══════╕
+│book.id│
+╞═══════╡
+│bk101  │
+├───────┤
+│bk102  │</pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_for_each_book_how_do_i_access_book_author_and_title">For each book, how do I access book author and title ?</h5>
+<div class="sect5">
+<h6 id="_filter_into_collection">Filter into collection</h6>
+<div class="paragraph">
+<p>You have to filter over the sub-elements  in the <code>_childrens</code> array in this case.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml") yield value as catalog
+UNWIND catalog._children as book
+RETURN book.id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>╒═══════╤════════════════════════════════════════════════════════════════════════╕
+│book.id│pairs                                                                   │
+╞═══════╪════════════════════════════════════════════════════════════════════════╡
+│bk101  │[[author, Gambardella, Matthew], [title, XML Developer's Guide]]        │
+├───────┼────────────────────────────────────────────────────────────────────────┤
+│bk102  │[[author, Ralls, Kim], [title, Midnight Rain]]                          │</pre>
+</div>
+</div>
+</div>
+<div class="sect5">
+<h6 id="_return_collection_elements">Return Collection Elements</h6>
+<div class="paragraph">
+<p>This is not too nice, we could also just have returned the values and then grabbed them out of the list, but that relies on element-order.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml") yield value as catalog
+UNWIND catalog._children as book
+WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | attr._text] as pairs
+RETURN id, pairs[0] as author, pairs[1] as title</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>╒═════╤════════════════════╤══════════════════════════════╕
+│id   │author              │title                         │
+╞═════╪════════════════════╪══════════════════════════════╡
+│bk101│Gambardella, Matthew│XML Developer's Guide         │
+├─────┼────────────────────┼──────────────────────────────┤
+│bk102│Ralls, Kim          │Midnight Rain                 │</pre>
+</div>
+</div>
+</div>
+<div class="sect5">
+<h6 id="_turn_pairs_into_map">Turn Pairs into Map</h6>
+<div class="paragraph">
+<p>So better is to turn them into a map with <code>apoc.map.fromPairs</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml") yield value as catalog
+UNWIND catalog._children as book
+WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
+CALL apoc.map.fromPairs(pairs) yield value
+RETURN id, value</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>╒═════╤════════════════════════════════════════════════════════════════════╕
+│id   │value                                                               │
+╞═════╪════════════════════════════════════════════════════════════════════╡
+│bk101│{author: Gambardella, Matthew, title: XML Developer's Guide}        │
+├─────┼────────────────────────────────────────────────────────────────────┤
+│bk102│{author: Ralls, Kim, title: Midnight Rain}                          │
+├─────┼────────────────────────────────────────────────────────────────────┤
+│bk103│{author: Corets, Eva, title: Maeve Ascendant}                       │</pre>
+</div>
+</div>
+</div>
+<div class="sect5">
+<h6 id="_return_individual_columns">Return individual Columns</h6>
+<div class="paragraph">
+<p>And now we can cleanly access the attributes from the map.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml") yield value as catalog
+UNWIND catalog._children as book
+WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
+CALL apoc.map.fromPairs(pairs) yield value
+RETURN id, value.author, value.title</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>╒═════╤════════════════════╤══════════════════════════════╕
+│id   │value.author        │value.title                   │
+╞═════╪════════════════════╪══════════════════════════════╡
+│bk101│Gambardella, Matthew│XML Developer's Guide         │
+├─────┼────────────────────┼──────────────────────────────┤
+│bk102│Ralls, Kim          │Midnight Rain                 │
+├─────┼────────────────────┼──────────────────────────────┤
+│bk103│Corets, Eva         │Maeve Ascendant               │</pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -3295,7 +3606,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-05-22 04:00:11 CEST
+Last updated 2016-05-23 18:26:38 CEST
 </div>
 </div>
 </body>
