@@ -81,7 +81,9 @@ public class MultiStatementCypherSubGraphExporter {
         for (String index : indexes) {
             out.println(index);
         }
-        out.println(uniqueConstraint(UNIQUE_ID_LABEL, UNIQUE_ID_PROP));
+        if (artificialUniques > 0) {
+            out.println(uniqueConstraint(UNIQUE_ID_LABEL, UNIQUE_ID_PROP));
+        }
         commit(out);
         out.println("schema await");
     }
