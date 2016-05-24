@@ -35,8 +35,14 @@ public class HelpScanner {
     public static Stream<HelpResult> find(String name) {
         if (name==null) return Stream.empty();
         return procedures.entrySet().stream()
-                .filter(e -> e.getKey().startsWith(name) || e.getKey().endsWith(name))
+                .filter(e -> search(e.getKey(), name))
                 .map(Map.Entry::getValue);
+    }
+
+    private static boolean search(String key, String name) {
+        // A better algorithm may be needed here (regex or Pattern)
+        if (key == null || name == null) return false;
+        return key.toLowerCase().contains(name.toLowerCase());
     }
 
     class MyClassVisitor extends ClassVisitor {
