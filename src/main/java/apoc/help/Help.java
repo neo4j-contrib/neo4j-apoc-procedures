@@ -11,6 +11,16 @@ public class Help {
     @Procedure("apoc.help")
     @Description("Provides the description of the procedure")
     public Stream<HelpResult> info(@Name("proc") String name) throws Exception {
-        return HelpScanner.find(name);
+        boolean searchText = false;
+
+        if (name != null) {
+            name = name.trim();
+            if (name.endsWith("+")) {
+                name = name.substring(0, name.lastIndexOf('+')).trim();
+                searchText = true;
+            }
+        }
+
+        return HelpScanner.find(name, searchText);
     }
 }
