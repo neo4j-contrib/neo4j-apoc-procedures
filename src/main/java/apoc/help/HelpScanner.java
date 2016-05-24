@@ -110,7 +110,7 @@ public class HelpScanner {
     List<URL> getRootUrls() {
         List<URL> result = new ArrayList<>();
 
-        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        ClassLoader cl = HelpScanner.class.getClassLoader();
         while (cl != null) {
             if (cl instanceof URLClassLoader) {
                 URL[] urls = ((URLClassLoader) cl).getURLs();
