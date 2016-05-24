@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 public class Help {
 
     @Procedure("apoc.help")
-    @Description("Provides the description of the procedure")
+    @Description("Provides descriptions of available procedures. To narrow the results, supply a search string. To also search in the description text, append + to the end of the search string.")
     public Stream<HelpResult> info(@Name("proc") String name) throws Exception {
         boolean searchText = false;
 
