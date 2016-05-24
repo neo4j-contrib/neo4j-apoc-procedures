@@ -9,8 +9,18 @@ import java.util.stream.Stream;
 public class Help {
 
     @Procedure("apoc.help")
-    @Description("Provides the description of the procedure")
+    @Description("Provides descriptions of available procedures. To narrow the results, supply a search string. To also search in the description text, append + to the end of the search string.")
     public Stream<HelpResult> info(@Name("proc") String name) throws Exception {
-        return HelpScanner.find(name);
+        boolean searchText = false;
+
+        if (name != null) {
+            name = name.trim();
+            if (name.endsWith("+")) {
+                name = name.substring(0, name.lastIndexOf('+')).trim();
+                searchText = true;
+            }
+        }
+
+        return HelpScanner.find(name, searchText);
     }
 }
