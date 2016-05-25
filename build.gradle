@@ -9,21 +9,21 @@ description = """neo4j-apoc-procedures"""
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-
-
 repositories {
-        
      maven { url "http://repo.maven.apache.org/maven2" }
 }
+
 dependencies {
     compile group: 'it.unimi.dsi', name: 'fastutil', version:'7.0.12'
     compile group: 'commons-codec', name: 'commons-codec', version:'1.9'
+    
     testCompile group: 'org.apache.derby', name: 'derby', version:'10.12.1.1'
     testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version:'3.0.1'
     testCompile group: 'org.neo4j', name: 'neo4j-kernel', version:'3.0.1', classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-io', version:'3.0.1', classifier: "tests"
     testCompile group: 'junit', name: 'junit', version:'4.12'
     testCompile group: 'org.hamcrest', name: 'hamcrest-library', version:'1.3'
+    
     compile(group: 'org.neo4j', name: 'neo4j', version:'3.0.1') {
        /* This dependency was originally in the Maven provided scope, but the project was not of type war.
        This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
@@ -40,3 +40,37 @@ dependencies {
        Please review and delete this closure when resolved. */
     }
 }
+
+/**************
+* ASCIIDOCTOR *
+**************/
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
+    }
+}
+
+apply plugin: 'org.asciidoctor.convert'
+
+asciidoctor {
+    sourceDir = file('docs')
+    sources { include 'index.adoc' }
+    outputDir = file('build/docs')
+}
+
+asciidoctor.doLast {
+    copy {
+        from 'build/docs/html5'
+        into "$projectDir"
+        include 'index.html'
+    }
+}
+
+/******
+* END *
+******/
