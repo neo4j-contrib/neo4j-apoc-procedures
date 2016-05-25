@@ -3,7 +3,7 @@ package apoc.export;
 import apoc.Description;
 import apoc.export.util.MultiStatementCypherSubGraphExporter;
 import apoc.export.util.NodesAndRelsSubGraph;
-import apoc.export.util.ProgressInfo;
+import apoc.result.ProgressInfo;
 import apoc.export.util.ProgressReporter;
 import apoc.util.Util;
 import org.neo4j.cypher.export.CypherResultSubGraph;

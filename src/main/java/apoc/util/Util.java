@@ -265,4 +265,9 @@ public class Util {
                 iterator,
                 Spliterator.ORDERED | Spliterator.IMMUTABLE | Spliterator.NONNULL), false);
     }
+
+    public static String readResourceFile(String name) {
+		InputStream is = Util.class.getClassLoader().getResourceAsStream(name);
+		return new Scanner(is).useDelimiter("\\Z").next();
+	}
 }

@@ -2,9 +2,7 @@ package apoc.search;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.InputStream;
-import java.util.Scanner;
-
+import apoc.util.Util;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -21,7 +19,7 @@ public class ParallelNodeSearchTest {
     public static void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, ParallelNodeSearch.class);
-        String movies = getFragment("cremovies.cql");
+        String movies = Util.readResourceFile("movies.cypher");
 		 try (Transaction tx = db.beginTx()) {
 			db.execute(movies);
 			tx.success();
@@ -72,11 +70,4 @@ public class ParallelNodeSearchTest {
     	query = "call apoc.search.nodeAllReduced('{Person: \"name\",Movie: [\"title\",\"tagline\"]}','ENDS WITH','s') yield id as n return count(n) as c";
 		TestUtil.testCall(db, query, (row) -> assertEquals(29L,row.get("c")));
     }
-
-    
-    
-    private static String getFragment(String name) {
-		InputStream is = ParallelNodeSearchTest.class.getClassLoader().getResourceAsStream(name);
-		return new Scanner(is).useDelimiter("\\Z").next();
-	}
 }

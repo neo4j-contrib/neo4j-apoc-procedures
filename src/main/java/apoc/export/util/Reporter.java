@@ -1,5 +1,7 @@
 package apoc.export.util;
 
+import apoc.result.ProgressInfo;
+
 /**
  * @author mh
  * @since 22.05.16

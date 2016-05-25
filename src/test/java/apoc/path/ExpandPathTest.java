@@ -11,6 +11,7 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.Scanner;
 
+import apoc.util.Util;
 import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
@@ -29,7 +30,7 @@ public class ExpandPathTest {
     public static void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, PathExplorer.class);
-        String movies = getFragment("cremovies.cql");
+        String movies = Util.readResourceFile("movies.cypher");
 		String bigbrother = "MATCH (per:Person) MERGE (bb:BigBrother {name : 'Big Brother' })  MERGE (bb)-[:FOLLOWS]->(per)";
 		 try (Transaction tx = db.beginTx()) {
 			db.execute(movies);
@@ -60,9 +61,5 @@ public class ExpandPathTest {
 	public void testExplorePathLabelBlackListTest() throws Throwable {
 		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,null,'-BigBrother',0,2) yield path return count(*) as c";
 		TestUtil.testCall(db, query, (row) -> assertEquals(44L,row.get("c")));
-	}
-	private static String getFragment(String name) {
-		InputStream is = ExpandPathTest.class.getClassLoader().getResourceAsStream(name);
-		return new Scanner(is).useDelimiter("\\Z").next();
 	}
 }

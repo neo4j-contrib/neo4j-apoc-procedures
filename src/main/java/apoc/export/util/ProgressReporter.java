@@ -1,5 +1,6 @@
 package apoc.export.util;
 
+import apoc.result.ProgressInfo;
 import org.neo4j.graphdb.QueryStatistics;
 
 import java.io.PrintWriter;

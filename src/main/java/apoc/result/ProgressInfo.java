@@ -1,4 +1,4 @@
-package apoc.export.util;
+package apoc.result;
 
 /**
  * @author mh
@@ -31,7 +31,8 @@ public class ProgressInfo {
         return this;
     }
 
-    public void done(long start) {
+    public ProgressInfo done(long start) {
         this.time = System.currentTimeMillis() - start;
+        return this;
     }
 }
