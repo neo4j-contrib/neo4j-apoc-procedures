@@ -390,6 +390,12 @@ TODO:
 | apoc.coll.containsAll(coll, values) | optimized contains-all operation (using a HashSet) (returns single row or not)
 | apoc.coll.containsSorted(coll, value) | optimized contains on a sorted list operation (Collections.binarySearch) (returns single row or not)
 | apoc.coll.containsAllSorted(coll, value) | optimized contains-all on a sorted list operation (Collections.binarySearch) (returns single row or not)
+| apoc.coll.union(first, second) | creates the distinct union of the 2 lists
+| apoc.coll.subtract(first, second) | returns unique set of first list with all elements of second list removed
+| apoc.coll.removeAll(first, second) | returns first list with all elements of second list removed
+| apoc.coll.intersection(first, second) | returns the unique intersection of the two lists
+| apoc.coll.disjunction(first, second) | returns the disjunct set of the two lists
+| apoc.coll.unionAll(first, second) | creates the full union with duplicates of the two lists
 |===
 
 ==== Lookup Functions

@@ -169,4 +169,52 @@ public class Coll {
         return o1.toString().compareTo(o2.toString());
     }
 
+    @Procedure
+    @Description("apoc.coll.union(first, second) - creates the distinct union of the 2 lists")
+    public Stream<ListResult> union(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+        Set<Object> set = new HashSet<>(first);
+        set.addAll(second);
+        return Stream.of(new ListResult(new SetBackedList(set)));
+    }
+    @Procedure
+    @Description("apoc.coll.subtract(first, second) - returns unique set of first list with all elements of second list removed")
+    public Stream<ListResult> subtract(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+        Set<Object> set = new HashSet<>(first);
+        set.removeAll(second);
+        return Stream.of(new ListResult(new SetBackedList(set)));
+    }
+    @Procedure
+    @Description("apoc.coll.removeAll(first, second) - returns first list with all elements of second list removed")
+    public Stream<ListResult> removeAll(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+        List<Object> list = new ArrayList<>(first);
+        list.removeAll(second);
+        return Stream.of(new ListResult(list));
+    }
+
+    @Procedure
+    @Description("apoc.coll.intersection(first, second) - returns the unique intersection of the two lists")
+    public Stream<ListResult> intersection(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+        Set<Object> set = new HashSet<>(first);
+        set.retainAll(second);
+        return Stream.of(new ListResult(new SetBackedList(set)));
+    }
+
+    @Procedure
+    @Description("apoc.coll.disjunction(first, second) - returns the disjunct set of the two lists")
+    public Stream<ListResult> disjunction(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+        Set<Object> intersection = new HashSet<>(first);
+        intersection.retainAll(second);
+        Set<Object> set = new HashSet<>(first);
+        set.addAll(second);
+        set.removeAll(intersection);
+        return Stream.of(new ListResult(new SetBackedList(set)));
+    }
+    @Procedure
+    @Description("apoc.coll.unionAll(first, second) - creates the full union with duplicates of the two lists")
+    public Stream<ListResult> unionAll(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+        List<Object> list = new ArrayList<>(first);
+        list.addAll(second);
+        return Stream.of(new ListResult(list));
+    }
+
 }

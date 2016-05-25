@@ -2,11 +2,13 @@ package apoc.coll;
 
 import apoc.coll.Coll;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.*;
@@ -16,6 +18,7 @@ import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.neo4j.helpers.collection.Iterables.asSet;
 
 public class CollTest {
 
@@ -135,4 +138,14 @@ public class CollTest {
             });
     }
 
+    @Test
+    public void testSetOperations() throws Exception {
+        testCall(db,"CALL apoc.coll.union([1,2],[3,2])", r -> assertEquals(asSet(asList(1L,2L,3L)),asSet((Iterable)r.get("value"))));
+        testCall(db,"CALL apoc.coll.intersection([1,2],[3,2])", r -> assertEquals(asSet(asList(2L)),asSet((Iterable)r.get("value"))));
+        testCall(db,"CALL apoc.coll.disjunction([1,2],[3,2])", r -> assertEquals(asSet(asList(1L,3L)),asSet((Iterable)r.get("value"))));
+        testCall(db,"CALL apoc.coll.subtract([1,2],[3,2])", r -> assertEquals(asSet(asList(1L)),asSet((Iterable)r.get("value"))));
+        testCall(db,"CALL apoc.coll.unionAll([1,2],[3,2])", r -> assertEquals(asList(1L,2L,3L,2L),r.get("value")));
+        testCall(db,"CALL apoc.coll.removeAll([1,2],[3,2])", r -> assertEquals(asList(1L),r.get("value")));
+
+    }
 }
