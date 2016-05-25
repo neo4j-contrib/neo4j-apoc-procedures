@@ -8,6 +8,28 @@
 
 For example, if my XML file is the example https://msdn.microsoft.com/en-us/library/ms762271%28v=vs.85%29.aspx[book.xml provided by microsoft].
 
+[source,xml]
+----
+<?xml version="1.0"?>
+<catalog>
+   <book id="bk101">
+      <author>Gambardella, Matthew</author>
+      <title>XML Developer's Guide</title>
+      <genre>Computer</genre>
+      <price>44.95</price>
+      <publish_date>2000-10-01</publish_date>
+      <description>An in-depth look at creating applications
+      with XML.</description>
+   </book>
+   <book id="bk102">
+      <author>Ralls, Kim</author>
+      <title>Midnight Rain</title>
+      <genre>Fantasy</genre>
+      <price>5.95</price>
+      <publish_date>2000-12-16</publish_date>
+      <description>A former architect battles corporate zombies,
+...
+----
 
 We have the file here: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml
 
@@ -22,6 +44,7 @@ And elements into their own little map with `_type`, attributes and `_children` 
 call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml")
 ----
 
+[source,javascript]
 ----
 {_type: catalog, _children: [
   {_type: book, id: bk101, _children: [
