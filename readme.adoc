@@ -4,6 +4,8 @@ image:https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg[]
 
 https://neo4j-contrib.github.io/neo4j-apoc-procedures[Documentation (WIP)].
 
+// tag::readme[]
+
 image::http://www.oocities.org/matrixextreme/images/apoc.gif[float=right]
 
 == License
@@ -19,7 +21,13 @@ http://matrix.wikia.com/wiki/Apoc[Apoc] was the technician and driver on board o
 *APOC* also stands for "Awesome Procedures On Cypher"
 
 
-== Build & install apoc procedures
+== Download latest release
+
+Go to http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/latest
+to find the latest release and download the binary jar to place into your $NEO4J_HOME/plugins folder.
+
+
+== Build & install the current development branch from source
 
 [source,shell]
 ----
@@ -30,7 +38,7 @@ cp target/apoc-1.0.0-SNAPSHOT.jar $NEO4J_HOME/plugins/
 $NEO4J_HOME/bin/neo4j restart
 ----
 
-If you want to run embedded or use shell on a disk store, configure your `plugins` directory in `conf/neo4j.conf` with `dbms.plugin.directory=path/to/plugins`.
+If you want to run embedded or use neo4j-shell on a disk store, configure your `plugins` directory in `conf/neo4j.conf` with `dbms.plugin.directory=path/to/plugins`.
 
 == Calling Procedures within Cypher
 
@@ -40,9 +48,12 @@ But you can also integrate them into your Cypher statements which makes them so 
 
 [source,cypher]
 ----
-CALL apoc.load.json('http://example.com/map.json') YIELD value as person
+WITH 'https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/master/src/test/resources/person.json' AS url
+
+CALL apoc.load.json(url) YIELD value as person
+
 MERGE (p:Person {name:person.name})
-ON CREATE SET p.age = person.age, p.children = size(person.children)
+   ON CREATE SET p.age = person.age, p.children = size(person.children)
 ----
 
 == Included Procedures Overview
@@ -576,6 +587,8 @@ CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as wei
 RETURN path, weight
 MATCH (n:Person)
 ----
+
+// end::readme[]
 
 == Plans
 

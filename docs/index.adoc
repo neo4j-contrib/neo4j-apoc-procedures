@@ -4,7 +4,7 @@
 :sectid:
 :toclevels: 3
 
-include::../readme.adoc[leveloffset=1]
+include::../readme.adoc[tags=readme, leveloffset=1]
 
 = Detailed Documentation
 

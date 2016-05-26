@@ -422,12 +422,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h1>APOC User Guide</h1>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
-<ul class="sectlevel1">
-<li><a href="#_awesome_procedures_for_neo4j_3_x">Awesome Procedures for Neo4j 3.x</a>
 <ul class="sectlevel2">
 <li><a href="#_license">License</a></li>
 <li><a href="#__apoc_name_history">"APOC" Name history</a></li>
-<li><a href="#_build_install_apoc_procedures">Build &amp; install apoc procedures</a></li>
+<li><a href="#_download_latest_release">Download latest release</a></li>
+<li><a href="#_build_install_the_current_development_branch_from_source">Build &amp; install the current development branch from source</a></li>
 <li><a href="#_calling_procedures_within_cypher">Calling Procedures within Cypher</a></li>
 <li><a href="#_included_procedures_overview">Included Procedures Overview</a>
 <ul class="sectlevel3">
@@ -455,9 +454,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_path_expander">Path Expander</a></li>
 <li><a href="#_parallel_node_search">Parallel Node Search</a></li>
 <li><a href="#_graph_algorithms_work_in_progress">Graph Algorithms (work in progress)</a></li>
-</ul>
-</li>
-<li><a href="#_plans">Plans</a></li>
 </ul>
 </li>
 <li><a href="#_detailed_documentation">Detailed Documentation</a>
@@ -578,18 +574,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div id="content">
-<div class="sect1">
-<h2 id="_awesome_procedures_for_neo4j_3_x">Awesome Procedures for Neo4j 3.x</h2>
+<div id="preamble">
 <div class="sectionbody">
-<div class="paragraph">
-<p><span class="image"><img src="https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg" alt="neo4j apoc procedures"></span></p>
-</div>
-<div class="paragraph">
-<p><a href="https://neo4j-contrib.github.io/neo4j-apoc-procedures">Documentation (WIP)</a>.</p>
-</div>
 <div class="imageblock" style="float: right">
 <div class="content">
 <img src="http://www.oocities.org/matrixextreme/images/apoc.gif" alt="apoc">
+</div>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -611,7 +602,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect2">
-<h3 id="_build_install_apoc_procedures">Build &amp; install apoc procedures</h3>
+<h3 id="_download_latest_release">Download latest release</h3>
+<div class="paragraph">
+<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/latest" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/latest</a>
+to find the latest release and download the binary jar to place into your $NEO4J_HOME/plugins folder.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_build_install_the_current_development_branch_from_source">Build &amp; install the current development branch from source</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-shell" data-lang="shell">git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
@@ -622,7 +620,7 @@ $NEO4J_HOME/bin/neo4j restart</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If you want to run embedded or use shell on a disk store, configure your <code>plugins</code> directory in <code>conf/neo4j.conf</code> with <code>dbms.plugin.directory=path/to/plugins</code>.</p>
+<p>If you want to run embedded or use neo4j-shell on a disk store, configure your <code>plugins</code> directory in <code>conf/neo4j.conf</code> with <code>dbms.plugin.directory=path/to/plugins</code>.</p>
 </div>
 </div>
 <div class="sect2">
@@ -635,9 +633,12 @@ $NEO4J_HOME/bin/neo4j restart</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.json('http://example.com/map.json') YIELD value as person
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH 'https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/master/src/test/resources/person.json' AS url
+
+CALL apoc.load.json(url) YIELD value as person
+
 MERGE (p:Person {name:person.name})
-ON CREATE SET p.age = person.age, p.children = size(person.children)</code></pre>
+   ON CREATE SET p.age = person.age, p.children = size(person.children)</code></pre>
 </div>
 </div>
 </div>
@@ -1970,132 +1971,6 @@ RETURN *;</code></pre>
 CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as weight
 RETURN path, weight
 MATCH (n:Person)</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_plans">Plans</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>move apoc.get to apoc.nodes and apoc.rels</p>
-</li>
-<li>
-<p>add apoc.nodes.delete(id|ids|node|nodes)</p>
-</li>
-<li>
-<p>(√) add weight/score to manual index operations, expose it, TODO add Sort.RELEVANCE sorter conditionally or unconditionally</p>
-</li>
-<li>
-<p>pass in last count to rundown so you can also do batch-creates</p>
-</li>
-<li>
-<p>conversions for type-system of "objects" to map, list, node etc. to avoid the semantic errors we sometimes get</p>
-</li>
-<li>
-<p>in browser guide as apoc-help-page</p>
-</li>
-<li>
-<p>(√) optimized collection functions (WIP)</p>
-</li>
-<li>
-<p>Time Conversion Functions (ISO&lt;&#8594;ts, padded long representation)</p>
-</li>
-<li>
-<p>ordered, limited retrieval from index (both manual and schema index)</p>
-</li>
-<li>
-<p>json to graph (mapping)</p>
-</li>
-<li>
-<p>virtual graph from collection of nodes and rels, handle node-uniqueness with pk</p>
-</li>
-<li>
-<p>RDF / Ontology loader</p>
-</li>
-<li>
-<p>Encryption / decryption of single properties or a subset or all properties (provide decryption key as param or config)</p>
-</li>
-<li>
-<p>(in progress) Graph Algorithms (Stefan, Max?)</p>
-</li>
-<li>
-<p>custom expanders, e.g. with dynamic rel-type suffixes and prefixes</p>
-</li>
-<li>
-<p>√ Path Finding / Expansion (Kees)</p>
-</li>
-<li>
-<p>Use Cypher as scripting language <code>{cypher:"RETURN a*10+b",params:{a:3,b:5}}</code> for algorithms, parallelization and custom expansion</p>
-</li>
-<li>
-<p>parallel(fragment, params-list, result list)</p>
-</li>
-<li>
-<p>(√) Graph Refactorings (WIP)</p>
-</li>
-<li>
-<p>(√) Job Queue (WIP) See <a href="https://github.com/jakewins/neo4j-procedure-template/blob/batch/src/main/java/example/BatchedWrites.java">BatchedWriter from Jake/Max</a></p>
-</li>
-<li>
-<p>run/load shell scripts apoc.load.shell(path)</p>
-</li>
-<li>
-<p>apox.save.dump() whole database, dump("statement"), dump("", "data/import/file") dump("", "URL TO PUT"), formats - binary(packstream), human readable(graphml, graphjson), compression</p>
-</li>
-<li>
-<p>store arbitrary objects in properties with kryo/packstream or similar serialization</p>
-</li>
-<li>
-<p>indexOf() function for array, same semantics like java.util.List.indexOf</p>
-</li>
-<li>
-<p>variable path length on patterns instead of single relationships. Don&#8217;t have a syntax for this to suggest, but assume you want to search for ()-[:TYPE_A]&#8594;()-[:TYPE_B]&#8594;() e.g. 2..5 times.</p>
-</li>
-<li>
-<p>subtraction, union, disjunction, conjunction of collections</p>
-</li>
-<li>
-<p>remove from map</p>
-</li>
-<li>
-<p>match (a)-[r*]&#8594;(b)  where all rels in the path are this pattern ()-[:Foo]&#8594;()-[:Bar]&#8594;()</p>
-</li>
-<li>
-<p>all unique pairs of a list</p>
-</li>
-<li>
-<p>TopK select</p>
-</li>
-<li>
-<p>apoc.schema.create(indexConfig) - {unique:[{Label:keys}], index:[{Label:keys}],existence:[{Label:keys}], }</p>
-</li>
-<li>
-<p>Procedures in other languages (e.g. JS, JSR-223 scripting &#8594; apoc-unsafe project)</p>
-</li>
-<li>
-<p>eval javascript</p>
-</li>
-<li>
-<p>apoc.meta.validate(metagraph) validate a metagraph against the current graph and report violations</p>
-</li>
-<li>
-<p>apoc.run.register(name, query[,params]), apoc.run.named(name,[params])</p>
-</li>
-<li>
-<p>apoc.create.graph(nodes,rels,data-map) &#8594; {nodes:[], rels:[], data:{}} a graph data structure, e.g. for rendering, export, validation, &#8230;&#8203;</p>
-</li>
-<li>
-<p>auto-increment id&#8217;s (per label? &#8594; graph properties)</p>
-</li>
-<li>
-<p>query neo4j databases</p>
-</li>
-<li>
-<p>find relationships within a set of nodes</p>
-</li>
-</ul>
 </div>
 </div>
 </div>
@@ -3699,7 +3574,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-05-24 01:54:26 +08:00
+Last updated 2016-05-26 02:30:35 MESZ
 </div>
 </div>
 </body>
