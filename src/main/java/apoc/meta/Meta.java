@@ -22,12 +22,9 @@ import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static java.util.Collections.min;
 import static java.util.Collections.singletonMap;
 
 public class Meta {
-
-    private static final Label[] META = new Label[] {Label.label("Meta")};
 
     @Context
     public GraphDatabaseService db;
@@ -345,7 +342,7 @@ public class Meta {
         String name = label.name();
         Node vNode = labels.get(name);
         if (vNode == null) {
-            vNode = new VirtualNode(new Label[] {label,META[0]}, Collections.singletonMap("name", name),db);
+            vNode = new VirtualNode(new Label[] {label}, Collections.singletonMap("name", name),db);
             labels.put(name, vNode);
         }
         if (increment) vNode.setProperty("count",((int)vNode.getProperty("count",0))+1);

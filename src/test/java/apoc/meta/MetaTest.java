@@ -89,16 +89,14 @@ public class MetaTest {
 
     @Test public void testMetaGraph() throws Exception {
         db.execute("CREATE (:Actor)-[:ACTED_IN]->(:Movie) ").close();
-        TestUtil.testCall(db, "CALL apoc.meta.graph",
+        TestUtil.testCall(db, "CALL apoc.meta.graph()",
                 (row) -> {
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     Node n1 = nodes.get(0);
-                    assertEquals(true,n1.hasLabel(Label.label("Meta")));
                     assertEquals(true,n1.hasLabel(Label.label("Actor")));
                     assertEquals(1,n1.getProperty("count"));
                     assertEquals("Actor",n1.getProperty("name"));
                     Node n2 = nodes.get(1);
-                    assertEquals(true,n2.hasLabel(Label.label("Meta")));
                     assertEquals(true,n2.hasLabel(Label.label("Movie")));
                     assertEquals("Movie",n2.getProperty("name"));
                     assertEquals(1,n1.getProperty("count"));
@@ -114,12 +112,10 @@ public class MetaTest {
                 (row) -> {
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     Node n1 = nodes.get(0);
-                    assertEquals(true,n1.hasLabel(Label.label("Meta")));
                     assertEquals(true,n1.hasLabel(Label.label("Actor")));
                     assertEquals(1,n1.getProperty("count"));
                     assertEquals("Actor",n1.getProperty("name"));
                     Node n2 = nodes.get(1);
-                    assertEquals(true,n2.hasLabel(Label.label("Meta")));
                     assertEquals(true,n2.hasLabel(Label.label("Movie")));
                     assertEquals("Movie",n2.getProperty("name"));
                     assertEquals(1,n1.getProperty("count"));

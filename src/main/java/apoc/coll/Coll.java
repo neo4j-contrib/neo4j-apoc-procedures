@@ -54,6 +54,16 @@ public class Coll {
         }
         return Stream.of(new DoubleResult(sum));
     }
+
+    @Procedure
+    @Description("apoc.coll.avg([0.5,1,2.3])")
+    public Stream<DoubleResult> avg(@Name("numbers") List<Number> list) {
+        double avg = 0;
+        for (Number number : list) {
+            avg += number.doubleValue();
+        }
+        return Stream.of(new DoubleResult(avg/(double)list.size()));
+    }
     @Procedure
     @Description("apoc.coll.min([0.5,1,2.3])")
     public Stream<ObjectResult> min(@Name("values") List<Object> list) {

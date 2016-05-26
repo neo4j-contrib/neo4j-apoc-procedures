@@ -51,6 +51,10 @@ public class CollTest {
         testCall(db, "CALL apoc.coll.sum([1,2,3])",
                 (row) -> assertEquals(6D, row.get("value")));
     }
+    @Test public void testAvg() throws Exception {
+        testCall(db, "CALL apoc.coll.avg([1.4,2,3.2])",
+                (row) -> assertEquals(2.2D, (double)row.get("value"),0.1));
+    }
     @Test public void testMin() throws Exception {
         testCall(db, "CALL apoc.coll.min([1,2,3])",
                 (row) -> assertEquals(1L, row.get("value")));
