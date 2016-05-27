@@ -78,3 +78,139 @@ RETURN row limit 1;
 ----
 
 apoc.load.jdbc('jdbc:derby:derbyDB/key','PERSON' || 'SELECT * FROM PERSON WHERE AGE > 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement
+
+
+== Cassandra Example
+
+Setup Song database as initial dataset
+
+----
+curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/playlist.cql
+curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/artists.csv
+curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/songs.csv
+$CASSANDRA_HOME/bin/cassandra
+$CASSANDRA_HOME/bin/cqlsh -f playlist.cql
+----
+
+Download the https://github.com/adejanovski/cassandra-jdbc-wrapper#installing[Cassandra JDBC Wrapper], and put it into your `$NEO4J_HOME/plugins` directory.
+Add this config option to `$NEO4J_HOME/conf/neo4j.conf` to make it easier to interact with the cassandra instance.
+
+.Add to conf/neo4j.conf
+----
+apoc.jdbc.cassandra_songs.url=jdbc:cassandra://localhost:9042/playlist
+----
+
+Restart the server.
+
+Now you can inspect the data in Cassandra with.
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+RETURN count(*);
+----
+
+----
+╒════════╕
+│count(*)│
+╞════════╡
+│3605    │
+└────────┘
+----
+
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+RETURN row LIMIT 5;
+
+CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+RETURN row.first_letter, row.artist LIMIT 5;
+----
+
+----
+╒════════════════╤═══════════════════════════════╕
+│row.first_letter│row.artist                     │
+╞════════════════╪═══════════════════════════════╡
+│C               │C.W. Stoneking                 │
+├────────────────┼───────────────────────────────┤
+│C               │CH2K                           │
+├────────────────┼───────────────────────────────┤
+│C               │CHARLIE HUNTER WITH LEON PARKER│
+├────────────────┼───────────────────────────────┤
+│C               │Calvin Harris                  │
+├────────────────┼───────────────────────────────┤
+│C               │Camané                         │
+└────────────────┴───────────────────────────────┘
+----
+
+Let's create some graph data, we have a look at the track_by_artist table, which contains about 60k records.
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row RETURN count(*);
+----
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
+RETURN row LIMIT 5;
+----
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
+RETURN row.track_id, row.track_length_in_seconds, row.track, row.music_file, row.genre, row.artist, row.starred LIMIT 2;
+----
+
+----
+╒════════════════════════════════════╤══════╤════════════════╤══════════════════╤═════════╤════════════════════════════╤═══════════╕
+│row.track_id                        │length│row.track       │row.music_file    │row.genre│row.artist                  │row.starred│
+╞════════════════════════════════════╪══════╪════════════════╪══════════════════╪═════════╪════════════════════════════╪═══════════╡
+│c0693b1e-0eaa-4e81-b23f-b083db303842│219   │1913 Massacre   │TRYKHMD128F934154C│folk     │Woody Guthrie & Jack Elliott│false      │
+├────────────────────────────────────┼──────┼────────────────┼──────────────────┼─────────┼────────────────────────────┼───────────┤
+│7d114937-0bc7-41c7-8e0c-94b5654ac77f│178   │Alabammy Bound  │TRMQLPV128F934152B│folk     │Woody Guthrie & Jack Elliott│false      │
+└────────────────────────────────────┴──────┴────────────────┴──────────────────┴─────────┴────────────────────────────┴───────────┘
+----
+
+Let's create some indexes and constraints, note that other indexes and constraints will be dropped by this.
+
+[source,cypher]
+----
+CALL apoc.schema.assert(
+  {Track:['title','length']},
+  {Artist:['name'],Track:['id'],Genre:['name']});
+----
+
+----
+╒════════════╤═══════╤══════╤═══════╕
+│label       │key    │unique│action │
+╞════════════╪═══════╪══════╪═══════╡
+│Track       │title  │false │CREATED│
+├────────────┼───────┼──────┼───────┤
+│Track       │length │false │CREATED│
+├────────────┼───────┼──────┼───────┤
+│Artist      │name   │true  │CREATED│
+├────────────┼───────┼──────┼───────┤
+│Genre       │name   │true  │CREATED│
+├────────────┼───────┼──────┼───────┤
+│Track       │id     │true  │CREATED│
+└────────────┴───────┴──────┴───────┘
+----
+
+TODO add some nice queries, create graph data from cassandra
+
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
+MERGE (a:Artist {name:row.artist})
+MERGE (g:Genre {name:row.genre})
+CREATE (t:Track {id:toString(row.track_id), title:row.track, length:row.track_length_in_seconds})
+CREATE (a)-[:PERFORMED]->(t)
+CREATE (t)-[:GENRE]->(g);
+----
+
+----
+Added 63213 labels, created 63213 nodes, set 182413 properties, created 119200 relationships, statement executed in 40076 ms.
+----

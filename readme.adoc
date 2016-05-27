@@ -159,7 +159,7 @@ RETURN n LIMIT 5
 
 [cols="1m,5"]
 |===
-| apoc.schema.assert([{indexLabel:[indexKey]},..],[{constraintLabel:[constraintKey]},..]) yield label, keys, unique, action | asserts that at the end of the operation the given indexes and unique constraints are there
+| apoc.schema.assert({indexLabel:[indexKeys],...},{constraintLabel:[constraintKeys,...]}) yield label, key, unique, action | asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label
 |===
 
 

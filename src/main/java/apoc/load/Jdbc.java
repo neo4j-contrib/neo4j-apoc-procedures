@@ -6,6 +6,8 @@ import apoc.ApocConfiguration;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.*;
 import java.util.*;
 import java.util.stream.Stream;
@@ -123,12 +125,19 @@ public class Jdbc {
                 if (handleEndOfResults()) return null;
                 Map<String, Object> row = new LinkedHashMap<>(columns.length);
                 for (int col = 1; col < columns.length; col++) {
-                    row.put(columns[col], rs.getObject(col));
+                    row.put(columns[col], convert(rs.getObject(col)));
                 }
                 return row;
             } catch (SQLException e) {
                 throw new RuntimeException("Cannot execute read result-set.", e);
             }
+        }
+
+        private Object convert(Object value) {
+            if (value instanceof UUID || value instanceof BigInteger || value instanceof BigDecimal) {
+                return value.toString();
+            }
+            return value;
         }
 
         private boolean handleEndOfResults() throws SQLException {

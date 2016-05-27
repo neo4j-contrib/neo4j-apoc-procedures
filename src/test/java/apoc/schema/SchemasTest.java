@@ -40,9 +40,9 @@ public class SchemasTest {
 
     @Test
     public void testCreateIndex() throws Exception {
-        testCall(db,"CALL apoc.schema.assert([{Foo:['bar']}],null)", (r) -> {
+        testCall(db,"CALL apoc.schema.assert({Foo:['bar']},null)", (r) -> {
             assertEquals("Foo",r.get("label"));
-            assertEquals(asList("bar"),r.get("keys"));
+            assertEquals("bar",r.get("key"));
             assertEquals(false,r.get("unique"));
             assertEquals("CREATED",r.get("action"));
         });
@@ -56,9 +56,9 @@ public class SchemasTest {
 
     @Test
     public void testCreateSchema() throws Exception {
-        testCall(db,"CALL apoc.schema.assert(null,[{Foo:['bar']}])", (r) -> {
+        testCall(db,"CALL apoc.schema.assert(null,{Foo:['bar']})", (r) -> {
             assertEquals("Foo",r.get("label"));
-            assertEquals(asList("bar"),r.get("keys"));
+            assertEquals("bar",r.get("key"));
             assertEquals(true,r.get("unique"));
             assertEquals("CREATED",r.get("action"));
         });
@@ -77,7 +77,7 @@ public class SchemasTest {
         db.execute("CREATE INDEX ON :Foo(bar)").close();
         testCall(db,"CALL apoc.schema.assert(null,null)", (r) -> {
             assertEquals("Foo",r.get("label"));
-            assertEquals(asList("bar"),r.get("keys"));
+            assertEquals("bar",r.get("key"));
             assertEquals(false,r.get("unique"));
             assertEquals("DROPPED",r.get("action"));
         });
@@ -92,7 +92,7 @@ public class SchemasTest {
         db.execute("CREATE CONSTRAINT ON (f:Foo) assert f.bar is unique").close();
         testCall(db,"CALL apoc.schema.assert(null,null)", (r) -> {
             assertEquals("Foo",r.get("label"));
-            assertEquals(asList("bar"),r.get("keys"));
+            assertEquals("bar",r.get("key"));
             assertEquals(true,r.get("unique"));
             assertEquals("DROPPED",r.get("action"));
         });
@@ -104,9 +104,9 @@ public class SchemasTest {
     @Test
     public void testKeepIndex() throws Exception {
         db.execute("CREATE INDEX ON :Foo(bar)").close();
-        testCall(db,"CALL apoc.schema.assert([{Foo:['bar']}],null)", (r) -> {
+        testCall(db,"CALL apoc.schema.assert({Foo:['bar']},null)", (r) -> {
             assertEquals("Foo",r.get("label"));
-            assertEquals(asList("bar"),r.get("keys"));
+            assertEquals("bar",r.get("key"));
             assertEquals(false,r.get("unique"));
             assertEquals("KEPT",r.get("action"));
         });
@@ -119,9 +119,9 @@ public class SchemasTest {
     @Test
     public void testKeepSchema() throws Exception {
         db.execute("CREATE CONSTRAINT ON (f:Foo) assert f.bar is unique").close();
-        testCall(db,"CALL apoc.schema.assert(null,[{Foo:['bar']}])", (r) -> {
+        testCall(db,"CALL apoc.schema.assert(null,{Foo:['bar']})", (r) -> {
             assertEquals("Foo",r.get("label"));
-            assertEquals(asList("bar"),r.get("keys"));
+            assertEquals("bar",r.get("key"));
             assertEquals(true,r.get("unique"));
             assertEquals("KEPT",r.get("action"));
         });
