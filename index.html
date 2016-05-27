@@ -538,6 +538,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel3">
 <li><a href="#_mysql_example">MySQL Example</a></li>
 <li><a href="#_load_jdbc_examples">Load JDBC Examples</a></li>
+<li><a href="#_cassandra_example">Cassandra Example</a></li>
 </ul>
 </li>
 <li><a href="#_elasticsearch_integration">ElasticSearch Integration</a>
@@ -563,8 +564,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ul>
 </li>
-<li><a href="#_operations">Operations</a>
+<li><a href="#_cypher_operations">Cypher Operations</a>
 <ul class="sectlevel2">
+<li><a href="#_running_cypher_fragments">Running Cypher fragments</a>
+<ul class="sectlevel4">
+<li><a href="#_cypher_execution_2">Cypher Execution</a></li>
+<li><a href="#_example_fast_node_counts_by_label">Example: Fast Node-Counts by Label</a></li>
+</ul>
+</li>
 <li><a href="#_job_management_and_periodic_execution">Job management and periodic execution</a></li>
 </ul>
 </li>
@@ -633,7 +640,7 @@ $NEO4J_HOME/bin/neo4j restart</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH 'https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/master/src/test/resources/person.json' AS url
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH 'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/person.json' AS url
 
 CALL apoc.load.json(url) YIELD value as person
 
@@ -845,8 +852,8 @@ RETURN n LIMIT 5</code></pre>
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.schema.assert([{indexLabel:[indexKey]},..],[{constraintLabel:[constraintKey]},..]) yield label, keys, unique, action</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">asserts that at the end of the operation the given indexes and unique constraints are there</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.schema.assert({indexLabel:[indexKeys],&#8230;&#8203;},{constraintLabel:[constraintKeys,&#8230;&#8203;]}) yield label, key, unique, action</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label</p></td>
 </tr>
 </tbody>
 </table>
@@ -1162,16 +1169,20 @@ RETURN *;</code></pre>
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.cypher.runFile(file or url) yield row, result</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.run(fragment, params) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">executes reading fragment with the given parameters</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>runs each statement in the file, all semicolon separated - currently no schema operations</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.runFile(file or url) yield row, result</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">runs each statement in the file, all semicolon separated - currently no schema operations</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>executes fragment in parallel batches with the list segments being assigned to _</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.cypher.doIt(fragment, params) yield value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">executes fragment in parallel batches with the list segments being assigned to _</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.doIt(fragment, params) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">executes writing fragment with the given parameters</p></td>
 </tr>
 </tbody>
 </table>
@@ -1384,6 +1395,10 @@ RETURN *;</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">sum of all values in a list</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.avg([0.5,1,2.3])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">avg of all values in a list</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.min([0.5,1,2.3])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">minimum of all values in a list</p></td>
 </tr>
@@ -1532,6 +1547,22 @@ RETURN *;</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.data.domain(email_or_url) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns domain part of the value</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.util.sha1([values])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">computes the sha1 of the concatenation of all string values of the list</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.util.md5([values])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">computes the md5 of the concatenation of all string values of the list</p></td>
 </tr>
 </tbody>
 </table>
@@ -3157,6 +3188,154 @@ RETURN row limit 1;</code></pre>
 <p>apoc.load.jdbc('jdbc:derby:derbyDB/key','PERSON' || 'SELECT * FROM PERSON WHERE AGE &gt; 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement</p>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_cassandra_example">Cassandra Example</h4>
+<div class="paragraph">
+<p>Setup Song database as initial dataset</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/playlist.cql
+curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/artists.csv
+curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/songs.csv
+$CASSANDRA_HOME/bin/cassandra
+$CASSANDRA_HOME/bin/cqlsh -f playlist.cql</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Download the <a href="https://github.com/adejanovski/cassandra-jdbc-wrapper#installing">Cassandra JDBC Wrapper</a>, and put it into your <code>$NEO4J_HOME/plugins</code> directory.
+Add this config option to <code>$NEO4J_HOME/conf/neo4j.conf</code> to make it easier to interact with the cassandra instance.</p>
+</div>
+<div class="listingblock">
+<div class="title">Add to conf/neo4j.conf</div>
+<div class="content">
+<pre>apoc.jdbc.cassandra_songs.url=jdbc:cassandra://localhost:9042/playlist</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Restart the server.</p>
+</div>
+<div class="paragraph">
+<p>Now you can inspect the data in Cassandra with.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+RETURN count(*);</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>╒════════╕
+│count(*)│
+╞════════╡
+│3605    │
+└────────┘</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+RETURN row LIMIT 5;
+
+CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+RETURN row.first_letter, row.artist LIMIT 5;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>╒════════════════╤═══════════════════════════════╕
+│row.first_letter│row.artist                     │
+╞════════════════╪═══════════════════════════════╡
+│C               │C.W. Stoneking                 │
+├────────────────┼───────────────────────────────┤
+│C               │CH2K                           │
+├────────────────┼───────────────────────────────┤
+│C               │CHARLIE HUNTER WITH LEON PARKER│
+├────────────────┼───────────────────────────────┤
+│C               │Calvin Harris                  │
+├────────────────┼───────────────────────────────┤
+│C               │Camané                         │
+└────────────────┴───────────────────────────────┘</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s create some graph data, we have a look at the track_by_artist table, which contains about 60k records.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row RETURN count(*);</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
+RETURN row LIMIT 5;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
+RETURN row.track_id, row.track_length_in_seconds, row.track, row.music_file, row.genre, row.artist, row.starred LIMIT 2;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>╒════════════════════════════════════╤══════╤════════════════╤══════════════════╤═════════╤════════════════════════════╤═══════════╕
+│row.track_id                        │length│row.track       │row.music_file    │row.genre│row.artist                  │row.starred│
+╞════════════════════════════════════╪══════╪════════════════╪══════════════════╪═════════╪════════════════════════════╪═══════════╡
+│c0693b1e-0eaa-4e81-b23f-b083db303842│219   │1913 Massacre   │TRYKHMD128F934154C│folk     │Woody Guthrie &amp; Jack Elliott│false      │
+├────────────────────────────────────┼──────┼────────────────┼──────────────────┼─────────┼────────────────────────────┼───────────┤
+│7d114937-0bc7-41c7-8e0c-94b5654ac77f│178   │Alabammy Bound  │TRMQLPV128F934152B│folk     │Woody Guthrie &amp; Jack Elliott│false      │
+└────────────────────────────────────┴──────┴────────────────┴──────────────────┴─────────┴────────────────────────────┴───────────┘</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s create some indexes and constraints, note that other indexes and constraints will be dropped by this.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.schema.assert(
+  {Track:['title','length']},
+  {Artist:['name'],Track:['id'],Genre:['name']});</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>╒════════════╤═══════╤══════╤═══════╕
+│label       │key    │unique│action │
+╞════════════╪═══════╪══════╪═══════╡
+│Track       │title  │false │CREATED│
+├────────────┼───────┼──────┼───────┤
+│Track       │length │false │CREATED│
+├────────────┼───────┼──────┼───────┤
+│Artist      │name   │true  │CREATED│
+├────────────┼───────┼──────┼───────┤
+│Genre       │name   │true  │CREATED│
+├────────────┼───────┼──────┼───────┤
+│Track       │id     │true  │CREATED│
+└────────────┴───────┴──────┴───────┘</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>TODO add some nice queries, create graph data from cassandra</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
+MERGE (a:Artist {name:row.artist})
+MERGE (g:Genre {name:row.genre})
+CREATE (t:Track {id:toString(row.track_id), title:row.track, length:row.track_length_in_seconds})
+CREATE (a)-[:PERFORMED]-&gt;(t)
+CREATE (t)-[:GENRE]-&gt;(g);</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Added 63213 labels, created 63213 nodes, set 182413 properties, created 119200 relationships, statement executed in 40076 ms.</pre>
+</div>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_elasticsearch_integration">ElasticSearch Integration</h3>
@@ -3533,8 +3712,80 @@ RETURN n.prop</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_operations">Operations</h2>
+<h2 id="_cypher_operations">Cypher Operations</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_running_cypher_fragments">Running Cypher fragments</h3>
+<div class="paragraph">
+<p>We can use Cypher as safe, graph-aware, partially compiled scripting language within APOC.</p>
+</div>
+<div class="sect4">
+<h5 id="_cypher_execution_2">Cypher Execution</h5>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.run(fragment, params) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">executes reading fragment with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.runFile(file or url) yield row, result</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">runs each statement in the file, all semicolon separated - currently no schema operations</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">executes fragment in parallel batches with the list segments being assigned to _</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.doIt(fragment, params) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">executes writing fragment with the given parameters</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_example_fast_node_counts_by_label">Example: Fast Node-Counts by Label</h4>
+<div class="paragraph">
+<p>Counts by label are quickly provided by the counts-store, but only if they are the the single thing in the query, like</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (:Person) RETURN count(*);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It also works to combine several with <code>UNION ALL</code>, but not via <code>WITH</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Doesn&#8217;t work</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (:Person) WITH count(*) as people
+MATCH (:Movie) RETURN people, count(*) as movies;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Works</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (:Person) RETURN count(*)
+UNION ALL
+MATCH (:Movie) RETURN count(*);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>But with <code>apoc.cypher.run</code> we can construct the statement and run each of them individually, so it completes in a few ms.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call db.labels() yield label
+call apoc.cypher.run("match (:`"+label+"`) return count(*) as count", null) yield value
+return label, value.count as count</code></pre>
+</div>
+</div>
+</div>
+</div>
 <div class="sect2">
 <h3 id="_job_management_and_periodic_execution">Job management and periodic execution</h3>
 <div class="admonitionblock note">
@@ -3574,7 +3825,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-05-26 02:30:35 MESZ
+Last updated 2016-05-27 16:46:42 MESZ
 </div>
 </div>
 </body>

@@ -297,15 +297,19 @@ RETURN *;
 | apoc.monitor.locks(minWaitTime long) | db locking information such as avertedDeadLocks, lockCount, contendedLockCount and contendedLocks etc. (enterprise)
 |===
 
+// tag::cypher[]
+
 === Cypher Execution
 
 [cols="1m,5"]
 |===
-| CALL
+| CALL apoc.cypher.run(fragment, params) yield value | executes reading fragment with the given parameters
 | CALL apoc.cypher.runFile(file or url) yield row, result | runs each statement in the file, all semicolon separated - currently no schema operations
 | CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value | executes fragment in parallel batches with the list segments being assigned to _
 | CALL apoc.cypher.doIt(fragment, params) yield value | executes writing fragment with the given parameters
 |===
+
+// end::cypher[]
 
 TODO runFile: begin/commit/schema await/constraints/indexes
 

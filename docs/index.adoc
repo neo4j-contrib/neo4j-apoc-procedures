@@ -44,6 +44,7 @@ include::loadxml.adoc[leveloffset=2]
 
 include::refactor.adoc[leveloffset=2]
 
-== Operations
+== Cypher Operations
 
+include::cypher.adoc[leveloffset=2]
 include::periodic.adoc[leveloffset=2]
