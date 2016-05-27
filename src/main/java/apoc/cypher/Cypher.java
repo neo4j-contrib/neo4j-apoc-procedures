@@ -133,8 +133,8 @@ public class Cypher {
     }
 
     public String compiled(@Name("cypher") String fragment, Collection<String> keys) {
+        if (keys.isEmpty()) return fragment;
         String declaration = " WITH " + join(", ", keys.stream().map(s -> format(" {`%s`} as `%s` ", s, s)).collect(toList()));
-
         return declaration + fragment;
 //        return fragment.substring(0,6).equalsIgnoreCase("cypher") ? fragment : COMPILED_PREFIX + fragment;
     }
