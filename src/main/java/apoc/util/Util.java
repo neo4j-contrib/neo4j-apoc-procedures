@@ -172,7 +172,12 @@ public class Util {
         con.setRequestProperty("User-Agent", "APOC Procedures for Neo4j");
         if (headers != null) {
             Object method = headers.get("method");
-            if (method != null && con instanceof HttpURLConnection) ((HttpURLConnection) con).setRequestMethod(method.toString());
+            if (method != null && con instanceof HttpURLConnection) {
+                HttpURLConnection http = (HttpURLConnection) con;
+                http.setRequestMethod(method.toString());
+                http.setChunkedStreamingMode(1024*1024);
+                http.setInstanceFollowRedirects(true);
+            }
             headers.forEach((k,v) -> con.setRequestProperty(k, v == null ? "" : v.toString()));
         }
         con.setDoInput(true);
@@ -185,7 +190,7 @@ public class Util {
         URLConnection con = openUrlConnection(url, headers);
         if (payload != null) {
             con.setDoOutput(true);
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(con.getOutputStream()));
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(con.getOutputStream(),"UTF-8"));
             writer.write(payload);
             writer.close();
         }
