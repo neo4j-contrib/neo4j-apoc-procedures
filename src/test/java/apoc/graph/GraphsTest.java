@@ -1,19 +1,19 @@
 package apoc.graph;
 
-import apoc.coll.Coll;
 import apoc.util.TestUtil;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author mh
@@ -57,6 +57,7 @@ public class GraphsTest {
                 r -> assertEquals(graph, r.get("graph")));
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testFromDB() throws Exception {
         TestUtil.testCall(db," CALL apoc.graph.fromDB('test',{answer:42})",

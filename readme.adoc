@@ -275,6 +275,22 @@ CALL apoc.create.vRelationship(a,'META_RELATIONSHIP',{name:rel_type, count:count
 RETURN *;
 ----
 
+=== Virstual Graph
+
+Create a graph object (map) from information that's passed in.
+It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}`
+
+[cols="1m,5"]
+|===
+apoc.graph.from(data,'name',{properties}) yield graph | creates a virtual graph object for later processing it tries its best to extract the graph information from the data you pass in
+| apoc.graph.fromData([nodes],[relationships],'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromPaths(path,'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromPaths([paths],'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromDB('name',{properties}) - creates a virtual graph object for later processing
+| apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
+
+|===
+
 === Warmup
 
 (thanks @SaschaPeukert)
