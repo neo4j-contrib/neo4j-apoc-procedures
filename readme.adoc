@@ -429,6 +429,8 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.intersection(first, second) | returns the unique intersection of the two lists
 | apoc.coll.disjunction(first, second) | returns the disjunct set of the two lists
 | apoc.coll.unionAll(first, second) | creates the full union with duplicates of the two lists
+| apoc.coll.split(list,value) | splits collection on given values rows of lists, value itself will not be part of resulting lists
+| apoc.coll.indexOf(coll, value) | position of value in the list
 |===
 
 ==== Lookup Functions
@@ -624,7 +626,6 @@ MATCH (n:Person)
 * add apoc.nodes.delete(id|ids|node|nodes)
 * (√) add weight/score to manual index operations, expose it, TODO add Sort.RELEVANCE sorter conditionally or unconditionally
 * pass in last count to rundown so you can also do batch-creates
-* conversions for type-system of "objects" to map, list, node etc. to avoid the semantic errors we sometimes get
 * in browser guide as apoc-help-page
 * (√) optimized collection functions (WIP)
 * Time Conversion Functions (ISO<->ts, padded long representation)
@@ -635,15 +636,11 @@ MATCH (n:Person)
 * Encryption / decryption of single properties or a subset or all properties (provide decryption key as param or config)
 * (in progress) Graph Algorithms (Stefan, Max?)
 * custom expanders, e.g. with dynamic rel-type suffixes and prefixes
-* √ Path Finding / Expansion (Kees)
-* Use Cypher as scripting language `{cypher:"RETURN a*10+b",params:{a:3,b:5}}` for algorithms, parallelization and custom expansion
-* parallel(fragment, params-list, result list)
 * (√) Graph Refactorings (WIP)
 * (√) Job Queue (WIP) See https://github.com/jakewins/neo4j-procedure-template/blob/batch/src/main/java/example/BatchedWrites.java[BatchedWriter from Jake/Max]
 * run/load shell scripts apoc.load.shell(path)
 * apox.save.dump() whole database, dump("statement"), dump("", "data/import/file") dump("", "URL TO PUT"), formats - binary(packstream), human readable(graphml, graphjson), compression
 * store arbitrary objects in properties with kryo/packstream or similar serialization
-* indexOf() function for array, same semantics like java.util.List.indexOf
 * variable path length on patterns instead of single relationships. Don't have a syntax for this to suggest, but assume you want to search for ()-[:TYPE_A]->()-[:TYPE_B]->() e.g. 2..5 times.
 * match (a)-[r*]->(b)  where all rels in the path are this pattern ()-[:Foo]->()-[:Bar]->()
 * all unique pairs of a list
