@@ -6,7 +6,7 @@ import java.util.*;
  * @author mh
  * @since 10.04.16
  */
-public class SetBackedList<T> extends AbstractSequentialList<T> {
+public class SetBackedList<T> extends AbstractSequentialList<T> implements Set<T> {
 
     private final Set<T> set;
 
@@ -91,5 +91,21 @@ public class SetBackedList<T> extends AbstractSequentialList<T> {
     @Override
     public boolean contains(Object o) {
         return set.contains(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return set.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof Set) return set.equals(o);
+        return o instanceof Iterable && super.equals(o);
+    }
+
+    @Override
+    public Spliterator<T> spliterator() {
+        return set.spliterator();
     }
 }

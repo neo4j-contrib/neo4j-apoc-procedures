@@ -203,7 +203,7 @@ public class Util {
     }
 
     public static boolean toBoolean(Object value) {
-        if ((value == null || value instanceof Number && (((Number) value).longValue()) == 0L || value instanceof String && (value.equals("") || ((String) value).equalsIgnoreCase("false"))|| value instanceof Boolean && value.equals(false))) {
+        if ((value == null || value instanceof Number && (((Number) value).longValue()) == 0L || value instanceof String && (value.equals("") || ((String) value).equalsIgnoreCase("false") || ((String) value).equalsIgnoreCase("no")|| ((String) value).equalsIgnoreCase("0"))|| value instanceof Boolean && value.equals(false))) {
             return false;
         }
         return true;

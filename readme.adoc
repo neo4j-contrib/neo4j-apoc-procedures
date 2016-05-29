@@ -375,6 +375,21 @@ TODO:
 | apoc.static.set(name, value) | stores value under key for server livetime storage, returns previously stored or configured value
 |===
 
+==== Conversion Functions
+
+Sometimes type information gets lost, these functions help you to coerce an "Any" value to the concrete type
+
+[cols="1m,5"]
+|===
+| apoc.convert.toString(value) | tries it's best to convert the value to a string
+| apoc.convert.toMap(value) | tries it's best to convert the value to a map
+| apoc.convert.toList(value) | tries it's best to convert the value to a list
+| apoc.convert.toBoolean(value) | tries it's best to convert the value to a boolean
+| apoc.convert.toNode(value) | tries it's best to convert the value to a node
+| apoc.convert.toRelationship(value) | tries it's best to convert the value to a relationship
+| apoc.convert.toSet(value) | tries it's best to convert the value to a set
+|===
+
 ==== Map Functions
 
 [cols="1m,5"]
@@ -630,7 +645,6 @@ MATCH (n:Person)
 * store arbitrary objects in properties with kryo/packstream or similar serialization
 * indexOf() function for array, same semantics like java.util.List.indexOf
 * variable path length on patterns instead of single relationships. Don't have a syntax for this to suggest, but assume you want to search for ()-[:TYPE_A]->()-[:TYPE_B]->() e.g. 2..5 times.
-* remove from map
 * match (a)-[r*]->(b)  where all rels in the path are this pattern ()-[:Foo]->()-[:Bar]->()
 * all unique pairs of a list
 * TopK select
