@@ -139,11 +139,6 @@ public class Create {
         return Stream.of(new VirtualPathResult(from,rel,to));
     }
 
-    @Description("TODO apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])")
-    public Stream<VirtualPathResult> vGraph() {
-        return Stream.empty();
-    }
-
     private <T extends PropertyContainer> T setProperties(T pc, Map<String, Object> p) {
         if (p == null) return pc;
         for (Map.Entry<String, Object> entry : p.entrySet()) pc.setProperty(entry.getKey(), entry.getValue());
