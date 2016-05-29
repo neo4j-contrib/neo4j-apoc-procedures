@@ -3,16 +3,17 @@ package apoc.graph;
 import apoc.Description;
 import apoc.cypher.Cypher;
 import apoc.result.VirtualGraph;
-import com.google.common.collect.Iterables;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * @author mh
