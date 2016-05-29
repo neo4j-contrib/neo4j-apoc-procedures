@@ -383,6 +383,8 @@ TODO:
 | apoc.map.fromLists([keys],[values]) | creates map from a keys and a values list
 | apoc.map.fromValues([key,value,key1,value1]) | creates map from alternating keys and values in a list
 | apoc.map.setKey(map,key,value) | returns the map with the value for this key added or replaced
+| apoc.map.removeKey(map,key) | returns the map with the key removed
+| apoc.map.removeKeys(map,[keys]) | returns the map with the keys removed
 | apoc.map.clean(map,[keys],[values]) yield value | removes the keys and values (e.g. null-placeholders) contained in those lists, good for data cleaning from CSV/JSON
 |===
 
@@ -628,7 +630,6 @@ MATCH (n:Person)
 * store arbitrary objects in properties with kryo/packstream or similar serialization
 * indexOf() function for array, same semantics like java.util.List.indexOf
 * variable path length on patterns instead of single relationships. Don't have a syntax for this to suggest, but assume you want to search for ()-[:TYPE_A]->()-[:TYPE_B]->() e.g. 2..5 times.
-* subtraction, union, disjunction, conjunction of collections
 * remove from map
 * match (a)-[r*]->(b)  where all rels in the path are this pattern ()-[:Foo]->()-[:Bar]->()
 * all unique pairs of a list
