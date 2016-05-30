@@ -16,6 +16,7 @@ repositories {
 dependencies {
     compile group: 'it.unimi.dsi', name: 'fastutil', version:'7.0.12'
     compile group: 'commons-codec', name: 'commons-codec', version:'1.9'
+    compile group: 'com.carrotsearch', name: 'hppc' , version:'0.7.1'
     
     testCompile group: 'org.apache.derby', name: 'derby', version:'10.12.1.1'
     testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version:'3.0.1'
