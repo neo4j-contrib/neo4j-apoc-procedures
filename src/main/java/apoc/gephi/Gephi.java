@@ -12,8 +12,8 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.awt.*;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,6 +28,9 @@ import static apoc.util.MapUtil.map;
 // https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master
 // https://marketplace.gephi.org/plugin/graph-streaming/
 public class Gephi {
+
+    public static final int WIDTH = 1000;
+    public static final int HEIGHT = 1000;
 
     private String getGephiUrl(String hostOrKey) {
         return new UrlResolver("http", "localhost", 8080).getUrl("gephi", hostOrKey);
@@ -59,16 +62,17 @@ public class Gephi {
     }
 
     private Stream<String> toGraphStream(Collection<? extends PropertyContainer> source, String operation) {
-        return source.stream().map(n -> map(operation, data(n))).map(Util::toJson);
+        Map<String,Map<String,Object>> colors=new HashMap<>();
+        return source.stream().map(n -> map(operation, data(n,colors))).map(Util::toJson);
     }
 
-    private Map<String, Object> data(PropertyContainer pc) {
+    private Map<String, Object> data(PropertyContainer pc, Map<String, Map<String, Object>> colors) {
         if (pc instanceof Node) {
             Node n = (Node) pc;
             String labels = Util.labelString(n);
             Map<String, Object> attributes = map("label", caption(n), "TYPE", labels);
             attributes.putAll(positions());
-            attributes.putAll(color(labels));
+            attributes.putAll(color(labels,colors));
             return map(idStr(n), attributes);
         }
         if (pc instanceof Relationship) {
@@ -76,19 +80,24 @@ public class Gephi {
             String type = r.getType().name();
             Map<String, Object> attributes = map("label", type, "TYPE", type);
             attributes.putAll(map("source", idStr(r.getStartNode()), "target", idStr(r.getEndNode()), "directed", true));
-            attributes.putAll(color(type));
+            attributes.putAll(color(type, colors));
             return map(String.valueOf(r.getId()), attributes);
         }
         return map();
     }
 
     private Map<String, Object> positions() {
-        return map("size", 10, "x", 100 - Math.random() * 200, "y", 100 - Math.random() * 200);
+        return map("size", 10, "x", WIDTH/2 - Math.random() * WIDTH, "y", HEIGHT/2 - Math.random() * HEIGHT);
     }
 
-    private Map<String, Object> color(String type) {
-        float[] c = new Color(type.hashCode()).getRGBColorComponents(null);
-        return map("r", c[0], "g", c[1], "b", c[2]);
+    private Map<String, Object> color(String type, Map<String, Map<String, Object>> colors) {
+        return colors.computeIfAbsent(type, k -> {
+            int rgb = type.hashCode();
+            float r = (float)(rgb >> 16 & 0xFF)/255.0f;
+            float g = (float)(rgb >> 8  & 0xFF)/255.0f;
+            float b = (float)(rgb       & 0xFF)/255.0f;
+            return map("r", r, "g", g, "b", b);
+        });
     }
 
     private String idStr(Node n) {
