@@ -12,6 +12,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.awt.*;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -46,27 +47,48 @@ public class Gephi {
         HashSet<Node> nodes = new HashSet<>(1000);
         HashSet<Relationship> rels = new HashSet<>(10000);
         if (Graphs.extract(data, nodes, rels)) {
-            JsonUtil.loadJson(url,map("method","POST"), toGephiStreaming(nodes, "an"));
-            JsonUtil.loadJson(url,map("method","POST"), toGephiStreaming(rels,"ae"));
+            String payload = toGephiStreaming(nodes, rels);
+            JsonUtil.loadJson(url,map("method","POST"), payload);
             return Stream.of(new ProgressInfo(url,"graph","gephi").update(nodes.size(),rels.size(),nodes.size()).done(start));
         }
         return Stream.empty();
     }
 
-    private String toGephiStreaming(Collection<? extends PropertyContainer> source, String operation) {
-        return source.stream().map(n -> map(operation, info(n))).map(Util::toJson).collect(Collectors.joining("\r\n"));
+    private String toGephiStreaming(Collection<Node> nodes, Collection<Relationship> rels) {
+        return Stream.concat(toGraphStream(nodes, "an"), toGraphStream(rels, "ae")).collect(Collectors.joining("\r\n"));
     }
 
-    private Map<String, Object> info(PropertyContainer pc) {
+    private Stream<String> toGraphStream(Collection<? extends PropertyContainer> source, String operation) {
+        return source.stream().map(n -> map(operation, data(n))).map(Util::toJson);
+    }
+
+    private Map<String, Object> data(PropertyContainer pc) {
         if (pc instanceof Node) {
             Node n = (Node) pc;
-            return map(idStr(n), map("label", caption(n)));
+            String labels = Util.labelString(n);
+            Map<String, Object> attributes = map("label", caption(n), "TYPE", labels);
+            attributes.putAll(positions());
+            attributes.putAll(color(labels));
+            return map(idStr(n), attributes);
         }
         if (pc instanceof Relationship) {
             Relationship r = (Relationship) pc;
-            return map(String.valueOf(r.getId()), map("label", r.getType().name(), "source",idStr(r.getStartNode()), "target",idStr(r.getEndNode()), "directed",true));
+            String type = r.getType().name();
+            Map<String, Object> attributes = map("label", type, "TYPE", type);
+            attributes.putAll(map("source", idStr(r.getStartNode()), "target", idStr(r.getEndNode()), "directed", true));
+            attributes.putAll(color(type));
+            return map(String.valueOf(r.getId()), attributes);
         }
         return map();
+    }
+
+    private Map<String, Object> positions() {
+        return map("size", 10, "x", 100 - Math.random() * 200, "y", 100 - Math.random() * 200);
+    }
+
+    private Map<String, Object> color(String type) {
+        float[] c = new Color(type.hashCode()).getRGBColorComponents(null);
+        return map("r", c[0], "g", c[1], "b", c[2]);
     }
 
     private String idStr(Node n) {

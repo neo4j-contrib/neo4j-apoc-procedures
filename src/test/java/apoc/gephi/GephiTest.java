@@ -33,7 +33,7 @@ public class GephiTest {
     @Test
     public void testAdd() throws Exception {
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,'workspace0',p) yield nodes, relationships, format return *", r -> {
+            TestUtil.testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,'workspace1',p) yield nodes, relationships, format return *", r -> {
                 assertEquals(2L, r.get("nodes"));
                 assertEquals(1L, r.get("relationships"));
                 assertEquals("gephi", r.get("format"));

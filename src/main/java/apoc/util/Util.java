@@ -17,10 +17,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.stream.*;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
 
@@ -35,6 +32,10 @@ public class Util {
     public static final String NODE_COUNT = "MATCH (n) RETURN count(*) as result";
     public static final String REL_COUNT = "MATCH ()-->() RETURN count(*) as result";
 
+
+    public static String labelString(Node n) {
+        return StreamSupport.stream(n.getLabels().spliterator(),false).map(Label::name).sorted().collect(Collectors.joining(":"));
+    }
     public static Label[] labels(Object labelNames) {
         if (labelNames==null) return NO_LABELS;
         if (labelNames instanceof List) {
