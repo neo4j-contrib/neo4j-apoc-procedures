@@ -1,4 +1,6 @@
 = Awesome Procedures for Neo4j 3.x
+:readme:
+:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img
 
 image:https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg[]
 
@@ -6,7 +8,7 @@ https://neo4j-contrib.github.io/neo4j-apoc-procedures[Documentation (WIP)].
 
 // tag::readme[]
 
-image::http://www.oocities.org/matrixextreme/images/apoc.gif[float=right]
+image::https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/apoc.gif[float=right]
 
 == License
 
@@ -60,6 +62,10 @@ MERGE (p:Person {name:person.name})
 
 === Built in Help
 
+// tag::help[]
+
+image::{img}/apoc-help-apoc.jpg[width=400,float=right]
+
 [cols="1m,5"]
 |===
 | call apoc.help('search') | lists name, description-text and if the procedure performs writes (descriptions are WIP), search string is checked against beginning (package) or end (name) of procedure
@@ -72,6 +78,8 @@ CALL apoc.help("apoc") YIELD name, text
 WITH * WHERE text IS null
 RETURN name AS undocumented
 ----
+
+// end::help[]
 
 === Manual Indexes
 
@@ -88,6 +96,8 @@ Procedures to add to and query manual indexes
 | apoc.index.addNodeByLabel(node,'Label',['prop1',...]) | add node to an index for the given label
 | apoc.index.addRelationship(rel,['prop1',...]) | add relationship to an index for its type
 |===
+
+image::{img}/apoc.index.nodes-with-score.jpg[float=right,width=400]
 
 [cols="1m,5"]
 |===
@@ -132,6 +142,8 @@ Schema Index lookups that keep order and can apply limits
 
 
 === Meta Graph
+
+image::{img}/apoc.meta.graph.jpg[float=right,width=400]
 
 Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.
 
@@ -195,6 +207,8 @@ Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.r
 
 === Loading Data from RDBMS
 
+image::{img}/apoc-jdbc-northwind-load.jpg[width=400,float=right]
+
 // tag::jdbc[]
 
 [cols="1m,5"]
@@ -235,6 +249,15 @@ config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],a
 
 === Streaming Data to Gephi
 
+// tag::gephi[]
+
+[cols="1m,5"]
+|===
+| apoc.gephi.add(url-or-key, workspace, data) | streams provided data to Gephi
+|===
+
+==== Notes
+
 Gephi has a https://marketplace.gephi.org/plugin/graph-streaming/[streaming plugin], that can provide and accept https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master[JSON-graph-data] in a streaming fashion.
 
 Make sure to install the plugin firsrt and activate it for your workspace (there is a new "Streaming"-tab besides "Layout"), right-click "Master"->"start" to start the server.
@@ -245,12 +268,7 @@ The default Gephi-URL is http://localhost:8080, resulting in `http://localhost:8
 
 You can also configure it in `conf/neo4j.conf` via  `apoc.gephi.url=url` or `apoc.gephi.<key>.url=url`
 
-[cols="1m,5"]
-|===
-| apoc.gephi.add(url-or-key, workspace, data) | streams provided data to Gephi
-|===
-
-Example:
+==== Example
 
 [source,cypher]
 ----
@@ -260,6 +278,8 @@ with collect(path) as paths
 call apoc.gephi.add(null,'workspace0', paths) yield nodes, relationships, time
 return nodes, relationships, time
 ----
+
+// end::gephi[]
 
 === Creating Data
 
