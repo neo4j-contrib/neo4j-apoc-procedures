@@ -8,7 +8,6 @@ import java.util.stream.Stream;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
@@ -19,44 +18,42 @@ import org.neo4j.procedure.Procedure;
 
 import com.carrotsearch.hppc.LongHashSet;
 import com.carrotsearch.hppc.cursors.LongCursor;
-import com.codahale.metrics.Timer;
 
 import apoc.Description;
 import apoc.result.LongResult;
-import apoc.util.PerformanceLoggerSingleton;
 
 public class WeaklyConnectedComponents {
 
-    @Context
-    public GraphDatabaseService db;
+	@Context
+	public GraphDatabaseService db;
 
-    @Context
-    public Log log;
+	@Context
+	public Log log;
 
-    @Procedure("apoc.algo.wcc")
-    @Description("CALL apoc.algo.wcc() YIELD number of weakly connected components")
-    public Stream<LongResult> wcc() {
-        try {
-        	long componentID= 0;
-        	ResourceIterator<Node> nodes = db.getAllNodes().iterator();
-        	LongHashSet allNodes = new LongHashSet();
-        	while(nodes.hasNext()){
-                Node node = nodes.next();
-                if(node.getDegree()==0){
-                	componentID++;
-                } else{
-                    allNodes.add(node.getId());
-                }
-        	}
-            nodes.close();
-            
-            Iterator<LongCursor> it = allNodes.iterator();
+	@Procedure("apoc.algo.wcc")
+	@Description("CALL apoc.algo.wcc() YIELD number of weakly connected components")
+	public Stream<LongResult> wcc() {
+		try {
+			long componentID = 0;
+			ResourceIterator<Node> nodes = db.getAllNodes().iterator();
+			LongHashSet allNodes = new LongHashSet();
+			while (nodes.hasNext()) {
+				Node node = nodes.next();
+				if (node.getDegree() == 0) {
+					componentID++;
+				} else {
+					allNodes.add(node.getId());
+				}
+			}
+			nodes.close();
+
+			Iterator<LongCursor> it = allNodes.iterator();
 			while (it.hasNext()) {
 				// Every node has to be marked as (part of) a component
-				try {		
+				try {
 					Long n = it.next().value;
-			        LongHashSet reachableIDs = go(db.getNodeById(n), Direction.BOTH);
-			        allNodes.removeAll(reachableIDs);
+					LongHashSet reachableIDs = go(db.getNodeById(n), Direction.BOTH);
+					allNodes.removeAll(reachableIDs);
 					componentID++;
 
 				} catch (NoSuchElementException e) {
@@ -64,15 +61,14 @@ public class WeaklyConnectedComponents {
 				}
 				it = allNodes.iterator();
 			}
-        	return Stream.of(new LongResult(componentID));
-        } catch (Exception e) {
-            String errMsg = "Error encountered while calculating weakly connected components";
-            log.error(errMsg, e);
-            throw new RuntimeException(errMsg, e);
-        }
-    }
-    
-    
+			return Stream.of(new LongResult(componentID));
+		} catch (Exception e) {
+			String errMsg = "Error encountered while calculating weakly connected components";
+			log.error(errMsg, e);
+			throw new RuntimeException(errMsg, e);
+		}
+	}
+
 	private LongHashSet go(Node node, Direction direction) {
 
 		LongHashSet visitedIDs = new LongHashSet();
@@ -95,11 +91,11 @@ public class WeaklyConnectedComponents {
 		}
 		return visitedIDs;
 	}
-    
+
 	private List<Node> getConnectedNodeIDs(Node node, Direction dir) {
 		List<Node> it = new LinkedList<Node>();
-		RelationshipType types=RelationshipType.withName("LINK");
-		Iterator<Relationship> itR = node.getRelationships(types,dir).iterator();
+		RelationshipType types = RelationshipType.withName("LINK");
+		Iterator<Relationship> itR = node.getRelationships(types, dir).iterator();
 		while (itR.hasNext()) {
 			it.add(itR.next().getOtherNode(node));
 		}

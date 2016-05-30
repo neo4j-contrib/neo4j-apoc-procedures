@@ -20,11 +20,11 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class WeaklyConnectedComponentsTest
-{
-    private static GraphDatabaseService db;
-    //TODO refactor in multiple execute statements dirty workaround
-    public static final String CC_GRAPH =
+public class WeaklyConnectedComponentsTest {
+	
+	private static GraphDatabaseService db;
+	// TODO refactor in multiple execute statements dirty workaround
+	public static final String CC_GRAPH =
             "CREATE (:Node:Record { name : 'A' })  "+
             "WITH count(*) as dummy " +
             "CREATE (:Node:Record { name : 'B' })  "+
@@ -91,45 +91,36 @@ public class WeaklyConnectedComponentsTest
             "WHERE a.name = 'N' AND b.name = 'Z'   "+
             "CREATE (a)-[:LINK]->(b)";
 
-    @BeforeClass
-    public static void setUp() throws Exception
-    {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure( db, WeaklyConnectedComponents.class );
-    }
+	@BeforeClass
+	public static void setUp() throws Exception {
+		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+		TestUtil.registerProcedure(db, WeaklyConnectedComponents.class);
+	}
 
-    @AfterClass
-    public static void tearDown()
-    {
-        db.shutdown();
-    }
+	@AfterClass
+	public static void tearDown() {
+		db.shutdown();
+	}
 
-    // ==========================================================================================
+	// ==========================================================================================
 
-    
-    @Test
-    public void shouldReturnExpectedResultCountWhenUsingWeaklyConnectedWithEmptyDb()
-    {
-    	assertExpectedResult( 0L, "CALL apoc.algo.wcc()");
-    }
-    
-    @Test
-    public void shouldReturnExpectedResultCountWhenUsingWeaklyConnected()
-    {
-    	db.execute( CC_GRAPH ).close();
-    	assertExpectedResult( 5L, "CALL apoc.algo.wcc()");
-    }
-    
-    
+	@Test
+	public void shouldReturnExpectedResultCountWhenUsingWeaklyConnectedWithEmptyDb() {
+		assertExpectedResult(0L, "CALL apoc.algo.wcc()");
+	}
 
-    private void assertExpectedResult( Long expectedResultCount, String query )
-    {
-        TestUtil.testResult( db, query, ( result ) -> {
-            Object value = result.next().get( "value");   
-        	assertThat( value, is( instanceOf( Long.class ) ) );
-        	assertThat( (Long)value, equalTo( expectedResultCount ) );
-        } );
-    }
+	@Test
+	public void shouldReturnExpectedResultCountWhenUsingWeaklyConnected() {
+		db.execute(CC_GRAPH).close();
+		assertExpectedResult(5L, "CALL apoc.algo.wcc()");
+	}
+
+	private void assertExpectedResult(Long expectedResultCount, String query) {
+		TestUtil.testResult(db, query, (result) -> {
+			Object value = result.next().get("value");
+			assertThat(value, is(instanceOf(Long.class)));
+			assertThat((Long) value, equalTo(expectedResultCount));
+		});
+	}
 
 }
-
