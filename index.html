@@ -440,8 +440,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_loading_data_from_rdbms">Loading Data from RDBMS</a></li>
 <li><a href="#_loading_data_from_web_apis_json_xml_csv">Loading Data from Web-APIs (JSON, XML, CSV)</a></li>
 <li><a href="#_interacting_with_elastic_search">Interacting with Elastic Search</a></li>
+<li><a href="#_streaming_data_to_gephi">Streaming Data to Gephi</a></li>
 <li><a href="#_creating_data">Creating Data</a></li>
 <li><a href="#_virtual_nodes_rels">Virtual Nodes/Rels</a></li>
+<li><a href="#_virtual_graph">Virtual Graph</a></li>
 <li><a href="#_warmup">Warmup</a></li>
 <li><a href="#_monitoring">Monitoring</a></li>
 <li><a href="#_cypher_execution">Cypher Execution</a></li>
@@ -458,6 +460,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_detailed_documentation">Detailed Documentation</a>
 <ul class="sectlevel1">
+<li><a href="#_help_and_usage">Help and Usage</a></li>
 <li><a href="#_text_and_lookup_indexes">Text and Lookup Indexes</a>
 <ul class="sectlevel3">
 <li><a href="#_index_queries_2">Index Queries</a></li>
@@ -538,11 +541,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel3">
 <li><a href="#_mysql_example">MySQL Example</a></li>
 <li><a href="#_load_jdbc_examples">Load JDBC Examples</a></li>
+<li><a href="#_cassandra_example">Cassandra Example</a></li>
+</ul>
+</li>
+<li><a href="#_streaming_data_to_gephi_2">Streaming Data to Gephi</a>
+<ul class="sectlevel3">
+<li><a href="#_notes_2">Notes</a></li>
+<li><a href="#_example_2">Example</a></li>
+<li><a href="#_format">Format</a></li>
+<li><a href="#_specifics_details">Specifics Details</a></li>
 </ul>
 </li>
 <li><a href="#_elasticsearch_integration">ElasticSearch Integration</a>
 <ul class="sectlevel3">
-<li><a href="#_example">Example</a></li>
+<li><a href="#_example_3">Example</a></li>
 <li><a href="#_general_structure_and_parameters">General Structure and Parameters</a></li>
 </ul>
 </li>
@@ -563,8 +575,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ul>
 </li>
-<li><a href="#_operations">Operations</a>
+<li><a href="#_cypher_operations">Cypher Operations</a>
 <ul class="sectlevel2">
+<li><a href="#_running_cypher_fragments">Running Cypher fragments</a>
+<ul class="sectlevel4">
+<li><a href="#_cypher_execution_2">Cypher Execution</a></li>
+<li><a href="#_example_fast_node_counts_by_label">Example: Fast Node-Counts by Label</a></li>
+</ul>
+</li>
 <li><a href="#_job_management_and_periodic_execution">Job management and periodic execution</a></li>
 </ul>
 </li>
@@ -578,7 +596,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sectionbody">
 <div class="imageblock" style="float: right">
 <div class="content">
-<img src="http://www.oocities.org/matrixextreme/images/apoc.gif" alt="apoc">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/apoc.gif" alt="apoc">
 </div>
 </div>
 </div>
@@ -633,7 +651,7 @@ $NEO4J_HOME/bin/neo4j restart</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH 'https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/master/src/test/resources/person.json' AS url
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH 'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/person.json' AS url
 
 CALL apoc.load.json(url) YIELD value as person
 
@@ -646,6 +664,11 @@ MERGE (p:Person {name:person.name})
 <h3 id="_included_procedures_overview">Included Procedures Overview</h3>
 <div class="sect3">
 <h4 id="_built_in_help">Built in Help</h4>
+<div class="imageblock">
+<div class="content">
+<img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc-help-apoc.jpg" alt="apoc help apoc" width="600">
+</div>
+</div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -698,6 +721,11 @@ RETURN name AS undocumented</code></pre>
 </tr>
 </tbody>
 </table>
+<div class="imageblock">
+<div class="content">
+<img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc.index.nodes-with-score.jpg" alt="apoc.index.nodes with score" width="600">
+</div>
+</div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -791,6 +819,11 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 </div>
 <div class="sect3">
 <h4 id="_meta_graph">Meta Graph</h4>
+<div class="imageblock">
+<div class="content">
+<img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc.meta.graph.jpg" alt="apoc.meta.graph" width="600">
+</div>
+</div>
 <div class="paragraph">
 <p>Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.</p>
 </div>
@@ -845,8 +878,8 @@ RETURN n LIMIT 5</code></pre>
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.schema.assert([{indexLabel:[indexKey]},..],[{constraintLabel:[constraintKey]},..]) yield label, keys, unique, action</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">asserts that at the end of the operation the given indexes and unique constraints are there</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.schema.assert({indexLabel:[indexKeys],&#8230;&#8203;},{constraintLabel:[constraintKeys,&#8230;&#8203;]}) yield label, key, unique, action</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label</p></td>
 </tr>
 </tbody>
 </table>
@@ -929,6 +962,11 @@ RETURN n LIMIT 5</code></pre>
 </div>
 <div class="sect3">
 <h4 id="_loading_data_from_rdbms">Loading Data from RDBMS</h4>
+<div class="imageblock">
+<div class="content">
+<img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc-jdbc-northwind-load.jpg" alt="apoc jdbc northwind load" width="600">
+</div>
+</div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1012,6 +1050,51 @@ config contains any of: <code>{skip:1,limit:5,header:false,sep:'TAB',ignore:['tm
 </tr>
 </tbody>
 </table>
+</div>
+<div class="sect3">
+<h4 id="_streaming_data_to_gephi">Streaming Data to Gephi</h4>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.gephi.add(url-or-key, workspace, data)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">streams provided data to Gephi</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect4">
+<h5 id="_notes">Notes</h5>
+<div class="paragraph">
+<p>Gephi has a <a href="https://marketplace.gephi.org/plugin/graph-streaming/">streaming plugin</a>, that can provide and accept <a href="https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master">JSON-graph-data</a> in a streaming fashion.</p>
+</div>
+<div class="paragraph">
+<p>Make sure to install the plugin firsrt and activate it for your workspace (there is a new "Streaming"-tab besides "Layout"), right-click "Master"&#8594;"start" to start the server.</p>
+</div>
+<div class="paragraph">
+<p>You can provide your workspace name (you might want to rename it before you start thes streaming), otherwise it defaults to <code>workspace0</code></p>
+</div>
+<div class="paragraph">
+<p>The default Gephi-URL is <a href="http://localhost:8080" class="bare">http://localhost:8080</a>, resulting in <code><a href="http://localhost:8080/workspace0?operation=updateGraph" class="bare">http://localhost:8080/workspace0?operation=updateGraph</a></code></p>
+</div>
+<div class="paragraph">
+<p>You can also configure it in <code>conf/neo4j.conf</code> via  <code>apoc.gephi.url=url</code> or <code>apoc.gephi.&lt;key&gt;.url=url</code></p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_example">Example</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">match path = (:Person)-[:ACTED_IN]-&gt;(:Movie)
+WITH path LIMIT 1000
+with collect(path) as paths
+call apoc.gephi.add(null,'workspace0', paths) yield nodes, relationships, time
+return nodes, relationships, time</code></pre>
+</div>
+</div>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_creating_data">Creating Data</h4>
@@ -1102,6 +1185,41 @@ RETURN *;</code></pre>
 </div>
 </div>
 <div class="sect3">
+<h4 id="_virtual_graph">Virtual Graph</h4>
+<div class="paragraph">
+<p>Create a graph object (map) from information that&#8217;s passed in.
+It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}</code></p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.from(data,'name',{properties}) yield graph</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing it tries its best to extract the graph information from the data you pass in</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromData([nodes],[relationships],'name',{properties})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromPaths(path,'name',{properties})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromPaths([paths],'name',{properties})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromDB('name',{properties}) - creates a virtual graph object for later processing</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.graph.fromCypher('statement',{params},'name',{properties})</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
 <h4 id="_warmup">Warmup</h4>
 <div class="paragraph">
 <p>(thanks @SaschaPeukert)</p>
@@ -1162,16 +1280,20 @@ RETURN *;</code></pre>
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.cypher.runFile(file or url) yield row, result</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.run(fragment, params) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">executes reading fragment with the given parameters</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>runs each statement in the file, all semicolon separated - currently no schema operations</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.runFile(file or url) yield row, result</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">runs each statement in the file, all semicolon separated - currently no schema operations</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>executes fragment in parallel batches with the list segments being assigned to _</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.cypher.doIt(fragment, params) yield value</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">executes fragment in parallel batches with the list segments being assigned to _</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.doIt(fragment, params) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">executes writing fragment with the given parameters</p></td>
 </tr>
 </tbody>
 </table>
@@ -1341,6 +1463,48 @@ RETURN *;</code></pre>
 </table>
 </div>
 <div class="sect4">
+<h5 id="_conversion_functions">Conversion Functions</h5>
+<div class="paragraph">
+<p>Sometimes type information gets lost, these functions help you to coerce an "Any" value to the concrete type</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.toString(value)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">tries it&#8217;s best to convert the value to a string</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.toMap(value)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">tries it&#8217;s best to convert the value to a map</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.toList(value)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">tries it&#8217;s best to convert the value to a list</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.toBoolean(value)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">tries it&#8217;s best to convert the value to a boolean</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.toNode(value)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">tries it&#8217;s best to convert the value to a node</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.toRelationship(value)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">tries it&#8217;s best to convert the value to a relationship</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.toSet(value)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">tries it&#8217;s best to convert the value to a set</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
 <h5 id="_map_functions">Map Functions</h5>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
@@ -1365,6 +1529,14 @@ RETURN *;</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns the map with the value for this key added or replaced</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.removeKey(map,key)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns the map with the key removed</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.removeKeys(map,[keys])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns the map with the keys removed</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.clean(map,[keys],[values]) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">removes the keys and values (e.g. null-placeholders) contained in those lists, good for data cleaning from CSV/JSON</p></td>
 </tr>
@@ -1382,6 +1554,10 @@ RETURN *;</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.sum([0.5,1,2.3])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">sum of all values in a list</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.avg([0.5,1,2.3])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">avg of all values in a list</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.min([0.5,1,2.3])</code></p></td>
@@ -1459,6 +1635,14 @@ RETURN *;</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.unionAll(first, second)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates the full union with duplicates of the two lists</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.split(list,value)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">splits collection on given values rows of lists, value itself will not be part of resulting lists</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.indexOf(coll, value)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">position of value in the list</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1532,6 +1716,22 @@ RETURN *;</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.data.domain(email_or_url) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns domain part of the value</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.util.sha1([values])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">computes the sha1 of the concatenation of all string values of the list</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.util.md5([values])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">computes the md5 of the concatenation of all string values of the list</p></td>
 </tr>
 </tbody>
 </table>
@@ -1977,6 +2177,39 @@ MATCH (n:Person)</code></pre>
 </div>
 <h1 id="_detailed_documentation" class="sect0">Detailed Documentation</h1>
 <div class="sect1">
+<h2 id="_help_and_usage">Help and Usage</h2>
+<div class="sectionbody">
+<div class="imageblock">
+<div class="content">
+<img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc-help-apoc.jpg" alt="apoc help apoc" width="600">
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.help('search')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">lists name, description-text and if the procedure performs writes (descriptions are WIP), search string is checked against beginning (package) or end (name) of procedure</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">helpful</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.help("apoc") YIELD name, text
+WITH * WHERE text IS null
+RETURN name AS undocumented</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To generate the help from <code>@Description</code> annotations, apoc currently scans the jar file with ASM.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_text_and_lookup_indexes">Text and Lookup Indexes</h2>
 <div class="sectionbody">
 <div class="sect3">
@@ -2008,6 +2241,11 @@ MATCH (n:Person)</code></pre>
 </tr>
 </tbody>
 </table>
+<div class="imageblock">
+<div class="content">
+<img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc.index.nodes-with-score.jpg" alt="apoc.index.nodes with score" width="600">
+</div>
+</div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -3153,8 +3391,227 @@ RETURN row limit 1;</code></pre>
 10 ms</pre>
 </div>
 </div>
+<div class="imageblock">
+<div class="content">
+<img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc-load-jdbc.jpg" alt="apoc load jdbc" width="800">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_cassandra_example">Cassandra Example</h4>
 <div class="paragraph">
-<p>apoc.load.jdbc('jdbc:derby:derbyDB/key','PERSON' || 'SELECT * FROM PERSON WHERE AGE &gt; 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement</p>
+<p>Setup Song database as initial dataset</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/playlist.cql
+curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/artists.csv
+curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/songs.csv
+$CASSANDRA_HOME/bin/cassandra
+$CASSANDRA_HOME/bin/cqlsh -f playlist.cql</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Download the <a href="https://github.com/adejanovski/cassandra-jdbc-wrapper#installing">Cassandra JDBC Wrapper</a>, and put it into your <code>$NEO4J_HOME/plugins</code> directory.
+Add this config option to <code>$NEO4J_HOME/conf/neo4j.conf</code> to make it easier to interact with the cassandra instance.</p>
+</div>
+<div class="listingblock">
+<div class="title">Add to conf/neo4j.conf</div>
+<div class="content">
+<pre>apoc.jdbc.cassandra_songs.url=jdbc:cassandra://localhost:9042/playlist</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Restart the server.</p>
+</div>
+<div class="paragraph">
+<p>Now you can inspect the data in Cassandra with.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+RETURN count(*);</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>╒════════╕
+│count(*)│
+╞════════╡
+│3605    │
+└────────┘</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+RETURN row LIMIT 5;
+
+CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+RETURN row.first_letter, row.artist LIMIT 5;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>╒════════════════╤═══════════════════════════════╕
+│row.first_letter│row.artist                     │
+╞════════════════╪═══════════════════════════════╡
+│C               │C.W. Stoneking                 │
+├────────────────┼───────────────────────────────┤
+│C               │CH2K                           │
+├────────────────┼───────────────────────────────┤
+│C               │CHARLIE HUNTER WITH LEON PARKER│
+├────────────────┼───────────────────────────────┤
+│C               │Calvin Harris                  │
+├────────────────┼───────────────────────────────┤
+│C               │Camané                         │
+└────────────────┴───────────────────────────────┘</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s create some graph data, we have a look at the track_by_artist table, which contains about 60k records.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row RETURN count(*);</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
+RETURN row LIMIT 5;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
+RETURN row.track_id, row.track_length_in_seconds, row.track, row.music_file, row.genre, row.artist, row.starred LIMIT 2;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>╒════════════════════════════════════╤══════╤════════════════╤══════════════════╤═════════╤════════════════════════════╤═══════════╕
+│row.track_id                        │length│row.track       │row.music_file    │row.genre│row.artist                  │row.starred│
+╞════════════════════════════════════╪══════╪════════════════╪══════════════════╪═════════╪════════════════════════════╪═══════════╡
+│c0693b1e-0eaa-4e81-b23f-b083db303842│219   │1913 Massacre   │TRYKHMD128F934154C│folk     │Woody Guthrie &amp; Jack Elliott│false      │
+├────────────────────────────────────┼──────┼────────────────┼──────────────────┼─────────┼────────────────────────────┼───────────┤
+│7d114937-0bc7-41c7-8e0c-94b5654ac77f│178   │Alabammy Bound  │TRMQLPV128F934152B│folk     │Woody Guthrie &amp; Jack Elliott│false      │
+└────────────────────────────────────┴──────┴────────────────┴──────────────────┴─────────┴────────────────────────────┴───────────┘</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s create some indexes and constraints, note that other indexes and constraints will be dropped by this.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.schema.assert(
+  {Track:['title','length']},
+  {Artist:['name'],Track:['id'],Genre:['name']});</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>╒════════════╤═══════╤══════╤═══════╕
+│label       │key    │unique│action │
+╞════════════╪═══════╪══════╪═══════╡
+│Track       │title  │false │CREATED│
+├────────────┼───────┼──────┼───────┤
+│Track       │length │false │CREATED│
+├────────────┼───────┼──────┼───────┤
+│Artist      │name   │true  │CREATED│
+├────────────┼───────┼──────┼───────┤
+│Genre       │name   │true  │CREATED│
+├────────────┼───────┼──────┼───────┤
+│Track       │id     │true  │CREATED│
+└────────────┴───────┴──────┴───────┘</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
+MERGE (a:Artist {name:row.artist})
+MERGE (g:Genre {name:row.genre})
+CREATE (t:Track {id:toString(row.track_id), title:row.track, length:row.track_length_in_seconds})
+CREATE (a)-[:PERFORMED]-&gt;(t)
+CREATE (t)-[:GENRE]-&gt;(g);</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>Added 63213 labels, created 63213 nodes, set 182413 properties, created 119200 relationships, statement executed in 40076 ms.</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_streaming_data_to_gephi_2">Streaming Data to Gephi</h3>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.gephi.add(url-or-key, workspace, data)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">streams provided data to Gephi</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="_notes_2">Notes</h4>
+<div class="paragraph">
+<p>Gephi has a <a href="https://marketplace.gephi.org/plugin/graph-streaming/">streaming plugin</a>, that can provide and accept <a href="https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master">JSON-graph-data</a> in a streaming fashion.</p>
+</div>
+<div class="paragraph">
+<p>Make sure to install the plugin firsrt and activate it for your workspace (there is a new "Streaming"-tab besides "Layout"), right-click "Master"&#8594;"start" to start the server.</p>
+</div>
+<div class="paragraph">
+<p>You can provide your workspace name (you might want to rename it before you start thes streaming), otherwise it defaults to <code>workspace0</code></p>
+</div>
+<div class="paragraph">
+<p>The default Gephi-URL is <a href="http://localhost:8080" class="bare">http://localhost:8080</a>, resulting in <code><a href="http://localhost:8080/workspace0?operation=updateGraph" class="bare">http://localhost:8080/workspace0?operation=updateGraph</a></code></p>
+</div>
+<div class="paragraph">
+<p>You can also configure it in <code>conf/neo4j.conf</code> via  <code>apoc.gephi.url=url</code> or <code>apoc.gephi.&lt;key&gt;.url=url</code></p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_example_2">Example</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">match path = (:Person)-[:ACTED_IN]-&gt;(:Movie)
+WITH path LIMIT 1000
+with collect(path) as paths
+call apoc.gephi.add(null,'workspace0', paths) yield nodes, relationships, time
+return nodes, relationships, time</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc.gephi.gif" alt="apoc.gephi" width="800">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_format">Format</h4>
+<div class="paragraph">
+<p>We send all nodes and relationships of the passed in data convert into individual Gephi-Streaming JSON fragements, separated by <code>\r\n</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-javascript" data-lang="javascript">{"an":{"123":{"TYPE":"Person:Actor","label":"Tom Hanks",                           x:333,y:222,r:0.1,g:0.3,b:0.5}}}\r\n
+{"an":{"345":{"TYPE":"Movie","label":"Forrest Gump",                               x:234,y:122,r:0.2,g:0.2,b:0.7}}}\r\n
+{"ae":{"3344":{"TYPE":"ACTED_IN","label":"Tom Hanks",source:"123",target:"345","directed":true,r:0.1,g:0.3,b:0.5}}}</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_specifics_details">Specifics Details</h4>
+<div class="paragraph">
+<p>Gephi doesn&#8217;t render the graph data unless you also provide x,y coordinates in the payload, so we just send random ones within a 1000x1000 grid.</p>
+</div>
+<div class="paragraph">
+<p>We also generate colors per label combination and relationship-type, both of which are also transferred as <code>TYPE</code> property.</p>
 </div>
 </div>
 </div>
@@ -3197,7 +3654,7 @@ RETURN row limit 1;</code></pre>
 </tbody>
 </table>
 <div class="sect3">
-<h4 id="_example">Example</h4>
+<h4 id="_example_3">Example</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.es.post("localhost","tweets","users","1",null,{name:"Chris"})</code></pre>
@@ -3533,8 +3990,80 @@ RETURN n.prop</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_operations">Operations</h2>
+<h2 id="_cypher_operations">Cypher Operations</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_running_cypher_fragments">Running Cypher fragments</h3>
+<div class="paragraph">
+<p>We can use Cypher as safe, graph-aware, partially compiled scripting language within APOC.</p>
+</div>
+<div class="sect4">
+<h5 id="_cypher_execution_2">Cypher Execution</h5>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.run(fragment, params) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">executes reading fragment with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.runFile(file or url) yield row, result</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">runs each statement in the file, all semicolon separated - currently no schema operations</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">executes fragment in parallel batches with the list segments being assigned to _</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.doIt(fragment, params) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">executes writing fragment with the given parameters</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_example_fast_node_counts_by_label">Example: Fast Node-Counts by Label</h4>
+<div class="paragraph">
+<p>Counts by label are quickly provided by the counts-store, but only if they are the the single thing in the query, like</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (:Person) RETURN count(*);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It also works to combine several with <code>UNION ALL</code>, but not via <code>WITH</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Doesn&#8217;t work</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (:Person) WITH count(*) as people
+MATCH (:Movie) RETURN people, count(*) as movies;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Works</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (:Person) RETURN count(*)
+UNION ALL
+MATCH (:Movie) RETURN count(*);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>But with <code>apoc.cypher.run</code> we can construct the statement and run each of them individually, so it completes in a few ms.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call db.labels() yield label
+call apoc.cypher.run("match (:`"+label+"`) return count(*) as count", null) yield value
+return label, value.count as count</code></pre>
+</div>
+</div>
+</div>
+</div>
 <div class="sect2">
 <h3 id="_job_management_and_periodic_execution">Job management and periodic execution</h3>
 <div class="admonitionblock note">
@@ -3574,7 +4103,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-05-26 02:30:35 MESZ
+Last updated 2016-05-30 10:59:16 MESZ
 </div>
 </div>
 </body>

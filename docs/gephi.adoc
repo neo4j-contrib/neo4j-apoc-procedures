@@ -1,0 +1,24 @@
+= Streaming Data to Gephi
+
+include::../readme.adoc[tags=gephi,leveloffset=-2]
+
+image::{img}/apoc.gephi.gif[width=800]
+
+== Format
+
+We send all nodes and relationships of the passed in data convert into individual Gephi-Streaming JSON fragements, separated by `\r\n`.
+
+[source,javascript]
+----
+{"an":{"123":{"TYPE":"Person:Actor","label":"Tom Hanks",                           x:333,y:222,r:0.1,g:0.3,b:0.5}}}\r\n
+{"an":{"345":{"TYPE":"Movie","label":"Forrest Gump",                               x:234,y:122,r:0.2,g:0.2,b:0.7}}}\r\n
+{"ae":{"3344":{"TYPE":"ACTED_IN","label":"Tom Hanks",source:"123",target:"345","directed":true,r:0.1,g:0.3,b:0.5}}}
+----
+
+== Specifics Details
+
+Gephi doesn't render the graph data unless you also provide x,y coordinates in the payload, so we just send random ones within a 1000x1000 grid.
+
+We also generate colors per label combination and relationship-type, both of which are also transferred as `TYPE` property.
+
+// TODO also generate clustering information.

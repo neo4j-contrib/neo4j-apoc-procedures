@@ -49,6 +49,16 @@ public class CypherTest {
         testCall(db, "CALL apoc.cypher.run('RETURN {a} + 7 as b',{a:3})",
                 r -> assertEquals(10L, ((Map) r.get("value")).get("b")));
     }
+    @Test
+    public void testRunNullParams() throws Exception {
+        testCall(db, "CALL apoc.cypher.run('RETURN 42 as b',null)",
+                r -> assertEquals(42L, ((Map) r.get("value")).get("b")));
+    }
+    @Test
+    public void testRunNoParams() throws Exception {
+        testCall(db, "CALL apoc.cypher.run('RETURN 42 as b',{})",
+                r -> assertEquals(42L, ((Map) r.get("value")).get("b")));
+    }
 
     @Test
     public void testRunVariable() throws Exception {

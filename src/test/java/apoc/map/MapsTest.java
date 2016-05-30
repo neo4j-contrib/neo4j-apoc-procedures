@@ -51,6 +51,19 @@ public class MapsTest {
     }
 
     @Test
+    public void testRemoveKey() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.map.removeKey({a:1,b:2},'a')", (r) -> {
+            assertEquals(map("b",2L),r.get("value"));
+        });
+    }
+    @Test
+    public void testRemoveKeys() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.map.removeKeys({a:1,b:2},['a','b'])", (r) -> {
+            assertEquals(map(),r.get("value"));
+        });
+    }
+
+    @Test
     public void testClean() throws Exception {
         TestUtil.testCall(db, "CALL apoc.map.clean({a:1,b:'',c:null,x:1234,z:false},['x'],['',false])", (r) -> {
             assertEquals(map("a",1L),r.get("value"));

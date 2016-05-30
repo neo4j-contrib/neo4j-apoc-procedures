@@ -17,10 +17,7 @@ import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.stream.*;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
 
@@ -35,6 +32,10 @@ public class Util {
     public static final String NODE_COUNT = "MATCH (n) RETURN count(*) as result";
     public static final String REL_COUNT = "MATCH ()-->() RETURN count(*) as result";
 
+
+    public static String labelString(Node n) {
+        return StreamSupport.stream(n.getLabels().spliterator(),false).map(Label::name).sorted().collect(Collectors.joining(":"));
+    }
     public static Label[] labels(Object labelNames) {
         if (labelNames==null) return NO_LABELS;
         if (labelNames instanceof List) {
@@ -172,7 +173,12 @@ public class Util {
         con.setRequestProperty("User-Agent", "APOC Procedures for Neo4j");
         if (headers != null) {
             Object method = headers.get("method");
-            if (method != null && con instanceof HttpURLConnection) ((HttpURLConnection) con).setRequestMethod(method.toString());
+            if (method != null && con instanceof HttpURLConnection) {
+                HttpURLConnection http = (HttpURLConnection) con;
+                http.setRequestMethod(method.toString());
+                http.setChunkedStreamingMode(1024*1024);
+                http.setInstanceFollowRedirects(true);
+            }
             headers.forEach((k,v) -> con.setRequestProperty(k, v == null ? "" : v.toString()));
         }
         con.setDoInput(true);
@@ -185,7 +191,7 @@ public class Util {
         URLConnection con = openUrlConnection(url, headers);
         if (payload != null) {
             con.setDoOutput(true);
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(con.getOutputStream()));
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(con.getOutputStream(),"UTF-8"));
             writer.write(payload);
             writer.close();
         }
@@ -203,7 +209,7 @@ public class Util {
     }
 
     public static boolean toBoolean(Object value) {
-        if ((value == null || value instanceof Number && (((Number) value).longValue()) == 0L || value instanceof String && (value.equals("") || ((String) value).equalsIgnoreCase("false"))|| value instanceof Boolean && value.equals(false))) {
+        if ((value == null || value instanceof Number && (((Number) value).longValue()) == 0L || value instanceof String && (value.equals("") || ((String) value).equalsIgnoreCase("false") || ((String) value).equalsIgnoreCase("no")|| ((String) value).equalsIgnoreCase("0"))|| value instanceof Boolean && value.equals(false))) {
             return false;
         }
         return true;

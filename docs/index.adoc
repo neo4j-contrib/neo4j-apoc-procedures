@@ -3,10 +3,17 @@
 :experimental:
 :sectid:
 :toclevels: 3
+:img: http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img
 
 include::../readme.adoc[tags=readme, leveloffset=1]
 
 = Detailed Documentation
+
+== Help and Usage
+
+include::../readme.adoc[tags=help,leveloffset=-1]
+
+To generate the help from `@Description` annotations, apoc currently scans the jar file with ASM.
 
 == Text and Lookup Indexes
 
@@ -37,6 +44,7 @@ include::spatial.adoc[leveloffset=2]
 
 include::loadjson.adoc[leveloffset=2]
 include::loadjdbc.adoc[leveloffset=2]
+include::gephi.adoc[leveloffset=2]
 include::elasticsearch.adoc[leveloffset=2]
 include::loadxml.adoc[leveloffset=2]
 
@@ -44,6 +52,7 @@ include::loadxml.adoc[leveloffset=2]
 
 include::refactor.adoc[leveloffset=2]
 
-== Operations
+== Cypher Operations
 
+include::cypher.adoc[leveloffset=2]
 include::periodic.adoc[leveloffset=2]

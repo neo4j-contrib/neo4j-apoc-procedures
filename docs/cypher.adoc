@@ -1,0 +1,41 @@
+= Running Cypher fragments
+
+We can use Cypher as safe, graph-aware, partially compiled scripting language within APOC.
+
+include::../readme.adoc[tags=cypher,labeloffset=-1]
+
+== Example: Fast Node-Counts by Label
+
+Counts by label are quickly provided by the counts-store, but only if they are the the single thing in the query, like
+
+[source,cypher]
+----
+MATCH (:Person) RETURN count(*);
+----
+
+It also works to combine several with `UNION ALL`, but not via `WITH`
+
+.Doesn't work
+[source,cypher]
+----
+MATCH (:Person) WITH count(*) as people
+MATCH (:Movie) RETURN people, count(*) as movies;
+----
+
+.Works
+[source,cypher]
+----
+MATCH (:Person) RETURN count(*)
+UNION ALL
+MATCH (:Movie) RETURN count(*);
+----
+
+
+But with `apoc.cypher.run` we can construct the statement and run each of them individually, so it completes in a few ms.
+
+[source,cypher]
+----
+call db.labels() yield label
+call apoc.cypher.run("match (:`"+label+"`) return count(*) as count", null) yield value
+return label, value.count as count
+----

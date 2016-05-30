@@ -3,18 +3,18 @@ package apoc.util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-//import org.neo4j.kernel.GraphDatabaseAPI;
 import org.neo4j.kernel.api.exceptions.KernelException;
 import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+//import org.neo4j.kernel.GraphDatabaseAPI;
 
 /**
  * @author mh
@@ -64,5 +64,26 @@ public class TestUtil {
 
     public static void registerProcedure(GraphDatabaseService db, Class<?> procedure) throws KernelException {
         ((GraphDatabaseAPI)db).getDependencyResolver().resolveDependency(Procedures.class).register(procedure);
+    }
+
+    public static boolean hasCause(Throwable t, Class<? extends Throwable>type) {
+        if (type.isInstance(t)) return true;
+        while (t != null && t.getCause() != t) {
+            if (type.isInstance(t)) return true;
+            t = t.getCause();
+        }
+        return false;
+    }
+
+    public static void ignoreException(Runnable runnable, Class<? extends Throwable> cause) {
+        try {
+            runnable.run();
+        } catch(Throwable x) {
+            if (TestUtil.hasCause(x,cause)) {
+                System.err.println("Ignoring Exception "+x+": "+x.getMessage()+" due to cause "+cause);
+            } else {
+                throw x;
+            }
+        }
     }
 }

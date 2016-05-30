@@ -1,17 +1,17 @@
 package apoc.coll;
 
-import apoc.coll.Coll;
 import apoc.util.TestUtil;
-import apoc.util.Util;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -22,12 +22,12 @@ import static org.neo4j.helpers.collection.Iterables.asSet;
 
 public class CollTest {
 
-    private GraphDatabaseService db;
-    @Before public void setUp() throws Exception {
+    private static GraphDatabaseService db;
+    @BeforeClass public static void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db,Coll.class);
     }
-    @After public void tearDown() {
+    @AfterClass public static void tearDown() {
         db.shutdown();
     }
 
@@ -89,6 +89,41 @@ public class CollTest {
         testResult(db, "CALL apoc.coll.contains([1,2,3],1)",
                 (res) -> assertEquals(true, res.hasNext()));
     }
+    @Test public void testIndexOf() throws Exception {
+        testCall(db, "CALL apoc.coll.indexOf([1,2,3],1)", r -> assertEquals(0L, r.get("value")));
+        testCall(db, "CALL apoc.coll.indexOf([1,2,3],2)", r -> assertEquals(1L, r.get("value")));
+        testCall(db, "CALL apoc.coll.indexOf([1,2,3],3)", r -> assertEquals(2L, r.get("value")));
+        testCall(db, "CALL apoc.coll.indexOf([1,2,3],4)", r -> assertEquals(-1L, r.get("value")));
+        testCall(db, "CALL apoc.coll.indexOf([1,2,3],0)", r -> assertEquals(-1L, r.get("value")));
+        testCall(db, "CALL apoc.coll.indexOf([1,2,3],null)", r -> assertEquals(-1L, r.get("value")));
+    }
+
+    @Test public void testSplit() throws Exception {
+        testResult(db, "CALL apoc.coll.split([1,2,3,2,4,5],2)", r -> {
+            assertEquals(asList(1L), r.next().get("value"));
+            assertEquals(asList(3L), r.next().get("value"));
+            assertEquals(asList(4L,5L), r.next().get("value"));
+            assertFalse(r.hasNext());
+        });
+        testResult(db, "CALL apoc.coll.split([1,2,3],2)", r -> {
+            assertEquals(asList(1L), r.next().get("value"));
+            assertEquals(asList(3L), r.next().get("value"));
+            assertFalse(r.hasNext());
+        });
+        testResult(db, "CALL apoc.coll.split([1,2,3],1)", r -> {
+            assertEquals(asList(2L,3L), r.next().get("value"));
+            assertFalse(r.hasNext());
+        });
+        testResult(db, "CALL apoc.coll.split([1,2,3],3)", r -> {
+            assertEquals(asList(1L,2L), r.next().get("value"));
+            assertFalse(r.hasNext());
+        });
+        testResult(db, "CALL apoc.coll.split([1,2,3],4)", r -> {
+            assertEquals(asList(1L,2L,3L), r.next().get("value"));
+            assertFalse(r.hasNext());
+        });
+    }
+
     @Test public void testContainsAll() throws Exception {
         testResult(db, "CALL apoc.coll.containsAll([1,2,3],[1,2])", (res) -> assertEquals(true, res.hasNext()));
         testResult(db, "CALL apoc.coll.containsAll([1,2,3],[1,4])", (res) -> assertEquals(false, res.hasNext()));

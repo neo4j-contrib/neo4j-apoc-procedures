@@ -48,7 +48,7 @@ public class Cypher {
     public KernelTransaction tx;
 
     @Procedure
-    @Description("apoc.cypher.doIt(fragment, params) yield value - executes reading fragment with the given parameters")
+    @Description("apoc.cypher.run(fragment, params) yield value - executes reading fragment with the given parameters")
     public Stream<MapResult> run(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         if (params == null) params = Collections.emptyMap();
         return db.execute(compiled(statement, params.keySet()), params).stream().map(MapResult::new);
@@ -132,9 +132,9 @@ public class Cypher {
         }
     }
 
-    public String compiled(@Name("cypher") String fragment, Collection<String> keys) {
+    public static String compiled(String fragment, Collection<String> keys) {
+        if (keys.isEmpty()) return fragment;
         String declaration = " WITH " + join(", ", keys.stream().map(s -> format(" {`%s`} as `%s` ", s, s)).collect(toList()));
-
         return declaration + fragment;
 //        return fragment.substring(0,6).equalsIgnoreCase("cypher") ? fragment : COMPILED_PREFIX + fragment;
     }

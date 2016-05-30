@@ -75,10 +75,26 @@ public class Coll {
     public Stream<ObjectResult> max(@Name("values") List<Object> list) {
         return Stream.of(new ObjectResult(Collections.max((List)list)));
     }
+
     @Procedure
     @Description("apoc.coll.partition(list,batchSize)")
     public Stream<ListResult> partition(@Name("values") List<Object> list, @Name("batchSize") long batchSize) {
         return partitionList(list, (int) batchSize).map(ListResult::new);
+    }
+    @Procedure
+    @Description("apoc.coll.split(list,value) | splits collection on given values rows of lists, value itself will not be part of resulting lists")
+    public Stream<ListResult> split(@Name("values") List<Object> list, @Name("value") Object value) {
+        List l = new ArrayList<>(list);
+        List<List> result = new ArrayList<>(10);
+        int idx = l.indexOf(value);
+        while (idx != -1) {
+            List subList = l.subList(0, idx);
+            if (!subList.isEmpty()) result.add(subList);
+            l = l.subList(idx+1,l.size());
+            idx = l.indexOf(value);
+        }
+        if (!l.isEmpty()) result.add(l);
+        return result.stream().map(ListResult::new);
     }
 
     private Stream<List<Object>> partitionList(@Name("values") List list, @Name("batchSize") int batchSize) {
@@ -98,6 +114,13 @@ public class Coll {
 //        int batchSize = 250;
 //        boolean result = (coll.size() < batchSize) ? coll.contains(value) : partitionList(coll, batchSize).parallel().anyMatch(list -> list.contains(value));
         return Empty.stream(result);
+    }
+
+    @Procedure
+    @Description("apoc.coll.indexOf(coll, value) | position of value in the list")
+    public Stream<LongResult> indexOf(@Name("coll") List<Object> coll, @Name("value") Object value) {
+        int result =  new ArrayList<>(coll).indexOf(value);
+        return Stream.of(new LongResult((long) result));
     }
 
     @Procedure

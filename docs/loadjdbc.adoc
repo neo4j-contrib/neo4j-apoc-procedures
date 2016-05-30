@@ -77,7 +77,9 @@ RETURN row limit 1;
 10 ms
 ----
 
-apoc.load.jdbc('jdbc:derby:derbyDB/key','PERSON' || 'SELECT * FROM PERSON WHERE AGE > 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement
+image::{img}/apoc-load-jdbc.jpg[width=800]
+
+// apoc.load.jdbc('jdbc:derby:derbyDB/key','PERSON' || 'SELECT * FROM PERSON WHERE AGE > 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement
 
 
 == Cassandra Example
@@ -198,7 +200,7 @@ CALL apoc.schema.assert(
 └────────────┴───────┴──────┴───────┘
 ----
 
-TODO add some nice queries, create graph data from cassandra
+// TODO add some nice queries, create graph data from cassandra
 
 
 [source,cypher]

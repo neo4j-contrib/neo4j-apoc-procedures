@@ -57,8 +57,23 @@ public class Maps {
     @Procedure
     @Description("apoc.map.setKey(map,key,value)")
     public Stream<MapResult> setKey(@Name("map") Map<String,Object> map, @Name("key") String key, @Name("value") Object value) {
-        LinkedHashMap<String, Object> res = new LinkedHashMap<>(map);
+        Map<String, Object> res = new LinkedHashMap<>(map);
         res.put(key,value);
+        return Stream.of(new MapResult(res));
+    }
+    @Procedure
+    @Description("apoc.map.removeKey(map,key)")
+    public Stream<MapResult> removeKey(@Name("map") Map<String,Object> map, @Name("key") String key) {
+        Map<String, Object> res = new LinkedHashMap<>(map);
+        res.remove(key);
+        return Stream.of(new MapResult(res));
+    }
+
+    @Procedure
+    @Description("apoc.map.removeKeys(map,keys)")
+    public Stream<MapResult> removeKeys(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys) {
+        Map<String, Object> res = new LinkedHashMap<>(map);
+        res.keySet().removeAll(keys);
         return Stream.of(new MapResult(res));
     }
 

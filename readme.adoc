@@ -1,4 +1,6 @@
 = Awesome Procedures for Neo4j 3.x
+:readme:
+:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img
 
 image:https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg[]
 
@@ -6,7 +8,7 @@ https://neo4j-contrib.github.io/neo4j-apoc-procedures[Documentation (WIP)].
 
 // tag::readme[]
 
-image::http://www.oocities.org/matrixextreme/images/apoc.gif[float=right]
+image::https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/apoc.gif[float=right]
 
 == License
 
@@ -60,6 +62,10 @@ MERGE (p:Person {name:person.name})
 
 === Built in Help
 
+// tag::help[]
+
+image::{img}/apoc-help-apoc.jpg[width=600]
+
 [cols="1m,5"]
 |===
 | call apoc.help('search') | lists name, description-text and if the procedure performs writes (descriptions are WIP), search string is checked against beginning (package) or end (name) of procedure
@@ -72,6 +78,8 @@ CALL apoc.help("apoc") YIELD name, text
 WITH * WHERE text IS null
 RETURN name AS undocumented
 ----
+
+// end::help[]
 
 === Manual Indexes
 
@@ -88,6 +96,8 @@ Procedures to add to and query manual indexes
 | apoc.index.addNodeByLabel(node,'Label',['prop1',...]) | add node to an index for the given label
 | apoc.index.addRelationship(rel,['prop1',...]) | add relationship to an index for its type
 |===
+
+image::{img}/apoc.index.nodes-with-score.jpg[width=600]
 
 [cols="1m,5"]
 |===
@@ -132,6 +142,8 @@ Schema Index lookups that keep order and can apply limits
 
 
 === Meta Graph
+
+image::{img}/apoc.meta.graph.jpg[width=600]
 
 Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.
 
@@ -195,6 +207,8 @@ Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.r
 
 === Loading Data from RDBMS
 
+image::{img}/apoc-jdbc-northwind-load.jpg[width=600]
+
 // tag::jdbc[]
 
 [cols="1m,5"]
@@ -232,6 +246,40 @@ config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],a
 |===
 
 // end::elasticsearch[]
+
+=== Streaming Data to Gephi
+
+// tag::gephi[]
+
+[cols="1m,5"]
+|===
+| apoc.gephi.add(url-or-key, workspace, data) | streams provided data to Gephi
+|===
+
+==== Notes
+
+Gephi has a https://marketplace.gephi.org/plugin/graph-streaming/[streaming plugin], that can provide and accept https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master[JSON-graph-data] in a streaming fashion.
+
+Make sure to install the plugin firsrt and activate it for your workspace (there is a new "Streaming"-tab besides "Layout"), right-click "Master"->"start" to start the server.
+
+You can provide your workspace name (you might want to rename it before you start thes streaming), otherwise it defaults to `workspace0`
+
+The default Gephi-URL is http://localhost:8080, resulting in `http://localhost:8080/workspace0?operation=updateGraph`
+
+You can also configure it in `conf/neo4j.conf` via  `apoc.gephi.url=url` or `apoc.gephi.<key>.url=url`
+
+==== Example
+
+[source,cypher]
+----
+match path = (:Person)-[:ACTED_IN]->(:Movie)
+WITH path LIMIT 1000
+with collect(path) as paths
+call apoc.gephi.add(null,'workspace0', paths) yield nodes, relationships, time
+return nodes, relationships, time
+----
+
+// end::gephi[]
 
 === Creating Data
 
@@ -275,6 +323,22 @@ CALL apoc.create.vRelationship(a,'META_RELATIONSHIP',{name:rel_type, count:count
 RETURN *;
 ----
 
+=== Virtual Graph
+
+Create a graph object (map) from information that's passed in.
+It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}`
+
+[cols="1m,5"]
+|===
+apoc.graph.from(data,'name',{properties}) yield graph | creates a virtual graph object for later processing it tries its best to extract the graph information from the data you pass in
+| apoc.graph.fromData([nodes],[relationships],'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromPaths(path,'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromPaths([paths],'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromDB('name',{properties}) - creates a virtual graph object for later processing
+| apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
+
+|===
+
 === Warmup
 
 (thanks @SaschaPeukert)
@@ -297,15 +361,19 @@ RETURN *;
 | apoc.monitor.locks(minWaitTime long) | db locking information such as avertedDeadLocks, lockCount, contendedLockCount and contendedLocks etc. (enterprise)
 |===
 
+// tag::cypher[]
+
 === Cypher Execution
 
 [cols="1m,5"]
 |===
-| CALL
+| CALL apoc.cypher.run(fragment, params) yield value | executes reading fragment with the given parameters
 | CALL apoc.cypher.runFile(file or url) yield row, result | runs each statement in the file, all semicolon separated - currently no schema operations
 | CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value | executes fragment in parallel batches with the list segments being assigned to _
 | CALL apoc.cypher.doIt(fragment, params) yield value | executes writing fragment with the given parameters
 |===
+
+// end::cypher[]
 
 TODO runFile: begin/commit/schema await/constraints/indexes
 
@@ -371,6 +439,21 @@ TODO:
 | apoc.static.set(name, value) | stores value under key for server livetime storage, returns previously stored or configured value
 |===
 
+==== Conversion Functions
+
+Sometimes type information gets lost, these functions help you to coerce an "Any" value to the concrete type
+
+[cols="1m,5"]
+|===
+| apoc.convert.toString(value) | tries it's best to convert the value to a string
+| apoc.convert.toMap(value) | tries it's best to convert the value to a map
+| apoc.convert.toList(value) | tries it's best to convert the value to a list
+| apoc.convert.toBoolean(value) | tries it's best to convert the value to a boolean
+| apoc.convert.toNode(value) | tries it's best to convert the value to a node
+| apoc.convert.toRelationship(value) | tries it's best to convert the value to a relationship
+| apoc.convert.toSet(value) | tries it's best to convert the value to a set
+|===
+
 ==== Map Functions
 
 [cols="1m,5"]
@@ -379,6 +462,8 @@ TODO:
 | apoc.map.fromLists([keys],[values]) | creates map from a keys and a values list
 | apoc.map.fromValues([key,value,key1,value1]) | creates map from alternating keys and values in a list
 | apoc.map.setKey(map,key,value) | returns the map with the value for this key added or replaced
+| apoc.map.removeKey(map,key) | returns the map with the key removed
+| apoc.map.removeKeys(map,[keys]) | returns the map with the keys removed
 | apoc.map.clean(map,[keys],[values]) yield value | removes the keys and values (e.g. null-placeholders) contained in those lists, good for data cleaning from CSV/JSON
 |===
 
@@ -408,6 +493,8 @@ TODO:
 | apoc.coll.intersection(first, second) | returns the unique intersection of the two lists
 | apoc.coll.disjunction(first, second) | returns the disjunct set of the two lists
 | apoc.coll.unionAll(first, second) | creates the full union with duplicates of the two lists
+| apoc.coll.split(list,value) | splits collection on given values rows of lists, value itself will not be part of resulting lists
+| apoc.coll.indexOf(coll, value) | position of value in the list
 |===
 
 ==== Lookup Functions
@@ -603,7 +690,6 @@ MATCH (n:Person)
 * add apoc.nodes.delete(id|ids|node|nodes)
 * (√) add weight/score to manual index operations, expose it, TODO add Sort.RELEVANCE sorter conditionally or unconditionally
 * pass in last count to rundown so you can also do batch-creates
-* conversions for type-system of "objects" to map, list, node etc. to avoid the semantic errors we sometimes get
 * in browser guide as apoc-help-page
 * (√) optimized collection functions (WIP)
 * Time Conversion Functions (ISO<->ts, padded long representation)
@@ -614,18 +700,12 @@ MATCH (n:Person)
 * Encryption / decryption of single properties or a subset or all properties (provide decryption key as param or config)
 * (in progress) Graph Algorithms (Stefan, Max?)
 * custom expanders, e.g. with dynamic rel-type suffixes and prefixes
-* √ Path Finding / Expansion (Kees)
-* Use Cypher as scripting language `{cypher:"RETURN a*10+b",params:{a:3,b:5}}` for algorithms, parallelization and custom expansion
-* parallel(fragment, params-list, result list)
 * (√) Graph Refactorings (WIP)
 * (√) Job Queue (WIP) See https://github.com/jakewins/neo4j-procedure-template/blob/batch/src/main/java/example/BatchedWrites.java[BatchedWriter from Jake/Max]
 * run/load shell scripts apoc.load.shell(path)
 * apox.save.dump() whole database, dump("statement"), dump("", "data/import/file") dump("", "URL TO PUT"), formats - binary(packstream), human readable(graphml, graphjson), compression
 * store arbitrary objects in properties with kryo/packstream or similar serialization
-* indexOf() function for array, same semantics like java.util.List.indexOf
 * variable path length on patterns instead of single relationships. Don't have a syntax for this to suggest, but assume you want to search for ()-[:TYPE_A]->()-[:TYPE_B]->() e.g. 2..5 times.
-* subtraction, union, disjunction, conjunction of collections
-* remove from map
 * match (a)-[r*]->(b)  where all rels in the path are this pattern ()-[:Foo]->()-[:Bar]->()
 * all unique pairs of a list
 * TopK select
