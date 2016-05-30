@@ -96,7 +96,6 @@ public class WeaklyConnectedComponentsTest
     {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure( db, WeaklyConnectedComponents.class );
-        db.execute( CC_GRAPH ).close();
     }
 
     @AfterClass
@@ -107,11 +106,20 @@ public class WeaklyConnectedComponentsTest
 
     // ==========================================================================================
 
+    
+    @Test
+    public void shouldReturnExpectedResultCountWhenUsingWeaklyConnectedWithEmptyDb()
+    {
+    	assertExpectedResult( 0L, "CALL apoc.algo.wcc()");
+    }
+    
     @Test
     public void shouldReturnExpectedResultCountWhenUsingWeaklyConnected()
     {
-        assertExpectedResult( 5L, "CALL apoc.algo.wcc()" + "" );
+    	db.execute( CC_GRAPH ).close();
+    	assertExpectedResult( 5L, "CALL apoc.algo.wcc()");
     }
+    
     
 
     private void assertExpectedResult( Long expectedResultCount, String query )

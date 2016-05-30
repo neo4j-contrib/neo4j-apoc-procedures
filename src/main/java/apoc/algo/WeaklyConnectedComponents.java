@@ -37,43 +37,26 @@ public class WeaklyConnectedComponents {
     @Description("CALL apoc.algo.wcc() YIELD number of weakly connected components")
     public Stream<LongResult> wcc() {
         try {
-        	PerformanceLoggerSingleton metrics=PerformanceLoggerSingleton.getInstance("/Users/tommichiels/Desktop/");
-        	log.info("find all nodes iterator");
         	long componentID= 0;
-        	ResourceIterator<Node> nodes = db.findNodes(Label.label("Record"));
+        	ResourceIterator<Node> nodes = db.getAllNodes().iterator();
         	LongHashSet allNodes = new LongHashSet();
-            //ResourceIterator<Node> it = db.getIteratorForAllNodes();
-            log.info("setup the visited nodes collection");
-        	//init visited list
         	while(nodes.hasNext()){
-                //Node n = it.next();
                 Node node = nodes.next();
-                RelationshipType types=RelationshipType.withName("LINK");
-                if(node.getDegree(types)==0){
-                    metrics.mark("degree 0");
+                if(node.getDegree()==0){
                 	componentID++;
                 } else{
                     allNodes.add(node.getId());
                 }
         	}
             nodes.close();
-            log.info("setup the visited nodes collection done");
-			// start calculation
-            log.info("start calculation");
+            
             Iterator<LongCursor> it = allNodes.iterator();
 			while (it.hasNext()) {
 				// Every node has to be marked as (part of) a component
-
-				try {
-					Timer bfs=metrics.getTimer("BFS");
-					Timer.Context context = bfs.time();			
+				try {		
 					Long n = it.next().value;
 			        LongHashSet reachableIDs = go(db.getNodeById(n), Direction.BOTH);
-			        context.stop();
-			        Timer remove=metrics.getTimer("remove");
-					Timer.Context rmcontext = remove.time();
 			        allNodes.removeAll(reachableIDs);
-			        rmcontext.stop();
 					componentID++;
 
 				} catch (NoSuchElementException e) {
@@ -81,8 +64,6 @@ public class WeaklyConnectedComponents {
 				}
 				it = allNodes.iterator();
 			}
-			log.info("calculation done");
-            //it.close();
         	return Stream.of(new LongResult(componentID));
         } catch (Exception e) {
             String errMsg = "Error encountered while calculating weakly connected components";
