@@ -64,7 +64,7 @@ MERGE (p:Person {name:person.name})
 
 // tag::help[]
 
-image::{img}/apoc-help-apoc.jpg[width=400,float=right]
+image::{img}/apoc-help-apoc.jpg[width=600]
 
 [cols="1m,5"]
 |===
@@ -97,7 +97,7 @@ Procedures to add to and query manual indexes
 | apoc.index.addRelationship(rel,['prop1',...]) | add relationship to an index for its type
 |===
 
-image::{img}/apoc.index.nodes-with-score.jpg[float=right,width=400]
+image::{img}/apoc.index.nodes-with-score.jpg[width=600]
 
 [cols="1m,5"]
 |===
@@ -143,7 +143,7 @@ Schema Index lookups that keep order and can apply limits
 
 === Meta Graph
 
-image::{img}/apoc.meta.graph.jpg[float=right,width=400]
+image::{img}/apoc.meta.graph.jpg[width=600]
 
 Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.
 
@@ -207,7 +207,7 @@ Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.r
 
 === Loading Data from RDBMS
 
-image::{img}/apoc-jdbc-northwind-load.jpg[width=400,float=right]
+image::{img}/apoc-jdbc-northwind-load.jpg[width=600]
 
 // tag::jdbc[]
 
