@@ -1,104 +1,44 @@
 package apoc.algo;
 
-import apoc.util.TestUtil;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.util.Map;
-
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.TestGraphDatabaseFactory;
-
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.test.TestGraphDatabaseFactory;
+
+import apoc.util.TestUtil;
 
 public class WeaklyConnectedComponentsTest {
 	
 	private static GraphDatabaseService db;
-	// TODO refactor in multiple execute statements dirty workaround
+	
 	public static final String CC_GRAPH =
-            "CREATE (:Node:Record { name : 'A' })  "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'B' })  "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'C' }) "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'D' })  "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'E' })  "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'F' })  "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'G' })  "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'H' })  "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'I' })  "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'J' })  "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'K' })  "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'L' })  "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'M' })  "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'N' })  "+
-            "WITH count(*) as dummy " +
-            "CREATE (:Node:Record { name : 'Z' })  "+
-            "WITH count(*) as dummy " +
-            "MATCH (a:Node),(b:Node),(c:Node)  "+
-            "WHERE a.name = 'C' AND b.name = 'D' AND c.name = 'E'  "+
-            "CREATE (a)-[:LINK]->(b)-[:LINK]->(c)-[:LINK]->(a)  "+   
-            "WITH count(*) as dummy " +
-            "MATCH (a:Node),(b:Node)  "+
-            "WHERE a.name = 'F' AND b.name = 'G'  "+ 
-            "CREATE (a)-[:LINK]->(b)-[:LINK]->(a)  "+
-            "WITH count(*) as dummy " +
-            "MATCH (a:Node),(b:Node)  "+
-            "WHERE a.name = 'H' AND b.name = 'Z'   "+
-            "CREATE (a)-[:LINK]->(b)-[:LINK]->(a)  "+
-            "WITH count(*) as dummy " +
-            "MATCH (a:Node),(b:Node)  "+
-            "WHERE a.name = 'I' AND b.name = 'Z'  "+ 
-            "CREATE (a)-[:LINK]->(b)  "+
-            "WITH count(*) as dummy " +
-            "MATCH (a:Node),(b:Node)  "+
-            "WHERE a.name = 'J' AND b.name = 'Z'   "+
-            "CREATE (a)-[:LINK]->(b)  "+
-            "WITH count(*) as dummy " +
-            "MATCH (a:Node),(b:Node)  "+
-            "WHERE a.name = 'K' AND b.name = 'Z'   "+
-            "CREATE (a)-[:LINK]->(b)  "+
-            "WITH count(*) as dummy " +
-            "MATCH (a:Node),(b:Node)  "+
-            "WHERE a.name = 'L' AND b.name = 'Z'   "+
-            "CREATE (a)-[:LINK]->(b)  "+
-            "WITH count(*) as dummy " +
-            "MATCH (a:Node),(b:Node)  "+
-            "WHERE a.name = 'M' AND b.name = 'Z'   "+
-            "CREATE (a)-[:LINK]->(b)  "+
-            "WITH count(*) as dummy " +
-            "MATCH (a:Node),(b:Node)  "+
-            "WHERE a.name = 'N' AND b.name = 'Z'   "+
-            "CREATE (a)-[:LINK]->(b)";
+            "CREATE (a:Node {name:'A'})"+
+            "CREATE (b:Node {name:'B'})"+
+            "CREATE (c:Node {name:'C'})-[:LINK]->(d:Node {name:'D'})-[:LINK]->(e:Node {name:'E'})-[:LINK]->(c)  "+   
+            "CREATE (f:Node {name:'F'})-[:LINK]->(g:Node {name:'G'})-[:LINK]->(f)  "+
+            "CREATE (o:Node {name:'O'})"+
+            "CREATE (h:Node {name:'H'})-[:LINK]->(o)-[:LINK]->(h)  "+
+            "CREATE (i:Node {name:'I'})-[:LINK]->(o)  "+
+            "CREATE (j:Node {name:'J'})-[:LINK]->(o)  "+
+            "CREATE (k:Node {name:'K'})-[:LINK]->(o)  "+
+            "CREATE (l:Node {name:'L'})-[:LINK]->(o)  "+
+            "CREATE (m:Node {name:'M'})-[:LINK]->(o)  "+
+            "CREATE (n:Node {name:'N'})-[:LINK]->(o)";
 
-	@BeforeClass
-	public static void setUp() throws Exception {
+	@Before
+	public void setUp() throws Exception {
 		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
 		TestUtil.registerProcedure(db, WeaklyConnectedComponents.class);
 	}
 
-	@AfterClass
-	public static void tearDown() {
+	@After
+	public void tearDown() {
 		db.shutdown();
 	}
 
@@ -119,7 +59,7 @@ public class WeaklyConnectedComponentsTest {
 		TestUtil.testResult(db, query, (result) -> {
 			Object value = result.next().get("value");
 			assertThat(value, is(instanceOf(Long.class)));
-			assertThat((Long) value, equalTo(expectedResultCount));
+			assertEquals( expectedResultCount, value );
 		});
 	}
 

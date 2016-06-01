@@ -7,11 +7,10 @@ import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Procedure;
@@ -24,8 +23,10 @@ import apoc.result.LongResult;
 
 public class WeaklyConnectedComponents {
 
+
+	
 	@Context
-	public GraphDatabaseService db;
+    public GraphDatabaseAPI dbAPI;
 
 	@Context
 	public Log log;
@@ -35,7 +36,7 @@ public class WeaklyConnectedComponents {
 	public Stream<LongResult> wcc() {
 		try {
 			long componentID = 0;
-			ResourceIterator<Node> nodes = db.getAllNodes().iterator();
+			ResourceIterator<Node> nodes = dbAPI.getAllNodes().iterator();
 			LongHashSet allNodes = new LongHashSet();
 			while (nodes.hasNext()) {
 				Node node = nodes.next();
@@ -52,7 +53,7 @@ public class WeaklyConnectedComponents {
 				// Every node has to be marked as (part of) a component
 				try {
 					Long n = it.next().value;
-					LongHashSet reachableIDs = go(db.getNodeById(n), Direction.BOTH);
+					LongHashSet reachableIDs = go(dbAPI.getNodeById(n), Direction.BOTH);
 					allNodes.removeAll(reachableIDs);
 					componentID++;
 
@@ -94,8 +95,7 @@ public class WeaklyConnectedComponents {
 
 	private List<Node> getConnectedNodeIDs(Node node, Direction dir) {
 		List<Node> it = new LinkedList<Node>();
-		RelationshipType types = RelationshipType.withName("LINK");
-		Iterator<Relationship> itR = node.getRelationships(types, dir).iterator();
+		Iterator<Relationship> itR = node.getRelationships(dir).iterator();
 		while (itR.hasNext()) {
 			it.add(itR.next().getOtherNode(node));
 		}
