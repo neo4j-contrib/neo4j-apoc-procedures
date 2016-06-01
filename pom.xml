@@ -117,13 +117,7 @@
       <version>${neo4j.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
-    </dependency>
-    
-    <dependency>
-      <groupId>com.carrotsearch</groupId>
-      <artifactId>hppc</artifactId>
-      <version>0.7.1</version>
-    </dependency>   
+    </dependency>  
 
     <dependency>
       <groupId>org.neo4j</groupId>
