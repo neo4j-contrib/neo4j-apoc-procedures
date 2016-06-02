@@ -89,6 +89,8 @@ RETURN name AS undocumented
 
 Procedures to add to and query manual indexes
 
+NOTE: Please note that there are (case-sensitive) http://neo4j.com/docs/developer-manual/current/#cypher-schema[automatic schema indexes], for equality, non-equality, existence, range queries, starts with, ends-with and contains!
+
 [cols="1m,5"]
 |===
 | apoc.index.addAllNodes('index-name',{label1:['prop1',...],...}) | add all nodes to this full text index with the given fields, additionally populates a 'search' index field with all of them in one place
@@ -360,6 +362,8 @@ apoc.graph.from(data,'name',{properties}) yield graph | creates a virtual graph 
 | apoc.monitor.tx | number of transactions total,opened,committed,concurrent,rolled-back,last-tx-id
 | apoc.monitor.locks(minWaitTime long) | db locking information such as avertedDeadLocks, lockCount, contendedLockCount and contendedLocks etc. (enterprise)
 |===
+
+// include::{img}/apoc.monitor.png[width=600]
 
 // tag::cypher[]
 

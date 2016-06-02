@@ -20,7 +20,7 @@ public abstract class RelationshipTypeAndDirections {
 	public static Iterable<Pair<RelationshipType, Direction>> parse(String pathFilter) {
 		Collection<Pair<RelationshipType, Direction>> relsAndDirs = new ArrayList<>();
 		if (pathFilter == null) {
-			relsAndDirs.add(Pair.of(null, BOTH));
+			relsAndDirs.add(Pair.of(null, BOTH)); // todo can we remove this?
 		} else {
 			String[] defs = pathFilter.split("\\|");
 			for (String def : defs) {
