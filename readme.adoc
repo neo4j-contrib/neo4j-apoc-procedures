@@ -194,6 +194,7 @@ RETURN n LIMIT 5
 | CALL apoc.convert.toJson( {a:42,b:"foo",c:[1,2,3]}) | converts value to json map
 | CALL apoc.convert.fromJsonList('[1,2,3]') | converts json list to Cypher list
 | CALL apoc.convert.fromJsonMap( '{"a":42,"b":"foo","c":[1,2,3]}') | converts json map to Cypher map
+| CALL apoc.convert.toTree([paths]) yield value | creates a stream of nested documents representing the at least one root of these paths
 |===
 
 === Export / Import

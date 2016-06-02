@@ -9,6 +9,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.List;
 import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
@@ -58,5 +59,21 @@ public class ConvertJsonTest {
     @Test public void testGetJsonProperty() throws Exception {
         testCall(db, "CREATE (n {json:'[1,2,3]'}) WITH n CALL apoc.convert.getJsonProperty(n, 'json') YIELD value RETURN value",
                 (row) -> assertEquals(asList(1,2,3), row.get("value")) );
+    }
+
+    @Test public void testToTree() throws Exception {
+        testCall(db, "CREATE p1=(m:Movie {title:'M'})<-[:ACTED_IN {role:'R1'}]-(:Actor {name:'A1'}), " +
+                " p2 = (m)<-[:ACTED_IN  {role:'R2'}]-(:Actor {name:'A2'}) WITH [p1,p2] as paths " +
+                " CALL apoc.convert.toTree(paths) YIELD value RETURN value",
+                (row) -> {
+                    Map root = (Map) row.get("value");
+                    System.out.println("root = " + root);
+                    assertEquals("Movie", root.get("_type"));
+                    assertEquals("M", root.get("title"));
+                    List<Map> actors = (List<Map>) root.get("acted_in");
+                    assertEquals("Actor", actors.get(0).get("_type"));
+                    assertEquals(true, actors.get(0).get("name").toString().matches("A[12]"));
+                    assertEquals(true, actors.get(0).get("acted_in.role").toString().matches("R[12]"));
+                });
     }
 }
