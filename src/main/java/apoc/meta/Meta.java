@@ -7,22 +7,21 @@ import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.impl.store.NeoStores;
-import org.neo4j.kernel.impl.store.StoreAccess;
-import org.neo4j.kernel.impl.store.counts.CountsTracker;
+import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static apoc.util.MapUtil.map;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toMap;
+import static org.neo4j.kernel.api.ReadOperations.ANY_LABEL;
 
 public class Meta {
 
@@ -130,24 +129,95 @@ public class Meta {
         return Stream.of(new StringResult(typeName));
     }
 
-//* `CALL apoc.meta.stats` - returns a dump of Neo4j's database statistic
-//    @Procedure
-//    @Description("apoc.meta.stats - returns a dump of Neo4j's database statistics")
-    public Stream<StringResult> stats() {
-        StoreAccess storeAccess = api.getDependencyResolver().resolveDependency(StoreAccess.class);
-        NeoStores neoStores = storeAccess.getRawNeoStores();
-        CountsTracker counts = neoStores.getCounts();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        counts.accept(new DumpCountsStore(new PrintStream(bos), neoStores));
-        return Stream.of(new StringResult(bos.toString()));
-    }
-
     @Procedure
     @Description("apoc.meta.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
     public Stream<Empty> isType(@Name("value") Object value, @Name("type") String type) {
         String typeName = Types.of(value).name();
         if (value != null && value.getClass().isArray()) typeName +="[]";
         return Empty.stream(type.equalsIgnoreCase(typeName));
+    }
+
+
+    public static class MetaStats {
+        public final long labelCount;
+        public final long relTypeCount;
+        public final long propertyKeyCount;
+        public final long nodeCount;
+        public final long relCount;
+        public final Map<String,Long> labels;
+        public final Map<String,Long> relTypes;
+        public final Map<String,Object> stats;
+
+        public MetaStats(long labelCount, long relTypeCount, long propertyKeyCount, long nodeCount, long relCount, Map<String, Long> labels, Map<String, Long> relTypes) {
+            this.labelCount = labelCount;
+            this.relTypeCount = relTypeCount;
+            this.propertyKeyCount = propertyKeyCount;
+            this.nodeCount = nodeCount;
+            this.relCount = relCount;
+            this.labels = labels;
+            this.relTypes = relTypes;
+            this.stats =  map("labelCount", labelCount, "relTypeCount", relTypeCount, "propertyKeyCount", propertyKeyCount,
+                    "nodeCount", nodeCount, "relCount", relCount,
+                    "labels", labels, "relTypes", relTypes);
+        }
+    }
+    @Procedure
+    @Description("apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats | returns the information stored in the transactional database statistics")
+    public Stream<MetaStats> stats() {
+        ReadOperations ops = kernelTx.acquireStatement().readOperations();
+        int labelCount = ops.labelCount();
+        int relTypeCount = ops.relationshipTypeCount();
+
+        Map<String,Long> labelStats = new LinkedHashMap<>(labelCount);
+        Map<String,Long> relStats =   new LinkedHashMap<>(labelCount*relTypeCount);
+
+        Map<String, Integer> labels =
+                db.getAllLabelsInUse().stream()
+                        .collect(toMap(
+                                Label::name,
+                                label -> (int)ops.labelGetForName(label.name())));
+
+        Map<String, Integer> relTypes =
+                db.getAllRelationshipTypesInUse().stream()
+                        .collect(toMap(
+                                RelationshipType::name,
+                                type -> ops.relationshipTypeGetForName(type.name())));
+
+        labels.forEach((name,id) -> {
+            long count = ops.countsForNodeWithoutTxState(id);
+            if (count>0) {
+                labelStats.put(name, count);
+                relTypes.forEach((typeName, typeId) -> {
+                    long relCount = ops.countsForRelationship(id, typeId, ANY_LABEL);
+                    if (relCount > 0) {
+                        relStats.put("(:" + name + ")-[:" + typeName + "]->()", relCount);
+                    }
+                    relCount = ops.countsForRelationship(ANY_LABEL, typeId, id);
+                    if (relCount > 0) {
+                        relStats.put("()-[:" + typeName + "]->(:"+name+")", relCount);
+                    }
+                    relCount = ops.countsForRelationship(ANY_LABEL, typeId, ANY_LABEL);
+                    if (relCount > 0) {
+                        relStats.put("()-[:" + typeName + "]->()", relCount);
+                    }
+                });
+            }
+        });
+        relTypes.forEach((typeName, typeId) -> {
+            long relCount = ops.countsForRelationship(ANY_LABEL, typeId, ANY_LABEL);
+            if (relCount > 0) {
+                relStats.put("()-[:" + typeName + "]->()", relCount);
+            }
+        });
+        Map<String, Object> result = map("labelCount", labelCount,
+                "relTypeCount", relTypeCount,
+                "propertyKeyCount", ops.propertyKeyCount(),
+                "nodeCount", ops.nodesGetCount(),
+                "relCount", ops.relationshipsGetCount(),
+                "labels",labelStats,
+                "relTypes",relStats);
+        return Stream.of(new MetaStats(labelCount,relTypeCount,ops.propertyKeyCount(),
+                ops.nodesGetCount(),ops.relationshipsGetCount(),labelStats,relStats));
     }
 
     @Procedure

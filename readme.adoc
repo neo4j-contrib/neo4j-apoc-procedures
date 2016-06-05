@@ -156,6 +156,7 @@ Returns a virtual graph that represents the labels and relationship-types availa
 | CALL apoc.meta.subGraph({config}) | examines a sample sub graph to create the meta-graph, default sampleSize is 100 +
 config is: {labels:[labels],rels:[rel-types],sample:sample}
 | CALL apoc.meta.data | examines a subset of the graph to provide a tabular meta information
+| CALL apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats | returns the information stored in the transactional database statistics
 | CALL apoc.meta.type(value) | type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST`)
 | CALL apoc.meta.isType(value,type) | returns a row if type name matches none if not
 |===
