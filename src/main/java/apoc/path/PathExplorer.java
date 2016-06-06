@@ -2,6 +2,7 @@ package apoc.path;
 
 import apoc.Description;
 import apoc.result.PathResult;
+import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.*;
 import org.neo4j.helpers.collection.Pair;
@@ -17,6 +18,7 @@ import java.util.stream.Stream;
 public class PathExplorer {
 	private static final String VERSION = "0.5";
 	public static final Uniqueness UNIQUENESS = Uniqueness.RELATIONSHIP_PATH;
+	public static final boolean BFS = true;
 	@Context
     public GraphDatabaseService db;
 
@@ -31,9 +33,38 @@ public class PathExplorer {
 			                   , @Name("minLevel") long minLevel
 			                   , @Name("maxLevel") long maxLevel ) throws Exception {
 		List<Node> nodes = startToNodes(start);
-		return explorePathPrivate(nodes, pathFilter, labelFilter, minLevel, maxLevel);
+		return explorePathPrivate(nodes, pathFilter, labelFilter, minLevel, maxLevel, BFS, UNIQUENESS);
 	}
 
+	//
+	@Procedure("apoc.path.expandConfig")
+	@Description("apoc.path.expandConfig(startNode <id>|Node|list, {minLevel,maxLevel,uniqueness,relationshipFilter,labelFilter,uniqueness:'RELATIONSHIP_PATH',bfs:true}) yield path expand from start node following the given relationships from min to max-level adhering to the label filters")
+	public Stream<PathResult> expandConfig(@Name("start") Object start, @Name("config") Map<String,Object> config) throws Exception {
+		List<Node> nodes = startToNodes(start);
+
+		String uniqueness = (String) config.getOrDefault("uniqueness", UNIQUENESS.name());
+		String relationshipFilter = (String) config.getOrDefault("relationshipFilter", null);
+		String labelFilter = (String) config.getOrDefault("labelFilter", null);
+		long minLevel = Util.toLong(config.getOrDefault("minLevel", "-1"));
+		long maxLevel = Util.toLong(config.getOrDefault("maxLevel", "-1"));
+		boolean bfs = Util.toBoolean(config.getOrDefault("bfs",true));
+
+		return explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness));
+	}
+
+	private Uniqueness getUniqueness(String uniqueness) {
+		for (Uniqueness u : Uniqueness.values()) {
+			if (u.name().equalsIgnoreCase(uniqueness)) return u;
+		}
+		return UNIQUENESS;
+	}
+
+	/*
+    , @Name("relationshipFilter") String pathFilter
+    , @Name("labelFilter") String labelFilter
+    , @Name("minLevel") long minLevel
+    , @Name("maxLevel") long maxLevel ) throws Exception {
+     */
 	@SuppressWarnings("unchecked")
 	private List<Node> startToNodes(Object start) throws Exception {
 		if (start == null) return Collections.emptyList();
@@ -59,23 +90,23 @@ public class PathExplorer {
 	}
 
 	private Stream<PathResult> explorePathPrivate(Iterable<Node> startNodes
-			                   , String pathFilter
-			                   , String labelFilter
-			                   , long minLevel
-			                   , long maxLevel ) {
+			, String pathFilter
+			, String labelFilter
+			, long minLevel
+			, long maxLevel, boolean bfs, Uniqueness uniqueness) {
 		// LabelFilter
 		// -|Label|:Label|:Label excluded label list
 		// +:Label or :Label include labels
 
-		Traverser traverser = traverse(db.traversalDescription().breadthFirst(), startNodes, pathFilter, labelFilter, minLevel, maxLevel);
+		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs);
 		return traverser.stream().map( PathResult::new );
 	}
 
-	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel) {
-		int from = new Long(minLevel).intValue();
-		int to = new Long(maxLevel).intValue();
+	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel, Uniqueness uniqueness, boolean bfs) {
 		TraversalDescription td = traversalDescription;
 		// based on the pathFilter definition now the possible relationships and directions must be shown
+
+		td = bfs ? td.breadthFirst() : td.depthFirst();
 
 		Iterable<Pair<RelationshipType, Direction>> relDirIterable = RelationshipTypeAndDirections.parse(pathFilter);
 
@@ -87,11 +118,14 @@ public class PathExplorer {
 			}
 		}
 
-		LabelEvaluator labelEvaluator = new LabelEvaluator(labelFilter);
-		td = td.evaluator(Evaluators.fromDepth(from))
-				.evaluator(Evaluators.toDepth(to))
-				.evaluator(labelEvaluator);
-		td = td.uniqueness(UNIQUENESS); // this is how Cypher works !!
+		if (minLevel != -1) td = td.evaluator(Evaluators.fromDepth((int) minLevel));
+		if (maxLevel != -1) td = td.evaluator(Evaluators.toDepth((int) maxLevel));
+
+		if (labelFilter != null && !labelFilter.trim().isEmpty()) {
+			td = td.evaluator(new LabelEvaluator(labelFilter));
+		}
+
+		td = td.uniqueness(uniqueness); // this is how Cypher works !! Uniqueness.RELATIONSHIP_PATH
 		// uniqueness should be set as last on the TraversalDescription
 		return td.traverse(startNodes);
 	}

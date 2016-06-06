@@ -54,3 +54,40 @@ match (p:Person) with p limit 3
 call apoc.path.expand(p,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",1,2) yield path as pp
 return p, pp
 ----
+
+
+== Expand with Config
+
+----
+apoc.path.expandConfig(startNode <id>Node/list, {config}) yield path expands from start nodes using the given configuration and yields the resulting paths
+----
+
+Takes an additional config to provide configuration options:
+
+.Config
+----
+{minLevel: -1|number,
+ maxLevel: -1|number,
+ relationshipFilter: '[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...',
+ labelFilter: '[+-]LABEL1|LABEL2|...',
+ uniqueness: RELATIONSHIP_PATH|NONE|NODE_GLOBAL|NODE_LEVEL|NODE_PATH|NODE_RECENT|RELATIONSHIP_GLOBAL|RELATIONSHIP_LEVEL|RELATIONSHIP_RECENT,
+ bfs: true|false}
+----
+
+So you can turn this cypher query:
+
+[source,cypher]
+----
+MATCH (user:User) WHERE user.id = 460
+MATCH (user)-[:RATED]->(movie)<-[:RATED]-(collab)-[:RATED]->(reco)
+RETURN count(*);
+----
+
+into this procedure call, with changed semantics for uniqueness and bfs (which is Cypher's expand mode)
+
+[source,cypher]
+----
+MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.expandConfig(user,{relationshipFilter:"RATED",minLevel:3,maxLevel:3,bfs:false,uniqueness:"NONE"}) YIELD path
+RETURN count(*);
+----

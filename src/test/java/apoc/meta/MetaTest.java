@@ -96,6 +96,22 @@ public class MetaTest {
     }
 
     @Test
+    public void testMetaStats() throws Exception {
+        db.execute("CREATE (:Actor)-[:ACTED_IN]->(:Movie) ").close();
+        TestUtil.testCall(db, "CALL apoc.meta.stats()", r -> {
+            assertEquals(2L,r.get("labelCount"));
+            assertEquals(1L,r.get("relTypeCount"));
+            assertEquals(0L,r.get("propertyKeyCount"));
+            assertEquals(2L,r.get("nodeCount"));
+            assertEquals(1L,r.get("relCount"));
+            assertEquals(map("Actor",1L,"Movie",1L),r.get("labels"));
+            assertEquals(map(
+                    "(:Actor)-[:ACTED_IN]->()",1L,
+                    "()-[:ACTED_IN]->(:Movie)",1L,
+                    "()-[:ACTED_IN]->()",1L),r.get("relTypes"));
+        });
+    }
+    @Test
     public void testMetaGraph() throws Exception {
         db.execute("CREATE (:Actor)-[:ACTED_IN]->(:Movie) ").close();
         TestUtil.testCall(db, "CALL apoc.meta.graph()",
