@@ -5,6 +5,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -110,16 +111,27 @@ public class WeaklyConnectedComponentsTest
     @Test
     public void shouldReturnExpectedResultCountWhenUsingWeaklyConnected()
     {
-        assertExpectedResult( 5L, "CALL apoc.algo.wcc()" + "" );
+        assertExpected( 5, "CALL apoc.algo.wcc()" + "" );
+    }
+    
+    @Test
+    public void shouldReturnExpectedResultWhenUsingWeaklyConnected()
+    {
+        assertExpectedResultOfType( LabelCounter.class, "CALL apoc.algo.wcc()" + "" );
+    }
+    
+    private void assertExpected( int expectedResultCount, String query )
+    {
+        TestUtil.testCallCount( db, query, null,5 );
     }
     
 
-    private void assertExpectedResult( Long expectedResultCount, String query )
+    private void assertExpectedResultOfType( java.lang.Class<?> type , String query )
     {
         TestUtil.testResult( db, query, ( result ) -> {
             Object value = result.next().get( "value");   
-        	assertThat( value, is( instanceOf( Long.class ) ) );
-        	assertThat( (Long)value, equalTo( expectedResultCount ) );
+        	assertThat( value, is( instanceOf( List.class ) ) );
+        	assertThat( ((List)value).get(0), is( instanceOf( type ) ) );
         } );
     }
 

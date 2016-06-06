@@ -7,6 +7,7 @@ import org.apache.commons.codec.language.Metaphone;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Procedure;
@@ -19,7 +20,7 @@ import apoc.util.PerformanceLoggerSingleton;
 public class EntityResolution {
 
 	@Context
-	public GraphDatabaseService db;
+	public GraphDatabaseAPI db;
 
 	@Context
 	public Log log;
@@ -32,31 +33,39 @@ public class EntityResolution {
 	@Description("CALL apoc.algo.ER()")
 	@PerformsWrites
 	public Stream<Empty> ER() {
-		Transaction tx = db.beginTx();
+
+		Transaction tx=db.beginTx();
 		try {
 			log.info("starting ER");
-			Metaphone meta =new Metaphone();
+			Metaphone meta = new Metaphone();
 			PerformanceLoggerSingleton metrics = PerformanceLoggerSingleton.getInstance("/Users/tommichiels/Desktop/");
 			Result result = db.execute(query);
+			int counter = 0;
 			while (result.hasNext()) {
+				counter++;
+				if (counter > 1000) {
+					metrics.mark("TX");
+					tx.success();
+					tx.close();
+					tx = db.beginTx();
+					counter = 0;
+				}
 				metrics.mark("ER");
 				Map<String, Object> row = result.next();
-				String nameA = row.get("namea") != null ? row.get("namea").toString():"" ;
-				String nameB = row.get("nameb") != null ? row.get("nameb").toString():"" ;
-				String idKeyA = row.get("idKeya") != null ? row.get("idKeya").toString():"" ;		
-				String surnameA = row.get("surnamea") != null ?row.get("surnamea").toString():"" ;
-				String surnameB = row.get("surnameb") != null ?row.get("surnameb").toString():"" ;
-				String idKeyB = row.get("idKeyb") != null ?row.get("idKeyb").toString():"" ;
-				if (compare(meta.encode(nameA),meta.encode(nameB)) 
-						&& compare(meta.encode(surnameA),meta.encode(surnameB))){
-					 db.execute("MATCH (a:Record {idKey:'"+idKeyA+"'}) "+
-					         "MATCH (b:Record {idKey:'"+idKeyB+"'}) "+
-							 "where NOT (a)-[:LINK]-(b) " +
-					         "MERGE (a)-[:LINK {rulename:'NAME_SURNAME',strong:'TRUE'}]->(b);");
-				}
+				String nameA = row.get("namea") != null ? row.get("namea").toString() : "";
+				String nameB = row.get("nameb") != null ? row.get("nameb").toString() : "";
+				String idKeyA = row.get("idKeya") != null ? row.get("idKeya").toString() : "";
+				String surnameA = row.get("surnamea") != null ? row.get("surnamea").toString() : "";
+				String surnameB = row.get("surnameb") != null ? row.get("surnameb").toString() : "";
+				String idKeyB = row.get("idKeyb") != null ? row.get("idKeyb").toString() : "";
+				if (compare(meta.encode(nameA), meta.encode(nameB))
+						&& compare(meta.encode(surnameA), meta.encode(surnameB))) {
+					db.execute("MATCH (a:Record {idKey:'" + idKeyA + "'}) " + "MATCH (b:Record {idKey:'" + idKeyB
+							+ "'}) " + "where NOT (a)-[:LINK]-(b) "
+							+ "MERGE (a)-[:LINK {rulename:'NAME_SURNAME',strong:'TRUE'}]->(b);");
+			}
 			}
 			tx.success();
-			tx.close();
 			log.info("ER done");
 			// it.close();
 			return Stream.empty();
@@ -69,15 +78,13 @@ public class EntityResolution {
 			tx.close();
 		}
 	}
-	
-	 private boolean compare(
-		      String recField1,
-		      String recField2){
-		      if (!recField1.isEmpty() && !recField2.isEmpty()) {
-		        return recField1.equals(recField2);
-		      } else {
-		        return false;
-		      }
-		    }
+
+	private boolean compare(String recField1, String recField2) {
+		if (!recField1.isEmpty() && !recField2.isEmpty()) {
+			return recField1.equals(recField2);
+		} else {
+			return false;
+		}
+	}
 
 }

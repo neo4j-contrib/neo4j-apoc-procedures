@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.neo4j.graphdb.Direction;
@@ -22,7 +23,7 @@ import com.carrotsearch.hppc.cursors.LongCursor;
 import com.codahale.metrics.Timer;
 
 import apoc.Description;
-import apoc.result.LongResult;
+import apoc.result.CCResult;
 import apoc.util.PerformanceLoggerSingleton;
 
 public class WeaklyConnectedComponents {
@@ -35,9 +36,10 @@ public class WeaklyConnectedComponents {
 
     @Procedure("apoc.algo.wcc")
     @Description("CALL apoc.algo.wcc() YIELD number of weakly connected components")
-    public Stream<LongResult> wcc() {
+    public Stream<CCResult> wcc() {
         try {
         	PerformanceLoggerSingleton metrics=PerformanceLoggerSingleton.getInstance("/Users/tommichiels/Desktop/");
+        	List<List<Vertex>> results = new LinkedList<List<Vertex>>();
         	log.info("find all nodes iterator");
         	long componentID= 0;
         	ResourceIterator<Node> nodes = db.findNodes(Label.label("Record"));
@@ -51,7 +53,10 @@ public class WeaklyConnectedComponents {
                 RelationshipType types=RelationshipType.withName("LINK");
                 if(node.getDegree(types)==0){
                     metrics.mark("degree 0");
-                	componentID++;
+                    List<Vertex> result = new LinkedList<Vertex>();
+                    result.add(new Vertex(node.getId()+"",node.getLabels().iterator().next().name()));
+                    results.add(result);
+                    componentID++;
                 } else{
                     allNodes.add(node.getId());
                 }
@@ -61,20 +66,24 @@ public class WeaklyConnectedComponents {
 			// start calculation
             log.info("start calculation");
             Iterator<LongCursor> it = allNodes.iterator();
-			while (it.hasNext()) {
+			
+            
+            while (it.hasNext()) {
 				// Every node has to be marked as (part of) a component
 
 				try {
 					Timer bfs=metrics.getTimer("BFS");
 					Timer.Context context = bfs.time();			
 					Long n = it.next().value;
-			        LongHashSet reachableIDs = go(db.getNodeById(n), Direction.BOTH);
+					List<Vertex> result = new LinkedList<Vertex>();
+					LongHashSet reachableIDs = go(db.getNodeById(n), Direction.BOTH,result);
 			        context.stop();
 			        Timer remove=metrics.getTimer("remove");
 					Timer.Context rmcontext = remove.time();
 			        allNodes.removeAll(reachableIDs);
 			        rmcontext.stop();
-					componentID++;
+					results.add(result);
+			        componentID++;
 
 				} catch (NoSuchElementException e) {
 					break;
@@ -83,7 +92,10 @@ public class WeaklyConnectedComponents {
 			}
 			log.info("calculation done");
             //it.close();
-        	return Stream.of(new LongResult(componentID));
+        	return results.stream().map((x) ->new CCResult( x.stream().map((z) -> new Long(z.getId())).collect(Collectors.toList()), x.stream().collect(Collectors.groupingBy(Vertex::getType)).entrySet().stream().collect(Collectors.toMap(
+                    e -> e.getKey(),
+                    e -> e.getValue().size()))
+                ));
         } catch (Exception e) {
             String errMsg = "Error encountered while calculating weakly connected components";
             log.error(errMsg, e);
@@ -92,14 +104,15 @@ public class WeaklyConnectedComponents {
     }
     
     
-	private LongHashSet go(Node node, Direction direction) {
+	private LongHashSet go(Node node, Direction direction, List<Vertex> result) {
 
 		LongHashSet visitedIDs = new LongHashSet();
 		List<Node> frontierList = new LinkedList<>();
 
 		frontierList.add(node);
 		visitedIDs.add(node.getId());
-
+        result.add(new Vertex(node.getId()+"",node.getLabels().iterator().next().name()));
+		
 		while (!frontierList.isEmpty()) {
 			node = frontierList.remove(0);
 			Iterator<Node> it = getConnectedNodeIDs(node, direction).iterator();
@@ -109,7 +122,11 @@ public class WeaklyConnectedComponents {
 					continue;
 				}
 				visitedIDs.add(child.getId());
-				frontierList.add(child);
+				if (child.hasLabel(Label.label("Record"))){
+					frontierList.add(child);
+				}
+				result.add(new Vertex(child.getId()+"",child.getLabels().iterator().next().name()));
+				
 			}
 		}
 		return visitedIDs;
@@ -121,6 +138,16 @@ public class WeaklyConnectedComponents {
 		Iterator<Relationship> itR = node.getRelationships(types,dir).iterator();
 		while (itR.hasNext()) {
 			it.add(itR.next().getOtherNode(node));
+		}
+		RelationshipType typesLives=RelationshipType.withName("Lives");
+		Iterator<Relationship> itLives = node.getRelationships(typesLives,dir).iterator();
+		while (itLives.hasNext()) {
+			it.add(itLives.next().getOtherNode(node));
+		}
+		RelationshipType typesUses=RelationshipType.withName("Uses");
+		Iterator<Relationship> itUses = node.getRelationships(typesUses,dir).iterator();
+		while (itUses.hasNext()) {
+			it.add(itUses.next().getOtherNode(node));
 		}
 		return it;
 	}
