@@ -3,7 +3,9 @@ package apoc.algo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
+
+import java.util.List;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.Before;
@@ -45,22 +47,35 @@ public class WeaklyConnectedComponentsTest {
 	// ==========================================================================================
 
 	@Test
-	public void shouldReturnExpectedResultCountWhenUsingWeaklyConnectedWithEmptyDb() {
-		assertExpectedResult(0L, "CALL apoc.algo.wcc()");
-	}
-
-	@Test
-	public void shouldReturnExpectedResultCountWhenUsingWeaklyConnected() {
+    public void shouldReturnExpectedResultCountWhenUsingWeaklyConnected()
+    {
 		db.execute(CC_GRAPH).close();
-		assertExpectedResult(5L, "CALL apoc.algo.wcc()");
-	}
+		assertExpected( 5, "CALL apoc.algo.wcc()" + "" );
+    }
+    
+    @Test
+    public void shouldReturnExpectedResultWhenUsingWeaklyConnected()
+    {
+    	db.execute(CC_GRAPH).close();
+    	assertExpectedResultOfType( Long.class, "CALL apoc.algo.wcc()" + "" );
+    }
+    
+    private void assertExpected( int expectedResultCount, String query )
+    {
+        TestUtil.testCallCount( db, query, null,5 );
+    }
+    
 
-	private void assertExpectedResult(Long expectedResultCount, String query) {
-		TestUtil.testResult(db, query, (result) -> {
-			Object value = result.next().get("value");
-			assertThat(value, is(instanceOf(Long.class)));
-			assertEquals( expectedResultCount, value );
-		});
-	}
+    private void assertExpectedResultOfType( java.lang.Class<?> type , String query )
+    {
+        TestUtil.testResult( db, query, ( result ) -> {
+        	Map<String, Object> next = result.next();
+        	Object nodeIds = next.get( "nodeIds");   
+        	assertThat( nodeIds, is( instanceOf( List.class ) ) );
+        	assertThat( ((List)nodeIds).get(0), is( instanceOf( type ) ) );
+        	Object stats = next.get( "stats");
+        	assertThat( stats, is( instanceOf( Map.class ) ) );
+        } );
+    }
 
 }
