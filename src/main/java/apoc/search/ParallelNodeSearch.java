@@ -1,18 +1,10 @@
 package apoc.search;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.JsonParser;
-import org.neo4j.graphdb.Label;
+import apoc.Description;
+import apoc.result.NodeResult;
+import apoc.util.Util;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -20,255 +12,154 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import apoc.Description;
-import apoc.result.NodeResult;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.lang.String.format;
+import static java.lang.System.currentTimeMillis;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.groupingBy;
 
 public class ParallelNodeSearch {
-	
-	private static final String SEARCH_TYPE_EXACT = "exact";
-	private static final String SEARCH_TYPE_STARTS_WITH = "starts with";
-	private static final String SEARCH_TYPE_ENDS_WITH = "ends with";
-	private static final String SEARCH_TYPE_CONTAINS = "contains";
-	
-    @Context 
+
+    private final static Set<String> OPERATORS = new HashSet<>(asList("exact","starts with", "ends with", "contains", "<", ">", "=", "<>", "<=", ">=", "=~"));
+
+    @Context
     public GraphDatabaseAPI api;
-    
+
     @Context
     public Log log;
-    
-    
+
+
     @Procedure("apoc.search.nodeAllReduced")
-    @Description("Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, label and the searched property. apoc.search.nodeShortAll( map of label and properties which will be searched upon, searchType: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ). All 'hits' are returned.")
-	public Stream<NodeReducedResult> multiSearchAll( @Name("LabelPropertyMap") final String labelProperties, @Name("searchType") final String searchType, @Name("searchvalue") final String search) throws Exception {
+    @Description("Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched property. apoc.search.nodeShortAll( map of label and properties which will be searched upon, operator: EXACT / CONTAINS / STARTS WITH | ENDS WITH / = / <> / < / > ..., value ). All 'hits' are returned.")
+    public Stream<NodeReducedResult> multiSearchAll(@Name("LabelPropertyMap") final Object labelProperties, @Name("operator") final String operator, @Name("value") final Object value) throws Exception {
+        return createWorkersFromValidInput(labelProperties, operator, value).flatMap(QueryWorker::queryForData);
+    }
 
-		List<NodeReducedResult> res = new ArrayList<NodeReducedResult>(); 
 
-		List<QueryWorker> defList = validateInput(labelProperties, searchType, search);
-		defList.parallelStream().forEach(new Consumer<QueryWorker>() {
-			@Override
-			public void accept(QueryWorker t) {
-				res.addAll(t.doQuery());
-			}
-		} );
-		return res.stream();
-	}
+    private NodeReducedResult merge(NodeReducedResult a, NodeReducedResult b) {
+        a.values.putAll(b.values);
+        for (String label : b.labels)
+            if (!a.labels.contains(label))
+                a.labels.add(label);
+        return a;
+    }
 
-    
-	@Procedure("apoc.search.nodeReduced")
-    @Description("Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched properties. apoc.search.nodeShort( map of label and properties which will be searched upon, searchType: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ). Multiple search results for the same node are merged into one record.")
-	public Stream<NodeReducedResult> multiSearch( @Name("LabelPropertyMap") final String labelProperties, @Name("searchType") final String searchType, @Name("searchvalue") final String search) throws Exception {
-		Map<Long,NodeReducedResult> mres = new HashMap<Long,NodeReducedResult>(); 
-		try {
-			List<QueryWorker> defList = validateInput(labelProperties, searchType, search);
-			
-			List<NodeReducedResult> res = new ArrayList<NodeReducedResult>(); 
-			defList.parallelStream().forEach(new Consumer<QueryWorker>() {
-				@Override
-				public void accept(QueryWorker t) {
-					res.addAll(t.doQuery());
-				}
-			} );
-			// merge duplicate nodes
-			for (NodeReducedResult msr : res) {
-				NodeReducedResult mn = mres.get(msr.id);
-				if (mn == null) {
-					mres.put(msr.id,msr);
-				} else {
-					// check label
-					for (String sl : msr.label) {
-						if (!mn.label.contains(sl)) {
-							mn.label.add(sl);
-						}
-					}
-					// check properties
-					for (String key : msr.values.keySet()) {
-						if (!mn.values.containsKey(key)) {
-							mn.values.put(key, msr.values.get(key));
-						}
-					}
-					
-				}
-			}
-		} catch (Exception ee) {
-			log.debug(ee.getMessage(),ee);
-			throw(ee);
-		}
-		return mres.values().stream();
-	}
+    @Procedure("apoc.search.nodeReduced")
+    @Description("Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched properties. apoc.search.nodeReduced( map of label and properties which will be searched upon, operator: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ). Multiple search results for the same node are merged into one record.")
+    public Stream<NodeReducedResult> multiSearch(@Name("LabelPropertyMap") final Object labelProperties, @Name("operator") final String operator, @Name("value") final String value) throws Exception {
+        return createWorkersFromValidInput(labelProperties, operator, value)
+                    .flatMap(QueryWorker::queryForData)
+                    .collect(groupingBy(res -> res.id,Collectors.reducing(this::merge)))
+                    .values().stream().filter(Optional::isPresent).map(Optional::get);
+    }
 
-	@Procedure("apoc.search.nodeAll")
-    @Description("Do a parallel search over multiple indexes returning nodes. usage apoc.search.nodeAll( map of label and properties which will be searched upon, searchType: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ) returns all the Nodes found in the different searches.")
-	public Stream<NodeResult> multiSearchNodeAll( @Name("LabelPropertyMap") final String labelProperties, @Name("searchType") final String searchType, @Name("searchvalue") final String search) throws Exception {
+    @Procedure("apoc.search.multiSearchReduced")
+    @Description("Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched properties. apoc.search.multiSearchReduced( map of label and properties which will be searched upon, operator: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ). Multiple search results for the same node are merged into one record.")
+    public Stream<NodeReducedResult> multiSearchOld(@Name("LabelPropertyMap") final Object labelProperties, @Name("operator") final String operator, @Name("value") final String value) throws Exception {
+            return createWorkersFromValidInput(labelProperties, operator, value)
+                    .flatMap(QueryWorker::queryForData)
+                    .collect(groupingBy(res -> res.id))
+                    .values().stream().map( list -> list.stream().reduce( this::merge ))
+                    .filter(Optional::isPresent).map(Optional::get);
+    }
 
-		List<NodeResult> res = new ArrayList<NodeResult>(); 
+    @Procedure("apoc.search.nodeAll")
+    @Description("Do a parallel search over multiple indexes returning nodes. usage apoc.search.nodeAll( map of label and properties which will be searched upon, operator: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ) returns all the Nodes found in the different searches.")
+    public Stream<NodeResult> multiSearchNodeAll(@Name("LabelPropertyMap") final Object labelProperties, @Name("operator") final String operator, @Name("value") final String value) throws Exception {
+        return createWorkersFromValidInput(labelProperties, operator, value).flatMap(QueryWorker::queryForNode);
+    }
 
-		List<QueryWorker> defList = validateInput(labelProperties, searchType, search);
-		defList.parallelStream().forEach(new Consumer<QueryWorker>() {
-			@Override
-			public void accept(QueryWorker t) {
-				res.addAll(t.doQueryNode());
-				
-			}
-		} );
-		return res.stream();
-	}
 
-	
-	@Procedure("apoc.search.node")
-    @Description("Do a parallel search over multiple indexes returning nodes. usage apoc.search.node( map of label and properties which will be searched upon, searchType: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ) returns all the DISTINCT Nodes found in the different searches.")
-	public Stream<NodeResult> multiSearchNode( @Name("LabelPropertyMap") final String labelProperties, @Name("searchType") final String searchType, @Name("searchvalue") final String search) throws Exception {
-		List<Long> mids = new ArrayList<Long>();
-		List<NodeResult> res = new ArrayList<NodeResult>();
-		List<QueryWorker> defList = validateInput(labelProperties, searchType, search);
-		
-		defList.parallelStream().forEach(new Consumer<QueryWorker>() {
-			@Override
-			public void accept(QueryWorker t) {
-				res.addAll(t.doQueryNode().stream().filter(p -> { 
-					if (!mids.contains(p.node.getId())) {
-						mids.add(p.node.getId());
-						return true;
-					} else {
-						return false;
-					}
-					
-				}).collect(Collectors.toList()));
-			}
-		} );
-		return res.stream();
-	}
+    @Procedure("apoc.search.node")
+    @Description("Do a parallel search over multiple indexes returning nodes. usage apoc.search.node( map of label and properties which will be searched upon, operator: EXACT | CONTAINS | STARTS WITH | ENDS WITH, searchValue ) returns all the DISTINCT Nodes found in the different searches.")
+    public Stream<NodeResult> multiSearchNode(@Name("LabelPropertyMap") final Object labelProperties, @Name("operator") final String operator, @Name("value") final String value) throws Exception {
+        return createWorkersFromValidInput(labelProperties, operator, value)
+                .flatMap(QueryWorker::queryForNode)
+                .distinct();
+    }
 
-	
-	private List<QueryWorker> validateInput(final String labelProperties, final String searchType, final String search) throws Exception {
-		
-		
-		// validate input
-		if (search == null || search.trim().isEmpty()) {
-			throw new Exception("searchValue is mandatory and cannot be empty");
-		}
-		if (searchType == null) {
-			throw new Exception("searchType is mandatory and must have one of the following values :" + SEARCH_TYPE_EXACT + ", " + SEARCH_TYPE_CONTAINS + ", " + SEARCH_TYPE_STARTS_WITH + ", " + SEARCH_TYPE_ENDS_WITH + ".");
-		}
-		String st = searchType.toLowerCase();
-		if (!st.equals(SEARCH_TYPE_EXACT) 
-			&& !st.equals(SEARCH_TYPE_CONTAINS)
-			&& !st.equals(SEARCH_TYPE_STARTS_WITH)
-			&& !st.equals(SEARCH_TYPE_ENDS_WITH)) {
-			throw new Exception("searchType invalid, it must have one of the following values (case insensitive):" + SEARCH_TYPE_EXACT + ", " + SEARCH_TYPE_CONTAINS + ", " + SEARCH_TYPE_STARTS_WITH + ", " + SEARCH_TYPE_ENDS_WITH + ".");
-		}
-		if (labelProperties == null || labelProperties.trim().isEmpty()) {
-			throw new Exception("LabelProperties cannot be empty. example { Person: [\"fullName\",\"lastName\"],Company:\"name\", Event : \"Description\"}");
-		}
-		//
-		// parse the labelProperties
-		//
-		ObjectMapper om = new ObjectMapper();
-		om.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
-		HashMap<String,Object> result = om.readValue(labelProperties, HashMap.class);
-		List<QueryWorker> list = new ArrayList<QueryWorker>();
-		for (String lbl : result.keySet()) {
-			Object b = result.get(lbl);
-			if (b instanceof String) {
-				list.add( new QueryWorker(api, lbl, (String) b , st, search,log));
-			} else if (b instanceof List<?>) {
-				List<String> bl = (List<String>) b;
-				for (String prop: bl) {
-					list.add( new QueryWorker(api, lbl, prop ,st,search,log));
-				}
-			}
-		}
-		return list;
-	}
-	public class QueryWorker  {
-		private GraphDatabaseAPI api;
-		private String label,prop,search,searchType;
-		private Log nlog;
-		public QueryWorker(GraphDatabaseAPI dbapi, String label , String prop, String searchType, String search, Log lg) {
-			this.api = dbapi;
-			this.label = label;
-			this.prop = prop;
-			this.search = search;
-			this.searchType = searchType;
-			this.nlog = lg;
-		}
-	    public List<NodeReducedResult> doQuery()  	{
-			long tstart = System.currentTimeMillis();
-	    	List<NodeReducedResult> m = new ArrayList<NodeReducedResult>();
-	    	try (Transaction tx = api.beginTx()) {
-				ResourceIterator<Node>  niter = null;
-				if (searchType.equals(SEARCH_TYPE_EXACT)) {
-					niter = api.findNodes(new DynamicLabel(label), prop, search);
-				} else if (searchType.equals(SEARCH_TYPE_CONTAINS)) {
-					niter = api.execute("match (n:" + label +") where n." + prop + " contains \"" + search + "\" return n").columnAs("n");
-				} else if (searchType.equals(SEARCH_TYPE_STARTS_WITH)) {
-					niter = api.execute("match (n:" + label +") where n." + prop + " starts with \"" + search + "\" return n").columnAs("n");
-				} else if (searchType.equals(SEARCH_TYPE_ENDS_WITH)) {
-					niter = api.execute("match (n:" + label +") where n." + prop + " ends with \"" + search + "\" return n").columnAs("n");
-				}
-				while (niter.hasNext()) {
-					Node n = niter.next();
-					Map<String,Object> props = new HashMap<String,Object>();
-					List<String> labels = new ArrayList<String>();
-					labels.add(label);
-					props.put(prop, n.getProperty(prop));
-					NodeReducedResult msr = new NodeReducedResult(labels
-								, n.getId()
-								, props);
-					m.add(msr);
-				}
-				tx.success();
-	    	}
-	    	nlog.debug("(" + Thread.currentThread().getId() + ") search on label:" + label + " and prop:" + prop + " takes " + (System.currentTimeMillis() - tstart));
-			return m;
-	    }
-	    public List<NodeResult> doQueryNode()  	{
-			// log.info("apoc.search.multi QueryWorker.doQuery: Thread id " + Thread.currentThread().getId() + " label:" + label + " prop:" + prop);
-			long tstart = System.currentTimeMillis();
-			ResourceIterator<Node>  niter = null;
-	    	List<NodeResult> m = new ArrayList<NodeResult>();
-	    	try (Transaction tx = api.beginTx()) {
-				
-				if (searchType.equals(SEARCH_TYPE_EXACT)) {
-					niter = api.findNodes(new DynamicLabel(label), prop, search);
-				} else if (searchType.equals(SEARCH_TYPE_CONTAINS)) {
-					niter = api.execute("match (n:" + label +") where n." + prop + " contains \"" + search + "\" return n").columnAs("n");
-				} else if (searchType.equals(SEARCH_TYPE_STARTS_WITH)) {
-					niter = api.execute("match (n:" + label +") where n." + prop + " starts with \"" + search + "\" return n").columnAs("n");
-				} else if (searchType.equals(SEARCH_TYPE_ENDS_WITH)) {
-					niter = api.execute("match (n:" + label +") where n." + prop + " ends with \"" + search + "\" return n").columnAs("n");
-				}
-				m = niter.stream().map(n -> { return new NodeResult(n); }).collect(Collectors.toList());
-				tx.success();
-	    	}
-	    	nlog.debug("(" + Thread.currentThread().getId() + ") search on label:" + label + " and prop:" + prop + " takes " + (System.currentTimeMillis() - tstart));
-			return m;
-	    }
 
-	}
-	
-	private class DynamicLabel implements Label {
-		private String name;
-		public DynamicLabel(String sname) {
-			this.name = sname;
-		}
-		public String name() {
-			return this.name;
-		}
-		
-	}
-	public class NodeReducedResult{
-		public List<String> label;
-		public Map<String,Object> values;
-		public long   id;
-	
-		public NodeReducedResult( List<String> labels,
-				long id,
-				Map<String,Object> val
-				) {
-			this.label = labels;
-			this.id = id;
-			this.values = val;
-		}
-	
-	}
+    private Stream<QueryWorker> createWorkersFromValidInput(final Object labelPropertiesInput, String operatorInput, final Object value) throws Exception {
+        String operatorNormalized = operatorInput.trim().toLowerCase();
+        if (operatorInput == null || !OPERATORS.contains(operatorNormalized)) {
+            throw new Exception(format("operator `%s` invalid, it must have one of the following values (case insensitive): %s.", operatorInput, OPERATORS));
+        }
+        String operator = operatorNormalized.equals("exact") ? "=" : operatorNormalized;
+
+        if (labelPropertiesInput == null || labelPropertiesInput instanceof String && labelPropertiesInput.toString().trim().isEmpty()) {
+            throw new Exception("LabelProperties cannot be empty. example { Person: [\"fullName\",\"lastName\"],Company:\"name\", Event : \"Description\"}");
+        }
+        Map<String, Object> labelProperties = labelPropertiesInput instanceof Map ? (Map<String, Object>) labelPropertiesInput : Util.readMap(labelPropertiesInput.toString());
+
+        return labelProperties.entrySet().parallelStream().flatMap(e -> {
+            String label = e.getKey();
+            Object properties = e.getValue();
+            if (properties instanceof String) {
+                return Stream.of(new QueryWorker(api, label, (String) properties, operator, value, log));
+            } else if (properties instanceof List) {
+                return ((List<String>) properties).stream().map(prop -> new QueryWorker(api, label, prop, operator, value, log));
+            }
+            throw new RuntimeException("Invalid type for properties " + properties + ": " + (properties == null ? "null" : properties.getClass()));
+        });
+    }
+
+    public static class QueryWorker {
+        private GraphDatabaseAPI db;
+        private String label, prop, operator;
+        Object value;
+        private Log log;
+
+        public QueryWorker(GraphDatabaseAPI db, String label, String prop, String operator, Object value, Log log) {
+            this.db = db;
+            this.label = label;
+            this.prop = prop;
+            this.value = value;
+            this.operator = operator;
+            this.log = log;
+        }
+
+        public Stream<NodeReducedResult> queryForData() {
+            List<String> labels = singletonList(label);
+            String query = format("match (n:`%s`) where n.`%s` %s {value} return id(n) as id,  n.`%s` as value", label, prop, operator, prop);
+            return queryForNode(query, (row) -> new NodeReducedResult((long) row.get("id"), labels, singletonMap(prop, row.get("value")))).stream();
+        }
+
+        public Stream<NodeResult> queryForNode() {
+            String query = format("match (n:`%s`) where n.`%s` %s {value} return n", label, prop, operator);
+            return queryForNode(query, (row) -> new NodeResult((Node) row.get("n"))).stream();
+        }
+
+        public <T> List<T> queryForNode(String query, Function<Map<String, Object>, T> transformer) {
+            long start = currentTimeMillis();
+            try (Transaction tx = db.beginTx()) {
+                try (Result nodes = db.execute(query, singletonMap("value", value))) {
+                    return nodes.stream().map(transformer).collect(Collectors.toList());
+                } finally {
+                    tx.success();
+                    if (log.isDebugEnabled())
+                        log.debug(format("(%s) search on label:%s and prop:%s took %d",
+                                Thread.currentThread(), label, prop, currentTimeMillis() - start));
+                }
+            }
+        }
+    }
+
+    public static class NodeReducedResult {
+        public final long id;
+        public final List<String> labels;
+        public final Map<String, Object> values;
+
+        public NodeReducedResult(long id, List<String> labels, Map<String, Object> val) {
+            this.labels = labels;
+            this.id = id;
+            this.values = val;
+        }
+
+    }
 }

@@ -1,5 +1,6 @@
 package apoc.util;
 
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.neo4j.procedure.Name;
 
@@ -15,6 +16,9 @@ import java.util.Scanner;
  */
 public class JsonUtil {
     public static ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    static {
+        OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
+    }
 
     public static Object loadJson(@Name("url") String url, Map<String,Object> headers, String payload) {
         try {

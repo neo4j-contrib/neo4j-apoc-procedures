@@ -276,4 +276,13 @@ public class Util {
 		InputStream is = Util.class.getClassLoader().getResourceAsStream(name);
 		return new Scanner(is).useDelimiter("\\Z").next();
 	}
+
+    @SuppressWarnings("unchecked")
+    public static Map<String,Object> readMap(String value) {
+        try {
+            return JsonUtil.OBJECT_MAPPER.readValue(value, Map.class);
+        } catch (IOException e) {
+            throw new RuntimeException("Couldn't read as JSON "+value);
+        }
+    }
 }
