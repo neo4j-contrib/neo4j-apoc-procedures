@@ -3,12 +3,15 @@ package apoc.util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.helpers.Strings;
 import org.neo4j.kernel.api.exceptions.KernelException;
 import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertFalse;
@@ -27,12 +30,29 @@ public class TestUtil {
 
     public static void testCall(GraphDatabaseService db, String call,Map<String,Object> params, Consumer<Map<String, Object>> consumer) {
         testResult(db, call, params, (res) -> {
-            if (res.hasNext()) {
-                Map<String, Object> row = res.next();
-                consumer.accept(row);
+            try {
+                if (res.hasNext()) {
+                    Map<String, Object> row = res.next();
+                    consumer.accept(row);
+                }
+                assertFalse(res.hasNext());
+            } catch(Throwable t) {
+                printFullStackTrace(t);
+                throw t;
             }
-            assertFalse(res.hasNext());
         });
+    }
+
+    private static void printFullStackTrace(Throwable e) {
+        String padding = "";
+        while (e != null) {
+            System.err.println(padding + e.getMessage());
+            for (StackTraceElement element : e.getStackTrace()) {
+                System.err.println(padding + element.toString());
+            }
+            e=e.getCause();
+            padding += "    ";
+        }
     }
 
     public static void testCallEmpty(GraphDatabaseService db, String call, Map<String,Object> params) {
