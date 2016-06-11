@@ -1,5 +1,7 @@
 package apoc.coll;
 
+import apoc.util.ArrayBackedIterator;
+import apoc.util.ArrayBackedList;
 import org.junit.Test;
 import org.neo4j.graphalgo.impl.util.PathImpl;
 import org.neo4j.graphdb.*;
@@ -7,8 +9,6 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.lang.reflect.Array;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.hashCode;
@@ -311,49 +311,6 @@ public class EqualityTest {
                             && v1.longValue() == (long) Math.rint(v2.doubleValue()));
         }
 
-        private static class ArrayBackedList extends AbstractList {
-
-            private final Object array;
-            private int length;
-
-            public ArrayBackedList(Object array) {
-                if (!array.getClass().isArray()) throw new IllegalArgumentException("Not an array "+array);
-                this.array = array;
-                this.length = Array.getLength(array);
-            }
-
-            @Override
-            public Object get(int index) {
-                return Array.get(array,index);
-            }
-
-            @Override
-            public int size() {
-                return length;
-            }
-        }
-
-        private static class ArrayBackedIterator implements Iterator {
-
-            private final Object array;
-            private int length, cursor;
-
-            public ArrayBackedIterator(Object array) {
-                if (!array.getClass().isArray()) throw new IllegalArgumentException("Not an array "+array);
-                this.array = array;
-                this.length = Array.getLength(array);
-            }
-
-            @Override
-            public boolean hasNext() {
-                return cursor < length;
-            }
-
-            @Override
-            public Object next() {
-                return Array.get(array,cursor++);
-            }
-        }
-
     }
+
 }
