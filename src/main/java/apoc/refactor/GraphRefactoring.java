@@ -111,7 +111,7 @@ public class GraphRefactoring {
 
     /**
      * Merges the nodes onto the first node.
-     * The other nodes and relationships are deleted.
+     * The other nodes are deleted and their relationships moved onto that first node.
      */
     @Procedure
     @PerformsWrites
