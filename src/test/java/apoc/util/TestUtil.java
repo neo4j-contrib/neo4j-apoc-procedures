@@ -46,9 +46,13 @@ public class TestUtil {
     private static void printFullStackTrace(Throwable e) {
         String padding = "";
         while (e != null) {
-            System.err.println(padding + e.getMessage());
-            for (StackTraceElement element : e.getStackTrace()) {
-                System.err.println(padding + element.toString());
+            if (e.getCause() == null) {
+                System.err.println(padding + e.getMessage());
+                for (StackTraceElement element : e.getStackTrace()) {
+                    if (element.getClassName().matches("^(org.junit|org.apache.maven|sun.reflect|apoc.util.TestUtil|scala.collection|java.lang.reflect|org.neo4j.cypher.internal|org.neo4j.kernel.impl.proc|sun.net|java.net).*"))
+                        continue;
+                    System.err.println(padding + element.toString());
+                }
             }
             e=e.getCause();
             padding += "    ";
