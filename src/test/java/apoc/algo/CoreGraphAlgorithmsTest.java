@@ -64,11 +64,11 @@ public class CoreGraphAlgorithmsTest {
         CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init();
         assertEquals(4,algos.getNodeCount());
         assertEquals(2,algos.getRelCount());
-        int[] degrees = algos.getNodes();
-        assertEquals(1,degrees[idA]);
-        assertEquals(1,degrees[idB]);
-        assertEquals(0,degrees[idC]);
-        assertEquals(0,degrees[idD]);
+        int[] offsets = algos.getNodeRelOffsets();
+        assertEquals(0,offsets[idA]);
+        assertEquals(1,offsets[idB]);
+        assertEquals(2,offsets[idC]);
+        assertEquals(2,offsets[idD]);
         int[] rels = algos.getRels();
         assertEquals(idB,rels[0]);
         assertEquals(idC,rels[1]);
@@ -79,8 +79,8 @@ public class CoreGraphAlgorithmsTest {
         CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init("A");
         assertEquals(2,algos.getNodeCount());
         assertEquals(2,algos.getRelCount());
-        int[] degrees = algos.getNodes();
-        assertEquals(1,degrees[idA]);
+        int[] degrees = algos.getNodeRelOffsets();
+        assertEquals(0,degrees[idA]);
         assertEquals(1,degrees[idB]);
         int[] rels = algos.getRels();
         assertEquals(idB,rels[0]);
@@ -91,9 +91,9 @@ public class CoreGraphAlgorithmsTest {
         CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init("A","X");
         assertEquals(2,algos.getNodeCount());
         assertEquals(1,algos.getRelCount());
-        int[] degrees = algos.getNodes();
-        assertEquals(1,degrees[idA]);
-        assertEquals(0,degrees[idB]);
+        int[] degrees = algos.getNodeRelOffsets();
+        assertEquals(0,degrees[idA]);
+        assertEquals(1,degrees[idB]);
         int[] rels = algos.getRels();
         assertEquals(idB,rels[0]);
     }
@@ -106,7 +106,7 @@ public class CoreGraphAlgorithmsTest {
         assertEquals(0.85f,rank[idA],0f);
         assertEquals(0.9775f,rank[idB],0f);
         assertEquals(0.9775f,rank[idC],0f);
-        assertEquals(0.85f,rank[idD],0f);
+        assertEquals(0,rank[idD],0f);
 
     }
 

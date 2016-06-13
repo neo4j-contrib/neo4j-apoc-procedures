@@ -27,9 +27,11 @@ public class CoreGraphAlgorithms {
     private final Statement stmt;
     private int nodeCount;
     private int relCount;
-    private int[] degrees;
+    private int[] nodeRelOffsets;
     private int[] rels;
     public static final float ALPHA = 0.15f;
+    private int labelId;
+    private int relTypeId;
 
     private long spreadBits32(int y) {
         long x = y;
@@ -188,12 +190,15 @@ public class CoreGraphAlgorithms {
     // pass in array, use array batches (pass in batch-no)
     private int[] loadNodes(ReadOperations ops, PrimitiveLongIterator nodeIds, int size, int relType, Direction direction) throws EntityNotFoundException {
         // todo reuse array
-        int[] degrees = new int[size];
+        int[] offsets = new int[size];
+        int offset = 0;
         while (nodeIds.hasNext()) {
             long nodeId = nodeIds.next();
-            degrees[mapId(nodeId)] = relType == ANY_RELATIONSHIP_TYPE ? ops.nodeGetDegree(nodeId, direction) : ops.nodeGetDegree(nodeId, direction, relType);
+            int degree = relType == ANY_RELATIONSHIP_TYPE ? ops.nodeGetDegree(nodeId, direction) : ops.nodeGetDegree(nodeId, direction, relType);
+            offsets[mapId(nodeId)] = offset;
+            offset += degree;
         }
-        return degrees;
+        return offsets;
     }
 
     private int[] loadDegrees(ReadOperations ops, PrimitiveLongIterator nodeIds, int size, int relType, Direction direction) throws EntityNotFoundException {
@@ -221,14 +226,18 @@ public class CoreGraphAlgorithms {
         }
         return degrees;
     }
-    private int[] loadDegrees(ReadOperations ops, int relType, Direction direction) throws EntityNotFoundException {
-        int[] degrees = new int[nodeCount];
-        for (int nodeIdx=0; nodeIdx<nodeCount; nodeIdx++) {
-            degrees[nodeIdx] = relType == ANY_RELATIONSHIP_TYPE ?
-                    ops.nodeGetDegree(unMapId(nodeIdx), direction) :
-                    ops.nodeGetDegree(unMapId(nodeIdx), direction, relType);
+    private int[] loadDegrees(ReadOperations ops, int relType, Direction direction) {
+        try {
+            int[] degrees = new int[nodeCount];
+            for (int nodeIdx = 0; nodeIdx < nodeCount; nodeIdx++) {
+                degrees[nodeIdx] = relType == ANY_RELATIONSHIP_TYPE ?
+                        ops.nodeGetDegree(unMapId(nodeIdx), direction) :
+                        ops.nodeGetDegree(unMapId(nodeIdx), direction, relType);
+            }
+            return degrees;
+        } catch (EntityNotFoundException e) {
+            throw new RuntimeException("Error loading node degrees",e);
         }
-        return degrees;
     }
 
     private int[] loadNodes(ReadOperations ops, PrimitiveLongIterator nodeIds, int labelId, int size, int relType) throws EntityNotFoundException {
@@ -269,15 +278,19 @@ public class CoreGraphAlgorithms {
     }
 
     private void runProgram(RelationshipProgram consumer) {
-        runProgram(nodeCount,degrees,rels,consumer);
+        runProgram(nodeCount, nodeRelOffsets,rels,consumer);
     }
 
-    private static void runProgram(int nodeCount, int[] degrees, int[] rels, RelationshipProgram consumer) {
-        int relIdx = 0;
-        for (int nodeId = 0; nodeId < nodeCount; nodeId++) {
-            int degree = degrees[nodeId];
-            while (degree-- != 0) {
-                consumer.accept(nodeId, rels[relIdx++]);
+    private static void runProgram(int nodeCount, int[] offsets, int[] rels, RelationshipProgram consumer) {
+        int start;
+        for (start = 0; start < nodeCount ; start++) {
+            int offset = offsets[start];
+            int nextOffset = start+1 == nodeCount ? rels.length : offsets[start+1];
+            while (offset != nextOffset) {
+                int end = rels[offset];
+                if (end == -1) break;
+                consumer.accept(start, end);
+                offset++;
             }
         }
     }
@@ -299,6 +312,7 @@ public class CoreGraphAlgorithms {
 
     public float[] pageRank(int iterations) {
         float oneMinusAlpha = 1 - ALPHA;
+        int[] degrees = loadDegrees(stmt.readOperations(), relTypeId , OUTGOING);
         float[] dst = new float[nodeCount]; float[] src = new float[nodeCount];
 
         for (int it = 0; it < iterations; it++) {
@@ -307,6 +321,9 @@ public class CoreGraphAlgorithms {
                 dst[node] = oneMinusAlpha;
             }
             runProgram((start, end) -> dst[end] += src[start]);
+        }
+        for (int node = 0; node < nodeCount; node++) {
+            if (degrees[node] == 0 && dst[node] == oneMinusAlpha) dst[node] = 0;
         }
         return dst;
     }
@@ -340,7 +357,7 @@ public class CoreGraphAlgorithms {
             @Override
             public boolean run() {
                 for (int node = 0; node < nodeCount; node++) {
-                    src[node] = alpha * dst[node] / (float) degrees[node];
+                    src[node] = alpha * dst[node] / (float) nodeRelOffsets[node];
                     dst[node] = oneMinusAlpha;
                 }
                 return iterations-- > 0;
@@ -468,15 +485,17 @@ public class CoreGraphAlgorithms {
     }
 
     private void loadNodes(ReadOperations ops, int labelId, int relTypeId) throws EntityNotFoundException {
+        this.labelId = labelId;
+        this.relTypeId = relTypeId;
         int allNodeCount = (int) ops.nodesGetCount();
         if (labelId == ANY_LABEL) {
             this.nodeCount = allNodeCount;
-            this.degrees = loadNodes(ops, ops.nodesGetAll(), nodeCount, relTypeId, OUTGOING);
+            this.nodeRelOffsets = loadNodes(ops, ops.nodesGetAll(), nodeCount, relTypeId, OUTGOING);
         } else {
             this.nodeCount = (int) ops.countsForNodeWithoutTxState(labelId);
             float percentage = (float)nodeCount / (float)allNodeCount;
 
-            this.degrees = (percentage > 0.5f) ?
+            this.nodeRelOffsets = (percentage > 0.5f) ?
                     loadNodes(ops, ops.nodesGetAll(), labelId,    nodeCount, relTypeId) :
                     loadNodes(ops, ops.nodesGetForLabel(labelId), nodeCount, relTypeId, OUTGOING);
         }
@@ -523,8 +542,8 @@ public class CoreGraphAlgorithms {
         return relCount;
     }
 
-    public int[] getNodes() {
-        return degrees;
+    public int[] getNodeRelOffsets() {
+        return nodeRelOffsets;
     }
 
     public int[] getRels() {
