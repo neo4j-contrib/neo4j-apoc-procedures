@@ -7,9 +7,9 @@ import java.util.Map;
  * @since 26.02.16
  */
 public class RowResult {
-    public final Map row;
+    public final Map<String, Object> row;
 
-    public RowResult(Map row) {
+    public RowResult(Map<String, Object> row) {
         this.row = row;
     }
 }

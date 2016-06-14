@@ -10,12 +10,14 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 repositories {
+     maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
      maven { url "http://repo.maven.apache.org/maven2" }
 }
 
 dependencies {
     compile group: 'it.unimi.dsi', name: 'fastutil', version:'7.0.12'
     compile group: 'commons-codec', name: 'commons-codec', version:'1.9'
+    compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version:'1.0-SNAPSHOT'
     
     testCompile group: 'org.apache.derby', name: 'derby', version:'10.12.1.1'
     testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version:'3.0.1'
