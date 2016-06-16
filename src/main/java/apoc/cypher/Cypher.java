@@ -278,7 +278,7 @@ public class Cypher {
         return Collections.singleton(value);
     }
 
-    @Procedure("cypher.do")
+    @Procedure
     @PerformsWrites
     @Description("apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with the given parameters")
     public Stream<MapResult> doit(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
