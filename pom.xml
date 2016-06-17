@@ -71,7 +71,7 @@
       <dependency>
         <groupId>net.biville.florent</groupId>
         <artifactId>neo4j-sproc-compiler</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0-M01</version>
         <optional>true</optional>
       </dependency>
 
@@ -198,19 +198,4 @@
       </plugin>
     </plugins>
   </build>
-
-  <repositories>
-    <repository>
-      <id>sonatype-snapshot-repo</id>
-      <name>Sonatype SNAPSHOT repository</name>
-      <layout>default</layout>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </repository>
-  </repositories>
 </project>
