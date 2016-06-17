@@ -97,6 +97,24 @@ public class CypherTest {
 
 
     @Test
+    public void testRunMany() throws Exception {
+        testResult(db, "CALL apoc.cypher.runMany('CREATE (n:Node {name:{name}});\nMATCH (n {name:{name}}) CREATE (n)-[:X {name:{name2}}]->(n);',{params})",map("params",map("name","John","name2","Doe")),
+                r -> {
+                    Map<String, Object> row = r.next();
+                    assertEquals(-1L, row.get("row"));
+                    Map result = (Map) row.get("result");
+                    assertEquals(1L, toLong(result.get("nodesCreated")));
+                    assertEquals(1L, toLong(result.get("labelsAdded")));
+                    assertEquals(1L, toLong(result.get("propertiesSet")));
+                    row = r.next();
+                    result = (Map) row.get("result");
+                    assertEquals(-1L, row.get("row"));
+                    assertEquals(1L, toLong(result.get("relationshipsCreated")));
+                    assertEquals(1L, toLong(result.get("propertiesSet")));
+                    assertEquals(false, r.hasNext());
+                });
+    }
+    @Test
     public void testRunFile() throws Exception {
         testResult(db, "CALL apoc.cypher.runFile('src/test/resources/create_delete.cypher')",
                 r -> {

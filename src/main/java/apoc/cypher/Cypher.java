@@ -58,22 +58,33 @@ public class Cypher {
     @Description("apoc.cypher.runFile(file or url) - runs each statement in the file, all semicolon separated - currently no schema operations")
     public Stream<RowResult> runFile(@Name("file") String fileName) {
         Reader reader = readerForFile(fileName);
-        Scanner scanner = new Scanner(reader).useDelimiter(";\r?\n");
+        Scanner scanner = new Scanner(reader);
+        return runManyStatements(scanner, Collections.emptyMap());
+    }
+
+    private Stream<RowResult> runManyStatements(Scanner scanner, Map<String, Object> params) {
+        scanner.useDelimiter(";\r?\n");
         BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100);
         while (scanner.hasNext()) {
             String stmt = scanner.next();
             if (isSchemaOperation(stmt)) // alternatively could just skip them
                 throw new RuntimeException("Schema Operations can't yet be mixed with data operations");
 
-            if (isPeriodicOperation(stmt)) Util.inThread(() -> executeStatement(queue, stmt));
-            else Util.inTx(api, () -> executeStatement(queue, stmt));
+            if (isPeriodicOperation(stmt)) Util.inThread(() -> executeStatement(queue, stmt, params));
+            else Util.inTx(api, () -> executeStatement(queue, stmt, params));
         }
         Util.inThread(() -> { queue.put(RowResult.TOMBSTONE);return null;});
         return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE),false);
     }
 
-    private Object executeStatement(BlockingQueue<RowResult> queue, String stmt) throws InterruptedException {
-        try (Result result = api.execute(stmt)) {
+    @Procedure
+    @Description("apoc.cypher.runMany('cypher;\\nstatements;',{params}) - runs each semicolon separated statement and returns summary - currently no schema operations")
+    public Stream<RowResult> runMany(@Name("cypher") String cypher, @Name("params") Map<String,Object> params) {
+        return runManyStatements(new Scanner(cypher),params);
+    }
+
+    private Object executeStatement(BlockingQueue<RowResult> queue, String stmt, Map<String, Object> params) throws InterruptedException {
+        try (Result result = api.execute(stmt,params)) {
             long time = System.currentTimeMillis();
             int row = 0;
             while (result.hasNext()) {

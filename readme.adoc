@@ -375,6 +375,7 @@ apoc.graph.from(data,'name',{properties}) yield graph | creates a virtual graph 
 |===
 | CALL apoc.cypher.run(fragment, params) yield value | executes reading fragment with the given parameters
 | CALL apoc.cypher.runFile(file or url) yield row, result | runs each statement in the file, all semicolon separated - currently no schema operations
+| CALL apoc.cypher.runMany('cypher;\nstatements;',{params}) | runs each semicolon separated statement and returns summary - currently no schema operations
 | CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value | executes fragment in parallel batches with the list segments being assigned to _
 | CALL apoc.cypher.doIt(fragment, params) yield value | executes writing fragment with the given parameters
 |===
@@ -729,3 +730,6 @@ MATCH (n:Person)
 * summary for graphs (a bit like apoc.meta.stats but for a named subgraph)
 * graph operations (union, intersection etc. see gradoop), but also graph summarization and FSM
 * path expander config for node and rel-properties, both equals with value as well as comparisons with operator -> value { name: "John" weight : { `>` : 10, `<` : 100 }
+* represent storage-records virtually as a graph
+* run cypher query and return query plan as a graph
+* add list of values support to parallel node search, add support for HAS_LABEL (OR, AND, ALL)
