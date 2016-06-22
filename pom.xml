@@ -73,6 +73,7 @@
         <artifactId>neo4j-sproc-compiler</artifactId>
         <version>1.0-SNAPSHOT</version>
         <optional>true</optional>
+		<scope>provided</scope>
       </dependency>
 
       <dependency>
@@ -195,6 +196,13 @@
             </goals>
           </execution>
         </executions>
+            <configuration>
+              <artifactSet>
+                <excludes>
+                  <exclude>net.biville.florent:neo4j-sproc-compiler</exclude>
+                </excludes>
+              </artifactSet>
+            </configuration>
       </plugin>
     </plugins>
   </build>
