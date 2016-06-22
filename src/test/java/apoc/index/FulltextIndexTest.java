@@ -9,6 +9,7 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.*;
 
@@ -123,6 +124,17 @@ public class FulltextIndexTest {
         try (Transaction tx = db.beginTx()) {
             assertTrue(index.existsForNodes(PERSON));
             assertTrue(index.existsForNodes(HIPSTER));
+            assertEquals(JOE, index.forNodes(PERSON).query(NAME, "jo*").getSingle().getProperty(NAME));
+            assertNull(index.forNodes(PERSON).query(AGE, "42").getSingle());
+            tx.success();
+        }
+    }
+    @Test
+    public void testAddNodeToExistingIndex() throws Exception {
+        db.execute("CALL apoc.index.forNodes({index},{type:'fulltext',to_lower_case:'true',analyzer:'org.apache.lucene.analysis.standard.StandardAnalyzer' })",map("index","std_index")).close();
+        db.execute("CREATE " + JOE_PATTERN + " WITH joe CALL apoc.index.addNodeByLabel({index},joe,['" + NAME + "']) RETURN *",map("index",PERSON)).close();
+        try (Transaction tx = db.beginTx()) {
+            assertTrue(index.existsForNodes(PERSON));
             assertEquals(JOE, index.forNodes(PERSON).query(NAME, "jo*").getSingle().getProperty(NAME));
             assertNull(index.forNodes(PERSON).query(AGE, "42").getSingle());
             tx.success();

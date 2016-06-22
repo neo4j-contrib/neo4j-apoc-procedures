@@ -164,24 +164,35 @@ public class FreeTextSearch {
     }
 
     private Index<Node> index(String index, Map<String, List<String>> structure) {
+        Map<String, String> config = new HashMap<>(CONFIG);
         try (Transaction tx = db.beginTx()) {
             if (db.index().existsForNodes(index)) {
                 Index<Node> old = db.index().forNodes(index);
-                Map<String, String> config = db.index().getConfiguration(old);
+                config = new HashMap<>(db.index().getConfiguration(old));
                 log.info("Dropping existing index '%s', with config: %s", index, config);
                 old.delete();
             }
             tx.success();
         }
         try (Transaction tx = db.beginTx()) {
-            Map<String, String> config = new HashMap<>(CONFIG);
-            config.put("labels", escape(structure.keySet()));
-            for (Map.Entry<String, List<String>> entry : structure.entrySet()) {
-                config.put("keysForLabel:" + escape(entry.getKey()), escape(entry.getValue()));
-            }
+            updateConfigFromParameters(config, structure);
             Index<Node> nodeIndex = db.index().forNodes(index, config);
             tx.success();
             return nodeIndex;
+        }
+    }
+
+    private void updateConfigFromParameters(Map<String, String> config, Map<String, List<String>> structure) {
+        Iterator<String> it = config.keySet().iterator();
+        while (it.hasNext()) {
+            if (it.next().startsWith("keysForLabel:")) {
+                it.remove();
+            }
+        }
+
+        config.put("labels", escape(structure.keySet()));
+        for (Map.Entry<String, List<String>> entry : structure.entrySet()) {
+            config.put("keysForLabel:" + escape(entry.getKey()), escape(entry.getValue()));
         }
     }
 

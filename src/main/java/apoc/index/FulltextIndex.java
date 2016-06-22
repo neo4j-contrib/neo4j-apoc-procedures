@@ -63,16 +63,25 @@ public class FulltextIndex {
     @Description("apoc.index.forNodes('name',{config}) YIELD type,name,config - gets or creates node index")
     @Procedure @PerformsWrites
     public Stream<IndexInfo> forNodes(@Name("name") String name, @Name("config") Map<String,String> config) {
-        IndexManager mgr = db.index();
-        Index<Node> index = mgr.existsForNodes(name) ? mgr.forNodes(name) : mgr.forNodes(name, config == null ? Collections.emptyMap() : config);
-        return Stream.of(new IndexInfo(NODE, name, mgr.getConfiguration(index)));
+        Index<Node> index = getNodeIndex(name, config);
+        return Stream.of(new IndexInfo(NODE, name, db.index().getConfiguration(index)));
     }
+
+    private Index<Node> getNodeIndex(@Name("name") String name, @Name("config") Map<String, String> config) {
+        IndexManager mgr = db.index();
+        return mgr.existsForNodes(name) || config == null ? mgr.forNodes(name) : mgr.forNodes(name, config);
+    }
+
     @Description("apoc.index.forRelationships('name',{config}) YIELD type,name,config - gets or creates relationship index")
     @Procedure @PerformsWrites
     public Stream<IndexInfo> forRelationships(@Name("name") String name, @Name("config") Map<String,String> config) {
+        Index<Relationship> index = getRelationshipIndex(name, config);
+        return Stream.of(new IndexInfo(RELATIONSHIP, name, db.index().getConfiguration(index)));
+    }
+
+    private Index<Relationship> getRelationshipIndex(@Name("name") String name, @Name("config") Map<String, String> config) {
         IndexManager mgr = db.index();
-        Index<Relationship> index = mgr.existsForRelationships(name) ? mgr.forRelationships(name) : mgr.forRelationships(name, config == null ? Collections.emptyMap() : config);
-        return Stream.of(new IndexInfo(RELATIONSHIP, name, mgr.getConfiguration(index)));
+        return mgr.existsForRelationships(name) || config == null ? mgr.forRelationships(name) : mgr.forRelationships(name, config);
     }
 
     @Description("apoc.index.remove('name') YIELD type,name,config - removes an manual index")
@@ -186,8 +195,7 @@ public class FulltextIndex {
     @PerformsWrites
     @Description("apoc.index.addNodeByLabel(node,'Label',['prop1',...]) add node to an index for the given label")
     public void addNodeByLabel(@Name("label") String label, @Name("node") Node node, @Name("properties") List<String> propKeys) {
-        org.neo4j.graphdb.index.Index<Node> index = db.index().forNodes(label, FULL_TEXT);
-        indexContainer(node, propKeys, index);
+        indexContainer(node, propKeys, getNodeIndex(label,FULL_TEXT));
     }
 
     // CALL apoc.index.addRelationship(checkin, ['on'])
@@ -195,9 +203,7 @@ public class FulltextIndex {
     @PerformsWrites
     @Description("apoc.index.addRelationship(rel,['prop1',...]) add relationship to an index for its type")
     public void addRelationship(@Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
-        String indexName = rel.getType().name();
-        org.neo4j.graphdb.index.Index<Relationship> index = db.index().forRelationships(indexName, FULL_TEXT);
-        indexContainer(rel, propKeys, index);
+        indexContainer(rel, propKeys, getRelationshipIndex(rel.getType().name(),FULL_TEXT));
     }
 
     private <T extends PropertyContainer> void indexContainer(T pc, @Name("properties") List<String> propKeys, org.neo4j.graphdb.index.Index<T> index) {
