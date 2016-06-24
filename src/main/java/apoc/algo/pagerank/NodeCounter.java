@@ -7,7 +7,7 @@ public class NodeCounter
 {
     public int getNodeCount( GraphDatabaseService db )
     {
-        Result result = db.execute( "CYPHER runtime=compiled MATCH (n) RETURN max(id(n)) AS maxId" );
+        Result result = db.execute( "MATCH (n) RETURN max(id(n)) AS maxId" );
         return ((Number) result.next().get( "maxId" )).intValue() + 1;
 //        NeoStores neoStore = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(NeoStores.class);
 //        return (int) neoStore.getNodeStore().getHighId();
@@ -15,7 +15,7 @@ public class NodeCounter
 
     public int getRelationshipCount( GraphDatabaseService db )
     {
-        Result result = db.execute( "CYPHER runtime=compiled MATCH ()-[r]->() RETURN max(id(r)) AS maxId" );
+        Result result = db.execute( "MATCH ()-[r]->() RETURN max(id(r)) AS maxId" );
         return ((Number) result.next().get( "maxId" )).intValue() + 1;
 //        NeoStores neoStore = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(NeoStores.class);
 //        return (int) neoStore.getRelationshipStore().getHighId();
