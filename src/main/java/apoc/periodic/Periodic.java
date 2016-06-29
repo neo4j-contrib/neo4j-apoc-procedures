@@ -4,7 +4,6 @@ import apoc.Description;
 import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -55,7 +54,7 @@ public class Periodic {
         long sum = 0, executions = 0, count;
         long start = currentTimeMillis();
         do {
-            count = Pools.SCHEDULED.submit(() -> executeNumericResultStatement(statement, params)).get();
+            count = get(Pools.SCHEDULED.submit(() -> executeNumericResultStatement(statement, params)));
             sum += count;
             if (count>0) executions++;
         } while (count > 0);
@@ -190,7 +189,7 @@ public class Periodic {
             log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
             try (Result result = db.execute(cypherIterate)) {
                 Stream<BatchAndTotalResult> oneResult =
-                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, result, params -> db.execute(cypherAction, params));
+                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, false, result, params -> db.execute(cypherAction, params));
                 final Object loopParam = value;
                 allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
             }
@@ -205,6 +204,31 @@ public class Periodic {
      */
     @Procedure
     @PerformsWrites
+    @Description("apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,parallel:true}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows")
+    public Stream<BatchAndTotalResult> iterate(
+            @Name("cypherIterate") String cypherIterate,
+            @Name("cypherAction") String cypherAction,
+            @Name("config") Map<String,Object> config) {
+
+        long batchSize = Util.toLong(config.getOrDefault("batchSize", 10000));
+        boolean parallel = Util.toBoolean(config.getOrDefault("parallel", false));
+        Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
+        log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
+        try (Result result = db.execute(cypherIterate,params)) {
+            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, parallel, result, p -> db.execute(cypherAction, merge(params, p)).close());
+        }
+    }
+
+    public static Map<String, Object> merge(Map<String, Object> first, Map<String, Object> second) {
+        if (second.isEmpty()) return first;
+        if (first.isEmpty()) return second;
+        Map<String,Object> combined = new HashMap<>(first);
+        combined.putAll(second);
+        return combined;
+    }
+
+    @Procedure
+    @PerformsWrites
     @Description("apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
     public Stream<BatchAndTotalResult> rock_n_roll(
             @Name("cypherIterate") String cypherIterate,
@@ -213,35 +237,32 @@ public class Periodic {
 
         log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
         try (Result result = db.execute(cypherIterate)) {
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, result, params -> db.execute(cypherAction, params));
+            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, result, p -> db.execute(cypherAction, p).close());
         }
     }
 
-    private <T> Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, Iterator<T> iterator, Consumer<T> consumer) {
+    private <T> Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, boolean parallel, Iterator<T> iterator, Consumer<T> consumer) {
+        ExecutorService pool = parallel ? Pools.DEFAULT : Pools.SINGLE;
+        List<Future<Long>> futures = new ArrayList<>(1000);
         long batches = 0;
-        long opsCount = 0;
         long start = System.nanoTime();
+        do {
+            if (log.isDebugEnabled()) log.debug("execute in batch no " + batches + " batch size " + batchsize);
+            batches++;
+            List<T> batch = Util.take(iterator, batchsize);
+            futures.add(Util.inTxFuture(pool, db, () -> batch.stream().peek(consumer).count()));
+        } while (iterator.hasNext());
+        long opsCount = futures.stream().mapToLong(this::get).sum();
+        BatchAndTotalResult result = new BatchAndTotalResult(batches, opsCount, TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
+        return Stream.of(result);
+    }
+
+    private <T> T get(Future<T> f) {
         try {
-            do {
-                if (log.isDebugEnabled()) log.debug("execute in batch no " + batches +" batch size "+batchsize);
-                batches++;
-                opsCount += Pools.SINGLE.submit(() -> {
-                    int ops = 0;
-                    try (Transaction tx = db.beginTx()) {
-                        while (ops < batchsize && iterator.hasNext()) {
-                            consumer.accept(iterator.next());
-                            ops++;
-                        }
-                        tx.success();
-                        return ops;
-                    }
-                }).get();
-            } while (iterator.hasNext());
+            return f.get();
         } catch (InterruptedException | ExecutionException e) {
-            log.error("Error during batched execution", e);
-            throw new RuntimeException("Error during batched execution",e);
+            throw new RuntimeException("Error during future.get",e);
         }
-        return Collections.singletonList(new BatchAndTotalResult(batches, opsCount, TimeUnit.NANOSECONDS.toSeconds(System.nanoTime()-start))).stream();
     }
 
     public static class BatchAndTotalResult {

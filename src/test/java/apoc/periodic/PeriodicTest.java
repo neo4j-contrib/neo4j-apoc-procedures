@@ -81,12 +81,27 @@ public class PeriodicTest {
         // when&then
 
         // TODO: remove forcing rule based in the 2nd statement next line when 3.0.2 is released, due to https://github.com/neo4j/neo4j/pull/7152
-        testResult(db, "CALL apoc.periodic.rock_n_roll('match (p:Person) return p', 'CYPHER planner=rule WITH {p} as p SET p.lastname =p.name REMOVE p.name', 10)", result -> {
+        testResult(db, "CALL apoc.periodic.rock_n_roll('match (p:Person) return p', 'WITH {p} as p SET p.lastname =p.name REMOVE p.name', 10)", result -> {
                     Map<String, Object> row = Iterators.single(result);
                     assertEquals(10L, row.get("batches"));
                     assertEquals(100L, row.get("total"));
                 });
         // then
+        testCall(db,
+                "MATCH (p:Person) where p.lastname is not null return count(p) as count" ,
+                row -> assertEquals(100L, row.get("count"))
+        );
+    }
+    @Test
+    public void testIterate() throws Exception {
+        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+
+        testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'WITH {p} as p SET p.lastname =p.name REMOVE p.name', {batchSize:10,parallel:true})", result -> {
+                    Map<String, Object> row = Iterators.single(result);
+                    assertEquals(10L, row.get("batches"));
+                    assertEquals(100L, row.get("total"));
+                });
+
         testCall(db,
                 "MATCH (p:Person) where p.lastname is not null return count(p) as count" ,
                 row -> assertEquals(100L, row.get("count"))

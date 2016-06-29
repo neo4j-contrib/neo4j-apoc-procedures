@@ -1,5 +1,14 @@
 package apoc.date;
 
+import apoc.Description;
+import apoc.result.LongResult;
+import apoc.result.StringResult;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.PerformsWrites;
+import org.neo4j.procedure.Procedure;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -10,25 +19,12 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalQueries;
 import java.time.temporal.TemporalQuery;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TimeZone;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import apoc.Description;
-import apoc.result.LongResult;
-import apoc.result.MapResult;
-import apoc.result.StringResult;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.PerformsWrites;
-import org.neo4j.procedure.Procedure;
+
+import static java.time.temporal.ChronoField.*;
 
 
 /**
@@ -39,18 +35,20 @@ public class Date {
 	public static final String DEFAULT_FORMAT = "yyyy-MM-dd HH:mm:ss";
 	private static final int MILLIS_IN_SECOND = 1000;
 	private static final String UTC_ZONE_ID = "UTC";
-	private static final List<TemporalQuery<Consumer<Map<String, Object>>>> DT_FIELDS_SELECTORS = Arrays.asList(
-			temporalQuery(ChronoField.YEAR),
-			temporalQuery(ChronoField.MONTH_OF_YEAR),
-			temporalQuery(ChronoField.DAY_OF_MONTH),
-			temporalQuery(ChronoField.HOUR_OF_DAY),
-			temporalQuery(ChronoField.MINUTE_OF_HOUR),
-			temporalQuery(ChronoField.SECOND_OF_MINUTE),
-			temporal -> map -> {
+	private static final List<TemporalQuery<Consumer<FieldResult>>> DT_FIELDS_SELECTORS = Arrays.asList(
+			temporalQuery(YEAR),
+			temporalQuery(MONTH_OF_YEAR),
+			temporalQuery(DAY_OF_WEEK),
+			temporalQuery(DAY_OF_MONTH),
+			temporalQuery(HOUR_OF_DAY),
+			temporalQuery(MINUTE_OF_HOUR),
+			temporalQuery(SECOND_OF_MINUTE),
+			(temporal) -> (FieldResult result) -> {
 				Optional<ZoneId> zone = Optional.ofNullable(TemporalQueries.zone().queryFrom(temporal));
 				zone.ifPresent(zoneId -> {
 					String displayName = zoneId.getDisplayName(TextStyle.SHORT, Locale.ROOT);
-					map.put("zoneid", displayName);
+					result.value.put("zoneid", displayName);
+					result.zoneid = displayName;
 				});
 			}
 	);
@@ -65,26 +63,32 @@ public class Date {
 	}
 
 	@Procedure
-	@Description("apoc.date.fieldsDefault('2012-12-23 13:10:50') - create structured map representation of date with entries for year,month,day,hour,minute,second,zoneid")
-	public Stream<MapResult> fieldsDefault(final @Name("date") String date) {
+	@Description("apoc.date.fieldsDefault('2012-12-23 13:10:50') - return columns and a map representation of date parsed with entries for years,months,weekdays,days,hours,minutes,seconds,zoneid")
+	public Stream<FieldResult> fieldsDefault(final @Name("date") String date) {
 		return fields(date, null);
 	}
 
 	@Procedure
-	@Description("apoc.date.fields('2012-12-23','yyyy-MM-dd') - create structured map representation of date parsed with the given format with entries for year,month,day,hour,minute,second,zoneid")
-	public Stream<MapResult> fields(final @Name("date") String date, final @Name("pattern") String pattern) {
+	@Description("apoc.date.fields('2012-12-23','yyyy-MM-dd') - return columns and a map representation of date parsed with the given format with entries for years,months,weekdays,days,hours,minutes,seconds,zoneid")
+	public Stream<FieldResult> fields(final @Name("date") String date, final @Name("pattern") String pattern) {
 		if (date == null) {
-			return Stream.of(MapResult.empty());
+			return Stream.of(new FieldResult());
 		}
 		DateTimeFormatter fmt = getDateTimeFormatter(pattern);
 		TemporalAccessor temporal = fmt.parse(date);
-		Map<String, Object> selectFields = new HashMap<>();
+		FieldResult result = new FieldResult();
 
-		for (final TemporalQuery<Consumer<Map<String, Object>>> query : DT_FIELDS_SELECTORS) {
-			query.queryFrom(temporal).accept(selectFields);
+		for (final TemporalQuery<Consumer<FieldResult>> query : DT_FIELDS_SELECTORS) {
+			query.queryFrom(temporal).accept(result);
 		}
 
-		return Stream.of(new MapResult(selectFields));
+		return Stream.of(result);
+	}
+
+	public static class FieldResult {
+		public final Map<String,Object> value = new LinkedHashMap<>();
+		public long years, months, days, weekdays, hours, minutes, seconds;
+		public String zoneid;
 	}
 
 	private TimeUnit unit(String unit) {
@@ -183,10 +187,21 @@ public class Date {
 		return pattern == null ? DEFAULT_FORMAT : pattern;
 	}
 
-	private static TemporalQuery<Consumer<Map<String, Object>>> temporalQuery(final ChronoField field) {
-		return temporal -> map -> {
+	private static TemporalQuery<Consumer<FieldResult>> temporalQuery(final ChronoField field) {
+		return temporal -> result -> {
 			if (field.isSupportedBy(temporal)) {
-				map.put(field.getBaseUnit().toString().toLowerCase(), field.getFrom(temporal));
+				String key = field.getBaseUnit().toString().toLowerCase();
+				long value = field.getFrom(temporal);
+				switch (field) {
+					case YEAR:             result.years = value;break;
+					case MONTH_OF_YEAR:    result.months = value;break;
+					case DAY_OF_WEEK:      result.weekdays = value; key = "weekdays"; break;
+					case DAY_OF_MONTH:     result.days = value;break;
+					case HOUR_OF_DAY:      result.hours = value;break;
+					case MINUTE_OF_HOUR:   result.minutes = value;break;
+					case SECOND_OF_MINUTE: result.seconds = value;break;
+				}
+				result.value.put(key, value);
 			}
 		};
 	}

@@ -207,13 +207,21 @@ public class DateTest {
 		testCall(db,
 				"CALL apoc.date.fieldsDefault('2015-01-02 03:04:05')",
 				row -> {
-					Map<String, Object> split = (Map<String, Object>) row.get("value");
-					assertEquals(2015L, split.get("years"));
-					assertEquals(1L, split.get("months"));
-					assertEquals(2L, split.get("days"));
-					assertEquals(3L, split.get("hours"));
-					assertEquals(4L, split.get("minutes"));
-					assertEquals(5L, split.get("seconds"));
+					Map<String, Object> map = (Map<String, Object>) row.get("value");
+					assertEquals(2015L, map.get("years"));
+					assertEquals(2015L, row.get("years"));
+					assertEquals(1L, map.get("months"));
+					assertEquals(1L, row.get("months"));
+					assertEquals(2L, map.get("days"));
+					assertEquals(2L, row.get("days"));
+					assertEquals(5L, map.get("weekdays"));
+					assertEquals(5L, row.get("weekdays"));
+					assertEquals(3L, map.get("hours"));
+					assertEquals(3L, row.get("hours"));
+					assertEquals(4L, map.get("minutes"));
+					assertEquals(4L, row.get("minutes"));
+					assertEquals(5L, map.get("seconds"));
+					assertEquals(5L, row.get("seconds"));
 				});
 	}
 
