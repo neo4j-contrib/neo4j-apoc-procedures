@@ -61,6 +61,13 @@
         <scope>provided</scope>
       </dependency>
 
+        <dependency>
+          <groupId>org.mongodb</groupId>
+          <artifactId>mongodb-driver</artifactId>
+          <version>3.2.2</version>
+          <scope>provided</scope>
+        </dependency>
+
       <dependency>
         <groupId>org.neo4j</groupId>
         <artifactId>neo4j-graphviz</artifactId>
