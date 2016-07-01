@@ -87,12 +87,12 @@ public class MetaTest {
     }
 
     private void testTypeName(Object value, String type) {
-        TestUtil.testCall(db, "CALL apoc.meta.type", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
+        TestUtil.testCall(db, "CALL apoc.meta.type({value})", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
     }
 
     private void testIsTypeName(Object value, String type) {
-        TestUtil.testResult(db, "CALL apoc.meta.isType", map("value", value, "type", type), result -> assertEquals(true, result.hasNext()));
-        TestUtil.testResult(db, "CALL apoc.meta.isType", map("value", value, "type", type + "foo"), result -> assertEquals(false, result.hasNext()));
+        TestUtil.testResult(db, "CALL apoc.meta.isType({value},{type})", map("value", value, "type", type), result -> assertEquals(true, result.hasNext()));
+        TestUtil.testResult(db, "CALL apoc.meta.isType({value},{type})", map("value", value, "type", type + "foo"), result -> assertEquals(false, result.hasNext()));
     }
 
     @Test
@@ -113,7 +113,7 @@ public class MetaTest {
     }
     @Test
     public void testMetaGraph() throws Exception {
-        db.execute("CREATE (:Actor)-[:ACTED_IN]->(:Movie) ").close();
+        db.execute("CREATE (a:Actor)-[:ACTED_IN]->(m1:Movie),(a)-[:ACTED_IN]->(m2:Movie)").close();
         TestUtil.testCall(db, "CALL apoc.meta.graph()",
                 (row) -> {
                     List<Node> nodes = (List<Node>) row.get("nodes");
@@ -124,11 +124,11 @@ public class MetaTest {
                     Node n2 = nodes.get(1);
                     assertEquals(true, n2.hasLabel(Label.label("Movie")));
                     assertEquals("Movie", n2.getProperty("name"));
-                    assertEquals(1, n1.getProperty("count"));
+                    assertEquals(2, n2.getProperty("count"));
                     List<Relationship> rels = (List<Relationship>) row.get("relationships");
                     Relationship rel = rels.iterator().next();
                     assertEquals("ACTED_IN", rel.getType().name());
-                    assertEquals(1, rel.getProperty("count"));
+                    assertEquals(2, rel.getProperty("count"));
                 });
     }
 

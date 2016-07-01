@@ -369,9 +369,10 @@ public class Meta {
     public Stream<GraphResult> graph() {
         Map<String,Node> labels = new TreeMap<>();
         Map<List<String>,Relationship> rels = new HashMap<>();
+        for (Node node : db.getAllNodes()) {
+            addLabels(labels,node, true);
+        }
         for (Relationship rel : db.getAllRelationships()) {
-            addLabels(labels,rel.getStartNode());
-            addLabels(labels,rel.getEndNode());
             addRel(rels, labels, rel, false);
         }
         return Stream.of(new GraphResult(new ArrayList<>(labels.values()), new ArrayList<>(rels.values())));
@@ -468,9 +469,9 @@ public class Meta {
         }
     }
 
-    private void addLabels(Map<String, Node> labels, Node node) {
+    private void addLabels(Map<String, Node> labels, Node node, boolean increment) {
         for (Label label : node.getLabels()) {
-            mergeMetaNode(label, labels,true);
+            mergeMetaNode(label, labels, increment);
         }
     }
 
