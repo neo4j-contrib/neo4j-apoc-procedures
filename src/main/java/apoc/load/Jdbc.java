@@ -3,6 +3,8 @@ package apoc.load;
 import apoc.Description;
 import apoc.result.RowResult;
 import apoc.ApocConfiguration;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
@@ -27,6 +29,8 @@ public class Jdbc {
         });
     }
 
+    @Context
+    public Log log;
 
     @Procedure
     @Description("apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database")
@@ -67,7 +71,8 @@ public class Jdbc {
             Spliterator<Map<String, Object>> spliterator = Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
             return StreamSupport.stream(spliterator, false).map(RowResult::new).onClose( () -> closeIt(stmt,connection));
         } catch (SQLException e) {
-            throw new RuntimeException("Cannot execute SQL statement " + query, e);
+            log.error(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()),e);
+            throw new RuntimeException(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()), e);
         }
     }
 
