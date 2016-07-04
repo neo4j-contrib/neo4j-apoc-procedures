@@ -12,7 +12,7 @@
   <description>A collection of useful Neo4j Procedures</description>
 
   <properties>
-    <neo4j.version>3.0.2</neo4j.version>
+    <neo4j.version>3.0.3</neo4j.version>
   </properties>
 
   <organization>
@@ -28,6 +28,13 @@
     </developer>
     <developer>
       <id>christophe.willemsen</id>
+      <organization>GraphAware</organization>
+    </developer>
+    <developer>
+      <id>bachmanm</id>
+      <name>Michal Bachman</name>
+      <organization>GraphAware</organization>
+      <email>apoc@graphaware.com</email>
     </developer>
   </developers>
 

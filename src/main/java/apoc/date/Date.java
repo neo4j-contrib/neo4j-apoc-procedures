@@ -74,7 +74,7 @@ public class Date {
 		if (date == null) {
 			return Stream.of(new FieldResult());
 		}
-		DateTimeFormatter fmt = getDateTimeFormatter(pattern);
+		DateTimeFormatter fmt = getSafeDateTimeFormatter(pattern);
 		TemporalAccessor temporal = fmt.parse(date);
 		FieldResult result = new FieldResult();
 
@@ -158,6 +158,17 @@ public class Date {
 			format.setTimeZone(TimeZone.getTimeZone(UTC_ZONE_ID));
 		}
 		return format;
+	}
+
+	//work around https://bugs.openjdk.java.net/browse/JDK-8139107
+	private static DateTimeFormatter getSafeDateTimeFormatter(final String pattern) {
+		DateTimeFormatter safeFormatter = getDateTimeFormatter(pattern);
+
+		if (Locale.UK.equals(safeFormatter.getLocale())) {
+			return safeFormatter.withLocale(Locale.ENGLISH);
+		}
+
+		return safeFormatter;
 	}
 
 	private static DateTimeFormatter getDateTimeFormatter(final String pattern) {
