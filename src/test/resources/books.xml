@@ -2,6 +2,7 @@
 <catalog>
    <book id="bk101">
       <author>Gambardella, Matthew</author>
+      <author>Arciniegas, Fabio</author>
       <title>XML Developer's Guide</title>
       <genre>Computer</genre>
       <price>44.95</price>

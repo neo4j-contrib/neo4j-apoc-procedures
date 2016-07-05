@@ -167,3 +167,33 @@ RETURN id, value.author, value.title
 ├─────┼────────────────────┼──────────────────────────────┤
 │bk103│Corets, Eva         │Maeve Ascendant               │
 ----
+
+
+=== Simpler XML Format
+
+In a simpler XML representation, each type of children gets it's own entry within the parent map.
+The element-type as key is prefixed with "_" to prevent collisions with attributes.
+
+If there is a single element, then the entry will just have that element as value.
+If there is more than one element there will be a list of values.
+
+Each child will still have its `_type` field to discern them.
+
+Here is the example from above loaded with `apoc.load.xmlSimple`
+
+[source,cypher]
+----
+call apoc.load.xmlSimple("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml")
+----
+
+[source,javascript]
+----
+{_type: "catalog", _book: [
+  {_type: "book", id: "bk101",
+    _author: [{_type: "author", _text: "Gambardella, Matthew"},{_type: author, _text: "Arciniegas, Fabio"}],
+    _title: {_type: "title", _text: "XML Developer's Guide"},
+    _genre: {_type: "genre", _text: "Computer"},
+    _price: {_type: "price", _text: "44.95"},
+    _publish_date: {_type: "publish_date", _text: "2000-10-01"},
+    _description: {_type: description, _text: An in-depth look at creating applications ....
+----
