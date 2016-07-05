@@ -19,24 +19,6 @@
     <name>Neo Technology, Inc.</name>
     <url>http://neotechnology.com/</url>
   </organization>
-  <developers>
-    <developer>
-      <id>michael.hunger</id>
-    </developer>
-    <developer>
-      <id>kees.vegter</id>
-    </developer>
-    <developer>
-      <id>christophe.willemsen</id>
-      <organization>GraphAware</organization>
-    </developer>
-    <developer>
-      <id>bachmanm</id>
-      <name>Michal Bachman</name>
-      <organization>GraphAware</organization>
-      <email>apoc@graphaware.com</email>
-    </developer>
-  </developers>
 
   <url>http://github.com/neo4j-contrib/neo4j-apoc-procedures</url>
   <scm>
