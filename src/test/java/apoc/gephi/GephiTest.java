@@ -38,6 +38,6 @@ public class GephiTest {
                 assertEquals(1L, r.get("relationships"));
                 assertEquals("gephi", r.get("format"));
             });
-        }, ConnectException.class);
+        }, java.io.FileNotFoundException.class);
     }
 }

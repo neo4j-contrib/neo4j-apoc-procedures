@@ -2,44 +2,38 @@ apply plugin: 'java'
 apply plugin: 'maven'
 
 group = 'org.neo4j.procedure'
-version = '1.0.0-SNAPSHOT'
+version = '1.0.1-SNAPSHOT'
 
 description = """neo4j-apoc-procedures"""
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+ext {
+    neo4jVersion = "3.0.3"
+}
 repositories {
      maven { url "http://repo.maven.apache.org/maven2" }
 }
 
 dependencies {
-    compile group: 'it.unimi.dsi', name: 'fastutil', version:'7.0.12'
     compile group: 'commons-codec', name: 'commons-codec', version:'1.9'
     compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version:'1.0-M01'
     
     testCompile group: 'org.apache.derby', name: 'derby', version:'10.12.1.1'
-    testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version:'3.0.1'
-    testCompile group: 'org.neo4j', name: 'neo4j-kernel', version:'3.0.1', classifier: "tests"
-    testCompile group: 'org.neo4j', name: 'neo4j-io', version:'3.0.1', classifier: "tests"
+    testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version:neo4jVersion
+    testCompile group: 'org.neo4j', name: 'neo4j-kernel', version:neo4jVersion, classifier: "tests"
+    testCompile group: 'org.neo4j', name: 'neo4j-io', version:neo4jVersion, classifier: "tests"
     testCompile group: 'junit', name: 'junit', version:'4.12'
     testCompile group: 'org.hamcrest', name: 'hamcrest-library', version:'1.3'
-    
-    compile(group: 'org.neo4j', name: 'neo4j', version:'3.0.1') {
-       /* This dependency was originally in the Maven provided scope, but the project was not of type war.
-       This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
-       Please review and delete this closure when resolved. */
-    }
-    compile(group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version:'1.9.7') {
-       /* This dependency was originally in the Maven provided scope, but the project was not of type war.
-       This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
-       Please review and delete this closure when resolved. */
-    }
-    compile(group: 'org.ow2.asm', name: 'asm', version:'5.0.2') {
-       /* This dependency was originally in the Maven provided scope, but the project was not of type war.
-       This behavior is not yet supported by Gradle, so this dependency has been converted to a compile dependency.
-       Please review and delete this closure when resolved. */
-    }
+
+    compileOnly 'org.mongodb:mongodb-driver:3.2.2'
+    testCompile 'org.mongodb:mongodb-driver:3.2.2'
+
+    compileOnly(group: 'org.neo4j', name: 'neo4j', version:neo4jVersion)
+    compileOnly(group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version:'1.9.7')
+    testCompile(group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version:'1.9.7')
+    compileOnly(group: 'org.ow2.asm', name: 'asm', version:'5.0.2')
 }
 
 /**************
