@@ -42,3 +42,53 @@ UNWIND value.statuses as status
 WITH status, status.user as u, status.entities as e
 RETURN status.id, status.text, u.screen_name, [t IN e.hashtags | t.text] as tags, e.symbols, [m IN e.user_mentions | m.screen_name] as mentions, [u IN e.urls | u.expanded_url] as urls
 ----
+
+== Load JSON StackOverflow Example
+
+There have been articles before about http://neo4j.com/blog/cypher-load-json-from-url/[loading JSON from Web-APIs like StackOverflow].
+
+With `apoc.load.json` it's now very easy to load JSON data from any file or URL.
+
+If the result is a JSON object is returned as a singular map.
+Otherwise if it was an array is turned into a stream of maps.
+
+The URL for retrieving the last questions and answers of the http://stackoverflow.com/questions/tagged/neo4j[neo4j tag] is this:
+
+https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf
+
+Now it can be used from within Cypher directly, let's first introspect the data that is returned.
+
+.JSON data from StackOverflow
+[source,cypher]
+----
+WITH "https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" AS url
+CALL apoc.load.json(url) YIELD value
+UNWIND value.items AS item
+RETURN item.title, item.owner, item.creation_date, keys(item)
+----
+
+image::{img}/apoc.load.json.so.png[]
+
+Combined with the cypher query from the original blog post it's easy to create the full Neo4j graph of those entities.
+
+.Graph data created via loading JSON from StackOverflow
+[source,cypher]
+----
+WITH "https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" AS url
+CALL apoc.load.json(url) YIELD value
+UNWIND value.items AS q
+MERGE (question:Question {id:q.question_id}) ON CREATE
+  SET question.title = q.title, question.share_link = q.share_link, question.favorite_count = q.favorite_count
+
+MERGE (owner:User {id:q.owner.user_id}) ON CREATE SET owner.display_name = q.owner.display_name
+MERGE (owner)-[:ASKED]->(question)
+
+FOREACH (tagName IN q.tags | MERGE (tag:Tag {name:tagName}) MERGE (question)-[:TAGGED]->(tag))
+FOREACH (a IN q.answers |
+   MERGE (question)<-[:ANSWERS]-(answer:Answer {id:a.answer_id})
+   MERGE (answerer:User {id:a.owner.user_id}) ON CREATE SET answerer.display_name = a.owner.display_name
+   MERGE (answer)<-[:PROVIDED]-(answerer)
+)
+----
+
+image::{img}/apoc.load.json-so-result.png[]
