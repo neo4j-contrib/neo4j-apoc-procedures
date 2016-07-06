@@ -86,8 +86,11 @@ public class TestUtil {
         }
     }
 
-    public static void registerProcedure(GraphDatabaseService db, Class<?> procedure) throws KernelException {
-        ((GraphDatabaseAPI)db).getDependencyResolver().resolveDependency(Procedures.class).register(procedure);
+    public static void registerProcedure(GraphDatabaseService db, Class<?>...procedures) throws KernelException {
+        Procedures proceduresService = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(Procedures.class);
+        for (Class<?> procedure : procedures) {
+            proceduresService.register(procedure);
+        }
     }
 
     public static boolean hasCause(Throwable t, Class<? extends Throwable>type) {

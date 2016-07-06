@@ -81,6 +81,14 @@ image::{img}/apoc-load-jdbc.jpg[width=800]
 
 // apoc.load.jdbc('jdbc:derby:derbyDB/key','PERSON' || 'SELECT * FROM PERSON WHERE AGE > 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement
 
+.Create data from jdbc query results in batches (and in parallel).
+[source,cypher]
+----
+CALL apoc.periodic.iterate('
+call apoc.load.jdbc("jdbc:mysql://localhost:3306/northwind?user=root","company")',
+'CREATE (p:Person) SET p += value', {batchSize:10000, parallel:true})
+RETURN batches, total
+----
 
 == Cassandra Example
 

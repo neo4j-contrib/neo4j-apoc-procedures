@@ -1,5 +1,6 @@
 package apoc.periodic;
 
+import apoc.load.Jdbc;
 import apoc.periodic.Periodic;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
@@ -11,6 +12,8 @@ import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.net.ConnectException;
+import java.sql.SQLException;
 import java.util.Map;
 
 import static apoc.util.TestUtil.*;
@@ -22,7 +25,7 @@ public class PeriodicTest {
     private GraphDatabaseService db;
     @Before public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure(db,Periodic.class);
+        TestUtil.registerProcedure(db,Periodic.class, Jdbc.class);
     }
     @After public void tearDown() {
         db.shutdown();
@@ -106,6 +109,22 @@ public class PeriodicTest {
                 "MATCH (p:Person) where p.lastname is not null return count(p) as count" ,
                 row -> assertEquals(100L, row.get("count"))
         );
+    }
+
+    @Test
+    public void testIterateJDBC() throws Exception {
+        TestUtil.ignoreException( () -> {
+            testResult(db, "CALL apoc.periodic.iterate('call apoc.load.jdbc(\"jdbc:mysql://localhost:3306/northwind?user=root\",\"customers\")', 'create (c:Customer) SET c += {row}', {batchSize:10,parallel:true})", result -> {
+                Map<String, Object> row = Iterators.single(result);
+                assertEquals(3L, row.get("batches"));
+                assertEquals(29L, row.get("total"));
+            });
+
+            testCall(db,
+                    "MATCH (p:Customer) return count(p) as count",
+                    row -> assertEquals(29L, row.get("count"))
+            );
+        }, SQLException.class);
     }
 
     @Test
