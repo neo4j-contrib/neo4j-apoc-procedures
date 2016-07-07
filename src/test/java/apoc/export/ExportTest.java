@@ -24,6 +24,7 @@ public class ExportTest {
     private static final String EXPECTED = "begin\n" +
             "CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:\"foo\", `UNIQUE IMPORT ID`:0});\n" +
             "CREATE (:`Bar` {`name`:\"bar\", `age`:42});\n" +
+            "CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});\n" +
             "commit\n" +
             "begin\n" +
             "CREATE INDEX ON :`Foo`(`name`);\n" +
@@ -56,7 +57,7 @@ public class ExportTest {
         TestUtil.registerProcedure(db, Export.class);
         db.execute("CREATE INDEX ON :Foo(name)").close();
         db.execute("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name is unique").close();
-        db.execute("CREATE (f:Foo {name:'foo'})-[:KNOWS]->(b:Bar {name:'bar',age:42})").close();
+        db.execute("CREATE (f:Foo {name:'foo'})-[:KNOWS]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12})").close();
     }
 
     @AfterClass
@@ -68,11 +69,11 @@ public class ExportTest {
     public void testExportAllCypher() throws Exception {
         File output = new File(directory, "all.cypher");
         TestUtil.testCall(db, "CALL apoc.export.cypherAll({file},null)",map("file", output.getAbsolutePath()), (r) -> {
-            assertEquals(2L, r.get("nodes"));
+            assertEquals(3L, r.get("nodes"));
             assertEquals(1L, r.get("relationships"));
-            assertEquals(3L, r.get("properties"));
+            assertEquals(4L, r.get("properties"));
             assertEquals(output.getAbsolutePath(), r.get("file"));
-            assertEquals("database: nodes(2), rels(1)", r.get("source"));
+            assertEquals("database: nodes(3), rels(1)", r.get("source"));
             assertEquals("cypher", r.get("format"));
             assertEquals(true, ((long)r.get("time")) > 0);
 //            System.out.println(r);
