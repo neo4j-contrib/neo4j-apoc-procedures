@@ -25,7 +25,7 @@ public class NodesAndRelsSubGraph implements SubGraph {
     private final GraphDatabaseService db;
     private final HashSet<String> labels = new HashSet<>(20);
 
-    public NodesAndRelsSubGraph(GraphDatabaseService db, List<Node> nodes, List<Relationship> rels) {
+    public NodesAndRelsSubGraph(GraphDatabaseService db, Collection<Node> nodes, Collection<Relationship> rels) {
         this.db = db;
         this.nodes = new ArrayList<>(nodes.size());
         for (Node node : nodes) {

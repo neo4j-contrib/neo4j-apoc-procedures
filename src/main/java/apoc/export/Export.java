@@ -20,6 +20,7 @@ import org.neo4j.procedure.Procedure;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,15 @@ public class Export {
     public Stream<ProgressInfo> cypherData(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws IOException {
 
         String source = String.format("data: nodes(%d), rels(%d)", nodes.size(), rels.size());
+        return exportCypher(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), new Config(config));
+    }
+    @Procedure
+    @Description("apoc.export.cypherGraph(graph,file,config) - exports given graph object incl. indexes as cypher statements to the provided file")
+    public Stream<ProgressInfo> cypherGraph(@Name("graph") Map<String,Object> graph, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws IOException {
+
+        Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
+        Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
+        String source = String.format("graph: nodes(%d), rels(%d)", nodes.size(), rels.size());
         return exportCypher(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), new Config(config));
     }
 
