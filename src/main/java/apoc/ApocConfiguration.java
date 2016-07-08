@@ -1,5 +1,6 @@
 package apoc;
 
+import apoc.cache.Static;
 import apoc.util.Util;
 import org.neo4j.kernel.configuration.Config;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -16,7 +17,9 @@ public class ApocConfiguration {
     private static Map<String, Object> config = new HashMap<>(10);
 
     public static void initialize(GraphDatabaseAPI db) {
+        Static.clear();
         Map<String, String> params = db.getDependencyResolver().resolveDependency(Config.class).getParams();
+        config.clear();
         config.putAll(Util.subMap(params, PREFIX));
     }
 

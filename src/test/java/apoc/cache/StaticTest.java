@@ -1,10 +1,9 @@
 package apoc.cache;
 
+import apoc.ApocConfiguration;
 import apoc.cypher.Cypher;
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -20,10 +19,10 @@ import static org.junit.Assert.*;
  */
 public class StaticTest {
     public static final String VALUE = "testValue";
-    private static GraphDatabaseService db;
+    private GraphDatabaseService db;
 
-    @BeforeClass
-    public static void setUp() throws Exception {
+    @Before
+    public  void setUp() throws Exception {
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
                 .setConfig("apoc.static.test",VALUE)
@@ -32,8 +31,8 @@ public class StaticTest {
         TestUtil.registerProcedure(db, Static.class);
     }
 
-    @AfterClass
-    public static void tearDown() {
+    @After
+    public void tearDown() {
         db.shutdown();
     }
 
@@ -42,11 +41,24 @@ public class StaticTest {
         TestUtil.testCall(db, "call apoc.static.getAll('all')", r -> assertEquals(map("test",VALUE),r.get("value")));
         TestUtil.testCall(db, "call apoc.static.set('all.test2',42)", r -> assertEquals(null,r.get("value")));
         TestUtil.testCall(db, "call apoc.static.getAll('all')", r -> assertEquals(map("test",VALUE,"test2",42L),r.get("value")));
+        TestUtil.testCall(db, "call apoc.static.getAll('')", r -> assertEquals(map("test",VALUE,"all.test",VALUE,"all.test2",42L),r.get("value")));
     }
     @Test
-    public void testGetFromConfig() throws Exception {
-        TestUtil.testCall(db, "call apoc.static.get('test')", r -> assertEquals(VALUE,r.get("value")));
+    public void testListFromConfig() throws Exception {
+        TestUtil.testCall(db, "call apoc.static.set('all.test2',42)", r -> assertEquals(null,r.get("value")));
+        TestUtil.testResult(db, "call apoc.static.list('all') yield key, value return * order by key", r -> {
+            assertEquals(map("key","test","value",VALUE),r.next());
+            assertEquals(map("key","test2","value",42L),r.next());
+            assertEquals(false, r.hasNext());
+        });
+        TestUtil.testResult(db, "call apoc.static.list('') yield key, value return * order by key", r -> {
+            assertEquals(map("key","all.test","value",VALUE),r.next());
+            assertEquals(map("key","all.test2","value",42L),r.next());
+            assertEquals(map("key","test","value",VALUE),r.next());
+            assertEquals(false, r.hasNext());
+        });
     }
+
     @Test
     public void testOverrideConfig() throws Exception {
         TestUtil.testCall(db, "call apoc.static.get('test')", r -> assertEquals(VALUE,r.get("value")));

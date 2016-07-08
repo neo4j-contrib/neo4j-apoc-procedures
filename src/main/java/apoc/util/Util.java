@@ -163,7 +163,7 @@ public class Util {
 
     public static Map<String, Object> subMap(Map<String, ?> params, String prefix) {
         Map<String, Object> config = new HashMap<>(10);
-        int len = prefix.length() + (prefix.endsWith(".") ? 0 : 1);
+        int len = prefix.length() + (prefix.isEmpty() || prefix.endsWith(".") ? 0 : 1);
         for (Map.Entry<String, ?> entry : params.entrySet()) {
             String key = entry.getKey();
             if (key.startsWith(prefix)) {
