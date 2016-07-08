@@ -440,6 +440,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_loading_data_from_rdbms">Loading Data from RDBMS</a></li>
 <li><a href="#_loading_data_from_web_apis_json_xml_csv">Loading Data from Web-APIs (JSON, XML, CSV)</a></li>
 <li><a href="#_interacting_with_elastic_search">Interacting with Elastic Search</a></li>
+<li><a href="#_interacting_with_mongodb">Interacting with MongoDB</a></li>
 <li><a href="#_streaming_data_to_gephi">Streaming Data to Gephi</a></li>
 <li><a href="#_creating_data">Creating Data</a></li>
 <li><a href="#_virtual_nodes_rels">Virtual Nodes/Rels</a></li>
@@ -498,6 +499,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel3">
 <li><a href="#_usage">Usage</a></li>
 <li><a href="#_examples_2">Examples</a></li>
+<li><a href="#_expand_with_config">Expand with Config</a></li>
 </ul>
 </li>
 <li><a href="#_centrality_algorithms">Centrality Algorithms</a>
@@ -535,6 +537,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_load_json">Load JSON</a>
 <ul class="sectlevel3">
 <li><a href="#_load_json_with_additional_parameters">Load Json with additional parameters</a></li>
+<li><a href="#_load_json_stackoverflow_example">Load JSON StackOverflow Example</a></li>
 </ul>
 </li>
 <li><a href="#_load_jdbc">Load JDBC</a>
@@ -697,6 +700,18 @@ RETURN name AS undocumented</code></pre>
 <div class="paragraph">
 <p>Procedures to add to and query manual indexes</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/developer-manual/current/#cypher-schema">automatic schema indexes</a>, for equality, non-equality, existence, range queries, starts with, ends-with and contains!
+</td>
+</tr>
+</table>
+</div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -851,6 +866,10 @@ config is: {labels:[labels],rels:[rel-types],sample:sample}</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">examines a subset of the graph to provide a tabular meta information</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns the information stored in the transactional database statistics</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.type(value)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">type name of a value (<code>INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST</code>)</p></td>
 </tr>
@@ -931,6 +950,10 @@ RETURN n LIMIT 5</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.convert.fromJsonMap( '{"a":42,"b":"foo","c":[1,2,3]}')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">converts json map to Cypher map</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.convert.toTree([paths]) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a stream of nested documents representing the at least one root of these paths</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1002,7 +1025,11 @@ RETURN n LIMIT 5</code></pre>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.load.xml('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">load from XML URL (e.g. web-api) to import XML as single nested map with attributes and <code>_type</code>, <code>_text</code> and `_children`x fields.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">load from XML URL (e.g. web-api) to import XML as single nested map with attributes and <code>_type</code>, <code>_text</code> and <code>_children</code> fields.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">load from XML URL (e.g. web-api) to import XML as single nested map with attributes and <code><em>type</code>, <code>_text</code> fields and <code></em>&lt;childtype&gt;</code> collections per child-element-type.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, map</code></p></td>
@@ -1050,6 +1077,59 @@ config contains any of: <code>{skip:1,limit:5,header:false,sep:'TAB',ignore:['tm
 </tr>
 </tbody>
 </table>
+</div>
+<div class="sect3">
+<h4 id="_interacting_with_mongodb">Interacting with MongoDB</h4>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 60%;">
+<col style="width: 40%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.get(host-or-port,db-or-null,collection-or-null,query-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a find operation on mongodb collection</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.count(host-or-port,db-or-null,collection-or-null,query-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a find operation on mongodb collection</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.first(host-or-port,db-or-null,collection-or-null,query-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a first operation on mongodb collection</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">perform a find,project,sort operation on mongodb collection</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.insert(host-or-port,db-or-null,collection-or-null,list-of-maps)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">inserts the given documents into the mongodb collection</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">inserts the given documents into the mongodb collection</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">inserts the given documents into the mongodb collection</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Copy these jars into the plugins directory:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>mvn dependency:copy-dependencies
+cp target/dependency/mongodb*.jar target/dependency/bson*.jar $NEO4J_HOME/plugins/</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDocument'})</code></pre>
+</div>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_streaming_data_to_gephi">Streaming Data to Gephi</h4>
@@ -1213,8 +1293,12 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromDB('name',{properties}) - creates a virtual graph object for later processing</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.graph.fromCypher('statement',{params},'name',{properties})</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromDB('name',{properties})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromCypher('statement',{params},'name',{properties})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing</p></td>
 </tr>
 </tbody>
 </table>
@@ -1288,6 +1372,10 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 <td class="tableblock halign-left valign-top"><p class="tableblock">runs each statement in the file, all semicolon separated - currently no schema operations</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.runMany('cypher;\nstatements;',{params})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">runs each semicolon separated statement and returns summary - currently no schema operations</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">executes fragment in parallel batches with the list segments being assigned to _</p></td>
 </tr>
@@ -1332,6 +1420,10 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,parallel:true}) YIELD batches, total</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">run the second statement for each item returned by the first statement. Returns number of batches and total processed rows</p></td>
 </tr>
 </tbody>
 </table>
@@ -2025,20 +2117,20 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.search.node(labelPropertyMap, searchType, search ) yield node as &lt;identifier&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.search.node(labelPropertyMap, searchType, search ) yield node</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">A distinct set of Nodes will be returned.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.search.nodeAll(labelPropertyMap, searchType, search ) yield node as &lt;identifier&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.search.nodeAll(labelPropertyMap, searchType, search ) yield node</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">All the found Nodes will be returned.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.search.nodeReduced(labelPropertyMap, searchType, search ) yield id as &lt;identifier&gt;, labels as &lt;identifier&gt;, values as &lt;identifier&gt;</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">A merged set of 'reduced' Node information will be returned. Per node one record.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.search.nodeReduced(labelPropertyMap, searchType, search ) yield id, labels, values</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">A merged set of 'minimal' Node information will be returned. One record per node (-id).</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.search.nodeAllReduced(labelPropertyMap, searchType, search ) yield id as &lt;identifier&gt;, labels as &lt;identifier&gt;, values as &lt;identifier&gt;</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">All the found 'reduced' Node information will be returned. Per node label and property one record.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.search.nodeAllReduced(labelPropertyMap, searchType, search ) yield id, labels, values</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">All the found 'minimal' Node information will be returned. One record per label and property.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2052,24 +2144,30 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>labelPropertyMap</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>'{ label1 : "propertyOne", label2 :["propOne","propTwo"] }'</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">For every Label-Property combination a search will be executed in parallel (if possible): Label1.propertyOne, label2.propOne and label2.propTwo.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">(JSON or Map) For every Label-Property combination a search will be executed in parallel (if possible): Label1.propertyOne, label2.propOne and label2.propTwo.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>searchType</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">'exact' | 'contains' | 'starts with' | 'ends with'</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">This is case insensitive.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">'exact' or 'contains' or 'starts with' or 'ends with'</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Case insensitive string search operators</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>searchType</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"&lt;", "&gt;", "=", "&lt;&gt;", "&#8656;", "&gt;=", "=~"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Operators</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>search</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">'Keanu'</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">The actual search term (case sensitive).</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The actual search term (string, number, etc).</p></td>
 </tr>
 </tbody>
 </table>
 <div class="listingblock">
 <div class="title">example</div>
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.search.nodeAll('{Person: "name",Movie: ["title","tagline"]}','contains','her') YIELD node AS n RETURN n</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.search.nodeAll('{Person: "name",Movie: ["title","tagline"]}','contains','her') YIELD node AS n RETURN n
+call apoc.search.nodeReduced({Person: 'born', Movie: ['released']},'&gt;',2000) yield id, labels, properties RETURN *</code></pre>
 </div>
 </div>
 </div>
@@ -2216,6 +2314,18 @@ RETURN name AS undocumented</code></pre>
 <h4 id="_index_queries_2">Index Queries</h4>
 <div class="paragraph">
 <p>Procedures to add to and query manual indexes</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/developer-manual/current/#cypher-schema">automatic schema indexes</a>, for equality, non-equality, existence, range queries, starts with, ends-with and contains!
+</td>
+</tr>
+</table>
 </div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
@@ -2812,6 +2922,48 @@ return p, pp</code></pre>
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_expand_with_config">Expand with Config</h4>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.path.expandConfig(startNode &lt;id&gt;Node/list, {config}) yield path expands from start nodes using the given configuration and yields the resulting paths</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Takes an additional config to provide configuration options:</p>
+</div>
+<div class="listingblock">
+<div class="title">Config</div>
+<div class="content">
+<pre>{minLevel: -1|number,
+ maxLevel: -1|number,
+ relationshipFilter: '[&lt;]RELATIONSHIP_TYPE1[&gt;]|[&lt;]RELATIONSHIP_TYPE2[&gt;]|...',
+ labelFilter: '[+-]LABEL1|LABEL2|...',
+ uniqueness: RELATIONSHIP_PATH|NONE|NODE_GLOBAL|NODE_LEVEL|NODE_PATH|NODE_RECENT|RELATIONSHIP_GLOBAL|RELATIONSHIP_LEVEL|RELATIONSHIP_RECENT,
+ bfs: true|false}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So you can turn this cypher query:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (user:User) WHERE user.id = 460
+MATCH (user)-[:RATED]-&gt;(movie)&lt;-[:RATED]-(collab)-[:RATED]-&gt;(reco)
+RETURN count(*);</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>into this procedure call, with changed semantics for uniqueness and bfs (which is Cypher&#8217;s expand mode)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.expandConfig(user,{relationshipFilter:"RATED",minLevel:3,maxLevel:3,bfs:false,uniqueness:"NONE"}) YIELD path
+RETURN count(*);</code></pre>
+</div>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_centrality_algorithms">Centrality Algorithms</h3>
@@ -3288,6 +3440,70 @@ RETURN status.id, status.text, u.screen_name, [t IN e.hashtags | t.text] as tags
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_load_json_stackoverflow_example">Load JSON StackOverflow Example</h4>
+<div class="paragraph">
+<p>There have been articles before about <a href="http://neo4j.com/blog/cypher-load-json-from-url/">loading JSON from Web-APIs like StackOverflow</a>.</p>
+</div>
+<div class="paragraph">
+<p>With <code>apoc.load.json</code> it&#8217;s now very easy to load JSON data from any file or URL.</p>
+</div>
+<div class="paragraph">
+<p>If the result is a JSON object is returned as a singular map.
+Otherwise if it was an array is turned into a stream of maps.</p>
+</div>
+<div class="paragraph">
+<p>The URL for retrieving the last questions and answers of the <a href="http://stackoverflow.com/questions/tagged/neo4j">neo4j tag</a> is this:</p>
+</div>
+<div class="paragraph">
+<p><a href="https://api.stackexchange.com/2.2/questions?pagesize=100&amp;order=desc&amp;sort=creation&amp;tagged=neo4j&amp;site=stackoverflow&amp;filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" class="bare">https://api.stackexchange.com/2.2/questions?pagesize=100&amp;order=desc&amp;sort=creation&amp;tagged=neo4j&amp;site=stackoverflow&amp;filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf</a></p>
+</div>
+<div class="paragraph">
+<p>Now it can be used from within Cypher directly, let&#8217;s first introspect the data that is returned.</p>
+</div>
+<div class="listingblock">
+<div class="title">JSON data from StackOverflow</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH "https://api.stackexchange.com/2.2/questions?pagesize=100&amp;order=desc&amp;sort=creation&amp;tagged=neo4j&amp;site=stackoverflow&amp;filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" AS url
+CALL apoc.load.json(url) YIELD value
+UNWIND value.items AS item
+RETURN item.title, item.owner, item.creation_date, keys(item)</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc.load.json.so.png" alt="apoc.load.json.so">
+</div>
+</div>
+<div class="paragraph">
+<p>Combined with the cypher query from the original blog post it&#8217;s easy to create the full Neo4j graph of those entities.</p>
+</div>
+<div class="listingblock">
+<div class="title">Graph data created via loading JSON from StackOverflow</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH "https://api.stackexchange.com/2.2/questions?pagesize=100&amp;order=desc&amp;sort=creation&amp;tagged=neo4j&amp;site=stackoverflow&amp;filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" AS url
+CALL apoc.load.json(url) YIELD value
+UNWIND value.items AS q
+MERGE (question:Question {id:q.question_id}) ON CREATE
+  SET question.title = q.title, question.share_link = q.share_link, question.favorite_count = q.favorite_count
+
+MERGE (owner:User {id:q.owner.user_id}) ON CREATE SET owner.display_name = q.owner.display_name
+MERGE (owner)-[:ASKED]-&gt;(question)
+
+FOREACH (tagName IN q.tags | MERGE (tag:Tag {name:tagName}) MERGE (question)-[:TAGGED]-&gt;(tag))
+FOREACH (a IN q.answers |
+   MERGE (question)&lt;-[:ANSWERS]-(answer:Answer {id:a.answer_id})
+   MERGE (answerer:User {id:a.owner.user_id}) ON CREATE SET answerer.display_name = a.owner.display_name
+   MERGE (answer)&lt;-[:PROVIDED]-(answerer)
+)</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc.load.json-so-result.png" alt="apoc.load.json so result">
+</div>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_load_jdbc">Load JDBC</h3>
@@ -3394,6 +3610,15 @@ RETURN row limit 1;</code></pre>
 <div class="imageblock">
 <div class="content">
 <img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc-load-jdbc.jpg" alt="apoc load jdbc" width="800">
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Create data from jdbc query results in batches (and in parallel).</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.periodic.iterate('
+call apoc.load.jdbc("jdbc:mysql://localhost:3306/northwind?user=root","company")',
+'CREATE (p:Person) SET p += value', {batchSize:10000, parallel:true})
+RETURN batches, total</code></pre>
 </div>
 </div>
 </div>
@@ -3939,6 +4164,40 @@ RETURN id, value.author, value.title</code></pre>
 </div>
 </div>
 </div>
+<div class="sect4">
+<h5 id="_simpler_xml_format">Simpler XML Format</h5>
+<div class="paragraph">
+<p>In a simpler XML representation, each type of children gets it&#8217;s own entry within the parent map.
+The element-type as key is prefixed with "_" to prevent collisions with attributes.</p>
+</div>
+<div class="paragraph">
+<p>If there is a single element, then the entry will just have that element as value.
+If there is more than one element there will be a list of values.</p>
+</div>
+<div class="paragraph">
+<p>Each child will still have its <code>_type</code> field to discern them.</p>
+</div>
+<div class="paragraph">
+<p>Here is the example from above loaded with <code>apoc.load.xmlSimple</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xmlSimple("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml")</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-javascript" data-lang="javascript">{_type: "catalog", _book: [
+  {_type: "book", id: "bk101",
+    _author: [{_type: "author", _text: "Gambardella, Matthew"},{_type: author, _text: "Arciniegas, Fabio"}],
+    _title: {_type: "title", _text: "XML Developer's Guide"},
+    _genre: {_type: "genre", _text: "Computer"},
+    _price: {_type: "price", _text: "44.95"},
+    _publish_date: {_type: "publish_date", _text: "2000-10-01"},
+    _description: {_type: description, _text: An in-depth look at creating applications ....</code></pre>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -4012,6 +4271,10 @@ RETURN n.prop</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.runFile(file or url) yield row, result</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">runs each statement in the file, all semicolon separated - currently no schema operations</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.runMany('cypher;\nstatements;',{params})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">runs each semicolon separated statement and returns summary - currently no schema operations</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value</code></p></td>
