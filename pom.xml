@@ -19,6 +19,9 @@
     <name>Neo Technology, Inc.</name>
     <url>http://neotechnology.com/</url>
   </organization>
+  <developers>
+     <developer><id>michael.hunger@neo4j.com</id></developer>
+  </developers>
 
   <url>http://github.com/neo4j-contrib/neo4j-apoc-procedures</url>
   <scm>
