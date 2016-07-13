@@ -3,7 +3,6 @@ package apoc.util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.Strings;
 import org.neo4j.kernel.api.exceptions.KernelException;
 import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -11,7 +10,6 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
-import java.util.StringJoiner;
 import java.util.function.Consumer;
 
 import static org.junit.Assert.assertFalse;
@@ -93,21 +91,29 @@ public class TestUtil {
         }
     }
 
-    public static boolean hasCause(Throwable t, Class<? extends Throwable>type) {
-        if (type.isInstance(t)) return true;
+    public static boolean hasCauses(Throwable t, Class<? extends Throwable>...types) {
+        if (anyInstance(t, types)) return true;
         while (t != null && t.getCause() != t) {
-            if (type.isInstance(t)) return true;
+            if (anyInstance(t,types)) return true;
             t = t.getCause();
         }
         return false;
     }
 
-    public static void ignoreException(Runnable runnable, Class<? extends Throwable> cause) {
+    private static boolean anyInstance(Throwable t, Class<? extends Throwable>[] types) {
+        for (Class<? extends Throwable> type : types) {
+            if (type.isInstance(t)) return true;
+        }
+        return false;
+    }
+
+
+    public static void ignoreException(Runnable runnable, Class<? extends Throwable>...causes) {
         try {
             runnable.run();
         } catch(Throwable x) {
-            if (TestUtil.hasCause(x,cause)) {
-                System.err.println("Ignoring Exception "+x+": "+x.getMessage()+" due to cause "+cause);
+            if (TestUtil.hasCauses(x,causes)) {
+                System.err.println("Ignoring Exception "+x+": "+x.getMessage()+" due to causes "+ Arrays.toString(causes));
             } else {
                 throw x;
             }
