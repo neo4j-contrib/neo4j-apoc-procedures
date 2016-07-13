@@ -765,3 +765,4 @@ MATCH (n:Person)
 * run export in parallel
 * demonstrate how to run export in parallel just with the built in procs in periodic/cypher
 * give a flag to rock_n_roll that makes it run concurrently
+* allow to attach cypher queries to tx handler (like triggers)

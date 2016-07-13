@@ -3004,7 +3004,7 @@ Caution: Due to the complexity of this algorithm it is recommended to run it on 
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (node:Node)
 WHERE node.id %2 = 0
 WITH collect(node) AS nodes
-CALL apoc.algo.closeness(['TYPE'],nodes,INCOMING) YIELD node, score
+CALL apoc.algo.closeness(['TYPE'],nodes,'INCOMING') YIELD node, score
 RETURN node, score
 ORDER BY score DESC</code></pre>
 </div>
@@ -3034,7 +3034,7 @@ Caution: Due to the complexity of this algorithm it is recommended to run it on 
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (node:Node)
 WHERE node.id %2 = 0
 WITH collect(node) AS nodes
-CALL apoc.algo.betweenness(['TYPE'],nodes,BOTH) YIELD node, score
+CALL apoc.algo.betweenness(['TYPE'],nodes,'BOTH') YIELD node, score
 RETURN node, score
 ORDER BY score DESC</code></pre>
 </div>
