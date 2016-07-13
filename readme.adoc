@@ -706,8 +706,8 @@ Provides some graph algorithms (not very optimized yet)
 [cols="3m,3"]
 |===
 | apoc.algo.community(times,labels,partitionKey,type,direction,weightKey,batchSize) | simple label propagation kernel
-| apoc.algo.cliques(minSize) YIELD cliques | search the graph and return all maximal cliques at least at  large as the minimum size argument.
-| apoc.algo.cliquesWithNode(startNode, minSize) YIELD cliques | search the graph and return all maximal cliques that  are at least as large than the minimum size argument and contain this node
+| apoc.algo.cliques(minSize) YIELD clique | search the graph and return all maximal cliques at least at  large as the minimum size argument.
+| apoc.algo.cliquesWithNode(startNode, minSize) YIELD clique | search the graph and return all maximal cliques that  are at least as large than the minimum size argument and contain this node
 |===
 
 Example: find the weighted shortest path based on relationship property `d` from `A` to `B` following just `:ROAD` relationships
