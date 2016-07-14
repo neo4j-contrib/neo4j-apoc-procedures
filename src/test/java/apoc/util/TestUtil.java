@@ -1,5 +1,6 @@
 package apoc.util;
 
+import org.hamcrest.Matcher;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
@@ -11,11 +12,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-
-//import org.neo4j.kernel.GraphDatabaseAPI;
 
 /**
  * @author mh
@@ -117,6 +118,17 @@ public class TestUtil {
             } else {
                 throw x;
             }
+        }
+    }
+
+    public static <T> T assertDuration(Matcher<? super Long> matcher, Supplier<T> function) {
+        long start = System.currentTimeMillis();
+        T result = null;
+        try {
+            result = function.get();
+        } finally {
+            assertThat("duration " + matcher, System.currentTimeMillis()-start, matcher);
+            return result;
         }
     }
 }
