@@ -21,10 +21,8 @@ import java.util.stream.StreamSupport;
  */
 public class Jdbc {
 
-    public static final Map<String, Object> JDBC_CONFIG = ApocConfiguration.get("jdbc");
-
     static {
-        JDBC_CONFIG.forEach((k, v) -> {
+        ApocConfiguration.get("jdbc").forEach((k, v) -> {
             if (k.endsWith("driver")) loadDriver(v.toString());
         });
     }
@@ -87,7 +85,7 @@ public class Jdbc {
     }
 
     private static String getJdbcUrl(String key) {
-        Object value = JDBC_CONFIG.get(key + ".url");
+        Object value = ApocConfiguration.get("jdbc").get(key + ".url");
         if (value == null) throw new RuntimeException("No apoc.jdbc."+key+".url jdbc url specified");
         return value.toString();
     }
