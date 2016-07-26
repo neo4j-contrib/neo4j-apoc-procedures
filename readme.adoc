@@ -81,6 +81,16 @@ RETURN name AS undocumented
 
 // end::help[]
 
+=== Builtin Pakage and Procedure count
+
+// tag::procedurecount[]
+
+To find the procedure count with the pakage in database: 
+
+image::{img}/apoc.dbms.procedure.count.jpg[width=600]
+
+// end::procedurecount[]
+
 === Manual Indexes
 
 // tag::fulltext[]
