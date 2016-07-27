@@ -89,6 +89,16 @@ To find the procedure count with the package in Neo4j:
 
 image::{img}/apoc.dbms.procedure.count.jpg[width=600]
 
+.Cypher for getting count of procedure in a package
+[source,cypher]
+
+----
+
+CALL dbms.procedures() YIELD name
+RETURN head(split(name,".")) as package, count(*), collect(name) as procedures;
+
+----
+
 // end::procedurecount[]
 
 === Manual Indexes
