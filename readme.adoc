@@ -81,13 +81,23 @@ RETURN name AS undocumented
 
 // end::help[]
 
-=== Builtin Pakage and Procedure count
+=== Builtin Package and Procedure count
 
 // tag::procedurecount[]
 
-To find the procedure count with the pakage in database: 
+To find the procedure count with the package in Neo4j: 
 
 image::{img}/apoc.dbms.procedure.count.jpg[width=600]
+
+
+[source,cypher]
+
+----
+
+CALL dbms.procedures() YIELD name
+RETURN head(split(name,".")) as package, count(*), collect(name) as procedures;
+
+----
 
 // end::procedurecount[]
 
