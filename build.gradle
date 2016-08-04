@@ -10,7 +10,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 ext {
-    neo4jVersion = "3.0.3"
+    neo4jVersion = "3.0.4"
 }
 repositories {
      maven { url "http://repo.maven.apache.org/maven2" }
