@@ -88,7 +88,7 @@ public class Cypher {
             long time = System.currentTimeMillis();
             int row = 0;
             while (result.hasNext()) {
-                if (tx.shouldBeTerminated()) break;
+                if (tx.getReasonIfTerminated()!=null) break;
                 queue.put(new RowResult(row++, result.next()));
             }
             queue.put(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)));
@@ -162,7 +162,7 @@ public class Cypher {
         final String statement = compiled(fragment, params.keySet());
         Collection<Object> coll = (Collection<Object>) value;
         return coll.parallelStream().flatMap((v) -> {
-            if (tx.shouldBeTerminated()) return Stream.of(MapResult.empty());
+            if (tx.getReasonIfTerminated()!=null) return Stream.of(MapResult.empty());
             Map<String, Object> parallelParams = new HashMap<>(params);
             parallelParams.replace(key, v);
             return api.execute(statement, parallelParams).stream().map(MapResult::new);
@@ -244,7 +244,7 @@ public class Cypher {
         for (Object o : coll) {
             partition.add(o);
             if (partition.size() == batchSize) {
-                if (tx.shouldBeTerminated()) return Stream.of(MapResult.empty());
+                if (tx.getReasonIfTerminated()!=null) return Stream.of(MapResult.empty());
                 futures.add(submit(api, statement, params, key, partition));
                 partition = new ArrayList<>(batchSize);
             }
@@ -309,7 +309,7 @@ public class Cypher {
         @Override
         public boolean tryAdvance(Consumer<? super T> action) {
             try {
-                if (tx.shouldBeTerminated()) return false;
+                if (tx.getReasonIfTerminated()!=null) return false;
                 T entry = queue.poll(100, TimeUnit.MILLISECONDS);
                 if (entry == null || entry == tombstone) return false;
                 action.accept(entry);
