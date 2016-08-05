@@ -44,7 +44,7 @@ public class Utils {
         long started = System.currentTimeMillis();
         while (System.currentTimeMillis()-started < duration) {
             Thread.sleep(5);
-            if (transaction.shouldBeTerminated()) {
+            if (transaction.getReasonIfTerminated()!=null) {
                 return;
             }
         }

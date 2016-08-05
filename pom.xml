@@ -12,7 +12,7 @@
   <description>A collection of useful Neo4j Procedures</description>
 
   <properties>
-    <neo4j.version>3.0.3</neo4j.version>
+    <neo4j.version>3.0.4</neo4j.version>
   </properties>
 
   <organization>
