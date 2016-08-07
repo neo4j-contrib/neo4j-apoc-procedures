@@ -1,24 +1,19 @@
 package apoc.path;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.util.Scanner;
 
 import apoc.util.Util;
 import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import apoc.util.TestUtil;
+
+import java.util.List;
+import java.util.Map;
 
 public class ExpandPathTest {
     private static GraphDatabaseService db;
@@ -43,8 +38,7 @@ public class ExpandPathTest {
     public static void tearDown() {
         db.shutdown();
     }
-		
-	
+
 	@Test
 	public void testExplorePathRelationshipsTest() throws Throwable {
 		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,'<ACTED_IN|PRODUCED>|FOLLOWS','-',0,2) yield path return count(*) as c";
@@ -61,5 +55,22 @@ public class ExpandPathTest {
 	public void testExplorePathLabelBlackListTest() throws Throwable {
 		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,null,'-BigBrother',0,2) yield path return count(*) as c";
 		TestUtil.testCall(db, query, (row) -> assertEquals(44L,row.get("c")));
+	}
+
+	@Test
+	public void testExplorePathWithTerminationLabel() {
+		db.execute("MATCH (c:Person{name:'Clint Eastwood'}) SET c:Western");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+				"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'/Western', uniqueness: 'NODE_GLOBAL'}) yield path " +
+				"return path",
+				result -> {
+
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(1, maps.size());
+					Path path = (Path) maps.get(0).get("path");
+					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
+				});
 	}
 }

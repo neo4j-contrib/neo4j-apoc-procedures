@@ -64,7 +64,7 @@ public class Geocode {
             long msSinceLastCall = currentTimeMillis() - lastCallTime;
             while (msSinceLastCall < throttleInMs) {
                 try {
-                    if (kernelTransaction.shouldBeTerminated()) return;
+                    if (kernelTransaction.getReasonIfTerminated()!=null) return;
                     long msToWait = throttleInMs - msSinceLastCall;
                     Thread.sleep(Math.min(msToWait, 1000));
                 } catch (InterruptedException e) {

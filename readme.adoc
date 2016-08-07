@@ -81,6 +81,26 @@ RETURN name AS undocumented
 
 // end::help[]
 
+=== Builtin Package and Procedure count
+
+// tag::procedurecount[]
+
+To find the procedure count with the package in Neo4j: 
+
+image::{img}/apoc.dbms.procedure.count.jpg[width=600]
+
+.Cypher for getting count of procedure in a package
+[source,cypher]
+
+----
+
+CALL dbms.procedures() YIELD name
+RETURN head(split(name,".")) as package, count(*), collect(name) as procedures;
+
+----
+
+// end::procedurecount[]
+
 === Manual Indexes
 
 // tag::fulltext[]
@@ -641,13 +661,14 @@ Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 
 ==== Label Filter
 
-Syntax: `[+-]LABEL1|LABEL2|...`
+Syntax: `[+-/]LABEL1|LABEL2|...`
 
 [opts=header,cols="m,m,a"]
 |===
 | input | label | result
 | +Friend | Friend | include label (whitelist)
 | -Foe | Foe | exclude label (blacklist)
+| /Friend | Friend | stop traversal after reaching a friend (but include him)
 |===
 
 === Parallel Node Search 
