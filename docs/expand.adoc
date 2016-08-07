@@ -25,13 +25,14 @@ Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 
 Label Filter
 
-Syntax: `[+-]LABEL1|LABEL2|...`
+Syntax: `[+-/]LABEL1|LABEL2|...`
 
 [opts=header,cols="m,m,a"]
 |===
 | input | label | result
 | +Friend | Friend | include label (whitelist)
 | -Foe | Foe | exclude label (blacklist)
+| /Friend | Friend | stop traversal after reaching a friend (but include him)
 |===
 
 == Examples

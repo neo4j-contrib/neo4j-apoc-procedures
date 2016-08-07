@@ -14,6 +14,8 @@ import org.neo4j.procedure.Procedure;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static org.neo4j.graphdb.traversal.Evaluation.*;
+
 
 public class PathExplorer {
 	private static final String VERSION = "0.5";
@@ -131,12 +133,12 @@ public class PathExplorer {
 	}
 
 	public static class LabelEvaluator implements Evaluator {
-		private boolean included = true;
+		private char operator;
 		private Set<String> labels = new HashSet<String>();
 		public LabelEvaluator(String labelFilter) {
 			// parse the filter
-			if (labelFilter ==  null || labelFilter.equalsIgnoreCase("")) labelFilter = "-"; // exclude nothing
-			included = labelFilter.startsWith("+");
+			if (labelFilter ==  null || labelFilter.isEmpty()) labelFilter = "-"; // exclude nothing
+			operator = labelFilter.charAt(0);
 			String work = labelFilter.substring(1); // remove the + or -
 			// split on |
 			String[] defs = work.split("\\|") ;
@@ -145,25 +147,27 @@ public class PathExplorer {
 				labels.add(def);
 			}
 		}
-		
-		
+
 		@Override
 		public Evaluation evaluate(Path path) {
 			Node check = path.endNode();
-			if (included) {
-				if (labelExists(check)) {
-					return Evaluation.INCLUDE_AND_CONTINUE;
-				} else {
-					return Evaluation.EXCLUDE_AND_PRUNE;
-				}
-			} else {
-				if (labelExists(check)) {
-					return Evaluation.EXCLUDE_AND_PRUNE;
-				} else {
-					return Evaluation.INCLUDE_AND_CONTINUE;
-				}
+			Evaluation result;
+			switch (operator) {
+				case '+':
+					result = labelExists(check) ? INCLUDE_AND_CONTINUE : EXCLUDE_AND_PRUNE;
+					break;
+				case '-':
+					result = labelExists(check) ? EXCLUDE_AND_PRUNE : INCLUDE_AND_CONTINUE;
+					break;
+				case '/':
+					result = labelExists(check) ? INCLUDE_AND_PRUNE : EXCLUDE_AND_CONTINUE;
+					break;
+				default:
+					throw new IllegalArgumentException("evaluator uses unknown operator " + operator);
 			}
+			return result;
 		}
+
 		private boolean labelExists(Node node) {
 			for ( Label lab : node.getLabels() ) {
 				if (labels.contains(lab.name())) {
