@@ -9,7 +9,7 @@ import java.util.Map;
  */
 public class CCResult {
     public final List<Long> nodeIds;
-    public final Map stats;
+    public final Map<String, Long> stats;
 	
     
     public CCResult(List<Long> nodeIds, Map stats) {
