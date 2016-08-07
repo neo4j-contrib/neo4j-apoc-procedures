@@ -2,6 +2,7 @@ package apoc.algo;
 
 import apoc.Description;
 import apoc.Pools;
+import apoc.algo.pagerank.PageRankArrayStorageParallelCypher;
 import apoc.algo.pagerank.PageRankArrayStorageParallelSPI;
 import apoc.result.NodeScore;
 import apoc.util.Util;
@@ -22,9 +23,16 @@ import java.util.stream.Stream;
 public class PageRank {
 
     private static final String SETTING_PAGE_RANK_ITERATIONS = "iterations";
+    private static final String SETTING_PAGE_RANK_CYPHER = "cypher";
     private static final String SETTING_PAGE_RANK_TYPES = "types";
+    private static final String SETTING_PAGE_RANK_WRITE = "write";
+
     static final ExecutorService pool = Pools.DEFAULT;
     static final Long DEFAULT_PAGE_RANK_ITERATIONS = 20L;
+    static final String DEFAULT_PAGE_RANK_CYPHER =
+            "MATCH (s)-[r]->(t) RETURN id(s) as source, id(t) as target, 1 as weight";
+
+    static final boolean DEFAULT_PAGE_RANK_WRITE = false;
 
     @Context
     public GraphDatabaseService db;
@@ -53,6 +61,33 @@ public class PageRank {
                 (Long) config.getOrDefault(SETTING_PAGE_RANK_ITERATIONS, DEFAULT_PAGE_RANK_ITERATIONS),
                 nodes,
                 Util.typesAndDirectionsToTypesArray((String) config.getOrDefault(SETTING_PAGE_RANK_TYPES, "")));
+    }
+
+    @Procedure("apoc.algo.pageRankWithCypher")
+    @Description(
+            "CALL apoc.algo.pageRankWithCypher(nodes, cypherString) YIELD node, score - calculates page rank" +
+                    " by using the Cypher and projects results over the given nodes." +
+                    "\n Cypher should be return rows of \"source\", \"target\" and \"weight\".")
+    public Stream<NodeScore> pageRankWithCypher(
+            @Name("nodes") List<Node> nodes,
+            @Name("config") Map<String, Object> config) {
+        Long iterations = (Long) config.getOrDefault(SETTING_PAGE_RANK_ITERATIONS, DEFAULT_PAGE_RANK_ITERATIONS);
+        /*
+        Cypher should be of the following type: returning an array of source, target and weight.
+        MATCH (u:User) WITH u MATCH (u)-...-(u2:User)
+        RETURN id(u) as source, id(u2) as target, count(*) as weight
+         */
+        String cypher = (String)config.getOrDefault(SETTING_PAGE_RANK_CYPHER, DEFAULT_PAGE_RANK_CYPHER);
+        if (cypher.equals("") || cypher.isEmpty()) {
+            cypher = DEFAULT_PAGE_RANK_CYPHER;
+        }
+
+        // TODO Add this.
+        boolean shouldWrite = (boolean)config.getOrDefault(SETTING_PAGE_RANK_WRITE, DEFAULT_PAGE_RANK_WRITE);
+
+        PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(db, pool, cypher);
+        pageRank.compute(iterations.intValue());
+        return nodes.stream().map(node -> new NodeScore(node, pageRank.getResult(node.getId())));
     }
 
     private Stream<NodeScore> innerPageRank(Long iterations, List<Node> nodes, RelationshipType... types) {
