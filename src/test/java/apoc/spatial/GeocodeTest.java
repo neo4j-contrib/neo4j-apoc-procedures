@@ -30,7 +30,9 @@ public class GeocodeTest {
 
     @After
     public void tearDown() {
-        db.shutdown();
+        if (db!=null) {
+            db.shutdown();
+        }
     }
 
     @Test
