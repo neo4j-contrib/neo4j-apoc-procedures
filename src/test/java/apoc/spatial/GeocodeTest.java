@@ -100,10 +100,10 @@ public class GeocodeTest {
         testCall(db, "CALL apoc.spatial.geocodeOnce({url})", map("url", address),
                 (row) -> {
                     Map value = (Map) row.get("location");
-                    assertEquals("Incorrect latitude found", lat, Double.parseDouble(value.get("latitude").toString()),
-                            0.0005);
-                    assertEquals("Incorrect longitude found", lon, Double.parseDouble(value.get("longitude").toString()),
-                            0.0005);
+                    assertEquals("Incorrect latitude found for address "+address, lat, Double.parseDouble(value.get("latitude").toString()),
+                            0.1);
+                    assertEquals("Incorrect latitude found for address "+address, lon, Double.parseDouble(value.get("longitude").toString()),
+                            0.1);
                 });
     }
 
