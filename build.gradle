@@ -1,19 +1,46 @@
-apply plugin: 'java'
-apply plugin: 'maven'
+buildscript {
+    repositories {
+        mavenCentral()
+        //Needed only for SNAPSHOT versions
+        //maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
+    }
+    dependencies {
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
+    }
+}
 
-group = 'org.neo4j.procedure'
-version = '1.0.1-SNAPSHOT'
+plugins {
+    id 'java'
+    id 'idea'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+    id "org.asciidoctor.convert" version "1.5.3"
+    id "com.bmuschko.nexus" version "2.3.1"
+}
+apply plugin: 'io.codearte.nexus-staging'
 
-description = """neo4j-apoc-procedures"""
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+idea {
+    project {
+        ext.jdkName = '1.8'
+        ext.languageLevel = '1.8'
+    }
+}
+
+group = 'org.neo4j.procedure'
+version = '1.2.0-SNAPSHOT'
+archivesBaseName = 'apoc'
+
+description = """neo4j-apoc-procedures"""
+
 ext {
     neo4jVersion = "3.0.4"
 }
+
 repositories {
-     maven { url "http://repo.maven.apache.org/maven2" }
+     mavenCentral()
 }
 
 dependencies {
@@ -37,21 +64,16 @@ dependencies {
     compile group: 'com.github.javafaker', name: 'javafaker', version:'0.10'
 }
 
+shadowJar {
+  dependencies {
+    include(dependency('commons-codec:commons-codec'))
+    include(dependency('com.github.javafaker:javafaker'))
+  }
+}
+
 /**************
 * ASCIIDOCTOR *
 **************/
-
-buildscript {
-    repositories {
-        jcenter()
-    }
-
-    dependencies {
-        classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
-    }
-}
-
-apply plugin: 'org.asciidoctor.convert'
 
 asciidoctor {
     sourceDir = file('docs')
@@ -70,3 +92,59 @@ asciidoctor.doLast {
 /******
 * END *
 ******/
+
+// publishing
+
+nexusStaging {
+    //packageGroup = "org.mycompany.myproject" //optional if packageGroup == project.getGroup()
+    stagingProfileId = "E340E795" //when not defined will be got from server using "packageGroup"
+
+    //serverUrl = stable release repository - by default Sonatype OSSRH - https://oss.sonatype.org/service/local/
+    //username  = (optional) - username to the server
+    // password = (optional) - password
+    // packageGroup (optional) - package group as registered in Nexus staging profile - by default set to a project group (has to be overridden if packageGroup in Nexus was requested for a few packages in the same domain)
+    // stagingProfileId (optional) - staging profile used to release given project - can be get with getStagingProfile task - when not set one additional request is set to Nexus server to determine the value using packageGroup
+    //numberOfRetries (optional) - number of retries when waiting for a repository to change a state - by default 7
+    //delayBetweenRetriesInMillis (optional) - delay between retries - by default 1000 milliseconds
+}
+
+modifyPom {
+    project {
+        name 'neo4j-apoc-procedures'
+        packaging 'jar'
+        description 'A collection of useful Neo4j Procedures'
+        url 'http://github.com/neo4j-contrib/neo4j-apoc-procedures'
+
+        organization {
+            name "Neo Technology, Inc."
+            url "http://neotechnology.com"
+        }
+
+        scm {
+            url 'https://github.com/neo4j-contrib/neo4j-apoc-procedures'
+        }
+
+        licenses {
+            license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                comments """Note that this license is for the project itself,
+and not for its dependencies."""
+                distribution "repo"
+            }
+        }
+
+        developers {
+            developer {
+                id 'michaelhunger'
+                name 'Michael Hunger'
+                email 'michael.hunger@neo4j.com'
+            }
+            developer {
+                id 'stefanarmbruster'
+                name 'Stefan Armbruster'
+                email 'stefan.armbruster@neo4j.com'
+            }
+        }
+    }
+}
