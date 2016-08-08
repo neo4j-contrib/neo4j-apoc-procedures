@@ -1,5 +1,7 @@
 package apoc.algo;
 
+import apoc.util.TestUtil;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
@@ -15,6 +17,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.*;
 
+import static apoc.util.TestUtil.assumeTravis;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -24,6 +27,11 @@ import static org.junit.Assert.assertEquals;
 public class PregelTest {
 
     public static final RelationshipType TYPE = RelationshipType.withName("FOO");
+
+    @Before
+    public void skipOnTravis() {
+        assumeTravis();
+    }
 
     @Test
     public void runDegreeProgram() throws Exception {
