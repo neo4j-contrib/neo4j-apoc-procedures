@@ -23,25 +23,26 @@ import static org.junit.Assert.assertTrue;
  */
 public class ExportTest {
 
-    private static final String EXPECTED = "begin\n" +
-            "CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:\"foo\", `UNIQUE IMPORT ID`:0});\n" +
-            "CREATE (:`Bar` {`name`:\"bar\", `age`:42});\n" +
-            "CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});\n" +
-            "commit\n" +
-            "begin\n" +
-            "CREATE INDEX ON :`Foo`(`name`);\n" +
-            "CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;\n" +
-            "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;\n" +
-            "commit\n" +
-            "schema await\n" +
-            "begin\n" +
-            "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:\"bar\"}) CREATE (n1)-[:`KNOWS`]->(n2);\n" +
-            "commit\n" +
-            "begin\n" +
-            "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;\n" +
-            "commit\n" +
-            "begin\n" +
-            "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;\n" +
+    private static final String line_sep = System.lineSeparator();
+    private static final String EXPECTED = "begin" + line_sep +
+            "CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:\"foo\", `UNIQUE IMPORT ID`:0});" + line_sep +
+            "CREATE (:`Bar` {`name`:\"bar\", `age`:42});" + line_sep +
+            "CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});" + line_sep +
+            "commit" + line_sep +
+            "begin" + line_sep +
+            "CREATE INDEX ON :`Foo`(`name`);" + line_sep +
+            "CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;" + line_sep +
+            "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;" + line_sep +
+            "commit" + line_sep +
+            "schema await" + line_sep +
+            "begin" + line_sep +
+            "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:\"bar\"}) CREATE (n1)-[:`KNOWS`]->(n2);" + line_sep +
+            "commit" + line_sep +
+            "begin" + line_sep +
+            "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;" + line_sep +
+            "commit" + line_sep +
+            "begin" + line_sep +
+            "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;" + line_sep +
             "commit";
 
     private static GraphDatabaseService db;
