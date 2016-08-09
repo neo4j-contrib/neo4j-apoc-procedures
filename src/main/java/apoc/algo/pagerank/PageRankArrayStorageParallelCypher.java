@@ -48,9 +48,14 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         Sort and divide into (number of threads) chunks and process it in parallel.
         We *might* need to store the relationships too for that purpose.
      */
-    private Map<Integer, Integer> sourceDegree;
     int [] nodeMapping;
     int [] sourceDegreeData;
+
+    // Weighted Degrees.
+    int [] sourceWeightData;
+
+    // Storing relationships
+    int [] targets;
     private Map<Integer, Integer> pageRanks;
     private Map<Integer, Integer> previousPageRank;
 
@@ -72,7 +77,6 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         int index = Arrays.binarySearch(nodeMapping, node);
         if (index >= 0) {
             degree = sourceDegreeData[index];
-            System.out.println("Degree for " + node + " is " + degree + " " + sourceDegree.getOrDefault(node, 0));
         }
         return degree;
     }
@@ -82,9 +86,21 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         sourceDegreeData[index] = degree;
     }
 
-    // TODO change this to include relCypher and nodeCypher
+    private int getWeight(int node) {
+        int degree = 0;
+        int index = Arrays.binarySearch(nodeMapping, node);
+        if (index >= 0) {
+            degree = sourceWeightData[index];
+        }
+        return degree;
+    }
+
+    private void setWeight(int node, int weight) {
+        int index = Arrays.binarySearch(nodeMapping, node);
+        sourceWeightData[index] = weight;
+    }
+
     private void readDataIntoArray(String relCypher, String nodeCypher) {
-        sourceDegree = new HashMap<>();
         System.out.println("Executing node: " + nodeCypher);
         Result nodeResult = db.execute(nodeCypher);
         Result nodeCountResult = db.execute(nodeCypher);
@@ -94,6 +110,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
 
         nodeMapping = new int[totalNodes];
         sourceDegreeData = new int[totalNodes];
+        sourceWeightData = new int[totalNodes];
 
         String columnName = nodeResult.columns().get(0);
         int index = 0;
@@ -102,20 +119,12 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             int node = ((Long)res.get(columnName)).intValue();
             nodeMapping[index] = node;
             sourceDegreeData[index] = 0;
+            sourceWeightData[index] = 0;
             System.out.println(index + " " + node);
             index++;
         }
 
-        for (int x: nodeMapping) {
-            System.out.println(x);
-        }
-
         Arrays.sort(nodeMapping);
-
-        System.out.println("Sorted array");
-        for (int x: nodeMapping) {
-            System.out.println(x);
-        }
         pageRanks = new HashMap<>();
         previousPageRank = new HashMap<>();
 
@@ -127,15 +136,10 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             int weight = ((Long) res.getOrDefault("weight", 1)).intValue();
 
             int storedDegree = getDegree(source);
-            setDegree(source, storedDegree + weight);
+            setDegree(source, storedDegree + 1);
 
-            if (sourceDegree.containsKey(source)) {
-                int _storedDegree = sourceDegree.get(source);
-                sourceDegree.put(source, _storedDegree + weight);
-            } else {
-                sourceDegree.put(source, weight);
-            }
-
+            int storedWeight = getWeight(source);
+            setWeight(source, storedWeight + weight);
 
             // This would be the union of target as well as source nodes.
             // Because this will act as a placeholder for intermediate results of both.
@@ -185,13 +189,13 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     {
         for (Map.Entry<Integer, Integer> entry : previousPageRank.entrySet()) {
             int node = entry.getKey();
-            int degree = getDegree(node);
+            int weightedDegree = getWeight(node);
 
-            if (degree == 0) {
+            if (weightedDegree == 0) {
                 continue;
             }
             int prevRank = pageRanks.getOrDefault(node, 0);
-            previousPageRank.put(node, toInt(ALPHA * toFloat(prevRank) / degree));
+            previousPageRank.put(node, toInt(ALPHA * toFloat(prevRank) / weightedDegree));
             pageRanks.put(node, ONE_MINUS_ALPHA_INT);
 
         }
