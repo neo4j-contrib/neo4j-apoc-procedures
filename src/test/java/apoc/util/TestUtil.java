@@ -17,6 +17,7 @@ import java.util.function.Supplier;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
 
 /**
  * @author mh
@@ -130,5 +131,9 @@ public class TestUtil {
             assertThat("duration " + matcher, System.currentTimeMillis()-start, matcher);
             return result;
         }
+    }
+
+    public static void assumeTravis() {
+        assumeFalse("we're running on travis, so skipping","true".equals(System.getenv("TRAVIS")));
     }
 }

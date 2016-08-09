@@ -2,10 +2,8 @@ package apoc.spatial;
 
 import apoc.ApocConfiguration;
 import apoc.util.JsonUtil;
-import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -25,13 +23,16 @@ public class GeocodeTest {
 
     @Before
     public void setUp() throws Exception {
+        assumeTravis();
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure(db, Geocode.class);
+        registerProcedure(db, Geocode.class);
     }
 
     @After
     public void tearDown() {
-        db.shutdown();
+        if (db!=null) {
+            db.shutdown();
+        }
     }
 
     @Test
