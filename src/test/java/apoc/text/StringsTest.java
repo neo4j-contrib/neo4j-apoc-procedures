@@ -103,13 +103,6 @@ public class StringsTest {
                 row -> assertEquals(expected, row.get("value")));
     }
 
-    @Test public void testClean() throws Exception {
-        String testStringA = "&N[]eo  4 #J-(3.0)  ";
-        testCall(db,
-                "CALL apoc.text.clean({a})",
-                map("a",testStringA),
-                row -> assertEquals("neo4j30", row.get("value")));
-    }
 
     @Test public void testCleanWithNull() throws Exception {
         testCall(db,

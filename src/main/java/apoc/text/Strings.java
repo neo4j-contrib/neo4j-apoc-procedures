@@ -10,6 +10,7 @@ import org.neo4j.procedure.Procedure;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.text.Normalizer;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -83,8 +84,26 @@ public class Strings {
     }
 
     private static Pattern cleanPattern = Pattern.compile("[^A-Za-z0-9]+");
+    private static Pattern specialCharPattern = Pattern.compile("\\p{IsM}+");
+    private static String[][] UMLAUT_REPLACEMENTS = {
+            { new String("Ä"), "Ae" },
+            { new String("Ü"), "Ue" },
+            { new String("Ö"), "Oe" },
+            { new String("ä"), "ae" },
+            { new String("ü"), "ue" },
+            { new String("ö"), "oe" },
+            { new String("ß"), "ss" }
+    };
+
 
     private static String removeNonWordCharacters(String s) {
-        return cleanPattern.matcher(s).replaceAll("").toLowerCase();
+
+        String result = s ;
+        for (int i=0; i<UMLAUT_REPLACEMENTS.length; i++) {
+            result = result.replace(UMLAUT_REPLACEMENTS[i][0], UMLAUT_REPLACEMENTS[i][1]);
+        }
+        result = Normalizer.normalize(result, Normalizer.Form.NFD);
+        String tmp2 = specialCharPattern.matcher(result).replaceAll("");
+        return cleanPattern.matcher(tmp2).replaceAll("").toLowerCase();
     }
 }
