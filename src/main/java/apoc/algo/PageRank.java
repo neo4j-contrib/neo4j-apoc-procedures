@@ -23,14 +23,17 @@ import java.util.stream.Stream;
 public class PageRank {
 
     private static final String SETTING_PAGE_RANK_ITERATIONS = "iterations";
-    private static final String SETTING_PAGE_RANK_CYPHER = "cypher";
+    private static final String SETTING_PAGE_RANK_CYPHER_NODE = "node_cypher";
+    private static final String SETTING_PAGE_RANK_CYPHER_REL = "rel_cypher";
     private static final String SETTING_PAGE_RANK_TYPES = "types";
     private static final String SETTING_PAGE_RANK_WRITE = "write";
 
     static final ExecutorService pool = Pools.DEFAULT;
     static final Long DEFAULT_PAGE_RANK_ITERATIONS = 20L;
-    static final String DEFAULT_PAGE_RANK_CYPHER =
+    static final String DEFAULT_PAGE_RANK_CYPHER_REL =
             "MATCH (s)-[r]->(t) RETURN id(s) as source, id(t) as target, 1 as weight";
+    static final String DEFAULT_PAGE_RANK_CYPHER_NODE =
+            "MATCH (s) RETURN id(s)";
 
     static final boolean DEFAULT_PAGE_RANK_WRITE = false;
 
@@ -77,15 +80,21 @@ public class PageRank {
         MATCH (u:User) WITH u MATCH (u)-...-(u2:User)
         RETURN id(u) as source, id(u2) as target, count(*) as weight
          */
-        String cypher = (String)config.getOrDefault(SETTING_PAGE_RANK_CYPHER, DEFAULT_PAGE_RANK_CYPHER);
-        if (cypher.equals("") || cypher.isEmpty()) {
-            cypher = DEFAULT_PAGE_RANK_CYPHER;
-        }
+        String relCypher = (String)config.getOrDefault(SETTING_PAGE_RANK_CYPHER_REL, DEFAULT_PAGE_RANK_CYPHER_REL);
+        String nodeCypher = (String)config.getOrDefault(SETTING_PAGE_RANK_CYPHER_NODE, DEFAULT_PAGE_RANK_CYPHER_NODE);
 
         // TODO Add this.
         boolean shouldWrite = (boolean)config.getOrDefault(SETTING_PAGE_RANK_WRITE, DEFAULT_PAGE_RANK_WRITE);
 
-        PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(db, pool, cypher);
+        if (nodeCypher.equals("") || nodeCypher.isEmpty()) {
+            nodeCypher = DEFAULT_PAGE_RANK_CYPHER_NODE;
+        }
+
+        if (relCypher.equals("") || relCypher.isEmpty()) {
+            relCypher = DEFAULT_PAGE_RANK_CYPHER_REL;
+        }
+
+        PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(db, pool, nodeCypher, relCypher);
         pageRank.compute(iterations.intValue());
         return nodes.stream().map(node -> new NodeScore(node, pageRank.getResult(node.getId())));
     }

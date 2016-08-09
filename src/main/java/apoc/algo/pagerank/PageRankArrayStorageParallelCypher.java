@@ -1,5 +1,6 @@
 package apoc.algo.pagerank;
 
+import apoc.result.ObjectResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Result;
@@ -8,6 +9,8 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 import static apoc.algo.pagerank.PageRankUtils.toFloat;
 import static apoc.algo.pagerank.PageRankUtils.toInt;
@@ -19,7 +22,8 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     public final int BATCH_SIZE = 100_000;
     private final GraphDatabaseAPI db;
     private final ExecutorService pool;
-    private String cypher = "";
+    private String nodeCypher;
+    private String relCypher;
 
     /*
         Integer key = 16 bytes + 4 bytes for map reference
@@ -45,38 +49,93 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         We *might* need to store the relationships too for that purpose.
      */
     private Map<Integer, Integer> sourceDegree;
+    int [] nodeMapping;
+    int [] sourceDegreeData;
     private Map<Integer, Integer> pageRanks;
     private Map<Integer, Integer> previousPageRank;
 
     public PageRankArrayStorageParallelCypher(
             GraphDatabaseService db,
             ExecutorService pool,
-            String cypher)
+            String nodeCypher,
+            String relCypher)
     {
         this.pool = pool;
         this.db = (GraphDatabaseAPI) db;
-        this.cypher = cypher;
-        readDataIntoArray(cypher);
+        this.relCypher = relCypher;
+        this.nodeCypher = nodeCypher;
+        readDataIntoArray(this.relCypher, this.nodeCypher);
     }
 
-    private void readDataIntoArray(String cypher) {
+    private int getDegree(int node) {
+        int degree = 0;
+        int index = Arrays.binarySearch(nodeMapping, node);
+        if (index >= 0) {
+            degree = sourceDegreeData[index];
+            System.out.println("Degree for " + node + " is " + degree + " " + sourceDegree.getOrDefault(node, 0));
+        }
+        return degree;
+    }
+
+    private void setDegree(int node, int degree) {
+        int index = Arrays.binarySearch(nodeMapping, node);
+        sourceDegreeData[index] = degree;
+    }
+
+    // TODO change this to include relCypher and nodeCypher
+    private void readDataIntoArray(String relCypher, String nodeCypher) {
         sourceDegree = new HashMap<>();
+        System.out.println("Executing node: " + nodeCypher);
+        Result nodeResult = db.execute(nodeCypher);
+        Result nodeCountResult = db.execute(nodeCypher);
+
+        // TODO Do this lazily.
+        int totalNodes = (int)nodeCountResult.stream().count();
+
+        nodeMapping = new int[totalNodes];
+        sourceDegreeData = new int[totalNodes];
+
+        String columnName = nodeResult.columns().get(0);
+        int index = 0;
+        while(nodeResult.hasNext()) {
+            Map<String, Object> res = nodeResult.next();
+            int node = ((Long)res.get(columnName)).intValue();
+            nodeMapping[index] = node;
+            sourceDegreeData[index] = 0;
+            System.out.println(index + " " + node);
+            index++;
+        }
+
+        for (int x: nodeMapping) {
+            System.out.println(x);
+        }
+
+        Arrays.sort(nodeMapping);
+
+        System.out.println("Sorted array");
+        for (int x: nodeMapping) {
+            System.out.println(x);
+        }
         pageRanks = new HashMap<>();
         previousPageRank = new HashMap<>();
 
-        Result result = db.execute(cypher);
+        Result result = db.execute(relCypher);
         while(result.hasNext()) {
             Map<String, Object> res = result.next();
             int source = ((Long) res.get("source")).intValue();
             int target = ((Long) res.get("target")).intValue();
             int weight = ((Long) res.getOrDefault("weight", 1)).intValue();
 
+            int storedDegree = getDegree(source);
+            setDegree(source, storedDegree + weight);
+
             if (sourceDegree.containsKey(source)) {
-                int storedDegree = sourceDegree.get(source);
-                sourceDegree.put(source, storedDegree + weight);
+                int _storedDegree = sourceDegree.get(source);
+                sourceDegree.put(source, _storedDegree + weight);
             } else {
                 sourceDegree.put(source, weight);
             }
+
 
             // This would be the union of target as well as source nodes.
             // Because this will act as a placeholder for intermediate results of both.
@@ -94,6 +153,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         }
     }
 
+    // TODO This should just use the structures built initially.
     @Override
     public void compute(
             int iterations,
@@ -101,7 +161,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     {
         for (int iteration = 0; iteration < iterations; iteration++) {
             startIteration();
-            iterate(this.cypher);
+            iterate(this.relCypher);
         }
     }
 
@@ -125,7 +185,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     {
         for (Map.Entry<Integer, Integer> entry : previousPageRank.entrySet()) {
             int node = entry.getKey();
-            int degree = sourceDegree.getOrDefault(node, 0);
+            int degree = getDegree(node);
 
             if (degree == 0) {
                 continue;
@@ -135,6 +195,11 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             pageRanks.put(node, ONE_MINUS_ALPHA_INT);
 
         }
+    }
+
+    // TODO Just write stuff.
+    public void writeResultsBack() {
+
     }
 
     public double getResult(long node)
