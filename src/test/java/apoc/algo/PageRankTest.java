@@ -161,6 +161,31 @@ public class PageRankTest
     }
 
     @Test
+    public void shouldWriteBackResults() throws IOException
+    {
+        db.execute( COMPANIES_QUERY_LABEL ).close();
+        String query = "MATCH (b:Company {name:'b'})\n" +
+                "CALL apoc.algo.pageRankWithCypher([b],{node_cypher:\"MATCH (node:Company) return id(node)\", " +
+                "rel_cypher:\"\", write:true, iterations:20,types:'TYPE_1|TYPE_2'}) " +
+                "YIELD node, score\n" +
+                "RETURN node.name AS name, score\n" +
+                "ORDER BY score DESC";
+        Result result = db.execute( query );
+        assertTrue( result.hasNext() );
+        Map<String,Object> row = result.next();
+        assertFalse(result.hasNext() );
+        assertEquals( PageRankAlgoTest.EXPECTED, (double) row.get( "score" ), 0.1D );
+
+        String getPropertyQeury = "MATCH (node: Company) WHERE node.name='b' RETURN node.pagerank as pagerank";
+        Result propertyResult =db.execute(getPropertyQeury);
+        // System.out.println(propertyResult.resultAsString());
+        assertTrue(propertyResult.hasNext());
+        Map<String, Object> propertyRow = propertyResult.next();
+        assertFalse(propertyResult.hasNext() );
+        assertEquals(PageRankAlgoTest.EXPECTED, (double) propertyRow.get("pagerank"), 0.1D );
+    }
+
+    @Test
     public void shouldGetPageRankExpectedResultWithTypes() throws IOException
     {
         db.execute( COMPANIES_QUERY ).close();

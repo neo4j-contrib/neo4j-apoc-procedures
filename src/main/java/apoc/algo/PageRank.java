@@ -41,6 +41,9 @@ public class PageRank {
     public GraphDatabaseService db;
 
     @Context
+    public GraphDatabaseAPI dbAPI;
+
+    @Context
     public Log log;
 
 
@@ -68,22 +71,14 @@ public class PageRank {
 
     @Procedure("apoc.algo.pageRankWithCypher")
     @Description(
-            "CALL apoc.algo.pageRankWithCypher(nodes, cypherString) YIELD node, score - calculates page rank" +
-                    " by using the Cypher and projects results over the given nodes." +
-                    "\n Cypher should be return rows of \"source\", \"target\" and \"weight\".")
+            "")
     public Stream<NodeScore> pageRankWithCypher(
             @Name("nodes") List<Node> nodes,
             @Name("config") Map<String, Object> config) {
         Long iterations = (Long) config.getOrDefault(SETTING_PAGE_RANK_ITERATIONS, DEFAULT_PAGE_RANK_ITERATIONS);
-        /*
-        Cypher should be of the following type: returning an array of source, target and weight.
-        MATCH (u:User) WITH u MATCH (u)-...-(u2:User)
-        RETURN id(u) as source, id(u2) as target, count(*) as weight
-         */
         String relCypher = (String)config.getOrDefault(SETTING_PAGE_RANK_CYPHER_REL, DEFAULT_PAGE_RANK_CYPHER_REL);
         String nodeCypher = (String)config.getOrDefault(SETTING_PAGE_RANK_CYPHER_NODE, DEFAULT_PAGE_RANK_CYPHER_NODE);
 
-        // TODO Add this.
         boolean shouldWrite = (boolean)config.getOrDefault(SETTING_PAGE_RANK_WRITE, DEFAULT_PAGE_RANK_WRITE);
 
         if (nodeCypher.equals("") || nodeCypher.isEmpty()) {
@@ -94,8 +89,11 @@ public class PageRank {
             relCypher = DEFAULT_PAGE_RANK_CYPHER_REL;
         }
 
-        PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(db, pool, nodeCypher, relCypher);
+        PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(dbAPI, pool, nodeCypher, relCypher);
         pageRank.compute(iterations.intValue());
+        if (shouldWrite) {
+            pageRank.writeResultsToDB();
+        }
         return nodes.stream().map(node -> new NodeScore(node, pageRank.getResult(node.getId())));
     }
 

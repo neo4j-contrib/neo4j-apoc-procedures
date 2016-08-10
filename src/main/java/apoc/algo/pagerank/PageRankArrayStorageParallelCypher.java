@@ -1,13 +1,24 @@
 package apoc.algo.pagerank;
 
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.cypher.EntityNotFoundException;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.kernel.api.DataWriteOperations;
+import org.neo4j.kernel.api.exceptions.InvalidTransactionTypeKernelException;
+import org.neo4j.kernel.api.exceptions.legacyindex.AutoIndexingKernelException;
+import org.neo4j.kernel.api.exceptions.schema.ConstraintValidationKernelException;
+import org.neo4j.kernel.api.exceptions.schema.IllegalTokenNameException;
+import org.neo4j.kernel.api.properties.DefinedProperty;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.Arrays;
+import java.util.concurrent.Future;
 
 import static apoc.algo.pagerank.PageRankUtils.toFloat;
 import static apoc.algo.pagerank.PageRankUtils.toInt;
@@ -15,6 +26,7 @@ import static apoc.algo.pagerank.PageRankUtils.toInt;
 public class PageRankArrayStorageParallelCypher implements PageRank
 {
     public static final int ONE_MINUS_ALPHA_INT = toInt( ONE_MINUS_ALPHA );
+    public static final int WRITE_BATCH=10_100;
     public final int BATCH_SIZE = 100_000;
     private final GraphDatabaseAPI db;
     private final ExecutorService pool;
@@ -51,13 +63,13 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     int [] previousPageRanks;
 
     public PageRankArrayStorageParallelCypher(
-            GraphDatabaseService db,
+            GraphDatabaseAPI db,
             ExecutorService pool,
             String nodeCypher,
             String relCypher)
     {
         this.pool = pool;
-        this.db = (GraphDatabaseAPI) db;
+        this.db = db;
         this.relCypher = relCypher;
         this.nodeCypher = nodeCypher;
         readDataIntoArray(this.relCypher, this.nodeCypher);
@@ -100,6 +112,8 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         int currentIndex = 0;
         for (int i = 0; i < nodeCount; i++) {
             sourceChunkStartingIndex[i] = currentIndex;
+            if (sourceDegreeData[i] == -1)
+                continue;
             currentIndex += sourceDegreeData[i];
         }
     }
@@ -139,11 +153,18 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             int weight = ((Long) res.getOrDefault("weight", 1)).intValue();
 
             int storedDegree = getDegree(source);
-            setDegree(source, storedDegree + 1);
+            if (storedDegree == -1) {
+                setDegree(source,  1);
+            } else {
+                setDegree(source, storedDegree + 1);
+            }
 
             int storedWeight = getWeight(source);
-            setWeight(source, storedWeight + weight);
-
+            if (storedWeight == -1) {
+                setWeight(source, weight);
+            } else {
+                setWeight(source, storedWeight + weight);
+            }
             totalRelationships++;
         }
 
@@ -153,6 +174,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
 
         for (int i = 0; i < totalRelationships; i++) {
             relationshipTarget[i] = -1;
+            relationshipWeight[i] = -1;
         }
         this.relCount = totalRelationships;
         calculateChunkIndices();
@@ -218,25 +240,65 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         }
     }
 
-
     private void startIteration()
     {
         for (int node = 0; node < nodeCount; node++) {
             int weightedDegree = sourceWeightData[node];
 
-            if (weightedDegree == 0) {
+            if (weightedDegree == -1) {
                 continue;
             }
             int prevRank = pageRanks[node];
             previousPageRanks[node] =  toInt(ALPHA * toFloat(prevRank) / weightedDegree);
             pageRanks[node] = ONE_MINUS_ALPHA_INT;
-
         }
     }
 
-    // TODO Just write stuff.
-    public void writeResultsBack() {
+    public void writeResultsToDB() {
+        writeBackResults(db, this);
+    }
 
+    public void writeBackResults(GraphDatabaseAPI db, Algorithm algorithm) {
+        ThreadToStatementContextBridge ctx = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
+        int propertyNameId;
+        try (Transaction tx = db.beginTx()) {
+            propertyNameId = ctx.get().tokenWriteOperations().propertyKeyGetOrCreateForName(algorithm.getPropertyName());
+            tx.success();
+        } catch (IllegalTokenNameException e) {
+            throw new RuntimeException(e);
+        }
+        final long totalNodes = numberOfNodes();
+        int batches = (int) totalNodes / WRITE_BATCH;
+        List<Future> futures = new ArrayList<>(batches);
+        for (int i = 0; i < totalNodes; i += WRITE_BATCH) {
+            int nodeIndex = i;
+            final int start = nodeIndex;
+            Future future = pool.submit(new Runnable() {
+                public void run() {
+                    try (Transaction tx = db.beginTx()) {
+                        DataWriteOperations ops = ctx.get().dataWriteOperations();
+                        for (long i = 0; i < WRITE_BATCH; i++) {
+                            long nodeIndex = i + start;
+                            if (nodeIndex >= totalNodes) break;
+
+                            int graphNode = nodeMapping[(int)nodeIndex];
+                            double value = algorithm.getResult(graphNode);
+                            if (value > 0) {
+                                ops.nodeSetProperty(graphNode, DefinedProperty.doubleProperty(propertyNameId, value));
+                            }
+                        }
+                        tx.success();
+                    } catch (ConstraintValidationKernelException | InvalidTransactionTypeKernelException |
+                            EntityNotFoundException | AutoIndexingKernelException |
+                            org.neo4j.kernel.api.exceptions.EntityNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            futures.add(future);
+        }
+        PageRankUtils.waitForTasks(futures);
     }
 
     public double getResult(long node)
