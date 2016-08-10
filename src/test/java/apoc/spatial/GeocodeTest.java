@@ -102,7 +102,7 @@ public class GeocodeTest {
                     Map value = (Map) row.get("location");
                     assertEquals("Incorrect latitude found for address "+address, lat, Double.parseDouble(value.get("latitude").toString()),
                             0.1);
-                    assertEquals("Incorrect latitude found for address "+address, lon, Double.parseDouble(value.get("longitude").toString()),
+                    assertEquals("Incorrect longitude found for address "+address, lon, Double.parseDouble(value.get("longitude").toString()),
                             0.1);
                 });
     }
