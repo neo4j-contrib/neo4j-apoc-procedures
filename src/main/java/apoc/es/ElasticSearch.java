@@ -25,66 +25,66 @@ public class ElasticSearch {
     }
 
     @Procedure
-    @Description("apoc.es.stats(host-url-Key) - elastic search statistics")
-    public Stream<MapResult> stats(@Name("host") String hostOrKey) {
+    @Description("apoc.es.stats(host-url-Key,username-or-null,password-or-null) - elastic search statistics")
+    public Stream<MapResult> stats(@Name("host") String hostOrKey, @Name("username") String username, @Name("password") String password) {
         String url = getElasticSearchUrl(hostOrKey);
-        return LoadJson.loadJsonStream(url+"/_stats",null,null);
+        return LoadJson.loadJsonStream(url + "/_stats", username, password, null, null);
     }
 
     @Procedure
-    @Description("apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a GET operation on elastic search")
-    public Stream<MapResult> get(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload) {
+    @Description("apoc.es.get(host-or-port,username-or-null,password-or-null,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a GET operation on elastic search")
+    public Stream<MapResult> get(@Name("host") String hostOrKey, @Name("username") String username, @Name("password") String password, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload) {
         String url = getElasticSearchUrl(hostOrKey);
         return LoadJson.loadJsonStream(String.format(url+"/%s/%s/%s?%s",
                 index==null?"_all": index,
                 type==null?"_all":type,
                 id==null?"":id,
-                toQueryParams(query)),null,toPayload(payload));
+                toQueryParams(query)),username, password, null,toPayload(payload));
     }
 
     @Procedure
-    @Description("apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a SEARCH operation on elastic search")
-    public Stream<MapResult> query(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("query") Object query, @Name("payload") Object payload) {
+    @Description("apoc.es.query(host-or-port,username-or-null,password-or-null,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a SEARCH operation on elastic search")
+    public Stream<MapResult> query(@Name("host") String hostOrKey, @Name("username") String username, @Name("password") String password, @Name("index") String index, @Name("type") String type, @Name("query") Object query, @Name("payload") Object payload) {
         String url = getElasticSearchUrl(hostOrKey);
         return LoadJson.loadJsonStream(String.format(url+"/%s/%s/%s?%s",
                 index==null?"_all": index,
                 type==null?"_all":type,
                 "_search",
-                toQueryParams(query)),null,toPayload(payload));
+                toQueryParams(query)),username, password, null,toPayload(payload));
     }
 
     @Procedure
-    @Description("apoc.es.getRaw(host-or-port,path,payload-or-null) yield value - perform a raw GET operation on elastic search")
-    public Stream<MapResult> getRaw(@Name("host") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload) {
+    @Description("apoc.es.getRaw(host-or-port,username-or-null,password-or-null,path,payload-or-null) yield value - perform a raw GET operation on elastic search")
+    public Stream<MapResult> getRaw(@Name("host") String hostOrKey, @Name("username") String username, @Name("password") String password, @Name("path") String suffix, @Name("payload") Object payload) {
         String url = getElasticSearchUrl(hostOrKey);
-        return LoadJson.loadJsonStream(url+"/"+suffix,null,toPayload(payload));
+        return LoadJson.loadJsonStream(url+"/"+suffix,username, password, null,toPayload(payload));
     }
     @Procedure
-    @Description("apoc.es.postRaw(host-or-port,path,payload-or-null) yield value - perform a raw POST operation on elastic search")
-    public Stream<MapResult> postRaw(@Name("host") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload) {
+    @Description("apoc.es.postRaw(host-or-port,username-or-null,password-or-null,path,payload-or-null) yield value - perform a raw POST operation on elastic search")
+    public Stream<MapResult> postRaw(@Name("host") String hostOrKey, @Name("username") String username, @Name("password") String password, @Name("path") String suffix, @Name("payload") Object payload) {
         String url = getElasticSearchUrl(hostOrKey);
-        return LoadJson.loadJsonStream(url+"/"+suffix,map("method","POST"),toPayload(payload));
+        return LoadJson.loadJsonStream(url+"/"+suffix,username, password, map("method","POST"),toPayload(payload));
     }
 
     @Procedure
-    @Description("apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a POST operation on elastic search")
-    public Stream<MapResult> post(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload) {
+    @Description("apoc.es.post(host-or-port,username-or-null,password-or-null,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a POST operation on elastic search")
+    public Stream<MapResult> post(@Name("host") String hostOrKey, @Name("username") String username, @Name("password") String password, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload) {
         String url = getElasticSearchUrl(hostOrKey);
         return LoadJson.loadJsonStream(String.format(url+"/%s/%s/%s?%s",
                 index==null?"_all": index,
                 type==null?"_all":type,
                 id==null?"":id,
-                toQueryParams(query)),map("method","POST"),toPayload(payload));
+                toQueryParams(query)),username, password, map("method","POST"),toPayload(payload));
     }
     @Procedure
-    @Description("apoc.es.put(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a PUT operation on elastic search")
-    public Stream<MapResult> put(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload) {
+    @Description("apoc.es.put(host-or-port,username-or-null,password-or-null,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a PUT operation on elastic search")
+    public Stream<MapResult> put(@Name("host") String hostOrKey, @Name("username") String username, @Name("password") String password, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload) {
         String url = getElasticSearchUrl(hostOrKey);
         return LoadJson.loadJsonStream(String.format(url+"/%s/%s/%s?%s",
                 index==null?"_all": index,
                 type==null?"_all":type,
                 id==null?"":id,
-                toQueryParams(query)),map("method","PUT"),toPayload(payload));
+                toQueryParams(query)),username, password, map("method","PUT"),toPayload(payload));
     }
 
     private String toPayload(Object payload) {
