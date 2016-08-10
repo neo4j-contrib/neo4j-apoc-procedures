@@ -36,7 +36,7 @@ public class ElasticSearchTest {
     @Test
     public void testStats() throws Exception {
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.es.stats(null)", r -> assertNotNull(r.get("value")));
+            TestUtil.testCall(db, "CALL apoc.es.stats(null, null, null)", r -> assertNotNull(r.get("value")));
         }, ConnectException.class);
     }
 }
