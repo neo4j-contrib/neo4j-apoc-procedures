@@ -135,7 +135,7 @@ image::{img}/apoc.index.nodes-with-score.jpg[width=600]
 
 [cols="1m,5"]
 |===
-| CALL apoc.index.list() - YIELD type,name,config | lists all manual indexes
+| CALL apoc.index.list() YIELD type,name,config | lists all manual indexes
 | CALL apoc.index.remove('name') YIELD type,name,config | removes manual indexes
 | CALL apoc.index.forNodes('name',{config}) YIELD type,name,config | gets or creates manual node index
 | CALL apoc.index.forRelationships('name',{config}) YIELD type,name,config | gets or creates manual relationship index
