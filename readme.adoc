@@ -242,6 +242,26 @@ image::{img}/apoc-jdbc-northwind-load.jpg[width=600]
 | CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') | register JDBC driver of source database
 |===
 
+To simplify the JDBC URL syntax, for example 'jdbc:derby:derbyDB', and so as to mask the details one can define in conf/neo4j.conf
+
+----
+apoc.jdbc.derby.url=jdbc:derby:derbyDB
+----
+
+and then 
+
+----
+CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})
+----
+
+becomes
+
+----
+CALL apoc.load.jdbc('derby','PERSON') YIELD row CREATE (:Person {name:row.name})
+----
+
+The 3rd value in the 'apoc.jdbc.derby.url=' effectively defines an <alias> to be used in the apoc.load.jdbc('<alias>',....
+
 // end::jdbc[]
 
 === Loading Data from Web-APIs (JSON, XML, CSV)
