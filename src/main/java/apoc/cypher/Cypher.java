@@ -10,7 +10,9 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.PerformsWrites;
@@ -28,6 +30,7 @@ import java.util.stream.StreamSupport;
 import static apoc.util.MapUtil.map;
 import static java.lang.String.format;
 import static java.lang.String.join;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -46,6 +49,8 @@ public class Cypher {
     public GraphDatabaseAPI api;
     @Context
     public KernelTransaction tx;
+    @Context
+    public Log log;
 
     @Procedure
     @Description("apoc.cypher.run(fragment, params) yield value - executes reading fragment with the given parameters")
@@ -310,7 +315,7 @@ public class Cypher {
         public boolean tryAdvance(Consumer<? super T> action) {
             try {
                 if (tx.getReasonIfTerminated()!=null) return false;
-                T entry = queue.poll(100, TimeUnit.MILLISECONDS);
+                T entry = queue.poll(100, MILLISECONDS);
                 if (entry == null || entry == tombstone) return false;
                 action.accept(entry);
                 return true;
@@ -324,5 +329,19 @@ public class Cypher {
         public long estimateSize() { return Long.MAX_VALUE; }
 
         public int characteristics() { return ORDERED | NONNULL; }
+    }
+
+    @Procedure
+    @Description("apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) - abort statement after timeout ms if not finished")
+    public Stream<MapResult> runTimeboxed(@Name("cypher") String cypher, @Name("params") Map<String, Object> params, @Name("timeout") long timeout) {
+
+        Pools.SCHEDULED.schedule(() -> {
+            String txString = tx == null ? "<null>" : tx.toString();
+            log.warn("marking " + txString + " for termination");
+            tx.markForTermination(Status.Transaction.Terminated);
+        }, timeout, MILLISECONDS);
+
+        Result result = db.execute(cypher, params == null ? Collections.EMPTY_MAP : params);
+        return result.stream().map(stringObjectMap -> new MapResult(stringObjectMap));
     }
 }

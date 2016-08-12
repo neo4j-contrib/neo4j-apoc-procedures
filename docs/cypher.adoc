@@ -39,3 +39,16 @@ call db.labels() yield label
 call apoc.cypher.run("match (:`"+label+"`) return count(*) as count", null) yield value
 return label, value.count as count
 ----
+
+== running a cypher statement timeboxed
+
+There's a way to terminate a cypher statement if it takes longer than a given threshold. Consider an expensive statement calculating cross product of shortestpaths for each pair of nodes:
+
+[source,cypher]
+----
+call apoc.cypher.runTimeboxed("match (n),(m) match p=shortestPath((n)-[*]-(m)) return p", null, 10000) yield value
+return value.p
+----
+
+
+

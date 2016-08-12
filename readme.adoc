@@ -446,6 +446,7 @@ apoc.graph.from(data,'name',{properties}) yield graph | creates a virtual graph 
 | CALL apoc.cypher.runMany('cypher;\nstatements;',{params}) | runs each semicolon separated statement and returns summary - currently no schema operations
 | CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value | executes fragment in parallel batches with the list segments being assigned to _
 | CALL apoc.cypher.doIt(fragment, params) yield value | executes writing fragment with the given parameters
+| CALL apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) | abort statement after timeout millis if not finished
 |===
 
 // end::cypher[]
