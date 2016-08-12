@@ -101,9 +101,9 @@ public class GeocodeTest {
                 (row) -> {
                     Map value = (Map) row.get("location");
                     assertEquals("Incorrect latitude found", lat, Double.parseDouble(value.get("latitude").toString()),
-                            0.0005);
+                            0.1);
                     assertEquals("Incorrect longitude found", lon, Double.parseDouble(value.get("longitude").toString()),
-                            0.0005);
+                            0.1);
                 });
     }
 
