@@ -110,9 +110,12 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         }
 
         after = System.currentTimeMillis();
-        System.out.println("Time to make nodes structre= " + (after - before) + " millis");
+        System.out.println("Time to make nodes structure= " + (after - before) + " millis");
 
+        before = System.currentTimeMillis();
         Arrays.sort(nodeMapping);
+        after = System.currentTimeMillis();
+        System.out.println("Time to sort nodes structure= " + (after - before) + " millis");
         pageRanks = new int [totalNodes];
         previousPageRanks = new int[totalNodes];
         pageRanksAtomic = new AtomicIntegerArray(totalNodes);
@@ -142,10 +145,13 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             }
 
             totalRelationships++;
+            if (totalRelationships%100000 == 0) {
+                System.out.println("Processed " + totalRelationships);
+            }
         }
 
         after = System.currentTimeMillis();
-        System.out.println("Time for 1st iteration over relations = " + (after - before) + " millis");
+        System.out.println("Time for 1st iteration over " + totalRelationships + " relations = " + (after - before) + " millis");
 
         result.close();
         relationshipTarget = new int[totalRelationships];
@@ -162,6 +168,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
 
         before = System.currentTimeMillis();
         // We have degrees for all the nodes at the point.
+        int count = 0;
         result = db.execute(relCypher);
         while(result.hasNext()) {
             Map<String, Object> res = result.next();
@@ -177,6 +184,10 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             }
             relationshipTarget[chunkIndex] = logicalTargetIndex;
             relationshipWeight[chunkIndex] = weight;
+            if (count % 100000 == 0) {
+                System.out.println("2: Processed " + count + " rels");
+            }
+            count++;
         }
 
         after = System.currentTimeMillis();
