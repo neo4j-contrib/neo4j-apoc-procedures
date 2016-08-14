@@ -120,7 +120,11 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         previousPageRanks = new int[totalNodes];
         pageRanksAtomic = new AtomicIntegerArray(totalNodes);
 
+        before = System.currentTimeMillis();
         Result result = db.execute(relCypher);
+        after = System.currentTimeMillis();
+        System.out.println("Time to execute cypher = " + (after - before) + " millis");
+
         int totalRelationships = 0;
         before = System.currentTimeMillis();
         while(result.hasNext()) {
@@ -169,7 +173,10 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         before = System.currentTimeMillis();
         // We have degrees for all the nodes at the point.
         int count = 0;
+        before = System.currentTimeMillis();
         result = db.execute(relCypher);
+        after = System.currentTimeMillis();
+        System.out.println("Time to execute cypher = " + (after - before) + " millis");
         while(result.hasNext()) {
             Map<String, Object> res = result.next();
             int source = ((Long) res.get("source")).intValue();
