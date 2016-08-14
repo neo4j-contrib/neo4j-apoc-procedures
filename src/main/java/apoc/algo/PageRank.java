@@ -81,6 +81,7 @@ public class PageRank {
         boolean shouldWrite = (boolean)config.getOrDefault(SETTING_PAGE_RANK_WRITE, DEFAULT_PAGE_RANK_WRITE);
 
         long beforeReading = System.currentTimeMillis();
+        log.info("Pagerank: Reading data into local ds");
         PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(dbAPI, pool, nodeCypher, relCypher);
         long afterReading = System.currentTimeMillis();
 
