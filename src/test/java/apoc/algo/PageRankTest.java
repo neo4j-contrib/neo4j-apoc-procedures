@@ -148,7 +148,7 @@ public class PageRankTest
     {
         db.execute( COMPANIES_QUERY_LABEL ).close();
         String query = "MATCH (b:Company {name:'b'})\n" +
-                "CALL apoc.algo.pageRankWithCypher([b],{node_cypher:\"MATCH (node:Company) return id(node)\", " +
+                "CALL apoc.algo.pageRankWithCypher([b],{node_cypher:\"MATCH (node:Company) return id(node) as id\", " +
                 "rel_cypher:\"\", iterations:20,types:'TYPE_1|TYPE_2'}) " +
                 "YIELD node, score\n" +
                 "RETURN node.name AS name, score\n" +
@@ -165,7 +165,7 @@ public class PageRankTest
     {
         db.execute( COMPANIES_QUERY_LABEL ).close();
         String query = "MATCH (b:Company {name:'b'})\n" +
-                "CALL apoc.algo.pageRankWithCypher([b],{node_cypher:\"MATCH (node:Company) return id(node)\", " +
+                "CALL apoc.algo.pageRankWithCypher([b],{node_cypher:\"MATCH (node:Company) return id(node) as id\", " +
                 "rel_cypher:\"\", write:true, iterations:20,types:'TYPE_1|TYPE_2'}) " +
                 "YIELD node, score\n" +
                 "RETURN node.name AS name, score\n" +

@@ -1,24 +1,18 @@
 package apoc.algo.pagerank;
 
-import org.neo4j.cypher.EntityNotFoundException;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.kernel.api.DataWriteOperations;
-import org.neo4j.kernel.api.exceptions.InvalidTransactionTypeKernelException;
-import org.neo4j.kernel.api.exceptions.legacyindex.AutoIndexingKernelException;
-import org.neo4j.kernel.api.exceptions.schema.ConstraintValidationKernelException;
-import org.neo4j.kernel.api.exceptions.schema.IllegalTokenNameException;
-import org.neo4j.kernel.api.properties.DefinedProperty;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 
+import javax.sound.midi.SysexMessage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.Arrays;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import static apoc.algo.pagerank.PageRankUtils.toFloat;
 import static apoc.algo.pagerank.PageRankUtils.toInt;
@@ -27,7 +21,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
 {
     public static final int ONE_MINUS_ALPHA_INT = toInt( ONE_MINUS_ALPHA );
     public static final int WRITE_BATCH=10_100;
-    public final int BATCH_SIZE = 100_000;
+    public final int BATCH_SIZE = 10_000 ;
     private final GraphDatabaseAPI db;
     private final ExecutorService pool;
     private String nodeCypher;
@@ -61,6 +55,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     // Output arrays.
     int [] pageRanks;
     int [] previousPageRanks;
+    private AtomicIntegerArray pageRanksAtomic;
 
     public PageRankArrayStorageParallelCypher(
             GraphDatabaseAPI db,
@@ -78,34 +73,6 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     private int getNodeIndex(int node) {
         int index = Arrays.binarySearch(nodeMapping, node);
         return index;
-    }
-
-    private int getDegree(int node) {
-        int degree = 0;
-        int index = Arrays.binarySearch(nodeMapping, node);
-        if (index >= 0) {
-            degree = sourceDegreeData[index];
-        }
-        return degree;
-    }
-
-    private void setDegree(int node, int degree) {
-        int index = Arrays.binarySearch(nodeMapping, node);
-        sourceDegreeData[index] = degree;
-    }
-
-    private int getWeight(int node) {
-        int degree = 0;
-        int index = Arrays.binarySearch(nodeMapping, node);
-        if (index >= 0) {
-            degree = sourceWeightData[index];
-        }
-        return degree;
-    }
-
-    private void setWeight(int node, int weight) {
-        int index = Arrays.binarySearch(nodeMapping, node);
-        sourceWeightData[index] = weight;
     }
 
     private void calculateChunkIndices() {
@@ -130,20 +97,18 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         sourceWeightData = new int[totalNodes];
         sourceChunkStartingIndex = new int[totalNodes];
 
-        String columnName = nodeResult.columns().get(0);
+        ResourceIterator<Object> resultIterator = nodeResult.columnAs("id");
         int index = 0;
-        while(nodeResult.hasNext()) {
-            Map<String, Object> res = nodeResult.next();
-            int node = ((Long)res.get(columnName)).intValue();
+        while(resultIterator.hasNext()) {
+            int node  = ((Long)resultIterator.next()).intValue();
             nodeMapping[index] = node;
-            sourceDegreeData[index] = 0;
-            sourceWeightData[index] = 0;
             index++;
         }
 
         Arrays.sort(nodeMapping);
         pageRanks = new int [totalNodes];
         previousPageRanks = new int[totalNodes];
+        pageRanksAtomic = new AtomicIntegerArray(totalNodes);
 
         Result result = db.execute(relCypher);
         int totalRelationships = 0;
@@ -152,19 +117,22 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             int source = ((Long) res.get("source")).intValue();
             int weight = ((Long) res.getOrDefault("weight", 1)).intValue();
 
-            int storedDegree = getDegree(source);
+            int sourceIndex = getNodeIndex(source);
+
+            int storedDegree = sourceDegreeData[sourceIndex];
             if (storedDegree == -1) {
-                setDegree(source,  1);
+                sourceDegreeData[sourceIndex] = 1;
             } else {
-                setDegree(source, storedDegree + 1);
+                sourceDegreeData[sourceIndex] = storedDegree + 1;
             }
 
-            int storedWeight = getWeight(source);
+            int storedWeight = sourceWeightData[sourceIndex];
             if (storedWeight == -1) {
-                setWeight(source, weight);
+                sourceWeightData[sourceIndex] = weight;
             } else {
-                setWeight(source, storedWeight + weight);
+                sourceWeightData[sourceIndex] = weight + storedWeight;
             }
+
             totalRelationships++;
         }
 
@@ -172,10 +140,9 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         relationshipTarget = new int[totalRelationships];
         relationshipWeight = new int[totalRelationships];
 
-        for (int i = 0; i < totalRelationships; i++) {
-            relationshipTarget[i] = -1;
-            relationshipWeight[i] = -1;
-        }
+        Arrays.fill(relationshipTarget, -1);
+        Arrays.fill(relationshipWeight, -1);
+
         this.relCount = totalRelationships;
         calculateChunkIndices();
 
@@ -195,13 +162,22 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             }
             relationshipTarget[chunkIndex] = logicalTargetIndex;
             relationshipWeight[chunkIndex] = weight;
-
-            previousPageRanks[logicalSourceIndex] = 0;
-            previousPageRanks[logicalTargetIndex] = 0;
-            pageRanks[logicalTargetIndex] = 0;
         }
 
         result.close();
+    }
+
+    public void computeParallel(int iterations) {
+        for (int iteration = 0; iteration < iterations; iteration++) {
+            startIterationParallel();
+            iterateParallel(iteration);
+        }
+    }
+
+    private void printPagerank() {
+    for (int i = 0; i < pageRanksAtomic.length(); i++) {
+        System.out.println(i + " " + pageRanksAtomic.get(i));
+    }
     }
 
     @Override
@@ -220,6 +196,55 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         sourceChunkStartingIndex = null;
         relationshipTarget = null;
         relationshipWeight = null;
+    }
+
+    private int getEndNode(int node) {
+        int endNode = node;
+        while(endNode < nodeCount &&
+                (sourceChunkStartingIndex[endNode] - sourceChunkStartingIndex[node] <= BATCH_SIZE)) {
+            endNode++;
+        }
+
+        return endNode;
+    }
+    private void iterateParallel(int iter) {
+        int batches = (int)nodeCount/BATCH_SIZE;
+        List<Future> futures = new ArrayList<>(batches);
+        int nodeIter = 0;
+        int batchNo = 0;
+
+        while(nodeIter < nodeCount) {
+            // Process BATCH_SIZE relationships in one batch, aligned to the chunksize.
+            final int start = nodeIter;
+            final int end = getEndNode(nodeIter);
+            Future future = pool.submit(new Runnable() {
+                @Override
+                public void run() {
+                    int relProcessed = 0;
+                    for (int i = start; i < end; i++) {
+
+                        int chunkIndex = sourceChunkStartingIndex[i];
+                        int degree = sourceDegreeData[i];
+                        for (int j = 0; j < degree; j++) {
+                            int source = i;
+                            int target = relationshipTarget[chunkIndex + j];
+                            int weight = relationshipWeight[chunkIndex + j];
+                            pageRanksAtomic.addAndGet(target, weight * previousPageRanks[source]);
+                            relProcessed++;
+                        }
+                    }
+
+                    if (iter == 0)
+                    System.out.println(Thread.currentThread().getName() + " processed " + relProcessed);
+                }
+            });
+
+            batchNo++;
+            nodeIter = end;
+            futures.add(future);
+        }
+
+        PageRankUtils.waitForTasks(futures);
     }
 
     private void iterate() {
@@ -254,51 +279,34 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         }
     }
 
-    public void writeResultsToDB() {
-        writeBackResults(db, this);
+    private void startIterationParallel()
+    {
+        for (int node = 0; node < nodeCount; node++) {
+            int weightedDegree = sourceWeightData[node];
+
+            if (weightedDegree == -1) {
+                continue;
+            }
+            int prevRank = pageRanksAtomic.get(node);
+            previousPageRanks[node] =  toInt(ALPHA * toFloat(prevRank) / weightedDegree);
+            pageRanksAtomic.set(node, ONE_MINUS_ALPHA_INT);
+        }
     }
 
-    public void writeBackResults(GraphDatabaseAPI db, Algorithm algorithm) {
-        ThreadToStatementContextBridge ctx = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
-        int propertyNameId;
-        try (Transaction tx = db.beginTx()) {
-            propertyNameId = ctx.get().tokenWriteOperations().propertyKeyGetOrCreateForName(algorithm.getPropertyName());
-            tx.success();
-        } catch (IllegalTokenNameException e) {
-            throw new RuntimeException(e);
-        }
-        final long totalNodes = numberOfNodes();
-        int batches = (int) totalNodes / WRITE_BATCH;
-        List<Future> futures = new ArrayList<>(batches);
-        for (int i = 0; i < totalNodes; i += WRITE_BATCH) {
-            int nodeIndex = i;
-            final int start = nodeIndex;
-            Future future = pool.submit(new Runnable() {
-                public void run() {
-                    try (Transaction tx = db.beginTx()) {
-                        DataWriteOperations ops = ctx.get().dataWriteOperations();
-                        for (long i = 0; i < WRITE_BATCH; i++) {
-                            long nodeIndex = i + start;
-                            if (nodeIndex >= totalNodes) break;
+    public void writeResultsToDB() {
+        PageRankUtils.writeBackResults(pool, db, nodeMapping, this, WRITE_BATCH);
+    }
 
-                            int graphNode = nodeMapping[(int)nodeIndex];
-                            double value = algorithm.getResult(graphNode);
-                            if (value > 0) {
-                                ops.nodeSetProperty(graphNode, DefinedProperty.doubleProperty(propertyNameId, value));
-                            }
-                        }
-                        tx.success();
-                    } catch (ConstraintValidationKernelException | InvalidTransactionTypeKernelException |
-                            EntityNotFoundException | AutoIndexingKernelException |
-                            org.neo4j.kernel.api.exceptions.EntityNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
 
-            futures.add(future);
+    public double getResultNonParallel(long node)
+    {
+        double val = 0;
+        int logicalIndex = getNodeIndex((int)node);
+
+        if (logicalIndex >= 0 && pageRanks.length >= logicalIndex) {
+            val = toFloat(pageRanks[logicalIndex]);
         }
-        PageRankUtils.waitForTasks(futures);
+        return val;
     }
 
     public double getResult(long node)
@@ -306,8 +314,8 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         double val = 0;
         int logicalIndex = getNodeIndex((int)node);
 
-        if (logicalIndex >= 0 && pageRanks.length >= logicalIndex) {
-            val = toFloat(pageRanks[logicalIndex]);
+        if (logicalIndex >= 0 && pageRanksAtomic.length() >= logicalIndex) {
+            val = toFloat(pageRanksAtomic.get(logicalIndex));
         }
         return val;
     }
@@ -319,6 +327,10 @@ public class PageRankArrayStorageParallelCypher implements PageRank
 
     public long numberOfNodes() {
         return nodeCount;
+    };
+
+    public long numberOfRels(){
+        return relCount;
     };
 
 }

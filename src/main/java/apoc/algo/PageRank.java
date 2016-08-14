@@ -33,7 +33,7 @@ public class PageRank {
     static final String DEFAULT_PAGE_RANK_CYPHER_REL =
             "MATCH (s)-[r]->(t) RETURN id(s) as source, id(t) as target, 1 as weight";
     static final String DEFAULT_PAGE_RANK_CYPHER_NODE =
-            "MATCH (s) RETURN id(s)";
+            "MATCH (s) RETURN id(s) as id";
 
     static final boolean DEFAULT_PAGE_RANK_WRITE = false;
 
@@ -76,25 +76,39 @@ public class PageRank {
             @Name("nodes") List<Node> nodes,
             @Name("config") Map<String, Object> config) {
         Long iterations = (Long) config.getOrDefault(SETTING_PAGE_RANK_ITERATIONS, DEFAULT_PAGE_RANK_ITERATIONS);
-        String relCypher = (String)config.getOrDefault(SETTING_PAGE_RANK_CYPHER_REL, DEFAULT_PAGE_RANK_CYPHER_REL);
-        String nodeCypher = (String)config.getOrDefault(SETTING_PAGE_RANK_CYPHER_NODE, DEFAULT_PAGE_RANK_CYPHER_NODE);
-
+        String relCypher = getCypher(config, SETTING_PAGE_RANK_CYPHER_REL, DEFAULT_PAGE_RANK_CYPHER_REL);
+        String nodeCypher = getCypher(config, SETTING_PAGE_RANK_CYPHER_NODE, DEFAULT_PAGE_RANK_CYPHER_NODE);
         boolean shouldWrite = (boolean)config.getOrDefault(SETTING_PAGE_RANK_WRITE, DEFAULT_PAGE_RANK_WRITE);
 
-        if (nodeCypher.equals("") || nodeCypher.isEmpty()) {
-            nodeCypher = DEFAULT_PAGE_RANK_CYPHER_NODE;
-        }
-
-        if (relCypher.equals("") || relCypher.isEmpty()) {
-            relCypher = DEFAULT_PAGE_RANK_CYPHER_REL;
-        }
-
+        long beforeReading = System.currentTimeMillis();
         PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(dbAPI, pool, nodeCypher, relCypher);
-        pageRank.compute(iterations.intValue());
+        long afterReading = System.currentTimeMillis();
+
+        log.info("Pagerank: Graph stored in local ds in " + (afterReading - beforeReading) + " milliseconds");
+        log.info("Pagerank: Number of nodes: " + pageRank.numberOfNodes());
+        log.info("Pagerank: Number of relationships: " + pageRank.numberOfRels());
+
+        pageRank.computeParallel(iterations.intValue());
+
+        long afterComputation = System.currentTimeMillis();
+        log.info("Pagerank: Computations took " + (afterComputation - afterReading) + " milliseconds");
+
         if (shouldWrite) {
             pageRank.writeResultsToDB();
+            long afterWrite = System.currentTimeMillis();
+            log.info("Pagerank: Writeback took " + (afterWrite - afterComputation) + " milliseconds");
         }
+
         return nodes.stream().map(node -> new NodeScore(node, pageRank.getResult(node.getId())));
+    }
+
+    private String getCypher(Map<String, Object> config, String setting, String defaultString) {
+        String cypher = (String)config.getOrDefault(setting, defaultString);
+        if (cypher.equals("") || cypher.isEmpty()) {
+            cypher = defaultString;
+        }
+
+        return cypher;
     }
 
     private Stream<NodeScore> innerPageRank(Long iterations, List<Node> nodes, RelationshipType... types) {
