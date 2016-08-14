@@ -411,6 +411,28 @@ apoc.graph.from(data,'name',{properties}) yield graph | creates a virtual graph 
 | apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
 |===
 
+== Generating Graphs
+
+Generate undirected (random direction) graphs with semi-real random distributions based on theoretical models.
+
+[cols="1m,5"]
+|===
+apoc.generate.er(noNodes, noEdges, 'label', 'type') | generates a graph according to Erdos-Renyi model (uniform)
+| apoc.generate.ws(noNodes, degree, beta, 'label', 'type') | generates a graph according to Watts-Strogatz model (clusters)
+| apoc.generate.ba(noNodes, edgesPerNode, 'label', 'type') | generates a graph according to Barabasi-Albert model (preferential attachment)
+| apoc.generate.complete(noNodes, 'label', 'type') | generates a complete graph (all nodes connected to all other nodes)
+| apoc.generate.simple([degrees], 'label', 'type') | generates a graph with the given degree distribution
+|===
+
+Example
+
+[source,cypher]
+----
+CALL apoc.generate.ba(1000, 2, 'TestLabel', 'TEST_REL_TYPE')
+CALL apoc.generate.ws(1000, null, null, null)
+CALL apoc.generate.simple([2,2,2,2], null, null)
+----
+
 === Warmup
 
 (thanks @SaschaPeukert)

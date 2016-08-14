@@ -1,0 +1,25 @@
+= Graph Generators
+
+Generate undirected (random direction) graphs with semi-real random distributions based on theoretical models. Providing
+a node label will generate nodes with that label and a random uuid property. Providing a relationship type will generate
+relationships with that type. Providing `null` in place of labels and/or relationships will generate random `Person` nodes
+with a random `name` and `FRIEND_OF` relationships, respectively.
+
+For a theoretical introduction, please take a look at the following blog posts:
+* [Random Graph Models (Part I)](http://graphaware.com/graph/theory/2014/07/16/random-graphs-part-one.html)
+* [Random Graph Models (Part II)](http://graphaware.com/graph/theory/2014/08/06/random-graphs-part-two.html)
+
+For permitted configuration values, please look at the Javadoc of config classes of the respective generators (`BarabasiAlbertConfig`,
+`ErdosRenyiConfig`, `WattsStrogatzConfig`, and `DistributionBasedConfig`).
+
+Apart from the number of nodes you would like to generate, `null` can be passed in for all other parameters. Sensible
+ defaults will be used.
+
+[cols="1m,5"]
+|===
+apoc.generate.er(noNodes, noEdges, 'label', 'type') | generates a graph according to Erdos-Renyi model (uniform)
+| apoc.generate.ws(noNodes, degree, beta, 'label', 'type') | generates a graph according to Watts-Strogatz model (clusters)
+| apoc.generate.ba(noNodes, edgesPerNode, 'label', 'type') | generates a graph according to Barabasi-Albert model (preferential attachment)
+| apoc.generate.complete(noNodes, 'label', 'type') | generates a complete graph (all nodes connected to all other nodes)
+| apoc.generate.simple([degrees], 'label', 'type') | generates a graph with the given degree distribution
+|===
