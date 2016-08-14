@@ -135,7 +135,7 @@ image::{img}/apoc.index.nodes-with-score.jpg[width=600]
 
 [cols="1m,5"]
 |===
-| CALL apoc.index.list() - YIELD type,name,config | lists all manual indexes
+| CALL apoc.index.list() YIELD type,name,config | lists all manual indexes
 | CALL apoc.index.remove('name') YIELD type,name,config | removes manual indexes
 | CALL apoc.index.forNodes('name',{config}) YIELD type,name,config | gets or creates manual node index
 | CALL apoc.index.forRelationships('name',{config}) YIELD type,name,config | gets or creates manual relationship index
@@ -241,6 +241,26 @@ image::{img}/apoc-jdbc-northwind-load.jpg[width=600]
 | CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18') | load from relational database, either a full table or a sql statement
 | CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') | register JDBC driver of source database
 |===
+
+To simplify the JDBC URL syntax, for example 'jdbc:derby:derbyDB', and so as to mask the details one can define in conf/neo4j.conf
+
+----
+apoc.jdbc.derby.url=jdbc:derby:derbyDB
+----
+
+and then 
+
+----
+CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})
+----
+
+becomes
+
+----
+CALL apoc.load.jdbc('derby','PERSON') YIELD row CREATE (:Person {name:row.name})
+----
+
+The 3rd value in the 'apoc.jdbc.derby.url=' effectively defines an <alias> to be used in the apoc.load.jdbc('<alias>',....
 
 // end::jdbc[]
 
@@ -426,6 +446,7 @@ apoc.graph.from(data,'name',{properties}) yield graph | creates a virtual graph 
 | CALL apoc.cypher.runMany('cypher;\nstatements;',{params}) | runs each semicolon separated statement and returns summary - currently no schema operations
 | CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value | executes fragment in parallel batches with the list segments being assigned to _
 | CALL apoc.cypher.doIt(fragment, params) yield value | executes writing fragment with the given parameters
+| CALL apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) | abort statement after timeout millis if not finished
 |===
 
 // end::cypher[]

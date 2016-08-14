@@ -175,9 +175,9 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     }
 
     private void printPagerank() {
-    for (int i = 0; i < pageRanksAtomic.length(); i++) {
-        System.out.println(i + " " + pageRanksAtomic.get(i));
-    }
+        for (int i = 0; i < pageRanksAtomic.length(); i++) {
+            System.out.println(i + " " + pageRanksAtomic.get(i));
+        }
     }
 
     @Override
@@ -332,5 +332,4 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     public long numberOfRels(){
         return relCount;
     };
-
 }
