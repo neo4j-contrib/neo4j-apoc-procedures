@@ -33,11 +33,11 @@ public class GenerateTest {
 
     @Test
     public void shouldGenerateErdosRenyi1() {
-        db.execute("CALL apoc.generate.er(200,1000,null,null)");
+        db.execute("CALL apoc.generate.er(20,100,null,null)");
 
         try (Transaction tx = db.beginTx()) {
-            assertEquals(200, count(db.getAllNodes()));
-            assertEquals(1000, count(db.getAllRelationships()));
+            assertEquals(20, count(db.getAllNodes()));
+            assertEquals(100, count(db.getAllRelationships()));
             assertEquals("Person", firstOrNull(firstOrNull(db.getAllNodes()).getLabels()).name());
             assertEquals("FRIEND_OF", firstOrNull(db.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(db.getAllNodes()).hasProperty("name"));
@@ -63,11 +63,11 @@ public class GenerateTest {
 
     @Test
     public void shouldGenerateErdosRenyi3() {
-        db.execute("CALL apoc.generate.er(null,null,'TestLabel','TEST_REL')");
+        db.execute("CALL apoc.generate.er(20,100,'TestLabel','TEST_REL')");
 
         try (Transaction tx = db.beginTx()) {
-            assertEquals(1000, count(db.getAllNodes()));
-            assertEquals(10000, count(db.getAllRelationships()));
+            assertEquals(20, count(db.getAllNodes()));
+            assertEquals(100, count(db.getAllRelationships()));
             assertEquals("TestLabel", firstOrNull(firstOrNull(db.getAllNodes()).getLabels()).name());
             assertEquals("TEST_REL", firstOrNull(db.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(db.getAllNodes()).hasProperty("uuid"));
@@ -78,11 +78,11 @@ public class GenerateTest {
 
     @Test
     public void shouldGenerateBarabasiAlbert1() {
-        db.execute("CALL apoc.generate.ba(1000,3,null,null)");
+        db.execute("CALL apoc.generate.ba(100,3,null,null)");
 
         try (Transaction tx = db.beginTx()) {
-            assertEquals(1000, count(db.getAllNodes()));
-            assertEquals(2994, count(db.getAllRelationships()));
+            assertEquals(100, count(db.getAllNodes()));
+            assertEquals(294, count(db.getAllRelationships()));
             assertEquals("Person", firstOrNull(firstOrNull(db.getAllNodes()).getLabels()).name());
             assertEquals("FRIEND_OF", firstOrNull(db.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(db.getAllNodes()).hasProperty("name"));
@@ -92,11 +92,11 @@ public class GenerateTest {
 
     @Test
     public void shouldGenerateBarabasiAlbert2() {
-        db.execute("CALL apoc.generate.ba(1000,3,'TestLabel','TEST_REL')");
+        db.execute("CALL apoc.generate.ba(100,3,'TestLabel','TEST_REL')");
 
         try (Transaction tx = db.beginTx()) {
-            assertEquals(1000, count(db.getAllNodes()));
-            assertEquals(2994, count(db.getAllRelationships()));
+            assertEquals(100, count(db.getAllNodes()));
+            assertEquals(294, count(db.getAllRelationships()));
             assertEquals("TestLabel", firstOrNull(firstOrNull(db.getAllNodes()).getLabels()).name());
             assertEquals("TEST_REL", firstOrNull(db.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(db.getAllNodes()).hasProperty("uuid"));
@@ -120,11 +120,11 @@ public class GenerateTest {
 
     @Test
     public void shouldGenerateWattsStrogatz1() {
-        db.execute("CALL apoc.generate.ws(1000,10,0.5,null,null)");
+        db.execute("CALL apoc.generate.ws(100,10,0.5,null,null)");
 
         try (Transaction tx = db.beginTx()) {
-            assertEquals(1000, count(db.getAllNodes()));
-            assertEquals(5000, count(db.getAllRelationships()));
+            assertEquals(100, count(db.getAllNodes()));
+            assertEquals(500, count(db.getAllRelationships()));
             assertEquals("Person", firstOrNull(firstOrNull(db.getAllNodes()).getLabels()).name());
             assertEquals("FRIEND_OF", firstOrNull(db.getAllRelationships()).getType().name());
             assertTrue(firstOrNull(db.getAllNodes()).hasProperty("name"));
