@@ -64,6 +64,10 @@ dependencies {
     compile group: 'com.github.javafaker', name: 'javafaker', version:'0.10'
 }
 
+javadoc {
+    failOnError = false
+}
+
 shadowJar {
   dependencies {
     include(dependency('commons-codec:commons-codec'))
@@ -96,14 +100,12 @@ asciidoctor.doLast {
 // publishing
 
 nexusStaging {
-    //packageGroup = "org.mycompany.myproject" //optional if packageGroup == project.getGroup()
-    stagingProfileId = "E340E795" //when not defined will be got from server using "packageGroup"
+    packageGroup = "org.neo4j"
+    stagingProfileId = "acdc2431d20c3d"
 
     //serverUrl = stable release repository - by default Sonatype OSSRH - https://oss.sonatype.org/service/local/
     //username  = (optional) - username to the server
     // password = (optional) - password
-    // packageGroup (optional) - package group as registered in Nexus staging profile - by default set to a project group (has to be overridden if packageGroup in Nexus was requested for a few packages in the same domain)
-    // stagingProfileId (optional) - staging profile used to release given project - can be get with getStagingProfile task - when not set one additional request is set to Nexus server to determine the value using packageGroup
     //numberOfRetries (optional) - number of retries when waiting for a repository to change a state - by default 7
     //delayBetweenRetriesInMillis (optional) - delay between retries - by default 1000 milliseconds
 }
