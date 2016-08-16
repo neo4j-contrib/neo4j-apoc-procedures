@@ -2,7 +2,7 @@
 :readme:
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img
 
-image:https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Travis CI Status", link="https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures"]
+image:https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Travis CI Status", link="https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures"] image:https://img.shields.io/maven-central/v/org.neo4j.procedure/apoc.svg[alt="Maven status"] image:https://img.shields.io/github/release/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Github release status"] image:https://img.shields.io/github/contributors/neo4j-contrib/neo4j-apoc-procedures.svg[alt="contributor stats"]
 
 https://neo4j-contrib.github.io/neo4j-apoc-procedures[Documentation (WIP)].
 
@@ -23,7 +23,7 @@ http://matrix.wikia.com/wiki/Apoc[Apoc] was the technician and driver on board o
 *APOC* also stands for "Awesome Procedures On Cypher"
 
 
-== Download latest release
+== Download latest release (for the regular user)
 
 Go to http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/latest
 to find the latest release and download the binary jar to place into your $NEO4J_HOME/plugins folder.
@@ -34,13 +34,14 @@ to find the latest release and download the binary jar to place into your $NEO4J
 [source,shell]
 ----
 git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
-cd neo4j-apoc-procedures
-mvn clean install
-cp target/apoc-1.0.0-SNAPSHOT.jar $NEO4J_HOME/plugins/
+./gradlew shadow
+cp build/libs/apoc-<version>-SNAPSHOT-all.jar $NEO4J_HOME/plugins/
 $NEO4J_HOME/bin/neo4j restart
 ----
 
 If you want to run embedded or use neo4j-shell on a disk store, configure your `plugins` directory in `conf/neo4j.conf` with `dbms.plugin.directory=path/to/plugins`.
+
+A full build including running the tests can be run by `./gradlew build`.
 
 == Calling Procedures within Cypher
 
@@ -786,6 +787,21 @@ MATCH (n:Person)
 ----
 
 // end::readme[]
+
+
+== version compatibility
+
+Since apoc code relies on Neo4j internal API you need to be careful to pick the right apoc version for your neo4j instance.
+
+Any version to be released in future will use a different versioning scheme: `<neo4j-version>.<apoc>` version.
+
+
+|===
+|apoc version |compliant neo4j version
+|1.1.0 | 3.0.0 - 3.0.3
+|1.0.0 | 3.0.0 - 3.0.3
+|===
+
 
 == Plans
 
