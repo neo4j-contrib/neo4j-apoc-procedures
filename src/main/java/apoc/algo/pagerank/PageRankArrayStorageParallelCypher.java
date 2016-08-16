@@ -121,8 +121,6 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         sourceWeightData = new int[totalNodes];
         sourceChunkStartingIndex = new int[totalNodes];
 
-        for (int i = 0; i < nodeCount; i++)
-            System.out.println(i + " " + nodeMapping[i]);
         long after = System.currentTimeMillis();
         System.out.println("Time to make nodes structure= " + (after - before) + " millis");
 
