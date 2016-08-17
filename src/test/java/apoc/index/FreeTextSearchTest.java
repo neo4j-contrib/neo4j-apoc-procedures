@@ -15,7 +15,10 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static apoc.index.FreeTextSearch.KEY;
 import static java.util.Arrays.asList;
@@ -199,6 +202,36 @@ public class FreeTextSearchTest {
         assertEquals(100, Iterators.count(result));
     }
 
+    @Test
+    public void shouldFindWithWildcards() throws Exception {
+        // given
+        String john = "John Doe";
+        String jim = "Jim Done";
+        String fred = "Fred Finished";
+        Map params = singletonMap("names", Iterators.array(john, jim, fred));
+        execute("UNWIND {names} as name CREATE (:Hacker{name:name})", params);
+        execute("CALL apoc.index.addAllNodes('hackerz', {Hacker:['name']})");
+
+        // expect
+        TestUtil.testResult(db, "CALL apoc.index.search('hackerz', 'D*') yield node, weight " +
+                "RETURN node.name as name", result -> {
+            List<Object> names = Iterators.asList(result.columnAs("name"));
+            assertTrue(names.contains(jim));
+            assertTrue(names.contains(john));
+            assertFalse(names.contains(fred));
+        });
+
+        // expect
+        TestUtil.testResult(db, "CALL apoc.index.search('hackerz', '*shed') yield node, weight " +
+                "RETURN node.name as name", result -> {
+            List<Object> names = Iterators.asList(result.columnAs("name"));
+            assertFalse(names.contains(jim));
+            assertFalse(names.contains(john));
+            assertTrue(names.contains(fred));
+        });
+
+    }
+
     private ResourceIterator<Node> search(String index, String value) {
         return db.execute("CALL apoc.index.search({index}, {value}) YIELD node RETURN node",
                 map("index", index, "value", value)).columnAs("node");
@@ -294,6 +327,10 @@ public class FreeTextSearchTest {
     }
 
     private void execute(String query) {
-        db.execute(query).close();
+        execute(query, Collections.EMPTY_MAP);
+    }
+
+    private void execute(String query, Map<String, Object> params) {
+        db.execute(query, params).close();
     }
 }
