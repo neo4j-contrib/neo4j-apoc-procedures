@@ -95,20 +95,16 @@ public class PageRankArrayStorageParallelCypher implements PageRank
                 nodeMapping = doubleSize(nodeMapping, currentSize);
                 currentSize = currentSize * 2;
             }
-            if (node == 53217) {
-                System.out.println("Mapping 53217 to " + index);
-            }
             nodeMapping[index] = node;
             index++;
             totalNodes++;
         }
 
+        this.nodeCount = totalNodes;
         Arrays.sort(nodeMapping, 0, nodeCount);
         long after = System.currentTimeMillis();
-        System.out.println("Time to make sorted nodes structure = " + (after - before) + " millis");
+        System.out.println("Time to make nodes structure = " + (after - before) + " millis");
 
-        this.nodeCount = totalNodes;
-        System.out.println("Total nodes" + totalNodes);
         sourceDegreeData = new int[totalNodes];
         sourceWeightData = new int[totalNodes];
         sourceChunkStartingIndex = new int[totalNodes];
@@ -176,6 +172,10 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             relationshipWeight[currentChunkIndex] = weight;
 
             currentChunkIndex += 1;
+
+            if (totalRelationships % BATCH_SIZE == 0) {
+                System.out.println("Processed " + totalRelationships + " relationships");
+            }
             totalRelationships++;
         }
         after = System.currentTimeMillis();
@@ -235,7 +235,6 @@ public class PageRankArrayStorageParallelCypher implements PageRank
                     System.out.println(Thread.currentThread().getName() + " processed " + relProcessed);
                 }
             });
-
             nodeIter = end;
             futures.add(future);
         }
