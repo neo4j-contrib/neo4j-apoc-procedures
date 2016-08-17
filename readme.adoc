@@ -578,7 +578,8 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.sumLongs([1,3,3]) | sums all numeric values in a list
 | apoc.coll.partition(list,batchSize) | partitions a list into sublists of `batchSize`
 | apoc.coll.zip([list1],[list2]) | all values in a list
-| apoc.coll.pairs([list]) | returns `[first,second],[second,third], ...
+| apoc.coll.pairs([1,2,3]) YIELD value | [1,2],[2,3],[3,null]
+| apoc.coll.pairsMin([1,2,3]) YIELD value | [1,2],[2,3]
 | apoc.coll.toSet([list]) | returns a unique list backed by a set
 | apoc.coll.sort(coll) | sort on Collections
 | apoc.coll.sortNodes([nodes], 'name') | sort nodes by property

@@ -43,6 +43,14 @@ public class CollTest {
         testCall(db, "CALL apoc.coll.pairs([1,2,3])",
                 (row) -> assertEquals(asList(asList(1L,2L),asList(2L,3L),asList(3L,null)), row.get("value")));
     }
+    @Test public void testPairsMin() throws Exception {
+        testCall(db, "CALL apoc.coll.pairsMin([1,2,3])",
+                (row) -> assertEquals(asList(asList(1L,2L),asList(2L,3L)), row.get("value")));
+    }
+    @Test public void testPairsMinListResult() throws Exception {
+        testCall(db, "CALL apoc.coll.pairsMin([1,2,3]) YIELD value RETURN value[0][0] as result",
+                (row) -> assertEquals(1L, row.get("result")));
+    }
     @Test public void testToSet() throws Exception {
         testCall(db, "CALL apoc.coll.toSet([1,2,1,3])",
                 (row) -> assertEquals(asList(1L,2L,3L), row.get("value")));
