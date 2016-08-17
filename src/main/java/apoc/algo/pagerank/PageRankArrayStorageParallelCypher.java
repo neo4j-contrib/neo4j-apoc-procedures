@@ -35,9 +35,6 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             6 arrays : size of nodes.
             2 arrays : size of relationships.
             Memory usage: 6*N + 2*M
-        2. TODO:
-        Run this in parallel using ExecutorService.
-        Sort and divide into (number of threads) chunks and process it in parallel.
      */
 
     int [] nodeMapping;
@@ -67,22 +64,11 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         this.db = db;
         this.relCypher = relCypher;
         this.nodeCypher = nodeCypher;
-        readDataIntoArray(this.relCypher, this.nodeCypher);
     }
 
     private int getNodeIndex(int node) {
         int index = Arrays.binarySearch(nodeMapping, 0, nodeCount, node);
         return index;
-    }
-
-    private void calculateChunkIndices() {
-        int currentIndex = 0;
-        for (int i = 0; i < nodeCount; i++) {
-            sourceChunkStartingIndex[i] = currentIndex;
-            if (sourceDegreeData[i] == -1)
-                continue;
-            currentIndex += sourceDegreeData[i];
-        }
     }
 
     private int [] doubleSize(int [] array, int currentSize) {
@@ -91,7 +77,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         return newArray;
     }
 
-    private void readDataIntoArray(String relCypher, String nodeCypher) {
+    public boolean readDataIntoArray(String relCypher, String nodeCypher) {
         Result nodeResult = db.execute(nodeCypher);
 
         long before = System.currentTimeMillis();
@@ -102,60 +88,61 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         int currentSize = INITIAL_ARRAY_SIZE;
         int previousNode = -1;
         while(resultIterator.hasNext()) {
+            int node  = ((Long)resultIterator.next()).intValue();
+            if (previousNode >= node) {
+                System.out.println("Nodes are not ordered.");
+                return false;
+            }
             if (index >= currentSize) {
                 System.out.println("Node Doubling size " + currentSize);
                 nodeMapping = doubleSize(nodeMapping, currentSize);
                 currentSize = currentSize * 2;
             }
-            int node  = ((Long)resultIterator.next()).intValue();
             nodeMapping[index] = node;
-            if (previousNode >= node) {
-                System.out.println("Exit.");
-            }
             index++;
             totalNodes++;
         }
+
+        long after = System.currentTimeMillis();
+        System.out.println("Time to make nodes structure = " + (after - before) + " millis");
 
         this.nodeCount = totalNodes;
         sourceDegreeData = new int[totalNodes];
         sourceWeightData = new int[totalNodes];
         sourceChunkStartingIndex = new int[totalNodes];
-
-        long after = System.currentTimeMillis();
-        System.out.println("Time to make nodes structure= " + (after - before) + " millis");
-
         pageRanks = new int [totalNodes];
         previousPageRanks = new int[totalNodes];
         pageRanksAtomic = new AtomicIntegerArray(totalNodes);
 
+        Arrays.fill(sourceChunkStartingIndex, -1);
+
         before = System.currentTimeMillis();
         Result result = db.execute(relCypher);
         after = System.currentTimeMillis();
-        System.out.println("Time to execute cypher = " + (after - before) + " millis");
+        System.out.println("Time to execute relationship cypher = " + (after - before) + " millis");
 
-        int totalRelationships = 0;
-        before = System.currentTimeMillis();
-        int previousSource = -1;
-        int currentChunkIndex = 0;
         int currentRelationSize = INITIAL_ARRAY_SIZE;
         relationshipTarget = new int[currentRelationSize];
         relationshipWeight = new int[currentRelationSize];
-        Arrays.fill(sourceChunkStartingIndex, -1);
+
         Arrays.fill(relationshipTarget, -1);
         Arrays.fill(relationshipWeight, -1);
 
+        int totalRelationships = 0;
+        int previousSource = -1;
+        int currentChunkIndex = 0;
+        before = System.currentTimeMillis();
         while(result.hasNext()) {
             Map<String, Object> res = result.next();
             int source = ((Long) res.get("source")).intValue();
-            int target = ((Long) res.get("target")).intValue();
-            int weight = ((Long) res.getOrDefault("weight", 1)).intValue();
             if (source < previousSource) {
-                System.out.println("Failure to read.");
-                return;
+                System.out.println("Source nodes are not ordered in relationship cypher.");
+                return false;
             }
 
+            int target = ((Long) res.get("target")).intValue();
+            int weight = ((Long) res.getOrDefault("weight", 1)).intValue();
             int sourceIndex = getNodeIndex(source);
-            int logicalTargetIndex = getNodeIndex(target);
 
             int storedDegree = sourceDegreeData[sourceIndex];
             if (storedDegree == 0) {
@@ -169,7 +156,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             }
 
             int storedWeight = sourceWeightData[sourceIndex];
-            if (storedWeight == -1) {
+            if (storedWeight == 0) {
                 sourceWeightData[sourceIndex] = weight;
             } else {
                 sourceWeightData[sourceIndex] = weight + storedWeight;
@@ -177,67 +164,34 @@ public class PageRankArrayStorageParallelCypher implements PageRank
 
             // Add the relationships.
             if (totalRelationships >= currentRelationSize) {
-                System.out.println("Doubling relationsize " + currentRelationSize);
                 relationshipTarget = doubleSize(relationshipTarget, currentRelationSize);
                 relationshipWeight = doubleSize(relationshipWeight, currentRelationSize);
                 currentRelationSize = 2 * currentRelationSize;
             }
 
+            int logicalTargetIndex = getNodeIndex(target);
             relationshipTarget[currentChunkIndex] = logicalTargetIndex;
             relationshipWeight[currentChunkIndex] = weight;
 
             currentChunkIndex += 1;
             totalRelationships++;
-            if (totalRelationships%100000 == 0) {
-                System.out.println("Processed " + totalRelationships);
-            }
         }
-
         after = System.currentTimeMillis();
         System.out.println("Time for iteration over " + totalRelationships + " relations = " + (after - before) + " millis");
-        result.close();
         this.relCount = totalRelationships;
         result.close();
+        return true;
     }
 
-    public void computeParallel(int iterations) {
+    @Override
+    public void compute(int iterations, RelationshipType... relationshipTypes) {
         for (int iteration = 0; iteration < iterations; iteration++) {
             long before = System.currentTimeMillis();
-            startIterationParallel();
+            startIteration();
             iterateParallel(iteration);
             long after = System.currentTimeMillis();
             System.out.println("Time for iteration " + iteration + "  " + (after - before) + " millis");
         }
-    }
-
-    private void printPagerank() {
-        for (int i = 0; i < pageRanksAtomic.length(); i++) {
-            System.out.println(i + " " + pageRanksAtomic.get(i));
-        }
-    }
-
-    private void princhunk() {
-        for (int i = 0; i < nodeCount; i++) {
-            System.out.println(i + " " + sourceChunkStartingIndex[i]);
-        }
-    }
-
-    @Override
-    public void compute(
-            int iterations,
-            RelationshipType... relationshipTypes)
-    {
-        for (int iteration = 0; iteration < iterations; iteration++) {
-            startIteration();
-            iterate();
-        }
-
-        previousPageRanks = null;
-        sourceDegreeData = null;
-        sourceWeightData = null;
-        sourceChunkStartingIndex = null;
-        relationshipTarget = null;
-        relationshipWeight = null;
     }
 
     private int getEndNode(int node) {
@@ -289,39 +243,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         PageRankUtils.waitForTasks(futures);
     }
 
-    private void iterate() {
-
-        for (int i = 0; i < nodeCount; i++) {
-            int chunkIndex = sourceChunkStartingIndex[i];
-            int degree = sourceDegreeData[i];
-
-            for (int j = 0; j < degree; j++) {
-                int source = i;
-                int target = relationshipTarget[chunkIndex + j];
-                int weight = relationshipWeight[chunkIndex + j];
-
-                int oldValue = pageRanks[target];
-                int newValue =  oldValue + weight * previousPageRanks[source];
-                pageRanks[target] = newValue;
-            }
-        }
-    }
-
     private void startIteration()
-    {
-        for (int node = 0; node < nodeCount; node++) {
-            int weightedDegree = sourceWeightData[node];
-
-            if (weightedDegree == -1) {
-                continue;
-            }
-            int prevRank = pageRanks[node];
-            previousPageRanks[node] =  toInt(ALPHA * toFloat(prevRank) / weightedDegree);
-            pageRanks[node] = ONE_MINUS_ALPHA_INT;
-        }
-    }
-
-    private void startIterationParallel()
     {
         for (int node = 0; node < nodeCount; node++) {
             int weightedDegree = sourceWeightData[node];
@@ -337,18 +259,6 @@ public class PageRankArrayStorageParallelCypher implements PageRank
 
     public void writeResultsToDB() {
         PageRankUtils.writeBackResults(pool, db, nodeMapping, this, WRITE_BATCH);
-    }
-
-
-    public double getResultNonParallel(long node)
-    {
-        double val = 0;
-        int logicalIndex = getNodeIndex((int)node);
-
-        if (logicalIndex >= 0 && pageRanks.length >= logicalIndex) {
-            val = toFloat(pageRanks[logicalIndex]);
-        }
-        return val;
     }
 
     public double getResult(long node)

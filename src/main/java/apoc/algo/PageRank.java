@@ -83,13 +83,19 @@ public class PageRank {
         long beforeReading = System.currentTimeMillis();
         log.info("Pagerank: Reading data into local ds");
         PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(dbAPI, pool, nodeCypher, relCypher);
+        boolean success = pageRank.readDataIntoArray(relCypher, nodeCypher);
+        if (!success) {
+            String errorMsg = "Failure while reading cypher queries. Make sure the results are ordered.";
+            log.info(errorMsg);
+            throw new RuntimeException(errorMsg);
+        }
         long afterReading = System.currentTimeMillis();
 
         log.info("Pagerank: Graph stored in local ds in " + (afterReading - beforeReading) + " milliseconds");
         log.info("Pagerank: Number of nodes: " + pageRank.numberOfNodes());
         log.info("Pagerank: Number of relationships: " + pageRank.numberOfRels());
 
-        pageRank.computeParallel(iterations.intValue());
+        pageRank.compute(iterations.intValue());
 
         long afterComputation = System.currentTimeMillis();
         log.info("Pagerank: Computations took " + (afterComputation - afterReading) + " milliseconds");
@@ -108,7 +114,6 @@ public class PageRank {
         if (cypher.equals("") || cypher.isEmpty()) {
             cypher = defaultString;
         }
-
         return cypher;
     }
 
