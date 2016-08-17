@@ -89,24 +89,26 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         int previousNode = -1;
         while(resultIterator.hasNext()) {
             int node  = ((Long)resultIterator.next()).intValue();
-            if (previousNode >= node) {
-                System.out.println("Nodes are not ordered.");
-                return false;
-            }
+
             if (index >= currentSize) {
                 System.out.println("Node Doubling size " + currentSize);
                 nodeMapping = doubleSize(nodeMapping, currentSize);
                 currentSize = currentSize * 2;
+            }
+            if (node == 53217) {
+                System.out.println("Mapping 53217 to " + index);
             }
             nodeMapping[index] = node;
             index++;
             totalNodes++;
         }
 
+        Arrays.sort(nodeMapping, 0, nodeCount);
         long after = System.currentTimeMillis();
-        System.out.println("Time to make nodes structure = " + (after - before) + " millis");
+        System.out.println("Time to make sorted nodes structure = " + (after - before) + " millis");
 
         this.nodeCount = totalNodes;
+        System.out.println("Total nodes" + totalNodes);
         sourceDegreeData = new int[totalNodes];
         sourceWeightData = new int[totalNodes];
         sourceChunkStartingIndex = new int[totalNodes];
@@ -207,7 +209,6 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         int batches = (int)nodeCount/BATCH_SIZE;
         List<Future> futures = new ArrayList<>(batches);
         int nodeIter = 0;
-        int batchNo = 0;
 
         while(nodeIter < nodeCount) {
             // Process BATCH_SIZE relationships in one batch, aligned to the chunksize.
@@ -235,7 +236,6 @@ public class PageRankArrayStorageParallelCypher implements PageRank
                 }
             });
 
-            batchNo++;
             nodeIter = end;
             futures.add(future);
         }
