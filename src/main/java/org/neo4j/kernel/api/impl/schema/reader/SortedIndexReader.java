@@ -1,50 +1,24 @@
 package org.neo4j.kernel.api.impl.schema.reader;
 
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.index.*;
+import org.apache.lucene.search.*;
+import org.apache.lucene.util.ArrayUtil;
+import org.apache.lucene.util.DocIdSetBuilder;
+import org.neo4j.collection.primitive.PrimitiveLongCollections;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
+import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.helpers.collection.ArrayIterator;
+import org.neo4j.helpers.collection.PrefetchingIterator;
+import org.neo4j.index.impl.lucene.legacy.AbstractIndexHits;
+import org.neo4j.index.impl.lucene.legacy.EmptyIndexHits;
 import org.neo4j.kernel.api.impl.index.collector.DocValuesAccess;
 import org.neo4j.kernel.api.impl.schema.LuceneDocumentStructure;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DocValuesType;
-import org.apache.lucene.index.FieldInfo;
-import org.apache.lucene.index.LeafReader;
-import org.apache.lucene.index.LeafReaderContext;
-import org.apache.lucene.index.NumericDocValues;
-import org.apache.lucene.index.ReaderUtil;
-import org.apache.lucene.search.Collector;
-import org.apache.lucene.search.ConstantScoreScorer;
-import org.apache.lucene.search.DocIdSet;
-import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.search.LeafCollector;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.Scorer;
-import org.apache.lucene.search.SimpleCollector;
-import org.apache.lucene.search.Sort;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.TopFieldCollector;
-import org.apache.lucene.search.TopScoreDocCollector;
-import org.apache.lucene.util.ArrayUtil;
-import org.apache.lucene.util.DocIdSetBuilder;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.neo4j.collection.primitive.PrimitiveLongCollections;
-import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.helpers.collection.ArrayIterator;
-import org.neo4j.helpers.collection.PrefetchingIterator;
-import org.neo4j.index.impl.lucene.legacy.AbstractIndexHits;
-import org.neo4j.index.impl.lucene.legacy.EmptyIndexHits;
+import java.util.*;
 
 
 /**
@@ -84,7 +58,7 @@ public class SortedIndexReader {
         }
     }
 
-    private IndexSearcher getIndexSearcher() {
+    public IndexSearcher getIndexSearcher() {
         try {
             return (IndexSearcher) method.invoke(reader);
         } catch (IllegalAccessException | InvocationTargetException e) {
