@@ -9,19 +9,40 @@ import static apoc.index.FreeTextSearch.KEY;
 import static org.apache.lucene.search.NumericRangeQuery.newDoubleRange;
 
 class FreeTextQueryParser extends QueryParser {
+
+    private static char[] WILDCARDS = new char[]{'?','*'};
+
     static Query parseFreeTextQuery(String query) throws ParseException {
-        return PARSER.get().parse(query);
+
+        boolean useWildCardParser = false;
+        for (int i=0; i<WILDCARDS.length; i++) {
+            if (query.charAt(0)==WILDCARDS[i]) {
+                useWildCardParser=true;
+                break;
+            }
+        }
+
+        ThreadLocal<QueryParser> parser = useWildCardParser ? PARSER_ALLOWING_LEADING_WILDCARDS : PARSER;
+        return parser.get().parse(query);
     }
 
     private static final ThreadLocal<QueryParser> PARSER = new ThreadLocal<QueryParser>() {
         @Override
         protected QueryParser initialValue() {
-            return new FreeTextQueryParser();
+            return new FreeTextQueryParser(false);
         }
     };
 
-    private FreeTextQueryParser() {
+    private static final ThreadLocal<QueryParser> PARSER_ALLOWING_LEADING_WILDCARDS = new ThreadLocal<QueryParser>() {
+        @Override
+        protected QueryParser initialValue() {
+            return new FreeTextQueryParser(true);
+        }
+    };
+
+    private FreeTextQueryParser(boolean allowLeadingWildcard) {
         super(KEY, FreeTextSearch.analyzer());
+        setAllowLeadingWildcard(allowLeadingWildcard);
     }
 
     @Override
