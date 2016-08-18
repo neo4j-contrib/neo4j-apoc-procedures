@@ -37,8 +37,6 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             Memory usage: 4*N + 2*M
      */
 
-    int [] sourceChunkStartingIndex;
-
     int [] nodeMapping;
     int [] sourceDegreeData;
 
@@ -103,8 +101,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         sourceDegreeData = new int[totalNodes];
         previousPageRanks = new int[totalNodes];
         pageRanksAtomic = new AtomicIntegerArray(totalNodes);
-        sourceChunkStartingIndex = new int[totalNodes];
-        Arrays.fill(sourceChunkStartingIndex, -1);
+
         before = System.currentTimeMillis();
         Result result = db.execute(relCypher);
 
@@ -128,10 +125,6 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             int weight = ((Long) res.getOrDefault("weight", 1)).intValue();
 
             sourceDegreeData[sourceIndex]++;
-            if (sourceChunkStartingIndex[sourceIndex] != -1) {
-                sourceChunkStartingIndex[sourceIndex] =totalRelationships;
-            }
-
 
             // Add the relationships.
             if (totalRelationships >= currentRelationSize) {
@@ -139,7 +132,6 @@ public class PageRankArrayStorageParallelCypher implements PageRank
                 relationshipWeight = doubleSize(relationshipWeight, currentRelationSize);
                 currentRelationSize = 2 * currentRelationSize;
             }
-
 
             int logicalTargetIndex = getNodeIndex(target);
             relationshipTarget[totalRelationships] = logicalTargetIndex;
@@ -165,7 +157,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         for (int iteration = 0; iteration < iterations; iteration++) {
             long before = System.currentTimeMillis();
             startIteration();
-            iterateParallel(iterations);
+            iterateParallel(iteration);
             long after = System.currentTimeMillis();
             stats.computeMillis = (after - before);
             log.info("Time for iteration " + iteration + "  " + stats.computeMillis + " millis");
@@ -175,15 +167,9 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     private int getEndNode(int node) {
         int endNode = node;
         int totalRelationships = 0;
-        /*
         while(endNode < nodeCount &&
                 (totalRelationships <= BATCH_SIZE)) {
             totalRelationships+= sourceDegreeData[endNode];
-            endNode++;
-        }
-        */
-        while(endNode < nodeCount &&
-                (sourceChunkStartingIndex[endNode] - sourceChunkStartingIndex[node] <= BATCH_SIZE)) {
             endNode++;
         }
 
@@ -203,8 +189,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
                 public void run() {
                     int relProcessed = 0;
                     for (int i = start; i < end; i++) {
-//                        int chunkIndex = getStartingTargetIndex(i);
-                        int chunkIndex = sourceChunkStartingIndex[i];
+                        int chunkIndex = getStartingTargetIndex(i);
                         int degree = sourceDegreeData[i];
 
                         for (int j = 0; j < degree; j++) {
