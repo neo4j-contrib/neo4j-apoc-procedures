@@ -5,7 +5,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.TestGraphDatabaseFactory;
+
+import java.util.concurrent.TimeUnit;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -32,6 +35,10 @@ public class DistinctPropertiesTest {
         db.execute("CREATE (f:Foo {bar:'one'}), (f2a:Foo {bar:'two'}), (f2b:Foo {bar:'two'})").close();
         String label = "Foo";
         String key = "bar";
+        try (Transaction tx = db.beginTx()) {
+            db.schema().awaitIndexesOnline(2, TimeUnit.SECONDS);
+            tx.success();
+        }
 
         testCall(db,"CALL apoc.schema.properties.distinct({label}, {key})",
                 map("label",label,"key",key),
