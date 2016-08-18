@@ -6,13 +6,11 @@ import apoc.result.LongResult;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
+import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
 import java.util.ArrayList;
@@ -30,6 +28,22 @@ public class Nodes {
     }
 
     public Nodes() {
+    }
+
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last")
+    public void link(@Name("nodes") List<Node> nodes, @Name("type") String type) {
+        Iterator<Node> it = nodes.iterator();
+        if (it.hasNext()) {
+            RelationshipType relType = RelationshipType.withName(type);
+            Node node = it.next();
+            while (it.hasNext()) {
+                Node next = it.next();
+                node.createRelationshipTo(next, relType);
+                node = next;
+            }
+        }
     }
 
     @Procedure
