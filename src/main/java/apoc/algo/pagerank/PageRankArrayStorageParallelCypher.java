@@ -157,6 +157,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         for (int iteration = 0; iteration < iterations; iteration++) {
             long before = System.currentTimeMillis();
             startIteration();
+            iterateParallel(iteration);
             long after = System.currentTimeMillis();
             stats.computeMillis = (after - before);
             log.info("Time for iteration " + iteration + "  " + stats.computeMillis + " millis");
