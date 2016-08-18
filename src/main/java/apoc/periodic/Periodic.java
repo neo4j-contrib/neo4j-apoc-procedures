@@ -200,7 +200,6 @@ public class Periodic {
      * invoke cypherAction in batched transactions being feeded from cypherIteration running in main thread
      * @param cypherIterate
      * @param cypherAction
-     * @param batchSize
      */
     @Procedure
     @PerformsWrites

@@ -31,18 +31,24 @@ public class Coll {
 
     @Procedure
     @Description("apoc.coll.zip([list1],[list2])")
-    public Stream<ListResult> zip(@Name("list1") List<Object> list1, @Name("list2") List<Object> list2) {
-        List<List<Object>> result = new ArrayList<>(list1.size());
-        ListIterator<Object> it = list2.listIterator();
+    public Stream<ListListResult> zip(@Name("list1") List<Object> list1, @Name("list2") List<Object> list2) {
+        List<List> result = new ArrayList<>(list1.size());
+        ListIterator it = list2.listIterator();
         for (Object o1 : list1) {
             result.add(asList(o1,it.hasNext() ? it.next() : null));
         }
-        return Stream.of(new ListResult(result));
+        return Stream.of(new ListListResult(result));
+    }
+
+    @Procedure
+    @Description("apoc.coll.pairs([1,2,3]) returns [1,2],[2,3],[3,null] ")
+    public Stream<ListListResult> pairs(@Name("list") List<Object> list) {
+        return zip(list,list.subList(1,list.size()));
     }
     @Procedure
-    @Description("apoc.coll.pairs([list]) returns [first,second],[second,third], ...")
-    public Stream<ListResult> pairs(@Name("list") List<Object> list) {
-        return zip(list,list.subList(1,list.size()));
+    @Description("apoc.coll.pairsMin([1,2,3]) returns [1,2],[2,3]")
+    public Stream<ListListResult> pairsMin(@Name("list") List<Object> list) {
+        return zip(list.subList(0,list.size()-1),list.subList(1,list.size()));
     }
 
     @Procedure

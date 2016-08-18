@@ -35,6 +35,7 @@ public class PageRank {
     static final String DEFAULT_PAGE_RANK_CYPHER_NODE =
             "MATCH (s) RETURN id(s) as id";
 
+
     static final boolean DEFAULT_PAGE_RANK_WRITE = false;
 
     @Context
