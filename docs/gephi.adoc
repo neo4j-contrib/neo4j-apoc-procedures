@@ -1,6 +1,6 @@
 = Streaming Data to Gephi
 
-include::../readme.adoc[tags=gephi,leveloffset=-2]
+include::overview.adoc[tags=gephi,leveloffset=-2]
 
 image::{img}/apoc.gephi.gif[width=800]
 

@@ -422,16 +422,26 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h1>APOC User Guide</h1>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_introduction">Introduction</a>
 <ul class="sectlevel2">
 <li><a href="#_license">License</a></li>
 <li><a href="#__apoc_name_history">"APOC" Name history</a></li>
-<li><a href="#_download_latest_release">Download latest release</a></li>
+<li><a href="#_download_latest_release_for_the_regular_user">Download latest release (for the regular user)</a></li>
 <li><a href="#_build_install_the_current_development_branch_from_source">Build &amp; install the current development branch from source</a></li>
 <li><a href="#_calling_procedures_within_cypher">Calling Procedures within Cypher</a></li>
-<li><a href="#_included_procedures_overview">Included Procedures Overview</a>
+</ul>
+</li>
+<li><a href="#_help_and_usage">Help and Usage</a></li>
+<li><a href="#_overview_of_apoc_procedures">Overview of APOC Procedures</a>
+<ul class="sectlevel2">
+<li><a href="#_manual_indexes">Manual Indexes</a>
 <ul class="sectlevel3">
-<li><a href="#_built_in_help">Built in Help</a></li>
-<li><a href="#_manual_indexes">Manual Indexes</a></li>
+<li><a href="#_index_queries">Index Queries</a></li>
+<li><a href="#_index_management">Index Management</a></li>
+<li><a href="#_schema_index_queries">Schema Index Queries</a></li>
+</ul>
+</li>
 <li><a href="#_meta_graph">Meta Graph</a></li>
 <li><a href="#_schema">Schema</a></li>
 <li><a href="#_locking">Locking</a></li>
@@ -441,29 +451,51 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_loading_data_from_web_apis_json_xml_csv">Loading Data from Web-APIs (JSON, XML, CSV)</a></li>
 <li><a href="#_interacting_with_elastic_search">Interacting with Elastic Search</a></li>
 <li><a href="#_interacting_with_mongodb">Interacting with MongoDB</a></li>
-<li><a href="#_streaming_data_to_gephi">Streaming Data to Gephi</a></li>
+<li><a href="#_streaming_data_to_gephi">Streaming Data to Gephi</a>
+<ul class="sectlevel3">
+<li><a href="#_notes">Notes</a></li>
+<li><a href="#_example">Example</a></li>
+</ul>
+</li>
 <li><a href="#_creating_data">Creating Data</a></li>
 <li><a href="#_virtual_nodes_rels">Virtual Nodes/Rels</a></li>
 <li><a href="#_virtual_graph">Virtual Graph</a></li>
+<li><a href="#_generating_graphs">Generating Graphs</a></li>
 <li><a href="#_warmup">Warmup</a></li>
 <li><a href="#_monitoring">Monitoring</a></li>
 <li><a href="#_cypher_execution">Cypher Execution</a></li>
 <li><a href="#_job_management">Job Management</a></li>
 <li><a href="#_graph_refactoring">Graph Refactoring</a></li>
 <li><a href="#_spatial">Spatial</a></li>
-<li><a href="#_helpers">Helpers</a></li>
-<li><a href="#_date_time_support">Date/time Support</a></li>
+<li><a href="#_helpers">Helpers</a>
+<ul class="sectlevel3">
+<li><a href="#_static_value_storage">Static Value Storage</a></li>
+<li><a href="#_conversion_functions">Conversion Functions</a></li>
+<li><a href="#_map_functions">Map Functions</a></li>
+<li><a href="#_collection_functions">Collection Functions</a></li>
+<li><a href="#_lookup_functions">Lookup Functions</a></li>
+<li><a href="#_phonetic_comparisons">Phonetic Comparisons</a></li>
+</ul>
+</li>
+<li><a href="#_date_time_support">Date/time Support</a>
+<ul class="sectlevel3">
+<li><a href="#_conversion_between_formatted_dates_and_timestamps">Conversion between formatted dates and timestamps</a></li>
+<li><a href="#_reading_separate_datetime_fields">Reading separate datetime fields</a></li>
+</ul>
+</li>
 <li><a href="#_bitwise_operations">Bitwise operations</a></li>
-<li><a href="#_path_expander">Path Expander</a></li>
+<li><a href="#_path_expander">Path Expander</a>
+<ul class="sectlevel3">
+<li><a href="#_relationship_filter">Relationship Filter</a></li>
+<li><a href="#_label_filter">Label Filter</a></li>
+</ul>
+</li>
 <li><a href="#_parallel_node_search">Parallel Node Search</a></li>
 <li><a href="#_graph_algorithms_work_in_progress">Graph Algorithms (work in progress)</a></li>
 </ul>
 </li>
-<li><a href="#_detailed_documentation">Detailed Documentation</a>
-<ul class="sectlevel1">
-<li><a href="#_help_and_usage">Help and Usage</a></li>
 <li><a href="#_text_and_lookup_indexes">Text and Lookup Indexes</a>
-<ul class="sectlevel3">
+<ul class="sectlevel2">
 <li><a href="#_index_queries_2">Index Queries</a></li>
 <li><a href="#_index_management_2">Index Management</a></li>
 <li><a href="#_full_text_search">Full Text Search</a>
@@ -547,10 +579,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_cassandra_example">Cassandra Example</a></li>
 </ul>
 </li>
-<li><a href="#_streaming_data_to_gephi_2">Streaming Data to Gephi</a>
-<ul class="sectlevel3">
+<li><a href="#_streaming_data_to_gephi_2">Streaming Data to Gephi</a></li>
 <li><a href="#_notes_2">Notes</a></li>
-<li><a href="#_example_2">Example</a></li>
+<li><a href="#_example_2">Example</a>
+<ul class="sectlevel3">
 <li><a href="#_format">Format</a></li>
 <li><a href="#_specifics_details">Specifics Details</a></li>
 </ul>
@@ -581,27 +613,25 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_cypher_operations">Cypher Operations</a>
 <ul class="sectlevel2">
 <li><a href="#_running_cypher_fragments">Running Cypher fragments</a>
-<ul class="sectlevel4">
+<ul class="sectlevel3">
 <li><a href="#_cypher_execution_2">Cypher Execution</a></li>
 <li><a href="#_example_fast_node_counts_by_label">Example: Fast Node-Counts by Label</a></li>
+<li><a href="#_running_a_cypher_statement_timeboxed">running a cypher statement timeboxed</a></li>
 </ul>
 </li>
 <li><a href="#_job_management_and_periodic_execution">Job management and periodic execution</a></li>
 </ul>
 </li>
 </ul>
-</li>
-</ul>
 </div>
 </div>
 <div id="content">
-<div id="preamble">
+<div class="sect1">
+<h2 id="_introduction">Introduction</h2>
 <div class="sectionbody">
 <div class="imageblock" style="float: right">
 <div class="content">
 <img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/apoc.gif" alt="apoc">
-</div>
-</div>
 </div>
 </div>
 <div class="sect2">
@@ -623,7 +653,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect2">
-<h3 id="_download_latest_release">Download latest release</h3>
+<h3 id="_download_latest_release_for_the_regular_user">Download latest release (for the regular user)</h3>
 <div class="paragraph">
 <p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/latest" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/latest</a>
 to find the latest release and download the binary jar to place into your $NEO4J_HOME/plugins folder.</p>
@@ -634,14 +664,13 @@ to find the latest release and download the binary jar to place into your $NEO4J
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-shell" data-lang="shell">git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
-cd neo4j-apoc-procedures
-mvn clean install
-cp target/apoc-1.0.0-SNAPSHOT.jar $NEO4J_HOME/plugins/
+./gradlew shadow
+cp build/libs/apoc-&lt;version&gt;-SNAPSHOT-all.jar $NEO4J_HOME/plugins/
 $NEO4J_HOME/bin/neo4j restart</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If you want to run embedded or use neo4j-shell on a disk store, configure your <code>plugins</code> directory in <code>conf/neo4j.conf</code> with <code>dbms.plugin.directory=path/to/plugins</code>.</p>
+<p>A full build including running the tests can be run by <code>./gradlew build</code>.</p>
 </div>
 </div>
 <div class="sect2">
@@ -653,6 +682,7 @@ $NEO4J_HOME/bin/neo4j restart</code></pre>
 <p>But you can also integrate them into your Cypher statements which makes them so much more powerful.</p>
 </div>
 <div class="listingblock">
+<div class="title">Load JSON example</div>
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH 'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/person.json' AS url
 
@@ -663,10 +693,11 @@ MERGE (p:Person {name:person.name})
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_included_procedures_overview">Included Procedures Overview</h3>
-<div class="sect3">
-<h4 id="_built_in_help">Built in Help</h4>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_help_and_usage">Help and Usage</h2>
+<div class="sectionbody">
 <div class="imageblock">
 <div class="content">
 <img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc-help-apoc.jpg" alt="apoc help apoc" width="600">
@@ -692,11 +723,18 @@ WITH * WHERE text IS null
 RETURN name AS undocumented</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>To generate the help from <code>@Description</code> annotations, apoc currently scans the jar file with ASM.</p>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_overview_of_apoc_procedures">Overview of APOC Procedures</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_manual_indexes">Manual Indexes</h3>
 <div class="sect3">
-<h4 id="_manual_indexes">Manual Indexes</h4>
-<div class="sect4">
-<h5 id="_index_queries">Index Queries</h5>
+<h4 id="_index_queries">Index Queries</h4>
 <div class="paragraph">
 <p>Procedures to add to and query manual indexes</p>
 </div>
@@ -774,8 +812,8 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 </tbody>
 </table>
 </div>
-<div class="sect4">
-<h5 id="_index_management">Index Management</h5>
+<div class="sect3">
+<h4 id="_index_management">Index Management</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -783,7 +821,7 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.index.list() - YIELD type,name,config</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.index.list() YIELD type,name,config</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">lists all manual indexes</p></td>
 </tr>
 <tr>
@@ -809,8 +847,8 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 </div>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_schema_index_queries">Schema Index Queries</h5>
+<div class="sect3">
+<h4 id="_schema_index_queries">Schema Index Queries</h4>
 <div class="paragraph">
 <p>Schema Index lookups that keep order and can apply limits</p>
 </div>
@@ -832,8 +870,8 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_meta_graph">Meta Graph</h4>
+<div class="sect2">
+<h3 id="_meta_graph">Meta Graph</h3>
 <div class="imageblock">
 <div class="content">
 <img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc.meta.graph.jpg" alt="apoc.meta.graph" width="600">
@@ -888,8 +926,8 @@ RETURN n LIMIT 5</code></pre>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_schema">Schema</h4>
+<div class="sect2">
+<h3 id="_schema">Schema</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -903,8 +941,8 @@ RETURN n LIMIT 5</code></pre>
 </tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_locking">Locking</h4>
+<div class="sect2">
+<h3 id="_locking">Locking</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -926,8 +964,8 @@ RETURN n LIMIT 5</code></pre>
 </tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_from_tojson">from/toJson</h4>
+<div class="sect2">
+<h3 id="_from_tojson">from/toJson</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -957,8 +995,8 @@ RETURN n LIMIT 5</code></pre>
 </tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_export_import">Export / Import</h4>
+<div class="sect2">
+<h3 id="_export_import">Export / Import</h3>
 <div class="paragraph">
 <p>Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.runFile to the given file.</p>
 </div>
@@ -983,8 +1021,8 @@ RETURN n LIMIT 5</code></pre>
 </tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_loading_data_from_rdbms">Loading Data from RDBMS</h4>
+<div class="sect2">
+<h3 id="_loading_data_from_rdbms">Loading Data from RDBMS</h3>
 <div class="imageblock">
 <div class="content">
 <img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc-jdbc-northwind-load.jpg" alt="apoc jdbc northwind load" width="600">
@@ -1010,9 +1048,36 @@ RETURN n LIMIT 5</code></pre>
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p>To simplify the JDBC URL syntax, for example 'jdbc:derby:derbyDB', and so as to mask the details one can define in conf/neo4j.conf</p>
 </div>
-<div class="sect3">
-<h4 id="_loading_data_from_web_apis_json_xml_csv">Loading Data from Web-APIs (JSON, XML, CSV)</h4>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.jdbc.derby.url=jdbc:derby:derbyDB</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and then</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>becomes</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>CALL apoc.load.jdbc('derby','PERSON') YIELD row CREATE (:Person {name:row.name})</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The 3rd value in the 'apoc.jdbc.derby.url=' effectively defines an &lt;alias&gt; to be used in the apoc.load.jdbc('&lt;alias&gt;',&#8230;&#8203;.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_loading_data_from_web_apis_json_xml_csv">Loading Data from Web-APIs (JSON, XML, CSV)</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1039,8 +1104,8 @@ config contains any of: <code>{skip:1,limit:5,header:false,sep:'TAB',ignore:['tm
 </tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_interacting_with_elastic_search">Interacting with Elastic Search</h4>
+<div class="sect2">
+<h3 id="_interacting_with_elastic_search">Interacting with Elastic Search</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 60%;">
@@ -1078,8 +1143,8 @@ config contains any of: <code>{skip:1,limit:5,header:false,sep:'TAB',ignore:['tm
 </tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_interacting_with_mongodb">Interacting with MongoDB</h4>
+<div class="sect2">
+<h3 id="_interacting_with_mongodb">Interacting with MongoDB</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 60%;">
@@ -1131,8 +1196,8 @@ cp target/dependency/mongodb*.jar target/dependency/bson*.jar $NEO4J_HOME/plugin
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_streaming_data_to_gephi">Streaming Data to Gephi</h4>
+<div class="sect2">
+<h3 id="_streaming_data_to_gephi">Streaming Data to Gephi</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1145,8 +1210,8 @@ cp target/dependency/mongodb*.jar target/dependency/bson*.jar $NEO4J_HOME/plugin
 </tr>
 </tbody>
 </table>
-<div class="sect4">
-<h5 id="_notes">Notes</h5>
+<div class="sect3">
+<h4 id="_notes">Notes</h4>
 <div class="paragraph">
 <p>Gephi has a <a href="https://marketplace.gephi.org/plugin/graph-streaming/">streaming plugin</a>, that can provide and accept <a href="https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master">JSON-graph-data</a> in a streaming fashion.</p>
 </div>
@@ -1163,8 +1228,8 @@ cp target/dependency/mongodb*.jar target/dependency/bson*.jar $NEO4J_HOME/plugin
 <p>You can also configure it in <code>conf/neo4j.conf</code> via  <code>apoc.gephi.url=url</code> or <code>apoc.gephi.&lt;key&gt;.url=url</code></p>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_example">Example</h5>
+<div class="sect3">
+<h4 id="_example">Example</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">match path = (:Person)-[:ACTED_IN]-&gt;(:Movie)
@@ -1176,8 +1241,8 @@ return nodes, relationships, time</code></pre>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_creating_data">Creating Data</h4>
+<div class="sect2">
+<h3 id="_creating_data">Creating Data</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1212,11 +1277,15 @@ return nodes, relationships, time</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.create.uuids(count) YIELD uuid</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates count UUIDs</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.nodes.link([nodes],'REL_TYPE')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a linked list of nodes from first to last</p></td>
+</tr>
 </tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_virtual_nodes_rels">Virtual Nodes/Rels</h4>
+<div class="sect2">
+<h3 id="_virtual_nodes_rels">Virtual Nodes/Rels</h3>
 <div class="paragraph">
 <p>Virtual Nodes and Relationships don&#8217;t exist in the graph, they are only returned to the UI/user for representing a graph projection.
 They can be visualized or processed otherwise.
@@ -1264,8 +1333,8 @@ RETURN *;</code></pre>
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_virtual_graph">Virtual Graph</h4>
+<div class="sect2">
+<h3 id="_virtual_graph">Virtual Graph</h3>
 <div class="paragraph">
 <p>Create a graph object (map) from information that&#8217;s passed in.
 It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}</code></p>
@@ -1303,8 +1372,52 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_warmup">Warmup</h4>
+<div class="sect2">
+<h3 id="_generating_graphs">Generating Graphs</h3>
+<div class="paragraph">
+<p>Generate undirected (random direction) graphs with semi-real random distributions based on theoretical models.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.generate.er(noNodes, noEdges, 'label', 'type')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">generates a graph according to Erdos-Renyi model (uniform)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.generate.ws(noNodes, degree, beta, 'label', 'type')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">generates a graph according to Watts-Strogatz model (clusters)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.generate.ba(noNodes, edgesPerNode, 'label', 'type')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">generates a graph according to Barabasi-Albert model (preferential attachment)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.generate.complete(noNodes, 'label', 'type')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">generates a complete graph (all nodes connected to all other nodes)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.generate.simple([degrees], 'label', 'type')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">generates a graph with the given degree distribution</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Example</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.generate.ba(1000, 2, 'TestLabel', 'TEST_REL_TYPE')
+CALL apoc.generate.ws(1000, null, null, null)
+CALL apoc.generate.simple([2,2,2,2], null, null)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_warmup">Warmup</h3>
 <div class="paragraph">
 <p>(thanks @SaschaPeukert)</p>
 </div>
@@ -1321,8 +1434,8 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_monitoring">Monitoring</h4>
+<div class="sect2">
+<h3 id="_monitoring">Monitoring</h3>
 <div class="paragraph">
 <p>(thanks @ikwattro)</p>
 </div>
@@ -1355,8 +1468,8 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_cypher_execution">Cypher Execution</h4>
+<div class="sect2">
+<h3 id="_cypher_execution">Cypher Execution</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1383,14 +1496,18 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.doIt(fragment, params) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">executes writing fragment with the given parameters</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">abort statement after timeout millis if not finished</p></td>
+</tr>
 </tbody>
 </table>
 <div class="paragraph">
 <p>TODO runFile: begin/commit/schema await/constraints/indexes</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_job_management">Job Management</h4>
+<div class="sect2">
+<h3 id="_job_management">Job Management</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1446,8 +1563,8 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 <p>copies over the <code>name</code> property of each person to <code>lastname</code>.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_graph_refactoring">Graph Refactoring</h4>
+<div class="sect2">
+<h3 id="_graph_refactoring">Graph Refactoring</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1510,8 +1627,8 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </ul>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_spatial">Spatial</h4>
+<div class="sect2">
+<h3 id="_spatial">Spatial</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1529,10 +1646,10 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </tbody>
 </table>
 </div>
+<div class="sect2">
+<h3 id="_helpers">Helpers</h3>
 <div class="sect3">
-<h4 id="_helpers">Helpers</h4>
-<div class="sect4">
-<h5 id="_static_value_storage">Static Value Storage</h5>
+<h4 id="_static_value_storage">Static Value Storage</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1554,8 +1671,8 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </tbody>
 </table>
 </div>
-<div class="sect4">
-<h5 id="_conversion_functions">Conversion Functions</h5>
+<div class="sect3">
+<h4 id="_conversion_functions">Conversion Functions</h4>
 <div class="paragraph">
 <p>Sometimes type information gets lost, these functions help you to coerce an "Any" value to the concrete type</p>
 </div>
@@ -1596,8 +1713,8 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </tbody>
 </table>
 </div>
-<div class="sect4">
-<h5 id="_map_functions">Map Functions</h5>
+<div class="sect3">
+<h4 id="_map_functions">Map Functions</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1635,8 +1752,8 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </tbody>
 </table>
 </div>
-<div class="sect4">
-<h5 id="_collection_functions">Collection Functions</h5>
+<div class="sect3">
+<h4 id="_collection_functions">Collection Functions</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1672,8 +1789,12 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 <td class="tableblock halign-left valign-top"><p class="tableblock">all values in a list</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.pairs([list])</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">returns `[first,second],[second,third], &#8230;&#8203;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.pairs([1,2,3]) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">[1,2],[2,3],[3,null]</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.pairsMin([1,2,3]) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">[1,2],[2,3]</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.toSet([list])</code></p></td>
@@ -1738,8 +1859,8 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </tbody>
 </table>
 </div>
-<div class="sect4">
-<h5 id="_lookup_functions">Lookup Functions</h5>
+<div class="sect3">
+<h4 id="_lookup_functions">Lookup Functions</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1765,8 +1886,8 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </tbody>
 </table>
 </div>
-<div class="sect4">
-<h5 id="_phonetic_comparisons">Phonetic Comparisons</h5>
+<div class="sect3">
+<h4 id="_phonetic_comparisons">Phonetic Comparisons</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1786,7 +1907,7 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 <td class="tableblock halign-left valign-top"><p class="tableblock">join the given strings with the given delimiter.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CAL apoc.text.clean(text) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.clean(text) YIELD value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">strip the given string of everything except alpha numeric characters and convert it to lower case.</p></td>
 </tr>
 <tr>
@@ -1825,17 +1946,21 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.util.md5([values])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">computes the md5 of the concatenation of all string values of the list</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.util.sleep({duration})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sleeps for &lt;duration&gt; millis, transaction termination is honored</p></td>
+</tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_date_time_support">Date/time Support</h4>
+<div class="sect2">
+<h3 id="_date_time_support">Date/time Support</h3>
 <div class="paragraph">
 <p>(thanks @tkroman)</p>
 </div>
-<div class="sect4">
-<h5 id="_conversion_between_formatted_dates_and_timestamps">Conversion between formatted dates and timestamps</h5>
+<div class="sect3">
+<h4 id="_conversion_between_formatted_dates_and_timestamps">Conversion between formatted dates and timestamps</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1891,8 +2016,8 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </ul>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_reading_separate_datetime_fields">Reading separate datetime fields</h5>
+<div class="sect3">
+<h4 id="_reading_separate_datetime_fields">Reading separate datetime fields</h4>
 <div class="paragraph">
 <p>Splits date (optionally, using given custom format) into fields returning a map from field name to its value.</p>
 </div>
@@ -1908,8 +2033,8 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_bitwise_operations">Bitwise operations</h4>
+<div class="sect2">
+<h3 id="_bitwise_operations">Bitwise operations</h3>
 <div class="paragraph">
 <p>Provides a wrapper around the java bitwise operations.</p>
 </div>
@@ -1985,8 +2110,8 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_path_expander">Path Expander</h4>
+<div class="sect2">
+<h3 id="_path_expander">Path Expander</h3>
 <div class="paragraph">
 <p>(thanks @keesvegter)</p>
 </div>
@@ -2005,8 +2130,8 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </tr>
 </tbody>
 </table>
-<div class="sect4">
-<h5 id="_relationship_filter">Relationship Filter</h5>
+<div class="sect3">
+<h4 id="_relationship_filter">Relationship Filter</h4>
 <div class="paragraph">
 <p>Syntax: <code>[&lt;]RELATIONSHIP_TYPE1[&gt;]|[&lt;]RELATIONSHIP_TYPE2[&gt;]|&#8230;&#8203;</code></p>
 </div>
@@ -2060,10 +2185,10 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </tbody>
 </table>
 </div>
-<div class="sect4">
-<h5 id="_label_filter">Label Filter</h5>
+<div class="sect3">
+<h4 id="_label_filter">Label Filter</h4>
 <div class="paragraph">
-<p>Syntax: <code>[+-]LABEL1|LABEL2|&#8230;&#8203;</code></p>
+<p>Syntax: <code>[+-/]LABEL1|LABEL2|&#8230;&#8203;</code></p>
 </div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
@@ -2101,12 +2226,23 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 <p>exclude label (blacklist)</p>
 </div></div></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/Friend</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Friend</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>stop traversal after reaching a friend (but include him)</p>
+</div></div></td>
+</tr>
 </tbody>
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_parallel_node_search">Parallel Node Search</h4>
+<div class="sect2">
+<h3 id="_parallel_node_search">Parallel Node Search</h3>
 <div class="paragraph">
 <p>Utility to find nodes in parallel (if possible). These procedures return a single list of nodes or a list of 'reduced' records with node id, labels, and the properties where the search was executed upon.</p>
 </div>
@@ -2171,8 +2307,8 @@ call apoc.search.nodeReduced({Person: 'born', Movie: ['released']},'&gt;',2000) 
 </div>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_graph_algorithms_work_in_progress">Graph Algorithms (work in progress)</h4>
+<div class="sect2">
+<h3 id="_graph_algorithms_work_in_progress">Graph Algorithms (work in progress)</h3>
 <div class="paragraph">
 <p>Provides some graph algorithms (not very optimized yet)</p>
 </div>
@@ -2219,7 +2355,7 @@ call apoc.search.nodeReduced({Person: 'born', Movie: ['released']},'&gt;',2000) 
 <td class="tableblock halign-left valign-top"><p class="tableblock">calculate closeness  centrality for given nodes</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.cover(nodes) YIELD rel</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.cover(nodeIds) YIELD rel</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">return relationships between this set of nodes</p></td>
 </tr>
 </tbody>
@@ -2251,11 +2387,11 @@ call apoc.search.nodeReduced({Person: 'born', Movie: ['released']},'&gt;',2000) 
 <td class="tableblock halign-left valign-top"><p class="tableblock">simple label propagation kernel</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.cliques(minSize) YIELD cliques</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.cliques(minSize) YIELD clique</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">search the graph and return all maximal cliques at least at  large as the minimum size argument.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.cliquesWithNode(startNode, minSize) YIELD cliques</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.algo.cliquesWithNode(startNode, minSize) YIELD clique</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">search the graph and return all maximal cliques that  are at least as large than the minimum size argument and contain this node</p></td>
 </tr>
 </tbody>
@@ -2273,45 +2409,12 @@ MATCH (n:Person)</code></pre>
 </div>
 </div>
 </div>
-<h1 id="_detailed_documentation" class="sect0">Detailed Documentation</h1>
-<div class="sect1">
-<h2 id="_help_and_usage">Help and Usage</h2>
-<div class="sectionbody">
-<div class="imageblock">
-<div class="content">
-<img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc-help-apoc.jpg" alt="apoc help apoc" width="600">
-</div>
-</div>
-<table class="tableblock frame-all grid-all spread">
-<colgroup>
-<col style="width: 16%;">
-<col style="width: 83%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.help('search')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">lists name, description-text and if the procedure performs writes (descriptions are WIP), search string is checked against beginning (package) or end (name) of procedure</p></td>
-</tr>
-</tbody>
-</table>
-<div class="listingblock">
-<div class="title">helpful</div>
-<div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.help("apoc") YIELD name, text
-WITH * WHERE text IS null
-RETURN name AS undocumented</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>To generate the help from <code>@Description</code> annotations, apoc currently scans the jar file with ASM.</p>
-</div>
-</div>
 </div>
 <div class="sect1">
 <h2 id="_text_and_lookup_indexes">Text and Lookup Indexes</h2>
 <div class="sectionbody">
-<div class="sect3">
-<h4 id="_index_queries_2">Index Queries</h4>
+<div class="sect2">
+<h3 id="_index_queries_2">Index Queries</h3>
 <div class="paragraph">
 <p>Procedures to add to and query manual indexes</p>
 </div>
@@ -2389,8 +2492,8 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 </tbody>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_index_management_2">Index Management</h4>
+<div class="sect2">
+<h3 id="_index_management_2">Index Management</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -2398,7 +2501,7 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.index.list() - YIELD type,name,config</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.index.list() YIELD type,name,config</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">lists all manual indexes</p></td>
 </tr>
 <tr>
@@ -2859,7 +2962,7 @@ CALL apoc.path.expand(startNode &lt;id&gt;|Node|list, 'TYPE|TYPE_OUT&gt;|&lt;TYP
 <p>Label Filter</p>
 </div>
 <div class="paragraph">
-<p>Syntax: <code>[+-]LABEL1|LABEL2|&#8230;&#8203;</code></p>
+<p>Syntax: <code>[+-/]LABEL1|LABEL2|&#8230;&#8203;</code></p>
 </div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
@@ -2895,6 +2998,17 @@ CALL apoc.path.expand(startNode &lt;id&gt;|Node|list, 'TYPE|TYPE_OUT&gt;|&lt;TYP
 </div>
 <div class="paragraph">
 <p>exclude label (blacklist)</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/Friend</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Friend</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>stop traversal after reaching a friend (but include him)</p>
 </div></div></td>
 </tr>
 </tbody>
@@ -3527,6 +3641,33 @@ FOREACH (a IN q.answers |
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p>To simplify the JDBC URL syntax, for example 'jdbc:derby:derbyDB', and so as to mask the details one can define in conf/neo4j.conf</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.jdbc.derby.url=jdbc:derby:derbyDB</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>and then</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>becomes</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>CALL apoc.load.jdbc('derby','PERSON') YIELD row CREATE (:Person {name:row.name})</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The 3rd value in the 'apoc.jdbc.derby.url=' effectively defines an &lt;alias&gt; to be used in the apoc.load.jdbc('&lt;alias&gt;',&#8230;&#8203;.</p>
+</div>
 <div class="sect3">
 <h4 id="_mysql_example">MySQL Example</h4>
 <div class="sect4">
@@ -3782,8 +3923,9 @@ CREATE (t)-[:GENRE]-&gt;(g);</code></pre>
 </tr>
 </tbody>
 </table>
-<div class="sect3">
-<h4 id="_notes_2">Notes</h4>
+</div>
+<div class="sect2">
+<h3 id="_notes_2">Notes</h3>
 <div class="paragraph">
 <p>Gephi has a <a href="https://marketplace.gephi.org/plugin/graph-streaming/">streaming plugin</a>, that can provide and accept <a href="https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master">JSON-graph-data</a> in a streaming fashion.</p>
 </div>
@@ -3800,8 +3942,8 @@ CREATE (t)-[:GENRE]-&gt;(g);</code></pre>
 <p>You can also configure it in <code>conf/neo4j.conf</code> via  <code>apoc.gephi.url=url</code> or <code>apoc.gephi.&lt;key&gt;.url=url</code></p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_example_2">Example</h4>
+<div class="sect2">
+<h3 id="_example_2">Example</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">match path = (:Person)-[:ACTED_IN]-&gt;(:Movie)
@@ -3814,7 +3956,6 @@ return nodes, relationships, time</code></pre>
 <div class="imageblock">
 <div class="content">
 <img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img/apoc.gephi.gif" alt="apoc.gephi" width="800">
-</div>
 </div>
 </div>
 <div class="sect3">
@@ -4256,8 +4397,8 @@ RETURN n.prop</code></pre>
 <div class="paragraph">
 <p>We can use Cypher as safe, graph-aware, partially compiled scripting language within APOC.</p>
 </div>
-<div class="sect4">
-<h5 id="_cypher_execution_2">Cypher Execution</h5>
+<div class="sect3">
+<h4 id="_cypher_execution_2">Cypher Execution</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -4283,6 +4424,10 @@ RETURN n.prop</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.doIt(fragment, params) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">executes writing fragment with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">abort statement after timeout millis if not finished</p></td>
 </tr>
 </tbody>
 </table>
@@ -4326,6 +4471,18 @@ return label, value.count as count</code></pre>
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_running_a_cypher_statement_timeboxed">running a cypher statement timeboxed</h4>
+<div class="paragraph">
+<p>There&#8217;s a way to terminate a cypher statement if it takes longer than a given threshold. Consider an expensive statement calculating cross product of shortestpaths for each pair of nodes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.cypher.runTimeboxed("match (n),(m) match p=shortestPath((n)-[*]-(m)) return p", null, 10000) yield value
+return value.p</code></pre>
+</div>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_job_management_and_periodic_execution">Job management and periodic execution</h3>
@@ -4366,7 +4523,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-05-30 10:59:54 MESZ
+Last updated 2016-08-18 22:49:49 MESZ
 </div>
 </div>
 </body>

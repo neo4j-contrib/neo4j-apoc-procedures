@@ -88,7 +88,7 @@ asciidoctor {
 asciidoctor.doLast {
     copy {
         from 'build/docs/html5'
-        into "$projectDir"
+        into "$projectDir/docs"
         include 'index.html'
     }
 }

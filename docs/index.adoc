@@ -5,19 +5,25 @@
 :toclevels: 3
 :img: http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img
 
-include::../readme.adoc[tags=readme, leveloffset=1]
+== Introduction
 
-= Detailed Documentation
+include::../readme.adoc[tags=intro,leveloffset=1]
+
 
 == Help and Usage
 
-include::../readme.adoc[tags=help,leveloffset=-1]
+include::overview.adoc[tags=help,leveloffset=-1]
 
 To generate the help from `@Description` annotations, apoc currently scans the jar file with ASM.
 
+
+== Overview of APOC Procedures
+
+include::overview.adoc[tags=overview,leveloffset=1]
+
 == Text and Lookup Indexes
 
-include::../readme.adoc[tags=fulltext]
+include::overview.adoc[tags=fulltext]
 
 include::fulltext.adoc[leveloffset=2]
 

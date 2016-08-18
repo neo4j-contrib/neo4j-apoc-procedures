@@ -1,7 +1,7 @@
 = ElasticSearch Integration
 
 
-include::../readme.adoc[tags=elasticsearch,leveloffset=-1]
+include::overview.adoc[tags=elasticsearch,leveloffset=-1]
 
 
 == Example

@@ -1,0 +1,732 @@
+= Included Procedures Overview
+
+== Built in Help
+
+// tag::help[]
+
+image::{img}/apoc-help-apoc.jpg[width=600]
+
+[cols="1m,5"]
+|===
+| call apoc.help('search') | lists name, description-text and if the procedure performs writes (descriptions are WIP), search string is checked against beginning (package) or end (name) of procedure
+|===
+
+.helpful
+[source,cypher]
+----
+CALL apoc.help("apoc") YIELD name, text
+WITH * WHERE text IS null
+RETURN name AS undocumented
+----
+
+// end::help[]
+
+== Builtin Package and Procedure count
+
+// tag::procedurecount[]
+
+To find the procedure count with the package in Neo4j: 
+
+image::{img}/apoc.dbms.procedure.count.jpg[width=600]
+
+.Cypher for getting count of procedure in a package
+[source,cypher]
+
+----
+
+CALL dbms.procedures() YIELD name
+RETURN head(split(name,".")) as package, count(*), collect(name) as procedures;
+
+----
+
+// end::procedurecount[]
+
+// tag::overview[]
+
+== Manual Indexes
+
+// tag::fulltext[]
+
+=== Index Queries
+
+Procedures to add to and query manual indexes
+
+NOTE: Please note that there are (case-sensitive) http://neo4j.com/docs/developer-manual/current/#cypher-schema[automatic schema indexes], for equality, non-equality, existence, range queries, starts with, ends-with and contains!
+
+[cols="1m,5"]
+|===
+| apoc.index.addAllNodes('index-name',{label1:['prop1',...],...}) | add all nodes to this full text index with the given fields, additionally populates a 'search' index field with all of them in one place
+| apoc.index.addNode(node,['prop1',...]) | add node to an index for each label it has
+| apoc.index.addNodeByLabel(node,'Label',['prop1',...]) | add node to an index for the given label
+| apoc.index.addRelationship(rel,['prop1',...]) | add relationship to an index for its type
+|===
+
+image::{img}/apoc.index.nodes-with-score.jpg[width=600]
+
+[cols="1m,5"]
+|===
+| apoc.index.search('index-name', 'query') YIELD node, weight | search for the first 100 nodes in the given full text index matching the given lucene query returned by relevance
+| apoc.index.nodes('Label','prop:value*') YIELD node, weight | lucene query on node index with the given label name
+| apoc.index.relationships('TYPE','prop:value*') YIELD rel, weight | lucene query on relationship index with the given type name
+| apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel, weight | lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)
+| apoc.index.out(node,'TYPE','prop:value*') YIELD node, weight | lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*
+| apoc.index.in(node,'TYPE','prop:value*') YIELD node, weight | lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*
+|===
+
+=== Index Management
+
+[cols="1m,5"]
+|===
+| CALL apoc.index.list() YIELD type,name,config | lists all manual indexes
+| CALL apoc.index.remove('name') YIELD type,name,config | removes manual indexes
+| CALL apoc.index.forNodes('name',{config}) YIELD type,name,config | gets or creates manual node index
+| CALL apoc.index.forRelationships('name',{config}) YIELD type,name,config | gets or creates manual relationship index
+|===
+
+.Add node to index example
+[source,cypher]
+----
+match (p:Person) call apoc.index.addNode(p,["name","age"]) RETURN count(*);
+// 129s for 1M People
+call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limit 2
+----
+
+// end::fulltext[]
+
+=== Schema Index Queries
+
+Schema Index lookups that keep order and can apply limits
+
+[cols="1m,5"]
+|===
+| apoc.index.orderedRange(label,key,min,max,sort-relevance,limit) yield node | schema range scan which keeps index order and adds limit, values can be null, boundaries are inclusive
+| apoc.index.orderedByText(label,key,operator,value,sort-relevance,limit) yield node | schema string search which keeps index order and adds limit, operator is 'STARTS WITH' or 'CONTAINS'
+|===
+
+
+
+== Meta Graph
+
+image::{img}/apoc.meta.graph.jpg[width=600]
+
+Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.
+
+[cols="1m,5"]
+|===
+| CALL apoc.meta.graph | examines the full graph to create the meta-graph
+| CALL apoc.meta.graphSample(sampleSize) | examines a sample graph to create the meta-graph, default sampleSize is 100
+| CALL apoc.meta.subGraph({config}) | examines a sample sub graph to create the meta-graph, default sampleSize is 100 +
+config is: {labels:[labels],rels:[rel-types],sample:sample}
+| CALL apoc.meta.data | examines a subset of the graph to provide a tabular meta information
+| CALL apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats | returns the information stored in the transactional database statistics
+| CALL apoc.meta.type(value) | type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST`)
+| CALL apoc.meta.isType(value,type) | returns a row if type name matches none if not
+|===
+
+
+.isType example
+[source,cypher]
+----
+MATCH (n:Person)
+CALL apoc.meta.isType(n.age,"INTEGER")
+RETURN n LIMIT 5
+----
+
+== Schema
+
+[cols="1m,5"]
+|===
+| apoc.schema.assert({indexLabel:[indexKeys],...},{constraintLabel:[constraintKeys,...]}) yield label, key, unique, action | asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label
+|===
+
+
+== Locking
+
+[cols="1m,5"]
+|===
+| call apoc.lock.nodes([nodes]) | acquires a write lock on the given nodes
+| call apoc.lock.rels([relationships]) | acquires a write lock on the given relationship
+| call apoc.lock.all([nodes],[relationships]) | acquires a write lock on the given nodes and relationships
+|===
+
+== from/toJson
+
+[cols="1m,5"]
+|===
+| CALL apoc.convert.toJson([1,2,3]) | converts value to json string
+| CALL apoc.convert.toJson( {a:42,b:"foo",c:[1,2,3]}) | converts value to json map
+| CALL apoc.convert.fromJsonList('[1,2,3]') | converts json list to Cypher list
+| CALL apoc.convert.fromJsonMap( '{"a":42,"b":"foo","c":[1,2,3]}') | converts json map to Cypher map
+| CALL apoc.convert.toTree([paths]) yield value | creates a stream of nested documents representing the at least one root of these paths
+|===
+
+== Export / Import
+
+Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.runFile to the given file.
+
+[cols="1m,5"]
+|===
+| apoc.export.cypherAll(file,config) | exports whole database incl. indexes as cypher statements to the provided file
+| apoc.export.cypherData(nodes,rels,file,config) | exports given nodes and relationships incl. indexes as cypher statements to the provided file
+| apoc.export.cypherQuery(query,file,config) | exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file
+|===
+
+== Loading Data from RDBMS
+
+image::{img}/apoc-jdbc-northwind-load.jpg[width=600]
+
+// tag::jdbc[]
+
+[cols="1m,5"]
+|===
+| CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name}) | load from relational database, either a full table or a sql statement
+| CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18') | load from relational database, either a full table or a sql statement
+| CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') | register JDBC driver of source database
+|===
+
+To simplify the JDBC URL syntax, for example 'jdbc:derby:derbyDB', and so as to mask the details one can define in conf/neo4j.conf
+
+----
+apoc.jdbc.derby.url=jdbc:derby:derbyDB
+----
+
+and then 
+
+----
+CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})
+----
+
+becomes
+
+----
+CALL apoc.load.jdbc('derby','PERSON') YIELD row CREATE (:Person {name:row.name})
+----
+
+The 3rd value in the 'apoc.jdbc.derby.url=' effectively defines an <alias> to be used in the apoc.load.jdbc('<alias>',....
+
+// end::jdbc[]
+
+== Loading Data from Web-APIs (JSON, XML, CSV)
+
+[cols="1m,5"]
+|===
+| CALL apoc.load.json('http://example.com/map.json') YIELD value as person CREATE (p:Person) SET p = person | load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map
+| CALL apoc.load.xml('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name | load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `_type`, `_text` and `_children` fields.
+| CALL apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name | load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `_type`, `_text` fields and `_<childtype>` collections per child-element-type.
+| CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, map | load CSV fom URL as stream of values +
+config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}`
+|===
+
+== Interacting with Elastic Search
+
+// tag::elasticsearch[]
+
+[cols="3m,2"]
+|===
+| apoc.es.stats(host-url-Key) | elastic search statistics
+| apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value | perform a GET operation
+| apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value | perform a SEARCH operation
+| apoc.es.getRaw(host-or-port,path,payload-or-null) yield value | perform a raw GET operation
+| apoc.es.postRaw(host-or-port,path,payload-or-null) yield value | perform a raw POST operation
+| apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value | perform a POST operation
+| apoc.es.put(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value | perform a PUT operation
+|===
+
+// end::elasticsearch[]
+
+== Interacting with MongoDB
+
+// tag::mongodb[]
+
+[cols="3m,2"]
+|===
+| CALL apoc.mongodb.get(host-or-port,db-or-null,collection-or-null,query-or-null) yield value | perform a find operation on mongodb collection
+| CALL apoc.mongodb.count(host-or-port,db-or-null,collection-or-null,query-or-null) yield value | perform a find operation on mongodb collection
+| CALL apoc.mongodb.first(host-or-port,db-or-null,collection-or-null,query-or-null) yield value | perform a first operation on mongodb collection
+| CALL apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null) yield value | perform a find,project,sort operation on mongodb collection
+| CALL apoc.mongodb.insert(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
+| CALL apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
+| CALL apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
+|===
+
+Copy these jars into the plugins directory:
+
+----
+mvn dependency:copy-dependencies
+cp target/dependency/mongodb*.jar target/dependency/bson*.jar $NEO4J_HOME/plugins/
+----
+
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDocument'})
+----
+// end::mongodb[]
+
+== Streaming Data to Gephi
+
+// tag::gephi[]
+
+[cols="1m,5"]
+|===
+| apoc.gephi.add(url-or-key, workspace, data) | streams provided data to Gephi
+|===
+
+=== Notes
+
+Gephi has a https://marketplace.gephi.org/plugin/graph-streaming/[streaming plugin], that can provide and accept https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master[JSON-graph-data] in a streaming fashion.
+
+Make sure to install the plugin firsrt and activate it for your workspace (there is a new "Streaming"-tab besides "Layout"), right-click "Master"->"start" to start the server.
+
+You can provide your workspace name (you might want to rename it before you start thes streaming), otherwise it defaults to `workspace0`
+
+The default Gephi-URL is http://localhost:8080, resulting in `http://localhost:8080/workspace0?operation=updateGraph`
+
+You can also configure it in `conf/neo4j.conf` via  `apoc.gephi.url=url` or `apoc.gephi.<key>.url=url`
+
+=== Example
+
+[source,cypher]
+----
+match path = (:Person)-[:ACTED_IN]->(:Movie)
+WITH path LIMIT 1000
+with collect(path) as paths
+call apoc.gephi.add(null,'workspace0', paths) yield nodes, relationships, time
+return nodes, relationships, time
+----
+
+// end::gephi[]
+
+== Creating Data
+
+[cols="1m,5"]
+|===
+| CALL apoc.create.node(['Label'], {key:value,...}) | create node with dynamic labels
+| CALL apoc.create.nodes(['Label'], [{key:value,...}]) | create multiple nodes with dynamic labels
+| CALL apoc.create.addLabels( [node,id,ids,nodes], ['Label',...]) | adds the given labels to the node or nodes
+| CALL apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...]) | removes the given labels from the node or nodes
+| CALL apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) | create relationship with dynamic rel-type
+| CALL apoc.create.uuid YIELD uuid | creates an UUID
+| CALL apoc.create.uuids(count) YIELD uuid | creates count UUIDs
+| CALL apoc.nodes.link([nodes],'REL_TYPE') | creates a linked list of nodes from first to last
+|===
+
+== Virtual Nodes/Rels
+
+Virtual Nodes and Relationships don't exist in the graph, they are only returned to the UI/user for representing a graph projection.
+They can be visualized or processed otherwise.
+Please note that they have negative id's.
+
+[cols="1m,5"]
+|===
+| CALL apoc.create.vNode(['Label'], {key:value,...}) | returns a virtual node
+| CALL apoc.create.vNodes(['Label'], [{key:value,...}]) | returns virtual nodes
+| CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) | returns a virtual relationship
+| CALL apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) | returns a virtual pattern
+| CALL apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) | returns a virtual pattern
+|===
+
+// * TODO `CALL apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])
+
+Example
+
+[source,cypher]
+----
+MATCH (a)-[r]->(b)
+WITH head(labels(a)) AS l, head(labels(b)) AS l2, type(r) AS rel_type, count(*) as count
+CALL apoc.create.vNode(['Meta_Node'],{name:l}) yield node as a
+CALL apoc.create.vNode(['Meta_Node'],{name:l2}) yield node as b
+CALL apoc.create.vRelationship(a,'META_RELATIONSHIP',{name:rel_type, count:count},b) yield rel
+RETURN *;
+----
+
+== Virtual Graph
+
+Create a graph object (map) from information that's passed in.
+It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}`
+
+[cols="1m,5"]
+|===
+| apoc.graph.from(data,'name',{properties}) yield graph | creates a virtual graph object for later processing it tries its best to extract the graph information from the data you pass in
+| apoc.graph.fromData([nodes],[relationships],'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromPaths(path,'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromPaths([paths],'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromDB('name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
+|===
+
+== Generating Graphs
+
+Generate undirected (random direction) graphs with semi-real random distributions based on theoretical models.
+
+[cols="1m,5"]
+|===
+| apoc.generate.er(noNodes, noEdges, 'label', 'type') | generates a graph according to Erdos-Renyi model (uniform)
+| apoc.generate.ws(noNodes, degree, beta, 'label', 'type') | generates a graph according to Watts-Strogatz model (clusters)
+| apoc.generate.ba(noNodes, edgesPerNode, 'label', 'type') | generates a graph according to Barabasi-Albert model (preferential attachment)
+| apoc.generate.complete(noNodes, 'label', 'type') | generates a complete graph (all nodes connected to all other nodes)
+| apoc.generate.simple([degrees], 'label', 'type') | generates a graph with the given degree distribution
+|===
+
+Example
+
+[source,cypher]
+----
+CALL apoc.generate.ba(1000, 2, 'TestLabel', 'TEST_REL_TYPE')
+CALL apoc.generate.ws(1000, null, null, null)
+CALL apoc.generate.simple([2,2,2,2], null, null)
+----
+
+== Warmup
+
+(thanks @SaschaPeukert)
+
+[cols="1m,5"]
+|===
+| CALL apoc.warmup.run() | Warmup the node and relationship page-caches by loading one page at a time
+|===
+
+== Monitoring
+
+(thanks @ikwattro)
+
+[cols="1m,5"]
+|===
+| apoc.monitor.ids | node and relationships-ids in total and in use
+| apoc.monitor.kernel | store information such as kernel version, start time, read-only, database-name, store-log-version etc.
+| apoc.monitor.store | store size information for the different types of stores
+| apoc.monitor.tx | number of transactions total,opened,committed,concurrent,rolled-back,last-tx-id
+| apoc.monitor.locks(minWaitTime long) | db locking information such as avertedDeadLocks, lockCount, contendedLockCount and contendedLocks etc. (enterprise)
+|===
+
+// include::{img}/apoc.monitor.png[width=600]
+
+// tag::cypher[]
+
+== Cypher Execution
+
+[cols="1m,5"]
+|===
+| CALL apoc.cypher.run(fragment, params) yield value | executes reading fragment with the given parameters
+| CALL apoc.cypher.runFile(file or url) yield row, result | runs each statement in the file, all semicolon separated - currently no schema operations
+| CALL apoc.cypher.runMany('cypher;\nstatements;',{params}) | runs each semicolon separated statement and returns summary - currently no schema operations
+| CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value | executes fragment in parallel batches with the list segments being assigned to _
+| CALL apoc.cypher.doIt(fragment, params) yield value | executes writing fragment with the given parameters
+| CALL apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) | abort statement after timeout millis if not finished
+|===
+
+// end::cypher[]
+
+TODO runFile: begin/commit/schema await/constraints/indexes
+
+== Job Management
+
+[cols="1m,5"]
+|===
+| CALL apoc.periodic.commit(statement, params) | repeats an batch update statement until it returns 0, this procedure is blocking
+| CALL apoc.periodic.list() | list all jobs
+| CALL apoc.periodic.submit('name',statement) | submit a one-off background statement
+| CALL apoc.periodic.schedule('name',statement,repeat-time-in-seconds) | submit a repeatedly-called background statement
+| CALL apoc.periodic.countdown('name',statement,delay-in-seconds) | submit a repeatedly-called background statement until it returns 0
+| CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total | iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g.
+| CALL apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,parallel:true}) YIELD batches, total | run the second statement for each item returned by the first statement. Returns number of batches and total processed rows
+|===
+
+* there are also static methods `Jobs.submit`, and `Jobs.schedule` to be used from other procedures
+* jobs list is checked / cleared every 10s for finished jobs
+
+[source,cypher]
+----
+CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (p) where id(p)={id_p} SET p.lastname =p.name', 20000)
+----
+
+copies over the `name` property of each person to `lastname`.
+
+== Graph Refactoring
+
+[cols="1m,5"]
+|===
+| call apoc.refactor.cloneNodes([node1,node2,...]) |  clone nodes with their labels and properties
+| call apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) | clone nodes with their labels, properties and relationships
+| call apoc.refactor.mergeNodes([node1,node2]) | merge nodes onto first in list
+| call apoc.refactor.to(rel, endNode) | redirect relationship to use new end-node
+| call apoc.refactor.from(rel, startNode) | redirect relationship to use new start-node
+| call apoc.refactor.setType(rel, 'NEW-TYPE') | change relationship-type
+| call apoc.refactor.extractNode([rel1,rel2,...], [labels], 'OUT','IN') | extract node from relationships
+| call apoc.refactor.collapseNode([node1,node2],'TYPE') | collapse node to relationship, node with one rel becomes self-relationship
+| call apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) | normalize/convert a property to be boolean
+| call apoc.refactor.categorize(node, propertyKey, type, outgoing, label) | turn each unique propertyKey into a category node and connect to it
+|===
+
+TODO:
+
+* merge nodes by label + property
+* merge relationships
+
+== Spatial
+
+[cols="1m,5"]
+|===
+| CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData | look up geographic location of location from openstreetmap geocoding service
+| CALL apoc.spatial.sortPathsByDistance(Collection<Path>) YIELD path, distance | sort a given collection of paths by geographic distance based on lat/long properties on the path nodes
+|===
+
+== Helpers
+
+=== Static Value Storage
+
+[cols="1m,5"]
+|===
+| apoc.static.get(name) | returns statically stored value from config (apoc.static.<key>) or server lifetime storage
+| apoc.static.getAll(prefix) |  returns statically stored values from config (apoc.static.<prefix>) or server lifetime storage
+| apoc.static.set(name, value) | stores value under key for server livetime storage, returns previously stored or configured value
+|===
+
+=== Conversion Functions
+
+Sometimes type information gets lost, these functions help you to coerce an "Any" value to the concrete type
+
+[cols="1m,5"]
+|===
+| apoc.convert.toString(value) | tries it's best to convert the value to a string
+| apoc.convert.toMap(value) | tries it's best to convert the value to a map
+| apoc.convert.toList(value) | tries it's best to convert the value to a list
+| apoc.convert.toBoolean(value) | tries it's best to convert the value to a boolean
+| apoc.convert.toNode(value) | tries it's best to convert the value to a node
+| apoc.convert.toRelationship(value) | tries it's best to convert the value to a relationship
+| apoc.convert.toSet(value) | tries it's best to convert the value to a set
+|===
+
+=== Map Functions
+
+[cols="1m,5"]
+|===
+| apoc.map.fromPairs([[key,value],[key2,value2],...]) | creates map from list with key-value pairs
+| apoc.map.fromLists([keys],[values]) | creates map from a keys and a values list
+| apoc.map.fromValues([key,value,key1,value1]) | creates map from alternating keys and values in a list
+| apoc.map.setKey(map,key,value) | returns the map with the value for this key added or replaced
+| apoc.map.removeKey(map,key) | returns the map with the key removed
+| apoc.map.removeKeys(map,[keys]) | returns the map with the keys removed
+| apoc.map.clean(map,[keys],[values]) yield value | removes the keys and values (e.g. null-placeholders) contained in those lists, good for data cleaning from CSV/JSON
+|===
+
+
+=== Collection Functions
+
+[cols="1m,5"]
+|===
+| apoc.coll.sum([0.5,1,2.3]) | sum of all values in a list
+| apoc.coll.avg([0.5,1,2.3]) | avg of all values in a list
+| apoc.coll.min([0.5,1,2.3]) | minimum of all values in a list
+| apoc.coll.max([0.5,1,2.3]) | maximum of all values in a list
+| apoc.coll.sumLongs([1,3,3]) | sums all numeric values in a list
+| apoc.coll.partition(list,batchSize) | partitions a list into sublists of `batchSize`
+| apoc.coll.zip([list1],[list2]) | all values in a list
+| apoc.coll.pairs([1,2,3]) YIELD value | [1,2],[2,3],[3,null]
+| apoc.coll.pairsMin([1,2,3]) YIELD value | [1,2],[2,3]
+| apoc.coll.toSet([list]) | returns a unique list backed by a set
+| apoc.coll.sort(coll) | sort on Collections
+| apoc.coll.sortNodes([nodes], 'name') | sort nodes by property
+| apoc.coll.contains(coll, value) | optimized contains operation (using a HashSet) (returns single row or not)
+| apoc.coll.containsAll(coll, values) | optimized contains-all operation (using a HashSet) (returns single row or not)
+| apoc.coll.containsSorted(coll, value) | optimized contains on a sorted list operation (Collections.binarySearch) (returns single row or not)
+| apoc.coll.containsAllSorted(coll, value) | optimized contains-all on a sorted list operation (Collections.binarySearch) (returns single row or not)
+| apoc.coll.union(first, second) | creates the distinct union of the 2 lists
+| apoc.coll.subtract(first, second) | returns unique set of first list with all elements of second list removed
+| apoc.coll.removeAll(first, second) | returns first list with all elements of second list removed
+| apoc.coll.intersection(first, second) | returns the unique intersection of the two lists
+| apoc.coll.disjunction(first, second) | returns the disjunct set of the two lists
+| apoc.coll.unionAll(first, second) | creates the full union with duplicates of the two lists
+| apoc.coll.split(list,value) | splits collection on given values rows of lists, value itself will not be part of resulting lists
+| apoc.coll.indexOf(coll, value) | position of value in the list
+|===
+
+=== Lookup Functions
+
+[cols="1m,5"]
+|===
+| apoc.get.nodes(node|id|[ids]) yield node | quickly returns all nodes with these id's
+| apoc.get.rels(rels|id|[ids]) yield rel | quickly returns all relationships with these id's
+|===
+
+
+=== Phonetic Comparisons
+
+[cols="1m,5"]
+|===
+| CALL apoc.text.phonetic(value) yield value | Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
+| CALL apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta | Compute the US_ENGLISH soundex character difference between two given strings
+| CALL apoc.text.join(['text1','text2',...], delimiter) YIELD value | join the given strings with the given delimiter.
+| CALL apoc.text.clean(text) YIELD value | strip the given string of everything except alpha numeric characters and convert it to lower case.
+| CALL apoc.text.compareCleaned(text1, text2) YIELD value | compare the given strings stripped of everything except alpha numeric characters converted to lower case.
+| CALL apoc.text.filterCleanMatches(text1, text2) YIELD value | filter out non-matches of the given strings stripped of everything except alpha numeric characters converted to lower case.
+|===
+
+[cols="1m,5"]
+|===
+| apoc.data.domain(email_or_url) yield value | returns domain part of the value
+|===
+
+[cols="1m,5"]
+|===
+| apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list
+| apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list
+| apoc.util.sleep({duration}) | sleeps for <duration> millis, transaction termination is honored
+|===
+
+== Date/time Support
+
+(thanks @tkroman)
+
+=== Conversion between formatted dates and timestamps
+
+[cols="1m,5"]
+|===
+| apoc.date.parseDefault('2015-03-25 03:15:59','s') | get Unix time equivalent of given date (in seconds)
+| apoc.date.parse('2015/03/25 03-15-59','s', 'yyyy/MM/dd HH/mm/ss') | same as previous, but accepts custom datetime format
+| apoc.date.formatDefault(12345,'s') | get string representation of date corresponding to given Unix time (in seconds)
+| apoc.date.format(12345,'s', 'yyyy/MM/dd HH/mm/ss') | the same as previous, but accepts custom datetime format
+
+| apoc.date.parseDefault('2015-03-25 03:15:59','ms') | get Unix time equivalent of given date (in milliseconds)
+| apoc.date.parse('2015/03/25 03-15-59','ms','yyyy/MM/dd HH/mm/ss') | same as previous, but accepts custom datetime format
+| apoc.date.formatDefault(12345,'ms') | get string representation of date corresponding to given time in milliseconds in UTC time zone
+| apoc.date.format(12345,'ms', 'yyyy/MM/dd HH/mm/ss') | the same as previous, but accepts custom datetime format
+| apoc.date.formatTimeZone(12345,'s', 'yyyy/MM/dd HH/mm/ss', 'ABC') | the same as previous, but accepts custom time zone
+|===
+
+* possible unit values: `ms,s,m,h,d` and their long forms `millis,milliseconds,seconds,minutes,hours,days`.
+* possible time zone values: Either an abbreviation such as `PST`, a full name such as `America/Los_Angeles`, or a custom ID such as `GMT-8:00`. Full names are recommended. You can view a list of full names in https://en.wikipedia.org/wiki/List_of_tz_database_time_zones[this Wikipedia page].
+
+=== Reading separate datetime fields
+
+Splits date (optionally, using given custom format) into fields returning a map from field name to its value.
+
+* `apoc.date.fields('2015-03-25 03:15:59')`
+* `apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')`
+
+== Bitwise operations
+
+Provides a wrapper around the java bitwise operations.
+|===
+| call apoc.bitwise.op(a long, "operation", b long ) yield value as <identifier> 
+|===
+
+examples
+|===
+| operator | name | example | result 
+| a & b | AND | call apoc.bitwise.op(60,"&",13) | 12 
+| a \| b | OR | call apoc.bitwise.op(60,"\|",13) | 61 
+| a ^ b | XOR | call apoc.bitwise.op(60,"&",13) | 49
+| ~a | NOT | call apoc.bitwise.op(60,"&",0) | -61
+| a << b | LEFT SHIFT | call apoc.bitwise.op(60,"<<",2) | 240
+| a >> b | RIGHT SHIFT | call apoc.bitwise.op(60,">>",2) | 15 
+| a >>> b | UNSIGNED RIGHT SHIFT | call apoc.bitwise.op(60,">>>",2) | 15 
+|===
+
+== Path Expander
+
+(thanks @keesvegter)
+
+The apoc.path.expand procedure makes it possible to do variable length path traversals where you can specify the direction of the relationship per relationship type and a list of Label names which act as a "whitelist" or a "blacklist". The procedure will return a list of Paths in a variable name called "path".
+
+[cols="1m,5"]
+|===
+| call apoc.path.expand(startNode <id>\|Node, relationshipFilter, labelFilter, minDepth, maxDepth ) yield path as <identifier> | expand from given nodes(s) taking the provided restrictions into account
+|===
+
+
+=== Relationship Filter
+
+Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
+
+[opts=header,cols="m,m,a"]
+|===
+| input | type | direction
+| LIKES> | LIKES | OUTGOING
+| <FOLLOWS | FOLLOWS  | INCOMING
+| KNOWS  | KNOWS | BOTH
+|===
+
+=== Label Filter
+
+Syntax: `[+-/]LABEL1|LABEL2|...`
+
+[opts=header,cols="m,m,a"]
+|===
+| input | label | result
+| +Friend | Friend | include label (whitelist)
+| -Foe | Foe | exclude label (blacklist)
+| /Friend | Friend | stop traversal after reaching a friend (but include him)
+|===
+
+== Parallel Node Search 
+
+Utility to find nodes in parallel (if possible). These procedures return a single list of nodes or a list of 'reduced' records with node id, labels, and the properties where the search was executed upon. 
+
+[cols="5m,4"]
+|===
+| call apoc.search.node(labelPropertyMap, searchType, search ) yield node | A distinct set of Nodes will be returned.
+| call apoc.search.nodeAll(labelPropertyMap, searchType, search ) yield node | All the found Nodes will be returned.
+| call apoc.search.nodeReduced(labelPropertyMap, searchType, search ) yield id, labels, values | A merged set of 'minimal' Node information will be returned. One record per node (-id).
+| call apoc.search.nodeAllReduced(labelPropertyMap, searchType, search ) yield id, labels, values | All the found 'minimal' Node information will be returned. One record per label and property.
+|===
+
+[cols="1m,4,3"]
+|===
+| labelPropertyMap |   `'{ label1 : "propertyOne", label2 :["propOne","propTwo"] }'` | (JSON or Map) For every Label-Property combination a search will be executed in parallel (if possible): Label1.propertyOne, label2.propOne and label2.propTwo.
+| searchType |  'exact' or 'contains' or 'starts with' or 'ends with' | Case insensitive string search operators
+| searchType |  "<", ">", "=", "<>", "<=", ">=", "=~" | Operators
+| search | 'Keanu' | The actual search term (string, number, etc).
+|===
+
+.example
+[source,cypher]
+----
+CALL apoc.search.nodeAll('{Person: "name",Movie: ["title","tagline"]}','contains','her') YIELD node AS n RETURN n
+call apoc.search.nodeReduced({Person: 'born', Movie: ['released']},'>',2000) yield id, labels, properties RETURN *
+----
+
+== Graph Algorithms (work in progress)
+
+Provides some graph algorithms (not very optimized yet)
+
+[cols="3m,3"]
+|===
+| apoc.algo.dijkstra(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance') YIELD path, weight | run dijkstra with relationship property name as cost function
+| apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>',  'distance', 10) YIELD path, weight | run dijkstra with relationship property name as cost function and a default weight if the property does not exist
+| apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance','lat','lon')  YIELD path, weight | run A* with relationship property name as cost function
+| apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', {weight:'dist',default:10, x:'lon',y:'lat'}) YIELD path, weight | run A* with relationship property name as cost function
+| apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 5) YIELD path,  weight | run allSimplePaths with relationships given and maxNodes
+|===
+
+
+[cols="3m,3"]
+|===
+| apoc.algo.betweenness(['TYPE',...],nodes,BOTH) YIELD node, score | calculate betweenness  centrality for given nodes
+| apoc.algo.closeness(['TYPE',...],nodes, INCOMING) YIELD node, score | calculate closeness  centrality for given nodes
+| apoc.algo.cover(nodeIds) YIELD rel | return relationships between this set of nodes
+|===
+
+[cols="3m,3"]
+|===
+| apoc.algo.pageRank(nodes) YIELD node, score | calculates page rank for given nodes
+| apoc.algo.pageRankWithConfig(nodes,{iterations:_,types:_}) YIELD node, score | calculates page rank for given nodes
+|===
+
+[cols="3m,3"]
+|===
+| apoc.algo.community(times,labels,partitionKey,type,direction,weightKey,batchSize) | simple label propagation kernel
+| apoc.algo.cliques(minSize) YIELD clique | search the graph and return all maximal cliques at least at  large as the minimum size argument.
+| apoc.algo.cliquesWithNode(startNode, minSize) YIELD clique | search the graph and return all maximal cliques that  are at least as large than the minimum size argument and contain this node
+|===
+
+Example: find the weighted shortest path based on relationship property `d` from `A` to `B` following just `:ROAD` relationships
+
+[source,cypher]
+----
+MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'})
+CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as weight
+RETURN path, weight
+MATCH (n:Person)
+----
+
+// end::overview[]

@@ -1,6 +1,6 @@
 = Load JDBC
 
-include::../readme.adoc[tags=jdbc,leveloffset=-1]
+include::overview.adoc[tags=jdbc,leveloffset=-1]
 
 == MySQL Example
 
