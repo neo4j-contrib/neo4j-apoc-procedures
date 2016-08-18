@@ -38,7 +38,7 @@ public class LoadJsonTest {
                     assertEquals(map("foo",asList(1,2,3)), row.get("value"));
                 });
     }
-    @Test public void testLoadJsonGraphCommons() throws Exception {
+    @Test @Ignore public void testLoadJsonGraphCommons() throws Exception {
 		String url = "https://graphcommons.com/graphs/8da5327d-7829-4dfe-b60b-4c0bda956b2a.json";
 		testCall(db, "CALL apoc.load.json({url})",map("url", url), // 'file:map.json' YIELD value RETURN value
                 (row) -> {
