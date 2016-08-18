@@ -1,11 +1,13 @@
 package apoc.load;
 
 import java.net.URL;
+import java.util.Map;
 
 import apoc.load.LoadJson;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -34,6 +36,15 @@ public class LoadJsonTest {
 		testCall(db, "CALL apoc.load.json({url})",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
                 (row) -> {
                     assertEquals(map("foo",asList(1,2,3)), row.get("value"));
+                });
+    }
+    @Test public void testLoadJsonGraphCommons() throws Exception {
+		String url = "https://graphcommons.com/graphs/8da5327d-7829-4dfe-b60b-4c0bda956b2a.json";
+		testCall(db, "CALL apoc.load.json({url})",map("url", url), // 'file:map.json' YIELD value RETURN value
+                (row) -> {
+                    Map value = (Map)row.get("value");
+                    assertEquals(true, value.containsKey("users"));
+                    assertEquals(true, value.containsKey("nodes"));
                 });
     }
 }

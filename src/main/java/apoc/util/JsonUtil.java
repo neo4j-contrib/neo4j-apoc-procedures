@@ -28,7 +28,7 @@ public class JsonUtil {
         } catch (EOFException eof) {
             return null;
         } catch (IOException e) {
-            throw new RuntimeException("Can't read url " + url + " as json", e);
+            throw new RuntimeException("Can't read url " + url + " as json: "+e.getMessage(), e);
         }
     }
     public static Object loadJson(@Name("url") String url) {
