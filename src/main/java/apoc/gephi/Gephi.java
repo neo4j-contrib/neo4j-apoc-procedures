@@ -76,9 +76,10 @@ public class Gephi {
             return map(idStr(n), attributes);
         }
         if (pc instanceof Relationship) {
-            Relationship r = (Relationship) pc;
+            Relationship r = (Relationship) pc;            
             String type = r.getType().name();
-            Map<String, Object> attributes = map("label", type, "TYPE", type);
+//             Map<String, Object> attributes = map("label", type, "TYPE", type);
+            Map<String, Object> attributes = r.getAllProperties();
             attributes.putAll(map("source", idStr(r.getStartNode()), "target", idStr(r.getEndNode()), "directed", true));
             attributes.putAll(color(type, colors));
             return map(String.valueOf(r.getId()), attributes);
