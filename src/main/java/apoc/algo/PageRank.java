@@ -71,19 +71,17 @@ public class PageRank {
     }
 
     @Procedure("apoc.algo.pageRankWithCypher")
-    @Description(
-            "")
-    public Stream<NodeScore> pageRankWithCypher(
-            @Name("nodes") List<Node> nodes,
+    @Description("CALL apoc.algo.pageRankWithCypher({iterations,node_cypher,rel_cypher,write}) - calculates page rank based on cypher input")
+    public Stream<apoc.algo.pagerank.PageRank.PageRankStatistics> pageRankWithCypher(
             @Name("config") Map<String, Object> config) {
         Long iterations = (Long) config.getOrDefault(SETTING_PAGE_RANK_ITERATIONS, DEFAULT_PAGE_RANK_ITERATIONS);
-        String relCypher = getCypher(config, SETTING_PAGE_RANK_CYPHER_REL, DEFAULT_PAGE_RANK_CYPHER_REL);
         String nodeCypher = getCypher(config, SETTING_PAGE_RANK_CYPHER_NODE, DEFAULT_PAGE_RANK_CYPHER_NODE);
+        String relCypher = getCypher(config, SETTING_PAGE_RANK_CYPHER_REL, DEFAULT_PAGE_RANK_CYPHER_REL);
         boolean shouldWrite = (boolean)config.getOrDefault(SETTING_PAGE_RANK_WRITE, DEFAULT_PAGE_RANK_WRITE);
 
         long beforeReading = System.currentTimeMillis();
         log.info("Pagerank: Reading data into local ds");
-        PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(dbAPI, pool);
+        PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(dbAPI, pool, log);
         boolean success = pageRank.readDataIntoArray(relCypher, nodeCypher);
         if (!success) {
             String errorMsg = "Failure while reading cypher queries. Make sure the results are ordered.";
@@ -106,8 +104,7 @@ public class PageRank {
             long afterWrite = System.currentTimeMillis();
             log.info("Pagerank: Writeback took " + (afterWrite - afterComputation) + " milliseconds");
         }
-
-        return nodes.stream().map(node -> new NodeScore(node, pageRank.getResult(node.getId())));
+        return Stream.of(pageRank.getStatistics());
     }
 
     private String getCypher(Map<String, Object> config, String setting, String defaultString) {

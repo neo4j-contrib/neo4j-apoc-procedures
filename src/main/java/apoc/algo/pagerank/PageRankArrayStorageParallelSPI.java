@@ -125,4 +125,8 @@ public class PageRankArrayStorageParallelSPI implements PageRank
         return "pagerank";
     }
 
+    @Override
+    public PageRankStatistics getStatistics() {
+        return null;
+    }
 }

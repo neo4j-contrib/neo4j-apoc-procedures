@@ -4,6 +4,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.logging.Log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,10 +23,12 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     public static final int INITIAL_ARRAY_SIZE=100_000;
     public final int BATCH_SIZE = 100_000 ;
     private final GraphDatabaseAPI db;
+    private final Log log;
     private final ExecutorService pool;
     private int nodeCount;
     private int relCount;
 
+    private PageRankStatistics stats = new PageRankStatistics();
 
     /*
         1. Memory usage right now:
@@ -47,10 +50,11 @@ public class PageRankArrayStorageParallelCypher implements PageRank
 
     public PageRankArrayStorageParallelCypher(
             GraphDatabaseAPI db,
-            ExecutorService pool)
+            ExecutorService pool, Log log)
     {
         this.pool = pool;
         this.db = db;
+        this.log = log;
     }
 
     private int getNodeIndex(int node) {
@@ -79,7 +83,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             int node  = ((Long)resultIterator.next()).intValue();
 
             if (index >= currentSize) {
-                System.out.println("Node Doubling size " + currentSize);
+                if (log.isDebugEnabled()) log.debug("Node Doubling size " + currentSize);
                 nodeMapping = doubleSize(nodeMapping, currentSize);
                 currentSize = currentSize * 2;
             }
@@ -91,46 +95,36 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         this.nodeCount = totalNodes;
         Arrays.sort(nodeMapping, 0, nodeCount);
         long after = System.currentTimeMillis();
-        System.out.println("Time to make nodes structure = " + (after - before) + " millis");
-
+        stats.readNodeMillis = (after - before);
+        stats.nodes = totalNodes;
+        log.info("Time to make nodes structure = " + stats.readNodeMillis + " millis");
         sourceDegreeData = new int[totalNodes];
         previousPageRanks = new int[totalNodes];
         pageRanksAtomic = new AtomicIntegerArray(totalNodes);
 
         before = System.currentTimeMillis();
         Result result = db.execute(relCypher);
-        after = System.currentTimeMillis();
-        System.out.println("Time to execute relationship cypher = " + (after - before) + " millis");
 
-        int currentRelationSize = INITIAL_ARRAY_SIZE;
+        int currentRelationSize = Math.max(totalNodes,INITIAL_ARRAY_SIZE);
         relationshipTarget = new int[currentRelationSize];
         relationshipWeight = new int[currentRelationSize];
 
-        Arrays.fill(relationshipTarget, -1);
-        Arrays.fill(relationshipWeight, -1);
-
-        int totalRelationships = 0;
         int previousSource = -1;
-        int currentChunkIndex = 0;
-        before = System.currentTimeMillis();
+        int totalRelationships = 0;
+        int sourceIndex = 0;
         while(result.hasNext()) {
             Map<String, Object> res = result.next();
             int source = ((Long) res.get("source")).intValue();
             if (source < previousSource) {
-                System.out.println("Source nodes are not ordered in relationship cypher.");
-                return false;
+                throw new RuntimeException("Source nodes are not ordered in relationship cypher "+source+" < "+previousSource+" at position "+totalRelationships);
             }
-            previousSource = source;
+            if (previousSource != source) {
+                sourceIndex = getNodeIndex(source);
+            }
             int target = ((Long) res.get("target")).intValue();
             int weight = ((Long) res.getOrDefault("weight", 1)).intValue();
-            int sourceIndex = getNodeIndex(source);
 
-            int storedDegree = sourceDegreeData[sourceIndex];
-            if (storedDegree == 0) {
-                sourceDegreeData[sourceIndex] = 1;
-            } else {
-                sourceDegreeData[sourceIndex] = storedDegree + 1;
-            }
+            sourceDegreeData[sourceIndex]++;
 
             // Add the relationships.
             if (totalRelationships >= currentRelationSize) {
@@ -140,19 +134,18 @@ public class PageRankArrayStorageParallelCypher implements PageRank
             }
 
             int logicalTargetIndex = getNodeIndex(target);
-            relationshipTarget[currentChunkIndex] = logicalTargetIndex;
-            relationshipWeight[currentChunkIndex] = weight;
+            relationshipTarget[totalRelationships] = logicalTargetIndex;
+            relationshipWeight[totalRelationships] = weight;
 
-            currentChunkIndex++;
-
-            if (totalRelationships % BATCH_SIZE == 0) {
-                System.out.println("Processed " + totalRelationships + " relationships");
-            }
             totalRelationships++;
+
+            previousSource = source;
         }
 
         after = System.currentTimeMillis();
-        System.out.println("Time for iteration over " + totalRelationships + " relations = " + (after - before) + " millis");
+        stats.relationships = totalRelationships;
+        stats.readRelationshipMillis = (after - before);
+        log.info("Time for iteration over " + totalRelationships + " relations = " + stats.readRelationshipMillis + " millis");
         this.relCount = totalRelationships;
         result.close();
         return true;
@@ -160,12 +153,14 @@ public class PageRankArrayStorageParallelCypher implements PageRank
 
     @Override
     public void compute(int iterations, RelationshipType... relationshipTypes) {
+        stats.iterations = iterations;
         for (int iteration = 0; iteration < iterations; iteration++) {
             long before = System.currentTimeMillis();
             startIteration();
             iterateParallel(iteration);
             long after = System.currentTimeMillis();
-            System.out.println("Time for iteration " + iteration + "  " + (after - before) + " millis");
+            stats.computeMillis = (after - before);
+            log.info("Time for iteration " + iteration + "  " + stats.computeMillis + " millis");
         }
     }
 
@@ -206,8 +201,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
                         }
                     }
 
-                    if (iter == 0)
-                    System.out.println(Thread.currentThread().getName() + " processed " + relProcessed);
+//                    if (iter == 0) System.out.println(Thread.currentThread().getName() + " processed " + relProcessed);
                 }
             });
             batchNo++;
@@ -254,7 +248,10 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     }
 
     public void writeResultsToDB() {
+        stats.write = true;
+        long before = System.currentTimeMillis();
         PageRankUtils.writeBackResults(pool, db, nodeMapping, this, WRITE_BATCH);
+        stats.writeMillis = System.currentTimeMillis() - before;
     }
 
     public double getResult(long node)
@@ -280,4 +277,9 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     public long numberOfRels(){
         return relCount;
     };
+
+    @Override
+    public PageRankStatistics getStatistics() {
+        return stats;
+    }
 }
