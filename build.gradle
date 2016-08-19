@@ -147,3 +147,18 @@ and not for its dependencies."""
         }
     }
 }
+
+// tweaks for travis
+// from
+if (System.env.TRAVIS == 'true') {
+  allprojects {
+    tasks.withType(GroovyCompile) {
+      groovyOptions.fork = false
+    }
+    tasks.withType(Test) {
+      // containers (currently) have 2 dedicated cores and 4GB of memory
+      maxParallelForks = 2
+      minHeapSize = '128m'
+    }
+  }
+}

@@ -2,7 +2,10 @@ language: java
 jdk:
   - oraclejdk8
 install: echo "skip 'gradle assemble' step"
-script: GRADLE_OPTS="-Dorg.gradle.daemon=false" ./gradlew build --continue --info --stacktrace
+env:
+  global:
+    - GRADLE_OPTS="-Xms128m -Dorg.gradle.daemon=false"
+script: ./gradlew build --continue --info --stacktrace
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
