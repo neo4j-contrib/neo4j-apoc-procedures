@@ -110,7 +110,7 @@ public class HelpScanner {
                 @Override
                 public void visitEnd() {
                     if (isProcedure) {
-                     System.err.printf("APOC: %s declares procedure %s writes %s desc %s%n", className, procedureName, performsWrites, descriptionText);
+//                     System.err.printf("APOC: %s declares procedure %s writes %s desc %s%n", className, procedureName, performsWrites, descriptionText);
                      procedures.put(procedureName,new HelpResult(procedureName,descriptionText,performsWrites));
                     }
                 }
