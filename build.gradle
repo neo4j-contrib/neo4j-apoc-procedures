@@ -93,6 +93,8 @@ asciidoctor.doLast {
     }
 }
 
+assemble.dependsOn(asciidoctor)
+
 /******
 * END *
 ******/
@@ -141,11 +143,6 @@ and not for its dependencies."""
                 id 'michaelhunger'
                 name 'Michael Hunger'
                 email 'michael.hunger@neo4j.com'
-            }
-            developer {
-                id 'stefanarmbruster'
-                name 'Stefan Armbruster'
-                email 'stefan.armbruster@neo4j.com'
             }
         }
     }
