@@ -200,8 +200,6 @@ public class PageRankArrayStorageParallelCypher implements PageRank
                             relProcessed++;
                         }
                     }
-
-//                    if (iter == 0) System.out.println(Thread.currentThread().getName() + " processed " + relProcessed);
                 }
             });
             batchNo++;
