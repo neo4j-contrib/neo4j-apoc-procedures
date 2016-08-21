@@ -1,7 +1,12 @@
 package apoc.export.util;
 
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * @author mh
@@ -28,4 +33,9 @@ public class FormatUtils {
     public static String formatString(Object value) {
         return "\"" + String.valueOf(value).replaceAll("\n","\\\\n").replaceAll("\t","\\\\t").replaceAll("\"","\\\\\"") + "\"";
     }
+
+    public static String joinLabels(Node node, String delimiter) {
+        return StreamSupport.stream(node.getLabels().spliterator(),false).map(Label::name).collect(Collectors.joining(delimiter));
+    }
+
 }

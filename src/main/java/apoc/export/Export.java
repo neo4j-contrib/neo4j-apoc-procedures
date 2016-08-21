@@ -1,7 +1,8 @@
 package apoc.export;
 
 import apoc.Description;
-import apoc.export.util.MultiStatementCypherSubGraphExporter;
+import apoc.export.cypher.ExportCypher;
+import apoc.export.cypher.MultiStatementCypherSubGraphExporter;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.result.ProgressInfo;
 import apoc.export.util.ProgressReporter;
@@ -40,62 +41,24 @@ public class Export {
 
     @Procedure
     @Description("apoc.export.cypherAll(file,config) - exports whole database incl. indexes as cypher statements to the provided file")
-    public Stream<ProgressInfo> cypherAll(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws IOException {
-
-        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(db), Util.relCount(db));
-        return exportCypher(fileName, source, new DatabaseSubGraph(db), new Config(config));
+    public Stream<ProgressInfo> cypherAll(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
+        return new ExportCypher(db).all(fileName,config);
     }
 
     @Procedure
     @Description("apoc.export.cypherData(nodes,rels,file,config) - exports given nodes and relationships incl. indexes as cypher statements to the provided file")
-    public Stream<ProgressInfo> cypherData(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws IOException {
-
-        String source = String.format("data: nodes(%d), rels(%d)", nodes.size(), rels.size());
-        return exportCypher(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), new Config(config));
+    public Stream<ProgressInfo> cypherData(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
+        return new ExportCypher(db).data(nodes,rels,fileName,config);
     }
     @Procedure
     @Description("apoc.export.cypherGraph(graph,file,config) - exports given graph object incl. indexes as cypher statements to the provided file")
-    public Stream<ProgressInfo> cypherGraph(@Name("graph") Map<String,Object> graph, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws IOException {
-
-        Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
-        Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
-        String source = String.format("graph: nodes(%d), rels(%d)", nodes.size(), rels.size());
-        return exportCypher(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), new Config(config));
+    public Stream<ProgressInfo> cypherGraph(@Name("graph") Map<String,Object> graph, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
+        return new ExportCypher(db).graph(graph,fileName,config);
     }
 
     @Procedure
     @Description("apoc.export.cypherQuery(query,file,config) - exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file")
-    public Stream<ProgressInfo> cypherQuery(@Name("query") String query, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws IOException {
-        Config c = new Config(config);
-        Result result = db.execute(query);
-        SubGraph graph = CypherResultSubGraph.from(result, db, c.getRelsInBetween());
-        String source = String.format("statement: nodes(%d), rels(%d)",
-                Iterables.count(graph.getNodes()), Iterables.count(graph.getRelationships()));
-        return exportCypher(fileName, source, graph, c);
-    }
-
-    private Stream<ProgressInfo> exportCypher(@Name("file") String fileName, String source, SubGraph graph, Config c) throws IOException {
-        ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "cypher"));
-        PrintWriter printWriter = getPrintWriter(fileName, null);
-        MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph);
-        exporter.export(printWriter, c.getBatchSize(), reporter);
-        return reporter.stream();
-    }
-
-    static class Config {
-        static final int DEFAULT_BATCH_SIZE = 20000;
-        private final Map<String, Object> config;
-
-        public Config(Map<String, Object> config) {
-            this.config = config == null ? Collections.emptyMap() : config;
-        }
-
-        public boolean getRelsInBetween() {
-            return toBoolean(config.get("nodesOfRelationships"));
-        }
-
-        public int getBatchSize() {
-            return (int) toLong(config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE));
-        }
+    public Stream<ProgressInfo> cypherQuery(@Name("query") String query, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
+        return new ExportCypher(db).query(query,fileName,config);
     }
 }

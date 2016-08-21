@@ -446,7 +446,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_schema">Schema</a></li>
 <li><a href="#_locking">Locking</a></li>
 <li><a href="#_from_tojson">from/toJson</a></li>
-<li><a href="#_export_import">Export / Import</a></li>
+<li><a href="#_export_import">Export / Import</a>
+<ul class="sectlevel3">
+<li><a href="#_export_to_cypher_script">Export to Cypher Script</a></li>
+<li><a href="#_graphml_import_export">GraphML Import / Export</a></li>
+</ul>
+</li>
 <li><a href="#_loading_data_from_rdbms">Loading Data from RDBMS</a></li>
 <li><a href="#_loading_data_from_web_apis_json_xml_csv">Loading Data from Web-APIs (JSON, XML, CSV)</a></li>
 <li><a href="#_interacting_with_elastic_search">Interacting with Elastic Search</a></li>
@@ -1000,6 +1005,8 @@ RETURN n LIMIT 5</code></pre>
 <div class="paragraph">
 <p>Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.runFile to the given file.</p>
 </div>
+<div class="sect3">
+<h4 id="_export_to_cypher_script">Export to Cypher Script</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1007,19 +1014,58 @@ RETURN n LIMIT 5</code></pre>
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.cypherAll(file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.cypher.all(file,config)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">exports whole database incl. indexes as cypher statements to the provided file</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.cypherData(nodes,rels,file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.cypher.data(nodes,rels,file,config)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">exports given nodes and relationships incl. indexes as cypher statements to the provided file</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.cypherQuery(query,file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.cypher.graph(graph,file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exports given graph object incl. indexes as cypher statements to the provided file</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.cypher.query(query,file,config)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file</p></td>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="sect3">
+<h4 id="_graphml_import_export">GraphML Import / Export</h4>
+<div class="paragraph">
+<p>GraphML is used by other tools, like Gephi and CytoScape to read graph data.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.import.graphml(file-or-url,{batchSize: 10000, readLabels: true, storeNodeIds: false, defaultRelationshipType:"RELATED"})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">imports graphml into the graph</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.graphml.all(file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exports whole database as graphml to the provided file</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.graphml.data(nodes,rels,file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exports given nodes and relationships as graphml to the provided file</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.graphml.graph(graph,file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exports given graph object as graphml to the provided file</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.graphml.query(query,file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exports nodes and relationships from the cypher statement as graphml to the provided file</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_loading_data_from_rdbms">Loading Data from RDBMS</h3>
@@ -4523,7 +4569,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-08-18 22:49:49 MESZ
+Last updated 2016-08-18 22:56:07 MESZ
 </div>
 </div>
 </body>
