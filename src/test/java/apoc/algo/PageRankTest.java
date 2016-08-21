@@ -124,7 +124,7 @@ public class PageRankTest
         assertTrue( result.hasNext() );
         Map<String,Object> row = result.next();
         assertFalse( result.hasNext() );
-        assertEquals( PageRankAlgoTest.EXPECTED, (double) row.get( "score" ), 0.1D );
+        assertEquals(PageRankAlgoTest.EXPECTED, (double) row.get("score"), 0.1D);
     }
 
     @Test
@@ -135,7 +135,7 @@ public class PageRankTest
         System.out.println(result.resultAsString());
         ResourceIterator<Double> it = db.execute("MATCH (n) RETURN n.name as name, n.pagerank as score ORDER BY score DESC LIMIT 1").columnAs("score");
         assertTrue( it.hasNext() );
-        assertEquals( PageRankAlgoTest.EXPECTED, it.next(), 0.1D );
+        assertEquals(PageRankAlgoTest.EXPECTED, it.next(), 0.1D);
         assertFalse( it.hasNext() );
         it.close();
     }
