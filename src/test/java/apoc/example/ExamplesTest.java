@@ -37,9 +37,4 @@ public class ExamplesTest {
         });
     }
 
-
-    @Test
-    public void tempTestProducingFailure() {
-        throw new RuntimeException("this test fails intentionally");
-    }
 }
