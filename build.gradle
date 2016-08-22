@@ -64,6 +64,12 @@ dependencies {
     compile group: 'com.github.javafaker', name: 'javafaker', version:'0.10'
 }
 
+test {
+    testLogging {
+        exceptionFormat = 'full'
+    }
+}
+
 javadoc {
     failOnError = false
 }
