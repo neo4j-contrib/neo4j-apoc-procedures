@@ -36,4 +36,10 @@ public class ExamplesTest {
             assertEquals(250L,r.get("relationships"));
         });
     }
+
+
+    @Test
+    public void tempTestProducingFailure() {
+        throw new RuntimeException("this test fails intentionally");
+    }
 }
