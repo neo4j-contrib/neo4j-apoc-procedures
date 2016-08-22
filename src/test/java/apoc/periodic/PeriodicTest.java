@@ -44,10 +44,6 @@ public class PeriodicTest {
                     assertEquals(0L, row.get("delay"));
                     assertEquals(0L, row.get("rate"));
                 });
-        testCall(db, callList, (r) -> {
-            assertEquals("foo", r.get("name"));
-            assertEquals(false, r.get("done"));
-        });
         Thread.sleep(2000);
         ResourceIterator<Object> it = db.execute("MATCH (:Foo) RETURN count(*) as c").columnAs("c");
         assertEquals(1L, it.next());
