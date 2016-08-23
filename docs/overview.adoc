@@ -283,6 +283,38 @@ CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDoc
 ----
 // end::mongodb[]
 
+== Interacting with Couchbase
+
+// tag::couchbase[]
+
+[cols="3m,2"]
+|===
+| CALL apoc.couchbase.get(nodes, bucket, documentId) yield id, expiry, cas, mutationToken, content | Retrieves a couchbase json document by its unique ID
+| CALL apoc.couchbase.exists(nodes, bucket, documentId) yield value | Check whether a couchbase json document with the given ID does exist
+| CALL apoc.couchbase.insert(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Insert a couchbase json document with its unique ID
+| CALL apoc.couchbase.upsert(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Insert or overwrite a couchbase json document with its unique ID
+| CALL apoc.couchbase.append(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Append a couchbase json document to an existing one
+| CALL apoc.couchbase.prepend(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Prepend a couchbase json document to an existing one
+| CALL apoc.couchbase.remove(nodes, bucket, documentId) yield id, expiry, cas, mutationToken, content | Remove the couchbase json document identified by its unique ID
+| CALL apoc.couchbase.replace(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Replace the content of the couchbase json document identified by its unique ID.
+| CALL apoc.couchbase.query(nodes, bucket, statement) yield queryResult | Executes a plain un-parameterized N1QL statement.
+| CALL apoc.couchbase.posParamsQuery(nodes, bucket, statement, params) yield queryResult | Executes a N1QL statement with positional parameters.
+| CALL apoc.couchbase.namedParamsQuery(nodes, bucket, statement, paramNames, paramValues) yield queryResult | Executes a N1QL statement with named parameters.
+|===
+
+Copy these jars into the plugins directory:
+
+----
+mvn dependency:copy-dependencies
+cp target/dependency/java-client-2.3.1.jar target/dependency/core-io-1.3.1.jar target/dependency/rxjava-1.1.5.jar $NEO4J_HOME/plugins/
+----
+
+[source,cypher]
+----
+CALL apoc.couchbase.get(['localhost'], 'default', 'artist:vincent_van_gogh')
+----
+// end::couchbase[]
+
 == Streaming Data to Gephi
 
 // tag::gephi[]
