@@ -1,0 +1,74 @@
+= Number Format Conversions
+
+== Conversion between formatted decimals
+
+* `apoc.number.formatLong(number, pattern, locale) yield value` format a long using a (optional) pattern and for a (optional) locale to produce a string
+* `apoc.number.formatDouble(number, pattern, locale) yield value` format a double using a (optional) pattern and for a (optional) locale to produce a string
+* `apoc.number.parseAsLong(text, pattern, locale) yield value` parse a text using a (optional) pattern and for a (optional) locale to produce a long
+* `apoc.number.parseAsDouble(text, pattern, locale) yield value` parse a text using a (optional) pattern and for a (optional) locale to produce a double
+* `apoc.number.negativePrefix(pattern, locale) yield value` get the negative prefix for the given (optional) pattern and (optional) locale
+* `apoc.number.positivePrefix(pattern, locale) yield value` get the positive prefix for the given (optional) pattern and (optional) locale
+* `apoc.number.groupingSize(pattern, locale) yield value` get the grouping size for the given (optional) pattern and (optional) locale
+* `apoc.number.defaultNegativePrefix(pattern, locale) yield value` get the default negative prefix
+* `apoc.number.defaultPositivePrefix(pattern, locale) yield value` get the default positive prefix
+* `apoc.number.defaultGroupingSize(pattern, locale) yield value` get the default grouping size
+
+* The full list of supported values for `pattern` and `locale` params is described in https://docs.oracle.com/javase/9/docs/api/java/text/DecimalFormat.html[DecimalFormat JavaDoc]
+
+== Examples
+
+....
+  call apoc.number.formatLong(12345, '#,##0.00;(#,##0.00)', 'it') yield value
+  return value
+
+  ╒═════════╕
+  │value    │
+  ╞═════════╡
+  │12.345,00│
+  └─────────
+....
+
+....
+  call apoc.number.formatDouble(12345.67, '#,##0.00;(#,##0.00)', 'it') yield value
+  return value
+  
+  ╒═════════╕
+  │value    │
+  ╞═════════╡
+  │12.345,67│
+  └─────────┘  
+....
+
+....
+  call apoc.number.parseAsLong('12.345', '#,##0.00;(#,##0.00)', 'it') yield value
+  return value
+
+  ╒═════╕
+  │value│
+  ╞═════╡
+  │12345│
+  └─────┘
+....
+
+....
+  call apoc.number.parseAsDouble('12.345,67', '#,##0.00;(#,##0.00)', 'it') yield value
+  return value
+  
+  ╒════════╕
+  │value   │
+  ╞════════╡
+  │12345.67│
+  └────────┘
+....
+
+....
+  call apoc.number.parseAsLong('aaa', null, null)
+  
+  Failed to invoke procedure `apoc.number.parseAsLong`: Caused by: java.text.ParseException: Unparseable number: "aaa"
+....
+
+....
+  call apoc.number.formatLong(12345, null, 'apoc')
+  
+  Failed to invoke procedure `apoc.number.formatLong`: Caused by: java.lang.IllegalArgumentException: Unrecognized language value: 'apoc' isn't a valid ISO language
+....

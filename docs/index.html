@@ -528,6 +528,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_notes_on_formats">Notes on formats:</a></li>
 </ul>
 </li>
+<li><a href="#_number_format_conversions">Number Format Conversions</a>
+<ul class="sectlevel3">
+<li><a href="#_conversion_between_formatted_decimals">Conversion between formatted decimals</a></li>
+<li><a href="#_examples_2">Examples</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_graph_algorithms">Graph Algorithms</a>
@@ -535,7 +541,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_expand_paths">Expand paths</a>
 <ul class="sectlevel3">
 <li><a href="#_usage">Usage</a></li>
-<li><a href="#_examples_2">Examples</a></li>
+<li><a href="#_examples_3">Examples</a></li>
 <li><a href="#_expand_with_config">Expand with Config</a></li>
 </ul>
 </li>
@@ -2930,6 +2936,114 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_number_format_conversions">Number Format Conversions</h3>
+<div class="sect3">
+<h4 id="_conversion_between_formatted_decimals">Conversion between formatted decimals</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><code>apoc.number.formatLong(number, pattern, locale) yield value</code> format a long using a (optional) pattern and for a (optional) locale to produce a string</p>
+</li>
+<li>
+<p><code>apoc.number.formatDouble(number, pattern, locale) yield value</code> format a double using a (optional) pattern and for a (optional) locale to produce a string</p>
+</li>
+<li>
+<p><code>apoc.number.parseAsLong(text, pattern, locale) yield value</code> parse a text using a (optional) pattern and for a (optional) locale to produce a long</p>
+</li>
+<li>
+<p><code>apoc.number.parseAsDouble(text, pattern, locale) yield value</code> parse a text using a (optional) pattern and for a (optional) locale to produce a double</p>
+</li>
+<li>
+<p><code>apoc.number.negativePrefix(pattern, locale) yield value</code> get the negative prefix for the given (optional) pattern and (optional) locale</p>
+</li>
+<li>
+<p><code>apoc.number.positivePrefix(pattern, locale) yield value</code> get the positive prefix for the given (optional) pattern and (optional) locale</p>
+</li>
+<li>
+<p><code>apoc.number.groupingSize(pattern, locale) yield value</code> get the grouping size for the given (optional) pattern and (optional) locale</p>
+</li>
+<li>
+<p><code>apoc.number.defaultNegativePrefix(pattern, locale) yield value</code> get the default negative prefix</p>
+</li>
+<li>
+<p><code>apoc.number.defaultPositivePrefix(pattern, locale) yield value</code> get the default positive prefix</p>
+</li>
+<li>
+<p><code>apoc.number.defaultGroupingSize(pattern, locale) yield value</code> get the default grouping size</p>
+</li>
+<li>
+<p>The full list of supported values for <code>pattern</code> and <code>locale</code> params is described in <a href="https://docs.oracle.com/javase/9/docs/api/java/text/DecimalFormat.html">DecimalFormat JavaDoc</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_examples_2">Examples</h4>
+<div class="literalblock">
+<div class="content">
+<pre>  call apoc.number.formatLong(12345, '#,##0.00;(#,##0.00)', 'it') yield value
+  return value
+
+  ╒═════════╕
+  │value    │
+  ╞═════════╡
+  │12.345,00│
+  └─────────</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>  call apoc.number.formatDouble(12345.67, '#,##0.00;(#,##0.00)', 'it') yield value
+  return value
+
+  ╒═════════╕
+  │value    │
+  ╞═════════╡
+  │12.345,67│
+  └─────────┘</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>  call apoc.number.parseAsLong('12.345', '#,##0.00;(#,##0.00)', 'it') yield value
+  return value
+
+  ╒═════╕
+  │value│
+  ╞═════╡
+  │12345│
+  └─────┘</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>  call apoc.number.parseAsDouble('12.345,67', '#,##0.00;(#,##0.00)', 'it') yield value
+  return value
+
+  ╒════════╕
+  │value   │
+  ╞════════╡
+  │12345.67│
+  └────────┘</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>  call apoc.number.parseAsLong('aaa', null, null)
+
+  Failed to invoke procedure `apoc.number.parseAsLong`: Caused by: java.text.ParseException: Unparseable number: "aaa"</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>  call apoc.number.formatLong(12345, null, 'apoc')
+
+  Failed to invoke procedure `apoc.number.formatLong`: Caused by: java.lang.IllegalArgumentException: Unrecognized language value: 'apoc' isn't a valid ISO language</pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -3061,7 +3175,7 @@ CALL apoc.path.expand(startNode &lt;id&gt;|Node|list, 'TYPE|TYPE_OUT&gt;|&lt;TYP
 </table>
 </div>
 <div class="sect3">
-<h4 id="_examples_2">Examples</h4>
+<h4 id="_examples_3">Examples</h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.path.expand(1,"ACTED_IN&gt;|PRODUCED&lt;|FOLLOWS&lt;","+Movie|Person",0,3)
@@ -4569,7 +4683,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-08-18 22:56:07 MESZ
+Last updated 2016-08-25 18:23:42 +02:00
 </div>
 </div>
 </body>
