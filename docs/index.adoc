@@ -36,6 +36,8 @@ include::ttl.adoc[leveloffset=2]
 
 include::datetime.adoc[leveloffset=2]
 
+include::number.adoc[leveloffset=2]
+
 == Graph Algorithms
 
 include::expand.adoc[leveloffset=2]
