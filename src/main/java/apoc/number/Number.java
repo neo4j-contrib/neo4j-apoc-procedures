@@ -50,56 +50,56 @@ public class Number {
     return Stream.of(new StringResult(format.format(number)));
   }
   
-  // Parse As Long
+  // Parse Long
   
-  @Procedure("apoc.number.parseAsLong")
-  @Description("apoc.number.parseAsLong(text) yield value | parse a text using the default system pattern and language to produce a long")
-  public Stream<LongResult> parseAsLong(final @Name("text") String text) throws ParseException {
-    return parseAsLongByPatternAndLanguage(text, null, null);
+  @Procedure("apoc.number.parseLong")
+  @Description("apoc.number.parseLong(text) yield value | parse a text using the default system pattern and language to produce a long")
+  public Stream<LongResult> parseLong(final @Name("text") String text) throws ParseException {
+    return parseLongByPatternAndLanguage(text, null, null);
   }
 
-  @Procedure("apoc.number.parseAsLong.pattern")
-  @Description("apoc.number.parseAsLong.pattern(text, pattern) yield value | parse a text using a pattern and the default system language to produce a long")
-  public Stream<LongResult> parseAsLongByPattern(final @Name("text") String text, @Name("pattern") String pattern) throws ParseException {
-    return parseAsLongByPatternAndLanguage(text, pattern, null);
+  @Procedure("apoc.number.parseLong.pattern")
+  @Description("apoc.number.parseLong.pattern(text, pattern) yield value | parse a text using a pattern and the default system language to produce a long")
+  public Stream<LongResult> parseLongByPattern(final @Name("text") String text, @Name("pattern") String pattern) throws ParseException {
+    return parseLongByPatternAndLanguage(text, pattern, null);
   }
   
-  @Procedure("apoc.number.parseAsLong.lang")
-  @Description("apoc.number.parseAsLong.lang(text, lang) yield value | parse a text using the default system pattern and a language to produce a long")
-  public Stream<LongResult> parseAsLongByLanguage(final @Name("text") String text, @Name("lang") String lang) throws ParseException {
-    return parseAsLongByPatternAndLanguage(text, null, lang);
+  @Procedure("apoc.number.parseLong.lang")
+  @Description("apoc.number.parseLong.lang(text, lang) yield value | parse a text using the default system pattern and a language to produce a long")
+  public Stream<LongResult> parseLongByLanguage(final @Name("text") String text, @Name("lang") String lang) throws ParseException {
+    return parseLongByPatternAndLanguage(text, null, lang);
   }
   
-  @Procedure("apoc.number.parseAsLong.pattern.lang")
-  @Description("apoc.number.parseAsLong.pattern.lang(text, pattern, lang) yield value | parse a text using a pattern and a language to produce a long")
-  public Stream<LongResult> parseAsLongByPatternAndLanguage(final @Name("text") String text, @Name("pattern") String pattern, @Name("lang") String lang) throws ParseException {
+  @Procedure("apoc.number.parseLong.pattern.lang")
+  @Description("apoc.number.parseLong.pattern.lang(text, pattern, lang) yield value | parse a text using a pattern and a language to produce a long")
+  public Stream<LongResult> parseLongByPatternAndLanguage(final @Name("text") String text, @Name("pattern") String pattern, @Name("lang") String lang) throws ParseException {
     DecimalFormat format = buildFormatter(pattern, lang);
     return Stream.of(new LongResult(format.parse(text).longValue()));
   }
   
-  // Parse As Double
+  // Parse Double
   
-  @Procedure("apoc.number.parseAsDouble")
-  @Description("apoc.number.parseAsDouble(text) yield value | parse a text using the default system pattern and language to produce a double")
-  public Stream<DoubleResult> parseAsDouble(final @Name("text") String text) throws ParseException {
-    return parseAsDoubleByPatternAndLanguage(text, null, null);
+  @Procedure("apoc.number.parseDouble")
+  @Description("apoc.number.parseDouble(text) yield value | parse a text using the default system pattern and language to produce a double")
+  public Stream<DoubleResult> parseDouble(final @Name("text") String text) throws ParseException {
+    return parseDoubleByPatternAndLanguage(text, null, null);
   }
   
-  @Procedure("apoc.number.parseAsDouble.pattern")
-  @Description("apoc.number.parseAsDouble.pattern(text, pattern) yield value | parse a text using a pattern and the default system language to produce a double")
-  public Stream<DoubleResult> parseAsDoubleByPattern(final @Name("text") String text, @Name("pattern") String pattern) throws ParseException {
-    return parseAsDoubleByPatternAndLanguage(text, pattern, null);
+  @Procedure("apoc.number.parseDouble.pattern")
+  @Description("apoc.number.parseDouble.pattern(text, pattern) yield value | parse a text using a pattern and the default system language to produce a double")
+  public Stream<DoubleResult> parseDoubleByPattern(final @Name("text") String text, @Name("pattern") String pattern) throws ParseException {
+    return parseDoubleByPatternAndLanguage(text, pattern, null);
   }
   
-  @Procedure("apoc.number.parseAsDouble.lang")
-  @Description("apoc.number.parseAsDouble.lang(text, lang) yield value | parse a text using the default system pattern and a language to produce a double")
-  public Stream<DoubleResult> parseAsDoubleByLanguage(final @Name("text") String text, @Name("lang") String lang) throws ParseException {
-    return parseAsDoubleByPatternAndLanguage(text, null, lang);
+  @Procedure("apoc.number.parseDouble.lang")
+  @Description("apoc.number.parseDouble.lang(text, lang) yield value | parse a text using the default system pattern and a language to produce a double")
+  public Stream<DoubleResult> parseDoubleByLanguage(final @Name("text") String text, @Name("lang") String lang) throws ParseException {
+    return parseDoubleByPatternAndLanguage(text, null, lang);
   }
   
-  @Procedure("apoc.number.parseAsDouble.pattern.lang")
-  @Description("apoc.number.parseAsDouble.pattern.lang(text, pattern, lang) yield value | parse a text using a pattern and a language to produce a double")
-  public Stream<DoubleResult> parseAsDoubleByPatternAndLanguage(final @Name("text") String text, @Name("pattern") String pattern, @Name("lang") String lang) throws ParseException {
+  @Procedure("apoc.number.parseDouble.pattern.lang")
+  @Description("apoc.number.parseDouble.pattern.lang(text, pattern, lang) yield value | parse a text using a pattern and a language to produce a double")
+  public Stream<DoubleResult> parseDoubleByPatternAndLanguage(final @Name("text") String text, @Name("pattern") String pattern, @Name("lang") String lang) throws ParseException {
     DecimalFormat format = buildFormatter(pattern, lang);
     return Stream.of(new DoubleResult(format.parse(text).doubleValue()));
   }

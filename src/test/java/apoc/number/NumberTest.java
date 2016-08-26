@@ -91,59 +91,59 @@ public class NumberTest {
     testCall(db, "CALL apoc.number.format.pattern.lang(12345.67, '#,##0.00;(#,##0.00)', 'it')", row -> assertEquals("12.345,67", (String) row.get("value")));
   }
   
-  // Parse As Long
+  // Parse Long
   
   @Test
-  public void testParseAsLongWithDefaultSettings() throws Exception {
-    testCall(db, "CALL apoc.number.parseAsLong('12,345')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
+  public void testParseLongWithDefaultSettings() throws Exception {
+    testCall(db, "CALL apoc.number.parseLong('12,345')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
   }
   
   @Test
-  public void testParseAsLongWithLocaleIT() throws Exception {
-    testCall(db, "CALL apoc.number.parseAsLong.lang('12.345', 'it')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
+  public void testParseLongWithLocaleIT() throws Exception {
+    testCall(db, "CALL apoc.number.parseLong.lang('12.345', 'it')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
   }
   
   @Test
-  public void testParseAsLongWithAPattern() throws Exception {
-    testCall(db, "CALL apoc.number.parseAsLong.pattern('12,345', '#,##0.00;(#,##0.00)')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
+  public void testParseLongWithAPattern() throws Exception {
+    testCall(db, "CALL apoc.number.parseLong.pattern('12,345', '#,##0.00;(#,##0.00)')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
   }
   
   @Test
-  public void testParseAsLongWithAPatternAndLocaleIT() throws Exception {
-    testCall(db, "CALL apoc.number.parseAsLong.pattern.lang('12.345', '#,##0.00;(#,##0.00)', 'it')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
+  public void testParseLongWithAPatternAndLocaleIT() throws Exception {
+    testCall(db, "CALL apoc.number.parseLong.pattern.lang('12.345', '#,##0.00;(#,##0.00)', 'it')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
   }
 
   @Test
-  public void testParseAsLongRaisingException() throws Exception {
+  public void testParseLongRaisingException() throws Exception {
     expected.expect(QueryExecutionException.class);
-    testCall(db, "CALL apoc.number.parseAsLong('aaa')", null);
+    testCall(db, "CALL apoc.number.parseLong('aaa')", null);
   }
   
-  // Parse As Double
+  // Parse Double
   
   @Test
-  public void testParseAsDouble() throws Exception {
-    testCall(db, "CALL apoc.number.parseAsDouble('12,345.67')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
-  }
-  
-  @Test
-  public void testParseAsDoubleByLanguageIT() throws Exception {
-    testCall(db, "CALL apoc.number.parseAsDouble.lang('12.345,67', 'it')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
+  public void testParseDouble() throws Exception {
+    testCall(db, "CALL apoc.number.parseDouble('12,345.67')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
   }
   
   @Test
-  public void testParseAsDoubleByPattern() throws Exception {
-    testCall(db, "CALL apoc.number.parseAsDouble.pattern('12,345.67', '#,##0.00;(#,##0.00)')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
+  public void testParseDoubleByLanguageIT() throws Exception {
+    testCall(db, "CALL apoc.number.parseDouble.lang('12.345,67', 'it')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
   }
   
   @Test
-  public void testParseAsDoubleByPatternAndLanguageIT() throws Exception {
-    testCall(db, "CALL apoc.number.parseAsDouble.pattern.lang('12.345,67', '#,##0.00;(#,##0.00)', 'it')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
+  public void testParseDoubleByPattern() throws Exception {
+    testCall(db, "CALL apoc.number.parseDouble.pattern('12,345.67', '#,##0.00;(#,##0.00)')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
   }
   
   @Test
-  public void testParseAsDoubleRaisingException() throws Exception {
+  public void testParseDoubleByPatternAndLanguageIT() throws Exception {
+    testCall(db, "CALL apoc.number.parseDouble.pattern.lang('12.345,67', '#,##0.00;(#,##0.00)', 'it')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
+  }
+  
+  @Test
+  public void testParseDoubleRaisingException() throws Exception {
     expected.expect(QueryExecutionException.class);
-    testCall(db, "CALL apoc.number.parseAsDouble('aaa')", null);
+    testCall(db, "CALL apoc.number.parseDouble('aaa')", null);
   }
 }
