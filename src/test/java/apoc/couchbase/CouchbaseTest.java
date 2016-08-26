@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.couchbase.client.java.document.JsonDocument;
@@ -22,10 +23,15 @@ import apoc.result.BooleanResult;
 
 public class CouchbaseTest extends CouchbaseAbstractTest {
 
+  @BeforeClass
+  public static void setUp() throws Exception {
+    CouchbaseAbstractTest.setUp();
+    assumeTrue(couchbaseRunning);
+  }
+
   @Test
   @SuppressWarnings("unchecked")
   public void testGet() {
-    assumeTrue(couchbaseRunning);
     try {
       //@eclipse-formatter:off
       Stream<CouchbaseJsonDocument> stream = new Couchbase().get(Arrays.asList("localhost"), "default", "artist:vincent_van_gogh");
@@ -52,7 +58,6 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
 
   @Test
   public void testExists() {
-    assumeTrue(couchbaseRunning);
     try {
       //@eclipse-formatter:off
       Stream<BooleanResult> stream = new Couchbase().exists(Arrays.asList("localhost"), "default", "artist:vincent_van_gogh");
@@ -71,7 +76,6 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testInsert() {
-    assumeTrue(couchbaseRunning);
     try {
       //@eclipse-formatter:off
       Stream<CouchbaseJsonDocument> stream = new Couchbase().insert(Arrays.asList("localhost"), "default", "testInsert", jsonDocumentCreatedForThisTest.content().toString());
@@ -96,7 +100,6 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
 
   @Test
   public void testInsertWithAlreadyExistingID() {
-    assumeTrue(couchbaseRunning);
     expectedEx.expect(DocumentAlreadyExistsException.class);
     //@eclipse-formatter:off
     new Couchbase().insert(Arrays.asList("localhost"), "default", "artist:vincent_van_gogh", JsonObject.empty().toString());
@@ -106,7 +109,6 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testUpsert() {
-    assumeTrue(couchbaseRunning);
     try {
       //@eclipse-formatter:off
       Stream<CouchbaseJsonDocument> stream = new Couchbase().upsert(Arrays.asList("localhost"), "default", "testUpsert", jsonDocumentCreatedForThisTest.content().toString());
@@ -131,7 +133,6 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
 
   @Test
   public void testRemove() {
-    assumeTrue(couchbaseRunning);
     try {
       //@eclipse-formatter:off
       couchbaseBucket.insert(JsonDocument.create("testRemove", JsonObject.empty()));
@@ -146,7 +147,6 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
   
   @Test
   public void testQuery() {
-    assumeTrue(couchbaseRunning);
     try {
       //@eclipse-formatter:off
       Stream<CouchbaseQueryResult> stream = new Couchbase().query(Arrays.asList("localhost"), "default", "select * from default where lastName = 'Van Gogh'");
@@ -160,7 +160,6 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
 
   @Test
   public void testQueryWithPositionalParams() {
-    assumeTrue(couchbaseRunning);
     try {
       //@eclipse-formatter:off
       Stream<CouchbaseQueryResult> stream = new Couchbase().posParamsQuery(Arrays.asList("localhost"), "default", "select * from default where lastName = $1", Arrays.asList("Van Gogh"));
@@ -174,7 +173,6 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
 
   @Test
   public void testQueryWithNamedParams() {
-    assumeTrue(couchbaseRunning);
     try {
       //@eclipse-formatter:off
       Stream<CouchbaseQueryResult> stream = new Couchbase().namedParamsQuery(Arrays.asList("localhost"), "default", "select * from default where lastName = $lastName", Arrays.asList("lastName"), Arrays.asList("Van Gogh"));
