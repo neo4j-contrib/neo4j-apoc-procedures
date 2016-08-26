@@ -456,6 +456,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_loading_data_from_web_apis_json_xml_csv">Loading Data from Web-APIs (JSON, XML, CSV)</a></li>
 <li><a href="#_interacting_with_elastic_search">Interacting with Elastic Search</a></li>
 <li><a href="#_interacting_with_mongodb">Interacting with MongoDB</a></li>
+<li><a href="#_interacting_with_couchbase">Interacting with Couchbase</a></li>
 <li><a href="#_streaming_data_to_gephi">Streaming Data to Gephi</a>
 <ul class="sectlevel3">
 <li><a href="#_notes">Notes</a></li>
@@ -1245,6 +1246,75 @@ cp target/dependency/mongodb*.jar target/dependency/bson*.jar $NEO4J_HOME/plugin
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDocument'})</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_interacting_with_couchbase">Interacting with Couchbase</h3>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 60%;">
+<col style="width: 40%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.get(nodes, bucket, documentId) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Retrieves a couchbase json document by its unique ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.exists(nodes, bucket, documentId) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Check whether a couchbase json document with the given ID does exist</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.insert(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Insert a couchbase json document with its unique ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.upsert(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Insert or overwrite a couchbase json document with its unique ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.append(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Append a couchbase json document to an existing one</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.prepend(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prepend a couchbase json document to an existing one</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.remove(nodes, bucket, documentId) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Remove the couchbase json document identified by its unique ID</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.replace(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Replace the content of the couchbase json document identified by its unique ID.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.query(nodes, bucket, statement) yield queryResult</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Executes a plain un-parameterized N1QL statement.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.posParamsQuery(nodes, bucket, statement, params) yield queryResult</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Executes a N1QL statement with positional parameters.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.namedParamsQuery(nodes, bucket, statement, paramNames, paramValues) yield queryResult</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Executes a N1QL statement with named parameters.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Copy these jars into the plugins directory:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>mvn dependency:copy-dependencies
+cp target/dependency/java-client-2.3.1.jar target/dependency/core-io-1.3.1.jar target/dependency/rxjava-1.1.5.jar $NEO4J_HOME/plugins/</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.couchbase.get(['localhost'], 'default', 'artist:vincent_van_gogh')</code></pre>
 </div>
 </div>
 </div>
@@ -4708,7 +4778,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-08-26 00:45:51 +02:00
+Last updated 2016-08-26 18:17:59 +02:00
 </div>
 </div>
 </body>

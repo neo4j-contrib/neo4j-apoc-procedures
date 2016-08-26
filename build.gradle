@@ -57,6 +57,9 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver:3.2.2'
     testCompile 'org.mongodb:mongodb-driver:3.2.2'
 
+    compileOnly 'com.couchbase.client:java-client:2.3.1'
+    testCompile 'com.couchbase.client:java-client:2.3.1'
+
     compileOnly(group: 'org.neo4j', name: 'neo4j', version:neo4jVersion)
     compileOnly(group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version:'1.9.7')
     testCompile(group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version:'1.9.7')
