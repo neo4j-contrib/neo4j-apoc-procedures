@@ -7,15 +7,15 @@
 * `apoc.number.format.lang(number, lang) yield value` format a long or double using the default system pattern pattern and a language to produce a string
 * `apoc.number.format.pattern.lang(number, pattern, lang) yield value` format a long or double using a pattern and a language to produce a string
 
-* `apoc.number.parseLong(text) yield value` parse a text using the default system pattern and language to produce a long
-* `apoc.number.parseLong.pattern(text, pattern) yield value` parse a text using a pattern and the default system language to produce a long
-* `apoc.number.parseLong.lang(text, lang) yield value` parse a text using the default system pattern and a language to produce a long
-* `apoc.number.parseLong.pattern.lang(text, pattern, lang) yield value` parse a text using a pattern and a language to produce a long
+* `apoc.number.parseInt(text) yield value` parse a text using the default system pattern and language to produce a long
+* `apoc.number.parseInt.pattern(text, pattern) yield value` parse a text using a pattern and the default system language to produce a long
+* `apoc.number.parseInt.lang(text, lang) yield value` parse a text using the default system pattern and a language to produce a long
+* `apoc.number.parseInt.pattern.lang(text, pattern, lang) yield value` parse a text using a pattern and a language to produce a long
 
-* `apoc.number.parseDouble(text) yield value` parse a text using the default system pattern and language to produce a double
-* `apoc.number.parseDouble.pattern(text, pattern) yield value` parse a text using a pattern and the default system language to produce a double
-* `apoc.number.parseDouble.lang(text, lang) yield value` parse a text using the default system pattern and a language to produce a double
-* `apoc.number.parseDouble.pattern.lang(text, pattern, lang) yield value` parse a text using a pattern and a language to produce a double
+* `apoc.number.parseFloat(text) yield value` parse a text using the default system pattern and language to produce a double
+* `apoc.number.parseFloat.pattern(text, pattern) yield value` parse a text using a pattern and the default system language to produce a double
+* `apoc.number.parseFloat.lang(text, lang) yield value` parse a text using the default system pattern and a language to produce a double
+* `apoc.number.parseFloat.pattern.lang(text, pattern, lang) yield value` parse a text using a pattern and a language to produce a double
 
 * The full list of supported values for `pattern` and `lang` params is described in https://docs.oracle.com/javase/9/docs/api/java/text/DecimalFormat.html[DecimalFormat JavaDoc]
 
@@ -55,7 +55,7 @@
 ....
 
 ....
-  call apoc.number.parseLong.pattern.lang('12.345', '#,##0.00;(#,##0.00)', 'it') yield value
+  call apoc.number.parseInt.pattern.lang('12.345', '#,##0.00;(#,##0.00)', 'it') yield value
   return value
 
   ╒═════╕
@@ -66,7 +66,7 @@
 ....
 
 ....
-  call apoc.number.parseDouble.pattern.lang('12.345,67', '#,##0.00;(#,##0.00)', 'it') yield value
+  call apoc.number.parseFloat.pattern.lang('12.345,67', '#,##0.00;(#,##0.00)', 'it') yield value
   return value
   
   ╒════════╕
@@ -89,7 +89,7 @@
 ....
 
 ....
-  call apoc.number.parseLong('aaa')
+  call apoc.number.parseInt('aaa')
   
   Failed to invoke procedure `apoc.number.parseAsLong`: Caused by: java.text.ParseException: Unparseable number: "aaa"
 ....

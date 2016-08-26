@@ -2955,28 +2955,28 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 <p><code>apoc.number.format.pattern.lang(number, pattern, lang) yield value</code> format a long or double using a pattern and a language to produce a string</p>
 </li>
 <li>
-<p><code>apoc.number.parseLong(text) yield value</code> parse a text using the default system pattern and language to produce a long</p>
+<p><code>apoc.number.parseInt(text) yield value</code> parse a text using the default system pattern and language to produce a long</p>
 </li>
 <li>
-<p><code>apoc.number.parseLong.pattern(text, pattern) yield value</code> parse a text using a pattern and the default system language to produce a long</p>
+<p><code>apoc.number.parseInt.pattern(text, pattern) yield value</code> parse a text using a pattern and the default system language to produce a long</p>
 </li>
 <li>
-<p><code>apoc.number.parseLong.lang(text, lang) yield value</code> parse a text using the default system pattern and a language to produce a long</p>
+<p><code>apoc.number.parseInt.lang(text, lang) yield value</code> parse a text using the default system pattern and a language to produce a long</p>
 </li>
 <li>
-<p><code>apoc.number.parseLong.pattern.lang(text, pattern, lang) yield value</code> parse a text using a pattern and a language to produce a long</p>
+<p><code>apoc.number.parseInt.pattern.lang(text, pattern, lang) yield value</code> parse a text using a pattern and a language to produce a long</p>
 </li>
 <li>
-<p><code>apoc.number.parseDouble(text) yield value</code> parse a text using the default system pattern and language to produce a double</p>
+<p><code>apoc.number.parseFloat(text) yield value</code> parse a text using the default system pattern and language to produce a double</p>
 </li>
 <li>
-<p><code>apoc.number.parseDouble.pattern(text, pattern) yield value</code> parse a text using a pattern and the default system language to produce a double</p>
+<p><code>apoc.number.parseFloat.pattern(text, pattern) yield value</code> parse a text using a pattern and the default system language to produce a double</p>
 </li>
 <li>
-<p><code>apoc.number.parseDouble.lang(text, lang) yield value</code> parse a text using the default system pattern and a language to produce a double</p>
+<p><code>apoc.number.parseFloat.lang(text, lang) yield value</code> parse a text using the default system pattern and a language to produce a double</p>
 </li>
 <li>
-<p><code>apoc.number.parseDouble.pattern.lang(text, pattern, lang) yield value</code> parse a text using a pattern and a language to produce a double</p>
+<p><code>apoc.number.parseFloat.pattern.lang(text, pattern, lang) yield value</code> parse a text using a pattern and a language to produce a double</p>
 </li>
 <li>
 <p>The full list of supported values for <code>pattern</code> and <code>lang</code> params is described in <a href="https://docs.oracle.com/javase/9/docs/api/java/text/DecimalFormat.html">DecimalFormat JavaDoc</a></p>
@@ -3024,7 +3024,7 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.parseLong.pattern.lang('12.345', '#,##0.00;(#,##0.00)', 'it') yield value
+<pre>  call apoc.number.parseInt.pattern.lang('12.345', '#,##0.00;(#,##0.00)', 'it') yield value
   return value
 
   ╒═════╕
@@ -3036,7 +3036,7 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.parseDouble.pattern.lang('12.345,67', '#,##0.00;(#,##0.00)', 'it') yield value
+<pre>  call apoc.number.parseFloat.pattern.lang('12.345,67', '#,##0.00;(#,##0.00)', 'it') yield value
   return value
 
   ╒════════╕
@@ -3062,7 +3062,7 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.parseLong('aaa')
+<pre>  call apoc.number.parseInt('aaa')
 
   Failed to invoke procedure `apoc.number.parseAsLong`: Caused by: java.text.ParseException: Unparseable number: "aaa"</pre>
 </div>

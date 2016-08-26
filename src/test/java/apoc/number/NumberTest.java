@@ -94,56 +94,56 @@ public class NumberTest {
   // Parse Long
   
   @Test
-  public void testParseLongWithDefaultSettings() throws Exception {
-    testCall(db, "CALL apoc.number.parseLong('12,345')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
+  public void testParseIntWithDefaultSettings() throws Exception {
+    testCall(db, "CALL apoc.number.parseInt('12,345')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
   }
   
   @Test
-  public void testParseLongWithLocaleIT() throws Exception {
-    testCall(db, "CALL apoc.number.parseLong.lang('12.345', 'it')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
+  public void testParseIntWithLocaleIT() throws Exception {
+    testCall(db, "CALL apoc.number.parseInt.lang('12.345', 'it')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
   }
   
   @Test
-  public void testParseLongWithAPattern() throws Exception {
-    testCall(db, "CALL apoc.number.parseLong.pattern('12,345', '#,##0.00;(#,##0.00)')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
+  public void testParseIntWithAPattern() throws Exception {
+    testCall(db, "CALL apoc.number.parseInt.pattern('12,345', '#,##0.00;(#,##0.00)')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
   }
   
   @Test
-  public void testParseLongWithAPatternAndLocaleIT() throws Exception {
-    testCall(db, "CALL apoc.number.parseLong.pattern.lang('12.345', '#,##0.00;(#,##0.00)', 'it')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
+  public void testParseIntWithAPatternAndLocaleIT() throws Exception {
+    testCall(db, "CALL apoc.number.parseInt.pattern.lang('12.345', '#,##0.00;(#,##0.00)', 'it')", row -> assertEquals(new Long(12345), (Long) row.get("value")));
   }
 
   @Test
-  public void testParseLongRaisingException() throws Exception {
+  public void testParseIntRaisingException() throws Exception {
     expected.expect(QueryExecutionException.class);
-    testCall(db, "CALL apoc.number.parseLong('aaa')", null);
+    testCall(db, "CALL apoc.number.parseInt('aaa')", null);
   }
   
   // Parse Double
   
   @Test
-  public void testParseDouble() throws Exception {
-    testCall(db, "CALL apoc.number.parseDouble('12,345.67')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
+  public void testParseFloat() throws Exception {
+    testCall(db, "CALL apoc.number.parseFloat('12,345.67')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
   }
   
   @Test
-  public void testParseDoubleByLanguageIT() throws Exception {
-    testCall(db, "CALL apoc.number.parseDouble.lang('12.345,67', 'it')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
+  public void testParseFloatByLanguageIT() throws Exception {
+    testCall(db, "CALL apoc.number.parseFloat.lang('12.345,67', 'it')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
   }
   
   @Test
-  public void testParseDoubleByPattern() throws Exception {
-    testCall(db, "CALL apoc.number.parseDouble.pattern('12,345.67', '#,##0.00;(#,##0.00)')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
+  public void testParseFloatByPattern() throws Exception {
+    testCall(db, "CALL apoc.number.parseFloat.pattern('12,345.67', '#,##0.00;(#,##0.00)')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
   }
   
   @Test
-  public void testParseDoubleByPatternAndLanguageIT() throws Exception {
-    testCall(db, "CALL apoc.number.parseDouble.pattern.lang('12.345,67', '#,##0.00;(#,##0.00)', 'it')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
+  public void testParseFloatByPatternAndLanguageIT() throws Exception {
+    testCall(db, "CALL apoc.number.parseFloat.pattern.lang('12.345,67', '#,##0.00;(#,##0.00)', 'it')", row -> assertEquals(new Double(12345.67), (Double) row.get("value")));
   }
   
   @Test
-  public void testParseDoubleRaisingException() throws Exception {
+  public void testParseFloatRaisingException() throws Exception {
     expected.expect(QueryExecutionException.class);
-    testCall(db, "CALL apoc.number.parseDouble('aaa')", null);
+    testCall(db, "CALL apoc.number.parseFloat('aaa')", null);
   }
 }
