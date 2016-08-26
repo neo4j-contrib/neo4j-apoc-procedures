@@ -22,76 +22,97 @@ import apoc.result.StringResult;
  */
 public class Number {
 
-  @Procedure
-  @Description("apoc.number.formatLong(number, pattern, locale) yield value | format a long using a (optional) pattern and for a (optional) locale to produce a string")
-  public Stream<StringResult> formatLong(final @Name("number") long number, @Name("pattern") String pattern, @Name("language") String language) {
-    DecimalFormat format = buildFormatter(pattern, language);
-    return Stream.of(new StringResult(format.format(number)));
+  // Format Long or Double
+  
+  @Procedure("apoc.number.format")
+  @Description("apoc.number.format(number) yield value | format a long or double using the default system pattern and language to produce a string")
+  public Stream<StringResult> format(final @Name("number") Object number) {
+    return formatByPatternAndLanguage(number, null, null);
   }
 
-  @Procedure
-  @Description("apoc.number.formatDouble(number, pattern, locale) yield value | format a double using a (optional) pattern and for a (optional) locale to produce a string")
-  public Stream<StringResult> formatDouble(final @Name("number") double number, @Name("pattern") String pattern, @Name("language") String language) {
-    DecimalFormat format = buildFormatter(pattern, language);
+  @Procedure("apoc.number.format.pattern")
+  @Description("apoc.number.format.pattern(number, pattern) yield value | format a long or double using a pattern and the default system language to produce a string")
+  public Stream<StringResult> formatByPattern(final @Name("number") Object number, final @Name("pattern") String pattern) {
+    return formatByPatternAndLanguage(number, pattern, null);
+  }
+  
+  @Procedure("apoc.number.format.lang")
+  @Description("apoc.number.format.lang(number, lang) yield value | format a long or double using the default system pattern pattern and a language to produce a string")
+  public Stream<StringResult> formatByLanguage(final @Name("number") Object number, final @Name("lang") String lang) {
+    return formatByPatternAndLanguage(number, null, lang);
+  }
+  
+  @Procedure("apoc.number.format.pattern.lang")
+  @Description("apoc.number.format.pattern.lang(number, pattern, lang) yield value | format a long or double using a pattern and a language to produce a string")
+  public Stream<StringResult> formatByPatternAndLanguage(final @Name("number") Object number, final @Name("pattern") String pattern, final @Name("lang") String lang) {
+    validateNumberParam(number);
+    DecimalFormat format = buildFormatter(pattern, lang);
     return Stream.of(new StringResult(format.format(number)));
   }
   
-  @Procedure
-  @Description("apoc.number.parseAsLong(text, pattern, locale) yield value | parse a text using a (optional) pattern and for a (optional) locale to produce a long")
-  public Stream<LongResult> parseAsLong(final @Name("text") String text, @Name("pattern") String pattern, @Name("language") String language) throws ParseException {
-    DecimalFormat format = buildFormatter(pattern, language);
+  // Parse As Long
+  
+  @Procedure("apoc.number.parseAsLong")
+  @Description("apoc.number.parseAsLong(text) yield value | parse a text using the default system pattern and language to produce a long")
+  public Stream<LongResult> parseAsLong(final @Name("text") String text) throws ParseException {
+    return parseAsLongByPatternAndLanguage(text, null, null);
+  }
+
+  @Procedure("apoc.number.parseAsLong.pattern")
+  @Description("apoc.number.parseAsLong.pattern(text, pattern) yield value | parse a text using a pattern and the default system language to produce a long")
+  public Stream<LongResult> parseAsLongByPattern(final @Name("text") String text, @Name("pattern") String pattern) throws ParseException {
+    return parseAsLongByPatternAndLanguage(text, pattern, null);
+  }
+  
+  @Procedure("apoc.number.parseAsLong.lang")
+  @Description("apoc.number.parseAsLong.lang(text, lang) yield value | parse a text using the default system pattern and a language to produce a long")
+  public Stream<LongResult> parseAsLongByLanguage(final @Name("text") String text, @Name("lang") String lang) throws ParseException {
+    return parseAsLongByPatternAndLanguage(text, null, lang);
+  }
+  
+  @Procedure("apoc.number.parseAsLong.pattern.lang")
+  @Description("apoc.number.parseAsLong.pattern.lang(text, pattern, lang) yield value | parse a text using a pattern and a language to produce a long")
+  public Stream<LongResult> parseAsLongByPatternAndLanguage(final @Name("text") String text, @Name("pattern") String pattern, @Name("lang") String lang) throws ParseException {
+    DecimalFormat format = buildFormatter(pattern, lang);
     return Stream.of(new LongResult(format.parse(text).longValue()));
   }
-
-  @Procedure
-  @Description("apoc.number.parseAsDouble(text, pattern, locale) yield value | parse a text using a (optional) pattern and for a (optional) locale to produce a double")
-  public Stream<DoubleResult> parseAsDouble(final @Name("text") String text, @Name("pattern") String pattern, @Name("language") String language) throws ParseException {
-    DecimalFormat format = buildFormatter(pattern, language);
-     return Stream.of(new DoubleResult(format.parse(text).doubleValue()));
-  }
-
-  @Procedure
-  @Description("apoc.number.negativePrefix(pattern, locale) yield value | get the negative prefix for the given (optional) pattern and (optional) locale")
-  public Stream<StringResult> negativePrefix(@Name("pattern") String pattern, @Name("language") String language) {
-    DecimalFormat format = buildFormatter(pattern, language);
-    return Stream.of(new StringResult(format.getNegativePrefix()));
+  
+  // Parse As Double
+  
+  @Procedure("apoc.number.parseAsDouble")
+  @Description("apoc.number.parseAsDouble(text) yield value | parse a text using the default system pattern and language to produce a double")
+  public Stream<DoubleResult> parseAsDouble(final @Name("text") String text) throws ParseException {
+    return parseAsDoubleByPatternAndLanguage(text, null, null);
   }
   
-  @Procedure
-  @Description("apoc.number.positivePrefix(pattern, locale) yield value | get the positive prefix for the given (optional) pattern and (optional) locale")
-  public Stream<StringResult> positivePrefix(@Name("pattern") String pattern, @Name("language") String language) {
-    DecimalFormat format = buildFormatter(pattern, language);
-    return Stream.of(new StringResult(format.getPositivePrefix()));
+  @Procedure("apoc.number.parseAsDouble.pattern")
+  @Description("apoc.number.parseAsDouble.pattern(text, pattern) yield value | parse a text using a pattern and the default system language to produce a double")
+  public Stream<DoubleResult> parseAsDoubleByPattern(final @Name("text") String text, @Name("pattern") String pattern) throws ParseException {
+    return parseAsDoubleByPatternAndLanguage(text, pattern, null);
+  }
+  
+  @Procedure("apoc.number.parseAsDouble.lang")
+  @Description("apoc.number.parseAsDouble.lang(text, lang) yield value | parse a text using the default system pattern and a language to produce a double")
+  public Stream<DoubleResult> parseAsDoubleByLanguage(final @Name("text") String text, @Name("lang") String lang) throws ParseException {
+    return parseAsDoubleByPatternAndLanguage(text, null, lang);
+  }
+  
+  @Procedure("apoc.number.parseAsDouble.pattern.lang")
+  @Description("apoc.number.parseAsDouble.pattern.lang(text, pattern, lang) yield value | parse a text using a pattern and a language to produce a double")
+  public Stream<DoubleResult> parseAsDoubleByPatternAndLanguage(final @Name("text") String text, @Name("pattern") String pattern, @Name("lang") String lang) throws ParseException {
+    DecimalFormat format = buildFormatter(pattern, lang);
+    return Stream.of(new DoubleResult(format.parse(text).doubleValue()));
   }
 
-  @Procedure
-  @Description("apoc.number.groupingSize(pattern, locale) yield value | get the grouping size for the given (optional) pattern and (optional) locale")
-  public Stream<LongResult> groupingSize(@Name("pattern") String pattern, @Name("language") String language) {
-    DecimalFormat format = buildFormatter(pattern, language);
-    return Stream.of(new LongResult((long) format.getGroupingSize()));
+  private void validateNumberParam(Object number) {
+    if (number == null) {
+      throw new IllegalArgumentException("Number parameter mustn't be null.");
+    }
+    else if (!(number instanceof Long || number instanceof Double)) {
+      throw new IllegalArgumentException("Number parameter must be long or double.");
+    }
   }
 
-  @Procedure
-  @Description("apoc.number.defaultNegativePrefix(pattern, locale) yield value | get the default negative prefix")
-  public Stream<StringResult> defaultNegativePrefix() {
-    DecimalFormat format = buildFormatter(null, null);
-    return Stream.of(new StringResult(format.getNegativePrefix()));
-  }
-  
-  @Procedure
-  @Description("apoc.number.defaultPositivePrefix(pattern, locale) yield value | get the default positive prefix")
-  public Stream<StringResult> defaultPositivePrefix() {
-    DecimalFormat format = buildFormatter(null, null);
-    return Stream.of(new StringResult(format.getPositivePrefix()));
-  }
-  
-  @Procedure
-  @Description("apoc.number.defaultGroupingSize(pattern, locale) yield value | get the default grouping size")
-  public Stream<LongResult> defaultGroupingSize() {
-    DecimalFormat format = buildFormatter(null, null);
-    return Stream.of(new LongResult((long) format.getGroupingSize()));
-  }
-  
   private DecimalFormat buildFormatter(String pattern, String language) {
     Locale locale = null;
     if (language != null) {

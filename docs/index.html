@@ -2943,37 +2943,43 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 <div class="ulist">
 <ul>
 <li>
-<p><code>apoc.number.formatLong(number, pattern, locale) yield value</code> format a long using a (optional) pattern and for a (optional) locale to produce a string</p>
+<p><code>apoc.number.format(number) yield value</code> format a long or double using the default system pattern and language to produce a string</p>
 </li>
 <li>
-<p><code>apoc.number.formatDouble(number, pattern, locale) yield value</code> format a double using a (optional) pattern and for a (optional) locale to produce a string</p>
+<p><code>apoc.number.format.pattern(number, pattern) yield value</code> format a long or double using a pattern and the default system language to produce a string</p>
 </li>
 <li>
-<p><code>apoc.number.parseAsLong(text, pattern, locale) yield value</code> parse a text using a (optional) pattern and for a (optional) locale to produce a long</p>
+<p><code>apoc.number.format.lang(number, lang) yield value</code> format a long or double using the default system pattern pattern and a language to produce a string</p>
 </li>
 <li>
-<p><code>apoc.number.parseAsDouble(text, pattern, locale) yield value</code> parse a text using a (optional) pattern and for a (optional) locale to produce a double</p>
+<p><code>apoc.number.format.pattern.lang(number, pattern, lang) yield value</code> format a long or double using a pattern and a language to produce a string</p>
 </li>
 <li>
-<p><code>apoc.number.negativePrefix(pattern, locale) yield value</code> get the negative prefix for the given (optional) pattern and (optional) locale</p>
+<p><code>apoc.number.parseAsLong(text) yield value</code> parse a text using the default system pattern and language to produce a long</p>
 </li>
 <li>
-<p><code>apoc.number.positivePrefix(pattern, locale) yield value</code> get the positive prefix for the given (optional) pattern and (optional) locale</p>
+<p><code>apoc.number.parseAsLong.pattern(text, pattern) yield value</code> parse a text using a pattern and the default system language to produce a long</p>
 </li>
 <li>
-<p><code>apoc.number.groupingSize(pattern, locale) yield value</code> get the grouping size for the given (optional) pattern and (optional) locale</p>
+<p><code>apoc.number.parseAsLong.lang(text, lang) yield value</code> parse a text using the default system pattern and a language to produce a long</p>
 </li>
 <li>
-<p><code>apoc.number.defaultNegativePrefix(pattern, locale) yield value</code> get the default negative prefix</p>
+<p><code>apoc.number.parseAsLong.pattern.lang(text, pattern, lang) yield value</code> parse a text using a pattern and a language to produce a long</p>
 </li>
 <li>
-<p><code>apoc.number.defaultPositivePrefix(pattern, locale) yield value</code> get the default positive prefix</p>
+<p><code>apoc.number.parseAsDouble(text) yield value</code> parse a text using the default system pattern and language to produce a double</p>
 </li>
 <li>
-<p><code>apoc.number.defaultGroupingSize(pattern, locale) yield value</code> get the default grouping size</p>
+<p><code>apoc.number.parseAsDouble.pattern(text, pattern) yield value</code> parse a text using a pattern and the default system language to produce a double</p>
 </li>
 <li>
-<p>The full list of supported values for <code>pattern</code> and <code>locale</code> params is described in <a href="https://docs.oracle.com/javase/9/docs/api/java/text/DecimalFormat.html">DecimalFormat JavaDoc</a></p>
+<p><code>apoc.number.parseAsDouble.lang(text, lang) yield value</code> parse a text using the default system pattern and a language to produce a double</p>
+</li>
+<li>
+<p><code>apoc.number.parseAsDouble.pattern.lang(text, pattern, lang) yield value</code> parse a text using a pattern and a language to produce a double</p>
+</li>
+<li>
+<p>The full list of supported values for <code>pattern</code> and <code>lang</code> params is described in <a href="https://docs.oracle.com/javase/9/docs/api/java/text/DecimalFormat.html">DecimalFormat JavaDoc</a></p>
 </li>
 </ul>
 </div>
@@ -2982,7 +2988,19 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 <h4 id="_examples_2">Examples</h4>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.formatLong(12345, '#,##0.00;(#,##0.00)', 'it') yield value
+<pre>  call apoc.number.format(12345.67) yield value
+  return value
+
+  ╒═════════╕
+  │value    │
+  ╞═════════╡
+  │12,345.67│
+  └─────────┘</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>  call apoc.number.format.pattern.lang(12345, '#,##0.00;(#,##0.00)', 'it') yield value
   return value
 
   ╒═════════╕
@@ -2994,7 +3012,7 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.formatDouble(12345.67, '#,##0.00;(#,##0.00)', 'it') yield value
+<pre>  call apoc.number.format.pattern.lang(12345.67, '#,##0.00;(#,##0.00)', 'it') yield value
   return value
 
   ╒═════════╕
@@ -3006,7 +3024,7 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.parseAsLong('12.345', '#,##0.00;(#,##0.00)', 'it') yield value
+<pre>  call apoc.number.parseAsLong.pattern.lang('12.345', '#,##0.00;(#,##0.00)', 'it') yield value
   return value
 
   ╒═════╕
@@ -3018,7 +3036,7 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.parseAsDouble('12.345,67', '#,##0.00;(#,##0.00)', 'it') yield value
+<pre>  call apoc.number.parseAsDouble.pattern.lang('12.345,67', '#,##0.00;(#,##0.00)', 'it') yield value
   return value
 
   ╒════════╕
@@ -3030,16 +3048,23 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.parseAsLong('aaa', null, null)
+<pre>  call apoc.number.format('aaa') yield value
 
-  Failed to invoke procedure `apoc.number.parseAsLong`: Caused by: java.text.ParseException: Unparseable number: "aaa"</pre>
+  Failed to invoke procedure `apoc.number.format`: Caused by: java.lang.IllegalArgumentException: Number parameter must be long or double.</pre>
 </div>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.formatLong(12345, null, 'apoc')
+<pre>  call apoc.number.format.lang(12345, 'apoc')
 
-  Failed to invoke procedure `apoc.number.formatLong`: Caused by: java.lang.IllegalArgumentException: Unrecognized language value: 'apoc' isn't a valid ISO language</pre>
+  Failed to invoke procedure `apoc.number.format.lang`: Caused by: java.lang.IllegalArgumentException: Unrecognized language value: 'apoc' isn't a valid ISO language</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>  call apoc.number.parseAsLong('aaa')
+
+  Failed to invoke procedure `apoc.number.parseAsLong`: Caused by: java.text.ParseException: Unparseable number: "aaa"</pre>
 </div>
 </div>
 </div>
@@ -4683,7 +4708,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-08-25 18:23:42 +02:00
+Last updated 2016-08-26 00:45:51 +02:00
 </div>
 </div>
 </body>
