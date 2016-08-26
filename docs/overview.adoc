@@ -166,6 +166,7 @@ Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.r
 
 === Export to Cypher Script
 
+// tag:export.cypher[]
 [cols="1m,5"]
 |===
 | apoc.export.cypher.all(file,config) | exports whole database incl. indexes as cypher statements to the provided file
@@ -174,10 +175,13 @@ Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.r
 | apoc.export.cypher.query(query,file,config) | exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file
 |===
 
+// end:export.cypher[]
+
 === GraphML Import / Export
 
 GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 
+// tag:export.graphml[]
 [cols="1m,5"]
 |===
 | apoc.import.graphml(file-or-url,{batchSize: 10000, readLabels: true, storeNodeIds: false, defaultRelationshipType:"RELATED"}) | imports graphml into the graph
@@ -186,6 +190,7 @@ GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 | apoc.export.graphml.graph(graph,file,config) | exports given graph object as graphml to the provided file
 | apoc.export.graphml.query(query,file,config) | exports nodes and relationships from the cypher statement as graphml to the provided file
 |===
+// end:export.graphml[]
 
 
 == Loading Data from RDBMS
