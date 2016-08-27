@@ -81,7 +81,7 @@ public class PageRank {
         long beforeReading = System.currentTimeMillis();
         log.info("Pagerank: Reading data into local ds");
         PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(dbAPI, pool, log);
-        boolean success = pageRank.readDataIntoArray(relCypher, nodeCypher);
+        boolean success = pageRank.readNodeAndRelCypherData(relCypher, nodeCypher);
         if (!success) {
             String errorMsg = "Failure while reading cypher queries. Make sure the results are ordered.";
             log.info(errorMsg);

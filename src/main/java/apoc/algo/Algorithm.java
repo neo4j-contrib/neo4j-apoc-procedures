@@ -1,7 +1,5 @@
 package apoc.algo;
 
-import apoc.algo.pagerank.*;
-import apoc.algo.pagerank.PageRank;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -10,7 +8,6 @@ import org.neo4j.logging.Log;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public class Algorithm {
 
@@ -18,10 +15,10 @@ public class Algorithm {
     private final GraphDatabaseAPI db;
     private final Log log;
     private final ExecutorService pool;
-    private int nodeCount;
-    private int relCount;
 
-    private AlgorithmStatistics stats = new AlgorithmStatistics();
+    public int nodeCount;
+    public int relCount;
+    public long readNodeMillis, readRelationshipMillis;
 
     // Arrays to hold the graph.
     // Mapping from Algo node ID to Graph nodeID
@@ -70,15 +67,11 @@ public class Algorithm {
         this.nodeCount = totalNodes;
         Arrays.sort(nodeMapping, 0, nodeCount);
         long after = System.currentTimeMillis();
-        stats.readNodeMillis = (after - before);
-        stats.nodes = totalNodes;
-        log.info("Time to make nodes structure = " + stats.readNodeMillis + " millis");
+        readNodeMillis = (after - before);
+        log.info("Time to make nodes structure = " + readNodeMillis + " millis");
         before = System.currentTimeMillis();
 
         sourceDegreeData = new int[totalNodes];
-
-//        previousPageRanks = new int[totalNodes];
-//        pageRanksAtomic = new AtomicIntegerArray(totalNodes);
         sourceChunkStartingIndex = new int[totalNodes];
         Arrays.fill(sourceChunkStartingIndex, -1);
 
@@ -89,16 +82,11 @@ public class Algorithm {
         Arrays.fill(relationshipTarget, -1);
         Arrays.fill(relationshipWeight, -1);
         calculateChunkIndices();
-        readRelationships(relCypher, totalRelationships);
+        readRelationships(relCypher);
         after = System.currentTimeMillis();
-        stats.relationships = totalRelationships;
-        stats.readRelationshipMillis = (after - before);
-        log.info("Time for iteration over " + totalRelationships + " relations = " + stats.readRelationshipMillis + " millis");
+        readRelationshipMillis = (after - before);
+        log.info("Time for iteration over " + totalRelationships + " relations = " + readRelationshipMillis + " millis");
         return true;
-    }
-
-    public AlgorithmStatistics getStatistics() {
-        return stats;
     }
 
     private int getNodeIndex(int node) {
@@ -144,7 +132,7 @@ public class Algorithm {
         return totalRelationships;
     }
 
-    private void readRelationships(String relCypher, int totalRelationships) {
+    private void readRelationships(String relCypher) {
         Result result = db.execute(relCypher);
         long before = System.currentTimeMillis();
         int sourceIndex = 0;
@@ -165,20 +153,5 @@ public class Algorithm {
         result.close();
         long after = System.currentTimeMillis();
         log.info("Time to read relationship data " + (after - before) + " ms");
-    }
-
-    class AlgorithmStatistics {
-        public long nodes, relationships, readNodeMillis, readRelationshipMillis;
-        public boolean write;
-
-        public AlgorithmStatistics(long nodes, long relationships, long readNodeMillis, long readRelationshipMillis) {
-            this.nodes = nodes;
-            this.relationships = relationships;
-            this.readNodeMillis = readNodeMillis;
-            this.readRelationshipMillis = readRelationshipMillis;
-        }
-
-        public AlgorithmStatistics() {
-        }
     }
 }
