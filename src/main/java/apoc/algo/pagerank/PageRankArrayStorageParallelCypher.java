@@ -172,6 +172,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         long before = System.currentTimeMillis();
         PageRankUtils.writeBackResults(pool, db, algorithm.nodeMapping, this, WRITE_BATCH);
         stats.writeMillis = System.currentTimeMillis() - before;
+        stats.property = getPropertyName();
     }
 
     public double getResult(long node)

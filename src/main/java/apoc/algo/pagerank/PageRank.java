@@ -20,8 +20,9 @@ public interface PageRank extends PageRankAlgorithm
     class PageRankStatistics {
         public long nodes, relationships, iterations, readNodeMillis, readRelationshipMillis,computeMillis,writeMillis;
         public boolean write;
+        public String property;
 
-        public PageRankStatistics(long nodes, long relationships, long iterations, long readNodeMillis, long readRelationshipMillis, long computeMillis, long writeMillis, boolean write) {
+        public PageRankStatistics(long nodes, long relationships, long iterations, long readNodeMillis, long readRelationshipMillis, long computeMillis, long writeMillis, boolean write, String property) {
             this.nodes = nodes;
             this.relationships = relationships;
             this.iterations = iterations;
@@ -30,6 +31,7 @@ public interface PageRank extends PageRankAlgorithm
             this.computeMillis = computeMillis;
             this.writeMillis = writeMillis;
             this.write = write;
+            this.property = property;
         }
 
         public PageRankStatistics() {
