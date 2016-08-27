@@ -1,5 +1,6 @@
 package apoc.algo.pagerank;
 
+import apoc.algo.*;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
@@ -50,6 +51,8 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     int [] previousPageRanks;
     private AtomicIntegerArray pageRanksAtomic;
 
+    private Algorithm algorithm;
+
     public PageRankArrayStorageParallelCypher(
             GraphDatabaseAPI db,
             ExecutorService pool, Log log)
@@ -57,6 +60,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         this.pool = pool;
         this.db = db;
         this.log = log;
+        algorithm = new Algorithm(db, pool, log);
     }
 
     private int getNodeIndex(int node) {
@@ -72,6 +76,13 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         return newArray;
     }
 
+    public boolean readNodeAndRelCypherData(String relCypher, String nodeCypher) {
+        return algorithm.readNodeAndRelCypherIntoArrays(relCypher, nodeCypher);
+    }
+
+    private void setUpArrays() {
+        sourceChunkStartingIndex = algorithm.sour
+    }
     public boolean readDataIntoArray(String relCypher, String nodeCypher) {
         Result nodeResult = db.execute(nodeCypher);
 

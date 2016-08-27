@@ -2,12 +2,9 @@ package apoc.algo.pagerank;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.cypher.EntityNotFoundException;
@@ -66,7 +63,7 @@ public class PageRankUtils
         PageRankUtils.waitForTasks( futures );
     }
 
-    public static void writeBackResults(ExecutorService pool, GraphDatabaseAPI db, int [] nodes, Algorithm algorithm,
+    public static void writeBackResults(ExecutorService pool, GraphDatabaseAPI db, int [] nodes, PageRankAlgorithm algorithm,
                                         int batchSize) {
         ThreadToStatementContextBridge ctx = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
         int propertyNameId;
