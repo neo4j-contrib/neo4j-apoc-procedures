@@ -1,6 +1,8 @@
 package apoc.algo.pagerank;
 
-import apoc.algo.*;
+import apoc.algo.algorithms.AlgoUtils;
+import apoc.algo.algorithms.Algorithm;
+import apoc.algo.algorithms.AlgorithmInterface;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -14,7 +16,7 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
 import static apoc.algo.pagerank.PageRankUtils.toFloat;
 import static apoc.algo.pagerank.PageRankUtils.toInt;
 
-public class PageRankArrayStorageParallelCypher implements PageRank
+public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmInterface
 {
     public static final int ONE_MINUS_ALPHA_INT = toInt( ONE_MINUS_ALPHA );
     public static final int WRITE_BATCH=100_100;
@@ -44,13 +46,19 @@ public class PageRankArrayStorageParallelCypher implements PageRank
         algorithm = new Algorithm(db, pool, log);
     }
 
+    @Override
+    public int getMappedNode(int index) {
+        int node = algorithm.nodeMapping[index];
+        return node;
+    }
+
     private int getNodeIndex(int node) {
-        int index = Arrays.binarySearch(algorithm.nodeMapping, 0, nodeCount, node);
+        int index = algorithm.getNodeIndex(node);
         return index;
     }
 
     public boolean readNodeAndRelCypherData(String relCypher, String nodeCypher) {
-        boolean success = algorithm.readNodeAndRelCypherIntoArrays(relCypher, nodeCypher);
+        boolean success = algorithm.readNodesAndRelCypherWeighted(relCypher, nodeCypher);
         this.nodeCount = algorithm.nodeCount;
         this.relCount = algorithm.relCount;
         stats.readNodeMillis = algorithm.readNodeMillis;
@@ -170,7 +178,8 @@ public class PageRankArrayStorageParallelCypher implements PageRank
     public void writeResultsToDB() {
         stats.write = true;
         long before = System.currentTimeMillis();
-        PageRankUtils.writeBackResults(pool, db, algorithm.nodeMapping, this, WRITE_BATCH);
+        System.out.println("Writing back");
+        AlgoUtils.writeBackResults(pool, db, this, WRITE_BATCH);
         stats.writeMillis = System.currentTimeMillis() - before;
         stats.property = getPropertyName();
     }

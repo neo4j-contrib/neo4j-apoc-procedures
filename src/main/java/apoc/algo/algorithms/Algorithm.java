@@ -1,4 +1,4 @@
-package apoc.algo;
+package apoc.algo.algorithms;
 
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
@@ -42,7 +42,11 @@ public class Algorithm {
         this.log = log;
     }
 
-    public boolean readNodeAndRelCypherIntoArrays(String relCypher, String nodeCypher) {
+    public boolean readNodesAndRelCypherWeighted(String relCypher, String nodeCypher) {
+        return readNodeAndRelCypherIntoArrays(relCypher, nodeCypher, true);
+    }
+
+    public boolean readNodeAndRelCypherIntoArrays(String relCypher, String nodeCypher, boolean weighted) {
         Result nodeResult = db.execute(nodeCypher);
 
         long before = System.currentTimeMillis();
@@ -78,21 +82,25 @@ public class Algorithm {
         int totalRelationships = readRelationshipMetadata(relCypher);
         this.relCount = totalRelationships;
         relationshipTarget = new int[totalRelationships];
-        relationshipWeight = new int[totalRelationships];
         Arrays.fill(relationshipTarget, -1);
-        Arrays.fill(relationshipWeight, -1);
+
+        if (weighted) {
+            relationshipWeight = new int[totalRelationships];
+            Arrays.fill(relationshipWeight, -1);
+        }
         calculateChunkIndices();
-        readRelationships(relCypher);
+        readRelationships(relCypher, weighted);
         after = System.currentTimeMillis();
         readRelationshipMillis = (after - before);
         log.info("Time for iteration over " + totalRelationships + " relations = " + readRelationshipMillis + " millis");
         return true;
     }
 
-    private int getNodeIndex(int node) {
+    public int getNodeIndex(int node) {
         int index = Arrays.binarySearch(nodeMapping, 0, nodeCount, node);
         return index;
     }
+
 
     // TODO Create buckets instead of copying data.
     // Not doing it right now because of the complications of the interface.
@@ -101,7 +109,6 @@ public class Algorithm {
         System.arraycopy(array, 0, newArray, 0, currentSize);
         return newArray;
     }
-
 
     private void calculateChunkIndices() {
         int currentIndex = 0;
@@ -132,7 +139,7 @@ public class Algorithm {
         return totalRelationships;
     }
 
-    private void readRelationships(String relCypher) {
+    private void readRelationships(String relCypher, boolean weighted) {
         Result result = db.execute(relCypher);
         long before = System.currentTimeMillis();
         int sourceIndex = 0;
@@ -141,14 +148,17 @@ public class Algorithm {
             int source = ((Long) res.get("source")).intValue();
             sourceIndex = getNodeIndex(source);
             int target = ((Long) res.get("target")).intValue();
-            int weight = ((Long) res.getOrDefault("weight", 1)).intValue();
             int logicalTargetIndex = getNodeIndex(target);
             int chunkIndex = sourceChunkStartingIndex[sourceIndex];
             while(relationshipTarget[chunkIndex] != -1) {
                 chunkIndex++;
             }
             relationshipTarget[chunkIndex] = logicalTargetIndex;
-            relationshipWeight[chunkIndex] = weight;
+            int weight = 0;
+            if (weighted) {
+                weight = ((Long) res.getOrDefault("weight", 1)).intValue();
+                relationshipWeight[chunkIndex] = weight;
+            }
         }
         result.close();
         long after = System.currentTimeMillis();

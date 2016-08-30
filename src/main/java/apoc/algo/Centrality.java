@@ -1,6 +1,8 @@
 package apoc.algo;
 
 import apoc.Description;
+import apoc.Pools;
+import apoc.algo.algorithms.*;
 import apoc.result.NodeScore;
 import apoc.util.Util;
 import org.neo4j.graphalgo.impl.centrality.BetweennessCentrality;
@@ -13,6 +15,7 @@ import org.neo4j.graphalgo.impl.util.DoubleComparator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -20,6 +23,8 @@ import org.neo4j.procedure.Procedure;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
 public class Centrality {
@@ -29,6 +34,11 @@ public class Centrality {
 
     @Context
     public Log log;
+
+    @Context
+    public GraphDatabaseAPI dbAPI;
+
+    static final ExecutorService pool = Pools.DEFAULT;
 
     @Procedure("apoc.algo.betweenness")
     @Description("CALL apoc.algo.betweenness(['TYPE',...],nodes,BOTH) YIELD node, score - calculate betweenness " +
@@ -61,6 +71,51 @@ public class Centrality {
             throw new RuntimeException(errMsg, e);
         }
     }
+
+
+    @Procedure("apoc.algo.betweennessCypher")
+    @Description("CALL apoc.algo.betweennessCypher(node_cypher,rel_cypher,write) - calculates betweeness " +
+    " centrality based on cypher input")
+    public Stream<apoc.algo.algorithms.AlgorithmInterface.Statistics> betweennessCypher(
+            @Name("config") Map<String, Object> config) {
+        String nodeCypher = AlgoUtils.getCypher(config, AlgoUtils.SETTING_CYPHER_NODE, AlgoUtils.DEFAULT_CYPHER_NODE);
+        String relCypher = AlgoUtils.getCypher(config, AlgoUtils.SETTING_CYPHER_REL, AlgoUtils.DEFAULT_CYPHER_REL);
+        boolean shouldWrite = (boolean)config.getOrDefault(AlgoUtils.SETTING_WRITE, AlgoUtils.DEFAULT_PAGE_RANK_WRITE);
+
+        long beforeReading = System.currentTimeMillis();
+        log.info("BetweennessCypher: Reading data into local ds");
+        apoc.algo.algorithms.BetweennessCentrality betweennessCentrality =
+                new apoc.algo.algorithms.BetweennessCentrality(dbAPI, pool, log);
+
+        boolean success = betweennessCentrality.readNodeAndRelCypherData(
+                relCypher, nodeCypher);
+        if (!success) {
+            String errorMsg = "Failure while reading cypher queries. Make sure the results are ordered.";
+            log.info(errorMsg);
+            throw new RuntimeException(errorMsg);
+        }
+        long afterReading = System.currentTimeMillis();
+
+        log.info("BetweennessCypher: Graph stored in local ds in " + (afterReading - beforeReading) + " milliseconds");
+        log.info("BetweennessCypher: Number of nodes: " + betweennessCentrality.numberOfNodes());
+        log.info("BetweennessCypher: Number of relationships: " + betweennessCentrality.numberOfRels());
+
+
+        betweennessCentrality.computeUnweighted();
+
+        long afterComputation = System.currentTimeMillis();
+        log.info("Pagerank: Computations took " + (afterComputation - afterReading) + " milliseconds");
+
+        if (shouldWrite) {
+            betweennessCentrality.writeResultsToDB();
+            long afterWrite = System.currentTimeMillis();
+            log.info("Pagerank: Writeback took " + (afterWrite - afterComputation) + " milliseconds");
+        }
+
+        return Stream.of(betweennessCentrality.getStatistics());
+
+    }
+
 
     @Procedure("apoc.algo.closeness")
     @Description("CALL apoc.algo.closeness(['TYPE',...],nodes, INCOMING) YIELD node, score - calculate closeness " +
