@@ -96,10 +96,13 @@ public class BetweennessCentrality implements AlgorithmInterface {
         long before = System.currentTimeMillis();
         // TODO Convert this to float using the multiplication methods
         float delta[] = new float[nodeCount];
-        System.out.println("Total nodes " + nodeCount + " total rels : " + relCount);
         for (int source = 0; source < nodeCount; source++) {
 //            System.out.println("Source is " + source);
             // Initializations:
+            if (sourceDegreeData[source] == 0) {
+                continue;
+            }
+            log.info("Processing for node " + source);
             stack.clear();
             predecessors.clear();
             Arrays.fill(numShortestPaths, 0);
@@ -142,16 +145,16 @@ public class BetweennessCentrality implements AlgorithmInterface {
                 }
             }
 
-                for (int i = 0; i < nodeCount; i++) {
-                    ArrayList<Integer> list = predecessors.get(i);
-//                    System.out.print("Predecessors on sp from " + source + " to " + i + ":");
-                    for (int x = 0; x < list.size(); x++) {
-//                        System.out.print("->" + list.get(x));
-                    }
-//                    System.out.println();
-                    //System.out.println(i + " : " + distance[i]);
-//                    System.out.println("Shortest path from " + i + " : " + numShortestPaths[i]);
-                }
+//                for (int i = 0; i < nodeCount; i++) {
+//                    ArrayList<Integer> list = predecessors.get(i);
+////                    System.out.print("Predecessors on sp from " + source + " to " + i + ":");
+//                    for (int x = 0; x < list.size(); x++) {
+////                        System.out.print("->" + list.get(x));
+//                    }
+////                    System.out.println();
+//                    //System.out.println(i + " : " + distance[i]);
+////                    System.out.println("Shortest path from " + i + " : " + numShortestPaths[i]);
+//                }
 
             while(!stack.isEmpty()) {
                 int poppedNode = stack.pop();
@@ -184,10 +187,10 @@ public class BetweennessCentrality implements AlgorithmInterface {
         long difference = after - before;
         log.info("Computations took " + difference + " milliseconds");
         stats.computeMillis = difference;
-        for(int i = 0; i < nodeCount; i++) {
-//            log.info(i + " : " + betweennessCentrality[i]);
-//            System.out.println(i + " : " + toFloat(betweennessCentrality[i]));
-        }
+//        for(int i = 0; i < nodeCount; i++) {
+////            log.info(i + " : " + betweennessCentrality[i]);
+////            System.out.println(i + " : " + toFloat(betweennessCentrality[i]));
+//        }
     }
 
     public void writeResultsToDB() {
