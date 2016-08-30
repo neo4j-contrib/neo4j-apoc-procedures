@@ -96,13 +96,16 @@ public class BetweennessCentrality implements AlgorithmInterface {
         long before = System.currentTimeMillis();
         // TODO Convert this to float using the multiplication methods
         float delta[] = new float[nodeCount];
+        int processedNode = 0;
+
         for (int source = 0; source < nodeCount; source++) {
 //            System.out.println("Source is " + source);
             // Initializations:
             if (sourceDegreeData[source] == 0) {
                 continue;
             }
-            log.info("Processing for node " + source);
+            processedNode++;
+            log.info("Processing for node " + source + " with degree " + sourceDegreeData[source]);
             stack.clear();
             predecessors.clear();
             Arrays.fill(numShortestPaths, 0);
@@ -185,6 +188,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
         long after = System.currentTimeMillis();
         long difference = after - before;
+        log.info("Processed " + processedNode);
         log.info("Computations took " + difference + " milliseconds");
         stats.computeMillis = difference;
 //        for(int i = 0; i < nodeCount; i++) {
