@@ -29,8 +29,11 @@ public class BetweennessCentrality implements AlgorithmInterface {
     @Override
     public double getResult(long node) {
         double val = -1;
-        int logicalIndex = getMappedNode((int)node);
+        int logicalIndex = algorithm.getNodeIndex((int)node);
 
+        if (node == 2490) {
+            System.out.println("Logical ine is " + logicalIndex);
+        }
         if (logicalIndex >= 0 && betweennessCentrality.length >= logicalIndex) {
             val = betweennessCentrality[logicalIndex];
         }
@@ -105,7 +108,9 @@ public class BetweennessCentrality implements AlgorithmInterface {
                 continue;
             }
             processedNode++;
-            log.info("Processing for node " + source + " with degree " + sourceDegreeData[source]);
+            if (processedNode % 1000 == 0) {
+                log.info("Processed " + processedNode + " nodes");
+            }
             stack.clear();
             predecessors.clear();
             Arrays.fill(numShortestPaths, 0);
@@ -130,7 +135,6 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
                 for (int j = 0; j < degree; j++) {
                     int target = relationshipTarget[chunkIndex + j];
-//                    System.out.println("Edge between " + nodeDequeued + " : " + target);
 
                     if (distance[target] < 0) {
                         queue.add(target);
@@ -169,13 +173,8 @@ public class BetweennessCentrality implements AlgorithmInterface {
                     double partialDependency = (numShortestPaths[node]/(double)numShortestPaths[poppedNode]);
                     partialDependency *= (1.0) + delta[poppedNode];
                     delta[node] += partialDependency;
-                    if (node == 6 || node == 3) {
-//                        System.out.println("adding delta " + partialDependency + "  " + delta[node] + "  to "  + node + "  " + poppedNode);
-                    }
                 }
                 if (poppedNode != source) {
-//                    if (poppedNode == 0)
-//                        System.out.println("Adding " + delta[poppedNode] + " to " + betweennessCentrality[poppedNode]);
                     betweennessCentrality[poppedNode] = betweennessCentrality[poppedNode] + delta[poppedNode];
 //                    System.out.println("source not Popped " + poppedNode + " " + betweennessCentrality[poppedNode] + " - " +
 //                            delta[poppedNode]);

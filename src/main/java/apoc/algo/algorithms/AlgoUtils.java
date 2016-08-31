@@ -84,7 +84,7 @@ public class AlgoUtils {
                             if (nodeIndex >= totalNodes) break;
 
                             int graphNode = algorithm.getMappedNode((int)nodeIndex);
-                            double value = algorithm.getResult(nodeIndex);
+                            double value = algorithm.getResult(graphNode);
                             if (graphNode == -1) {
                                 System.out.println("Node node found for " + graphNode + " mapped node " + nodeIndex);
                             } else
