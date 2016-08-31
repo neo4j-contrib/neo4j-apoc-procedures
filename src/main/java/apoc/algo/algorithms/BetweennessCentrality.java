@@ -16,7 +16,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
     private int relCount;
     private Statistics stats = new Statistics();
 
-    float betweennessCentrality[];
+    double betweennessCentrality[];
     public BetweennessCentrality(GraphDatabaseAPI db,
                                  ExecutorService pool, Log log)
     {
@@ -87,7 +87,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
                                   int [] sourceChunkStartingIndex,
                                   int [] relationshipTarget) {
         // TODO Convert this to float using the multiplication methods
-        betweennessCentrality = new float[nodeCount];
+        betweennessCentrality = new double[nodeCount];
         Arrays.fill(betweennessCentrality, 0);
         Stack<Integer> stack = new Stack<>(); // S
         Queue<Integer> queue = new LinkedList<>();
@@ -98,7 +98,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
         long before = System.currentTimeMillis();
         // TODO Convert this to float using the multiplication methods
-        float delta[] = new float[nodeCount];
+        double delta[] = new double[nodeCount];
         int processedNode = 0;
 
         for (int source = 0; source < nodeCount; source++) {
