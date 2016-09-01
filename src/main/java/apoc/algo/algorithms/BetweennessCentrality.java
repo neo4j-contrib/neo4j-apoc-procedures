@@ -138,9 +138,11 @@ public class BetweennessCentrality implements AlgorithmInterface {
         float delta[] = new float[nodeCount];
 
         int processedNode = 0;
-        for (int source = start; source < end; source++) {
+        int skippedZeros = 0;
+        for (int source = start; source < end && sourceDegreeData[source] != 0; source++) {
             processedNode++;
             if (sourceDegreeData[source] == 0) {
+                log.info("SHOULD NOT BE HERE");
                 continue;
             }
 
@@ -207,21 +209,33 @@ public class BetweennessCentrality implements AlgorithmInterface {
                     partialDependency *= (1.0) + delta[poppedNode];
                     delta[node] += partialDependency;
                 }
-                if (poppedNode != source) {
+                if (poppedNode != source && delta[poppedNode] != 0.0) {
                     // betweennessCentrality[poppedNode] = betweennessCentrality[poppedNode] + delta[poppedNode];
                     log.info("Thread "  + Thread.currentThread().getName() + "  " + poppedNode + " adding " +
                             delta[poppedNode]);
                     addToBetweenness(poppedNode, delta[poppedNode]);
+                } else {
+                    skippedZeros++;
                 }
             }
+
+
 
             if (processedNode%1000 == 0) {
                 log.info("Thread: " + Thread.currentThread().getName() + " processed " + processedNode);
             }
+            if (skippedZeros%1000 == 0) {
+                log.info("Thread: " + Thread.currentThread().getName() + " skipped " + skippedZeros);
+            }
 
         }
-        log.info("Thread: " + Thread.currentThread().getName() + " Processed " + processedNode);
+        delta = null;
+        numShortestPaths = null;
+        stack = null;
+        queue = null;
+        distance = null;
 
+        log.info("Thread: " + Thread.currentThread().getName() + " Processed " + processedNode);
     }
 
     private synchronized void addToBetweenness(int node, float delta) {
