@@ -65,6 +65,10 @@ public class BetweennessCentrality implements AlgorithmInterface {
         return success;
     }
 
+    public boolean readRelCypherData(String relCypher) {
+        boolean success = algorithm.readRelCypherData(relCypher);
+        return success;
+    }
 
     public long numberOfRels() {
         return relCount;
@@ -135,6 +139,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
         int processedNode = 0;
         for (int source = start; source < end; source++) {
+            processedNode++;
             if (sourceDegreeData[source] == 0) {
                 continue;
             }
@@ -204,13 +209,12 @@ public class BetweennessCentrality implements AlgorithmInterface {
                 }
                 if (poppedNode != source) {
                     // betweennessCentrality[poppedNode] = betweennessCentrality[poppedNode] + delta[poppedNode];
-//                    System.out.println("Popped " + poppedNode + " adding to " + betweennessCentrality[poppedNode] + " - " +
-//                            delta[poppedNode]);
+                    log.info("Thread "  + Thread.currentThread().getName() + "  " + poppedNode + " adding " +
+                            delta[poppedNode]);
                     addToBetweenness(poppedNode, delta[poppedNode]);
                 }
             }
 
-            processedNode++;
             if (processedNode%1000 == 0) {
                 log.info("Thread: " + Thread.currentThread().getName() + " processed " + processedNode);
             }

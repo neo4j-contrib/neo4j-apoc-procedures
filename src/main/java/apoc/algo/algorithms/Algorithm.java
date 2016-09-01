@@ -164,4 +164,62 @@ public class Algorithm {
         long after = System.currentTimeMillis();
         log.info("Time to read relationship data " + (after - before) + " ms");
     }
+
+    private boolean readRelationshipMetadataAndNodes(String relCypher, String nodeCypher, boolean weighted) {
+        Result nodeResult = db.execute(nodeCypher);
+
+        long before = System.currentTimeMillis();
+        ResourceIterator<Object> resultIterator = nodeResult.columnAs("id");
+        int index = 0;
+        int totalNodes = 0;
+        nodeMapping = new int[INITIAL_ARRAY_SIZE];
+        int currentSize = INITIAL_ARRAY_SIZE;
+        while(resultIterator.hasNext()) {
+            int node  = ((Long)resultIterator.next()).intValue();
+
+            if (index >= currentSize) {
+                if (log.isDebugEnabled()) log.debug("Node Doubling size " + currentSize);
+                nodeMapping = doubleSize(nodeMapping, currentSize);
+                currentSize = currentSize * 2;
+            }
+            nodeMapping[index] = node;
+            index++;
+            totalNodes++;
+        }
+
+        this.nodeCount = totalNodes;
+        Arrays.sort(nodeMapping, 0, nodeCount);
+        long after = System.currentTimeMillis();
+        readNodeMillis = (after - before);
+        log.info("Time to make nodes structure = " + readNodeMillis + " millis");
+        before = System.currentTimeMillis();
+
+        sourceDegreeData = new int[totalNodes];
+
+        int totalRelationships = readRelationshipMetadata(relCypher);
+
+        // At this point we have mapping and the degrees of nodes.
+        this.relCount = totalRelationships;
+        relationshipTarget = new int[totalRelationships];
+        Arrays.fill(relationshipTarget, -1);
+
+        if (weighted) {
+            relationshipWeight = new int[totalRelationships];
+            Arrays.fill(relationshipWeight, -1);
+        }
+        sourceChunkStartingIndex = new int[totalNodes];
+        Arrays.fill(sourceChunkStartingIndex, -1);
+
+        calculateChunkIndices();
+        readRelationships(relCypher, weighted);
+        after = System.currentTimeMillis();
+        readRelationshipMillis = (after - before);
+        log.info("Time for iteration over " + totalRelationships + " relations = " + readRelationshipMillis + " millis");
+        return true;
+    }
+
+    public boolean readRelCypherData(String relCypher) {
+
+        return false;
+    }
 }
