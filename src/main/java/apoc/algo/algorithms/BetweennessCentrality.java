@@ -139,10 +139,9 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
         int processedNode = 0;
         int skippedZeros = 0;
-        for (int source = start; source < end && sourceDegreeData[source] != 0; source++) {
+        for (int source = start; source < end; source++) {
             processedNode++;
             if (sourceDegreeData[source] == 0) {
-                log.info("SHOULD NOT BE HERE");
                 continue;
             }
 
