@@ -25,6 +25,10 @@ public class Pools {
                 new ThreadPoolExecutor.CallerRunsPolicy());
     }
 
+    public static int getNoThreadsInDefaultPool() {
+        return  Runtime.getRuntime().availableProcessors()*2;
+    }
+
     private static ExecutorService createSinglePool() {
         return Executors.newSingleThreadExecutor();
     }

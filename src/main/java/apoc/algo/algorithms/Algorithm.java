@@ -218,6 +218,51 @@ public class Algorithm {
         return true;
     }
 
+    private void readNodeAndSource(String relCypher) {
+        long before = System.currentTimeMillis();
+        Result result = db.execute(relCypher);
+        int totalRelationships = 0;
+        int sourceIndex = 0;
+        int index = 0;
+        int totalNodes = 0;
+        nodeMapping = new int[INITIAL_ARRAY_SIZE];
+        int currentSize = INITIAL_ARRAY_SIZE;
+        while(result.hasNext()) {
+            Map<String, Object> res = result.next();
+            int source = ((Long) res.get("source")).intValue();
+            int target = ((Long) res.get("target")).intValue();
+
+            if (index >= currentSize) {
+                if (log.isDebugEnabled()) log.debug("Node Doubling size " + currentSize);
+                nodeMapping = doubleSize(nodeMapping, currentSize);
+                currentSize = currentSize * 2;
+            }
+
+            // Don't map if it's already mapped.
+            if (getNodeIndex(source) < 0) {
+                nodeMapping[source] = source;
+                sourceIndex = index;
+                index++;
+                totalNodes++;
+            }
+
+            if (getNodeIndex(target) < 0) {
+                nodeMapping[target] = target;
+                index++;
+                totalNodes++;
+            }
+
+            sourceDegreeData[sourceIndex]++;
+        }
+        result.close();
+
+        // We now have unsorted node mapping and corresponding degrees.
+        int[] tempDegreeData = new int[totalNodes];
+
+        long after = System.currentTimeMillis();
+        log.info("Time to read relationship metadata and nodes" + (after - before) + " ms");
+
+    }
     public boolean readRelCypherData(String relCypher) {
 
         return false;

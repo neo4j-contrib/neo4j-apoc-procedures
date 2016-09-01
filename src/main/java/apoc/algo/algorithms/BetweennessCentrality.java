@@ -1,5 +1,6 @@
 package apoc.algo.algorithms;
 
+import apoc.Pools;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
@@ -78,6 +79,27 @@ public class BetweennessCentrality implements AlgorithmInterface {
         return stats;
     }
 
+    public void computeUnweightedSeq() {
+        computeUnweightedSeq(algorithm.sourceDegreeData,
+                algorithm.sourceChunkStartingIndex,
+                algorithm.relationshipTarget);
+    }
+
+    private void computeUnweightedSeq(int[] sourceDegreeData, int[] sourceChunkStartingIndex, int[] relationshipTarget) {
+        betweennessCentrality = new float[nodeCount];
+        Arrays.fill(betweennessCentrality, 0);
+        long before = System.currentTimeMillis();
+        int start = 0;
+        int end = nodeCount;
+        processNodesInBatch(start, end, sourceDegreeData, sourceChunkStartingIndex, relationshipTarget);
+        long after = System.currentTimeMillis();
+        long difference = after - before;
+        log.info("Computations took " + difference + " milliseconds");
+        stats.computeMillis = difference;
+
+
+    }
+
     public void computeUnweightedInBatches() {
         computeUnweightedInBatches(algorithm.sourceDegreeData,
                 algorithm.sourceChunkStartingIndex,
@@ -91,12 +113,15 @@ public class BetweennessCentrality implements AlgorithmInterface {
         Arrays.fill(betweennessCentrality, 0);
         long before = System.currentTimeMillis();
 
-        int batches = (int)nodeCount/BATCH_SIZE;
+        int numOfThreads = Pools.getNoThreadsInDefaultPool();
+        int batchSize = (int)nodeCount/numOfThreads;
+
+        int batches = (int)nodeCount/batchSize;
         List<Future> futures = new ArrayList<>(batches);
         int nodeIter = 0;
         while(nodeIter < nodeCount) {
             final int start = nodeIter;
-            final int end = Integer.min(start + BATCH_SIZE, nodeCount);
+            final int end = Integer.min(start + batchSize, nodeCount);
             Future future = pool.submit(new Runnable() {
                 @Override
                 public void run() {
@@ -140,6 +165,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
         int processedNode = 0;
         int skippedZeros = 0;
         for (int source = start; source < end; source++) {
+
             processedNode++;
             if (sourceDegreeData[source] == 0) {
                 continue;
@@ -210,8 +236,8 @@ public class BetweennessCentrality implements AlgorithmInterface {
                 }
                 if (poppedNode != source && delta[poppedNode] != 0.0) {
                     // betweennessCentrality[poppedNode] = betweennessCentrality[poppedNode] + delta[poppedNode];
-                    log.info("Thread "  + Thread.currentThread().getName() + "  " + poppedNode + " adding " +
-                            delta[poppedNode]);
+//                    log.info("Thread "  + Thread.currentThread().getName() + " source:"  + source + "  popped:" + poppedNode + " adding " +
+//                            delta[poppedNode]);
                     addToBetweenness(poppedNode, delta[poppedNode]);
                 } else {
                     skippedZeros++;
