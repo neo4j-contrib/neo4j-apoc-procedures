@@ -300,19 +300,19 @@ public class CentralityTest
         t.close();
     }
 
-    @Test
-    public void shouldHaveExpectedBetweennessMultipleSPCypher()
-    {
-        db.execute( MULTIPLE_SHORTEST_PATH ).close();
-        Result result = db.execute("CALL apoc.algo.betweennessCypher({write:true})");
-        System.out.println(result.resultAsString());
-        Result t =  db.execute("MATCH (n) RETURN n.name as name, n.betweenness_centrality as score ORDER BY score DESC LIMIT 1");
-        assertTrue(t.hasNext());
-        assertEquals( CentralityTest.MULTIPLE_SHORTEST_PATH_EXPECTED,
-                (double)t.next().get("score"), 0.1D );
-        assertFalse(t.hasNext() );
-        t.close();
-    }
+//    @Test
+//    public void shouldHaveExpectedBetweennessMultipleSPCypher()
+//    {
+//        db.execute( MULTIPLE_SHORTEST_PATH ).close();
+//        Result result = db.execute("CALL apoc.algo.betweennessCypher({write:true})");
+//        System.out.println(result.resultAsString());
+//        Result t =  db.execute("MATCH (n) RETURN n.name as name, n.betweenness_centrality as score ORDER BY score DESC LIMIT 1");
+//        assertTrue(t.hasNext());
+//        assertEquals( CentralityTest.MULTIPLE_SHORTEST_PATH_EXPECTED,
+//                (double)t.next().get("score"), 0.1D );
+//        assertFalse(t.hasNext() );
+//        t.close();
+//    }
 
 
     public String algoQuery( String algo )
