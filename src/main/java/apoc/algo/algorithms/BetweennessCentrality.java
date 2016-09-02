@@ -125,8 +125,6 @@ public class BetweennessCentrality implements AlgorithmInterface {
             final int start = nodeIter;
             final int end = Integer.min(start + batchSize, nodeCount);
             final int threadbatchNo = batchNumber;
-            HashMap<Integer, Float> map = new HashMap<>();
-            intermediateBcPerThread.put(batchNumber, map);
             Future future = pool.submit(new Runnable() {
                 @Override
                 public void run() {
@@ -177,7 +175,8 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
         int numShortestPaths[] = new int [nodeCount]; // sigma
         int distance[] = new int[nodeCount]; // distance
-
+        Map<Integer, Float> map = new HashMap<>();
+        ;
         float delta[] = new float[nodeCount];
 
         int processedNode = 0;
@@ -261,8 +260,8 @@ public class BetweennessCentrality implements AlgorithmInterface {
                     if (threadBatchNo == -1) {
                         betweennessCentrality[poppedNode] = betweennessCentrality[poppedNode] + delta[poppedNode];
                     } else {
-                        float storedValue = intermediateBcPerThread.get(threadBatchNo).getOrDefault(poppedNode, 0.0f);
-                        intermediateBcPerThread.get(threadBatchNo).put(poppedNode, storedValue + delta[poppedNode]);
+                        float storedValue = map.getOrDefault(poppedNode, 0.0f);
+                        map.put(poppedNode, storedValue + delta[poppedNode]);
                     }
                 } else {
                     skippedZeros++;
@@ -279,6 +278,8 @@ public class BetweennessCentrality implements AlgorithmInterface {
             }
 
         }
+
+        intermediateBcPerThread.put(threadBatchNo, map);
         delta = null;
         numShortestPaths = null;
         stack = null;
