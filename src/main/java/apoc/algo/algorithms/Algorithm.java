@@ -72,7 +72,7 @@ public class Algorithm {
         Arrays.sort(nodeMapping, 0, nodeCount);
         long after = System.currentTimeMillis();
         readNodeMillis = (after - before);
-        log.info("Time to make nodes structure = " + readNodeMillis + " millis");
+        log.info("Time to make nodes structure = " + readNodeMillis + " millis. Nodes from nodeCypher: " + nodeCount);
         before = System.currentTimeMillis();
 
         sourceDegreeData = new int[totalNodes];
@@ -179,7 +179,7 @@ public class Algorithm {
         }
         long after = System.currentTimeMillis();
         log.info("Time to read relationship metadata " + (after - before) + " ms ");
-        log.info("Nodes" + nodeCount + " rels " + totalRelationships);
+        log.info("Reduced Nodes: " + nodeCount + " rels " + totalRelationships);
         return totalRelationships;
     }
 

@@ -176,17 +176,15 @@ public class BetweennessCentrality implements AlgorithmInterface {
         Stack<Integer> stack = new Stack<>(); // S
         Queue<Integer> queue = new LinkedList<>();
 
-        log.info("Thread: " + Thread.currentThread().getName() + " processing " + start +  " " + end);
+        log.info("Thread: " + Thread.currentThread().getName() + " processing " + start + " " + end);
         Map<Integer, ArrayList<Integer>>predecessors = new HashMap<Integer, ArrayList<Integer>>(); // Pw
 
         int numShortestPaths[] = new int [nodeCount]; // sigma
         int distance[] = new int[nodeCount]; // distance
         Map<Integer, Float> map = new HashMap<>();
-        ;
         float delta[] = new float[nodeCount];
 
         int processedNode = 0;
-        int skippedZeros = 0;
         for (int source = start; source < end; source++) {
 
             processedNode++;
@@ -203,10 +201,10 @@ public class BetweennessCentrality implements AlgorithmInterface {
             queue.clear();
             queue.add(source);
             Arrays.fill(delta, 0);
-            for (int i = 0; i < nodeCount; i++) {
-                ArrayList<Integer> list = new ArrayList<Integer>();
-                predecessors.put(i, list);
-            }
+//            for (int i = 0; i < nodeCount; i++) {
+//                ArrayList<Integer> list = new ArrayList<Integer>();
+//                predecessors.put(i, list);
+//            }
             while (!queue.isEmpty()) {
                 int nodeDequeued = queue.remove();
 //                System.out.println("Pushing Node dequeued: " + nodeDequeued + " source: " + source);
@@ -228,10 +226,15 @@ public class BetweennessCentrality implements AlgorithmInterface {
                     if (distance[target] == (distance[nodeDequeued] + 1)) {
                         numShortestPaths[target] = numShortestPaths[target] + numShortestPaths[nodeDequeued];
 //                        System.out.println("Changing sigma to " + numShortestPaths[target] + " " + nodeDequeued + " " + target);
-                        ArrayList<Integer> list = predecessors.get(target);
-                        list.add(nodeDequeued);
-                        predecessors.put(target, list);
+                       //  ArrayList<Integer> list = predecessors.get(target);
+                        // list.add(nodeDequeued);
+                        // predecessors.put(target, list);
 
+                        if (!predecessors.containsKey(target)) {
+                            ArrayList<Integer> list = new ArrayList<Integer>();
+                            predecessors.put(target, list);
+                        }
+                        predecessors.get(target).add(nodeDequeued);
                     }
                 }
             }
@@ -252,14 +255,14 @@ public class BetweennessCentrality implements AlgorithmInterface {
 //                System.out.println("Popped " + poppedNode);
                 ArrayList<Integer> list = predecessors.get(poppedNode);
 
-                for (int i = 0; i < list.size(); i++) {
+                double partialDependency;
+                for (int i = 0; list != null && i < list.size() ; i++) {
                     int node = (int) list.get(i);
-                    double partialDependency = (numShortestPaths[node] / (double) numShortestPaths[poppedNode]);
+                    partialDependency = (numShortestPaths[node] / (double) numShortestPaths[poppedNode]);
                     partialDependency *= (1.0) + delta[poppedNode];
                     delta[node] += partialDependency;
                 }
                 if (poppedNode != source && delta[poppedNode] != 0.0) {
-                    // betweennessCentrality[poppedNode] = betweennessCentrality[poppedNode] + delta[poppedNode];
 //                    log.info("Thread "  + Thread.currentThread().getName() + " source:"  + source + "  popped:" + poppedNode + " adding " +
 //                            delta[poppedNode]);
                     // Storing results in intermediate thread map.
@@ -269,20 +272,12 @@ public class BetweennessCentrality implements AlgorithmInterface {
                         float storedValue = map.getOrDefault(poppedNode, 0.0f);
                         map.put(poppedNode, storedValue + delta[poppedNode]);
                     }
-                } else {
-                    skippedZeros++;
                 }
             }
 
-
-
-            if (processedNode%1000 == 0) {
+            if (processedNode%10000 == 0) {
                 log.info("Thread: " + Thread.currentThread().getName() + " processed " + processedNode);
             }
-            if (skippedZeros%1000 == 0) {
-                log.info("Thread: " + Thread.currentThread().getName() + " skipped " + skippedZeros);
-            }
-
         }
 
         intermediateBcPerThread.put(threadBatchNo, map);
