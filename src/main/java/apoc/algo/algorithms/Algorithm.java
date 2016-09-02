@@ -76,10 +76,11 @@ public class Algorithm {
         before = System.currentTimeMillis();
 
         sourceDegreeData = new int[totalNodes];
-        sourceChunkStartingIndex = new int[totalNodes];
+
+        int totalRelationships = readRelationshipMetadata(relCypher, true);
+        sourceChunkStartingIndex = new int[nodeCount];
         Arrays.fill(sourceChunkStartingIndex, -1);
 
-        int totalRelationships = readRelationshipMetadata(relCypher);
         this.relCount = totalRelationships;
         relationshipTarget = new int[totalRelationships];
         Arrays.fill(relationshipTarget, -1);
@@ -120,22 +121,65 @@ public class Algorithm {
         }
     }
 
-    private int readRelationshipMetadata(String relCypher) {
+    private int readRelationshipMetadata(String relCypher, boolean stripDown) {
         long before = System.currentTimeMillis();
         Result result = db.execute(relCypher);
         int totalRelationships = 0;
         int sourceIndex = 0;
+        int targetIndex = 0;
+        boolean[] nodesInRel = new boolean[nodeCount];
         while(result.hasNext()) {
             Map<String, Object> res = result.next();
             int source = ((Long) res.get("source")).intValue();
+            int target = ((Long) res.get("target")).intValue();
             sourceIndex = getNodeIndex(source);
+            targetIndex = getNodeIndex(target);
+            nodesInRel[sourceIndex] = true;
+            nodesInRel[targetIndex] = true;
 
             sourceDegreeData[sourceIndex]++;
             totalRelationships++;
         }
+
         result.close();
+        if (stripDown) {
+            int[] newNodeMapping = new int[totalRelationships * 2];
+            int[] newSourceDegreeData = new int[totalRelationships * 2];
+
+            int index = 0;
+            for (int i = 0; i < nodeCount; i++) {
+                if (!nodesInRel[i])
+                    continue;
+                newNodeMapping[index] = nodeMapping[i];
+                index++;
+            }
+
+
+            Arrays.sort(newNodeMapping, 0, index);
+//            System.out.println("After sorting ");
+//            for (int i = 0; i < index; i++) {
+//                System.out.println(i + " " + newNodeMapping[i]);
+//            }
+
+            for (int i = 0; i < index; i++) {
+                int node = newNodeMapping[i];
+                int degree = sourceDegreeData[getNodeIndex(node)];
+                newSourceDegreeData[i] = degree;
+            }
+
+            nodeMapping = newNodeMapping;
+            nodeCount = index;
+            sourceDegreeData = newSourceDegreeData;
+
+            newNodeMapping = null;
+            newSourceDegreeData = null;
+//            for (int i = 0; i < nodeCount; i++) {
+//                System.out.println(i + " " + nodeMapping[i] + " degree " + sourceDegreeData[i]);
+//            }
+        }
         long after = System.currentTimeMillis();
-        log.info("Time to read relationship metadata " + (after - before) + " ms");
+        log.info("Time to read relationship metadata " + (after - before) + " ms ");
+        log.info("Nodes" + nodeCount + " rels " + totalRelationships);
         return totalRelationships;
     }
 
@@ -165,7 +209,7 @@ public class Algorithm {
         log.info("Time to read relationship data " + (after - before) + " ms");
     }
 
-    private boolean readRelationshipMetadataAndNodes(String relCypher, String nodeCypher, boolean weighted) {
+    private boolean readRelationshipMetadataStripdown(String relCypher, String nodeCypher, boolean weighted) {
         Result nodeResult = db.execute(nodeCypher);
 
         long before = System.currentTimeMillis();
@@ -196,7 +240,7 @@ public class Algorithm {
 
         sourceDegreeData = new int[totalNodes];
 
-        int totalRelationships = readRelationshipMetadata(relCypher);
+        int totalRelationships = readRelationshipMetadata(relCypher, true);
 
         // At this point we have mapping and the degrees of nodes.
         this.relCount = totalRelationships;
@@ -229,8 +273,8 @@ public class Algorithm {
         int currentSize = INITIAL_ARRAY_SIZE;
         while(result.hasNext()) {
             Map<String, Object> res = result.next();
-            int source = ((Long) res.get("source")).intValue();
-            int target = ((Long) res.get("target")).intValue();
+                int source = ((Long) res.get("source")).intValue();
+                int target = ((Long) res.get("target")).intValue();
 
             if (index >= currentSize) {
                 if (log.isDebugEnabled()) log.debug("Node Doubling size " + currentSize);

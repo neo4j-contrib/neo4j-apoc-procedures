@@ -72,6 +72,26 @@ public class CentralityTest
 
     public static double STAR_GRAPH_EXPECTED=6.0;
 
+    public static final String STAR_GRAPH_LABELS = "CREATE (a:Company {name:'a'})\n" +
+            "CREATE (b:Emp {name:'b'})\n" +
+            "CREATE (c:Emp {name:'c'})\n" +
+            "CREATE (d:Emp {name:'d'})\n" +
+            "CREATE (e:Emp {name:'e'})\n" +
+            "CREATE (m:Company {name:'m'})\n" +
+            "CREATE (n:Company {name:'n'})\n" +
+            "CREATE (o:Company {name:'o'})\n" +
+            "CREATE (p:Company {name:'p'})\n" +
+            "CREATE (q:Company {name:'q'})\n" +
+
+            "CREATE\n" +
+            "  (o)-[:TYPE_1 {score:0.80}]->(q),\n" +
+            "  (p)-[:TYPE_1 {score:0.80}]->(q),\n" +
+            "  (q)-[:TYPE_1 {score:0.80}]->(a),\n" +
+            "  (q)-[:TYPE_1 {score:0.80}]->(m),\n" +
+            "  (q)-[:TYPE_1 {score:0.80}]->(n)\n";
+
+    public static double STAR_GRAPH_LABELS_EXPECTED=6.0;
+
     public static final String MULTIPLE_SHORTEST_PATH = "CREATE (a:Company {name:'a'})\n" +
             "CREATE (b:Company {name:'b'})\n" +
             "CREATE (c:Company {name:'c'})\n" +
@@ -300,20 +320,34 @@ public class CentralityTest
         t.close();
     }
 
-//    @Test
-//    public void shouldHaveExpectedBetweennessMultipleSPCypher()
-//    {
-//        db.execute( MULTIPLE_SHORTEST_PATH ).close();
-//        Result result = db.execute("CALL apoc.algo.betweennessCypher({write:true})");
-//        System.out.println(result.resultAsString());
-//        Result t =  db.execute("MATCH (n) RETURN n.name as name, n.betweenness_centrality as score ORDER BY score DESC LIMIT 1");
-//        assertTrue(t.hasNext());
-//        assertEquals( CentralityTest.MULTIPLE_SHORTEST_PATH_EXPECTED,
-//                (double)t.next().get("score"), 0.1D );
-//        assertFalse(t.hasNext() );
-//        t.close();
-//    }
+    @Test
+    public void shouldHaveExpectedBetweennessMultipleSPCypher()
+    {
+        db.execute( MULTIPLE_SHORTEST_PATH ).close();
+        Result result = db.execute("CALL apoc.algo.betweennessCypher({write:true})");
+        System.out.println(result.resultAsString());
+        Result t =  db.execute("MATCH (n) RETURN n.name as name, n.betweenness_centrality as score ORDER BY score DESC LIMIT 1");
+        assertTrue(t.hasNext());
+        assertEquals( CentralityTest.MULTIPLE_SHORTEST_PATH_EXPECTED,
+                (double)t.next().get("score"), 0.1D );
+        assertFalse(t.hasNext() );
+        t.close();
+    }
 
+    @Test
+    public void shouldHaveExpectedBetweennessNodeRemappingForCypher()
+    {
+        db.execute( STAR_GRAPH_LABELS ).close();
+        Result result = db.execute("CALL apoc.algo.betweennessCypher({relCypher: \"MATCH (s:Company)-[r]->(t:Company) RETURN id(s) as source, id(t) as target, 1 as weight\"," +
+                "write:true})");
+        System.out.println(result.resultAsString());
+        Result t =  db.execute("MATCH (n:Company) RETURN n.name as name, n.betweenness_centrality as score ORDER BY score DESC LIMIT 1");
+        assertTrue( t.hasNext() );
+        assertEquals( CentralityTest.STAR_GRAPH_LABELS_EXPECTED,
+                (double)t.next().get("score"), 0.1D );
+        assertFalse(t.hasNext() );
+        t.close();
+    }
 
     public String algoQuery( String algo )
     {

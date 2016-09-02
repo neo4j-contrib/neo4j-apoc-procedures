@@ -10,7 +10,7 @@ import java.util.concurrent.Future;
 
 public class BetweennessCentrality implements AlgorithmInterface {
     public static final int WRITE_BATCH=100_000;
-    public final int BATCH_SIZE =100_000 ;
+    public final int MINIMUM_BATCH_SIZE =10_000 ;
     private Algorithm algorithm;
     private Log log;
     GraphDatabaseAPI db;
@@ -117,6 +117,13 @@ public class BetweennessCentrality implements AlgorithmInterface {
         int batchSize = (int)nodeCount/numOfThreads;
 
         int batches = (int)nodeCount/batchSize;
+
+        if (batchSize < MINIMUM_BATCH_SIZE) {
+            batches = 1;
+            batchSize = nodeCount;
+        }
+
+
         List<Future> futures = new ArrayList<>(batches);
         intermediateBcPerThread = new HashMap<>();
         int nodeIter = 0;
@@ -138,7 +145,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
         log.info("Total batches: " + batchNumber);
         int threadsReturned = AlgoUtils.waitForTasks(futures);
         int threadsNo = Runtime.getRuntime().availableProcessors() * 2;
-        System.out.println("Threads returned " + threadsReturned + " " + threadsNo);
+        log.info("Threads returned " + threadsReturned + " " + threadsNo);
         compileResults(batchNumber);
         long after = System.currentTimeMillis();
         long difference = after - before;
@@ -170,7 +177,6 @@ public class BetweennessCentrality implements AlgorithmInterface {
         Queue<Integer> queue = new LinkedList<>();
 
         log.info("Thread: " + Thread.currentThread().getName() + " processing " + start +  " " + end);
-//        System.out.println("Thread: " + Thread.currentThread().getName() + " processing " + start + " " + end);
         Map<Integer, ArrayList<Integer>>predecessors = new HashMap<Integer, ArrayList<Integer>>(); // Pw
 
         int numShortestPaths[] = new int [nodeCount]; // sigma
