@@ -18,7 +18,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
     private int nodeCount;
     private int relCount;
     private Statistics stats = new Statistics();
-
+    private Map<Integer, Map<Integer, Float>> intermediateBcPerThread;
     float betweennessCentrality[];
     public BetweennessCentrality(GraphDatabaseAPI db,
                                  ExecutorService pool, Log log)
@@ -91,7 +91,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
         long before = System.currentTimeMillis();
         int start = 0;
         int end = nodeCount;
-        processNodesInBatch(start, end, sourceDegreeData, sourceChunkStartingIndex, relationshipTarget);
+        processNodesInBatch(-1, start, end, sourceDegreeData, sourceChunkStartingIndex, relationshipTarget);
         long after = System.currentTimeMillis();
         long difference = after - before;
         log.info("Computations took " + difference + " milliseconds");
@@ -118,23 +118,30 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
         int batches = (int)nodeCount/batchSize;
         List<Future> futures = new ArrayList<>(batches);
+        intermediateBcPerThread = new HashMap<>();
         int nodeIter = 0;
+        int batchNumber = 0;
         while(nodeIter < nodeCount) {
             final int start = nodeIter;
             final int end = Integer.min(start + batchSize, nodeCount);
+            final int threadbatchNo = batchNumber;
+            HashMap<Integer, Float> map = new HashMap<>();
+            intermediateBcPerThread.put(batchNumber, map);
             Future future = pool.submit(new Runnable() {
                 @Override
                 public void run() {
-                    processNodesInBatch(start, end, sourceDegreeData, sourceChunkStartingIndex, relationshipTarget);
+                    processNodesInBatch(threadbatchNo, start, end, sourceDegreeData, sourceChunkStartingIndex, relationshipTarget);
                 }
             });
             nodeIter = end;
+            batchNumber++;
             futures.add(future);
         }
-
+        log.info("Total batches: " + batchNumber);
         int threadsReturned = AlgoUtils.waitForTasks(futures);
-        int threadsNo = Runtime.getRuntime().availableProcessors()*2;
+        int threadsNo = Runtime.getRuntime().availableProcessors() * 2;
         System.out.println("Threads returned " + threadsReturned + " " + threadsNo);
+        compileResults(batchNumber);
         long after = System.currentTimeMillis();
         long difference = after - before;
         log.info("Computations took " + difference + " milliseconds");
@@ -145,11 +152,22 @@ public class BetweennessCentrality implements AlgorithmInterface {
 //        }
     }
 
-    private void processNodesInBatch(int start,
+    private void compileResults(int batchNumber) {
+        for (int i = 0; i < nodeCount; i++) {
+            float value = 0;
+            for (int batch = 0; batch < batchNumber; batch++) {
+                value += intermediateBcPerThread.get(batch).getOrDefault(i, 0.0f);
+            }
+            betweennessCentrality[i] = value;
+        }
+    }
+
+    private void processNodesInBatch(int threadBatchNo,
+                                     int start,
                                      int end,
-                             int [] sourceDegreeData,
-                             int [] sourceChunkStartingIndex,
-                             int [] relationshipTarget) {
+                                     int [] sourceDegreeData,
+                                     int [] sourceChunkStartingIndex,
+                                     int [] relationshipTarget) {
         Stack<Integer> stack = new Stack<>(); // S
         Queue<Integer> queue = new LinkedList<>();
 
@@ -208,6 +226,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
                         ArrayList<Integer> list = predecessors.get(target);
                         list.add(nodeDequeued);
                         predecessors.put(target, list);
+
                     }
                 }
             }
@@ -238,7 +257,13 @@ public class BetweennessCentrality implements AlgorithmInterface {
                     // betweennessCentrality[poppedNode] = betweennessCentrality[poppedNode] + delta[poppedNode];
 //                    log.info("Thread "  + Thread.currentThread().getName() + " source:"  + source + "  popped:" + poppedNode + " adding " +
 //                            delta[poppedNode]);
-                    addToBetweenness(poppedNode, delta[poppedNode]);
+                    // Storing results in intermediate thread map.
+                    if (threadBatchNo == -1) {
+                        betweennessCentrality[poppedNode] = betweennessCentrality[poppedNode] + delta[poppedNode];
+                    } else {
+                        float storedValue = intermediateBcPerThread.get(threadBatchNo).getOrDefault(poppedNode, 0.0f);
+                        intermediateBcPerThread.get(threadBatchNo).put(poppedNode, storedValue + delta[poppedNode]);
+                    }
                 } else {
                     skippedZeros++;
                 }
@@ -259,12 +284,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
         stack = null;
         queue = null;
         distance = null;
-
-        log.info("Thread: " + Thread.currentThread().getName() + " Processed " + processedNode);
-    }
-
-    private synchronized void addToBetweenness(int node, float delta) {
-        betweennessCentrality[node] += delta;
+        log.info("Thread: " + Thread.currentThread().getName() + " Finishing " + processedNode);
     }
 
     public void writeResultsToDB() {

@@ -101,15 +101,15 @@ public class Centrality {
         log.info("BetweennessCypher: Number of relationships: " + betweennessCentrality.numberOfRels());
 
 
-        betweennessCentrality.computeUnweightedSeq();
+        betweennessCentrality.computeUnweightedInBatches();
 
         long afterComputation = System.currentTimeMillis();
-        log.info("Pagerank: Computations took " + (afterComputation - afterReading) + " milliseconds");
+        log.info("BetweennessCypher: Computations took " + (afterComputation - afterReading) + " milliseconds");
 
         if (shouldWrite) {
             betweennessCentrality.writeResultsToDB();
             long afterWrite = System.currentTimeMillis();
-            log.info("Pagerank: Writeback took " + (afterWrite - afterComputation) + " milliseconds");
+            log.info("BetweennessCypher: Writeback took " + (afterWrite - afterComputation) + " milliseconds");
         }
 
         return Stream.of(betweennessCentrality.getStatistics());

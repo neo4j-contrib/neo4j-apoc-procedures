@@ -26,7 +26,7 @@ public class Pools {
     }
 
     public static int getNoThreadsInDefaultPool() {
-        return  Runtime.getRuntime().availableProcessors()*2;
+        return  Runtime.getRuntime().availableProcessors();
     }
 
     private static ExecutorService createSinglePool() {
