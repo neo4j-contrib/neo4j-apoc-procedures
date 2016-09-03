@@ -110,8 +110,9 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
         int numOfThreads = Pools.getNoThreadsInDefaultPool();
         int batchSize = (int)nodeCount/numOfThreads;
-
-        int batches = (int)nodeCount/batchSize;
+        int batches = 0;
+        if (batchSize > 0)
+            batches = (int)nodeCount/batchSize;
 
         if (batchSize < MINIMUM_BATCH_SIZE) {
             batches = 1;
