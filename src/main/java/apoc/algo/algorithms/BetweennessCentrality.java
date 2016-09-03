@@ -18,8 +18,10 @@ public class BetweennessCentrality implements AlgorithmInterface {
     private int nodeCount;
     private int relCount;
     private Statistics stats = new Statistics();
+
     private Map<Integer, Map<Integer, Double>> intermediateBcPerThread;
     double betweennessCentrality[];
+
     public BetweennessCentrality(GraphDatabaseAPI db,
                                  ExecutorService pool, Log log)
     {
@@ -66,11 +68,6 @@ public class BetweennessCentrality implements AlgorithmInterface {
         return success;
     }
 
-    public boolean readRelCypherData(String relCypher) {
-        boolean success = algorithm.readRelCypherData(relCypher);
-        return success;
-    }
-
     public long numberOfRels() {
         return relCount;
     }
@@ -96,17 +93,15 @@ public class BetweennessCentrality implements AlgorithmInterface {
         long difference = after - before;
         log.info("Computations took " + difference + " milliseconds");
         stats.computeMillis = difference;
-
-
     }
 
-    public void computeUnweightedInBatches() {
-        computeUnweightedInBatches(algorithm.sourceDegreeData,
+    public void computeUnweightedParallel() {
+        computeUnweightedParallel(algorithm.sourceDegreeData,
                 algorithm.sourceChunkStartingIndex,
                 algorithm.relationshipTarget);
     }
 
-    public void computeUnweightedInBatches(int [] sourceDegreeData,
+    public void computeUnweightedParallel(int [] sourceDegreeData,
                                   int [] sourceChunkStartingIndex,
                                   int [] relationshipTarget) {
         betweennessCentrality = new double[nodeCount];
@@ -131,11 +126,11 @@ public class BetweennessCentrality implements AlgorithmInterface {
         while(nodeIter < nodeCount) {
             final int start = nodeIter;
             final int end = Integer.min(start + batchSize, nodeCount);
-            final int threadbatchNo = batchNumber;
+            final int threadBatchNo = batchNumber;
             Future future = pool.submit(new Runnable() {
                 @Override
                 public void run() {
-                    processNodesInBatch(threadbatchNo, start, end, sourceDegreeData, sourceChunkStartingIndex, relationshipTarget);
+                    processNodesInBatch(threadBatchNo, start, end, sourceDegreeData, sourceChunkStartingIndex, relationshipTarget);
                 }
             });
             nodeIter = end;
@@ -143,18 +138,14 @@ public class BetweennessCentrality implements AlgorithmInterface {
             futures.add(future);
         }
         log.info("Total batches: " + batchNumber);
-        int threadsReturned = AlgoUtils.waitForTasks(futures);
-        int threadsNo = Runtime.getRuntime().availableProcessors() * 2;
-        log.info("Threads returned " + threadsReturned + " " + threadsNo);
+        AlgoUtils.waitForTasks(futures);
+
         compileResults(batchNumber);
+
         long after = System.currentTimeMillis();
         long difference = after - before;
         log.info("Computations took " + difference + " milliseconds");
         stats.computeMillis = difference;
-//        for(int i = 0; i < nodeCount; i++) {
-//            log.info(i + " : " + betweennessCentrality[i]);
-//            System.out.println(i + " : " + betweennessCentrality[i]);
-//        }
     }
 
     private void compileResults(int batchNumber) {
@@ -201,13 +192,8 @@ public class BetweennessCentrality implements AlgorithmInterface {
             queue.clear();
             queue.add(source);
             Arrays.fill(delta, 0);
-//            for (int i = 0; i < nodeCount; i++) {
-//                ArrayList<Integer> list = new ArrayList<Integer>();
-//                predecessors.put(i, list);
-//            }
             while (!queue.isEmpty()) {
                 int nodeDequeued = queue.remove();
-//                System.out.println("Pushing Node dequeued: " + nodeDequeued + " source: " + source);
                 stack.push(nodeDequeued);
 
                 // For each neighbour of dequeued.
@@ -219,17 +205,11 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
                     if (distance[target] < 0) {
                         queue.add(target);
-//                        System.out.println("Pushing " + target + "to queue");
                         distance[target] = distance[nodeDequeued] + 1;
                     }
 
                     if (distance[target] == (distance[nodeDequeued] + 1)) {
                         numShortestPaths[target] = numShortestPaths[target] + numShortestPaths[nodeDequeued];
-//                        System.out.println("Changing sigma to " + numShortestPaths[target] + " " + nodeDequeued + " " + target);
-                       //  ArrayList<Integer> list = predecessors.get(target);
-                        // list.add(nodeDequeued);
-                        // predecessors.put(target, list);
-
                         if (!predecessors.containsKey(target)) {
                             ArrayList<Integer> list = new ArrayList<Integer>();
                             predecessors.put(target, list);
@@ -239,23 +219,12 @@ public class BetweennessCentrality implements AlgorithmInterface {
                 }
             }
 
-//                for (int i = 0; i < nodeCount; i++) {
-//                    ArrayList<Integer> list = predecessors.get(i);
-//                   System.out.print("Predecessors on sp from " + source + " to " + i + ":");
-//                    for (int x = 0; x < list.size(); x++) {
-//                        System.out.print("->" + list.get(x));
-//                    }
-//                    System.out.println();
-//                    //System.out.println(i + " : " + distance[i]);
-//                    System.out.println("Shortest path from " + i + " : " + numShortestPaths[i]);
-//                }
-//
+            int poppedNode;
+            double partialDependency;
             while (!stack.isEmpty()) {
-                int poppedNode = stack.pop();
-//                System.out.println("Popped " + poppedNode);
+                poppedNode = stack.pop();
                 ArrayList<Integer> list = predecessors.get(poppedNode);
 
-                double partialDependency;
                 for (int i = 0; list != null && i < list.size() ; i++) {
                     int node = (int) list.get(i);
                     partialDependency = (numShortestPaths[node] / (double) numShortestPaths[poppedNode]);
@@ -263,9 +232,6 @@ public class BetweennessCentrality implements AlgorithmInterface {
                     delta[node] += partialDependency;
                 }
                 if (poppedNode != source && delta[poppedNode] != 0.0) {
-//                    log.info("Thread "  + Thread.currentThread().getName() + " source:"  + source + "  popped:" + poppedNode + " adding " +
-//                            delta[poppedNode]);
-                    // Storing results in intermediate thread map.
                     if (threadBatchNo == -1) {
                         betweennessCentrality[poppedNode] = betweennessCentrality[poppedNode] + delta[poppedNode];
                     } else {
@@ -276,7 +242,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
             }
 
             if (processedNode%10000 == 0) {
-                log.info("Thread: " + Thread.currentThread().getName() + " processed " + processedNode);
+                log.debug("Thread: " + Thread.currentThread().getName() + " processed " + processedNode);
             }
         }
 
@@ -286,7 +252,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
         stack = null;
         queue = null;
         distance = null;
-        log.info("Thread: " + Thread.currentThread().getName() + " Finishing " + processedNode);
+        log.debug("Thread: " + Thread.currentThread().getName() + " Finishing " + processedNode);
     }
 
     public void writeResultsToDB() {
@@ -295,6 +261,5 @@ public class BetweennessCentrality implements AlgorithmInterface {
         AlgoUtils.writeBackResults(pool, db, this, WRITE_BATCH);
         stats.writeMillis = System.currentTimeMillis() - before;
         stats.property = getPropertyName();
-
     }
 }

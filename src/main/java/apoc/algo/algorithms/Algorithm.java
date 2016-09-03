@@ -156,10 +156,6 @@ public class Algorithm {
 
 
             Arrays.sort(newNodeMapping, 0, index);
-//            System.out.println("After sorting ");
-//            for (int i = 0; i < index; i++) {
-//                System.out.println(i + " " + newNodeMapping[i]);
-//            }
 
             for (int i = 0; i < index; i++) {
                 int node = newNodeMapping[i];
@@ -173,13 +169,10 @@ public class Algorithm {
 
             newNodeMapping = null;
             newSourceDegreeData = null;
-//            for (int i = 0; i < nodeCount; i++) {
-//                System.out.println(i + " " + nodeMapping[i] + " degree " + sourceDegreeData[i]);
-//            }
         }
         long after = System.currentTimeMillis();
         log.info("Time to read relationship metadata " + (after - before) + " ms ");
-        log.info("Reduced Nodes: " + nodeCount + " rels " + totalRelationships);
+        log.info("Reduced Nodes: " + nodeCount + " relationships " + totalRelationships);
         return totalRelationships;
     }
 
@@ -209,106 +202,4 @@ public class Algorithm {
         log.info("Time to read relationship data " + (after - before) + " ms");
     }
 
-    private boolean readRelationshipMetadataStripdown(String relCypher, String nodeCypher, boolean weighted) {
-        Result nodeResult = db.execute(nodeCypher);
-
-        long before = System.currentTimeMillis();
-        ResourceIterator<Object> resultIterator = nodeResult.columnAs("id");
-        int index = 0;
-        int totalNodes = 0;
-        nodeMapping = new int[INITIAL_ARRAY_SIZE];
-        int currentSize = INITIAL_ARRAY_SIZE;
-        while(resultIterator.hasNext()) {
-            int node  = ((Long)resultIterator.next()).intValue();
-
-            if (index >= currentSize) {
-                if (log.isDebugEnabled()) log.debug("Node Doubling size " + currentSize);
-                nodeMapping = doubleSize(nodeMapping, currentSize);
-                currentSize = currentSize * 2;
-            }
-            nodeMapping[index] = node;
-            index++;
-            totalNodes++;
-        }
-
-        this.nodeCount = totalNodes;
-        Arrays.sort(nodeMapping, 0, nodeCount);
-        long after = System.currentTimeMillis();
-        readNodeMillis = (after - before);
-        log.info("Time to make nodes structure = " + readNodeMillis + " millis");
-        before = System.currentTimeMillis();
-
-        sourceDegreeData = new int[totalNodes];
-
-        int totalRelationships = readRelationshipMetadata(relCypher, true);
-
-        // At this point we have mapping and the degrees of nodes.
-        this.relCount = totalRelationships;
-        relationshipTarget = new int[totalRelationships];
-        Arrays.fill(relationshipTarget, -1);
-
-        if (weighted) {
-            relationshipWeight = new int[totalRelationships];
-            Arrays.fill(relationshipWeight, -1);
-        }
-        sourceChunkStartingIndex = new int[totalNodes];
-        Arrays.fill(sourceChunkStartingIndex, -1);
-
-        calculateChunkIndices();
-        readRelationships(relCypher, weighted);
-        after = System.currentTimeMillis();
-        readRelationshipMillis = (after - before);
-        log.info("Time for iteration over " + totalRelationships + " relations = " + readRelationshipMillis + " millis");
-        return true;
-    }
-
-    private void readNodeAndSource(String relCypher) {
-        long before = System.currentTimeMillis();
-        Result result = db.execute(relCypher);
-        int totalRelationships = 0;
-        int sourceIndex = 0;
-        int index = 0;
-        int totalNodes = 0;
-        nodeMapping = new int[INITIAL_ARRAY_SIZE];
-        int currentSize = INITIAL_ARRAY_SIZE;
-        while(result.hasNext()) {
-            Map<String, Object> res = result.next();
-                int source = ((Long) res.get("source")).intValue();
-                int target = ((Long) res.get("target")).intValue();
-
-            if (index >= currentSize) {
-                if (log.isDebugEnabled()) log.debug("Node Doubling size " + currentSize);
-                nodeMapping = doubleSize(nodeMapping, currentSize);
-                currentSize = currentSize * 2;
-            }
-
-            // Don't map if it's already mapped.
-            if (getNodeIndex(source) < 0) {
-                nodeMapping[source] = source;
-                sourceIndex = index;
-                index++;
-                totalNodes++;
-            }
-
-            if (getNodeIndex(target) < 0) {
-                nodeMapping[target] = target;
-                index++;
-                totalNodes++;
-            }
-
-            sourceDegreeData[sourceIndex]++;
-        }
-        result.close();
-
-        // We now have unsorted node mapping and corresponding degrees.
-        int[] tempDegreeData = new int[totalNodes];
-
-        long after = System.currentTimeMillis();
-        log.info("Time to read relationship metadata and nodes" + (after - before) + " ms");
-
-    }
-    public boolean readRelCypherData(String relCypher) {
-
-        return false;
-    }
 }

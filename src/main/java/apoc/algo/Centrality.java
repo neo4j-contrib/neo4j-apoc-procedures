@@ -101,7 +101,7 @@ public class Centrality {
         log.info("BetweennessCypher: Number of relationships: " + betweennessCentrality.numberOfRels());
 
 
-        betweennessCentrality.computeUnweightedInBatches();
+        betweennessCentrality.computeUnweightedParallel();
 
         long afterComputation = System.currentTimeMillis();
         log.info("BetweennessCypher: Computations took " + (afterComputation - afterReading) + " milliseconds");
