@@ -109,6 +109,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
         long before = System.currentTimeMillis();
 
         int numOfThreads = Pools.getNoThreadsInDefaultPool();
+        assert(numOfThreads != 0);
         int batchSize = (int)nodeCount/numOfThreads;
         int batches = 0;
         if (batchSize > 0)
@@ -228,6 +229,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
                 for (int i = 0; list != null && i < list.size() ; i++) {
                     int node = (int) list.get(i);
+                    assert(numShortestPaths[poppedNode] != 0);
                     partialDependency = (numShortestPaths[node] / (double) numShortestPaths[poppedNode]);
                     partialDependency *= (1.0) + delta[poppedNode];
                     delta[node] += partialDependency;
