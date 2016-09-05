@@ -22,8 +22,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
     private Statistics stats = new Statistics();
 
     private PrimitiveIntObjectMap intermediateBcPerThread;
-//    private Map<Integer, Map<Integer, Double>> intermediateBcPerThread;
-    double betweennessCentrality[];
+    float betweennessCentrality[];
 
     public BetweennessCentrality(GraphDatabaseAPI db,
                                  ExecutorService pool, Log log)
@@ -36,7 +35,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
     @Override
     public double getResult(long node) {
-        double val = -1;
+        float val = -1;
         int logicalIndex = algorithm.getNodeIndex((int)node);
         if (logicalIndex >= 0 && betweennessCentrality.length >= logicalIndex) {
             val = betweennessCentrality[logicalIndex];
@@ -86,7 +85,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
     }
 
     private void computeUnweightedSeq(int[] sourceDegreeData, int[] sourceChunkStartingIndex, int[] relationshipTarget) {
-        betweennessCentrality = new double[nodeCount];
+        betweennessCentrality = new float[nodeCount];
         Arrays.fill(betweennessCentrality, 0);
         long before = System.currentTimeMillis();
         int start = 0;
@@ -107,7 +106,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
     public void computeUnweightedParallel(int [] sourceDegreeData,
                                   int [] sourceChunkStartingIndex,
                                   int [] relationshipTarget) {
-        betweennessCentrality = new double[nodeCount];
+        betweennessCentrality = new float[nodeCount];
         Arrays.fill(betweennessCentrality, 0);
         long before = System.currentTimeMillis();
 
@@ -155,12 +154,12 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
     private void compileResults(int batchNumber) {
         for (int i = 0; i < nodeCount; i++) {
-            double value = 0;
+            float value = 0;
             Object batchValue = 0;
             for (int batch = 0; batch < batchNumber; batch++) {
                 batchValue = ((PrimitiveIntObjectMap)intermediateBcPerThread.get(batch)).get(i);
                 if (batchValue != null)
-                    value += (double)batchValue;
+                    value += (float)batchValue;
             }
             betweennessCentrality[i] = value;
         }
@@ -183,7 +182,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
         int numShortestPaths[] = new int [nodeCount]; // sigma
         int distance[] = new int[nodeCount]; // distance
         PrimitiveIntObjectMap map = Primitive.intObjectMap();
-        double delta[] = new double[nodeCount];
+        float delta[] = new float[nodeCount];
 
         int processedNode = 0;
         for (int source = start; source < end; source++) {
