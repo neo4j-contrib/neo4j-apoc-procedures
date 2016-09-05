@@ -247,7 +247,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
                     } else {
                         Object storedValue = map.get(poppedNode);
                         if (storedValue != null)
-                            map.put(poppedNode, ((double)storedValue) + delta[poppedNode]);
+                            map.put(poppedNode, ((float)storedValue) + delta[poppedNode]);
                         else
                             map.put(poppedNode, delta[poppedNode]);
                     }
