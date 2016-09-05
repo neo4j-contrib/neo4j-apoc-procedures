@@ -50,13 +50,13 @@ public class Algorithm {
         Result nodeResult = db.execute(nodeCypher);
 
         long before = System.currentTimeMillis();
-        ResourceIterator<Object> resultIterator = nodeResult.columnAs("id");
+        ResourceIterator<Long> resultIterator = nodeResult.columnAs("id");
         int index = 0;
         int totalNodes = 0;
         nodeMapping = new int[INITIAL_ARRAY_SIZE];
         int currentSize = INITIAL_ARRAY_SIZE;
         while(resultIterator.hasNext()) {
-            int node  = ((Long)resultIterator.next()).intValue();
+            int node  = (resultIterator.next()).intValue();
 
             if (index >= currentSize) {
                 if (log.isDebugEnabled()) log.debug("Node Doubling size " + currentSize);

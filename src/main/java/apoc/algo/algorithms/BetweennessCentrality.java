@@ -1,6 +1,8 @@
 package apoc.algo.algorithms;
 
 import apoc.Pools;
+import org.neo4j.collection.primitive.Primitive;
+import org.neo4j.collection.primitive.PrimitiveIntObjectMap;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
@@ -19,7 +21,8 @@ public class BetweennessCentrality implements AlgorithmInterface {
     private int relCount;
     private Statistics stats = new Statistics();
 
-    private Map<Integer, Map<Integer, Double>> intermediateBcPerThread;
+    private PrimitiveIntObjectMap intermediateBcPerThread;
+//    private Map<Integer, Map<Integer, Double>> intermediateBcPerThread;
     double betweennessCentrality[];
 
     public BetweennessCentrality(GraphDatabaseAPI db,
@@ -122,7 +125,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
 
         List<Future> futures = new ArrayList<>(batches);
-        intermediateBcPerThread = new HashMap<>();
+        intermediateBcPerThread = Primitive.intObjectMap();
         int nodeIter = 0;
         int batchNumber = 0;
         while(nodeIter < nodeCount) {
@@ -153,8 +156,11 @@ public class BetweennessCentrality implements AlgorithmInterface {
     private void compileResults(int batchNumber) {
         for (int i = 0; i < nodeCount; i++) {
             double value = 0;
+            Object batchValue = 0;
             for (int batch = 0; batch < batchNumber; batch++) {
-                value += intermediateBcPerThread.get(batch).getOrDefault(i, 0.0);
+                batchValue = ((PrimitiveIntObjectMap)intermediateBcPerThread.get(batch)).get(i);
+                if (batchValue != null)
+                    value += (double)batchValue;
             }
             betweennessCentrality[i] = value;
         }
@@ -170,11 +176,13 @@ public class BetweennessCentrality implements AlgorithmInterface {
         Queue<Integer> queue = new LinkedList<>();
 
         log.info("Thread: " + Thread.currentThread().getName() + " processing " + start + " " + end);
-        Map<Integer, ArrayList<Integer>>predecessors = new HashMap<Integer, ArrayList<Integer>>(); // Pw
+        // Map<Integer, ArrayList<Integer>>predecessors = new HashMap<Integer, ArrayList<Integer>>(); // Pw
+
+        PrimitiveIntObjectMap predecessors = Primitive.intObjectMap();
 
         int numShortestPaths[] = new int [nodeCount]; // sigma
         int distance[] = new int[nodeCount]; // distance
-        Map<Integer, Double> map = new HashMap<>();
+        PrimitiveIntObjectMap map = Primitive.intObjectMap();
         double delta[] = new double[nodeCount];
 
         int processedNode = 0;
@@ -216,7 +224,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
                             ArrayList<Integer> list = new ArrayList<Integer>();
                             predecessors.put(target, list);
                         }
-                        predecessors.get(target).add(nodeDequeued);
+                        ((ArrayList<Integer>)predecessors.get(target)).add(nodeDequeued);
                     }
                 }
             }
@@ -225,10 +233,10 @@ public class BetweennessCentrality implements AlgorithmInterface {
             double partialDependency;
             while (!stack.isEmpty()) {
                 poppedNode = stack.pop();
-                ArrayList<Integer> list = predecessors.get(poppedNode);
+                ArrayList<Integer> list = (ArrayList<Integer>)predecessors.get(poppedNode);
 
                 for (int i = 0; list != null && i < list.size() ; i++) {
-                    int node = (int) list.get(i);
+                    int node = list.get(i);
                     assert(numShortestPaths[poppedNode] != 0);
                     partialDependency = (numShortestPaths[node] / (double) numShortestPaths[poppedNode]);
                     partialDependency *= (1.0) + delta[poppedNode];
@@ -238,8 +246,11 @@ public class BetweennessCentrality implements AlgorithmInterface {
                     if (threadBatchNo == -1) {
                         betweennessCentrality[poppedNode] = betweennessCentrality[poppedNode] + delta[poppedNode];
                     } else {
-                        double storedValue = map.getOrDefault(poppedNode, 0.0);
-                        map.put(poppedNode, storedValue + delta[poppedNode]);
+                        Object storedValue = map.get(poppedNode);
+                        if (storedValue != null)
+                            map.put(poppedNode, ((double)storedValue) + delta[poppedNode]);
+                        else
+                            map.put(poppedNode, delta[poppedNode]);
                     }
                 }
             }
