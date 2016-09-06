@@ -68,6 +68,7 @@ dependencies {
 }
 
 test {
+    systemProperties 'user.language': 'en', 'user.country': 'US'
     testLogging {
         exceptionFormat = 'full'
     }

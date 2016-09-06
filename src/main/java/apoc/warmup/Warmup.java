@@ -2,15 +2,23 @@ package apoc.warmup;
 
 import apoc.Description;
 import apoc.util.Util;
+import org.neo4j.cursor.Cursor;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.kernel.api.ReadOperations;
+import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
+import org.neo4j.kernel.impl.storageengine.impl.recordstorage.RecordStorageEngine;
+import org.neo4j.kernel.impl.store.NeoStores;
+import org.neo4j.kernel.impl.store.StoreAccess;
 import org.neo4j.kernel.impl.store.format.standard.NodeRecordFormat;
 import org.neo4j.kernel.impl.store.format.standard.RelationshipRecordFormat;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.storageengine.api.NodeItem;
+import org.neo4j.storageengine.api.RelationshipItem;
 
 import java.util.stream.Stream;
 
-import static apoc.util.MapUtil.map;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 /**
@@ -39,14 +47,33 @@ public class Warmup {
         int relsPerPage = pageSize / RelationshipRecordFormat.RECORD_SIZE;
         long nodesTotal = Util.nodeCount(db);
         long relsTotal = Util.relCount(db);
+        long nodesLoaded = 0, relsLoaded = 0;
+        long start, timeNodes, timeRels;
 
-        long start = System.nanoTime();
-        long nodesLoaded = Util.runNumericQuery(db, "UNWIND range(0,{maxId}-1,{step}) as id MATCH (n) WHERE id(n) = id return count(*) as result",
-                map("maxId",nodesTotal, "step", nodesPerPage));
-        long timeNodes = System.nanoTime();
-        long relsLoaded = Util.runNumericQuery(db, "UNWIND range(0,{maxId}-1,{step}) as id MATCH ()-[r]->() WHERE id(r) = id return count(*) as result",
-                map("maxId",relsTotal, "step", relsPerPage));
-        long timeRels = System.nanoTime();
+        StoreAccess storeAccess = new StoreAccess(db.getDependencyResolver()
+                .resolveDependency(RecordStorageEngine.class).testAccessNeoStores());
+        NeoStores neoStore = storeAccess.getRawNeoStores();
+        long highestNodeKey = neoStore.getNodeStore().getHighestPossibleIdInUse();
+        long highestRelationshipKey = neoStore.getRelationshipStore().getHighestPossibleIdInUse();
+
+        try (Transaction tx = db.beginTx()) {
+            ThreadToStatementContextBridge ctx = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
+            ReadOperations readOperations = ctx.get().readOperations();
+
+            // Load specific nodes and rels
+            start = System.nanoTime();
+            for (int i = 0; i <= highestNodeKey; i += nodesPerPage) {
+                nodesLoaded++;
+                loadNode(i, readOperations);
+            }
+            timeNodes = System.nanoTime();
+            for(int i = 0; i <= highestRelationshipKey; i += relsPerPage) {
+                relsLoaded++;
+                loadRelationship(i, readOperations);
+            }
+            timeRels = System.nanoTime();
+            tx.success();
+        }
 
         WarmupResult result = new WarmupResult(
                 pageSize,
@@ -54,6 +81,18 @@ public class Warmup {
                 relsPerPage, relsTotal, relsLoaded, NANOSECONDS.toSeconds(timeRels - timeNodes),
                 NANOSECONDS.toSeconds(timeRels - start));
         return Stream.of(result);
+    }
+
+    private static void loadNode(long id, ReadOperations rOps) {
+        try (Cursor<NodeItem> c = rOps.nodeCursor(id)) {
+            c.next();
+        }
+    }
+
+    private static void loadRelationship(long id, ReadOperations rOps) {
+        try (Cursor<RelationshipItem> c = rOps.relationshipCursor(id)) {
+            c.next();
+        }
     }
 
     public static class WarmupResult {
