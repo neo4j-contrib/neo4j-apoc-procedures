@@ -4,16 +4,19 @@ import apoc.Description;
 import apoc.result.MapResult;
 import apoc.result.ObjectResult;
 import apoc.util.JsonUtil;
+import apoc.util.MapUtil;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.util.List;
-import java.util.Map;
+import java.net.URI;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class LoadJson {
+
+    private static final String AUTH_HEADER_KEY = "Authorization";
 
     @Context
     public GraphDatabaseService db;
@@ -43,6 +46,8 @@ public class LoadJson {
     }
 
     public static Stream<MapResult> loadJsonStream(@Name("url") String url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload) {
+        headers = null != headers ? headers : new HashMap<>();
+        headers.putAll(extractCredentialsIfNeeded(url));
         Object value = JsonUtil.loadJson(url,headers,payload);
         if (value instanceof Map) {
             return Stream.of(new MapResult((Map) value));
@@ -51,5 +56,24 @@ public class LoadJson {
             return ((List) value).stream().map((v) -> new MapResult((Map) v));
         }
         throw new RuntimeException("Incompatible Type " + (value == null ? "null" : value.getClass()));
+    }
+
+    private static Map<String, Object> extractCredentialsIfNeeded(String url) {
+        try {
+            URI uri = new URI(url);
+            String authInfo = uri.getUserInfo();
+            if (null != authInfo) {
+                String[] parts = authInfo.split(":");
+                if (2 == parts.length) {
+                    String token = new String(Base64.getEncoder().encode(authInfo.getBytes()));
+                    return MapUtil.map(AUTH_HEADER_KEY, "Basic " + token);
+                }
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        return Collections.emptyMap();
     }
 }
