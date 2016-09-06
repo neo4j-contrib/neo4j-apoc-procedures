@@ -11,10 +11,7 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.net.URI;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class LoadJson {
@@ -49,6 +46,7 @@ public class LoadJson {
     }
 
     public static Stream<MapResult> loadJsonStream(@Name("url") String url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload) {
+        headers = null != headers ? headers : new HashMap<>();
         headers.putAll(extractCredentialsIfNeeded(url));
         Object value = JsonUtil.loadJson(url,headers,payload);
         if (value instanceof Map) {
@@ -76,6 +74,6 @@ public class LoadJson {
             throw new RuntimeException(e);
         }
 
-        return MapUtil.map();
+        return Collections.emptyMap();
     }
 }
