@@ -30,3 +30,21 @@ CALL apoc.refactor.categorize('color','HAS_ATTRIBUTE',true,'Color','colour',['po
 
 Additionally, it will also copy over the first 'popularity' property value encountered on any node n for each newly created :Color node and remove any occurrences of that property value on nodes with the same 'Color'.
 
+= Using Cypher and APOC to move a property value to a label
+
+You can use the procedure link:#_creating_data[`apoc.create.addLabels`] to move a property to a label with Cypher as follows
+
+.Create a node with property studio
+[source,cypher]
+----
+CREATE (:Movie {title: 'A Few Good Men', genre: 'Drama'})
+----
+
+.Move the 'genre' property to a label and remove it as a property
+[source,cypher]
+----
+MATCH (n:Movie) 
+CALL apoc.create.addLabels( id(n), [ n.genre ] ) YIELD node 
+REMOVE node.studio
+RETURN node
+----
