@@ -2,51 +2,110 @@
 
 == Data Used
 
-In the below examples I used the flight data setup from the following link:
+In the below examples I used the flight data setup from the following link. The link guides with loading the complete data set.
 
 https://github.com/nicolewhite/neo4j-flights
 
-
-== Enable Manual Indexes on Node and Relationship Property
-
-Below are the steps to setup manual index on the nodes and relationship.
-In order to do so, one needs to first enable auto index and identify the property on the nodes and relationships
-that will be indexed.
-Once the property is identified set enable the auto index and set the property as shown in the configuration file.
-Below is the configurations setting to enable auto index in versions 3.0 and above.
-Here we are adding manual index on property `taxi_time` on Relationship `DESTINATION` and on property `flight_num` on Node with label `Flight`.
-
-
-In conf/neo4j.conf file
+However I have pasted a sample subset of the data that can be load to try the example queries below:
 
 ----
-dbms.auto_index.relationships.enabled=true
-dbms.auto_index.relationships.keys=taxi_time, flight_num
+begin
+CREATE (:`Airport` {`abbr`:"SLC", `id`:14869, `name`:"SALT LAKE CITY INTERNATIONAL"});
+CREATE (:`Airport` {`abbr`:"OAK", `id`:13796, `name`:"METROPOLITAN OAKLAND INTERNATIONAL"});
+CREATE (:`Airport` {`abbr`:"BUR", `id`:10800, `name`:"BOB HOPE"});
+CREATE (:`Flight`:`UNIQUE IMPORT LABEL` {`flight_num`:6147, `day`:2, `month`:1, `weekday`:6, `year`:2016, `UNIQUE IMPORT ID`:233903});
+CREATE (:`Flight`:`UNIQUE IMPORT LABEL` {`flight_num`:6147, `day`:2, `month`:1, `weekday`:6, `year`:2016, `UNIQUE IMPORT ID`:235869});
+CREATE (:`Flight`:`UNIQUE IMPORT LABEL` {`flight_num`:6147, `day`:9, `month`:1, `weekday`:6, `year`:2016, `UNIQUE IMPORT ID`:265364});
+CREATE (:`Flight`:`UNIQUE IMPORT LABEL` {`flight_num`:6147, `day`:16, `month`:1, `weekday`:6, `year`:2016, `UNIQUE IMPORT ID`:281968});
+CREATE (:`Flight`:`UNIQUE IMPORT LABEL` {`flight_num`:6147, `day`:23, `month`:1, `weekday`:6, `year`:2016, `UNIQUE IMPORT ID`:306386});
+CREATE (:`Flight`:`UNIQUE IMPORT LABEL` {`flight_num`:6147, `day`:30, `month`:1, `weekday`:6, `year`:2016, `UNIQUE IMPORT ID`:328834});
+commit
+begin
+CREATE INDEX ON :`Airport`(`abbr`);
+CREATE INDEX ON :`Flight`(`flight_num`);
+CREATE CONSTRAINT ON (node:`Airport`) ASSERT node.`id` IS UNIQUE;
+CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
+commit
+schema await
+begin
+MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:233903}), (n2:`Airport`{`id`:13796}) CREATE (n1)-[:`DESTINATION` {`arr_delay`:-13, `taxi_time`:9}]->(n2);
+MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:235869}), (n2:`Airport`{`id`:10800}) CREATE (n1)-[:`DESTINATION` {`arr_delay`:-8, `taxi_time`:4}]->(n2);
+MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:265364}), (n2:`Airport`{`id`:14869}) CREATE (n1)-[:`DESTINATION` {`arr_delay`:-30, `taxi_time`:4}]->(n2);
+MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:281968}), (n2:`Airport`{`id`:14869}) CREATE (n1)-[:`DESTINATION` {`arr_delay`:-21, `taxi_time`:3}]->(n2);
+MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:306386}), (n2:`Airport`{`id`:14869}) CREATE (n1)-[:`DESTINATION`]->(n2);
+MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:328834}), (n2:`Airport`{`id`:14869}) CREATE (n1)-[:`DESTINATION` {`arr_delay`:3, `taxi_time`:7}]->(n2);
+commit
+begin
+MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 10000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
+commit
+begin
+DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
+commit
 ----
 
-Restart Neo4j.
+== Adding Manual Index on Node Property
+
+
+In order to create manual index on node property , one will have to to use the the APOC stored procedure - `apoc.index.addNode`.
+
+----
+match (f:Flight)
+call apoc.index.addNode(f,["flight_num"])
+return count(f)
+----
+
+The above statement will create the node index with the same name as the Label name in this case `Flight` and add the nodes to the index.
+
+Once this has been added check if the node index exists using the stored procedure `apoc.index.list`.
+
+//Check if any legacy index exists
+----
+CALL apoc.index.list()
+----
+
+Better option would be to use the `apoc.index.addNode` as part of the loading process or `LOAD CSV` script.
+
+Output:
+
+image::https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/master/docs/img/apoc-manual-indexes-nodes.png[width=500]
+
+
+Once the node index is created we can start using it.
+Here are some examples.
+
+The below query returns distinct Airport and City for Flight Number `43`.
+Query can be written with the help of stored procedure `apoc.index.nodes` as given below.
+
+----
+call apoc.index.nodes('Flight','flight_num:6147') YIELD node
+match (node)-[:DESTINATION]->(a:Airport)
+return distinct a.name limit 10
+----
+
+To Remove the node index `Flight` created -
+
+----
+CALL apoc.index.remove('Flight')
+----
 
 == Adding Manual Index on Relationship Property
 
-Once the auto indexes are enabled.
 
-One will have to add the relationship property to the index.
-This can be achieved using the APOC stored procedure - `apoc.index.addRelationship`.
+In order to create manual index on relationship property , one will have to to use the the APOC stored procedure - `apoc.index.addRelationship`.
 
 ----
 match (f:Flight)-[r:DESTINATION]->(a:Airport)
-with r
 call apoc.index.addRelationship(r,["taxi_time"])
 return count(r)
 ----
 
-The above statement will create the auto index with the same name as Relationship name in this case `DESTINATION` and adds the relationship to the index.
+The above statement will create the relationship index with the same name as Relationship name in this case `DESTINATION` and adds the relationship to the index.
 
 Once this has been added check if the relationship index exists using the stored procedure `apoc.index.list`.
 
 //Check if any legacy index exists
 ----
-CALL apoc.index.list() YIELD type,name,config
+CALL apoc.index.list()
 ----
 
 Output:
@@ -55,112 +114,44 @@ image::https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/master/docs/i
 
 
 Once the relationship index is created we can start using it.
-Here is one example of using this without Stored Procedure.
+Here are some examples.
 
-
-This query will give me the count of the relationship `DESTINATION` with the property `taxi_time = 11`.
-
-----
-START r=relationship:DESTINATION(taxi_time="11")
-return count(r)
-----
-
-The above query can also be written with the help of a stored procedure `apoc.index.relationships` which makes it much simpler.
-Below is the same query written using the stored procedure.
+Below query will give me the count of the relationship `DESTINATION` with the property `taxi_time = 11`.
+Query can be written with the help of a stored procedure `apoc.index.relationships`.
 
 ----
-call apoc.index.relationships('DESTINATION','taxi_time:11') YIELD rel
+call apoc.index.relationships('DESTINATION','taxi_time:7') YIELD rel
 return count(rel)
 ----
 
-The below query is to return the Flight Number and the Airport Name for those flights that had the `taxi_time` of 11 mins.
+Another example query is to return the Flight Number and the Airport Name for those flights that had the `taxi_time` of 11 mins. The query can be written with the help of stored procedure `apoc.index.relationships` as given below.
 
 ----
-START r=relationship:DESTINATION(taxi_time="11")
-match (f:Flight)-[r:DESTINATION]->(a:Airport)
-return f.flight_num, a.name limit 10
-----
-
-The same query can be written with the help of stored procedure `apoc.index.relationships` as given below.
-
-----
-call apoc.index.relationships('DESTINATION','taxi_time:11') YIELD rel
+call apoc.index.relationships('DESTINATION','taxi_time:7') YIELD rel
 with rel , startnode(rel) as a, endnode(rel) as b
 return a.flight_num, b.name limit 10
 ----
 
 
-Below is an example of a query using the stored procedure `apoc.index.in` to get the start nodes for all the `DESTINATION` relationships with incoming nodes to the `Airport` node.
+Below is an example of a query using the stored procedure `apoc.index.in` to get the start nodes for all the `DESTINATION` relationships with incoming nodes to the `Airport` node where Airport is `SAN DIEGO INTERNATIONAL`.
 
 ----
-match (a:Airport {name:"SAN DIEGO INTERNATIONAL"}) with a
-call apoc.index.in(a,"DESTINATION","taxi_time:11") YIELD node
+match (a:Airport {name:"SALT LAKE CITY INTERNATIONAL"}) with a
+call apoc.index.in(a,"DESTINATION","taxi_time:7") YIELD node
 return node
 ----
 
-Similarly here is an example of a query using stored procedure `apoc.index.out`. This query gets the end nodes for the relationship `DESTINATION` for all the flight nodes.
+Similarly here is an example of a query using stored procedure `apoc.index.out`. This query gets the Airport Name i.e. end nodes for the relationship `DESTINATION` for all the flight nodes with `flight_num = 43` .
 
 ----
-match (a:Flight {flight_num:43}) with a
-call apoc.index.out(a,"DESTINATION","taxi_time:11") YIELD node
+match (a:Flight {flight_num:6147}) with a
+call apoc.index.out(a,"DESTINATION","taxi_time:7") YIELD node
 return node
 ----
 
-To Remove the manual index `DESTINATION` created -
+To Remove the relationship index `DESTINATION` created -
 
 ----
-CALL apoc.index.remove('DESTINATION') YIELD type,name,config
+CALL apoc.index.remove('DESTINATION')
 ----
 
-== Adding Manual Index on Node Property
-
-Once the auto indexes are enabled.
-
-One will have to load the nodes to the index.
-This can be achieved using one of the APOC stored procedure - `apoc.index.addNode`.
-
-----
-match (f:Flight)
-call apoc.index.addNode(f,["flight_num"])
-return count(f)
-----
-
-The above statement will create the auto index with the same name as the Label name in this case `Flight` and add the relationships to the index.
-
-Once this has been added check if the node index exists using the stored procedure `apoc.index.list`.
-
-//Check if any legacy index exists
-----
-CALL apoc.index.list() YIELD type,name,config
-----
-
-Output:
-
-image::https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/master/docs/img/apoc-manual-indexes-nodes.png[width=500]
-
-
-Once the relationship index is created we can start using it.
-Here are some example.
-
-
-The below query returns distinct Airport and City for Flight Number `43`.
-
-----
-START f=node:Flight(flight_num="43")
-match (f)-[:DESTINATION]->(a:Airport)-[:IN_CITY]->(c:City)
-return distinct a.name, c.name limit 10
-----
-
-The same query can be written with the help of stored procedure `apoc.index.nodes` as given below.
-
-----
-call apoc.index.nodes('Flight','flight_num:43') YIELD node
-match (node)-[:DESTINATION]->(a:Airport)-[:IN_CITY]->(c:City)
-return distinct a.name, c.name limit 10
-----
-
-To Remove the manual index `Flight` created -
-
-----
-CALL apoc.index.remove('Flight') YIELD type,name,config
-----
