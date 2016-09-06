@@ -3,7 +3,7 @@
 :experimental:
 :sectid:
 :toclevels: 3
-:img: http://neo4j-contrib.github.io/neo4j-apoc-procedures/docs/img
+:img: http://neo4j-contrib.github.io/neo4j-apoc-procedures/img
 
 == Introduction
 
