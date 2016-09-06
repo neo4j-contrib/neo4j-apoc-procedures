@@ -68,6 +68,10 @@ public class FulltextIndexTest {
         createData();
         testCall(db,"CALL apoc.index.relationships('CHECKIN', 'on:2015-*')",
                 (row) -> {
+                    Node start = (Node) row.get("start");
+                    assertEquals(true, start.hasLabel(Label.label("Person")));
+                    Node end = (Node) row.get("end");
+                    assertEquals(true, end.hasLabel(Label.label("Place")));
                     Relationship rel = (Relationship) row.get("rel");
                     assertEquals(DATE, rel.getProperty("on"));
                     assertEquals(TYPE, rel.getType().name());
@@ -77,8 +81,12 @@ public class FulltextIndexTest {
     @Test
     public void testBetween() throws Exception {
         createData();
-        testCall(db,"MATCH "+JOE_PATTERN+ ","+PHILZ_PATTERN+" WITH joe,philz CALL apoc.index.between(joe, 'CHECKIN', philz, 'on:2015-*') YIELD rel RETURN *",
+        testCall(db,"MATCH "+JOE_PATTERN+ ","+PHILZ_PATTERN+" WITH joe,philz CALL apoc.index.between(joe, 'CHECKIN', philz, 'on:2015-*') YIELD rel,start,end RETURN *",
                 (row) -> {
+                    Node start = (Node) row.get("start");
+                    assertEquals(true, start.hasLabel(Label.label("Person")));
+                    Node end = (Node) row.get("end");
+                    assertEquals(true, end.hasLabel(Label.label("Place")));
                     Relationship rel = (Relationship) row.get("rel");
                     assertEquals(DATE, rel.getProperty("on"));
                     assertEquals(TYPE, rel.getType().name());

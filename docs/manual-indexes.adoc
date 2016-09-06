@@ -2,165 +2,135 @@
 
 == Data Used
 
-In the below examples I used the flight data setup from the following link:
+The below examples use https://github.com/nicolewhite/neo4j-flights[flight data].
 
-https://github.com/nicolewhite/neo4j-flights
+Here is a sample subset of the data that can be load to try the procedures:
 
-
-== Enable Manual Indexes on Node and Relationship Property
-
-Below are the steps to setup manual index on the nodes and relationship.
-In order to do so, one needs to first enable auto index and identify the property on the nodes and relationships
-that will be indexed.
-Once the property is identified set enable the auto index and set the property as shown in the configuration file.
-Below is the configurations setting to enable auto index in versions 3.0 and above.
-Here we are adding manual index on property `taxi_time` on Relationship `DESTINATION` and on property `flight_num` on Node with label `Flight`.
-
-
-In conf/neo4j.conf file
-
+[source,cypher]
 ----
-dbms.auto_index.relationships.enabled=true
-dbms.auto_index.relationships.keys=taxi_time, flight_num
-----
-
-Restart Neo4j.
-
-== Adding Manual Index on Relationship Property
-
-Once the auto indexes are enabled.
-
-One will have to add the relationship property to the index.
-This can be achieved using the APOC stored procedure - `apoc.index.addRelationship`.
-
-----
-match (f:Flight)-[r:DESTINATION]->(a:Airport)
-with r
-call apoc.index.addRelationship(r,["taxi_time"])
-return count(r)
+CREATE (slc:Airport {abbr:'SLC', id:14869, name:'SALT LAKE CITY INTERNATIONAL'})
+CREATE (oak:Airport {abbr:'OAK', id:13796, name:'METROPOLITAN OAKLAND INTERNATIONAL'})
+CREATE (bur:Airport {abbr:'BUR', id:10800, name:'BOB HOPE'})
+CREATE (f2:Flight {flight_num:6147, day:2, month:1, weekday:6, year:2016})
+CREATE (f9:Flight {flight_num:6147, day:9, month:1, weekday:6, year:2016})
+CREATE (f16:Flight {flight_num:6147, day:16, month:1, weekday:6, year:2016})
+CREATE (f23:Flight {flight_num:6147, day:23, month:1, weekday:6, year:2016})
+CREATE (f30:Flight {flight_num:6147, day:30, month:1, weekday:6, year:2016})
+CREATE (f2)-[:DESTINATION {arr_delay:-13, taxi_time:9}]->(oak)
+CREATE (f9)-[:DESTINATION {arr_delay:-8, taxi_time:4}]->(bur)
+CREATE (f16)-[:DESTINATION {arr_delay:-30, taxi_time:4}]->(slc)
+CREATE (f23)-[:DESTINATION {arr_delay:-21, taxi_time:3}]->(slc)
+CREATE (f30)-[:DESTINATION]->(slc)
 ----
 
-The above statement will create the auto index with the same name as Relationship name in this case `DESTINATION` and adds the relationship to the index.
+== Using Manual Index on Node Properties
 
-Once this has been added check if the relationship index exists using the stored procedure `apoc.index.list`.
 
-//Check if any legacy index exists
+In order to create manual index on a node property, you call `apoc.index.addNode` with the node, providing the properties to be indexed.
+
+[source,cypher]
 ----
-CALL apoc.index.list() YIELD type,name,config
-----
-
-Output:
-
-image::https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/master/docs/img/apoc-manual-indexes-relationship.png[width=500]
-
-
-Once the relationship index is created we can start using it.
-Here is one example of using this without Stored Procedure.
-
-
-This query will give me the count of the relationship `DESTINATION` with the property `taxi_time = 11`.
-
-----
-START r=relationship:DESTINATION(taxi_time="11")
-return count(r)
+MATCH (a:Airport)
+CALL apoc.index.addNode(a,['name'])
+RETURN count(*)
 ----
 
-The above query can also be written with the help of a stored procedure `apoc.index.relationships` which makes it much simpler.
-Below is the same query written using the stored procedure.
+The statement will create the node index with the *same name as the Label name(s) of the node* in this case `Airport` and add the node by their properties to the index.
 
-----
-call apoc.index.relationships('DESTINATION','taxi_time:11') YIELD rel
-return count(rel)
-----
+Once this has been added check if the node index exists using `apoc.index.list`.
 
-The below query is to return the Flight Number and the Airport Name for those flights that had the `taxi_time` of 11 mins.
-
+[source,cypher]
 ----
-START r=relationship:DESTINATION(taxi_time="11")
-match (f:Flight)-[r:DESTINATION]->(a:Airport)
-return f.flight_num, a.name limit 10
+CALL apoc.index.list()
 ----
 
-The same query can be written with the help of stored procedure `apoc.index.relationships` as given below.
+Usually `apoc.index.addNode` would be used as part of node-creation, e.g. during LOAD CSV.
+There is also `apoc.index.addNodes` for adding a list of multiple nodes at once.
 
+Once the node index is created we can start using it.
+
+Here are some examples:
+
+The `apoc.index.nodes` finds nodes in a manual index using the given lucene query.
+
+NOTE: That makes only sense if you combine multiple properties in one lookup or use case insensitive or fuzzy matching full-text queries.
+In all other cases the built in schema indexes should be used.
+
+[source,cypher]
 ----
-call apoc.index.relationships('DESTINATION','taxi_time:11') YIELD rel
-with rel , startnode(rel) as a, endnode(rel) as b
-return a.flight_num, b.name limit 10
-----
-
-
-Below is an example of a query using the stored procedure `apoc.index.in` to get the start nodes for all the `DESTINATION` relationships with incoming nodes to the `Airport` node.
-
-----
-match (a:Airport {name:"SAN DIEGO INTERNATIONAL"}) with a
-call apoc.index.in(a,"DESTINATION","taxi_time:11") YIELD node
-return node
-----
-
-Similarly here is an example of a query using stored procedure `apoc.index.out`. This query gets the end nodes for the relationship `DESTINATION` for all the flight nodes.
-
-----
-match (a:Flight {flight_num:43}) with a
-call apoc.index.out(a,"DESTINATION","taxi_time:11") YIELD node
-return node
+CALL apoc.index.nodes('Airport','name:inter*') YIELD node AS airport, weight
+RETURN airport.name, weight 
+LIMIT 10
 ----
 
-To Remove the manual index `DESTINATION` created -
+// todo example for index search and weight
 
+NOTE: Apoc index queries not only return nodes and relationships but also a weight, which is the score returned from the underlying Lucene index.
+The results are also sorted by that score. 
+That's especially helpful for partial and fuzzy text searches.
+
+To remove the node index `Airport` created, use:
+
+[source,cypher]
 ----
-CALL apoc.index.remove('DESTINATION') YIELD type,name,config
-----
-
-== Adding Manual Index on Node Property
-
-Once the auto indexes are enabled.
-
-One will have to load the nodes to the index.
-This can be achieved using one of the APOC stored procedure - `apoc.index.addNode`.
-
-----
-match (f:Flight)
-call apoc.index.addNode(f,["flight_num"])
-return count(f)
+CALL apoc.index.remove('Airport')
 ----
 
-The above statement will create the auto index with the same name as the Label name in this case `Flight` and add the relationships to the index.
+== Using Manual Index on Relationship Properties
 
-Once this has been added check if the node index exists using the stored procedure `apoc.index.list`.
+The procedure `apoc.index.addRelationship` is used to create a manual index on relationship properties.
 
-//Check if any legacy index exists
+As there are no schema indexes for relationships, these manual indexes can be quite useful.
+
+[source,cypher]
 ----
-CALL apoc.index.list() YIELD type,name,config
-----
-
-Output:
-
-image::https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/master/docs/img/apoc-manual-indexes-nodes.png[width=500]
-
-
-Once the relationship index is created we can start using it.
-Here are some example.
-
-
-The below query returns distinct Airport and City for Flight Number `43`.
-
-----
-START f=node:Flight(flight_num="43")
-match (f)-[:DESTINATION]->(a:Airport)-[:IN_CITY]->(c:City)
-return distinct a.name, c.name limit 10
+MATCH (:Flight)-[r:DESTINATION]->(:Airport)
+CALL apoc.index.addRelationship(r,['taxi_time'])
+RETURN count(*)
 ----
 
-The same query can be written with the help of stored procedure `apoc.index.nodes` as given below.
+The statement will create the relationship index with the *same name as relationship-type*, in this case `DESTINATION` and add the relationship by its properties to the index.
 
+Using `apoc.index.relationships`, we can find the relationship of type `DESTINATION` with the property `taxi_time` of 11 minutes.
+We can chose to also return the start and end-node.
+
+[source,cypher]
 ----
-call apoc.index.nodes('Flight','flight_num:43') YIELD node
-match (node)-[:DESTINATION]->(a:Airport)-[:IN_CITY]->(c:City)
-return distinct a.name, c.name limit 10
+CALL apoc.index.relationships('DESTINATION','taxi_time:11') YIELD rel, start AS flight, end AS airport
+RETURN flight_num.flight_num, airport.name;
 ----
 
-To Remove the manual index `Flight` created -
+NOTE: Manual relationship indexed do not only store the relationship by its properties but also the start- and end-node.
 
+That's why we can use that information to subselect relationships not only by property but also by those nodes, which is quite powerful.
+
+With `apoc.index.in` we can pin the node with incoming relationships (end-node) to get the start nodes for all the `DESTINATION` relationships.
+For instance to find all flights arriving in 'SALT LAKE CITY INTERNATIONAL' with a taxi_time of 7 minutes we'd use:
+
+[source,cypher]
 ----
-CALL apoc.index.remove('Flight') YIELD type,name,config
+MATCH (a:Airport {name:'SALT LAKE CITY INTERNATIONAL'}) 
+CALL apoc.index.in(a,'DESTINATION','taxi_time:7') YIELD node AS flight
+RETURN flight
 ----
+
+The opposite is `apoc.index.out`, which takes and binds end-nodes and returns start-nodes of relationships.
+
+Really useful to quickly find a subset of relationships between nodes with many relationships (tens of thousands to millions) is `apoc.index.between`.
+Here you bind both the start and end-node and provide (or not) properties of the relationships.
+
+[source,cypher]
+----
+MATCH (f:Flight {flight_num:6147}) 
+MATCH (a:Airport {name:'SALT LAKE CITY INTERNATIONAL'})
+CALL apoc.index.between(f,'DESTINATION',a,'taxi_time:7') YIELD rel, weight
+RETURN *
+----
+
+To remove the relationship index `DESTINATION` that was created, use. 
+
+[source,cypher]
+----
+CALL apoc.index.remove('DESTINATION')
+----
+

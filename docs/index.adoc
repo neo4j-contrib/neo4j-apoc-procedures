@@ -25,6 +25,8 @@ include::overview.adoc[tags=overview,leveloffset=1]
 
 include::overview.adoc[tags=fulltext]
 
+include::manual-indexes.adoc[leveloffset=2]
+
 include::fulltext.adoc[leveloffset=2]
 
 == Utility Functions

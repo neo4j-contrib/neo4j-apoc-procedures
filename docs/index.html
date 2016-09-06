@@ -505,6 +505,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_index_queries_2">Index Queries</a></li>
 <li><a href="#_index_management_2">Index Management</a></li>
+<li><a href="#_manual_indexes_2">Manual Indexes</a>
+<ul class="sectlevel3">
+<li><a href="#_data_used">Data Used</a></li>
+<li><a href="#_using_manual_index_on_node_properties">Using Manual Index on Node Properties</a></li>
+<li><a href="#_using_manual_index_on_relationship_properties">Using Manual Index on Relationship Properties</a></li>
+</ul>
+</li>
 <li><a href="#_full_text_search">Full Text Search</a>
 <ul class="sectlevel3">
 <li><a href="#_advanced_search">Advanced Search</a></li>
@@ -979,16 +986,11 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.graph</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">examines the full graph to create the meta-graph</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">examines the database statistics to create the meta-graph</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.graphSample(sampleSize)</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">examines a sample graph to create the meta-graph, default sampleSize is 100</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.subGraph({config})</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">examines a sample sub graph to create the meta-graph, default sampleSize is 100<br>
-config is: {labels:[labels],rels:[rel-types],sample:sample}</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.subGraph({labels:[labels],rels:[rel-types],excludes:[label,rel-type,&#8230;&#8203;]})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">examines a sample sub graph to create the meta-graph</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.data</code></p></td>
@@ -1005,6 +1007,10 @@ config is: {labels:[labels],rels:[rel-types],sample:sample}</p></td>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.isType(value,type)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns a row if type name matches none if not</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.types(node or relationship or map) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns a a map of property-keys to their names</p></td>
 </tr>
 </tbody>
 </table>
@@ -1935,6 +1941,10 @@ CALL apoc.generate.simple([2,2,2,2], null, null)</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates map from alternating keys and values in a list</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.merge({first},{second}) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates map from merging the two source maps</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.setKey(map,key,value)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns the map with the value for this key added or replaced</p></td>
 </tr>
@@ -2725,6 +2735,192 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">match (p:Person) call apoc.index.addNode(p,["name","age"]) RETURN count(*);
 // 129s for 1M People
 call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limit 2</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_manual_indexes_2">Manual Indexes</h3>
+<div class="sect3">
+<h4 id="_data_used">Data Used</h4>
+<div class="paragraph">
+<p>The below examples use <a href="https://github.com/nicolewhite/neo4j-flights">flight data</a>.</p>
+</div>
+<div class="paragraph">
+<p>Here is a sample subset of the data that can be load to try the procedures:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (slc:Airport {abbr:'SLC', id:14869, name:'SALT LAKE CITY INTERNATIONAL'})
+CREATE (oak:Airport {abbr:'OAK', id:13796, name:'METROPOLITAN OAKLAND INTERNATIONAL'})
+CREATE (bur:Airport {abbr:'BUR', id:10800, name:'BOB HOPE'})
+CREATE (f2:Flight {flight_num:6147, day:2, month:1, weekday:6, year:2016})
+CREATE (f9:Flight {flight_num:6147, day:9, month:1, weekday:6, year:2016})
+CREATE (f16:Flight {flight_num:6147, day:16, month:1, weekday:6, year:2016})
+CREATE (f23:Flight {flight_num:6147, day:23, month:1, weekday:6, year:2016})
+CREATE (f30:Flight {flight_num:6147, day:30, month:1, weekday:6, year:2016})
+CREATE (f2)-[:DESTINATION {arr_delay:-13, taxi_time:9}]-&gt;(oak)
+CREATE (f9)-[:DESTINATION {arr_delay:-8, taxi_time:4}]-&gt;(bur)
+CREATE (f16)-[:DESTINATION {arr_delay:-30, taxi_time:4}]-&gt;(slc)
+CREATE (f23)-[:DESTINATION {arr_delay:-21, taxi_time:3}]-&gt;(slc)
+CREATE (f30)-[:DESTINATION]-&gt;(slc)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_using_manual_index_on_node_properties">Using Manual Index on Node Properties</h4>
+<div class="paragraph">
+<p>In order to create manual index on a node property, you call <code>apoc.index.addNode</code> with the node, providing the properties to be indexed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (a:Airport)
+CALL apoc.index.addNode(a,['name'])
+RETURN count(*)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The statement will create the node index with the <strong>same name as the Label name(s) of the node</strong> in this case <code>Airport</code> and add the node by their properties to the index.</p>
+</div>
+<div class="paragraph">
+<p>Once this has been added check if the node index exists using <code>apoc.index.list</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.index.list()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Usually <code>apoc.index.addNode</code> would be used as part of node-creation, e.g. during LOAD CSV.
+There is also <code>apoc.index.addNodes</code> for adding a list of multiple nodes at once.</p>
+</div>
+<div class="paragraph">
+<p>Once the node index is created we can start using it.</p>
+</div>
+<div class="paragraph">
+<p>Here are some examples:</p>
+</div>
+<div class="paragraph">
+<p>The <code>apoc.index.nodes</code> finds nodes in a manual index using the given lucene query.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+That makes only sense if you combine multiple properties in one lookup or use case insensitive or fuzzy matching full-text queries.
+In all other cases the built in schema indexes should be used.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.index.nodes('Airport','name:inter*') YIELD node AS airport, weight
+RETURN airport.name, weight
+LIMIT 10</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Apoc index queries not only return nodes and relationships but also a weight, which is the score returned from the underlying Lucene index.
+The results are also sorted by that score.
+That&#8217;s especially helpful for partial and fuzzy text searches.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To remove the node index <code>Airport</code> created, use:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.index.remove('Airport')</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_using_manual_index_on_relationship_properties">Using Manual Index on Relationship Properties</h4>
+<div class="paragraph">
+<p>The procedure <code>apoc.index.addRelationship</code> is used to create a manual index on relationship properties.</p>
+</div>
+<div class="paragraph">
+<p>As there are no schema indexes for relationships, these manual indexes can be quite useful.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (:Flight)-[r:DESTINATION]-&gt;(:Airport)
+CALL apoc.index.addRelationship(r,['taxi_time'])
+RETURN count(*)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The statement will create the relationship index with the <strong>same name as relationship-type</strong>, in this case <code>DESTINATION</code> and add the relationship by its properties to the index.</p>
+</div>
+<div class="paragraph">
+<p>Using <code>apoc.index.relationships</code>, we can find the relationship of type <code>DESTINATION</code> with the property <code>taxi_time</code> of 11 minutes.
+We can chose to also return the start and end-node.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.index.relationships('DESTINATION','taxi_time:11') YIELD rel, start AS flight, end AS airport
+RETURN flight_num.flight_num, airport.name;</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Manual relationship indexed do not only store the relationship by its properties but also the start- and end-node.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>That&#8217;s why we can use that information to subselect relationships not only by property but also by those nodes, which is quite powerful.</p>
+</div>
+<div class="paragraph">
+<p>With <code>apoc.index.in</code> we can pin the node with incoming relationships (end-node) to get the start nodes for all the <code>DESTINATION</code> relationships.
+For instance to find all flights arriving in 'SALT LAKE CITY INTERNATIONAL' with a taxi_time of 7 minutes we&#8217;d use:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (a:Airport {name:'SALT LAKE CITY INTERNATIONAL'})
+CALL apoc.index.in(a,'DESTINATION','taxi_time:7') YIELD node AS flight
+RETURN flight</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The opposite is <code>apoc.index.out</code>, which takes and binds end-nodes and returns start-nodes of relationships.</p>
+</div>
+<div class="paragraph">
+<p>Really useful to quickly find a subset of relationships between nodes with many relationships (tens of thousands to millions) is <code>apoc.index.between</code>.
+Here you bind both the start and end-node and provide (or not) properties of the relationships.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (f:Flight {flight_num:6147})
+MATCH (a:Airport {name:'SALT LAKE CITY INTERNATIONAL'})
+CALL apoc.index.between(f,'DESTINATION',a,'taxi_time:7') YIELD rel, weight
+RETURN *</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To remove the relationship index <code>DESTINATION</code> that was created, use.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.index.remove('DESTINATION')</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -4878,7 +5074,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-09-08 06:23:30 +02:00
+Last updated 2016-09-19 11:32:39 +02:00
 </div>
 </div>
 </body>
