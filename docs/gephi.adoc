@@ -4,7 +4,7 @@
 
 include::overview.adoc[tags=gephi,leveloffset=-2]
 
-image::{img}/apoc.gephi.gif[width=800]
+image::{img}/apoc-gephi.gif[width=800]
 
 == Format
 
