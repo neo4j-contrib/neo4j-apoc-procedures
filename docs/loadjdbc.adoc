@@ -1,6 +1,10 @@
 = Load JDBC
+:loadjdbc:
+:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img
+
 
 include::overview.adoc[tags=jdbc,leveloffset=-1]
+
 
 == MySQL Example
 
@@ -224,3 +228,64 @@ CREATE (t)-[:GENRE]->(g);
 ----
 Added 63213 labels, created 63213 nodes, set 182413 properties, created 119200 relationships, statement executed in 40076 ms.
 ----
+
+== Postgres Example
+
+[source,sql]
+
+== Describe EMPLOYEE_DETAILS;
+
+image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/postgres.describe.jpg[width=800]
+
+image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/postgres.count.jpg[width=600]
+
+Download the https://jdbc.postgresql.org/download.html[PostgresSQL JDBC Driver], and put it into your `$NEO4J_HOME/plugins` directory.
+
+
+== Load JDBC Examples
+
+.Load the JDBC driver
+[source,cypher]
+----
+cypher CALL apoc.load.driver('org.postgresql.Driver');
+----
+
+image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/apoc.load.jdbc.postgres.jpg[width=800]
+
+
+.Count rows in products table
+----
+with "jdbc:postgresql://localhost:5432/testdb?user=postgres&password=postgres" as url
+CALL apoc.load.jdbc(url,"employee_details") YIELD row
+RETURN count(*);
+----
+
+image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/apoc.load.postgres.count.jpg[width=800]
+
+.Return row from products table
+[source,cypher]
+----
+with "jdbc:postgresql://localhost:5432/testdb?user=postgres&password=postgres" as url
+CALL apoc.load.jdbc(url,"employee_details") YIELD row
+RETURN row LIMIT 4;
+----
+
+image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/apoc.show.record.jpg[width=800]
+
+Let’s create some indexes and constraints, note that other indexes and constraints will be dropped by this.
+
+[source,cypher]
+----
+CALL apoc.schema.assert( {Detail:['name','age','address','salary']}, {Detail:['id']});
+----
+
+image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/apoc.schema.assert.jpg[width=800]
+
+.Create Nodes in Neo4j
+----
+CALL apoc.load.jdbc('jdbc:postgresql://localhost:5432/testdb?user=postgres&password=postgres','employee_details') yield row
+CREATE (t:Detail {id:toString(row.id), name:row.name, age:toString(row.age), address:row.address, salary:toString(row.salary)});
+----
+
+image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/create.node.postgres.data.jpg[width=800]
+
