@@ -1,4 +1,6 @@
 = Streaming Data to Gephi
+:gephi:
+:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img
 
 include::overview.adoc[tags=gephi,leveloffset=-2]
 
