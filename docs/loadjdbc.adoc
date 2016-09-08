@@ -235,9 +235,9 @@ Added 63213 labels, created 63213 nodes, set 182413 properties, created 119200 r
 
 == Describe EMPLOYEE_DETAILS;
 
-image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/postgres.describe.jpg[width=800]
+image::{img}/postgres.describe.jpg[width=800]
 
-image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/postgres.count.jpg[width=600]
+image::{img}/postgres.count.jpg[width=600]
 
 Download the https://jdbc.postgresql.org/download.html[PostgresSQL JDBC Driver], and put it into your `$NEO4J_HOME/plugins` directory.
 
@@ -260,7 +260,7 @@ CALL apoc.load.jdbc(url,"employee_details") YIELD row
 RETURN count(*);
 ----
 
-image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/apoc.load.postgres.count.jpg[width=800]
+image::{img}/apoc.load.postgres.count.jpg[width=800]
 
 .Return row from products table
 [source,cypher]
@@ -270,7 +270,7 @@ CALL apoc.load.jdbc(url,"employee_details") YIELD row
 RETURN row LIMIT 4;
 ----
 
-image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/apoc.show.record.jpg[width=800]
+image::{img}/apoc.show.record.jpg[width=800]
 
 Let’s create some indexes and constraints, note that other indexes and constraints will be dropped by this.
 
@@ -279,7 +279,7 @@ Let’s create some indexes and constraints, note that other indexes and constra
 CALL apoc.schema.assert( {Detail:['name','age','address','salary']}, {Detail:['id']});
 ----
 
-image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/apoc.schema.assert.jpg[width=800]
+image::{img}/apoc.schema.assert.jpg[width=800]
 
 .Create Nodes in Neo4j
 ----
@@ -287,5 +287,5 @@ CALL apoc.load.jdbc('jdbc:postgresql://localhost:5432/testdb?user=postgres&passw
 CREATE (t:Detail {id:toString(row.id), name:row.name, age:toString(row.age), address:row.address, salary:toString(row.salary)});
 ----
 
-image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/create.node.postgres.data.jpg[width=800]
+image::{img}/create.node.postgres.data.jpg[width=800]
 
