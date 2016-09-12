@@ -289,3 +289,48 @@ CREATE (t:Detail {id:toString(row.id), name:row.name, age:toString(row.age), add
 
 image::{img}/create.node.postgres.data.jpg[width=800]
 
+== Oracle Example
+
+[source,sql]
+
+== Describe EMPLOYEE_DETAILS;
+
+image::{img}/oracle.schema.jpg[width=800]
+
+image::{img}/oracle.count.jpg[width=600]
+
+Download the http://www.oracle.com/technetwork/database/features/jdbc/index.html[Oracle JDBC Driver], and put it into your `$NEO4J_HOME/plugins` directory.
+
+Add this config option to `$NEO4J_HOME/conf/neo4j.conf` to make it easier to interact with the oracle instance.
+
+.Add to conf/neo4j.conf
+----
+apoc.jdbc.oracle_url.url=jdbc:oracle:thin:user/password@localhost:1521/XE
+----
+
+.Count rows in products table
+----
+CALL apoc.load.jdbc('oracle_url','employee_details') YIELD row
+RETURN count(*);
+----
+
+image::{img}/apoc.oracle.count.jpg[width=800]
+
+Let’s create some indexes and constraints, note that other indexes and constraints will be dropped by this.
+
+[source,cypher]
+----
+CALL apoc.schema.assert({EMPINFO:['name', 'age','salary']}, {EMPINFO:['id'],ADDRESS:['address']});
+----
+
+image::{img}/appoc.schema.oracle.assert.jpg[width=800]
+
+.Create Nodes in Neo4j
+----
+CALL apoc.load.jdbc('oracle_url','employee_details') yield row
+MERGE (g:ADDRESS {name:row.ADDRESS})
+CREATE (t:EMPINFO {id:toString(row.ID), name:row.NAME, age:toString(row.AGE), salary:toString(row.SALARY)})
+CREATE (t)-[:LIVE]->(g);
+----
+image::{img}/apoc.oracle.node.create.jpg[width=800]
+
