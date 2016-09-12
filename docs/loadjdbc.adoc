@@ -241,6 +241,7 @@ image::{img}/postgres.count.jpg[width=600]
 
 Download the https://jdbc.postgresql.org/download.html[PostgresSQL JDBC Driver], and put it into your `$NEO4J_HOME/plugins` directory.
 
+Now Retart the server.
 
 == Load JDBC Examples
 
@@ -308,6 +309,10 @@ Add this config option to `$NEO4J_HOME/conf/neo4j.conf` to make it easier to int
 apoc.jdbc.oracle_url.url=jdbc:oracle:thin:user/password@localhost:1521/XE
 ----
 
+Restart the server.
+
+Now inspect the data with oracle database.
+
 .Count rows in products table
 ----
 CALL apoc.load.jdbc('oracle_url','employee_details') YIELD row
@@ -315,7 +320,7 @@ RETURN count(*);
 ----
 
 image::{img}/apoc.oracle.count.jpg[width=800]
-
+update_load_jdbc_doc
 Let’s create some indexes and constraints, note that other indexes and constraints will be dropped by this.
 
 [source,cypher]
