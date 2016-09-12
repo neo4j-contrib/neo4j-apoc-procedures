@@ -320,7 +320,7 @@ RETURN count(*);
 ----
 
 image::{img}/apoc.oracle.count.jpg[width=800]
-update_load_jdbc_doc
+
 Let’s create some indexes and constraints, note that other indexes and constraints will be dropped by this.
 
 [source,cypher]
