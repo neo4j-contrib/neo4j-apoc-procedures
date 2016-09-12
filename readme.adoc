@@ -62,6 +62,47 @@ MERGE (p:Person {name:person.name})
 
 // end::intro[]
 
+// tag::signature[]
+== Procedure Signatures
+
+To call procedures correctly, you need to know their parameter names, types and positions.
+And for YIELDing their results the output column name and type.
+
+You can see the procedures signature in the output of `CALL dbms.procedures()`
+
+[source,cypher]
+----
+CALL dbms.procedures() YIELD name, signature
+WITH * WHERE name STARTS WITH 'apoc.algo.dijkstra'
+RETURN name, signature
+----
+
+The signature is always `name : : TYPE`, so in this case:
+
+----
+apoc.algo.dijkstra
+ (startNode :: NODE?, endNode :: NODE?, 
+   relationshipTypesAndDirections :: STRING?, weightPropertyName :: STRING?) 
+:: (path :: PATH?, weight :: FLOAT?)
+----
+
+Parameters:
+
+[opts=header,cols="m,m"]
+|===
+| Name | Type
+h| Procedure Parameters |
+| startNode | Node
+| endNode | Node
+| relationshipTypesAndDirections | String
+| weightPropertyName | String
+h| Output Return Columns |
+| path  |  Path
+| weight | Float
+|===
+
+// end::signature[]
+
 == Included Procedures Overview
 
 All included procedures are listed in the https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_included_procedures_overview[overview in the documentation] and detailed in subsequent sections.
