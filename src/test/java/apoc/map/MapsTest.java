@@ -30,6 +30,12 @@ public class MapsTest {
     }
 
     @Test
+    public void testMerge() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.map.merge({a:1},{b:false})", (r) -> {
+            assertEquals(map("a",1L,"b",false),r.get("value"));
+        });
+    }
+    @Test
     public void testFromPairs() throws Exception {
         TestUtil.testCall(db, "CALL apoc.map.fromPairs([['a',1],['b',false]])", (r) -> {
             assertEquals(map("a",1L,"b",false),r.get("value"));

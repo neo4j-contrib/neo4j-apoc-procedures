@@ -304,4 +304,14 @@ public class Util {
         }
         return result;
     }
+
+    public static Map<String, Object> merge(Map<String, Object> first, Map<String, Object> second) {
+        if (second == null || second.isEmpty()) return first;
+        if (first == null || first.isEmpty()) return second;
+        Map<String,Object> combined = new HashMap<>(first);
+        combined.putAll(second);
+        return combined;
+    }
+
+
 }

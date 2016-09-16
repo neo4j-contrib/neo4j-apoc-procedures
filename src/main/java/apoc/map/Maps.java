@@ -2,6 +2,7 @@ package apoc.map;
 
 import apoc.Description;
 import apoc.result.MapResult;
+import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -38,6 +39,12 @@ public class Maps {
     @Description("apoc.map.fromLists([keys],[values])")
     public Stream<MapResult> fromLists(@Name("keys") List<String> keys, @Name("values") List<Object> values) {
         return Stream.of(new MapResult(mapFromLists(keys, values)));
+    }
+
+    @Procedure
+    @Description("apoc.map.merge(first,second) yield value - merges two maps")
+    public Stream<MapResult> merge(@Name("first") Map<String,Object> first, @Name("second") Map<String,Object> second) {
+        return Stream.of(new MapResult(Util.merge(first,second)));
     }
 
     // TODO    @Description("apoc.map.fromValues([key,value,key1,value1])")
