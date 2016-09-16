@@ -33,7 +33,7 @@ public class MetaInformation {
         return propTypes;
     }
 
-    private static void updateKeyTypes(Map<String, Class> keyTypes, PropertyContainer pc) {
+    public static void updateKeyTypes(Map<String, Class> keyTypes, PropertyContainer pc) {
         for (String prop : pc.getPropertyKeys()) {
             Object value = pc.getProperty(prop);
             Class storedClass = keyTypes.get(prop);
@@ -50,7 +50,7 @@ public class MetaInformation {
 
     public static String typeFor(Class value, Set<String> allowed) {
         if (value == void.class) return null;
-        if (value.isArray()) return null; // TODO arrays
+        if (value.isArray()) return typeFor(value.getComponentType(),allowed);
         String name = value.getSimpleName().toLowerCase();
         if (name.equals("integer")) name="int";
         if (allowed==null || allowed.contains(name)) return name;

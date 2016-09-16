@@ -4,6 +4,7 @@ import apoc.export.util.ExportConfig;
 import apoc.export.util.FormatUtils;
 import apoc.export.util.MetaInformation;
 import apoc.export.util.Reporter;
+import apoc.util.Util;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static apoc.export.util.MetaInformation.getLabelsString;
+import static apoc.export.util.MetaInformation.updateKeyTypes;
 
 /**
  * @author mh
@@ -56,27 +58,21 @@ public class XmlGraphMLWriter {
 
     private void writeKeyTypes(XMLStreamWriter writer, Map<String, Class> keyTypes, String forType) throws IOException, XMLStreamException {
         for (Map.Entry<String, Class> entry : keyTypes.entrySet()) {
-            String type = MetaInformation.typeFor(entry.getValue(), MetaInformation.GRAPHML_ALLOWED);
+            Class typeClass = entry.getValue();
+            String type = MetaInformation.typeFor(typeClass, MetaInformation.GRAPHML_ALLOWED);
             if (type == null) continue;
             writer.writeEmptyElement("key");
             writer.writeAttribute("id", entry.getKey());
             writer.writeAttribute("for", forType);
+            writer.writeAttribute("for", forType);
             writer.writeAttribute("attr.name", entry.getKey());
-            writer.writeAttribute("attr.type", type);
-            newLine(writer);
-        }
-    }
-
-    private void updateKeyTypes(Map<String, Class> keyTypes, PropertyContainer pc) {
-        for (String prop : pc.getPropertyKeys()) {
-            Object value = pc.getProperty(prop);
-            Class storedClass = keyTypes.get(prop);
-            if (storedClass == null) {
-                keyTypes.put(prop, value.getClass());
-                continue;
+            if (typeClass.isArray()) {
+                writer.writeAttribute("attr.type", "string");
+                writer.writeAttribute("attr.list",type);
+            } else {
+                writer.writeAttribute("attr.type", type);
             }
-            if (storedClass == void.class || storedClass.equals(value.getClass())) continue;
-            keyTypes.put(prop, void.class);
+            newLine(writer);
         }
     }
 
@@ -139,15 +135,24 @@ public class XmlGraphMLWriter {
     private void writeData(XMLStreamWriter writer, String prop, Object value) throws IOException, XMLStreamException {
         writer.writeStartElement("data");
         writer.writeAttribute("key", prop);
-        if (value != null) writer.writeCharacters(toString(value));
+        if (value != null) {
+            writer.writeCharacters(toString(value));
+        }
         writer.writeEndElement();
     }
 
     private String toString(Object value) {
+        if (value.getClass().isArray()) {
+            return arrayToString(value);
+        }
         if (value instanceof Number) {
             return FormatUtils.formatNumber((Number)value);
         }
         return value.toString();
+    }
+
+    private String arrayToString(Object value) {
+        return Util.toJson(value);
     }
 
     private void writeFooter(XMLStreamWriter writer) throws IOException, XMLStreamException {
