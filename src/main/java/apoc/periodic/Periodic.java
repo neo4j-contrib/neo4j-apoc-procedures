@@ -15,10 +15,12 @@ import org.neo4j.procedure.Procedure;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import static java.lang.System.currentTimeMillis;
+import static apoc.util.Util.merge;
+import static java.lang.System.nanoTime;
 
 public class Periodic {
 
@@ -51,25 +53,57 @@ public class Periodic {
     @Description("apoc.periodic.commit(statement,params) - runs the given statement in separate transactions until it returns 0")
     public Stream<RundownResult> commit(@Name("statement") String statement, @Name("params") Map<String,Object> parameters) throws ExecutionException, InterruptedException {
         Map<String,Object> params = parameters == null ? Collections.emptyMap() : parameters;
-        long sum = 0, executions = 0, count;
-        long start = currentTimeMillis();
+        long total = 0, executions = 0, updates = 0;
+        long start = nanoTime();
+
+        AtomicInteger batches = new AtomicInteger();
+        AtomicInteger failedCommits = new AtomicInteger();
+        Map<String,Long> commitErrors = new ConcurrentHashMap<>();
+        AtomicInteger failedBatches = new AtomicInteger();
+        Map<String,Long> batchErrors = new ConcurrentHashMap<>();
+
         do {
-            count = get(Pools.SCHEDULED.submit(() -> executeNumericResultStatement(statement, params)));
-            sum += count;
-            if (count>0) executions++;
-        } while (count > 0);
-        return Stream.of(new RundownResult(sum,executions, currentTimeMillis() - start));
+            Map<String, Object> window = Util.map("_count", updates, "_total", total);
+            updates = get(Pools.SCHEDULED.submit(() -> {
+                batches.incrementAndGet();
+                try {
+                    return executeNumericResultStatement(statement, merge(window, params));
+                } catch(Exception e) {
+                    failedBatches.incrementAndGet();
+                    recordError(batchErrors, e);
+                    return 0L;
+                }
+            }), commitErrors, failedCommits, 0L);
+            total += updates;
+            if (updates > 0) executions++;
+        } while (updates > 0);
+        long timeTaken = TimeUnit.NANOSECONDS.toSeconds(nanoTime() - start);
+        return Stream.of(new RundownResult(total,executions, timeTaken, batches.get(),failedBatches.get(),batchErrors, failedCommits.get(), commitErrors));
+    }
+
+    private void recordError(Map<String, Long> executionErrors, Exception e) {
+        executionErrors.compute(e.getMessage(),(s,i) -> i == null ? 1 : i + 1);
     }
 
     public static class RundownResult {
         public final long updates;
         public final long executions;
         public final long runtime;
+        public final long batches;
+        public final long faileBatches;
+        public final Map<String, Long> batchErrors;
+        public final long failedCommits;
+        public final Map<String, Long> commitErrors;
 
-        public RundownResult(long updates, long executions, long runtime) {
-            this.updates = updates;
+        public RundownResult(long total, long executions, long timeTaken, long batches, long faileBatches, Map<String, Long> batchErrors, long failedCommits, Map<String, Long> commitErrors) {
+            this.updates = total;
             this.executions = executions;
-            this.runtime = runtime;
+            this.runtime = timeTaken;
+            this.batches = batches;
+            this.faileBatches = faileBatches;
+            this.batchErrors = batchErrors;
+            this.failedCommits = failedCommits;
+            this.commitErrors = commitErrors;
         }
     }
 
@@ -218,14 +252,6 @@ public class Periodic {
         }
     }
 
-    public static Map<String, Object> merge(Map<String, Object> first, Map<String, Object> second) {
-        if (second.isEmpty()) return first;
-        if (first.isEmpty()) return second;
-        Map<String,Object> combined = new HashMap<>(first);
-        combined.putAll(second);
-        return combined;
-    }
-
     @Procedure
     @PerformsWrites
     @Description("apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
@@ -240,27 +266,59 @@ public class Periodic {
         }
     }
 
-    private <T> Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, boolean parallel, Iterator<T> iterator, Consumer<T> consumer) {
+    private Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, boolean parallel, Iterator<Map<String,Object>> iterator, Consumer<Map<String,Object>> consumer) {
         ExecutorService pool = parallel ? Pools.DEFAULT : Pools.SINGLE;
         List<Future<Long>> futures = new ArrayList<>(1000);
         long batches = 0;
         long start = System.nanoTime();
+        AtomicInteger count = new AtomicInteger();
+        AtomicInteger failedOps = new AtomicInteger();
+        Map<String,Long> operationErrors = new ConcurrentHashMap<>();
         do {
             if (log.isDebugEnabled()) log.debug("execute in batch no " + batches + " batch size " + batchsize);
+            List<Map<String,Object>> batch = Util.take(iterator, batchsize);
+            futures.add(Util.inTxFuture(pool, db,
+                    () -> batch.stream().map(
+                            p -> {
+                                int c = count.incrementAndGet();
+                                try {
+                                    consumer.accept(merge(p,Util.map("_count",c,"_batch",batch)));
+                                } catch (Exception e) {
+                                    failedOps.incrementAndGet();
+                                    recordError(operationErrors, e);
+                                }
+                                return 1;
+                            }).mapToLong( l -> l ).sum()));
             batches++;
-            List<T> batch = Util.take(iterator, batchsize);
-            futures.add(Util.inTxFuture(pool, db, () -> batch.stream().peek(consumer).count()));
         } while (iterator.hasNext());
-        long opsCount = futures.stream().mapToLong(this::get).sum();
-        BatchAndTotalResult result = new BatchAndTotalResult(batches, opsCount, TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
+
+        AtomicInteger failedBatches = new AtomicInteger();
+        Map<String,Long> batchErrors = new HashMap<>();
+        long successes = futures.stream().mapToLong(f -> get(f, batchErrors, failedBatches, 0L)).sum();
+        logErrors("Error during iterate.execute:", operationErrors);
+        logErrors("Error during iterate.commit:", batchErrors);
+        long timeTaken = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
+        BatchAndTotalResult result =
+                new BatchAndTotalResult(batches, count.get(), timeTaken, successes, failedOps.get(), failedBatches.get(), operationErrors, batchErrors);
         return Stream.of(result);
     }
 
-    private <T> T get(Future<T> f) {
+    private void logErrors(String message, Map<String, Long> errors) {
+        if (!errors.isEmpty()) {
+            log.bulk( log -> {
+                log.warn(message);
+                errors.forEach((k, v) -> log.warn("%d times: %s",k,v));
+            });
+        }
+    }
+
+    private <T> T get(Future<T> f, Map<String, Long> errorMessages, AtomicInteger errors, T errorValue) {
         try {
             return f.get();
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Error during future.get",e);
+            errors.incrementAndGet();
+            recordError(errorMessages, e);
+            return errorValue;
         }
     }
 
@@ -268,11 +326,23 @@ public class Periodic {
         public final long batches;
         public final long total;
         public final long timeTaken;
+        public final long committedOperations;
+        public final long failedOperations;
+        public final long failedBatches;
+        public final Map<String,Long> errorMessages;
+        public final Map<String,Object> batch;
+        public final Map<String,Object> operations;
 
-        public BatchAndTotalResult(long batches, long total, long timeTaken) {
+        public BatchAndTotalResult(long batches, long total, long timeTaken, long committedOperations, long failedOperations, long failedBatches, Map<String, Long> operationErrors, Map<String, Long> batchErrors) {
             this.batches = batches;
             this.total = total;
             this.timeTaken = timeTaken;
+            this.committedOperations = committedOperations;
+            this.failedOperations = failedOperations;
+            this.failedBatches = failedBatches;
+            this.errorMessages = operationErrors;
+            this.batch = Util.map("total",batches,"failed",failedBatches,"committed",batches-failedBatches,"errors",batchErrors);
+            this.operations = Util.map("total",total,"failed",failedOperations,"committed", committedOperations,"errors",operationErrors);
         }
 
         public LoopingBatchAndTotalResult inLoop(Object loop) {
