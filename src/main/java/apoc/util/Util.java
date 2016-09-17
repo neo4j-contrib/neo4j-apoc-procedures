@@ -316,7 +316,45 @@ public class Util {
     public static Map<String,Object> map(Object ... values) {
         Map<String, Object> map = new LinkedHashMap<>();
         for (int i = 0; i < values.length; i+=2) {
+            if (values[i] == null) continue;
             map.put(values[i].toString(),values[i+1]);
+        }
+        return map;
+    }
+
+    public static Map<String, Object> map(List<Object> pairs) {
+        Map<String, Object> res = new LinkedHashMap<>(pairs.size() / 2);
+        Iterator<Object> it = pairs.iterator();
+        while (it.hasNext()) {
+            Object key = it.next();
+            Object value = it.next();
+            if (key != null) res.put(key.toString(), value);
+        }
+        return res;
+    }
+
+    public static Map<String, Object> mapFromLists(List<String> keys, List<Object> values) {
+        if (keys == null || values == null || keys.size() != values.size())
+            throw new RuntimeException("keys and values lists have to be not null and of same size");
+        if (keys.isEmpty()) return Collections.<String,Object>emptyMap();
+        if (keys.size()==1) return Collections.singletonMap(keys.get(0),values.get(0));
+        ListIterator<Object> it = values.listIterator();
+        Map<String, Object> res = new LinkedHashMap<>(keys.size());
+        for (String key : keys) {
+            res.put(key,it.next());
+        }
+        return res;
+    }
+
+    public static Map<String, Object> mapFromPairs(List<List<Object>> pairs) {
+        if (pairs.isEmpty()) return Collections.<String,Object>emptyMap();
+        Map<String,Object> map = new LinkedHashMap<>(pairs.size());
+        for (List<Object> pair : pairs) {
+            if (pair.isEmpty()) continue;
+            Object key = pair.get(0);
+            if (key==null) continue;
+            Object value = pair.size() >= 2 ? pair.get(1) : null;
+            map.put(key.toString(),value);
         }
         return map;
     }

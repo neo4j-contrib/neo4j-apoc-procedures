@@ -19,26 +19,18 @@ public class Maps {
     @Procedure
     @Description("apoc.map.fromPairs([[key,value],[key2,value2],...])")
     public Stream<MapResult> fromPairs(@Name("pairs") List<List<Object>> pairs) {
-        return Stream.of(new MapResult(mapFromPairs(pairs)));
-    }
-
-    private Map<String, Object> mapFromPairs(@Name("pairs") List<List<Object>> pairs) {
-        if (pairs.isEmpty()) return Collections.<String,Object>emptyMap();
-        Map<String,Object> map = new LinkedHashMap<>(pairs.size());
-        for (List<Object> pair : pairs) {
-            if (pair.isEmpty()) continue;
-            Object key = pair.get(0);
-            if (key==null) continue;
-            Object value = pair.size() >= 2 ? pair.get(1) : null;
-            map.put(key.toString(),value);
-        }
-        return map;
+        return Stream.of(new MapResult(Util.mapFromPairs(pairs)));
     }
 
     @Procedure
     @Description("apoc.map.fromLists([keys],[values])")
     public Stream<MapResult> fromLists(@Name("keys") List<String> keys, @Name("values") List<Object> values) {
-        return Stream.of(new MapResult(mapFromLists(keys, values)));
+        return Stream.of(new MapResult(Util.mapFromLists(keys, values)));
+    }
+    @Procedure
+    @Description("apoc.map.fromValues([key1,value1,key2,value2,...])")
+    public Stream<MapResult> fromValues(@Name("values") List<Object> values) {
+        return Stream.of(new MapResult(Util.map(values)));
     }
 
     @Procedure
@@ -47,27 +39,36 @@ public class Maps {
         return Stream.of(new MapResult(Util.merge(first,second)));
     }
 
-    // TODO    @Description("apoc.map.fromValues([key,value,key1,value1])")
-
-    private Map<String, Object> mapFromLists(@Name("keys") List<String> keys, @Name("values") List<Object> values) {
-        assert keys.size() == values.size();
-        if (keys.isEmpty()) return Collections.<String,Object>emptyMap();
-        if (keys.size()==1) return Collections.singletonMap(keys.get(0),values.get(0));
-        ListIterator<Object> it = values.listIterator();
-        Map<String, Object> res = new LinkedHashMap<>(keys.size());
-        for (String key : keys) {
-            res.put(key,it.next());
-        }
-        return res;
-    }
-
     @Procedure
     @Description("apoc.map.setKey(map,key,value)")
     public Stream<MapResult> setKey(@Name("map") Map<String,Object> map, @Name("key") String key, @Name("value") Object value) {
-        Map<String, Object> res = new LinkedHashMap<>(map);
-        res.put(key,value);
-        return Stream.of(new MapResult(res));
+        return Stream.of(new MapResult(Util.merge(map, Util.map(key,value))));
     }
+
+    @Procedure
+    @Description("apoc.map.setEntry(map,key,value)")
+    public Stream<MapResult> setEntry(@Name("map") Map<String,Object> map, @Name("key") String key, @Name("value") Object value) {
+        return Stream.of(new MapResult(Util.merge(map, Util.map(key,value))));
+    }
+
+    @Procedure
+    @Description("apoc.map.setPairs(map,[[key1,value1],[key2,value2])")
+    public Stream<MapResult> setPairs(@Name("map") Map<String,Object> map, @Name("pairs") List<List<Object>> pairs) {
+        return Stream.of(new MapResult(Util.merge(map, Util.mapFromPairs(pairs))));
+    }
+
+    @Procedure
+    @Description("apoc.map.setLists(map,[keys],[values])")
+    public Stream<MapResult> setLists(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
+        return Stream.of(new MapResult(Util.merge(map, Util.mapFromLists(keys, values))));
+    }
+
+    @Procedure
+    @Description("apoc.map.setValues(map,[key1,value1,key2,value2])")
+    public Stream<MapResult> setValues(@Name("map") Map<String,Object> map, @Name("pairs") List<Object> pairs) {
+        return Stream.of(new MapResult(Util.merge(map, Util.map(pairs))));
+    }
+
     @Procedure
     @Description("apoc.map.removeKey(map,key)")
     public Stream<MapResult> removeKey(@Name("map") Map<String,Object> map, @Name("key") String key) {

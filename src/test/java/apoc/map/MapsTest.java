@@ -35,9 +35,16 @@ public class MapsTest {
             assertEquals(map("a",1L,"b",false),r.get("value"));
         });
     }
+
     @Test
     public void testFromPairs() throws Exception {
         TestUtil.testCall(db, "CALL apoc.map.fromPairs([['a',1],['b',false]])", (r) -> {
+            assertEquals(map("a",1L,"b",false),r.get("value"));
+        });
+    }
+    @Test
+    public void testFromValues() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.map.fromValues(['a',1,'b',false])", (r) -> {
             assertEquals(map("a",1L,"b",false),r.get("value"));
         });
     }
@@ -48,10 +55,35 @@ public class MapsTest {
             assertEquals(map("a",1L,"b",false),r.get("value"));
         });
     }
+    @Test
+    public void testSetPairs() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.map.setPairs({}, [['a',1],['b',false]])", (r) -> {
+            assertEquals(map("a",1L,"b",false),r.get("value"));
+        });
+    }
+    @Test
+    public void testSetValues() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.map.setValues({}, ['a',1,'b',false])", (r) -> {
+            assertEquals(map("a",1L,"b",false),r.get("value"));
+        });
+    }
+
+    @Test
+    public void testSetLists() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.map.setLists({}, ['a','b'],[1,false])", (r) -> {
+            assertEquals(map("a",1L,"b",false),r.get("value"));
+        });
+    }
 
     @Test
     public void testSetKey() throws Exception {
         TestUtil.testCall(db, "CALL apoc.map.setKey({a:1},'a',2)", (r) -> {
+            assertEquals(map("a",2L),r.get("value"));
+        });
+    }
+    @Test
+    public void testSetEntry() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.map.setEntry({a:1},'a',2)", (r) -> {
             assertEquals(map("a",2L),r.get("value"));
         });
     }
