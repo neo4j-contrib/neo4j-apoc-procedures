@@ -22,6 +22,7 @@ import org.neo4j.procedure.Procedure;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class Properties {
@@ -53,7 +54,7 @@ public class Properties {
 
         Terms terms = fields.terms("string");
         TermsEnum termsEnum = terms.iterator();
-        ArrayList<String> values = new ArrayList<>();
+        List<Object> values = new ArrayList<>();
         while((termsEnum.next()) != null){
             values.add(termsEnum.term().utf8ToString());
         }

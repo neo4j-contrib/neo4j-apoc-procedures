@@ -7,9 +7,9 @@ import java.util.List;
  * @since 26.02.16
  */
 public class ListResult {
-    public final List value;
+    public final List<Object> value;
 
-    public ListResult(List value) {
+    public ListResult(List<Object> value) {
         this.value = value;
     }
 }
