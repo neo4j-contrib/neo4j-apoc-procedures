@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static apoc.util.MapUtil.map;
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
@@ -39,5 +40,10 @@ public class UtilTest {
         assertEquals(10,Util.partitionSubList(list,10).count());
         assertEquals(10,Util.partitionSubList(list,11).count());
         assertEquals(10,Util.partitionSubList(list,20).count());
+    }
+    @Test
+    public void cleanPassword() throws Exception {
+        String url = "http://%slocalhost:7474/path?query#ref";
+        assertEquals(format(url,""), Util.cleanUrl(format(url, "user:pass@")));
     }
 }

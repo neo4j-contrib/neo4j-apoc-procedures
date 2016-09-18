@@ -2,6 +2,7 @@ package apoc.load;
 
 import apoc.Description;
 import apoc.result.MapResult;
+import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -20,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static apoc.util.Util.cleanUrl;
+
 public class Xml {
 
     public static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();
@@ -36,9 +39,9 @@ public class Xml {
             if (reader.nextTag()==XMLStreamConstants.START_ELEMENT) {
                 return Stream.of(new MapResult(handleElement(reader)));
             }
-            throw new RuntimeException("Can't read url " + url + " as XML");
+            throw new RuntimeException("Can't read url " + cleanUrl(url) + " as XML");
         } catch (IOException | XMLStreamException e) {
-            throw new RuntimeException("Can't read url " + url + " as XML", e);
+            throw new RuntimeException("Can't read url " + cleanUrl(url) + " as XML", e);
         }
     }
     @Procedure
@@ -51,9 +54,9 @@ public class Xml {
             if (reader.nextTag()==XMLStreamConstants.START_ELEMENT) {
                 return Stream.of(new MapResult(handleElementSimple(null,reader)));
             }
-            throw new RuntimeException("Can't read url " + url + " as XML");
+            throw new RuntimeException("Can't read url " + cleanUrl(url) + " as XML");
         } catch (IOException | XMLStreamException e) {
-            throw new RuntimeException("Can't read url " + url + " as XML", e);
+            throw new RuntimeException("Can't read url " + cleanUrl(url) + " as XML", e);
         }
     }
 

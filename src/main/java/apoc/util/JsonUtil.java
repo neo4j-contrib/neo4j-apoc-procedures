@@ -28,9 +28,12 @@ public class JsonUtil {
         } catch (EOFException eof) {
             return null;
         } catch (IOException e) {
-            throw new RuntimeException("Can't read url " + url + " as json: "+e.getMessage(), e);
+            String u = Util.cleanUrl(url);
+
+            throw new RuntimeException("Can't read url " + u + " as json: "+e.getMessage(), e);
         }
     }
+
     public static Object loadJson(@Name("url") String url) {
         return loadJson(url,null,null);
     }

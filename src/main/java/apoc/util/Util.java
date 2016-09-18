@@ -11,10 +11,7 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Name;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
+import java.net.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -378,5 +375,16 @@ public class Util {
             map.put(key.toString(),value);
         }
         return map;
+    }
+
+    public static String cleanUrl(String url) {
+        try {
+            URL source = new URL(url);
+            String file = source.getFile();
+            if (source.getRef() != null) file += "#"+source.getRef();
+            return new URL(source.getProtocol(),source.getHost(),source.getPort(),file).toString();
+        } catch (MalformedURLException mfu) {
+            return "invalid URL";
+        }
     }
 }

@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.util.Util.cleanUrl;
 import static java.util.Arrays.asList;
 
 public class LoadCsv {
@@ -48,7 +49,7 @@ public class LoadCsv {
             boolean checkIgnore = !ignore.isEmpty() || mappings.values().stream().anyMatch( m -> m.ignore);
             return StreamSupport.stream(new CSVSpliterator(csv, header, url, skip, limit, checkIgnore,mappings), false);
         } catch (IOException e) {
-            throw new RuntimeException("Can't read CSV from URL " + url, e);
+            throw new RuntimeException("Can't read CSV from URL " + cleanUrl(url), e);
         }
     }
 
@@ -231,7 +232,7 @@ public class LoadCsv {
                 }
                 return false;
             } catch (IOException e) {
-                throw new RuntimeException("Error reading CSV from URL " + url + " at " + lineNo, e);
+                throw new RuntimeException("Error reading CSV from URL " + cleanUrl(url) + " at " + lineNo, e);
             }
         }
     }
