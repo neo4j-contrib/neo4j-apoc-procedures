@@ -63,6 +63,8 @@ public class Util {
     public static LongStream ids(Object ids) {
         if (ids == null) return LongStream.empty();
         if (ids instanceof Number) return LongStream.of(((Number)ids).longValue());
+        if (ids instanceof Node) return LongStream.of(((Node)ids).getId());
+        if (ids instanceof Relationship) return LongStream.of(((Relationship)ids).getId());
         if (ids instanceof Collection) {
             Collection<Object> coll = (Collection<Object>) ids;
             return coll.stream().mapToLong( (o) -> ((Number)o).longValue());
@@ -74,12 +76,31 @@ public class Util {
         throw new RuntimeException("Can't convert "+ids.getClass()+" to a stream of long ids");
     }
 
-    public static Stream<Relationship> relsStream(GraphDatabaseService db, Object ids) {
-        return ids(ids).mapToObj(db::getRelationshipById);
+    public static Stream<Object> stream(Object values) {
+        if (values == null) return Stream.empty();
+        if (values instanceof Collection) return ((Collection)values).stream();
+        if (values instanceof Object[]) return Stream.of(((Object[])values));
+        if (values instanceof Iterable) {
+            Spliterator<Object> spliterator = ((Iterable) values).spliterator();
+            return StreamSupport.stream(spliterator,false);
+        }
+        return Stream.of(values);
     }
 
-    public static Stream<Node> nodeStream(GraphDatabaseService db, @Name("nodes") Object ids) {
-        return ids(ids).mapToObj(db::getNodeById);
+    public static Stream<Node> nodeStream(GraphDatabaseService db, Object ids) {
+        return stream(ids).map( id -> {
+            if (id instanceof Node) return (Node)id;
+            if (id instanceof Number) return db.getNodeById(((Number)id).longValue());
+            throw new RuntimeException("Can't convert "+id.getClass()+" to a Node");
+        });
+    }
+
+    public static Stream<Relationship> relsStream(GraphDatabaseService db, Object ids) {
+        return stream(ids).map( id -> {
+            if (id instanceof Relationship) return (Relationship)id;
+            if (id instanceof Number) return db.getRelationshipById(((Number)id).longValue());
+            throw new RuntimeException("Can't convert "+id.getClass()+" to a Relationship");
+        });
     }
 
     public static double doubleValue(PropertyContainer pc, String prop, Number defaultValue) {

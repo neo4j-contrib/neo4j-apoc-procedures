@@ -9,6 +9,7 @@ import org.neo4j.graphdb.*;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.List;
+import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -36,6 +37,54 @@ public class CreateTest {
                     assertEquals("John", node.getProperty("name"));
                 });
     }
+
+    @Test public void testSetProperty() throws Exception {
+        testResult(db, "CREATE (n),(m) WITH n,m CALL apoc.create.setProperty([id(n),m],'name','John') YIELD node RETURN node",
+                (result) -> {
+                    Map<String, Object> row = result.next();
+                    assertEquals("John", ((Node) row.get("node")).getProperty("name"));
+                    row = result.next();
+                    assertEquals("John", ((Node) row.get("node")).getProperty("name"));
+                    assertEquals(false,result.hasNext());
+                });
+    }
+    @Test public void testSetRelProperties() throws Exception {
+        testResult(db, "CREATE (n)-[r:X]->(m),(m)-[r2:Y]->(n) WITH r,r2 CALL apoc.create.setRelProperties([id(r),r2],['name','age'],['John',42]) YIELD rel RETURN rel",
+                (result) -> {
+                    Map<String, Object> row = result.next();
+                    Relationship r = (Relationship) row.get("rel");
+                    assertEquals("John", r.getProperty("name"));
+                    assertEquals(42L, r.getProperty("age"));
+                    row = result.next();
+                    r = (Relationship) row.get("rel");
+                    assertEquals("John", r.getProperty("name"));
+                    assertEquals(42L, r.getProperty("age"));
+                    assertEquals(false,result.hasNext());
+                });
+    }
+    @Test public void testSetRelProperty() throws Exception {
+        testResult(db, "CREATE (n)-[r:X]->(m),(m)-[r2:Y]->(n) WITH r,r2 CALL apoc.create.setRelProperty([id(r),r2],'name','John') YIELD rel RETURN rel",
+                (result) -> {
+                    Map<String, Object> row = result.next();
+                    assertEquals("John", ((Relationship) row.get("rel")).getProperty("name"));
+                    row = result.next();
+                    assertEquals("John", ((Relationship) row.get("rel")).getProperty("name"));
+                    assertEquals(false,result.hasNext());
+                });
+    }
+    @Test public void testSetProperties() throws Exception {
+        testResult(db, "CREATE (n),(m) WITH n,m CALL apoc.create.setProperties([id(n),m],['name','age'],['John',42]) YIELD node RETURN node",
+                (result) -> {
+                    Map<String, Object> row = result.next();
+                    assertEquals("John", ((Node) row.get("node")).getProperty("name"));
+                    assertEquals(42L, ((Node) row.get("node")).getProperty("age"));
+                    row = result.next();
+                    assertEquals("John", ((Node) row.get("node")).getProperty("name"));
+                    assertEquals(42L, ((Node) row.get("node")).getProperty("age"));
+                    assertEquals(false,result.hasNext());
+                });
+    }
+
     @Test public void testVirtualNode() throws Exception {
         testCall(db, "CALL apoc.create.vNode(['Person'],{name:'John'})",
                 (row) -> {

@@ -44,6 +44,46 @@ public class Create {
             return r;
         });
     }
+
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.create.setProperty( [node,id,ids,nodes], key, value) - sets the given property on the node(s)")
+    public Stream<NodeResult> setProperty(@Name("nodes") Object nodes, @Name("key") String key, @Name("value") Object value) {
+        return new Get((GraphDatabaseAPI) db).nodes(nodes).map((r) -> {
+            r.node.setProperty(key,value);
+            return r;
+        });
+    }
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.create.setRelProperty( [rel,id,ids,rels], key, value) - sets the given property on the relationship(s)")
+    public Stream<RelationshipResult> setRelProperty(@Name("relationships") Object rels, @Name("key") String key, @Name("value") Object value) {
+        return new Get((GraphDatabaseAPI) db).rels(rels).map((r) -> {
+            r.rel.setProperty(key,value);
+            return r;
+        });
+    }
+
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.create.setProperties( [node,id,ids,nodes], [keys], [values]) - sets the given property on the nodes(s)")
+    public Stream<NodeResult> setProperties(@Name("nodes") Object nodes, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
+        return new Get((GraphDatabaseAPI) db).nodes(nodes).map((r) -> {
+            setProperties(r.node, Util.mapFromLists(keys,values));
+            return r;
+        });
+    }
+
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.create.setRelProperties( [rel,id,ids,rels], [keys], [values]) - sets the given property on the relationship(s)")
+    public Stream<RelationshipResult> setRelProperties(@Name("rels") Object rels, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
+        return new Get((GraphDatabaseAPI) db).rels(rels).map((r) -> {
+            setProperties(r.rel, Util.mapFromLists(keys,values));
+            return r;
+        });
+    }
+
     @Procedure
     @PerformsWrites
     @Description("apoc.create.setLabels( [node,id,ids,nodes], ['Label',...]) - sets the given labels, non matching labels are removed on the node or nodes")
