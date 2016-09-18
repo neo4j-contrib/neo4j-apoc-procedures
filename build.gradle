@@ -45,7 +45,7 @@ repositories {
 
 dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version:'1.9'
-    compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version:'1.0-M01'
+    compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version:'1.0.1'
     
     testCompile group: 'org.apache.derby', name: 'derby', version:'10.12.1.1'
     testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version:neo4jVersion

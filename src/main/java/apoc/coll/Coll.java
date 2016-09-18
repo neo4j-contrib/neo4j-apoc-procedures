@@ -32,7 +32,7 @@ public class Coll {
     @Procedure
     @Description("apoc.coll.zip([list1],[list2])")
     public Stream<ListListResult> zip(@Name("list1") List<Object> list1, @Name("list2") List<Object> list2) {
-        List<List> result = new ArrayList<>(list1.size());
+        List<List<Object>> result = new ArrayList<>(list1.size());
         ListIterator it = list2.listIterator();
         for (Object o1 : list1) {
             result.add(asList(o1,it.hasNext() ? it.next() : null));
@@ -90,11 +90,11 @@ public class Coll {
     @Procedure
     @Description("apoc.coll.split(list,value) | splits collection on given values rows of lists, value itself will not be part of resulting lists")
     public Stream<ListResult> split(@Name("values") List<Object> list, @Name("value") Object value) {
-        List l = new ArrayList<>(list);
-        List<List> result = new ArrayList<>(10);
+        List<Object> l = new ArrayList<>(list);
+        List<List<Object>> result = new ArrayList<>(10);
         int idx = l.indexOf(value);
         while (idx != -1) {
-            List subList = l.subList(0, idx);
+            List<Object> subList = l.subList(0, idx);
             if (!subList.isEmpty()) result.add(subList);
             l = l.subList(idx+1,l.size());
             idx = l.indexOf(value);
@@ -178,16 +178,16 @@ public class Coll {
 
     @Procedure
     @Description("apoc.coll.sort(coll) sort on Collections")
-    public Stream<ListResult> sort(@Name("coll") List coll) {
-        List sorted = new ArrayList(coll);
+    public Stream<ListResult> sort(@Name("coll") List<Object> coll) {
+        List sorted = new ArrayList<>(coll);
         Collections.sort((List<? extends Comparable>) sorted);
         return Stream.of(new ListResult(sorted));
     }
 
     @Procedure
     @Description("apoc.coll.sortNodes([nodes], 'name') sort nodes by property")
-    public Stream<ListResult> sortNodes(@Name("coll") List coll, @Name("prop") String prop) {
-        List sorted = new ArrayList(coll);
+    public Stream<ListResult> sortNodes(@Name("coll") List<Object> coll, @Name("prop") String prop) {
+        List sorted = new ArrayList<>(coll);
         Collections.sort((List<? extends PropertyContainer>) sorted,
                 (x, y) -> compare(x.getProperty(prop, null), y.getProperty(prop, null)));
         return Stream.of(new ListResult(sorted));
