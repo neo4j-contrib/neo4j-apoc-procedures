@@ -113,14 +113,13 @@ Returns a virtual graph that represents the labels and relationship-types availa
 
 [cols="1m,5"]
 |===
-| CALL apoc.meta.graph | examines the full graph to create the meta-graph
-| CALL apoc.meta.graphSample(sampleSize) | examines a sample graph to create the meta-graph, default sampleSize is 100
-| CALL apoc.meta.subGraph({config}) | examines a sample sub graph to create the meta-graph, default sampleSize is 100 +
-config is: {labels:[labels],rels:[rel-types],sample:sample}
+| CALL apoc.meta.graph | examines the database statistics to create the meta-graph
+| CALL apoc.meta.subGraph({labels:[labels],rels:[rel-types],excludes:[label,rel-type,...]}) | examines a sample sub graph to create the meta-graph
 | CALL apoc.meta.data | examines a subset of the graph to provide a tabular meta information
 | CALL apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats | returns the information stored in the transactional database statistics
 | CALL apoc.meta.type(value) | type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST`)
 | CALL apoc.meta.isType(value,type) | returns a row if type name matches none if not
+| CALL apoc.meta.types(node or relationship or map) YIELD value | returns a a map of property-keys to their names
 |===
 
 

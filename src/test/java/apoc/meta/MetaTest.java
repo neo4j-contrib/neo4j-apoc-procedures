@@ -1,12 +1,12 @@
 package apoc.meta;
 
-import apoc.meta.Meta;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
+import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.List;
@@ -14,7 +14,6 @@ import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
-import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
@@ -85,6 +84,22 @@ public class MetaTest {
         testIsTypeName(true, "BOOLEAN");
         testIsTypeName(null, "NULL");
     }
+    @Test
+    public void testMetaTypes() throws Exception {
+
+        Map<String, Object> param = map("MAP", singletonMap("a", 10),
+                "LIST", asList(1, 2),
+                "INTEGER", 1L,
+                "FLOAT", 1.0D,
+                "STRING", "a",
+                "BOOLEAN", true,
+                "NULL", null);
+        TestUtil.testCall(db, "CALL apoc.meta.types({param})", singletonMap("param",param), row -> {
+            Map<String,String> res = (Map) row.get("value");
+            res.forEach(Assert::assertEquals);
+        });
+
+    }
 
     private void testTypeName(Object value, String type) {
         TestUtil.testCall(db, "CALL apoc.meta.type({value})", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
@@ -119,16 +134,16 @@ public class MetaTest {
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     Node n1 = nodes.get(0);
                     assertEquals(true, n1.hasLabel(Label.label("Actor")));
-                    assertEquals(1, n1.getProperty("count"));
+                    assertEquals(1L, n1.getProperty("count"));
                     assertEquals("Actor", n1.getProperty("name"));
                     Node n2 = nodes.get(1);
                     assertEquals(true, n2.hasLabel(Label.label("Movie")));
                     assertEquals("Movie", n2.getProperty("name"));
-                    assertEquals(2, n2.getProperty("count"));
+                    assertEquals(2L, n2.getProperty("count"));
                     List<Relationship> rels = (List<Relationship>) row.get("relationships");
                     Relationship rel = rels.iterator().next();
                     assertEquals("ACTED_IN", rel.getType().name());
-                    assertEquals(2, rel.getProperty("count"));
+                    assertEquals(2L, rel.getProperty("count"));
                 });
     }
 
@@ -140,16 +155,16 @@ public class MetaTest {
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     Node n1 = nodes.get(0);
                     assertEquals(true, n1.hasLabel(Label.label("Actor")));
-                    assertEquals(1, n1.getProperty("count"));
+                    assertEquals(1L, n1.getProperty("count"));
                     assertEquals("Actor", n1.getProperty("name"));
                     Node n2 = nodes.get(1);
                     assertEquals(true, n2.hasLabel(Label.label("Movie")));
                     assertEquals("Movie", n2.getProperty("name"));
-                    assertEquals(1, n1.getProperty("count"));
+                    assertEquals(1L, n1.getProperty("count"));
                     List<Relationship> rels = (List<Relationship>) row.get("relationships");
                     Relationship rel = rels.iterator().next();
                     assertEquals("ACTED_IN", rel.getType().name());
-                    assertEquals(1, rel.getProperty("count"));
+                    assertEquals(1L, rel.getProperty("count"));
                 });
     }
 
@@ -169,5 +184,53 @@ public class MetaTest {
                     }
                     assertEquals(5,count);
                 });
+    }
+
+    @Test
+    public void testSubGraphNoLimits() throws Exception {
+        db.execute("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)").close();
+        testCall(db,"CALL apoc.meta.subGraph({})", (row) -> {
+            List<Node> nodes = (List<Node>) row.get("nodes");
+            List<Relationship> rels = (List<Relationship>) row.get("relationships");
+            assertEquals(3, nodes.size());
+            assertEquals(true, nodes.stream().map(n -> Iterables.first(n.getLabels()).name()).allMatch(n -> n.equals("A") || n.equals("B") || n.equals("C")));
+            assertEquals(2, rels.size());
+            assertEquals(true, rels.stream().map(r -> r.getType().name()).allMatch(n -> n.equals("X") || n.equals("Y")));
+        });
+    }
+    @Test
+    public void testSubGraphLimitLabels() throws Exception {
+        db.execute("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)").close();
+        testCall(db,"CALL apoc.meta.subGraph({labels:['A','B']})", (row) -> {
+            List<Node> nodes = (List<Node>) row.get("nodes");
+            List<Relationship> rels = (List<Relationship>) row.get("relationships");
+            assertEquals(2, nodes.size());
+            assertEquals(true, nodes.stream().map(n -> Iterables.first(n.getLabels()).name()).allMatch(n -> n.equals("A") || n.equals("B")));
+            assertEquals(1, rels.size());
+            assertEquals(true, rels.stream().map(r -> r.getType().name()).allMatch(n -> n.equals("X")));
+        });
+    }
+    @Test
+    public void testSubGraphLimitRelTypes() throws Exception {
+        db.execute("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)").close();
+        testCall(db,"CALL apoc.meta.subGraph({rels:['X']})", (row) -> {
+            List<Node> nodes = (List<Node>) row.get("nodes");
+            List<Relationship> rels = (List<Relationship>) row.get("relationships");
+            assertEquals(3, nodes.size());
+            assertEquals(true, nodes.stream().map(n -> Iterables.first(n.getLabels()).name()).allMatch(n -> n.equals("A") || n.equals("B") || n.equals("C")));
+            assertEquals(1, rels.size());
+            assertEquals(true, rels.stream().map(r -> r.getType().name()).allMatch(n -> n.equals("X")));
+        });
+    }
+    @Test
+    public void testSubGraphExcludes() throws Exception {
+        db.execute("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)").close();
+        testCall(db,"CALL apoc.meta.subGraph({excludes:['B']})", (row) -> {
+            List<Node> nodes = (List<Node>) row.get("nodes");
+            List<Relationship> rels = (List<Relationship>) row.get("relationships");
+            assertEquals(2, nodes.size());
+            assertEquals(true, nodes.stream().map(n -> Iterables.first(n.getLabels()).name()).allMatch(n -> n.equals("A") || n.equals("C")));
+            assertEquals(0, rels.size());
+        });
     }
 }
