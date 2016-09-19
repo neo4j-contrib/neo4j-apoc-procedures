@@ -1,6 +1,6 @@
 package apoc.text;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.LongResult;
 import apoc.result.StringResult;
 import org.apache.commons.codec.EncoderException;

@@ -1,6 +1,6 @@
 package apoc.monitor;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;

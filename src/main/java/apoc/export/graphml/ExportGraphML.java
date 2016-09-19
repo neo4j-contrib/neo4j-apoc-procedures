@@ -1,6 +1,6 @@
 package apoc.export.graphml;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.FileUtils;
 import apoc.export.util.NodesAndRelsSubGraph;

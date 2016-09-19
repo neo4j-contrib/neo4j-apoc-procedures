@@ -1,6 +1,6 @@
 package apoc.data;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.StringResult;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;

@@ -4,7 +4,7 @@ import java.util.*;
 import java.io.*;
 import java.util.stream.*;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import apoc.result.MapResult;
 import apoc.result.ObjectResult;

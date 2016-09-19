@@ -1,6 +1,6 @@
 package apoc.lock;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.kernel.api.KernelTransaction;

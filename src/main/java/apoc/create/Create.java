@@ -1,6 +1,6 @@
 package apoc.create;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.get.Get;
 import apoc.result.*;
 import apoc.util.Util;

@@ -1,6 +1,6 @@
 package apoc.export.cypher;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;

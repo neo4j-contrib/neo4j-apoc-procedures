@@ -1,6 +1,6 @@
 package apoc.date;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.LongResult;
 import apoc.result.StringResult;
 import org.neo4j.graphdb.Label;

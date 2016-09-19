@@ -1,6 +1,6 @@
 package apoc.convert;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.coll.SetBackedList;
 import apoc.result.*;
 import apoc.util.Util;

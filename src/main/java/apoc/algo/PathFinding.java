@@ -1,6 +1,6 @@
 package apoc.algo;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.path.RelationshipTypeAndDirections;
 import apoc.result.PathResult;
 import apoc.result.WeightedPathResult;

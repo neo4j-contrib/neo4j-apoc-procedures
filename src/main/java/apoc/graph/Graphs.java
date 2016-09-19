@@ -1,6 +1,6 @@
 package apoc.graph;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.cypher.Cypher;
 import apoc.result.VirtualGraph;
 import org.neo4j.graphdb.GraphDatabaseService;

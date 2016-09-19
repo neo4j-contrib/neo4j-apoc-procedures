@@ -1,6 +1,6 @@
 package apoc.cypher;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.Pools;
 import apoc.result.MapResult;
 import apoc.util.Util;

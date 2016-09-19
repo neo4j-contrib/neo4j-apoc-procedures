@@ -1,6 +1,6 @@
 package apoc.load;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.meta.Meta;
 import apoc.util.Util;
 import au.com.bytecode.opencsv.CSVReader;

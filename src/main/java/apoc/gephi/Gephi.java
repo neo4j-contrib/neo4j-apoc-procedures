@@ -1,6 +1,6 @@
 package apoc.gephi;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.graph.Graphs;
 import apoc.result.ProgressInfo;
 import apoc.util.JsonUtil;

@@ -1,6 +1,6 @@
 package apoc.load;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.RowResult;
 import apoc.ApocConfiguration;
 import org.neo4j.logging.Log;

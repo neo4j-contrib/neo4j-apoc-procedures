@@ -1,6 +1,6 @@
 package apoc.export;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.export.cypher.ExportCypher;
 import apoc.export.cypher.MultiStatementCypherSubGraphExporter;
 import apoc.export.util.NodesAndRelsSubGraph;

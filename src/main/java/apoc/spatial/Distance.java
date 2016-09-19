@@ -1,6 +1,6 @@
 package apoc.spatial;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.DistancePathResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;

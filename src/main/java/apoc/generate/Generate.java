@@ -1,6 +1,6 @@
 package apoc.generate;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.generate.config.*;
 import apoc.generate.node.DefaultNodeCreator;
 import apoc.generate.node.NodeCreator;

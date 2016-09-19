@@ -1,6 +1,6 @@
 package apoc.algo;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.Pools;
 import apoc.algo.algorithms.AlgoUtils;
 import apoc.algo.pagerank.PageRankArrayStorageParallelCypher;

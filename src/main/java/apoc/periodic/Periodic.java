@@ -1,6 +1,6 @@
 package apoc.periodic;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.graphdb.Result;

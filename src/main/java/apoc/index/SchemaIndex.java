@@ -1,6 +1,6 @@
 package apoc.index;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.NodeResult;
 import apoc.result.VirtualNode;
 import apoc.util.Util;

@@ -14,7 +14,7 @@ import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.query.Statement;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.couchbase.document.CouchbaseJsonDocument;
 import apoc.couchbase.document.CouchbaseQueryResult;
 import apoc.couchbase.document.CouchbaseUtils;

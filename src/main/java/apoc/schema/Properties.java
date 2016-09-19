@@ -1,6 +1,6 @@
 package apoc.schema;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.MultiFields;

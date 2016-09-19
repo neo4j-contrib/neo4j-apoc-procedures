@@ -1,11 +1,11 @@
 package apoc.util;
 
-import apoc.Description;
 import apoc.result.StringResult;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 

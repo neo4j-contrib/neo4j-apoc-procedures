@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.DoubleResult;
 import apoc.result.LongResult;
 import apoc.result.StringResult;

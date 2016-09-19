@@ -1,6 +1,6 @@
 package apoc.refactor;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.Pools;
 import apoc.result.NodeResult;
 import apoc.util.Util;

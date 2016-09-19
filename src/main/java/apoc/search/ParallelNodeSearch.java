@@ -1,6 +1,6 @@
 package apoc.search;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.NodeResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.Node;

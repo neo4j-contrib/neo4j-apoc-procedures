@@ -1,6 +1,6 @@
 package apoc.algo;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;

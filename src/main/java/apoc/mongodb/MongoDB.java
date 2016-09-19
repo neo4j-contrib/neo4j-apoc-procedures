@@ -1,6 +1,6 @@
 package apoc.mongodb;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.LongResult;
 import apoc.result.MapResult;
 import apoc.util.UrlResolver;

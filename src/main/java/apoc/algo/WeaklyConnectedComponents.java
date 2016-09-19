@@ -20,7 +20,7 @@ import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Procedure;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.algo.wcc.CCVar;
 import apoc.result.CCResult;
 

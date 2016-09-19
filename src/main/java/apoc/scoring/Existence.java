@@ -2,7 +2,7 @@ package apoc.scoring;
 
 import java.util.stream.Stream;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.DoubleResult;
 
 import org.neo4j.graphdb.GraphDatabaseService;

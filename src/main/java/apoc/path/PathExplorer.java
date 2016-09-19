@@ -1,6 +1,6 @@
 package apoc.path;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.PathResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;

@@ -1,7 +1,7 @@
 package apoc.cache;
 
 import apoc.ApocConfiguration;
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.KeyValueResult;
 import apoc.result.MapResult;
 import apoc.result.ObjectResult;

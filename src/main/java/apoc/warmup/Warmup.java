@@ -1,6 +1,6 @@
 package apoc.warmup;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.util.Util;
 import org.neo4j.cursor.Cursor;
 import org.neo4j.graphdb.Transaction;

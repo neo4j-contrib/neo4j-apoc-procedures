@@ -1,7 +1,7 @@
 package apoc.spatial;
 
 import apoc.ApocConfiguration;
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;

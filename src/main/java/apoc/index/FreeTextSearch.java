@@ -1,6 +1,6 @@
 package apoc.index;
 
-import apoc.Description;
+import org.neo4j.procedure.Description;
 import apoc.result.WeightedNodeResult;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queryparser.classic.ParseException;
