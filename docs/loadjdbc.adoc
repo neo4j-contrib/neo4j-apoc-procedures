@@ -1,5 +1,5 @@
 = Load JDBC
-:loadjdbc:
+
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img
 
 
@@ -231,13 +231,40 @@ Added 63213 labels, created 63213 nodes, set 182413 properties, created 119200 r
 
 == Postgres Example
 
-[source,sql]
-
 == Describe EMPLOYEE_DETAILS;
 
-image::{img}/postgres.describe.jpg[width=800]
+[source,sql]
+----
+Describe Employee_Details
 
-image::{img}/postgres.count.jpg[width=600]
+\d+ EMPLOYEE_DETAILS
+
+
++----------+---------------+------------+-----------+-------------+----------------+
+| Column   | Type          | Modifiers  | Storage   | Stats target| Description	   |
++----------+---------------+------------+-----------+-------------+----------------+
+| id       | integer       | not null   | plain     |             |                |
+| name     | text          | not null   | extended  |             |                |
+| age      | integer       | not null 	| plain     |             |
+| address  | character(50) | 	  	| extended  |             |                |
+| salary   | real          |   		| plain     |             |                |
++----------+---------------+------------+-----------+-------------+----------------+
+
+  Indexes:
+	"employee_details_pkey" PRIMARY KEY, btree(id)
+
+
+
+select count(*) from EMPLOYEE_DETAILS;
++----------+
+| count(*) |
++----------+
+|       50 |
++----------+
+
+(1 row)
+
+----
 
 Download the https://jdbc.postgresql.org/download.html[PostgresSQL JDBC Driver], and put it into your `$NEO4J_HOME/plugins` directory.
 
@@ -255,13 +282,20 @@ image:https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/mast
 
 
 .Count rows in products table
+[source,cypher]
 ----
 with "jdbc:postgresql://localhost:5432/testdb?user=postgres&password=postgres" as url
 CALL apoc.load.jdbc(url,"employee_details") YIELD row
 RETURN count(*);
 ----
 
-image::{img}/apoc.load.postgres.count.jpg[width=800]
+----
++----------+
+| count(*) |
++----------+
+|       50 |
++----------+
+----
 
 .Return row from products table
 [source,cypher]
@@ -271,7 +305,31 @@ CALL apoc.load.jdbc(url,"employee_details") YIELD row
 RETURN row LIMIT 4;
 ----
 
-image::{img}/apoc.show.record.jpg[width=800]
+----
+╒══════════════════════════════╕
+│row                           │
+╞══════════════════════════════╡
+│{name: ANURAG SRIVASTAVA, age:│
+│ 24, salary: 20000, id: 1, add│
+│ress: NEW DELHI               │
+│                          }   │
+├──────────────────────────────┤
+│{name: SHIVANSH SRIVASTAVA, ag│
+│e: 22, salary: 19000, id: 2, a│
+│ddress: NEW DELHI             │
+│                            } │
+├──────────────────────────────┤
+│{name: SANDY, age: 26, salary:│
+│ 21000, id: 3, address: JODHPU│
+│R                             │
+│              }               │
+├──────────────────────────────┤
+│{name: MANISH, age: 26, salary│
+│: 20000, id: 4, address: NEW D│
+│ELHI                          │
+│               }              │
+└──────────────────────────────┘
+----
 
 Let’s create some indexes and constraints, note that other indexes and constraints will be dropped by this.
 
@@ -280,25 +338,64 @@ Let’s create some indexes and constraints, note that other indexes and constra
 CALL apoc.schema.assert( {Detail:['name','age','address','salary']}, {Detail:['id']});
 ----
 
-image::{img}/apoc.schema.assert.jpg[width=800]
+----
+╒══════╤═══════╤══════╤═══════╕
+│label │key    │unique│action │
+╞══════╪═══════╪══════╪═══════╡
+│Detail│name   │false │CREATED│
+├──────┼───────┼──────┼───────┤
+│Detail│age    │false │CREATED│
+├──────┼───────┼──────┼───────┤
+│Detail│address│false │CREATED│
+├──────┼───────┼──────┼───────┤
+│Detail│salary │false │CREATED│
+├──────┼───────┼──────┼───────┤
+│Detail│id     │true  │CREATED│
+└──────┴───────┴──────┴───────┘
+----
 
 .Create Nodes in Neo4j
+[source,cypher]
 ----
 CALL apoc.load.jdbc('jdbc:postgresql://localhost:5432/testdb?user=postgres&password=postgres','employee_details') yield row
 CREATE (t:Detail {id:toString(row.id), name:row.name, age:toString(row.age), address:row.address, salary:toString(row.salary)});
 ----
 
-image::{img}/create.node.postgres.data.jpg[width=800]
+----
+Added 50 labels, created 50 nodes, set 250 properties, statement executed in 249 ms.
+----
 
 == Oracle Example
 
-[source,sql]
-
 == Describe EMPLOYEE_DETAILS;
 
-image::{img}/oracle.schema.jpg[width=800]
+[source,sql]
 
-image::{img}/oracle.count.jpg[width=600]
+----
+Describe Employee_Details
+
+SQL> Describe EMPLOYEE_DETAILS;
+
+
++----------+--------+----------------+
+| Name     | Null?  | Type           |
++----------+--------+----------------+
+| id       |        | NUMBER         |
+| name     |        | VARCHAR(50)    |
+| age      |        | NUMBER(38)     |
+| address  |        | VARCHAR(50)    |
+| salary   |        | NUMBER(5)      |
++----------+---------------+---------+
+
+select count(*) from EMPLOYEE_DETAILS;
++----------+
+| count(*) |
++----------+
+|       50 |
++----------+
+
+----
+
 
 Download the http://www.oracle.com/technetwork/database/features/jdbc/index.html[Oracle JDBC Driver], and put it into your `$NEO4J_HOME/plugins` directory.
 
@@ -314,12 +411,49 @@ Restart the server.
 Now inspect the data with oracle database.
 
 .Count rows in products table
+[source,cypher]
 ----
 CALL apoc.load.jdbc('oracle_url','employee_details') YIELD row
 RETURN count(*);
 ----
 
-image::{img}/apoc.oracle.count.jpg[width=800]
+----
++----------+
+| count(*) |
++----------+
+|       50 |
++----------+
+----
+[source,cypher]
+----
+CALL apoc.load.jdbc('oracle_url',"employee_details") YIELD row
+RETURN row LIMIT 5;
+----
+----
+╒══════════════════════════════╕
+│row                           │
+╞══════════════════════════════╡
+│{ADDRESS: NEW DELHI, ID: 1, NA│
+│ME: ANURAG, AGE: 23, SALARY: 2│
+│5000}                         │
+├──────────────────────────────┤
+│{ADDRESS: NEW DELHI, ID: 2, NA│
+│ME: SHIVANSH SRIVASTAVA, AGE: │
+│22, SALARY: 19000}            │
+├──────────────────────────────┤
+│{ADDRESS: JODHPUR, ID: 3, NAME│
+│: SANDY, AGE: 26, SALARY: 2100│
+│0}                            │
+├──────────────────────────────┤
+│{ADDRESS: NEW DELHI, ID: 4, NA│
+│ME: MANISH, AGE: 26, SALARY: 2│
+│0000}                         │
+├──────────────────────────────┤
+│{ADDRESS: NEW DELHI, ID: 5, NA│
+│ME: HARMEET, AGE: 26, SALARY: │
+│21000}                        │
+└──────────────────────────────┘
+----
 
 Let’s create some indexes and constraints, note that other indexes and constraints will be dropped by this.
 
@@ -327,15 +461,33 @@ Let’s create some indexes and constraints, note that other indexes and constra
 ----
 CALL apoc.schema.assert({EMPINFO:['name', 'age','salary']}, {EMPINFO:['id'],ADDRESS:['address']});
 ----
+----
+╒═══════╤═══════╤══════╤═══════╕
+│label  │key    │unique│action │
+╞═══════╪═══════╪══════╪═══════╡
+│EMPINFO│name   │false │CREATED│
+├───────┼───────┼──────┼───────┤
+│EMPINFO│age    │false │CREATED│
+├───────┼───────┼──────┼───────┤
+│EMPINFO│salary │false │CREATED│
+├───────┼───────┼──────┼───────┤
+│ADDRESS│address│true  │CREATED│
+├───────┼───────┼──────┼───────┤
+│EMPINFO│id     │true  │CREATED│
+└───────┴───────┴──────┴───────┘
+----
 
-image::{img}/appoc.schema.oracle.assert.jpg[width=800]
 
 .Create Nodes in Neo4j
+[source,cypher]
 ----
 CALL apoc.load.jdbc('oracle_url','employee_details') yield row
 MERGE (g:ADDRESS {name:row.ADDRESS})
 CREATE (t:EMPINFO {id:toString(row.ID), name:row.NAME, age:toString(row.AGE), salary:toString(row.SALARY)})
 CREATE (t)-[:LIVE]->(g);
 ----
-image::{img}/apoc.oracle.node.create.jpg[width=800]
+
+----
+Added 53 labels, created 53 nodes, set 203 properties, created 50 relationships, statement executed in 1398 ms.
+----
 
