@@ -59,7 +59,7 @@ public class GraphRefactoringTest {
                 });
     }
 
-    @Test(expected = QueryExecutionException.class)
+    @Test
     public void testEagernessMergeNodesFails() throws Exception {
         db.execute("CREATE INDEX ON :Person(ID)").close();
         long id = db.execute("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ").<Long>columnAs("id").next();
