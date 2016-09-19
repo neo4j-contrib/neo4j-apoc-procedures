@@ -18,7 +18,6 @@ import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
-import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
 import javax.xml.stream.XMLStreamException;
@@ -41,8 +40,7 @@ public class ExportGraphML {
     @Context
     public GraphDatabaseAPI db;
 
-    @Procedure("apoc.import.graphml")
-    @PerformsWrites
+    @Procedure(name = "apoc.import.graphml",mode = Procedure.Mode.WRITE)
     @Description("apoc.import.graphml(file,config) - imports graphml file")
     public Stream<ProgressInfo> file(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         ProgressInfo result =

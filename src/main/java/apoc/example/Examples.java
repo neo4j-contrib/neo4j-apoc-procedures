@@ -7,7 +7,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
 import org.neo4j.procedure.Context;
-import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
 import java.util.stream.Stream;
@@ -22,8 +21,7 @@ public class Examples {
     @Context
     GraphDatabaseService db;
 
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Procedure.Mode.WRITE)
     @Description("apoc.example.movies() | Creates the sample movies graph")
     public Stream<ProgressInfo> movies() {
         long start = System.currentTimeMillis();

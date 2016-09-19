@@ -8,7 +8,6 @@ import org.neo4j.graphdb.*;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
-import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
 import java.util.LinkedHashMap;
@@ -23,16 +22,14 @@ public class Create {
     @Context
     public GraphDatabaseService db;
 
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Procedure.Mode.WRITE)
     @Description("apoc.create.node(['Label'], {key:value,...}) - create node with dynamic labels")
     public Stream<NodeResult> node(@Name("label") List<String> labelNames, @Name("props") Map<String, Object> props) {
         return Stream.of(new NodeResult(setProperties(db.createNode(Util.labels(labelNames)),props)));
     }
 
 
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Procedure.Mode.WRITE)
     @Description("apoc.create.addLabels( [node,id,ids,nodes], ['Label',...]) - adds the given labels to the node or nodes")
     public Stream<NodeResult> addLabels(@Name("nodes") Object nodes, @Name("label") List<String> labelNames) {
         Label[] labels = Util.labels(labelNames);
@@ -45,8 +42,7 @@ public class Create {
         });
     }
 
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Procedure.Mode.WRITE)
     @Description("apoc.create.setProperty( [node,id,ids,nodes], key, value) - sets the given property on the node(s)")
     public Stream<NodeResult> setProperty(@Name("nodes") Object nodes, @Name("key") String key, @Name("value") Object value) {
         return new Get((GraphDatabaseAPI) db).nodes(nodes).map((r) -> {
@@ -54,8 +50,7 @@ public class Create {
             return r;
         });
     }
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Procedure.Mode.WRITE)
     @Description("apoc.create.setRelProperty( [rel,id,ids,rels], key, value) - sets the given property on the relationship(s)")
     public Stream<RelationshipResult> setRelProperty(@Name("relationships") Object rels, @Name("key") String key, @Name("value") Object value) {
         return new Get((GraphDatabaseAPI) db).rels(rels).map((r) -> {
@@ -64,8 +59,7 @@ public class Create {
         });
     }
 
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Procedure.Mode.WRITE)
     @Description("apoc.create.setProperties( [node,id,ids,nodes], [keys], [values]) - sets the given property on the nodes(s)")
     public Stream<NodeResult> setProperties(@Name("nodes") Object nodes, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
         return new Get((GraphDatabaseAPI) db).nodes(nodes).map((r) -> {
@@ -74,8 +68,7 @@ public class Create {
         });
     }
 
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Procedure.Mode.WRITE)
     @Description("apoc.create.setRelProperties( [rel,id,ids,rels], [keys], [values]) - sets the given property on the relationship(s)")
     public Stream<RelationshipResult> setRelProperties(@Name("rels") Object rels, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
         return new Get((GraphDatabaseAPI) db).rels(rels).map((r) -> {
@@ -84,8 +77,7 @@ public class Create {
         });
     }
 
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Procedure.Mode.WRITE)
     @Description("apoc.create.setLabels( [node,id,ids,nodes], ['Label',...]) - sets the given labels, non matching labels are removed on the node or nodes")
     public Stream<NodeResult> setLabels(@Name("nodes") Object nodes, @Name("label") List<String> labelNames) {
         Label[] labels = Util.labels(labelNames);
@@ -103,8 +95,7 @@ public class Create {
         });
     }
 
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Procedure.Mode.WRITE)
     @Description("apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...]) - removes the given labels from the node or nodes")
     public Stream<NodeResult> removeLabels(@Name("nodes") Object nodes, @Name("label") List<String> labelNames) {
         Label[] labels = Util.labels(labelNames);
@@ -116,16 +107,14 @@ public class Create {
             return r;
         });
     }
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Procedure.Mode.WRITE)
     @Description("apoc.create.nodes(['Label'], [{key:value,...}]) create multiple nodes with dynamic labels")
     public Stream<NodeResult> nodes(@Name("label") List<String> labelNames, @Name("props") List<Map<String, Object>> props) {
         Label[] labels = Util.labels(labelNames);
         return props.stream().map(p -> new NodeResult(setProperties(db.createNode(labels), p)));
     }
 
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Procedure.Mode.WRITE)
     @Description("apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) create relationship with dynamic rel-type")
     public Stream<RelationshipResult> relationship(@Name("from") Node from,
                                                    @Name("relType") String relType, @Name("props") Map<String, Object> props,

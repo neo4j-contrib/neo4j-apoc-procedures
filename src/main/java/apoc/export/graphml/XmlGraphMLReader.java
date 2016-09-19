@@ -229,7 +229,7 @@ public class XmlGraphMLReader {
         String[] parts = labels.split(LABEL_SPLIT);
         for (String part : parts) {
             if (part.trim().isEmpty()) continue;
-            node.addLabel(DynamicLabel.label(part.trim()));
+            node.addLabel(Label.label(part.trim()));
         }
     }
 
