@@ -10,16 +10,19 @@ import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.kernel.api.exceptions.ProcedureException;
 import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.api.proc.CallableProcedure;
+import org.neo4j.kernel.api.proc.Context;
 import org.neo4j.kernel.api.proc.ProcedureSignature;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
 import static org.neo4j.graphdb.Label.label;
+import static org.neo4j.kernel.api.proc.Mode.DBMS;
 import static org.neo4j.kernel.api.proc.Neo4jTypes.*;
 
 /**
@@ -149,7 +152,7 @@ public class AssertSchemaProcedure implements CallableProcedure {
     @Override
     public ProcedureSignature signature() {
         return ProcedureSignature.procedureSignature("apoc", "schema", "assert")
-                .mode(ProcedureSignature.Mode.DBMS)
+                .mode(DBMS)
                 .in("indexes", NTMap)
                 .in("constraints", NTMap)
                 .out("label", NTString)

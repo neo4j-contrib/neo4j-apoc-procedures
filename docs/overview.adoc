@@ -467,8 +467,31 @@ CALL apoc.generate.simple([2,2,2,2], null, null)
 |===
 
 // end::cypher[]
+// TODO runFile: begin/commit/schema await/constraints/indexes
 
-TODO runFile: begin/commit/schema await/constraints/indexes
+// tag::trigger[]
+
+== Triggers
+
+Enable `apoc.trigger.enabled=true` in `$NEO4J_HOME/config/neo4j.conf` first.
+
+[cols="1m,5"]
+|===
+| CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed | add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information
+| CALL apoc.trigger.remove(name) yield name, statement, installed | remove previously added trigger, returns trigger information
+|===
+
+.Examples
+[source,cypher]
+----
+CALL apoc.trigger.add('timestamp','UNWIND {createdNodes} AS n SET n.ts = timestamp()');
+CALL apoc.trigger.add('lowercase','UNWIND {createdNodes} AS n SET n.id = toLower(n.name)');
+CALL apoc.trigger.add('txInfo',   'UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}', {phase:'after'});
+CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN {deletedRelationships} WHERE type(r) = "X"])')
+----
+
+// end::trigger[]
+
 
 == Job Management
 

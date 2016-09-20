@@ -259,6 +259,13 @@ public class Util {
             throw new RuntimeException("Can't convert "+value+" to JSON");
         }
     }
+    public static <T> T fromJson(String value, Class<T> type) {
+        try {
+            return JsonUtil.OBJECT_MAPPER.readValue(value,type);
+        } catch (IOException e) {
+            throw new RuntimeException("Can't convert "+value+" from JSON");
+        }
+    }
 
     public static Stream<List<Object>> partitionSubList(List<Object> data, int partitions) {
         List<Object> list = new ArrayList<>(data);

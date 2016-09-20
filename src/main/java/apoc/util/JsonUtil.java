@@ -29,7 +29,6 @@ public class JsonUtil {
             return null;
         } catch (IOException e) {
             String u = Util.cleanUrl(url);
-
             throw new RuntimeException("Can't read url " + u + " as json: "+e.getMessage(), e);
         }
     }

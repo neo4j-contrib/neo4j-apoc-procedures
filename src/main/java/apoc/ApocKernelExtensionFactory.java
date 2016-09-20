@@ -1,6 +1,7 @@
 package apoc;
 
 import apoc.schema.AssertSchemaProcedure;
+import apoc.trigger.Trigger;
 import apoc.util.Util;
 import org.neo4j.kernel.extension.KernelExtensionFactory;
 import org.neo4j.kernel.impl.proc.Procedures;
@@ -37,14 +38,20 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
         Log log = null; // dependencies.log();
         return new LifecycleAdapter() {
 
-            public JobScheduler.JobHandle ttlIndexJobHandle;
+            private Trigger.TriggerHandler triggerHandler;
+            private JobScheduler.JobHandle ttlIndexJobHandle;
             private JobScheduler.JobHandle ttlJobHandle;
 
             @Override
             public void start() throws Throwable {
                 ApocConfiguration.initialize(db);
                 dependencies.procedures().register(new AssertSchemaProcedure(db, log));
+                installTTLHandler();
+                installTrigger();
+                Pools.NEO4J_SCHEDULER = dependencies.scheduler();
+            }
 
+            private void installTTLHandler() {
                 Object enabled = ApocConfiguration.get("ttl.enabled", null);
                 if (Util.toBoolean(enabled)) {
                     ttlIndexJobHandle = dependencies.scheduler().schedule(ApocGroup.TTL_GROUP,
@@ -59,13 +66,20 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
                             },
                             ttlSchedule, TimeUnit.SECONDS);
                 }
-                Pools.NEO4J_SCHEDULER = dependencies.scheduler();
+            }
+            private void installTrigger() {
+                Object enabled = ApocConfiguration.get("trigger.enabled", null);
+                if (Util.toBoolean(enabled)) {
+                    triggerHandler = new Trigger.TriggerHandler(db);
+                    db.registerTransactionEventHandler(triggerHandler);
+                }
             }
 
             @Override
             public void stop() throws Throwable {
                 if (ttlIndexJobHandle != null) ttlIndexJobHandle.cancel(true);
                 if (ttlJobHandle != null) ttlJobHandle.cancel(true);
+                if (triggerHandler != null) db.unregisterTransactionEventHandler(triggerHandler);
             }
         };
     }
