@@ -1,12 +1,9 @@
 package apoc.map;
 
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 import apoc.result.MapResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -16,78 +13,78 @@ public class Maps {
     @Context
     public GraphDatabaseService db;
 
-    @Procedure
+    @UserFunction
     @Description("apoc.map.fromPairs([[key,value],[key2,value2],...])")
-    public Stream<MapResult> fromPairs(@Name("pairs") List<List<Object>> pairs) {
-        return Stream.of(new MapResult(Util.mapFromPairs(pairs)));
+    public Map<String,Object> fromPairs(@Name("pairs") List<List<Object>> pairs) {
+        return Util.mapFromPairs(pairs);
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.map.fromLists([keys],[values])")
-    public Stream<MapResult> fromLists(@Name("keys") List<String> keys, @Name("values") List<Object> values) {
-        return Stream.of(new MapResult(Util.mapFromLists(keys, values)));
+    public Map<String,Object> fromLists(@Name("keys") List<String> keys, @Name("values") List<Object> values) {
+        return Util.mapFromLists(keys, values);
     }
-    @Procedure
+    @UserFunction
     @Description("apoc.map.fromValues([key1,value1,key2,value2,...])")
-    public Stream<MapResult> fromValues(@Name("values") List<Object> values) {
-        return Stream.of(new MapResult(Util.map(values)));
+    public Map<String,Object> fromValues(@Name("values") List<Object> values) {
+        return Util.map(values);
     }
 
-    @Procedure
-    @Description("apoc.map.merge(first,second) yield value - merges two maps")
-    public Stream<MapResult> merge(@Name("first") Map<String,Object> first, @Name("second") Map<String,Object> second) {
-        return Stream.of(new MapResult(Util.merge(first,second)));
+    @UserFunction
+    @Description("apoc.map.merge(first,second) - merges two maps")
+    public Map<String,Object> merge(@Name("first") Map<String,Object> first, @Name("second") Map<String,Object> second) {
+        return Util.merge(first,second);
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.map.setKey(map,key,value)")
-    public Stream<MapResult> setKey(@Name("map") Map<String,Object> map, @Name("key") String key, @Name("value") Object value) {
-        return Stream.of(new MapResult(Util.merge(map, Util.map(key,value))));
+    public Map<String,Object> setKey(@Name("map") Map<String,Object> map, @Name("key") String key, @Name("value") Object value) {
+        return Util.merge(map, Util.map(key,value));
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.map.setEntry(map,key,value)")
-    public Stream<MapResult> setEntry(@Name("map") Map<String,Object> map, @Name("key") String key, @Name("value") Object value) {
-        return Stream.of(new MapResult(Util.merge(map, Util.map(key,value))));
+    public Map<String,Object> setEntry(@Name("map") Map<String,Object> map, @Name("key") String key, @Name("value") Object value) {
+        return Util.merge(map, Util.map(key,value));
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.map.setPairs(map,[[key1,value1],[key2,value2])")
-    public Stream<MapResult> setPairs(@Name("map") Map<String,Object> map, @Name("pairs") List<List<Object>> pairs) {
-        return Stream.of(new MapResult(Util.merge(map, Util.mapFromPairs(pairs))));
+    public Map<String,Object> setPairs(@Name("map") Map<String,Object> map, @Name("pairs") List<List<Object>> pairs) {
+        return Util.merge(map, Util.mapFromPairs(pairs));
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.map.setLists(map,[keys],[values])")
-    public Stream<MapResult> setLists(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
-        return Stream.of(new MapResult(Util.merge(map, Util.mapFromLists(keys, values))));
+    public Map<String,Object> setLists(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
+        return Util.merge(map, Util.mapFromLists(keys, values));
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.map.setValues(map,[key1,value1,key2,value2])")
-    public Stream<MapResult> setValues(@Name("map") Map<String,Object> map, @Name("pairs") List<Object> pairs) {
-        return Stream.of(new MapResult(Util.merge(map, Util.map(pairs))));
+    public Map<String,Object> setValues(@Name("map") Map<String,Object> map, @Name("pairs") List<Object> pairs) {
+        return Util.merge(map, Util.map(pairs));
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.map.removeKey(map,key)")
-    public Stream<MapResult> removeKey(@Name("map") Map<String,Object> map, @Name("key") String key) {
+    public Map<String,Object> removeKey(@Name("map") Map<String,Object> map, @Name("key") String key) {
         Map<String, Object> res = new LinkedHashMap<>(map);
         res.remove(key);
-        return Stream.of(new MapResult(res));
+        return res;
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.map.removeKeys(map,keys)")
-    public Stream<MapResult> removeKeys(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys) {
+    public Map<String,Object> removeKeys(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys) {
         Map<String, Object> res = new LinkedHashMap<>(map);
         res.keySet().removeAll(keys);
-        return Stream.of(new MapResult(res));
+        return res;
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.map.clean(map,[skip,keys],[skip,values]) yield map removes the keys and values contained in those lists, good for data cleaning from CSV/JSON")
-    public Stream<MapResult> clean(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
+    public Map<String,Object> clean(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
         HashSet<String> keySet = new HashSet<>(keys);
         HashSet<Object> valueSet = new HashSet<>(values);
 
@@ -97,15 +94,15 @@ public class Maps {
             if (keySet.contains(entry.getKey()) || value == null || valueSet.contains(value) || valueSet.contains(value.toString())) continue;
             res.put(entry.getKey(),value);
         }
-        return Stream.of(new MapResult(res));
+        return res;
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.map.flatten(map) yield map - flattens nested items in map using dot notation")
-    public Stream<MapResult> flatten(@Name("map") Map<String, Object> map) {
+    public Map<String,Object> flatten(@Name("map") Map<String, Object> map) {
         Map<String, Object> flattenedMap = new HashMap<>();
         flattenMapRecursively(flattenedMap, map, "");
-        return Stream.of(new MapResult(flattenedMap));
+        return flattenedMap;
     }
 
     @SuppressWarnings("unchecked")

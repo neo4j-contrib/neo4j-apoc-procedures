@@ -4,10 +4,7 @@ import apoc.result.StringResult;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,18 +21,18 @@ public class Utils {
     @Context
     public KernelTransaction transaction;
 
-    @Procedure
+    @UserFunction
     @Description("apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list")
-    public Stream<StringResult> sha1(@Name("values") List<Object> values) {
+    public String sha1(@Name("values") List<Object> values) {
         String value = values.stream().map(v -> v == null ? "" : v.toString()).collect(Collectors.joining());
-        return Stream.of(new StringResult(DigestUtils.sha1Hex(value)));
+        return DigestUtils.sha1Hex(value);
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list")
-    public Stream<StringResult> md5(@Name("values") List<Object> values) {
+    public String md5(@Name("values") List<Object> values) {
         String value = values.stream().map(v -> v == null ? "" : v.toString()).collect(Collectors.joining());
-        return Stream.of(new StringResult(DigestUtils.md5Hex(value)));
+        return DigestUtils.md5Hex(value);
     }
 
     @Procedure

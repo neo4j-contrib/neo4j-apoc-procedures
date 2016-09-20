@@ -94,7 +94,7 @@ public class MetaTest {
                 "STRING", "a",
                 "BOOLEAN", true,
                 "NULL", null);
-        TestUtil.testCall(db, "CALL apoc.meta.types({param})", singletonMap("param",param), row -> {
+        TestUtil.testCall(db, "RETURN apoc.meta.types({param}) AS value", singletonMap("param",param), row -> {
             Map<String,String> res = (Map) row.get("value");
             res.forEach(Assert::assertEquals);
         });
@@ -102,12 +102,13 @@ public class MetaTest {
     }
 
     private void testTypeName(Object value, String type) {
-        TestUtil.testCall(db, "CALL apoc.meta.type({value})", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
+        TestUtil.testCall(db, "RETURN apoc.meta.typeName({value}) AS value", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
+//        TestUtil.testCall(db, "RETURN apoc.meta.type({value}) AS value", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
     }
 
     private void testIsTypeName(Object value, String type) {
-        TestUtil.testResult(db, "CALL apoc.meta.isType({value},{type})", map("value", value, "type", type), result -> assertEquals(true, result.hasNext()));
-        TestUtil.testResult(db, "CALL apoc.meta.isType({value},{type})", map("value", value, "type", type + "foo"), result -> assertEquals(false, result.hasNext()));
+        TestUtil.testCall(db, "RETURN apoc.meta.isType({value},{type}) AS value", map("value", value, "type", type), result -> assertEquals(true, result.get("value")));
+        TestUtil.testCall(db, "RETURN apoc.meta.isType({value},{type}) AS value", map("value", value, "type", type + "foo"), result -> assertEquals(false, result.get("value")));
     }
 
     @Test

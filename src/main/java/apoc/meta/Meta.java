@@ -1,6 +1,6 @@
 package apoc.meta;
 
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 import apoc.result.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
@@ -9,9 +9,6 @@ import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -119,18 +116,23 @@ public class Meta {
     static final int SAMPLE = 100;
 
 
-    @Procedure
-    @Description("apoc.meta.type(value)  - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
-    public Stream<StringResult> type(@Name("value") Object value) {
+    @UserFunction
+    @Description("apoc.meta.type(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
+    public String type(@Name("value") Object value) {
+        return typeName(value);
+    }
+    @UserFunction
+    @Description("apoc.meta.typeName(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
+    public String typeName(@Name("value") Object value) {
         Types type = Types.of(value);
         String typeName = type == Types.UNKNOWN ? value.getClass().getSimpleName() : type.name();
 
         if (value != null && value.getClass().isArray()) typeName +="[]";
-        return Stream.of(new StringResult(typeName));
+        return typeName;
     }
-    @Procedure
+    @UserFunction
     @Description("apoc.meta.types(node-relationship-map)  - returns a map of keys to types")
-    public Stream<MapResult> types(@Name("properties") Object target) {
+    public Map<String,Object> types(@Name("properties") Object target) {
         Map<String,Object> properties = Collections.emptyMap();
         if (target instanceof Node) properties = ((Node)target).getAllProperties();
         if (target instanceof Relationship) properties = ((Relationship)target).getAllProperties();
@@ -147,15 +149,15 @@ public class Meta {
             result.put(key, typeName);
         });
 
-        return Stream.of(new MapResult(result));
+        return result;
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.meta.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
-    public Stream<Empty> isType(@Name("value") Object value, @Name("type") String type) {
+    public boolean isType(@Name("value") Object value, @Name("type") String type) {
         String typeName = Types.of(value).name();
         if (value != null && value.getClass().isArray()) typeName +="[]";
-        return Empty.stream(type.equalsIgnoreCase(typeName));
+        return type.equalsIgnoreCase(typeName);
     }
 
 

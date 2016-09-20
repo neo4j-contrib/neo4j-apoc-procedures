@@ -47,7 +47,7 @@ public class StringsTest {
         String expected = "Neo4J30";
 
         testCall(db,
-                "CALL apoc.text.replace({text},{regex},{replacement})",
+                "RETURN apoc.text.regreplace({text},{regex},{replacement}) AS value",
                 map("text",text,"regex",regex,"replacement",replacement),
                 row -> assertEquals(expected, row.get("value")));
     }
@@ -58,15 +58,15 @@ public class StringsTest {
         String regex = "[^a-zA-Z0-9]";
         String replacement = "";
         testCall(db,
-                "CALL apoc.text.replace({text},{regex},{replacement})",
+                "RETURN apoc.text.regreplace({text},{regex},{replacement}) AS value",
                 map("text",null,"regex",regex,"replacement",replacement),
                 row -> assertEquals(null, row.get("value")));
         testCall(db,
-                "CALL apoc.text.replace({text},{regex},{replacement})",
+                "RETURN apoc.text.regreplace({text},{regex},{replacement}) AS value",
                 map("text",text,"regex",null,"replacement",replacement),
                 row -> assertEquals(null, row.get("value")));
         testCall(db,
-                "CALL apoc.text.replace({text},{regex},{replacement})",
+                "RETURN apoc.text.regreplace({text},{regex},{replacement}) AS value",
                 map("text",text,"regex",regex,"replacement",null),
                 row -> assertEquals(null, row.get("value")));
     }
@@ -78,7 +78,7 @@ public class StringsTest {
         String expected = "1,2,3,4";
 
         testCall(db,
-                "CALL apoc.text.join({texts},{delimiter})",
+                "RETURN apoc.text.join({texts},{delimiter}) AS value",
                 map("texts",texts,"delimiter",delimiter),
                 row -> assertEquals(expected, row.get("value")));
     }
@@ -90,15 +90,15 @@ public class StringsTest {
         String expected = "Hello null";
 
         testCall(db,
-                "CALL apoc.text.join({texts},{delimiter})",
+                "RETURN apoc.text.join({texts},{delimiter}) AS value",
                 map("texts",null,"delimiter",delimiter),
                 row -> assertEquals(null, row.get("value")));
         testCall(db,
-                "CALL apoc.text.join({texts},{delimiter})",
+                "RETURN apoc.text.join({texts},{delimiter}) AS value",
                 map("texts",texts,"delimiter",null),
                 row -> assertEquals(null, row.get("value")));
         testCall(db,
-                "CALL apoc.text.join({texts},{delimiter})",
+                "RETURN apoc.text.join({texts},{delimiter}) AS value",
                 map("texts",texts,"delimiter",delimiter),
                 row -> assertEquals(expected, row.get("value")));
     }
@@ -106,7 +106,7 @@ public class StringsTest {
 
     @Test public void testCleanWithNull() throws Exception {
         testCall(db,
-                "CALL apoc.text.clean(null)",
+                "RETURN apoc.text.clean(null) AS value",
                 row -> assertEquals(null, row.get("value")));
     }
 
@@ -114,7 +114,7 @@ public class StringsTest {
         String string1 = "&N[]eo 4 #J-(3.0)  ";
         String string2 = " neo4j-<30";
         testCall(db,
-                "CALL apoc.text.compareCleaned({text1},{text2})",
+                "RETURN apoc.text.compareCleaned({text1},{text2}) AS value",
                 map("text1",string1,"text2",string2),
                 row -> assertEquals(true, row.get("value")));
     }
@@ -123,33 +123,20 @@ public class StringsTest {
         String string1 = "&N[]eo 4 #J-(3.0)  ";
         String string2 = " neo4j-<30";
         testCall(db,
-                "CALL apoc.text.compareCleaned({text1},{text2})",
+                "RETURN apoc.text.compareCleaned({text1},{text2}) AS value",
                 map("text1",string1,"text2",null),
-                row -> assertEquals(null, row.get("value")));
+                row -> assertEquals(false, row.get("value")));
         testCall(db,
-                "CALL apoc.text.compareCleaned({text1},{text2})",
+                "RETURN apoc.text.compareCleaned({text1},{text2}) AS value",
                 map("text1",null,"text2",string2),
-                row -> assertEquals(null, row.get("value")));
-    }
-
-    @Test public void testFilterCleanMatches() throws Exception {
-        String string1 = "&N[]eo 4 #J-(3.0)  ";
-        String string2 = "&N[]eo 4 #c-(3.0)  ";
-        String stringToFind = " neo4j-<30";
-        List<String> strings = asList(string1, string2, null);
-        String query = "UNWIND {strings} as s " +
-                "CALL apoc.text.filterCleanMatches(s, {expected}) " +
-                "RETURN s";
-        testCall(db, query,
-                map("strings", strings,"expected",stringToFind),
-                row -> assertEquals(string1, row.get("s")));
+                row -> assertEquals(false, row.get("value")));
     }
 
     @Test
     public void testCompareCleanedInQuery() throws Exception {
         testCall(db,
-                        "CALL apoc.text.clean({a}) YIELD value as clean_a " +
-                        "CALL apoc.text.clean({b}) YIELD value as clean_b " +
+                        "WITH apoc.text.clean({a}) as clean_a, " +
+                        "apoc.text.clean({b}) as clean_b " +
                         "RETURN clean_a = clean_b as eq",
                 map("a","&N[]eo 4 #J-(3.0)  ","b"," [N]e o4/J-[]3-0"),
                 row -> assertEquals(true, row.get("eq")));
@@ -162,21 +149,21 @@ public class StringsTest {
     @Test
     public void testDocReplace() throws Exception {
         testCall(db,
-                "CALL apoc.text.replace('Hello World!', '[^a-zA-Z]', '')",
+                "RETURN apoc.text.regreplace('Hello World!', '[^a-zA-Z]', '')  AS value",
                 row -> assertEquals("HelloWorld", row.get("value")));
     }
 
     @Test
     public void testDocJoin() throws Exception {
         testCall(db,
-                "CALL apoc.text.join(['Hello', 'World'], ' ')",
+                "RETURN apoc.text.join(['Hello', 'World'], ' ') AS value",
                 row -> assertEquals("Hello World", row.get("value")));
     }
 
     @Test
     public void testDocClean() throws Exception {
         testCall(db,
-                "CALL apoc.text.clean({text})",
+                "RETURN apoc.text.clean({text}) AS value",
                 map("text","Hello World!"),
                 row -> assertEquals("helloworld", row.get("value")));
     }
@@ -184,23 +171,15 @@ public class StringsTest {
     @Test
     public void testDocCompareCleaned() throws Exception {
         testCall(db,
-                "CALL apoc.text.compareCleaned({text1}, {text2})",
+                "RETURN apoc.text.compareCleaned({text1}, {text2}) AS value",
                 map("text1","Hello World!","text2","_hello-world_"),
                 row -> assertEquals(true, row.get("value")));
     }
 
     @Test
-    public void testDocFilterCleanMatches() throws Exception {
-        testCall(db,
-                "UNWIND ['Hello World!', 'hello worlds'] as text " +
-                        "CALL apoc.text.filterCleanMatches(text, 'hello_world') RETURN text",
-                row -> assertEquals("Hello World!", row.get("text")));
-    }
-
-    @Test
     public void testUrlEncode() {
         testCall(db,
-                "CALL apoc.text.urlencode('ab cd=gh&ij?') YIELD value RETURN value",
+                "RETURN apoc.text.urlencode('ab cd=gh&ij?') AS value",
                 row -> assertEquals("ab+cd%3Dgh%26ij%3F", row.get("value"))
         );
     }
@@ -208,7 +187,7 @@ public class StringsTest {
     @Test
     public void testUrlDecode() {
         testCall(db,
-                "CALL apoc.text.urldecode('ab+cd%3Dgh%26ij%3F') YIELD value RETURN value",
+                "RETURN apoc.text.urldecode('ab+cd%3Dgh%26ij%3F') AS value",
                 row -> assertEquals("ab cd=gh&ij?", row.get("value"))
         );
     }
@@ -216,9 +195,9 @@ public class StringsTest {
     @Test
     public void testUrlDecodeFailure() {
         thrown.expect(QueryExecutionException.class);
-        thrown.expectMessage("Failed to invoke procedure `apoc.text.urldecode`: Caused by: java.lang.IllegalArgumentException: URLDecoder: Incomplete trailing escape (%) pattern");
+        thrown.expectMessage("Failed to invoke function `apoc.text.urldecode`: Caused by: java.lang.IllegalArgumentException: URLDecoder: Incomplete trailing escape (%) pattern");
         testCall(db,
-                "CALL apoc.text.urldecode('ab+cd%3Dgh%26ij%3') YIELD value RETURN value",
+                "RETURN apoc.text.urldecode('ab+cd%3Dgh%26ij%3')  AS value",
                 row -> assertEquals("ab cd=gh&ij?", row.get("value"))
         );
     }

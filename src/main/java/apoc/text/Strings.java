@@ -6,6 +6,7 @@ import apoc.result.Empty;
 import apoc.result.StringResult;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.UserFunction;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -20,64 +21,62 @@ import java.util.stream.Stream;
  * @since 05.05.16
  */
 public class Strings {
-    @Procedure
-    @Description("apoc.text.replace(text, regex, replacement) YIELD value - replace each substring of the given string that matches the given regular expression with the given replacement.")
-    public Stream<StringResult> replace(final @Name("text") String text, final @Name("regex") String regex, final @Name("replacement") String replacement) {
+
+    @UserFunction
+    @Description("apoc.text.replace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.")
+    public String replace(final @Name("text") String text, final @Name("regex") String regex, final @Name("replacement") String replacement) {
+        return regreplace(text,regex,replacement);
+    }
+    @UserFunction
+    @Description("apoc.text.regreplace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.")
+    public String regreplace(final @Name("text") String text, final @Name("regex") String regex, final @Name("replacement") String replacement) {
         if (text == null || regex == null || replacement == null) {
-            return Stream.of(StringResult.EMPTY);
+            return null;
         }
-        return Stream.of(new StringResult(text.replaceAll(regex, replacement)));
+        return text.replaceAll(regex, replacement);
     }
 
-    @Procedure
-    @Description("apoc.text.join(['text1','text2',...], delimiter) YIELD value - join the given strings with the given delimiter.")
-    public Stream<StringResult> join(
+    @UserFunction
+    @Description("apoc.text.join(['text1','text2',...], delimiter) - join the given strings with the given delimiter.")
+    public String join(
             final @Name("texts") List<String> texts,
             final @Name("delimiter") String delimiter) {
         if (texts == null || delimiter == null) {
-            return Stream.of(StringResult.EMPTY);
+            return null;
         }
-        return Stream.of(new StringResult(String.join(delimiter, texts)));
+        return String.join(delimiter, texts);
     }
 
-    @Procedure
-    @Description("apoc.text.clean(text) YIELD value - strip the given string of everything except alpha numeric characters and convert it to lower case.")
-    public Stream<StringResult> clean(final @Name("text") String text) {
-        return Stream.of(text == null ? StringResult.EMPTY : new StringResult(removeNonWordCharacters(text)));
+    @UserFunction
+    @Description("apoc.text.clean(text) - strip the given string of everything except alpha numeric characters and convert it to lower case.")
+    public String clean(final @Name("text") String text) {
+        return text == null ? null : removeNonWordCharacters(text);
     }
 
-    @Procedure
-    @Description("apoc.text.compareCleaned(text1, text2) YIELD value - compare the given strings stripped of everything except alpha numeric characters converted to lower case.")
-    public Stream<BooleanResult> compareCleaned(final @Name("text1") String text1, final @Name("text2") String text2) {
+    @UserFunction
+    @Description("apoc.text.compareCleaned(text1, text2) - compare the given strings stripped of everything except alpha numeric characters converted to lower case.")
+    public boolean compareCleaned(final @Name("text1") String text1, final @Name("text2") String text2) {
         if (text1 == null || text2 == null) {
-            return Stream.of(new BooleanResult(null));
+            return false;
         }
-        return Stream.of(new BooleanResult((removeNonWordCharacters(text1).equals(removeNonWordCharacters(text2)))));
+        return removeNonWordCharacters(text1).equals(removeNonWordCharacters(text2));
     }
 
-    @Procedure
-    @Description("apoc.text.filterCleanMatches(text1, text2) - filter out non-matches of the given strings stripped of everything except alpha numeric characters converted to lower case.")
-    public Stream<Empty> filterCleanMatches(final @Name("text1") String text1, final @Name("text2") String text2) {
-
-        boolean matched = text1 != null && text2 != null && removeNonWordCharacters(text1).equals(removeNonWordCharacters(text2));
-        return Empty.stream(matched);
-    }
-
-    @Procedure
+    @UserFunction
     @Description("apoc.text.urlencode(text) - return the urlencoded text")
-    public Stream<StringResult> urlencode(@Name("text") String text) {
+    public String urlencode(@Name("text") String text) {
         try {
-            return Stream.of(new StringResult(URLEncoder.encode(text, "UTF-8")));
+            return URLEncoder.encode(text, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("urlencoding failed", e);
         }
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.text.urldecode(text) - return the urldecoded text")
-    public Stream<StringResult> urldecode(@Name("text") String text) {
+    public String urldecode(@Name("text") String text) {
         try {
-            return Stream.of(new StringResult(URLDecoder.decode(text, "UTF-8")));
+            return URLDecoder.decode(text, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("urldecoding failed", e);
         }

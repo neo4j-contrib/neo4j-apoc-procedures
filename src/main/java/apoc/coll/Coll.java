@@ -1,14 +1,11 @@
 package apoc.coll;
 
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 import apoc.result.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -29,57 +26,57 @@ public class Coll {
         return list1.stream().map((e) -> new ListResult(asList(e,it.hasNext() ? it.next() : null)));
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.zip([list1],[list2])")
-    public Stream<ListListResult> zip(@Name("list1") List<Object> list1, @Name("list2") List<Object> list2) {
+    public List<List<Object>> zip(@Name("list1") List<Object> list1, @Name("list2") List<Object> list2) {
         List<List<Object>> result = new ArrayList<>(list1.size());
         ListIterator it = list2.listIterator();
         for (Object o1 : list1) {
             result.add(asList(o1,it.hasNext() ? it.next() : null));
         }
-        return Stream.of(new ListListResult(result));
+        return result;
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.pairs([1,2,3]) returns [1,2],[2,3],[3,null] ")
-    public Stream<ListListResult> pairs(@Name("list") List<Object> list) {
+    public List<List<Object>> pairs(@Name("list") List<Object> list) {
         return zip(list,list.subList(1,list.size()));
     }
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.pairsMin([1,2,3]) returns [1,2],[2,3]")
-    public Stream<ListListResult> pairsMin(@Name("list") List<Object> list) {
+    public List<List<Object>> pairsMin(@Name("list") List<Object> list) {
         return zip(list.subList(0,list.size()-1),list.subList(1,list.size()));
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.sum([0.5,1,2.3])")
-    public Stream<DoubleResult> sum(@Name("numbers") List<Number> list) {
+    public double sum(@Name("numbers") List<Number> list) {
         double sum = 0;
         for (Number number : list) {
             sum += number.doubleValue();
         }
-        return Stream.of(new DoubleResult(sum));
+        return sum;
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.avg([0.5,1,2.3])")
-    public Stream<DoubleResult> avg(@Name("numbers") List<Number> list) {
+    public double avg(@Name("numbers") List<Number> list) {
         double avg = 0;
         for (Number number : list) {
             avg += number.doubleValue();
         }
-        return Stream.of(new DoubleResult(avg/(double)list.size()));
+        return (avg/(double)list.size());
     }
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.min([0.5,1,2.3])")
-    public Stream<ObjectResult> min(@Name("values") List<Object> list) {
-        return Stream.of(new ObjectResult(Collections.min((List)list)));
+    public Object min(@Name("values") List<Object> list) {
+        return Collections.min((List)list);
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.max([0.5,1,2.3])")
-    public Stream<ObjectResult> max(@Name("values") List<Object> list) {
-        return Stream.of(new ObjectResult(Collections.max((List)list)));
+    public Object max(@Name("values") List<Object> list) {
+        return Collections.max((List)list);
     }
 
     @Procedure
@@ -87,6 +84,7 @@ public class Coll {
     public Stream<ListResult> partition(@Name("values") List<Object> list, @Name("batchSize") long batchSize) {
         return partitionList(list, (int) batchSize).map(ListResult::new);
     }
+
     @Procedure
     @Description("apoc.coll.split(list,value) | splits collection on given values rows of lists, value itself will not be part of resulting lists")
     public Stream<ListResult> split(@Name("values") List<Object> list, @Name("value") Object value) {
@@ -113,84 +111,80 @@ public class Coll {
                 });
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.contains(coll, value) optimized contains operation (using a HashSet) (returns single row or not)")
-    public Stream<Empty> contains(@Name("coll") List<Object> coll, @Name("value") Object value) {
-        boolean result =  new HashSet<>(coll).contains(value);
+    public boolean contains(@Name("coll") List<Object> coll, @Name("value") Object value) {
+        return  new HashSet<>(coll).contains(value);
 //        int batchSize = 250;
 //        boolean result = (coll.size() < batchSize) ? coll.contains(value) : partitionList(coll, batchSize).parallel().anyMatch(list -> list.contains(value));
-        return Empty.stream(result);
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.indexOf(coll, value) | position of value in the list")
-    public Stream<LongResult> indexOf(@Name("coll") List<Object> coll, @Name("value") Object value) {
-        int result =  new ArrayList<>(coll).indexOf(value);
-        return Stream.of(new LongResult((long) result));
+    public long indexOf(@Name("coll") List<Object> coll, @Name("value") Object value) {
+        return  new ArrayList<>(coll).indexOf(value);
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.containsAll(coll, values) optimized contains-all operation (using a HashSet) (returns single row or not)")
-    public Stream<Empty> containsAll(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
-        boolean result =  new HashSet<>(coll).containsAll(values);
-        return Empty.stream(result);
+    public boolean containsAll(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
+        return new HashSet<>(coll).containsAll(values);
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.containsSorted(coll, value) optimized contains on a sorted list operation (Collections.binarySearch) (returns single row or not)")
-    public Stream<Empty> containsSorted(@Name("coll") List<Object> coll, @Name("value") Object value) {
+    public boolean containsSorted(@Name("coll") List<Object> coll, @Name("value") Object value) {
         int batchSize = 5000-1; // Collections.binarySearchThreshold
         List list = (coll instanceof RandomAccess || coll.size() < batchSize) ? coll : new ArrayList(coll);
-        boolean result = Collections.binarySearch(list, value) >= 0;
+        return Collections.binarySearch(list, value) >= 0;
 //        Predicate<List> contains = l -> Collections.binarySearch(l, value) >= 0;
 //        boolean result = (list.size() < batchSize) ? contains.test(list) : partitionList(list, batchSize).parallel().anyMatch(contains);
-        return Empty.stream(result);
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.containsAllSorted(coll, value) optimized contains-all on a sorted list operation (Collections.binarySearch) (returns single row or not)")
-    public Stream<Empty> containsAllSorted(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
+    public boolean containsAllSorted(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
         int batchSize = 5000-1; // Collections.binarySearchThreshold
         List list = (coll instanceof RandomAccess || coll.size() < batchSize) ? coll : new ArrayList(coll);
         for (Object value : values) {
             boolean result = Collections.binarySearch(list, value) >= 0;
-            if (!result) return Stream.empty();
+            if (!result) return false;
         }
-        return Empty.stream(true);
+        return true;
     }
 
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.toSet([list]) returns a unique list backed by a set")
-    public Stream<ListResult> toSet(@Name("values") List<Object> list) {
-        return Stream.of(new ListResult(new SetBackedList(new LinkedHashSet(list))));
+    public List<Object> toSet(@Name("values") List<Object> list) {
+        return new SetBackedList(new LinkedHashSet(list));
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.sumLongs([1,3,3])")
-    public Stream<LongResult> sumLongs(@Name("numbers") List<Number> list) {
+    public long sumLongs(@Name("numbers") List<Number> list) {
         long sum = 0;
         for (Number number : list) {
             sum += number.longValue();
         }
-        return Stream.of(new LongResult(sum));
+        return sum;
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.sort(coll) sort on Collections")
-    public Stream<ListResult> sort(@Name("coll") List<Object> coll) {
+    public List<Object> sort(@Name("coll") List<Object> coll) {
         List sorted = new ArrayList<>(coll);
         Collections.sort((List<? extends Comparable>) sorted);
-        return Stream.of(new ListResult(sorted));
+        return sorted;
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.sortNodes([nodes], 'name') sort nodes by property")
-    public Stream<ListResult> sortNodes(@Name("coll") List<Object> coll, @Name("prop") String prop) {
+    public List<Object> sortNodes(@Name("coll") List<Object> coll, @Name("prop") String prop) {
         List sorted = new ArrayList<>(coll);
         Collections.sort((List<? extends PropertyContainer>) sorted,
                 (x, y) -> compare(x.getProperty(prop, null), y.getProperty(prop, null)));
-        return Stream.of(new ListResult(sorted));
+        return sorted;
     }
 
     public static int compare(Object o1, Object o2) {
@@ -208,52 +202,52 @@ public class Coll {
         return o1.toString().compareTo(o2.toString());
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.union(first, second) - creates the distinct union of the 2 lists")
-    public Stream<ListResult> union(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+    public List<Object> union(@Name("first") List<Object> first, @Name("second") List<Object> second) {
         Set<Object> set = new HashSet<>(first);
         set.addAll(second);
-        return Stream.of(new ListResult(new SetBackedList(set)));
+        return new SetBackedList(set);
     }
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.subtract(first, second) - returns unique set of first list with all elements of second list removed")
-    public Stream<ListResult> subtract(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+    public List<Object> subtract(@Name("first") List<Object> first, @Name("second") List<Object> second) {
         Set<Object> set = new HashSet<>(first);
         set.removeAll(second);
-        return Stream.of(new ListResult(new SetBackedList(set)));
+        return new SetBackedList(set);
     }
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.removeAll(first, second) - returns first list with all elements of second list removed")
-    public Stream<ListResult> removeAll(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+    public List<Object> removeAll(@Name("first") List<Object> first, @Name("second") List<Object> second) {
         List<Object> list = new ArrayList<>(first);
         list.removeAll(second);
-        return Stream.of(new ListResult(list));
+        return list;
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.intersection(first, second) - returns the unique intersection of the two lists")
-    public Stream<ListResult> intersection(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+    public List<Object> intersection(@Name("first") List<Object> first, @Name("second") List<Object> second) {
         Set<Object> set = new HashSet<>(first);
         set.retainAll(second);
-        return Stream.of(new ListResult(new SetBackedList(set)));
+        return new SetBackedList(set);
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.disjunction(first, second) - returns the disjunct set of the two lists")
-    public Stream<ListResult> disjunction(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+    public List<Object> disjunction(@Name("first") List<Object> first, @Name("second") List<Object> second) {
         Set<Object> intersection = new HashSet<>(first);
         intersection.retainAll(second);
         Set<Object> set = new HashSet<>(first);
         set.addAll(second);
         set.removeAll(intersection);
-        return Stream.of(new ListResult(new SetBackedList(set)));
+        return new SetBackedList(set);
     }
-    @Procedure
+    @UserFunction
     @Description("apoc.coll.unionAll(first, second) - creates the full union with duplicates of the two lists")
-    public Stream<ListResult> unionAll(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+    public List<Object> unionAll(@Name("first") List<Object> first, @Name("second") List<Object> second) {
         List<Object> list = new ArrayList<>(first);
         list.addAll(second);
-        return Stream.of(new ListResult(list));
+        return list;
     }
 
 }

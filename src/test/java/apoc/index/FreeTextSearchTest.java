@@ -276,7 +276,12 @@ public class FreeTextSearchTest {
         return new TypeSafeDiagnosingMatcher<Node>() {
             @Override
             protected boolean matchesSafely(Node item, Description mismatchDescription) {
-                if (item.hasLabel(label(label))) {
+                boolean hasLabel;
+                try (Transaction tx = item.getGraphDatabase().beginTx()) {
+                    hasLabel = item.hasLabel(label(label));
+                    tx.success();
+                }
+                if (hasLabel) {
                     return true;
                 }
                 mismatchDescription.appendText("missing label ").appendValue(label);
@@ -294,7 +299,11 @@ public class FreeTextSearchTest {
         return new TypeSafeDiagnosingMatcher<PropertyContainer>() {
             @Override
             protected boolean matchesSafely(PropertyContainer item, Description mismatchDescription) {
-                Object property = item.getProperty(key, null);
+                Object property;
+                try (Transaction tx = item.getGraphDatabase().beginTx()) {
+                    property = item.getProperty(key, null);
+                    tx.success();
+                }
                 if (property == null) {
                     mismatchDescription.appendText("property ").appendValue(key).appendText(" not present");
                     return false;

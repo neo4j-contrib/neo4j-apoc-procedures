@@ -1,15 +1,12 @@
 package apoc.refactor;
 
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 import apoc.Pools;
 import apoc.result.NodeResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -41,7 +38,7 @@ public class GraphRefactoring {
         });
     }
 
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.extractNode([rel1,rel2,...], [labels],'OUT','IN') extract node from relationships")
     public Stream<NodeRefactorResult> extractNode(@Name("relationships") Object rels, @Name("labels") List<String> labels, @Name("outType") String outType, @Name("inType") String inType) {
         return Util.relsStream(db, rels).map((rel) -> {
@@ -58,7 +55,7 @@ public class GraphRefactoring {
         });
     }
 
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.collapseNode([node1,node2],'TYPE') collapse node to relationship, node with one rel becomes self-relationship")
     public Stream<RelationshipRefactorResult> collapseNode(@Name("nodes") Object nodes, @Name("type") String type) {
         return Util.nodeStream(db, nodes).map((node) -> {
@@ -89,7 +86,7 @@ public class GraphRefactoring {
     /**
      * this procedure takes a list of nodes and clones them with their labels and properties
      */
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.cloneNodes([node1,node2,...]) clone nodes with their labels and properties")
     public Stream<NodeRefactorResult> cloneNodes(@Name("nodes") List<Node> nodes) {
         return doCloneNodes(nodes,false);
@@ -98,7 +95,7 @@ public class GraphRefactoring {
     /**
      * this procedure takes a list of nodes and clones them with their labels, properties and relationships
      */
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) clone nodes with their labels, properties and relationships")
     public Stream<NodeRefactorResult> cloneNodesWithRelationships(@Name("nodes") List<Node> nodes) {
         return doCloneNodes(nodes,true);
@@ -108,7 +105,7 @@ public class GraphRefactoring {
      * Merges the nodes onto the first node.
      * The other nodes are deleted and their relationships moved onto that first node.
      */
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.mergeNodes([node1,node2]) merge nodes onto first in list")
     public Stream<NodeResult> mergeNodes(@Name("nodes") List<Node> nodes) {
         if (nodes.isEmpty()) return Stream.empty();
@@ -125,7 +122,7 @@ public class GraphRefactoring {
      * Changes the relationship-type of a relationship by creating a new one between the two nodes
      * and deleting the old.
      */
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.setType(rel, 'NEW-TYPE') change relationship-type")
     public Stream<RelationshipRefactorResult> setType(@Name("relationship") Relationship rel, @Name("newType") String newType) {
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
@@ -142,7 +139,7 @@ public class GraphRefactoring {
     /**
      * Redirects a relationships to a new target node.
      */
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.to(rel, endNode) redirect relationship to use new end-node")
     public Stream<RelationshipRefactorResult> to(@Name("relationship") Relationship rel, @Name("newNode") Node newNode) {
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
@@ -159,7 +156,7 @@ public class GraphRefactoring {
     /**
      * Redirects a relationships to a new target node.
      */
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.from(rel, startNode) redirect relationship to use new start-node")
     public Stream<RelationshipRefactorResult> from(@Name("relationship") Relationship rel, @Name("newNode") Node newNode) {
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
@@ -176,7 +173,7 @@ public class GraphRefactoring {
     /**
      * Make properties boolean
      */
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) normalize/convert a property to be boolean")
     public void normalizeAsBoolean(
             @Name("entity") Object entity,
@@ -205,7 +202,7 @@ public class GraphRefactoring {
     /**
      * Create category nodes from unique property values
      */
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.categorize(sourceKey, type, outgoing, label, targetKey, copiedKeys, batchSize) turn each unique propertyKey into a category node and connect to it")
     public void categorize(
             @Name("sourceKey") String sourceKey,

@@ -1,6 +1,6 @@
 package apoc.nodes;
 
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 import apoc.periodic.Periodic;
 import apoc.result.LongResult;
 import apoc.result.NodeResult;
@@ -8,9 +8,6 @@ import apoc.result.RelationshipResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,7 +26,7 @@ public class Nodes {
     public Nodes() {
     }
 
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last")
     public void link(@Name("nodes") List<Node> nodes, @Name("type") String type) {
         Iterator<Node> it = nodes.iterator();

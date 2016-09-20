@@ -1,6 +1,6 @@
 package apoc.cypher;
 
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 import apoc.Pools;
 import apoc.result.MapResult;
 import apoc.util.Util;
@@ -13,9 +13,6 @@ import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -293,7 +290,7 @@ public class Cypher {
         return Collections.singleton(value);
     }
 
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with the given parameters")
     public Stream<MapResult> doit(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         if (params == null) params = Collections.emptyMap();

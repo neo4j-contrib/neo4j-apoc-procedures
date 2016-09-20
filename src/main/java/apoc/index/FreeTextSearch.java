@@ -1,6 +1,6 @@
 package apoc.index;
 
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 import apoc.result.WeightedNodeResult;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -17,9 +17,6 @@ import org.neo4j.index.lucene.ValueContext;
 import org.neo4j.kernel.impl.util.JobScheduler;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 
 import java.util.*;
 import java.util.concurrent.Executor;
@@ -53,7 +50,7 @@ public class FreeTextSearch {
      * @param structure The labels of nodes to index, and the properties to index for each label.
      * @return a stream containing a single element that describes the created index.
      */
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}) YIELD type, name, config - create a free text search index")
     public Stream<IndexStats> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure) {
         if (structure.isEmpty()) {
@@ -73,7 +70,7 @@ public class FreeTextSearch {
      * @param query The query specifying what to search for.
      * @return a stream of all matching nodes.
      */
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.search('name', 'query') YIELD node, weight - search for nodes in the free text index matching the given query")
     public Stream<WeightedNodeResult> search(@Name("index") String index, @Name("query") String query) throws ParseException {
         if (!db.index().existsForNodes(index)) {

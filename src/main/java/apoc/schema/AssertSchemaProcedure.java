@@ -10,6 +10,8 @@ import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.kernel.api.exceptions.ProcedureException;
 import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.api.proc.CallableProcedure;
+import org.neo4j.kernel.api.proc.Context;
+import org.neo4j.kernel.api.proc.Mode;
 import org.neo4j.kernel.api.proc.ProcedureSignature;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -128,8 +130,7 @@ public class AssertSchemaProcedure implements CallableProcedure {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public RawIterator<Object[], ProcedureException> apply(final Context ctx, final Object[] input) throws ProcedureException {
+    public RawIterator<Object[], ProcedureException> apply(Context ctx, Object[] input) throws ProcedureException {
         Map<String, List<String>> indexes = (Map<String, List<String>>) input[1];
         Map<String, List<String>> constraints = (Map<String, List<String>>) input[0];
         try {
@@ -149,7 +150,7 @@ public class AssertSchemaProcedure implements CallableProcedure {
     @Override
     public ProcedureSignature signature() {
         return ProcedureSignature.procedureSignature("apoc", "schema", "assert")
-                .mode(ProcedureSignature.Mode.DBMS)
+                .mode(Mode.DBMS)
                 .in("indexes", NTMap)
                 .in("constraints", NTMap)
                 .out("label", NTString)

@@ -31,7 +31,7 @@ public class Json {
         }
     }
 
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.json.setJsonProperty(node,key,complexValue) - sets value serialized to JSON as property with the given name on the node")
     public void setJsonProperty(@Name("node") Node node, @Name("key") String key, @Name("value") Object value) {
         try {

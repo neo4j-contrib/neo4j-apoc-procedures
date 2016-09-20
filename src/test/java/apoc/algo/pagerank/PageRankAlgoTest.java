@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutorService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -78,11 +79,13 @@ public class PageRankAlgoTest
     public void shouldGetPageRankArrayStorageSPI() throws IOException
     {
         db.execute( COMPANIES_QUERY ).close();
-        PageRank pageRank = new PageRankArrayStorageParallelSPI( db, pool );
-        pageRank.compute( 20 );
-        long id = (long) getEntry( "b" ).get( "id" );
-        assertEquals( EXPECTED, pageRank.getResult( id ), 0.1D );
-
+        try (Transaction tx = db.beginTx()) {
+            PageRank pageRank = new PageRankArrayStorageParallelSPI(db, pool);
+            pageRank.compute(20);
+            long id = (long) getEntry("b").get("id");
+            assertEquals(EXPECTED, pageRank.getResult(id), 0.1D);
+            tx.success();
+        }
 //        for ( int i = 0; i < pageRank.numberOfNodes(); i++ )
 //        {
 //            System.out.println( pageRank.getResult( i ) );
@@ -93,11 +96,13 @@ public class PageRankAlgoTest
     public void shouldGetPageRankArrayStorageSPIWithTypes() throws IOException
     {
         db.execute( COMPANIES_QUERY ).close();
-        PageRank pageRank = new PageRankArrayStorageParallelSPI( db, pool );
-        pageRank.compute( 20, RelationshipType.withName( "TYPE_1" ), RelationshipType.withName( "TYPE_2" ) );
-        long id = (long) getEntry( "b" ).get( "id" );
-        assertEquals( EXPECTED, pageRank.getResult( id ), 0.1D );
-
+        try (Transaction tx = db.beginTx()) {
+            PageRank pageRank = new PageRankArrayStorageParallelSPI(db, pool);
+            pageRank.compute(20, RelationshipType.withName("TYPE_1"), RelationshipType.withName("TYPE_2"));
+            long id = (long) getEntry("b").get("id");
+            assertEquals(EXPECTED, pageRank.getResult(id), 0.1D);
+            tx.success();
+        }
 //        for ( int i = 0; i < pageRank.numberOfNodes(); i++ )
 //        {
 //            System.out.println( pageRank.getResult( i ) );

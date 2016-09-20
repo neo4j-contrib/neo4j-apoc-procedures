@@ -31,79 +31,79 @@ public class MapsTest {
 
     @Test
     public void testMerge() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.map.merge({a:1},{b:false})", (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.merge({a:1},{b:false}) AS value", (r) -> {
             assertEquals(map("a",1L,"b",false),r.get("value"));
         });
     }
 
     @Test
     public void testFromPairs() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.map.fromPairs([['a',1],['b',false]])", (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.fromPairs([['a',1],['b',false]]) AS value", (r) -> {
             assertEquals(map("a",1L,"b",false),r.get("value"));
         });
     }
     @Test
     public void testFromValues() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.map.fromValues(['a',1,'b',false])", (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.fromValues(['a',1,'b',false]) AS value", (r) -> {
             assertEquals(map("a",1L,"b",false),r.get("value"));
         });
     }
 
     @Test
     public void testFromLists() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.map.fromLists(['a','b'],[1,false])", (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.fromLists(['a','b'],[1,false]) AS value", (r) -> {
             assertEquals(map("a",1L,"b",false),r.get("value"));
         });
     }
     @Test
     public void testSetPairs() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.map.setPairs({}, [['a',1],['b',false]])", (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.setPairs({}, [['a',1],['b',false]]) AS value", (r) -> {
             assertEquals(map("a",1L,"b",false),r.get("value"));
         });
     }
     @Test
     public void testSetValues() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.map.setValues({}, ['a',1,'b',false])", (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.setValues({}, ['a',1,'b',false]) AS value", (r) -> {
             assertEquals(map("a",1L,"b",false),r.get("value"));
         });
     }
 
     @Test
     public void testSetLists() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.map.setLists({}, ['a','b'],[1,false])", (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.setLists({}, ['a','b'],[1,false]) AS value", (r) -> {
             assertEquals(map("a",1L,"b",false),r.get("value"));
         });
     }
 
     @Test
     public void testSetKey() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.map.setKey({a:1},'a',2)", (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.setKey({a:1},'a',2) AS value", (r) -> {
             assertEquals(map("a",2L),r.get("value"));
         });
     }
     @Test
     public void testSetEntry() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.map.setEntry({a:1},'a',2)", (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.setEntry({a:1},'a',2) AS value", (r) -> {
             assertEquals(map("a",2L),r.get("value"));
         });
     }
 
     @Test
     public void testRemoveKey() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.map.removeKey({a:1,b:2},'a')", (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1,b:2},'a') AS value", (r) -> {
             assertEquals(map("b",2L),r.get("value"));
         });
     }
     @Test
     public void testRemoveKeys() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.map.removeKeys({a:1,b:2},['a','b'])", (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKeys({a:1,b:2},['a','b']) AS value", (r) -> {
             assertEquals(map(),r.get("value"));
         });
     }
 
     @Test
     public void testClean() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.map.clean({a:1,b:'',c:null,x:1234,z:false},['x'],['',false])", (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.clean({a:1,b:'',c:null,x:1234,z:false},['x'],['',false]) AS value", (r) -> {
             assertEquals(map("a",1L),r.get("value"));
         });
     }
@@ -115,7 +115,7 @@ public class MapsTest {
         nestedMap = map("anotherkey", "anotherValue", "nested", nestedMap);
         Map<String, Object> map = map("string", "value", "int", 10, "nested", nestedMap);
 
-        TestUtil.testCall(db, "CALL apoc.map.flatten({map})", map("map", map), (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.flatten({map}) AS value", map("map", map), (r) -> {
             Map<String, Object> resultMap = (Map<String, Object>)r.get("value");
             assertEquals(map("string", "value",
                     "int", 10,

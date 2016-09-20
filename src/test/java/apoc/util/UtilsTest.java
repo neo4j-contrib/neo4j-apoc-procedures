@@ -37,12 +37,12 @@ public class UtilsTest {
 
     @Test
     public void testSha1() throws Exception {
-        TestUtil.testCall(db, "call apoc.util.sha1(['ABC'])", r -> assertEquals("3c01bdbb26f358bab27f267924aa2c9a03fcfdb8", r.get("value")));
+        TestUtil.testCall(db, "RETURN apoc.util.sha1(['ABC']) AS value", r -> assertEquals("3c01bdbb26f358bab27f267924aa2c9a03fcfdb8", r.get("value")));
     }
 
     @Test
     public void testMd5() throws Exception {
-        TestUtil.testCall(db, "call apoc.util.md5(['ABC'])", r -> assertEquals("902fbdd2b1df0c4f70b4a5d23525e932", r.get("value")));
+        TestUtil.testCall(db, "RETURN apoc.util.md5(['ABC']) AS value", r -> assertEquals("902fbdd2b1df0c4f70b4a5d23525e932", r.get("value")));
     }
 
     @Test

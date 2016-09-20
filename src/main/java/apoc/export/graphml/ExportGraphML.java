@@ -1,6 +1,6 @@
 package apoc.export.graphml;
 
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.FileUtils;
 import apoc.export.util.NodesAndRelsSubGraph;
@@ -16,9 +16,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.BufferedReader;
@@ -40,7 +37,7 @@ public class ExportGraphML {
     @Context
     public GraphDatabaseAPI db;
 
-    @Procedure(name = "apoc.import.graphml",mode = Procedure.Mode.WRITE)
+    @Procedure(name = "apoc.import.graphml",mode = Mode.WRITE)
     @Description("apoc.import.graphml(file,config) - imports graphml file")
     public Stream<ProgressInfo> file(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         ProgressInfo result =

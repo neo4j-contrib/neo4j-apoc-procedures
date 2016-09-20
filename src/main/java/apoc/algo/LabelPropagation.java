@@ -4,10 +4,7 @@ import apoc.Pools;
 import org.neo4j.graphdb.*;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -28,7 +25,7 @@ public class LabelPropagation {
     @Context
     public Log log;
 
-    @Procedure(name = "apoc.algo.community",mode = Procedure.Mode.WRITE)
+    @Procedure(name = "apoc.algo.community",mode = Mode.WRITE)
     @Description("CALL apoc.algo.community(times,labels,partitionKey,type,direction,weightKey,batchSize) - simple label propagation kernel")
     public void community(
             @Name("times") long times,

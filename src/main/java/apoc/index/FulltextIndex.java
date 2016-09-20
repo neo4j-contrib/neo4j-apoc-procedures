@@ -10,10 +10,7 @@ import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.index.RelationshipIndex;
 import org.neo4j.index.impl.lucene.legacy.LuceneIndexImplementation;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +34,7 @@ public class FulltextIndex {
 
     // CALL apoc.index.nodes('Person','name:jo*')
     @Description("apoc.index.nodes('Label','prop:value*') YIELD node - lucene query on node index with the given label name")
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     public Stream<WeightedNodeResult> nodes(@Name("label") String label, @Name("query") String query) {
         if (!db.index().existsForNodes(label)) return Stream.empty();
 
@@ -58,7 +55,7 @@ public class FulltextIndex {
     }
 
     @Description("apoc.index.forNodes('name',{config}) YIELD type,name,config - gets or creates node index")
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     public Stream<IndexInfo> forNodes(@Name("name") String name, @Name("config") Map<String,String> config) {
         Index<Node> index = getNodeIndex(name, config);
         return Stream.of(new IndexInfo(NODE, name, db.index().getConfiguration(index)));
@@ -70,7 +67,7 @@ public class FulltextIndex {
     }
 
     @Description("apoc.index.forRelationships('name',{config}) YIELD type,name,config - gets or creates relationship index")
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     public Stream<IndexInfo> forRelationships(@Name("name") String name, @Name("config") Map<String,String> config) {
         Index<Relationship> index = getRelationshipIndex(name, config);
         return Stream.of(new IndexInfo(RELATIONSHIP, name, db.index().getConfiguration(index)));
@@ -82,7 +79,7 @@ public class FulltextIndex {
     }
 
     @Description("apoc.index.remove('name') YIELD type,name,config - removes an manual index")
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     public Stream<IndexInfo> remove(@Name("name") String name) {
         IndexManager mgr = db.index();
         List<IndexInfo> indexInfos = new ArrayList<>(2);
@@ -100,7 +97,7 @@ public class FulltextIndex {
     }
 
     @Description("apoc.index.list() - YIELD type,name,config - lists all manual indexes")
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     public Stream<IndexInfo> list() {
         IndexManager mgr = db.index();
         List<IndexInfo> indexInfos = new ArrayList<>(100);
@@ -132,7 +129,7 @@ public class FulltextIndex {
 
     // CALL apoc.index.relationships('CHECKIN','on:2010-*')
     @Description("apoc.index.relationships('TYPE','prop:value*') YIELD rel - lucene query on relationship index with the given type name")
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     public Stream<WeightedRelationshipResult> relationships(@Name("type") String type, @Name("query") String query) {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
 
@@ -142,7 +139,7 @@ public class FulltextIndex {
     // CALL apoc.index.between(joe, 'KNOWS', null, 'since:2010-*')
     // CALL apoc.index.between(joe, 'CHECKIN', philz, 'on:2016-01-*')
     @Description("apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel - lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)")
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     public Stream<WeightedRelationshipResult> between(@Name("from") Node from, @Name("type") String type, @Name("to") Node to, @Name("query") String query) {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
 
@@ -150,7 +147,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.out(joe, 'CHECKIN', 'on:2010-*')
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.out(node,'TYPE','prop:value*') YIELD node - lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*")
     public Stream<WeightedNodeResult> out(@Name("from") Node from, @Name("type") String type, @Name("query") String query) {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
@@ -164,7 +161,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.in(philz, 'CHECKIN', 'on:2010-*')
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.in(node,'TYPE','prop:value*') YIELD node lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*")
     public Stream<WeightedNodeResult> in(@Name("to") Node to, @Name("type") String type, @Name("query") String query) {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
@@ -178,7 +175,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.addNode(joe, ['name','age','city'])
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addNode(node,['prop1',...]) add node to an index for each label it has")
     public void addNode(@Name("node") Node node, @Name("properties") List<String> propKeys) {
         for (Label label : node.getLabels()) {
@@ -187,14 +184,14 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.addNode(joe, 'Person', ['name','age','city'])
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addNodeByLabel(node,'Label',['prop1',...]) add node to an index for the given label")
     public void addNodeByLabel(@Name("label") String label, @Name("node") Node node, @Name("properties") List<String> propKeys) {
         indexContainer(node, propKeys, getNodeIndex(label,FULL_TEXT));
     }
 
     // CALL apoc.index.addRelationship(checkin, ['on'])
-    @Procedure(mode = Procedure.Mode.WRITE)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addRelationship(rel,['prop1',...]) add relationship to an index for its type")
     public void addRelationship(@Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
         indexContainer(rel, propKeys, getRelationshipIndex(rel.getType().name(),FULL_TEXT));
