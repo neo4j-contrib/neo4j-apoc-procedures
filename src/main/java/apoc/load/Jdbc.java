@@ -64,7 +64,7 @@ public class Jdbc {
             PreparedStatement stmt = connection.prepareStatement(query);
             for (int i = 0; i < params.length; i++) stmt.setObject(i+1, params[i]);
             ResultSet rs = stmt.executeQuery();
-
+            rs.setFetchSize(5000);
             Iterator<Map<String, Object>> supplier = new ResultSetIterator(rs);
             Spliterator<Map<String, Object>> spliterator = Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
             return StreamSupport.stream(spliterator, false).map(RowResult::new).onClose( () -> closeIt(stmt,connection));
