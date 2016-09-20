@@ -1,13 +1,9 @@
 package apoc.date;
 
-import org.neo4j.procedure.Description;
-import apoc.result.LongResult;
-import apoc.result.StringResult;
+import apoc.util.Util;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
-import org.neo4j.procedure.Mode;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.*;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -61,17 +57,11 @@ public class Date {
 		node.setProperty("ttl",unit(timeUnit).toMillis(time));
 	}
 
-	@Procedure
-	@Description("apoc.date.fieldsDefault('2012-12-23 13:10:50') - return columns and a map representation of date parsed with entries for years,months,weekdays,days,hours,minutes,seconds,zoneid")
-	public Stream<FieldResult> fieldsDefault(final @Name("date") String date) {
-		return fields(date, null);
-	}
-
-	@Procedure
-	@Description("apoc.date.fields('2012-12-23','yyyy-MM-dd') - return columns and a map representation of date parsed with the given format with entries for years,months,weekdays,days,hours,minutes,seconds,zoneid")
-	public Stream<FieldResult> fields(final @Name("date") String date, final @Name("pattern") String pattern) {
+	@UserFunction
+	@Description("apoc.date.fields('2012-12-23',('yyyy-MM-dd')) - return columns and a map representation of date parsed with the given format with entries for years,months,weekdays,days,hours,minutes,seconds,zoneid")
+	public Map<String,Object> fields(final @Name("date") String date, final @Name(value = "pattern", defaultValue = DEFAULT_FORMAT) String pattern) {
 		if (date == null) {
-			return Stream.of(new FieldResult());
+			return Util.map();
 		}
 		DateTimeFormatter fmt = getSafeDateTimeFormatter(pattern);
 		TemporalAccessor temporal = fmt.parse(date);
@@ -81,13 +71,17 @@ public class Date {
 			query.queryFrom(temporal).accept(result);
 		}
 
-		return Stream.of(result);
+		return result.asMap();
 	}
 
 	public static class FieldResult {
 		public final Map<String,Object> value = new LinkedHashMap<>();
 		public long years, months, days, weekdays, hours, minutes, seconds;
 		public String zoneid;
+
+		public Map<String, Object> asMap() {
+			return value;
+		}
 	}
 
 	private TimeUnit unit(String unit) {
@@ -105,53 +99,30 @@ public class Date {
 		return TimeUnit.MILLISECONDS;
 	}
 
-	@Procedure
-	@Description("apoc.date.formatDefault(12345,'ms|s|m|h|d') get string representation of time value in the specified unit using default format")
-	public Stream<StringResult> formatDefault(final @Name("time") long time, @Name("unit") String unit) {
-		return parse(unit(unit).toMillis(time), DEFAULT_FORMAT);
-	}
-
-	@Procedure
-	@Description("apoc.date.format(12345,'ms|s|m|h|d','yyyy-MM-dd') get string representation of time value in the specified unit using specified format and UTC time zone")
-	public Stream<StringResult> format(final @Name("time") long time, @Name("unit") String unit, @Name("format") String format) {
-		return parse(unit(unit).toMillis(time), format, null);
-	}
-
-	@Procedure
-	@Description("apoc.date.formatTimeZone(12345,'ms|s|m|h|d','yyyy-MM-dd HH:mm:ss zzz', 'ABC') get string representation of time value in the specified unit using specified format and specified time zone")
-	public Stream<StringResult> formatTimeZone(final @Name("time") long time, @Name("unit") String unit, @Name("format") String format, @Name("timezone") String timezone) {
+	@UserFunction
+	@Description("apoc.date.format(12345,('ms|s|m|h|d'),('yyyy-MM-dd HH:mm:ss zzz'),('TZ')) get string representation of time value optionally using the specified unit (default ms) using specified format (default ISO) and specified time zone (default current TZ)")
+	public String format(final @Name("time") long time, @Name(value = "unit", defaultValue = "ms") String unit, @Name(value = "format",defaultValue = DEFAULT_FORMAT) String format, @Name(value = "timezone",defaultValue = "") String timezone) {
 		return parse(unit(unit).toMillis(time), format, timezone);
 	}
 
-	@Procedure
-	@Description("apoc.date.parseDefault('2012-12-23 13:10:50','ms|s|m|h|d') parse date string using the default format into the specified time unit")
-	public Stream<LongResult> parseDefault(final @Name("time") String time, @Name("unit") String unit) {
-		return parse(time, unit, DEFAULT_FORMAT);
-	}
-
-	@Procedure
+	@UserFunction
 	@Description("apoc.date.parse('2012-12-23','ms|s|m|h|d','yyyy-MM-dd') parse date string using the specified format into the specified time unit")
-	public Stream<LongResult> parse(@Name("time") String time, @Name("unit") String unit, @Name("format") String format) {
-		Long value = parseOrThrow(time, getFormat(format, null));
-		Long valueInUnit = value == null ? null : unit(unit).convert(value, TimeUnit.MILLISECONDS);
-		return Stream.of(new LongResult(valueInUnit));
+	public Long parse(@Name("time") String time, @Name(value = "unit", defaultValue = "ms") String unit, @Name(value = "format",defaultValue = DEFAULT_FORMAT) String format, final @Name(value = "timezone", defaultValue = "") String timezone) {
+		Long value = parseOrThrow(time, getFormat(format, timezone));
+		return value == null ? null : unit(unit).convert(value, TimeUnit.MILLISECONDS);
 	}
 
-	public Stream<StringResult> parse(final @Name("millis") long millis, final @Name("pattern") String pattern) {
-		return parse(millis, pattern, null);
-	}
-
-	private Stream<StringResult> parse(final @Name("millis") long millis, final @Name("pattern") String pattern, final @Name("timezone") String timezone) {
+	public String parse(final @Name("millis") long millis, final @Name(value = "pattern", defaultValue = DEFAULT_FORMAT) String pattern, final @Name("timezone") String timezone) {
 		if (millis < 0) {
 			throw new IllegalArgumentException("The time argument should be >= 0, got: " + millis);
 		}
-		return Stream.of(new StringResult(getFormat(pattern, timezone).format(new java.util.Date(millis))));
+		return getFormat(pattern, timezone).format(new java.util.Date(millis));
 	}
 
 	private static DateFormat getFormat(final String pattern, final String timezone) {
 		String actualPattern = getPattern(pattern);
 		SimpleDateFormat format = new SimpleDateFormat(actualPattern);
-		if (timezone != null) {
+		if (timezone != null && !"".equals(timezone)) {
 			format.setTimeZone(TimeZone.getTimeZone(timezone));
 		} else if (!(containsTimeZonePattern(actualPattern))) {
 			format.setTimeZone(TimeZone.getTimeZone(UTC_ZONE_ID));
@@ -194,7 +165,7 @@ public class Date {
 	}
 
 	private static String getPattern(final String pattern) {
-		return pattern == null ? DEFAULT_FORMAT : pattern;
+		return pattern == null || "".equals(pattern) ? DEFAULT_FORMAT : pattern;
 	}
 
 	private static TemporalQuery<Consumer<FieldResult>> temporalQuery(final ChronoField field) {

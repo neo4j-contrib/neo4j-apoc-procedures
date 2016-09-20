@@ -30,43 +30,43 @@ public class ExtractTest {
 
     @Test
     public void testQuotedEmail() {
-        testCall(db, "CALL apoc.data.domain('<foo@bar.baz>')",
+        testCall(db, "RETURN apoc.data.domain('<foo@bar.baz>') AS value",
                 row -> Assert.assertThat(row.get("value"), equalTo("bar.baz")));
     }
 
     @Test
     public void testEmail() {
-        testCall(db, "CALL apoc.data.domain('foo@bar.baz')",
+        testCall(db, "RETURN apoc.data.domain('foo@bar.baz') AS value",
                 row -> Assert.assertThat(row.get("value"), equalTo("bar.baz")));
     }
 
     @Test
     public void testNull() {
-        testCall(db, "CALL apoc.data.domain(null) YIELD value",
+        testCall(db, "RETURN apoc.data.domain(null) AS value",
                 row -> assertEquals(null, row.get("value")));
     }
 
     @Test
     public void testBadString() {
-        testCall(db, "CALL apoc.data.domain('asdsgawe4ge') YIELD value",
+        testCall(db, "RETURN apoc.data.domain('asdsgawe4ge') AS value",
                 row -> assertEquals(null, row.get("value")));
     }
 
     @Test
     public void testEmptyString() {
-        testCall(db, "CALL apoc.data.domain('') YIELD value",
+        testCall(db, "RETURN apoc.data.domain('') AS value",
                 row -> assertEquals(null, row.get("value")));
     }
 
     @Test
     public void testUrl() {
-        testCall(db, "CALL apoc.data.domain('http://www.example.com/lots-of-stuff') YIELD value",
+        testCall(db, "RETURN apoc.data.domain('http://www.example.com/lots-of-stuff') AS value",
                 row -> assertEquals("www.example.com", row.get("value")));
     }
 
     @Test
     public void testQueryParameter() {
-        testCall(db, "CALL apoc.data.domain({param}) YIELD value",
+        testCall(db, "RETURN apoc.data.domain({param}) AS value",
                 map("param", "www.foo.bar/baz"),
                 row -> assertEquals("www.foo.bar", row.get("value")));
     }

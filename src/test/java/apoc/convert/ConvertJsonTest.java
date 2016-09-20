@@ -1,6 +1,5 @@
 package apoc.convert;
 
-import apoc.convert.Json;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -14,7 +13,6 @@ import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 
 public class ConvertJsonTest {
@@ -30,19 +28,19 @@ public class ConvertJsonTest {
     }
 
     @Test public void testToJsonList() throws Exception {
-	    testCall(db, "CALL apoc.convert.toJson([1,2,3])",
+	    testCall(db, "RETURN apoc.convert.toJson([1,2,3]) as value",
 	             (row) -> assertEquals("[1,2,3]", row.get("value")) );
     }
     @Test public void testToJsonMap() throws Exception {
-	    testCall(db, "CALL apoc.convert.toJson({a:42,b:\"foo\",c:[1,2,3]})",
+	    testCall(db, "RETURN apoc.convert.toJson({a:42,b:\"foo\",c:[1,2,3]}) as value",
 	             (row) -> assertEquals("{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}", row.get("value")) );
     }
     @Test public void testFromJsonList() throws Exception {
-	    testCall(db, "CALL apoc.convert.fromJsonList('[1,2,3]')",
+	    testCall(db, "RETURN apoc.convert.fromJsonList('[1,2,3]') as value",
 	             (row) -> assertEquals(asList(1,2,3), row.get("value")) );
     }
     @Test public void testFromJsonMap() throws Exception {
-	    testCall(db, "CALL apoc.convert.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}')",
+	    testCall(db, "RETURN apoc.convert.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}')  as value",
 	             (row) -> {
 		           Map value = (Map)row.get("value");
 		           assertEquals(42, value.get("a"));
@@ -57,7 +55,7 @@ public class ConvertJsonTest {
     }
 
     @Test public void testGetJsonProperty() throws Exception {
-        testCall(db, "CREATE (n {json:'[1,2,3]'}) WITH n CALL apoc.convert.getJsonProperty(n, 'json') YIELD value RETURN value",
+        testCall(db, "CREATE (n {json:'[1,2,3]'}) WITH n RETURN apoc.convert.getJsonProperty(n, 'json') AS value",
                 (row) -> assertEquals(asList(1,2,3), row.get("value")) );
     }
 

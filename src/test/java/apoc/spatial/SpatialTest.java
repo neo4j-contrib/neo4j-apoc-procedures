@@ -135,12 +135,12 @@ public class SpatialTest {
 
     @Test
     public void testAllTheThings() throws Exception {
-        String query = "CALL apoc.date.parseDefault('2016-06-01 00:00:00','h') YIELD value as due_date\n" +
-                "WITH due_date, point({latitude: 48.8582532, longitude: 2.294287}) as eiffel\n" +
+        String query = "WITH apoc.date.parse('2016-06-01 00:00:00','h') as due_date,\n" +
+                "     point({latitude: 48.8582532, longitude: 2.294287}) as eiffel\n" +
                 "MATCH (e:Event)\n" +
                 "WHERE exists(e.address) AND exists(e.datetime)\n" +
+                "WITH apoc.date.parse(e.datetime,'h') as hours, e, due_date, eiffel\n" +
                 "CALL apoc.spatial.geocodeOnce(e.address) YIELD location\n" +
-                "CALL apoc.date.parseDefault(e.datetime,'h') YIELD value as hours\n" +
                 "WITH e, location,\n" +
                 "     distance(point(location), eiffel) as distance,\n" +
                 "     (due_date - hours)/24.0 as days_before_due\n" +

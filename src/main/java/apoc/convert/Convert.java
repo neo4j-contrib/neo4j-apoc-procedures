@@ -10,6 +10,7 @@ import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.UserFunction;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -21,38 +22,38 @@ import java.util.stream.Stream;
  */
 public class Convert {
 
-    @Procedure
+    @UserFunction
     @Description("apoc.convert.toMap(value) | tries it's best to convert the value to a map")
-    public Stream<MapResult> toMap(@Name("map") Object map) {
-        return Stream.of(new MapResult(map instanceof Map ? (Map) map :  null));
+    public Map toMap(@Name("map") Object map) {
+        return map instanceof Map ? (Map) map :  null;
     }
-    @Procedure
+    @UserFunction
     @Description("apoc.convert.toString(value) | tries it's best to convert the value to a string")
-    public Stream<StringResult> toString(@Name("string") Object string) {
-        return Stream.of(new StringResult(string  == null ? null : string.toString()));
+    public String toString(@Name("string") Object string) {
+        return string  == null ? null : string.toString();
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.convert.toList(value) | tries it's best to convert the value to a list")
-    public Stream<ListResult> toList(@Name("list") Object list) {
-        return Stream.of(new ListResult(convertToList(list)));
+    public List<Object> toList(@Name("list") Object list) {
+        return convertToList(list);
     }
-    @Procedure
+    @UserFunction
     @Description("apoc.convert.toBoolean(value) | tries it's best to convert the value to a boolean")
-    public Stream<BooleanResult> toBoolean(@Name("bool") Object bool) {
-        return Stream.of(new BooleanResult(Util.toBoolean(bool)));
+    public Boolean toBoolean(@Name("bool") Object bool) {
+        return Util.toBoolean(bool);
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.convert.toNode(value) | tries it's best to convert the value to a node")
-    public Stream<NodeResult> toNode(@Name("node") Object node) {
-        return Stream.of(new NodeResult(node instanceof Node ? (Node) node :  null));
+    public Node toNode(@Name("node") Object node) {
+        return node instanceof Node ? (Node) node :  null;
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.convert.toRelationship(value) | tries it's best to convert the value to a relationship")
-    public Stream<RelationshipResult> toRelationship(@Name("relationship") Object relationship) {
-        return Stream.of(new RelationshipResult(relationship instanceof Relationship ? (Relationship) relationship :  null));
+    public Relationship toRelationship(@Name("relationship") Object relationship) {
+        return relationship instanceof Relationship ? (Relationship) relationship :  null;
     }
 
     @SuppressWarnings("unchecked")
@@ -60,8 +61,8 @@ public class Convert {
         if (list == null) return null;
         else if (list instanceof List) return (List) list;
         else if (list instanceof Collection) return new ArrayList((Collection)list);
-        else if (list instanceof Iterable) return Iterables.addToCollection((Iterable)list,new ArrayList<>(100));
-        else if (list instanceof Iterator) return Iterators.addToCollection((Iterator)list,new ArrayList<>(100));
+        else if (list instanceof Iterable) return Iterables.addToCollection((Iterable)list,(List)new ArrayList<>(100));
+        else if (list instanceof Iterator) return Iterators.addToCollection((Iterator)list,(List)new ArrayList<>(100));
         else if (list.getClass().isArray() && !list.getClass().getComponentType().isPrimitive()) {
             List result = new ArrayList<>(100);
             Collections.addAll(result, ((Object[]) list));
@@ -71,10 +72,10 @@ public class Convert {
     }
 
     @SuppressWarnings("unchecked")
-    @Procedure
+    @UserFunction
     @Description("apoc.convert.toSet(value) | tries it's best to convert the value to a set")
-    public Stream<ListResult> toSet(@Name("list") Object value) {
+    public List<Object> toSet(@Name("list") Object value) {
         List list = convertToList(value);
-        return Stream.of(new ListResult(list == null ? null : new SetBackedList(new LinkedHashSet<>(list))));
+        return list == null ? null : new SetBackedList(new LinkedHashSet<>(list));
     }    
 }

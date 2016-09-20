@@ -21,11 +21,11 @@ public class Json {
     @Context
     public org.neo4j.graphdb.GraphDatabaseService db;
 
-    @Procedure
+    @UserFunction
     @Description("apoc.convert.toJson([1,2,3]) or toJson({a:42,b:\"foo\",c:[1,2,3]})")
-    public Stream<StringResult> toJson(@Name("value") Object value) {
+    public String toJson(@Name("value") Object value) {
         try {
-            return Stream.of(new StringResult(JsonUtil.OBJECT_MAPPER.writeValueAsString(value)));
+            return JsonUtil.OBJECT_MAPPER.writeValueAsString(value);
         } catch (IOException e) {
             throw new RuntimeException("Can't convert " + value + " to json", e);
         }
@@ -41,32 +41,32 @@ public class Json {
         }
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.json.getJsonProperty(node,key) - converts serialized JSON in property to structure again")
-    public Stream<ObjectResult> getJsonProperty(@Name("node") Node node, @Name("key") String key) {
+    public Object getJsonProperty(@Name("node") Node node, @Name("key") String key) {
         String value = (String) node.getProperty(key, null);
         try {
-            return Stream.of(new ObjectResult(JsonUtil.OBJECT_MAPPER.readValue(value, Object.class)));
+            return JsonUtil.OBJECT_MAPPER.readValue(value, Object.class);
         } catch (IOException e) {
             throw new RuntimeException("Can't convert " + value + " to json", e);
         }
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.convert.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}')")
-    public Stream<MapResult> fromJsonMap(@Name("map") String value) {
+    public Map<String,Object> fromJsonMap(@Name("map") String value) {
         try {
-            return Stream.of(new MapResult(JsonUtil.OBJECT_MAPPER.readValue(value, Map.class)));
+            return JsonUtil.OBJECT_MAPPER.readValue(value, Map.class);
         } catch (IOException e) {
             throw new RuntimeException("Can't deserialize to Map:\n" + value, e);
         }
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.convert.fromJsonList('[1,2,3]')")
-    public Stream<ListResult> fromJsonList(@Name("list") String value) {
+    public List<Object> fromJsonList(@Name("list") String value) {
         try {
-            return Stream.of(new ListResult(JsonUtil.OBJECT_MAPPER.readValue(value, List.class)));
+            return JsonUtil.OBJECT_MAPPER.readValue(value, List.class);
         } catch (IOException e) {
             throw new RuntimeException("Can't deserialize to List:\n" + value, e);
         }

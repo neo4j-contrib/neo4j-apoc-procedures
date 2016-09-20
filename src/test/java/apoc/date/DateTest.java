@@ -52,35 +52,35 @@ public class DateTest {
 
 	@Test public void testToDays() throws Exception {
 		testCall(db,
-				"CALL apoc.date.parseDefault({date},'d')",
+				"RETURN apoc.date.parse({date},'d') AS value",
 				map("date",testDateAsString),
 				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_DAY * (long) row.get("value"))));
 	}
 
 	@Test public void testToHours() throws Exception {
 		testCall(db,
-				"CALL apoc.date.parseDefault({date},'h')",
+				"RETURN apoc.date.parse({date},'h') AS value",
 				map("date",testDateAsString),
 				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_HOUR * (long) row.get("value"))));
 	}
 
 	@Test public void testToMinutes() throws Exception {
 		testCall(db,
-				"CALL apoc.date.parseDefault({date},'m')",
+				"RETURN apoc.date.parse({date},'m') AS value",
 				map("date",testDateAsString),
 				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_MINUTE * (long) row.get("value"))));
 	}
 
 	@Test public void testToUnixtime() throws Exception {
 		testCall(db,
-				"CALL apoc.date.parseDefault({date},'s')",
+				"RETURN apoc.date.parse({date},'s') AS value",
 				map("date",epochAsString),
 				row -> assertEquals(Instant.EPOCH, Instant.ofEpochSecond((long) row.get("value"))));
 	}
 
 	@Test public void testToMillis() throws Exception {
 		testCall(db,
-				"CALL apoc.date.parseDefault({date},'ms')",
+				"RETURN apoc.date.parse({date},'ms') AS value",
 				map("date",epochAsString),
 				row -> assertEquals(Instant.EPOCH, Instant.ofEpochMilli((long) row.get("value"))));
 	}
@@ -90,7 +90,7 @@ public class DateTest {
 		SimpleDateFormat customFormat = formatInUtcZone(pattern);
 		String reference = customFormat.format(new java.util.Date(0L));
 		testCall(db,
-				"CALL apoc.date.parse({date},'s',{pattern})",
+				"RETURN apoc.date.parse({date},'s',{pattern}) AS value",
 				map("date",reference,"pattern",pattern),
 				row -> assertEquals(Instant.EPOCH, Instant.ofEpochSecond((long) row.get("value"))));
 	}
@@ -98,19 +98,19 @@ public class DateTest {
 	@Test public void testToUnixtimeWithIncorrectPatternFormat() throws Exception {
 		expected.expect(instanceOf(QueryExecutionException.class));
 		testCall(db,
-				"CALL apoc.date.parse('12/12/1945 12:12:12','s','MM/dd/yyyy HH:mm:ss/neo4j')",
+				"RETURN apoc.date.parse('12/12/1945 12:12:12','s','MM/dd/yyyy HH:mm:ss/neo4j') AS value",
 				row -> assertEquals(Instant.EPOCH, Instant.ofEpochSecond((long) row.get("value"))));
 	}
 
 	@Test public void testToUnixtimeWithNullInput() throws Exception {
 		testCall(db,
-				"CALL apoc.date.parseDefault(NULL,'s')",
+				"RETURN apoc.date.parse(NULL,'s') AS value",
 				row -> assertNull(row.get("value")));
 	}
 
 	@Test public void testFromUnixtime() throws Exception {
 		testCall(db,
-				"CALL apoc.date.formatDefault(0,'s')",
+				"RETURN apoc.date.format(0,'s') AS value",
 				row -> {
 					try {
 						assertEquals(new java.util.Date(0L), defaultFormat.parse((String) row.get("value")));
@@ -124,7 +124,7 @@ public class DateTest {
 		String pattern = "MM/dd/yyyy HH:mm:ss";
 		SimpleDateFormat customFormat = formatInUtcZone(pattern);
 		testCall(db,
-				"CALL apoc.date.format(0,'s',{pattern})",
+				"RETURN apoc.date.format(0,'s',{pattern}) AS value",
 				map("pattern",pattern),
 				row -> {
 					try {
@@ -140,7 +140,7 @@ public class DateTest {
 		String timezone = "America/New_York";
 		SimpleDateFormat customFormat = formatInCustomTimeZone(pattern, timezone);
 		testCall(db,
-				"CALL apoc.date.formatTimeZone(0,'s',{pattern},{timezone})",
+				"RETURN apoc.date.format(0,'s',{pattern},{timezone}) AS value",
 				map("pattern",pattern,"timezone",timezone),
 				row -> {
 					try {
@@ -154,20 +154,20 @@ public class DateTest {
 	@Test public void testFromUnixtimeWithIncorrectPatternFormat() throws Exception {
 		expected.expect(instanceOf(QueryExecutionException.class));
 		testCall(db,
-				"CALL apoc.date.format(0,'s','MM/dd/yyyy HH:mm:ss/neo4j')",
+				"RETURN apoc.date.format(0,'s','MM/dd/yyyy HH:mm:ss/neo4j') AS value",
 				row -> {});
 	}
 
 	@Test public void testFromUnixtimeWithIncorrectPatternFormatAndTimeZone() throws Exception {
 		expected.expect(instanceOf(QueryExecutionException.class));
 		testCall(db,
-				"CALL apoc.date.formatTimeZone(0,'s','MM/dd/yyyy HH:mm:ss/neo4j','Neo4j/Apoc')",
+				"RETURN apoc.date.formatTimeZone(0,'s','MM/dd/yyyy HH:mm:ss/neo4j','Neo4j/Apoc') AS value",
 				row -> {});
 	}
 
 	@Test public void testFromUnixtimeWithNegativeInput() throws Exception {
 		expected.expect(instanceOf(QueryExecutionException.class));
-		testCall(db, "CALL apoc.date.formatDefault(-1,'s')", row -> {});
+		testCall(db, "RETURN apoc.date.format(-1,'s') AS value", row -> {});
 	}
 
 	@Test public void testOrderByDate() throws Exception {
@@ -192,7 +192,7 @@ public class DateTest {
 
 		List<java.util.Date> actual;
 		try (Transaction tx = db.beginTx()) {
-			String query = "MATCH (p:Person) WITH p CALL apoc.date.parseDefault(p.born,'s') yield value as dob RETURN p,dob ORDER BY dob ";
+			String query = "MATCH (p:Person) RETURN p, apoc.date.parse(p.born,'s') as dob ORDER BY dob ";
 			actual = Iterators.asList(db.execute(query).<Long>columnAs("dob")).stream()
 					.map(dob -> java.util.Date.from(Instant.ofEpochSecond((long) dob)))
 					.collect(toList());
@@ -205,30 +205,23 @@ public class DateTest {
 	@Test
 	public void testfields() throws Exception {
 		testCall(db,
-				"CALL apoc.date.fieldsDefault('2015-01-02 03:04:05')",
+				"RETURN apoc.date.fields('2015-01-02 03:04:05') AS value",
 				row -> {
 					Map<String, Object> map = (Map<String, Object>) row.get("value");
 					assertEquals(2015L, map.get("years"));
-					assertEquals(2015L, row.get("years"));
 					assertEquals(1L, map.get("months"));
-					assertEquals(1L, row.get("months"));
 					assertEquals(2L, map.get("days"));
-					assertEquals(2L, row.get("days"));
 					assertEquals(5L, map.get("weekdays"));
-					assertEquals(5L, row.get("weekdays"));
 					assertEquals(3L, map.get("hours"));
-					assertEquals(3L, row.get("hours"));
 					assertEquals(4L, map.get("minutes"));
-					assertEquals(4L, row.get("minutes"));
 					assertEquals(5L, map.get("seconds"));
-					assertEquals(5L, row.get("seconds"));
 				});
 	}
 
 	@Test
 	public void testfieldsCustomFormat() throws Exception {
 		testCall(db,
-				"CALL apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') yield value as m RETURN m",
+				"RETURN apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') AS m",
 				row -> {
 					Map<String, Object> split = (Map<String, Object>) row.get("m");
 					assertEquals(2015L, split.get("years"));
@@ -244,7 +237,7 @@ public class DateTest {
 				});
 
 		testCall(db,
-				"CALL apoc.date.fields('2015/01/02/03/04/05/EET', 'yyyy/MM/dd/HH/mm/ss/z')",
+				"RETURN apoc.date.fields('2015/01/02/03/04/05/EET', 'yyyy/MM/dd/HH/mm/ss/z') AS value",
 				row -> {
 					Map<String, Object> split = (Map<String, Object>) row.get("value");
 					assertEquals(2015L, split.get("years"));
@@ -260,7 +253,7 @@ public class DateTest {
 				});
 
 		testCall(db,
-				"CALL apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z')",
+				"RETURN apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z') AS value",
 				row -> {
 					Map<String, Object> split = (Map<String, Object>) row.get("value");
 					assertEquals(2015L, split.get("years"));
@@ -276,7 +269,7 @@ public class DateTest {
 	@Test
 	public void testfieldsNullInput() throws Exception {
 		testCall(db,
-				"CALL apoc.date.fields(NULL, 'yyyy-MM-dd HH:mm:ss zzz')",
+				"RETURN apoc.date.fields(NULL, 'yyyy-MM-dd HH:mm:ss zzz') AS value",
 				row -> {
 					Map<String, Object> split = (Map<String, Object>) row.get("value");
 					assertTrue(split.isEmpty());
