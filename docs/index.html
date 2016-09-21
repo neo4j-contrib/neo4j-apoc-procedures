@@ -471,6 +471,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_warmup">Warmup</a></li>
 <li><a href="#_monitoring">Monitoring</a></li>
 <li><a href="#_cypher_execution">Cypher Execution</a></li>
+<li><a href="#_triggers">Triggers</a></li>
 <li><a href="#_job_management">Job Management</a></li>
 <li><a href="#_graph_refactoring">Graph Refactoring</a></li>
 <li><a href="#_spatial">Spatial</a></li>
@@ -1709,8 +1710,36 @@ CALL apoc.generate.simple([2,2,2,2], null, null)</code></pre>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="sect2">
+<h3 id="_triggers">Triggers</h3>
 <div class="paragraph">
-<p>TODO runFile: begin/commit/schema await/constraints/indexes</p>
+<p>Enable <code>apoc.trigger.enabled=true</code> in <code>$NEO4J_HOME/config/neo4j.conf</code> first.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.remove(name) yield name, statement, installed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">remove previously added trigger, returns trigger information</p></td>
+</tr>
+</tbody>
+</table>
+<div class="listingblock">
+<div class="title">Examples</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.trigger.add('timestamp','UNWIND {createdNodes} AS n SET n.ts = timestamp()');
+CALL apoc.trigger.add('lowercase','UNWIND {createdNodes} AS n SET n.id = toLower(n.name)');
+CALL apoc.trigger.add('txInfo',   'UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}', {phase:'after'});
+CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN {deletedRelationships} WHERE type(r) = "X"])')</code></pre>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -5074,7 +5103,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-09-19 11:32:39 +02:00
+Last updated 2016-09-19 11:38:38 +02:00
 </div>
 </div>
 </body>
