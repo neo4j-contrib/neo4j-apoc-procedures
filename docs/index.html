@@ -548,6 +548,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_graph_algorithms">Graph Algorithms</a>
 <ul class="sectlevel2">
+<li><a href="#_algorithm_procedures">Algorithm Procedures</a>
+<ul class="sectlevel3">
+<li><a href="#_community_detection_via_label_propagation">Community Detection via Label Propagation</a></li>
+</ul>
+</li>
 <li><a href="#_expand_paths">Expand paths</a>
 <ul class="sectlevel3">
 <li><a href="#_usage">Usage</a></li>
@@ -3449,6 +3454,36 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 <h2 id="_graph_algorithms">Graph Algorithms</h2>
 <div class="sectionbody">
 <div class="sect2">
+<h3 id="_algorithm_procedures">Algorithm Procedures</h3>
+<div class="sect3">
+<h4 id="_community_detection_via_label_propagation">Community Detection via Label Propagation</h4>
+<div class="paragraph">
+<p>APOC includes a simple procedure for label propagation.
+It may be used to detect communities or solve other graph partitioning problems.
+The following example shows how it may be used.</p>
+</div>
+<div class="paragraph">
+<p>The example call with scan all nodes 25 times.
+During a scan the procedure will look at all outgoing relationships of type :X for each node n.
+For each of these relationships, it will compute a weight and use that as a vote for the other node&#8217;s 'partition' property value.
+Finally, n.partition is set to the property value that acquired the most votes.</p>
+</div>
+<div class="paragraph">
+<p>Weights are computed by multiplying the relationship weight with the weight of the other nodes.
+Both weights are taken from the 'weight' property; if no such property is found, the weight is assumed to be 1.0.
+Similarly, if no 'weight' property key was specified, all weights are assumed to be 1.0.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.algo.community(25,null,'partition','X','OUTGOING','weight',10000)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The second argument is a list of label names and may be used to restrict which nodes are scanned.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
 <h3 id="_expand_paths">Expand paths</h3>
 <div class="paragraph">
 <p>expand from start node following the given relationships from min to max-level adhering to the label filters</p>
@@ -5103,7 +5138,7 @@ SET u:Processed RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-09-19 11:38:38 +02:00
+Last updated 2016-09-21 13:06:52 +02:00
 </div>
 </div>
 </body>
