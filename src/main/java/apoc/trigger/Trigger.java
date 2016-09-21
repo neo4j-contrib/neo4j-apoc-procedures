@@ -13,8 +13,9 @@ import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.kernel.impl.core.GraphProperties;
 import org.neo4j.kernel.impl.core.NodeManager;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.procedure.Mode;
+//import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
+import org.neo4j.procedure.PerformsWrites;
 import org.neo4j.procedure.Procedure;
 
 import java.util.ArrayList;
@@ -78,9 +79,10 @@ public class Trigger {
         return result;
     }
 
-    @Procedure(mode = Mode.WRITE)
+    @PerformsWrites
+    @Procedure
     @Description("add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information")
-    public Stream<TriggerInfo> add(@Name("name") String name, @Name("statement") String statement, @Name(value = "selector", defaultValue = "{}")  Map<String,Object> selector) {
+    public Stream<TriggerInfo> add(@Name("name") String name, @Name("statement") String statement, @Name(value = "selector"/*, defaultValue = "{}"*/)  Map<String,Object> selector) {
         Map<String, Object> removed = TriggerHandler.add(name, statement, selector);
         if (removed != null) {
             return Stream.of(
@@ -90,7 +92,8 @@ public class Trigger {
         return Stream.of(new TriggerInfo(name,statement,selector,true));
     }
 
-    @Procedure(mode = Mode.WRITE)
+    @PerformsWrites
+    @Procedure
     @Description("remove previously added trigger, returns trigger information")
     public Stream<TriggerInfo> remove(@Name("name")String name) {
         Map<String, Object> removed = TriggerHandler.remove(name);
@@ -143,8 +146,8 @@ public class Trigger {
 
         private void executeTriggers(TransactionData txData, String phase) {
             Map<String, Object> params = map(
-                    "transactionId", phase.equals("after") ? txData.getTransactionId() : -1,
-                    "commitTime", phase.equals("after") ? txData.getCommitTime() : -1,
+//                    "transactionId", phase.equals("after") ? txData.getTransactionId() : -1,
+//                    "commitTime", phase.equals("after") ? txData.getCommitTime() : -1,
                     "createdNodes", txData.createdNodes(),
                     "createdRelationships", txData.createdRelationships(),
                     "deletedNodes", txData.deletedNodes(),
