@@ -57,12 +57,12 @@ public class FreeTextSearch {
     @Procedure
     @PerformsWrites
     @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}) YIELD type, name, config - create a free text search index")
-    public Stream<IndexStats> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure) {
+    public Stream<IndexStats> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure, @Name("options") Map<String,String> options ) {
         if (structure.isEmpty()) {
             throw new IllegalArgumentException("No structure given.");
         }
         return async(executor(), "Creating index '" + index + "'", result -> {
-            populate(index(index, structure), structure, result);
+            populate(index(index, structure, options ), structure, result);
         });
     }
 
@@ -163,7 +163,7 @@ public class FreeTextSearch {
         return structure;
     }
 
-    private Index<Node> index(String index, Map<String, List<String>> structure) {
+    private Index<Node> index(String index, Map<String, List<String>> structure, Map<String,String> options ) {
         Map<String, String> config = new HashMap<>(CONFIG);
         try (Transaction tx = db.beginTx()) {
             if (db.index().existsForNodes(index)) {
@@ -176,6 +176,10 @@ public class FreeTextSearch {
         }
         try (Transaction tx = db.beginTx()) {
             updateConfigFromParameters(config, structure);
+            for( String key : options.keySet() ) {
+                config.put( key, options.get( key ) );
+            }
+            log.info("Creating or updating index '%s' with config '%s'", index, config );
             Index<Node> nodeIndex = db.index().forNodes(index, config);
             tx.success();
             return nodeIndex;
