@@ -52,11 +52,12 @@ public class FreeTextSearch {
      *
      * @param index     The name of the index to create.
      * @param structure The labels of nodes to index, and the properties to index for each label.
+     * @param options   A list of options, e.g. "to_lower_case: false" or "analyzer: own.analyzer.Implementation"
      * @return a stream containing a single element that describes the created index.
      */
     @Procedure
     @PerformsWrites
-    @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}) YIELD type, name, config - create a free text search index")
+    @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}, {config}) YIELD type, name, config - create a free text search index")
     public Stream<IndexStats> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure, @Name("options") Map<String,Object> options ) {
         if (structure.isEmpty()) {
             throw new IllegalArgumentException("No structure given.");
