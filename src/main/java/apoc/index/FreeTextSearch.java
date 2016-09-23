@@ -57,7 +57,7 @@ public class FreeTextSearch {
      */
     @Procedure
     @PerformsWrites
-    @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}, {config}) YIELD type, name, config - create a free text search index")
+    @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}, {options}) YIELD type, name, config - create a free text search index")
     public Stream<IndexStats> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure, @Name("options") Map<String,Object> options ) {
         if (structure.isEmpty()) {
             throw new IllegalArgumentException("No structure given.");
