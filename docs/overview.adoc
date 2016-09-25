@@ -1,7 +1,5 @@
 = Included Procedures Overview
 
-:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img
-
 == Built in Help
 
 // tag::help[]

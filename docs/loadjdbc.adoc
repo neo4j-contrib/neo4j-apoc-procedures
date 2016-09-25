@@ -1,8 +1,5 @@
 = Load JDBC
 
-:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img
-
-
 include::overview.adoc[tags=jdbc,leveloffset=-1]
 
 
@@ -306,63 +303,27 @@ RETURN row LIMIT 4;
 ----
 
 ----
-╒══════════════════════════════╕
-│row                           │
-╞══════════════════════════════╡
-│{name: ANURAG SRIVASTAVA, age:│
-│ 24, salary: 20000, id: 1, add│
-│ress: NEW DELHI               │
-│                          }   │
-├──────────────────────────────┤
-│{name: SHIVANSH SRIVASTAVA, ag│
-│e: 22, salary: 19000, id: 2, a│
-│ddress: NEW DELHI             │
-│                            } │
-├──────────────────────────────┤
-│{name: SANDY, age: 26, salary:│
-│ 21000, id: 3, address: JODHPU│
-│R                             │
-│              }               │
-├──────────────────────────────┤
-│{name: MANISH, age: 26, salary│
-│: 20000, id: 4, address: NEW D│
-│ELHI                          │
-│               }              │
-└──────────────────────────────┘
+╒════════════════════════════════════════════════════════════════════════════════════════════════════════╕
+│row                                                                                                     │
+╞════════════════════════════════════════════════════════════════════════════════════════════════════════╡
+│{name: ANURAG SRIVASTAVA, age: 24, salary: 20000, id: 1, address: NEW DELHI              }              │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│{name: SHIVANSH SRIVASTAVA, age: 22, salary: 19000, id: 2, address: NEW DELHI            }              │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│{name: SANDY, age: 26, salary: 21000, id: 3, address: JODHPUR                            }              │
+├────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│{name: MANISH, age: 26, salary: 20000, id: 4, address: NEW DELHI                         }              │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ----
 
-Let’s create some indexes and constraints, note that other indexes and constraints will be dropped by this.
-
-[source,cypher]
-----
-CALL apoc.schema.assert( {Detail:['name','age','address','salary']}, {Detail:['id']});
-----
-
-----
-╒══════╤═══════╤══════╤═══════╕
-│label │key    │unique│action │
-╞══════╪═══════╪══════╪═══════╡
-│Detail│name   │false │CREATED│
-├──────┼───────┼──────┼───────┤
-│Detail│age    │false │CREATED│
-├──────┼───────┼──────┼───────┤
-│Detail│address│false │CREATED│
-├──────┼───────┼──────┼───────┤
-│Detail│salary │false │CREATED│
-├──────┼───────┼──────┼───────┤
-│Detail│id     │true  │CREATED│
-└──────┴───────┴──────┴───────┘
-----
-
-.Create Nodes in Neo4j
-[source,cypher]
+Create data from query results.
 ----
 CALL apoc.load.jdbc('jdbc:postgresql://localhost:5432/testdb?user=postgres&password=postgres','employee_details') yield row
-CREATE (t:Detail {id:toString(row.id), name:row.name, age:toString(row.age), address:row.address, salary:toString(row.salary)});
+CREATE (t:Employee {id:row.id, name:row.name, age:row.age, address:row.address, salary:row.salary});
 ----
 
 ----
-Added 50 labels, created 50 nodes, set 250 properties, statement executed in 249 ms.
+Added 50 labels, created 50 nodes, set 250 properties, statement executed in 217 ms.
 ----
 
 == Oracle Example
@@ -430,64 +391,29 @@ CALL apoc.load.jdbc('oracle_url',"employee_details") YIELD row
 RETURN row LIMIT 5;
 ----
 ----
-╒══════════════════════════════╕
-│row                           │
-╞══════════════════════════════╡
-│{ADDRESS: NEW DELHI, ID: 1, NA│
-│ME: ANURAG, AGE: 23, SALARY: 2│
-│5000}                         │
-├──────────────────────────────┤
-│{ADDRESS: NEW DELHI, ID: 2, NA│
-│ME: SHIVANSH SRIVASTAVA, AGE: │
-│22, SALARY: 19000}            │
-├──────────────────────────────┤
-│{ADDRESS: JODHPUR, ID: 3, NAME│
-│: SANDY, AGE: 26, SALARY: 2100│
-│0}                            │
-├──────────────────────────────┤
-│{ADDRESS: NEW DELHI, ID: 4, NA│
-│ME: MANISH, AGE: 26, SALARY: 2│
-│0000}                         │
-├──────────────────────────────┤
-│{ADDRESS: NEW DELHI, ID: 5, NA│
-│ME: HARMEET, AGE: 26, SALARY: │
-│21000}                        │
-└──────────────────────────────┘
+╒══════════════════════════════════════════════════════════════════════════════╕
+│row                                                                           │
+╞══════════════════════════════════════════════════════════════════════════════╡
+│{ADDRESS: NEW DELHI, ID: 1, NAME: ANURAG, AGE: 23, SALARY: 25000}             │
+├──────────────────────────────────────────────────────────────────────────────┤
+│{ADDRESS: NEW DELHI, ID: 2, NAME: SHIVANSH SRIVASTAVA, AGE: 22, SALARY: 19000}│
+├──────────────────────────────────────────────────────────────────────────────┤
+│{ADDRESS: JODHPUR, ID: 3, NAME: SANDY, AGE: 26, SALARY: 21000}                │
+├──────────────────────────────────────────────────────────────────────────────┤
+│{ADDRESS: NEW DELHI, ID: 4, NAME: MANISH, AGE: 26, SALARY: 20000}             │
+├──────────────────────────────────────────────────────────────────────────────┤
+│{ADDRESS: NEW DELHI, ID: 5, NAME: HARMEET, AGE: 26, SALARY: 21000}            │
+└──────────────────────────────────────────────────────────────────────────────┘
 ----
-
-Let’s create some indexes and constraints, note that other indexes and constraints will be dropped by this.
-
-[source,cypher]
-----
-CALL apoc.schema.assert({EMPINFO:['name', 'age','salary']}, {EMPINFO:['id'],ADDRESS:['address']});
-----
-----
-╒═══════╤═══════╤══════╤═══════╕
-│label  │key    │unique│action │
-╞═══════╪═══════╪══════╪═══════╡
-│EMPINFO│name   │false │CREATED│
-├───────┼───────┼──────┼───────┤
-│EMPINFO│age    │false │CREATED│
-├───────┼───────┼──────┼───────┤
-│EMPINFO│salary │false │CREATED│
-├───────┼───────┼──────┼───────┤
-│ADDRESS│address│true  │CREATED│
-├───────┼───────┼──────┼───────┤
-│EMPINFO│id     │true  │CREATED│
-└───────┴───────┴──────┴───────┘
-----
-
 
 .Create Nodes in Neo4j
 [source,cypher]
 ----
 CALL apoc.load.jdbc('oracle_url','employee_details') yield row
-MERGE (g:ADDRESS {name:row.ADDRESS})
-CREATE (t:EMPINFO {id:toString(row.ID), name:row.NAME, age:toString(row.AGE), salary:toString(row.SALARY)})
-CREATE (t)-[:LIVE]->(g);
+CREATE (t:EMPINFO {id:row.ID, name:row.NAME, age:row.AGE, salary:row.SALARY, address: row.ADDRESS})
 ----
 
 ----
-Added 53 labels, created 53 nodes, set 203 properties, created 50 relationships, statement executed in 1398 ms.
+Added 50 labels, created 50 nodes, set 250 properties, statement executed in 936 ms.
 ----
 
