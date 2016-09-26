@@ -18,7 +18,6 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import java.util.*;
 
 import static apoc.index.FreeTextSearch.KEY;
-import static com.sun.tools.doclets.formats.html.markup.HtmlStyle.bar;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.CoreMatchers.*;
