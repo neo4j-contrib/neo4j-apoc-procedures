@@ -52,13 +52,32 @@ public class FreeTextSearch {
      *
      * @param index     The name of the index to create.
      * @param structure The labels of nodes to index, and the properties to index for each label.
-     * @param options   A list of options, e.g. "to_lower_case: false" or "analyzer: own.analyzer.Implementation"
      * @return a stream containing a single element that describes the created index.
      */
     @Procedure
     @PerformsWrites
-    @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}, {options}) YIELD type, name, config - create a free text search index")
-    public Stream<IndexStats> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure, @Name("options") Map<String,Object> options ) {
+    @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}) YIELD type, name, config - create a free text search index")
+    @Deprecated
+    public Stream<IndexStats> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure ) {
+        return addAllNodesExtended( index, structure, new HashMap<String,Object>(0) );
+    }
+
+    /**
+     * Create (or recreate) a free text search index.
+     * <p>
+     * This will populate the index with all currently matching data. Updates will not be reflected in the index.
+     * In order to get updates into the index, the index has to be rebuilt.
+     *
+     * @param index     The name of the index to create.
+     * @param structure The labels of nodes to index, and the properties to index for each label.
+     * @param options   Additional options which can be evaluated by the index provider.
+     * @return a stream containing a single element that describes the created index.
+     */
+
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}, {options}) YIELD type, name, config - create a free text search index with special options")
+    public Stream<IndexStats> addAllNodesExtended(@Name("index") String index, @Name("structure") Map<String, List<String>> structure, @Name("options") Map<String,Object> options ) {
         if (structure.isEmpty()) {
             throw new IllegalArgumentException("No structure given.");
         }
@@ -177,8 +196,10 @@ public class FreeTextSearch {
         }
         try (Transaction tx = db.beginTx()) {
             updateConfigFromParameters(config, structure);
+
+            /* add options to the parameters */
             for( String key : options.keySet() ) {
-                config.put( key, "" + options.get( key ) );
+                config.put( key, "" + options.get( key ) ); // explicit conversion to String
             }
             log.info("Creating or updating index '%s' with config '%s'", index, config );
             Index<Node> nodeIndex = db.index().forNodes(index, config);

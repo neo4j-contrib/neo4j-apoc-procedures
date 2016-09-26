@@ -15,12 +15,10 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static apoc.index.FreeTextSearch.KEY;
+import static com.sun.tools.doclets.formats.html.markup.HtmlStyle.bar;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.CoreMatchers.*;
@@ -36,6 +34,7 @@ public class FreeTextSearchTest {
     public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, FreeTextSearch.class);
+        TestUtil.registerProcedure(db, FulltextIndex.class);
     }
 
     @After
@@ -50,7 +49,7 @@ public class FreeTextSearchTest {
         execute("CREATE (:Person{name:'George Goldman', nick:'GeeGee'}), (:Person{name:'Cyrus Jones', age:103})");
 
         // when
-        execute("CALL apoc.index.addAllNodes('people', {Person:['name','nick']},{})");
+        execute("CALL apoc.index.addAllNodes('people', {Person:['name','nick']})");
 
         // then
         assertSingleNode("people", termQuery("GeeGee"), hasProperty("name", "George Goldman"));
@@ -64,7 +63,7 @@ public class FreeTextSearchTest {
     public void shouldRefuseToCreateIndexWithNoStructure() throws Exception {
         // when
         try {
-            execute("CALL apoc.index.addAllNodes('empty', {}, {})");
+            execute("CALL apoc.index.addAllNodes('empty', {})");
 
             fail("expected exception");
         }
@@ -86,7 +85,7 @@ public class FreeTextSearchTest {
         execute("CREATE (:Person{name:'Long John Silver', nick:'Cook'}), (:City{name:'London'})");
 
         // when
-        execute("CALL apoc.index.addAllNodes('stuff', {Person:['name','nick'], City:['name']},{})");
+        execute("CALL apoc.index.addAllNodes('stuff', {Person:['name','nick'], City:['name']})");
 
         // then
         assertSingleNode("stuff", termQuery("Long"), hasProperty("name", "Long John Silver"), hasLabel("Person"));
@@ -99,8 +98,8 @@ public class FreeTextSearchTest {
     public void shouldHandleRepeatedCalls() throws Exception {
         // given
         execute("CREATE (:Person{name:'George Goldman', nick:'GeeGee'}), (:Person{name:'Cyrus Jones', age:103})");
-        execute("CALL apoc.index.addAllNodes('people', {Person:['name','nick']},{})");
-        execute("CALL apoc.index.addAllNodes('people', {Person:['name','nick']},{})");
+        execute("CALL apoc.index.addAllNodes('people', {Person:['name','nick']})");
+        execute("CALL apoc.index.addAllNodes('people', {Person:['name','nick']})");
 
         // then
         assertSingle(search("people", "GeeGee"), hasProperty("name", "George Goldman"));
@@ -110,7 +109,7 @@ public class FreeTextSearchTest {
     public void shouldQueryFreeTextIndex() throws Exception {
         // given
         execute("CREATE (:Person{name:'George Goldman', nick:'GeeGee'}), (:Person{name:'Cyrus Jones', age:103})");
-        execute("CALL apoc.index.addAllNodes('people', {Person:['name','nick']},{})");
+        execute("CALL apoc.index.addAllNodes('people', {Person:['name','nick']})");
 
         // then
         assertSingle(search("people", "GeeGee"), hasProperty("name", "George Goldman"));
@@ -124,7 +123,7 @@ public class FreeTextSearchTest {
     public void shouldEnableSearchingBySpecificField() throws Exception {
         // given
         execute("CREATE (:Person{name:'Johnny'}), (:Product{name:'Johnny'})");
-        execute("CALL apoc.index.addAllNodes('stuff', {Person:['name'],Product:['name']},{})");
+        execute("CALL apoc.index.addAllNodes('stuff', {Person:['name'],Product:['name']})");
 
         // then
         assertSingle(search("stuff", "Person.name:Johnny"), hasLabel("Person"), not(hasLabel("Product")));
@@ -135,7 +134,7 @@ public class FreeTextSearchTest {
     public void shouldIndexNodesWithMultipleLabels() throws Exception {
         // given
         execute("CREATE (:Foo:Bar:Baz{name:'thing'})");
-        execute("CALL apoc.index.addAllNodes('stuff', {Foo:['name'], Baz:['name'], Axe:['name']},{})");
+        execute("CALL apoc.index.addAllNodes('stuff', {Foo:['name'], Baz:['name'], Axe:['name']})");
 
         // then
         assertSingle(search("stuff", "Foo.name:thing"));
@@ -151,7 +150,7 @@ public class FreeTextSearchTest {
         // given
         // create 90k nodes - this force 2 batches during indexing
         execute("UNWIND range(1,90000) as x CREATE (:Person{name:'person'+x})");
-        execute("CALL apoc.index.addAllNodes('people', {Person:['name']},{})");
+        execute("CALL apoc.index.addAllNodes('people', {Person:['name']})");
 
         // then
         assertSingle(search("people", "person89999"), hasProperty("name", "person89999"));
@@ -162,7 +161,7 @@ public class FreeTextSearchTest {
         // given
         db.execute("UNWIND {things} AS thing CREATE (:Thing{name:thing})", singletonMap("things",
                 asList("food", "feed", "foot", "fork", "foo", "bar", "ford"))).close();
-        execute("CALL apoc.index.addAllNodes('things',{Thing:['name']},{})");
+        execute("CALL apoc.index.addAllNodes('things',{Thing:['name']})");
 
         // when
         ResourceIterator<String> things = db.execute(
@@ -178,7 +177,7 @@ public class FreeTextSearchTest {
     public void shouldSearchInNumericRange() throws Exception {
         // given
         execute("UNWIND range(1, 10000) AS num CREATE (:Number{name:'The ' + num + 'th',number:num})");
-        execute("CALL apoc.index.addAllNodes('numbers', {Number:['name','number']},{})");
+        execute("CALL apoc.index.addAllNodes('numbers', {Number:['name','number']})");
 
         // when
         ResourceIterator<Object> names = db.execute(
@@ -193,7 +192,7 @@ public class FreeTextSearchTest {
     public void shouldLimitNumberOfResults() throws Exception {
         // given
         execute("UNWIND range(1, 10000) AS num CREATE (:Number{name:'The ' + num + 'th',number:num})");
-        execute("CALL apoc.index.addAllNodes('numbers', {Number:['name','number']},{})");
+        execute("CALL apoc.index.addAllNodes('numbers', {Number:['name','number']})");
 
         // when
         Result result = db.execute("CALL apoc.index.search('numbers', 'The')");
@@ -210,7 +209,7 @@ public class FreeTextSearchTest {
         String fred = "Fred Finished";
         Map params = singletonMap("names", Iterators.array(john, jim, fred));
         execute("UNWIND {names} as name CREATE (:Hacker{name:name})", params);
-        execute("CALL apoc.index.addAllNodes('hackerz', {Hacker:['name']},{})");
+        execute("CALL apoc.index.addAllNodes('hackerz', {Hacker:['name']})");
 
         // expect
         TestUtil.testResult(db, "CALL apoc.index.search('hackerz', 'D*') yield node, weight " +
@@ -230,6 +229,67 @@ public class FreeTextSearchTest {
             assertTrue(names.contains(fred));
         });
 
+    }
+
+    @Test
+    public void addAllNodesDefaultParameters() {
+        execute("CALL apoc.index.addAllNodes('hackerz', {Hacker:['name']})");
+
+        TestUtil.testResult( db, "CALL apoc.index.list() yield config", result -> {
+            List<Object> configs = Iterators.asList( result.columnAs("config") );
+            assertEquals( 1, configs.size() );
+            Map<String,Object> config = (Map) configs.get( 0 );
+            assertEquals( 5, config.size() ); // expecting 5 values
+
+            // 5 default values
+            assertEquals( config.get("type"), "fulltext" );
+            assertEquals( config.get("to_lower_case"), "true" );
+            assertEquals( config.get("provider"), "lucene" );
+            assertEquals( config.get("keysForLabel:Hacker"), "name" );
+            assertEquals( config.get("labels"), "Hacker" );
+
+        });
+    }
+
+    @Test
+    public void addAllNodesExtendedNoOptionsDefaultParameters() {
+        execute("CALL apoc.index.addAllNodesExtended('hackerz', {Hacker:['name']},{})"); // note the ,{} here
+
+        TestUtil.testResult( db, "CALL apoc.index.list() yield config", result -> {
+            List<Object> configs = Iterators.asList( result.columnAs("config") );
+            assertEquals( 1, configs.size() );
+            Map<String,Object> config = (Map) configs.get( 0 );
+            assertEquals( 5, config.size() ); // expecting 5 values
+
+            // 5 default values
+            assertEquals( config.get("type"), "fulltext" );
+            assertEquals( config.get("to_lower_case"), "true" );
+            assertEquals( config.get("provider"), "lucene" );
+            assertEquals( config.get("keysForLabel:Hacker"), "name" );
+            assertEquals( config.get("labels"), "Hacker" );
+
+        });
+    }
+
+    @Test
+    public void addAllNodesExtendedOptionsCheck() throws Exception {
+        execute("CALL apoc.index.addAllNodesExtended('hackerz', {Hacker:['name']},{autoUpdate: true, to_lower_case: false, foo: \"bar\"})");
+
+        TestUtil.testResult( db, "CALL apoc.index.list() yield config", result -> {
+            List<Object> configs = Iterators.asList( result.columnAs("config") );
+            assertEquals( 1, configs.size() );
+            Map<String,Object> config = (Map) configs.get( 0 );
+            assertEquals( 7, config.size() ); // expecting 5 values
+
+            // 5 default values
+            assertEquals( config.get("type"), "fulltext" );
+            assertEquals( config.get("to_lower_case"), "false" ); // overridden to false
+            assertEquals( config.get("provider"), "lucene" );
+            assertEquals( config.get("keysForLabel:Hacker"), "name" );
+            assertEquals( config.get("labels"), "Hacker" );
+            assertEquals( config.get("autoUpdate"), "true" ); // additional
+            assertEquals( config.get("foo"), "bar" ); // additional
+        });
     }
 
     private ResourceIterator<Node> search(String index, String value) {
