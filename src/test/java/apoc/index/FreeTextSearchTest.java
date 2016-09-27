@@ -1,5 +1,6 @@
 package apoc.index;
 
+import apoc.index.analyzer.DynamicChainAnalyzer;
 import apoc.util.TestUtil;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
@@ -307,7 +308,7 @@ public class FreeTextSearchTest {
             assertEquals( config.get("provider"), "lucene" );
             assertEquals( config.get("keysForLabel:Hacker"), "name" );
             assertEquals( config.get("labels"), "Hacker" );
-            assertEquals( config.get("analyzer"), "apoc.index.analyzer.DynamicQueueAnalyzer" );
+            assertEquals( config.get("analyzer"), DynamicChainAnalyzer.class.getName() );
         });
     }
 
