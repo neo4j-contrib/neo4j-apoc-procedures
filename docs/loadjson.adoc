@@ -1,6 +1,5 @@
 = Load JSON
 
-
 Example for reverse geocoding and determining the route from one to another location.
 
 [source,cypher]
