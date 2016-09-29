@@ -7,6 +7,12 @@ A full text index allows you to find occurrences of individual words or phrases 
 In order to use the full text search feature, we have to first index our data by specifying all the attributes we want to index.
 Here we create a full text index called `“locations”` (we will use this name when searching in the index) with our data.
 
+Optionally you can enable tracking changes to the graph on a per index level. To do so, you need to take two actions:
+
+. set `apoc.autoUpdate.enabled=true` in your `neo4j.conf`. With that setting a `TransactionEventHandler` is registered upon startup of your graph database that reflects property changes to the respective fulltext index.
+. By default index tracking is done synchronously within the same transaction. Optionally this can be done asynchronous by setting `apoc.autoUpdate.async=true`.
+. indexing is started with:
+
 [source,cypher]
 ----
 CALL apoc.index.addAllNodes('locations',{

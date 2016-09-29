@@ -435,8 +435,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_build_install_the_current_development_branch_from_source">Build &amp; install the current development branch from source</a></li>
 </ul>
 </li>
+<<<<<<< HEAD
 <li><a href="#_calling_procedures_functions_within_cypher">Calling Procedures &amp; Functions within Cypher</a></li>
 <li><a href="#_procedure_function_signatures">Procedure &amp; Function Signatures</a></li>
+=======
+<li><a href="#_calling_procedures_within_cypher">Calling Procedures within Cypher</a></li>
+<li><a href="#_procedure_signatures">Procedure Signatures</a></li>
+>>>>>>> d3418dd... fixes #156: implement automatic tracking of manual index changes
 </ul>
 </li>
 <li><a href="#_help_and_usage">Help and Usage</a></li>
@@ -728,6 +733,7 @@ Those procedures are implemented in Java and can be easily deployed into your Ne
 </div>
 </div>
 <div class="sect2">
+<<<<<<< HEAD
 <h3 id="_installation"><a class="link" href="#_installation">Installation</a></h3>
 <div class="sect3">
 <h4 id="_download_latest_release"><a class="link" href="#_download_latest_release">Download latest release</a></h4>
@@ -779,9 +785,13 @@ Those procedures are implemented in Java and can be easily deployed into your Ne
 </tbody>
 </table>
 </div>
+=======
+<h3 id="_installation">Installation</h3>
+>>>>>>> d3418dd... fixes #156: implement automatic tracking of manual index changes
 <div class="sect3">
 <h4 id="_using_apoc_with_neo4j_docker_image"><a class="link" href="#_using_apoc_with_neo4j_docker_image">using APOC with Neo4j Docker image</a></h4>
 <div class="paragraph">
+<<<<<<< HEAD
 <p>The <a href="https://hub.docker.com/_/neo4j/">Neo4j Docker image</a> allows to supply a volume for the <code>/plugins</code> folder. Download the APOC release fitting your Neo4j version to local folder <code>plugins</code> and provide it as a data volume:</p>
 </div>
 <div class="listingblock">
@@ -796,6 +806,70 @@ docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687
 </div>
 <div class="sect3">
 <h4 id="_build_install_the_current_development_branch_from_source"><a class="link" href="#_build_install_the_current_development_branch_from_source">Build &amp; install the current development branch from source</a></h4>
+=======
+<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.0.8.4" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.0.8.4</a>
+to find the latest release and download the binary jar to place into your <code>$NEO4J_HOME/plugins</code> folder.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_version_compatibility_matrix">Version Compatibility Matrix</h4>
+<div class="paragraph">
+<p>Since APOC relies in some places on Neo4j&#8217;s internal APIs you need to use the right APOC version for your Neo4j installaton.</p>
+</div>
+<div class="paragraph">
+<p>Any version to be released after 1.1.0 will use a different, consistent versioning scheme: <code>&lt;neo4j-version&gt;.&lt;apoc&gt;</code> version. The trailing <code>&lt;apoc&gt;</code> part of the version number will be incremented with every apoc release.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc version</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">neo4j version</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.0.3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.0 (3.1.x)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.8.4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.8 (3.0.x)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.4.3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.4 (3.0.x)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.1.0</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.0 - 3.0.3</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.0.0</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.0 - 3.0.3</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_using_apoc_with_neo4j_docker_image">using APOC with Neo4j Docker image</h4>
+<div class="paragraph">
+<p>The <a href="https://hub.docker.com/_/neo4j/">Neo4j Docker image</a> allows to supply a volume for the <code>/plugins</code> folder. Download the APOC release fitting your Neo4j version to local folder <code>plugins</code> and provide it as a data volume:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">mkdir plugins
+pushd plugins
+wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.0.8.4/apoc-3.0.0.4-all.jar
+popd
+docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.0.8</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_build_install_the_current_development_branch_from_source">Build &amp; install the current development branch from source</h4>
+>>>>>>> d3418dd... fixes #156: implement automatic tracking of manual index changes
 <div class="listingblock">
 <div class="content">
 <pre>git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
@@ -3320,6 +3394,22 @@ A full text index allows you to find occurrences of individual words or phrases 
 <div class="paragraph">
 <p>In order to use the full text search feature, we have to first index our data by specifying all the attributes we want to index.
 Here we create a full text index called <code>“locations”</code> (we will use this name when searching in the index) with our data.</p>
+</div>
+<div class="paragraph">
+<p>Optionally you can enable tracking changes to the graph on a per index level. To do so, you need to take two actions:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>set <code>apoc.autoUpdate.enabled=true</code> in your <code>neo4j.conf</code>. With that setting a <code>TransactionEventHandler</code> is registered upon startup of your graph database that reflects property changes to the respective fulltext index.</p>
+</li>
+<li>
+<p>By default index tracking is done synchronously within the same transaction. Optionally this can be done asynchronous by setting <code>apoc.autoUpdate.async=true</code>.</p>
+</li>
+<li>
+<p>indexing is started with:</p>
+</li>
+</ol>
 </div>
 <div class="listingblock">
 <div class="content">
