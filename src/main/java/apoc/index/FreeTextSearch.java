@@ -58,7 +58,7 @@ public class FreeTextSearch {
     @PerformsWrites
     @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}) YIELD type, name, config - create a free text search index")
     public Stream<IndexStats> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure ) {
-        return addAllNodesExtended( index, structure, new HashMap<String,Object>(0) );
+        return addAllNodesExtended( index, structure, Collections.emptyMap() );
     }
 
     /**
