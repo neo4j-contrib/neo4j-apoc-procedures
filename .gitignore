@@ -1,3 +1,4 @@
+docs/guides
 classes
 *.patch
 dependency-reduced-pom.xml

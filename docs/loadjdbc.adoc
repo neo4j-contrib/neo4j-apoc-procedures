@@ -1,12 +1,21 @@
 = Load JDBC
 
+== Overview: Database Integration
+
+Data Integration is an important topic.
+Reading data from relational databases to create and augment data models is a very helpful exercise.
+
+With `apoc.load.jdbc` you can access any database that provides a JDBC driver, and execute queries whose results are turned into streams of rows. 
+Those rows can then be used to update or create graph structures.
+
 include::overview.adoc[tags=jdbc,leveloffset=-1]
 
 == MySQL Example
 
+Northwind is a common example set for relational databases, which is also covered in our import guides, e.g. pass:a[<a play-topic='northwind graph'>:play northwind graph</a>] in the Neo4j browser.
+
 === MySQL Northwind Data
 
-[source,sql]
 ----
 select count(*) from products;
 +----------+
@@ -15,7 +24,9 @@ select count(*) from products;
 |       77 |
 +----------+
 1 row in set (0,00 sec)
+----
 
+----
 describe products;
 +-----------------+---------------+------+-----+---------+----------------+
 | Field           | Type          | Null | Key | Default | Extra          |
@@ -43,6 +54,7 @@ cypher CALL apoc.load.driver("com.mysql.jdbc.Driver");
 ----
 
 .Count rows in products table
+[source,cypher]
 ----
 with "jdbc:mysql://localhost:3306/northwind?user=root" as url
 cypher CALL apoc.load.jdbc(url,"products") YIELD row
@@ -81,7 +93,10 @@ image::{img}/apoc-load-jdbc.jpg[width=800]
 
 // apoc.load.jdbc('jdbc:derby:derbyDB/key','PERSON' || 'SELECT * FROM PERSON WHERE AGE > 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement
 
-.Create data from jdbc query results in batches (and in parallel).
+== Load data in transactional batches
+
+You can load data from jdbc and create/update the graph using the query results in batches (and in parallel).
+
 [source,cypher]
 ----
 CALL apoc.periodic.iterate('
@@ -129,11 +144,15 @@ RETURN count(*);
 ----
 
 
+
 [source,cypher]
 ----
 CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
 RETURN row LIMIT 5;
+----
 
+[source,cypher]
+----
 CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
 RETURN row.first_letter, row.artist LIMIT 5;
 ----

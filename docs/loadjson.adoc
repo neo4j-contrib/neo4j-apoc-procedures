@@ -1,47 +1,12 @@
 = Load JSON
 
+== Load JSON
 
-Example for reverse geocoding and determining the route from one to another location.
+Web APIs are a huge opportunity to access and integrate data from any sources with your graph.
+Most of them provide the data as JSON.
 
-[source,cypher]
-----
-WITH
-        "21 rue Paul Bellamy 44000 NANTES FRANCE" AS fromAddr,
-        "125 rue du docteur guichard 49000 ANGERS FRANCE" AS toAddr
-
-call apoc.load.json("http://www.yournavigation.org/transport.php?url=http://nominatim.openstreetmap.org/search&format=json&q=" + replace(fromAddr, ' ', '%20')) YIELD value AS from
-
-WITH from, toAddr  LIMIT 1
-
-call apoc.load.json("http://www.yournavigation.org/transport.php?url=http://nominatim.openstreetmap.org/search&format=json&q=" + replace(toAddr, ' ', '%20')) YIELD value AS to
-
-CALL apoc.load.json("https://router.project-osrm.org/viaroute?instructions=true&alt=true&z=17&loc=" + from.lat + "," + from.lon + "&loc=" + to.lat + "," + to.lon ) YIELD value AS doc
-
-UNWIND doc.route_instructions as instruction
-
-RETURN instruction
-----
-
-== Load Json with additional parameters
-
-With `apoc.load.jsonParams` you can send additional headers or payload with your JSON GET request, e.g. for the Twitter API:
-
-Configure Bearer and Twitter Search Url token in `neo4j.conf`
-
-----
-apoc.static.twitter.bearer=XXXX
-apoc.static.twitter.url=https://api.twitter.com/1.1/search/tweets.json?count=100&result_type=recent&lang=en&q=
-----
-
-.Twitter Search via Cypher
-[source,cypher]
-----
-CALL apoc.static.getAll("twitter") yield value AS twitter
-CALL apoc.load.jsonParams(twitter.url + "oscon+OR+neo4j+OR+%23oscon+OR+%40neo4j",{Authorization:"Bearer "+twitter.bearer},null) yield value
-UNWIND value.statuses as status
-WITH status, status.user as u, status.entities as e
-RETURN status.id, status.text, u.screen_name, [t IN e.hashtags | t.text] as tags, e.symbols, [m IN e.user_mentions | m.screen_name] as mentions, [u IN e.urls | u.expanded_url] as urls
-----
+With `apoc.load.json` you can retrieve data from URLs and turn it into map value(s) for Cypher to consume.
+Cypher is pretty good at deconstructing nested documents with dot syntax, slices, `UNWIND` etc. so it is easy to turn nested data into graphs.
 
 == Load JSON StackOverflow Example
 
@@ -92,3 +57,47 @@ FOREACH (a IN q.answers |
 ----
 
 image::{img}/apoc.load.json-so-result.png[]
+
+== Load JSON from Twitter (with additional parameters)
+
+With `apoc.load.jsonParams` you can send additional headers or payload with your JSON GET request, e.g. for the Twitter API:
+
+Configure Bearer and Twitter Search Url token in `neo4j.conf`
+
+----
+apoc.static.twitter.bearer=XXXX
+apoc.static.twitter.url=https://api.twitter.com/1.1/search/tweets.json?count=100&result_type=recent&lang=en&q=
+----
+
+.Twitter Search via Cypher
+[source,cypher]
+----
+CALL apoc.static.getAll("twitter") yield value AS twitter
+CALL apoc.load.jsonParams(twitter.url + "oscon+OR+neo4j+OR+%23oscon+OR+%40neo4j",{Authorization:"Bearer "+twitter.bearer},null) yield value
+UNWIND value.statuses as status
+WITH status, status.user as u, status.entities as e
+RETURN status.id, status.text, u.screen_name, [t IN e.hashtags | t.text] as tags, e.symbols, [m IN e.user_mentions | m.screen_name] as mentions, [u IN e.urls | u.expanded_url] as urls
+----
+
+== GeoCoding Example
+
+Example for reverse geocoding and determining the route from one to another location.
+
+[source,cypher]
+----
+WITH
+        "21 rue Paul Bellamy 44000 NANTES FRANCE" AS fromAddr,
+        "125 rue du docteur guichard 49000 ANGERS FRANCE" AS toAddr
+
+call apoc.load.json("http://www.yournavigation.org/transport.php?url=http://nominatim.openstreetmap.org/search&format=json&q=" + replace(fromAddr, ' ', '%20')) YIELD value AS from
+
+WITH from, toAddr  LIMIT 1
+
+call apoc.load.json("http://www.yournavigation.org/transport.php?url=http://nominatim.openstreetmap.org/search&format=json&q=" + replace(toAddr, ' ', '%20')) YIELD value AS to
+
+CALL apoc.load.json("https://router.project-osrm.org/viaroute?instructions=true&alt=true&z=17&loc=" + from.lat + "," + from.lon + "&loc=" + to.lat + "," + to.lon ) YIELD value AS doc
+
+UNWIND doc.route_instructions as instruction
+
+RETURN instruction
+----

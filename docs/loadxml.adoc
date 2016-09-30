@@ -1,5 +1,8 @@
 = Load XML
 
+== Introduction
+
+Many existing Applications, Endpoints and 
 
 == Example: How do you access xml doc attributes in children fields ?
 

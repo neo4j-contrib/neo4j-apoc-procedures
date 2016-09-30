@@ -8,7 +8,7 @@ image::{img}/apoc-help-apoc.jpg[width=600]
 
 [cols="1m,5"]
 |===
-| call apoc.help('search') | lists name, description-text and if the procedure performs writes (descriptions are WIP), search string is checked against beginning (package) or end (name) of procedure
+| call apoc.help('search') | lists name, description-text and if the procedure performs writes, search string is checked against beginning (package) or end (name) of procedure
 |===
 
 .helpful
@@ -204,25 +204,21 @@ image::{img}/apoc-jdbc-northwind-load.jpg[width=600]
 | CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') | register JDBC driver of source database
 |===
 
-To simplify the JDBC URL syntax, for example 'jdbc:derby:derbyDB', and so as to mask the details one can define in conf/neo4j.conf
+To simplify the JDBC URL syntax and protect credentials, you can configure aliases in `conf/neo4j.conf`:
 
 ----
-apoc.jdbc.derby.url=jdbc:derby:derbyDB
+apoc.jdbc.myDB.url=jdbc:derby:derbyDB
 ----
 
-and then 
-
 ----
-CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})
-----
+CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON')
 
 becomes
 
-----
-CALL apoc.load.jdbc('derby','PERSON') YIELD row CREATE (:Person {name:row.name})
+CALL apoc.load.jdbc('myDB','PERSON')
 ----
 
-The 3rd value in the 'apoc.jdbc.derby.url=' effectively defines an <alias> to be used in the apoc.load.jdbc('<alias>',....
+The 3rd value in the `apoc.jdbc.<alias>.url=` effectively defines an alias to be used in  `apoc.load.jdbc('<alias>',....`
 
 // end::jdbc[]
 

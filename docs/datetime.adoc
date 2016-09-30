@@ -1,6 +1,8 @@
 = Date and Time Conversions
 
+ifndef::env-guide[]
 (thanks @tkroman)
+endif::env-guide[]
 
 == Conversion between formatted dates and timestamps
 
@@ -17,8 +19,16 @@
 
 Splits date (optionally, using given custom format) into fields returning a map from field name to its value.
 
-* `apoc.date.fields('2015-03-25 03:15:59')`
-* `apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')`
+[source,cypher]
+----
+CALL apoc.date.fields('2015-03-25 03:15:59')
+----
+
+[source,cypher]
+----
+CALL apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')
+----
+
 
 Following fields are supported:
 
@@ -36,8 +46,12 @@ Following fields are supported:
 
 == Examples
 
-....
-  apoc.date.fieldsDefault('2015-03-25 03:15:59') =>
+[source,cypher]
+----
+CALL apoc.date.fieldsDefault('2015-03-25 03:15:59')
+----
+
+----
     {
       'Months': 1,
       'Days': 2,
@@ -46,10 +60,14 @@ Following fields are supported:
       'Seconds': 5,
       'Years': 2015
     }
-....
+----
 
-....
-apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') =>
+[source,cypher]
+----
+CALL apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')
+----
+
+----
   {
     'ZoneId': 'Europe/Bucharest',
     'Months': 1,
@@ -59,17 +77,21 @@ apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') =>
     'Seconds': 5,
     'Years': 2015
   }
-....
+----
 
-....
-apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z') =>
+[source,cypher]
+----
+CALL apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z')
+----
+
+----
   {
     'Years': 2015,
     'ZoneId': 'Europe/Bucharest',
     'Months': 1,
     'Days': 2
   }
-....
+----
 
 
 == Notes on formats:
