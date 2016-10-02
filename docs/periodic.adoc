@@ -1,17 +1,64 @@
 = Job management and periodic execution
 
+== Introduction asynchronous transactional execution
+
 [NOTE]
 this document is work in progress
 
+Cypher is great for querying graphs and importing and updating graph structures.
+While during imports you can use `PERIODIC COMMIT` to control transaction sizes in memory, 
+for other graph refactorings it's not that easy to commit transactions regularly to free memory for new update state.
 
+Also sometimes you want to schedule execution of Cypher statements to run regularly in the background or asynchronously ("fire & forget").
+
+The `apoc.periodic.*` procedures provide such capabilities.
+
+== apoc.periodic.iterate
+
+With `apoc.periodic.iterate` you provide 2 statements, the *first* is providing a stream of values to be processed.
+The *second* processes *one* element at a time.
+Optionally you can provide a config that declares a `batchSize` (default `1000`) and a `parallel` (default `false`) flag.
+
+So if you were to add an `:Actor` label to several million `:Person` nodes, you would run:
+
+[source,cypher]
+----
+CALL apoc.periodic.iterate(
+"MATCH (p:Person) WHERE (p)-[:ACTED_IN]->() RETURN p",
+"SET p:Actor", {batchSize:10000, parallel:true})
+----
+
+Which would take 10k people from the stream and update them in a single transaction, executing the *second* statement for each person.
+
+Those executions can happen in parallel as updating node-labels or properties doesn't conflict.
+
+If you do more complex operations like updating or removing relationships, either *don't use parallel* OR make sure that you batch the work in a way that each subgraph of data is updated in one operation, e.g. by transferring the root objects.
+
+[source,cypher]
+----
+CALL apoc.periodic.iterate(
+"MATCH (o:Order) WHERE o.date > '2016-10-13' RETURN o",
+"MATCH (o)-[:HAS_ITEM]->(i) WITH o, sum(i.value) as value SET o.value = value", {batchSize:100, parallel:true})
+----
+
+The stream of other data can also come from another source, like a different database, CSV or JSON file.
+
+== apoc.periodic.commit
+
+Especially for graph processing it is useful to run a query repeatedly in separate transactions until it doesn't process and generates any results anymore.
+So you can iterate in batches over elements that don't fulfill a condition and update them so that they do afterwards.
+
+The query is executed repatedly in separate transactions until it returns 0.
 
 [source,cypher]
 ----
 call apoc.periodic.commit("
-match (u:User)
-where not u:Processed
-with u limit {limit}
-SET u:Processed RETURN count(*)
+match (user:User) WHERE exists( user.city )
+with user limit {limit}
+MERGE (city:City {name:user.city})
+MERGE (user)-[:LIVES_IN]->(city)
+REMOVE user.city
+RETURN count(*)
 ",{limit:10000})
 ----
 
@@ -22,3 +69,7 @@ SET u:Processed RETURN count(*)
 |2000000|200       |
 +-------+----------+
 ----
+
+== Further Functions
+
+include::overview.adoc[tags=periodic]

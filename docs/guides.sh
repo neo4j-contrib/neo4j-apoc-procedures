@@ -8,6 +8,7 @@ function render {
   $GUIDES/run.sh loadjson.adoc guides/loadjson.html +1 "$@"
   $GUIDES/run.sh datetime.adoc guides/datetime.html +1 "$@"
   $GUIDES/run.sh loadxml.adoc guides/loadxml.html +1 "$@"
+  $GUIDES/run.sh periodic.adoc guides/periodic.html +1 "$@"
 }
 
 mkdir guides

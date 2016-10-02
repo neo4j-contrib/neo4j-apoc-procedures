@@ -23,6 +23,7 @@ include::overview.adoc[tags=procedurecount]
 . pass:a[<a play-topic='{guides}/loadjson.html'>Load JSON</a>]
 . pass:a[<a play-topic='{guides}/loadjdbc.html'>Load JDBC</a>]
 . pass:a[<a play-topic='{guides}/loadxml.html'>Load XML</a>]
+. pass:a[<a play-topic='{guides}/periodic.html'>Transaction Batching & Background Operations</a>]
 
 == Further Resources
 

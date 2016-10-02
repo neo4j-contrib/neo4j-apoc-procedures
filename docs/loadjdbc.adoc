@@ -243,3 +243,48 @@ CREATE (t)-[:GENRE]->(g);
 ----
 Added 63213 labels, created 63213 nodes, set 182413 properties, created 119200 relationships, statement executed in 40076 ms.
 ----
+
+== LOAD JDBC - Resources
+
+To use other JDBC drivers use these download links and JDBC URL.
+Put the JDBC driver into the `$NEO4J_HOME/plugins` directory and configure the JDBC-URL in `$NEO4J_HOME/conf/neo4j.conf` with `apoc.jdbc.<alias>.url=<jdbc-url>`
+
+[options="header",cols="a,3m,a"]
+|===
+|Database | JDBC-URL | Driver Source
+
+|MySQL 
+|jdbc:mysql://<hostname>:<port/3306>/<database>?user=<user>&password=<pass>
+|http://dev.mysql.com/downloads/connector/j/[MySQL Driver]
+
+|Postgres
+|jdbc:postgresql://<hostname>/<database>?user=<user>&password=<pass>
+|https://jdbc.postgresql.org/download.html[PostgresSQL JDBC Driver]
+
+|Oracle
+|jdbc:oracle:thin:<user>/<pass>@<host>:<port>/<service_name>
+|http://www.oracle.com/technetwork/database/features/jdbc/index.html[Oracle JDBC Driver]
+
+|MS SQLServer
+|jdbc:sqlserver://;servername=<servername>;databaseName=<database>;user=<user>;password=<pass>
+|https://www.microsoft.com/en-us/download/details.aspx?id=11774[SQLServer Driver]
+
+|IBM DB2
+|jdbc:db2://<host>:<port/5021>/<database>:user=<user>;password=<pass>;
+|http://www-01.ibm.com/support/docview.wss?uid=swg21363866[DB2 Driver]
+
+|Derby
+|jdbc:derby:derbyDB
+|Included in JDK6-8
+
+|Cassandra 
+|jdbc:cassandra://<host>:<port/9042>/<database>
+|link:https://github.com/adejanovski/cassandra-jdbc-wrapper#installing[Cassandra JDBC Wrapper]
+|===
+
+There are a number of blog posts / examples that details usage of apoc.load.jdbc
+
+* https://jesusbarrasa.wordpress.com/2016/09/30/quickgraph4-explore-your-browser-history-in-neo4j/[Explore your browser history in Neo4j]
+* https://blog.knoldus.com/2016/09/12/neo4j-with-scala-migrate-data-from-other-database-to-neo4j/[Neo4j With Scala : Migrate Data From Other Database to Neo4j]
+* 
+* https://neo4j.com/blog/apoc-database-integration-import-export-cypher/[APOC: Database Integration, Import and Export with Awesome Procedures On Cypher]
