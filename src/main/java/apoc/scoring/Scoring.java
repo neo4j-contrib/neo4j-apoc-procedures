@@ -1,37 +1,34 @@
 package apoc.scoring;
 
-import java.util.stream.Stream;
-
 import org.neo4j.procedure.Description;
-import apoc.result.DoubleResult;
-
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.UserFunction;
 
-public class Pareto {
-    @Context
-    public GraphDatabaseService db;
+public class Scoring {
+    @UserFunction
+    @Description("apoc.scoring.existence(5, true) returns the provided score if true, 0 if false")
+    public double existence(
+            final @Name("score") long score,
+            final @Name("exists") boolean exists) {
+        return (double) (exists ? score : 0);
+    }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.scoring.pareto(10, 20, 100, 11) applies a Pareto scoring function over the inputs")
-    public Stream<DoubleResult> pareto(
+    public double pareto(
             final @Name("minimumThreshold") long minimumThreshold,
             final @Name("eightyPercentValue") long eightyPercentValue,
             final @Name("maximumValue") long maximumValue,
             final @Name("score") long score) {
         if (score < minimumThreshold) {
-            return Stream.of( new DoubleResult( 0.0 ) );
+            return 0.0d;
         }
         else {
             double alpha = Math.log((double) 5) / eightyPercentValue;
             double exp = Math.exp(-alpha * score);
 
-            return Stream.of(new DoubleResult( maximumValue * (1 - exp) ));
+            return maximumValue * (1 - exp);
         }
     }
-
-
 }
 
