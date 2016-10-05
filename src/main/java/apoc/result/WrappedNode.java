@@ -13,7 +13,7 @@ import static java.util.Arrays.asList;
  * @author mh
  * @since 16.03.16
  */
-public class VirtualNode implements Node {
+public class WrappedNode implements Node {
     private static AtomicLong MIN_ID = new AtomicLong(-1);
     private final List<Label> labels = new ArrayList<Label>();
     private final Map<String, Object> props = new HashMap<>();
@@ -21,14 +21,14 @@ public class VirtualNode implements Node {
     private final GraphDatabaseService db;
     private final long id;
 
-    public VirtualNode(Label[] labels, Map<String, Object> props, GraphDatabaseService db) {
+    public WrappedNode(Label[] labels, Map<String, Object> props, GraphDatabaseService db) {
         this.id = MIN_ID.getAndDecrement();
         this.db = db;
         this.labels.addAll(asList(labels));
         this.props.putAll(props);
     }
 
-    public VirtualNode(long nodeId, GraphDatabaseService db) {
+    public WrappedNode(long nodeId, GraphDatabaseService db) {
         this.id = nodeId;
         this.db = db;
     }
