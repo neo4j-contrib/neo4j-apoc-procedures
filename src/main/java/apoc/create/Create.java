@@ -171,10 +171,10 @@ public class Create {
         return pc;
     }
 
-    @Procedure
-    @Description("apoc.create.uuid yield uuid - creates an UUID")
-    public Stream<UUIDResult> uuid() {
-        return Stream.of(new UUIDResult(0));
+    @UserFunction
+    @Description("apoc.create.uuid() - creates an UUID")
+    public String uuid() {
+        return UUID.randomUUID().toString();
     }
 
     @Procedure

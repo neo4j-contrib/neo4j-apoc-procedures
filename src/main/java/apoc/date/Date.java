@@ -49,6 +49,17 @@ public class Date {
 			}
 	);
 
+	@UserFunction
+	@Description("toYears(timestap) or toYears(date[,format]) converts timestamp into floating point years")
+	public double toYears(@Name("value") Object value, @Name(value = "format", defaultValue = DEFAULT_FORMAT) String format) {
+		if (value instanceof Number) {
+			long time = ((Number) value).longValue();
+			return (time / (365d*24*3600*1000));
+		} else {
+			long time = parse(value.toString(),"ms",format,null);
+			return 1970d + (time / (365d*24*3600*1000));
+		}
+	}
 
 	@Procedure(mode = Mode.WRITE)
 	@Description("CALL apoc.date.expire(node,time,'time-unit') - expire node in given time by setting :TTL label and `ttl` property")

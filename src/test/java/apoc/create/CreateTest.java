@@ -1,6 +1,5 @@
 package apoc.create;
 
-import apoc.create.Create;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -8,12 +7,10 @@ import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.List;
 import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
 public class CreateTest {
