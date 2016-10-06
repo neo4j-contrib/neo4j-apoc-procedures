@@ -17,9 +17,11 @@ include::overview.adoc[tags=help,leveloffset=-1]
 To generate the help from `@Description` annotations, apoc currently scans the jar file with ASM.
 
 
-== Overview of APOC Procedures
+== Overview of APOC Procedures & Functions
 
 include::overview.adoc[tags=overview,leveloffset=1]
+
+include::functions.adoc[leveloffset=+1]
 
 == Text and Lookup Indexes
 

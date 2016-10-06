@@ -111,15 +111,21 @@ image::{img}/apoc.meta.graph.jpg[width=600]
 
 Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.
 
+.Procedures
 [cols="1m,5"]
 |===
 | CALL apoc.meta.graph | examines the database statistics to create the meta-graph
 | CALL apoc.meta.subGraph({labels:[labels],rels:[rel-types],excludes:[label,rel-type,...]}) | examines a sample sub graph to create the meta-graph
 | CALL apoc.meta.data | examines a subset of the graph to provide a tabular meta information
 | CALL apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats | returns the information stored in the transactional database statistics
-| CALL apoc.meta.type(value) | type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST`)
-| CALL apoc.meta.isType(value,type) | returns a row if type name matches none if not
-| CALL apoc.meta.types(node or relationship or map) YIELD value | returns a a map of property-keys to their names
+|===
+
+.Functions
+[cols="1m,5"]
+|===
+| apoc.meta.type(value) | type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST`)
+| apoc.meta.isType(value,type) | returns a row if type name matches none if not
+| apoc.meta.types(node or relationship or map) | returns a a map of property-keys to their names
 |===
 
 
@@ -127,8 +133,7 @@ Returns a virtual graph that represents the labels and relationship-types availa
 [source,cypher]
 ----
 MATCH (n:Person)
-CALL apoc.meta.isType(n.age,"INTEGER")
-RETURN n LIMIT 5
+RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 ----
 
 == Schema
@@ -150,13 +155,14 @@ RETURN n LIMIT 5
 
 == from/toJson
 
+.Functions
 [cols="1m,5"]
 |===
-| CALL apoc.convert.toJson([1,2,3]) | converts value to json string
-| CALL apoc.convert.toJson( {a:42,b:"foo",c:[1,2,3]}) | converts value to json map
-| CALL apoc.convert.fromJsonList('[1,2,3]') | converts json list to Cypher list
-| CALL apoc.convert.fromJsonMap( '{"a":42,"b":"foo","c":[1,2,3]}') | converts json map to Cypher map
-| CALL apoc.convert.toTree([paths]) yield value | creates a stream of nested documents representing the at least one root of these paths
+| apoc.convert.toJson([1,2,3]) | converts value to json string
+| apoc.convert.toJson( {a:42,b:"foo",c:[1,2,3]}) | converts value to json map
+| apoc.convert.fromJsonList('[1,2,3]') | converts json list to Cypher list
+| apoc.convert.fromJsonMap( '{"a":42,"b":"foo","c":[1,2,3]}') | converts json map to Cypher map
+| apoc.convert.toTree([paths]) | creates a stream of nested documents representing the at least one root of these paths
 |===
 
 == Export / Import
@@ -357,9 +363,13 @@ return nodes, relationships, time
 | CALL apoc.create.addLabels( [node,id,ids,nodes], ['Label',...]) | adds the given labels to the node or nodes
 | CALL apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...]) | removes the given labels from the node or nodes
 | CALL apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) | create relationship with dynamic rel-type
-| CALL apoc.create.uuid YIELD uuid | creates an UUID
-| CALL apoc.create.uuids(count) YIELD uuid | creates count UUIDs
+| CALL apoc.create.uuids(count) YIELD uuid, row | creates count UUIDs
 | CALL apoc.nodes.link([nodes],'REL_TYPE') | creates a linked list of nodes from first to last
+|===
+
+[cols="1m,5"]
+|===
+| apoc.create.uuid() | returns an UUID
 |===
 
 == Virtual Nodes/Rels
@@ -624,21 +634,25 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 
 [cols="1m,5"]
 |===
-| apoc.get.nodes(node|id|[ids]) yield node | quickly returns all nodes with these id's
-| apoc.get.rels(rels|id|[ids]) yield rel | quickly returns all relationships with these id's
+| CALL apoc.get.nodes(node|id|[ids]) yield node | quickly returns all nodes with these id's
+| CALL apoc.get.rels(rels|id|[ids]) yield rel | quickly returns all relationships with these id's
 |===
 
 
-=== Phonetic Comparisons
+=== Phonetic Comparison Functions
 
 [cols="1m,5"]
 |===
-| CALL apoc.text.phonetic(value) yield value | Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
-| CALL apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta | Compute the US_ENGLISH soundex character difference between two given strings
-| CALL apoc.text.join(['text1','text2',...], delimiter) YIELD value | join the given strings with the given delimiter.
-| CALL apoc.text.clean(text) YIELD value | strip the given string of everything except alpha numeric characters and convert it to lower case.
-| CALL apoc.text.compareCleaned(text1, text2) YIELD value | compare the given strings stripped of everything except alpha numeric characters converted to lower case.
-| CALL apoc.text.filterCleanMatches(text1, text2) YIELD value | filter out non-matches of the given strings stripped of everything except alpha numeric characters converted to lower case.
+| apoc.text.phonetic(value) | Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
+| apoc.text.join(['text1','text2',...], delimiter) | join the given strings with the given delimiter.
+| apoc.text.clean(text) | strip the given string of everything except alpha numeric characters and convert it to lower case.
+| apoc.text.compareCleaned(text1, text2) | compare the given strings stripped of everything except alpha numeric characters converted to lower case.
+|===
+
+.Procedure
+[cols="1m,5"]
+|===
+| apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta | Compute the US_ENGLISH soundex character difference between two given strings
 |===
 
 [cols="1m,5"]
@@ -650,27 +664,23 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 |===
 | apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list
 | apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list
-| apoc.util.sleep({duration}) | sleeps for <duration> millis, transaction termination is honored
+| CALL apoc.util.sleep({duration}) | sleeps for <duration> millis, transaction termination is honored
 |===
 
 == Date/time Support
 
 (thanks @tkroman)
 
-=== Conversion between formatted dates and timestamps
+=== Conversion Functions between formatted dates and timestamps
 
 [cols="1m,5"]
 |===
-| apoc.date.parseDefault('2015-03-25 03:15:59','s') | get Unix time equivalent of given date (in seconds)
-| apoc.date.parse('2015/03/25 03-15-59','s', 'yyyy/MM/dd HH/mm/ss') | same as previous, but accepts custom datetime format
-| apoc.date.formatDefault(12345,'s') | get string representation of date corresponding to given Unix time (in seconds)
-| apoc.date.format(12345,'s', 'yyyy/MM/dd HH/mm/ss') | the same as previous, but accepts custom datetime format
-
-| apoc.date.parseDefault('2015-03-25 03:15:59','ms') | get Unix time equivalent of given date (in milliseconds)
-| apoc.date.parse('2015/03/25 03-15-59','ms','yyyy/MM/dd HH/mm/ss') | same as previous, but accepts custom datetime format
-| apoc.date.formatDefault(12345,'ms') | get string representation of date corresponding to given time in milliseconds in UTC time zone
-| apoc.date.format(12345,'ms', 'yyyy/MM/dd HH/mm/ss') | the same as previous, but accepts custom datetime format
+| apoc.date.parse('2015/03/25 03-15-59',['ms'/'s'], ['yyyy/MM/dd HH/mm/ss']) | same as previous, but accepts custom datetime format
+| apoc.date.format(12345, ['ms'/'s'], ['yyyy/MM/dd HH/mm/ss']) | the same as previous, but accepts custom datetime format
 | apoc.date.formatTimeZone(12345,'s', 'yyyy/MM/dd HH/mm/ss', 'ABC') | the same as previous, but accepts custom time zone
+
+| apoc.date.parseDefault('2015-03-25 03:15:59','s') | DEPRECATED get Unix time equivalent of given date (in seconds)
+| apoc.date.formatDefault(12345,'s') | DEPRECATED get string representation of date corresponding to given Unix time (in seconds)
 |===
 
 * possible unit values: `ms,s,m,h,d` and their long forms `millis,milliseconds,seconds,minutes,hours,days`.
@@ -685,21 +695,23 @@ Splits date (optionally, using given custom format) into fields returning a map 
 
 == Bitwise operations
 
+// TODO function 
+
 Provides a wrapper around the java bitwise operations.
 |===
-| call apoc.bitwise.op(a long, "operation", b long ) yield value as <identifier> 
+| apoc.bitwise.op(a long, "operation", b long ) as <identifier> 
 |===
 
 examples
 |===
 | operator | name | example | result 
-| a & b | AND | call apoc.bitwise.op(60,"&",13) | 12 
-| a \| b | OR | call apoc.bitwise.op(60,"\|",13) | 61 
-| a ^ b | XOR | call apoc.bitwise.op(60,"&",13) | 49
-| ~a | NOT | call apoc.bitwise.op(60,"&",0) | -61
-| a << b | LEFT SHIFT | call apoc.bitwise.op(60,"<<",2) | 240
-| a >> b | RIGHT SHIFT | call apoc.bitwise.op(60,">>",2) | 15 
-| a >>> b | UNSIGNED RIGHT SHIFT | call apoc.bitwise.op(60,">>>",2) | 15 
+| a & b | AND | apoc.bitwise.op(60,"&",13) | 12 
+| a \| b | OR | apoc.bitwise.op(60,"\|",13) | 61 
+| a ^ b | XOR | apoc.bitwise.op(60,"&",13) | 49
+| ~a | NOT | apoc.bitwise.op(60,"&",0) | -61
+| a << b | LEFT SHIFT | apoc.bitwise.op(60,"<<",2) | 240
+| a >> b | RIGHT SHIFT | apoc.bitwise.op(60,">>",2) | 15 
+| a >>> b | UNSIGNED RIGHT SHIFT | apoc.bitwise.op(60,">>>",2) | 15 
 |===
 
 == Path Expander

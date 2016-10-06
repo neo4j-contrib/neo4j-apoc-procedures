@@ -424,17 +424,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#_introduction">Introduction</a>
-<ul class="sectlevel2">
+<ul class="sectlevel3">
 <li><a href="#_license">License</a></li>
 <li><a href="#__apoc_name_history">"APOC" Name history</a></li>
-<li><a href="#_download_latest_release_for_the_regular_user">Download latest release (for the regular user)</a></li>
+<li><a href="#_download_latest_release">Download latest release</a></li>
 <li><a href="#_build_install_the_current_development_branch_from_source">Build &amp; install the current development branch from source</a></li>
 <li><a href="#_calling_procedures_within_cypher">Calling Procedures within Cypher</a></li>
 <li><a href="#_procedure_signatures">Procedure Signatures</a></li>
 </ul>
 </li>
 <li><a href="#_help_and_usage">Help and Usage</a></li>
-<li><a href="#_overview_of_apoc_procedures">Overview of APOC Procedures</a>
+<li><a href="#_overview_of_apoc_procedures_functions">Overview of APOC Procedures &amp; Functions</a>
 <ul class="sectlevel2">
 <li><a href="#_manual_indexes">Manual Indexes</a>
 <ul class="sectlevel3">
@@ -482,12 +482,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_map_functions">Map Functions</a></li>
 <li><a href="#_collection_functions">Collection Functions</a></li>
 <li><a href="#_lookup_functions">Lookup Functions</a></li>
-<li><a href="#_phonetic_comparisons">Phonetic Comparisons</a></li>
+<li><a href="#_phonetic_comparison_functions">Phonetic Comparison Functions</a></li>
 </ul>
 </li>
 <li><a href="#_date_time_support">Date/time Support</a>
 <ul class="sectlevel3">
-<li><a href="#_conversion_between_formatted_dates_and_timestamps">Conversion between formatted dates and timestamps</a></li>
+<li><a href="#_conversion_functions_between_formatted_dates_and_timestamps">Conversion Functions between formatted dates and timestamps</a></li>
 <li><a href="#_reading_separate_datetime_fields">Reading separate datetime fields</a></li>
 </ul>
 </li>
@@ -502,6 +502,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_graph_algorithms_work_in_progress">Graph Algorithms (work in progress)</a></li>
 </ul>
 </li>
+<li><a href="#_user_defined_functions">User Defined Functions</a></li>
 <li><a href="#_text_and_lookup_indexes">Text and Lookup Indexes</a>
 <ul class="sectlevel2">
 <li><a href="#_index_queries_2">Index Queries</a></li>
@@ -532,7 +533,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_date_and_time_conversions">Date and Time Conversions</a>
 <ul class="sectlevel3">
-<li><a href="#_conversion_between_formatted_dates_and_timestamps_2">Conversion between formatted dates and timestamps</a></li>
+<li><a href="#_conversion_between_formatted_dates_and_timestamps">Conversion between formatted dates and timestamps</a></li>
 <li><a href="#_reading_separate_datetime_fields_2">Reading separate datetime fields:</a></li>
 <li><a href="#_examples">Examples</a></li>
 <li><a href="#_notes_on_formats">Notes on formats:</a></li>
@@ -594,15 +595,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_load_json">Load JSON</a>
 <ul class="sectlevel3">
-<li><a href="#_load_json_with_additional_parameters">Load Json with additional parameters</a></li>
+<li><a href="#_load_json_2">Load JSON</a></li>
 <li><a href="#_load_json_stackoverflow_example">Load JSON StackOverflow Example</a></li>
+<li><a href="#_load_json_from_twitter_with_additional_parameters">Load JSON from Twitter (with additional parameters)</a></li>
+<li><a href="#_geocoding_example">GeoCoding Example</a></li>
 </ul>
 </li>
 <li><a href="#_load_jdbc">Load JDBC</a>
 <ul class="sectlevel3">
+<li><a href="#_overview_database_integration">Overview: Database Integration</a></li>
 <li><a href="#_mysql_example">MySQL Example</a></li>
 <li><a href="#_load_jdbc_examples">Load JDBC Examples</a></li>
+<li><a href="#_load_data_in_transactional_batches">Load data in transactional batches</a></li>
 <li><a href="#_cassandra_example">Cassandra Example</a></li>
+<li><a href="#_load_jdbc_resources">LOAD JDBC - Resources</a></li>
 </ul>
 </li>
 <li><a href="#_streaming_data_to_gephi_2">Streaming Data to Gephi</a></li>
@@ -621,7 +627,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_load_xml">Load XML</a>
 <ul class="sectlevel3">
-<li><a href="#_example_how_do_you_access_xml_doc_attributes_in_children_fields">Example: How do you access xml doc attributes in children fields ?</a></li>
+<li><a href="#_load_xml_introduction">Load XML Introduction</a></li>
+<li><a href="#_example_file">Example File</a></li>
+<li><a href="#_simple_xml_format">Simple XML Format</a></li>
+<li><a href="#_load_xml_and_introspect">Load XML and Introspect</a></li>
+<li><a href="#_extracting_datastructures">Extracting Datastructures</a></li>
 </ul>
 </li>
 </ul>
@@ -646,7 +656,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_running_a_cypher_statement_timeboxed">running a cypher statement timeboxed</a></li>
 </ul>
 </li>
-<li><a href="#_job_management_and_periodic_execution">Job management and periodic execution</a></li>
+<li><a href="#_job_management_and_periodic_execution">Job management and periodic execution</a>
+<ul class="sectlevel3">
+<li><a href="#_introduction_asynchronous_transactional_execution">Introduction asynchronous transactional execution</a></li>
+<li><a href="#_apoc_periodic_iterate">apoc.periodic.iterate</a></li>
+<li><a href="#_apoc_periodic_commit">apoc.periodic.commit</a></li>
+<li><a href="#_further_functions">Further Functions</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -661,14 +678,22 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/apoc.gif" alt="apoc">
 </div>
 </div>
-<div class="sect2">
-<h3 id="_license">License</h3>
+<div class="paragraph">
+<p>Neo4j 3.0 introduced the concept of user defined procedures.
+Those are custom implementations of certain functionality, that can&#8217;t be (easily) expressed in Cypher itself.
+Those procedures are implemented in Java and can be easily deployed into your Neo4j instance, and then be called from Cypher directly.</p>
+</div>
+<div class="paragraph">
+<p>The APOC library consists of many (about 300) procedures to help with many different tasks in areas like data integration, graph algorithms or data conversion.</p>
+</div>
+<div class="sect3">
+<h4 id="_license">License</h4>
 <div class="paragraph">
 <p>Apache License 2.0</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="__apoc_name_history">"APOC" Name history</h3>
+<div class="sect3">
+<h4 id="__apoc_name_history">"APOC" Name history</h4>
 <div class="paragraph">
 <p><a href="http://matrix.wikia.com/wiki/Apoc">Apoc</a> was the technician and driver on board of the Nebuchadnezzar in the Matrix movie. He was killed by Cypher.</p>
 </div>
@@ -679,21 +704,21 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>APOC</strong> also stands for "Awesome Procedures On Cypher"</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_download_latest_release_for_the_regular_user">Download latest release (for the regular user)</h3>
+<div class="sect3">
+<h4 id="_download_latest_release">Download latest release</h4>
 <div class="paragraph">
 <p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/latest" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/latest</a>
-to find the latest release and download the binary jar to place into your $NEO4J_HOME/plugins folder.</p>
+to find the latest release and download the binary jar to place into your <code>$NEO4J_HOME/plugins</code> folder.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_build_install_the_current_development_branch_from_source">Build &amp; install the current development branch from source</h3>
+<div class="sect3">
+<h4 id="_build_install_the_current_development_branch_from_source">Build &amp; install the current development branch from source</h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-shell" data-lang="shell">git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
+<pre>git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
 ./gradlew shadow
 cp build/libs/apoc-&lt;version&gt;-SNAPSHOT-all.jar $NEO4J_HOME/plugins/
-$NEO4J_HOME/bin/neo4j restart</code></pre>
+$NEO4J_HOME/bin/neo4j restart</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -815,7 +840,7 @@ RETURN name, signature</code></pre>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.help('search')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">lists name, description-text and if the procedure performs writes (descriptions are WIP), search string is checked against beginning (package) or end (name) of procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">lists name, description-text and if the procedure performs writes, search string is checked against beginning (package) or end (name) of procedure</p></td>
 </tr>
 </tbody>
 </table>
@@ -833,7 +858,7 @@ RETURN name AS undocumented</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_overview_of_apoc_procedures">Overview of APOC Procedures</h2>
+<h2 id="_overview_of_apoc_procedures_functions">Overview of APOC Procedures &amp; Functions</h2>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="_manual_indexes">Manual Indexes</h3>
@@ -985,6 +1010,7 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 <p>Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.</p>
 </div>
 <table class="tableblock frame-all grid-all spread">
+<caption class="title">Table 1. Procedures</caption>
 <colgroup>
 <col style="width: 16%;">
 <col style="width: 83%;">
@@ -1006,16 +1032,25 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns the information stored in the transactional database statistics</p></td>
 </tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Table 2. Functions</caption>
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.type(value)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.meta.type(value)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">type name of a value (<code>INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST</code>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.isType(value,type)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.meta.isType(value,type)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns a row if type name matches none if not</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.types(node or relationship or map) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.meta.types(node or relationship or map)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns a a map of property-keys to their names</p></td>
 </tr>
 </tbody>
@@ -1024,8 +1059,7 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 <div class="title">isType example</div>
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (n:Person)
-CALL apoc.meta.isType(n.age,"INTEGER")
-RETURN n LIMIT 5</code></pre>
+RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 </div>
 </div>
 </div>
@@ -1070,29 +1104,30 @@ RETURN n LIMIT 5</code></pre>
 <div class="sect2">
 <h3 id="_from_tojson">from/toJson</h3>
 <table class="tableblock frame-all grid-all spread">
+<caption class="title">Table 3. Functions</caption>
 <colgroup>
 <col style="width: 16%;">
 <col style="width: 83%;">
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.convert.toJson([1,2,3])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.toJson([1,2,3])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">converts value to json string</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.convert.toJson( {a:42,b:"foo",c:[1,2,3]})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.toJson( {a:42,b:"foo",c:[1,2,3]})</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">converts value to json map</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.convert.fromJsonList('[1,2,3]')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.fromJsonList('[1,2,3]')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">converts json list to Cypher list</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.convert.fromJsonMap( '{"a":42,"b":"foo","c":[1,2,3]}')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.fromJsonMap( '{"a":42,"b":"foo","c":[1,2,3]}')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">converts json map to Cypher map</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.convert.toTree([paths]) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.toTree([paths])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates a stream of nested documents representing the at least one root of these paths</p></td>
 </tr>
 </tbody>
@@ -1193,31 +1228,24 @@ RETURN n LIMIT 5</code></pre>
 </tbody>
 </table>
 <div class="paragraph">
-<p>To simplify the JDBC URL syntax, for example 'jdbc:derby:derbyDB', and so as to mask the details one can define in conf/neo4j.conf</p>
+<p>To simplify the JDBC URL syntax and protect credentials, you can configure aliases in <code>conf/neo4j.conf</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>apoc.jdbc.derby.url=jdbc:derby:derbyDB</pre>
+<pre>apoc.jdbc.myDB.url=jdbc:derby:derbyDB</pre>
 </div>
-</div>
-<div class="paragraph">
-<p>and then</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})</pre>
+<pre>CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON')
+
+becomes
+
+CALL apoc.load.jdbc('myDB','PERSON')</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>becomes</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>CALL apoc.load.jdbc('derby','PERSON') YIELD row CREATE (:Person {name:row.name})</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The 3rd value in the 'apoc.jdbc.derby.url=' effectively defines an &lt;alias&gt; to be used in the apoc.load.jdbc('&lt;alias&gt;',&#8230;&#8203;.</p>
+<p>The 3rd value in the <code>apoc.jdbc.&lt;alias&gt;.url=</code> effectively defines an alias to be used in  <code>apoc.load.jdbc('&lt;alias&gt;',&#8230;&#8203;.</code></p>
 </div>
 </div>
 <div class="sect2">
@@ -1483,16 +1511,24 @@ return nodes, relationships, time</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">create relationship with dynamic rel-type</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.create.uuid YIELD uuid</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">creates an UUID</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.create.uuids(count) YIELD uuid</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.create.uuids(count) YIELD uuid, row</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates count UUIDs</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.nodes.link([nodes],'REL_TYPE')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates a linked list of nodes from first to last</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.create.uuid()</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns an UUID</p></td>
 </tr>
 </tbody>
 </table>
@@ -1796,12 +1832,10 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 </ul>
 </div>
 <div class="listingblock">
+<div class="title">copies over the <code>name</code> property of each person to <code>lastname</code></div>
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (p) where id(p)={id_p} SET p.lastname =p.name', 20000)</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>copies over the <code>name</code> property of each person to <code>lastname</code>.</p>
 </div>
 </div>
 <div class="sect2">
@@ -2113,7 +2147,7 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.get.nodes(node</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.get.nodes(node</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">id</p></td>
 </tr>
 <tr>
@@ -2121,7 +2155,7 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 <td class="tableblock halign-left valign-top"><p class="tableblock">quickly returns all nodes with these id&#8217;s</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.get.rels(rels</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.get.rels(rels</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">id</p></td>
 </tr>
 <tr>
@@ -2132,7 +2166,7 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 </table>
 </div>
 <div class="sect3">
-<h4 id="_phonetic_comparisons">Phonetic Comparisons</h4>
+<h4 id="_phonetic_comparison_functions">Phonetic Comparison Functions</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -2140,28 +2174,33 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.phonetic(value) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.phonetic(value)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Compute the US_ENGLISH soundex character difference between two given strings</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.join(['text1','text2',&#8230;&#8203;], delimiter) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.join(['text1','text2',&#8230;&#8203;], delimiter)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">join the given strings with the given delimiter.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.clean(text) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.clean(text)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">strip the given string of everything except alpha numeric characters and convert it to lower case.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.compareCleaned(text1, text2) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.compareCleaned(text1, text2)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">compare the given strings stripped of everything except alpha numeric characters converted to lower case.</p></td>
 </tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Table 4. Procedure</caption>
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.filterCleanMatches(text1, text2) YIELD value</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">filter out non-matches of the given strings stripped of everything except alpha numeric characters converted to lower case.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compute the US_ENGLISH soundex character difference between two given strings</p></td>
 </tr>
 </tbody>
 </table>
@@ -2192,7 +2231,7 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 <td class="tableblock halign-left valign-top"><p class="tableblock">computes the md5 of the concatenation of all string values of the list</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.util.sleep({duration})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.util.sleep({duration})</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">sleeps for &lt;duration&gt; millis, transaction termination is honored</p></td>
 </tr>
 </tbody>
@@ -2205,7 +2244,7 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 <p>(thanks @tkroman)</p>
 </div>
 <div class="sect3">
-<h4 id="_conversion_between_formatted_dates_and_timestamps">Conversion between formatted dates and timestamps</h4>
+<h4 id="_conversion_functions_between_formatted_dates_and_timestamps">Conversion Functions between formatted dates and timestamps</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -2213,40 +2252,24 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parseDefault('2015-03-25 03:15:59','s')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">get Unix time equivalent of given date (in seconds)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parse('2015/03/25 03-15-59','s', 'yyyy/MM/dd HH/mm/ss')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parse('2015/03/25 03-15-59',['ms'/'s'], ['yyyy/MM/dd HH/mm/ss'])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">same as previous, but accepts custom datetime format</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.formatDefault(12345,'s')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">get string representation of date corresponding to given Unix time (in seconds)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.format(12345,'s', 'yyyy/MM/dd HH/mm/ss')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">the same as previous, but accepts custom datetime format</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parseDefault('2015-03-25 03:15:59','ms')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">get Unix time equivalent of given date (in milliseconds)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parse('2015/03/25 03-15-59','ms','yyyy/MM/dd HH/mm/ss')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">same as previous, but accepts custom datetime format</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.formatDefault(12345,'ms')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">get string representation of date corresponding to given time in milliseconds in UTC time zone</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.format(12345,'ms', 'yyyy/MM/dd HH/mm/ss')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.format(12345, ['ms'/'s'], ['yyyy/MM/dd HH/mm/ss'])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">the same as previous, but accepts custom datetime format</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.formatTimeZone(12345,'s', 'yyyy/MM/dd HH/mm/ss', 'ABC')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">the same as previous, but accepts custom time zone</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parseDefault('2015-03-25 03:15:59','s')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DEPRECATED get Unix time equivalent of given date (in seconds)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.formatDefault(12345,'s')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DEPRECATED get string representation of date corresponding to given Unix time (in seconds)</p></td>
 </tr>
 </tbody>
 </table>
@@ -2289,7 +2312,7 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">call apoc.bitwise.op(a long, "operation", b long ) yield value as &lt;identifier&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.bitwise.op(a long, "operation", b long ) as &lt;identifier&gt;</p></td>
 </tr>
 </tbody>
 </table>
@@ -2313,43 +2336,43 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">a &amp; b</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">AND</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">call apoc.bitwise.op(60,"&amp;",13)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.bitwise.op(60,"&amp;",13)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">12</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">a | b</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">OR</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">call apoc.bitwise.op(60,"|",13)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.bitwise.op(60,"|",13)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">61</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">a ^ b</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">XOR</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">call apoc.bitwise.op(60,"&amp;",13)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.bitwise.op(60,"&amp;",13)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">49</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">~a</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">NOT</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">call apoc.bitwise.op(60,"&amp;",0)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.bitwise.op(60,"&amp;",0)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-61</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">a &lt;&lt; b</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">LEFT SHIFT</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">call apoc.bitwise.op(60,"&lt;&lt;",2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.bitwise.op(60,"&lt;&lt;",2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">240</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">a &gt;&gt; b</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">RIGHT SHIFT</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">call apoc.bitwise.op(60,"&gt;&gt;",2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.bitwise.op(60,"&gt;&gt;",2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">15</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">a &gt;&gt;&gt; b</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">UNSIGNED RIGHT SHIFT</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">call apoc.bitwise.op(60,"&gt;&gt;&gt;",2)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.bitwise.op(60,"&gt;&gt;&gt;",2)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">15</p></td>
 </tr>
 </tbody>
@@ -2651,6 +2674,239 @@ CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as wei
 RETURN path, weight
 MATCH (n:Person)</code></pre>
 </div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_user_defined_functions">User Defined Functions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Introduced in Neo4j 3.1.0-M10</p>
+</div>
+<div class="paragraph">
+<p>Neo4j 3.1 brings some really neat improvements in Cypher alongside other cool features</p>
+</div>
+<div class="paragraph">
+<p>If you used or wrote procedures in the past, you most probably came across instances where it felt quite unwieldy to call a procedure just to compute something, convert a value or provide a boolean decision.</p>
+</div>
+<div class="paragraph">
+<p>For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (v:Value {id:{id}, data:{data}})
+WITH v
+CALL apoc.date.formatDefault(timestamp(), "ms") YIELD value as created
+SET v.created = created</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You&#8217;d rather write it as a function:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (v:Value {id:{id}, data:{data}, created: apoc.date.format(timestamp()) })</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now in 3.1 that&#8217;s possible, and you can also leave off the <code>"ms"</code> and use a single function name, because the <code>unit</code> and <code>format</code> parameters have a default value.</p>
+</div>
+<div class="paragraph">
+<p>Functions are more limited than procedures: they can’t execute writes or schema operations and are expected to return a single value, not a stream of values.
+But this makes it also easier to write and use them.</p>
+</div>
+<div class="paragraph">
+<p>By having information about their types, the Cypher Compiler can also check for applicability.</p>
+</div>
+<div class="paragraph">
+<p>The signature of the procedure above changed from:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@Procedure("apoc.date.format")
+public Stream&lt;StringResult&gt; formatDefault(@Name("time") long time, @Name("unit") String unit) {
+   return Stream.of(format(time, unit, DEFAULT_FORMAT));
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to the much simpler function signature (ignoring the parameter name and value annotations):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-java" data-lang="java">@UserFunction("apoc.date.format")
+public String format(@Name("time") long time,
+                     @Name(value="unit", defaultValue="ms") String unit,
+                     @Name(value="format", defaultValue=DEFAULT_FORMAT) String format) {
+   return getFormatter().format(time, unit, format);
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This can then be called in the manner outlined above.</p>
+</div>
+<div class="paragraph">
+<p>In our APOC procedure library we already converted about <a href="https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/144">50 procedures into functions</a> from the following areas:</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 40%;">
+<col style="width: 20%;">
+<col style="width: 40%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">package</th>
+<th class="tableblock halign-left valign-top"># of functions</th>
+<th class="tableblock halign-left valign-top">example function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>date &amp; time conversion</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>3</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parse("time",["unit"],["format"])</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>number conversion</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>3</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.number.parse("number",["format"])</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>general type conversion</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>8</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.toMap(value)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>type information and checking</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>4</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.meta.type(value)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>collection and map functions</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>25</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.fromList(["k1",v1,"k2",v2,"k3",v3])</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>JSON conversion</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>4</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.toJson(value)</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>string functions</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>7</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.join(["s1","s2","s3"],"delim")</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>hash functions</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>2</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.util.md5(value)</code></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>You can list user defined functions with <code>call dbms.functions()</code></p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/img/dbms.functions.jpg" alt="dbms.functions">
 </div>
 </div>
 </div>
@@ -3163,7 +3419,7 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 <p>(thanks @tkroman)</p>
 </div>
 <div class="sect3">
-<h4 id="_conversion_between_formatted_dates_and_timestamps_2">Conversion between formatted dates and timestamps</h4>
+<h4 id="_conversion_between_formatted_dates_and_timestamps">Conversion between formatted dates and timestamps</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -3195,15 +3451,15 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 <div class="paragraph">
 <p>Splits date (optionally, using given custom format) into fields returning a map from field name to its value.</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>apoc.date.fields('2015-03-25 03:15:59')</code></p>
-</li>
-<li>
-<p><code>apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')</code></p>
-</li>
-</ul>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.fields('2015-03-25 03:15:59')</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Following fields are supported:</p>
@@ -3253,10 +3509,14 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="sect3">
 <h4 id="_examples">Examples</h4>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>  apoc.date.fieldsDefault('2015-03-25 03:15:59') =&gt;
-    {
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.fieldsDefault('2015-03-25 03:15:59')</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>    {
       'Months': 1,
       'Days': 2,
       'Hours': 3,
@@ -3266,10 +3526,14 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
     }</pre>
 </div>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') =&gt;
-  {
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  {
     'ZoneId': 'Europe/Bucharest',
     'Months': 1,
     'Days': 2,
@@ -3280,10 +3544,14 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
   }</pre>
 </div>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z') =&gt;
-  {
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z')</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>  {
     'Years': 2015,
     'ZoneId': 'Europe/Bucharest',
     'Months': 1,
@@ -4101,51 +4369,15 @@ ORDER BY distance</code></pre>
 <div class="sectionbody">
 <div class="sect2">
 <h3 id="_load_json">Load JSON</h3>
-<div class="paragraph">
-<p>Example for reverse geocoding and determining the route from one to another location.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH
-        "21 rue Paul Bellamy 44000 NANTES FRANCE" AS fromAddr,
-        "125 rue du docteur guichard 49000 ANGERS FRANCE" AS toAddr
-
-call apoc.load.json("http://www.yournavigation.org/transport.php?url=http://nominatim.openstreetmap.org/search&amp;format=json&amp;q=" + replace(fromAddr, ' ', '%20')) YIELD value AS from
-
-WITH from, toAddr  LIMIT 1
-
-call apoc.load.json("http://www.yournavigation.org/transport.php?url=http://nominatim.openstreetmap.org/search&amp;format=json&amp;q=" + replace(toAddr, ' ', '%20')) YIELD value AS to
-
-CALL apoc.load.json("https://router.project-osrm.org/viaroute?instructions=true&amp;alt=true&amp;z=17&amp;loc=" + from.lat + "," + from.lon + "&amp;loc=" + to.lat + "," + to.lon ) YIELD value AS doc
-
-UNWIND doc.route_instructions as instruction
-
-RETURN instruction</code></pre>
-</div>
-</div>
 <div class="sect3">
-<h4 id="_load_json_with_additional_parameters">Load Json with additional parameters</h4>
+<h4 id="_load_json_2">Load JSON</h4>
 <div class="paragraph">
-<p>With <code>apoc.load.jsonParams</code> you can send additional headers or payload with your JSON GET request, e.g. for the Twitter API:</p>
+<p>Web APIs are a huge opportunity to access and integrate data from any sources with your graph.
+Most of them provide the data as JSON.</p>
 </div>
 <div class="paragraph">
-<p>Configure Bearer and Twitter Search Url token in <code>neo4j.conf</code></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>apoc.static.twitter.bearer=XXXX
-apoc.static.twitter.url=https://api.twitter.com/1.1/search/tweets.json?count=100&amp;result_type=recent&amp;lang=en&amp;q=</pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Twitter Search via Cypher</div>
-<div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.static.getAll("twitter") yield value AS twitter
-CALL apoc.load.jsonParams(twitter.url + "oscon+OR+neo4j+OR+%23oscon+OR+%40neo4j",{Authorization:"Bearer "+twitter.bearer},null) yield value
-UNWIND value.statuses as status
-WITH status, status.user as u, status.entities as e
-RETURN status.id, status.text, u.screen_name, [t IN e.hashtags | t.text] as tags, e.symbols, [m IN e.user_mentions | m.screen_name] as mentions, [u IN e.urls | u.expanded_url] as urls</code></pre>
-</div>
+<p>With <code>apoc.load.json</code> you can retrieve data from URLs and turn it into map value(s) for Cypher to consume.
+Cypher is pretty good at deconstructing nested documents with dot syntax, slices, <code>UNWIND</code> etc. so it is easy to turn nested data into graphs.</p>
 </div>
 </div>
 <div class="sect3">
@@ -4212,9 +4444,69 @@ FOREACH (a IN q.answers |
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_load_json_from_twitter_with_additional_parameters">Load JSON from Twitter (with additional parameters)</h4>
+<div class="paragraph">
+<p>With <code>apoc.load.jsonParams</code> you can send additional headers or payload with your JSON GET request, e.g. for the Twitter API:</p>
+</div>
+<div class="paragraph">
+<p>Configure Bearer and Twitter Search Url token in <code>neo4j.conf</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.static.twitter.bearer=XXXX
+apoc.static.twitter.url=https://api.twitter.com/1.1/search/tweets.json?count=100&amp;result_type=recent&amp;lang=en&amp;q=</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Twitter Search via Cypher</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.static.getAll("twitter") yield value AS twitter
+CALL apoc.load.jsonParams(twitter.url + "oscon+OR+neo4j+OR+%23oscon+OR+%40neo4j",{Authorization:"Bearer "+twitter.bearer},null) yield value
+UNWIND value.statuses as status
+WITH status, status.user as u, status.entities as e
+RETURN status.id, status.text, u.screen_name, [t IN e.hashtags | t.text] as tags, e.symbols, [m IN e.user_mentions | m.screen_name] as mentions, [u IN e.urls | u.expanded_url] as urls</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_geocoding_example">GeoCoding Example</h4>
+<div class="paragraph">
+<p>Example for reverse geocoding and determining the route from one to another location.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH
+        "21 rue Paul Bellamy 44000 NANTES FRANCE" AS fromAddr,
+        "125 rue du docteur guichard 49000 ANGERS FRANCE" AS toAddr
+
+call apoc.load.json("http://www.yournavigation.org/transport.php?url=http://nominatim.openstreetmap.org/search&amp;format=json&amp;q=" + replace(fromAddr, ' ', '%20')) YIELD value AS from
+
+WITH from, toAddr  LIMIT 1
+
+call apoc.load.json("http://www.yournavigation.org/transport.php?url=http://nominatim.openstreetmap.org/search&amp;format=json&amp;q=" + replace(toAddr, ' ', '%20')) YIELD value AS to
+
+CALL apoc.load.json("https://router.project-osrm.org/viaroute?instructions=true&amp;alt=true&amp;z=17&amp;loc=" + from.lat + "," + from.lon + "&amp;loc=" + to.lat + "," + to.lon ) YIELD value AS doc
+
+UNWIND doc.route_instructions as instruction
+
+RETURN instruction</code></pre>
+</div>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_load_jdbc">Load JDBC</h3>
+<div class="sect3">
+<h4 id="_overview_database_integration">Overview: Database Integration</h4>
+<div class="paragraph">
+<p>Data Integration is an important topic.
+Reading data from relational databases to create and augment data models is a very helpful exercise.</p>
+</div>
+<div class="paragraph">
+<p>With <code>apoc.load.jdbc</code> you can access any database that provides a JDBC driver, and execute queries whose results are turned into streams of rows.
+Those rows can then be used to update or create graph structures.</p>
+</div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -4236,47 +4528,47 @@ FOREACH (a IN q.answers |
 </tbody>
 </table>
 <div class="paragraph">
-<p>To simplify the JDBC URL syntax, for example 'jdbc:derby:derbyDB', and so as to mask the details one can define in conf/neo4j.conf</p>
+<p>To simplify the JDBC URL syntax and protect credentials, you can configure aliases in <code>conf/neo4j.conf</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>apoc.jdbc.derby.url=jdbc:derby:derbyDB</pre>
+<pre>apoc.jdbc.myDB.url=jdbc:derby:derbyDB</pre>
 </div>
-</div>
-<div class="paragraph">
-<p>and then</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name})</pre>
+<pre>CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON')
+
+becomes
+
+CALL apoc.load.jdbc('myDB','PERSON')</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>becomes</p>
+<p>The 3rd value in the <code>apoc.jdbc.&lt;alias&gt;.url=</code> effectively defines an alias to be used in  <code>apoc.load.jdbc('&lt;alias&gt;',&#8230;&#8203;.</code></p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre>CALL apoc.load.jdbc('derby','PERSON') YIELD row CREATE (:Person {name:row.name})</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The 3rd value in the 'apoc.jdbc.derby.url=' effectively defines an &lt;alias&gt; to be used in the apoc.load.jdbc('&lt;alias&gt;',&#8230;&#8203;.</p>
 </div>
 <div class="sect3">
 <h4 id="_mysql_example">MySQL Example</h4>
+<div class="paragraph">
+<p>Northwind is a common example set for relational databases, which is also covered in our import guides, e.g. <a play-topic='northwind graph'>:play northwind graph</a> in the Neo4j browser.</p>
+</div>
 <div class="sect4">
 <h5 id="_mysql_northwind_data">MySQL Northwind Data</h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-sql" data-lang="sql">select count(*) from products;
+<pre>select count(*) from products;
 +----------+
 | count(*) |
 +----------+
 |       77 |
 +----------+
-1 row in set (0,00 sec)
-
-describe products;
+1 row in set (0,00 sec)</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>describe products;
 +-----------------+---------------+------+-----+---------+----------------+
 | Field           | Type          | Null | Key | Default | Extra          |
 +-----------------+---------------+------+-----+---------+----------------+
@@ -4291,7 +4583,7 @@ describe products;
 | ReorderLevel    | smallint(2)   | YES  |     | 0       |                |
 | Discontinued    | bit(1)        | NO   |     | b'0'    |                |
 +-----------------+---------------+------+-----+---------+----------------+
-10 rows in set (0,00 sec)</code></pre>
+10 rows in set (0,00 sec)</pre>
 </div>
 </div>
 </div>
@@ -4307,9 +4599,9 @@ describe products;
 <div class="listingblock">
 <div class="title">Count rows in products table</div>
 <div class="content">
-<pre>with "jdbc:mysql://localhost:3306/northwind?user=root" as url
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">with "jdbc:mysql://localhost:3306/northwind?user=root" as url
 cypher CALL apoc.load.jdbc(url,"products") YIELD row
-RETURN count(*);</pre>
+RETURN count(*);</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -4347,8 +4639,13 @@ RETURN row limit 1;</code></pre>
 <img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/img/apoc-load-jdbc.jpg" alt="apoc load jdbc" width="800">
 </div>
 </div>
+</div>
+<div class="sect3">
+<h4 id="_load_data_in_transactional_batches">Load data in transactional batches</h4>
+<div class="paragraph">
+<p>You can load data from jdbc and create/update the graph using the query results in batches (and in parallel).</p>
+</div>
 <div class="listingblock">
-<div class="title">Create data from jdbc query results in batches (and in parallel).</div>
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.periodic.iterate('
 call apoc.load.jdbc("jdbc:mysql://localhost:3306/northwind?user=root","company")',
@@ -4405,9 +4702,12 @@ RETURN count(*);</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
-RETURN row LIMIT 5;
-
-CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+RETURN row LIMIT 5;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
 RETURN row.first_letter, row.artist LIMIT 5;</code></pre>
 </div>
 </div>
@@ -4500,6 +4800,165 @@ CREATE (t)-[:GENRE]-&gt;(g);</code></pre>
 <div class="content">
 <pre>Added 63213 labels, created 63213 nodes, set 182413 properties, created 119200 relationships, statement executed in 40076 ms.</pre>
 </div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_load_jdbc_resources">LOAD JDBC - Resources</h4>
+<div class="paragraph">
+<p>To use other JDBC drivers use these download links and JDBC URL.
+Put the JDBC driver into the <code>$NEO4J_HOME/plugins</code> directory and configure the JDBC-URL in <code>$NEO4J_HOME/conf/neo4j.conf</code> with <code>apoc.jdbc.&lt;alias&gt;.url=&lt;jdbc-url&gt;</code></p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 60%;">
+<col style="width: 20%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Database</th>
+<th class="tableblock halign-left valign-top">JDBC-URL</th>
+<th class="tableblock halign-left valign-top"> Driver Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>MySQL</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jdbc:mysql://&lt;hostname&gt;:&lt;port/3306&gt;/&lt;database&gt;?user=&lt;user&gt;&amp;password=&lt;pass&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p><a href="http://dev.mysql.com/downloads/connector/j/">MySQL Driver</a></p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Postgres</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jdbc:postgresql://&lt;hostname&gt;/&lt;database&gt;?user=&lt;user&gt;&amp;password=&lt;pass&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p><a href="https://jdbc.postgresql.org/download.html">PostgresSQL JDBC Driver</a></p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Oracle</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jdbc:oracle:thin:&lt;user&gt;/&lt;pass&gt;@&lt;host&gt;:&lt;port&gt;/&lt;service_name&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p><a href="http://www.oracle.com/technetwork/database/features/jdbc/index.html">Oracle JDBC Driver</a></p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>MS SQLServer</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jdbc:sqlserver://;servername=&lt;servername&gt;;databaseName=&lt;database&gt;;user=&lt;user&gt;;password=&lt;pass&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p><a href="https://www.microsoft.com/en-us/download/details.aspx?id=11774">SQLServer Driver</a></p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>IBM DB2</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jdbc:db2://&lt;host&gt;:&lt;port/5021&gt;/&lt;database&gt;:user=&lt;user&gt;;password=&lt;pass&gt;;</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p><a href="http://www-01.ibm.com/support/docview.wss?uid=swg21363866">DB2 Driver</a></p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Derby</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jdbc:derby:derbyDB</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Included in JDK6-8</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Cassandra</p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>jdbc:cassandra://&lt;host&gt;:&lt;port/9042&gt;/&lt;database&gt;</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p><a href="https://github.com/adejanovski/cassandra-jdbc-wrapper#installing">Cassandra JDBC Wrapper</a></p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>There are a number of blog posts / examples that details usage of apoc.load.jdbc</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://jesusbarrasa.wordpress.com/2016/09/30/quickgraph4-explore-your-browser-history-in-neo4j/">Explore your browser history in Neo4j</a></p>
+</li>
+<li>
+<p><a href="https://blog.knoldus.com/2016/09/12/neo4j-with-scala-migrate-data-from-other-database-to-neo4j/">Neo4j With Scala : Migrate Data From Other Database to Neo4j</a>
+*</p>
+</li>
+<li>
+<p><a href="https://neo4j.com/blog/apoc-database-integration-import-export-cypher/">APOC: Database Integration, Import and Export with Awesome Procedures On Cypher</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -4717,12 +5176,34 @@ return nodes, relationships, time</code></pre>
 <div class="sect2">
 <h3 id="_load_xml">Load XML</h3>
 <div class="sect3">
-<h4 id="_example_how_do_you_access_xml_doc_attributes_in_children_fields">Example: How do you access xml doc attributes in children fields ?</h4>
+<h4 id="_load_xml_introduction">Load XML Introduction</h4>
+<div class="paragraph">
+<p>Many existing (enterprise) applications, endpoints and files use XML as data exchange format.</p>
+</div>
+<div class="paragraph">
+<p>To make these datastructures available to Cypher, you can use <code>apoc.load.xml(Simple)</code>.
+It takes a file or http URL and parses the XML into a map datastructure.</p>
+</div>
+<div class="paragraph">
+<p>While <code>apoc.load.xml</code> has a more verbose format, it keeps the ordering of elements.</p>
+</div>
+<div class="paragraph">
+<p>While <code>apoc.load.xmlSimple</code> provides a more compact representation that makes it easier to process.</p>
+</div>
+<div class="paragraph">
+<p>See the following usage-examples for the procedures.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_example_file">Example File</h4>
+<div class="paragraph">
+<p>"How do you access XML doc attributes in children fields ?"</p>
+</div>
 <div class="paragraph">
 <p>(Thanks Nicolas Rouyer)</p>
 </div>
 <div class="paragraph">
-<p>For example, if my XML file is the example <a href="https://msdn.microsoft.com/en-us/library/ms762271%28v=vs.85%29.aspx">book.xml provided by microsoft</a>.</p>
+<p>For example, if my XML file is the example <a href="https://msdn.microsoft.com/en-us/library/ms762271%28v=vs.85%29.aspx">book.xml provided by Microsoft</a>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -4748,12 +5229,50 @@ return nodes, relationships, time</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>We have the file here: <a href="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml" class="bare">https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml</a></p>
+<p>We have the file here, <a href="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml">on GitHub</a>.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_simple_xml_format">Simple XML Format</h4>
+<div class="paragraph">
+<p>In a simpler XML representation, each type of children gets it&#8217;s own entry within the parent map.
+The element-type as key is prefixed with "_" to prevent collisions with attributes.</p>
 </div>
 <div class="paragraph">
-<p>Let&#8217;s just load it and see what it looks like, it&#8217;s returned as value map with nested <code>_type</code> and <code>_children</code> fields, per group of elements.
+<p>If there is a single element, then the entry will just have that element as value, not a collection.
+If there is more than one element there will be a list of values.</p>
+</div>
+<div class="paragraph">
+<p>Each child will still have its <code>_type</code> field to discern them.</p>
+</div>
+<div class="paragraph">
+<p>Here is the example file from above loaded with <code>apoc.load.xmlSimple</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xmlSimple("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml")</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-javascript" data-lang="javascript">{_type: "catalog", _book: [
+  {_type: "book", id: "bk101",
+    _author: [{_type: "author", _text: "Gambardella, Matthew"},{_type: author, _text: "Arciniegas, Fabio"}],
+    _title: {_type: "title", _text: "XML Developer's Guide"},
+    _genre: {_type: "genre", _text: "Computer"},
+    _price: {_type: "price", _text: "44.95"},
+    _publish_date: {_type: "publish_date", _text: "2000-10-01"},
+    _description: {_type: description, _text: An in-depth look at creating applications ....</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_load_xml_and_introspect">Load XML and Introspect</h4>
+<div class="paragraph">
+<p>Let&#8217;s just load it and see what it looks like.
+It&#8217;s returned as value map with nested <code>_type</code> and <code>_children</code> fields, per group of elements.
 Attributes are turned into map-entries.
-And elements into their own little map with <code>_type</code>, attributes and <code>_children</code> if applicable.</p>
+And each element into their own little map with <code>_type</code>, attributes and <code>_children</code> if applicable.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -4821,7 +5340,7 @@ RETURN book.id, [attr IN book._children WHERE attr._type IN ['author','title'] |
 </div>
 </div>
 <div class="sect5">
-<h6 id="_return_collection_elements">Return Collection Elements</h6>
+<h6 id="_how_do_i_return_collection_elements">How do I return collection elements?</h6>
 <div class="paragraph">
 <p>This is not too nice, we could also just have returned the values and then grabbed them out of the list, but that relies on element-order.</p>
 </div>
@@ -4844,8 +5363,12 @@ RETURN id, pairs[0] as author, pairs[1] as title</code></pre>
 </div>
 </div>
 </div>
-<div class="sect5">
-<h6 id="_turn_pairs_into_map">Turn Pairs into Map</h6>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_extracting_datastructures">Extracting Datastructures</h4>
+<div class="sect4">
+<h5 id="_turn_pairs_into_map">Turn Pairs into Map</h5>
 <div class="paragraph">
 <p>So better is to turn them into a map with <code>apoc.map.fromPairs</code></p>
 </div>
@@ -4868,7 +5391,6 @@ RETURN id, value</code></pre>
 │bk102│{author: Ralls, Kim, title: Midnight Rain}                          │
 ├─────┼────────────────────────────────────────────────────────────────────┤
 │bk103│{author: Corets, Eva, title: Maeve Ascendant}                       │</pre>
-</div>
 </div>
 </div>
 <div class="sect5">
@@ -4896,40 +5418,6 @@ RETURN id, value.author, value.title</code></pre>
 ├─────┼────────────────────┼──────────────────────────────┤
 │bk103│Corets, Eva         │Maeve Ascendant               │</pre>
 </div>
-</div>
-</div>
-</div>
-<div class="sect4">
-<h5 id="_simpler_xml_format">Simpler XML Format</h5>
-<div class="paragraph">
-<p>In a simpler XML representation, each type of children gets it&#8217;s own entry within the parent map.
-The element-type as key is prefixed with "_" to prevent collisions with attributes.</p>
-</div>
-<div class="paragraph">
-<p>If there is a single element, then the entry will just have that element as value.
-If there is more than one element there will be a list of values.</p>
-</div>
-<div class="paragraph">
-<p>Each child will still have its <code>_type</code> field to discern them.</p>
-</div>
-<div class="paragraph">
-<p>Here is the example from above loaded with <code>apoc.load.xmlSimple</code></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xmlSimple("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml")</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-javascript" data-lang="javascript">{_type: "catalog", _book: [
-  {_type: "book", id: "bk101",
-    _author: [{_type: "author", _text: "Gambardella, Matthew"},{_type: author, _text: "Arciniegas, Fabio"}],
-    _title: {_type: "title", _text: "XML Developer's Guide"},
-    _genre: {_type: "genre", _text: "Computer"},
-    _price: {_type: "price", _text: "44.95"},
-    _publish_date: {_type: "publish_date", _text: "2000-10-01"},
-    _description: {_type: description, _text: An in-depth look at creating applications ....</code></pre>
 </div>
 </div>
 </div>
@@ -5101,6 +5589,8 @@ return value.p</code></pre>
 </div>
 <div class="sect2">
 <h3 id="_job_management_and_periodic_execution">Job management and periodic execution</h3>
+<div class="sect3">
+<h4 id="_introduction_asynchronous_transactional_execution">Introduction asynchronous transactional execution</h4>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -5113,13 +5603,73 @@ this document is work in progress
 </tr>
 </table>
 </div>
+<div class="paragraph">
+<p>Cypher is great for querying graphs and importing and updating graph structures.
+While during imports you can use <code>PERIODIC COMMIT</code> to control transaction sizes in memory,
+for other graph refactorings it&#8217;s not that easy to commit transactions regularly to free memory for new update state.</p>
+</div>
+<div class="paragraph">
+<p>Also sometimes you want to schedule execution of Cypher statements to run regularly in the background or asynchronously ("fire &amp; forget").</p>
+</div>
+<div class="paragraph">
+<p>The <code>apoc.periodic.*</code> procedures provide such capabilities.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_apoc_periodic_iterate">apoc.periodic.iterate</h4>
+<div class="paragraph">
+<p>With <code>apoc.periodic.iterate</code> you provide 2 statements, the <strong>first</strong> is providing a stream of values to be processed.
+The <strong>second</strong> processes <strong>one</strong> element at a time.
+Optionally you can provide a config that declares a <code>batchSize</code> (default <code>1000</code>) and a <code>parallel</code> (default <code>false</code>) flag.</p>
+</div>
+<div class="paragraph">
+<p>So if you were to add an <code>:Actor</code> label to several million <code>:Person</code> nodes, you would run:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.periodic.iterate(
+"MATCH (p:Person) WHERE (p)-[:ACTED_IN]-&gt;() RETURN p",
+"SET p:Actor", {batchSize:10000, parallel:true})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Which would take 10k people from the stream and update them in a single transaction, executing the <strong>second</strong> statement for each person.</p>
+</div>
+<div class="paragraph">
+<p>Those executions can happen in parallel as updating node-labels or properties doesn&#8217;t conflict.</p>
+</div>
+<div class="paragraph">
+<p>If you do more complex operations like updating or removing relationships, either <strong>don&#8217;t use parallel</strong> OR make sure that you batch the work in a way that each subgraph of data is updated in one operation, e.g. by transferring the root objects.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.periodic.iterate(
+"MATCH (o:Order) WHERE o.date &gt; '2016-10-13' RETURN o",
+"MATCH (o)-[:HAS_ITEM]-&gt;(i) WITH o, sum(i.value) as value SET o.value = value", {batchSize:100, parallel:true})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The stream of other data can also come from another source, like a different database, CSV or JSON file.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_apoc_periodic_commit">apoc.periodic.commit</h4>
+<div class="paragraph">
+<p>Especially for graph processing it is useful to run a query repeatedly in separate transactions until it doesn&#8217;t process and generates any results anymore.
+So you can iterate in batches over elements that don&#8217;t fulfill a condition and update them so that they do afterwards.</p>
+</div>
+<div class="paragraph">
+<p>The query is executed repatedly in separate transactions until it returns 0.</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.periodic.commit("
-match (u:User)
-where not u:Processed
-with u limit {limit}
-SET u:Processed RETURN count(*)
+match (user:User) WHERE exists( user.city )
+with user limit {limit}
+MERGE (city:City {name:user.city})
+MERGE (user)-[:LIVES_IN]-&gt;(city)
+REMOVE user.city
+RETURN count(*)
 ",{limit:10000})</code></pre>
 </div>
 </div>
@@ -5133,12 +5683,68 @@ SET u:Processed RETURN count(*)
 </div>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_further_functions">Further Functions</h4>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.periodic.commit(statement, params)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">repeats an batch update statement until it returns 0, this procedure is blocking</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.periodic.list()</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">list all jobs</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.periodic.submit('name',statement)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">submit a one-off background statement</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.periodic.schedule('name',statement,repeat-time-in-seconds)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">submit a repeatedly-called background statement</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.periodic.countdown('name',statement,delay-in-seconds)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">submit a repeatedly-called background statement until it returns 0</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,parallel:true}) YIELD batches, total</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">run the second statement for each item returned by the first statement. Returns number of batches and total processed rows</p></td>
+</tr>
+</tbody>
+</table>
+<div class="ulist">
+<ul>
+<li>
+<p>there are also static methods <code>Jobs.submit</code>, and <code>Jobs.schedule</code> to be used from other procedures</p>
+</li>
+<li>
+<p>jobs list is checked / cleared every 10s for finished jobs</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">copies over the <code>name</code> property of each person to <code>lastname</code></div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (p) where id(p)={id_p} SET p.lastname =p.name', 20000)</code></pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-09-21 13:06:52 +02:00
+Last updated 2016-10-06 10:35:24 +02:00
 </div>
 </div>
 </body>

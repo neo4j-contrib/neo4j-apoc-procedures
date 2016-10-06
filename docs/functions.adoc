@@ -1,0 +1,98 @@
+= User Defined Functions
+
+Introduced in Neo4j 3.1.0-M10
+
+Neo4j 3.1 brings some really neat improvements in Cypher alongside other cool features
+
+If you used or wrote procedures in the past, you most probably came across instances where it felt quite unwieldy to call a procedure just to compute something, convert a value or provide a boolean decision. 
+
+For example:
+
+[source,cypher]
+----
+CREATE (v:Value {id:{id}, data:{data}})
+WITH v
+CALL apoc.date.formatDefault(timestamp(), "ms") YIELD value as created
+SET v.created = created
+----
+
+You'd rather write it as a function:
+
+[source,cypher]
+----
+CREATE (v:Value {id:{id}, data:{data}, created: apoc.date.format(timestamp()) })
+----
+
+Now in 3.1 that's possible, and you can also leave off the `"ms"` and use a single function name, because the `unit` and `format` parameters have a default value.
+
+Functions are more limited than procedures: they can’t execute writes or schema operations and are expected to return a single value, not a stream of values.
+But this makes it also easier to write and use them.
+
+By having information about their types, the Cypher Compiler can also check for applicability.
+
+The signature of the procedure above changed from:
+
+[source,java]
+----
+@Procedure("apoc.date.format")
+public Stream<StringResult> formatDefault(@Name("time") long time, @Name("unit") String unit) {
+   return Stream.of(format(time, unit, DEFAULT_FORMAT));
+}
+----
+
+to the much simpler function signature (ignoring the parameter name and value annotations):
+
+[source,java]
+----
+@UserFunction("apoc.date.format")
+public String format(@Name("time") long time, 
+                     @Name(value="unit", defaultValue="ms") String unit, 
+                     @Name(value="format", defaultValue=DEFAULT_FORMAT) String format) {
+   return getFormatter().format(time, unit, format);
+}
+----
+
+This can then be called in the manner outlined above.
+
+In our APOC procedure library we already converted about https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/144[50 procedures into functions] from the following areas:
+
+[options="header",cols="2a,a,2m"]
+|===
+| package | # of functions | example function
+| date & time conversion
+| 3
+| apoc.date.parse("time",["unit"],["format"])
+
+| number conversion
+| 3
+| apoc.number.parse("number",["format"])
+
+| general type conversion
+| 8
+| apoc.convert.toMap(value)
+
+| type information and checking
+| 4
+| apoc.meta.type(value)
+
+| collection and map functions
+| 25
+| apoc.map.fromList(["k1",v1,"k2",v2,"k3",v3])
+
+| JSON conversion
+| 4
+| apoc.convert.toJson(value)
+
+| string functions
+| 7
+| apoc.text.join(["s1","s2","s3"],"delim")
+
+| hash functions
+| 2
+| apoc.util.md5(value)
+
+|===
+
+You can list user defined functions with `call dbms.functions()`
+
+image::{img}/dbms.functions.jpg[]
