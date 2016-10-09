@@ -1,20 +1,25 @@
 package apoc.algo.pagerank;
 
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
+import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
+
+import static apoc.algo.pagerank.PageRankUtils.ctx;
 
 public class BatchRunnable implements Runnable, OpsRunner
 {
     final long[] ids;
-    final ReadOperations ops;
     private final OpsRunner runner;
+    private final GraphDatabaseAPI api;
     int offset = 0;
 
-    public BatchRunnable( ReadOperations ops, PrimitiveLongIterator iterator, int batchSize, OpsRunner runner )
+    public BatchRunnable(final GraphDatabaseAPI api, PrimitiveLongIterator iterator, int batchSize, OpsRunner runner )
     {
+        this.api = api;
         ids = add( iterator, batchSize );
-        this.ops = ops;
         this.runner = runner;
     }
 
@@ -30,25 +35,26 @@ public class BatchRunnable implements Runnable, OpsRunner
 
     public void run()
     {
-        int notFound = 0;
-        for ( int i = 0; i < offset; i++ )
-        {
-            try
-            {
-                run( (int) ids[i] );
+        try (Transaction tx = api.beginTx()) {
+            ReadOperations ops = ctx(api).get().readOperations();
+            int notFound = 0;
+            for (int i = 0; i < offset; i++) {
+                try {
+                    run(ops, (int) ids[i]);
+                } catch (EntityNotFoundException e) {
+                    notFound++;
+                }
             }
-            catch ( EntityNotFoundException e )
-            {
-                notFound++;
+            if (notFound > 0) {
+                System.err.println("Entities not found " + notFound);
             }
+            tx.success();
         }
-        if ( notFound > 0 )
-        { System.err.println( "Entities not found " + notFound ); }
     }
 
     @Override
-    public void run( int node ) throws EntityNotFoundException
+    public void run( ReadOperations ops, int node ) throws EntityNotFoundException
     {
-        runner.run( node );
+        runner.run( ops, node );
     }
 }
