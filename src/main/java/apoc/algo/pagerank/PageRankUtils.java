@@ -7,15 +7,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
-import org.neo4j.cypher.EntityNotFoundException;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.kernel.api.DataWriteOperations;
-import org.neo4j.kernel.api.ReadOperations;
-import org.neo4j.kernel.api.exceptions.InvalidTransactionTypeKernelException;
-import org.neo4j.kernel.api.exceptions.legacyindex.AutoIndexingKernelException;
-import org.neo4j.kernel.api.exceptions.schema.ConstraintValidationKernelException;
-import org.neo4j.kernel.api.exceptions.schema.IllegalTokenNameException;
-import org.neo4j.kernel.api.properties.DefinedProperty;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
@@ -52,14 +43,37 @@ public class PageRankUtils
         return total;
     }
 
-    public static void runOperations( ExecutorService pool, final PrimitiveLongIterator it, int totalCount,
-            ReadOperations ops, OpsRunner runner )
+    public static void runOperations(ExecutorService pool, final PrimitiveLongIterator it, int totalCount,
+                                     final GraphDatabaseAPI api, OpsRunner runner )
     {
-        List<Future> futures = new ArrayList<>( (int) (totalCount / BATCH_SIZE) );
+        List<Future> futures = new ArrayList<>( (int) (totalCount / BATCH_SIZE) + 1);
         while ( it.hasNext() )
         {
-            futures.add( pool.submit( new BatchRunnable( ops, it, BATCH_SIZE, runner ) ) );
+            futures.add( pool.submit( new BatchRunnable( api, it, BATCH_SIZE, runner ) ) );
         }
         PageRankUtils.waitForTasks( futures );
+    }
+    public static void runOperations(ExecutorService pool, List<BatchRunnable> runners )
+    {
+        List<Future> futures = new ArrayList<>( runners.size() );
+        for (BatchRunnable runnable : runners) {
+            futures.add( pool.submit( runnable ) );
+        }
+        PageRankUtils.waitForTasks( futures );
+    }
+
+    public static List<BatchRunnable> prepareOperations(final PrimitiveLongIterator it, int totalCount,
+                                                        final GraphDatabaseAPI api, OpsRunner runner )
+    {
+        List<BatchRunnable> runners = new ArrayList<>( (int) (totalCount / BATCH_SIZE) + 1);
+        while ( it.hasNext() )
+        {
+            runners.add( new BatchRunnable( api, it, BATCH_SIZE, runner ) );
+        }
+        return runners;
+    }
+
+    public static ThreadToStatementContextBridge ctx(GraphDatabaseAPI db) {
+        return db.getDependencyResolver().resolveDependency( ThreadToStatementContextBridge.class );
     }
 }
