@@ -6,6 +6,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 import java.util.function.IntPredicate;
 
+import apoc.algo.algorithms.AlgoUtils;
+import apoc.algo.algorithms.AlgorithmInterface;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -15,11 +17,14 @@ import org.neo4j.kernel.impl.api.RelationshipVisitor;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
+import javax.sound.midi.SysexMessage;
+
+import static apoc.algo.pagerank.PageRankArrayStorageParallelCypher.WRITE_BATCH;
 import static apoc.algo.pagerank.PageRankUtils.runOperations;
 import static apoc.algo.pagerank.PageRankUtils.toFloat;
 import static apoc.algo.pagerank.PageRankUtils.toInt;
 
-public class PageRankArrayStorageParallelSPI implements PageRank
+public class PageRankArrayStorageParallelSPI implements PageRank, AlgorithmInterface
 {
     public static final int ONE_MINUS_ALPHA_INT = toInt( ONE_MINUS_ALPHA );
     private final GraphDatabaseAPI db;
@@ -28,6 +33,7 @@ public class PageRankArrayStorageParallelSPI implements PageRank
     private final int relCount;
     private AtomicIntegerArray dst;
 
+    private PageRankStatistics stats = new PageRankStatistics();
 
     public PageRankArrayStorageParallelSPI(
             GraphDatabaseService db,
@@ -44,6 +50,8 @@ public class PageRankArrayStorageParallelSPI implements PageRank
             int iterations,
             RelationshipType... relationshipTypes )
     {
+        stats.iterations = iterations;
+        long start = System.currentTimeMillis();
         final ThreadToStatementContextBridge ctx =
                 this.db.getDependencyResolver().resolveDependency( ThreadToStatementContextBridge.class );
         final ReadOperations ops = ctx.get().readOperations();
@@ -51,6 +59,9 @@ public class PageRankArrayStorageParallelSPI implements PageRank
         final int[] src = new int[nodeCount];
         dst = new AtomicIntegerArray( nodeCount );
         final int[] degrees = computeDegrees( ops );
+        stats.readNodeMillis = System.currentTimeMillis() - start;
+        stats.nodes = nodeCount;
+        start = System.currentTimeMillis();
 
         final RelationshipVisitor<RuntimeException> visitor =
                 ( relId, relTypeId, startNode, endNode ) -> {
@@ -60,12 +71,16 @@ public class PageRankArrayStorageParallelSPI implements PageRank
                     }
                 };
 
+        stats.readRelationshipMillis = System.currentTimeMillis() - start;
+        stats.relationships = relCount;
+        start = System.currentTimeMillis();
         for ( int iteration = 0; iteration < iterations; iteration++ )
         {
             startIteration( src, dst, degrees );
             PrimitiveLongIterator rels = ops.relationshipsGetAll();
             runOperations( pool, rels, relCount, ops, id -> ops.relationshipVisit( id, visitor ) );
         }
+        stats.computeMillis = System.currentTimeMillis() - start;
     }
 
     private IntPredicate relationshipTypeArrayToIntPredicate(
@@ -127,6 +142,21 @@ public class PageRankArrayStorageParallelSPI implements PageRank
 
     @Override
     public PageRankStatistics getStatistics() {
-        return null;
+        return stats;
     }
+
+    @Override
+    public int getMappedNode(int index) {
+        return index;
+    }
+
+    public void writeResultsToDB() {
+        stats.write = true;
+        long before = System.currentTimeMillis();
+        AlgoUtils.writeBackResults(pool, db, this, WRITE_BATCH);
+        stats.write = true;
+        stats.writeMillis = System.currentTimeMillis() - before;
+        stats.property = getPropertyName();
+    }
+
 }
