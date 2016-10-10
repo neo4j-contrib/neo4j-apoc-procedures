@@ -126,6 +126,20 @@ public class PageRankTest
         assertFalse( result.hasNext() );
         assertEquals(PageRankAlgoTest.EXPECTED, (double) row.get("score"), 0.1D);
     }
+    @Test
+    public void shouldGetPageRankStats() throws IOException
+    {
+        db.execute( COMPANIES_QUERY ).close();
+        String query =
+                       "CALL apoc.algo.pageRankStats({iterations:20}) ";
+        Result result = db.execute( query );
+        assertTrue( result.hasNext() );
+        Map<String,Object> row = result.next();
+        System.out.println("row = " + row);
+        assertEquals(11L, row.get("nodes"));
+        assertEquals(16L, row.get("relationships"));
+        assertFalse( result.hasNext() );
+    }
 
     @Test
     public void shouldGetPageRankWithCypherExpectedResult() throws IOException
