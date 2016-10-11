@@ -46,7 +46,7 @@ public class PageRankUtils
     public static void runOperations(ExecutorService pool, final PrimitiveLongIterator it, int totalCount,
                                      final GraphDatabaseAPI api, OpsRunner runner )
     {
-        List<Future> futures = new ArrayList<>( (int) (totalCount / BATCH_SIZE) + 1);
+        List<Future> futures = new ArrayList<>( totalCount / BATCH_SIZE + 1);
         while ( it.hasNext() )
         {
             futures.add( pool.submit( new BatchRunnable( api, it, BATCH_SIZE, runner ) ) );

@@ -8,7 +8,6 @@ import apoc.algo.pagerank.PageRankArrayStorageParallelCypher;
 import apoc.algo.pagerank.PageRankArrayStorageParallelSPI;
 import apoc.result.NodeScore;
 import apoc.util.Util;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -34,10 +33,7 @@ public class PageRank {
     static final Long DEFAULT_PAGE_RANK_ITERATIONS = 20L;
 
     @Context
-    public GraphDatabaseService db;
-
-    @Context
-    public GraphDatabaseAPI dbAPI;
+    public GraphDatabaseAPI db;
 
     @Context
     public Log log;
@@ -85,7 +81,7 @@ public class PageRank {
 
         long beforeReading = System.currentTimeMillis();
         log.info("Pagerank: Reading data into local ds");
-        PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(dbAPI, pool, log);
+        PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(db, pool, log);
         boolean success = pageRank.readNodeAndRelCypherData(
                 relCypher, nodeCypher);
         if (!success) {
@@ -125,7 +121,7 @@ public class PageRank {
     }
     private Stream<PageRankStatistics> innerPageRankStats(int iterations, Map<String,Object> config, RelationshipType... types) {
         try {
-            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI(dbAPI, pool);
+            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI(db, pool);
             pageRank.compute(iterations, types);
             if ((boolean)config.getOrDefault(SETTING_WRITE, DEFAULT_PAGE_RANK_WRITE)) {
                 pageRank.writeResultsToDB();
