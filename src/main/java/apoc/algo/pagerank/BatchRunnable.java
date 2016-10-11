@@ -7,6 +7,8 @@ import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
+import java.util.Arrays;
+
 import static apoc.algo.pagerank.PageRankUtils.ctx;
 
 public class BatchRunnable implements Runnable, OpsRunner
@@ -26,6 +28,7 @@ public class BatchRunnable implements Runnable, OpsRunner
     private long[] add( PrimitiveLongIterator it, int count )
     {
         long[] ids = new long[count];
+        Arrays.fill(ids,-1L);
         while ( count-- > 0 && it.hasNext() )
         {
             ids[offset++] = it.next();
@@ -39,6 +42,7 @@ public class BatchRunnable implements Runnable, OpsRunner
             ReadOperations ops = ctx(api).get().readOperations();
             int notFound = 0;
             for (int i = 0; i < offset; i++) {
+                if (ids[i]==-1L) break;
                 try {
                     run(ops, (int) ids[i]);
                 } catch (EntityNotFoundException e) {
