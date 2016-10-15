@@ -176,6 +176,6 @@ public class XmlGraphMLWriter {
     }
 
     private void newLine(XMLStreamWriter writer) throws XMLStreamException {
-        writer.writeCharacters("\n");
+        writer.writeCharacters(System.getProperty("line.separator"));
     }
 }
