@@ -7,12 +7,15 @@ import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
+import org.neo4j.kernel.impl.core.NodeManager;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
+
+import static apoc.util.Util.map;
 
 public class Nodes {
 
@@ -48,27 +51,15 @@ public class Nodes {
     }
 
     @Procedure
+    @PerformsWrites
     @Description("apoc.nodes.delete(node|nodes|id|[ids]) - quickly delete all nodes with these id's")
     public Stream<LongResult> delete(@Name("nodes") Object ids, @Name("batchSize") long batchSize) {
         Iterator<Node> it = Util.nodeStream(db, ids).iterator();
         long count = 0;
-        List<Node> batch = new ArrayList<>((int)batchSize);
         while (it.hasNext()) {
-            Node node = it.next();
-            batch.add(node);
-            if (++count % batchSize == 0) {
-                List<Node> submit = batch;
-                batch = new ArrayList<>((int)batchSize);
-                Periodic.submit("delete",() -> {
-                    try (Transaction tx = api.beginTx()) {
-                        for (Node n : submit) {
-                            for (Relationship rel : node.getRelationships()) rel.delete();
-                            n.delete();
-                        }
-                        tx.success();
-                    };
-                });
-            }
+            final List<Node> batch = Util.take(it, (int)batchSize);
+//            count += Util.inTx(api,() -> batch.stream().peek( n -> {n.getRelationships().forEach(Relationship::delete);n.delete();}).count());
+             count += Util.inTx(api,() -> {api.execute("FOREACH (n in {nodes} | DETACH DELETE n)",map("nodes",batch)).close();return batch.size();});
         }
         return Stream.of(new LongResult(count));
     }

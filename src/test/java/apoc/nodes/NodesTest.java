@@ -34,4 +34,17 @@ public class NodesTest {
         assertEquals(9L,(long)it.next());
         it.close();
     }
+    @Test
+    public void delete() throws Exception {
+        db.execute("UNWIND range(1,100) as id CREATE (n:Foo {id:id})-[:X]->(n)").close();
+        ResourceIterator<Long> it =  db.execute("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.delete(nodes,1) YIELD value as count RETURN count").columnAs("count");
+        long count = it.next();
+        it.close();
+
+        assertEquals(100L,count);
+
+        it = db.execute("MATCH (n:Foo) RETURN count(*) as c").columnAs("c");
+        assertEquals(0L,(long)it.next());
+        it.close();
+    }
 }
