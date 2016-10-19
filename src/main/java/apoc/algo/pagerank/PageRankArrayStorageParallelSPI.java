@@ -146,8 +146,8 @@ public class PageRankArrayStorageParallelSPI implements PageRank, AlgorithmInter
     }
 
     @Override
-    public int getMappedNode(int index) {
-        return index;
+    public long getMappedNode(int algoId) {
+        return (int) algoId;
     }
 
     public void writeResultsToDB() {

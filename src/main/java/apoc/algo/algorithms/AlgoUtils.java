@@ -79,11 +79,11 @@ public class AlgoUtils {
                 public void run() {
                     try (Transaction tx = db.beginTx()) {
                         DataWriteOperations ops = ctx.get().dataWriteOperations();
-                        for (long i = 0; i < batchSize; i++) {
-                            long nodeIndex = i + start;
+                        for (int i = 0; i < batchSize; i++) {
+                            int nodeIndex = i + start;
                             if (nodeIndex >= totalNodes) break;
 
-                            int graphNode = algorithm.getMappedNode((int)nodeIndex);
+                            long graphNode = algorithm.getMappedNode(nodeIndex);
                             double value = algorithm.getResult(graphNode);
                             if (graphNode == -1) {
                                 System.out.println("Node node found for " + graphNode + " mapped node " + nodeIndex);

@@ -1,28 +1,34 @@
 package apoc.algo.algorithms;
 
-import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.collection.primitive.Primitive;
+import org.neo4j.collection.primitive.PrimitiveLongIntMap;
+import org.neo4j.collection.primitive.PrimitiveLongIntVisitor;
 import org.neo4j.graphdb.Result;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
 import java.util.Arrays;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
+
+import static java.lang.System.currentTimeMillis;
 
 public class Algorithm {
 
     public static final int INITIAL_ARRAY_SIZE=100_000;
+    public static final String COMPILED_RUNTIME = "CYPHER runtime=compiled ";
     private final GraphDatabaseAPI db;
     private final Log log;
     private final ExecutorService pool;
 
     public int nodeCount;
+    public int maxAlgoNodeId;
     public int relCount;
     public long readNodeMillis, readRelationshipMillis;
 
     // Arrays to hold the graph.
     // Mapping from Algo node ID to Graph nodeID
-    public int [] nodeMapping;
+    private  int [] nodeMapping;
+    private PrimitiveLongIntMap nodeMap = Primitive.longIntMap(INITIAL_ARRAY_SIZE);
 
     // Degree of each algo node.
     public int [] sourceDegreeData;
@@ -47,159 +53,208 @@ public class Algorithm {
     }
 
     public boolean readNodeAndRelCypherIntoArrays(String relCypher, String nodeCypher, boolean weighted) {
-        Result nodeResult = db.execute(nodeCypher);
+        long before = currentTimeMillis();
+        this.nodeCount = loadNodes(nodeCypher);
+        readNodeMillis = (currentTimeMillis() - before);
+        log.info("Time to load nodes = " + readNodeMillis + " millis. Nodes from nodeCypher: " + nodeCount);
 
-        long before = System.currentTimeMillis();
-        ResourceIterator<Long> resultIterator = nodeResult.columnAs("id");
-        int index = 0;
-        int totalNodes = 0;
-        nodeMapping = new int[INITIAL_ARRAY_SIZE];
-        int currentSize = INITIAL_ARRAY_SIZE;
-        while(resultIterator.hasNext()) {
-            int node  = (resultIterator.next()).intValue();
+        this.maxAlgoNodeId = nodeCount;
 
-            if (index >= currentSize) {
-                if (log.isDebugEnabled()) log.debug("Node Doubling size " + currentSize);
-                nodeMapping = doubleSize(nodeMapping, currentSize);
-                currentSize = currentSize * 2;
+        before = currentTimeMillis();
+        this.relCount = loadRelationships(relCypher, true,1);
+        readRelationshipMillis = (currentTimeMillis() -before);
+        log.info("Time for iteration over " + relCount + " relations = " + readRelationshipMillis + " millis");
+
+        nodeMapping = new int[nodeCount];
+        nodeMap.visitEntries(new PrimitiveLongIntVisitor<RuntimeException>() {
+            @Override
+            public boolean visited(long nodeId, int algoId) throws RuntimeException {
+                nodeMapping[algoId]=(int)nodeId;
+                return false;
             }
-            nodeMapping[index] = node;
-            index++;
-            totalNodes++;
-        }
-
-        this.nodeCount = totalNodes;
-        Arrays.sort(nodeMapping, 0, nodeCount);
-        long after = System.currentTimeMillis();
-        readNodeMillis = (after - before);
-        log.info("Time to make nodes structure = " + readNodeMillis + " millis. Nodes from nodeCypher: " + nodeCount);
-        before = System.currentTimeMillis();
-
-        sourceDegreeData = new int[totalNodes];
-
-        int totalRelationships = readRelationshipMetadata(relCypher, true);
-        sourceChunkStartingIndex = new int[nodeCount];
-        Arrays.fill(sourceChunkStartingIndex, -1);
-
-        this.relCount = totalRelationships;
-        relationshipTarget = new int[totalRelationships];
-        Arrays.fill(relationshipTarget, -1);
-
-        if (weighted) {
-            relationshipWeight = new int[totalRelationships];
-            Arrays.fill(relationshipWeight, -1);
-        }
-        calculateChunkIndices();
-        readRelationships(relCypher, weighted);
-        after = System.currentTimeMillis();
-        readRelationshipMillis = (after - before);
-        log.info("Time for iteration over " + totalRelationships + " relations = " + readRelationshipMillis + " millis");
+        });
         return true;
     }
 
-    public int getNodeIndex(int node) {
-        int index = Arrays.binarySearch(nodeMapping, 0, nodeCount, node);
-        return index;
+    public int loadNodes(String nodeCypher) {
+        if (nodeCypher == null) return  0;
+
+        NodeLoaderVisitor loader = new NodeLoaderVisitor();
+        db.execute(COMPILED_RUNTIME + nodeCypher).accept(loader);
+        return loader.nodes;
+    }
+
+    public int getAlgoNodeId(long node) {
+        return nodeMap.get(node); // Arrays.binarySearch(nodeMapping, 0, nodeCount, node);
+    }
+
+    private int getOrCreateAlgoNodeId(long node) {
+        if (nodeMap.containsKey(node)) {
+            return nodeMap.get(node);
+        }
+        nodeMap.put(node,maxAlgoNodeId++);
+        return maxAlgoNodeId-1;
     }
 
 
     // TODO Create buckets instead of copying data.
     // Not doing it right now because of the complications of the interface.
-    private int [] doubleSize(int [] array, int currentSize) {
-        int newArray[] = new int[currentSize * 2];
+    private int [] growArray(int[] array, float growFactor) {
+        int currentSize = array.length;
+        int newArray[] = new int[(int)(currentSize * growFactor)];
         System.arraycopy(array, 0, newArray, 0, currentSize);
         return newArray;
     }
 
     private void calculateChunkIndices() {
-        int currentIndex = 0;
-        for (int i = 0; i < nodeCount; i++) {
-            sourceChunkStartingIndex[i] = currentIndex;
-            if (sourceDegreeData[i] == -1)
-                continue;
-            currentIndex += sourceDegreeData[i];
+        int nodes = this.nodeCount;
+        sourceChunkStartingIndex = new int[nodes];
+        int currentOffset = 0;
+        for (int i = 0; i < nodes; i++) {
+            sourceChunkStartingIndex[i] = currentOffset;
+            currentOffset += sourceDegreeData[i];
         }
     }
 
-    private int readRelationshipMetadata(String relCypher, boolean stripDown) {
-        long before = System.currentTimeMillis();
-        Result result = db.execute(relCypher);
+    private int loadRelationships(String relCypher, boolean weighted, int defaultWeight) {
+        RelationshipLoaderVisitor loader = new RelationshipLoaderVisitor(weighted, defaultWeight, nodeCount);
+        db.execute(COMPILED_RUNTIME +relCypher).accept(loader);
+
+        this.nodeCount = maxAlgoNodeId;
+        calculateChunkIndices();
+
+        loader.transformRelData();
+        return loader.totalRelationships;
+    }
+
+    public long getMappedNode(int algoId) {
+        return nodeMapping[algoId];
+    }
+
+    private class NodeLoaderVisitor implements Result.ResultVisitor<RuntimeException> {
+        int nodes = 0;
+
+        @Override
+        public boolean visit(Result.ResultRow row) throws RuntimeException {
+            nodeMap.put(row.getNumber("id").longValue(),nodes);
+            nodes++;
+            return true;
+        }
+    }
+
+    private class RelationshipLoaderVisitor implements Result.ResultVisitor<RuntimeException> {
+        private final boolean weighted;
+        private final int defaultWeight;
         int totalRelationships = 0;
+
         int sourceIndex = 0;
         int targetIndex = 0;
-        boolean[] nodesInRel = new boolean[nodeCount];
-        while(result.hasNext()) {
-            Map<String, Object> res = result.next();
-            int source = ((Long) res.get("source")).intValue();
-            int target = ((Long) res.get("target")).intValue();
-            sourceIndex = getNodeIndex(source);
-            targetIndex = getNodeIndex(target);
-            nodesInRel[sourceIndex] = true;
-            nodesInRel[targetIndex] = true;
+        long lastSource = -1, lastTarget = -1;
 
-            sourceDegreeData[sourceIndex]++;
-            totalRelationships++;
-        }
+        int relDataIdx = 0;
+        int[] relData;
+        int relDataSize;
 
-        result.close();
-        if (stripDown) {
-            int[] newNodeMapping = new int[totalRelationships * 2];
-            int[] newSourceDegreeData = new int[totalRelationships * 2];
+        PrimitiveLongIntMap weights;
+        private int sourceDegreeSize;
 
-            int index = 0;
-            for (int i = 0; i < nodeCount; i++) {
-                if (!nodesInRel[i])
-                    continue;
-                newNodeMapping[index] = nodeMapping[i];
-                index++;
-            }
+        public RelationshipLoaderVisitor(boolean weighted, int defaultWeight, int nodeCount) {
+            this.weighted = weighted;
+            this.defaultWeight = defaultWeight;
 
+            relData = new int[Math.max(nodeCount,INITIAL_ARRAY_SIZE)];
+            relDataSize = relData.length;
 
-            Arrays.sort(newNodeMapping, 0, index);
+            sourceDegreeData = new int[Math.max(nodeCount,INITIAL_ARRAY_SIZE)];
+            sourceDegreeSize = sourceDegreeData.length;
 
-            for (int i = 0; i < index; i++) {
-                int node = newNodeMapping[i];
-                int degree = sourceDegreeData[getNodeIndex(node)];
-                newSourceDegreeData[i] = degree;
-            }
-
-            nodeMapping = newNodeMapping;
-            nodeCount = index;
-            sourceDegreeData = newSourceDegreeData;
-
-            newNodeMapping = null;
-            newSourceDegreeData = null;
-        }
-        long after = System.currentTimeMillis();
-        log.info("Time to read relationship metadata " + (after - before) + " ms ");
-        log.info("Reduced Nodes: " + nodeCount + " relationships " + totalRelationships);
-        return totalRelationships;
-    }
-
-    private void readRelationships(String relCypher, boolean weighted) {
-        Result result = db.execute(relCypher);
-        long before = System.currentTimeMillis();
-        int sourceIndex = 0;
-        while(result.hasNext()) {
-            Map<String, Object> res = result.next();
-            int source = ((Long) res.get("source")).intValue();
-            sourceIndex = getNodeIndex(source);
-            int target = ((Long) res.get("target")).intValue();
-            int logicalTargetIndex = getNodeIndex(target);
-            int chunkIndex = sourceChunkStartingIndex[sourceIndex];
-            while(relationshipTarget[chunkIndex] != -1) {
-                chunkIndex++;
-            }
-            relationshipTarget[chunkIndex] = logicalTargetIndex;
-            int weight = 0;
             if (weighted) {
-                weight = ((Long) res.getOrDefault("weight", 1)).intValue();
-                relationshipWeight[chunkIndex] = weight;
+                weights = Primitive.longIntMap(INITIAL_ARRAY_SIZE);
             }
         }
-        result.close();
-        long after = System.currentTimeMillis();
-        log.info("Time to read relationship data " + (after - before) + " ms");
-    }
 
+        @Override
+        public boolean visit(Result.ResultRow res) throws RuntimeException {
+            totalRelationships++;
+
+            if (relDataIdx+1 >= relDataSize) {
+                relData = growArray(relData, 2f);
+                relDataSize = relData.length;
+            }
+
+            long source = ((Number) res.get("source")).longValue();
+            if (lastSource != source) {
+                sourceIndex = getOrCreateAlgoNodeId(source);
+                relData[relDataIdx++] = -sourceIndex - 1;
+                lastSource = source;
+            }
+
+            long target = ((Number) res.get("target")).longValue();
+            if (lastTarget != target) {
+                targetIndex = getOrCreateAlgoNodeId(target);
+                lastTarget = target;
+            }
+            if (weighted) {
+                Number weightValue = res.getNumber("weight");
+                if (weightValue != null) {
+                    int weight = weightValue.intValue();
+                    if (weight != defaultWeight) {
+                        long key = ((long) sourceIndex) << 32 | targetIndex;
+                        weights.put(key,weight);
+                    }
+                }
+            }
+            relData[relDataIdx++]=targetIndex;
+            if (sourceIndex>=sourceDegreeSize) {
+                sourceDegreeData = growArray(sourceDegreeData, 1.2f);
+                sourceDegreeSize = sourceDegreeData.length;
+            }
+            sourceDegreeData[sourceIndex]++;
+            return true;
+        }
+
+        private void transformRelData() {
+            if (weighted) {
+                transformRelationshipDataToOffsetStorage(totalRelationships, relData, relDataIdx, weights, defaultWeight);
+            } else {
+                transformRelationshipDataToOffsetStorage(totalRelationships, relData, relDataIdx);
+            }
+        }
+
+        private void transformRelationshipDataToOffsetStorage(int totalRelationships, int[] relData, int relDataIdx, PrimitiveLongIntMap weights, int defaultWeight) {
+            int sourceIndex = 0;
+            int[] offsetTracker = Arrays.copyOf(sourceChunkStartingIndex,sourceChunkStartingIndex.length);
+
+            relationshipTarget = new int[totalRelationships];
+            relationshipWeight = new int[totalRelationships];
+            if (defaultWeight!=0) Arrays.fill(relationshipWeight,defaultWeight);
+            for (int i=0;i<relDataIdx;i++) {
+                int id = relData[i];
+                if (id < 0) {
+                    sourceIndex = -id-1;
+                } else {
+                    long key = ((long) sourceIndex) << 32 | id;
+                    if (weights.containsKey(key)) {
+                        relationshipWeight[offsetTracker[sourceIndex]]=weights.get(key);
+                    }
+                    relationshipTarget[offsetTracker[sourceIndex]]=id;
+                    offsetTracker[sourceIndex]++;
+                }
+            }
+        }
+        private void transformRelationshipDataToOffsetStorage(int totalRelationships, int[] relData, int relDataIdx) {
+            int sourceIndex = 0;
+            int[] offsetTracker = Arrays.copyOf(sourceChunkStartingIndex,sourceChunkStartingIndex.length);
+
+            relationshipTarget = new int[totalRelationships];
+            for (int i=0;i<relDataIdx;i++) {
+                int id = relData[i];
+                if (id < 0) {
+                    sourceIndex = -id-1;
+                } else {
+                    relationshipTarget[offsetTracker[sourceIndex]++]=id;
+                }
+            }
+        }
+    }
 }
