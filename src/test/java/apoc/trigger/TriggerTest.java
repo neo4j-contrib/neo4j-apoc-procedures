@@ -67,8 +67,8 @@ public class TriggerTest {
     @Test
     public void testLowerCaseName() throws Exception {
         db.execute("create constraint on (p:Person) assert p.id is unique").close();
-//        Trigger.TriggerHandler.add("timestamp","UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n.id = toLower(n.name)",null);
-        Trigger.TriggerHandler.add("lowercase","UNWIND {createdNodes} AS n SET n.id = toLower(n.name)",null);
+        Trigger.TriggerHandler.add("timestamp","UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n.id = toLower(n.name)",null);
+//        Trigger.TriggerHandler.add("lowercase","UNWIND {createdNodes} AS n SET n.id = toLower(n.name)",null);
         db.execute("CREATE (f:Person {name:'John Doe'})").close();
         TestUtil.testCall(db, "MATCH (f:Person) RETURN f", (row) -> {
             assertEquals("john doe", ((Node)row.get("f")).getProperty("id"));
@@ -76,7 +76,6 @@ public class TriggerTest {
         });
     }
     @Test
-    @Ignore
     public void testTxId() throws Exception {
         Trigger.TriggerHandler.add("txInfo","UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}", map("phase","after"));
         db.execute("CREATE (f:Bar)").close();

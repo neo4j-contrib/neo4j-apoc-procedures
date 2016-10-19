@@ -14,9 +14,7 @@ import org.neo4j.kernel.impl.core.GraphProperties;
 import org.neo4j.kernel.impl.core.NodeManager;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 //import org.neo4j.procedure.Mode;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.PerformsWrites;
-import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,8 +24,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 import static apoc.util.Util.map;
-
-//import org.neo4j.procedure.UserFunction;
 
 /**
  * @author mh
@@ -49,7 +45,7 @@ public class Trigger {
         }
     }
 
-//    @UserFunction
+    @UserFunction
     @Description("function to filter labelEntries by label, to be used within a trigger statement with {assignedLabels} and {removedLabels}")
     public List<Node> nodesByLabel(@Name("labelEntries") Object labelEntries, @Name("label") String label) {
         if (!(labelEntries instanceof Iterable)) return Collections.emptyList();
@@ -63,7 +59,7 @@ public class Trigger {
         return nodes;
     }
 
-//    @UserFunction
+    @UserFunction
     @Description("function to filter propertyEntries by property-key, to be used within a trigger statement with {assignedNode/RelationshipProperties} and {removedNode/RelationshipProperties}. Returns [{old,new,key,node,relationship}]")
     public List<Map<String,Object>> propertiesByKey(@Name("propertyEntries") Object propertyEntries, @Name("key") String key) {
         if (!(propertyEntries instanceof Iterable)) return Collections.emptyList();
@@ -79,8 +75,7 @@ public class Trigger {
         return result;
     }
 
-    @PerformsWrites
-    @Procedure
+    @Procedure(mode = Mode.WRITE)
     @Description("add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information")
     public Stream<TriggerInfo> add(@Name("name") String name, @Name("statement") String statement, @Name(value = "selector"/*, defaultValue = "{}"*/)  Map<String,Object> selector) {
         Map<String, Object> removed = TriggerHandler.add(name, statement, selector);
@@ -92,8 +87,7 @@ public class Trigger {
         return Stream.of(new TriggerInfo(name,statement,selector,true));
     }
 
-    @PerformsWrites
-    @Procedure
+    @Procedure(mode = Mode.WRITE)
     @Description("remove previously added trigger, returns trigger information")
     public Stream<TriggerInfo> remove(@Name("name")String name) {
         Map<String, Object> removed = TriggerHandler.remove(name);
@@ -146,8 +140,8 @@ public class Trigger {
 
         private void executeTriggers(TransactionData txData, String phase) {
             Map<String, Object> params = map(
-//                    "transactionId", phase.equals("after") ? txData.getTransactionId() : -1,
-//                    "commitTime", phase.equals("after") ? txData.getCommitTime() : -1,
+                    "transactionId", phase.equals("after") ? txData.getTransactionId() : -1,
+                    "commitTime", phase.equals("after") ? txData.getCommitTime() : -1,
                     "createdNodes", txData.createdNodes(),
                     "createdRelationships", txData.createdRelationships(),
                     "deletedNodes", txData.deletedNodes(),

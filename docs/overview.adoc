@@ -491,6 +491,14 @@ Enable `apoc.trigger.enabled=true` in `$NEO4J_HOME/config/neo4j.conf` first.
 | CALL apoc.trigger.remove(name) yield name, statement, installed | remove previously added trigger, returns trigger information
 |===
 
+Helper Functions
+
+[cols="1m,5"]
+|===
+| apoc.trigger.nodesByLabel({assignedLabels},'Label') | function to filter labelEntries by label, to be used within a trigger statement with {assignedLabels} and {removedLabels} {phase:'before/after/rollback'} returns previous and new trigger information
+| apoc.trigger.propertiesByKey({assignedNodeProperties},'key') | function to filter propertyEntries by property-key, to be used within a trigger statement with {assignedNode/RelationshipProperties} and {removedNode/RelationshipProperties}. Returns [{old,new,key,node,relationship}]
+|===
+
 .Examples
 [source,cypher]
 ----
@@ -498,6 +506,7 @@ CALL apoc.trigger.add('timestamp','UNWIND {createdNodes} AS n SET n.ts = timesta
 CALL apoc.trigger.add('lowercase','UNWIND {createdNodes} AS n SET n.id = toLower(n.name)');
 CALL apoc.trigger.add('txInfo',   'UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}', {phase:'after'});
 CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN {deletedRelationships} WHERE type(r) = "X"])')
+CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n.id = toLower(n.name)')
 ----
 
 // end::trigger[]
