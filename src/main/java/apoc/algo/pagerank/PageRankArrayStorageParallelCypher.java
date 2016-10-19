@@ -8,7 +8,6 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -47,14 +46,12 @@ public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmIn
     }
 
     @Override
-    public int getMappedNode(int index) {
-        int node = algorithm.nodeMapping[index];
-        return node;
+    public long getMappedNode(int algoId) {
+        return algorithm.getMappedNode(algoId);
     }
 
     private int getNodeIndex(int node) {
-        int index = algorithm.getNodeIndex(node);
-        return index;
+        return algorithm.getAlgoNodeId(node);
     }
 
     public boolean readNodeAndRelCypherData(String relCypher, String nodeCypher) {
@@ -69,11 +66,10 @@ public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmIn
     }
 
     public void compute(int iterations,
-                        int [] nodeMapping,
-                        int [] sourceDegreeData,
-                        int [] sourceChunkStartingIndex,
-                        int [] relationshipTarget,
-                        int [] relationshipWeight) {
+                        int[] sourceDegreeData,
+                        int[] sourceChunkStartingIndex,
+                        int[] relationshipTarget,
+                        int[] relationshipWeight) {
         previousPageRanks = new int[nodeCount];
         pageRanksAtomic = new AtomicIntegerArray(nodeCount);
 
@@ -95,7 +91,6 @@ public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmIn
     @Override
     public void compute(int iterations, RelationshipType... relationshipTypes) {
         compute(iterations,
-                algorithm.nodeMapping,
                 algorithm.sourceDegreeData,
                 algorithm.sourceChunkStartingIndex,
                 algorithm.relationshipTarget,

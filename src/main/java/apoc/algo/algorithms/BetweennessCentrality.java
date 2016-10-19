@@ -36,7 +36,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
     @Override
     public double getResult(long node) {
         float val = -1;
-        int logicalIndex = algorithm.getNodeIndex((int)node);
+        int logicalIndex = algorithm.getAlgoNodeId((int)node);
         if (logicalIndex >= 0 && betweennessCentrality.length >= logicalIndex) {
             val = betweennessCentrality[logicalIndex];
         }
@@ -54,9 +54,8 @@ public class BetweennessCentrality implements AlgorithmInterface {
     }
 
     @Override
-    public int getMappedNode(int index) {
-        int node = algorithm.nodeMapping[index];
-        return node;
+    public long getMappedNode(int algoId) {
+        return algorithm.getMappedNode(algoId);
     }
 
     public boolean readNodeAndRelCypherData(String relCypher, String nodeCypher) {

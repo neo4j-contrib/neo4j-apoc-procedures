@@ -8,7 +8,7 @@ public interface AlgorithmInterface
 
     String getPropertyName();
 
-    int getMappedNode(int index);
+    long getMappedNode(int algoId);
 
     class Statistics {
         public long nodes, relationships, readNodeMillis, readRelationshipMillis,computeMillis,writeMillis;
