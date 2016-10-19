@@ -6,7 +6,9 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -74,6 +76,19 @@ public class TriggerTest {
             assertEquals("john doe", ((Node)row.get("f")).getProperty("id"));
             assertEquals("John Doe", ((Node)row.get("f")).getProperty("name"));
         });
+    }
+    @Test
+    public void testSetLabels() throws Exception {
+        db.execute("CREATE (f {name:'John Doe'})").close();
+        Trigger.TriggerHandler.add("timestamp","UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n:Man",null);
+        db.execute("MATCH (f) SET f:Person").close();
+        TestUtil.testCall(db, "MATCH (f:Man) RETURN f", (row) -> {
+            assertEquals("John Doe", ((Node)row.get("f")).getProperty("name"));
+            assertEquals(true, ((Node)row.get("f")).hasLabel(Label.label("Person")));
+        });
+        ResourceIterator<Long> it = db.execute("MATCH (f:Man) RETURN count(*) as c").columnAs("c");
+        assertEquals(1L,(long)it.next());
+        it.close();
     }
     @Test
     public void testTxId() throws Exception {
