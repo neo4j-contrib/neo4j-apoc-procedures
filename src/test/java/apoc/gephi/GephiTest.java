@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.io.IOException;
 import java.net.ConnectException;
 
 import static org.junit.Assert.*;
@@ -38,6 +39,6 @@ public class GephiTest {
                 assertEquals(1L, r.get("relationships"));
                 assertEquals("gephi", r.get("format"));
             });
-        }, java.io.FileNotFoundException.class, java.net.ConnectException.class);
+        }, java.io.FileNotFoundException.class, java.net.ConnectException.class, IOException.class);
     }
 }
