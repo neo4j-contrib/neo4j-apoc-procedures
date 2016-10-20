@@ -13,6 +13,7 @@ import org.neo4j.procedure.Procedure;
 
 import java.util.*;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.neo4j.graphdb.traversal.Evaluation.*;
 
@@ -21,6 +22,7 @@ public class PathExplorer {
 	private static final String VERSION = "0.5";
 	public static final Uniqueness UNIQUENESS = Uniqueness.RELATIONSHIP_PATH;
 	public static final boolean BFS = true;
+	public static final boolean OPTIONALMATCH = false;
 	@Context
     public GraphDatabaseService db;
 
@@ -35,12 +37,12 @@ public class PathExplorer {
 			                   , @Name("minLevel") long minLevel
 			                   , @Name("maxLevel") long maxLevel ) throws Exception {
 		List<Node> nodes = startToNodes(start);
-		return explorePathPrivate(nodes, pathFilter, labelFilter, minLevel, maxLevel, BFS, UNIQUENESS);
+		return explorePathPrivate(nodes, pathFilter, labelFilter, minLevel, maxLevel, BFS, UNIQUENESS, OPTIONALMATCH);
 	}
 
 	//
 	@Procedure("apoc.path.expandConfig")
-	@Description("apoc.path.expandConfig(startNode <id>|Node|list, {minLevel,maxLevel,uniqueness,relationshipFilter,labelFilter,uniqueness:'RELATIONSHIP_PATH',bfs:true}) yield path expand from start node following the given relationships from min to max-level adhering to the label filters")
+	@Description("apoc.path.expandConfig(startNode <id>|Node|list, {minLevel,maxLevel,uniqueness,relationshipFilter,labelFilter,uniqueness:'RELATIONSHIP_PATH',bfs:true, optionalMatch:false}) yield path expand from start node following the given relationships from min to max-level adhering to the label filters")
 	public Stream<PathResult> expandConfig(@Name("start") Object start, @Name("config") Map<String,Object> config) throws Exception {
 		List<Node> nodes = startToNodes(start);
 
@@ -50,8 +52,9 @@ public class PathExplorer {
 		long minLevel = Util.toLong(config.getOrDefault("minLevel", "-1"));
 		long maxLevel = Util.toLong(config.getOrDefault("maxLevel", "-1"));
 		boolean bfs = Util.toBoolean(config.getOrDefault("bfs",true));
+		boolean optionalMatch = Util.toBoolean(config.getOrDefault("optionalMatch",false));
 
-		return explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness));
+		return explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness), optionalMatch);
 	}
 
 	private Uniqueness getUniqueness(String uniqueness) {
@@ -95,16 +98,30 @@ public class PathExplorer {
 			, String pathFilter
 			, String labelFilter
 			, long minLevel
-			, long maxLevel, boolean bfs, Uniqueness uniqueness) {
+			, long maxLevel, boolean bfs, Uniqueness uniqueness, boolean optionalMatch) {
 		// LabelFilter
 		// -|Label|:Label|:Label excluded label list
 		// +:Label or :Label include labels
 
-		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs);
-		return traverser.stream().map( PathResult::new );
+		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs, optionalMatch);
+	    
+		Stream<PathResult> returnStream = traverser.stream().map( PathResult::new );
+		if (optionalMatch) {
+		    Iterator<PathResult> iterator = returnStream.iterator();
+		    if (iterator.hasNext()) {
+		    	returnStream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false);
+		    } else {
+		    	List<PathResult> originalNodesAsPaths = new ArrayList<>();
+		    	for (Node node : startNodes) {
+		    		originalNodesAsPaths.add(new PathResult(Paths.singleNodePath(node)));
+		    	}
+		    	returnStream = originalNodesAsPaths.stream();
+		    }
+		}
+		return returnStream;
 	}
 
-	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel, Uniqueness uniqueness, boolean bfs) {
+	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel, Uniqueness uniqueness, boolean bfs, boolean optionalMatch) {
 		TraversalDescription td = traversalDescription;
 		// based on the pathFilter definition now the possible relationships and directions must be shown
 
