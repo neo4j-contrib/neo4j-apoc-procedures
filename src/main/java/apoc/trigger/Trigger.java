@@ -101,6 +101,14 @@ public class Trigger {
         return Stream.of(new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"),false));
     }
 
+    @PerformsWrites
+    @Procedure
+    @Description("list all installed triggers")
+    public Stream<TriggerInfo> list() {
+        return TriggerHandler.list().entrySet().stream()
+                .map( (e) -> new TriggerInfo(e.getKey(),(String)e.getValue().get("statement"),(Map<String,Object>)e.getValue().get("selector"),true));
+    }
+
     public static class TriggerHandler implements TransactionEventHandler {
         public static final String APOC_TRIGGER = "apoc.trigger";
         static ConcurrentHashMap<String,Map<String,Object>> triggers = new ConcurrentHashMap(map("",map()));
@@ -135,6 +143,11 @@ public class Trigger {
                 tx.success();
                 return previous;
             }
+        }
+
+        public static Map<String,Map<String,Object>> list() {
+            updateTriggers(null,null);
+            return triggers;
         }
 
         @Override
