@@ -8,7 +8,6 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.procedure.Name;
 
 import java.io.*;
 import java.net.*;
@@ -167,10 +166,14 @@ public class Util {
     }
     public static <T> T inThread(Callable<T> callable) {
         try {
-            return Pools.DEFAULT.submit(callable::call).get();
+            return inFuture(callable).get();
         } catch (Exception e) {
             throw new RuntimeException("Error executing in separate thread", e);
         }
+    }
+
+    public static <T> Future<T> inFuture(Callable<T> callable) {
+        return Pools.DEFAULT.submit(callable);
     }
 
     public static Double toDouble(Object value) {
@@ -268,12 +271,16 @@ public class Util {
     }
 
     public static Stream<List<Object>> partitionSubList(List<Object> data, int partitions) {
+        return partitionSubList(data,partitions,null);
+    }
+    public static Stream<List<Object>> partitionSubList(List<Object> data, int partitions, List<Object> tombstone) {
         List<Object> list = new ArrayList<>(data);
         int total = list.size();
         int batchSize = Math.max((int)Math.ceil((double)total / partitions),1);
-        return IntStream.rangeClosed(0, partitions).parallel()
-                .mapToObj((part) -> list.subList(Math.min(part * batchSize,total), Math.min((part + 1) * batchSize, total)))
+        Stream<List<Object>> stream = IntStream.range(0, partitions).parallel()
+                .mapToObj((part) -> list.subList(part * batchSize, Math.min((part + 1) * batchSize, total)))
                 .filter(partition -> !partition.isEmpty());
+        return tombstone == null ? stream : Stream.concat(stream,Stream.of(tombstone));
     }
 
     public static Long runNumericQuery(GraphDatabaseService db, String query, Map<String, Object> params) {

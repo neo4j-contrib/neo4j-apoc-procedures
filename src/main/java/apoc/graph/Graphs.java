@@ -100,7 +100,7 @@ public class Graphs {
         Set<Node> nodes = new HashSet<>(1000);
         Set<Relationship> rels = new HashSet<>(1000);
         Map<String,Object> props = new HashMap<>(properties);
-        db.execute(Cypher.compiled(statement, params.keySet()), params).stream().forEach( row -> {
+        db.execute(Cypher.withParamMapping(statement, params.keySet()), params).stream().forEach(row -> {
             row.forEach((k,v) -> {
                 if (!extract(v,nodes,rels)) {
                     props.put(k,v);

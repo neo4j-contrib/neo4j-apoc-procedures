@@ -96,6 +96,12 @@ public class CypherTest {
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
     @Test
+    public void testMapParallel2() throws Exception {
+        int size = 10_000;
+        testResult(db, "CALL apoc.cypher.mapParallel2('UNWIND range(0,9) as b RETURN b',{},range(1,{size}),10)", map("size", size),
+                r -> assertEquals( size * 10,Iterators.count(r) ));
+    }
+    @Test
     public void testParallel2() throws Exception {
         int size = 10_0000;
         List<Long> list = new ArrayList<>(size);
