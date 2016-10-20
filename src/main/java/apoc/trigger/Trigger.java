@@ -14,12 +14,10 @@ import org.neo4j.kernel.impl.core.GraphProperties;
 import org.neo4j.kernel.impl.core.NodeManager;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 //import org.neo4j.procedure.Mode;
+import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
@@ -97,15 +95,24 @@ public class Trigger {
         return Stream.of(new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"),false));
     }
 
+    @PerformsWrites
+    @Procedure
+    @Description("list all installed triggers")
+    public Stream<TriggerInfo> list() {
+        return TriggerHandler.list().entrySet().stream()
+                .map( (e) -> new TriggerInfo(e.getKey(),(String)e.getValue().get("statement"),(Map<String,Object>)e.getValue().get("selector"),true));
+    }
+
     public static class TriggerHandler implements TransactionEventHandler {
         public static final String APOC_TRIGGER = "apoc.trigger";
         static ConcurrentHashMap<String,Map<String,Object>> triggers = new ConcurrentHashMap(map("",map()));
         private static GraphProperties properties;
+        private final Log log;
 
-        public TriggerHandler(GraphDatabaseAPI api) {
+        public TriggerHandler(GraphDatabaseAPI api, Log log) {
             properties = api.getDependencyResolver().resolveDependency(NodeManager.class).newGraphProperties();
 //            Pools.SCHEDULED.submit(() -> updateTriggers(null,null));
-
+            this.log = log;
         }
 
         public static Map<String, Object> add(String name, String statement, Map<String,Object> selector) {
@@ -132,6 +139,11 @@ public class Trigger {
             }
         }
 
+        public static Map<String,Map<String,Object>> list() {
+            updateTriggers(null,null);
+            return triggers;
+        }
+
         @Override
         public Object beforeCommit(TransactionData txData) throws Exception {
             executeTriggers(txData, "before");
@@ -154,15 +166,22 @@ public class Trigger {
                     "assignedRelationshipProperties",txData.assignedRelationshipProperties());
             if (triggers.containsKey("")) updateTriggers(null,null);
             GraphDatabaseService db = properties.getGraphDatabase();
-            try (Transaction tx = db.beginTx()) {
-                triggers.forEach((name, data) -> {
+            Map<String,String> exceptions = new LinkedHashMap<>();
+            triggers.forEach((name, data) -> {
+                try (Transaction tx = db.beginTx()) {
                     Map<String,Object> selector = (Map<String, Object>) data.get("selector");
                     if (when(selector, phase)) {
                         params.put("trigger", name);
                         db.execute((String) data.get("statement"), params);
                     }
-                });
-                tx.success();
+                    tx.success();
+                } catch(Exception e) {
+                    log.warn("Error executing trigger "+name+" in phase "+phase,e);
+                    exceptions.put(name, e.getMessage());
+                }
+            });
+            if (!exceptions.isEmpty()) {
+                throw new RuntimeException("Error executing triggers "+exceptions.toString());
             }
         }
 

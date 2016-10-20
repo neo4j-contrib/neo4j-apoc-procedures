@@ -4,6 +4,7 @@ import apoc.schema.AssertSchemaProcedure;
 import apoc.trigger.Trigger;
 import apoc.util.Util;
 import org.neo4j.kernel.extension.KernelExtensionFactory;
+import org.neo4j.kernel.impl.logging.LogService;
 import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.impl.spi.KernelContext;
 import org.neo4j.kernel.impl.util.ApocGroup;
@@ -29,13 +30,13 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
         GraphDatabaseAPI graphdatabaseAPI();
         JobScheduler scheduler();
         Procedures procedures();
-//        Log log();
+        LogService log();
     }
 
     @Override
     public Lifecycle newInstance(KernelContext context, Dependencies dependencies) throws Throwable {
         GraphDatabaseAPI db = dependencies.graphdatabaseAPI();
-        Log log = null; // dependencies.log();
+        LogService log = dependencies.log();
         return new LifecycleAdapter() {
 
             private Trigger.TriggerHandler triggerHandler;
@@ -45,7 +46,7 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
             @Override
             public void start() throws Throwable {
                 ApocConfiguration.initialize(db);
-                dependencies.procedures().register(new AssertSchemaProcedure(db, log));
+                dependencies.procedures().register(new AssertSchemaProcedure(db, log.getUserLog(AssertSchemaProcedure.class)));
                 installTTLHandler();
                 installTrigger();
                 Pools.NEO4J_SCHEDULER = dependencies.scheduler();
@@ -70,7 +71,7 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
             private void installTrigger() {
                 Object enabled = ApocConfiguration.get("trigger.enabled", null);
                 if (Util.toBoolean(enabled)) {
-                    triggerHandler = new Trigger.TriggerHandler(db);
+                    triggerHandler = new Trigger.TriggerHandler(db,log.getUserLog(Trigger.class));
                     db.registerTransactionEventHandler(triggerHandler);
                 }
             }
