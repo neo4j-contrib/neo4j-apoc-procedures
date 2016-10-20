@@ -17,7 +17,9 @@ CREATE (n1)-[:TYPE]->(n2)
 
 == Closeness Centrality Procedure
 
-Centrality is an indicator of a node's influence in a graph. In graphs there is a natural distance metric between pairs of nodes, defined by the length of their shortest paths.
+Centrality is an indicator of a node's influence in a graph. In graphs there is a natural distance metric between pairs of nodes, defined by the length of their shortest paths.  
+For both algorithms below we can measure based upon the direction of the relationship, whereby the 3rd argument represents the direction
+and can be of value BOTH, INCOMING, OUTGOING.
 
 Closeness Centrality defines the farness of a node as the sum of its distances from all other nodes, and its closeness as the reciprocal of farness.
 
