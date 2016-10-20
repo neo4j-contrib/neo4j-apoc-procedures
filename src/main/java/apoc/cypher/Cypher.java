@@ -27,6 +27,7 @@ import static apoc.util.MapUtil.map;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -52,7 +53,7 @@ public class Cypher {
     @Description("apoc.cypher.run(fragment, params) yield value - executes reading fragment with the given parameters")
     public Stream<MapResult> run(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         if (params == null) params = Collections.emptyMap();
-        return db.execute(compiled(statement, params.keySet()), params).stream().map(MapResult::new);
+        return db.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
     }
 
     @Procedure
@@ -71,8 +72,8 @@ public class Cypher {
             if (isSchemaOperation(stmt)) // alternatively could just skip them
                 throw new RuntimeException("Schema Operations can't yet be mixed with data operations");
 
-            if (isPeriodicOperation(stmt)) Util.inThread(() -> executeStatement(queue, stmt, params));
-            else Util.inTx(api, () -> executeStatement(queue, stmt, params));
+            if (isPeriodicOperation(stmt)) Util.inThread(() -> executeStatement(queue, stmt, params,true));
+            else Util.inTx(api, () -> executeStatement(queue, stmt, params,true));
         }
         Util.inThread(() -> { queue.put(RowResult.TOMBSTONE);return null;});
         return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE),false);
@@ -84,7 +85,7 @@ public class Cypher {
         return runManyStatements(new Scanner(cypher),params);
     }
 
-    private Object executeStatement(BlockingQueue<RowResult> queue, String stmt, Map<String, Object> params) throws InterruptedException {
+    private Object executeStatement(BlockingQueue<RowResult> queue, String stmt, Map<String, Object> params, boolean addStatistics) throws InterruptedException {
         try (Result result = api.execute(stmt,params)) {
             long time = System.currentTimeMillis();
             int row = 0;
@@ -92,8 +93,10 @@ public class Cypher {
                 if (tx.getReasonIfTerminated()!=null) break;
                 queue.put(new RowResult(row++, result.next()));
             }
-            queue.put(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)));
-            return null;
+            if (addStatistics) {
+                queue.offer(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)), 100, TimeUnit.MILLISECONDS);
+            }
+            return row;
         }
     }
 
@@ -144,11 +147,14 @@ public class Cypher {
         }
     }
 
-    public static String compiled(String fragment, Collection<String> keys) {
+    public static String withParamMapping(String fragment, Collection<String> keys) {
         if (keys.isEmpty()) return fragment;
         String declaration = " WITH " + join(", ", keys.stream().map(s -> format(" {`%s`} as `%s` ", s, s)).collect(toList()));
         return declaration + fragment;
-//        return fragment.substring(0,6).equalsIgnoreCase("cypher") ? fragment : COMPILED_PREFIX + fragment;
+    }
+
+    public static String compiled(String fragment) {
+        return fragment.substring(0,6).equalsIgnoreCase("cypher") ? fragment : COMPILED_PREFIX + fragment;
     }
 
     @Procedure
@@ -160,7 +166,7 @@ public class Cypher {
         if (!(value instanceof Collection))
             throw new RuntimeException("Can't parallelize a non collection " + key + " : " + value);
 
-        final String statement = compiled(fragment, params.keySet());
+        final String statement = withParamMapping(fragment, params.keySet());
         Collection<Object> coll = (Collection<Object>) value;
         return coll.parallelStream().flatMap((v) -> {
             if (tx.getReasonIfTerminated()!=null) return Stream.of(MapResult.empty());
@@ -188,10 +194,29 @@ public class Cypher {
     public Stream<MapResult> mapParallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data) {
         final String statement = parallelStatement(fragment, params, "_");
         db.execute("EXPLAIN " + statement).close();
-        return Util.partitionSubList(data, PARTITIONS)
+        return Util.partitionSubList(data, PARTITIONS,null)
                 .flatMap((partition) -> Iterators.addToCollection(api.execute(statement, parallelParams(params, "_", partition)),
                         new ArrayList<>(partition.size())).stream())
                 .map(MapResult::new);
+    }
+    @Procedure
+    @Description("apoc.cypher.mapParallel2(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _")
+    public Stream<MapResult> mapParallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data, @Name("partitions") long partitions) {
+        final String statement = parallelStatement(fragment, params, "_");
+        db.execute("EXPLAIN " + statement).close();
+        BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100000);
+        Stream<List<Object>> parallelPartitions = Util.partitionSubList(data, (int)(partitions <= 0 ? PARTITIONS : partitions), null);
+        Util.inFuture(() -> {
+            long total = parallelPartitions
+                .map((List<Object> partition) -> {
+                    try {
+                        return executeStatement(queue, statement, parallelParams(params, "_", partition),false);
+                    } catch (Exception e) {throw new RuntimeException(e);}}
+                ).count();
+            queue.put(RowResult.TOMBSTONE);
+            return total;
+        });
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE),true).map((rowResult) -> new MapResult(rowResult.result));
     }
 
     // todo proper Collector
@@ -257,13 +282,13 @@ public class Cypher {
             try {
                 return f.get().stream().map(MapResult::new);
             } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException("Error executing in parallell " + statement, e);
+                throw new RuntimeException("Error executing in parallel " + statement, e);
             }
         });
     }
 
     public String parallelStatement(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        StringBuilder sb = new StringBuilder(200);
+        StringBuilder sb = new StringBuilder(200+fragment.length());
         boolean first = true;
         for (String s : params.keySet()) {
             if (s.equals(key)) continue;
@@ -276,7 +301,8 @@ public class Cypher {
             sb.append(format(" {`%s`} as `%s` ", s, s));
         }
         sb.append("UNWIND {`").append(key).append("`} as `").append(key).append("` ");
-        return sb.toString() + fragment;
+        sb.append(fragment);
+        return sb.toString();
     }
 
     private Future<List<Map<String, Object>>> submit(GraphDatabaseAPI api, String statement, Map<String, Object> params, String key, List<Object> partition) {
@@ -294,28 +320,40 @@ public class Cypher {
     @Description("apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with the given parameters")
     public Stream<MapResult> doit(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         if (params == null) params = Collections.emptyMap();
-        return db.execute(compiled(statement, params.keySet()), params).stream().map(MapResult::new);
+        return db.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
     }
 
     private class QueueBasedSpliterator<T> implements Spliterator<T> {
         private final BlockingQueue<T> queue;
         private T tombstone;
+        private T entry;
 
         public QueueBasedSpliterator(BlockingQueue<T> queue, T tombstone) {
             this.queue = queue;
             this.tombstone = tombstone;
+            entry = poll();
         }
 
         @Override
         public boolean tryAdvance(Consumer<? super T> action) {
-            try {
-                if (tx.getReasonIfTerminated()!=null) return false;
-                T entry = queue.poll(100, MILLISECONDS);
-                if (entry == null || entry == tombstone) return false;
-                action.accept(entry);
-                return true;
-            } catch (InterruptedException e) {
+            if (tx.getReasonIfTerminated() != null) {
                 return false;
+            }
+            if (isEnd()) return false;
+            action.accept(entry);
+            entry = poll();
+            return !isEnd();
+        }
+
+        private boolean isEnd() {
+            return entry == null || entry == tombstone;
+        }
+
+        private T poll() {
+            try {
+                return queue.poll(10, SECONDS);
+            } catch (InterruptedException e) {
+                return null;
             }
         }
 
@@ -323,7 +361,7 @@ public class Cypher {
 
         public long estimateSize() { return Long.MAX_VALUE; }
 
-        public int characteristics() { return ORDERED | NONNULL; }
+        public int characteristics() { return NONNULL ; }
     }
 
     @Procedure
