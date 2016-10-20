@@ -37,6 +37,16 @@ public class TriggerTest {
     }
 
     @Test
+    public void testListTriggers() throws Exception {
+        String query = "MATCH (c:Counter) SET c.count = c.count + size([f IN {deletedNodes} WHERE id(f) > 0])";
+        db.execute("CALL apoc.trigger.add('count-removals',{query},{})",map("query",query)).close();
+        TestUtil.testCall(db, "CALL apoc.trigger.list()", (row) -> {
+            assertEquals("count-removals", row.get("name"));
+            assertEquals(query, row.get("query"));
+            assertEquals(true, row.get("installed"));
+        });
+    }
+    @Test
     public void testRemoveNode() throws Exception {
         db.execute("CREATE (:Counter {count:0})").close();
         db.execute("CREATE (f:Foo)").close();
