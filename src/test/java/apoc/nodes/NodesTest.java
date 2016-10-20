@@ -7,6 +7,8 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.Map;
+
 import static org.junit.Assert.*;
 
 /**
@@ -26,6 +28,15 @@ public class NodesTest {
         db.shutdown();
     }
 
+
+    @Test
+    public void isDense() throws Exception {
+        db.execute("CREATE (f:Foo) CREATE (b:Bar) WITH f UNWIND range(1,100) as id CREATE (f)-[:SELF]->(f)").close();
+
+        TestUtil.testCall(db, "MATCH (n) WITH n CALL apoc.nodes.isDense(n) YIELD node, dense " +
+                        "WITH * WHERE n:Foo AND dense OR n:Bar AND NOT dense RETURN count(*) as c",
+                (row) -> assertEquals(2L, row.get("c")));
+    }
     @Test
     public void link() throws Exception {
         db.execute("UNWIND range(1,10) as id CREATE (n:Foo {id:id}) WITH collect(n) as nodes call apoc.nodes.link(nodes,'BAR') RETURN size(nodes) as len").close();
