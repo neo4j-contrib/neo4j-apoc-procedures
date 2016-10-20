@@ -360,6 +360,7 @@ return nodes, relationships, time
 | CALL apoc.create.uuid YIELD uuid | creates an UUID
 | CALL apoc.create.uuids(count) YIELD uuid | creates count UUIDs
 | CALL apoc.nodes.link([nodes],'REL_TYPE') | creates a linked list of nodes from first to last
+| CALL apoc.nodes.isDense(node/[nodes]/id/[ids]) yield node, dense | returns each node and a 'dense' flag if it is a dense node
 |===
 
 == Virtual Nodes/Rels

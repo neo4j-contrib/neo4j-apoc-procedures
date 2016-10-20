@@ -7,7 +7,10 @@ import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
+import org.neo4j.kernel.api.ReadOperations;
+import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
 import org.neo4j.kernel.impl.core.NodeManager;
+import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -73,6 +76,32 @@ public class Nodes {
     @Description("apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these id's")
     public Stream<RelationshipResult> rels(@Name("relationships") Object ids) {
         return Util.relsStream(db, ids).map(RelationshipResult::new);
+    }
+
+    @Procedure
+    @Description("apoc.nodes.isDense(node|nodes|id|[ids]) yield node, dense - returns each node and a 'dense' flag if it is a dense node")
+    public Stream<DenseNodeResult> isDense(@Name("nodes") Object ids) {
+        ThreadToStatementContextBridge ctx = api.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
+        ReadOperations ops = ctx.get().readOperations();
+        return Util.nodeStream(db, ids).map(n -> new DenseNodeResult(n, isDense(ops, n)));
+    }
+
+    public boolean isDense(ReadOperations ops, Node n) {
+        try {
+            return ops.nodeIsDense(n.getId());
+        } catch (EntityNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static class DenseNodeResult {
+        public final Node node;
+        public final boolean dense;
+
+        public DenseNodeResult(Node node, boolean dense) {
+            this.node = node;
+            this.dense = dense;
+        }
     }
 
 }
