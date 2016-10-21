@@ -1,14 +1,14 @@
 package apoc.result;
 
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 
 import static java.util.Arrays.asList;
 
@@ -136,5 +136,12 @@ public class VirtualRelationship implements Relationship {
     public Relationship withProperties(Map<String, Object> props) {
         this.props.putAll(props);
         return this;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "VirtualRelationship{" + "startNode=" + startNode.getLabels() + ", endNode=" + endNode.getLabels() + ", " +
+                "type=" + type + '}';
     }
 }
