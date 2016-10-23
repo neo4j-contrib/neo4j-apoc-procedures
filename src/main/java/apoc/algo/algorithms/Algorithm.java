@@ -5,6 +5,7 @@ import apoc.util.Util;
 import org.neo4j.collection.primitive.Primitive;
 import org.neo4j.collection.primitive.PrimitiveLongIntMap;
 import org.neo4j.collection.primitive.PrimitiveLongIntVisitor;
+import org.neo4j.collection.primitive.hopscotch.LongKeyIntValueTable;
 import org.neo4j.graphdb.Result;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -30,7 +31,7 @@ public class Algorithm implements AlgoIdGenerator {
     private final Log log;
     private final ExecutorService pool;
 
-    public AtomicInteger maxAlgoNodeId = new AtomicInteger();
+    private int maxAlgoNodeId = 0;
     public int relCount;
     public long readNodeMillis, readRelationshipMillis;
 
@@ -61,7 +62,7 @@ public class Algorithm implements AlgoIdGenerator {
     public boolean readNodeAndRelCypher(String relCypher, String nodeCypher, Number weight, Number batchSize) {
         this.batchSize = batchSize;
         long before = currentTimeMillis();
-        this.maxAlgoNodeId.set(loadNodes(nodeCypher));
+        this.maxAlgoNodeId=loadNodes(nodeCypher);
         readNodeMillis = (currentTimeMillis() - before);
         log.info("Time to load nodes = " + readNodeMillis + " millis. Nodes from nodeCypher: " + getNodeCount());
 
@@ -99,22 +100,20 @@ public class Algorithm implements AlgoIdGenerator {
     }
 
     public int getOrCreateAlgoNodeId(long node) {
-        if (nodeMap.containsKey(node)) {
-            return nodeMap.get(node);
-        }
+        int id = nodeMap.get(node);
+        if (id != LongKeyIntValueTable.NULL) return id;
         synchronized (nodeMap) {
-            if (nodeMap.containsKey(node)) {
-                return nodeMap.get(node);
-            }
-            int assignedId = maxAlgoNodeId.getAndIncrement();
-            nodeMap.put(node, assignedId);
-            return assignedId;
+            id = nodeMap.get(node);
+            if (id != LongKeyIntValueTable.NULL) return id;
+            id = maxAlgoNodeId++;
+            nodeMap.put(node, id);
+            return id;
         }
     }
 
     @Override
     public int getNodeCount() {
-        return maxAlgoNodeId.intValue();
+        return maxAlgoNodeId;
     }
 
     // TODO Create buckets instead of copying data.
@@ -301,8 +300,9 @@ public class Algorithm implements AlgoIdGenerator {
                     sourceIndex = -id-1;
                 } else {
                     long key = ((long) sourceIndex) << 32 | id;
-                    if (weights.containsKey(key)) {
-                       relationshipWeight.set(offsetTracker[sourceIndex],weights.get(key));
+                    int weight = weights.get(key);
+                    if (weight != LongKeyIntValueTable.NULL) {
+                       relationshipWeight.set(offsetTracker[sourceIndex],weight);
                     }
                     relationshipTarget.set(offsetTracker[sourceIndex],id);
                     offsetTracker[sourceIndex]++;
