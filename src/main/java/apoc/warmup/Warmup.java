@@ -47,7 +47,7 @@ public class Warmup {
         int relsPerPage = pageSize / RelationshipRecordFormat.RECORD_SIZE;
         long nodesTotal = Util.nodeCount(db);
         long relsTotal = Util.relCount(db);
-        long nodesLoaded = 0, relsLoaded = 0;
+        long nodePages = 0, relPages = 0;
         long start, timeNodes, timeRels;
 
         StoreAccess storeAccess = new StoreAccess(db.getDependencyResolver()
@@ -63,12 +63,12 @@ public class Warmup {
             // Load specific nodes and rels
             start = System.nanoTime();
             for (int i = 0; i <= highestNodeKey; i += nodesPerPage) {
-                nodesLoaded++;
+                nodePages++;
                 loadNode(i, readOperations);
             }
             timeNodes = System.nanoTime();
             for(int i = 0; i <= highestRelationshipKey; i += relsPerPage) {
-                relsLoaded++;
+                relPages++;
                 loadRelationship(i, readOperations);
             }
             timeRels = System.nanoTime();
@@ -77,8 +77,8 @@ public class Warmup {
 
         WarmupResult result = new WarmupResult(
                 pageSize,
-                nodesPerPage, nodesTotal, nodesLoaded, NANOSECONDS.toSeconds(timeNodes - start),
-                relsPerPage, relsTotal, relsLoaded, NANOSECONDS.toSeconds(timeRels - timeNodes),
+                nodesPerPage, nodesTotal, nodePages, NANOSECONDS.toSeconds(timeNodes - start),
+                relsPerPage, relsTotal, relPages, NANOSECONDS.toSeconds(timeRels - timeNodes),
                 NANOSECONDS.toSeconds(timeRels - start));
         return Stream.of(result);
     }
@@ -99,24 +99,24 @@ public class Warmup {
         public final long pageSize;
         public final long nodesPerPage;
         public final long nodesTotal;
-        public final long nodesLoaded;
+        public final long nodePages;
         public final long nodesTime;
 
         public final long relsPerPage;
         public final long relsTotal;
-        public final long relsLoaded;
+        public final long relPages;
         public final long relsTime;
         public final long totalTime;
 
-        public WarmupResult(long pageSize, long nodesPerPage, long nodesTotal, long nodesLoaded, long nodesTime, long relsPerPage, long relsTotal, long relsLoaded, long relsTime, long totalTime) {
+        public WarmupResult(long pageSize, long nodesPerPage, long nodesTotal, long nodePages, long nodesTime, long relsPerPage, long relsTotal, long relPages, long relsTime, long totalTime) {
             this.pageSize = pageSize;
             this.nodesPerPage = nodesPerPage;
             this.nodesTotal = nodesTotal;
-            this.nodesLoaded = nodesLoaded;
+            this.nodePages = nodePages;
             this.nodesTime = nodesTime;
             this.relsPerPage = relsPerPage;
             this.relsTotal = relsTotal;
-            this.relsLoaded = relsLoaded;
+            this.relPages = relPages;
             this.relsTime = relsTime;
             this.totalTime = totalTime;
         }
