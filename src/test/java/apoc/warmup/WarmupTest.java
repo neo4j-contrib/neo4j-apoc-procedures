@@ -42,9 +42,9 @@ public class WarmupTest {
         TestUtil.testCall(db,"CALL apoc.warmup.run()", r ->
         {
             assertEquals(4L, r.get("nodesTotal"));
-            assertEquals(2L, r.get("nodesLoaded"));
+            assertEquals(2L, r.get("nodePages"));
             assertEquals(2L, r.get("relsTotal"));
-            assertEquals(2L, r.get("relsLoaded"));
+            assertEquals(2L, r.get("relPages"));
         });
     }
 }
