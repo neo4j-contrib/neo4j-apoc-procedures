@@ -33,8 +33,8 @@ public class NodesTest {
     public void isDense() throws Exception {
         db.execute("CREATE (f:Foo) CREATE (b:Bar) WITH f UNWIND range(1,100) as id CREATE (f)-[:SELF]->(f)").close();
 
-        TestUtil.testCall(db, "MATCH (n) WITH n CALL apoc.nodes.isDense(n) YIELD node, dense " +
-                        "WITH * WHERE n:Foo AND dense OR n:Bar AND NOT dense RETURN count(*) as c",
+        TestUtil.testCall(db, "MATCH (n) WITH n, apoc.nodes.isDense(n) as dense " +
+                        "WHERE n:Foo AND dense OR n:Bar AND NOT dense RETURN count(*) as c",
                 (row) -> assertEquals(2L, row.get("c")));
     }
     @Test

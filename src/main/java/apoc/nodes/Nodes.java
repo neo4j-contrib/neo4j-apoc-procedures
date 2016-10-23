@@ -1,7 +1,6 @@
 package apoc.nodes;
 
 import org.neo4j.procedure.*;
-import apoc.periodic.Periodic;
 import apoc.result.LongResult;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
@@ -9,11 +8,9 @@ import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
-import org.neo4j.kernel.impl.core.NodeManager;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -73,12 +70,12 @@ public class Nodes {
         return Util.relsStream(db, ids).map(RelationshipResult::new);
     }
 
-    @Procedure
-    @Description("apoc.nodes.isDense(node|nodes|id|[ids]) yield node, dense - returns each node and a 'dense' flag if it is a dense node")
-    public Stream<DenseNodeResult> isDense(@Name("nodes") Object ids) {
+    @UserFunction
+    @Description("apoc.nodes.isDense(node) - returns true if it is a dense node")
+    public boolean isDense(@Name("node") Node node) {
         ThreadToStatementContextBridge ctx = api.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
         ReadOperations ops = ctx.get().readOperations();
-        return Util.nodeStream(db, ids).map(n -> new DenseNodeResult(n, isDense(ops, n)));
+        return isDense(ops,node);
     }
 
     public boolean isDense(ReadOperations ops, Node n) {
