@@ -64,7 +64,7 @@ public class Periodic {
 
         do {
             Map<String, Object> window = Util.map("_count", updates, "_total", total);
-            updates = get(Pools.SCHEDULED.submit(() -> {
+            updates = Util.getFuture(Pools.SCHEDULED.submit(() -> {
                 batches.incrementAndGet();
                 try {
                     return executeNumericResultStatement(statement, merge(window, params));
@@ -294,32 +294,13 @@ public class Periodic {
 
         AtomicInteger failedBatches = new AtomicInteger();
         Map<String,Long> batchErrors = new HashMap<>();
-        long successes = futures.stream().mapToLong(f -> get(f, batchErrors, failedBatches, 0L)).sum();
-        logErrors("Error during iterate.execute:", operationErrors);
-        logErrors("Error during iterate.commit:", batchErrors);
+        long successes = futures.stream().mapToLong(f -> Util.getFuture(f, batchErrors, failedBatches, 0L)).sum();
+        Util.logErrors("Error during iterate.commit:", batchErrors, log);
+        Util.logErrors("Error during iterate.execute:", operationErrors, log);
         long timeTaken = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
         BatchAndTotalResult result =
                 new BatchAndTotalResult(batches, count.get(), timeTaken, successes, failedOps.get(), failedBatches.get(), operationErrors, batchErrors);
         return Stream.of(result);
-    }
-
-    private void logErrors(String message, Map<String, Long> errors) {
-        if (!errors.isEmpty()) {
-            log.bulk( log -> {
-                log.warn(message);
-                errors.forEach((k, v) -> log.warn("%d times: %s",k,v));
-            });
-        }
-    }
-
-    private <T> T get(Future<T> f, Map<String, Long> errorMessages, AtomicInteger errors, T errorValue) {
-        try {
-            return f.get();
-        } catch (InterruptedException | ExecutionException e) {
-            errors.incrementAndGet();
-            recordError(errorMessages, e);
-            return errorValue;
-        }
     }
 
     public static class BatchAndTotalResult {

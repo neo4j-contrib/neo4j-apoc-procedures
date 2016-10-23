@@ -8,13 +8,16 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.logging.Log;
 
 import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.*;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
@@ -274,11 +277,12 @@ public class Util {
         return partitionSubList(data,partitions,null);
     }
     public static Stream<List<Object>> partitionSubList(List<Object> data, int partitions, List<Object> tombstone) {
+        if (partitions==0) partitions=1;
         List<Object> list = new ArrayList<>(data);
         int total = list.size();
         int batchSize = Math.max((int)Math.ceil((double)total / partitions),1);
         Stream<List<Object>> stream = IntStream.range(0, partitions).parallel()
-                .mapToObj((part) -> list.subList(part * batchSize, Math.min((part + 1) * batchSize, total)))
+                .mapToObj((part) -> list.subList(Math.min(part * batchSize, total), Math.min((part + 1) * batchSize, total)))
                 .filter(partition -> !partition.isEmpty());
         return tombstone == null ? stream : Stream.concat(stream,Stream.of(tombstone));
     }
@@ -399,6 +403,25 @@ public class Util {
             return new URL(source.getProtocol(),source.getHost(),source.getPort(),file).toString();
         } catch (MalformedURLException mfu) {
             return "invalid URL";
+        }
+    }
+
+    public static <T> T getFuture(Future<T> f, Map<String, Long> errorMessages, AtomicInteger errors, T errorValue) {
+        try {
+            return f.get();
+        } catch (InterruptedException | ExecutionException e) {
+            errors.incrementAndGet();
+            errorMessages.compute(e.getMessage(),(s, i) -> i == null ? 1 : i + 1);
+            return errorValue;
+        }
+    }
+
+    public static void logErrors(String message, Map<String, Long> errors, Log log) {
+        if (!errors.isEmpty()) {
+            log.bulk(l -> {
+                l.warn(message);
+                errors.forEach((k, v) -> l.warn("%d times: %s",k,v));
+            });
         }
     }
 }
