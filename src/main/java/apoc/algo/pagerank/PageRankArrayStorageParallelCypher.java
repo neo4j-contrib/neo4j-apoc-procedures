@@ -54,9 +54,9 @@ public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmIn
         return algorithm.getAlgoNodeId(node);
     }
 
-    public boolean readNodeAndRelCypherData(String relCypher, String nodeCypher) {
-        boolean success = algorithm.readNodesAndRelCypherWeighted(relCypher, nodeCypher);
-        this.nodeCount = algorithm.nodeCount;
+    public boolean readNodeAndRelCypherData(String relCypher, String nodeCypher, Number weight, Number batchSize) {
+        boolean success = algorithm.readNodeAndRelCypher(relCypher, nodeCypher, weight,batchSize);
+        this.nodeCount = algorithm.getNodeCount();
         this.relCount = algorithm.relCount;
         stats.readNodeMillis = algorithm.readNodeMillis;
         stats.readRelationshipMillis = algorithm.readRelationshipMillis;
@@ -128,7 +128,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmIn
                         for (int j = 0; j < degree; j++) {
                             int source = i;
                             int target = relationshipTarget[chunkIndex + j];
-                            int weight = relationshipWeight[chunkIndex + j];
+                            int weight = relationshipWeight==null ? 1 : relationshipWeight[chunkIndex + j];
                             pageRanksAtomic.addAndGet(target, weight * previousPageRanks[source]);
                         }
                     }
@@ -145,8 +145,10 @@ public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmIn
                                       int[] sourceChunkStartingIndex,
                                       int[] sourceDegreeData,
                                       int[] relationshipWeight) {
-        int chunkIndex = sourceChunkStartingIndex[node];
         int degree = sourceDegreeData[node];
+        if (relationshipWeight==null) return degree;
+
+        int chunkIndex = sourceChunkStartingIndex[node];
         int totalWeight = 0;
         for (int i = 0; i < degree; i++) {
             totalWeight += relationshipWeight[chunkIndex + i];

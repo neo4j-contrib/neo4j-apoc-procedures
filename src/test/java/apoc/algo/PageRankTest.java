@@ -168,6 +168,45 @@ public class PageRankTest
     }
 
     @Test
+    public void shouldGetPageRankWithCypherExpectedResultWithoutNodes() throws IOException
+    {
+        db.execute( COMPANIES_QUERY_LABEL ).close();
+        Result result = db.execute("CALL apoc.algo.pageRankWithCypher({iterations:20, write:true, node_cypher:'none', rel_cypher:'MATCH (n:Company)-->(o) RETURN id(n) as source, id(o) as target', weight:null}) ");
+        System.out.println(result.resultAsString());
+        ResourceIterator<Double> it = db.execute("MATCH (n) WHERE exists(n.pagerank) RETURN n.name as name, n.pagerank as score ORDER BY score DESC LIMIT 1").columnAs("score");
+        assertTrue( it.hasNext() );
+        assertEquals( PageRankAlgoTest.EXPECTED, it.next(), 0.1D );
+        assertFalse( it.hasNext() );
+        it.close();
+    }
+    @Test
+    public void shouldGetPageRankWithCypherExpectedResultWithoutNodesParallel() throws IOException
+    {
+        db.execute( COMPANIES_QUERY_LABEL ).close();
+        Result result = db.execute("CALL apoc.algo.pageRankWithCypher({iterations:20, write:true, node_cypher:'none', " +
+                "rel_cypher:'MATCH (n:Company) WITH n SKIP {skip} LIMIT {limit} MATCH (n)-->(o) RETURN id(n) as source, id(o) as target', weight:null,batchSize:3}) ");
+        System.out.println(result.resultAsString());
+        result.close();
+        ResourceIterator<Double> it = db.execute("MATCH (n) WHERE exists(n.pagerank) RETURN n.name as name, n.pagerank as score ORDER BY score DESC LIMIT 1").columnAs("score");
+        assertTrue( it.hasNext() );
+        assertEquals( PageRankAlgoTest.EXPECTED, it.next(), 0.1D );
+        assertFalse( it.hasNext() );
+        it.close();
+    }
+    @Test
+    public void shouldGetPageRankWithSubCypherExpectedResult() throws IOException
+    {
+        db.execute( COMPANIES_QUERY_LABEL ).close();
+        Result result = db.execute("CALL apoc.algo.pageRankWithCypher({write:true, iterations:5, node_cypher:'MATCH (node:Company) return id(node) as id LIMIT 5',rel_cypher:'MATCH (c:Company)-[:TYPE1]->(o) RETURN id(c) as source,id(o) as target',weighted:false}) ");
+        System.out.println(result.resultAsString());
+        ResourceIterator<Double> it = db.execute("MATCH (n) WHERE exists(n.pagerank) RETURN n.name as name, n.pagerank as score ORDER BY score DESC LIMIT 1").columnAs("score");
+        assertTrue( it.hasNext() );
+        assertEquals( 0.15D, it.next(), 0.1D );
+        assertFalse( it.hasNext() );
+        it.close();
+    }
+
+    @Test
     public void shouldGetPageRankExpectedResultWithTypes() throws IOException
     {
         db.execute( COMPANIES_QUERY ).close();

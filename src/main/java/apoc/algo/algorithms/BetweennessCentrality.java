@@ -58,9 +58,9 @@ public class BetweennessCentrality implements AlgorithmInterface {
         return algorithm.getMappedNode(algoId);
     }
 
-    public boolean readNodeAndRelCypherData(String relCypher, String nodeCypher) {
-        boolean success = algorithm.readNodesAndRelCypherWeighted(relCypher, nodeCypher);
-        this.nodeCount = algorithm.nodeCount;
+    public boolean readNodeAndRelCypherData(String relCypher, String nodeCypher, Number weight, Number batchSize) {
+        boolean success = algorithm.readNodeAndRelCypher(relCypher, nodeCypher,weight, batchSize);
+        this.nodeCount = algorithm.getNodeCount();
         this.relCount = algorithm.relCount;
         stats.readNodeMillis = algorithm.readNodeMillis;
         stats.readRelationshipMillis = algorithm.readRelationshipMillis;

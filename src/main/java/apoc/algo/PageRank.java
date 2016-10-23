@@ -21,8 +21,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
-import static apoc.algo.algorithms.AlgoUtils.DEFAULT_PAGE_RANK_WRITE;
-import static apoc.algo.algorithms.AlgoUtils.SETTING_WRITE;
+import static apoc.algo.algorithms.AlgoUtils.*;
 
 public class PageRank {
 
@@ -78,12 +77,14 @@ public class PageRank {
         String nodeCypher = AlgoUtils.getCypher(config, AlgoUtils.SETTING_CYPHER_NODE, AlgoUtils.DEFAULT_CYPHER_NODE);
         String relCypher = AlgoUtils.getCypher(config, AlgoUtils.SETTING_CYPHER_REL, AlgoUtils.DEFAULT_CYPHER_REL);
         boolean shouldWrite = (boolean)config.getOrDefault(SETTING_WRITE, DEFAULT_PAGE_RANK_WRITE);
+        Number weight = (Number) config.get(SETTING_WEIGHTED);
+        Number batchSize = (Number) config.get(SETTING_BATCH_SIZE);
 
         long beforeReading = System.currentTimeMillis();
         log.info("Pagerank: Reading data into local ds");
         PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(db, pool, log);
         boolean success = pageRank.readNodeAndRelCypherData(
-                relCypher, nodeCypher);
+                relCypher, nodeCypher,weight,batchSize);
         if (!success) {
             String errorMsg = "Failure while reading cypher queries. Make sure the results are ordered.";
             log.info(errorMsg);

@@ -27,6 +27,9 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
+import static apoc.algo.algorithms.AlgoUtils.SETTING_BATCH_SIZE;
+import static apoc.algo.algorithms.AlgoUtils.SETTING_WEIGHTED;
+
 public class Centrality {
 
     @Context
@@ -81,6 +84,8 @@ public class Centrality {
         String nodeCypher = AlgoUtils.getCypher(config, AlgoUtils.SETTING_CYPHER_NODE, AlgoUtils.DEFAULT_CYPHER_NODE);
         String relCypher = AlgoUtils.getCypher(config, AlgoUtils.SETTING_CYPHER_REL, AlgoUtils.DEFAULT_CYPHER_REL);
         boolean shouldWrite = (boolean)config.getOrDefault(AlgoUtils.SETTING_WRITE, AlgoUtils.DEFAULT_PAGE_RANK_WRITE);
+        Number weight = (Number) config.get(SETTING_WEIGHTED);
+        Number batchSize = (Number) config.get(SETTING_BATCH_SIZE);
 
         long beforeReading = System.currentTimeMillis();
         log.info("BetweennessCypher: Reading data into local ds");
@@ -88,7 +93,7 @@ public class Centrality {
                 new apoc.algo.algorithms.BetweennessCentrality(dbAPI, pool, log);
 
         boolean success = betweennessCentrality.readNodeAndRelCypherData(
-                relCypher, nodeCypher);
+                relCypher, nodeCypher, weight, batchSize);
         if (!success) {
             String errorMsg = "Failure while reading cypher queries. Make sure the results are ordered.";
             log.info(errorMsg);

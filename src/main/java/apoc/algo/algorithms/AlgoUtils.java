@@ -24,6 +24,8 @@ public class AlgoUtils {
     public static final String SETTING_CYPHER_NODE = "node_cypher";
     public static final String SETTING_CYPHER_REL = "rel_cypher";
     public static final String SETTING_WRITE = "write";
+    public static final String SETTING_WEIGHTED = "weight";
+    public static final String SETTING_BATCH_SIZE = "batchSize";
 
     public static final String DEFAULT_CYPHER_REL =
             "MATCH (s)-[r]->(t) RETURN id(s) as source, id(t) as target, 1 as weight";
@@ -34,8 +36,9 @@ public class AlgoUtils {
 
     public static String getCypher(Map<String, Object> config, String setting, String defaultString) {
         String cypher = (String)config.getOrDefault(setting, defaultString);
-        if (cypher.equals("") || cypher.isEmpty()) {
-            cypher = defaultString;
+        if ("none".equals(cypher)) return null;
+        if (cypher == null || cypher.isEmpty()) {
+            return defaultString;
         }
         return cypher;
     }
