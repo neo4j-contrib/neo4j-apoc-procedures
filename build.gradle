@@ -55,6 +55,7 @@ dependencies {
     
     testCompile group: 'org.apache.derby', name: 'derby', version:'10.12.1.1'
     testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version:neo4jVersion
+    testCompile group: 'org.neo4j', name: 'neo4j-core-edge', version:neo4jVersion, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-kernel', version:neo4jVersion, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-io', version:neo4jVersion, classifier: "tests"
     testCompile group: 'junit', name: 'junit', version:'4.12'
@@ -67,6 +68,7 @@ dependencies {
     testCompile 'com.couchbase.client:java-client:2.3.1'
 
     compileOnly(group: 'org.neo4j', name: 'neo4j', version:neo4jVersion)
+    compileOnly(group: 'org.neo4j', name: 'neo4j-enterprise', version:neo4jVersion)
     compileOnly(group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version:'1.9.7')
     testCompile(group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version:'1.9.7')
     compileOnly(group: 'org.ow2.asm', name: 'asm', version:'5.0.2')
