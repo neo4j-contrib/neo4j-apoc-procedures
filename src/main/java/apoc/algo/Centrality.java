@@ -1,6 +1,6 @@
 package apoc.algo;
 
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 import apoc.Pools;
 import apoc.algo.algorithms.*;
 import apoc.result.NodeScore;
@@ -17,9 +17,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 
 import java.util.HashSet;
 import java.util.List;
@@ -76,7 +73,7 @@ public class Centrality {
     }
 
 
-    @Procedure("apoc.algo.betweennessCypher")
+    @Procedure(value = "apoc.algo.betweennessCypher",mode = Mode.WRITE)
     @Description("CALL apoc.algo.betweennessCypher(node_cypher,rel_cypher,write) - calculates betweeness " +
     " centrality based on cypher input")
     public Stream<apoc.algo.algorithms.AlgorithmInterface.Statistics> betweennessCypher(

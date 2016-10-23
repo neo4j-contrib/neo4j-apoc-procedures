@@ -1,7 +1,7 @@
 package apoc.algo;
 
 import apoc.algo.pagerank.PageRank.PageRankStatistics;
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 import apoc.Pools;
 import apoc.algo.algorithms.AlgoUtils;
 import apoc.algo.pagerank.PageRankArrayStorageParallelCypher;
@@ -12,9 +12,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 
 import java.util.List;
 import java.util.Map;
@@ -59,7 +56,7 @@ public class PageRank {
                     nodes,
                     Util.typesAndDirectionsToTypesArray((String) config.getOrDefault(SETTING_PAGE_RANK_TYPES, "")));
     }
-    @Procedure("apoc.algo.pageRankStats")
+    @Procedure(value = "apoc.algo.pageRankStats",mode = Mode.WRITE)
     @Description(
             "CALL apoc.algo.pageRankStats({iterations:_,types:_,write:true,...}) YIELD nodeCount - calculates page rank on graph " +
                     " for given nodes and potentially writes back")
@@ -69,7 +66,7 @@ public class PageRank {
         return innerPageRankStats(iterations.intValue(), config, types);
     }
 
-    @Procedure("apoc.algo.pageRankWithCypher")
+    @Procedure(value = "apoc.algo.pageRankWithCypher",mode = Mode.WRITE)
     @Description("CALL apoc.algo.pageRankWithCypher({iterations,node_cypher,rel_cypher,write}) - calculates page rank based on cypher input")
     public Stream<PageRankStatistics> pageRankWithCypher(
             @Name("config") Map<String, Object> config) {
