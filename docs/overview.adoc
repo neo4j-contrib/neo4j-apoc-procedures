@@ -366,6 +366,7 @@ return nodes, relationships, time
 | CALL apoc.create.uuids(count) YIELD uuid, row | creates count UUIDs
 | CALL apoc.nodes.link([nodes],'REL_TYPE') | creates a linked list of nodes from first to last
 | CALL apoc.nodes.isDense(node/[nodes]/id/[ids]) yield node, dense | returns each node and a 'dense' flag if it is a dense node
+| CALL apoc.node.relationship.exists(node, rel-direction-pattern) | yields true effectively when the node has the relationships of the pattern
 |===
 
 [cols="1m,5"]
@@ -671,11 +672,22 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.data.domain(email_or_url) yield value | returns domain part of the value
 |===
 
+== Utilities
+
 [cols="1m,5"]
 |===
 | apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list
 | apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list
-| CALL apoc.util.sleep({duration}) | sleeps for <duration> millis, transaction termination is honored
+| apoc.util.sleep({duration}) | sleeps for <duration> millis, transaction termination is honored
+| apoc.util.validate(predicate, message,[params]) | raises exception if prediate evaluates to true
+|===
+
+== Config
+
+[cols="1m,5"]
+|===
+| apoc.config.list | Lists the Neo4j configuration as key,value table
+| apoc.config.map | Lists the Neo4j configuration as map
 |===
 
 == Date/time Support
