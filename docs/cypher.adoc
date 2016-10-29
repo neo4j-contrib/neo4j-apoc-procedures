@@ -40,6 +40,16 @@ call apoc.cypher.run("match (:`"+label+"`) return count(*) as count", null) yiel
 return label, value.count as count
 ----
 
+You can use a similar approach to get the property-keys per label:
+
+[source,cypher]
+----
+CALL db.labels() yield label
+call apoc.cypher.run("MATCH (n:`"+label+"`) RETURN keys(n) as keys LIMIT 1",null) yield value
+RETURN label, value.keys as keys
+----
+
+
 == running a cypher statement timeboxed
 
 There's a way to terminate a cypher statement if it takes longer than a given threshold. Consider an expensive statement calculating cross product of shortestpaths for each pair of nodes:
