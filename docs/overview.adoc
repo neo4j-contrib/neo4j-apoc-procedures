@@ -650,6 +650,16 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | CALL apoc.get.rels(rels|id|[ids]) yield rel | quickly returns all relationships with these id's
 |===
 
+=== Text Functions
+
+[cols="1m,5"]
+|===
+| CALL apoc.text.join(['text1','text2',...], delimiter) YIELD value | join the given strings with the given delimiter.
+| CALL apoc.text.format(text,[params]) YIELD value | sprintf format the string with the params given
+| CALL apoc.text.lpad(text,count,delim) YIELD value | left pad the string to the given width
+| CALL apoc.text.rpad(text,count,delim) YIELD value | right pad the string to the given width
+| apoc.data.domain(email_or_url) yield value | returns domain part of the value
+|===
 
 === Phonetic Comparison Functions
 
@@ -667,10 +677,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta | Compute the US_ENGLISH soundex character difference between two given strings
 |===
 
-[cols="1m,5"]
-|===
-| apoc.data.domain(email_or_url) yield value | returns domain part of the value
-|===
+
 
 == Utilities
 
@@ -681,6 +688,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.util.sleep({duration}) | sleeps for <duration> millis, transaction termination is honored
 | apoc.util.validate(predicate, message,[params]) | raises exception if prediate evaluates to true
 |===
+
 
 == Config
 

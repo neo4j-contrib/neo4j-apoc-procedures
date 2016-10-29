@@ -12,7 +12,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.Normalizer;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -104,5 +107,48 @@ public class Strings {
         result = Normalizer.normalize(result, Normalizer.Form.NFD);
         String tmp2 = specialCharPattern.matcher(result).replaceAll("");
         return cleanPattern.matcher(tmp2).replaceAll("").toLowerCase();
+    }
+
+
+    @Procedure
+    @Description("apoc.text.lpad(text,count,delim) YIELD value - left pad the string to the given width")
+    public Stream<StringResult> lpad(@Name("text") String text, @Name("count") long count,@Name("delim") String delim) {
+        int len = text.length();
+        if (len < count) {
+            StringBuilder sb = new StringBuilder((int)count);
+            char[] chars = new char[(int)count - len];
+            Arrays.fill(chars, delim.charAt(0));
+            sb.append(chars);
+            sb.append(text);
+            text = sb.toString();
+        }
+        return Stream.of(new StringResult(text));
+    }
+
+    @Procedure
+    @Description("apoc.text.rpad(text,count,delim) YIELD value - right pad the string to the given width")
+    public Stream<StringResult> rpad(@Name("text") String text, @Name("count") long count,@Name("delim") String delim) {
+        int len = text.length();
+        if (len < count) {
+            StringBuilder sb = new StringBuilder(text);
+            char[] chars = new char[(int)count - len];
+            Arrays.fill(chars, delim.charAt(0));
+            sb.append(chars);
+            text = sb.toString();
+        }
+        return Stream.of(new StringResult(text));
+    }
+
+    @Procedure
+    @Description("apoc.text.format(text,[params]) YIELD value - sprintf format the string with the params given")
+    public Stream<StringResult> format(@Name("text") String text, @Name("params") List<Object> params) {
+        if (text == null) return Stream.of(StringResult.EMPTY);
+        try {
+            if (params == null) params = Collections.emptyList();
+            Object[] args = params.toArray(new Object[params.size()]);
+            return Stream.of(new StringResult(String.format(Locale.ENGLISH,text, args)));
+        } catch (Exception e) {
+            return Stream.of(StringResult.EMPTY);
+        }
     }
 }
