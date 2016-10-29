@@ -58,4 +58,23 @@ public class NodesTest {
         assertEquals(0L,(long)it.next());
         it.close();
     }
+
+    @Test
+    public void hasRelationhip() throws Exception {
+        db.execute("CREATE (:Foo)-[:Y]->(:Bar),(n:FooBar) WITH n UNWIND range(1,100) as _ CREATE (n)-[:X]->(n)").close();
+        TestUtil.testCall(db,"MATCH (n:Foo) WITH n CALL apoc.node.relationship.exists(n,'Y') YIELD value RETURN value",(r)-> assertEquals(true,r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:Foo) WITH n CALL apoc.node.relationship.exists(n,'Y>') YIELD value RETURN value", (r)-> assertEquals(true,r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:Foo) WITH n CALL apoc.node.relationship.exists(n,'<Y') YIELD value RETURN value", (r)-> assertEquals(false,r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:Foo) WITH n CALL apoc.node.relationship.exists(n,'X') YIELD value RETURN value", (r)-> assertEquals(false,r.get("value")));
+
+        TestUtil.testCall(db,"MATCH (n:Bar) WITH n CALL apoc.node.relationship.exists(n,'Y') YIELD value RETURN value",(r)-> assertEquals(true,r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:Bar) WITH n CALL apoc.node.relationship.exists(n,'Y>') YIELD value RETURN value", (r)-> assertEquals(false,r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:Bar) WITH n CALL apoc.node.relationship.exists(n,'<Y') YIELD value RETURN value", (r)-> assertEquals(true,r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:Bar) WITH n CALL apoc.node.relationship.exists(n,'X') YIELD value RETURN value", (r)-> assertEquals(false,r.get("value")));
+
+        TestUtil.testCall(db,"MATCH (n:FooBar) WITH n CALL apoc.node.relationship.exists(n,'X') YIELD value RETURN value",(r)-> assertEquals(true,r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:FooBar) WITH n CALL apoc.node.relationship.exists(n,'X>') YIELD value RETURN value", (r)-> assertEquals(true,r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:FooBar) WITH n CALL apoc.node.relationship.exists(n,'<X') YIELD value RETURN value", (r)-> assertEquals(true,r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:FooBar) WITH n CALL apoc.node.relationship.exists(n,'Y') YIELD value RETURN value", (r)-> assertEquals(false,r.get("value")));
+    }
 }
