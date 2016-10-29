@@ -1,5 +1,6 @@
 package apoc.export.graphml;
 
+import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.FileUtils;
@@ -99,6 +100,7 @@ public class ExportGraphML {
     }
 
     private Stream<ProgressInfo> exportGraphML(@Name("file") String fileName, String source, SubGraph graph, ExportConfig config) throws Exception, XMLStreamException {
+        if (!ApocConfiguration.isEnabled("export.file.enabled")) throw new RuntimeException("Export not enabled, please add apoc.export.file.enabled=true to your neo4j.conf");
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "graphml"));
         PrintWriter printWriter = getPrintWriter(fileName, null);
         XmlGraphMLWriter exporter = new XmlGraphMLWriter();

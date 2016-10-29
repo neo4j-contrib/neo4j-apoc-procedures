@@ -50,6 +50,8 @@ public class ExportGraphMLTest {
     public static void setUp() throws Exception {
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
+                .setConfig("apoc.export.file.enabled", "true")
+                .setConfig("apoc.import.file.enabled", "true")
                 .setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, ExportGraphML.class, Graphs.class);

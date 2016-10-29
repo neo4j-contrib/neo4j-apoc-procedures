@@ -35,6 +35,9 @@ public class ApocConfiguration {
     public static <T> T get(String key, T defaultValue) {
         return (T) apocConfig.getOrDefault(key, defaultValue);
     }
+    public static boolean isEnabled(String key) {
+        return Util.toBoolean(apocConfig.getOrDefault(key, false));
+    }
 
     public static void addToConfig(Map<String,Object> newConfig) {
         apocConfig.putAll(newConfig);

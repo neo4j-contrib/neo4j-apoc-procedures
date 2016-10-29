@@ -1,5 +1,6 @@
 package apoc.export.cypher;
 
+import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.NodesAndRelsSubGraph;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static apoc.export.util.FileUtils.checkWriteAllowed;
 import static apoc.export.util.FileUtils.getPrintWriter;
 
 /**
@@ -79,6 +81,7 @@ public class ExportCypher {
     }
 
     private Stream<ProgressInfo> exportCypher(@Name("file") String fileName, String source, SubGraph graph, ExportConfig c) throws IOException {
+        checkWriteAllowed();
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "cypher"));
         PrintWriter printWriter = getPrintWriter(fileName, null);
         MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph);

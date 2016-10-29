@@ -1,5 +1,7 @@
 package apoc.util;
 
+import apoc.ApocConfiguration;
+import apoc.export.util.FileUtils;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.neo4j.procedure.Name;
@@ -22,6 +24,7 @@ public class JsonUtil {
 
     public static Object loadJson(@Name("url") String url, Map<String,Object> headers, String payload) {
         try {
+            FileUtils.checkReadAllowed(url);
             InputStream stream = Util.openInputStream(url, headers, payload);
             String data = new Scanner(stream, "UTF-8").useDelimiter("\\Z").next();
             return OBJECT_MAPPER.readValue(data, Object.class);

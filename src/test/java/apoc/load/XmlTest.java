@@ -28,7 +28,7 @@ public class XmlTest {
                       "{_type=grandchild, name=Postgres, _text=Postgres is a relational database}]}]}";
     private GraphDatabaseService db;
 	@Before public void setUp() throws Exception {
-	    db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig("apoc.import.file.enabled","true").newGraphDatabase();
 	    TestUtil.registerProcedure(db, Xml.class);
 	}
     @After public void tearDown() {

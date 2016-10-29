@@ -57,6 +57,7 @@ public class ExportCypherTest {
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
                 .setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
+                .setConfig("apoc.export.file.enabled", "true")
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
         db.execute("CREATE INDEX ON :Foo(name)").close();

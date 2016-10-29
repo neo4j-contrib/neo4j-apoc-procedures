@@ -22,7 +22,7 @@ public class LoadCsvTest {
 
     private GraphDatabaseService db;
 	@Before public void setUp() throws Exception {
-	    db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+	    db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig("apoc.import.file.enabled","true").newGraphDatabase();
         TestUtil.registerProcedure(db, LoadCsv.class);
     }
 

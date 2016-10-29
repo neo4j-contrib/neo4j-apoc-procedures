@@ -1,6 +1,7 @@
 package apoc.load;
 
 import apoc.Description;
+import apoc.export.util.FileUtils;
 import apoc.result.MapResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -33,6 +34,7 @@ public class Xml {
     @Description("apoc.load.xml('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.")
     public Stream<MapResult> xml(@Name("url") String url) {
         try {
+            FileUtils.checkReadAllowed(url);
             URLConnection urlConnection = new URL(url).openConnection();
             FACTORY.setProperty("javax.xml.stream.isCoalescing", true);
             XMLStreamReader reader = FACTORY.createXMLStreamReader(urlConnection.getInputStream());
@@ -48,6 +50,7 @@ public class Xml {
     @Description("apoc.load.xml('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.")
     public Stream<MapResult> xmlSimple(@Name("url") String url) {
         try {
+            FileUtils.checkReadAllowed(url);
             URLConnection urlConnection = new URL(url).openConnection();
             FACTORY.setProperty("javax.xml.stream.isCoalescing", true);
             XMLStreamReader reader = FACTORY.createXMLStreamReader(urlConnection.getInputStream());
