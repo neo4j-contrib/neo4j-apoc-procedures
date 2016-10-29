@@ -7,6 +7,7 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * @author mh
@@ -14,24 +15,32 @@ import java.util.Map;
  */
 public class ApocConfiguration {
     public static final String PREFIX = "apoc.";
-    private static Map<String, Object> config = new HashMap<>(10);
+    private static final Pattern SKIP = Pattern.compile("(ur[il]|pass|cred)",Pattern.CASE_INSENSITIVE);
+    private static Map<String, Object> apocConfig = new HashMap<>(10);
+    private static Map<String, Object> config = new HashMap<>(32);
 
     public static void initialize(GraphDatabaseAPI db) {
         Static.clear();
         Map<String, String> params = db.getDependencyResolver().resolveDependency(Config.class).getParams();
+        apocConfig.clear();
+        apocConfig.putAll(Util.subMap(params, PREFIX));
         config.clear();
-        config.putAll(Util.subMap(params, PREFIX));
+        params.forEach((k,v) -> { if (!SKIP.matcher(k).find()) {config.put(k,v);}} );
     }
 
     public static Map<String, Object> get(String prefix) {
-        return Util.subMap(config, prefix);
+        return Util.subMap(apocConfig, prefix);
     }
 
     public static <T> T get(String key, T defaultValue) {
-        return (T) config.getOrDefault(key, defaultValue);
+        return (T) apocConfig.getOrDefault(key, defaultValue);
     }
 
     public static void addToConfig(Map<String,Object> newConfig) {
-        config.putAll(newConfig);
+        apocConfig.putAll(newConfig);
+    }
+
+    public static Map<String,Object> list() {
+        return config;
     }
 }
