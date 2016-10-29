@@ -436,6 +436,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_help_and_usage">Help and Usage</a></li>
 <li><a href="#_overview_of_apoc_procedures_functions">Overview of APOC Procedures &amp; Functions</a>
 <ul class="sectlevel2">
+<li><a href="#_configuration_options">Configuration Options</a></li>
 <li><a href="#_manual_indexes">Manual Indexes</a>
 <ul class="sectlevel3">
 <li><a href="#_index_queries">Index Queries</a></li>
@@ -482,9 +483,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_map_functions">Map Functions</a></li>
 <li><a href="#_collection_functions">Collection Functions</a></li>
 <li><a href="#_lookup_functions">Lookup Functions</a></li>
+<li><a href="#_text_functions">Text Functions</a></li>
 <li><a href="#_phonetic_comparison_functions">Phonetic Comparison Functions</a></li>
 </ul>
 </li>
+<li><a href="#_utilities">Utilities</a></li>
+<li><a href="#_config">Config</a></li>
 <li><a href="#_date_time_support">Date/time Support</a>
 <ul class="sectlevel3">
 <li><a href="#_conversion_functions_between_formatted_dates_and_timestamps">Conversion Functions between formatted dates and timestamps</a></li>
@@ -860,6 +864,59 @@ RETURN name AS undocumented</code></pre>
 <div class="sect1">
 <h2 id="_overview_of_apoc_procedures_functions">Overview of APOC Procedures &amp; Functions</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_configuration_options">Configuration Options</h3>
+<div class="paragraph">
+<p>Set these config options in <code>$NEO4J_HOME/neo4j.conf</code></p>
+</div>
+<div class="paragraph">
+<p>All boolean options default to false, i.e. are disabled, unless mentioned otherwise.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.trigger.enabled=true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable triggers</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.ttl.enabled=true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable time to live background task</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.ttl.schedule=5</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set frequency in seconds to run ttl background task (default 60)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.import.file.enabled=true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable reading local files from disk</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.file.enabled=true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Enable writing local files to disk</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.jdbc.&lt;key&gt;.uri=jdbc-url-with-credentials</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">store jdbc-urls under a key to be used by apoc.load.jdbc</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.es.&lt;key&gt;.uri=es-url-with-credentials</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">store es-urls under a key to be used by elasticsearch procedures</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.mongodb.&lt;key&gt;.uri=mongodb-url-with-credentials</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">store mongodb-urls under a key to be used by mongodb procedures</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.couchbase.&lt;key&gt;.uri=couchbase-url-with-credentials</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">store couchbase-urls under a key to be used by couchbase procedures</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 <div class="sect2">
 <h3 id="_manual_indexes">Manual Indexes</h3>
 <div class="sect3">
@@ -1518,6 +1575,14 @@ return nodes, relationships, time</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.nodes.link([nodes],'REL_TYPE')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates a linked list of nodes from first to last</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.nodes.isDense(node/[nodes]/id/[ids]) yield node, dense</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns each node and a 'dense' flag if it is a dense node</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.node.relationship.exists(node, rel-direction-pattern)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">yields true effectively when the node has the relationships of the pattern</p></td>
+</tr>
 </tbody>
 </table>
 <table class="tableblock frame-all grid-all spread">
@@ -1771,6 +1836,29 @@ CALL apoc.generate.simple([2,2,2,2], null, null)</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.remove(name) yield name, statement, installed</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">remove previously added trigger, returns trigger information</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.list() yield name, statement, installed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">update and list all installed triggers</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Helper Functions</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.trigger.nodesByLabel({assignedLabels},'Label')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function to filter labelEntries by label, to be used within a trigger statement with {assignedLabels} and {removedLabels} {phase:'before/after/rollback'} returns previous and new trigger information</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.trigger.propertiesByKey({assignedNodeProperties},'key')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function to filter propertyEntries by property-key, to be used within a trigger statement with {assignedNode/RelationshipProperties} and {removedNode/RelationshipProperties}. Returns [{old,new,key,node,relationship}]</p></td>
+</tr>
 </tbody>
 </table>
 <div class="listingblock">
@@ -1779,7 +1867,8 @@ CALL apoc.generate.simple([2,2,2,2], null, null)</code></pre>
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.trigger.add('timestamp','UNWIND {createdNodes} AS n SET n.ts = timestamp()');
 CALL apoc.trigger.add('lowercase','UNWIND {createdNodes} AS n SET n.id = toLower(n.name)');
 CALL apoc.trigger.add('txInfo',   'UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}', {phase:'after'});
-CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN {deletedRelationships} WHERE type(r) = "X"])')</code></pre>
+CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN {deletedRelationships} WHERE type(r) = "X"])')
+CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n.id = toLower(n.name)')</code></pre>
 </div>
 </div>
 </div>
@@ -2166,6 +2255,37 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 </table>
 </div>
 <div class="sect3">
+<h4 id="_text_functions">Text Functions</h4>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.join(['text1','text2',&#8230;&#8203;], delimiter) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">join the given strings with the given delimiter.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.format(text,[params]) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sprintf format the string with the params given</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.lpad(text,count,delim) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">left pad the string to the given width</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.rpad(text,count,delim) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">right pad the string to the given width</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.data.domain(email_or_url) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns domain part of the value</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
 <h4 id="_phonetic_comparison_functions">Phonetic Comparison Functions</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
@@ -2204,18 +2324,10 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 </tr>
 </tbody>
 </table>
-<table class="tableblock frame-all grid-all spread">
-<colgroup>
-<col style="width: 16%;">
-<col style="width: 83%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.data.domain(email_or_url) yield value</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">returns domain part of the value</p></td>
-</tr>
-</tbody>
-</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_utilities">Utilities</h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -2231,12 +2343,34 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 <td class="tableblock halign-left valign-top"><p class="tableblock">computes the md5 of the concatenation of all string values of the list</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.util.sleep({duration})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.util.sleep({duration})</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">sleeps for &lt;duration&gt; millis, transaction termination is honored</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.util.validate(predicate, message,[params])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">raises exception if prediate evaluates to true</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+<div class="sect2">
+<h3 id="_config">Config</h3>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.config.list</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Lists the Neo4j configuration as key,value table</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.config.map</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Lists the Neo4j configuration as map</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_date_time_support">Date/time Support</h3>
@@ -3963,7 +4097,9 @@ CREATE (n1)-[:TYPE]-&gt;(n2)</code></pre>
 <div class="sect3">
 <h4 id="_closeness_centrality_procedure">Closeness Centrality Procedure</h4>
 <div class="paragraph">
-<p>Centrality is an indicator of a node&#8217;s influence in a graph. In graphs there is a natural distance metric between pairs of nodes, defined by the length of their shortest paths.</p>
+<p>Centrality is an indicator of a node&#8217;s influence in a graph. In graphs there is a natural distance metric between pairs of nodes, defined by the length of their shortest paths.
+For both algorithms below we can measure based upon the direction of the relationship, whereby the 3rd argument represents the direction
+and can be of value BOTH, INCOMING, OUTGOING.</p>
 </div>
 <div class="paragraph">
 <p>Closeness Centrality defines the farness of a node as the sum of its distances from all other nodes, and its closeness as the reciprocal of farness.</p>
@@ -5573,6 +5709,16 @@ call apoc.cypher.run("match (:`"+label+"`) return count(*) as count", null) yiel
 return label, value.count as count</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>You can use a similar approach to get the property-keys per label:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL db.labels() yield label
+call apoc.cypher.run("MATCH (n:`"+label+"`) RETURN keys(n) as keys LIMIT 1",null) yield value
+RETURN label, value.keys as keys</code></pre>
+</div>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_running_a_cypher_statement_timeboxed">running a cypher statement timeboxed</h4>
@@ -5744,7 +5890,7 @@ RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-10-06 10:35:24 +02:00
+Last updated 2016-11-06 14:08:59 +01:00
 </div>
 </div>
 </body>
