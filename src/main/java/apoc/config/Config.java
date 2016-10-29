@@ -31,7 +31,7 @@ public class Config {
     @Context
     public KernelTransaction tx;
 
-    @Description("Lists the Neo4j configuration as key,value table")
+    @Description("apoc.config.list | Lists the Neo4j configuration as key,value table")
     @Procedure
     public Stream<ConfigResult> list() {
         try (Revertable t = tx.restrict(AccessMode.Static.FULL)) {
@@ -39,7 +39,7 @@ public class Config {
         }
     }
 
-    @Description("Lists the Neo4j configuration as map")
+    @Description("apoc.config.map | Lists the Neo4j configuration as map")
     @Procedure
     public Stream<MapResult> map() {
         try (Revertable t = tx.restrict(AccessMode.Static.FULL)) {
