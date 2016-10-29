@@ -1,18 +1,16 @@
 package apoc.load;
 
-import org.neo4j.procedure.Description;
+import apoc.export.util.CountingReader;
+import apoc.export.util.FileUtils;
 import apoc.meta.Meta;
-import apoc.util.Util;
 import au.com.bytecode.opencsv.CSVReader;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -33,7 +31,7 @@ public class LoadCsv {
     @Description("apoc.load.csv('url',{config}) YIELD lineNo, list, map - load CSV fom URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
     public Stream<CSVResult> csv(@Name("url") String url, @Name("config") Map<String, Object> config) {
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(Util.openInputStream(url,null,null)), 1024 * 1024);
+            CountingReader reader = FileUtils.readerFor(url);
 
             char separator = separator(config, "sep", DEFAULT_SEP);
             char arraySep = separator(config, "arraySep", DEFAULT_ARRAY_SEP);

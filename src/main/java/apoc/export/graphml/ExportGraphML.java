@@ -1,6 +1,5 @@
 package apoc.export.graphml;
 
-import org.neo4j.procedure.*;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.FileUtils;
 import apoc.export.util.NodesAndRelsSubGraph;
@@ -10,17 +9,14 @@ import apoc.util.Util;
 import org.neo4j.cypher.export.CypherResultSubGraph;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.*;
 
 import javax.xml.stream.XMLStreamException;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.List;
@@ -94,6 +90,7 @@ public class ExportGraphML {
     }
 
     private Stream<ProgressInfo> exportGraphML(@Name("file") String fileName, String source, SubGraph graph, ExportConfig config) throws Exception, XMLStreamException {
+        FileUtils.checkReadAllowed(fileName);
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "graphml"));
         PrintWriter printWriter = getPrintWriter(fileName, null);
         XmlGraphMLWriter exporter = new XmlGraphMLWriter();

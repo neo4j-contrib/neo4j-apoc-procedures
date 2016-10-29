@@ -2,6 +2,7 @@ package apoc.cypher;
 
 import org.neo4j.procedure.*;
 import apoc.Pools;
+import apoc.export.util.FileUtils;
 import apoc.result.MapResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -137,11 +138,7 @@ public class Cypher {
     }
     private Reader readerForFile(@Name("file") String fileName) {
         try {
-            try {
-                return new BufferedReader(new InputStreamReader(new URL(fileName).openStream(), "UTF-8"));
-            } catch (MalformedURLException mue) {
-                return new BufferedReader(new FileReader(new File(fileName)));
-            }
+            return FileUtils.readerFor(fileName);
         } catch (IOException ioe) {
             throw new RuntimeException("Error accessing file "+fileName,ioe);
         }

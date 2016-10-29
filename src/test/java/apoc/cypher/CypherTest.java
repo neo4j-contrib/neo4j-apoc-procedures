@@ -43,6 +43,7 @@ public class CypherTest {
     public static void setUp() throws Exception {
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
+                .setConfig("apoc.import.file.enabled", "true")
                 .setConfig(GraphDatabaseSettings.load_csv_file_url_root,new File("src/test/resources").getAbsolutePath())
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, Cypher.class);
