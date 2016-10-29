@@ -4,6 +4,7 @@ import org.neo4j.procedure.Description;
 import apoc.path.RelationshipTypeAndDirections;
 import apoc.result.PathResult;
 import apoc.result.WeightedPathResult;
+import apoc.util.Util;
 import org.neo4j.graphalgo.CommonEvaluators;
 import org.neo4j.graphalgo.GraphAlgoFactory;
 import org.neo4j.graphalgo.PathFinder;
@@ -111,8 +112,7 @@ public class PathFinding {
 
         PathFinder<WeightedPath> algo = GraphAlgoFactory.dijkstra(
                 buildPathExpander(relTypesAndDirs),
-                (relationship, direction) -> ((Number) (relationship
-                        .getProperty(weightPropertyName, defaultWeight))).doubleValue()
+                (relationship, direction) -> Util.toDouble(relationship.getProperty(weightPropertyName, defaultWeight))
         );
         return WeightedPathResult.streamWeightedPathResult(startNode, endNode, algo);
     }

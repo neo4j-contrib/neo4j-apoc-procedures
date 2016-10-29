@@ -28,7 +28,7 @@ public class PathFindingTest {
             "(d:Loc{name:'D'}), " +
             "(a)-[:ROAD {d:100}]->(d), " +
             "(a)-[:RAIL {d:5}]->(d), " +
-            "(a)-[:ROAD {d:10}]->(b), " +
+            "(a)-[:ROAD {d:'10'}]->(b), " +
             "(b)-[:ROAD {d:20}]->(c), " +
             "(c)-[:ROAD]->(d), " +
             "(a)-[:ROAD {d:20}]->(c) ";
