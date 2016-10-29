@@ -34,7 +34,7 @@ public class Config {
     @Description("Lists the Neo4j configuration as key,value table")
     @Procedure
     public Stream<ConfigResult> list() {
-        try (Revertable t = tx.restrict(AccessMode.Static.FULL)) {
+        try (Revertable t = tx.overrideWith(AccessMode.Static.FULL)) {
             return ApocConfiguration.list().entrySet().stream().map(e -> new ConfigResult(e.getKey(), e.getValue()));
         }
     }
@@ -42,7 +42,7 @@ public class Config {
     @Description("Lists the Neo4j configuration as map")
     @Procedure
     public Stream<MapResult> map() {
-        try (Revertable t = tx.restrict(AccessMode.Static.FULL)) {
+        try (Revertable t = tx.overrideWith(AccessMode.Static.FULL)) {
             return Stream.of(new MapResult(ApocConfiguration.list()));
         }
     }

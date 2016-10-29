@@ -1,11 +1,16 @@
 package apoc.nodes;
 
 import org.neo4j.procedure.*;
+import apoc.path.RelationshipTypeAndDirections;
+import apoc.periodic.Periodic;
+import apoc.result.BooleanResult;
 import apoc.result.LongResult;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
+import org.neo4j.helpers.collection.Pair;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
@@ -15,12 +20,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static apoc.path.RelationshipTypeAndDirections.parse;
 import static apoc.util.Util.map;
 
 public class Nodes {
 
     @Context public GraphDatabaseService db;
     @Context public GraphDatabaseAPI api;
+    @Context public KernelTransaction ktx;
 
     public Nodes(GraphDatabaseService db) {
         this.db = db;
@@ -68,6 +75,23 @@ public class Nodes {
     @Description("apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these id's")
     public Stream<RelationshipResult> rels(@Name("relationships") Object ids) {
         return Util.relsStream(db, ids).map(RelationshipResult::new);
+    }
+
+    @UserFunction("apoc.node.relationship.exists")
+    @Description("apoc.node.relationship.exists(node, rel-direction-pattern) - yields true effectively when the node has the relationships of the pattern")
+    public boolean hasRelationship(@Name("node") Node node, @Name("types") String types) throws EntityNotFoundException {
+        ReadOperations ops = ktx.acquireStatement().readOperations();
+        long id = node.getId();
+        boolean dense = ops.nodeIsDense(id);
+        for (Pair<RelationshipType, Direction> pair : parse(types)) {
+            int typeId = ops.relationshipTypeGetForName(pair.first().name());
+            Direction direction = pair.other();
+            boolean hasRelationship = (dense) ?
+                    ops.nodeGetDegree(id,direction,typeId) > 0 :
+                    ops.nodeGetRelationships(id, direction,typeId).hasNext();
+            if (hasRelationship) return true;
+        }
+        return false;
     }
 
     @UserFunction
