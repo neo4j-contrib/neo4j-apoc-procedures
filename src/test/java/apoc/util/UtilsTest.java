@@ -5,6 +5,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -15,6 +16,7 @@ import java.util.concurrent.Future;
 import java.util.function.Predicate;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * @author mh
@@ -43,6 +45,21 @@ public class UtilsTest {
     @Test
     public void testMd5() throws Exception {
         TestUtil.testCall(db, "RETURN apoc.util.md5(['ABC']) AS value", r -> assertEquals("902fbdd2b1df0c4f70b4a5d23525e932", r.get("value")));
+    }
+
+    @Test
+    public void testValidateFalse() throws Exception {
+        TestUtil.testResult(db, "CALL apoc.util.validate(false,'message',null)", r -> assertEquals(false,r.hasNext()));
+    }
+
+    @Test
+    public void testValidateTrue() throws Exception {
+        try {
+            db.execute("CALL apoc.util.validate(true,'message %d',[42])").close();
+            fail("should have failed");
+        } catch(QueryExecutionException qee) {
+            assertEquals("Failed to invoke procedure `apoc.util.validate`: Caused by: java.lang.RuntimeException: message 42",qee.getCause().getCause().getMessage());
+        }
     }
 
     @Test
