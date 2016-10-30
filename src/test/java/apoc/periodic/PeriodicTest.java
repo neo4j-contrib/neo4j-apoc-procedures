@@ -131,6 +131,23 @@ public class PeriodicTest {
                 row -> assertEquals(100L, row.get("count"))
         );
     }
+    @Test
+    public void testIterateFail() throws Exception {
+        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+        testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'WITH {p} as p SET p.lastname = p.name REMOVE x.name', {batchSize:10,parallel:true})", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            System.out.println("row = " + row);
+            assertEquals(10L, row.get("batches"));
+            assertEquals(100L, row.get("total"));
+            assertEquals(100L, row.get("failedOperations"));
+            assertEquals(0L, row.get("committedOperations"));
+        });
+
+        testCall(db,
+                "MATCH (p:Person) where p.lastname is not null return count(p) as count",
+                row -> assertEquals(0L, row.get("count"))
+        );
+    }
 
     @Test
     public void testIterateJDBC() throws Exception {
