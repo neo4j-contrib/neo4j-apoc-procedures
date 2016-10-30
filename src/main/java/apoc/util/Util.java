@@ -18,6 +18,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.*;
 import java.util.stream.*;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
@@ -420,7 +421,7 @@ public class Util {
         if (!errors.isEmpty()) {
             log.bulk(l -> {
                 l.warn(message);
-                errors.forEach((k, v) -> l.warn("%d times: %s",k,v));
+                errors.forEach((k, v) -> l.warn("%d times: %s",v,k));
             });
         }
     }
