@@ -88,19 +88,23 @@ public class Util {
     }
 
     public static Stream<Node> nodeStream(GraphDatabaseService db, Object ids) {
-        return stream(ids).map( id -> {
-            if (id instanceof Node) return (Node)id;
-            if (id instanceof Number) return db.getNodeById(((Number)id).longValue());
-            throw new RuntimeException("Can't convert "+id.getClass()+" to a Node");
-        });
+        return stream(ids).map(id -> node(db, id));
+    }
+
+    public static Node node(GraphDatabaseService db, Object id) {
+        if (id instanceof Node) return (Node)id;
+        if (id instanceof Number) return db.getNodeById(((Number)id).longValue());
+        throw new RuntimeException("Can't convert "+id.getClass()+" to a Node");
     }
 
     public static Stream<Relationship> relsStream(GraphDatabaseService db, Object ids) {
-        return stream(ids).map( id -> {
-            if (id instanceof Relationship) return (Relationship)id;
-            if (id instanceof Number) return db.getRelationshipById(((Number)id).longValue());
-            throw new RuntimeException("Can't convert "+id.getClass()+" to a Relationship");
-        });
+        return stream(ids).map(id -> relationship(db, id));
+    }
+
+    public static Relationship relationship(GraphDatabaseService db, Object id) {
+        if (id instanceof Relationship) return (Relationship)id;
+        if (id instanceof Number) return db.getRelationshipById(((Number)id).longValue());
+        throw new RuntimeException("Can't convert "+id.getClass()+" to a Relationship");
     }
 
     public static double doubleValue(PropertyContainer pc, String prop, Number defaultValue) {
