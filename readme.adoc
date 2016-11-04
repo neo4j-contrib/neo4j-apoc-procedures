@@ -7,7 +7,7 @@ image:https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Travis 
 // tag::readme[]
 
 == Detailed Feature Documentation
-https://neo4j-contrib.github.io/neo4j-apoc-procedures[Documentation (WIP)].
+See the https://neo4j-contrib.github.io/neo4j-apoc-procedures[APOC User Guide] for documentation of each of the major features of the library, including data import/export, graph algorithms, spatial, and more.
 
 == Introduction
 
