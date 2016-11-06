@@ -9,22 +9,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.neo4j.coreedge.discovery.CoreClusterMember;
-import org.neo4j.coreedge.discovery.procedures.ClusterOverviewProcedure;
+import org.neo4j.causalclustering.discovery.CoreClusterMember;
+import org.neo4j.causalclustering.discovery.procedures.ClusterOverviewProcedure;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.AdvertisedSocketAddress;
 import org.neo4j.helpers.HostnamePort;
-import org.neo4j.test.coreedge.ClusterRule;
+import org.neo4j.test.causalclustering.ClusterRule;
 
 import static apoc.cluster.Cluster.boltAddressKey;
 import static org.junit.Assert.assertEquals;
 
 public class ClusterTest
 {
-    private org.neo4j.coreedge.discovery.Cluster cluster;
+    private org.neo4j.causalclustering.discovery.Cluster cluster;
 
     @Rule
     public ClusterRule clusterRule = new ClusterRule( getClass() );

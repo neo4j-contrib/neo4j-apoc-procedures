@@ -7,6 +7,7 @@ import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
@@ -428,5 +429,9 @@ public class Util {
                 errors.forEach((k, v) -> l.warn("%d times: %s",v,k));
             });
         }
+    }
+
+    public static void checkAdmin(KernelTransaction tx, String procedureName) {
+        if (!tx.securityContext().isAdmin()) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
     }
 }

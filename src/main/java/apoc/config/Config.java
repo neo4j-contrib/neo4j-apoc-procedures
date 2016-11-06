@@ -3,10 +3,8 @@ package apoc.config;
 import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.result.MapResult;
-import org.neo4j.graphdb.GraphDatabaseService;
+import apoc.util.Util;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.api.KernelTransaction.Revertable;
-import org.neo4j.kernel.api.security.AccessMode;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Procedure;
 
@@ -34,16 +32,14 @@ public class Config {
     @Description("apoc.config.list | Lists the Neo4j configuration as key,value table")
     @Procedure
     public Stream<ConfigResult> list() {
-        try (Revertable t = tx.overrideWith(AccessMode.Static.FULL)) {
-            return ApocConfiguration.list().entrySet().stream().map(e -> new ConfigResult(e.getKey(), e.getValue()));
-        }
+        Util.checkAdmin(tx, "apoc.config.list");
+        return ApocConfiguration.list().entrySet().stream().map(e -> new ConfigResult(e.getKey(), e.getValue()));
     }
 
     @Description("apoc.config.map | Lists the Neo4j configuration as map")
     @Procedure
     public Stream<MapResult> map() {
-        try (Revertable t = tx.overrideWith(AccessMode.Static.FULL)) {
-            return Stream.of(new MapResult(ApocConfiguration.list()));
-        }
+        Util.checkAdmin(tx, "apoc.config.map");
+        return Stream.of(new MapResult(ApocConfiguration.list()));
     }
 }
