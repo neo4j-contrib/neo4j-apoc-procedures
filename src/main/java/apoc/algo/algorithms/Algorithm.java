@@ -1,6 +1,5 @@
 package apoc.algo.algorithms;
 
-import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.collection.primitive.Primitive;
 import org.neo4j.collection.primitive.PrimitiveLongIntMap;
@@ -14,7 +13,6 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static apoc.util.Util.map;
 import static java.lang.System.currentTimeMillis;
@@ -59,7 +57,7 @@ public class Algorithm implements AlgoIdGenerator {
         this.log = log;
     }
 
-    public boolean readNodeAndRelCypher(String relCypher, String nodeCypher, Number weight, Number batchSize) {
+    public boolean readNodeAndRelCypher(String relCypher, String nodeCypher, Number weight, Number batchSize, int concurrency) {
         this.batchSize = batchSize;
         long before = currentTimeMillis();
         this.maxAlgoNodeId=loadNodes(nodeCypher);
@@ -71,7 +69,7 @@ public class Algorithm implements AlgoIdGenerator {
         if (batchSize == null) {
             this.relCount = loadRelationships(relCypher, weight != null, weight != null ? weight.intValue() : 1);
         } else {
-            this.relCount = loadRelationshipsBatch(relCypher, weight != null, weight != null ? weight.intValue() : 1, batchSize.intValue());
+            this.relCount = loadRelationshipsBatch(relCypher, weight != null, weight != null ? weight.intValue() : 1, batchSize.intValue(),concurrency);
         }
         readRelationshipMillis = (currentTimeMillis() -before);
         log.info("Time for iteration over " + relCount + " relations = " + readRelationshipMillis + " millis");
@@ -126,7 +124,7 @@ public class Algorithm implements AlgoIdGenerator {
     }
 
     private int loadRelationships(String relCypher, boolean weighted, int defaultWeight) {
-        RelationshipLoader loader = new RelationshipLoader(weighted, defaultWeight, this);
+        RelationshipLoader loader = new RelationshipLoader(0, weighted, defaultWeight, this);
         db.execute(COMPILED_RUNTIME + relCypher).accept(loader);
         loader.calculateChunkIndices();
 
@@ -141,10 +139,10 @@ public class Algorithm implements AlgoIdGenerator {
         this.relationshipWeight = relationshipWeightChunks == null ? null : relationshipWeightChunks.mergeAllChunks();
         return totalRelationships;
     }
-    private int loadRelationshipsBatch(String relCypher, boolean weighted, int defaultWeight, int batchSize) {
+    private int loadRelationshipsBatch(String relCypher, boolean weighted, int defaultWeight, int batchSize, int threads) {
         // we don't know how much data we're loading
         // so we parallelize for all CPUs for one round and then see if the last one didn't load any data
-        int threads = Pools.getNoThreadsInDefaultPool();
+        log.info("Loading relationships in parallel with %d threads, batch-size %d%n%s%n",threads,batchSize,relCypher);
         int batch = 0;
         int totalRelationships = 0;
         int nonLoaded = 0;
@@ -152,9 +150,12 @@ public class Algorithm implements AlgoIdGenerator {
         do {
             List<Future<RelationshipLoader>> futures = new ArrayList<>();
             for (int i = 0; i < threads; i++) {
-                Map<String, Object> params = map("skip", batch * batchSize, "limit", batchSize);
+                int skip = batch * batchSize;
+                Map<String, Object> params = map("skip", skip, "limit", batchSize);
+                int task = batch;
+                log.info("Starting task %d skip %d limit %d",task,skip,batchSize);
                 Future<RelationshipLoader> future = Util.inFuture(() -> {
-                    RelationshipLoader loader = new RelationshipLoader(weighted, defaultWeight, (AlgoIdGenerator) this);
+                    RelationshipLoader loader = new RelationshipLoader(task, weighted, defaultWeight, (AlgoIdGenerator) this);
                     db.execute(COMPILED_RUNTIME + relCypher, params).accept(loader);
                     return loader;
                 });
@@ -164,6 +165,7 @@ public class Algorithm implements AlgoIdGenerator {
             for (Future<RelationshipLoader> future : futures) {
                 RelationshipLoader loader = get(future);
                 totalRelationships += loader.totalRelationships;
+                log.info("Finished task %d relationships %d total %d",loader.getTask(),loader.totalRelationships,totalRelationships);
                 if (loader.totalRelationships == 0) nonLoaded++;
                 else loaders.add(loader);
             }
@@ -175,14 +177,24 @@ public class Algorithm implements AlgoIdGenerator {
         Chunks relationshipTargetChunks = new Chunks(totalRelationships);
         Chunks relationshipWeightChunks = weighted ? new Chunks(totalRelationships).withDefault(defaultWeight) : null;
 
+        log.info("Statistics: %d nodes %d relationships %d loaders",nodeCount,totalRelationships,loaders.size());
         Chunks sourceDegrees = new Chunks(nodeCount);
+        log.info("Start: Computing total degrees: %d entries",sourceDegrees.size());
         for (RelationshipLoader loader : loaders) {
             sourceDegrees.add(loader.sourceDegreeData);
         }
+        log.info("Done: Computing total degrees");
+        log.info("Start: Computing total offsets");
         Chunks offsets = sourceDegrees.clone();
         offsets.sumUp();
+        log.info("Done: Computing total offsets");
 
         int[] offsetTracker = offsets.mergeChunks();
+        int loaderRelationshipEntries = 0;
+        for (RelationshipLoader loader : loaders) {
+            loaderRelationshipEntries += loader.relData.size();
+        }
+        log.info("Start: Merging loaded relationship information total %d",loaderRelationshipEntries);
         for (RelationshipLoader loader : loaders) {
             loader.transformRelData(relationshipTargetChunks, relationshipWeightChunks, offsetTracker);
         }
@@ -190,7 +202,7 @@ public class Algorithm implements AlgoIdGenerator {
         this.sourceChunkStartingIndex = offsets.mergeChunks();
         this.relationshipTarget = relationshipTargetChunks.mergeChunks();
         this.relationshipWeight = relationshipWeightChunks == null ? null : relationshipWeightChunks.mergeAllChunks();
-
+        log.info("Done: Merging loaded relationship information %d relationship targets",relationshipTarget.length);
         return totalRelationships;
     }
 
@@ -219,6 +231,7 @@ public class Algorithm implements AlgoIdGenerator {
 
     private static class RelationshipLoader implements Result.ResultVisitor<RuntimeException> {
         private final AlgoIdGenerator algoIdGenerator;
+        private final int task;
         private final boolean weighted;
         private final int defaultWeight;
         int totalRelationships = 0;
@@ -235,7 +248,8 @@ public class Algorithm implements AlgoIdGenerator {
         private Chunks sourceChunkStartingIndex;
         private PrimitiveLongIntMap weights;
 
-        public RelationshipLoader(boolean weighted, int defaultWeight, AlgoIdGenerator algoIdGenerator) {
+        public RelationshipLoader(int task, boolean weighted, int defaultWeight, AlgoIdGenerator algoIdGenerator) {
+            this.task = task;
             this.weighted = weighted;
             this.defaultWeight = defaultWeight;
             int nodeCount = algoIdGenerator.getNodeCount();
@@ -248,6 +262,10 @@ public class Algorithm implements AlgoIdGenerator {
             if (weighted) {
                 weights = Primitive.longIntMap(INITIAL_ARRAY_SIZE);
             }
+        }
+
+        public int getTask() {
+            return task;
         }
 
         @Override
