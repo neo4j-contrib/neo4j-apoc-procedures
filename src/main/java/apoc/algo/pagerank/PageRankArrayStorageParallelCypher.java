@@ -34,6 +34,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmIn
     private AtomicIntegerArray pageRanksAtomic;
 
     private Algorithm algorithm;
+    private String property;
 
     public PageRankArrayStorageParallelCypher(
             GraphDatabaseAPI db,
@@ -54,8 +55,8 @@ public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmIn
         return algorithm.getAlgoNodeId(node);
     }
 
-    public boolean readNodeAndRelCypherData(String relCypher, String nodeCypher, Number weight, Number batchSize) {
-        boolean success = algorithm.readNodeAndRelCypher(relCypher, nodeCypher, weight,batchSize);
+    public boolean readNodeAndRelCypherData(String relCypher, String nodeCypher, Number weight, Number batchSize, int concurrency) {
+        boolean success = algorithm.readNodeAndRelCypher(relCypher, nodeCypher, weight,batchSize,concurrency);
         this.nodeCount = algorithm.getNodeCount();
         this.relCount = algorithm.relCount;
         stats.readNodeMillis = algorithm.readNodeMillis;
@@ -172,7 +173,8 @@ public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmIn
         }
     }
 
-    public void writeResultsToDB() {
+    public void writeResultsToDB(String property) {
+        this.property = property;
         stats.write = true;
         long before = System.currentTimeMillis();
         AlgoUtils.writeBackResults(pool, db, this, WRITE_BATCH);
@@ -193,7 +195,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmIn
 
     public String getPropertyName()
     {
-        return "pagerank";
+        return property;
     }
 
     public long numberOfNodes() {

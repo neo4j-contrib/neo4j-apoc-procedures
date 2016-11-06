@@ -23,6 +23,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
     private PrimitiveIntObjectMap intermediateBcPerThread;
     float betweennessCentrality[];
+    private String property;
 
     public BetweennessCentrality(GraphDatabaseAPI db,
                                  ExecutorService pool, Log log)
@@ -58,8 +59,8 @@ public class BetweennessCentrality implements AlgorithmInterface {
         return algorithm.getMappedNode(algoId);
     }
 
-    public boolean readNodeAndRelCypherData(String relCypher, String nodeCypher, Number weight, Number batchSize) {
-        boolean success = algorithm.readNodeAndRelCypher(relCypher, nodeCypher,weight, batchSize);
+    public boolean readNodeAndRelCypherData(String relCypher, String nodeCypher, Number weight, Number batchSize, int concurrency) {
+        boolean success = algorithm.readNodeAndRelCypher(relCypher, nodeCypher,weight, batchSize, concurrency);
         this.nodeCount = algorithm.getNodeCount();
         this.relCount = algorithm.relCount;
         stats.readNodeMillis = algorithm.readNodeMillis;
@@ -267,7 +268,8 @@ public class BetweennessCentrality implements AlgorithmInterface {
         log.debug("Thread: " + Thread.currentThread().getName() + " Finishing " + processedNode);
     }
 
-    public void writeResultsToDB() {
+    public void writeResultsToDB(String property) {
+        this.property = property;
         stats.write = true;
         long before = System.currentTimeMillis();
         AlgoUtils.writeBackResults(pool, db, this, WRITE_BATCH);

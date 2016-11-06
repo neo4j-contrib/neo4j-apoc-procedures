@@ -67,7 +67,7 @@ public class PageRank {
     }
 
     @Procedure(value = "apoc.algo.pageRankWithCypher",mode = Mode.WRITE)
-    @Description("CALL apoc.algo.pageRankWithCypher({iterations,node_cypher,rel_cypher,write}) - calculates page rank based on cypher input")
+    @Description("CALL apoc.algo.pageRankWithCypher({iterations,node_cypher,rel_cypher,write,property,numCpu}) - calculates page rank based on cypher input")
     public Stream<PageRankStatistics> pageRankWithCypher(
             @Name("config") Map<String, Object> config) {
         Long iterations = (Long) config.getOrDefault(SETTING_PAGE_RANK_ITERATIONS, DEFAULT_PAGE_RANK_ITERATIONS);
@@ -76,12 +76,14 @@ public class PageRank {
         boolean shouldWrite = (boolean)config.getOrDefault(SETTING_WRITE, DEFAULT_PAGE_RANK_WRITE);
         Number weight = (Number) config.get(SETTING_WEIGHTED);
         Number batchSize = (Number) config.get(SETTING_BATCH_SIZE);
+        int concurrency = ((Number) config.getOrDefault("concurrency",Pools.getNoThreadsInDefaultPool())).intValue();
+        String property = (String) config.getOrDefault("property","pagerank");
 
         long beforeReading = System.currentTimeMillis();
         log.info("Pagerank: Reading data into local ds");
         PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(db, pool, log);
         boolean success = pageRank.readNodeAndRelCypherData(
-                relCypher, nodeCypher,weight,batchSize);
+                relCypher, nodeCypher,weight, batchSize, concurrency);
         if (!success) {
             String errorMsg = "Failure while reading cypher queries. Make sure the results are ordered.";
             log.info(errorMsg);
@@ -99,7 +101,7 @@ public class PageRank {
         log.info("Pagerank: Computations took " + (afterComputation - afterReading) + " milliseconds");
 
         if (shouldWrite) {
-            pageRank.writeResultsToDB();
+            pageRank.writeResultsToDB(property);
             long afterWrite = System.currentTimeMillis();
             log.info("Pagerank: Writeback took " + (afterWrite - afterComputation) + " milliseconds");
         }

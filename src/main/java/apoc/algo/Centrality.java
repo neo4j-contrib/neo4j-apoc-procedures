@@ -83,6 +83,8 @@ public class Centrality {
         boolean shouldWrite = (boolean)config.getOrDefault(AlgoUtils.SETTING_WRITE, AlgoUtils.DEFAULT_PAGE_RANK_WRITE);
         Number weight = (Number) config.get(SETTING_WEIGHTED);
         Number batchSize = (Number) config.get(SETTING_BATCH_SIZE);
+        int concurrency = ((Number) config.getOrDefault("concurrency",Pools.getNoThreadsInDefaultPool())).intValue();
+        String property = (String) config.getOrDefault("property","betweenness_centrality");
 
         long beforeReading = System.currentTimeMillis();
         log.info("BetweennessCypher: Reading data into local ds");
@@ -90,7 +92,7 @@ public class Centrality {
                 new apoc.algo.algorithms.BetweennessCentrality(dbAPI, pool, log);
 
         boolean success = betweennessCentrality.readNodeAndRelCypherData(
-                relCypher, nodeCypher, weight, batchSize);
+                relCypher, nodeCypher, weight, batchSize, concurrency);
         if (!success) {
             String errorMsg = "Failure while reading cypher queries. Make sure the results are ordered.";
             log.info(errorMsg);
@@ -109,7 +111,7 @@ public class Centrality {
         log.info("BetweennessCypher: Computations took " + (afterComputation - afterReading) + " milliseconds");
 
         if (shouldWrite) {
-            betweennessCentrality.writeResultsToDB();
+            betweennessCentrality.writeResultsToDB(property);
             long afterWrite = System.currentTimeMillis();
             log.info("BetweennessCypher: Writeback took " + (afterWrite - afterComputation) + " milliseconds");
         }
