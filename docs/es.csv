@@ -1,0 +1,8 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.es.stats(String host)","apoc.es.stats(host-url-Key) - elastic search statistics","DEFAULT","apoc.es.ElasticSearch","N/A"
+"apoc.es.get(String host,String index,String type,String id,Object query,Object payload)","apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a GET operation on elastic search","DEFAULT","apoc.es.ElasticSearch","N/A"
+"apoc.es.query(String host,String index,String type,Object query,Object payload)","apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a SEARCH operation on elastic search","DEFAULT","apoc.es.ElasticSearch","N/A"
+"apoc.es.getRaw(String host,String path,Object payload)","apoc.es.getRaw(host-or-port,path,payload-or-null) yield value - perform a raw GET operation on elastic search","DEFAULT","apoc.es.ElasticSearch","N/A"
+"apoc.es.postRaw(String host,String path,Object payload)","apoc.es.postRaw(host-or-port,path,payload-or-null) yield value - perform a raw POST operation on elastic search","DEFAULT","apoc.es.ElasticSearch","N/A"
+"apoc.es.post(String host,String index,String type,String id,Object query,Object payload)","apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a POST operation on elastic search","DEFAULT","apoc.es.ElasticSearch","N/A"
+"apoc.es.put(String host,String index,String type,String id,Object query,Object payload)","apoc.es.put(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a PUT operation on elastic search","DEFAULT","apoc.es.ElasticSearch","N/A"

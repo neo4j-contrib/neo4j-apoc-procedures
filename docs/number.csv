@@ -1,0 +1,4 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.number.format(Object number,String pattern,String lang)","apoc.number.format(number)  | format a long or double using the default system pattern and language to produce a string","N/A","apoc.number.Numbers","N/A"
+"apoc.number.parseInt(String text,String pattern,String lang)","apoc.number.parseInt(text)  | parse a text using the default system pattern and language to produce a long","N/A","apoc.number.Numbers","N/A"
+"apoc.number.parseFloat(String text,String pattern,String lang)","apoc.number.parseFloat(text)  | parse a text using the default system pattern and language to produce a double","N/A","apoc.number.Numbers","N/A"

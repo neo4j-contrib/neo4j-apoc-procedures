@@ -1,0 +1,6 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.trigger.add(String name,String statement,java.util.Map<String,Object> selector)","","WRITE","apoc.trigger.Trigger","N/A"
+"apoc.trigger.remove(String name)","","WRITE","apoc.trigger.Trigger","N/A"
+"apoc.trigger.list()","","PERFORMS_WRITE","apoc.trigger.Trigger","N/A"
+"apoc.trigger.nodesByLabel(Object labelEntries,String label)","","N/A","apoc.trigger.Trigger","N/A"
+"apoc.trigger.propertiesByKey(Object propertyEntries,String key)","","N/A","apoc.trigger.Trigger","N/A"

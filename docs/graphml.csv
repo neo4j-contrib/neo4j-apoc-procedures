@@ -1,0 +1,6 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.import.graphml(String file,java.util.Map<String,Object> config)","apoc.import.graphml(file,config) - imports graphml file","WRITE","apoc.export.graphml.ExportGraphML","N/A"
+"apoc.export.graphml.all(String file,java.util.Map<String,Object> config)","apoc.export.graphml.all(file,config) - exports whole database as graphml to the provided file","DEFAULT","apoc.export.graphml.ExportGraphML","N/A"
+"apoc.export.graphml.data(java.util.List<org.neo4j.graphdb.Node> nodes,java.util.List<org.neo4j.graphdb.Relationship> rels,String file,java.util.Map<String,Object> config)","apoc.export.graphml.data(nodes,rels,file,config) - exports given nodes and relationships as graphml to the provided file","DEFAULT","apoc.export.graphml.ExportGraphML","N/A"
+"apoc.export.graphml.graph(java.util.Map<String,Object> graph,String file,java.util.Map<String,Object> config)","apoc.export.graphml.graph(graph,file,config) - exports given graph object as graphml to the provided file","DEFAULT","apoc.export.graphml.ExportGraphML","N/A"
+"apoc.export.graphml.query(String query,String file,java.util.Map<String,Object> config)","apoc.export.graphml.query(query,file,config) - exports nodes and relationships from the cypher statement as graphml to the provided file","DEFAULT","apoc.export.graphml.ExportGraphML","N/A"

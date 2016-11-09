@@ -1,0 +1,4 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.util.sleep(long duration)","apoc.util.sleep(<duration>) | sleeps for <duration> millis, transaction termination is honored","DEFAULT","apoc.util.Utils","N/A"
+"apoc.util.sha1(java.util.List<Object> values)","apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list","N/A","apoc.util.Utils","N/A"
+"apoc.util.md5(java.util.List<Object> values)","apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list","N/A","apoc.util.Utils","N/A"

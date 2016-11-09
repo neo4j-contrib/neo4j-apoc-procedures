@@ -1,0 +1,5 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.static.get(String key)","apoc.static.get(name) - returns statically stored value from config (apoc.static.<key>) or server lifetime storage","DEFAULT","apoc.cache.Static","N/A"
+"apoc.static.getAll(String prefix)","apoc.static.getAll(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage","DEFAULT","apoc.cache.Static","N/A"
+"apoc.static.list(String prefix)","apoc.static.list(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage","DEFAULT","apoc.cache.Static","N/A"
+"apoc.static.set(String key,Object value)","apoc.static.set(name, value) - stores value under key for server livetime storage, returns previously stored or configured value","DEFAULT","apoc.cache.Static","N/A"

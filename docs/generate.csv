@@ -1,0 +1,6 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.generate.ba(Long noNodes,Long edgesPerNode,String label,String type)","apoc.generate.ba(noNodes, edgesPerNode, label, type) - generates a random graph according to the Barabasi-Albert model","WRITE","apoc.generate.Generate","N/A"
+"apoc.generate.ws(Long noNodes,Long degree,Double beta,String label,String type)","apoc.generate.ws(noNodes, degree, beta, label, type) - generates a random graph according to the Watts-Strogatz model","WRITE","apoc.generate.Generate","N/A"
+"apoc.generate.er(Long noNodes,Long noEdges,String label,String type)","apoc.generate.er(noNodes, noEdges, label, type) - generates a random graph according to the Erdos-Renyi model","WRITE","apoc.generate.Generate","N/A"
+"apoc.generate.complete(Long noNodes,String label,String type)","apoc.generate.complete(noNodes, label, type) - generates a random complete graph","WRITE","apoc.generate.Generate","N/A"
+"apoc.generate.simple(java.util.List<Long> degrees,String label,String type)","apoc.generate.simple(degrees, label, type) - generates a simple random graph according to the given degree distribution","WRITE","apoc.generate.Generate","N/A"

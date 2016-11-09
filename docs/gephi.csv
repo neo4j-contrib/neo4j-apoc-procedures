@@ -1,0 +1,2 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.gephi.add(String urlOrKey,String workspace,Object data)","apoc.gephi.add(url-or-key, workspace, data) | streams passed in data to Gephi","DEFAULT","apoc.gephi.Gephi","N/A"

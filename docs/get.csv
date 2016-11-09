@@ -1,0 +1,3 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.get.nodes(Object nodes)","apoc.get.nodes(node|id|[ids]) - quickly returns all nodes with these id's","DEFAULT","apoc.get.Get","N/A"
+"apoc.get.rels(Object relationships)","apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these id's","DEFAULT","apoc.get.Get","N/A"

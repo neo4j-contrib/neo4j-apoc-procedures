@@ -1,0 +1,3 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.config.list()","","DEFAULT","apoc.config.Config","N/A"
+"apoc.config.map()","","DEFAULT","apoc.config.Config","N/A"

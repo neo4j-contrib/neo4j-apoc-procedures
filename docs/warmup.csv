@@ -1,0 +1,2 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.warmup.run()","apoc.warmup.run() - quickly loads all nodes and rels into memory by skipping one page at a time","DEFAULT","apoc.warmup.Warmup","N/A"

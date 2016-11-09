@@ -1,0 +1,4 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.lock.all(java.util.List<org.neo4j.graphdb.Node> nodes,java.util.List<org.neo4j.graphdb.Relationship> rels)","apoc.lock.all([nodes],[relationships]) acquires a write lock on the given nodes and relationships","WRITE","apoc.lock.Lock","N/A"
+"apoc.lock.nodes(java.util.List<org.neo4j.graphdb.Node> nodes)","apoc.lock.nodes([nodes]) acquires a write lock on the given nodes","WRITE","apoc.lock.Lock","N/A"
+"apoc.lock.rels(java.util.List<org.neo4j.graphdb.Relationship> rels)","apoc.lock.rels([relationships]) acquires a write lock on the given relationship","WRITE","apoc.lock.Lock","N/A"

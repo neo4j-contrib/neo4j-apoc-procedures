@@ -1,0 +1,2 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.help(String proc)","Provides descriptions of available procedures. To narrow the results, supply a search string. To also search in the description text, append + to the end of the search string.","DEFAULT","apoc.help.Help","N/A"
