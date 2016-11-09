@@ -46,12 +46,12 @@ repositories {
 }
 
 compileJava {
-    options.compilerArgs += ["-AIgnoreContextWarnings"]
+    options.compilerArgs += ["-AIgnoreContextWarnings", "-AGeneratedDocumentationPath=" + projectDir + "/docs"]
 }
 
 dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version:'1.9'
-    compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version:'1.1-M01'
+    compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version:'1.1-SNAPSHOT'
     
     testCompile group: 'org.apache.derby', name: 'derby', version:'10.12.1.1'
     testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version:neo4jVersion
