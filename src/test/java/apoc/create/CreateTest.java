@@ -14,6 +14,7 @@ import java.util.Map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class CreateTest {
@@ -35,6 +36,16 @@ public class CreateTest {
                     Node node = (Node) row.get("node");
                     assertEquals(true, node.hasLabel(Label.label("Person")));
                     assertEquals("John", node.getProperty("name"));
+                });
+    }
+    @Test public void testCreateNodeWithArrayProps() throws Exception {
+        testCall(db, "CALL apoc.create.node(['Person'],{name:['John','Doe'],kids:[],age:[32,10]})",
+                (row) -> {
+                    Node node = (Node) row.get("node");
+                    assertEquals(true, node.hasLabel(Label.label("Person")));
+                    assertArrayEquals(new String[] {"John","Doe"}, (String[])node.getProperty("name"));
+                    assertArrayEquals(new String[] {}, (String[])node.getProperty("kids"));
+                    assertArrayEquals(new long[] {32,10}, (long[])node.getProperty("age"));
                 });
     }
 

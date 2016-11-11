@@ -5,6 +5,7 @@ import apoc.get.Get;
 import apoc.result.*;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
+import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -20,6 +21,7 @@ import java.util.stream.Stream;
 
 public class Create {
 
+    public static final String[] EMPTY_ARRAY = new String[0];
     @Context
     public GraphDatabaseService db;
 
@@ -50,7 +52,7 @@ public class Create {
     @Description("apoc.create.setProperty( [node,id,ids,nodes], key, value) - sets the given property on the node(s)")
     public Stream<NodeResult> setProperty(@Name("nodes") Object nodes, @Name("key") String key, @Name("value") Object value) {
         return new Get((GraphDatabaseAPI) db).nodes(nodes).map((r) -> {
-            r.node.setProperty(key,value);
+            r.node.setProperty(key,toPropertyValue(value));
             return r;
         });
     }
@@ -59,7 +61,7 @@ public class Create {
     @Description("apoc.create.setRelProperty( [rel,id,ids,rels], key, value) - sets the given property on the relationship(s)")
     public Stream<RelationshipResult> setRelProperty(@Name("relationships") Object rels, @Name("key") String key, @Name("value") Object value) {
         return new Get((GraphDatabaseAPI) db).rels(rels).map((r) -> {
-            r.rel.setProperty(key,value);
+            r.rel.setProperty(key,toPropertyValue(value));
             return r;
         });
     }
@@ -181,8 +183,18 @@ public class Create {
 
     private <T extends PropertyContainer> T setProperties(T pc, Map<String, Object> p) {
         if (p == null) return pc;
-        for (Map.Entry<String, Object> entry : p.entrySet()) pc.setProperty(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, Object> entry : p.entrySet()) pc.setProperty(entry.getKey(), toPropertyValue(entry.getValue()));
         return pc;
+    }
+
+    private Object toPropertyValue(Object value) {
+        if (value instanceof Iterable) {
+            Iterable it = (Iterable) value;
+            Object first = Iterables.firstOrNull(it);
+            if (first==null) return EMPTY_ARRAY;
+            return Iterables.asArray(first.getClass(), it);
+        }
+        return value;
     }
 
     @Procedure
