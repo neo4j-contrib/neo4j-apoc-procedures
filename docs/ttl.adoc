@@ -13,7 +13,7 @@ At startup a statement is scheduled to run every 60s (or configure in `neo4j.con
 
 [source,cypher]
 ----
-MATCH (t:TTL) where t.ttl > timestamp() WITH t LIMIT 1000 DETACH DELETE t
+MATCH (t:TTL) where t.ttl < timestamp() WITH t LIMIT 1000 DETACH DELETE t
 ----
 
 The `ttl` property holds the *time when the node is expired in milliseconds since epoch*.
