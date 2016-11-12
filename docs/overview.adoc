@@ -694,6 +694,28 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.config.map | Lists the Neo4j configuration as map
 |===
 
+== Time to Live (TTL)
+
+Enable TTL with setting in `neo4j.conf` : `apoc.ttl.enabled=true`
+
+There are some convenience procedures to expire nodes.
+
+You can also do it yourself by running
+
+[source,cypher]
+----
+SET n:TTL
+SET n.ttl = timestamp() + 3600
+----
+
+[cols="1m,5"]
+|===
+| CALL apoc.date.expire.in(node,time,'time-unit') | expire node in given time-delta by setting :TTL label and `ttl` property
+| CALL apoc.date.expire(node,time,'time-unit') | expire node at given time by setting :TTL label and `ttl` property
+|===
+
+Optionally set `apoc.ttl.schedule=5` as repeat frequency.
+
 == Date/time Support
 
 (thanks @tkroman)

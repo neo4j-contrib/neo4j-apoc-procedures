@@ -56,10 +56,17 @@ public class Date {
 
 	@Procedure
 	@PerformsWrites
-	@Description("CALL apoc.date.expire(node,time,'time-unit') - expire node in given time by setting :TTL label and `ttl` property")
+	@Description("CALL apoc.date.expire(node,time,'time-unit') - expire node at given time by setting :TTL label and `ttl` property")
 	public void expire(@Name("node") Node node, @Name("time") long time, @Name("timeUnit") String timeUnit) {
 		node.addLabel(Label.label("TTL"));
 		node.setProperty("ttl",unit(timeUnit).toMillis(time));
+	}
+	@Procedure
+	@PerformsWrites
+	@Description("CALL apoc.date.expire.in(node,time,'time-unit') - expire node in given time-delta by setting :TTL label and `ttl` property")
+	public void expireIn(@Name("node") Node node, @Name("timeDelta") long time, @Name("timeUnit") String timeUnit) {
+		node.addLabel(Label.label("TTL"));
+		node.setProperty("ttl",System.currentTimeMillis() + unit(timeUnit).toMillis(time));
 	}
 
 	@Procedure
