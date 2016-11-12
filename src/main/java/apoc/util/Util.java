@@ -169,14 +169,14 @@ public class Util {
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
-            throw new RuntimeException("Error executing in separate transaction", e);
+            throw new RuntimeException("Error executing in separate transaction: "+e.getMessage(), e);
         }
     }
     public static <T> T inThread(Callable<T> callable) {
         try {
             return inFuture(callable).get();
         } catch (Exception e) {
-            throw new RuntimeException("Error executing in separate thread", e);
+            throw new RuntimeException("Error executing in separate thread: "+e.getMessage(), e);
         }
     }
 
