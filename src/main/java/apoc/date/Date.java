@@ -67,6 +67,13 @@ public class Date {
 		node.addLabel(Label.label("TTL"));
 		node.setProperty("ttl",unit(timeUnit).toMillis(time));
 	}
+	@Procedure
+	@PerformsWrites
+	@Description("CALL apoc.date.expire.in(node,time,'time-unit') - expire node in given time-delta by setting :TTL label and `ttl` property")
+	public void expireIn(@Name("node") Node node, @Name("timeDelta") long time, @Name("timeUnit") String timeUnit) {
+		node.addLabel(Label.label("TTL"));
+		node.setProperty("ttl",System.currentTimeMillis() + unit(timeUnit).toMillis(time));
+	}
 
 	@UserFunction
 	@Description("apoc.date.fields('2012-12-23',('yyyy-MM-dd')) - return columns and a map representation of date parsed with the given format with entries for years,months,weekdays,days,hours,minutes,seconds,zoneid")
