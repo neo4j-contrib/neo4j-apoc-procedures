@@ -74,4 +74,35 @@ public class ConvertJsonTest {
                     assertEquals(true, actors.get(0).get("acted_in.role").toString().matches("R[12]"));
                 });
     }
+    @Test public void testToTreeLeafNodes() throws Exception {
+        String createStatement = "CREATE\n" +
+                "  (c1:Category {name: 'PC'}),\n" +
+                "    (c1)-[:subcategory {id:1}]->(c2:Category {name: 'Parts'}),\n" +
+                "      (c2)-[:subcategory {id:2}]->(c3:Category {name: 'CPU'})";
+        db.execute(createStatement).close();
+
+        String call = "MATCH p=(n:Category)-[:subcategory*]->(m)\n" +
+                "WHERE NOT (m)-[:subcategory]->() AND NOT ()-[:subcategory]->(n)\n" +
+                "WITH COLLECT(p) AS ps\n" +
+                "CALL apoc.convert.toTree(ps) yield value\n" +
+                "RETURN value;";
+        testCall(db, call,
+                (row) -> {
+                    Map root = (Map) row.get("value");
+                    System.out.println("root = " + root);
+
+                    assertEquals("Category", root.get("_type"));
+                    assertEquals("PC", root.get("name"));
+                    List<Map> parts = (List<Map>) root.get("subcategory");
+                    assertEquals(1,parts.size());
+                    Map pcParts = parts.get(0);
+                    assertEquals("Category", pcParts.get("_type"));
+                    assertEquals("Parts", pcParts.get("name"));
+                    List<Map> subParts = (List<Map>)pcParts.get("subcategory");
+                    Map cpu = subParts.get(0);
+                    assertEquals(1,subParts.size());
+                    assertEquals("Category", cpu.get("_type"));
+                    assertEquals("CPU", cpu.get("name"));
+                });
+    }
 }

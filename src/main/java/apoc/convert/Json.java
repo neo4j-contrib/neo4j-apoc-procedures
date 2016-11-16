@@ -14,8 +14,6 @@ import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.*;
 
-import static java.util.Arrays.asList;
-
 public class Json {
 
     @Context
@@ -87,7 +85,7 @@ public class Json {
                     Node m = r.getOtherNode(n);
                     Map<String, Object> mMap = maps.computeIfAbsent(m.getId(), (id) -> toMap(m));
                     String typeName = r.getType().name().toLowerCase();
-                    mMap = augmentRelProperties(mMap, typeName, r);
+                    mMap = addRelProperties(mMap, typeName, r);
                     // todo take direction into account and create collection into outgoing direction ??
                     // parent-[:HAS_CHILD]->(child) vs. (parent)<-[:PARENT_OF]-(child)
                     if (!nMap.containsKey(typeName)) nMap.put(typeName, new ArrayList<>(16));
@@ -104,13 +102,12 @@ public class Json {
                 .map(MapResult::new);
     }
 
-    private Map<String, Object> augmentRelProperties(Map<String, Object> mMap, String typeName, Relationship r) {
+    private Map<String, Object> addRelProperties(Map<String, Object> mMap, String typeName, Relationship r) {
         Map<String, Object> rProps = r.getAllProperties();
         if (rProps.isEmpty()) return mMap;
         String prefix = typeName + ".";
-        Map<String, Object> result = new LinkedHashMap<>(mMap);
-        rProps.forEach((k, v) -> result.put(prefix + k, v));
-        return result;
+        rProps.forEach((k, v) -> mMap.put(prefix + k, v));
+        return mMap;
     }
 
     private Map<String, Object> toMap(Node n) {
