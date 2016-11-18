@@ -193,8 +193,8 @@ public class Coll {
     }
     @Procedure
     @Description("apoc.coll.sortMaps([maps], 'name') YIELD maps | sort maps by property")
-    public Stream<MapListResult> sortMaps(@Name("coll") List<Map> coll, @Name("prop") String prop) {
-        List<Map> sorted = new ArrayList<>(coll);
+    public Stream<MapListResult> sortMaps(@Name("coll") List<Map<String,Object>> coll, @Name("prop") String prop) {
+        List<Map<String,Object>> sorted = new ArrayList<>(coll);
         sorted.sort((x, y) -> compare(x.get(prop), y.get(prop)));
         return Stream.of(new MapListResult(sorted));
     }
