@@ -186,7 +186,6 @@ public class Coll {
                 (x, y) -> compare(x.getProperty(prop, null), y.getProperty(prop, null)));
         return sorted;
     }
-
     @UserFunction
     @Description("apoc.coll.sortMaps([maps], 'name') - sort maps by property")
     public List<Map<String,Object>> sortMaps(@Name("coll") List<Map<String,Object>> coll, @Name("prop") String prop) {
