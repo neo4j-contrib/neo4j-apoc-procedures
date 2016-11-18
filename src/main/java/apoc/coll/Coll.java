@@ -185,12 +185,18 @@ public class Coll {
     }
 
     @Procedure
-    @Description("apoc.coll.sortNodes([nodes], 'name') sort nodes by property")
-    public Stream<ListResult> sortNodes(@Name("coll") List<Object> coll, @Name("prop") String prop) {
-        List sorted = new ArrayList<>(coll);
-        Collections.sort((List<? extends PropertyContainer>) sorted,
-                (x, y) -> compare(x.getProperty(prop, null), y.getProperty(prop, null)));
-        return Stream.of(new ListResult(sorted));
+    @Description("apoc.coll.sortNodes([nodes], 'name') YIELD nodes | sort nodes by property")
+    public Stream<NodeListResult> sortNodes(@Name("coll") List<Node> coll, @Name("prop") String prop) {
+        List<Node> sorted = new ArrayList<>(coll);
+        sorted.sort((x, y) -> compare(x.getProperty(prop, null), y.getProperty(prop, null)));
+        return Stream.of(new NodeListResult(sorted));
+    }
+    @Procedure
+    @Description("apoc.coll.sortMaps([maps], 'name') YIELD maps | sort maps by property")
+    public Stream<MapListResult> sortMaps(@Name("coll") List<Map> coll, @Name("prop") String prop) {
+        List<Map> sorted = new ArrayList<>(coll);
+        sorted.sort((x, y) -> compare(x.get(prop), y.get(prop)));
+        return Stream.of(new MapListResult(sorted));
     }
 
     public static int compare(Object o1, Object o2) {
