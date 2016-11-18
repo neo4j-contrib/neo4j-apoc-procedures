@@ -180,10 +180,18 @@ public class Coll {
 
     @UserFunction
     @Description("apoc.coll.sortNodes([nodes], 'name') sort nodes by property")
-    public List<Object> sortNodes(@Name("coll") List<Object> coll, @Name("prop") String prop) {
-        List sorted = new ArrayList<>(coll);
-        Collections.sort((List<? extends PropertyContainer>) sorted,
+    public List<Node> sortNodes(@Name("coll") List<Node> coll, @Name("prop") String prop) {
+        List<Node> sorted = new ArrayList<>(coll);
+        Collections.sort(sorted,
                 (x, y) -> compare(x.getProperty(prop, null), y.getProperty(prop, null)));
+        return sorted;
+    }
+
+    @UserFunction
+    @Description("apoc.coll.sortMaps([maps], 'name') - sort maps by property")
+    public List<Map<String,Object>> sortMaps(@Name("coll") List<Map<String,Object>> coll, @Name("prop") String prop) {
+        List<Map<String,Object>> sorted = new ArrayList<>(coll);
+        sorted.sort((x, y) -> compare(x.get(prop), y.get(prop)));
         return sorted;
     }
 

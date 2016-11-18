@@ -183,11 +183,20 @@ public class CollTest {
 
     @Test public void testSortNodes() throws Exception {
         testCall(db,
-            "CREATE (n {name:'foo'}),(m {name:'bar'}) WITH n,m RETURN apoc.coll.sortNodes([n,m], 'name') AS value",
+            "CREATE (n {name:'foo'}),(m {name:'bar'}) WITH n,m RETURN apoc.coll.sortNodes([n,m], 'name') AS nodes",
             (row) -> {
-                List<Node> nodes = (List<Node>) row.get("value");
+                List<Node> nodes = (List<Node>) row.get("nodes");
                 assertEquals("bar", nodes.get(0).getProperty("name"));
                 assertEquals("foo", nodes.get(1).getProperty("name"));
+            });
+    }
+    @Test public void testSortMaps() throws Exception {
+        testCall(db,
+            "RETURN apoc.coll.sortMaps([{name:'foo'},{name:'bar'}], 'name') as maps",
+            (row) -> {
+                List<Map> nodes = (List<Map>) row.get("maps");
+                assertEquals("bar", nodes.get(0).get("name"));
+                assertEquals("foo", nodes.get(1).get("name"));
             });
     }
 
