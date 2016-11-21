@@ -145,6 +145,12 @@ public class Date {
 		return Stream.of(new LongResult(valueInUnit));
 	}
 
+	@Procedure
+	@Description("apoc.date.systemTimezone() returns the system timezone default name")
+	public Stream<StringResult> systemTimezone() {
+		return Stream.of(new StringResult(TimeZone.getDefault().getDisplayName()));
+	}
+
 	public Stream<StringResult> parse(final @Name("millis") long millis, final @Name("pattern") String pattern) {
 		return parse(millis, pattern, null);
 	}
