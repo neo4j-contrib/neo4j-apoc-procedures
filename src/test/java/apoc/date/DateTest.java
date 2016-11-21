@@ -283,6 +283,12 @@ public class DateTest {
 				});
 	}
 
+	@Test
+	public void testSystemTimezone() {
+		String tz = TimeZone.getDefault().getID();
+		testCall(db, "CALL apoc.date.systemTimezone() YIELD value RETURN value AS tz", row -> assertEquals(tz, row.get("tz")));
+	}
+
 	private SimpleDateFormat formatInUtcZone(final String pattern) {
 		SimpleDateFormat customFormat = new SimpleDateFormat(pattern);
 		customFormat.setTimeZone(TimeZone.getTimeZone("UTC"));

@@ -728,6 +728,7 @@ Optionally set `apoc.ttl.schedule=5` as repeat frequency.
 | apoc.date.parse('2015/03/25 03-15-59','s', 'yyyy/MM/dd HH/mm/ss') | same as previous, but accepts custom datetime format
 | apoc.date.formatDefault(12345,'s') | get string representation of date corresponding to given Unix time (in seconds)
 | apoc.date.format(12345,'s', 'yyyy/MM/dd HH/mm/ss') | the same as previous, but accepts custom datetime format
+| apoc.date.systemTimezone() | return the system timezone default name
 
 | apoc.date.parseDefault('2015-03-25 03:15:59','ms') | get Unix time equivalent of given date (in milliseconds)
 | apoc.date.parse('2015/03/25 03-15-59','ms','yyyy/MM/dd HH/mm/ss') | same as previous, but accepts custom datetime format
