@@ -126,7 +126,7 @@ public class Date {
 	@UserFunction
 	@Description("apoc.date.systemTimezone() returns the system timezone display name")
 	public String systemTimezone() {
-		return TimeZone.getDefault().getDisplayName();
+		return TimeZone.getDefault().getID();
 	}
 
 	public String parse(final @Name("millis") long millis, final @Name(value = "pattern", defaultValue = DEFAULT_FORMAT) String pattern, final @Name("timezone") String timezone) {

@@ -290,7 +290,7 @@ public class DateTest {
 
 	@Test
 	public void testGetTimezone() throws Exception {
-		testCall(db, "RETURN apoc.date.systemTimezone() as tz", row -> assertEquals(TimeZone.getDefault().getDisplayName(), row.get("tz").toString()));
+		testCall(db, "RETURN apoc.date.systemTimezone() as tz", row -> assertEquals(TimeZone.getDefault().getID(), row.get("tz").toString()));
 	}
 
 	private SimpleDateFormat formatInUtcZone(final String pattern) {
