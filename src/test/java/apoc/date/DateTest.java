@@ -285,7 +285,7 @@ public class DateTest {
 
 	@Test
 	public void testSystemTimezone() {
-		String tz = TimeZone.getDefault().getDisplayName();
+		String tz = TimeZone.getDefault().getID();
 		testCall(db, "CALL apoc.date.systemTimezone() YIELD value RETURN value AS tz", row -> assertEquals(tz, row.get("tz")));
 	}
 
