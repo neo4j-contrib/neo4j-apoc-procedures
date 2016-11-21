@@ -288,6 +288,11 @@ public class DateTest {
 		testCall(db, "RETURN apoc.date.toYears(apoc.date.parse('2012','ms','YYYY') - apoc.date.parse('2008','ms','YYYY')) as years", row -> assertEquals(4d, (double)row.get("years"),0.5d));
 	}
 
+	@Test
+	public void testGetTimezone() throws Exception {
+		testCall(db, "RETURN apoc.date.systemTimezone() as tz", row -> assertEquals(TimeZone.getDefault().getID(), row.get("tz").toString()));
+	}
+
 	private SimpleDateFormat formatInUtcZone(final String pattern) {
 		SimpleDateFormat customFormat = new SimpleDateFormat(pattern);
 		customFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
