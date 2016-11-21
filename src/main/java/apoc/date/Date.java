@@ -123,6 +123,12 @@ public class Date {
 		return value == null ? null : unit(unit).convert(value, TimeUnit.MILLISECONDS);
 	}
 
+	@UserFunction
+	@Description("apoc.date.systemTimezone() returns the system timezone display name")
+	public String systemTimezone() {
+		return TimeZone.getDefault().getDisplayName();
+	}
+
 	public String parse(final @Name("millis") long millis, final @Name(value = "pattern", defaultValue = DEFAULT_FORMAT) String pattern, final @Name("timezone") String timezone) {
 		if (millis < 0) {
 			throw new IllegalArgumentException("The time argument should be >= 0, got: " + millis);
