@@ -4,7 +4,6 @@ import apoc.export.util.ExportConfig;
 import apoc.export.util.FormatUtils;
 import apoc.export.util.MetaInformation;
 import apoc.export.util.Reporter;
-import apoc.util.Util;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
@@ -136,23 +135,9 @@ public class XmlGraphMLWriter {
         writer.writeStartElement("data");
         writer.writeAttribute("key", prop);
         if (value != null) {
-            writer.writeCharacters(toString(value));
+            writer.writeCharacters(FormatUtils.toString(value));
         }
         writer.writeEndElement();
-    }
-
-    private String toString(Object value) {
-        if (value.getClass().isArray()) {
-            return arrayToString(value);
-        }
-        if (value instanceof Number) {
-            return FormatUtils.formatNumber((Number)value);
-        }
-        return value.toString();
-    }
-
-    private String arrayToString(Object value) {
-        return Util.toJson(value);
     }
 
     private void writeFooter(XMLStreamWriter writer) throws IOException, XMLStreamException {

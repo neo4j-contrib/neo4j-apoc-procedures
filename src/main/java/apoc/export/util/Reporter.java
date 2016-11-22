@@ -12,4 +12,5 @@ public interface Reporter {
 
     ProgressInfo getTotal();
 
+    void nextRow();
 }

@@ -1,12 +1,16 @@
 package apoc.export.util;
 
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
+import apoc.util.Util;
+import org.neo4j.graphdb.*;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import static apoc.util.Util.labelStrings;
+import static apoc.util.Util.map;
 
 /**
  * @author mh
@@ -38,4 +42,35 @@ public class FormatUtils {
         return StreamSupport.stream(node.getLabels().spliterator(),false).map(Label::name).collect(Collectors.joining(delimiter));
     }
 
+    public static Map<String,Object> toMap(PropertyContainer pc) {
+        if (pc == null) return null;
+        if (pc instanceof Node) {
+            Node node = (Node) pc;
+            return map("id", node.getId(), "labels",labelStrings(node),
+                    "properties",pc.getAllProperties());
+        }
+        if (pc instanceof Relationship) {
+            Relationship rel = (Relationship) pc;
+            return map("id", rel.getId(), "type", rel.getType().name(),
+                    "start", rel.getStartNode().getId(),"end", rel.getEndNode().getId(),
+                    "properties",pc.getAllProperties());
+        }
+        throw new RuntimeException("Invalid graph element "+pc);
+    }
+    public static String toString(Object value) {
+        if (value == null) return "";
+        if (value instanceof Path) {
+            return toString(StreamSupport.stream(((Path)value).spliterator(),false).map(FormatUtils::toMap).collect(Collectors.toList()));
+        }
+        if (value instanceof PropertyContainer) {
+            return Util.toJson(toMap((PropertyContainer) value)); // todo id, label, type ?
+        }
+        if (value.getClass().isArray() || value instanceof Iterable || value instanceof Map) {
+            return Util.toJson(value);
+        }
+        if (value instanceof Number) {
+            return formatNumber((Number)value);
+        }
+        return value.toString();
+    }
 }
