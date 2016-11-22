@@ -39,6 +39,9 @@ public class Util {
     public static String labelString(Node n) {
         return StreamSupport.stream(n.getLabels().spliterator(),false).map(Label::name).sorted().collect(Collectors.joining(":"));
     }
+    public static List<String> labelStrings(Node n) {
+        return StreamSupport.stream(n.getLabels().spliterator(),false).map(Label::name).sorted().collect(Collectors.toList());
+    }
     public static Label[] labels(Object labelNames) {
         if (labelNames==null) return NO_LABELS;
         if (labelNames instanceof List) {

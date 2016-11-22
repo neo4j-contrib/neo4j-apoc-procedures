@@ -6,12 +6,13 @@ package apoc.result;
  */
 public class ProgressInfo {
     public final String file;
-    public final String source;
+    public String source;
     public final String format;
     public long nodes;
     public long relationships;
     public long properties;
     public long time;
+    public long rows;
 
     public ProgressInfo(String file, String source, String format) {
         this.file = file;
@@ -34,5 +35,9 @@ public class ProgressInfo {
     public ProgressInfo done(long start) {
         this.time = System.currentTimeMillis() - start;
         return this;
+    }
+
+    public void nextRow() {
+        this.rows++;
     }
 }

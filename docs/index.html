@@ -450,6 +450,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_from_tojson">from/toJson</a></li>
 <li><a href="#_export_import">Export / Import</a>
 <ul class="sectlevel3">
+<li><a href="#_export_to_csv">Export to CSV</a></li>
 <li><a href="#_export_to_cypher_script">Export to Cypher Script</a></li>
 <li><a href="#_graphml_import_export">GraphML Import / Export</a></li>
 </ul>
@@ -489,6 +490,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_utilities">Utilities</a></li>
 <li><a href="#_config">Config</a></li>
+<li><a href="#_time_to_live_ttl">Time to Live (TTL)</a></li>
 <li><a href="#_date_time_support">Date/time Support</a>
 <ul class="sectlevel3">
 <li><a href="#_conversion_functions_between_formatted_dates_and_timestamps">Conversion Functions between formatted dates and timestamps</a></li>
@@ -1192,11 +1194,44 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 </div>
 <div class="sect2">
 <h3 id="_export_import">Export / Import</h3>
+<div class="sect3">
+<h4 id="_export_to_csv">Export to CSV</h4>
 <div class="paragraph">
-<p>Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.runFile to the given file.</p>
+<p><code>YIELD file, source, format, nodes, relationships, properties, time, rows</code></p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.csv.query(query,file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exports results from the cypher statement as csv to the provided file</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.csv.all(file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exports whole database as csv to the provided file</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.csv.data(nodes,rels,file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exports given nodes and relationships as csv to the provided file</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.csv.graph(graph,file,config)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">exports given graph object as csv to the provided file</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="sect3">
 <h4 id="_export_to_cypher_script">Export to Cypher Script</h4>
+<div class="paragraph">
+<p>Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.runFile to the given file.</p>
+</div>
+<div class="paragraph">
+<p><code>YIELD file, source, format, nodes, relationships, properties, time</code></p>
+</div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16%;">
@@ -1226,6 +1261,9 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 <h4 id="_graphml_import_export">GraphML Import / Export</h4>
 <div class="paragraph">
 <p>GraphML is used by other tools, like Gephi and CytoScape to read graph data.</p>
+</div>
+<div class="paragraph">
+<p><code>YIELD file, source, format, nodes, relationships, properties, time</code></p>
 </div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
@@ -2373,6 +2411,43 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 </table>
 </div>
 <div class="sect2">
+<h3 id="_time_to_live_ttl">Time to Live (TTL)</h3>
+<div class="paragraph">
+<p>Enable TTL with setting in <code>neo4j.conf</code> : <code>apoc.ttl.enabled=true</code></p>
+</div>
+<div class="paragraph">
+<p>There are some convenience procedures to expire nodes.</p>
+</div>
+<div class="paragraph">
+<p>You can also do it yourself by running</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">SET n:TTL
+SET n.ttl = timestamp() + 3600</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.date.expire.in(node,time,'time-unit')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expire node in given time-delta by setting :TTL label and <code>ttl</code> property</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.date.expire(node,time,'time-unit')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expire node at given time by setting :TTL label and <code>ttl</code> property</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Optionally set <code>apoc.ttl.schedule=5</code> as repeat frequency.</p>
+</div>
+</div>
+<div class="sect2">
 <h3 id="_date_time_support">Date/time Support</h3>
 <div class="paragraph">
 <p>(thanks @tkroman)</p>
@@ -2396,6 +2471,10 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.formatTimeZone(12345,'s', 'yyyy/MM/dd HH/mm/ss', 'ABC')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">the same as previous, but accepts custom time zone</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.systemTimezone()</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">return the system timezone display format string</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parseDefault('2015-03-25 03:15:59','s')</code></p></td>
@@ -3522,7 +3601,7 @@ RETURN domain // will return 'www.example.com'</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (t:TTL) where t.ttl &gt; timestamp() WITH t LIMIT 1000 DETACH DELETE t</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (t:TTL) where t.ttl &lt; timestamp() WITH t LIMIT 1000 DETACH DELETE t</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -5775,7 +5854,7 @@ Optionally you can provide a config that declares a <code>batchSize</code> (defa
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.periodic.iterate(
 "MATCH (p:Person) WHERE (p)-[:ACTED_IN]-&gt;() RETURN p",
-"SET p:Actor", {batchSize:10000, parallel:true})</code></pre>
+"WITH {p} as p SET p:Actor", {batchSize:10000, parallel:true})</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -5791,7 +5870,7 @@ Optionally you can provide a config that declares a <code>batchSize</code> (defa
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.periodic.iterate(
 "MATCH (o:Order) WHERE o.date &gt; '2016-10-13' RETURN o",
-"MATCH (o)-[:HAS_ITEM]-&gt;(i) WITH o, sum(i.value) as value SET o.value = value", {batchSize:100, parallel:true})</code></pre>
+"with {o} as o MATCH (o)-[:HAS_ITEM]-&gt;(i) WITH o, sum(i.value) as value SET o.value = value", {batchSize:100, parallel:true})</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -5890,7 +5969,7 @@ RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-11-06 14:08:59 +01:00
+Last updated 2016-12-12 10:05:16 +01:00
 </div>
 </div>
 </body>

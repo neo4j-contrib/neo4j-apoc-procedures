@@ -187,11 +187,30 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 
 == Export / Import
 
-Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.runFile to the given file.
+
+=== Export to CSV
+
+// tag::export.csv[]
+
+`YIELD file, source, format, nodes, relationships, properties, time, rows`
+
+[cols="1m,5"]
+|===
+| apoc.export.csv.query(query,file,config) | exports results from the cypher statement as csv to the provided file
+| apoc.export.csv.all(file,config) | exports whole database as csv to the provided file
+| apoc.export.csv.data(nodes,rels,file,config) | exports given nodes and relationships as csv to the provided file
+| apoc.export.csv.graph(graph,file,config) | exports given graph object as csv to the provided file
+|===
+// end::export.csv[]
 
 === Export to Cypher Script
 
+Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.runFile to the given file.
+
 // tag::export.cypher[]
+
+`YIELD file, source, format, nodes, relationships, properties, time`
+
 [cols="1m,5"]
 |===
 | apoc.export.cypher.all(file,config) | exports whole database incl. indexes as cypher statements to the provided file
@@ -206,6 +225,9 @@ Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.r
 GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 
 // tag::export.graphml[]
+
+`YIELD file, source, format, nodes, relationships, properties, time`
+
 [cols="1m,5"]
 |===
 | apoc.import.graphml(file-or-url,{batchSize: 10000, readLabels: true, storeNodeIds: false, defaultRelationshipType:"RELATED"}) | imports graphml into the graph

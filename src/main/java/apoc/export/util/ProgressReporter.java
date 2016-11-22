@@ -62,4 +62,8 @@ public class ProgressReporter implements Reporter {
     public Stream<ProgressInfo> stream() {
         return Stream.of(getTotal());
     }
+
+    public void nextRow() {
+        this.progressInfo.nextRow();
+    }
 }
