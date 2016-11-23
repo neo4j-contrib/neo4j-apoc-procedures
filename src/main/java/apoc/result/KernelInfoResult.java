@@ -1,7 +1,8 @@
 package apoc.result;
 
-import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.text.SimpleDateFormat;
+
 
 public class KernelInfoResult {
 

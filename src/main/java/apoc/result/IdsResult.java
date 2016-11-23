@@ -1,5 +1,7 @@
 package apoc.result;
 
+import java.util.Map;
+
 public class IdsResult {
 
     public long nodeIds;
