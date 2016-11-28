@@ -2301,6 +2301,10 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 </colgroup>
 <tbody>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.replace(text, regex, replacement) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">replace each substring of the given string that matches the given regular expression with the given replacement.</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.join(['text1','text2',&#8230;&#8203;], delimiter) YIELD value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">join the given strings with the given delimiter.</p></td>
 </tr>
