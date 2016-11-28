@@ -677,6 +677,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 
 [cols="1m,5"]
 |===
+| CALL apoc.text.replace(text, regex, replacement) YIELD value | replace each substring of the given string that matches the given regular expression with the given replacement.
 | CALL apoc.text.join(['text1','text2',...], delimiter) YIELD value | join the given strings with the given delimiter.
 | CALL apoc.text.format(text,[params]) YIELD value | sprintf format the string with the params given
 | CALL apoc.text.lpad(text,count,delim) YIELD value | left pad the string to the given width

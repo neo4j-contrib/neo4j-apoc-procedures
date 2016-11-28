@@ -2263,6 +2263,10 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 </colgroup>
 <tbody>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.replace(text, regex, replacement) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">replace each substring of the given string that matches the given regular expression with the given replacement.</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.join(['text1','text2',&#8230;&#8203;], delimiter) YIELD value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">join the given strings with the given delimiter.</p></td>
 </tr>
@@ -2428,6 +2432,10 @@ SET n.ttl = timestamp() + 3600</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.format(12345,'s', 'yyyy/MM/dd HH/mm/ss')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">the same as previous, but accepts custom datetime format</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.systemTimezone()</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">return the system timezone default name</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parseDefault('2015-03-25 03:15:59','ms')</code></p></td>
