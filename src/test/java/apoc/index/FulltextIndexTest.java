@@ -137,6 +137,7 @@ public class FulltextIndexTest {
             tx.success();
         }
     }
+
     @Test
     public void testAddNodeToExistingIndex() throws Exception {
         db.execute("CALL apoc.index.forNodes({index},{type:'fulltext',to_lower_case:'true',analyzer:'org.apache.lucene.analysis.standard.StandardAnalyzer' })",map("index","std_index")).close();
@@ -159,6 +160,7 @@ public class FulltextIndexTest {
             tx.success();
         }
     }
+
     @Test
     public void testAddNodeByLabelMultipleProperties() throws Exception {
         testCall(db, "CREATE " + JOE_PATTERN + " WITH joe CALL apoc.index.addNodeByLabel('" + PERSON + "', joe, ['" + NAME + "','" + AGE + "']) RETURN *",(row) -> { });
@@ -179,10 +181,13 @@ public class FulltextIndexTest {
             tx.success();
         }
     }
+
+    @Test
     public void testAddRelationshipToExistingIndex() throws Exception {
-        db.execute("CALL apoc.index.forRelationships({index},{type:'fulltext',to_lower_case:'true',analyzer:'org.apache.lucene.analysis.standard.StandardAnalyzer' })",map("index","std_index")).close();
+        db.execute("CALL apoc.index.forRelationships({index},{provider:'lucene',type:'fulltext',to_lower_case:'true'})",map("index","std_index")).close();
         db.execute("CREATE " + CHECKIN_PATTERN + " WITH checkin CALL apoc.index.addRelationshipByName({index}, checkin, ['on']) RETURN *",map("index","std_index")).close();
         try (Transaction tx = db.beginTx()) {
+            assertTrue(index.existsForRelationships("std_index"));
             Relationship rel = index.forRelationships("std_index").query("on", MONTH + "-*").getSingle();
             assertEquals(DATE, rel.getProperty("on"));
             tx.success();

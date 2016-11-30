@@ -200,10 +200,10 @@ public class FulltextIndex {
         indexContainer(node, propKeys, index);
     }
 
-    // CALL apoc.index.addNodeByName('Person', joe, ['name','age','city'])
+    // CALL apoc.index.addNodeByName('name', joe, ['name','age','city'])
     @Procedure
     @PerformsWrites
-    @Description("apoc.index.addNodeByName('name',node,['prop1',...]) add node to an index for the given index name")
+    @Description("apoc.index.addNodeByName('name',node,['prop1',...]) add node to an index for the given name")
     public void addNodeByName(@Name("name") String name, @Name("node") Node node, @Name("properties") List<String> propKeys) {
         Index<Node> index = getNodeIndex(name, null);
         indexContainer(node, propKeys, index);
@@ -221,7 +221,7 @@ public class FulltextIndex {
     // CALL apoc.index.addRelationshipByName('name', checkin, ['on'])
     @Procedure
     @PerformsWrites
-    @Description("apoc.index.addRelationshipByName('name',rel,['prop1',...]) add relationship to an index for the given index name")
+    @Description("apoc.index.addRelationshipByName('name',rel,['prop1',...]) add relationship to an index for the given name")
     public void addRelationshipByName(@Name("name") String name, @Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
         Index<Relationship> index = getRelationshipIndex(name, null);
         indexContainer(rel, propKeys, index);
