@@ -186,7 +186,8 @@ public class FulltextIndex {
     @Description("apoc.index.addNode(node,['prop1',...]) add node to an index for each label it has")
     public void addNode(@Name("node") Node node, @Name("properties") List<String> propKeys) {
         for (Label label : node.getLabels()) {
-            addNodeByLabel(label.name(),node,propKeys);
+            Index<Node> index = getNodeIndex(label.name(), FULL_TEXT);
+            indexContainer(node, propKeys, index);
         }
     }
 
@@ -195,7 +196,17 @@ public class FulltextIndex {
     @PerformsWrites
     @Description("apoc.index.addNodeByLabel('Label',node,['prop1',...]) add node to an index for the given label")
     public void addNodeByLabel(@Name("label") String label, @Name("node") Node node, @Name("properties") List<String> propKeys) {
-        indexContainer(node, propKeys, getNodeIndex(label,FULL_TEXT));
+        Index<Node> index = getNodeIndex(label, FULL_TEXT);
+        indexContainer(node, propKeys, index);
+    }
+
+    // CALL apoc.index.addNodeByName('Person', joe, ['name','age','city'])
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.index.addNodeByName('name',node,['prop1',...]) add node to an index for the given index name")
+    public void addNodeByName(@Name("name") String name, @Name("node") Node node, @Name("properties") List<String> propKeys) {
+        Index<Node> index = getNodeIndex(name, null);
+        indexContainer(node, propKeys, index);
     }
 
     // CALL apoc.index.addRelationship(checkin, ['on'])
@@ -203,7 +214,17 @@ public class FulltextIndex {
     @PerformsWrites
     @Description("apoc.index.addRelationship(rel,['prop1',...]) add relationship to an index for its type")
     public void addRelationship(@Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
-        indexContainer(rel, propKeys, getRelationshipIndex(rel.getType().name(),FULL_TEXT));
+        Index<Relationship> index = getRelationshipIndex(rel.getType().name(), FULL_TEXT);
+        indexContainer(rel, propKeys, index);
+    }
+
+    // CALL apoc.index.addRelationshipByName('name', checkin, ['on'])
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.index.addRelationshipByName('name',rel,['prop1',...]) add relationship to an index for the given index name")
+    public void addRelationshipByName(@Name("name") String name, @Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
+        Index<Relationship> index = getRelationshipIndex(name, null);
+        indexContainer(rel, propKeys, index);
     }
 
     private <T extends PropertyContainer> void indexContainer(T pc, @Name("properties") List<String> propKeys, org.neo4j.graphdb.index.Index<T> index) {
