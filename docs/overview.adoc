@@ -81,6 +81,8 @@ NOTE: Please note that there are (case-sensitive) http://neo4j.com/docs/develope
 | apoc.index.addNodeByName('name',node,['prop1',...]) | add node to an index for the given name
 | apoc.index.addRelationship(rel,['prop1',...]) | add relationship to an index for its type
 | apoc.index.addRelationshipByName('name',rel,['prop1',...]) | add relationship to an index for the given name
+| apoc.index.removeNodeByName('name',node) remove node from an index for the given name
+| apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name
 |===
 
 image::{img}/apoc.index.nodes-with-score.jpg[width=600]

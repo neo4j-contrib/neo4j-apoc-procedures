@@ -237,6 +237,24 @@ public class FulltextIndex {
         }
     }
 
+    // CALL apoc.index.removeNodeByName('name', joe)
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.index.removeNodeByName('name',node) remove node from an index for the given name")
+    public void removeNodeByName(@Name("name") String name, @Name("node") Node node) {
+        Index<Node> index = getNodeIndex(name, null);
+        index.remove(node);
+    }
+
+    // CALL apoc.index.removeRelationshipByName('name', checkin)
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name")
+    public void removeRelationshipByName(@Name("name") String name, @Name("relationship") Relationship rel) {
+        RelationshipIndex index = getRelationshipIndex(name, null);
+        index.remove(rel);
+    }
+
     /* WIP
     private TermQuery query(Map<String,Object> params) {
         Object sort = params.remove("sort");
