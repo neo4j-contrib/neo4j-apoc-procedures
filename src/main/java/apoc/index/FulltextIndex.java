@@ -75,11 +75,11 @@ public class FulltextIndex {
     @Description("apoc.index.forRelationships('name',{config}) YIELD type,name,config - gets or creates relationship index")
     @Procedure @PerformsWrites
     public Stream<IndexInfo> forRelationships(@Name("name") String name, @Name("config") Map<String,String> config) {
-        Index<Relationship> index = getRelationshipIndex(name, config);
+        RelationshipIndex index = getRelationshipIndex(name, config);
         return Stream.of(new IndexInfo(RELATIONSHIP, name, db.index().getConfiguration(index)));
     }
 
-    private Index<Relationship> getRelationshipIndex(@Name("name") String name, @Name("config") Map<String, String> config) {
+    private RelationshipIndex getRelationshipIndex(@Name("name") String name, @Name("config") Map<String, String> config) {
         IndexManager mgr = db.index();
         return config == null ? mgr.forRelationships(name) : mgr.forRelationships(name, config);
     }
@@ -95,7 +95,7 @@ public class FulltextIndex {
             index.delete();
         }
         if (mgr.existsForRelationships(name)) {
-            Index<Relationship> index = mgr.forRelationships(name);
+            RelationshipIndex index = mgr.forRelationships(name);
             indexInfos.add(new IndexInfo(RELATIONSHIP, name, mgr.getConfiguration(index)));
             index.delete();
         }
@@ -214,7 +214,7 @@ public class FulltextIndex {
     @PerformsWrites
     @Description("apoc.index.addRelationship(rel,['prop1',...]) add relationship to an index for its type")
     public void addRelationship(@Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
-        Index<Relationship> index = getRelationshipIndex(rel.getType().name(), FULL_TEXT);
+        RelationshipIndex index = getRelationshipIndex(rel.getType().name(), FULL_TEXT);
         indexContainer(rel, propKeys, index);
     }
 
@@ -223,7 +223,7 @@ public class FulltextIndex {
     @PerformsWrites
     @Description("apoc.index.addRelationshipByName('name',rel,['prop1',...]) add relationship to an index for the given name")
     public void addRelationshipByName(@Name("name") String name, @Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
-        Index<Relationship> index = getRelationshipIndex(name, null);
+        RelationshipIndex index = getRelationshipIndex(name, null);
         indexContainer(rel, propKeys, index);
     }
 
