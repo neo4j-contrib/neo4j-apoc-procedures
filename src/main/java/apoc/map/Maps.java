@@ -1,9 +1,12 @@
 package apoc.map;
 
 import apoc.Description;
+import apoc.result.ListMapResult;
+import apoc.result.MapListResult;
 import apoc.result.MapResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -15,6 +18,42 @@ public class Maps {
 
     @Context
     public GraphDatabaseService db;
+
+    @Procedure
+    @Description("apoc.map.groupBy([maps/nodes/relationships],'key') yield value - creates a map of the list keyed by the given property, with single values")
+    public Stream<MapResult> groupBy(@Name("values") List<Object> values, @Name("key") String key) {
+        Map<String,Object> result = new LinkedHashMap<>(values.size());
+        for (Object value : values) {
+            Object id = getKey(key, value);
+            if (id != null) result.put(id.toString(), value);
+        }
+        return Stream.of(new MapResult(result));
+    }
+    @Procedure
+    @Description("apoc.map.groupByMulti([maps/nodes/relationships],'key') yield value - creates a map of the list keyed by the given property, with list values")
+    public Stream<MapListResult> groupByMulti(@Name("values") List<Object> values, @Name("key") String key) {
+        Map<String,List<Object>> result = new LinkedHashMap<>(values.size());
+        for (Object value : values) {
+            Object id = getKey(key, value);
+            if (id != null) result.compute(id.toString(), (k,list) -> {
+                if (list==null) list = new ArrayList<>();
+                list.add(value);
+                return list;
+            });
+        }
+        return Stream.of(new MapListResult(result));
+    }
+
+    public Object getKey(@Name("key") String key, Object value) {
+        Object id = null;
+        if (value instanceof Map) {
+            id = ((Map)value).get(key);
+        }
+        if (value instanceof PropertyContainer) {
+            id = ((PropertyContainer)value).getProperty(key,null);
+        }
+        return id;
+    }
 
     @Procedure
     @Description("apoc.map.fromPairs([[key,value],[key2,value2],...])")
@@ -37,6 +76,16 @@ public class Maps {
     @Description("apoc.map.merge(first,second) yield value - merges two maps")
     public Stream<MapResult> merge(@Name("first") Map<String,Object> first, @Name("second") Map<String,Object> second) {
         return Stream.of(new MapResult(Util.merge(first,second)));
+    }
+
+    @Procedure
+    @Description("apoc.map.mergeList([{maps}]) yield value - merges all maps in the list into one")
+    public Stream<MapResult> mergeList(@Name("maps") List<Map<String,Object>> maps) {
+        Map<String,Object> result = new LinkedHashMap<>(maps.size());
+        for (Map<String, Object> map : maps) {
+            result.putAll(map);
+        }
+        return Stream.of(new MapResult(result));
     }
 
     @Procedure

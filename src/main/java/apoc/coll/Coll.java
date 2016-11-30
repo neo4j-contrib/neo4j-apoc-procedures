@@ -4,7 +4,6 @@ import apoc.Description;
 import apoc.result.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -193,10 +192,10 @@ public class Coll {
     }
     @Procedure
     @Description("apoc.coll.sortMaps([maps], 'name') YIELD maps | sort maps by property")
-    public Stream<MapListResult> sortMaps(@Name("coll") List<Map<String,Object>> coll, @Name("prop") String prop) {
+    public Stream<ListMapResult> sortMaps(@Name("coll") List<Map<String,Object>> coll, @Name("prop") String prop) {
         List<Map<String,Object>> sorted = new ArrayList<>(coll);
         sorted.sort((x, y) -> compare(x.get(prop), y.get(prop)));
-        return Stream.of(new MapListResult(sorted));
+        return Stream.of(new ListMapResult(sorted));
     }
 
     public static int compare(Object o1, Object o2) {

@@ -10,6 +10,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
 /**
@@ -30,8 +31,27 @@ public class MapsTest {
     }
 
     @Test
+    public void testGroupBy() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.map.groupBy([{id:0,a:1},{id:1, b:false},{id:0,c:2}],'id')", (r) -> {
+            assertEquals(map("0",map("id",0L,"c",2L),"1",map("id",1L,"b",false)),r.get("value"));
+        });
+    }
+    @Test
+    public void testGroupByMulti() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.map.groupByMulti([{id:0,a:1},{id:1, b:false},{id:0,c:2}],'id')", (r) -> {
+            assertEquals(map("0",asList(map("id",0L,"a",1L),map("id",0L,"c",2L)),"1",asList(map("id",1L,"b",false))),r.get("value"));
+        });
+    }
+    @Test
     public void testMerge() throws Exception {
         TestUtil.testCall(db, "CALL apoc.map.merge({a:1},{b:false})", (r) -> {
+            assertEquals(map("a",1L,"b",false),r.get("value"));
+        });
+    }
+
+    @Test
+    public void testMergeList() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.map.mergeList([{a:1},{b:false}])", (r) -> {
             assertEquals(map("a",1L,"b",false),r.get("value"));
         });
     }

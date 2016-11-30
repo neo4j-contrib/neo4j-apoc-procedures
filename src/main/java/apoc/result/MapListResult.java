@@ -1,5 +1,6 @@
 package apoc.result;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -8,9 +9,14 @@ import java.util.Map;
  * @since 26.02.16
  */
 public class MapListResult {
-    public final List<Map<String,Object>> maps;
+	private static final MapListResult EMPTY = new MapListResult(Collections.emptyMap());
+	public final Map<String, List<Object>> value;
 
-    public MapListResult(List<Map<String,Object>> maps) {
-        this.maps = maps;
+	public static MapListResult empty() {
+		return EMPTY;
+	}
+
+    public MapListResult(Map<String, List<Object>> value) {
+        this.value = value;
     }
 }
