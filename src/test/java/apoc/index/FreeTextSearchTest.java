@@ -1,5 +1,6 @@
 package apoc.index;
 
+import apoc.index.analyzer.DynamicChainAnalyzer;
 import apoc.util.TestUtil;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
@@ -15,10 +16,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static apoc.index.FreeTextSearch.KEY;
 import static java.util.Arrays.asList;
@@ -36,6 +34,7 @@ public class FreeTextSearchTest {
     public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, FreeTextSearch.class);
+        TestUtil.registerProcedure(db, FulltextIndex.class);
     }
 
     @After
@@ -232,7 +231,119 @@ public class FreeTextSearchTest {
 
     }
 
-    private ResourceIterator<Node> search(String index, String value) {
+    @Test
+    public void addAllNodesDefaultParameters() {
+        execute("CALL apoc.index.addAllNodes('hackerz', {Hacker:['name']})");
+
+        TestUtil.testResult( db, "CALL apoc.index.list() yield config", result -> {
+            List<Object> configs = Iterators.asList( result.columnAs("config") );
+            assertEquals( 1, configs.size() );
+            Map<String,Object> config = (Map) configs.get( 0 );
+            assertEquals( 5, config.size() ); // expecting 5 values
+
+            // 5 default values
+            assertEquals( config.get("type"), "fulltext" );
+            assertEquals( config.get("to_lower_case"), "true" );
+            assertEquals( config.get("provider"), "lucene" );
+            assertEquals( config.get("keysForLabel:Hacker"), "name" );
+            assertEquals( config.get("labels"), "Hacker" );
+
+        });
+    }
+
+    @Test
+    public void addAllNodesExtendedNoOptionsDefaultParameters() {
+        execute("CALL apoc.index.addAllNodesExtended('hackerz', {Hacker:['name']},{})"); // note the ,{} here
+
+        TestUtil.testResult( db, "CALL apoc.index.list() yield config", result -> {
+            List<Object> configs = Iterators.asList( result.columnAs("config") );
+            assertEquals( 1, configs.size() );
+            Map<String,Object> config = (Map) configs.get( 0 );
+            assertEquals( 5, config.size() ); // expecting 5 values
+
+            // 5 default values
+            assertEquals( config.get("type"), "fulltext" );
+            assertEquals( config.get("to_lower_case"), "true" );
+            assertEquals( config.get("provider"), "lucene" );
+            assertEquals( config.get("keysForLabel:Hacker"), "name" );
+            assertEquals( config.get("labels"), "Hacker" );
+
+        });
+    }
+
+    @Test
+    public void addAllNodesExtendedOptionsCheck() throws Exception {
+        execute("CALL apoc.index.addAllNodesExtended('hackerz', {Hacker:['name']},{autoUpdate: true, to_lower_case: false, foo: \"bar\"})");
+
+        TestUtil.testResult( db, "CALL apoc.index.list() yield config", result -> {
+            List<Object> configs = Iterators.asList( result.columnAs("config") );
+            assertEquals( 1, configs.size() );
+            Map<String,Object> config = (Map) configs.get( 0 );
+            assertEquals( 7, config.size() ); // expecting 5 values
+
+            // 5 default values
+            assertEquals( config.get("type"), "fulltext" );
+            assertEquals( config.get("to_lower_case"), "false" ); // overridden to false
+            assertEquals( config.get("autoUpdate"), "true" ); // additional
+            assertEquals( config.get("provider"), "lucene" );
+            assertEquals( config.get("keysForLabel:Hacker"), "name" );
+            assertEquals( config.get("labels"), "Hacker" );
+            assertEquals( config.get("foo"), "bar" ); // additional
+        });
+    }
+
+    @Test
+    public void addAllNodesExtendedOptionsCustomAnalyzer() throws Exception {
+        execute("CALL apoc.index.addAllNodesExtended('hackerz', {Hacker:['name']},{analyzer: \"apoc.index.analyzer.DynamicChainAnalyzer\"})");
+
+        TestUtil.testResult( db, "CALL apoc.index.list() yield config", result -> {
+            List<Object> configs = Iterators.asList( result.columnAs("config") );
+            assertEquals( 1, configs.size() );
+            Map<String,Object> config = (Map) configs.get( 0 );
+            assertEquals( 6, config.size() ); // expecting 5 values
+
+            // 5 default values
+            assertEquals( config.get("type"), "fulltext" );
+            assertEquals( config.get("to_lower_case"), "true" ); // overridden to false
+            assertEquals( config.get("provider"), "lucene" );
+            assertEquals( config.get("keysForLabel:Hacker"), "name" );
+            assertEquals( config.get("labels"), "Hacker" );
+            assertEquals( config.get("analyzer"), DynamicChainAnalyzer.class.getName() );
+        });
+    }
+
+
+    @Test
+    public void addAllNodeExtendedWithDynamicChainAnalyzer() throws Exception {
+        // given
+        String john = "John Doe";
+        String jim = "Jim Done";
+        String fred = "Fred Finished";
+        Map params = singletonMap("names", Iterators.array(john, jim, fred));
+        execute("UNWIND {names} as name CREATE (:Hacker{name:name})", params);
+        execute(
+            "CALL apoc.index.addAllNodesExtended('hackerz', {Hacker:['name']},{analyzer: \"apoc.index.analyzer.DynamicChainAnalyzer\"})");
+
+        // expect
+        TestUtil.testResult(db, "CALL apoc.index.search('hackerz', 'D*') yield node, weight "
+            + "RETURN node.name as name", result -> {
+            List<Object> names = Iterators.asList(result.columnAs("name"));
+            assertTrue(names.contains(jim));
+            assertTrue(names.contains(john));
+            assertFalse(names.contains(fred));
+        });
+
+        // expect
+        TestUtil.testResult(db, "CALL apoc.index.search('hackerz', '*shed') yield node, weight "
+            + "RETURN node.name as name", result -> {
+            List<Object> names = Iterators.asList(result.columnAs("name"));
+            assertFalse(names.contains(jim));
+            assertFalse(names.contains(john));
+            assertTrue(names.contains(fred));
+        });
+    }
+
+        private ResourceIterator<Node> search(String index, String value) {
         return db.execute("CALL apoc.index.search({index}, {value}) YIELD node RETURN node",
                 map("index", index, "value", value)).columnAs("node");
     }
