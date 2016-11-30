@@ -52,12 +52,34 @@ public class FreeTextSearch {
      */
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}) YIELD type, name, config - create a free text search index")
-    public Stream<IndexStats> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure) {
+    public Stream<IndexStats> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure ) {
+        return addAllNodesExtended( index, structure, Collections.emptyMap() );
+    }
+
+    /**
+     * Create (or recreate) a free text search index.
+     * <p>
+     * This will populate the index with all currently matching data. Updates will not be reflected in the index.
+     * In order to get updates into the index, the index has to be rebuilt.
+     *
+     * @param index     The name of the index to create.
+     * @param structure The labels of nodes to index, and the properties to index for each label.
+     * @param options   Additional options which can be evaluated by the index provider.
+     * @return a stream containing a single element that describes the created index.
+     *
+     * @deprecated Will not be needed as of Neo4j 3.1.
+     */
+
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}, {options}) YIELD type, name, config - create a free text search index with special options")
+    @Deprecated
+    public Stream<IndexStats> addAllNodesExtended(@Name("index") String index, @Name("structure") Map<String, List<String>> structure, @Name("options") Map<String,Object> options ) {
         if (structure.isEmpty()) {
             throw new IllegalArgumentException("No structure given.");
         }
         return async(executor(), "Creating index '" + index + "'", result -> {
-            populate(index(index, structure), structure, result);
+            populate(index(index, structure, options ), structure, result);
         });
     }
 
@@ -157,19 +179,26 @@ public class FreeTextSearch {
         return structure;
     }
 
-    private Index<Node> index(String index, Map<String, List<String>> structure) {
+    private Index<Node> index(String index, Map<String, List<String>> structure, final Map<String,Object> options ) {
         Map<String, String> config = new HashMap<>(CONFIG);
         try (Transaction tx = db.beginTx()) {
             if (db.index().existsForNodes(index)) {
                 Index<Node> old = db.index().forNodes(index);
-                config = new HashMap<>(db.index().getConfiguration(old));
-                log.info("Dropping existing index '%s', with config: %s", index, config);
+                Map<String,String> oldConfig = new HashMap<>(db.index().getConfiguration(old));
+                log.info("Dropping existing index '%s', with config: %s", index, oldConfig);
                 old.delete();
             }
             tx.success();
         }
         try (Transaction tx = db.beginTx()) {
             updateConfigFromParameters(config, structure);
+
+            /* add options to the parameters */
+            options.forEach((k,v) -> {
+                config.put(k, String.valueOf(v)); // explicit conversion to String
+                }
+            );
+            log.info("Creating or updating index '%s' with config '%s'", index, config );
             Index<Node> nodeIndex = db.index().forNodes(index, config);
             tx.success();
             return nodeIndex;
