@@ -4,7 +4,6 @@ import org.neo4j.procedure.*;
 import apoc.result.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 
 import java.util.*;
@@ -186,6 +185,7 @@ public class Coll {
                 (x, y) -> compare(x.getProperty(prop, null), y.getProperty(prop, null)));
         return sorted;
     }
+
     @UserFunction
     @Description("apoc.coll.sortMaps([maps], 'name') - sort maps by property")
     public List<Map<String,Object>> sortMaps(@Name("coll") List<Map<String,Object>> coll, @Name("prop") String prop) {
