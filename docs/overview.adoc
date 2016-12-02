@@ -176,6 +176,9 @@ RETURN n LIMIT 5
 | CALL apoc.convert.toJson( {a:42,b:"foo",c:[1,2,3]}) | converts value to json map
 | CALL apoc.convert.fromJsonList('[1,2,3]') | converts json list to Cypher list
 | CALL apoc.convert.fromJsonMap( '{"a":42,"b":"foo","c":[1,2,3]}') | converts json map to Cypher map
+| CALL apoc.json.setJsonProperty(node,key,complexValue) | sets value serialized to JSON as property with the given name on the node
+| CALL apoc.json.getJsonProperty(node,key) | converts serialized JSON in property back to original object
+| CALL apoc.json.getJsonPropertyMap(node,key) | converts serialized JSON in property back to map
 | CALL apoc.convert.toTree([paths]) yield value | creates a stream of nested documents representing the at least one root of these paths
 |===
 
