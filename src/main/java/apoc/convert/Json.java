@@ -40,11 +40,22 @@ public class Json {
     }
 
     @UserFunction
-    @Description("apoc.json.getJsonProperty(node,key) - converts serialized JSON in property to structure again")
+    @Description("apoc.json.getJsonProperty(node,key) - converts serialized JSON in property back to original object")
     public Object getJsonProperty(@Name("node") Node node, @Name("key") String key) {
         String value = (String) node.getProperty(key, null);
         try {
             return JsonUtil.OBJECT_MAPPER.readValue(value, Object.class);
+        } catch (IOException e) {
+            throw new RuntimeException("Can't convert " + value + " to json", e);
+        }
+    }
+
+    @UserFunction
+    @Description("apoc.json.getJsonPropertyMap(node,key) - converts serialized JSON in property back to map")
+    public Map<String,Object> getJsonPropertyMap(@Name("node") Node node, @Name("key") String key) {
+        String value = (String) node.getProperty(key, null);
+        try {
+            return JsonUtil.OBJECT_MAPPER.readValue(value, Map.class);
         } catch (IOException e) {
             throw new RuntimeException("Can't convert " + value + " to json", e);
         }
