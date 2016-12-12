@@ -16,8 +16,6 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
@@ -37,7 +35,7 @@ import static java.util.stream.Collectors.toList;
  */
 public class Cypher {
 
-    public static final String COMPILED_PREFIX = ""; //  "CYPHER runtime=compiled ";
+    public static final String COMPILED_PREFIX = "CYPHER runtime="+ Util.COMPILED;
     public static final ExecutorService POOL = Pools.DEFAULT;
     public static final int PARTITIONS = 100 * Runtime.getRuntime().availableProcessors();
     public static final int MAX_BATCH = 10000;

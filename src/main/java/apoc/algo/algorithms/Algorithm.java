@@ -24,7 +24,7 @@ import static java.lang.System.currentTimeMillis;
 public class Algorithm implements AlgoIdGenerator {
 
     public static final int INITIAL_ARRAY_SIZE=100_000;
-    public static final String COMPILED_RUNTIME = "CYPHER runtime=compiled ";
+    public static final String COMPILED_RUNTIME = "CYPHER runtime=" + Util.COMPILED + " ";
     private final GraphDatabaseAPI db;
     private final Log log;
     private final ExecutorService pool;

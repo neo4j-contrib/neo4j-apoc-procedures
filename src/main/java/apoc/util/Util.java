@@ -34,6 +34,7 @@ public class Util {
     public static final Label[] NO_LABELS = new Label[0];
     public static final String NODE_COUNT = "MATCH (n) RETURN count(*) as result";
     public static final String REL_COUNT = "MATCH ()-->() RETURN count(*) as result";
+    public static final String COMPILED = "compiledExperimentalFeatureNotSupportedForProductionUse";
 
 
     public static String labelString(Node n) {
