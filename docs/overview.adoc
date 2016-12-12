@@ -597,6 +597,7 @@ CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (
 | call apoc.refactor.mergeNodes([node1,node2]) | merge nodes onto first in list
 | call apoc.refactor.to(rel, endNode) | redirect relationship to use new end-node
 | call apoc.refactor.from(rel, startNode) | redirect relationship to use new start-node
+| call apoc.refactor.invert(rel) | inverts relationship direction
 | call apoc.refactor.setType(rel, 'NEW-TYPE') | change relationship-type
 | call apoc.refactor.extractNode([rel1,rel2,...], [labels], 'OUT','IN') | extract node from relationships
 | call apoc.refactor.collapseNode([node1,node2],'TYPE') | collapse node to relationship, node with one rel becomes self-relationship
