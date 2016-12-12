@@ -164,6 +164,20 @@ public class GraphRefactoring {
         }
     }
 
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.refactor.invert(rel) inverts relationship direction")
+    public Stream<RelationshipRefactorResult> invert(@Name("relationship") Relationship rel) {
+        RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
+        try {
+            Relationship newRel = rel.getEndNode().createRelationshipTo(rel.getStartNode(), rel.getType());
+            copyProperties(rel,newRel);
+            rel.delete();
+            return Stream.of(result.withOther(newRel));
+        } catch (Exception e) {
+            return Stream.of(result.withError(e));
+        }
+    }
+
     /**
      * Redirects a relationships to a new target node.
      */

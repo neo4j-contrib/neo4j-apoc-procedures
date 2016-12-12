@@ -43,6 +43,7 @@ public class GraphRefactoringTest {
         db.shutdown();
     }
 
+
     @Test
     public void testDeleteOneNode() throws Exception {
         long id = db.execute("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ").<Long>columnAs("id").next();
@@ -119,6 +120,20 @@ public class GraphRefactoringTest {
                     assertEquals(1L, node.getProperty("a"));
                     assertNotNull(node.getSingleRelationship(RelationshipType.withName("FOO"), Direction.OUTGOING));
                     assertNotNull(node.getSingleRelationship(RelationshipType.withName("BAR"), Direction.INCOMING));
+                });
+    }
+    @Test
+    public void testInvertRelationship() throws Exception {
+        ResourceIterator<Long> it = db.execute("CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) RETURN id(rel) as id").<Long>columnAs("id");
+        Long id = it.next();
+        it.close();
+        testCall(db, "MATCH ()-[r]->() WHERE id(r) = {id} CALL apoc.refactor.invert(r) yield input, output RETURN *", map("id", id),
+                (r) -> {
+                    assertEquals(id, r.get("input"));
+                    Relationship rel = (Relationship) r.get("output");
+                    assertEquals(true, rel.getStartNode().hasLabel(Label.label("Bar")));
+                    assertEquals(true, rel.getEndNode().hasLabel(Label.label("Foo")));
+                    assertEquals(1L, rel.getProperty("a"));
                 });
     }
 
