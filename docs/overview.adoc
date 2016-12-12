@@ -699,16 +699,23 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | CALL apoc.get.rels(rels|id|[ids]) yield rel | quickly returns all relationships with these id's
 |===
 
+=== Math Functions
+
+[cols="1m,5"]
+|===
+| apoc.math.round(value,[precision=0],mode=[HALF_UP,CEILING,FLOOR,UP,DOWN,HALF_EVEN,HALF_DOWN,DOWN,UNNECESSARY]) | rounds value with optionally given precision (default 0) and optional rounding mode (default HALF_UP)
+|===
+
 === Text Functions
 
 [cols="1m,5"]
 |===
-| CALL apoc.text.replace(text, regex, replacement) YIELD value | replace each substring of the given string that matches the given regular expression with the given replacement.
-| CALL apoc.text.join(['text1','text2',...], delimiter) YIELD value | join the given strings with the given delimiter.
-| CALL apoc.text.format(text,[params]) YIELD value | sprintf format the string with the params given
-| CALL apoc.text.lpad(text,count,delim) YIELD value | left pad the string to the given width
-| CALL apoc.text.rpad(text,count,delim) YIELD value | right pad the string to the given width
-| apoc.data.domain(email_or_url) yield value | returns domain part of the value
+| apoc.text.replace(text, regex, replacement)| replace each substring of the given string that matches the given regular expression with the given replacement.
+| apoc.text.join(['text1','text2',...], delimiter) | join the given strings with the given delimiter.
+| apoc.text.format(text,[params]) | sprintf format the string with the params given
+| apoc.text.lpad(text,count,delim) | left pad the string to the given width
+| apoc.text.rpad(text,count,delim) | right pad the string to the given width
+| apoc.data.domain(email_or_url) | returns domain part of the value
 |===
 
 === Phonetic Comparison Functions
