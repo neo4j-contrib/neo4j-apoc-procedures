@@ -5,8 +5,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
@@ -30,6 +32,15 @@ public class MapsTest {
         db.shutdown();
     }
 
+    @Test
+    public void testFromNodes() throws Exception {
+        db.execute("UNWIND range(1,3) as id create (:Person {name:'name'+id})").close();
+        TestUtil.testCall(db, "RETURN apoc.map.fromNodes('Person','name') as value", (r) -> {
+            Map<String,Node> map = (Map<String, Node>) r.get("value");
+            assertEquals(asList("name1","name2","name3"),new ArrayList<>(map.keySet()));
+            map.forEach((k,v) -> assertEquals(k, v.getProperty("name")));
+        });
+    }
     @Test
     public void testGroupBy() throws Exception {
         TestUtil.testCall(db, "RETURN apoc.map.groupBy([{id:0,a:1},{id:1, b:false},{id:0,c:2}],'id') as value", (r) -> {

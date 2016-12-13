@@ -648,6 +648,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 
 [cols="1m,5"]
 |===
+| apoc.map.fromNodes(label, property) | creates map from nodes with this label grouped by property
 | apoc.map.fromPairs([[key,value],[key2,value2],...]) | creates map from list with key-value pairs
 | apoc.map.fromLists([keys],[values]) | creates map from a keys and a values list
 | apoc.map.fromValues([key,value,key1,value1]) | creates map from alternating keys and values in a list
