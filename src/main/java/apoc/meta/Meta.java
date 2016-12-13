@@ -1,6 +1,8 @@
 package apoc.meta;
 
 import apoc.Description;
+import org.neo4j.helpers.collection.Pair;
+import org.neo4j.procedure.*;
 import apoc.result.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
@@ -403,18 +405,57 @@ public class Meta {
         relIt.close();
     }
 
+    static class Pattern {
+        private final String from;
+        private final String type;
+        private final String to;
+
+        private Pattern(String from, String type, String to) {
+            this.from = from;
+            this.type = type;
+            this.to = to;
+        }
+        public static Pattern of(String labelFrom, String type, String labelTo) {
+            return new Pattern(labelFrom,type,labelTo);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o instanceof Pattern) {
+                Pattern pattern = (Pattern) o;
+                return from.equals(pattern.from) && type.equals(pattern.type) && to.equals(pattern.to);
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * (31 * from.hashCode() + type.hashCode()) + to.hashCode();
+        }
+
+        public Label labelTo() {
+            return Label.label(to);
+        }
+        public Label labelFrom() {
+            return Label.label(from);
+        }
+        public RelationshipType relationshipType() {
+            return RelationshipType.withName(type);
+        }
+    }
     @Procedure
     @Description("apoc.meta.graph - examines the full graph to create the meta-graph")
     public Stream<GraphResult> graph() {
-        return metaGraph(null, null);
+        return metaGraph(null, null, true);
     }
 
-    private Stream<GraphResult> metaGraph(Collection<String> labelNames, Collection<String> relTypeNames) {
+    private Stream<GraphResult> metaGraph(Collection<String> labelNames, Collection<String> relTypeNames, boolean removeMissing) {
         ReadOperations ops = kernelTx.acquireStatement().readOperations();
         Map<String,Integer> labels = labelsInUse(ops, labelNames);
         Map<String,Integer> relTypes = relTypesInUse(ops, relTypeNames);
         Map<String,Node> vNodes = new TreeMap<>();
-        Map<List<String>,Relationship> vRels = new HashMap<>(relTypes.size()*2);
+        Map<Pattern,Relationship> vRels = new HashMap<>(relTypes.size()*2);
 
 
         labels.forEach((labelName, id) -> {
@@ -435,22 +476,70 @@ public class Meta {
                             Node nodeB = vNodes.get(labelNameB);
                             Relationship vRel = new VirtualRelationship(nodeA, nodeB, RelationshipType.withName(typeName))
                                     .withProperties(map("type", typeName, "out", relCountOut, "in", relCountIn, "count", global));
-                            vRels.put(asList(labelNameA, labelNameB, typeName), vRel);
+                            vRels.put(Pattern.of(labelNameA, typeName, labelNameB), vRel);
                         }
                     });
                 }
             });
         });
+        if (removeMissing) filterNonExistingRelationships(vRels);
         GraphResult graphResult = new GraphResult(new ArrayList<>(vNodes.values()), new ArrayList<>(vRels.values()));
         return Stream.of(graphResult);
     }
 
+    private void filterNonExistingRelationships(Map<Pattern, Relationship> vRels) {
+        Set<Pattern> rels = vRels.keySet();
+        Map<Pair<String,String>,Set<Pattern>> aggregated = new HashMap<>();
+        for (Pattern rel : rels) {
+            combine(aggregated, Pair.of(rel.from, rel.type), rel);
+            combine(aggregated, Pair.of(rel.type, rel.to), rel);
+        }
+        aggregated.values().stream()
+                .filter( c -> c.size() > 1)
+                .flatMap(Collection::stream)
+                .filter( p -> !relationshipExists(p, vRels.get(p)))
+                .forEach(vRels::remove);
+    }
+
+    private boolean relationshipExists(Pattern p, Relationship relationship) {
+        if (relationship==null) return false;
+        double degreeFrom = (double)(long)relationship.getProperty("out")  / (long)relationship.getStartNode().getProperty("count");
+        double degreeTo = (double)(long)relationship.getProperty("in")  / (long)relationship.getEndNode().getProperty("count");
+
+        if (degreeFrom < degreeTo) {
+            if (relationshipExists(p.labelFrom(), p.labelTo(), p.relationshipType(), Direction.OUTGOING)) return true;
+        } else {
+            if (relationshipExists(p.labelTo(), p.labelFrom(), p.relationshipType(), Direction.INCOMING)) return true;
+        }
+        return false;
+    }
+
+    private boolean relationshipExists(Label labelFromLabel, Label labelToLabel, RelationshipType relationshipType, Direction direction) {
+        int maxTotal = 300;
+        try (ResourceIterator<Node> nodes = db.findNodes(labelFromLabel)) {
+            while (nodes.hasNext() && maxTotal > 0) {
+                Node node = nodes.next();
+                int maxRels = 30;
+                for (Relationship rel : node.getRelationships(direction, relationshipType)) {
+                    Node otherNode = direction == Direction.OUTGOING ? rel.getEndNode() : rel.getStartNode();
+                    if (otherNode.hasLabel(labelToLabel)) return true;
+                    if (maxRels-- == 0 || maxTotal-- == 0) break;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void combine(Map<Pair<String, String>, Set<Pattern>> aggregated, Pair<String, String> p, Pattern rel) {
+        if (!aggregated.containsKey(p)) aggregated.put(p,new HashSet<>());
+        aggregated.get(p).add(rel);
+    }
+
 
     @Procedure
-    @Deprecated
-    @Description("DEPRECATED apoc.meta.graphSample(sampleSize) - examines a sample graph to create the meta-graph, default sampleSize is 100")
-    public Stream<GraphResult> graphSample(@Name("sample") Long sampleSize ) {
-        return graph();
+    @Description("apoc.meta.graphSample() - examines the database statistics to build the meta graph, very fast, might report extra relationships")
+    public Stream<GraphResult> graphSample() {
+        return metaGraph(null, null, false);
     }
 
     @Procedure
@@ -460,7 +549,7 @@ public class Meta {
         Collection<String> includeRels = (Collection<String>)config.getOrDefault("rels",emptyList());
         Set<String> excludes = new HashSet<>((Collection<String>)config.getOrDefault("excludes",emptyList()));
 
-        return filterResultStream(excludes, metaGraph(includeLabels, includeRels));
+        return filterResultStream(excludes, metaGraph(includeLabels, includeRels,true));
     }
 
     private Stream<GraphResult> filterResultStream(Set<String> excludes, Stream<GraphResult> graphResultStream) {

@@ -39,6 +39,23 @@ public class MetaTest {
             testResult(db,"CALL apoc.meta.stats", (r) -> assertEquals(true, r.hasNext()));
         }
     */
+
+    @Test
+    public void testMetaGraphExtraRels() throws Exception {
+        db.execute("CREATE (a:S1 {SomeName1:'aaa'})\n" +
+                "CREATE (b:S2 {SomeName2:'bbb'})\n" +
+                "CREATE (c:S3 {SomeName3:'ccc'})\n" +
+                "CREATE (a)-[:HAS]->(b)\n" +
+                "CREATE (b)-[:HAS]->(c)").close();
+
+        testCall(db, "call apoc.meta.graph()",(row) -> {
+            List<Node> nodes = (List<Node>) row.get("nodes");
+            List<Relationship> relationships = (List<Relationship>) row.get("relationships");
+            assertEquals(3,nodes.size());
+            assertEquals(2,relationships.size());
+        });
+    }
+
     @Test
     public void testMetaType() throws Exception {
         try (Transaction tx = db.beginTx()) {
@@ -150,7 +167,7 @@ public class MetaTest {
     @Test
     public void testMetaGraph2() throws Exception {
         db.execute("CREATE (:Actor)-[:ACTED_IN]->(:Movie) ").close();
-        TestUtil.testCall(db, "CALL apoc.meta.graphSample(100)",
+        TestUtil.testCall(db, "CALL apoc.meta.graphSample()",
                 (row) -> {
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     Node n1 = nodes.get(0);

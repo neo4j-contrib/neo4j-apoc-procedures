@@ -164,7 +164,8 @@ public class GraphRefactoring {
         }
     }
 
-    @Procedure(mode = Mode.WRITE)
+    @Procedure
+    @PerformsWrites
     @Description("apoc.refactor.invert(rel) inverts relationship direction")
     public Stream<RelationshipRefactorResult> invert(@Name("relationship") Relationship rel) {
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
