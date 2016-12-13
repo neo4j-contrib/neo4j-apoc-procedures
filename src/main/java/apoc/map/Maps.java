@@ -1,12 +1,11 @@
 package apoc.map;
 
 import apoc.Description;
-import apoc.result.ListMapResult;
 import apoc.result.MapListResult;
+import apoc.result.MapNodeResult;
 import apoc.result.MapResult;
 import apoc.util.Util;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.*;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -53,6 +52,22 @@ public class Maps {
             id = ((PropertyContainer)value).getProperty(key,null);
         }
         return id;
+    }
+
+    @Procedure
+    @Description("CALL apoc.map.fromNodes(label, property)")
+    public Stream<MapNodeResult> fromNodes(@Name("label") String label, @Name("property") String property) {
+        Map<String, Node> result = new LinkedHashMap<>(10000);
+        try (ResourceIterator<Node> nodes = db.findNodes(Label.label(label))) {
+            while (nodes.hasNext()) {
+                Node node = nodes.next();
+                Object key = node.getProperty(property, null);
+                if (key!=null) {
+                    result.put(key.toString(), node);
+                }
+            }
+        }
+        return Stream.of(new MapNodeResult(result));
     }
 
     @Procedure
