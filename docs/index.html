@@ -484,6 +484,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_map_functions">Map Functions</a></li>
 <li><a href="#_collection_functions">Collection Functions</a></li>
 <li><a href="#_lookup_functions">Lookup Functions</a></li>
+<li><a href="#_math_functions">Math Functions</a></li>
 <li><a href="#_text_functions">Text Functions</a></li>
 <li><a href="#_phonetic_comparison_functions">Phonetic Comparison Functions</a></li>
 </ul>
@@ -1076,8 +1077,12 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 </colgroup>
 <tbody>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.graphSample()</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">examines the database statistics to build the meta graph, very fast, might report extra relationships</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.graph</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">examines the database statistics to create the meta-graph</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">examines the database statistics to create the meta-graph, post filters extra relationships by sampling</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.meta.subGraph({labels:[labels],rels:[rel-types],excludes:[label,rel-type,&#8230;&#8203;]})</code></p></td>
@@ -1188,6 +1193,22 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.toTree([paths])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates a stream of nested documents representing the at least one root of these paths</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.json.getJsonProperty(node,key)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">converts serialized JSON in property back to original object</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.json.getJsonPropertyMap(node,key)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">converts serialized JSON in property back to map</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.convert.toTree([paths]) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a stream of nested documents representing the at least one root of these paths</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.json.setJsonProperty(node,key,complexValue)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sets value serialized to JSON as property with the given name on the node</p></td>
 </tr>
 </tbody>
 </table>
@@ -1994,6 +2015,10 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 <td class="tableblock halign-left valign-top"><p class="tableblock">redirect relationship to use new start-node</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.invert(rel)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">inverts relationship direction</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.setType(rel, 'NEW-TYPE')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">change relationship-type</p></td>
 </tr>
@@ -2124,6 +2149,10 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 </colgroup>
 <tbody>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.fromNodes(label, property)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates map from nodes with this label grouped by property</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.fromPairs([[key,value],[key2,value2],&#8230;&#8203;])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates map from list with key-value pairs</p></td>
 </tr>
@@ -2140,6 +2169,10 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates map from merging the two source maps</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.mergeList([{maps}]) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">merges all maps in the list into one</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.setKey(map,key,value)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns the map with the value for this key added or replaced</p></td>
 </tr>
@@ -2154,6 +2187,14 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.clean(map,[keys],[values]) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">removes the keys and values (e.g. null-placeholders) contained in those lists, good for data cleaning from CSV/JSON</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.groupBy([maps/nodes/relationships],'key') yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a map of the list keyed by the given property, with single values</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.groupByMulti([maps/nodes/relationships],'key') yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a map of the list keyed by the given property, with list values</p></td>
 </tr>
 </tbody>
 </table>
@@ -2293,6 +2334,21 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 </table>
 </div>
 <div class="sect3">
+<h4 id="_math_functions">Math Functions</h4>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.math.round(value,[precision=0],mode=[HALF_UP,CEILING,FLOOR,UP,DOWN,HALF_EVEN,HALF_DOWN,DOWN,UNNECESSARY])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">rounds value with optionally given precision (default 0) and optional rounding mode (default HALF_UP)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
 <h4 id="_text_functions">Text Functions</h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
@@ -2301,27 +2357,27 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.replace(text, regex, replacement) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.replace(text, regex, replacement)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">replace each substring of the given string that matches the given regular expression with the given replacement.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.join(['text1','text2',&#8230;&#8203;], delimiter) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.join(['text1','text2',&#8230;&#8203;], delimiter)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">join the given strings with the given delimiter.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.format(text,[params]) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.format(text,[params])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">sprintf format the string with the params given</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.lpad(text,count,delim) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.lpad(text,count,delim)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">left pad the string to the given width</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.text.rpad(text,count,delim) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.rpad(text,count,delim)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">right pad the string to the given width</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.data.domain(email_or_url) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.data.domain(email_or_url)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns domain part of the value</p></td>
 </tr>
 </tbody>
@@ -2465,11 +2521,11 @@ SET n.ttl = timestamp() + 3600</code></pre>
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parse('2015/03/25 03-15-59',['ms'/'s'], ['yyyy/MM/dd HH/mm/ss'])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parse('2015/03/25 03:15:59',['ms'/'s'], ['yyyy/MM/dd HH:mm:ss'])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">same as previous, but accepts custom datetime format</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.format(12345, ['ms'/'s'], ['yyyy/MM/dd HH/mm/ss'])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.format(12345, ['ms'/'s'], ['yyyy/MM/dd HH:mm:ss'])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">the same as previous, but accepts custom datetime format</p></td>
 </tr>
 <tr>
@@ -5973,7 +6029,7 @@ RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-12-12 10:05:16 +01:00
+Last updated 2016-12-14 01:38:20 +00:00
 </div>
 </div>
 </body>
