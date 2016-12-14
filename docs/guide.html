@@ -1523,7 +1523,7 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.spatial.geocode('address',max_results) YIELD location, latitude, longitude, description, osmData</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">look up geographic location of location from openstreetmap geocoding service</p></td>
 </tr>
 <tr>
