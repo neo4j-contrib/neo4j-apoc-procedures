@@ -77,6 +77,15 @@ public class TriggerTest {
     }
 
     @Test
+    public void testTimeStampTriggerForUpdatedProperties() throws Exception {
+        db.execute("CALL apoc.trigger.add('timestamp','UNWIND apoc.trigger.nodesByLabel({assignedNodeProperties},null) AS n SET n.ts = timestamp()',{})").close();
+        db.execute("CREATE (f:Foo) SET f.foo='bar'").close();
+        TestUtil.testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
+            assertEquals(true, ((Node)row.get("f")).hasProperty("ts"));
+        });
+    }
+
+    @Test
     public void testLowerCaseName() throws Exception {
         db.execute("create constraint on (p:Person) assert p.id is unique").close();
         Trigger.TriggerHandler.add("timestamp","UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n.id = toLower(n.name)",null);

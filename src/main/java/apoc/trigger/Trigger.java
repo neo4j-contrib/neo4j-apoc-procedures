@@ -1,11 +1,9 @@
 package apoc.trigger;
 
 import apoc.Description;
+import apoc.coll.SetBackedList;
 import apoc.util.Util;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.event.LabelEntry;
 import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
@@ -44,17 +42,34 @@ public class Trigger {
     }
 
     @UserFunction
-    @Description("function to filter labelEntries by label, to be used within a trigger statement with {assignedLabels} and {removedLabels}")
-    public List<Node> nodesByLabel(@Name("labelEntries") Object labelEntries, @Name("label") String label) {
-        if (!(labelEntries instanceof Iterable)) return Collections.emptyList();
+    @Description("function to filter labelEntries by label, to be used within a trigger statement with {assignedLabels}, {removedLabels}, {assigned/removedNodeProperties}")
+    public List<Node> nodesByLabel(@Name("labelEntries") Object entries, @Name("label") String labelString) {
+        if (!(entries instanceof Iterable)) return Collections.emptyList();
+        Iterable iterable = (Iterable) entries;
+        Iterator it = iterable.iterator();
+        if (!it.hasNext()) return Collections.emptyList();
+        Object value = it.next();
         List<Node> nodes = null;
-        for (LabelEntry labelEntry : (Iterable<LabelEntry>) labelEntries) {
-            if (labelEntry.label().name().equals(label)) {
-                if (nodes==null) nodes = new ArrayList<>(100);
-                nodes.add(labelEntry.node());
+        if (value instanceof LabelEntry) {
+            for (LabelEntry labelEntry : (Iterable<LabelEntry>) entries) {
+                if (labelString == null || labelEntry.label().name().equals(labelString)) {
+                    if (nodes==null) nodes = new ArrayList<>(100);
+                    nodes.add(labelEntry.node());
+                }
             }
         }
-        return nodes;
+        if (value instanceof PropertyEntry) {
+            Set<Node> nodeSet = null;
+            Label label = labelString == null ? null : Label.label(labelString);
+            for (PropertyEntry<Node> entry : (Iterable<PropertyEntry<Node>>) entries) {
+                if (label == null || entry.entity().hasLabel(label)) {
+                    if (nodeSet==null) nodeSet = new HashSet<>(100);
+                    nodeSet.add(entry.entity());
+                }
+            }
+            if (nodeSet!=null && !nodeSet.isEmpty()) nodes = new SetBackedList<>(nodeSet);
+        }
+        return nodes == null ? Collections.emptyList() : nodes;
     }
 
     @UserFunction
