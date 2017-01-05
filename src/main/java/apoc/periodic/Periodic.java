@@ -143,14 +143,14 @@ public class Periodic {
     }
 
     @Procedure
-    @Description("apoc.periodic.schedule('name',statement,repeat-time-in-seconds) submit a repeatedly-called background statement")
+    @Description("apoc.periodic.repeat('name',statement,repeat-rate-in-seconds) submit a repeatedly-called background statement")
     public Stream<JobInfo> repeat(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
         JobInfo info = schedule(name, () -> Iterators.count(db.execute(statement)),0,rate);
         return Stream.of(info);
     }
 
     // TODO
-    @Description("apoc.periodic.countdown('name',statement,repeat-time-in-seconds) submit a repeatedly-called background statement until it returns 0")
+    @Description("apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) submit a repeatedly-called background statement until it returns 0")
     public Stream<JobInfo> countdown(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
         JobInfo info = submit(name, new Countdown(name, statement, rate));
         return Stream.of(info);
