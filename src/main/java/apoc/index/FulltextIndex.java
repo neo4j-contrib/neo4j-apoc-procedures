@@ -190,10 +190,10 @@ public class FulltextIndex {
         }
     }
 
-    // CALL apoc.index.addNode(joe, 'Person', ['name','age','city'])
+    // CALL apoc.index.addNodeByLabel('Person', joe, ['name','age','city'])
     @Procedure
     @PerformsWrites
-    @Description("apoc.index.addNodeByLabel(node,'Label',['prop1',...]) add node to an index for the given label")
+    @Description("apoc.index.addNodeByLabel('Label',node,['prop1',...]) add node to an index for the given label")
     public void addNodeByLabel(@Name("label") String label, @Name("node") Node node, @Name("properties") List<String> propKeys) {
         indexContainer(node, propKeys, getNodeIndex(label,FULL_TEXT));
     }

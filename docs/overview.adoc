@@ -77,7 +77,7 @@ NOTE: Please note that there are (case-sensitive) http://neo4j.com/docs/develope
 |===
 | apoc.index.addAllNodes('index-name',{label1:['prop1',...],...}) | add all nodes to this full text index with the given fields, additionally populates a 'search' index field with all of them in one place
 | apoc.index.addNode(node,['prop1',...]) | add node to an index for each label it has
-| apoc.index.addNodeByLabel(node,'Label',['prop1',...]) | add node to an index for the given label
+| apoc.index.addNodeByLabel('Label',node,['prop1',...]) | add node to an index for the given label
 | apoc.index.addRelationship(rel,['prop1',...]) | add relationship to an index for its type
 |===
 
