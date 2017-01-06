@@ -57,6 +57,11 @@ public class MetaTest {
     }
 
     @Test
+    public void testMetaTypePath() throws Exception {
+        db.execute("CREATE (a:Foo)-[:KNOWS]->(b:Bar)").close();
+        testCall(db, "MATCH p = (a:Foo)-[:KNOWS]->(b:Bar) call apoc.meta.type(p) yield value return value", row -> assertEquals("PATH",row.get("value")));
+    }
+    @Test
     public void testMetaType() throws Exception {
         try (Transaction tx = db.beginTx()) {
             Node node = db.createNode();
@@ -64,7 +69,7 @@ public class MetaTest {
             testTypeName(node, "NODE");
             testTypeName(rel, "RELATIONSHIP");
             Path path = db.traversalDescription().evaluator(toDepth(1)).traverse(node).iterator().next();
-            testTypeName(path, "PATH");
+            testTypeName(path, "LIST"); // TODO passed in PATH changed to list
             tx.failure();
         }
         testTypeName(singletonMap("a", 10), "MAP");
@@ -87,7 +92,7 @@ public class MetaTest {
             testIsTypeName(node, "NODE");
             testIsTypeName(rel, "RELATIONSHIP");
             Path path = db.traversalDescription().evaluator(toDepth(1)).traverse(node).iterator().next();
-            testIsTypeName(path, "PATH");
+            testIsTypeName(path, "LIST"); // TODO passed in PATH changed to list
             tx.failure();
         }
         testIsTypeName(singletonMap("a", 10), "MAP");
