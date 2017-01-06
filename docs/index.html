@@ -953,12 +953,24 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 <td class="tableblock halign-left valign-top"><p class="tableblock">add node to an index for each label it has</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addNodeByLabel(node,'Label',['prop1',&#8230;&#8203;])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addNodeByLabel('Label',node,['prop1',&#8230;&#8203;])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">add node to an index for the given label</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addNodeByName('name',node,['prop1',&#8230;&#8203;])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add node to an index for the given name</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addRelationship(rel,['prop1',&#8230;&#8203;])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">add relationship to an index for its type</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addRelationshipByName('name',rel,['prop1',&#8230;&#8203;])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add relationship to an index for the given name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.removeNodeByName('name',node) remove node from an index for the given name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name</p></td>
 </tr>
 </tbody>
 </table>
@@ -2106,6 +2118,10 @@ CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.co
 </colgroup>
 <tbody>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.fromNodes(label, property)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates map from nodes with this label grouped by property</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.fromPairs([[key,value],[key2,value2],&#8230;&#8203;])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates map from list with key-value pairs</p></td>
 </tr>
@@ -2931,12 +2947,24 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 <td class="tableblock halign-left valign-top"><p class="tableblock">add node to an index for each label it has</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addNodeByLabel(node,'Label',['prop1',&#8230;&#8203;])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addNodeByLabel('Label',node,['prop1',&#8230;&#8203;])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">add node to an index for the given label</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addNodeByName('name',node,['prop1',&#8230;&#8203;])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add node to an index for the given name</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addRelationship(rel,['prop1',&#8230;&#8203;])</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">add relationship to an index for its type</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addRelationshipByName('name',rel,['prop1',&#8230;&#8203;])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add relationship to an index for the given name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.removeNodeByName('name',node) remove node from an index for the given name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name</p></td>
 </tr>
 </tbody>
 </table>
@@ -4995,7 +5023,7 @@ return nodes, relationships, time</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="http://neo4j-contrib.github.io/neo4j-apoc-procedures/img/apoc.gephi.gif" alt="apoc.gephi" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/docs/img/apoc-gephi.gif" alt="apoc gephi" width="800">
 </div>
 </div>
 <div class="sect3">
@@ -5741,7 +5769,7 @@ RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2016-12-14 01:03:27 +01:00
+Last updated 2016-12-15 17:25:16 +01:00
 </div>
 </div>
 </body>

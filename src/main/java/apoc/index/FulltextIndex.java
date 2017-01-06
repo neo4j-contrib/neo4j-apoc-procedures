@@ -69,19 +69,19 @@ public class FulltextIndex {
 
     private Index<Node> getNodeIndex(@Name("name") String name, @Name("config") Map<String, String> config) {
         IndexManager mgr = db.index();
-        return mgr.existsForNodes(name) || config == null ? mgr.forNodes(name) : mgr.forNodes(name, config);
+        return config == null ? mgr.forNodes(name) : mgr.forNodes(name, config);
     }
 
     @Description("apoc.index.forRelationships('name',{config}) YIELD type,name,config - gets or creates relationship index")
     @Procedure @PerformsWrites
     public Stream<IndexInfo> forRelationships(@Name("name") String name, @Name("config") Map<String,String> config) {
-        Index<Relationship> index = getRelationshipIndex(name, config);
+        RelationshipIndex index = getRelationshipIndex(name, config);
         return Stream.of(new IndexInfo(RELATIONSHIP, name, db.index().getConfiguration(index)));
     }
 
-    private Index<Relationship> getRelationshipIndex(@Name("name") String name, @Name("config") Map<String, String> config) {
+    private RelationshipIndex getRelationshipIndex(@Name("name") String name, @Name("config") Map<String, String> config) {
         IndexManager mgr = db.index();
-        return mgr.existsForRelationships(name) || config == null ? mgr.forRelationships(name) : mgr.forRelationships(name, config);
+        return config == null ? mgr.forRelationships(name) : mgr.forRelationships(name, config);
     }
 
     @Description("apoc.index.remove('name') YIELD type,name,config - removes an manual index")
@@ -95,7 +95,7 @@ public class FulltextIndex {
             index.delete();
         }
         if (mgr.existsForRelationships(name)) {
-            Index<Relationship> index = mgr.forRelationships(name);
+            RelationshipIndex index = mgr.forRelationships(name);
             indexInfos.add(new IndexInfo(RELATIONSHIP, name, mgr.getConfiguration(index)));
             index.delete();
         }
@@ -198,12 +198,31 @@ public class FulltextIndex {
         indexContainer(node, propKeys, getNodeIndex(label,FULL_TEXT));
     }
 
+    // CALL apoc.index.addNodeByName('name', joe, ['name','age','city'])
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.index.addNodeByName('name',node,['prop1',...]) add node to an index for the given name")
+    public void addNodeByName(@Name("name") String name, @Name("node") Node node, @Name("properties") List<String> propKeys) {
+        Index<Node> index = getNodeIndex(name, null);
+        indexContainer(node, propKeys, index);
+    }
+
     // CALL apoc.index.addRelationship(checkin, ['on'])
     @Procedure
     @PerformsWrites
     @Description("apoc.index.addRelationship(rel,['prop1',...]) add relationship to an index for its type")
     public void addRelationship(@Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
-        indexContainer(rel, propKeys, getRelationshipIndex(rel.getType().name(),FULL_TEXT));
+        RelationshipIndex index = getRelationshipIndex(rel.getType().name(), FULL_TEXT);
+        indexContainer(rel, propKeys, index);
+    }
+
+    // CALL apoc.index.addRelationshipByName('name', checkin, ['on'])
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.index.addRelationshipByName('name',rel,['prop1',...]) add relationship to an index for the given name")
+    public void addRelationshipByName(@Name("name") String name, @Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
+        RelationshipIndex index = getRelationshipIndex(name, null);
+        indexContainer(rel, propKeys, index);
     }
 
     private <T extends PropertyContainer> void indexContainer(T pc, @Name("properties") List<String> propKeys, org.neo4j.graphdb.index.Index<T> index) {
@@ -214,6 +233,24 @@ public class FulltextIndex {
             index.remove(pc,key);
             index.add(pc, key, value);
         }
+    }
+
+    // CALL apoc.index.removeNodeByName('name', joe)
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.index.removeNodeByName('name',node) remove node from an index for the given name")
+    public void removeNodeByName(@Name("name") String name, @Name("node") Node node) {
+        Index<Node> index = getNodeIndex(name, null);
+        index.remove(node);
+    }
+
+    // CALL apoc.index.removeRelationshipByName('name', checkin)
+    @Procedure
+    @PerformsWrites
+    @Description("apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name")
+    public void removeRelationshipByName(@Name("name") String name, @Name("relationship") Relationship rel) {
+        RelationshipIndex index = getRelationshipIndex(name, null);
+        index.remove(rel);
     }
 
     /* WIP
