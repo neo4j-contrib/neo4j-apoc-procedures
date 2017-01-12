@@ -175,8 +175,9 @@ Any version to be released after 1.1.0 will use a different, consistent versioni
 [options=headers]
 |===
 |apoc version | neo4j version
-|3.1.0.3 | 3.1.0
-|3.0.4.2 | 3.0.4
+|3.1.0.3 | 3.1.0 (3.1.x)
+|3.0.8.4 | 3.0.8 (3.0.x)
+|3.0.4.3 | 3.0.4 (3.0.x)
 |1.1.0 | 3.0.0 - 3.0.3
 |1.0.0 | 3.0.0 - 3.0.3
 |===
