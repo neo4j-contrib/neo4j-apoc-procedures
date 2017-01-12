@@ -130,7 +130,7 @@ public class Algorithm implements AlgoIdGenerator {
 
         int totalRelationships = loader.totalRelationships;
         Chunks relationshipTargetChunks = new Chunks(totalRelationships);
-        Chunks relationshipWeightChunks =  weighted ? null : new Chunks(totalRelationships).withDefault(defaultWeight);
+        Chunks relationshipWeightChunks =  weighted ? new Chunks(totalRelationships).withDefault(defaultWeight) : null;
         int[] offsetTracker = loader.sourceChunkStartingIndex.mergeChunks();
         loader.transformRelData(relationshipTargetChunks,relationshipWeightChunks, offsetTracker);
         this.sourceDegreeData = loader.sourceDegreeData.mergeAllChunks(); // todo allow for only degree's of source nodes
