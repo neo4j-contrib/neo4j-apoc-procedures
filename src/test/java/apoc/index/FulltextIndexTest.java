@@ -137,14 +137,15 @@ public class FulltextIndexTest {
             tx.success();
         }
     }
+
     @Test
     public void testAddNodeToExistingIndex() throws Exception {
         db.execute("CALL apoc.index.forNodes({index},{type:'fulltext',to_lower_case:'true',analyzer:'org.apache.lucene.analysis.standard.StandardAnalyzer' })",map("index","std_index")).close();
-        db.execute("CREATE " + JOE_PATTERN + " WITH joe CALL apoc.index.addNodeByLabel({index},joe,['" + NAME + "']) RETURN *",map("index",PERSON)).close();
+        db.execute("CREATE " + JOE_PATTERN + " WITH joe CALL apoc.index.addNodeByName({index}, joe, ['" + NAME + "']) RETURN *",map("index","std_index")).close();
         try (Transaction tx = db.beginTx()) {
-            assertTrue(index.existsForNodes(PERSON));
-            assertEquals(JOE, index.forNodes(PERSON).query(NAME, "jo*").getSingle().getProperty(NAME));
-            assertNull(index.forNodes(PERSON).query(AGE, "42").getSingle());
+            assertTrue(index.existsForNodes("std_index"));
+            assertEquals(JOE, index.forNodes("std_index").query(NAME, "jo*").getSingle().getProperty(NAME));
+            assertNull(index.forNodes("std_index").query(AGE, "42").getSingle());
             tx.success();
         }
     }
@@ -159,6 +160,7 @@ public class FulltextIndexTest {
             tx.success();
         }
     }
+
     @Test
     public void testAddNodeByLabelMultipleProperties() throws Exception {
         testCall(db, "CREATE " + JOE_PATTERN + " WITH joe CALL apoc.index.addNodeByLabel('" + PERSON + "', joe, ['" + NAME + "','" + AGE + "']) RETURN *",(row) -> { });
@@ -175,6 +177,44 @@ public class FulltextIndexTest {
         testCall(db, "CREATE " + CHECKIN_PATTERN + " WITH checkin CALL apoc.index.addRelationship(checkin, ['on']) RETURN *",(row) -> { });
         try (Transaction tx = db.beginTx()) {
             Relationship rel = index.forRelationships(TYPE).query("on", MONTH + "-*").getSingle();
+            assertEquals(DATE, rel.getProperty("on"));
+            tx.success();
+        }
+    }
+
+    @Test
+    public void testAddRelationshipToExistingIndex() throws Exception {
+        db.execute("CALL apoc.index.forRelationships({index},{provider:'lucene',type:'fulltext',to_lower_case:'true'})",map("index","std_index")).close();
+        db.execute("CREATE " + CHECKIN_PATTERN + " WITH checkin CALL apoc.index.addRelationshipByName({index}, checkin, ['on']) RETURN *",map("index","std_index")).close();
+        try (Transaction tx = db.beginTx()) {
+            assertTrue(index.existsForRelationships("std_index"));
+            Relationship rel = index.forRelationships("std_index").query("on", MONTH + "-*").getSingle();
+            assertEquals(DATE, rel.getProperty("on"));
+            tx.success();
+        }
+    }
+
+    @Test
+    public void testRemoveNodeByName() throws Exception {
+        db.execute("CALL apoc.index.forNodes({index},{provider:'lucene',type:'fulltext',to_lower_case:'true'})",map("index","std_index")).close();
+        db.execute("CREATE " + JOE_PATTERN + " WITH joe CALL apoc.index.addNodeByName({index}, joe, ['" + NAME + "']) RETURN *",map("index","std_index")).close();
+        db.execute("MATCH " + JOE_PATTERN + " WITH joe CALL apoc.index.removeNodeByName({index}, joe) RETURN *",map("index","std_index")).close();
+        try (Transaction tx = db.beginTx()) {
+            assertTrue(index.existsForNodes("std_index"));
+            assertNull(index.forNodes("std_index").query(AGE, "jo*").getSingle());
+            tx.success();
+        }
+    }
+
+    @Test
+    public void testRemoveRelationshipByName() throws Exception {
+        db.execute("CALL apoc.index.forRelationships({index},{provider:'lucene',type:'fulltext',to_lower_case:'true'})",map("index","std_index")).close();
+        db.execute("CREATE " + CHECKIN_PATTERN + " WITH checkin CALL apoc.index.addRelationshipByName({index}, checkin, ['on']) RETURN *",map("index","std_index")).close();
+        db.execute("MATCH " + CHECKIN_PATTERN + " WITH checkin CALL apoc.index.removeRelationshipByName({index}, checkin) RETURN *",map("index","std_index")).close();
+        try (Transaction tx = db.beginTx()) {
+            assertTrue(index.existsForRelationships("std_index"));
+            // assertNull(index.forRelationships("std_index").query("on", MONTH + "-*").getSingle());
+            Relationship rel = index.forRelationships("std_index").query("on", MONTH + "-*").getSingle();
             assertEquals(DATE, rel.getProperty("on"));
             tx.success();
         }
