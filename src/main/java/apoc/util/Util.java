@@ -2,6 +2,7 @@ package apoc.util;
 
 import apoc.ApocConfiguration;
 import apoc.Pools;
+import apoc.export.util.*; // todo
 import apoc.path.RelationshipTypeAndDirections;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.*;
@@ -230,7 +231,7 @@ public class Util {
         return con;
     }
 
-    public static InputStream openInputStream(String url, Map<String, Object> headers, String payload) throws IOException {
+    public static CountingInputStream openInputStream(String url, Map<String, Object> headers, String payload) throws IOException {
         URLConnection con = openUrlConnection(url, headers);
         if (payload != null) {
             con.setDoOutput(true);
@@ -239,6 +240,7 @@ public class Util {
             writer.close();
         }
 
+		long size = con.getContentLengthLong();
         InputStream stream = con.getInputStream();
 
         String encoding = con.getContentEncoding();
@@ -248,7 +250,7 @@ public class Util {
         if ("deflate".equals(encoding)) {
             stream = new DeflaterInputStream(stream);
         }
-        return stream;
+        return new CountingInputStream(stream, size);
     }
 
     public static boolean toBoolean(Object value) {
