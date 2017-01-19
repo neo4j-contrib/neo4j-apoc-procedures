@@ -5,14 +5,16 @@ import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
-import static java.util.Arrays.asList;
+import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.*;
 
 /**
@@ -222,6 +224,20 @@ public class StringsTest {
         testCall(db, "CALL apoc.text.format(null,null) YIELD value RETURN value", row -> assertEquals(null, row.get("value")));
         testCall(db, "CALL apoc.text.format('ab',null) YIELD value RETURN value", row -> assertEquals("ab", row.get("value")));
         testCall(db, "CALL apoc.text.format('ab%s %d %.1f %s%n',['cd',42,3.14,true]) YIELD value RETURN value", row -> assertEquals("abcd 42 3.1 true\n", row.get("value")));
+    }
+
+    @Test
+    public void testRegexGroups() {
+        testResult(db, "RETURN apoc.text.regexGroups('abc <link xxx1>yyy1</link> def <link xxx2>yyy2</link>','<link (\\\\w+)>(\\\\w+)</link>') AS result",
+                result -> {
+                    final List<Object> r = Iterators.single(result.columnAs("result"));
+
+                    List<List<String>> expected = new ArrayList<>(Arrays.asList(
+                            new ArrayList<String>(Arrays.asList("<link xxx1>yyy1</link>", "xxx1", "yyy1")),
+                            new ArrayList<String>(Arrays.asList("<link xxx2>yyy2</link>", "xxx2", "yyy2"))
+                    ));
+                    assertTrue(r.containsAll(expected));
+                });
     }
 
 }

@@ -1,8 +1,6 @@
 package apoc.text;
 
 import org.neo4j.procedure.Description;
-import apoc.result.BooleanResult;
-import apoc.result.Empty;
 import apoc.result.StringResult;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -12,10 +10,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.Normalizer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -38,6 +34,24 @@ public class Strings {
         }
         return text.replaceAll(regex, replacement);
     }
+
+    @UserFunction
+    @Description("apoc.text.regexGroups(text, regex) - return all matching groups of the regex on the given text.")
+    public List<List<String>> regexGroups(final @Name("text") String text, final @Name("regex") String regex) {
+        final Pattern pattern = Pattern.compile(regex);
+        final Matcher matcher = pattern.matcher(text);
+
+        List<List<String>> result = new ArrayList<>();
+        while (matcher.find()) {
+            List<String> matchResult = new ArrayList<>();
+            for (int i=0;i<=matcher.groupCount(); i++) {
+                matchResult.add(matcher.group(i));
+            }
+            result.add(matchResult);
+        }
+        return result;
+    }
+
 
     @UserFunction
     @Description("apoc.text.join(['text1','text2',...], delimiter) - join the given strings with the given delimiter.")
