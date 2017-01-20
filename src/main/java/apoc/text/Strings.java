@@ -38,18 +38,22 @@ public class Strings {
     @UserFunction
     @Description("apoc.text.regexGroups(text, regex) - return all matching groups of the regex on the given text.")
     public List<List<String>> regexGroups(final @Name("text") String text, final @Name("regex") String regex) {
-        final Pattern pattern = Pattern.compile(regex);
-        final Matcher matcher = pattern.matcher(text);
+        if (text==null || regex==null) {
+            return Collections.EMPTY_LIST;
+        } else {
+            final Pattern pattern = Pattern.compile(regex);
+            final Matcher matcher = pattern.matcher(text);
 
-        List<List<String>> result = new ArrayList<>();
-        while (matcher.find()) {
-            List<String> matchResult = new ArrayList<>();
-            for (int i=0;i<=matcher.groupCount(); i++) {
-                matchResult.add(matcher.group(i));
+            List<List<String>> result = new ArrayList<>();
+            while (matcher.find()) {
+                List<String> matchResult = new ArrayList<>();
+                for (int i=0;i<=matcher.groupCount(); i++) {
+                    matchResult.add(matcher.group(i));
+                }
+                result.add(matchResult);
             }
-            result.add(matchResult);
+            return result;
         }
-        return result;
     }
 
 

@@ -240,4 +240,11 @@ public class StringsTest {
                 });
     }
 
+    @Test
+    public void testRegexGroupsForNPE() {
+        // throws no exception
+        testCall(db, "RETURN apoc.text.regexGroups(null,'<link (\\\\w+)>(\\\\w+)</link>') AS result", row -> { });
+        testCall(db, "RETURN apoc.text.regexGroups('abc',null) AS result", row -> { });
+    }
+
 }
