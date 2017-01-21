@@ -5484,14 +5484,21 @@ return nodes, relationships, time</code></pre>
 <p>Many existing (enterprise) applications, endpoints and files use XML as data exchange format.</p>
 </div>
 <div class="paragraph">
-<p>To make these datastructures available to Cypher, you can use <code>apoc.load.xml(Simple)</code>.
+<p>To make these datastructures available to Cypher, you can use <code>apoc.load.xml</code>.
 It takes a file or http URL and parses the XML into a map datastructure.</p>
 </div>
-<div class="paragraph">
-<p>While <code>apoc.load.xml</code> has a more verbose format, it keeps the ordering of elements.</p>
-</div>
-<div class="paragraph">
-<p>While <code>apoc.load.xmlSimple</code> provides a more compact representation that makes it easier to process.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+in previous releases we&#8217;ve had <code>apoc.load.xmlSimple</code>. This is now deprecated and got superseeded by
+<code>apoc.load.xml(url, true)</code>.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>See the following usage-examples for the procedures.</p>
@@ -5553,7 +5560,7 @@ If there is more than one element there will be a list of values.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xmlSimple("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml")</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml", true)</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -6057,7 +6064,7 @@ RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-01-23 16:38:09 +00:00
+Last updated 2017-01-25 13:14:42 +01:00
 </div>
 </div>
 </body>
