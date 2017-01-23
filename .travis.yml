@@ -4,8 +4,13 @@ jdk:
 install: echo "skip 'gradle assemble' step"
 env:
   global:
-    - GRADLE_OPTS="-Xms128m -Dorg.gradle.daemon=false"
-script: ./gradlew build --continue
+    - GRADLE_OPTS="-Xms256m -Dorg.gradle.daemon=false"
+script: ./gradlew --stacktrace build --continue
+# enable section below for travis debugging
+#after_failure:
+#  - tar -zcf /tmp/results.tar.gz build/reports/tests build/test-results
+#  - curl -F "file=@/tmp/results.tar.gz" https://file.io
+#  - dmesg | tail -50
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
