@@ -74,7 +74,12 @@ dependencies {
 test {
     systemProperties 'user.language': 'en', 'user.country': 'US'
     testLogging {
-        exceptionFormat = 'full'
+        events "failed"
+        exceptionFormat "short"
+    }
+    if (System.env.TRAVIS !=null) {
+        minHeapSize = "128m"
+        maxHeapSize = "512m"
     }
 }
 
