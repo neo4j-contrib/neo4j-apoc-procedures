@@ -718,6 +718,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 [cols="1m,5"]
 |===
 | apoc.text.replace(text, regex, replacement)| replace each substring of the given string that matches the given regular expression with the given replacement.
+| apoc.text.regexGroups(text, regex) | returns an array containing a nested array for each match. The inner array contains all match groups.
 | apoc.text.join(['text1','text2',...], delimiter) | join the given strings with the given delimiter.
 | apoc.text.format(text,[params]) | sprintf format the string with the params given
 | apoc.text.lpad(text,count,delim) | left pad the string to the given width

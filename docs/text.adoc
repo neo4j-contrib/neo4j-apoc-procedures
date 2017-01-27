@@ -12,6 +12,14 @@ Cleaning will strip the string of all non-alphanumeric characters (including spa
 CALL apoc.text.replace('Hello World!', '[^a-zA-Z]', '')
 ----
 
+[source,cypher]
+----
+RETURN apoc.text.regexGroups('abc <link xxx1>yyy1</link> def <link xxx2>yyy2</link>','<link (\\w+)>(\\w+)</link>') AS result
+result> [["<link xxx1>yyy1</link>", "xxx1", "yyy1"], ["<link xxx2>yyy2</link>", "xxx2", "yyy2"]]
+----
+
+
+
 .will return 'Hello World'
 [source,cypher]
 ----

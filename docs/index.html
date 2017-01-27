@@ -2373,6 +2373,10 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 <td class="tableblock halign-left valign-top"><p class="tableblock">replace each substring of the given string that matches the given regular expression with the given replacement.</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.regexGroups(text, regex)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns an array containing a nested array for each match. The inner array contains all match groups.</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.join(['text1','text2',&#8230;&#8203;], delimiter)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">join the given strings with the given delimiter.</p></td>
 </tr>
