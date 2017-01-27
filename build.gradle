@@ -36,7 +36,7 @@ archivesBaseName = 'apoc'
 description = """neo4j-apoc-procedures"""
 
 ext {
-    neo4jVersion = "3.1.0"
+    neo4jVersion = "3.1.1"
 }
 
 repositories {
