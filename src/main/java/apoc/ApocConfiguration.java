@@ -27,7 +27,7 @@ public class ApocConfiguration {
 
     public static void initialize(GraphDatabaseAPI db) {
         Static.clear();
-        Map<String, String> params = db.getDependencyResolver().resolveDependency(Config.class).getParams();
+        Map<String, String> params = db.getDependencyResolver().resolveDependency(Config.class).getRaw();
         apocConfig.clear();
         apocConfig.putAll(Util.subMap(params, PREFIX));
         PARAM_WHITELIST.forEach((k, v) -> apocConfig.put(v, params.get(k)) );

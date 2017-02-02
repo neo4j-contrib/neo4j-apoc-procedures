@@ -1,5 +1,6 @@
 package apoc.index;
 
+import org.neo4j.kernel.api.schema.index.IndexDescriptor;
 import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import apoc.result.NodeResult;
@@ -20,7 +21,6 @@ import org.neo4j.kernel.api.exceptions.index.IndexNotFoundKernelException;
 import org.neo4j.kernel.api.exceptions.schema.SchemaRuleNotFoundException;
 import org.neo4j.kernel.api.impl.schema.reader.SimpleIndexReader;
 import org.neo4j.kernel.api.impl.schema.reader.SortedIndexReader;
-import org.neo4j.kernel.api.index.IndexDescriptor;
 import org.neo4j.kernel.impl.api.KernelStatement;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
@@ -129,7 +129,8 @@ public class SchemaIndex {
         KernelStatement stmt = (KernelStatement) tx.acquireStatement();
         ReadOperations reads = stmt.readOperations();
 
-        IndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
+        NodePropertyDescriptor nodePropertyDescriptor = new NodePropertyDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
+        IndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(nodePropertyDescriptor);
         return stmt.getStoreStatement().getIndexReader(descriptor);
     }
 
@@ -144,7 +145,8 @@ public class SchemaIndex {
         KernelStatement stmt = (KernelStatement) tx.acquireStatement();
         ReadOperations reads = stmt.readOperations();
 
-        IndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
+        NodePropertyDescriptor nodePropertyDescriptor = new NodePropertyDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
+        IndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(nodePropertyDescriptor);
         SimpleIndexReader reader = (SimpleIndexReader) stmt.getStoreStatement().getIndexReader(descriptor);
         SortedIndexReader sortedIndexReader = new SortedIndexReader(reader, 0, Sort.INDEXORDER);
 

@@ -1,5 +1,7 @@
 package apoc.warmup;
 
+import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
+import org.neo4j.procedure.Description;
 import apoc.util.Util;
 import org.neo4j.cursor.Cursor;
 import org.neo4j.graphdb.Transaction;
@@ -35,18 +37,6 @@ public class Warmup {
     }
 
     public Warmup() {
-    }
-
-    private static void loadNode(long id, ReadOperations rOps) {
-        try (Cursor<NodeItem> c = rOps.nodeCursor(id)) {
-            c.next();
-        }
-    }
-
-    private static void loadRelationship(long id, ReadOperations rOps) {
-        try (Cursor<RelationshipItem> c = rOps.relationshipCursor(id)) {
-            c.next();
-        }
     }
 
     @Procedure
@@ -97,6 +87,22 @@ public class Warmup {
                 relsPerPage, relsTotal, relPages, NANOSECONDS.toSeconds(timeRels - timeNodes),
                 NANOSECONDS.toSeconds(timeRels - start));
         return Stream.of(result);
+    }
+
+    private static void loadNode(long id, ReadOperations rOps) {
+        try (Cursor<NodeItem> c = rOps.nodeCursorById(id)) {
+            c.next();
+        } catch (EntityNotFoundException e) {
+            // pass
+        }
+    }
+
+    private static void loadRelationship(long id, ReadOperations rOps) {
+        try (Cursor<RelationshipItem> c = rOps.relationshipCursorById(id)) {
+            c.next();
+        } catch (EntityNotFoundException e) {
+            // pass
+        }
     }
 
     public static class WarmupResult {
