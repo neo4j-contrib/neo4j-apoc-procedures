@@ -4,12 +4,11 @@
 
 Many existing (enterprise) applications, endpoints and files use XML as data exchange format.
 
-To make these datastructures available to Cypher, you can use `apoc.load.xml(Simple)`.
+To make these datastructures available to Cypher, you can use `apoc.load.xml`.
 It takes a file or http URL and parses the XML into a map datastructure.
 
-While `apoc.load.xml` has a more verbose format, it keeps the ordering of elements.
-
-While `apoc.load.xmlSimple` provides a more compact representation that makes it easier to process.
+NOTE: in previous releases we've had `apoc.load.xmlSimple`. This is now deprecated and got superseeded by
+`apoc.load.xml(url, true)`.
 
 See the following usage-examples for the procedures.
 
@@ -60,7 +59,7 @@ Here is the example file from above loaded with `apoc.load.xmlSimple`
 
 [source,cypher]
 ----
-call apoc.load.xmlSimple("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml")
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/books.xml", true)
 ----
 
 [source,javascript]

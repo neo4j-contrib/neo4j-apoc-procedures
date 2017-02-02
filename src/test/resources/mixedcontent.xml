@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <text>text0<mixed/> text1</text>
+    <text><![CDATA[
+        text as cdata
+    ]]></text>
+</root>
