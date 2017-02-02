@@ -1,6 +1,5 @@
 package apoc.schema;
 
-import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,7 +16,6 @@ import java.util.List;
 
 import static apoc.util.TestUtil.testCall;
 import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
 import static org.junit.Assert.*;
 
 /**
@@ -68,7 +66,7 @@ public class SchemasTest {
             ConstraintDefinition constraint = constraints.get(0);
             assertEquals(ConstraintType.UNIQUENESS, constraint.getConstraintType());
             assertEquals("Foo", constraint.getLabel().name());
-            assertEquals(singleton("bar"), constraint.getPropertyKeys());
+            assertEquals("bar", Iterables.single(constraint.getPropertyKeys()));
         }
     }
 

@@ -11,7 +11,7 @@ import org.neo4j.kernel.api.exceptions.ProcedureException;
 import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.api.proc.CallableProcedure;
 import org.neo4j.kernel.api.proc.Context;
-import org.neo4j.kernel.api.proc.Mode;
+import org.neo4j.procedure.Mode;
 import org.neo4j.kernel.api.proc.ProcedureSignature;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;

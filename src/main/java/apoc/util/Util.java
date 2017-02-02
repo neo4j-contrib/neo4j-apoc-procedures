@@ -21,7 +21,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.*;
 import java.util.stream.*;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
@@ -36,7 +35,7 @@ public class Util {
     public static final Label[] NO_LABELS = new Label[0];
     public static final String NODE_COUNT = "MATCH (n) RETURN count(*) as result";
     public static final String REL_COUNT = "MATCH ()-->() RETURN count(*) as result";
-    public static final String COMPILED = "compiledExperimentalFeatureNotSupportedForProductionUse";
+    public static final String COMPILED = "compiled";
 
 
     public static String labelString(Node n) {

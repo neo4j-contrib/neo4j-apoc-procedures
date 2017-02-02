@@ -1,14 +1,12 @@
 package apoc.util;
 
-import apoc.result.StringResult;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.graphdb.TransactionTerminatedException;
 import org.neo4j.procedure.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author mh
@@ -19,7 +17,7 @@ public class Utils {
     public GraphDatabaseService db;
 
     @Context
-    public KernelTransaction transaction;
+    public TerminationGuard terminationGuard;
 
     @UserFunction
     @Description("apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list")
@@ -40,8 +38,10 @@ public class Utils {
     public void sleep(@Name("duration") long duration) throws InterruptedException {
         long started = System.currentTimeMillis();
         while (System.currentTimeMillis()-started < duration) {
-            Thread.sleep(5);
-            if (transaction.getReasonIfTerminated()!=null) {
+            try {
+                Thread.sleep(5);
+                terminationGuard.check();
+            } catch (TransactionTerminatedException e) {
                 return;
             }
         }

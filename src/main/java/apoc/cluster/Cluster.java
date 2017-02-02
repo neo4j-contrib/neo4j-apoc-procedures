@@ -21,6 +21,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.helpers.AdvertisedSocketAddress;
+import org.neo4j.kernel.configuration.BoltConnector;
 import org.neo4j.kernel.configuration.Config;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
@@ -116,8 +117,7 @@ public class Cluster
     private Optional<String> getBoltConnector()
     {
         Config config = api.getDependencyResolver().resolveDependency( Config.class );
-        List<GraphDatabaseSettings.BoltConnector> boltConnectors = GraphDatabaseSettings.boltConnectors( config );
-        Optional<GraphDatabaseSettings.BoltConnector> boltConnector = boltConnectors.stream().findFirst();
+        final Optional<BoltConnector> boltConnector = config.enabledBoltConnectors().stream().findFirst();
         if ( boltConnector.isPresent() )
         {
             AdvertisedSocketAddress from = boltConnector.get().advertised_address.from( config );

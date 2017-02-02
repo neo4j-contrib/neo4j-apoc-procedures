@@ -246,7 +246,7 @@ public class CoreGraphAlgorithms {
         while (nodeIds.hasNext()) {
             long nodeId = nodeIds.next();
             if (labelId != -1) {
-                Cursor<NodeItem> c = ops.nodeCursor(nodeId);
+                Cursor<NodeItem> c = ops.nodeCursorById(nodeId);
                 if (!(c.next() && c.get().hasLabel(labelId))) continue;
             }
             degrees[mapId(nodeId)] = relType == ANY_RELATIONSHIP_TYPE ? ops.nodeGetDegree(nodeId, OUTGOING) : ops.nodeGetDegree(nodeId, OUTGOING, relType);
@@ -262,11 +262,11 @@ public class CoreGraphAlgorithms {
             long id = nodeIds.next();
             RelationshipIterator relIds = relType == ANY_RELATIONSHIP_TYPE ? ops.nodeGetRelationships(id, OUTGOING) : ops.nodeGetRelationships(id, OUTGOING, relType);
             while (relIds.hasNext()) {
-                Cursor<RelationshipItem> c = ops.relationshipCursor(relIds.next());
-                if (c.next()) {
+                Cursor<RelationshipItem> c = ops.relationshipCursorById(relIds.next());
+//                if (c.next()) {
                     rels[idx] = mapId(c.get().endNode());
                     count++;
-                }
+//                }
                 idx++;
             }
         }
@@ -446,7 +446,7 @@ public class CoreGraphAlgorithms {
         int idx = 0, count = 0;
         while (relIds.hasNext()) {
             long relId = relIds.next();
-            Cursor<RelationshipItem> c = ops.relationshipCursor(relId);
+            Cursor<RelationshipItem> c = ops.relationshipCursorById(relId);
             if (c.next()) {
                 if (relType == -1 || c.get().type() == relType) {
                     rels[idx] = mapId(c.get().endNode());

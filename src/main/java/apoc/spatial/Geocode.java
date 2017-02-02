@@ -1,16 +1,12 @@
 package apoc.spatial;
 
 import apoc.ApocConfiguration;
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -35,7 +31,7 @@ public class Geocode {
     public GraphDatabaseAPI graph;
 
     @Context
-    public KernelTransaction kernelTransaction;
+    public TerminationGuard terminationGuard;
 
     @Context
     public Log log;
@@ -45,14 +41,14 @@ public class Geocode {
     }
 
     private static class Throttler {
-        private final KernelTransaction kernelTransaction;
+        private final TerminationGuard terminationGuard;
         private long throttleInMs;
         private static long lastCallTime = 0L;
         private static long DEFAULT_THROTTLE = 5*1000;  // 5 seconds
         private static long MAX_THROTTLE = 60 * 60 * 1000;  // 1 hour
 
-        public Throttler(KernelTransaction kernelTransaction, long throttle) {
-            this.kernelTransaction = kernelTransaction;
+        public Throttler(TerminationGuard terminationGuard, long throttle) {
+            this.terminationGuard = terminationGuard;
 
             throttle = Math.min(throttle, MAX_THROTTLE);
             if (throttle < 0) throttle = DEFAULT_THROTTLE;
@@ -64,7 +60,7 @@ public class Geocode {
             long msSinceLastCall = currentTimeMillis() - lastCallTime;
             while (msSinceLastCall < throttleInMs) {
                 try {
-                    if (kernelTransaction.getReasonIfTerminated()!=null) return;
+                    terminationGuard.check();
                     long msToWait = throttleInMs - msSinceLastCall;
                     Thread.sleep(Math.min(msToWait, 1000));
                 } catch (InterruptedException e) {
@@ -84,7 +80,7 @@ public class Geocode {
         private String configBase;
         private String urlTemplate;
 
-        public SupplierWithKey(Map<String, Object> config, KernelTransaction kernelTransaction, String provider) {
+        public SupplierWithKey(Map<String, Object> config, TerminationGuard terminationGuard, String provider) {
             this.configBase = provider;
 
             if (!config.containsKey(configKey("url"))) {
@@ -99,7 +95,7 @@ public class Geocode {
             String key = config.get(configKey("key")).toString();
             urlTemplate = urlTemplate.replace("KEY", key);
 
-            this.throttler = new Throttler(kernelTransaction, toLong(ApocConfiguration.get(configKey("throttle"), Throttler.DEFAULT_THROTTLE)));
+            this.throttler = new Throttler(terminationGuard, toLong(ApocConfiguration.get(configKey("throttle"), Throttler.DEFAULT_THROTTLE)));
         }
 
         @SuppressWarnings("unchecked")
@@ -151,8 +147,8 @@ public class Geocode {
         public static final String OSM_URL = "http://nominatim.openstreetmap.org/search.php?format=json&q=";
         private Throttler throttler;
 
-        public OSMSupplier(Map<String, Object> config,KernelTransaction kernelTransaction) {
-            this.throttler = new Throttler(kernelTransaction, toLong(config.getOrDefault("osm.throttle", Throttler.DEFAULT_THROTTLE)));
+        public OSMSupplier(Map<String, Object> config, TerminationGuard terminationGuard) {
+            this.throttler = new Throttler(terminationGuard, toLong(config.getOrDefault("osm.throttle", Throttler.DEFAULT_THROTTLE)));
         }
 
         @SuppressWarnings("unchecked")
@@ -171,8 +167,8 @@ public class Geocode {
         private final Throttler throttler;
         private String baseUrl;
 
-        public GoogleSupplier(Map<String, Object> config, KernelTransaction kernelTransaction) {
-            this.throttler = new Throttler(kernelTransaction, toLong(config.getOrDefault("google.throttle", Throttler.DEFAULT_THROTTLE)));
+        public GoogleSupplier(Map<String, Object> config, TerminationGuard terminationGuard) {
+            this.throttler = new Throttler(terminationGuard, toLong(config.getOrDefault("google.throttle", Throttler.DEFAULT_THROTTLE)));
             this.baseUrl = String.format("https://maps.googleapis.com/maps/api/geocode/json?%s&address=", credentials(config));
         }
 
@@ -211,12 +207,12 @@ public class Geocode {
         if (activeConfig.containsKey(GEOCODE_PROVIDER_KEY)) {
             String supplier = activeConfig.get(GEOCODE_PROVIDER_KEY).toString().toLowerCase();
             switch (supplier) {
-                case "google" : return new GoogleSupplier(activeConfig, kernelTransaction);
-                case "osm" : return new OSMSupplier(activeConfig,kernelTransaction);
-                default: return new SupplierWithKey(activeConfig, kernelTransaction, supplier);
+                case "google" : return new GoogleSupplier(activeConfig, terminationGuard);
+                case "osm" : return new OSMSupplier(activeConfig,terminationGuard);
+                default: return new SupplierWithKey(activeConfig, terminationGuard, supplier);
             }
         }
-        return new OSMSupplier(activeConfig,kernelTransaction);
+        return new OSMSupplier(activeConfig, terminationGuard);
     }
 
     @Procedure
