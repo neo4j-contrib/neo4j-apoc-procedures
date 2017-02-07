@@ -41,6 +41,19 @@ http://matrix.wikia.com/wiki/Apoc[Apoc] was the technician and driver on board o
 Go to http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.0.8.4
 to find the latest release and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
 
+=== using APOC with Neo4j Docker image
+
+The https://hub.docker.com/_/neo4j/[Neo4j Docker image] allows to supply a volume for the `/plugins` folder. Download the APOC release fitting your Neo4j version to local folder `plugins` and provide it as a data volume:
+
+[source,bash]
+----
+mkdir plugins
+pushd plugins
+wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.1.0.3/apoc-3.1.0.3-all.jar
+popd
+docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.1.1
+----
+
 // end::intro-text[]
 // tag::build[]
 
