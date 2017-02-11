@@ -313,7 +313,7 @@ public class Cypher {
 
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with the given parameters")
-    public Stream<MapResult> doit(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
+    public Stream<MapResult> doIt(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         if (params == null) params = Collections.emptyMap();
         return db.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
     }
