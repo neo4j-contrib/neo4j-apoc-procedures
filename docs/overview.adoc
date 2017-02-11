@@ -47,7 +47,7 @@ RETURN head(split(name,".")) as package, count(*), collect(name) as procedures;
 
 Set these config options in `$NEO4J_HOME/neo4j.conf`
 
-All boolean options default to false, i.e. are disabled, unless mentioned otherwise.
+All boolean options default to **false**, i.e. they are disabled, unless mentioned otherwise.
 
 [cols="1m,5"]
 |===
