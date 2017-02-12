@@ -1,0 +1,6 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.monitor.ids()","apoc.monitor.ids() returns the object ids in use for this neo4j instance","DEFAULT","apoc.monitor.Ids","N/A"
+"apoc.monitor.kernel()","apoc.monitor.kernel() returns informations about the neo4j kernel","DEFAULT","apoc.monitor.Kernel","N/A"
+"apoc.monitor.locks(Long minWaitTime)","apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLockCount, minimumWaitTimeMs, contendedLocks, info","DEFAULT","apoc.monitor.Locks","N/A"
+"apoc.monitor.store()","apoc.monitor.store() returns informations about the sizes of the different parts of the neo4j graph store","DEFAULT","apoc.monitor.Store","N/A"
+"apoc.monitor.tx()","apoc.monitor.tx() returns informations about the neo4j transaction manager","DEFAULT","apoc.monitor.Transaction","N/A"

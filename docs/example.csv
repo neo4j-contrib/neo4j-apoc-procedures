@@ -1,0 +1,2 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.example.movies()","apoc.example.movies() | Creates the sample movies graph","WRITE","apoc.example.Examples","N/A"

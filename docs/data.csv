@@ -1,0 +1,2 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.data.domain(String url_or_email_address)","apoc.data.domain('url_or_email_address') YIELD domain - extract the domain name from a url or an email address. If nothing was found, yield null.","N/A","apoc.data.Extract","N/A"

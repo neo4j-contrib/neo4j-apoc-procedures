@@ -1,0 +1,7 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.nodes.link(java.util.List<org.neo4j.graphdb.Node> nodes,String type)","apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last","WRITE","apoc.nodes.Nodes","N/A"
+"apoc.nodes.get(Object nodes)","apoc.nodes.get(node|nodes|id|[ids]) - quickly returns all nodes with these id's","DEFAULT","apoc.nodes.Nodes","N/A"
+"apoc.nodes.delete(Object nodes,long batchSize)","apoc.nodes.delete(node|nodes|id|[ids]) - quickly delete all nodes with these id's","PERFORMS_WRITE","apoc.nodes.Nodes","N/A"
+"apoc.nodes.rels(Object relationships)","apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these id's","DEFAULT","apoc.nodes.Nodes","N/A"
+"apoc.node.relationship.exists(org.neo4j.graphdb.Node node,String types)","apoc.node.relationship.exists(node, rel-direction-pattern) - yields true effectively when the node has the relationships of the pattern","N/A","apoc.nodes.Nodes","N/A"
+"apoc.nodes.isDense(org.neo4j.graphdb.Node node)","apoc.nodes.isDense(node) - returns true if it is a dense node","N/A","apoc.nodes.Nodes","N/A"

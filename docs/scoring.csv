@@ -1,0 +1,3 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.scoring.existence(long score,boolean exists)","apoc.scoring.existence(5, true) returns the provided score if true, 0 if false","N/A","apoc.scoring.Scoring","N/A"
+"apoc.scoring.pareto(long minimumThreshold,long eightyPercentValue,long maximumValue,long score)","apoc.scoring.pareto(10, 20, 100, 11) applies a Pareto scoring function over the inputs","N/A","apoc.scoring.Scoring","N/A"

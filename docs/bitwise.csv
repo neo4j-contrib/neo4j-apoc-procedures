@@ -1,0 +1,2 @@
+"name","description","execution mode","location","deprecated by"
+"apoc.bitwise.op(Long a,String operator,Long b)","apoc.bitwise.op(60,'|',13) bitwise operations a & b, a | b, a ^ b, ~a, a >> b, a >>> b, a << b. returns the result of the bitwise operation","DEFAULT","apoc.bitwise.BitwiseOperations","N/A"
