@@ -44,14 +44,14 @@ public class PathExplorer {
 	@Description("apoc.path.expandConfig(startNode <id>|Node|list, {minLevel,maxLevel,uniqueness,relationshipFilter,labelFilter,uniqueness:'RELATIONSHIP_PATH',bfs:true}) yield path expand from start node following the given relationships from min to max-level adhering to the label filters")
 	public Stream<PathResult> expandConfig(@Name("start") Object start, @Name("config") Map<String,Object> config) throws Exception {
 		List<Node> nodes = startToNodes(start);
-	
+
 		String uniqueness = (String) config.getOrDefault("uniqueness", UNIQUENESS.name());
 		String relationshipFilter = (String) config.getOrDefault("relationshipFilter", null);
 		String labelFilter = (String) config.getOrDefault("labelFilter", null);
 		long minLevel = Util.toLong(config.getOrDefault("minLevel", "-1"));
 		long maxLevel = Util.toLong(config.getOrDefault("maxLevel", "-1"));
 		boolean bfs = Util.toBoolean(config.getOrDefault("bfs",true));
-		
+
 		return explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness));
 	}
 	
@@ -64,7 +64,7 @@ public class PathExplorer {
 		
 		return expandConfig(start, configMap).map( pathResult -> {return new NodeResult(pathResult.path.endNode());} );
 	}
-	
+
 	private Uniqueness getUniqueness(String uniqueness) {
 		for (Uniqueness u : Uniqueness.values()) {
 			if (u.name().equalsIgnoreCase(uniqueness)) return u;
@@ -101,7 +101,7 @@ public class PathExplorer {
 		}
 		throw new Exception("Unsupported data type for start parameter a Node or an Identifier (long) of a Node must be given!");
 	}
-	
+
 	private Stream<PathResult> explorePathPrivate(Iterable<Node> startNodes
 			, String pathFilter
 			, String labelFilter
