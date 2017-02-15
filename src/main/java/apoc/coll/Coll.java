@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Coll {
 
@@ -260,5 +261,49 @@ public class Coll {
         list.addAll(second);
         return Stream.of(new ListResult(list));
     }
+    
+    @Procedure
+    @Description("apoc.coll.shuffle(coll) - returns the shuffled list")
+    public Stream<ListResult> shuffle(@Name("coll") List<Object> coll) {
+		List<Object> shuffledList = new ArrayList<>(coll);
+		Collections.shuffle(shuffledList);
+		return Stream.of(new ListResult(shuffledList));
+    }
+	
+	    
+    @Procedure
+    @Description("apoc.coll.randomItem(coll)- returns a random item from the list, or null on an empty or null list")
+    public Stream<ObjectResult> randomItem(@Name("coll") List<Object> coll) {
+		if (coll == null || coll.isEmpty()) {
+			return Stream.of(new ObjectResult(null));
+		}
+	
+		Object value = coll.get(ThreadLocalRandom.current().nextInt(coll.size()));
+        return Stream.of(new ObjectResult(value));
+    }
+    
+    @Procedure
+    @Description("apoc.coll.randomItems(coll, itemCount, allowRepick) - returns a list of itemCount random items from the original list, optionally allowing picked elements to be picked again")
+    public Stream<ListResult> randomItems(@Name("coll") List<Object> coll, @Name("itemCount") long itemCount, @Name("allowRepick") boolean allowRepick) {
+		if (coll == null || coll.isEmpty() || itemCount <= 0) {
+			return Stream.of(new ListResult(Collections.emptyList()));
+		}
+		
+		List<Object> pickList = new ArrayList<>(coll);
+		List<Object> randomItems = new ArrayList<>();
+		Random random = ThreadLocalRandom.current();
+		
+		if (!allowRepick && itemCount >= coll.size()) {
+			Collections.shuffle(pickList);
+			return Stream.of(new ListResult(pickList));
+		}
+		
+		while (randomItems.size() < itemCount) {
+			Object item = allowRepick ? pickList.get(random.nextInt(pickList.size()))
+									  : pickList.remove(random.nextInt(pickList.size()));
+			randomItems.add(item);
+		}
 
+        return Stream.of(new ListResult(randomItems));
+    }
 }
