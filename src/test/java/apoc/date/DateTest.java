@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -291,6 +292,33 @@ public class DateTest {
 	@Test
 	public void testGetTimezone() throws Exception {
 		testCall(db, "RETURN apoc.date.systemTimezone() as tz", row -> assertEquals(TimeZone.getDefault().getID(), row.get("tz").toString()));
+	}
+
+	@Test
+	public void testConvert() throws Exception {
+		Long firstOf2017ms = 1483228800000l;
+		Long firstOf2017d = 17167l;
+		Map<String, Object> params = new HashMap<>();
+		params.put("firstOf2017ms", firstOf2017ms);
+		testCall(db, "RETURN apoc.date.convert($firstOf2017ms, 'ms', 'd') as firstOf2017days", params, row -> assertEquals(firstOf2017d, row.get("firstOf2017days")));
+	}
+
+	@Test
+	public void testAdd() throws Exception {
+		Long firstOf2017ms = 1483228800000l;
+		Long firstOf2017Plus5Daysms = 1483660800000l;
+		Map<String, Object> params = new HashMap<>();
+		params.put("firstOf2017ms", firstOf2017ms);
+		testCall(db, "RETURN apoc.date.add($firstOf2017ms, 'ms', 5, 'd') as firstOf2017Plus5days", params, row -> assertEquals(firstOf2017Plus5Daysms, row.get("firstOf2017Plus5days")));
+	}
+
+	@Test
+	public void testAddNegative() throws Exception {
+		Long firstOf2017ms = 1483228800000l;
+		Long firstOf2017Minus5Daysms = 1482796800000l;
+		Map<String, Object> params = new HashMap<>();
+		params.put("firstOf2017ms", firstOf2017ms);
+		testCall(db, "RETURN apoc.date.add($firstOf2017ms, 'ms', -5, 'd') as firstOf2017Minus5days", params, row -> assertEquals(firstOf2017Minus5Daysms, row.get("firstOf2017Minus5days")));
 	}
 
 	private SimpleDateFormat formatInUtcZone(final String pattern) {
