@@ -137,13 +137,13 @@ public class Date {
 	}
 
 	@UserFunction
-	@Description("apoc.date.convert(12345,'ms|s|m|h|d','ms|s|m|h|d') convert a time unit into a different time unit")
+	@Description("apoc.date.convert(12345, 'ms', 'd') convert a timestamp in one time unit into one of a different time unit")
 	public Long convert(@Name("time") long time, @Name(value = "unit") String unit, @Name(value = "toUnit") String toUnit) {
 		return unit(toUnit).convert(time, unit(unit));
 	}
 
 	@UserFunction
-	@Description("apoc.date.add(12345,'ms|s|m|h|d', 54321, 'ms|s|m|h|d') adds a value of the specified time unit to the original value, outputing in the original value's time unit")
+	@Description("apoc.date.add(12345, 'ms', -365, 'd') given a timestamp in one time unit, adds a value of the specified time unit")
 	public Long add(@Name("time") long time, @Name(value = "unit") String unit, @Name(value = "addValue") long addValue, @Name(value = "addUnit") String addUnit) {
 		long valueToAdd = unit(unit).convert(addValue, unit(addUnit));
 		return time + valueToAdd;

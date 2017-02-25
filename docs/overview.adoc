@@ -805,6 +805,18 @@ Optionally set `apoc.ttl.schedule=5` as repeat frequency.
 * possible unit values: `ms,s,m,h,d` and their long forms `millis,milliseconds,seconds,minutes,hours,days`.
 * possible time zone values: Either an abbreviation such as `PST`, a full name such as `America/Los_Angeles`, or a custom ID such as `GMT-8:00`. Full names are recommended. You can view a list of full names in https://en.wikipedia.org/wiki/List_of_tz_database_time_zones[this Wikipedia page].
 
+=== Conversion of timestamps between different time units
+
+* `apoc.date.convert(12345, 'ms', 'd')` convert a timestamp in one time unit into one of a different time unit
+
+* possible unit values: `ms,s,m,h,d` and their long forms.
+
+=== Adding/subtracting time unit values to timestamps
+
+* `apoc.date.add(12345, 'ms', -365, 'd')` given a timestamp in one time unit, adds a value of the specified time unit
+
+* possible unit values: `ms,s,m,h,d` and their long forms.
+
 === Reading separate datetime fields
 
 Splits date (optionally, using given custom format) into fields returning a map from field name to its value.
