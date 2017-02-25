@@ -19,6 +19,7 @@ import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.neo4j.helpers.collection.Iterables.asSet;
 
 public class CollTest {
@@ -209,5 +210,139 @@ public class CollTest {
         testCall(db,"RETURN apoc.coll.unionAll([1,2],[3,2]) AS value", r -> assertEquals(asList(1L,2L,3L,2L),r.get("value")));
         testCall(db,"RETURN apoc.coll.removeAll([1,2],[3,2]) AS value", r -> assertEquals(asList(1L),r.get("value")));
 
+    }
+
+    @Test
+    public void testShuffle() throws Exception {
+        // with 10k elements, very remote chance of randomly getting same order
+        int elements = 10_000;
+        ArrayList<Long> original = new ArrayList<>(elements);
+        for (long i = 0; i< elements; i++) {
+            original.add(i);
+        }
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("list", original);
+
+        testCall(db, "RETURN apoc.coll.shuffle({list}) as value", params,
+                (row) -> {
+                    List<Object> result = (List<Object>) row.get("value");
+                    assertEquals(original.size(), result.size());
+                    assertTrue(original.containsAll(result));
+                    assertFalse(original.equals(result));
+                });
+    }
+
+    @Test
+    public void testRandomItemOnNullAndEmptyList() throws Exception {
+        testCall(db, "RETURN apoc.coll.randomItem([]) as value",
+                (row) -> {
+                    Object result = row.get("value");
+                    assertEquals(null, result);
+                });
+
+        testCall(db, "RETURN apoc.coll.randomItem(null) as value",
+                (row) -> {
+                    Object result = row.get("value");
+                    assertEquals(null, result);
+                });
+    }
+
+    @Test
+    public void testRandomItem() throws Exception {
+        testCall(db, "RETURN apoc.coll.randomItem([1,2,3,4,5]) as value",
+                (row) -> {
+                    Long result = (Long) row.get("value");
+                    assertTrue(result >= 1 && result <= 5);
+                });
+    }
+
+    @Test
+    public void testRandomItemsOnNullAndEmptyList() throws Exception {
+        testCall(db, "RETURN apoc.coll.randomItems([], 5) as value",
+                (row) -> {
+                    List<Object> result = (List<Object>) row.get("value");
+                    assertTrue(result.isEmpty());
+                });
+
+        testCall(db, "RETURN apoc.coll.randomItems(null, 5) as value",
+                (row) -> {
+                    List<Object> result = (List<Object>) row.get("value");
+                    assertTrue(result.isEmpty());
+                });
+
+        testCall(db, "RETURN apoc.coll.randomItems([], 5, true) as value",
+                (row) -> {
+                    List<Object> result = (List<Object>) row.get("value");
+                    assertTrue(result.isEmpty());
+                });
+
+        testCall(db, "RETURN apoc.coll.randomItems(null, 5, true) as value",
+                (row) -> {
+                    List<Object> result = (List<Object>) row.get("value");
+                    assertTrue(result.isEmpty());
+                });
+    }
+
+    @Test
+    public void testRandomItems() throws Exception {
+        // with 100k elements, very remote chance of randomly getting same order
+        int elements = 100_000;
+        ArrayList<Long> original = new ArrayList<>(elements);
+        for (long i = 0; i< elements; i++) {
+            original.add(i);
+        }
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("list", original);
+
+        testCall(db, "RETURN apoc.coll.randomItems({list}, 5000) as value", params,
+                (row) -> {
+                    List<Object> result = (List<Object>) row.get("value");
+                    assertEquals(result.size(), 5000);
+                    assertTrue(original.containsAll(result));
+                    assertFalse(result.equals(original.subList(0, 5000)));
+                });
+    }
+
+    @Test
+    public void testRandomItemsLargerThanOriginal() throws Exception {
+        // with 10k elements, very remote chance of randomly getting same order
+        int elements = 10_000;
+        ArrayList<Long> original = new ArrayList<>(elements);
+        for (long i = 0; i< elements; i++) {
+            original.add(i);
+        }
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("list", original);
+
+        testCall(db, "RETURN apoc.coll.randomItems({list}, 20000) as value", params,
+                (row) -> {
+                    List<Object> result = (List<Object>) row.get("value");
+                    assertEquals(result.size(), 10000);
+                    assertTrue(original.containsAll(result));
+                    assertFalse(result.equals(original));
+                });
+    }
+
+    @Test
+    public void testRandomItemsLargerThanOriginalAllowingRepick() throws Exception {
+        // with 100k elements, very remote chance of randomly getting same order
+        int elements = 100_000;
+        ArrayList<Long> original = new ArrayList<>(elements);
+        for (long i = 0; i< elements; i++) {
+            original.add(i);
+        }
+
+        Map<String, Object> params = new HashMap<>();
+        params.put("list", original);
+
+        testCall(db, "RETURN apoc.coll.randomItems({list}, 11000, true) as value", params,
+                (row) -> {
+                    List<Object> result = (List<Object>) row.get("value");
+                    assertEquals(result.size(), 11000);
+                    assertTrue(original.containsAll(result));
+                });
     }
 }
