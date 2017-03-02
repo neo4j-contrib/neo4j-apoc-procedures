@@ -1,7 +1,8 @@
 package apoc.index;
 
-import org.neo4j.kernel.api.schema.IndexDescriptor;
+import org.neo4j.graphdb.*;
 import org.neo4j.kernel.api.schema.NodePropertyDescriptor;
+import org.neo4j.kernel.api.schema_new.index.NewIndexDescriptor;
 import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import apoc.result.NodeResult;
@@ -12,10 +13,6 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.Sort;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.exceptions.index.IndexNotFoundKernelException;
@@ -40,7 +37,7 @@ import java.util.stream.Stream;
 public class SchemaIndex {
 
     @Context
-    public GraphDatabaseAPI db;
+    public GraphDatabaseService db;
     @Context
     public KernelTransaction tx;
 
@@ -131,7 +128,7 @@ public class SchemaIndex {
         ReadOperations reads = stmt.readOperations();
 
         NodePropertyDescriptor nodePropertyDescriptor = new NodePropertyDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
-        IndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(nodePropertyDescriptor);
+        NewIndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(nodePropertyDescriptor);
         return stmt.getStoreStatement().getIndexReader(descriptor);
     }
 
@@ -147,7 +144,7 @@ public class SchemaIndex {
         ReadOperations reads = stmt.readOperations();
 
         NodePropertyDescriptor nodePropertyDescriptor = new NodePropertyDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
-        IndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(nodePropertyDescriptor);
+        NewIndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(nodePropertyDescriptor);
         SimpleIndexReader reader = (SimpleIndexReader) stmt.getStoreStatement().getIndexReader(descriptor);
         SortedIndexReader sortedIndexReader = new SortedIndexReader(reader, 0, Sort.INDEXORDER);
 

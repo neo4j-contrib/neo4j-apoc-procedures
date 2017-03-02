@@ -4,7 +4,7 @@ import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.result.MapResult;
 import apoc.util.Util;
-import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.api.security.SecurityContext;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Procedure;
 
@@ -27,19 +27,19 @@ public class Config {
     }
 
     @Context
-    public KernelTransaction tx;
+    public SecurityContext securityContext;
 
     @Description("apoc.config.list | Lists the Neo4j configuration as key,value table")
     @Procedure
     public Stream<ConfigResult> list() {
-        Util.checkAdmin(tx, "apoc.config.list");
+        Util.checkAdmin(securityContext, "apoc.config.list");
         return ApocConfiguration.list().entrySet().stream().map(e -> new ConfigResult(e.getKey(), e.getValue()));
     }
 
     @Description("apoc.config.map | Lists the Neo4j configuration as map")
     @Procedure
     public Stream<MapResult> map() {
-        Util.checkAdmin(tx, "apoc.config.map");
+        Util.checkAdmin(securityContext, "apoc.config.map");
         return Stream.of(new MapResult(ApocConfiguration.list()));
     }
 }

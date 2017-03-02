@@ -8,8 +8,7 @@ import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
-import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.kernel.api.security.SecurityContext;
 import org.neo4j.logging.Log;
 
 import java.io.*;
@@ -156,7 +155,7 @@ public class Util {
         return relationshipTypes.toArray(new RelationshipType[relationshipTypes.size()]);
     }
 
-    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseAPI db, Callable<T> callable) {
+    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseService db, Callable<T> callable) {
         try {
             return pool.submit(() -> {
                 try (Transaction tx = db.beginTx()) {
@@ -169,7 +168,7 @@ public class Util {
             throw new RuntimeException("Error executing in separate transaction", e);
         }
     }
-    public static <T> T inTx(GraphDatabaseAPI db, Callable<T> callable) {
+    public static <T> T inTx(GraphDatabaseService db, Callable<T> callable) {
         try {
             return inTxFuture(Pools.DEFAULT, db, callable).get();
         } catch (RuntimeException e) {
@@ -437,8 +436,8 @@ public class Util {
         }
     }
 
-    public static void checkAdmin(KernelTransaction tx, String procedureName) {
-        if (!tx.securityContext().isAdmin()) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
+    public static void checkAdmin(SecurityContext securityContext, String procedureName) {
+        if (!securityContext.isAdmin()) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
     }
 
     public static void sleep(int millis) {
