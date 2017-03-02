@@ -9,7 +9,6 @@ import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -25,8 +24,6 @@ public class Meta {
 
     @Context
     public GraphDatabaseService db;
-    @Context
-    public GraphDatabaseAPI api;
 
     @Context
     public KernelTransaction kernelTx;

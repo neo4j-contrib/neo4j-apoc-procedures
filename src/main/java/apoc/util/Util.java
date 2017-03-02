@@ -12,6 +12,7 @@ import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.kernel.api.security.SecurityContext;
 import org.neo4j.logging.Log;
 
 import java.io.*;
@@ -23,6 +24,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.*;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
@@ -158,7 +160,7 @@ public class Util {
         return relationshipTypes.toArray(new RelationshipType[relationshipTypes.size()]);
     }
 
-    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseAPI db, Callable<T> callable) {
+    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseService db, Callable<T> callable) {
         try {
             return pool.submit(() -> {
                 try (Transaction tx = db.beginTx()) {
@@ -171,7 +173,7 @@ public class Util {
             throw new RuntimeException("Error executing in separate transaction", e);
         }
     }
-    public static <T> T inTx(GraphDatabaseAPI db, Callable<T> callable) {
+    public static <T> T inTx(GraphDatabaseService db, Callable<T> callable) {
         try {
             return inTxFuture(Pools.DEFAULT, db, callable).get();
         } catch (RuntimeException e) {
@@ -463,8 +465,8 @@ public class Util {
         }
     }
 
-    public static void checkAdmin(KernelTransaction tx, String procedureName) {
-        if (!tx.securityContext().isAdmin()) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
+    public static void checkAdmin(SecurityContext securityContext, String procedureName) {
+        if (!securityContext.isAdmin()) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
     }
 
     public static void sleep(int millis) {
@@ -517,11 +519,8 @@ public class Util {
                 .resolveDependency(ThreadToStatementContextBridge.class)
                 .getKernelTransactionBoundToThisThread(true);
 
-        Status reason = ktx.getReasonIfTerminated();
-        if (reason != null) {
-            return true;
-        }
+        Optional<Status> reason = ktx.getReasonIfTerminated();
+        return reason.isPresent();
 
-        return false;
     }
 }

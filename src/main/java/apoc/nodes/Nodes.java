@@ -26,7 +26,6 @@ import static apoc.util.Util.map;
 public class Nodes {
 
     @Context public GraphDatabaseService db;
-    @Context public GraphDatabaseAPI api;
     @Context public KernelTransaction ktx;
 
     public Nodes(GraphDatabaseService db) {
@@ -66,7 +65,7 @@ public class Nodes {
         while (it.hasNext()) {
             final List<Node> batch = Util.take(it, (int)batchSize);
 //            count += Util.inTx(api,() -> batch.stream().peek( n -> {n.getRelationships().forEach(Relationship::delete);n.delete();}).count());
-             count += Util.inTx(api,() -> {api.execute("FOREACH (n in {nodes} | DETACH DELETE n)",map("nodes",batch)).close();return batch.size();});
+             count += Util.inTx(db,() -> {db.execute("FOREACH (n in {nodes} | DETACH DELETE n)",map("nodes",batch)).close();return batch.size();});
         }
         return Stream.of(new LongResult(count));
     }
@@ -97,8 +96,7 @@ public class Nodes {
     @UserFunction
     @Description("apoc.nodes.isDense(node) - returns true if it is a dense node")
     public boolean isDense(@Name("node") Node node) {
-        ThreadToStatementContextBridge ctx = api.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
-        ReadOperations ops = ctx.get().readOperations();
+        ReadOperations ops = ktx.acquireStatement().readOperations();
         return isDense(ops,node);
     }
 
