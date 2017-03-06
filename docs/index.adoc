@@ -1,11 +1,14 @@
-= APOC User Guide
+= APOC User Guide {apoc-release}
 :toc: left
 :experimental:
 :sectid:
+:sectlinks:
 :toclevels: 3
-:img: http://neo4j-contrib.github.io/neo4j-apoc-procedures/img
+:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/img
 
 == Introduction
+
+NOTE: Go here for link:index31.html[documentation for APOC version 3.1.x]
 
 include::../readme.adoc[tags=intro,leveloffset=1]
 include::../readme.adoc[tags=signature,leveloffset=1]
@@ -15,7 +18,6 @@ include::../readme.adoc[tags=signature,leveloffset=1]
 include::overview.adoc[tags=help,leveloffset=-1]
 
 To generate the help from `@Description` annotations, apoc currently scans the jar file with ASM.
-
 
 == Overview of APOC Procedures
 

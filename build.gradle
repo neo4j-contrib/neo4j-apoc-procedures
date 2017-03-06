@@ -103,6 +103,10 @@ asciidoctor {
     sourceDir = file('docs')
     sources { include 'index.adoc' }
     outputDir = file('build/docs')
+    attributes  'apoc-version' : version,
+                'apoc-release' : "3.0.8.4",
+                'neo4j-version' : neo4jVersion,
+                'branch' : "3.0"
 }
 
 asciidoctor.doLast {
@@ -110,6 +114,11 @@ asciidoctor.doLast {
         from 'build/docs/html5'
         into "$projectDir/docs"
         include 'index.html'
+    }
+    copy {
+        from 'build/docs/html5/index.html'
+        into projectDir
+        rename { String filename -> filename.replace("index","index30") }
     }
 }
 
