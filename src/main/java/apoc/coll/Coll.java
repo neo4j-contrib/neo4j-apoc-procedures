@@ -7,6 +7,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -257,4 +258,46 @@ public class Coll {
         return list;
     }
 
+    @UserFunction
+    @Description("apoc.coll.shuffle(coll) - returns the shuffled list")
+    public List<Object> shuffle(@Name("coll") List<Object> coll) {
+        List<Object> shuffledList = new ArrayList<>(coll);
+        Collections.shuffle(shuffledList);
+        return shuffledList;
+    }
+
+    @UserFunction
+    @Description("apoc.coll.randomItem(coll)- returns a random item from the list, or null on an empty or null list")
+    public Object randomItem(@Name("coll") List<Object> coll) {
+        if (coll == null || coll.isEmpty()) {
+            return null;
+        }
+
+        return coll.get(ThreadLocalRandom.current().nextInt(coll.size()));
+    }
+
+    @UserFunction
+    @Description("apoc.coll.randomItems(coll, itemCount, allowRepick: false) - returns a list of itemCount random items from the original list, optionally allowing picked elements to be picked again")
+    public List<Object> randomItems(@Name("coll") List<Object> coll, @Name("itemCount") long itemCount, @Name(value = "allowRepick", defaultValue = "false") boolean allowRepick) {
+        if (coll == null || coll.isEmpty() || itemCount <= 0) {
+            return Collections.emptyList();
+        }
+
+        List<Object> pickList = new ArrayList<>(coll);
+        List<Object> randomItems = new ArrayList<>((int)itemCount);
+        Random random = ThreadLocalRandom.current();
+
+        if (!allowRepick && itemCount >= coll.size()) {
+            Collections.shuffle(pickList);
+            return pickList;
+        }
+
+        while (randomItems.size() < itemCount) {
+            Object item = allowRepick ? pickList.get(random.nextInt(pickList.size()))
+                    : pickList.remove(random.nextInt(pickList.size()));
+            randomItems.add(item);
+        }
+
+        return randomItems;
+    }
 }
