@@ -29,7 +29,7 @@ public class TTLTest {
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, Date.class);
         db.execute("CREATE (n:Foo:TTL) SET n.ttl = timestamp() + 100").close();
-        db.execute("CREATE (n:Bar) WITH n CALL apoc.date.expire(n,1,'seconds') RETURN count(*)").close();
+        db.execute("CREATE (n:Bar) WITH n CALL apoc.date.expireIn(n,500,'ms') RETURN count(*)").close();
         testNodes(1,1);
     }
 
@@ -40,7 +40,7 @@ public class TTLTest {
 
     @Test
     public void testExpire() throws Exception {
-        Thread.sleep(6*1000);
+        Thread.sleep(10*1000);
         testNodes(0,0);
     }
 

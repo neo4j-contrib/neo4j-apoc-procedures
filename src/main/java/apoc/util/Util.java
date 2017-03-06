@@ -9,6 +9,7 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.ha.HighlyAvailableGraphDatabase;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
@@ -460,5 +461,17 @@ public class Util {
     public static String withMapping(Stream<String> columns, Function<String, String> withMapping) {
         String with = columns.map(withMapping).collect(Collectors.joining(","));
         return with.isEmpty() ? with : " WITH "+with+" ";
+    }
+
+    public static boolean isWriteableInstance(GraphDatabaseAPI db) {
+        try {
+            boolean isSlave = db instanceof HighlyAvailableGraphDatabase && !((HighlyAvailableGraphDatabase)db).isMaster();
+            if (isSlave) return false;
+            String role = db.execute("CALL dbms.cluster.role()").<String>columnAs("role").next();
+            return role.equalsIgnoreCase("LEADER");
+        } catch(QueryExecutionException e) {
+            if (e.getStatusCode().equalsIgnoreCase("Neo.ClientError.Procedure.ProcedureNotFound")) return true;
+            throw e;
+        }
     }
 }
