@@ -107,6 +107,10 @@ asciidoctor {
     sourceDir = file('docs')
     sources { include 'index.adoc' }
     outputDir = file('build/docs')
+    attributes  'apoc-version' : version,
+                'apoc-release' : "3.1.0.3",
+                'neo4j-version' : neo4jVersion,
+                'branch' : "3.1"
 }
 
 asciidoctor.doLast {

@@ -1,6 +1,7 @@
 :readme:
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/docs/img
-
+:apoc-release: 3.1.0.3
+:neo4j-version: 3.1.1
 
 image:https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Travis CI Status", link="https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures"] image:https://img.shields.io/maven-central/v/org.neo4j.procedure/apoc.svg[alt="Maven status"] image:https://img.shields.io/github/release/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Github release status"] image:https://img.shields.io/github/contributors/neo4j-contrib/neo4j-apoc-procedures.svg[alt="contributor stats"]
 
@@ -45,7 +46,7 @@ http://matrix.wikia.com/wiki/Apoc[Apoc] was the technician and driver on board o
 
 === Download latest release
 
-Go to http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.0.3
+Go to http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/{apoc-release}
 to find the latest release and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
 
 === Version Compatibility Matrix
@@ -68,13 +69,13 @@ Any version to be released after 1.1.0 will use a different, consistent versioni
 
 The https://hub.docker.com/_/neo4j/[Neo4j Docker image] allows to supply a volume for the `/plugins` folder. Download the APOC release fitting your Neo4j version to local folder `plugins` and provide it as a data volume:
 
-[source,bash]
+[source,bash,subs=attributes]
 ----
 mkdir plugins
 pushd plugins
-wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.1.0.3/apoc-3.1.0.3-all.jar
+wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.1.0.3/apoc-{apoc-release}-all.jar
 popd
-docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.1.1
+docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:{neo4j-version}
 ----
 
 // end::intro-text[]
@@ -96,9 +97,11 @@ A full build including running the tests can be run by `./gradlew build`.
 // end::build[]
 // tag::calling-procedures[]
 
-== Calling Procedures within Cypher
+== Calling Procedures & Functions within Cypher
 
-Procedures can be called stand-alone with `CALL procedure.name();`
+User defined *Functions* can be used in any expression or predicate, just like built-in functions.
+
+*Procedures* can be called stand-alone with `CALL procedure.name();`
 
 But you can also integrate them into your Cypher statements which makes them so much more powerful.
 
@@ -118,12 +121,13 @@ MERGE (p:Person {name:person.name})
 
 // tag::signature[]
 
-== Procedure Signatures
+== Procedure & Function Signatures
 
 To call procedures correctly, you need to know their parameter names, types and positions.
 And for YIELDing their results the output column name and type.
 
 You can see the procedures signature in the output of `CALL dbms.procedures()`
+(The same applies for functions with `CALL dbms.functions()`)
 
 [source,cypher]
 ----
@@ -158,7 +162,7 @@ h| Output Return Columns |
 
 // end::signature[]
 
-== Included Procedures Overview
+== APOC Procedures & Functions Overview
 
 All included procedures are listed in the https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_included_procedures_overview[overview in the documentation] and detailed in subsequent sections.
 
@@ -193,34 +197,16 @@ image::{img}/apoc.dbms.procedure.count.jpg[width=600]
 
 .Cypher for getting count of procedure in a package
 [source,cypher]
-
 ----
-
 CALL dbms.procedures() YIELD name
-RETURN head(split(name,".")) as package, count(*), collect(name) as procedures;
-
+RETURN 'procedures' as type, head(split(name,".")) as package, count(*), collect(name) as names
+UNION ALL
+CALL dbms.functions() YIELD name
+RETURN 'functions' as type, head(split(name,".")) as package, count(*), collect(name) as names;
 ----
 
 // end::procedurecount[]
 
-<<<<<<< Updated upstream
-=======
-== Version Compatibility Matrix
-
-Since APOC relies in some places on Neo4j's internal APIs you need to use the right APOC version for your Neo4j installaton.
-
-Any version to be released after 1.1.0 will use a different, consistent versioning scheme: `<neo4j-version>.<apoc>` version. The trailing `<apoc>` part of the version number will be incremented with every apoc release.
-
-[options=headers]
-|===
-|apoc version | neo4j version
-|3.1.0.3 | 3.1.0
-|3.0.4.3 | 3.0.8
-|1.1.0 | 3.0.0 - 3.0.3
-|1.0.0 | 3.0.0 - 3.0.3
-|===
-
->>>>>>> Stashed changes
 == Feedback
 
 Please provide feedback and report bugs as link:./issues[GitHub issues] or join the http://neo4j.com/slack[neo4j-users Slack] and ask on the #apoc channel.
