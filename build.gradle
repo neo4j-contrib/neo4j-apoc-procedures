@@ -120,9 +120,9 @@ asciidoctor.doLast {
         include 'index.html'
     }
     copy {
-        from 'build/docs/html5'
-        into "$projectDir"
-        include 'index.html'
+        from 'build/docs/html5/index.html'
+        into projectDir
+        rename { String filename -> filename.replace("index","index31") }
     }
 }
 
