@@ -115,6 +115,11 @@ asciidoctor.doLast {
         into "$projectDir/docs"
         include 'index.html'
     }
+    copy {
+        from 'build/docs/html5'
+        into "$projectDir"
+        include 'index.html'
+    }
 }
 
 assemble.dependsOn(asciidoctor)
