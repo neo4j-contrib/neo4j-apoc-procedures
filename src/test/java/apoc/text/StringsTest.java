@@ -207,23 +207,23 @@ public class StringsTest {
 
     @Test
     public void testLPad() {
-        testCall(db, "CALL apoc.text.lpad('ab',4,' ') YIELD value RETURN value", row -> assertEquals("  ab", row.get("value")));
-        testCall(db, "CALL apoc.text.lpad('ab',4,'0') YIELD value RETURN value", row -> assertEquals("00ab", row.get("value")));
-        testCall(db, "CALL apoc.text.lpad('ab',2,' ') YIELD value RETURN value", row -> assertEquals("ab", row.get("value")));
-        testCall(db, "CALL apoc.text.lpad('abcde',4,' ') YIELD value RETURN value", row -> assertEquals("abcde", row.get("value")));
+        testCall(db, "RETURN apoc.text.lpad('ab',4,' ')    AS value", row -> assertEquals("  ab", row.get("value")));
+        testCall(db, "RETURN apoc.text.lpad('ab',4,'0')    AS value", row -> assertEquals("00ab", row.get("value")));
+        testCall(db, "RETURN apoc.text.lpad('ab',2,' ')    AS value", row -> assertEquals("ab", row.get("value")));
+        testCall(db, "RETURN apoc.text.lpad('abcde',4,' ') AS value", row -> assertEquals("abcde", row.get("value")));
     }
     @Test
     public void testRPad() {
-        testCall(db, "CALL apoc.text.rpad('ab',4,' ') YIELD value RETURN value", row -> assertEquals("ab  ", row.get("value")));
-        testCall(db, "CALL apoc.text.rpad('ab',4,'0') YIELD value RETURN value", row -> assertEquals("ab00", row.get("value")));
-        testCall(db, "CALL apoc.text.rpad('ab',2,' ') YIELD value RETURN value", row -> assertEquals("ab", row.get("value")));
-        testCall(db, "CALL apoc.text.rpad('abcde',4,' ') YIELD value RETURN value", row -> assertEquals("abcde", row.get("value")));
+        testCall(db, "RETURN apoc.text.rpad('ab',4,' ')    AS value", row -> assertEquals("ab  ", row.get("value")));
+        testCall(db, "RETURN apoc.text.rpad('ab',4,'0')    AS value", row -> assertEquals("ab00", row.get("value")));
+        testCall(db, "RETURN apoc.text.rpad('ab',2,' ')    AS value", row -> assertEquals("ab", row.get("value")));
+        testCall(db, "RETURN apoc.text.rpad('abcde',4,' ') AS value", row -> assertEquals("abcde", row.get("value")));
     }
     @Test
     public void testFormat() {
-        testCall(db, "CALL apoc.text.format(null,null) YIELD value RETURN value", row -> assertEquals(null, row.get("value")));
-        testCall(db, "CALL apoc.text.format('ab',null) YIELD value RETURN value", row -> assertEquals("ab", row.get("value")));
-        testCall(db, "CALL apoc.text.format('ab%s %d %.1f %s%n',['cd',42,3.14,true]) YIELD value RETURN value", row -> assertEquals("abcd 42 3.1 true\n", row.get("value")));
+        testCall(db, "RETURN apoc.text.format(null,null) AS value", row -> assertEquals(null, row.get("value")));
+        testCall(db, "RETURN apoc.text.format('ab',null) AS value", row -> assertEquals("ab", row.get("value")));
+        testCall(db, "RETURN apoc.text.format('ab%s %d %.1f %s%n',['cd',42,3.14,true]) AS value", row -> assertEquals("abcd 42 3.1 true\n", row.get("value")));
     }
 
     @Test

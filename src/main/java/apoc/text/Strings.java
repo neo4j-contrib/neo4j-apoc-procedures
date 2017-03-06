@@ -128,45 +128,36 @@ public class Strings {
     }
 
 
-    @Procedure
+    @UserFunction
     @Description("apoc.text.lpad(text,count,delim) YIELD value - left pad the string to the given width")
-    public Stream<StringResult> lpad(@Name("text") String text, @Name("count") long count,@Name("delim") String delim) {
+    public String lpad(@Name("text") String text, @Name("count") long count,@Name(value = "delim",defaultValue = " ") String delim) {
         int len = text.length();
-        if (len < count) {
-            StringBuilder sb = new StringBuilder((int)count);
-            char[] chars = new char[(int)count - len];
-            Arrays.fill(chars, delim.charAt(0));
-            sb.append(chars);
-            sb.append(text);
-            text = sb.toString();
-        }
-        return Stream.of(new StringResult(text));
+        if (len >= count) return text;
+        StringBuilder sb = new StringBuilder((int)count);
+        char[] chars = new char[(int)count - len];
+        Arrays.fill(chars, delim.charAt(0));
+        sb.append(chars);
+        sb.append(text);
+        return sb.toString();
     }
 
-    @Procedure
+    @UserFunction
     @Description("apoc.text.rpad(text,count,delim) YIELD value - right pad the string to the given width")
-    public Stream<StringResult> rpad(@Name("text") String text, @Name("count") long count,@Name("delim") String delim) {
+    public String rpad(@Name("text") String text, @Name("count") long count, @Name(value = "delim",defaultValue = " ") String delim) {
         int len = text.length();
-        if (len < count) {
-            StringBuilder sb = new StringBuilder(text);
-            char[] chars = new char[(int)count - len];
-            Arrays.fill(chars, delim.charAt(0));
-            sb.append(chars);
-            text = sb.toString();
-        }
-        return Stream.of(new StringResult(text));
+        if (len >= count) return text;
+        StringBuilder sb = new StringBuilder(text);
+        char[] chars = new char[(int)count - len];
+        Arrays.fill(chars, delim.charAt(0));
+        sb.append(chars);
+        return sb.toString();
     }
 
-    @Procedure
-    @Description("apoc.text.format(text,[params]) YIELD value - sprintf format the string with the params given")
-    public Stream<StringResult> format(@Name("text") String text, @Name("params") List<Object> params) {
-        if (text == null) return Stream.of(StringResult.EMPTY);
-        try {
-            if (params == null) params = Collections.emptyList();
-            Object[] args = params.toArray(new Object[params.size()]);
-            return Stream.of(new StringResult(String.format(Locale.ENGLISH,text, args)));
-        } catch (Exception e) {
-            return Stream.of(StringResult.EMPTY);
-        }
+    @UserFunction
+    @Description("apoc.text.format(text,[params]) - sprintf format the string with the params given")
+    public String format(@Name("text") String text, @Name("params") List<Object> params) {
+        if (text == null) return null;
+        if (params == null) return text;
+        return String.format(Locale.ENGLISH,text, params.toArray());
     }
 }
