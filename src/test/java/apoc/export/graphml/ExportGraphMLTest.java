@@ -27,17 +27,17 @@ public class ExportGraphMLTest {
     public static final String KEY_TYPES = "<key id=\"values\" for=\"node\" for=\"node\" attr.name=\"values\" attr.type=\"string\" attr.list=\"long\"/>%n" +
             "<key id=\"name\" for=\"node\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
             "<key id=\"age\" for=\"node\" for=\"node\" attr.name=\"age\" attr.type=\"long\"/>%n";
+    public static final String GRAPH = "<graph id=\"G\" edgedefault=\"directed\">%n";
     public static final String HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>%n" +
-            "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">%n" +
-            "<graph id=\"G\" edgedefault=\"directed\">%n";
+            "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">%n";
     public static final String DATA = "<node id=\"n0\" labels=\":Foo\"><data key=\"labels\">:Foo</data><data key=\"name\">foo</data></node>%n" +
             "<node id=\"n1\" labels=\":Bar\"><data key=\"labels\">:Bar</data><data key=\"name\">bar</data><data key=\"age\">42</data></node>%n" +
             "<node id=\"n2\" labels=\":Bar\"><data key=\"labels\">:Bar</data><data key=\"age\">12</data><data key=\"values\">[1,2,3]</data></node>%n" +
             "<edge id=\"e0\" source=\"n0\" target=\"n1\" label=\"KNOWS\"><data key=\"label\">KNOWS</data></edge>%n";
     public static final String FOOTER = "</graph>%n" +
             "</graphml>";
-    private static final String EXPECTED = String.format(HEADER + DATA + FOOTER);
-    private static final String EXPECTED_TYPES = String.format(HEADER + KEY_TYPES +DATA + FOOTER);
+    private static final String EXPECTED = String.format(HEADER + GRAPH + DATA + FOOTER);
+    private static final String EXPECTED_TYPES = String.format(HEADER + KEY_TYPES +GRAPH +DATA + FOOTER);
 
     private static GraphDatabaseService db;
     private static File directory = new File("target/import");

@@ -31,6 +31,7 @@ public class XmlGraphMLWriter {
         XMLStreamWriter xmlWriter = xmlOutputFactory.createXMLStreamWriter(writer);
         writeHeader(xmlWriter);
         if (config.useTypes()) writeKeyTypes(xmlWriter, graph);
+        writeGraph(xmlWriter);
         for (Node node : graph.getNodes()) {
             int props = writeNode(xmlWriter, node);
             reporter.update(1, 0, props);
@@ -154,6 +155,9 @@ public class XmlGraphMLWriter {
         writer.writeAttribute("xmlns", "http://graphml.graphdrawing.org/xmlns", "xsi", "http://www.w3.org/2001/XMLSchema-instance");
         writer.writeAttribute("xsi", "", "schemaLocation", "http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd");
         newLine(writer);
+    }
+
+    private void writeGraph(XMLStreamWriter writer) throws XMLStreamException {
         writer.writeStartElement("graph");
         writer.writeAttribute("id", "G");
         writer.writeAttribute("edgedefault", "directed");
