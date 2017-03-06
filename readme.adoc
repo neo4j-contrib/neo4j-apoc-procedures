@@ -199,6 +199,24 @@ RETURN head(split(name,".")) as package, count(*), collect(name) as procedures;
 
 // end::procedurecount[]
 
+<<<<<<< Updated upstream
+=======
+== Version Compatibility Matrix
+
+Since APOC relies in some places on Neo4j's internal APIs you need to use the right APOC version for your Neo4j installaton.
+
+Any version to be released after 1.1.0 will use a different, consistent versioning scheme: `<neo4j-version>.<apoc>` version. The trailing `<apoc>` part of the version number will be incremented with every apoc release.
+
+[options=headers]
+|===
+|apoc version | neo4j version
+|3.1.0.3 | 3.1.0
+|3.0.4.3 | 3.0.8
+|1.1.0 | 3.0.0 - 3.0.3
+|1.0.0 | 3.0.0 - 3.0.3
+|===
+
+>>>>>>> Stashed changes
 == Feedback
 
 Please provide feedback and report bugs as link:./issues[GitHub issues] or join the http://neo4j.com/slack[neo4j-users Slack] and ask on the #apoc channel.

@@ -40,7 +40,7 @@ public class PeriodicTest {
 
     @Test
     public void testSubmitStatement() throws Exception {
-        String callList = "CALL apoc.periodic.list";
+        String callList = "CALL apoc.periodic.list()";
         // force pre-caching the queryplan
         assertFalse(db.execute(callList).hasNext());
 
@@ -131,6 +131,65 @@ public class PeriodicTest {
                 row -> assertEquals(100L, row.get("count"))
         );
     }
+    @Test
+    public void testIteratePrefix() throws Exception {
+        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+
+        testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'SET p.lastname =p.name REMOVE p.name', {batchSize:10,parallel:true})", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertEquals(10L, row.get("batches"));
+            assertEquals(100L, row.get("total"));
+        });
+
+        testCall(db,
+                "MATCH (p:Person) where p.lastname is not null return count(p) as count",
+                row -> assertEquals(100L, row.get("count"))
+        );
+    }
+    @Test
+    public void testIterateBatch() throws Exception {
+        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+
+        testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'UNWIND {_batch} as row WITH row.p as p SET p.lastname = p.name REMOVE p.name', {batchSize:10, iterateList:true, parallel:true})", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            System.out.println(result);
+            assertEquals(10L, row.get("batches"));
+            assertEquals(100L, row.get("total"));
+        });
+
+        testCall(db,
+                "MATCH (p:Person) where p.lastname is not null return count(p) as count",
+                row -> assertEquals(100L, row.get("count"))
+        );
+    }
+
+    @Test
+    public void testIterateBatchPrefix() throws Exception {
+        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+
+        testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'SET p.lastname = p.name REMOVE p.name', {batchSize:10, iterateList:true, parallel:true})", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            System.out.println(result);
+            assertEquals(10L, row.get("batches"));
+            assertEquals(100L, row.get("total"));
+        });
+
+        testCall(db,
+                "MATCH (p:Person) where p.lastname is not null return count(p) as count",
+                row -> assertEquals(100L, row.get("count"))
+        );
+    }
+    @Test
+    public void testIterateRetries() throws Exception {
+        testResult(db, "CALL apoc.periodic.iterate('return 1', 'CREATE (n {prop: 1/{_retry}})', {retries:1})", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            System.out.println(result);
+            assertEquals(1L, row.get("batches"));
+            assertEquals(1L, row.get("total"));
+            assertEquals(1L, row.get("retries"));
+        });
+    }
+
     @Test
     public void testIterateFail() throws Exception {
         db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();

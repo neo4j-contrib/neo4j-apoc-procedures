@@ -29,6 +29,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
+import static apoc.util.Util.param;
+import static apoc.util.Util.quote;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -45,6 +47,7 @@ public class Cypher {
     public static final ExecutorService POOL = Pools.DEFAULT;
     public static final int PARTITIONS = 100 * Runtime.getRuntime().availableProcessors();
     public static final int MAX_BATCH = 10000;
+    public static final String WITH_UNWIND = "#WITH #UNWIND";
     @Context
     public GraphDatabaseService db;
     @Context
@@ -193,7 +196,7 @@ public class Cypher {
     @Procedure
     @Description("apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _")
     public Stream<MapResult> mapParallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data) {
-        final String statement = parallelStatement(fragment, params, "_");
+        final String statement = withParamsAndIterator(fragment, params.keySet(), "_");
         db.execute("EXPLAIN " + statement).close();
         return Util.partitionSubList(data, PARTITIONS,null)
                 .flatMap((partition) -> Iterators.addToCollection(api.execute(statement, parallelParams(params, "_", partition)),
@@ -203,7 +206,7 @@ public class Cypher {
     @Procedure
     @Description("apoc.cypher.mapParallel2(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _")
     public Stream<MapResult> mapParallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data, @Name("partitions") long partitions) {
-        final String statement = parallelStatement(fragment, params, "_");
+        final String statement = withParamsAndIterator(fragment, params.keySet(), "_");
         db.execute("EXPLAIN " + statement).close();
         BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100000);
         Stream<List<Object>> parallelPartitions = Util.partitionSubList(data, (int)(partitions <= 0 ? PARTITIONS : partitions), null);
@@ -255,7 +258,7 @@ public class Cypher {
         if (!(value instanceof Collection))
             throw new RuntimeException("Can't parallelize a non collection " + key + " : " + value);
 
-        final String statement = parallelStatement(fragment, params, key);
+        final String statement = withParamsAndIterator(fragment, params.keySet(), key);
         db.execute("EXPLAIN " + statement).close();
         Collection<Object> coll = (Collection<Object>) value;
         int total = coll.size();
@@ -288,22 +291,12 @@ public class Cypher {
         });
     }
 
-    public String parallelStatement(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("parallelizeOn") String key) {
-        StringBuilder sb = new StringBuilder(200+fragment.length());
-        boolean first = true;
-        for (String s : params.keySet()) {
-            if (s.equals(key)) continue;
-            if (first) {
-                first = false;
-                sb.append(" WITH ");
-            } else {
-                sb.append(", ");
-            }
-            sb.append(format(" {`%s`} as `%s` ", s, s));
-        }
-        sb.append("UNWIND {`").append(key).append("`} as `").append(key).append("` ");
-        sb.append(fragment);
-        return sb.toString();
+    public static String withParamsAndIterator(String fragment, Collection<String> params, String iterator) {
+        boolean noIterator = iterator == null || iterator.isEmpty();
+        if (params.isEmpty() && noIterator) return fragment;
+        String with = Util.withMapping(params.stream().filter((c) -> noIterator || !c.equals(iterator)), (c) -> param(c) + " AS " + quote(c));
+        if (noIterator) return with + fragment;
+        return with + " UNWIND " + param(iterator) + " AS " + quote(iterator) + fragment;
     }
 
     private Future<List<Map<String, Object>>> submit(GraphDatabaseAPI api, String statement, Map<String, Object> params, String key, List<Object> partition) {
