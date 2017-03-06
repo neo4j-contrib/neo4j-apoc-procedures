@@ -101,6 +101,15 @@ public class CreateTest {
                     assertEquals("John", node.getProperty("name"));
                 });
     }
+
+    @Test public void testVirtualNodeFunction() throws Exception {
+        testCall(db, "RETURN apoc.create.vNode(['Person'],{name:'John'}) as node",
+                (row) -> {
+                    Node node = (Node) row.get("node");
+                    assertEquals(true, node.hasLabel(Label.label("Person")));
+                    assertEquals("John", node.getProperty("name"));
+                });
+    }
     @Test public void testCreateNodes() throws Exception {
         testResult(db, "CALL apoc.create.nodes(['Person'],[{name:'John'},{name:'Jane'}])",
                  (res) -> {
@@ -124,6 +133,14 @@ public class CreateTest {
 
     @Test public void testCreateVirtualRelationship() throws Exception {
         testCall(db, "CREATE (n),(m) WITH n,m CALL apoc.create.vRelationship(n,'KNOWS',{since:2010}, m) YIELD rel RETURN rel",
+                (row) -> {
+                    Relationship rel = (Relationship) row.get("rel");
+                    assertEquals(true, rel.isType(RelationshipType.withName("KNOWS")));
+                    assertEquals(2010L, rel.getProperty("since"));
+                });
+    }
+    @Test public void testCreateVirtualRelationshipFunction() throws Exception {
+        testCall(db, "CREATE (n),(m) WITH n,m RETURN apoc.create.vRelationship(n,'KNOWS',{since:2010}, m) AS rel",
                 (row) -> {
                     Relationship rel = (Relationship) row.get("rel");
                     assertEquals(true, rel.isType(RelationshipType.withName("KNOWS")));
