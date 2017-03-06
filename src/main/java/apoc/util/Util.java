@@ -8,10 +8,12 @@ import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -240,7 +242,7 @@ public class Util {
             writer.close();
         }
 
-		long size = con.getContentLengthLong();
+        long size = con.getContentLengthLong();
         InputStream stream = con.getInputStream();
 
         String encoding = con.getContentEncoding();
@@ -330,9 +332,9 @@ public class Util {
     }
 
     public static String readResourceFile(String name) {
-		InputStream is = Util.class.getClassLoader().getResourceAsStream(name);
-		return new Scanner(is).useDelimiter("\\Z").next();
-	}
+        InputStream is = Util.class.getClassLoader().getResourceAsStream(name);
+        return new Scanner(is).useDelimiter("\\Z").next();
+    }
 
     @SuppressWarnings("unchecked")
     public static Map<String,Object> readMap(String value) {
@@ -454,5 +456,15 @@ public class Util {
     public static String withMapping(Stream<String> columns, Function<String, String> withMapping) {
         String with = columns.map(withMapping).collect(Collectors.joining(","));
         return with.isEmpty() ? with : " WITH "+with+" ";
+    }
+
+    public static boolean isWriteableInstance(GraphDatabaseAPI db) {
+        try {
+            Class hadb = Class.forName("org.neo4j.kernel.ha.HighlyAvailableGraphDatabase");
+            boolean isSlave = hadb.isInstance(db) && !((Boolean)hadb.getMethod("isMaster").invoke(db));
+            return !isSlave;
+        } catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            return true;
+        }
     }
 }
