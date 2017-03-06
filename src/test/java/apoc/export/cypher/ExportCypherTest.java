@@ -96,6 +96,6 @@ public class ExportCypherTest {
         assertEquals(output.getAbsolutePath(), r.get("file"));
         assertEquals(source + ": nodes(3), rels(1)", r.get("source"));
         assertEquals("cypher", r.get("format"));
-        assertEquals(true, ((long) r.get("time")) > 0);
+        assertEquals(true, ((long) r.get("time")) >= 0);
     }
 }

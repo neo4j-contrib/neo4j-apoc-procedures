@@ -440,4 +440,25 @@ public class Util {
     public static void checkAdmin(KernelTransaction tx, String procedureName) {
         if (!tx.securityContext().isAdmin()) throw new RuntimeException("This procedure "+ procedureName +" is only available to admin users");
     }
+
+    public static void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            /* ignore */
+        }
+    }
+
+    public static String quote(String var) {
+        return var.indexOf('`') == -1 ? '`'+var+'`' : var;
+    }
+
+    public static String param(String var) {
+        return (var.charAt(0) == '$' || var.charAt(0) == '{') ? var : '{'+quote(var)+'}';
+    }
+
+    public static String withMapping(Stream<String> columns, Function<String, String> withMapping) {
+        String with = columns.map(withMapping).collect(Collectors.joining(","));
+        return with.isEmpty() ? with : " WITH "+with+" ";
+    }
 }
