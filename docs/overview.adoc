@@ -433,9 +433,11 @@ Please note that they have negative id's.
 
 [cols="1m,5"]
 |===
-| CALL apoc.create.vNode(['Label'], {key:value,...}) | returns a virtual node
+| CALL apoc.create.vNode(['Label'], {key:value,...}) YIELD node | returns a virtual node
+| apoc.create.vNode(['Label'], {key:value,...}) | returns a virtual node
 | CALL apoc.create.vNodes(['Label'], [{key:value,...}]) | returns virtual nodes
-| CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) | returns a virtual relationship
+| CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) YIELD rel | returns a virtual relationship
+| apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) | returns a virtual relationship
 | CALL apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) | returns a virtual pattern
 | CALL apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) | returns a virtual pattern
 |===
@@ -448,9 +450,9 @@ Example
 ----
 MATCH (a)-[r]->(b)
 WITH head(labels(a)) AS l, head(labels(b)) AS l2, type(r) AS rel_type, count(*) as count
-CALL apoc.create.vNode(['Meta_Node'],{name:l}) yield node as a
-CALL apoc.create.vNode(['Meta_Node'],{name:l2}) yield node as b
-CALL apoc.create.vRelationship(a,'META_RELATIONSHIP',{name:rel_type, count:count},b) yield rel
+CALL apoc.create.vNode([l],{name:l}) yield node as a
+CALL apoc.create.vNode([2],{name:l2}) yield node as b
+CALL apoc.create.vRelationship(a,rel_type,{count:count},b) yield rel
 RETURN *;
 ----
 
@@ -734,7 +736,6 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 [cols="1m,5"]
 |===
 | apoc.text.phonetic(value) | Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
-| apoc.text.join(['text1','text2',...], delimiter) | join the given strings with the given delimiter.
 | apoc.text.clean(text) | strip the given string of everything except alpha numeric characters and convert it to lower case.
 | apoc.text.compareCleaned(text1, text2) | compare the given strings stripped of everything except alpha numeric characters converted to lower case.
 |===

@@ -15,6 +15,8 @@ import java.util.UUID;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
+import static org.neo4j.graphdb.RelationshipType.withName;
+
 public class Create {
 
     public static final String[] EMPTY_ARRAY = new String[0];
@@ -118,14 +120,19 @@ public class Create {
     public Stream<RelationshipResult> relationship(@Name("from") Node from,
                                                    @Name("relType") String relType, @Name("props") Map<String, Object> props,
                                                    @Name("to") Node to) {
-        return Stream.of(new RelationshipResult(setProperties(from.createRelationshipTo(to,RelationshipType.withName(relType)),props)));
+        return Stream.of(new RelationshipResult(setProperties(from.createRelationshipTo(to, withName(relType)),props)));
     }
 
     @Procedure
     @Description("apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node")
     public Stream<NodeResult> vNode(@Name("label") List<String> labelNames, @Name("props") Map<String, Object> props) {
-        Label[] labels = Util.labels(labelNames);
-        return Stream.of(new NodeResult(new VirtualNode(labels, props, db)));
+        return Stream.of(new NodeResult(vNodeFunction(labelNames,props)));
+    }
+
+    @UserFunction("apoc.create.vNode")
+    @Description("apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node")
+    public Node vNodeFunction(@Name("label") List<String> labelNames, @Name(value = "props",defaultValue = "{}") Map<String, Object> props) {
+        return new VirtualNode(Util.labels(labelNames), props, db);
     }
 
     @Procedure
@@ -138,8 +145,13 @@ public class Create {
     @Procedure
     @Description("apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship")
     public Stream<RelationshipResult> vRelationship(@Name("from") Node from, @Name("relType") String relType, @Name("props") Map<String, Object> props, @Name("to") Node to) {
-        RelationshipType type = RelationshipType.withName(relType);
-        return Stream.of(new RelationshipResult(new VirtualRelationship(from,to,type).withProperties(props)));
+        return Stream.of(new RelationshipResult(vRelationshipFunction(from,relType,props,to)));
+    }
+
+    @UserFunction("apoc.create.vRelationship")
+    @Description("apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship")
+    public Relationship vRelationshipFunction(@Name("from") Node from, @Name("relType") String relType, @Name("props") Map<String, Object> props, @Name("to") Node to) {
+        return new VirtualRelationship(from,to, withName(relType)).withProperties(props);
     }
 
     @Procedure
@@ -148,10 +160,10 @@ public class Create {
                                               @Name("relType") String relType, @Name("props") Map<String, Object> props,
                                               @Name("to") Map<String,Object> m) {
         n = new LinkedHashMap<>(n); m=new LinkedHashMap<>(m);
-        RelationshipType type = RelationshipType.withName(relType);
+        RelationshipType type = withName(relType);
         VirtualNode from = new VirtualNode(Util.labels(n.remove("_labels")), n, db);
         VirtualNode to = new VirtualNode(Util.labels(m.remove("_labels")), m, db);
-        Relationship rel = new VirtualRelationship(from, to, RelationshipType.withName(relType)).withProperties(props);
+        Relationship rel = new VirtualRelationship(from, to, withName(relType)).withProperties(props);
         return Stream.of(new VirtualPathResult(from, rel, to));
     }
 
@@ -160,7 +172,7 @@ public class Create {
     public Stream<VirtualPathResult> vPatternFull(@Name("labelsN") List<String> labelsN, @Name("n") Map<String,Object> n,
                                                   @Name("relType") String relType, @Name("props") Map<String, Object> props,
                                                   @Name("labelsM") List<String> labelsM, @Name("m") Map<String,Object> m) {
-        RelationshipType type = RelationshipType.withName(relType);
+        RelationshipType type = withName(relType);
         VirtualNode from = new VirtualNode(Util.labels(labelsN), n, db);
         VirtualNode to = new VirtualNode(Util.labels(labelsM), m, db);
         Relationship rel = new VirtualRelationship(from, to, type).withProperties(props);
