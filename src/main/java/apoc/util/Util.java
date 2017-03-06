@@ -9,11 +9,11 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.ha.HighlyAvailableGraphDatabase;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -465,8 +465,13 @@ public class Util {
 
     public static boolean isWriteableInstance(GraphDatabaseAPI db) {
         try {
-            boolean isSlave = db instanceof HighlyAvailableGraphDatabase && !((HighlyAvailableGraphDatabase)db).isMaster();
-            if (isSlave) return false;
+            try {
+                Class hadb = Class.forName("org.neo4j.kernel.ha.HighlyAvailableGraphDatabase");
+                boolean isSlave = hadb.isInstance(db) && !((Boolean)hadb.getMethod("isMaster").invoke(db));
+                if (isSlave) return false;
+            } catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                /* ignore */
+            }
             String role = db.execute("CALL dbms.cluster.role()").<String>columnAs("role").next();
             return role.equalsIgnoreCase("LEADER");
         } catch(QueryExecutionException e) {
