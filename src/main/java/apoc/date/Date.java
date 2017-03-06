@@ -136,6 +136,19 @@ public class Date {
 		return TimeZone.getDefault().getID();
 	}
 
+	@UserFunction
+	@Description("apoc.date.convert(12345, 'ms', 'd') convert a timestamp in one time unit into one of a different time unit")
+	public Long convert(@Name("time") long time, @Name(value = "unit") String unit, @Name(value = "toUnit") String toUnit) {
+		return unit(toUnit).convert(time, unit(unit));
+	}
+
+	@UserFunction
+	@Description("apoc.date.add(12345, 'ms', -365, 'd') given a timestamp in one time unit, adds a value of the specified time unit")
+	public Long add(@Name("time") long time, @Name(value = "unit") String unit, @Name(value = "addValue") long addValue, @Name(value = "addUnit") String addUnit) {
+		long valueToAdd = unit(unit).convert(addValue, unit(addUnit));
+		return time + valueToAdd;
+	}
+
 	public String parse(final @Name("millis") long millis, final @Name(value = "pattern", defaultValue = DEFAULT_FORMAT) String pattern, final @Name("timezone") String timezone) {
 		if (millis < 0) {
 			throw new IllegalArgumentException("The time argument should be >= 0, got: " + millis);

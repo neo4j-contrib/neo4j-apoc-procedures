@@ -15,6 +15,18 @@ endif::env-guide[]
 * possible unit values: `ms,s,m,h,d` and their long forms.
 * possible time zone values: Either an abbreviation such as `PST`, a full name such as `America/Los_Angeles`, or a custom ID such as `GMT-8:00`. Full names are recommended.
 
+== Conversion of timestamps between different time units
+
+* `apoc.date.convert(12345, 'ms', 'd')` convert a timestamp in one time unit into one of a different time unit
+
+* possible unit values: `ms,s,m,h,d` and their long forms.
+
+== Adding/subtracting time unit values to timestamps
+
+* `apoc.date.add(12345, 'ms', -365, 'd')` given a timestamp in one time unit, adds a value of the specified time unit
+
+* possible unit values: `ms,s,m,h,d` and their long forms.
+
 == Reading separate datetime fields:
 
 Splits date (optionally, using given custom format) into fields returning a map from field name to its value.
