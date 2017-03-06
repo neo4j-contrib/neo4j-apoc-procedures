@@ -200,12 +200,12 @@ public class CollTest {
 
     @Test
     public void testSetOperations() throws Exception {
-        testCall(db, "RETURN apoc.coll.union([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L, 2L, 3L)), asSet((Iterable) r.get("value"))));
-        testCall(db, "RETURN apoc.coll.intersection([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(2L)), asSet((Iterable) r.get("value"))));
-        testCall(db, "RETURN apoc.coll.disjunction([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L, 3L)), asSet((Iterable) r.get("value"))));
-        testCall(db, "RETURN apoc.coll.subtract([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L)), asSet((Iterable) r.get("value"))));
-        testCall(db, "RETURN apoc.coll.unionAll([1,2],[3,2]) AS value", r -> assertEquals(asList(1L, 2L, 3L, 2L), r.get("value")));
-        testCall(db, "RETURN apoc.coll.removeAll([1,2],[3,2]) AS value", r -> assertEquals(asList(1L), r.get("value")));
+        testCall(db,"RETURN apoc.coll.union([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L,2L,3L)),asSet((Iterable)r.get("value"))));
+        testCall(db,"RETURN apoc.coll.intersection([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(2L)),asSet((Iterable)r.get("value"))));
+        testCall(db,"RETURN apoc.coll.disjunction([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L,3L)),asSet((Iterable)r.get("value"))));
+        testCall(db,"RETURN apoc.coll.subtract([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L)),asSet((Iterable)r.get("value"))));
+        testCall(db,"RETURN apoc.coll.unionAll([1,2],[3,2]) AS value", r -> assertEquals(asList(1L,2L,3L,2L),r.get("value")));
+        testCall(db,"RETURN apoc.coll.removeAll([1,2],[3,2]) AS value", r -> assertEquals(asList(1L),r.get("value")));
 
     }
 
