@@ -710,6 +710,10 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.shuffle(coll) | returns the shuffled list
 | apoc.coll.randomItem(coll) | returns a random item from the list
 | apoc.coll.randomItems(coll, itemCount, allowRepick: false) | returns a list of `itemCount` random items from the list, optionally allowing picked elements to be picked again
+| apoc.coll.containsDuplicates(coll) | returns true if a collection contains duplicate elements
+| apoc.coll.duplicates(coll) | returns a list of duplicate items in the collection
+| apoc.coll.duplicatesWithCount(coll) | returns a list of duplicate items in the collection and their count, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)
+| apoc.coll.occurrences(coll) | returns the count of the given item in the collection
 |===
 
 === Lookup Functions

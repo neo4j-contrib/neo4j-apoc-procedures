@@ -9,10 +9,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -203,12 +200,12 @@ public class CollTest {
 
     @Test
     public void testSetOperations() throws Exception {
-        testCall(db,"RETURN apoc.coll.union([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L,2L,3L)),asSet((Iterable)r.get("value"))));
-        testCall(db,"RETURN apoc.coll.intersection([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(2L)),asSet((Iterable)r.get("value"))));
-        testCall(db,"RETURN apoc.coll.disjunction([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L,3L)),asSet((Iterable)r.get("value"))));
-        testCall(db,"RETURN apoc.coll.subtract([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L)),asSet((Iterable)r.get("value"))));
-        testCall(db,"RETURN apoc.coll.unionAll([1,2],[3,2]) AS value", r -> assertEquals(asList(1L,2L,3L,2L),r.get("value")));
-        testCall(db,"RETURN apoc.coll.removeAll([1,2],[3,2]) AS value", r -> assertEquals(asList(1L),r.get("value")));
+        testCall(db, "RETURN apoc.coll.union([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L, 2L, 3L)), asSet((Iterable) r.get("value"))));
+        testCall(db, "RETURN apoc.coll.intersection([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(2L)), asSet((Iterable) r.get("value"))));
+        testCall(db, "RETURN apoc.coll.disjunction([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L, 3L)), asSet((Iterable) r.get("value"))));
+        testCall(db, "RETURN apoc.coll.subtract([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L)), asSet((Iterable) r.get("value"))));
+        testCall(db, "RETURN apoc.coll.unionAll([1,2],[3,2]) AS value", r -> assertEquals(asList(1L, 2L, 3L, 2L), r.get("value")));
+        testCall(db, "RETURN apoc.coll.removeAll([1,2],[3,2]) AS value", r -> assertEquals(asList(1L), r.get("value")));
 
     }
 
@@ -344,5 +341,56 @@ public class CollTest {
                     assertEquals(result.size(), 11000);
                     assertTrue(original.containsAll(result));
                 });
+    }
+
+    @Test
+    public void testContainsDuplicates() throws Exception {
+        testCall(db,"RETURN apoc.coll.containsDuplicates([1,2,3,9,7,5]) AS value", r -> assertEquals(false, r.get("value")));
+        testCall(db,"RETURN apoc.coll.containsDuplicates([1,2,1,5,4]) AS value", r -> assertEquals(true, r.get("value")));
+    }
+
+    @Test public void testDuplicates() throws Exception {
+        testCall(db, "RETURN apoc.coll.duplicates([1,2,1,3,2,5,2,3,1,2]) as value",
+                (row) -> assertEquals(asList(1L,2L,3L), row.get("value")));
+    }
+
+    @Test public void testDuplicatesWithCount() throws Exception {
+        testCall(db, "RETURN apoc.coll.duplicatesWithCount([1,2,1,3,2,5,2,3,1,2]) as value",
+                (row) -> {
+                    Map<Long, Long> expectedMap = new HashMap<>(3);
+                    expectedMap.put(1l, 3l);
+                    expectedMap.put(2l, 4l);
+                    expectedMap.put(3l, 2l);
+
+                    List<Map<String, Object>> result = (List<Map<String, Object>>) row.get("value");
+                    assertEquals(3, result.size());
+
+                    Set<Long> keys = new HashSet<>(3);
+
+                    for (Map<String, Object> map : result) {
+                        Object item = map.get("item");
+                        Long count = (Long) map.get("count");
+                        keys.add((Long) item);
+                        assertTrue(expectedMap.containsKey(item));
+                        assertEquals(expectedMap.get(item), count);
+                    }
+
+                    assertEquals(expectedMap.keySet(), keys);
+                });
+    }
+
+    @Test public void testOccurrences() throws Exception {
+        testCall(db, "RETURN apoc.coll.occurrences([1,2,1,3,2,5,2,3,1,2], 1) as value",
+                (row) -> assertEquals(3l, row.get("value")));
+        testCall(db, "RETURN apoc.coll.occurrences([1,2,1,3,2,5,2,3,1,2], 2) as value",
+                (row) -> assertEquals(4l, row.get("value")));
+        testCall(db, "RETURN apoc.coll.occurrences([1,2,1,3,2,5,2,3,1,2], 3) as value",
+                (row) -> assertEquals(2l, row.get("value")));
+        testCall(db, "RETURN apoc.coll.occurrences([1,2,1,3,2,5,2,3,1,2], 5) as value",
+                (row) -> assertEquals(1l, row.get("value")));
+        testCall(db, "RETURN apoc.coll.occurrences([1,2,1,3,2,5,2,3,1,2], -5) as value",
+                (row) -> assertEquals(0l, row.get("value")));
+        testCall(db, "RETURN apoc.coll.occurrences([], 5) as value",
+                (row) -> assertEquals(0l, row.get("value")));
     }
 }
