@@ -70,7 +70,7 @@ The https://hub.docker.com/_/neo4j/[Neo4j Docker image] allows to supply a volum
 ----
 mkdir plugins
 pushd plugins
-wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.1.0.3/apoc-{apoc-release}-all.jar
+wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-{apoc-release}-all.jar
 popd
 docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:{neo4j-version}
 ----
