@@ -67,8 +67,8 @@ public class Date {
 		node.addLabel(Label.label("TTL"));
 		node.setProperty("ttl",unit(timeUnit).toMillis(time));
 	}
-	@Procedure
-	@PerformsWrites
+
+	@Procedure(mode = Mode.WRITE)
 	@Description("CALL apoc.date.expire.in(node,time,'time-unit') - expire node in given time-delta by setting :TTL label and `ttl` property")
 	public void expireIn(@Name("node") Node node, @Name("timeDelta") long time, @Name("timeUnit") String timeUnit) {
 		node.addLabel(Label.label("TTL"));

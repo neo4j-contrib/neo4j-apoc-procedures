@@ -1,5 +1,6 @@
 package apoc.trigger;
 
+import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.coll.SetBackedList;
 import apoc.util.Util;
@@ -213,6 +214,29 @@ public class Trigger {
         @Override
         public void afterRollback(TransactionData txData, Object state) {
             executeTriggers(txData, "rollback");
+        }
+    }
+
+    public static class LifeCycle {
+        private final GraphDatabaseAPI db;
+        private final Log log;
+        private TriggerHandler triggerHandler;
+
+        public LifeCycle(GraphDatabaseAPI db, Log log) {
+            this.db = db;
+            this.log = log;
+        }
+
+        public void start() {
+            boolean enabled = Util.toBoolean(ApocConfiguration.get("trigger.enabled", null));
+            if (!enabled) return;
+            triggerHandler = new Trigger.TriggerHandler(db,log);
+            db.registerTransactionEventHandler(triggerHandler);
+        }
+
+        public void stop() {
+            if (triggerHandler == null) return;
+            db.unregisterTransactionEventHandler(triggerHandler);
         }
     }
 }
