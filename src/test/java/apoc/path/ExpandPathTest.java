@@ -46,6 +46,21 @@ public class ExpandPathTest {
 	}
 
 	@Test
+	public void testExplorePathEmptyReturn() throws Throwable {
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,'NOTAREALPATH','/FOO',0,2) yield path return count(*) as c";
+		TestUtil.testCall(db, query, (row) -> assertEquals(0L,row.get("c")));
+	}
+	
+	@Test
+	public void testExplorePathOptionalEmptyReturn() throws Throwable {
+		TestUtil.testCall(db, 
+				"MATCH (m:Movie {title: 'The Matrix'}) " +
+				"CALL apoc.path.expandConfig(m, {relationshipFilter:''NOTAREALPATH', labelFilter:'/FOO', optionalMatch: true, minMatch: 0, maxMatch: 2}) yield path " +
+				"return count(*) as c",
+				(row) -> assertEquals(1L,row.get("c")));
+	}
+	
+	@Test
 	public void testExplorePathLabelWhiteListTest() throws Throwable {
 		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,'ACTED_IN|PRODUCED|FOLLOWS','+Person|Movie',0,3) yield path return count(*) as c";
 		TestUtil.testCall(db, query, (row) -> assertEquals(107L,row.get("c"))); // 59 with Uniqueness.RELATIONSHIP_GLOBAL
