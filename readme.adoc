@@ -8,6 +8,8 @@ image:https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Travis 
 
 = Awesome Procedures for Neo4j {branch}.x
 
+// tag::warnings[]
+
 [WARNING]
 Neo4j 3.2 has increased security for procedures and functions.
 Procedures that use internal APIs (like `GraphDatabaseAPI`,`KernelTransaction`, etc.) have to be whitelisted in `$NEO4J_HOME/conf/neoj4.conf` with `+dbms.security.procedures.unrestricted=apoc.*,apoc.meta.*+` for security reasons.
@@ -22,6 +24,8 @@ Neo4j 3.2 introduces user defined aggregation functions, we will use that featur
 Please note that about 70 procedures have been turned into user defined functions.
 This includes, `apoc.date.* apoc.number.*, apoc.coll.*, apoc.map.*` and some more packages. 
 See, this https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/144[issue] for a list. 
+
+// end::warnings[]
 
 == Detailed Feature Documentation
 See the https://neo4j-contrib.github.io/neo4j-apoc-procedures[APOC User Guide] for documentation of each of the major features of the library, including data import/export, graph algorithms, spatial, and more.
