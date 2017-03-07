@@ -1,5 +1,6 @@
 package apoc.coll;
 
+import org.neo4j.kernel.impl.util.statistics.IntCounter;
 import org.neo4j.procedure.*;
 import apoc.result.*;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -299,5 +300,69 @@ public class Coll {
         }
 
         return randomItems;
+    }
+    @UserFunction
+    @Description("apoc.coll.containsDuplicates(coll) - returns true if a collection contains duplicate elements")
+    public boolean containsDuplicates(@Name("coll") List<Object> coll) {
+        Set<Object> set = new HashSet<>(coll);
+        return set.size() < coll.size();
+    }
+
+    @UserFunction
+    @Description("apoc.coll.duplicates(coll) - returns a list of duplicate items in the collection")
+    public List<Object> duplicates(@Name("coll") List<Object> coll) {
+        Set<Object> set = new HashSet<>(coll.size());
+        Set<Object> duplicates = new LinkedHashSet<>();
+
+        for (Object obj : coll) {
+            if (!set.add(obj)) {
+                duplicates.add(obj);
+            }
+        }
+
+        return new ArrayList(duplicates);
+    }
+
+    @UserFunction
+    @Description("apoc.coll.duplicatesWithCount(coll) - returns a list of duplicate items in the collection and their count, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)")
+    public List<Map<String, Object>> duplicatesWithCount(@Name("coll") List<Object> coll) {
+        // mimicking a counted bag
+        Map<Object, IntCounter> duplicates = new LinkedHashMap<>(coll.size());
+        List<Map<String, Object>> resultList = new ArrayList<>();
+
+        for (Object obj : coll) {
+            IntCounter counter = duplicates.get(obj);
+            if (counter == null) {
+                counter = new IntCounter();
+                duplicates.put(obj, counter);
+            }
+            counter.increment();
+        }
+
+        duplicates.forEach((o, intCounter) -> {
+            int count = intCounter.value();
+            if (count > 1) {
+                Map<String, Object> entry = new LinkedHashMap<>(2);
+                entry.put("item", o);
+                entry.put("count", Long.valueOf(count));
+                resultList.add(entry);
+            }
+        });
+
+        return resultList;
+    }
+
+    @UserFunction
+    @Description("apoc.coll.occurrences(coll, item) - returns the count of the given item in the collection")
+    public long occurrences(@Name("coll") List<Object> coll, @Name("item") Object item) {
+        long occurrences = 0;
+
+        for (Object obj : coll) {
+            if (item.equals(obj)) {
+                occurrences++;
+            }
+        }
+
+        return occurrences;
     }
 }
