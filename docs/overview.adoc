@@ -869,6 +869,15 @@ The apoc.path.expand procedure makes it possible to do variable length path trav
 | call apoc.path.expand(startNode <id>\|Node, relationshipFilter, labelFilter, minDepth, maxDepth ) yield path as <identifier> | expand from given nodes(s) taking the provided restrictions into account
 |===
 
+Variations allow more configurable expansions, and expansions for more specific use cases:
+
+[cols="1m,5"]
+|===
+| call apoc.path.expandConfig(startNode <id>Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, uniqueness:'RELATIONSHIP_PATH'}) yield path | expand from given nodes(s) taking the provided restrictions into account
+| call apoc.path.subgraphNodes(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true}) yield node | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns all nodes in the subgraph
+| call apoc.path.subgraphAll(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true}) yield nodes, relationships | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns the collection of subgraph nodes, and the collection of all relationships within the subgraph
+| call apoc.path.spanningTree(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true}) yield path | expand a spanning tree from given nodes(s) taking the provided restrictions into account; the paths returned collectively form a spanning tree
+|===
 
 === Relationship Filter
 
@@ -893,6 +902,30 @@ Syntax: `[+-/]LABEL1|LABEL2|...`
 | -Foe | Foe | exclude label (blacklist)
 | /Friend | Friend | stop traversal after reaching a friend (but include him)
 |===
+
+=== Uniqueness
+
+Uniqueness of nodes and relationships guides the expansion and the returned results.
+Uniqueness is only configurable using `expandConfig()`.
+
+`subgraphNodes()`, `subgraphAll()`, and `spanningTree()` all use 'NODE_GLOBAL' uniqueness.
+
+[opts=header,cols="m,a"]
+|===
+| value | description
+| RELATIONSHIP_PATH | For each returned node there's a (relationship wise) unique path from the start node to it. This is Cypher's default expansion mode.
+| NODE_GLOBAL | A node cannot be traversed more than once. This is what the legacy traversal framework does.
+| NODE_LEVEL | Entities on the same level are guaranteed to be unique.
+| NODE_PATH | For each returned node there's a unique path from the start node to it.
+| NODE_RECENT | This is like NODE_GLOBAL, but only guarantees uniqueness among the most recent visited nodes, with a configurable count. Traversing a huge graph is quite memory intensive in that it keeps track of all the nodes it has visited.
+For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemoryError. Together with this Uniqueness you can supply a count, which is the number of most recent visited nodes. This can cause a node to be visited more than once, but scales infinitely.
+| RELATIONSHIP_GLOBAL | A relationship cannot be traversed more than once, whereas nodes can.
+| RELATIONSHIP_LEVEL | Entities on the same level are guaranteed to be unique.
+| RELATIONSHIP_RECENT | Same as for NODE_RECENT, but for relationships.
+| NONE | No restriction (the user will have to manage it)
+|===
+
+
 
 == Parallel Node Search 
 

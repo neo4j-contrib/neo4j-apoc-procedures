@@ -1,33 +1,21 @@
 package apoc.algo;
 
-import org.neo4j.procedure.Description;
-import apoc.get.Get;
-import apoc.path.PathExplorer;
-import apoc.path.RelationshipTypeAndDirections;
-import apoc.result.PathResult;
 import apoc.result.RelationshipResult;
-import apoc.result.WeightedPathResult;
 import apoc.util.Util;
-import org.neo4j.graphalgo.CommonEvaluators;
-import org.neo4j.graphalgo.GraphAlgoFactory;
-import org.neo4j.graphalgo.PathFinder;
-import org.neo4j.graphalgo.WeightedPath;
-import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.traversal.BranchState;
-import org.neo4j.helpers.collection.Pair;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import static org.neo4j.graphdb.traversal.Evaluators.atDepth;
 
 public class Cover {
 
@@ -45,5 +33,14 @@ public class Cover {
                                 .spliterator(),false)
                                 .filter(r -> nodeSet.contains(r.getEndNode()))
                                 .map(RelationshipResult::new)));
+    }
+
+    // non-parallelized utility method for use by other procedures
+    public static Stream<Relationship> coverNodes(Collection<Node> nodes) {
+        return nodes.stream()
+                .flatMap(n ->
+                        StreamSupport.stream(n.getRelationships(Direction.OUTGOING)
+                                .spliterator(),false)
+                                .filter(r -> nodes.contains(r.getEndNode())));
     }
 }
