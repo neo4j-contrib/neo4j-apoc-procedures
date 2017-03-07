@@ -4,9 +4,12 @@ import org.hamcrest.Matcher;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
+import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.kernel.api.exceptions.KernelException;
 import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -136,5 +139,9 @@ public class TestUtil {
 
     public static void assumeTravis() {
         assumeFalse("we're running on travis, so skipping","true".equals(System.getenv("TRAVIS")));
+    }
+
+    public static GraphDatabaseBuilder apocGraphDatabaseBuilder() {
+        return new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*");
     }
 }

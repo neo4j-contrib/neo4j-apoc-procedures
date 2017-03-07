@@ -1,13 +1,10 @@
 package apoc.algo.algorithms;
 
-import apoc.Pools;
-import apoc.algo.pagerank.PageRankAlgorithm;
 import org.neo4j.cypher.EntityNotFoundException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.DataWriteOperations;
 import org.neo4j.kernel.api.exceptions.InvalidTransactionTypeKernelException;
 import org.neo4j.kernel.api.exceptions.legacyindex.AutoIndexingKernelException;
-import org.neo4j.kernel.api.exceptions.schema.ConstraintValidationKernelException;
 import org.neo4j.kernel.api.exceptions.schema.IllegalTokenNameException;
 import org.neo4j.kernel.api.properties.DefinedProperty;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
@@ -94,9 +91,7 @@ public class AlgoUtils {
                                 ops.nodeSetProperty(graphNode, DefinedProperty.doubleProperty(propertyNameId, value));
                         }
                         tx.success();
-                    } catch (ConstraintValidationKernelException | InvalidTransactionTypeKernelException |
-                            EntityNotFoundException | AutoIndexingKernelException |
-                            org.neo4j.kernel.api.exceptions.EntityNotFoundException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }

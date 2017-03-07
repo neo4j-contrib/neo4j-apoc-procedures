@@ -1,7 +1,9 @@
 package apoc.index;
 
 import org.neo4j.graphdb.*;
+import org.neo4j.kernel.api.exceptions.index.IndexNotApplicableKernelException;
 import org.neo4j.kernel.api.schema.NodePropertyDescriptor;
+import org.neo4j.kernel.api.schema_new.IndexQuery;
 import org.neo4j.kernel.api.schema_new.index.NewIndexDescriptor;
 import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
@@ -20,7 +22,6 @@ import org.neo4j.kernel.api.exceptions.schema.SchemaRuleNotFoundException;
 import org.neo4j.kernel.api.impl.schema.reader.SimpleIndexReader;
 import org.neo4j.kernel.api.impl.schema.reader.SortedIndexReader;
 import org.neo4j.kernel.impl.api.KernelStatement;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -46,7 +47,7 @@ public class SchemaIndex {
     public Stream<NodeResult> related(@Name("nodes") List<Node> nodes,
                                            @Name("label") String label, @Name("key") String key,
                                            @Name("relationship") String relationship,
-                                           @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
+                                           @Name("limit") long limit) throws Exception {
         Set<Node> nodeSet = new HashSet<>(nodes);
         Direction dir = Direction.BOTH;
         if (relationship.startsWith("<")) {dir = Direction.INCOMING; relationship = relationship.substring(1);}
@@ -58,7 +59,16 @@ public class SchemaIndex {
 //        SortField sortField = new SortField("number" /*string*/, SortField.Type.STRING, reverse);
 //        SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, Math.max(nodeSet.size(),limit), Sort.INDEXORDER); // new Sort(sortField));
         // PrimitiveLongIterator it = getIndexReader(label, key).rangeSeekByString("",true,String.valueOf((char)0xFF),true);
-        PrimitiveLongIterator it = getIndexReader(label, key).rangeSeekByNumberInclusive(Long.MIN_VALUE,Long.MAX_VALUE);
+        KernelStatement stmt = (KernelStatement) tx.acquireStatement();
+        ReadOperations reads = stmt.readOperations();
+
+        int propertyKeyId = reads.propertyKeyGetForName(key);
+        NodePropertyDescriptor nodePropertyDescriptor = new NodePropertyDescriptor(reads.labelGetForName(label), propertyKeyId);
+        NewIndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(nodePropertyDescriptor);
+        IndexReader indexReader = stmt.getStoreStatement().getIndexReader(descriptor);
+        IndexQuery.NumberRangePredicate numberRangePredicate = new IndexQuery.NumberRangePredicate(propertyKeyId, Long.MIN_VALUE, true, Long.MAX_VALUE, true);
+
+        PrimitiveLongIterator it = indexReader.query(numberRangePredicate);
 //        PrimitiveLongIterator it = sortedIndexReader.query(new MatchAllDocsQuery());
 
         while (it.hasNext() && result.size() < limit) {

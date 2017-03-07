@@ -36,11 +36,12 @@ archivesBaseName = 'apoc'
 description = """neo4j-apoc-procedures"""
 
 ext {
-    neo4jVersion = "3.2.0-alpha05"
+    neo4jVersion = "3.2.0-SNAPSHOT"
 }
 
 repositories {
      mavenLocal()
+     maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
      mavenCentral()
 //     maven { url "https://m2.neo4j.org/content/groups/everything/" }
 }
