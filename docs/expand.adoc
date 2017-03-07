@@ -1,8 +1,18 @@
 = Expand paths
 
-expand from start node following the given relationships from min to max-level adhering to the label filters
+Expand from start node following the given relationships from min to max-level adhering to the label filters. Several variations exist:
 
-== Usage
+`apoc.path.expand()` expands paths using Cypher's default expansion modes (bfs and 'RELATIONSHIP_PATH' uniqueness)
+
+`apoc.path.expandConfig()` allows more flexible configuration of parameters and expansion modes
+
+`apoc.path.subgraphNodes()` expands to nodes of a subgraph
+
+`apoc.path.subgraphAll()` expands to nodes of a subgraph and also returns all relationships in the subgraph
+
+`apoc.path.spanningTree()` expands to paths collectively forming a spanning tree
+
+== Expand
 
 [source,cypher]
 ----
@@ -11,7 +21,7 @@ CALL apoc.path.expand(startNode <id>|Node, relationshipFilter, labelFilter, minL
 CALL apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path
 ----
 
-Relationship Filter
+==== Relationship Filter
 
 Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 
@@ -23,7 +33,7 @@ Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 | KNOWS  | KNOWS | BOTH
 |===
 
-Label Filter
+==== Label Filter
 
 Syntax: `[+-/]LABEL1|LABEL2|...`
 
@@ -35,7 +45,8 @@ Syntax: `[+-/]LABEL1|LABEL2|...`
 | /Friend | Friend | stop traversal after reaching a friend (but include him)
 |===
 
-== Examples
+
+.Examples
 
 [source,cypher]
 ----
@@ -75,7 +86,32 @@ Takes an additional config to provide configuration options:
  bfs: true|false}
 ----
 
-So you can turn this cypher query:
+
+.Uniqueness
+
+Uniqueness of nodes and relationships guides the expansion and the results returned.
+Uniqueness is only configurable using `expandConfig()`.
+
+`subgraphNodes()`, `subgraphAll()`, and `spanningTree()` all use 'NODE_GLOBAL' uniqueness.
+
+[opts=header,cols="m,a"]
+|===
+| value | description
+| RELATIONSHIP_PATH | For each returned node there's a (relationship wise) unique path from the start node to it. This is Cypher's default expansion mode.
+| NODE_GLOBAL | A node cannot be traversed more than once. This is what the legacy traversal framework does.
+| NODE_LEVEL | Entities on the same level are guaranteed to be unique.
+| NODE_PATH | For each returned node there's a unique path from the start node to it.
+| NODE_RECENT | This is like NODE_GLOBAL, but only guarantees uniqueness among the most recent visited nodes, with a configurable count. Traversing a huge graph is quite memory intensive in that it keeps track of all the nodes it has visited.
+For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemoryError. Together with this Uniqueness you can supply a count, which is the number of most recent visited nodes. This can cause a node to be visited more than once, but scales infinitely.
+| RELATIONSHIP_GLOBAL | A relationship cannot be traversed more than once, whereas nodes can.
+| RELATIONSHIP_LEVEL | Entities on the same level are guaranteed to be unique.
+| RELATIONSHIP_RECENT | Same as for NODE_RECENT, but for relationships.
+| NONE | No restriction (the user will have to manage it)
+|===
+
+.Examples
+
+You can turn this cypher query:
 
 [source,cypher]
 ----
@@ -91,4 +127,78 @@ into this procedure call, with changed semantics for uniqueness and bfs (which i
 MATCH (user:User) WHERE user.id = 460
 CALL apoc.path.expandConfig(user,{relationshipFilter:"RATED",minLevel:3,maxLevel:3,bfs:false,uniqueness:"NONE"}) YIELD path
 RETURN count(*);
+----
+
+== Expand to nodes in a subgraph
+
+----
+apoc.path.subgraphNodes(startNode <id>Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield node
+----
+
+Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
+
+Accepts the same `config` values as in `expandConfig()`, though `uniqueness` and `minLevel` are not configurable.
+
+.Examples
+
+Expand to all nodes of a connected subgraph:
+
+[source,cypher]
+----
+MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.subgraphNodes(user, {}) YIELD node
+RETURN node;
+----
+
+Expand to all nodes reachable by :FRIEND relationships:
+
+[source,cypher]
+----
+MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.subgraphNodes(user, {relationshipFilter:'FRIEND'}) YIELD node
+RETURN node;
+----
+
+== Expand to a subgraph and return all nodes and relationships within the subgraph
+
+----
+apoc.path.subgraphAll(startNode <id>Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield nodes, relationships
+----
+
+Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
+Returns the collection of nodes in the subgraph, and the collection of relationships between all subgraph nodes.
+
+Accepts the same `config` values as in `expandConfig()`, though `uniqueness` and `minLevel` are not configurable.
+
+.Example
+
+Expand to local subgraph (and all its relationships) within 4 traversals:
+
+[source,cypher]
+----
+MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.subgraphAll(user, {maxLevel:4}) YIELD nodes, relationships
+RETURN nodes, relationships;
+----
+
+== Expand a spanning tree
+
+----
+apoc.path.spanningTree(startNode <id>Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield path
+----
+
+Expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters.
+The paths returned collectively form a spanning tree.
+
+Accepts the same `config` values as in `expandConfig()`, though `uniqueness` and `minLevel` are not configurable.
+
+.Example
+
+Expand a spanning tree of all contiguous :User nodes:
+
+[source,cypher]
+----
+MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.spanningTree(user, {labelFilter:'+User'}) YIELD path
+RETURN path;
 ----
