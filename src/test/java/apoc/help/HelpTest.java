@@ -1,17 +1,16 @@
 package apoc.help;
 
 import apoc.bitwise.BitwiseOperations;
-import apoc.meta.Meta;
+import apoc.coll.Coll;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static apoc.util.Util.map;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author mh
@@ -23,8 +22,8 @@ public class HelpTest {
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig(GraphDatabaseSettings.procedure_unrestricted, "apoc.*").newGraphDatabase();
-        TestUtil.registerProcedure(db, Help.class, BitwiseOperations.class, Meta.class);
+        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        TestUtil.registerProcedure(db, Help.class, BitwiseOperations.class,Coll.class);
     }
 
     @After
@@ -40,10 +39,10 @@ public class HelpTest {
             assertEquals(true, ((String) row.get("text")).contains("bitwise operations"));
         });
         TestUtil.testCall(db,"CALL apoc.help({text})",map("text","operations+"), (row) -> assertEquals("apoc.bitwise.op",row.get("name")));
-        TestUtil.testCall(db,"CALL apoc.help({text})",map("text","types"), (row) -> {
+        TestUtil.testCall(db,"CALL apoc.help({text})",map("text","toSet"), (row) -> {
             assertEquals("function",row.get("type"));
-            assertEquals("apoc.meta.types",row.get("name"));
-            assertEquals(true, ((String) row.get("text")).contains("map of keys to types"));
+            assertEquals("apoc.coll.toSet",row.get("name"));
+            assertEquals(true, ((String) row.get("text")).contains("unique list"));
         });
     }
 

@@ -25,7 +25,7 @@ public class MetaTest {
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
         TestUtil.registerProcedure(db, Meta.class);
     }
 

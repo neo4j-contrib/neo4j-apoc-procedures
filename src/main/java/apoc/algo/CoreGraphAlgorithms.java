@@ -260,7 +260,8 @@ public class CoreGraphAlgorithms {
         int count = 0;
         while (nodeIds.hasNext()) {
             long id = nodeIds.next();
-            RelationshipIterator relIds = relType == ANY_RELATIONSHIP_TYPE ? ops.nodeGetRelationships(id, OUTGOING) : ops.nodeGetRelationships(id, OUTGOING, relType);
+            int[] relTypes = {relType};
+            RelationshipIterator relIds = relType == ANY_RELATIONSHIP_TYPE ? ops.nodeGetRelationships(id, OUTGOING) : ops.nodeGetRelationships(id, OUTGOING, relTypes);
             while (relIds.hasNext()) {
                 Cursor<RelationshipItem> c = ops.relationshipCursorById(relIds.next());
 //                if (c.next()) {

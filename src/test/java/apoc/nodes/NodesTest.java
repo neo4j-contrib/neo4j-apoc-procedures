@@ -1,13 +1,9 @@
 package apoc.nodes;
 
-import apoc.coll.Coll;
 import apoc.util.TestUtil;
 import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.test.TestGraphDatabaseFactory;
-
-import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -20,9 +16,10 @@ public class NodesTest {
     private GraphDatabaseService db;
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
         TestUtil.registerProcedure(db,Nodes.class);
     }
+
     @After
     public void tearDown() {
         db.shutdown();

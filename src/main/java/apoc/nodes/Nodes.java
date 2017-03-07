@@ -1,20 +1,19 @@
 package apoc.nodes;
 
-import org.neo4j.procedure.*;
-import apoc.path.RelationshipTypeAndDirections;
-import apoc.periodic.Periodic;
-import apoc.result.BooleanResult;
 import apoc.result.LongResult;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.collection.Pair;
-import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
+import org.neo4j.kernel.api.Statement;
 import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.*;
 
 import java.util.Iterator;
 import java.util.List;
@@ -25,15 +24,7 @@ import static apoc.util.Util.map;
 
 public class Nodes {
 
-    @Context public GraphDatabaseService db;
-    @Context public KernelTransaction ktx;
-
-    public Nodes(GraphDatabaseService db) {
-        this.db = db;
-    }
-
-    public Nodes() {
-    }
+    @Context public GraphDatabaseAPI db;
 
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last")
@@ -56,8 +47,7 @@ public class Nodes {
         return Util.nodeStream(db, ids).map(NodeResult::new);
     }
 
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.nodes.delete(node|nodes|id|[ids]) - quickly delete all nodes with these id's")
     public Stream<LongResult> delete(@Name("nodes") Object ids, @Name("batchSize") long batchSize) {
         Iterator<Node> it = Util.nodeStream(db, ids).iterator();
@@ -79,7 +69,7 @@ public class Nodes {
     @UserFunction("apoc.node.relationship.exists")
     @Description("apoc.node.relationship.exists(node, rel-direction-pattern) - yields true effectively when the node has the relationships of the pattern")
     public boolean hasRelationship(@Name("node") Node node, @Name("types") String types) throws EntityNotFoundException {
-        ReadOperations ops = ktx.acquireStatement().readOperations();
+        ReadOperations ops = acquireStatement().readOperations();
         long id = node.getId();
         boolean dense = ops.nodeIsDense(id);
         for (Pair<RelationshipType, Direction> pair : parse(types)) {
@@ -87,16 +77,20 @@ public class Nodes {
             Direction direction = pair.other();
             boolean hasRelationship = (dense) ?
                     ops.nodeGetDegree(id,direction,typeId) > 0 :
-                    ops.nodeGetRelationships(id, direction,typeId).hasNext();
+                    ops.nodeGetRelationships(id, direction,new int[] {typeId}).hasNext();
             if (hasRelationship) return true;
         }
         return false;
     }
 
+    public Statement acquireStatement() {
+        return db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class).get();
+    }
+
     @UserFunction
     @Description("apoc.nodes.isDense(node) - returns true if it is a dense node")
     public boolean isDense(@Name("node") Node node) {
-        ReadOperations ops = ktx.acquireStatement().readOperations();
+        ReadOperations ops = acquireStatement().readOperations();
         return isDense(ops,node);
     }
 
