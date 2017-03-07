@@ -424,9 +424,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#_introduction">Introduction</a>
+<ul class="sectlevel2">
+<li><a href="#_notices">Notices</a>
 <ul class="sectlevel3">
 <li><a href="#_license">License</a></li>
 <li><a href="#__apoc_name_history">"APOC" Name history</a></li>
+</ul>
+</li>
 <li><a href="#_installation">Installation</a>
 <ul class="sectlevel3">
 <li><a href="#_download_latest_release">Download latest release</a></li>
@@ -698,6 +702,59 @@ Go here for documentation for APOC  <a href="index30.html">version 3.0.x</a> <a 
 </tr>
 </table>
 </div>
+<div class="sect2">
+<h3 id="_notices"><a class="link" href="#_notices">Notices</a></h3>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+Neo4j 3.2 has increased security for procedures and functions.
+Procedures that use internal APIs (like <code>GraphDatabaseAPI</code>,<code>KernelTransaction</code>, etc.) have to be whitelisted in <code>$NEO4J_HOME/conf/neoj4.conf</code> with <code>dbms.security.procedures.unrestricted=apoc.*,apoc.meta.*</code> for security reasons.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+You can also whitelist procedures and functions to be loaded using: <code>dbms.security.procedures.white_list=apoc.coll.<strong>,apoc.load.</strong></code>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Neo4j 3.2 introduces user defined aggregation functions, we will use that feature in APOC e.g. for export, graph-algorithms and more, instead of passing in Cypher statements to procedures.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Please note that about 70 procedures have been turned into user defined functions.
+This includes, <code>apoc.date.* apoc.number.<strong>, apoc.coll.</strong>, apoc.map.*</code> and some more packages.
+See, this <a href="https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/144">issue</a> for a list.
+</td>
+</tr>
+</table>
+</div>
 <div class="imageblock" style="float: right">
 <div class="content">
 <img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.gif" alt="apoc">
@@ -727,6 +784,7 @@ Those procedures are implemented in Java and can be easily deployed into your Ne
 </div>
 <div class="paragraph">
 <p><strong>APOC</strong> also stands for "Awesome Procedures On Cypher"</p>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -6149,7 +6207,7 @@ RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-03-07 16:44:04 +01:00
+Last updated 2017-03-07 17:07:45 +01:00
 </div>
 </div>
 </body>
