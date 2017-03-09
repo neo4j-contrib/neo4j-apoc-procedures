@@ -511,6 +511,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel3">
 <li><a href="#_relationship_filter">Relationship Filter</a></li>
 <li><a href="#_label_filter">Label Filter</a></li>
+<li><a href="#_uniqueness">Uniqueness</a></li>
 </ul>
 </li>
 <li><a href="#_parallel_node_search">Parallel Node Search</a></li>
@@ -573,9 +574,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_expand_paths">Expand paths</a>
 <ul class="sectlevel3">
-<li><a href="#_usage">Usage</a></li>
-<li><a href="#_examples_3">Examples</a></li>
+<li><a href="#_expand">Expand</a></li>
 <li><a href="#_expand_with_config">Expand with Config</a></li>
+<li><a href="#_expand_to_nodes_in_a_subgraph">Expand to nodes in a subgraph</a></li>
+<li><a href="#_expand_to_a_subgraph_and_return_all_nodes_and_relationships_within_the_subgraph">Expand to a subgraph and return all nodes and relationships within the subgraph</a></li>
+<li><a href="#_expand_a_spanning_tree">Expand a spanning tree</a></li>
 </ul>
 </li>
 <li><a href="#_centrality_algorithms">Centrality Algorithms</a>
@@ -2442,6 +2445,22 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.randomItems(coll, itemCount, allowRepick: false)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns a list of <code>itemCount</code> random items from the list, optionally allowing picked elements to be picked again</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.containsDuplicates(coll)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns true if a collection contains duplicate elements</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.duplicates(coll)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns a list of duplicate items in the collection</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.duplicatesWithCount(coll)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns a list of duplicate items in the collection and their count, keyed by <code>item</code> and <code>count</code> (e.g., <code>[{item: xyz, count:2}, {item:zyx, count:5}]</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.occurrences(coll)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns the count of the given item in the collection</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -2836,6 +2855,33 @@ SET n.ttl = timestamp() + 3600</code></pre>
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p>Variations allow more configurable expansions, and expansions for more specific use cases:</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.expandConfig(startNode &lt;id&gt;Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, uniqueness:'RELATIONSHIP_PATH'}) yield path</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expand from given nodes(s) taking the provided restrictions into account</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.subgraphNodes(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true}) yield node</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expand a subgraph from given nodes(s) taking the provided restrictions into account; returns all nodes in the subgraph</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.subgraphAll(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true}) yield nodes, relationships</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expand a subgraph from given nodes(s) taking the provided restrictions into account; returns the collection of subgraph nodes, and the collection of all relationships within the subgraph</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.spanningTree(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true}) yield path</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expand a spanning tree from given nodes(s) taking the provided restrictions into account; the paths returned collectively form a spanning tree</p></td>
+</tr>
+</tbody>
+</table>
 <div class="sect3">
 <h4 id="_relationship_filter"><a class="link" href="#_relationship_filter">Relationship Filter</a></h4>
 <div class="paragraph">
@@ -2941,6 +2987,121 @@ SET n.ttl = timestamp() + 3600</code></pre>
 </div>
 <div class="paragraph">
 <p>stop traversal after reaching a friend (but include him)</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_uniqueness"><a class="link" href="#_uniqueness">Uniqueness</a></h4>
+<div class="paragraph">
+<p>Uniqueness of nodes and relationships guides the expansion and the returned results.
+Uniqueness is only configurable using <code>expandConfig()</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>subgraphNodes()</code>, <code>subgraphAll()</code>, and <code>spanningTree()</code> all use 'NODE_GLOBAL' uniqueness.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">value</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_PATH</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>For each returned node there&#8217;s a (relationship wise) unique path from the start node to it. This is Cypher&#8217;s default expansion mode.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_GLOBAL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>A node cannot be traversed more than once. This is what the legacy traversal framework does.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_LEVEL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Entities on the same level are guaranteed to be unique.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_PATH</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>For each returned node there&#8217;s a unique path from the start node to it.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_RECENT</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>This is like NODE_GLOBAL, but only guarantees uniqueness among the most recent visited nodes, with a configurable count. Traversing a huge graph is quite memory intensive in that it keeps track of all the nodes it has visited.
+For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemoryError. Together with this Uniqueness you can supply a count, which is the number of most recent visited nodes. This can cause a node to be visited more than once, but scales infinitely.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_GLOBAL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>A relationship cannot be traversed more than once, whereas nodes can.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_LEVEL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Entities on the same level are guaranteed to be unique.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_RECENT</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Same as for NODE_RECENT, but for relationships.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NONE</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>No restriction (the user will have to manage it)</p>
 </div></div></td>
 </tr>
 </tbody>
@@ -3675,6 +3836,22 @@ A full text index allows you to find occurrences of individual words or phrases 
 <p>In order to use the full text search feature, we have to first index our data by specifying all the attributes we want to index.
 Here we create a full text index called <code>“locations”</code> (we will use this name when searching in the index) with our data.</p>
 </div>
+<div class="paragraph">
+<p>Optionally you can enable tracking changes to the graph on a per index level. To do so, you need to take two actions:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>set <code>apoc.autoUpdate.enabled=true</code> in your <code>neo4j.conf</code>. With that setting a <code>TransactionEventHandler</code> is registered upon startup of your graph database that reflects property changes to the respective fulltext index.</p>
+</li>
+<li>
+<p>By default index tracking is done synchronously within the same transaction. Optionally this can be done asynchronous by setting <code>apoc.autoUpdate.async=true</code>.</p>
+</li>
+<li>
+<p>indexing is started with:</p>
+</li>
+</ol>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.index.addAllNodes('locations',{
@@ -4230,10 +4407,25 @@ Similarly, if no 'weight' property key was specified, all weights are assumed to
 <div class="sect2">
 <h3 id="_expand_paths"><a class="link" href="#_expand_paths">Expand paths</a></h3>
 <div class="paragraph">
-<p>expand from start node following the given relationships from min to max-level adhering to the label filters</p>
+<p>Expand from start node following the given relationships from min to max-level adhering to the label filters. Several variations exist:</p>
+</div>
+<div class="paragraph">
+<p><code>apoc.path.expand()</code> expands paths using Cypher&#8217;s default expansion modes (bfs and 'RELATIONSHIP_PATH' uniqueness)</p>
+</div>
+<div class="paragraph">
+<p><code>apoc.path.expandConfig()</code> allows more flexible configuration of parameters and expansion modes</p>
+</div>
+<div class="paragraph">
+<p><code>apoc.path.subgraphNodes()</code> expands to nodes of a subgraph</p>
+</div>
+<div class="paragraph">
+<p><code>apoc.path.subgraphAll()</code> expands to nodes of a subgraph and also returns all relationships in the subgraph</p>
+</div>
+<div class="paragraph">
+<p><code>apoc.path.spanningTree()</code> expands to paths collectively forming a spanning tree</p>
 </div>
 <div class="sect3">
-<h4 id="_usage"><a class="link" href="#_usage">Usage</a></h4>
+<h4 id="_expand"><a class="link" href="#_expand">Expand</a></h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.path.expand(startNode &lt;id&gt;|Node, relationshipFilter, labelFilter, minLevel, maxLevel )
@@ -4241,9 +4433,8 @@ Similarly, if no 'weight' property key was specified, all weights are assumed to
 CALL apoc.path.expand(startNode &lt;id&gt;|Node|list, 'TYPE|TYPE_OUT&gt;|&lt;TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Relationship Filter</p>
-</div>
+<div class="sect5">
+<h6 id="_relationship_filter_2"><a class="link" href="#_relationship_filter_2">Relationship Filter</a></h6>
 <div class="paragraph">
 <p>Syntax: <code>[&lt;]RELATIONSHIP_TYPE1[&gt;]|[&lt;]RELATIONSHIP_TYPE2[&gt;]|&#8230;&#8203;</code></p>
 </div>
@@ -4296,9 +4487,9 @@ CALL apoc.path.expand(startNode &lt;id&gt;|Node|list, 'TYPE|TYPE_OUT&gt;|&lt;TYP
 </tr>
 </tbody>
 </table>
-<div class="paragraph">
-<p>Label Filter</p>
 </div>
+<div class="sect5">
+<h6 id="_label_filter_2"><a class="link" href="#_label_filter_2">Label Filter</a></h6>
 <div class="paragraph">
 <p>Syntax: <code>[+-/]LABEL1|LABEL2|&#8230;&#8203;</code></p>
 </div>
@@ -4351,10 +4542,8 @@ CALL apoc.path.expand(startNode &lt;id&gt;|Node|list, 'TYPE|TYPE_OUT&gt;|&lt;TYP
 </tr>
 </tbody>
 </table>
-</div>
-<div class="sect3">
-<h4 id="_examples_3"><a class="link" href="#_examples_3">Examples</a></h4>
 <div class="listingblock">
+<div class="title">Examples</div>
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.path.expand(1,"ACTED_IN&gt;|PRODUCED&lt;|FOLLOWS&lt;","+Movie|Person",0,3)
 call apoc.path.expand(1,"ACTED_IN&gt;|PRODUCED&lt;|FOLLOWS&lt;","-BigBrother",0,3)
@@ -4371,6 +4560,7 @@ return pp;
 match (p:Person) with p limit 3
 call apoc.path.expand(p,"ACTED_IN&gt;|PRODUCED&lt;|FOLLOWS&lt;","+Movie|Person",1,2) yield path as pp
 return p, pp</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -4396,7 +4586,121 @@ return p, pp</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>So you can turn this cypher query:</p>
+<div class="title">Uniqueness</div>
+<p>Uniqueness of nodes and relationships guides the expansion and the results returned.
+Uniqueness is only configurable using <code>expandConfig()</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>subgraphNodes()</code>, <code>subgraphAll()</code>, and <code>spanningTree()</code> all use 'NODE_GLOBAL' uniqueness.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">value</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_PATH</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>For each returned node there&#8217;s a (relationship wise) unique path from the start node to it. This is Cypher&#8217;s default expansion mode.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_GLOBAL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>A node cannot be traversed more than once. This is what the legacy traversal framework does.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_LEVEL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Entities on the same level are guaranteed to be unique.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_PATH</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>For each returned node there&#8217;s a unique path from the start node to it.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_RECENT</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>This is like NODE_GLOBAL, but only guarantees uniqueness among the most recent visited nodes, with a configurable count. Traversing a huge graph is quite memory intensive in that it keeps track of all the nodes it has visited.
+For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemoryError. Together with this Uniqueness you can supply a count, which is the number of most recent visited nodes. This can cause a node to be visited more than once, but scales infinitely.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_GLOBAL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>A relationship cannot be traversed more than once, whereas nodes can.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_LEVEL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Entities on the same level are guaranteed to be unique.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_RECENT</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Same as for NODE_RECENT, but for relationships.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NONE</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>No restriction (the user will have to manage it)</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<div class="title">Examples</div>
+<p>You can turn this cypher query:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -4413,6 +4717,93 @@ RETURN count(*);</code></pre>
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (user:User) WHERE user.id = 460
 CALL apoc.path.expandConfig(user,{relationshipFilter:"RATED",minLevel:3,maxLevel:3,bfs:false,uniqueness:"NONE"}) YIELD path
 RETURN count(*);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_expand_to_nodes_in_a_subgraph"><a class="link" href="#_expand_to_nodes_in_a_subgraph">Expand to nodes in a subgraph</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.path.subgraphNodes(startNode &lt;id&gt;Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield node</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.</p>
+</div>
+<div class="paragraph">
+<p>Accepts the same <code>config</code> values as in <code>expandConfig()</code>, though <code>uniqueness</code> and <code>minLevel</code> are not configurable.</p>
+</div>
+<div class="paragraph">
+<div class="title">Examples</div>
+<p>Expand to all nodes of a connected subgraph:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.subgraphNodes(user, {}) YIELD node
+RETURN node;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expand to all nodes reachable by :FRIEND relationships:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.subgraphNodes(user, {relationshipFilter:'FRIEND'}) YIELD node
+RETURN node;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_expand_to_a_subgraph_and_return_all_nodes_and_relationships_within_the_subgraph"><a class="link" href="#_expand_to_a_subgraph_and_return_all_nodes_and_relationships_within_the_subgraph">Expand to a subgraph and return all nodes and relationships within the subgraph</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.path.subgraphAll(startNode &lt;id&gt;Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield nodes, relationships</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
+Returns the collection of nodes in the subgraph, and the collection of relationships between all subgraph nodes.</p>
+</div>
+<div class="paragraph">
+<p>Accepts the same <code>config</code> values as in <code>expandConfig()</code>, though <code>uniqueness</code> and <code>minLevel</code> are not configurable.</p>
+</div>
+<div class="paragraph">
+<div class="title">Example</div>
+<p>Expand to local subgraph (and all its relationships) within 4 traversals:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.subgraphAll(user, {maxLevel:4}) YIELD nodes, relationships
+RETURN nodes, relationships;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_expand_a_spanning_tree"><a class="link" href="#_expand_a_spanning_tree">Expand a spanning tree</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.path.spanningTree(startNode &lt;id&gt;Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield path</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters.
+The paths returned collectively form a spanning tree.</p>
+</div>
+<div class="paragraph">
+<p>Accepts the same <code>config</code> values as in <code>expandConfig()</code>, though <code>uniqueness</code> and <code>minLevel</code> are not configurable.</p>
+</div>
+<div class="paragraph">
+<div class="title">Example</div>
+<p>Expand a spanning tree of all contiguous :User nodes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.spanningTree(user, {labelFilter:'+User'}) YIELD path
+RETURN path;</code></pre>
 </div>
 </div>
 </div>
@@ -6305,7 +6696,7 @@ RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-03-06 14:04:18 +01:00
+Last updated 2017-03-10 00:41:02 +01:00
 </div>
 </div>
 </body>
