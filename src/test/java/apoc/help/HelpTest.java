@@ -34,7 +34,7 @@ public class HelpTest {
     @Test
     public void info() throws Exception {
         TestUtil.testCall(db,"CALL apoc.help({text})",map("text","bitwise"), (row) -> {
-            assertEquals("procedure",row.get("type"));
+            assertEquals("function",row.get("type"));
             assertEquals("apoc.bitwise.op",row.get("name"));
             assertEquals(true, ((String) row.get("text")).contains("bitwise operations"));
         });
