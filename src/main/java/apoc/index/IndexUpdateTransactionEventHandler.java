@@ -9,6 +9,7 @@ import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
@@ -69,12 +70,12 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
             index.remove(node, FreeTextSearch.KEY);
         }));
 
-        iterateLabelChanges(data.assignedLabels(), data.createdNodes(), (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
+        iterateLabelChanges(data.assignedLabels(), Iterables.asCollection(data.createdNodes()), (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
             index.add(node, key, value);
             index.add(node, FreeTextSearch.KEY, value);
         }));
 
-        iterateLabelChanges(data.removedLabels(), data.deletedNodes(), (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
+        iterateLabelChanges(data.removedLabels(), Iterables.asCollection(data.deletedNodes()), (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
             index.remove(node, key);
             index.remove(node, FreeTextSearch.KEY);
         }));
@@ -107,9 +108,9 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
         });
     }
 
-    private void iterateLabelChanges(Iterable<LabelEntry> labelEntries, Iterable<Node> blacklist, IndexFunction<Index<Node>, Node, String, Object, Void> function) {
+    private void iterateLabelChanges(Iterable<LabelEntry> labelEntries, Collection<Node> blacklist, IndexFunction<Index<Node>, Node, String, Object, Void> function) {
         StreamSupport.stream(labelEntries.spliterator(), false)
-                .filter(labelEntry -> iterableContains(blacklist, labelEntry.node()))
+                .filter(labelEntry -> !blacklist.contains(labelEntry.node()))
                 .forEach(labelEntry -> {
                     final Map<String, Collection<Index<Node>>> propertyIndicesMap = indexesByLabelAndProperty.get(labelEntry.label().name());
                     if (propertyIndicesMap!=null) {
@@ -125,15 +126,6 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
                         }
                     }
                 });
-    }
-
-    private boolean iterableContains(Iterable<Node> nodes, Node node) {
-        for (Node thisNode: nodes) {
-            if (thisNode.equals(node)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private Collection<Index<Node>> findIndicesAffectedBy(Iterable<Label> labels, String key) {
@@ -172,7 +164,7 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
     // might be run from a scheduler, so we need to make sure we have a transaction
     private synchronized void initIndexConfiguration() {
         try (Transaction tx = graphDatabaseService.beginTx() ) {
-            indexesByLabelAndProperty = new HashMap<>();
+            Map<String, Map<String, Collection<Index<Node>>>> tmpIndexesByLabelAndProperty = new HashMap<>();
 
             final IndexManager indexManager = graphDatabaseService.index();
             for (String indexName : indexManager.nodeIndexNames()) {
@@ -182,7 +174,7 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
                 if (Util.toBoolean(indexConfig.get("autoUpdate"))) {
                     String labels = indexConfig.getOrDefault("labels", "");
                     for (String label : labels.split(":")) {
-                        Map<String, Collection<Index<Node>>> propertyKeyToIndexMap = indexesByLabelAndProperty.computeIfAbsent(label, s -> new HashMap<>());
+                        Map<String, Collection<Index<Node>>> propertyKeyToIndexMap = tmpIndexesByLabelAndProperty.computeIfAbsent(label, s -> new HashMap<>());
                         for (String property : indexConfig.getOrDefault("keysForLabel:" + label, "").split(":")) {
                             final Collection<Index<Node>> indices = propertyKeyToIndexMap.computeIfAbsent(property, s -> new ArrayList<>());
                             indices.add(index);
@@ -191,6 +183,7 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
                 }
             }
             tx.success();
+            indexesByLabelAndProperty = tmpIndexesByLabelAndProperty;
         }
     }
 
