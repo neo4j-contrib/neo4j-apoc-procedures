@@ -12,12 +12,13 @@ import static org.junit.Assert.assertEquals;
 
 import apoc.util.TestUtil;
 
+import java.util.Map;
+
 public class BitwiseOperationsTest {
     private static GraphDatabaseService db;
-    public static final String BITWISE_CALL = "call apoc.bitwise.op({a},{op},{b})";
+    public static final String BITWISE_CALL = "return apoc.bitwise.op({a},{op},{b}) as value";
 
-    private int a = 0b0011_1100;
-    private int b = 0b0000_1101;
+    private int a,b;
 
 
     public BitwiseOperationsTest() throws Exception {
@@ -36,12 +37,16 @@ public class BitwiseOperationsTest {
 
 
     public void testOperation(String op, long expected) {
-        testCall(db, BITWISE_CALL, map("a", a, "op", op, "b", b), (row) -> assertEquals("operation " + op, expected, row.get("value")));
+        Map<String, Object> params = map("a", a, "op", op, "b", b);
+        testCall(db, BITWISE_CALL, params,
+                (row) -> assertEquals("operation " + op, expected, row.get("value")));
     }
 
 
     @Test
     public void testOperations() throws Throwable {
+        a = 0b0011_1100;
+        b = 0b0000_1101;
         testOperation("&", 12L);
         testOperation("AND", 12L);
         testOperation("OR", 61L);
@@ -50,6 +55,11 @@ public class BitwiseOperationsTest {
         testOperation("XOR", 49L);
         testOperation("~", -61L);
         testOperation("NOT", -61L);
+    }
+
+    @Test
+    public void testOperations2() throws Throwable {
+        a = 0b0011_1100;
         b = 2;
         testOperation("<<", 240L);
         testOperation("left shift", 240L);
