@@ -5,7 +5,7 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.3">
-<title>APOC User Guide 3.1.0.3</title>
+<title>APOC User Guide 3.2.0.1</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
@@ -419,14 +419,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
-<h1>APOC User Guide 3.1.0.3</h1>
+<h1>APOC User Guide 3.2.0.1</h1>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#_introduction">Introduction</a>
+<ul class="sectlevel2">
+<li><a href="#_notices">Notices</a>
 <ul class="sectlevel3">
 <li><a href="#_license">License</a></li>
 <li><a href="#__apoc_name_history">"APOC" Name history</a></li>
+</ul>
+</li>
 <li><a href="#_installation">Installation</a>
 <ul class="sectlevel3">
 <li><a href="#_download_latest_release">Download latest release</a></li>
@@ -435,13 +439,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_build_install_the_current_development_branch_from_source">Build &amp; install the current development branch from source</a></li>
 </ul>
 </li>
-<<<<<<< HEAD
 <li><a href="#_calling_procedures_functions_within_cypher">Calling Procedures &amp; Functions within Cypher</a></li>
 <li><a href="#_procedure_function_signatures">Procedure &amp; Function Signatures</a></li>
-=======
-<li><a href="#_calling_procedures_within_cypher">Calling Procedures within Cypher</a></li>
-<li><a href="#_procedure_signatures">Procedure Signatures</a></li>
->>>>>>> d3418dd... fixes #156: implement automatic tracking of manual index changes
 </ul>
 </li>
 <li><a href="#_help_and_usage">Help and Usage</a></li>
@@ -516,6 +515,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel3">
 <li><a href="#_relationship_filter">Relationship Filter</a></li>
 <li><a href="#_label_filter">Label Filter</a></li>
+<li><a href="#_uniqueness">Uniqueness</a></li>
 </ul>
 </li>
 <li><a href="#_parallel_node_search">Parallel Node Search</a></li>
@@ -578,9 +578,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_expand_paths">Expand paths</a>
 <ul class="sectlevel3">
-<li><a href="#_usage">Usage</a></li>
-<li><a href="#_examples_3">Examples</a></li>
+<li><a href="#_expand">Expand</a></li>
 <li><a href="#_expand_with_config">Expand with Config</a></li>
+<li><a href="#_expand_to_nodes_in_a_subgraph">Expand to nodes in a subgraph</a></li>
+<li><a href="#_expand_to_a_subgraph_and_return_all_nodes_and_relationships_within_the_subgraph">Expand to a subgraph and return all nodes and relationships within the subgraph</a></li>
+<li><a href="#_expand_a_spanning_tree">Expand a spanning tree</a></li>
 </ul>
 </li>
 <li><a href="#_centrality_algorithms">Centrality Algorithms</a>
@@ -702,14 +704,67 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="title">Note</div>
 </td>
 <td class="content">
-Go here for <a href="index30.html">documentation for APOC version 3.0.x</a>
+Go here for documentation for APOC  <a href="index30.html">version 3.0.x</a> <a href="index31.html">version 3.1.x</a>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_notices"><a class="link" href="#_notices">Notices</a></h3>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+Neo4j 3.2 has increased security for procedures and functions.
+Procedures that use internal APIs (like <code>GraphDatabaseAPI</code>,<code>KernelTransaction</code>, etc.) have to be whitelisted in <code>$NEO4J_HOME/conf/neoj4.conf</code> with <code>dbms.security.procedures.unrestricted=apoc.*,apoc.meta.*</code> for security reasons.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+You can also whitelist procedures and functions to be loaded using: <code>dbms.security.procedures.white_list=apoc.coll.<strong>,apoc.load.</strong></code>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Neo4j 3.2 introduces user defined aggregation functions, we will use that feature in APOC e.g. for export, graph-algorithms and more, instead of passing in Cypher statements to procedures.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Please note that about 70 procedures have been turned into user defined functions.
+This includes, <code>apoc.date.* apoc.number.<strong>, apoc.coll.</strong>, apoc.map.*</code> and some more packages.
+See, this <a href="https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/144">issue</a> for a list.
 </td>
 </tr>
 </table>
 </div>
 <div class="imageblock" style="float: right">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/docs/img/apoc.gif" alt="apoc">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.gif" alt="apoc">
 </div>
 </div>
 <div class="paragraph">
@@ -738,13 +793,13 @@ Those procedures are implemented in Java and can be easily deployed into your Ne
 <p><strong>APOC</strong> also stands for "Awesome Procedures On Cypher"</p>
 </div>
 </div>
+</div>
 <div class="sect2">
-<<<<<<< HEAD
 <h3 id="_installation"><a class="link" href="#_installation">Installation</a></h3>
 <div class="sect3">
 <h4 id="_download_latest_release"><a class="link" href="#_download_latest_release">Download latest release</a></h4>
 <div class="paragraph">
-<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.0.3" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.0.3</a>
+<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.1" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.1</a>
 to find the latest release and download the binary jar to place into your <code>$NEO4J_HOME/plugins</code> folder.</p>
 </div>
 </div>
@@ -767,6 +822,18 @@ to find the latest release and download the binary jar to place into your <code>
 <td class="tableblock halign-left valign-top"><p class="tableblock">neo4j version</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.2.0.1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.2.0-alpha06 (3.2.x)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.2.5</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.2 (3.1.x)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.0.4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.0 (3.1.x)</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.1.0.3</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.1.0 (3.1.x)</p></td>
 </tr>
@@ -789,91 +856,23 @@ to find the latest release and download the binary jar to place into your <code>
 </tbody>
 </table>
 </div>
-=======
-<h3 id="_installation">Installation</h3>
->>>>>>> d3418dd... fixes #156: implement automatic tracking of manual index changes
 <div class="sect3">
 <h4 id="_using_apoc_with_neo4j_docker_image"><a class="link" href="#_using_apoc_with_neo4j_docker_image">using APOC with Neo4j Docker image</a></h4>
 <div class="paragraph">
-<<<<<<< HEAD
 <p>The <a href="https://hub.docker.com/_/neo4j/">Neo4j Docker image</a> allows to supply a volume for the <code>/plugins</code> folder. Download the APOC release fitting your Neo4j version to local folder <code>plugins</code> and provide it as a data volume:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-bash" data-lang="bash">mkdir plugins
 pushd plugins
-wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.1.0.3/apoc-3.1.0.3-all.jar
+wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.0.1/apoc-3.2.0.1-all.jar
 popd
-docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.1.1</code></pre>
+docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.2.0-alpha06</code></pre>
 </div>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_build_install_the_current_development_branch_from_source"><a class="link" href="#_build_install_the_current_development_branch_from_source">Build &amp; install the current development branch from source</a></h4>
-=======
-<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.0.8.4" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.0.8.4</a>
-to find the latest release and download the binary jar to place into your <code>$NEO4J_HOME/plugins</code> folder.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_version_compatibility_matrix">Version Compatibility Matrix</h4>
-<div class="paragraph">
-<p>Since APOC relies in some places on Neo4j&#8217;s internal APIs you need to use the right APOC version for your Neo4j installaton.</p>
-</div>
-<div class="paragraph">
-<p>Any version to be released after 1.1.0 will use a different, consistent versioning scheme: <code>&lt;neo4j-version&gt;.&lt;apoc&gt;</code> version. The trailing <code>&lt;apoc&gt;</code> part of the version number will be incremented with every apoc release.</p>
-</div>
-<table class="tableblock frame-all grid-all spread">
-<colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
-</colgroup>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc version</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">neo4j version</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.0.3</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.0 (3.1.x)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.8.4</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.8 (3.0.x)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.4.3</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.4 (3.0.x)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.1.0</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.0 - 3.0.3</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1.0.0</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.0 - 3.0.3</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="sect3">
-<h4 id="_using_apoc_with_neo4j_docker_image">using APOC with Neo4j Docker image</h4>
-<div class="paragraph">
-<p>The <a href="https://hub.docker.com/_/neo4j/">Neo4j Docker image</a> allows to supply a volume for the <code>/plugins</code> folder. Download the APOC release fitting your Neo4j version to local folder <code>plugins</code> and provide it as a data volume:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-bash" data-lang="bash">mkdir plugins
-pushd plugins
-wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.0.8.4/apoc-3.0.0.4-all.jar
-popd
-docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.0.8</code></pre>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_build_install_the_current_development_branch_from_source">Build &amp; install the current development branch from source</h4>
->>>>>>> d3418dd... fixes #156: implement automatic tracking of manual index changes
 <div class="listingblock">
 <div class="content">
 <pre>git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
@@ -901,7 +900,7 @@ $NEO4J_HOME/bin/neo4j restart</pre>
 <div class="listingblock">
 <div class="title">Load JSON example</div>
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH 'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/master/src/test/resources/person.json' AS url
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH 'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/person.json' AS url
 
 CALL apoc.load.json(url) YIELD value as person
 
@@ -995,7 +994,7 @@ RETURN name, signature</code></pre>
 <div class="sectionbody">
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/docs/img/apoc-help-apoc.jpg" alt="apoc help apoc" width="600">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc-help-apoc.jpg" alt="apoc help apoc" width="600">
 </div>
 </div>
 <table class="tableblock frame-all grid-all spread">
@@ -1136,7 +1135,7 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 </table>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/docs/img/apoc.index.nodes-with-score.jpg" alt="apoc.index.nodes with score" width="600">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.index.nodes-with-score.jpg" alt="apoc.index.nodes with score" width="600">
 </div>
 </div>
 <table class="tableblock frame-all grid-all spread">
@@ -1234,7 +1233,7 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 <h3 id="_meta_graph"><a class="link" href="#_meta_graph">Meta Graph</a></h3>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/docs/img/apoc.meta.graph.jpg" alt="apoc.meta.graph" width="600">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.meta.graph.jpg" alt="apoc.meta.graph" width="600">
 </div>
 </div>
 <div class="paragraph">
@@ -1491,7 +1490,7 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 <h3 id="_loading_data_from_rdbms"><a class="link" href="#_loading_data_from_rdbms">Loading Data from RDBMS</a></h3>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/docs/img/apoc-jdbc-northwind-load.jpg" alt="apoc jdbc northwind load" width="600">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc-jdbc-northwind-load.jpg" alt="apoc jdbc northwind load" width="600">
 </div>
 </div>
 <table class="tableblock frame-all grid-all spread">
@@ -2516,6 +2515,22 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.randomItems(coll, itemCount, allowRepick: false)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns a list of <code>itemCount</code> random items from the list, optionally allowing picked elements to be picked again</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.containsDuplicates(coll)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns true if a collection contains duplicate elements</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.duplicates(coll)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns a list of duplicate items in the collection</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.duplicatesWithCount(coll)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns a list of duplicate items in the collection and their count, keyed by <code>item</code> and <code>count</code> (e.g., <code>[{item: xyz, count:2}, {item:zyx, count:5}]</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.occurrences(coll)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns the count of the given item in the collection</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -2910,6 +2925,33 @@ SET n.ttl = timestamp() + 3600</code></pre>
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p>Variations allow more configurable expansions, and expansions for more specific use cases:</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16%;">
+<col style="width: 83%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.expandConfig(startNode &lt;id&gt;Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, uniqueness:'RELATIONSHIP_PATH'}) yield path</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expand from given nodes(s) taking the provided restrictions into account</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.subgraphNodes(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true}) yield node</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expand a subgraph from given nodes(s) taking the provided restrictions into account; returns all nodes in the subgraph</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.subgraphAll(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true}) yield nodes, relationships</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expand a subgraph from given nodes(s) taking the provided restrictions into account; returns the collection of subgraph nodes, and the collection of all relationships within the subgraph</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.spanningTree(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true}) yield path</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expand a spanning tree from given nodes(s) taking the provided restrictions into account; the paths returned collectively form a spanning tree</p></td>
+</tr>
+</tbody>
+</table>
 <div class="sect3">
 <h4 id="_relationship_filter"><a class="link" href="#_relationship_filter">Relationship Filter</a></h4>
 <div class="paragraph">
@@ -3015,6 +3057,121 @@ SET n.ttl = timestamp() + 3600</code></pre>
 </div>
 <div class="paragraph">
 <p>stop traversal after reaching a friend (but include him)</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_uniqueness"><a class="link" href="#_uniqueness">Uniqueness</a></h4>
+<div class="paragraph">
+<p>Uniqueness of nodes and relationships guides the expansion and the returned results.
+Uniqueness is only configurable using <code>expandConfig()</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>subgraphNodes()</code>, <code>subgraphAll()</code>, and <code>spanningTree()</code> all use 'NODE_GLOBAL' uniqueness.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">value</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_PATH</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>For each returned node there&#8217;s a (relationship wise) unique path from the start node to it. This is Cypher&#8217;s default expansion mode.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_GLOBAL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>A node cannot be traversed more than once. This is what the legacy traversal framework does.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_LEVEL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Entities on the same level are guaranteed to be unique.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_PATH</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>For each returned node there&#8217;s a unique path from the start node to it.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_RECENT</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>This is like NODE_GLOBAL, but only guarantees uniqueness among the most recent visited nodes, with a configurable count. Traversing a huge graph is quite memory intensive in that it keeps track of all the nodes it has visited.
+For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemoryError. Together with this Uniqueness you can supply a count, which is the number of most recent visited nodes. This can cause a node to be visited more than once, but scales infinitely.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_GLOBAL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>A relationship cannot be traversed more than once, whereas nodes can.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_LEVEL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Entities on the same level are guaranteed to be unique.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_RECENT</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Same as for NODE_RECENT, but for relationships.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NONE</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>No restriction (the user will have to manage it)</p>
 </div></div></td>
 </tr>
 </tbody>
@@ -3418,7 +3575,7 @@ public String format(@Name("time") long time,
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/docs/img/dbms.functions.jpg" alt="dbms.functions">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/dbms.functions.jpg" alt="dbms.functions">
 </div>
 </div>
 </div>
@@ -3481,7 +3638,7 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 </table>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/docs/img/apoc.index.nodes-with-score.jpg" alt="apoc.index.nodes with score" width="600">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.index.nodes-with-score.jpg" alt="apoc.index.nodes with score" width="600">
 </div>
 </div>
 <table class="tableblock frame-all grid-all spread">
@@ -4320,10 +4477,25 @@ Similarly, if no 'weight' property key was specified, all weights are assumed to
 <div class="sect2">
 <h3 id="_expand_paths"><a class="link" href="#_expand_paths">Expand paths</a></h3>
 <div class="paragraph">
-<p>expand from start node following the given relationships from min to max-level adhering to the label filters</p>
+<p>Expand from start node following the given relationships from min to max-level adhering to the label filters. Several variations exist:</p>
+</div>
+<div class="paragraph">
+<p><code>apoc.path.expand()</code> expands paths using Cypher&#8217;s default expansion modes (bfs and 'RELATIONSHIP_PATH' uniqueness)</p>
+</div>
+<div class="paragraph">
+<p><code>apoc.path.expandConfig()</code> allows more flexible configuration of parameters and expansion modes</p>
+</div>
+<div class="paragraph">
+<p><code>apoc.path.subgraphNodes()</code> expands to nodes of a subgraph</p>
+</div>
+<div class="paragraph">
+<p><code>apoc.path.subgraphAll()</code> expands to nodes of a subgraph and also returns all relationships in the subgraph</p>
+</div>
+<div class="paragraph">
+<p><code>apoc.path.spanningTree()</code> expands to paths collectively forming a spanning tree</p>
 </div>
 <div class="sect3">
-<h4 id="_usage"><a class="link" href="#_usage">Usage</a></h4>
+<h4 id="_expand"><a class="link" href="#_expand">Expand</a></h4>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.path.expand(startNode &lt;id&gt;|Node, relationshipFilter, labelFilter, minLevel, maxLevel )
@@ -4331,9 +4503,8 @@ Similarly, if no 'weight' property key was specified, all weights are assumed to
 CALL apoc.path.expand(startNode &lt;id&gt;|Node|list, 'TYPE|TYPE_OUT&gt;|&lt;TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Relationship Filter</p>
-</div>
+<div class="sect5">
+<h6 id="_relationship_filter_2"><a class="link" href="#_relationship_filter_2">Relationship Filter</a></h6>
 <div class="paragraph">
 <p>Syntax: <code>[&lt;]RELATIONSHIP_TYPE1[&gt;]|[&lt;]RELATIONSHIP_TYPE2[&gt;]|&#8230;&#8203;</code></p>
 </div>
@@ -4386,9 +4557,9 @@ CALL apoc.path.expand(startNode &lt;id&gt;|Node|list, 'TYPE|TYPE_OUT&gt;|&lt;TYP
 </tr>
 </tbody>
 </table>
-<div class="paragraph">
-<p>Label Filter</p>
 </div>
+<div class="sect5">
+<h6 id="_label_filter_2"><a class="link" href="#_label_filter_2">Label Filter</a></h6>
 <div class="paragraph">
 <p>Syntax: <code>[+-/]LABEL1|LABEL2|&#8230;&#8203;</code></p>
 </div>
@@ -4441,10 +4612,8 @@ CALL apoc.path.expand(startNode &lt;id&gt;|Node|list, 'TYPE|TYPE_OUT&gt;|&lt;TYP
 </tr>
 </tbody>
 </table>
-</div>
-<div class="sect3">
-<h4 id="_examples_3"><a class="link" href="#_examples_3">Examples</a></h4>
 <div class="listingblock">
+<div class="title">Examples</div>
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.path.expand(1,"ACTED_IN&gt;|PRODUCED&lt;|FOLLOWS&lt;","+Movie|Person",0,3)
 call apoc.path.expand(1,"ACTED_IN&gt;|PRODUCED&lt;|FOLLOWS&lt;","-BigBrother",0,3)
@@ -4461,6 +4630,7 @@ return pp;
 match (p:Person) with p limit 3
 call apoc.path.expand(p,"ACTED_IN&gt;|PRODUCED&lt;|FOLLOWS&lt;","+Movie|Person",1,2) yield path as pp
 return p, pp</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -4486,7 +4656,121 @@ return p, pp</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>So you can turn this cypher query:</p>
+<div class="title">Uniqueness</div>
+<p>Uniqueness of nodes and relationships guides the expansion and the results returned.
+Uniqueness is only configurable using <code>expandConfig()</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>subgraphNodes()</code>, <code>subgraphAll()</code>, and <code>spanningTree()</code> all use 'NODE_GLOBAL' uniqueness.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">value</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_PATH</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>For each returned node there&#8217;s a (relationship wise) unique path from the start node to it. This is Cypher&#8217;s default expansion mode.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_GLOBAL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>A node cannot be traversed more than once. This is what the legacy traversal framework does.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_LEVEL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Entities on the same level are guaranteed to be unique.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_PATH</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>For each returned node there&#8217;s a unique path from the start node to it.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NODE_RECENT</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>This is like NODE_GLOBAL, but only guarantees uniqueness among the most recent visited nodes, with a configurable count. Traversing a huge graph is quite memory intensive in that it keeps track of all the nodes it has visited.
+For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemoryError. Together with this Uniqueness you can supply a count, which is the number of most recent visited nodes. This can cause a node to be visited more than once, but scales infinitely.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_GLOBAL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>A relationship cannot be traversed more than once, whereas nodes can.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_LEVEL</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Entities on the same level are guaranteed to be unique.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>RELATIONSHIP_RECENT</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>Same as for NODE_RECENT, but for relationships.</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>NONE</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+
+</div>
+<div class="paragraph">
+<p>No restriction (the user will have to manage it)</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<div class="title">Examples</div>
+<p>You can turn this cypher query:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -4503,6 +4787,93 @@ RETURN count(*);</code></pre>
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (user:User) WHERE user.id = 460
 CALL apoc.path.expandConfig(user,{relationshipFilter:"RATED",minLevel:3,maxLevel:3,bfs:false,uniqueness:"NONE"}) YIELD path
 RETURN count(*);</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_expand_to_nodes_in_a_subgraph"><a class="link" href="#_expand_to_nodes_in_a_subgraph">Expand to nodes in a subgraph</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.path.subgraphNodes(startNode &lt;id&gt;Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield node</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.</p>
+</div>
+<div class="paragraph">
+<p>Accepts the same <code>config</code> values as in <code>expandConfig()</code>, though <code>uniqueness</code> and <code>minLevel</code> are not configurable.</p>
+</div>
+<div class="paragraph">
+<div class="title">Examples</div>
+<p>Expand to all nodes of a connected subgraph:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.subgraphNodes(user, {}) YIELD node
+RETURN node;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expand to all nodes reachable by :FRIEND relationships:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.subgraphNodes(user, {relationshipFilter:'FRIEND'}) YIELD node
+RETURN node;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_expand_to_a_subgraph_and_return_all_nodes_and_relationships_within_the_subgraph"><a class="link" href="#_expand_to_a_subgraph_and_return_all_nodes_and_relationships_within_the_subgraph">Expand to a subgraph and return all nodes and relationships within the subgraph</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.path.subgraphAll(startNode &lt;id&gt;Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield nodes, relationships</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
+Returns the collection of nodes in the subgraph, and the collection of relationships between all subgraph nodes.</p>
+</div>
+<div class="paragraph">
+<p>Accepts the same <code>config</code> values as in <code>expandConfig()</code>, though <code>uniqueness</code> and <code>minLevel</code> are not configurable.</p>
+</div>
+<div class="paragraph">
+<div class="title">Example</div>
+<p>Expand to local subgraph (and all its relationships) within 4 traversals:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.subgraphAll(user, {maxLevel:4}) YIELD nodes, relationships
+RETURN nodes, relationships;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_expand_a_spanning_tree"><a class="link" href="#_expand_a_spanning_tree">Expand a spanning tree</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.path.spanningTree(startNode &lt;id&gt;Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield path</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters.
+The paths returned collectively form a spanning tree.</p>
+</div>
+<div class="paragraph">
+<p>Accepts the same <code>config</code> values as in <code>expandConfig()</code>, though <code>uniqueness</code> and <code>minLevel</code> are not configurable.</p>
+</div>
+<div class="paragraph">
+<div class="title">Example</div>
+<p>Expand a spanning tree of all contiguous :User nodes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.spanningTree(user, {labelFilter:'+User'}) YIELD path
+RETURN path;</code></pre>
 </div>
 </div>
 </div>
@@ -4980,7 +5351,7 @@ RETURN item.title, item.owner, item.creation_date, keys(item)</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/docs/img/apoc.load.json.so.png" alt="apoc.load.json.so">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.load.json.so.png" alt="apoc.load.json.so">
 </div>
 </div>
 <div class="paragraph">
@@ -5008,7 +5379,7 @@ FOREACH (a IN q.answers |
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/docs/img/apoc.load.json-so-result.png" alt="apoc.load.json so result">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.load.json-so-result.png" alt="apoc.load.json so result">
 </div>
 </div>
 </div>
@@ -5204,7 +5575,7 @@ RETURN row limit 1;</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/docs/img/apoc-load-jdbc.jpg" alt="apoc load jdbc" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc-load-jdbc.jpg" alt="apoc load jdbc" width="800">
 </div>
 </div>
 </div>
@@ -6395,7 +6766,7 @@ RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-03-06 14:04:18 +01:00
+Last updated 2017-03-10 00:21:56 +01:00
 </div>
 </div>
 </body>
