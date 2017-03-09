@@ -44,12 +44,21 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
             public void start() throws Throwable {
                 ApocConfiguration.initialize(db);
                 Pools.NEO4J_SCHEDULER = dependencies.scheduler();
+                registerCustomProcedures();
 
-                dependencies.procedures().register(new AssertSchemaProcedure(db, log.getUserLog(AssertSchemaProcedure.class)));
                 ttlLifeCycle = new TTLLifeCycle(Pools.NEO4J_SCHEDULER, db, log.getUserLog(TTLLifeCycle.class));
                 ttlLifeCycle.start();
+
                 triggerLifeCycle = new Trigger.LifeCycle(db, log.getUserLog(Trigger.class));
                 triggerLifeCycle.start();
+            }
+
+            public void registerCustomProcedures() {
+                try {
+                    dependencies.procedures().register(new AssertSchemaProcedure(db, log.getUserLog(AssertSchemaProcedure.class)));
+                } catch(Exception|Error e) {
+                    log.getUserLog(ArithmeticException.class).error("Cannot register procedure AssertSchemaProcedure",e);
+                }
             }
 
             @Override
