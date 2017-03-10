@@ -1,6 +1,6 @@
 :readme:
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.0/docs/img
-:apoc-release: 3.0.8.4
+:apoc-release: 3.0.8.5
 :neo4j-version: 3.0.8
 
 image:https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Travis CI Status", link="https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures"] image:https://img.shields.io/maven-central/v/org.neo4j.procedure/apoc.svg[alt="Maven status"] image:https://img.shields.io/github/release/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Github release status"] image:https://img.shields.io/github/contributors/neo4j-contrib/neo4j-apoc-procedures.svg[alt="contributor stats"]
