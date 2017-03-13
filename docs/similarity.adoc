@@ -1,0 +1,162 @@
+== Similarity
+
+Similarity is used to determine how similar two nodes are to each other, and have a variety of uses, especially within recommendation systems.
+
+Similarity is typically expressed as a floating-point value between `0` and `1`, though some variations exist.
+
+This number is typically derived by taking two vectors (equal-sized collections of values) associated with the two nodes,
+and performing a similarity computation on those vectors. A similarity of `1` indicates they are identical. A value of `0` tends to mean they are completely dissimilar.
+
+APOC offers several common functions for computing similarity:
+
+[cols="3m,3"]
+|===
+| apoc.algo.cosineSimilarity([vector1], [vector2]) | Compute cosine similarity
+| apoc.algo.euclideanDistance([vector1], [vector2]) | Compute Euclidean distance
+| apoc.algo.euclideanSimilarity([vector1], [vector2]) | Compute Euclidean similarity
+|===
+
+Often, similarity is calculated between two nodes, then set as a property for a new :Similarity relationship between the nodes, so it can be reused quickly in future queries.
+
+Pay attention to cases where the properties used as values in vectors may not exist, or where nodes or relationships providing those values may not exist (such as in OPTIONAL MATCHES).
+In these cases, you may need to use `COALESCE()` to supply default values.
+
+==== Example Graph
+
+One approach for computing similarity is comparing the properties of relationships from two different nodes to a set of common nodes.
+
+For example, let's use a graph of skills, where a company's roles require certain skills at a certain proficiency, and where employees have proficiencies in various skills.
+
+If we match on a role's required skills, and on an employee's relationships to those same skills, we can use the proficiencies of the required skills as one vector,
+and the employee's proficiencies on those same required skills as a second vector and use those to calculate a similiarity between the employee and the role.
+
+Here's our test graph, which we'll reuse for each of the similarity functions below.
+
+[source,cypher]
+----
+create (java:Skill{name:'Java'})
+create (neo4j:Skill{name:'Neo4j'})
+create (nodejs:Skill{name:'NodeJS'})
+create (scala:Skill{name:'Scala'})
+create (jim:Employee{name:'Jim'})
+create (bob:Employee{name:'Bob'})
+create (role:Role {name:'Role 1-Analytics Manager'})
+
+create (role)-[:REQUIRES_SKILL{proficiency:8.54}]->(java)
+create (role)-[:REQUIRES_SKILL{proficiency:4.3}]->(scala)
+create (role)-[:REQUIRES_SKILL{proficiency:9.75}]->(neo4j)
+
+create (bob)-[:HAS_SKILL{proficiency:10}]->(java)
+create (bob)-[:HAS_SKILL{proficiency:7.5}]->(neo4j)
+create (bob)-[:HAS_SKILL{proficiency:0}]->(scala)
+create (jim)-[:HAS_SKILL{proficiency:8.25}]->(java)
+create (jim)-[:HAS_SKILL{proficiency:7.1}]->(scala)
+----
+
+=== Cosine Similarity
+
+link:https://en.wikipedia.org/wiki/Cosine_similarity[Cosine similarity] is the cosine of the angle between two n-dimensional vectors in an n-dimensional space.
+
+A similarity of `1` means the vectors are identical. A similarity of `-1` means they are opposites.
+
+[source,cypher]
+----
+apoc.algo.cosineSimilarity([vector1], [vector2])
+----
+
+==== Example
+
+[source,cypher]
+----
+MATCH (p1:Employee)
+MATCH (sk:Skill)<-[y:REQUIRES_SKILL] -(p2:Role {name:'Role 1-Analytics Manager'})
+OPTIONAL MATCH (p1)-[x:HAS_SKILL]->(sk)
+WITH p1, p2,
+ COLLECT(COALESCE(x.proficiency, 0)) as xprof,
+ COLLECT(COALESCE(y.proficiency, 0)) as yprof
+RETURN p1.name as name, apoc.algo.cosineSimilarity(xprof, yprof) as cosineSim
+----
+
+For reference, a raw Cypher query for cosine similarity is:
+
+[source,cypher]
+----
+MATCH (p1:Employee)
+MATCH (sk:Skill)<-[y:REQUIRES_SKILL] -(p2:Role {name:'Role 1-Analytics Manager'})
+OPTIONAL MATCH (p1)-[x:HAS_SKILL]->(sk)
+WITH p1, p2, SUM(x.proficiency * y.proficiency) AS xyDotProduct,
+SQRT(REDUCE(xDot = 0.0, a IN COLLECT(x.proficiency) | xDot + a^2)) AS xLength,
+SQRT(REDUCE(yDot = 0.0, b IN COLLECT(y.proficiency) | yDot + b^2)) AS yLength
+RETURN  p1.name as name, xyDotProduct / (xLength * yLength) as cosineSim
+----
+
+=== Euclidean Distance
+
+link:https://en.wikipedia.org/wiki/Euclidean_distance[Euclidean Distance] is the straight-line distance between two points in Euclidean space.
+It is not a similarity metric, but is the basis of several. See Euclidean Similarity below for a similarity function based on Euclidean distance.
+
+[source,cypher]
+----
+apoc.algo.euclideanDistance([vector1], [vector2])
+----
+
+==== Example
+
+[source,cypher]
+----
+MATCH (p1:Employee)
+MATCH (sk:Skill)<-[y:REQUIRES_SKILL] -(p2:Role {name:'Role 1-Analytics Manager'})
+OPTIONAL MATCH (p1)-[x:HAS_SKILL]->(sk)
+WITH p1, p2,
+ COLLECT(COALESCE(x.proficiency, 0)) as xprof,
+ COLLECT(COALESCE(y.proficiency, 0)) as yprof
+RETURN p1.name as name, apoc.algo.euclideanDistance(xprof, yprof) as euclidDist
+----
+
+For reference, a raw Cypher query for Euclidean distance is:
+
+[source,cypher]
+----
+MATCH (p1:Employee)
+MATCH (sk:Skill)<-[y:REQUIRES_SKILL] -(p2:Role {name:'Role 1-Analytics Manager'})
+OPTIONAL MATCH (p1)-[x:HAS_SKILL]->(sk)
+RETURN p1.name as name,
+ SQRT(SUM((coalesce(x.proficiency,0) - coalesce(y.proficiency, 0))^2)) AS euclidDist
+----
+
+=== Euclidean Similarity
+
+link:http://stats.stackexchange.com/a/158285[Euclidean Similarity] is one means of converting Euclidean distance to a similarity metric.
+We calculate this as:
+
+- euclidSimilarity = 1 / (1 + euclidDistance)
+
+[source,cypher]
+----
+apoc.algo.euclideanSimilarity([vector1], [vector2])
+----
+
+==== Example
+
+[source,cypher]
+----
+MATCH (p1:Employee)
+MATCH (sk:Skill)<-[y:REQUIRES_SKILL] -(p2:Role {name:'Role 1-Analytics Manager'})
+OPTIONAL MATCH (p1)-[x:HAS_SKILL]->(sk)
+WITH p1, p2,
+ COLLECT(COALESCE(x.proficiency, 0)) as xprof,
+ COLLECT(COALESCE(y.proficiency, 0)) as yprof
+RETURN p1.name as name, apoc.algo.euclideanSimilarity(xprof, yprof) as euclidSim
+----
+
+For reference, a raw Cypher query for Euclidean similarity is:
+
+[source,cypher]
+----
+MATCH (p1:Employee)
+MATCH (sk:Skill)<-[y:REQUIRES_SKILL] -(p2:Role {name:'Role 1-Analytics Manager'})
+OPTIONAL MATCH (p1)-[x:HAS_SKILL]->(sk)
+WITH p1.name as name,
+ SQRT(SUM((coalesce(x.proficiency,0) - coalesce(y.proficiency, 0))^2)) AS euclidDist
+RETURN name, 1 / (1 + euclidDist) as euclidSim
+----

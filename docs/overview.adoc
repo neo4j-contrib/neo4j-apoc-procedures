@@ -992,6 +992,13 @@ Provides some graph algorithms (not very optimized yet)
 | apoc.algo.cliquesWithNode(startNode, minSize) YIELD clique | search the graph and return all maximal cliques that  are at least as large than the minimum size argument and contain this node
 |===
 
+[cols="3m,3"]
+|===
+| apoc.algo.cosineSimilarity([vector1], [vector2]) | Compute cosine similarity
+| apoc.algo.euclideanDistance([vector1], [vector2]) | Compute Euclidean distance
+| apoc.algo.euclideanSimilarity([vector1], [vector2]) | Compute Euclidean similarity
+|===
+
 Example: find the weighted shortest path based on relationship property `d` from `A` to `B` following just `:ROAD` relationships
 
 [source,cypher]
