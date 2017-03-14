@@ -52,6 +52,7 @@ compileJava {
 
 dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version:'1.9'
+    compile 'com.jayway.jsonpath:json-path:2.2.0'
     compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version:'1.0.3'
 
     testCompile group: 'junit', name: 'junit', version:'4.12'
@@ -96,6 +97,10 @@ javadoc {
 shadowJar {
   dependencies {
     include(dependency('commons-codec:commons-codec'))
+    include(dependency('com.jayway.jsonpath:json-path'))
+    include(dependency('net.minidev:asm'))
+    include(dependency('net.minidev:json-smart'))
+    include(dependency('net.minidev:accessors-smart'))
     include(dependency('com.github.javafaker:javafaker'))
   }
 }

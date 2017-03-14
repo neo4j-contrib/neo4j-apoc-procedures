@@ -4,6 +4,7 @@ import java.util.*;
 import java.io.*;
 import java.util.stream.*;
 
+import com.jayway.jsonpath.JsonPath;
 import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import apoc.result.MapResult;
@@ -19,7 +20,12 @@ public class Json {
     @Context
     public org.neo4j.graphdb.GraphDatabaseService db;
 
-    @UserFunction
+    @UserFunction("apoc.json.path")
+    @Description("apoc.json.path('{json}','json-path')")
+    public Object path(@Name("json") String json, @Name(value = "path",defaultValue = "$") String path) {
+        return JsonUtil.parse(json,path,Object.class);
+    }
+    @UserFunction("apoc.convert.toJson")
     @Description("apoc.convert.toJson([1,2,3]) or toJson({a:42,b:\"foo\",c:[1,2,3]})")
     public String toJson(@Name("value") Object value) {
         try {
@@ -29,8 +35,8 @@ public class Json {
         }
     }
 
-    @Procedure(mode = Mode.WRITE)
-    @Description("apoc.json.setJsonProperty(node,key,complexValue) - sets value serialized to JSON as property with the given name on the node")
+    @Procedure(mode = Mode.WRITE) // ,name = "apoc.json.setProperty")
+    @Description("apoc.convert.setJsonProperty(node,key,complexValue) - sets value serialized to JSON as property with the given name on the node")
     public void setJsonProperty(@Name("node") Node node, @Name("key") String key, @Name("value") Object value) {
         try {
             node.setProperty(key, JsonUtil.OBJECT_MAPPER.writeValueAsString(value));
@@ -39,46 +45,30 @@ public class Json {
         }
     }
 
-    @UserFunction
-    @Description("apoc.json.getJsonProperty(node,key) - converts serialized JSON in property back to original object")
-    public Object getJsonProperty(@Name("node") Node node, @Name("key") String key) {
+    @UserFunction// ("apoc.json.getJsonProperty")
+    @Description("apoc.convert.getJsonProperty(node,key[,'json-path']) - converts serialized JSON in property back to original object")
+    public Object getJsonProperty(@Name("node") Node node, @Name("key") String key,@Name(value = "path",defaultValue = "") String path) {
         String value = (String) node.getProperty(key, null);
-        try {
-            return JsonUtil.OBJECT_MAPPER.readValue(value, Object.class);
-        } catch (IOException e) {
-            throw new RuntimeException("Can't convert " + value + " to json", e);
-        }
+        return JsonUtil.parse(value, path, Object.class);
     }
 
-    @UserFunction
-    @Description("apoc.json.getJsonPropertyMap(node,key) - converts serialized JSON in property back to map")
-    public Map<String,Object> getJsonPropertyMap(@Name("node") Node node, @Name("key") String key) {
+    @UserFunction// ("apoc.json.getJsonPropertyMap")
+    @Description("apoc.convert.getJsonPropertyMap(node,key[,'json-path']) - converts serialized JSON in property back to map")
+    public Map<String,Object> getJsonPropertyMap(@Name("node") Node node, @Name("key") String key,@Name(value = "path",defaultValue = "") String path) {
         String value = (String) node.getProperty(key, null);
-        try {
-            return JsonUtil.OBJECT_MAPPER.readValue(value, Map.class);
-        } catch (IOException e) {
-            throw new RuntimeException("Can't convert " + value + " to json", e);
-        }
+        return JsonUtil.parse(value, path, Map.class);
     }
 
     @UserFunction
-    @Description("apoc.convert.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}')")
-    public Map<String,Object> fromJsonMap(@Name("map") String value) {
-        try {
-            return JsonUtil.OBJECT_MAPPER.readValue(value, Map.class);
-        } catch (IOException e) {
-            throw new RuntimeException("Can't deserialize to Map:\n" + value, e);
-        }
+    @Description("apoc.convert.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}'[,'json-path'])")
+    public Map<String,Object> fromJsonMap(@Name("map") String value,@Name(value = "path",defaultValue = "") String path) {
+        return JsonUtil.parse(value, path, Map.class);
     }
 
     @UserFunction
-    @Description("apoc.convert.fromJsonList('[1,2,3]')")
-    public List<Object> fromJsonList(@Name("list") String value) {
-        try {
-            return JsonUtil.OBJECT_MAPPER.readValue(value, List.class);
-        } catch (IOException e) {
-            throw new RuntimeException("Can't deserialize to List:\n" + value, e);
-        }
+    @Description("apoc.convert.fromJsonList('[1,2,3]'[,'json-path'])")
+    public List<Object> fromJsonList(@Name("list") String value, @Name(value = "path",defaultValue = "") String path) {
+        return JsonUtil.parse(value, path, List.class);
     }
 
     @Procedure("apoc.convert.toTree")
