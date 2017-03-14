@@ -9,11 +9,12 @@
 == Introduction
 
 NOTE: Go here for documentation for APOC for Neo4j version link:index30.html[3.0.x] link:index31.html[3.1.x] link:index32.html[3.2.x]
-=======
 
 === Notices
 
 include::../readme.adoc[tags=warnings,leveloffset=1]
+
+NOTE: Go here for documentation for APOC for Neo4j version link:index30.html[3.0.x] link:index31.html[3.1.x] link:index32.html[3.2.x]
 
 include::../readme.adoc[tags=intro,leveloffset=1]
 
