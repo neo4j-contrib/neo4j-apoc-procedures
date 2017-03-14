@@ -39,6 +39,8 @@ public class ConvertJsonTest {
     @Test public void testFromJsonList() throws Exception {
 	    testCall(db, "RETURN apoc.convert.fromJsonList('[1,2,3]') as value",
 	             (row) -> assertEquals(asList(1,2,3), row.get("value")) );
+	    testCall(db, "RETURN apoc.convert.fromJsonList('{\"foo\":[1,2,3]}','$.foo') as value",
+	             (row) -> assertEquals(asList(1,2,3), row.get("value")) );
     }
     @Test public void testFromJsonMap() throws Exception {
 	    testCall(db, "RETURN apoc.convert.fromJsonMap('{\"a\":42,\"b\":\"foo\",\"c\":[1,2,3]}')  as value",
@@ -58,10 +60,14 @@ public class ConvertJsonTest {
     @Test public void testGetJsonProperty() throws Exception {
         testCall(db, "CREATE (n {json:'[1,2,3]'}) RETURN apoc.convert.getJsonProperty(n, 'json') AS value",
                 (row) -> assertEquals(asList(1,2,3), row.get("value")) );
+        testCall(db, "CREATE (n {json:'{\"foo\":[1,2,3]}'}) RETURN apoc.convert.getJsonProperty(n, 'json','$.foo') AS value",
+                (row) -> assertEquals(asList(1,2,3), row.get("value")) );
     }
     @Test public void testGetJsonPropertyMap() throws Exception {
         testCall(db, "CREATE (n {json:'{a:[1,2,3]}'}) RETURN apoc.convert.getJsonProperty(n, 'json') as value",
                 (row) -> assertEquals(map("a",asList(1,2,3)), row.get("value")) );
+        testCall(db, "CREATE (n {json:'{a:[1,2,3]}'}) RETURN apoc.convert.getJsonProperty(n, 'json','$.a') as value",
+                (row) -> assertEquals(asList(1,2,3), row.get("value")) );
     }
 
     @Test public void testToTree() throws Exception {

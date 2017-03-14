@@ -8,6 +8,36 @@ Most of them provide the data as JSON.
 With `apoc.load.json` you can retrieve data from URLs and turn it into map value(s) for Cypher to consume.
 Cypher is pretty good at deconstructing nested documents with dot syntax, slices, `UNWIND` etc. so it is easy to turn nested data into graphs.
 
+
+== Json-Path
+
+Most of the `apoc.load.json` and `apoc.convert.*Json` procedures and functions now accept a json-path as last argument.
+
+The json-path uses the https://github.com/jayway/JsonPath#operators[Java implementation by Jayway] of http://goessner.net/articles/JsonPath/[Stefan Gössners JSON-Path]
+
+Here is some syntax, there are more examples at the links above.
+
+`$.store.book[0].title`
+
+.Operators
+[options="header",cols="2m,4a"]
+|===
+| Operator                 | Description
+| $                        | The root element to query. This starts all path expressions.
+| @                        | The current node being processed by a filter predicate.
+| *                        | Wildcard. Available anywhere a name or numeric are required.
+| ..                       | Deep scan. Available anywhere a name is required.
+| .<name>                  | Dot-notated child
+| ['<name>' (,'<name>')]  | Bracket-notated child or children
+| [<number> (,<number>)]  | Array index or indexes
+| [start:end]              | Array slice operator
+| [?(<expression>)]        | Filter expression. Expression must evaluate to a boolean value.
+|===
+
+If used, this path is applied to the json and can be used to extract sub-documents and -values before handing the result to Cypher, resulting in shorter statements with complex nested JSON.
+
+There is also a direct `apoc.json.path(json,path)` function.
+
 == Load JSON StackOverflow Example
 
 There have been articles before about http://neo4j.com/blog/cypher-load-json-from-url/[loading JSON from Web-APIs like StackOverflow].
@@ -33,6 +63,15 @@ RETURN item.title, item.owner, item.creation_date, keys(item)
 ----
 
 image::{img}/apoc.load.json.so.png[]
+
+
+.Question authors from StackOverflow using json-path
+[source,cypher]
+----
+WITH "https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf" AS url
+CALL apoc.load.json(url,'$.items.owner.name') YIELD value
+RETURN name, count(*);
+----
 
 Combined with the cypher query from the original blog post it's easy to create the full Neo4j graph of those entities.
 

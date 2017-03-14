@@ -24,36 +24,45 @@ public class LoadJson {
     @SuppressWarnings("unchecked")
     @Procedure
     @Description("apoc.load.jsonArray('url') YIELD value - load array from JSON URL (e.g. web-api) to import JSON as stream of values")
-    public Stream<ObjectResult> jsonArray(@Name("url") String url) {
-        Object value = JsonUtil.loadJson(url);
+    public Stream<ObjectResult> jsonArray(@Name("url") String url, @Name(value = "path",defaultValue = "") String path) {
+        Object value = JsonUtil.loadJson(url,null,null,path);
         if (value instanceof List) {
-            return ((List) value).stream().map(ObjectResult::new);
+            List list = (List) value;
+            if (list.isEmpty()) return Stream.empty();
+            if (list.get(0) instanceof Map) return list.stream().map(ObjectResult::new);
         }
-        throw new RuntimeException("Incompatible Type " + (value == null ? "null" : value.getClass()));
+        return Stream.of(new ObjectResult(value));
+        // throw new RuntimeException("Incompatible Type " + (value == null ? "null" : value.getClass()));
     }
 
     @Procedure
     @Description("apoc.load.json('url') YIELD value -  import JSON as stream of values if the JSON was an array or a single value if it was a map")
-    public Stream<MapResult> json(@Name("url") String url) {
-        return jsonParams(url,null,null);
+    public Stream<MapResult> json(@Name("url") String url, @Name(value = "path",defaultValue = "") String path) {
+        return jsonParams(url,null,null, path);
     }
 
     @SuppressWarnings("unchecked")
     @Procedure
     @Description("apoc.load.jsonParams('url',{header:value},payload) YIELD value - load from JSON URL (e.g. web-api) while sending headers / payload to import JSON as stream of values if the JSON was an array or a single value if it was a map")
-    public Stream<MapResult> jsonParams(@Name("url") String url, @Name("headers") Map<String,Object> headers, @Name("payload") String payload) {
-        return loadJsonStream(url, headers, payload);
+    public Stream<MapResult> jsonParams(@Name("url") String url, @Name("headers") Map<String,Object> headers, @Name("payload") String payload, @Name(value = "path",defaultValue = "") String path) {
+        return loadJsonStream(url, headers, payload, path);
     }
 
     public static Stream<MapResult> loadJsonStream(@Name("url") String url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload) {
+        return loadJsonStream(url, headers, payload, "" );
+    }
+    public static Stream<MapResult> loadJsonStream(@Name("url") String url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload, String path) {
         headers = null != headers ? headers : new HashMap<>();
         headers.putAll(extractCredentialsIfNeeded(url));
-        Object value = JsonUtil.loadJson(url,headers,payload);
+        Object value = JsonUtil.loadJson(url,headers,payload, path);
         if (value instanceof Map) {
             return Stream.of(new MapResult((Map) value));
         }
         if (value instanceof List) {
-            return ((List) value).stream().map((v) -> new MapResult((Map) v));
+            if (((List)value).isEmpty()) return Stream.empty();
+            if (((List) value).get(0) instanceof Map)
+                return ((List) value).stream().map((v) -> new MapResult((Map) v));
+            return Stream.of(new MapResult(Collections.singletonMap("result",value)));
         }
         throw new RuntimeException("Incompatible Type " + (value == null ? "null" : value.getClass()));
     }
