@@ -24,8 +24,8 @@ public class Convert {
 
     @UserFunction
     @Description("apoc.convert.toMap(value) | tries it's best to convert the value to a map")
-    public Map toMap(@Name("map") Object map) {
-        return map instanceof Map ? (Map) map :  null;
+    public Map<String, Object> toMap(@Name("map") Object map) {
+        return map instanceof Map ? (Map<String, Object>) map :  null;
     }
     @UserFunction
     @Description("apoc.convert.toString(value) | tries it's best to convert the value to a string")
