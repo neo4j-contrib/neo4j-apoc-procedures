@@ -73,4 +73,10 @@ public class ExpandPathTest {
 					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
 				});
 	}
+
+	@Test
+	public void testExplorePathWithStartNodeExemptIgnoresLabelFilter() throws Throwable {
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expandConfig(m,{labelFilter:'+Person', maxLevel:2, startNodeExempt:true}) yield path return count(*) as c";
+		TestUtil.testCall(db, query, (row) -> assertEquals(9L,row.get("c")));
+	}
 }

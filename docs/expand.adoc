@@ -37,6 +37,8 @@ Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 
 Syntax: `[+-/]LABEL1|LABEL2|...`
 
+With APOC 3.2.x.x, label filters will no longer apply to starting nodes of the expansion by default.
+
 [opts=header,cols="m,m,a"]
 |===
 | input | label | result
@@ -83,9 +85,25 @@ Takes an additional config to provide configuration options:
  relationshipFilter: '[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...',
  labelFilter: '[+-]LABEL1|LABEL2|...',
  uniqueness: RELATIONSHIP_PATH|NONE|NODE_GLOBAL|NODE_LEVEL|NODE_PATH|NODE_RECENT|RELATIONSHIP_GLOBAL|RELATIONSHIP_LEVEL|RELATIONSHIP_RECENT,
- bfs: true|false}
+ bfs: true|false,
+ startNodeExempt: true|false}
 ----
 
+.Start Node and label filters
+The config parameter `startNodeExempt` defines whether or not the labelFilter applies to the start node of the expansion.
+
+Use `startNodeExempt = true` when you want your label filter to only apply to all other nodes in the path, ignoring the start node.
+
+`startNodeExempt` defaults for all path expander procedures:
+
+[opts=header,cols="a,a"]
+|===
+| version |  default
+| >= APOC 3.2.x.x | startNodeExempt = true
+| < APOC 3.2.x.x | startNodeExempt = false
+|===
+
+To adhere to existing behavior, startNodeExempt will default to `false` for versions below 3.2.x.x.
 
 .Uniqueness
 
@@ -132,7 +150,7 @@ RETURN count(*);
 == Expand to nodes in a subgraph
 
 ----
-apoc.path.subgraphNodes(startNode <id>Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield node
+apoc.path.subgraphNodes(startNode <id>Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true,startNodeExempt:false}) yield node
 ----
 
 Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
@@ -162,7 +180,7 @@ RETURN node;
 == Expand to a subgraph and return all nodes and relationships within the subgraph
 
 ----
-apoc.path.subgraphAll(startNode <id>Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield nodes, relationships
+apoc.path.subgraphAll(startNode <id>Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true,startNodeExempt:false}) yield nodes, relationships
 ----
 
 Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
@@ -184,7 +202,7 @@ RETURN nodes, relationships;
 == Expand a spanning tree
 
 ----
-apoc.path.spanningTree(startNode <id>Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield path
+apoc.path.spanningTree(startNode <id>Node/list, {maxLevel,relationshipFilter,labelFilter,bfs:true,startNodeExempt:false}) yield path
 ----
 
 Expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters.
