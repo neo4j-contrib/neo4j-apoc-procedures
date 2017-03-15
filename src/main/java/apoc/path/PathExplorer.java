@@ -40,18 +40,18 @@ public class PathExplorer {
 			                   , @Name("minLevel") long minLevel
 			                   , @Name("maxLevel") long maxLevel ) throws Exception {
 		List<Node> nodes = startToNodes(start);
-		return explorePathPrivate(nodes, pathFilter, labelFilter, minLevel, maxLevel, BFS, UNIQUENESS).map( PathResult::new );
+		return explorePathPrivate(nodes, pathFilter, labelFilter, minLevel, maxLevel, BFS, UNIQUENESS, false).map( PathResult::new );
 	}
 
 	//
 	@Procedure("apoc.path.expandConfig")
-	@Description("apoc.path.expandConfig(startNode <id>|Node|list, {minLevel,maxLevel,uniqueness,relationshipFilter,labelFilter,uniqueness:'RELATIONSHIP_PATH',bfs:true}) yield path expand from start node following the given relationships from min to max-level adhering to the label filters")
+	@Description("apoc.path.expandConfig(startNode <id>|Node|list, {minLevel,maxLevel,uniqueness,relationshipFilter,labelFilter,uniqueness:'RELATIONSHIP_PATH',bfs:true, filterStartNode:false}) yield path expand from start node following the given relationships from min to max-level adhering to the label filters")
 	public Stream<PathResult> expandConfig(@Name("start") Object start, @Name("config") Map<String,Object> config) throws Exception {
 		return expandConfigPrivate(start, config).map( PathResult::new );
 	}
 
 	@Procedure("apoc.path.subgraphNodes")
-	@Description("apoc.path.subgraphNodes(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield node expand the subgraph nodes reachable from start node following relationships to max-level adhering to the label filters")
+	@Description("apoc.path.subgraphNodes(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false}) yield node expand the subgraph nodes reachable from start node following relationships to max-level adhering to the label filters")
 	public Stream<NodeResult> subgraphNodes(@Name("start") Object start, @Name("config") Map<String,Object> config) throws Exception {
 		Map<String, Object> configMap = new HashMap<>(config);
 		configMap.remove("minLevel");
@@ -61,7 +61,7 @@ public class PathExplorer {
 	}
 
 	@Procedure("apoc.path.subgraphAll")
-	@Description("apoc.path.subgraphAll(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield nodes, relationships expand the subgraph reachable from start node following relationships to max-level adhering to the label filters, and also return all relationships within the subgraph")
+	@Description("apoc.path.subgraphAll(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false}) yield nodes, relationships expand the subgraph reachable from start node following relationships to max-level adhering to the label filters, and also return all relationships within the subgraph")
 	public Stream<GraphResult> subgraphAll(@Name("start") Object start, @Name("config") Map<String,Object> config) throws Exception {
 		Map<String, Object> configMap = new HashMap<>(config);
 		configMap.remove("minLevel");
@@ -74,7 +74,7 @@ public class PathExplorer {
 	}
 
 	@Procedure("apoc.path.spanningTree")
-	@Description("apoc.path.spanningTree(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true}) yield path expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters")
+	@Description("apoc.path.spanningTree(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false}) yield path expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters")
 	public Stream<PathResult> spanningTree(@Name("start") Object start, @Name("config") Map<String,Object> config) throws Exception {
 		Map<String, Object> configMap = new HashMap<>(config);
 		configMap.remove("minLevel");
@@ -129,24 +129,25 @@ public class PathExplorer {
 		long minLevel = Util.toLong(config.getOrDefault("minLevel", "-1"));
 		long maxLevel = Util.toLong(config.getOrDefault("maxLevel", "-1"));
 		boolean bfs = Util.toBoolean(config.getOrDefault("bfs",true));
+		boolean filterStartNode = Util.toBoolean(config.getOrDefault("filterStartNode", true));
 
-		return explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness));
+		return explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness), filterStartNode);
 	}
 
 	private Stream<Path> explorePathPrivate(Iterable<Node> startNodes
 			, String pathFilter
 			, String labelFilter
 			, long minLevel
-			, long maxLevel, boolean bfs, Uniqueness uniqueness) {
+			, long maxLevel, boolean bfs, Uniqueness uniqueness, boolean filterStartNode) {
 		// LabelFilter
 		// -|Label|:Label|:Label excluded label list
 		// +:Label or :Label include labels
 
-		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs);
+		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs,filterStartNode);
 		return traverser.stream();
 	}
 
-	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel, Uniqueness uniqueness, boolean bfs) {
+	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel, Uniqueness uniqueness, boolean bfs, boolean filterStartNode) {
 		TraversalDescription td = traversalDescription;
 		// based on the pathFilter definition now the possible relationships and directions must be shown
 
@@ -166,7 +167,7 @@ public class PathExplorer {
 		if (maxLevel != -1) td = td.evaluator(Evaluators.toDepth((int) maxLevel));
 
 		if (labelFilter != null && !labelFilter.trim().isEmpty()) {
-			td = td.evaluator(new LabelEvaluator(labelFilter));
+			td = td.evaluator(new LabelEvaluator(labelFilter, filterStartNode));
 		}
 
 		td = td.uniqueness(uniqueness); // this is how Cypher works !! Uniqueness.RELATIONSHIP_PATH
@@ -177,9 +178,12 @@ public class PathExplorer {
 	public static class LabelEvaluator implements Evaluator {
 		private char operator;
 		private Set<String> labels = new HashSet<String>();
-		public LabelEvaluator(String labelFilter) {
+		boolean filterStartNode;
+
+		public LabelEvaluator(String labelFilter, boolean filterStartNode) {
 			// parse the filter
 			if (labelFilter ==  null || labelFilter.isEmpty()) labelFilter = "-"; // exclude nothing
+            this.filterStartNode = filterStartNode;
 			operator = labelFilter.charAt(0);
 			String work = labelFilter.substring(1); // remove the + or -
 			// split on |
@@ -192,6 +196,14 @@ public class PathExplorer {
 
 		@Override
 		public Evaluation evaluate(Path path) {
+			if (path.length() == 0 && !filterStartNode) {
+				if (operator == '/') {
+					return EXCLUDE_AND_CONTINUE;
+				} else {
+					return INCLUDE_AND_CONTINUE;
+				}
+			}
+
 			Node check = path.endNode();
 			Evaluation result;
 			switch (operator) {
