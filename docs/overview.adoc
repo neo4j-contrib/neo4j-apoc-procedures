@@ -877,10 +877,10 @@ Variations allow more configurable expansions, and expansions for more specific 
 
 [cols="1m,5"]
 |===
-| call apoc.path.expandConfig(startNode <id>Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, uniqueness:'RELATIONSHIP_PATH', startNodeExempt:false}) yield path | expand from given nodes(s) taking the provided restrictions into account
-| call apoc.path.subgraphNodes(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, startNodeExempt:false}) yield node | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns all nodes in the subgraph
-| call apoc.path.subgraphAll(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, startNodeExempt:false}) yield nodes, relationships | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns the collection of subgraph nodes, and the collection of all relationships within the subgraph
-| call apoc.path.spanningTree(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, startNodeExempt:false}) yield path | expand a spanning tree from given nodes(s) taking the provided restrictions into account; the paths returned collectively form a spanning tree
+| call apoc.path.expandConfig(startNode <id>Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, uniqueness:'RELATIONSHIP_PATH', filterStartNode:true}) yield path | expand from given nodes(s) taking the provided restrictions into account
+| call apoc.path.subgraphNodes(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true}) yield node | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns all nodes in the subgraph
+| call apoc.path.subgraphAll(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true}) yield nodes, relationships | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns the collection of subgraph nodes, and the collection of all relationships within the subgraph
+| call apoc.path.spanningTree(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true}) yield path | expand a spanning tree from given nodes(s) taking the provided restrictions into account; the paths returned collectively form a spanning tree
 |===
 
 === Relationship Filter
