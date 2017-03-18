@@ -39,6 +39,11 @@ public class ExpandPathTest {
         db.shutdown();
     }
 
+    @After
+    public void removeWesternLabels() {
+		db.execute("MATCH (c:Western) REMOVE c:Western");
+	}
+
 	@Test
 	public void testExplorePathRelationshipsTest() throws Throwable {
 		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,'<ACTED_IN|PRODUCED>|FOLLOWS','-',0,2) yield path return count(*) as c";
@@ -59,7 +64,7 @@ public class ExpandPathTest {
 
 	@Test
 	public void testExplorePathWithTerminationLabel() {
-		db.execute("MATCH (c:Person{name:'Clint Eastwood'}) SET c:Western");
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
 
 		TestUtil.testResult(db,
 				"MATCH (k:Person {name:'Keanu Reeves'}) " +
@@ -68,9 +73,9 @@ public class ExpandPathTest {
 				result -> {
 
 					List<Map<String, Object>> maps = Iterators.asList(result);
-					assertEquals(1, maps.size());
+					assertEquals(1, maps.size()); // since Gene blocks any path to Clint
 					Path path = (Path) maps.get(0).get("path");
-					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
+					assertEquals("Gene Hackman", path.endNode().getProperty("name"));
 				});
 	}
 
@@ -78,5 +83,23 @@ public class ExpandPathTest {
 	public void testExplorePathWithFilterStartNodeFalseIgnoresLabelFilter() throws Throwable {
 		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expandConfig(m,{labelFilter:'+Person', maxLevel:2, filterStartNode:false}) yield path return count(*) as c";
 		TestUtil.testCall(db, query, (row) -> assertEquals(9L,row.get("c")));
+	}
+
+	@Test
+	public void testExplorePathWithLimitReturnsLimitedResults() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Christian Bale', 'Tom Cruise'] SET c:Western");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'/Western', uniqueness: 'NODE_GLOBAL', limit: 2}) yield path " +
+						"RETURN path",
+				result -> {
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(2, maps.size());
+					Path path = (Path) maps.get(0).get("path");
+					assertEquals("Tom Cruise", path.endNode().getProperty("name"));;
+					path = (Path) maps.get(1).get("path");
+					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
+				});
 	}
 }
