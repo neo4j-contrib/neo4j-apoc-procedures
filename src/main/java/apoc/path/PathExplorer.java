@@ -40,7 +40,7 @@ public class PathExplorer {
 			                   , @Name("minLevel") long minLevel
 			                   , @Name("maxLevel") long maxLevel ) throws Exception {
 		List<Node> nodes = startToNodes(start);
-		return explorePathPrivate(nodes, pathFilter, labelFilter, minLevel, maxLevel, BFS, UNIQUENESS, false).map( PathResult::new );
+		return explorePathPrivate(nodes, pathFilter, labelFilter, minLevel, maxLevel, BFS, UNIQUENESS, false, -1).map( PathResult::new );
 	}
 
 	//
@@ -130,24 +130,25 @@ public class PathExplorer {
 		long maxLevel = Util.toLong(config.getOrDefault("maxLevel", "-1"));
 		boolean bfs = Util.toBoolean(config.getOrDefault("bfs",true));
 		boolean filterStartNode = Util.toBoolean(config.getOrDefault("filterStartNode", true));
+		long limit = Util.toLong(config.getOrDefault("limit", "-1"));
 
-		return explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness), filterStartNode);
+		return explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness), filterStartNode, limit);
 	}
 
 	private Stream<Path> explorePathPrivate(Iterable<Node> startNodes
 			, String pathFilter
 			, String labelFilter
 			, long minLevel
-			, long maxLevel, boolean bfs, Uniqueness uniqueness, boolean filterStartNode) {
+			, long maxLevel, boolean bfs, Uniqueness uniqueness, boolean filterStartNode, long limit) {
 		// LabelFilter
 		// -|Label|:Label|:Label excluded label list
 		// +:Label or :Label include labels
 
-		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs,filterStartNode);
+		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs,filterStartNode,limit);
 		return traverser.stream();
 	}
 
-	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel, Uniqueness uniqueness, boolean bfs, boolean filterStartNode) {
+	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel, Uniqueness uniqueness, boolean bfs, boolean filterStartNode, long limit) {
 		TraversalDescription td = traversalDescription;
 		// based on the pathFilter definition now the possible relationships and directions must be shown
 
@@ -167,7 +168,7 @@ public class PathExplorer {
 		if (maxLevel != -1) td = td.evaluator(Evaluators.toDepth((int) maxLevel));
 
 		if (labelFilter != null && !labelFilter.trim().isEmpty()) {
-			td = td.evaluator(new LabelEvaluator(labelFilter, filterStartNode));
+			td = td.evaluator(new LabelEvaluator(labelFilter, filterStartNode, limit));
 		}
 
 		td = td.uniqueness(uniqueness); // this is how Cypher works !! Uniqueness.RELATIONSHIP_PATH
@@ -179,11 +180,14 @@ public class PathExplorer {
 		private char operator;
 		private Set<String> labels = new HashSet<String>();
 		boolean filterStartNode;
+		long limit;
+		long resultCount;
 
-		public LabelEvaluator(String labelFilter, boolean filterStartNode) {
+		public LabelEvaluator(String labelFilter, boolean filterStartNode, long limit) {
 			// parse the filter
 			if (labelFilter ==  null || labelFilter.isEmpty()) labelFilter = "-"; // exclude nothing
             this.filterStartNode = filterStartNode;
+            this.limit = limit;
 			operator = labelFilter.charAt(0);
 			String work = labelFilter.substring(1); // remove the + or -
 			// split on |
@@ -214,7 +218,14 @@ public class PathExplorer {
 					result = labelExists(check) ? EXCLUDE_AND_PRUNE : INCLUDE_AND_CONTINUE;
 					break;
 				case '/':
-					result = labelExists(check) ? INCLUDE_AND_PRUNE : EXCLUDE_AND_CONTINUE;
+					if (limit != -1 && resultCount >= limit) {
+						result = EXCLUDE_AND_PRUNE;
+					} else if (labelExists(check)) {
+						result = INCLUDE_AND_PRUNE;
+						resultCount++;
+					} else {
+						result = EXCLUDE_AND_CONTINUE;
+					}
 					break;
 				default:
 					throw new IllegalArgumentException("evaluator uses unknown operator " + operator);
