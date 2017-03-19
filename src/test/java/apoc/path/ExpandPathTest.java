@@ -111,7 +111,7 @@ public class ExpandPathTest {
 
 		TestUtil.testResult(db,
 				"MATCH (k:Person {name:'Keanu Reeves'}) " +
-						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'%Western', uniqueness: 'NODE_GLOBAL'}) yield path " +
+						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'>Western', uniqueness: 'NODE_GLOBAL'}) yield path " +
 						"return path",
 				result -> {
 					List<Map<String, Object>> maps = Iterators.asList(result);
@@ -129,7 +129,7 @@ public class ExpandPathTest {
 
 		TestUtil.testResult(db,
 				"MATCH (k:Person {name:'Keanu Reeves'}) " +
-						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'%Western', uniqueness: 'NODE_GLOBAL', limit:2}) yield path " +
+						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'>Western', uniqueness: 'NODE_GLOBAL', limit:2}) yield path " +
 						"return path",
 				result -> {
 					List<Map<String, Object>> maps = Iterators.asList(result);

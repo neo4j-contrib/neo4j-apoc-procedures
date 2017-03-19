@@ -201,7 +201,7 @@ public class PathExplorer {
 		@Override
 		public Evaluation evaluate(Path path) {
 			if (path.length() == 0 && !filterStartNode) {
-				if (operator == '/' || operator == '%') {
+				if (operator == '/' || operator == '>') {
 					return EXCLUDE_AND_CONTINUE;
 				} else {
 					return INCLUDE_AND_CONTINUE;
@@ -217,7 +217,7 @@ public class PathExplorer {
 				case '-':
 					result = labelExists(check) ? EXCLUDE_AND_PRUNE : INCLUDE_AND_CONTINUE;
 					break;
-				case '%':
+				case '>':
 				case '/':
 					if (limit != -1 && resultCount >= limit) {
 						result = EXCLUDE_AND_PRUNE;
