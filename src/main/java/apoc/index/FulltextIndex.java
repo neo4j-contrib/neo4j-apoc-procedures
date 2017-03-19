@@ -79,7 +79,7 @@ public class FulltextIndex {
     }
 
     @Description("apoc.index.remove('name') YIELD type,name,config - removes an manual index")
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.SCHEMA)
     public Stream<IndexInfo> remove(@Name("name") String name) {
         IndexManager mgr = db.index();
         List<IndexInfo> indexInfos = new ArrayList<>(2);
@@ -175,7 +175,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.addNode(joe, ['name','age','city'])
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.SCHEMA)
     @Description("apoc.index.addNode(node,['prop1',...]) add node to an index for each label it has")
     public void addNode(@Name("node") Node node, @Name("properties") List<String> propKeys) {
         for (Label label : node.getLabels()) {
@@ -184,15 +184,14 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.addNode(joe, 'Person', ['name','age','city'])
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.SCHEMA)
     @Description("apoc.index.addNodeByLabel(node,'Label',['prop1',...]) add node to an index for the given label")
     public void addNodeByLabel(@Name("label") String label, @Name("node") Node node, @Name("properties") List<String> propKeys) {
         indexContainer(node, propKeys, getNodeIndex(label,FULL_TEXT));
     }
 
     // CALL apoc.index.addNodeByName('name', joe, ['name','age','city'])
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.SCHEMA)
     @Description("apoc.index.addNodeByName('name',node,['prop1',...]) add node to an index for the given name")
     public void addNodeByName(@Name("name") String name, @Name("node") Node node, @Name("properties") List<String> propKeys) {
         Index<Node> index = getNodeIndex(name, null);
@@ -200,7 +199,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.addRelationship(checkin, ['on'])
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.SCHEMA)
     @Description("apoc.index.addRelationship(rel,['prop1',...]) add relationship to an index for its type")
     public void addRelationship(@Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
         RelationshipIndex index = getRelationshipIndex(rel.getType().name(), FULL_TEXT);
@@ -208,8 +207,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.addRelationshipByName('name', checkin, ['on'])
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.SCHEMA)
     @Description("apoc.index.addRelationshipByName('name',rel,['prop1',...]) add relationship to an index for the given name")
     public void addRelationshipByName(@Name("name") String name, @Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
         RelationshipIndex index = getRelationshipIndex(name, null);
@@ -227,8 +225,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.removeNodeByName('name', joe)
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.SCHEMA)
     @Description("apoc.index.removeNodeByName('name',node) remove node from an index for the given name")
     public void removeNodeByName(@Name("name") String name, @Name("node") Node node) {
         Index<Node> index = getNodeIndex(name, null);
@@ -236,8 +233,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.removeRelationshipByName('name', checkin)
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.SCHEMA)
     @Description("apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name")
     public void removeRelationshipByName(@Name("name") String name, @Name("relationship") Relationship rel) {
         RelationshipIndex index = getRelationshipIndex(name, null);
