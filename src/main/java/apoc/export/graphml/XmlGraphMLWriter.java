@@ -64,7 +64,6 @@ public class XmlGraphMLWriter {
             writer.writeEmptyElement("key");
             writer.writeAttribute("id", entry.getKey());
             writer.writeAttribute("for", forType);
-            writer.writeAttribute("for", forType);
             writer.writeAttribute("attr.name", entry.getKey());
             if (typeClass.isArray()) {
                 writer.writeAttribute("attr.type", "string");
