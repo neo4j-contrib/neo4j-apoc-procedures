@@ -262,6 +262,12 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.shuffle(coll) - returns the shuffled list")
     public List<Object> shuffle(@Name("coll") List<Object> coll) {
+        if (coll == null || coll.isEmpty()) {
+            return Collections.emptyList();
+        } else if (coll.size() == 1) {
+            return coll;
+        }
+
         List<Object> shuffledList = new ArrayList<>(coll);
         Collections.shuffle(shuffledList);
         return shuffledList;
@@ -272,6 +278,8 @@ public class Coll {
     public Object randomItem(@Name("coll") List<Object> coll) {
         if (coll == null || coll.isEmpty()) {
             return null;
+        } else if (coll.size() == 1) {
+            return coll.get(0);
         }
 
         return coll.get(ThreadLocalRandom.current().nextInt(coll.size()));
@@ -304,6 +312,10 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.containsDuplicates(coll) - returns true if a collection contains duplicate elements")
     public boolean containsDuplicates(@Name("coll") List<Object> coll) {
+        if (coll == null || coll.size() <= 1) {
+            return false;
+        }
+
         Set<Object> set = new HashSet<>(coll);
         return set.size() < coll.size();
     }
@@ -311,6 +323,10 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.duplicates(coll) - returns a list of duplicate items in the collection")
     public List<Object> duplicates(@Name("coll") List<Object> coll) {
+        if (coll == null || coll.size() <= 1) {
+            return Collections.emptyList();
+        }
+
         Set<Object> set = new HashSet<>(coll.size());
         Set<Object> duplicates = new LinkedHashSet<>();
 
@@ -326,6 +342,10 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.duplicatesWithCount(coll) - returns a list of duplicate items in the collection and their count, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)")
     public List<Map<String, Object>> duplicatesWithCount(@Name("coll") List<Object> coll) {
+        if (coll == null || coll.size() <= 1) {
+            return Collections.emptyList();
+        }
+
         // mimicking a counted bag
         Map<Object, IntCounter> duplicates = new LinkedHashMap<>(coll.size());
         List<Map<String, Object>> resultList = new ArrayList<>();
@@ -355,6 +375,10 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.occurrences(coll, item) - returns the count of the given item in the collection")
     public long occurrences(@Name("coll") List<Object> coll, @Name("item") Object item) {
+        if (coll == null || coll.isEmpty()) {
+            return 0;
+        }
+
         long occurrences = 0;
 
         for (Object obj : coll) {
@@ -364,5 +388,20 @@ public class Coll {
         }
 
         return occurrences;
+    }
+
+    @UserFunction
+    @Description("apoc.coll.reverse(coll) - returns reversed list")
+    public List<Object> reverse(@Name("coll") List<Object> coll) {
+        if (coll == null || coll.isEmpty()) {
+            return Collections.emptyList();
+        } else if (coll.size() == 1) {
+            return coll;
+        }
+
+        List<Object> reversed = new ArrayList<Object>(coll);
+        Collections.reverse(reversed);
+
+        return reversed;
     }
 }
