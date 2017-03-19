@@ -56,7 +56,7 @@ public class PageRank {
                     nodes,
                     Util.typesAndDirectionsToTypesArray((String) config.getOrDefault(SETTING_PAGE_RANK_TYPES, "")));
     }
-    @Procedure(value = "apoc.algo.pageRankStats",mode = Mode.WRITE)
+    @Procedure(value = "apoc.algo.pageRankStats",mode = Mode.TOKEN)
     @Description(
             "CALL apoc.algo.pageRankStats({iterations:_,types:_,write:true,...}) YIELD nodeCount - calculates page rank on graph " +
                     " for given nodes and potentially writes back")
@@ -66,7 +66,7 @@ public class PageRank {
         return innerPageRankStats(iterations.intValue(), config, types);
     }
 
-    @Procedure(value = "apoc.algo.pageRankWithCypher",mode = Mode.WRITE)
+    @Procedure(value = "apoc.algo.pageRankWithCypher",mode = Mode.TOKEN)
     @Description("CALL apoc.algo.pageRankWithCypher({iterations,node_cypher,rel_cypher,write,property,numCpu}) - calculates page rank based on cypher input")
     public Stream<PageRankStatistics> pageRankWithCypher(
             @Name("config") Map<String, Object> config) {

@@ -304,7 +304,7 @@ public class Cypher {
         return Collections.singleton(value);
     }
 
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.TOKEN)
     @Description("apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with the given parameters")
     public Stream<MapResult> doIt(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         if (params == null) params = Collections.emptyMap();
