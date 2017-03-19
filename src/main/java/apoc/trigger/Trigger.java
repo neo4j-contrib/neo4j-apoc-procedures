@@ -90,7 +90,7 @@ public class Trigger {
         return result;
     }
 
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.TOKEN)
     @Description("add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information")
     public Stream<TriggerInfo> add(@Name("name") String name, @Name("statement") String statement, @Name(value = "selector"/*, defaultValue = "{}"*/)  Map<String,Object> selector) {
         Map<String, Object> removed = TriggerHandler.add(name, statement, selector);
@@ -102,7 +102,7 @@ public class Trigger {
         return Stream.of(new TriggerInfo(name,statement,selector,true));
     }
 
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.TOKEN)
     @Description("remove previously added trigger, returns trigger information")
     public Stream<TriggerInfo> remove(@Name("name")String name) {
         Map<String, Object> removed = TriggerHandler.remove(name);

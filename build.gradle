@@ -49,7 +49,6 @@ repositories {
 }
 
 compileJava {
-<<<<<<< 64539935c7cfc2ce062c01fc65afb47238885ec8
 // type¦qualified name¦signature¦description¦execution mode¦location¦deprecated by
     options.compilerArgs += [
             "-AIgnoreContextWarnings",

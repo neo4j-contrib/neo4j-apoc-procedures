@@ -17,7 +17,7 @@ public class Generate {
     @Context
     public GraphDatabaseService db;
 
-    @Procedure(name = "apoc.generate.ba",mode = Mode.WRITE)
+    @Procedure(name = "apoc.generate.ba",mode = Mode.TOKEN)
     @Description("apoc.generate.ba(noNodes, edgesPerNode, label, type) - generates a random graph according to the Barabasi-Albert model")
     public void barabasiAlbert(@Name("noNodes") Long noNodes, @Name("edgesPerNode") Long edgesPerNode, @Name("label") String label, @Name("type") String relationshipType) throws IOException {
         if (noNodes == null) noNodes = 1000L;
@@ -29,7 +29,7 @@ public class Generate {
         generateGraph(relationshipGenerator, label, relationshipType);
     }
 
-    @Procedure(name = "apoc.generate.ws",mode = Mode.WRITE)
+    @Procedure(name = "apoc.generate.ws",mode = Mode.TOKEN)
     @Description("apoc.generate.ws(noNodes, degree, beta, label, type) - generates a random graph according to the Watts-Strogatz model")
     public void wattsStrogatz(@Name("noNodes") Long noNodes, @Name("degree") Long degree, @Name("beta") Double beta, @Name("label") String label, @Name("type") String relationshipType) throws IOException {
         if (noNodes == null) noNodes = 1000L;
@@ -42,7 +42,7 @@ public class Generate {
         generateGraph(relationshipGenerator, label, relationshipType);
     }
 
-    @Procedure(name = "apoc.generate.er",mode = Mode.WRITE)
+    @Procedure(name = "apoc.generate.er",mode = Mode.TOKEN)
     @Description("apoc.generate.er(noNodes, noEdges, label, type) - generates a random graph according to the Erdos-Renyi model")
     public void erdosRenyi(@Name("noNodes") Long noNodes, @Name("noEdges") Long noEdges, @Name("label") String label, @Name("type") String relationshipType) throws IOException {
         if (noNodes == null) noNodes = 1000L;
@@ -54,7 +54,7 @@ public class Generate {
         generateGraph(relationshipGenerator, label, relationshipType);
     }
 
-    @Procedure(name = "apoc.generate.complete",mode = Mode.WRITE)
+    @Procedure(name = "apoc.generate.complete",mode = Mode.TOKEN)
     @Description("apoc.generate.complete(noNodes, label, type) - generates a random complete graph")
     public void complete(@Name("noNodes") Long noNodes, @Name("label") String label, @Name("type") String relationshipType) throws IOException {
         if (noNodes == null) noNodes = 1000L;
@@ -65,7 +65,7 @@ public class Generate {
         generateGraph(relationshipGenerator, label, relationshipType);
     }
 
-    @Procedure(name = "apoc.generate.simple",mode = Mode.WRITE)
+    @Procedure(name = "apoc.generate.simple",mode = Mode.TOKEN)
     @Description("apoc.generate.simple(degrees, label, type) - generates a simple random graph according to the given degree distribution")
     public void simple(@Name("degrees") List<Long> degrees, @Name("label") String label, @Name("type") String relationshipType) throws IOException {
         if (degrees == null) degrees = Arrays.asList(2L, 2L, 2L, 2L);
