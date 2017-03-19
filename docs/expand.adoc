@@ -18,7 +18,7 @@ Expand from start node following the given relationships from min to max-level a
 ----
 CALL apoc.path.expand(startNode <id>|Node, relationshipFilter, labelFilter, minLevel, maxLevel )
 
-CALL apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path
+CALL apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel|/TerminationLabel|>EndNodeLabel', minLevel, maxLevel ) yield path
 ----
 
 ==== Relationship Filter
@@ -35,9 +35,9 @@ Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 
 ==== Label Filter
 
-Syntax: `[+-/]LABEL1|LABEL2|...`
+Syntax: `[+-/>]LABEL1|LABEL2|...`
 
-Only one type of operation allowed in the label filter (`+` or `-` or `/`, never more than one).
+Only one type of operation allowed in the label filter (`+` or `-` or `/` or `>`, never more than one).
 
 With APOC 3.2.x.x, label filters will no longer apply to starting nodes of the expansion by default.
 
@@ -47,6 +47,7 @@ With APOC 3.2.x.x, label filters will no longer apply to starting nodes of the e
 | +Friend | Friend | whitelist filter - include label, all nodes in the path must have a label in the whitelist
 | -Foe | Foe | blacklist filter - exclude label, no node in the path will have a label in the blacklist
 | /Friend | Friend | termination filter - only return paths to :Friend nodes, and stop further traversal along a path after reaching a :Friend
+| >Friend | Friend | end node filter - only return paths to :Friend nodes, but continue traversal along a path after reaching a :Friend
 |===
 
 
@@ -71,7 +72,7 @@ call apoc.path.expand(p,"ACTED_IN>|PRODUCED<|FOLLOWS<","+Movie|Person",1,2) yiel
 return p, pp
 ----
 
-.Termination label filter example
+.Termination and end node label filter example
 
 We will first set a `:Western` label on some nodes.
 
@@ -82,7 +83,7 @@ where p.name in ['Clint Eastwood', 'Gene Hackman']
 set p:Western
 ----
 
-Now expand from 'Keanu Reeves' to all `:Western` nodes.
+Now expand from 'Keanu Reeves' to all `:Western` nodes with a termination filter:
 
 [source,cypher]
 ----
@@ -92,7 +93,9 @@ return path
 ----
 
 The one returned path only matches up to 'Gene Hackman'.
-While there is a path from 'Keanu Reeves' to 'Clint Eastwood' through 'Gene Hackman', no further expansion is permitted through a node in the termination filter list.
+While there is a path from 'Keanu Reeves' to 'Clint Eastwood' through 'Gene Hackman', no further expansion is permitted through a node in the termination filter.
+
+If you didn't want to stop expansion on reaching 'Gene Hackman', and wanted 'Clint Eastwood' returned as well, use the end node filter  instead (`>`).
 
 
 == Expand with Config
@@ -108,7 +111,7 @@ Takes an additional map parameter, `config`, to provide configuration options:
 {minLevel: -1|number,
  maxLevel: -1|number,
  relationshipFilter: '[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...',
- labelFilter: '[+-]LABEL1|LABEL2|...',
+ labelFilter: '[+-/>]LABEL1|LABEL2|...',
  uniqueness: RELATIONSHIP_PATH|NONE|NODE_GLOBAL|NODE_LEVEL|NODE_PATH|NODE_RECENT|
              RELATIONSHIP_GLOBAL|RELATIONSHIP_LEVEL|RELATIONSHIP_RECENT,
  bfs: true|false,
@@ -132,11 +135,9 @@ Use `filterStartNode = false` when you want your label filter to only apply to a
 
 .Limit
 
-Only when using the termination label filter `/`, you can use the `limit` config parameter to limit the number of paths returned.
+Only when using the termination label filter `/` or end node filter `>`, you can use the `limit` config parameter to limit the number of paths returned.
 
-When using `bfs:true` (which is the default for all expand procedures), this has the effect of returning paths to the `n` nearest nodes with labels in the termination filter, where `n` is the limit given.
-
-Remember that when using the termination filter, further expansion is stopped when a termination node is reached, so other termination nodes beyond them may not be reachable or returned if there is no alternate path to them.
+When using `bfs:true` (which is the default for all expand procedures), this has the effect of returning paths to the `n` nearest nodes with labels in the termination or end node filter, where `n` is the limit given.
 
 The default limit value, `-1`, means no limit.
 

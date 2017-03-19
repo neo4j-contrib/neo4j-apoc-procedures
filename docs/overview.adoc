@@ -866,7 +866,7 @@ examples
 
 (thanks @keesvegter)
 
-The apoc.path.expand procedure makes it possible to do variable length path traversals where you can specify the direction of the relationship per relationship type and a list of Label names which act as a "whitelist" or a "blacklist". The procedure will return a list of Paths in a variable name called "path".
+The apoc.path.expand procedure makes it possible to do variable length path traversals where you can specify the direction of the relationship per relationship type and a list of Label names which act as a "whitelist" or a "blacklist" or define end nodes for the expansion. The procedure will return a list of Paths in a variable name called "path".
 
 [cols="1m,5"]
 |===
@@ -897,9 +897,9 @@ Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 
 === Label Filter
 
-Syntax: `[+-/]LABEL1|LABEL2|...`
+Syntax: `[+-/>]LABEL1|LABEL2|...`
 
-Only one type of operation allowed in the label filter (`+` or `-` or `/`, never more than one).
+Only one type of operation allowed in the label filter (`+` or `-` or `/` or `>`, never more than one).
 
 With APOC 3.2.x.x, label filters will no longer apply to starting nodes of the expansion by default.
 
@@ -909,6 +909,7 @@ With APOC 3.2.x.x, label filters will no longer apply to starting nodes of the e
 | +Friend | Friend | whitelist filter - include label, all nodes in the path must have a label in the whitelist
 | -Foe | Foe | blacklist filter - exclude label, no node in the path will have a label in the blacklist
 | /Friend | Friend | termination filter - only return paths to :Friend nodes, and stop further traversal along a path after reaching a :Friend
+| >Friend | Friend | end node filter - only return paths to :Friend nodes, but continue traversal along a path after reaching a :Friend
 |===
 
 === Uniqueness
