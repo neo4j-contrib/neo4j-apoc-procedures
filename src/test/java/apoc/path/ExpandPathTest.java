@@ -1,6 +1,7 @@
 package apoc.path;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import apoc.util.Util;
 import org.junit.*;
@@ -12,6 +13,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import apoc.util.TestUtil;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -98,6 +100,42 @@ public class ExpandPathTest {
 					assertEquals(2, maps.size());
 					Path path = (Path) maps.get(0).get("path");
 					assertEquals("Tom Cruise", path.endNode().getProperty("name"));;
+					path = (Path) maps.get(1).get("path");
+					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
+				});
+	}
+
+	@Test
+	public void testExplorePathWithEndNodeLabel() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'%Western', uniqueness: 'NODE_GLOBAL'}) yield path " +
+						"return path",
+				result -> {
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(2, maps.size());
+					Path path = (Path) maps.get(0).get("path");
+					assertEquals("Gene Hackman", path.endNode().getProperty("name"));;
+					path = (Path) maps.get(1).get("path");
+					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
+				});
+	}
+
+	@Test
+	public void testExplorePathWithEndNodeLabelAndLimit() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman', 'Christian Bale'] SET c:Western");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'%Western', uniqueness: 'NODE_GLOBAL', limit:2}) yield path " +
+						"return path",
+				result -> {
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(2, maps.size());
+					Path path = (Path) maps.get(0).get("path");
+					assertEquals("Gene Hackman", path.endNode().getProperty("name"));;
 					path = (Path) maps.get(1).get("path");
 					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
 				});
