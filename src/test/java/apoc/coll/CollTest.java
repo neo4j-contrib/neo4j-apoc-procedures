@@ -210,6 +210,15 @@ public class CollTest {
     }
 
     @Test
+    public void testShuffleOnNullAndEmptyList() throws Exception {
+        testCall(db, "RETURN apoc.coll.shuffle([]) as value",
+                (row) -> assertEquals(Collections.EMPTY_LIST, row.get("value")));
+
+        testCall(db, "RETURN apoc.coll.shuffle(null) as value",
+                (row) -> assertEquals(Collections.EMPTY_LIST, row.get("value")));
+    }
+
+    @Test
     public void testShuffle() throws Exception {
         // with 10k elements, very remote chance of randomly getting same order
         int elements = 10_000;
@@ -342,6 +351,11 @@ public class CollTest {
                     assertTrue(original.containsAll(result));
                 });
     }
+    @Test
+    public void testContainsDuplicatesOnNullAndEmptyList() throws Exception {
+        testCall(db,"RETURN apoc.coll.containsDuplicates([]) AS value", r -> assertEquals(false, r.get("value")));
+        testCall(db,"RETURN apoc.coll.containsDuplicates(null) AS value", r -> assertEquals(false, r.get("value")));
+    }
 
     @Test
     public void testContainsDuplicates() throws Exception {
@@ -349,12 +363,30 @@ public class CollTest {
         testCall(db,"RETURN apoc.coll.containsDuplicates([1,2,1,5,4]) AS value", r -> assertEquals(true, r.get("value")));
     }
 
-    @Test public void testDuplicates() throws Exception {
+    @Test
+    public void testDuplicatesOnNullAndEmptyList() throws Exception {
+        testCall(db, "RETURN apoc.coll.duplicates([]) as value",
+                (row) -> assertEquals(Collections.EMPTY_LIST, row.get("value")));
+        testCall(db, "RETURN apoc.coll.duplicates(null) as value",
+                (row) -> assertEquals(Collections.EMPTY_LIST, row.get("value")));
+    }
+
+    @Test
+    public void testDuplicates() throws Exception {
         testCall(db, "RETURN apoc.coll.duplicates([1,2,1,3,2,5,2,3,1,2]) as value",
                 (row) -> assertEquals(asList(1L,2L,3L), row.get("value")));
     }
 
-    @Test public void testDuplicatesWithCount() throws Exception {
+    @Test
+    public void testDuplicatesWithCountOnNullAndEmptyList() throws Exception {
+        testCall(db, "RETURN apoc.coll.duplicatesWithCount([]) as value",
+                (row) -> assertEquals(Collections.EMPTY_LIST, row.get("value")));
+        testCall(db, "RETURN apoc.coll.duplicatesWithCount(null) as value",
+                (row) -> assertEquals(Collections.EMPTY_LIST, row.get("value")));
+    }
+
+    @Test
+    public void testDuplicatesWithCount() throws Exception {
         testCall(db, "RETURN apoc.coll.duplicatesWithCount([1,2,1,3,2,5,2,3,1,2]) as value",
                 (row) -> {
                     Map<Long, Long> expectedMap = new HashMap<>(3);
@@ -379,7 +411,16 @@ public class CollTest {
                 });
     }
 
-    @Test public void testOccurrences() throws Exception {
+    @Test
+    public void testOccurrencesOnNullAndEmptyList() throws Exception {
+        testCall(db, "RETURN apoc.coll.occurrences([], 5) as value",
+                (row) -> assertEquals(0l, row.get("value")));
+        testCall(db, "RETURN apoc.coll.occurrences(null, 5) as value",
+                (row) -> assertEquals(0l, row.get("value")));
+    }
+
+    @Test
+    public void testOccurrences() throws Exception {
         testCall(db, "RETURN apoc.coll.occurrences([1,2,1,3,2,5,2,3,1,2], 1) as value",
                 (row) -> assertEquals(3l, row.get("value")));
         testCall(db, "RETURN apoc.coll.occurrences([1,2,1,3,2,5,2,3,1,2], 2) as value",
@@ -390,7 +431,19 @@ public class CollTest {
                 (row) -> assertEquals(1l, row.get("value")));
         testCall(db, "RETURN apoc.coll.occurrences([1,2,1,3,2,5,2,3,1,2], -5) as value",
                 (row) -> assertEquals(0l, row.get("value")));
-        testCall(db, "RETURN apoc.coll.occurrences([], 5) as value",
-                (row) -> assertEquals(0l, row.get("value")));
+    }
+
+    @Test
+    public void testReverseOnNullAndEmptyList() throws Exception {
+        testCall(db, "RETURN apoc.coll.reverse([]) as value",
+                (row) -> assertEquals(Collections.EMPTY_LIST, row.get("value")));
+        testCall(db, "RETURN apoc.coll.reverse(null) as value",
+                (row) -> assertEquals(Collections.EMPTY_LIST, row.get("value")));
+    }
+
+    @Test
+    public void testReverse() throws Exception {
+        testCall(db, "RETURN apoc.coll.reverse([1,2,1,3,2,5,2,3,1,2]) as value",
+                (row) -> assertEquals(asList(2l,1l,3l,2l,5l,2l,3l,1l,2l,1l), row.get("value")));
     }
 }
