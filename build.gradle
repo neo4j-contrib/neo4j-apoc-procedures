@@ -44,7 +44,7 @@ repositories {
      mavenLocal()
      maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
      mavenCentral()
-     maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
+//     maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
 //     maven { url "https://m2.neo4j.org/content/groups/everything/" }
 }
 
