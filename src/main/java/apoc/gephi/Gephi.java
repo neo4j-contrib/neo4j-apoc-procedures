@@ -86,7 +86,7 @@ public class Gephi {
                 weight = r.getProperty(property);
             }
             Map<String, Object> attributes = map("label", type, "TYPE", type);
-            attributes.putAll(map("source", idStr(r.getStartNode()), "target", idStr(r.getEndNode()), "directed", false,"weight",weight));
+            attributes.putAll(map("source", idStr(r.getStartNode()), "target", idStr(r.getEndNode()), "directed", true,"weight",weight));
             attributes.putAll(color(type, colors));
             return map(String.valueOf(r.getId()), attributes);
         }
