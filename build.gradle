@@ -41,7 +41,7 @@ repositories {
      mavenLocal()
      maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
      mavenCentral()
-     maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
+//     maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
 //     maven { url "https://m2.neo4j.org/content/groups/everything/" }
 }
 
@@ -56,7 +56,7 @@ compileJava {
 dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version:'1.9'
     compile 'com.jayway.jsonpath:json-path:2.2.0'
-    compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version:'1.1-SNAPSHOT'
+    compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version:'1.1'
 
     testCompile group: 'junit', name: 'junit', version:'4.12'
     testCompile group: 'org.hamcrest', name: 'hamcrest-library', version:'1.3'
