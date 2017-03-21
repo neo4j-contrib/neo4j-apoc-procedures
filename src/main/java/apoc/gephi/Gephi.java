@@ -36,37 +36,41 @@ public class Gephi {
         return new UrlResolver("http", "localhost", 8080).getUrl("gephi", hostOrKey);
     }
 
+    public static double doubleValue(PropertyContainer pc, String prop, Number defaultValue) {
+       return Util.toDouble(pc.getProperty(prop, defaultValue));
+
+    }
 
     public static final String[] CAPTIONS = new String[]{"name", "title", "label"};
 
     // http://127.0.0.1:8080/workspace0?operation=updateGraph
     // TODO configure property-filters or transfer all properties
     @Procedure
-    @Description("apoc.gephi.add(url-or-key, workspace, data, weight-property) | streams passed in data to Gephi")
-    public Stream<ProgressInfo> add(@Name("urlOrKey") String keyOrUrl, @Name("workspace") String workspace, @Name("data") Object data,@Name("property") String property) {
+    @Description("apoc.gephi.add(url-or-key, workspace, data, weightproperty) | streams passed in data to Gephi")
+    public Stream<ProgressInfo> add(@Name("urlOrKey") String keyOrUrl, @Name("workspace") String workspace, @Name("data") Object data,@Name(value = "weightproperty",defaultValue = "null") String weightproperty) {
         if (workspace == null) workspace = "workspace0";
         String url = getGephiUrl(keyOrUrl)+"/"+Util.encodeUrlComponent(workspace)+"?operation=updateGraph";
         long start = System.currentTimeMillis();
         HashSet<Node> nodes = new HashSet<>(1000);
         HashSet<Relationship> rels = new HashSet<>(10000);
         if (Graphs.extract(data, nodes, rels)) {
-            String payload = toGephiStreaming(nodes, rels, property);
+            String payload = toGephiStreaming(nodes, rels, weightproperty);
             JsonUtil.loadJson(url,map("method","POST"), payload);
             return Stream.of(new ProgressInfo(url,"graph","gephi").update(nodes.size(),rels.size(),nodes.size()).done(start));
         }
         return Stream.empty();
     }
 
-    private String toGephiStreaming(Collection<Node> nodes, Collection<Relationship> rels,String property) {
-        return Stream.concat(toGraphStream(nodes, "an", property), toGraphStream(rels, "ae", property)).collect(Collectors.joining("\r\n"));
+    private String toGephiStreaming(Collection<Node> nodes, Collection<Relationship> rels,String weightproperty) {
+        return Stream.concat(toGraphStream(nodes, "an", weightproperty), toGraphStream(rels, "ae", weightproperty)).collect(Collectors.joining("\r\n"));
     }
 
-    private Stream<String> toGraphStream(Collection<? extends PropertyContainer> source, String operation,String property) {
+    private Stream<String> toGraphStream(Collection<? extends PropertyContainer> source, String operation,String weightproperty) {
         Map<String,Map<String,Object>> colors=new HashMap<>();
-        return source.stream().map(n -> map(operation, data(n,colors,property))).map(Util::toJson);
+        return source.stream().map(n -> map(operation, data(n,colors,weightproperty))).map(Util::toJson);
     }
 
-    private Map<String, Object> data(PropertyContainer pc, Map<String, Map<String, Object>> colors, String property) {
+    private Map<String, Object> data(PropertyContainer pc, Map<String, Map<String, Object>> colors, String weightproperty) {
         if (pc instanceof Node) {
             Node n = (Node) pc;
             String labels = Util.labelString(n);
@@ -78,14 +82,8 @@ public class Gephi {
         if (pc instanceof Relationship) {
             Relationship r = (Relationship) pc;
             String type = r.getType().name();
-            Object weight;
-            if (property == null){ 
-                weight = 1;
-               }
-            else{ 
-                weight = r.getProperty(property);
-            }
             Map<String, Object> attributes = map("label", type, "TYPE", type);
+            Double weight = Util.doubleValue(r,weightproperty,1.0);
             attributes.putAll(map("source", idStr(r.getStartNode()), "target", idStr(r.getEndNode()), "directed", true,"weight",weight));
             attributes.putAll(color(type, colors));
             return map(String.valueOf(r.getId()), attributes);
