@@ -68,4 +68,36 @@ public class MathsTest {
     public void testRound(double value, double expected, RoundingMode mode) {
         testCall(db, "RETURN apoc.math.round({value},{prec},{mode}) as value",map("value",value,"prec",0,"mode",mode.name()), (row) -> assertEquals(expected,row.get("value")));
     }
+
+    @Test public void testMaxLong(){
+        testCall(db, "RETURN apoc.math.maxLong() as max",(row) -> assertEquals(Long.MAX_VALUE,row.get("max")));
+    }
+
+    @Test public void testMinLong(){
+        testCall(db, "RETURN apoc.math.minLong() as min",(row) -> assertEquals(Long.MIN_VALUE,row.get("min")));
+    }
+
+    @Test public void testMaxDouble(){
+        testCall(db, "RETURN apoc.math.maxDouble() as max",(row) -> assertEquals(Double.MAX_VALUE,row.get("max")));
+    }
+
+    @Test public void testMinDouble(){
+        testCall(db, "RETURN apoc.math.minDouble() as min",(row) -> assertEquals(Double.MIN_VALUE,row.get("min")));
+    }
+
+    @Test public void testMaxInt(){
+        testCall(db, "RETURN apoc.math.maxInt() as max",(row) -> assertEquals(Long.valueOf(Integer.MAX_VALUE), row.get("max")));
+    }
+
+    @Test public void testMinInt(){
+        testCall(db, "RETURN apoc.math.minInt() as min",(row) -> assertEquals(Long.valueOf(Integer.MIN_VALUE),row.get("min")));
+    }
+
+    @Test public void testMaxByte(){
+        testCall(db, "RETURN apoc.math.maxByte() as max",(row) -> assertEquals(Long.valueOf(Byte.MAX_VALUE), row.get("max")));
+    }
+
+    @Test public void testMinByte(){
+        testCall(db, "RETURN apoc.math.minByte() as min",(row) -> assertEquals(Long.valueOf(Byte.MIN_VALUE),row.get("min")));
+    }
 }
