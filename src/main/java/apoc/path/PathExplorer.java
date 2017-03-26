@@ -208,8 +208,11 @@ public class PathExplorer {
 						case '>':
 							labelMap.putIfAbsent(operator, new HashSet<>());
 							labels = labelMap.get(operator);
-						case ':':
 							def = def.substring(1);
+					}
+
+					if (def.startsWith(":")) {
+						def = def.substring(1);
 					}
 
 					if (!def.isEmpty()) {
