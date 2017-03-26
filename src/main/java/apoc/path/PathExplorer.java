@@ -177,64 +177,81 @@ public class PathExplorer {
 	}
 
 	public static class LabelEvaluator implements Evaluator {
-		private char operator;
-		private Set<String> labels = new HashSet<String>();
-		boolean filterStartNode;
-		long limit;
-		long resultCount;
+		private Set<String> whitelistLabels;
+		private Set<String> blacklistLabels;
+		private Set<String> terminationLabels;
+		private Set<String> endNodeLabels;
+		private Evaluation whitelistAllowedEvaluation;
+		private boolean endNodesOnly;
+		private boolean filterStartNode;
+		private long limit = -1;
+		private long resultCount = 0;
 
 		public LabelEvaluator(String labelFilter, boolean filterStartNode, long limit) {
-			// parse the filter
-			if (labelFilter ==  null || labelFilter.isEmpty()) labelFilter = "-"; // exclude nothing
-            this.filterStartNode = filterStartNode;
-            this.limit = limit;
-			operator = labelFilter.charAt(0);
-			String work = labelFilter.substring(1); // remove the + or -
-			// split on |
-			String[] defs = work.split("\\|") ;
-			for (String def : defs) {
-				if (def.startsWith(":")) def = def.substring(1);
-				labels.add(def);
+			this.filterStartNode = filterStartNode;
+			this.limit = limit;
+			Map<Character, Set<String>> labelMap = new HashMap<>(4);
+
+			if (labelFilter !=  null && !labelFilter.isEmpty()) {
+
+				// parse the filter
+				// split on |
+				String[] defs = labelFilter.split("\\|");
+				Set<String> labels = null;
+
+				for (String def : defs) {
+					char operator = def.charAt(0);
+					switch (operator) {
+						case '+':
+						case '-':
+						case '/':
+						case '>':
+							labelMap.putIfAbsent(operator, new HashSet<>());
+							labels = labelMap.get(operator);
+						case ':':
+							def = def.substring(1);
+					}
+
+					if (!def.isEmpty()) {
+						labels.add(def);
+					}
+				}
 			}
+
+			whitelistLabels = labelMap.getOrDefault('+', Collections.emptySet());
+			blacklistLabels = labelMap.getOrDefault('-', Collections.emptySet());
+			terminationLabels = labelMap.getOrDefault('/', Collections.emptySet());
+			endNodeLabels = labelMap.getOrDefault('>', Collections.emptySet());
+			endNodesOnly = !terminationLabels.isEmpty() || !endNodeLabels.isEmpty();
+			whitelistAllowedEvaluation = endNodesOnly ? EXCLUDE_AND_CONTINUE : INCLUDE_AND_CONTINUE;
 		}
 
 		@Override
 		public Evaluation evaluate(Path path) {
+			// if start node shouldn't be filtered
 			if (path.length() == 0 && !filterStartNode) {
-				if (operator == '/' || operator == '>') {
-					return EXCLUDE_AND_CONTINUE;
-				} else {
-					return INCLUDE_AND_CONTINUE;
-				}
+				return whitelistAllowedEvaluation;
+			}
+
+			// cut off expansion when we reach the limit
+			if (limit != -1 && resultCount >= limit) {
+				return EXCLUDE_AND_PRUNE;
 			}
 
 			Node check = path.endNode();
-			Evaluation result;
-			switch (operator) {
-				case '+':
-					result = labelExists(check) ? INCLUDE_AND_CONTINUE : EXCLUDE_AND_PRUNE;
-					break;
-				case '-':
-					result = labelExists(check) ? EXCLUDE_AND_PRUNE : INCLUDE_AND_CONTINUE;
-					break;
-				case '>':
-				case '/':
-					if (limit != -1 && resultCount >= limit) {
-						result = EXCLUDE_AND_PRUNE;
-					} else if (labelExists(check)) {
-						result = operator == '/' ? INCLUDE_AND_PRUNE : INCLUDE_AND_CONTINUE;
-						resultCount++;
-					} else {
-						result = EXCLUDE_AND_CONTINUE;
-					}
-					break;
-				default:
-					throw new IllegalArgumentException("evaluator uses unknown operator " + operator);
-			}
+			Evaluation result = labelExists(check, blacklistLabels) ? EXCLUDE_AND_PRUNE :
+					labelExists(check, terminationLabels) ? filterEndNode(check, true) :
+					labelExists(check, endNodeLabels) ? filterEndNode(check, false) :
+					whitelistAllowed(check) ? whitelistAllowedEvaluation : EXCLUDE_AND_PRUNE;
+
 			return result;
 		}
 
-		private boolean labelExists(Node node) {
+		private boolean labelExists(Node node, Set<String> labels) {
+			if (labels.isEmpty()) {
+				return false;
+			}
+
 			for ( Label lab : node.getLabels() ) {
 				if (labels.contains(lab.name())) {
 					return true;
@@ -242,6 +259,14 @@ public class PathExplorer {
 			}
 			return false;
 		}
-	}
 
+		private boolean whitelistAllowed(Node node) {
+			return whitelistLabels.isEmpty() || labelExists(node, whitelistLabels);
+		}
+
+		private Evaluation filterEndNode(Node node, boolean isTerminationFilter) {
+			resultCount++;
+			return isTerminationFilter || !whitelistAllowed(node) ? INCLUDE_AND_PRUNE : INCLUDE_AND_CONTINUE;
+		}
+	}
 }
