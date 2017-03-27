@@ -908,17 +908,25 @@ Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 
 Syntax: `[+-/>]LABEL1|LABEL2|...`
 
-Only one type of operation allowed in the label filter (`+` or `-` or `/` or `>`, never more than one).
+As of APOC 3.1.3.x multiple label filter operations are allowed.
+
+In prior versions, only one type of operation is allowed in the label filter (`+` or `-` or `/` or `>`, never more than one).
 
 With APOC 3.2.x.x, label filters will no longer apply to starting nodes of the expansion by default.
 
 [opts=header,cols="m,m,a"]
 |===
 | input | label | result
-| +Friend | Friend | whitelist filter - include label, all nodes in the path must have a label in the whitelist
-| -Foe | Foe | blacklist filter - exclude label, no node in the path will have a label in the blacklist
-| /Friend | Friend | termination filter - only return paths to :Friend nodes, and stop further traversal along a path after reaching a :Friend
-| >Friend | Friend | end node filter - only return paths to :Friend nodes, but continue traversal along a path after reaching a :Friend
+| -Foe | Foe | blacklist filter - No node in the path will have a label in the blacklist.
+| +Friend | Friend | whitelist filter - All nodes in the path must have a label in the whitelist (exempting termination and end nodes, if using those filters).
+
+If no whitelist operator is present, all labels are considered whitelisted.
+| /Friend | Friend | termination filter - Only return paths up to a node of the given labels, and stop further expansion beyond it.
+
+Termination nodes do not have to respect the whitelist. Termination filtering takes precedence over end node filtering.
+| >Friend | Friend | end node filter - Only return paths up to a node of the given labels, but continue expansion to match on end nodes beyond it.
+
+End nodes do not have to respect the whitelist to be returned, but expansion beyond them is only allowed if the node has a label in the whitelist.
 |===
 
 === Uniqueness
