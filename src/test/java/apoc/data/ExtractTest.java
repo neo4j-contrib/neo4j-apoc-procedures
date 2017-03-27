@@ -70,4 +70,10 @@ public class ExtractTest {
                 map("param", "www.foo.bar/baz"),
                 row -> assertEquals("www.foo.bar", row.get("value")));
     }
+
+    @Test
+    public void testEmailWithDotsBeforeAt() {
+        testCall(db, "RETURN apoc.data.domain('foo.foo@bar.baz') AS value",
+                row -> Assert.assertThat(row.get("value"), equalTo("bar.baz")));
+    }
 }
