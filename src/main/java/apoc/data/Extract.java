@@ -1,17 +1,10 @@
 package apoc.data;
 
-import org.neo4j.helpers.collection.ArrayIterator;
 import org.neo4j.procedure.Description;
-import apoc.result.StringResult;
 import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.UserFunction;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Arrays;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 public class Extract {
 
