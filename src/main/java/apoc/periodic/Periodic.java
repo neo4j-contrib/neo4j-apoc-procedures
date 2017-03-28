@@ -47,7 +47,7 @@ public class Periodic {
         return list.entrySet().stream().map( (e) -> e.getKey().update(e.getValue()));
     }
 
-    @Procedure(mode = Mode.TOKEN)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.commit(statement,params) - runs the given statement in separate transactions until it returns 0")
     public Stream<RundownResult> commit(@Name("statement") String statement, @Name("params") Map<String,Object> parameters) throws ExecutionException, InterruptedException {
         Map<String,Object> params = parameters == null ? Collections.emptyMap() : parameters;
@@ -196,7 +196,7 @@ public class Periodic {
      * @param cypherAction
      * @param batchSize
      */
-    @Procedure(mode = Mode.TOKEN)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
     public Stream<LoopingBatchAndTotalResult> rock_n_roll_while(
             @Name("cypherLoop") String cypherLoop,
@@ -232,7 +232,7 @@ public class Periodic {
      * @param cypherIterate
      * @param cypherAction
      */
-    @Procedure(mode = Mode.TOKEN)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:false,parallel:true}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows")
     public Stream<BatchAndTotalResult> iterate(
             @Name("cypherIterate") String cypherIterate,
@@ -275,7 +275,7 @@ public class Periodic {
     }
 
 
-    @Procedure(mode = Mode.TOKEN)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
     public Stream<BatchAndTotalResult> rock_n_roll(
             @Name("cypherIterate") String cypherIterate,

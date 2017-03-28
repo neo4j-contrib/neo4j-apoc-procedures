@@ -38,7 +38,7 @@ public class GraphRefactoring {
         });
     }
 
-    @Procedure(mode = Mode.TOKEN)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.extractNode([rel1,rel2,...], [labels],'OUT','IN') extract node from relationships")
     public Stream<NodeRefactorResult> extractNode(@Name("relationships") Object rels, @Name("labels") List<String> labels, @Name("outType") String outType, @Name("inType") String inType) {
         return Util.relsStream(db, rels).map((rel) -> {
@@ -55,7 +55,7 @@ public class GraphRefactoring {
         });
     }
 
-    @Procedure(mode = Mode.TOKEN)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.collapseNode([node1,node2],'TYPE') collapse node to relationship, node with one rel becomes self-relationship")
     public Stream<RelationshipRefactorResult> collapseNode(@Name("nodes") Object nodes, @Name("type") String type) {
         return Util.nodeStream(db, nodes).map((node) -> {
@@ -122,7 +122,7 @@ public class GraphRefactoring {
      * Changes the relationship-type of a relationship by creating a new one between the two nodes
      * and deleting the old.
      */
-    @Procedure(mode = Mode.TOKEN)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.setType(rel, 'NEW-TYPE') change relationship-type")
     public Stream<RelationshipRefactorResult> setType(@Name("relationship") Relationship rel, @Name("newType") String newType) {
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
@@ -187,7 +187,7 @@ public class GraphRefactoring {
     /**
      * Make properties boolean
      */
-    @Procedure(mode = Mode.TOKEN)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) normalize/convert a property to be boolean")
     public void normalizeAsBoolean(
             @Name("entity") Object entity,
@@ -216,7 +216,7 @@ public class GraphRefactoring {
     /**
      * Create category nodes from unique property values
      */
-    @Procedure(mode = Mode.TOKEN)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.categorize(sourceKey, type, outgoing, label, targetKey, copiedKeys, batchSize) turn each unique propertyKey into a category node and connect to it")
     public void categorize(
             @Name("sourceKey") String sourceKey,
