@@ -229,15 +229,8 @@ public class Util {
             headers.forEach((k,v) -> con.setRequestProperty(k, v == null ? "" : v.toString()));
         }
         con.setDoInput(true);
-        con.setDoOutput(true);
         con.setConnectTimeout((int)toLong(ApocConfiguration.get("http.timeout.connect",10_000)));
         con.setReadTimeout((int)toLong(ApocConfiguration.get("http.timeout.read",60_000)));
-        if(con instanceof HttpURLConnection){
-            if(isRedirect(((HttpURLConnection) con).getResponseCode())){
-                String urlRedirect = con.getHeaderField("Location");
-                return openUrlConnection(urlRedirect,headers);
-            }
-        }
         return con;
     }
 
@@ -245,14 +238,34 @@ public class Util {
         return code >= 300 && code < 400;
     }
 
+    private static void writePayload(URLConnection con, String payload) throws IOException {
+        if (payload == null) return;
+        con.setDoOutput(true);
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(con.getOutputStream(),"UTF-8"));
+        writer.write(payload);
+        writer.close();
+    }
+
+    private static String handleRedirect(URLConnection con, String url) throws IOException {
+       if (!(con instanceof HttpURLConnection)) return url;
+       if (!isRedirect(((HttpURLConnection)con).getResponseCode())) return url;
+       return con.getHeaderField("Location");
+    }
+
     public static CountingInputStream openInputStream(String url, Map<String, Object> headers, String payload) throws IOException {
-        URLConnection con = openUrlConnection(url, headers);
-        if (payload != null) {
-            con.setDoOutput(true);
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(con.getOutputStream(),"UTF-8"));
-            writer.write(payload);
-            writer.close();
-        }
+        URLConnection con;
+        boolean redirect;
+        do {
+            redirect = false;
+            con = openUrlConnection(url, headers);
+            writePayload(con, payload);
+            String newUrl = handleRedirect(con, url);
+            if (newUrl != null && !url.equals(newUrl)) {
+                url = newUrl;
+                redirect = true;
+                con.getInputStream().close();
+            }
+        } while (redirect);
 
         long size = con.getContentLengthLong();
         InputStream stream = con.getInputStream();
