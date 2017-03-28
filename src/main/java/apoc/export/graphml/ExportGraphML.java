@@ -33,7 +33,7 @@ public class ExportGraphML {
     @Context
     public GraphDatabaseAPI db;
 
-    @Procedure(name = "apoc.import.graphml",mode = Mode.TOKEN)
+    @Procedure(name = "apoc.import.graphml",mode = Mode.WRITE)
     @Description("apoc.import.graphml(file,config) - imports graphml file")
     public Stream<ProgressInfo> file(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         ProgressInfo result =

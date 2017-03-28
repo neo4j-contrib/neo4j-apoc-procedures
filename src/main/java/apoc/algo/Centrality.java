@@ -73,7 +73,7 @@ public class Centrality {
     }
 
 
-    @Procedure(value = "apoc.algo.betweennessCypher",mode = Mode.TOKEN)
+    @Procedure(value = "apoc.algo.betweennessCypher",mode = Mode.WRITE)
     @Description("CALL apoc.algo.betweennessCypher(node_cypher,rel_cypher,write) - calculates betweeness " +
     " centrality based on cypher input")
     public Stream<apoc.algo.algorithms.AlgorithmInterface.Statistics> betweennessCypher(
