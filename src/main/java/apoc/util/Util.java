@@ -229,6 +229,7 @@ public class Util {
             headers.forEach((k,v) -> con.setRequestProperty(k, v == null ? "" : v.toString()));
         }
         con.setDoInput(true);
+        con.setDoOutput(true);
         con.setConnectTimeout((int)toLong(ApocConfiguration.get("http.timeout.connect",10_000)));
         con.setReadTimeout((int)toLong(ApocConfiguration.get("http.timeout.read",60_000)));
         if(con instanceof HttpURLConnection){
