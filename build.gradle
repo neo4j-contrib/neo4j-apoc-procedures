@@ -136,7 +136,7 @@ asciidoctor.doLast {
     copy {
         from 'build/docs/html5/index.html'
         into "build/docs"
-        rename { String filename -> filename.replace("index","index33") }
+        rename { String filename -> filename.replace("index","index32") }
     }
 }
 
