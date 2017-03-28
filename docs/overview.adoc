@@ -282,7 +282,7 @@ The 3rd value in the `apoc.jdbc.<alias>.url=` effectively defines an alias to be
 == Loading Data from Web-APIs (JSON, XML, CSV)
 
 // tag::xml[]
-
+Supported protocols are `file`, `http`, `https` with redirect allowed. In case no protocol is passed in the url, procedures try to check whether it is a file.
 [cols="1m,5"]
 |===
 | CALL apoc.load.json('http://example.com/map.json') YIELD value as person CREATE (p:Person) SET p = person | load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map
