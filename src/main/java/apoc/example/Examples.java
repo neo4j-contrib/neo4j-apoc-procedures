@@ -22,7 +22,7 @@ public class Examples {
     @Context
     GraphDatabaseService db;
 
-    @Procedure(mode = Mode.TOKEN)
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.example.movies() | Creates the sample movies graph")
     public Stream<ProgressInfo> movies() {
         long start = System.currentTimeMillis();
