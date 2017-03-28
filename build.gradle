@@ -14,6 +14,9 @@ plugins {
     id "org.asciidoctor.convert" version "1.5.3"
     id "com.bmuschko.nexus" version "2.3.1"
 }
+asciidoctorj {
+    version = '1.5.5'
+}
 apply plugin: 'io.codearte.nexus-staging'
 
 
@@ -124,13 +127,8 @@ asciidoctor {
 
 asciidoctor.doLast {
     copy {
-        from 'build/docs/html5'
-        into "$projectDir/docs"
-        include 'index.html'
-    }
-    copy {
         from 'build/docs/html5/index.html'
-        into "$projectDir/x"
+        into "build/docs"
         rename { String filename -> filename.replace("index","index32") }
     }
 }
