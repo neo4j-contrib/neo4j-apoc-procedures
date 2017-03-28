@@ -15,7 +15,7 @@ public class FileUtils {
     public static CountingReader readerFor(String fileName) throws IOException {
         checkReadAllowed(fileName);
         if (fileName==null) return null;
-        if (fileName.toLowerCase().startsWith("http") || fileName.toLowerCase().startsWith("file:")) {
+        if (fileName.matches("^\\w+:/.+")) {
             return Util.openInputStream(fileName,null,null).asReader();
         }
         File file = new File(fileName);

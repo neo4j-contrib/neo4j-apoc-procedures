@@ -231,7 +231,17 @@ public class Util {
         con.setDoInput(true);
         con.setConnectTimeout((int)toLong(ApocConfiguration.get("http.timeout.connect",10_000)));
         con.setReadTimeout((int)toLong(ApocConfiguration.get("http.timeout.read",60_000)));
+        if(con instanceof HttpURLConnection){
+            if(isRedirect(((HttpURLConnection) con).getResponseCode())){
+                String urlRedirect = con.getHeaderField("Location");
+                return openUrlConnection(urlRedirect,headers);
+            }
+        }
         return con;
+    }
+
+    public static boolean isRedirect(int code) {
+        return code >= 300 && code < 400;
     }
 
     public static CountingInputStream openInputStream(String url, Map<String, Object> headers, String payload) throws IOException {
@@ -243,7 +253,7 @@ public class Util {
             writer.close();
         }
 
-		long size = con.getContentLengthLong();
+        long size = con.getContentLengthLong();
         InputStream stream = con.getInputStream();
 
         String encoding = con.getContentEncoding();
@@ -333,9 +343,9 @@ public class Util {
     }
 
     public static String readResourceFile(String name) {
-		InputStream is = Util.class.getClassLoader().getResourceAsStream(name);
-		return new Scanner(is).useDelimiter("\\Z").next();
-	}
+        InputStream is = Util.class.getClassLoader().getResourceAsStream(name);
+        return new Scanner(is).useDelimiter("\\Z").next();
+    }
 
     @SuppressWarnings("unchecked")
     public static Map<String,Object> readMap(String value) {
