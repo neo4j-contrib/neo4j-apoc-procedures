@@ -99,7 +99,7 @@ public class ExpandPathTest {
 					List<Map<String, Object>> maps = Iterators.asList(result);
 					assertEquals(2, maps.size());
 					Path path = (Path) maps.get(0).get("path");
-					assertEquals("Tom Cruise", path.endNode().getProperty("name"));;
+					assertEquals("Tom Cruise", path.endNode().getProperty("name"));
 					path = (Path) maps.get(1).get("path");
 					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
 				});
@@ -117,7 +117,7 @@ public class ExpandPathTest {
 					List<Map<String, Object>> maps = Iterators.asList(result);
 					assertEquals(2, maps.size());
 					Path path = (Path) maps.get(0).get("path");
-					assertEquals("Gene Hackman", path.endNode().getProperty("name"));;
+					assertEquals("Gene Hackman", path.endNode().getProperty("name"));
 					path = (Path) maps.get(1).get("path");
 					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
 				});
@@ -135,9 +135,100 @@ public class ExpandPathTest {
 					List<Map<String, Object>> maps = Iterators.asList(result);
 					assertEquals(2, maps.size());
 					Path path = (Path) maps.get(0).get("path");
-					assertEquals("Gene Hackman", path.endNode().getProperty("name"));;
-					path = (Path) maps.get(1).get("path");
-					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
+					assertEquals("Gene Hackman", path.endNode().getProperty("name"));
+				});
+	}
+
+
+	// label filter precedence tests
+
+	@Test
+	public void testBlacklistBeforeWhitelist() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'+Person|-Person', uniqueness: 'NODE_GLOBAL'}) yield path " +
+						"return path",
+				result -> {
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(0, maps.size());
+				});
+	}
+
+	@Test
+	public void testBlacklistBeforeTerminationList() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'/Western|-Western', uniqueness: 'NODE_GLOBAL', filterStartNode:false}) yield path " +
+						"return path",
+				result -> {
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(0, maps.size());
+				});
+	}
+
+	@Test
+	public void testBlacklistBeforeEndNodeList() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'>Western|-Western', uniqueness: 'NODE_GLOBAL', filterStartNode:false}) yield path " +
+						"return path",
+				result -> {
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(0, maps.size());
+				});
+	}
+
+	@Test
+	public void testTerminationListBeforeWhitelist() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman', 'Christian Bale'] SET c:Western");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'/Western|+Movie', uniqueness: 'NODE_GLOBAL', filterStartNode:false}) yield path " +
+						"return path",
+				result -> {
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(1, maps.size());
+					Path path = (Path) maps.get(0).get("path");
+					assertEquals("Gene Hackman", path.endNode().getProperty("name"));
+				});
+	}
+
+	@Test
+	public void testTerminationListBeforeEndNodeList() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'/Western|>Western', uniqueness: 'NODE_GLOBAL', filterStartNode:false}) yield path " +
+						"return path",
+				result -> {
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(1, maps.size());
+					Path path = (Path) maps.get(0).get("path");
+					assertEquals("Gene Hackman", path.endNode().getProperty("name"));
+				});
+	}
+
+	@Test
+	public void testEndNodeListBeforeWhitelist() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'>Western|+Movie', uniqueness: 'NODE_GLOBAL', filterStartNode:false}) yield path " +
+						"return path",
+				result -> {
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(1, maps.size());
+					Path path = (Path) maps.get(0).get("path");
+					assertEquals("Gene Hackman", path.endNode().getProperty("name"));
 				});
 	}
 }
