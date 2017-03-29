@@ -3,8 +3,8 @@ language: java
 jdk:
   - oraclejdk8
 
-services:
-  - elasticsearch
+#services:
+#  - elasticsearch
   
 install: echo "skip 'gradle assemble' step"
 
