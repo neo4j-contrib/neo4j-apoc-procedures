@@ -2,6 +2,7 @@ package apoc.es;
 
 import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
@@ -34,14 +35,7 @@ public class ElasticSearchTest {
 
     protected static GraphDatabaseService db;
 
-    private static Map<String, Object> defaultParams = new HashMap<>();
-
-    static {
-        defaultParams.put("index", ES_INDEX);
-        defaultParams.put("type", ES_TYPE);
-        defaultParams.put("id", ES_ID);
-        defaultParams.put("host", HOST);
-    }
+    private static Map<String, Object> defaultParams = Util.map("index", ES_INDEX, "type", ES_TYPE, "id", ES_ID, "host", HOST);
 
     // We need a reference to the class implementing the procedures
     private final ElasticSearch es = new ElasticSearch();
@@ -70,11 +64,7 @@ public class ElasticSearchTest {
      * @return
      */
     private static Map<String, Object> createDefaultProcedureParametersWithPayloadAndId(String payload, String id) {
-        Map<String, Object> params = new HashMap<>(defaultParams);
-        params.put("payload", payload);
-        params.put("id", id);
-
-        return params;
+        return Util.merge(defaultParams, Util.map("payload", payload, "id", id));
     }
 
     private static void insertDocuments() {
