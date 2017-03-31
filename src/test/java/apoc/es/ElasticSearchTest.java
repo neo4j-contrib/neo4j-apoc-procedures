@@ -2,6 +2,7 @@ package apoc.es;
 
 import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
@@ -33,6 +34,9 @@ public class ElasticSearchTest {
     private final static String HOST = "localhost";
 
     protected static GraphDatabaseService db;
+
+    private static Map<String, Object> defaultParams = Util.map("index", ES_INDEX, "type", ES_TYPE, "id", ES_ID, "host", HOST);
+
     // We need a reference to the class implementing the procedures
     private final ElasticSearch es = new ElasticSearch();
     private Configuration JSON_PATH_CONFIG = Configuration.builder().options(Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS).build();
@@ -53,25 +57,33 @@ public class ElasticSearchTest {
         db.shutdown();
     }
 
+    /**
+     * Default params (host, index, type, id) + payload
+     *
+     * @param payload
+     * @return
+     */
+    private static Map<String, Object> createDefaultProcedureParametersWithPayloadAndId(String payload, String id) {
+        return Util.merge(defaultParams, Util.map("payload", payload, "id", id));
+    }
+
     private static void insertDocuments() {
         TestUtil.ignoreException(() -> {
-            String payload = "{procedurePackage:'es',procedureName:'get',procedureDescription:'performa a GET operation to ElasticSearch'}";
-            String id = UUID.randomUUID().toString();
+            Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"procedurePackage\":\"es\",\"procedureName\":\"get\",\"procedureDescription\":\"perform a GET operation to ElasticSearch\"}", UUID.randomUUID().toString());
 
-            TestUtil.testCall(db, "CALL apoc.es.post('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + id + "',null," + payload + ") yield value", r -> assertNotNull(r.get("value")));
+            TestUtil.testCall(db, "CALL apoc.es.post({host},{index},{type},{id},null,{payload}) yield value", params, r -> assertNotNull(r.get("value")));
         }, ConnectException.class);
 
         TestUtil.ignoreException(() -> {
-            String payload = "{procedurePackage:'es',procedureName:'post',procedureDescription:'performa a POST operation to ElasticSearch'}";
-            String id = UUID.randomUUID().toString();
+            Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"procedurePackage\":\"es\",\"procedureName\":\"post\",\"procedureDescription\":\"perform a POST operation to ElasticSearch\"}", UUID.randomUUID().toString());
 
-            TestUtil.testCall(db, "CALL apoc.es.post('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + id + "',null," + payload + ") yield value", r -> assertNotNull(r.get("value")));
+            TestUtil.testCall(db, "CALL apoc.es.post({host},{index},{type},{id},null,{payload}) yield value", params, r -> assertNotNull(r.get("value")));
         }, ConnectException.class);
 
         TestUtil.ignoreException(() -> {
-            String payload = "{name:'Neo4j',company:'Neo Technology',description:'Awesome stuff with a graph database'}";
+            Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"name\":\"Neo4j\",\"company\":\"Neo Technology\",\"description\":\"Awesome stuff with a graph database\"}", ES_ID);
 
-            TestUtil.testCall(db, "CALL apoc.es.post('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + ES_ID + "',null," + payload + ") yield value", r -> assertNotNull(r.get("value")));
+            TestUtil.testCall(db, "CALL apoc.es.post({host},{index},{type},{id},null,{payload}) yield value", params, r -> assertNotNull(r.get("value")));
         }, ConnectException.class);
     }
 
@@ -106,7 +118,7 @@ public class ElasticSearchTest {
     @Test
     public void testGetWithQueryNull() throws Exception {
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.es.get('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + ES_ID + "',null,null) yield value", r -> {
+            TestUtil.testCall(db, "CALL apoc.es.get({host},{index},{type},{id},null,null) yield value", defaultParams, r -> {
                 Object name = extractValueFromResponse(r, "$._source.name");
                 assertEquals("Neo4j", name);
             });
@@ -122,7 +134,7 @@ public class ElasticSearchTest {
     @Test
     public void testGetWithQueryAsMapMultipleParams() throws Exception {
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.es.get('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + ES_ID + "',{_source_include:'name',_source_exclude:'description'},null) yield value", r -> {
+            TestUtil.testCall(db, "CALL apoc.es.get({host},{index},{type},{id},{_source_include:'name',_source_exclude:'description'},null) yield value", defaultParams, r -> {
                 Object name = extractValueFromResponse(r, "$._source.name");
                 assertEquals("Neo4j", name);
             });
@@ -138,7 +150,7 @@ public class ElasticSearchTest {
     @Test
     public void testGetWithQueryAsMapSingleParam() throws Exception {
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.es.get('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + ES_ID + "',{_source_include:'name'},null) yield value", r -> {
+            TestUtil.testCall(db, "CALL apoc.es.get({host},{index},{type},{id},{_source_include:'name'},null) yield value", defaultParams, r -> {
                 Object name = extractValueFromResponse(r, "$._source.name");
                 assertEquals("Neo4j", name);
             });
@@ -154,7 +166,7 @@ public class ElasticSearchTest {
     @Test
     public void testGetWithQueryAsStringMultipleParams() throws Exception {
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.es.get('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + ES_ID + "','_source_include=name&_source_exclude=description',null) yield value", r -> {
+            TestUtil.testCall(db, "CALL apoc.es.get({host},{index},{type},{id},'_source_include=name&_source_exclude=description',null) yield value", defaultParams, r -> {
                 Object name = extractValueFromResponse(r, "$._source.name");
                 assertEquals("Neo4j", name);
             });
@@ -170,7 +182,7 @@ public class ElasticSearchTest {
     @Test
     public void testGetWithQueryAsStringSingleParam() throws Exception {
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.es.get('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + ES_ID + "','_source_include=name',null) yield value", r -> {
+            TestUtil.testCall(db, "CALL apoc.es.get({host},{index},{type},{id},'_source_include=name',null) yield value", defaultParams, r -> {
                 Object name = extractValueFromResponse(r, "$._source.name");
                 assertEquals("Neo4j", name);
             });
@@ -184,7 +196,7 @@ public class ElasticSearchTest {
     @Test
     public void testSearchWithQueryAsAString() throws Exception {
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.es.query('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','name:Neo4j',null) yield value", r -> {
+            TestUtil.testCall(db, "CALL apoc.es.query({host},{index},{type},'name:Neo4j',null) yield value", defaultParams, r -> {
                 Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
                 assertEquals("Neo4j", name);
             });
@@ -198,16 +210,15 @@ public class ElasticSearchTest {
     @Test
     public void testPostAddNewDocument() {
         TestUtil.ignoreException(() -> {
-            String payload = "{event:'Graph Connect 2017'}";
-            String id = UUID.randomUUID().toString();
+            Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"event\":\"Graph Connect 2017\"}", UUID.randomUUID().toString());
 
-            TestUtil.testCall(db, "CALL apoc.es.post('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + id + "',null," + payload + ") yield value", r -> {
+            TestUtil.testCall(db, "CALL apoc.es.post({host},{index},{type},{id},null,{payload}) yield value", params, r -> {
                 Object response = extractValueFromResponse(r, "$._shards.successful");
                 assertEquals(1, response);
             });
 
             // We try to get the document back
-            TestUtil.testCall(db, "CALL apoc.es.get('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + id + "',null,null) yield value", r -> {
+            TestUtil.testCall(db, "CALL apoc.es.get({host},{index},{type},{id},null,null) yield value", params, r -> {
                 Object event = extractValueFromResponse(r, "$._source.event");
                 assertEquals("Graph Connect 2017", event);
             });
@@ -224,22 +235,23 @@ public class ElasticSearchTest {
     @Test
     public void testPostUpdateDocument() {
         TestUtil.ignoreException(() -> {
-            String payload = "{tags:['awesome']}";
             String id = UUID.randomUUID().toString();
+            Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"tags\":[\"awesome\"]}", id);
 
-            TestUtil.testCall(db, "CALL apoc.es.put('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + id + "',null," + payload + ") yield value", r -> {
+            TestUtil.testCall(db, "CALL apoc.es.put({host},{index},{type},{id},null,{payload}) yield value", params, r -> {
                 Object created = extractValueFromResponse(r, "$.created");
                 assertEquals(true, created);
             });
 
-            payload = "{doc:{tags:['beautiful']}}";
-            TestUtil.testCall(db, "CALL apoc.es.post('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + id + "/_update',null," + payload + ") yield value", r -> {
+            params = createDefaultProcedureParametersWithPayloadAndId("{\"doc\":{\"tags\":[\"beautiful\"]}}", id + "/_update");
+            TestUtil.testCall(db, "CALL apoc.es.post({host},{index},{type},{id},null,{payload}) yield value", params, r -> {
                 Object updated = extractValueFromResponse(r, "$.result");
                 assertEquals("updated", updated);
             });
 
             // We try to get the document back
-            TestUtil.testCall(db, "CALL apoc.es.get('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + id + "',null,null) yield value", r -> {
+            params = createDefaultProcedureParametersWithPayloadAndId("", id);
+            TestUtil.testCall(db, "CALL apoc.es.get({host},{index},{type},{id},null,null) yield value", params, r -> {
                 Object tag = extractValueFromResponse(r, "$._source.tags[0]");
                 assertEquals("beautiful", tag);
             });
@@ -253,16 +265,15 @@ public class ElasticSearchTest {
     @Test
     public void testPutNewDocument() {
         TestUtil.ignoreException(() -> {
-            String payload = "{tags:['awesome']}";
-            String id = UUID.randomUUID().toString();
+            Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"tags\":[\"awesome\"]}", UUID.randomUUID().toString());
 
-            TestUtil.testCall(db, "CALL apoc.es.put('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + id + "',null," + payload + ") yield value", r -> {
+            TestUtil.testCall(db, "CALL apoc.es.put({host},{index},{type},{id},null,{payload}) yield value", params, r -> {
                 Object created = extractValueFromResponse(r, "$.created");
                 assertEquals(true, created);
             });
 
             // We try to get the document back
-            TestUtil.testCall(db, "CALL apoc.es.get('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "','" + id + "',null,null) yield value", r -> {
+            TestUtil.testCall(db, "CALL apoc.es.get({host},{index},{type},{id},null,null) yield value", params, r -> {
                 Object tag = extractValueFromResponse(r, "$._source.tags[0]");
                 assertEquals("awesome", tag);
             });
