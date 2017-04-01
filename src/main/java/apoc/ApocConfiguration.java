@@ -18,14 +18,21 @@ public class ApocConfiguration {
     private static final Pattern SKIP = Pattern.compile("(ur[il]|pass|cred)",Pattern.CASE_INSENSITIVE);
     private static Map<String, Object> apocConfig = new HashMap<>(10);
     private static Map<String, Object> config = new HashMap<>(32);
+    private static final Map<String, String> PARAM_WHITELIST = new HashMap<>(2);
+
+    static {
+        PARAM_WHITELIST.put("dbms.directories.import", "import.file.directory");
+        PARAM_WHITELIST.put("dbms.security.allow_csv_import_from_file_urls", "import.file.allow_read_from_filesystem");
+    }
 
     public static void initialize(GraphDatabaseAPI db) {
         Static.clear();
         Map<String, String> params = db.getDependencyResolver().resolveDependency(Config.class).getRaw();
         apocConfig.clear();
         apocConfig.putAll(Util.subMap(params, PREFIX));
+        PARAM_WHITELIST.forEach((k, v) -> apocConfig.put(v, params.get(k)) );
         config.clear();
-        params.forEach((k,v) -> { if (!SKIP.matcher(k).find()) {config.put(k,v);}} );
+        params.forEach((k, v) -> { if (!SKIP.matcher(k).find()) {config.put(k, v);} });
     }
 
     public static Map<String, Object> get(String prefix) {
