@@ -20,8 +20,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import static org.neo4j.helpers.collection.Iterables.stream;
 import static org.neo4j.helpers.collection.Iterators.*;
 
 /**
@@ -51,6 +51,11 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
     @FunctionalInterface
     interface IndexFunction<A, B, C, D, E> {
         void apply (A a, B b, C c, D d, E e);
+    }
+
+    // workaround for Iterables.stream() missing in 3.0
+    private static <T> Stream<T> stream(Iterable<T> iterable) {
+        return StreamSupport.stream(iterable.spliterator(), false);
     }
 
     @Override
