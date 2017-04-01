@@ -1,6 +1,7 @@
 package apoc.index;
 
 import apoc.Description;
+import apoc.ApocKernelExtensionFactory;
 import apoc.result.WeightedNodeResult;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.queryparser.classic.ParseException;
@@ -206,8 +207,21 @@ public class FreeTextSearch {
             );
             log.info("Creating or updating index '%s' with config '%s'", index, config );
             Index<Node> nodeIndex = db.index().forNodes(index, config);
+
+            resetIndexUpdateConfiguration();
             tx.success();
             return nodeIndex;
+        }
+    }
+
+    private void resetIndexUpdateConfiguration() {
+        try {
+            ApocKernelExtensionFactory.ApocLifecycle apocLifecycle = db.getDependencyResolver().resolveDependency(ApocKernelExtensionFactory.ApocLifecycle.class);
+            if (apocLifecycle != null) {
+                apocLifecycle.getIndexUpdateLifeCycle().resetConfiguration();
+            }
+        } catch (Exception e) {
+            log.error("failed to reset index update configuration", e);
         }
     }
 

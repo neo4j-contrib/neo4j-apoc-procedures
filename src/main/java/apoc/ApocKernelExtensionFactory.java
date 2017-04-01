@@ -35,51 +35,74 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
     public Lifecycle newInstance(KernelContext context, Dependencies dependencies) throws Throwable {
         GraphDatabaseAPI db = dependencies.graphdatabaseAPI();
         LogService log = dependencies.log();
-        return new LifecycleAdapter() {
-
-            private Trigger.LifeCycle triggerLifeCycle;
-            private Log userLog = log.getUserLog(ApocKernelExtensionFactory.class);
-            private TTLLifeCycle ttlLifeCycle;
-            private IndexUpdateTransactionEventHandler indexUpdateTransactionEventHandler;
-            private IndexUpdateTransactionEventHandler.LifeCycle indexUpdateLifeCycle;
-
-            @Override
-            public void start() throws Throwable {
-                ApocConfiguration.initialize(db);
-                Pools.NEO4J_SCHEDULER = dependencies.scheduler();
-                dependencies.procedures().register(new AssertSchemaProcedure(db, log.getUserLog(AssertSchemaProcedure.class)));
-                ttlLifeCycle = new TTLLifeCycle(Pools.NEO4J_SCHEDULER, db, log.getUserLog(TTLLifeCycle.class));
-                ttlLifeCycle.start();
-                triggerLifeCycle = new Trigger.LifeCycle(db, log.getUserLog(Trigger.class));
-                triggerLifeCycle.start();
-                indexUpdateLifeCycle = new IndexUpdateTransactionEventHandler.LifeCycle(db, log.getUserLog(Procedures.class));
-                indexUpdateLifeCycle.start();
-            }
-
-
-
-            @Override
-            public void stop() throws Throwable {
-                if (ttlLifeCycle !=null)
-                    try {
-                        ttlLifeCycle.stop();
-                    } catch(Exception e) {
-                        userLog.warn("Error stopping ttl service",e);
-                    }
-                if (triggerLifeCycle !=null)
-                    try {
-                        triggerLifeCycle.stop();
-                    } catch(Exception e) {
-                        userLog.warn("Error stopping trigger service",e);
-                    }
-                if (indexUpdateLifeCycle !=null)
-                    try {
-                        indexUpdateLifeCycle.stop();
-                    } catch(Exception e) {
-                        userLog.warn("Error stopping index update service",e);
-                    }
-            }
-        };
+        return new ApocLifecycle(log, db, dependencies);
     }
 
+    public static class ApocLifecycle extends LifecycleAdapter {
+
+        private final LogService log;
+        private final GraphDatabaseAPI db;
+        private final Dependencies dependencies;
+        private Trigger.LifeCycle triggerLifeCycle;
+        private Log userLog;
+        private TTLLifeCycle ttlLifeCycle;
+
+        private IndexUpdateTransactionEventHandler.LifeCycle indexUpdateLifeCycle;
+
+        public ApocLifecycle(LogService log, GraphDatabaseAPI db, Dependencies dependencies) {
+            this.log = log;
+            this.db = db;
+            this.dependencies = dependencies;
+            userLog = log.getUserLog(ApocKernelExtensionFactory.class);
+        }
+
+        public IndexUpdateTransactionEventHandler.LifeCycle getIndexUpdateLifeCycle() {
+            return indexUpdateLifeCycle;
+        }
+
+        @Override
+        public void start() throws Throwable {
+            ApocConfiguration.initialize(db);
+            Pools.NEO4J_SCHEDULER = dependencies.scheduler();
+            registerCustomProcedures();
+            ttlLifeCycle = new TTLLifeCycle(Pools.NEO4J_SCHEDULER, db, log.getUserLog(TTLLifeCycle.class));
+            ttlLifeCycle.start();
+
+            triggerLifeCycle = new Trigger.LifeCycle(db, log.getUserLog(Trigger.class));
+            triggerLifeCycle.start();
+            indexUpdateLifeCycle = new IndexUpdateTransactionEventHandler.LifeCycle(db, log.getUserLog(Procedures.class));
+            indexUpdateLifeCycle.start();
+        }
+
+        public void registerCustomProcedures() {
+            try {
+                dependencies.procedures().register(new AssertSchemaProcedure(db, log.getUserLog(AssertSchemaProcedure.class)));
+            } catch(Exception|Error e) {
+                log.getUserLog(ArithmeticException.class).error("Cannot register procedure AssertSchemaProcedure",e);
+            }
+        }
+
+        @Override
+        public void stop() throws Throwable {
+            if (ttlLifeCycle !=null)
+                try {
+                    ttlLifeCycle.stop();
+                } catch(Exception e) {
+                    userLog.warn("Error stopping ttl service",e);
+                }
+            if (triggerLifeCycle !=null)
+                try {
+                    triggerLifeCycle.stop();
+                } catch(Exception e) {
+                    userLog.warn("Error stopping trigger service",e);
+                }
+            if (indexUpdateLifeCycle !=null)
+                try {
+                    indexUpdateLifeCycle.stop();
+                } catch(Exception e) {
+                    userLog.warn("Error stopping index update service",e);
+                }
+        }
+
+    }
 }
