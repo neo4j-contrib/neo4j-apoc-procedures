@@ -1,5 +1,6 @@
 package apoc.index;
 
+import apoc.ApocKernelExtensionFactory;
 import org.neo4j.procedure.*;
 import apoc.result.WeightedNodeResult;
 import org.apache.lucene.analysis.Analyzer;
@@ -70,8 +71,7 @@ public class FreeTextSearch {
      * @deprecated Will not be needed as of Neo4j 3.1.
      */
 
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}, {options}) YIELD type, name, config - create a free text search index with special options")
     @Deprecated
     public Stream<IndexStats> addAllNodesExtended(@Name("index") String index, @Name("structure") Map<String, List<String>> structure, @Name("options") Map<String,Object> options ) {
@@ -200,8 +200,21 @@ public class FreeTextSearch {
             );
             log.info("Creating or updating index '%s' with config '%s'", index, config );
             Index<Node> nodeIndex = db.index().forNodes(index, config);
+
+            resetIndexUpdateConfiguration();
             tx.success();
             return nodeIndex;
+        }
+    }
+
+    private void resetIndexUpdateConfiguration() {
+        try {
+            ApocKernelExtensionFactory.ApocLifecycle apocLifecycle = db.getDependencyResolver().resolveDependency(ApocKernelExtensionFactory.ApocLifecycle.class);
+            if (apocLifecycle != null) {
+                apocLifecycle.getIndexUpdateLifeCycle().resetConfiguration();
+            }
+        } catch (Exception e) {
+            log.error("failed to reset index update configuration", e);
         }
     }
 

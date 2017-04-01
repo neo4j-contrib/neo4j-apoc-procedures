@@ -105,16 +105,26 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
             final Node entity = nodePropertyEntry.entity();
             final String key = nodePropertyEntry.key();
             final Object value = nodePropertyEntry.value();
-            Collection<Index<Node>> indices = findIndicesAffectedBy(entity.getLabels(), key);
-            for (Index<Node> index : indices) {
-                function.apply(index, entity, key, value, nodePropertyEntry.previouslyCommitedValue());
-            }
+            entity.getLabels().forEach(label -> {
+                final String labelName = label.name();
+                final Map<String, Collection<Index<Node>>> propertyIndexMap = indexesByLabelAndProperty.get(labelName);
+                if (propertyIndexMap!=null) {
+                    final Collection<Index<Node>> indices = propertyIndexMap.get(key);
+                    if (indices!= null) {
+                        for (Index<Node> index : indices) {
+                            String indexKey = labelName + "." + key;
+                            function.apply(index, entity, indexKey, value, nodePropertyEntry.previouslyCommitedValue());
+                        }
+                    }
+                }
+            });
         });
     }
 
     private void iterateLabelChanges(Stream<LabelEntry> stream, IndexFunction<Index<Node>, Node, String, Object, Void> function) {
         stream.forEach(labelEntry -> {
-            final Map<String, Collection<Index<Node>>> propertyIndicesMap = indexesByLabelAndProperty.get(labelEntry.label().name());
+            final String labelName = labelEntry.label().name();
+            final Map<String, Collection<Index<Node>>> propertyIndicesMap = indexesByLabelAndProperty.get(labelName);
             if (propertyIndicesMap != null) {
                 final Node entity = labelEntry.node();
                 for (String key : entity.getPropertyKeys()) {
@@ -122,26 +132,13 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
                     if (indices != null) {
                         for (Index<Node> index : indices) {
                             Object value = entity.getProperty(key);
-                            function.apply(index, entity, key, value, null);
+                            String indexKey = labelName + "." + key;
+                            function.apply(index, entity, indexKey, value, null);
                         }
                     }
                 }
             }
         });
-    }
-
-    private Collection<Index<Node>> findIndicesAffectedBy(Iterable<Label> labels, String key) {
-        Collection<Index<Node>> result = new ArrayList<>();
-        for (Label label: labels) {
-            Map<String, Collection<Index<Node>>> propertyIndexMap = indexesByLabelAndProperty.get(label.name());
-            if (propertyIndexMap!=null) {
-                final Collection<Index<Node>> indices = propertyIndexMap.get(key);
-                if (indices!=null)  {
-                    result.addAll(indices);
-                }
-            }
-        }
-        return result;
     }
 
     /**
@@ -161,6 +158,10 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
             indexesByLabelAndProperty = initIndexConfiguration();
         }
         return indexesByLabelAndProperty;
+    }
+
+    public void resetConfiguration() {
+        indexesByLabelAndProperty = null;
     }
 
     // might be run from a scheduler, so we need to make sure we have a transaction
@@ -258,6 +259,12 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
         public void stop() {
             if (indexUpdateTransactionEventHandler!=null) {
                 db.unregisterTransactionEventHandler(indexUpdateTransactionEventHandler);
+            }
+        }
+
+        public void resetConfiguration() {
+            if (indexUpdateTransactionEventHandler!=null) {
+                indexUpdateTransactionEventHandler.resetConfiguration();
             }
         }
     }
