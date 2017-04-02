@@ -36,10 +36,11 @@ archivesBaseName = 'apoc'
 description = """neo4j-apoc-procedures"""
 
 ext {
-    neo4jVersion = "3.0.8"
+    neo4jVersion = "3.0.9"
 }
 
 repositories {
+     mavenLocal()
      mavenCentral()
 }
 
@@ -104,22 +105,15 @@ asciidoctor {
     sources { include 'index.adoc' }
     outputDir = file('build/docs')
     attributes  'apoc-version' : version,
-                'apoc-release' : "3.0.8.5",
+                'apoc-release' : "3.0.8.6",
                 'neo4j-version' : neo4jVersion,
                 'branch' : "3.0"
 }
 
 asciidoctor.doLast {
-/*
-    copy {
-        from 'build/docs/html5'
-        into "$projectDir/docs"
-        include 'index.html'
-    }
-*/
     copy {
         from 'build/docs/html5/index.html'
-        into "$projectDir/x"
+        into "build/docs"
         rename { String filename -> filename.replace("index","index30") }
     }
 }
