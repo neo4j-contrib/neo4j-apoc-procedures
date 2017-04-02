@@ -98,7 +98,7 @@ MATCH (addr)<-[:HAS_ADDRESS]-(company:Company)
 RETURN company LIMIT 50
 ----
 
-The tilde (~) instructs the index search procedure to do a fuzzy match, allowing us to find “Paris” even if the spelling is slightly off.
+The tilde (~) instructs the index search procedure to do a fuzzy match, allowing us to find "Paris" even if the spelling is slightly off.
 
 We might notice that there are addresses that contain the word “Paris” that are not in Paris, France.
 For example there might be a Paris Street somewhere.
@@ -136,9 +136,10 @@ RETURN path
 For more details on the query syntax used in the second parameter of the `search` procedure,
 please see http://www.lucenetutorial.com/lucene-query-syntax.html[this Lucene query tutorial]
 
-== index configuration
+=== Index Configuration
 
-`apoc.index.addAllNodes(<name>, <labelPropsMap>, <option>)` allows to fine tune your indexes using the options parameter defaulting to an empty map. All https://neo4j.com/docs/java-reference/3.1/#indexing-create-advanced[standard options] for https://neo4j.com/docs/java-reference/3.1/#indexing[Neo4j manual indexes] are allowed plus apoc specific options:
+`apoc.index.addAllNodes(<name>, <labelPropsMap>, <option>)` allows to fine tune your indexes using the options parameter defaulting to an empty map. 
+All https://neo4j.com/docs/java-reference/3.1/#indexing-create-advanced[standard options] for https://neo4j.com/docs/java-reference/3.1/#indexing[Neo4j manual indexes] are allowed plus apoc specific options:
 
 [opts=header,cols="m,m,a"]
 |===
@@ -150,20 +151,28 @@ please see http://www.lucenetutorial.com/lucene-query-syntax.html[this Lucene qu
 | autoUpdate | true/false | if this index should be tracked for graph updates
 |===
 
-NOTE: a index configuration cannot be changed once the index is created. However subsequent invocations of `apoc.index.addAllNodes` will delete the index if existing and create it afterwards.
+[NOTE]
+An index configuration cannot be changed once the index is created. 
+However subsequent invocations of `apoc.index.addAllNodes` will delete the index if existing and create it afterwards.
 
-== automatic index tracking
+== Automatic Index Tracking for Manual Indexes
 
-As mentioned above, `apoc.index.addAllNodes()` populates an fulltext index. But it does not track changes being made to the graph and reflect these changes to the index.
+As mentioned above, `apoc.index.addAllNodes()` populates an fulltext index. 
+But it does not track changes being made to the graph and reflect these changes to the index.
+You would have to rebuild that index regularly yourself.
 
-To come around this, Apoc provides automatic index tracking. To enable this feature a two stop configuration approach is required. First set
+Or alternatively use the automatic index tracking, that keeps the index in sync with your graph changes.
+To enable this feature a two step configuration approach is required. 
 
+NOTE: Please note that there is a performance impact if you enable automatic index tracking.
+
+.in `neo4j.conf` set
 [source,properties]
 -----
 apoc.autoIndex.enabled=true
 -----
 
-in your `neo4j.conf`. This global setting will initialize a transaction event handler to take care of reflecting changes of any added nodes, deleted nodes, changed properties to the indexes.
+This global setting will initialize a transaction event handler to take care of reflecting changes of any added nodes, deleted nodes, changed properties to the indexes.
 
 In addition to enable index tracking globally using `apoc.autoIndex.enabled` each individual index must be configured as "trackable" by setting `autoUpdate:true` in the options when initially creating an index:
 
@@ -175,14 +184,18 @@ CALL apoc.index.addAllNodes('locations',{
   Address: ["address"]}, {autoUpdate:true})
 ----
 
-By default index tracking is done synchronously. That means updates to fulltext indexes are part of same transaction as the originating change (e.g. changing a node property). While this guarantees instant consistency it has an impact on performance. Alternatively you can decide to perform index updates asynchronously in a separate thread by setting
+By default index tracking is done synchronously. 
+That means updates to fulltext indexes are part of same transaction as the originating change (e.g. changing a node property). 
+While this guarantees instant consistency it has an impact on performance. 
 
+Alternatively, you can decide to perform index updates asynchronously in a separate thread by setting this flag in `neo4j.conf`
 [source,properties]
 -----
 apoc.autoIndex.async=true
 -----
 
-in `neo4j.conf`. With this index updates are feed to a buffer queue that is consumed asynchronously using transaction batches. The batching can be further configured using
+With setting enabled, index updates are fed to a buffer queue that is consumed asynchronously using transaction batches. 
+The batching can be further configured using
 
 [source,properties]
 -----
@@ -190,16 +203,19 @@ apoc.autoIndex.async_rollover_opscount=10000
 apoc.autoIndex.async_rollover_millis=5000
 -----
 
-The values above are the default setting. In this example the index updates are consumed in transactions of maximum 10000 operations or 5000 msecs - whichever triggers first will cause the index update transaction to be committed and rolled over.
+The values above are the default setting. 
+In this example the index updates are consumed in transactions of maximum 10000 operations or 5000 milliseconds - whichever triggers first will cause the index update transaction to be committed and rolled over.
 
-=== a worked example on fulltext index tracking
+=== A Worked Example on Fulltext Index Tracking
 
-This section provides a small but still usable example to understand automatic index updates. Make sure `apoc.autoIndex.enabled=true` is set.
+This section provides a small but still usable example to understand automatic index updates. 
+
+Make sure `apoc.autoIndex.enabled=true` is set.
 First we create some nodes - note there's no index yet.
 
 [source,cypher]
 ----
-UNWIND ["Johnny Walker", "Jim Beam", "Jack Daniels"] as x CREATE (:Person{name:x})
+UNWIND ["Johnny Walker", "Jim Beam", "Jack Daniels"] as name CREATE (:Person{name:name})
 ----
 
 Now we index them:
@@ -217,16 +233,14 @@ CALL apoc.index.search("people", "Johnny") YIELD node, weight
 RETURN node.name, weight
 ----
 
-Adding some more people - note we have another "Johnny":
+Adding some more people - note, we have another "Johnny":
 
 [source,cypher]
 ----
-UNWIND ["Johnny Rotten", "Axel Rose"] as x CREATE (:Person{name:x})
+UNWIND ["Johnny Rotten", "Axel Rose"] as name CREATE (:Person{name:name})
 ----
 
 Again we're search for "Johnny", expecting now two of them:
-
-Check if we can find "Johnny" - we expect one result.
 
 [source,cypher]
 ----
