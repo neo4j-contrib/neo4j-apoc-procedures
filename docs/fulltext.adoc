@@ -7,11 +7,8 @@ A full text index allows you to find occurrences of individual words or phrases 
 In order to use the full text search feature, we have to first index our data by specifying all the attributes we want to index.
 Here we create a full text index called `“locations”` (we will use this name when searching in the index) with our data.
 
-Optionally you can enable tracking changes to the graph on a per index level. To do so, you need to take two actions:
+NOTE: by default these fulltext indexes do not automatically track changes you perform in your graph. See .... for how to enabled automatic index tracking.
 
-. set `apoc.autoUpdate.enabled=true` in your `neo4j.conf`. With that setting a `TransactionEventHandler` is registered upon startup of your graph database that reflects property changes to the respective fulltext index.
-. By default index tracking is done synchronously within the same transaction. Optionally this can be done asynchronous by setting `apoc.autoUpdate.async=true`.
-. indexing is started with:
 
 [source,cypher]
 ----
@@ -138,3 +135,101 @@ RETURN path
 
 For more details on the query syntax used in the second parameter of the `search` procedure,
 please see http://www.lucenetutorial.com/lucene-query-syntax.html[this Lucene query tutorial]
+
+== index configuration
+
+`apoc.index.addAllNodes(<name>, <labelPropsMap>, <option>)` allows to fine tune your indexes using the options parameter defaulting to an empty map. All https://neo4j.com/docs/java-reference/3.1/#indexing-create-advanced[standard options] for https://neo4j.com/docs/java-reference/3.1/#indexing[Neo4j manual indexes] are allowed plus apoc specific options:
+
+[opts=header,cols="m,m,a"]
+|===
+| name | value | description
+| type | fulltext/exact | type of the index
+| to_lower_case | false/true | if terms should be converted to lower case before indexing
+| analyzer | classname | classname of lucene analyzer to be used for this index
+| similarity | classname | classname for lucene similarity to be used for this index
+| autoUpdate | true/false | if this index should be tracked for graph updates
+|===
+
+NOTE: a index configuration cannot be changed once the index is created. However subsequent invocations of `apoc.index.addAllNodes` will delete the index if existing and create it afterwards.
+
+== automatic index tracking
+
+As mentioned above, `apoc.index.addAllNodes()` populates an fulltext index. But it does not track changes being made to the graph and reflect these changes to the index.
+
+To come around this, Apoc provides automatic index tracking. To enable this feature a two stop configuration approach is required. First set
+
+[source,properties]
+-----
+apoc.autoIndex.enabled=true
+-----
+
+in your `neo4j.conf`. This global setting will initialize a transaction event handler to take care of reflecting changes of any added nodes, deleted nodes, changed properties to the indexes.
+
+In addition to enable index tracking globally using `apoc.autoIndex.enabled` each individual index must be configured as "trackable" by setting `autoUpdate:true` in the options when initially creating an index:
+
+[source,cypher]
+----
+CALL apoc.index.addAllNodes('locations',{
+  Company: ["name", "description"],
+  Person:  ["name","address"],
+  Address: ["address"]}, {autoUpdate:true})
+----
+
+By default index tracking is done synchronously. That means updates to fulltext indexes are part of same transaction as the originating change (e.g. changing a node property). While this guarantees instant consistency it has an impact on performance. Alternatively you can decide to perform index updates asynchronously in a separate thread by setting
+
+[source,properties]
+-----
+apoc.autoIndex.async=true
+-----
+
+in `neo4j.conf`. With this index updates are feed to a buffer queue that is consumed asynchronously using transaction batches. The batching can be further configured using
+
+[source,properties]
+-----
+apoc.autoIndex.async_rollover_opscount=10000
+apoc.autoIndex.async_rollover_millis=5000
+-----
+
+The values above are the default setting. In this example the index updates are consumed in transactions of maximum 10000 operations or 5000 msecs - whichever triggers first will cause the index update transaction to be committed and rolled over.
+
+=== a worked example on fulltext index tracking
+
+This section provides a small but still usable example to understand automatic index updates. Make sure `apoc.autoIndex.enabled=true` is set.
+First we create some nodes - note there's no index yet.
+
+[source,cypher]
+----
+UNWIND ["Johnny Walker", "Jim Beam", "Jack Daniels"] as x CREATE (:Person{name:x})
+----
+
+Now we index them:
+
+[source,cypher]
+----
+CALL apoc.index.addAllNodes('people', { Person:["name"]}, {autoUpdate:true})
+----
+
+Check if we can find "Johnny" - we expect one result.
+
+[source,cypher]
+----
+CALL apoc.index.search("people", "Johnny") YIELD node, weight
+RETURN node.name, weight
+----
+
+Adding some more people - note we have another "Johnny":
+
+[source,cypher]
+----
+UNWIND ["Johnny Rotten", "Axel Rose"] as x CREATE (:Person{name:x})
+----
+
+Again we're search for "Johnny", expecting now two of them:
+
+Check if we can find "Johnny" - we expect one result.
+
+[source,cypher]
+----
+CALL apoc.index.search("people", "Johnny") YIELD node, weight
+RETURN node.name, weight
+----
