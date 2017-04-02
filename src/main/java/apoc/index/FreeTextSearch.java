@@ -52,9 +52,14 @@ public class FreeTextSearch {
      * @return a stream containing a single element that describes the created index.
      */
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}) YIELD type, name, config - create a free text search index")
-    public Stream<IndexStats> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure ) {
-        return addAllNodesExtended( index, structure, Collections.emptyMap() );
+    @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}, {options}) YIELD type, name, config - create a free text search index")
+    public Stream<IndexStats> addAllNodes(@Name("index") String index, @Name("structure") Map<String, List<String>> structure, @Name(value = "options", defaultValue = "" ) Map<String,Object> options  ) {
+        if (structure.isEmpty()) {
+            throw new IllegalArgumentException("No structure given.");
+        }
+        return async(executor(), "Creating index '" + index + "'", result -> {
+            populate(index(index, structure, options ), structure, result);
+        });
     }
 
     /**
@@ -68,19 +73,14 @@ public class FreeTextSearch {
      * @param options   Additional options which can be evaluated by the index provider.
      * @return a stream containing a single element that describes the created index.
      *
-     * @deprecated Will not be needed as of Neo4j 3.1.
+     * @deprecated Will not be needed as of Neo4j 3.1. TODO: remove in one of next release
      */
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.index.addAllNodes('name',{label1:['prop1',...],...}, {options}) YIELD type, name, config - create a free text search index with special options")
+    @Description("apoc.index.addAllNodesExtended('name',{label1:['prop1',...],...}, {options}) YIELD type, name, config - create a free text search index with special options")
     @Deprecated
     public Stream<IndexStats> addAllNodesExtended(@Name("index") String index, @Name("structure") Map<String, List<String>> structure, @Name("options") Map<String,Object> options ) {
-        if (structure.isEmpty()) {
-            throw new IllegalArgumentException("No structure given.");
-        }
-        return async(executor(), "Creating index '" + index + "'", result -> {
-            populate(index(index, structure, options ), structure, result);
-        });
+        return addAllNodes(index, structure, options);
     }
 
     /**
