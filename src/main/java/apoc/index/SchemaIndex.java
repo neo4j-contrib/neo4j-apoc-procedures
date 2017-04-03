@@ -2,6 +2,8 @@ package apoc.index;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.kernel.api.schema.IndexQuery;
+import org.neo4j.kernel.api.exceptions.schema.DuplicateSchemaRuleException;
+import org.neo4j.kernel.api.schema.LabelSchemaDescriptor;
 import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import apoc.result.NodeResult;
@@ -60,10 +62,10 @@ public class SchemaIndex {
         ReadOperations reads = stmt.readOperations();
 
         int propertyKeyId = reads.propertyKeyGetForName(key);
-        NodePropertyDescriptor nodePropertyDescriptor = new NodePropertyDescriptor(reads.labelGetForName(label), propertyKeyId);
-        NewIndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(nodePropertyDescriptor);
+        LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), propertyKeyId);
+        NewIndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
         IndexReader indexReader = stmt.getStoreStatement().getIndexReader(descriptor);
-        IndexQuery.NumberRangePredicate numberRangePredicate = new IndexQuery.NumberRangePredicate(propertyKeyId, Long.MIN_VALUE, true, Long.MAX_VALUE, true);
+        IndexQuery.NumberRangePredicate numberRangePredicate = IndexQuery.range(propertyKeyId, Long.MIN_VALUE, true, Long.MAX_VALUE, true);
 
         PrimitiveLongIterator it = indexReader.query(numberRangePredicate);
 //        PrimitiveLongIterator it = sortedIndexReader.query(new MatchAllDocsQuery());
@@ -84,7 +86,7 @@ public class SchemaIndex {
 
     @Procedure
     @Description("apoc.index.orderedRange(label,key,min,max,sort-relevance,limit) yield node - schema range scan which keeps index order and adds limit, values can be null, boundaries are inclusive")
-    public Stream<NodeResult> orderedRange(@Name("label") String label, @Name("key") String key, @Name("min") Object min, @Name("max") Object max, @Name("relevance") boolean relevance, @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException {
+    public Stream<NodeResult> orderedRange(@Name("label") String label, @Name("key") String key, @Name("min") Object min, @Name("max") Object max, @Name("relevance") boolean relevance, @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
         SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, limit, Sort.INDEXORDER);
 
         PrimitiveLongIterator it = queryForRange(sortedIndexReader, min, max);
@@ -104,7 +106,7 @@ public class SchemaIndex {
 
     @Procedure
     @Description("apoc.index.orderedByText(label,key,operator,value,sort-relevance,limit) yield node - schema string search which keeps index order and adds limit, operator is 'STARTS WITH' or 'CONTAINS'")
-    public Stream<NodeResult> orderedByText(@Name("label") String label, @Name("key") String key, @Name("operator") String operator, @Name("value") String value, @Name("relevance") boolean relevance, @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException {
+    public Stream<NodeResult> orderedByText(@Name("label") String label, @Name("key") String key, @Name("operator") String operator, @Name("value") String value, @Name("relevance") boolean relevance, @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
         SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, limit, Sort.INDEXORDER);
         PrimitiveLongIterator it = queryForString(sortedIndexReader, operator, value);
 //        return Util.toLongStream(it).mapToObj(id -> new NodeResult(new VirtualNode(id, db)));
@@ -124,34 +126,34 @@ public class SchemaIndex {
         }
     }
 
-    private SortedIndexReader getSortedIndexReader(String label, String key, long limit, Sort sort) throws SchemaRuleNotFoundException, IndexNotFoundKernelException {
+    private SortedIndexReader getSortedIndexReader(String label, String key, long limit, Sort sort) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
         // todo PartitionedIndexReader
         SimpleIndexReader reader = (SimpleIndexReader) getIndexReader(label, key);
         return new SortedIndexReader(reader, limit, sort);
     }
 
-    private IndexReader getIndexReader(String label, String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException {
+    private IndexReader getIndexReader(String label, String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
         KernelStatement stmt = (KernelStatement) tx.acquireStatement();
         ReadOperations reads = stmt.readOperations();
 
-        NodePropertyDescriptor nodePropertyDescriptor = new NodePropertyDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
-        NewIndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(nodePropertyDescriptor);
+        LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
+        NewIndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
         return stmt.getStoreStatement().getIndexReader(descriptor);
     }
 
     @Procedure("apoc.schema.properties.distinct")
     @Description("apoc.schema.properties.distinct(label, key) - quickly returns all distinct values for a given key")
-    public Stream<ListResult> distinct(@Name("label") String label, @Name("key")  String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
+    public Stream<ListResult> distinct(@Name("label") String label, @Name("key")  String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException, DuplicateSchemaRuleException {
         List<Object> values = distinctTerms(label, key);
         return Stream.of(new ListResult(values));
     }
 
-    private List<Object> distinctTerms(@Name("label") String label, @Name("key") String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
+    private List<Object> distinctTerms(@Name("label") String label, @Name("key") String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException, DuplicateSchemaRuleException {
         KernelStatement stmt = (KernelStatement) tx.acquireStatement();
         ReadOperations reads = stmt.readOperations();
 
-        NodePropertyDescriptor nodePropertyDescriptor = new NodePropertyDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
-        NewIndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(nodePropertyDescriptor);
+        LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
+        NewIndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
         SimpleIndexReader reader = (SimpleIndexReader) stmt.getStoreStatement().getIndexReader(descriptor);
         SortedIndexReader sortedIndexReader = new SortedIndexReader(reader, 0, Sort.INDEXORDER);
 

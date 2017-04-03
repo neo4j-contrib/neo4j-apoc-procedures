@@ -23,7 +23,7 @@ You can also configure it in `conf/neo4j.conf` via  `apoc.gephi.url=url` or `apo
 
 === Example
 
-You can export your graph as an unweighted network. 
+You can export your graph as an unweighted network.
 
 [source,cypher]
 ----
@@ -34,7 +34,7 @@ call apoc.gephi.add(null,'workspace0', paths) yield nodes, relationships, time
 return nodes, relationships, time
 ----
 
-You can export your graph as a weighted network, by specifying the property of a relationship, that holds the weight value.  
+You can export your graph as a weighted network, by specifying the property of a relationship, that holds the weight value.
 
 [source,cypher]
 ----
