@@ -5,7 +5,7 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.3">
-<title>APOC User Guide 3.0.8.4</title>
+<title>APOC User Guide 3.0.8.6</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
@@ -419,7 +419,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
-<h1>APOC User Guide 3.0.8.4</h1>
+<h1>APOC User Guide 3.0.8.6</h1>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
@@ -691,7 +691,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="title">Note</div>
 </td>
 <td class="content">
-Go here for <a href="index31.html">documentation for APOC version 3.1.x</a>
+Go here for <a href="index31.html">documentation for APOC version 3.1.x</a> <a href="index32.html">documentation for APOC version 3.2.x</a>
 </td>
 </tr>
 </table>
@@ -732,7 +732,7 @@ Those procedures are implemented in Java and can be easily deployed into your Ne
 <div class="sect3">
 <h4 id="_download_latest_release"><a class="link" href="#_download_latest_release">Download latest release</a></h4>
 <div class="paragraph">
-<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.0.8.4" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.0.8.4</a></p>
+<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.0.8.6" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.0.8.6</a></p>
 </div>
 <div class="paragraph">
 <p>to find the latest release and download the binary jar to place into your <code>$NEO4J_HOME/plugins</code> folder.</p>
@@ -757,16 +757,28 @@ Those procedures are implemented in Java and can be easily deployed into your Ne
 <td class="tableblock halign-left valign-top"><p class="tableblock">neo4j version</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.0.3</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.0 (3.1.x)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.2">3.2.0.2</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.2.0-alpha07 (3.2.x)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.8.4</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.8 (3.0.x)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.3.6">3.1.3.6</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.3 (3.1.x)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.2.5">3.1.2.5</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.2</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.0.4">3.1.0.4</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.0-3.1.1</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.0.8.6">3.0.8.6</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.5-3.0.9 (3.0.x)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.0.4.3</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.4 (3.0.x)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0.4</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1.1.0</p></td>
@@ -788,9 +800,9 @@ Those procedures are implemented in Java and can be easily deployed into your Ne
 <div class="content">
 <pre class="highlight"><code class="language-bash" data-lang="bash">mkdir plugins
 pushd plugins
-wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.0.8.4/apoc-3.0.8.4-all.jar
+wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.0.8.6/apoc-3.0.8.6-all.jar
 popd
-docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.0.8</code></pre>
+docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.0.9</code></pre>
 </div>
 </div>
 </div>
@@ -5934,7 +5946,7 @@ RETURN count(*)
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-03-09 23:50:43 +00:00
+Last updated 2017-04-03 04:04:56 +02:00
 </div>
 </div>
 </body>
