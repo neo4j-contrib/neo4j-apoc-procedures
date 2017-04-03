@@ -8,7 +8,39 @@ Reading data from relational databases to create and augment data models is a ve
 With `apoc.load.jdbc` you can access any database that provides a JDBC driver, and execute queries whose results are turned into streams of rows. 
 Those rows can then be used to update or create graph structures.
 
-include::overview.adoc[tags=jdbc,leveloffset=-1]
+[separator=¦,opts=header,cols="1,1m,5"]
+|===
+include::../build/generated-documentation/apoc.load.csv[lines=1..4]
+|===
+
+image::{img}/apoc-jdbc-northwind-load.jpg[width=600]
+
+//include::overview.adoc[tags=jdbc,leveloffset=-1]
+////
+[cols="1m,5"]
+|===
+| CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name}) | load from relational database, either a full table or a sql statement
+| CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18') | load from relational database, either a full table or a sql statement
+| CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') | register JDBC driver of source database
+|===
+////
+
+To simplify the JDBC URL syntax and protect credentials, you can configure aliases in `conf/neo4j.conf`:
+
+----
+apoc.jdbc.myDB.url=jdbc:derby:derbyDB
+----
+
+----
+CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON')
+
+becomes
+
+CALL apoc.load.jdbc('myDB','PERSON')
+----
+
+The 3rd value in the `apoc.jdbc.<alias>.url=` effectively defines an alias to be used in  `apoc.load.jdbc('<alias>',....`
+
 
 == MySQL Example
 
@@ -192,6 +224,7 @@ CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
 RETURN row.track_id, row.track_length_in_seconds, row.track, row.music_file, row.genre, row.artist, row.starred LIMIT 2;
 ----
 
+[.small]
 ----
 ╒════════════════════════════════════╤══════╤════════════════╤══════════════════╤═════════╤════════════════════════════╤═══════════╕
 │row.track_id                        │length│row.track       │row.music_file    │row.genre│row.artist                  │row.starred│
