@@ -30,7 +30,7 @@ idea {
 }
 
 group = 'org.neo4j.procedure'
-version = '3.0.8.6'
+version = '3.0.8.7-SNAPSHOT'
 archivesBaseName = 'apoc'
 
 description = """neo4j-apoc-procedures"""
