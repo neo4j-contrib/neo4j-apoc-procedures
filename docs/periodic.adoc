@@ -98,4 +98,23 @@ RETURN count(*)
 
 == Further Functions
 
-include::overview.adoc[tags=periodic]
+// include::overview.adoc[tags=periodic]
+
+[separator=¦,opts=header,cols="1,1m,5"]
+|===
+include::../build/generated-documentation/apoc.periodic.csv[]
+|===
+
+* there are also static methods `Jobs.submit`, and `Jobs.schedule` to be used from other procedures
+* jobs list is checked / cleared every 10s for finished jobs
+
+////
+
+.copies over the `name` property of each person to `lastname`
+[source,cypher]
+----
+CALL apoc.periodic.iterate('
+match (p:Person) return p', 
+'SET p.lastname=p.name', {batchSize:20000,parallel:true, iterateList:true})
+----
+////

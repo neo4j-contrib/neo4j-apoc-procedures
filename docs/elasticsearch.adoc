@@ -1,7 +1,12 @@
 = ElasticSearch Integration
 
 
-include::overview.adoc[tags=elasticsearch,leveloffset=-1]
+// include::overview.adoc[tags=elasticsearch,leveloffset=-1]
+
+[separator=¦,opts=header,cols="1,1m,5"]
+|===
+include::../build/generated-documentation/apoc.es.csv[]
+|===
 
 
 == Example
