@@ -11,7 +11,10 @@ import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -23,7 +26,6 @@ class MongoDBColl implements MongoDB.Coll {
 
     private MongoCollection<Document> collection;
     private MongoClient mongoClient;
-    private FindIterable<Document> result;
 
     public MongoDBColl(String url, String db, String coll) {
         MongoClientURI connectionString = new MongoClientURI(url);
