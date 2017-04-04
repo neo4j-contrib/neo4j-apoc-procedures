@@ -1,6 +1,7 @@
 package apoc.algo;
 
 import apoc.Pools;
+import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -25,7 +26,7 @@ public class LabelPropagation {
     @Context
     public Log log;
 
-    @Procedure(name = "apoc.algo.community",mode = Mode.WRITE)
+    @Procedure(name = "apoc.algo.community", mode = Mode.WRITE)
     @Description("CALL apoc.algo.community(times,labels,partitionKey,type,direction,weightKey,batchSize) - simple label propagation kernel")
     public void community(
             @Name("times") long times,
@@ -48,6 +49,11 @@ public class LabelPropagation {
             List<Node> batch = null;
             List<Future<Void>> futures = new ArrayList<>();
             try (Transaction tx = dbAPI.beginTx()) {
+                // Before doing anything we check the transaction status
+                if (Util.transactionIsTerminated(dbAPI)) {
+                    return;
+                }
+
                 for (Node node : dbAPI.getAllNodes()) {
                     boolean add = labels.size() == 0;
                     if (!add) {

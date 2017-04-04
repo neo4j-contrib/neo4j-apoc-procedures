@@ -9,6 +9,8 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.api.exceptions.Status;
+import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
@@ -502,5 +504,25 @@ public class Util {
             if (e.getStatusCode().equalsIgnoreCase("Neo.ClientError.Procedure.ProcedureNotFound")) return true;
             throw e;
         }
+    }
+
+    /**
+     * Given a context related to the procedure invocation this method checks if the transaction is terminated in some way
+     *
+     * @param db
+     * @return
+     *
+     */
+    public static boolean transactionIsTerminated(GraphDatabaseAPI db) {
+        final KernelTransaction ktx = db.getDependencyResolver()
+                .resolveDependency(ThreadToStatementContextBridge.class)
+                .getKernelTransactionBoundToThisThread(true);
+
+        Status reason = ktx.getReasonIfTerminated();
+        if (reason != null) {
+            return true;
+        }
+
+        return false;
     }
 }
