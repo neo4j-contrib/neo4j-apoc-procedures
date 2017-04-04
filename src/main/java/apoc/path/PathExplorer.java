@@ -168,7 +168,7 @@ public class PathExplorer {
 		if (maxLevel != -1) td = td.evaluator(Evaluators.toDepth((int) maxLevel));
 
 		if (labelFilter != null && !labelFilter.trim().isEmpty()) {
-			td = td.evaluator(new LabelEvaluator(labelFilter, filterStartNode, limit));
+			td = td.evaluator(new LabelEvaluator(labelFilter, filterStartNode, limit, (int) minLevel));
 		}
 
 		td = td.uniqueness(uniqueness); // this is how Cypher works !! Uniqueness.RELATIONSHIP_PATH
@@ -185,11 +185,13 @@ public class PathExplorer {
 		private boolean endNodesOnly;
 		private boolean filterStartNode;
 		private long limit = -1;
+		private long minLevel = -1;
 		private long resultCount = 0;
 
-		public LabelEvaluator(String labelFilter, boolean filterStartNode, long limit) {
+		public LabelEvaluator(String labelFilter, boolean filterStartNode, long limit, int minLevel) {
 			this.filterStartNode = filterStartNode;
 			this.limit = limit;
+			this.minLevel = minLevel;
 			Map<Character, Set<String>> labelMap = new HashMap<>(4);
 
 			if (labelFilter !=  null && !labelFilter.isEmpty()) {
@@ -231,8 +233,9 @@ public class PathExplorer {
 
 		@Override
 		public Evaluation evaluate(Path path) {
+			int depth = path.length();
 			// if start node shouldn't be filtered
-			if (path.length() == 0 && !filterStartNode) {
+			if (depth == 0 && !filterStartNode) {
 				return whitelistAllowedEvaluation;
 			}
 
@@ -243,8 +246,8 @@ public class PathExplorer {
 
 			Node check = path.endNode();
 			Evaluation result = labelExists(check, blacklistLabels) ? EXCLUDE_AND_PRUNE :
-					labelExists(check, terminationLabels) ? filterEndNode(check, true) :
-					labelExists(check, endNodeLabels) ? filterEndNode(check, false) :
+					labelExists(check, terminationLabels) ? filterEndNode(check, depth, true) :
+					labelExists(check, endNodeLabels) ? filterEndNode(check, depth, false) :
 					whitelistAllowed(check) ? whitelistAllowedEvaluation : EXCLUDE_AND_PRUNE;
 
 			return result;
@@ -267,8 +270,10 @@ public class PathExplorer {
 			return whitelistLabels.isEmpty() || labelExists(node, whitelistLabels);
 		}
 
-		private Evaluation filterEndNode(Node node, boolean isTerminationFilter) {
-			resultCount++;
+		private Evaluation filterEndNode(Node node, int depth, boolean isTerminationFilter) {
+			if (depth >= minLevel) {
+				resultCount++;
+			}
 			return isTerminationFilter || !whitelistAllowed(node) ? INCLUDE_AND_PRUNE : INCLUDE_AND_CONTINUE;
 		}
 	}
