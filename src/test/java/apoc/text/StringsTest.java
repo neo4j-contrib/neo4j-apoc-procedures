@@ -251,7 +251,8 @@ public class StringsTest {
     public void testSlug() {
         testCall(db, "RETURN apoc.text.slug('a b','-') AS value", row -> assertEquals("a-b", row.get("value")));
         testCall(db, "RETURN apoc.text.slug('a- b','-') AS value", row -> assertEquals("a-b", row.get("value")));
-        testCall(db, "RETURN apoc.text.slug('a b c','.') AS value", row -> assertEquals("a.b.c", row.get("value")));
+        testCall(db, "RETURN apoc.text.slug('a b c') AS value", row -> assertEquals("a-b-c", row.get("value")));
+        testCall(db, "RETURN apoc.text.slug('a b c', '.') AS value", row -> assertEquals("a.b.c", row.get("value")));
 
     }
 

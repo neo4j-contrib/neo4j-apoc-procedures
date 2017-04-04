@@ -163,7 +163,7 @@ public class Strings {
     
     @UserFunction
     @Description("apoc.text.slug(text, delim) - slug the text with the given delimiter")
-    public String slug(@Name("text") String text, @Name("delim") String delim) {
+    public String slug(@Name("text") String text, @Name(value = "delim", defaultValue = "-") String delim) {
         if (text == null) return null;
         if (delim == null) return null;
         return text.replace(" ", delim).replace(delim+delim, delim);
