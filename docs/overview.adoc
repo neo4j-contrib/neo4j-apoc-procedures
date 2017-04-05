@@ -695,7 +695,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.containsDuplicates(coll) | returns true if a collection contains duplicate elements
 | apoc.coll.duplicates(coll) | returns a list of duplicate items in the collection
 | apoc.coll.duplicatesWithCount(coll) | returns a list of duplicate items in the collection and their count, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)
-| apoc.coll.occurrences(coll) | returns the count of the given item in the collection
+| apoc.coll.occurrences(coll, item) | returns the count of the given item in the collection
 |===
 
 === Lookup Functions
