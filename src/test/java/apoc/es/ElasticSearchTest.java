@@ -14,6 +14,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.net.ConnectException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -190,15 +191,73 @@ public class ElasticSearchTest {
     }
 
     /**
+     * We want to search our document by name --> /test-index/test-type/_search?
+     * This test uses a plain string to query ES
+     */
+    @Test
+    public void testSearchWithQueryNull() throws Exception {
+        TestUtil.ignoreException(() -> {
+            TestUtil.testCall(db, "CALL apoc.es.query({host},{index},{type},null,null) yield value", defaultParams, r -> {
+                Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.procedureName");
+                assertEquals("get", name);
+            });
+        }, ConnectException.class);
+    }
+
+    /**
      * We want to search our document by name --> /test-index/test-type/_search?q=name:Neo4j
      * This test uses a plain string to query ES
      */
     @Test
     public void testSearchWithQueryAsAString() throws Exception {
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.es.query({host},{index},{type},'name:Neo4j',null) yield value", defaultParams, r -> {
+            TestUtil.testCall(db, "CALL apoc.es.query({host},{index},{type},'q=name:Neo4j',null) yield value", defaultParams, r -> {
                 Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
                 assertEquals("Neo4j", name);
+            });
+        }, ConnectException.class);
+    }
+
+    /**
+     * We want to search our document by name --> /test-index/test-type/_search?q=name:*
+     * This test uses a plain string to query ES
+     */
+    @Test
+    public void testFullSearchWithQueryAsAString() throws Exception {
+        TestUtil.ignoreException(() -> {
+            TestUtil.testCall(db, "CALL apoc.es.query({host},{index},{type},'q=name:*',null) yield value", defaultParams, r -> {
+                Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
+                assertEquals("Neo4j", name);
+            });
+        }, ConnectException.class);
+    }
+
+    /**
+     * We want to search our document by name --> /test-index/test-type/_search?q=*
+     * This test uses a plain string to query ES
+     */
+    @Test
+    public void testFullSearchWithQueryAsAStringWithEquals() throws Exception {
+        TestUtil.ignoreException(() -> {
+            TestUtil.testCall(db, "CALL apoc.es.query({host},{index},{type},'q=*',null) yield value", defaultParams, r -> {
+                Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.procedureName");
+                assertEquals("get", name);
+            });
+        }, ConnectException.class);
+    }
+
+    /**
+     * We want to search our document by name --> /test-index/test-type/_search?size=1&scroll=1m&_source=true
+     * This test uses a plain string to query ES
+     */
+    @Test
+    public void testFullSearchWithOtherParametersAsAString() throws Exception {
+        TestUtil.ignoreException(() -> {
+            TestUtil.testCall(db, "CALL apoc.es.query({host},{index},{type},'size=1&scroll=1m&_source=true',null) yield value", defaultParams, r -> {
+                Object hits = extractValueFromResponse(r, "$.hits.hits");
+                assertEquals(1, ((List) hits).size());
+                Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.procedureName");
+                assertEquals("get", name);
             });
         }, ConnectException.class);
     }
@@ -287,7 +346,7 @@ public class ElasticSearchTest {
     @Test
     public void testSearchWithQueryAsAMap() {
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.es.query('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "',{name:'Neo4j'},null) yield value", r -> {
+            TestUtil.testCall(db, "CALL apoc.es.query('" + HOST + "','" + ES_INDEX + "','" + ES_TYPE + "',{q:'name:Neo4j'},null) yield value", r -> {
                 Object name = extractValueFromResponse(r, "$.hits.hits[0]._source.name");
                 assertEquals("Neo4j", name);
             });
