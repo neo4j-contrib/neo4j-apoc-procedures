@@ -166,6 +166,9 @@ public class Strings {
     public String slug(@Name("text") String text, @Name(value = "delim", defaultValue = "-") String delim) {
         if (text == null) return null;
         if (delim == null) return null;
-        return text.replace(" ", delim).replace(delim+delim, delim);
+        return text.trim()
+                .replaceAll("[^\\w+]", delim)
+                .replaceAll("\\s+", delim)
+                .replaceAll("["+delim+"]+", delim);
     }
 }
