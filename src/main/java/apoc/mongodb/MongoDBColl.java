@@ -53,8 +53,13 @@ class MongoDBColl implements MongoDB.Coll {
          *
          * If the document is not null we simply override the ObjectId instance with its string representation
          */
+
         if (document != null) {
-            document.put("_id", document.get("_id").toString());
+            Object objectId = document.get("_id");
+            if (objectId != null) {
+                document.put("_id", objectId.toString());
+            }
+
         }
 
         return document;
