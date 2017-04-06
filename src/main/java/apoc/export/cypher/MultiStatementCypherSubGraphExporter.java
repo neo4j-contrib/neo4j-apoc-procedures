@@ -1,6 +1,7 @@
 package apoc.export.cypher;
 
 
+import apoc.export.util.FileUtils;
 import apoc.export.util.FormatUtils;
 import apoc.export.util.Reporter;
 import org.neo4j.cypher.export.SubGraph;
@@ -11,6 +12,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.helpers.collection.Iterables;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -19,17 +21,17 @@ import java.util.*;
  * Idea is to lookup nodes for relationships via a unqiue index
  * either one inherent to the original node, or a artificial one that indexes the original node-id
  * and which is removed after the import.
- *
+ * <p>
  * Outputs indexes and constraints at the beginning as their own transactions
  */
 public class MultiStatementCypherSubGraphExporter {
+    private final static String UNIQUE_ID_LABEL = "UNIQUE IMPORT LABEL";
+    private final static String Q_UNIQUE_ID_LABEL = quote(UNIQUE_ID_LABEL);
+    private final static String UNIQUE_ID_PROP = "UNIQUE IMPORT ID";
     private final SubGraph graph;
     private final Map<String, String> uniqueConstraints;
     Set<String> indexNames = new LinkedHashSet<>();
     Set<String> indexedProperties = new LinkedHashSet<>();
-    private final static String UNIQUE_ID_LABEL = "UNIQUE IMPORT LABEL";
-    private final static String Q_UNIQUE_ID_LABEL = quote(UNIQUE_ID_LABEL);
-    private final static String UNIQUE_ID_PROP = "UNIQUE IMPORT ID";
     private long artificialUniques = 0;
 
     public MultiStatementCypherSubGraphExporter(SubGraph graph) {
@@ -37,24 +39,72 @@ public class MultiStatementCypherSubGraphExporter {
         uniqueConstraints = gatherUniqueConstraints(indexNames, indexedProperties);
     }
 
-    public void export(PrintWriter out, int batchSize, Reporter reporter) {
+    public static String quote(String id) {
+        return "`" + id + "`";
+    }
+
+    public static String label(String id) {
+        return ":`" + id + "`";
+    }
+
+    /**
+     * @param fileName
+     * @param suffix
+     * @return
+     */
+    private String normalizeFileName(final String fileName, String suffix) {
+        // TODO check if this should be follow the same rules of FileUtils.readerFor
+        return fileName.replace(".cypher", "." + suffix + ".cypher");
+    }
+
+    /**
+     * @param fileName
+     * @param suffix
+     * @return
+     * @throws IOException
+     */
+    private PrintWriter createWriter(String fileName, String suffix) throws IOException {
+        return FileUtils.getPrintWriter(normalizeFileName(fileName, suffix), null);
+    }
+
+    /**
+     * Given a full path file name like /tmp/myexport.cypher this method will create:
+     * <ul>
+     * <li>/tmp/myexport.schema.cypher</li>
+     * <li>/tmp/myexport.nodes.cypher</li>
+     * <li>/tmp/myexport.relationships.cypher</li>
+     * </ul>
+     *
+     * @param fileName  full path where all the files will be created
+     * @param batchSize
+     * @param reporter
+     */
+    public void export(String fileName, int batchSize, Reporter reporter) throws IOException {
         boolean hasNodes = hasData(graph.getNodes());
         if (hasNodes) {
-            begin(out);
-            appendNodes(out, batchSize, reporter);
-            commit(out);
+            PrintWriter nodeWriter = createWriter(fileName, "nodes");
+            begin(nodeWriter);
+            appendNodes(nodeWriter, batchSize, reporter);
+            commit(nodeWriter);
+
+            nodeWriter.flush();
         }
-        writeMetaInformation(out);
+
+        PrintWriter schemaWriter = createWriter(fileName, "schema");
+        writeMetaInformation(schemaWriter);
 
         if (hasData(graph.getRelationships())) {
-            begin(out);
-            appendRelationships(out, batchSize, reporter);
-            commit(out);
+            PrintWriter relationships = createWriter(fileName, "relationships");
+            begin(relationships);
+            appendRelationships(relationships, batchSize, reporter);
+            commit(relationships);
+
+            relationships.flush();
         }
         if (artificialUniques > 0) {
-            removeArtificialMetadata(out, batchSize);
+            removeArtificialMetadata(schemaWriter, batchSize);
         }
-        out.flush();
+        schemaWriter.flush();
     }
 
     private boolean hasData(Iterable<?> it) {
@@ -139,14 +189,6 @@ public class MultiStatementCypherSubGraphExporter {
         return "CREATE CONSTRAINT ON (node:" + quote(label) + ") ASSERT node." + quote(key) + " IS UNIQUE;";
     }
 
-    public static String quote(String id) {
-        return "`" + id + "`";
-    }
-
-    public static String label(String id) {
-        return ":`" + id + "`";
-    }
-
     private boolean hasProperties(PropertyContainer node) {
         return node.getPropertyKeys().iterator().hasNext();
     }
@@ -158,7 +200,8 @@ public class MultiStatementCypherSubGraphExporter {
         while (labels.hasNext()) {
             Label next = labels.next();
             String labelName = next.name();
-            if (uniqueConstraints.containsKey(labelName) && node.hasProperty(uniqueConstraints.get(labelName))) uniqueFound = true;
+            if (uniqueConstraints.containsKey(labelName) && node.hasProperty(uniqueConstraints.get(labelName)))
+                uniqueFound = true;
             if (indexNames.contains(labelName))
                 result.insert(0, label(labelName));
             else
