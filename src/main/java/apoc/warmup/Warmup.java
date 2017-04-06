@@ -1,7 +1,6 @@
 package apoc.warmup;
 
 import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
-import org.neo4j.procedure.Description;
 import apoc.util.Util;
 import org.neo4j.cursor.Cursor;
 import org.neo4j.graphdb.Transaction;
@@ -14,6 +13,7 @@ import org.neo4j.kernel.impl.store.format.standard.NodeRecordFormat;
 import org.neo4j.kernel.impl.store.format.standard.RelationshipRecordFormat;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.storageengine.api.NodeItem;
 import org.neo4j.storageengine.api.RelationshipItem;
@@ -38,10 +38,9 @@ public class Warmup {
     public Warmup() {
     }
 
-
     @Procedure
     @Description("apoc.warmup.run() - quickly loads all nodes and rels into memory by skipping one page at a time")
-    public Stream<WarmupResult> run(){
+    public Stream<WarmupResult> run() {
 
         int pageSize = 1 << 13; // default page size, todo read from config
         int nodesPerPage = pageSize / NodeRecordFormat.RECORD_SIZE;
@@ -59,6 +58,11 @@ public class Warmup {
 
         try (Transaction tx = db.beginTx()) {
             ThreadToStatementContextBridge ctx = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
+            // If the transaction is terminated just return an empty stream
+            if (Util.transactionIsTerminated(db)) {
+                return Stream.empty();
+            }
+
             ReadOperations readOperations = ctx.get().readOperations();
 
             // Load specific nodes and rels
@@ -68,7 +72,7 @@ public class Warmup {
                 loadNode(i, readOperations);
             }
             timeNodes = System.nanoTime();
-            for(int i = 0; i <= highestRelationshipKey; i += relsPerPage) {
+            for (int i = 0; i <= highestRelationshipKey; i += relsPerPage) {
                 relPages++;
                 loadRelationship(i, readOperations);
             }

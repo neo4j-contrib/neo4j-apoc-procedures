@@ -1,5 +1,6 @@
 package apoc.algo.algorithms;
 
+import apoc.util.Util;
 import org.neo4j.cypher.EntityNotFoundException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.DataWriteOperations;
@@ -32,7 +33,7 @@ public class AlgoUtils {
     public static final boolean DEFAULT_PAGE_RANK_WRITE = false;
 
     public static String getCypher(Map<String, Object> config, String setting, String defaultString) {
-        String cypher = (String)config.getOrDefault(setting, defaultString);
+        String cypher = (String) config.getOrDefault(setting, defaultString);
         if ("none".equals(cypher)) return null;
         if (cypher == null || cypher.isEmpty()) {
             return defaultString;
@@ -40,18 +41,13 @@ public class AlgoUtils {
         return cypher;
     }
 
-    public static int waitForTasks( List<Future> futures )
-    {
+    public static int waitForTasks(List<Future> futures) {
         int total = 0;
-        for ( Future future : futures )
-        {
-            try
-            {
+        for (Future future : futures) {
+            try {
                 future.get();
                 total++;
-            }
-            catch ( InterruptedException | ExecutionException e )
-            {
+            } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         }
@@ -59,11 +55,15 @@ public class AlgoUtils {
         return total;
     }
 
-    public static void  writeBackResults(ExecutorService pool, GraphDatabaseAPI db, AlgorithmInterface algorithm,
+    public static void writeBackResults(ExecutorService pool, GraphDatabaseAPI db, AlgorithmInterface algorithm,
                                         int batchSize) {
         ThreadToStatementContextBridge ctx = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
         int propertyNameId;
         try (Transaction tx = db.beginTx()) {
+            // If the transaction is terminated just return
+            if (Util.transactionIsTerminated(db)) {
+                return;
+            }
             propertyNameId = ctx.get().tokenWriteOperations().propertyKeyGetOrCreateForName(algorithm.getPropertyName());
             tx.success();
         } catch (IllegalTokenNameException e) {
@@ -78,6 +78,11 @@ public class AlgoUtils {
             Future future = pool.submit(new Runnable() {
                 public void run() {
                     try (Transaction tx = db.beginTx()) {
+                        // If the transaction is terminated just return
+                        if (Util.transactionIsTerminated(db)) {
+                            return;
+                        }
+
                         DataWriteOperations ops = ctx.get().dataWriteOperations();
                         for (int i = 0; i < batchSize; i++) {
                             int nodeIndex = i + start;

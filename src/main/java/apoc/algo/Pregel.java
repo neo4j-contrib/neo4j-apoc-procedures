@@ -1,6 +1,7 @@
 package apoc.algo;
 
 import apoc.Pools;
+import apoc.util.Util;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Transaction;
@@ -134,9 +135,9 @@ public class Pregel {
 
         List<long[]> relBatches = collectRelationshipBatches(nodes, expander);
 
-        IdentityHashMap<PregelProgram<STATE,RESULT>,long[]> programs = new IdentityHashMap<>(relBatches.size());
+        IdentityHashMap<PregelProgram<STATE, RESULT>, long[]> programs = new IdentityHashMap<>(relBatches.size());
         for (long[] relBatch : relBatches) {
-            programs.put(program.newInstance(),relBatch);
+            programs.put(program.newInstance(), relBatch);
         }
 
         List<Object> states = new ArrayList<>(1024);
@@ -167,6 +168,11 @@ public class Pregel {
 
             Future<long[]> future = pool.submit(() -> {
                 try (Transaction tx = api.beginTx()) {
+                    // If the transaction is terminated it returns an empty list
+                    if (Util.transactionIsTerminated(api)) {
+                        return new long[0];
+                    }
+
                     Statement statement = statement();
                     CollectingRelationshipVisitor visitor = new CollectingRelationshipVisitor();
                     for (long node : batch) {
@@ -206,6 +212,11 @@ public class Pregel {
 
     private int grabBatch(PrimitiveLongIterator nodes, long[] batch) {
         try (Transaction tx = api.beginTx()) {
+            // If the transaction is terminated it returns 0 (default start index)
+            if (Util.transactionIsTerminated(api)) {
+                return 0;
+            }
+
             int idx = 0;
             while (nodes.hasNext() && idx < batchSize) {
                 batch[idx++] = nodes.next();
@@ -219,11 +230,16 @@ public class Pregel {
     private <STATE, RESULT> Future<STATE> runRelBatch(PregelProgram<STATE, RESULT> program, long[] relBatch) {
         return pool.submit(() -> {
             try (Transaction tx = api.beginTx()) {
+                // If the transaction is terminated it returns the program state as it is passed
+                if (Util.transactionIsTerminated(api)) {
+                    return program.state();
+                }
+
                 Statement statement = ctx.get();
                 STATE state = program.state();
                 int len = relBatch.length;
-                for (int idx = 0; idx< len; idx += 4) {
-                    program.accept(relBatch[idx], relBatch[idx+1], relBatch[idx+2], (int)relBatch[idx+3], statement, state);
+                for (int idx = 0; idx < len; idx += 4) {
+                    program.accept(relBatch[idx], relBatch[idx + 1], relBatch[idx + 2], (int) relBatch[idx + 3], statement, state);
                 }
                 tx.success();
                 return state;
@@ -234,6 +250,11 @@ public class Pregel {
     private <STATE, RESULT> Future<STATE> runBatch(NodeExpander expander, PregelProgram<STATE, RESULT> program, long[] batch) {
         return pool.submit(() -> {
             try (Transaction tx = api.beginTx()) {
+                // If the transaction is terminated it returns the program state as it is passed
+                if (Util.transactionIsTerminated(api)) {
+                    return program.state();
+                }
+
                 Statement statement = ctx.get();
                 STATE state = program.state();
                 for (long node : batch) {
@@ -291,7 +312,10 @@ public class Pregel {
 
         public void visit(long id, int type, long start, long end) throws RuntimeException {
             if (idx + 4 > relBatch.length) relBatch = Arrays.copyOf(relBatch, relBatch.length + batchSize * 10);
-            relBatch[idx] = id; relBatch[idx + 1] = start; relBatch[idx + 2] = end; relBatch[idx + 3] = type;
+            relBatch[idx] = id;
+            relBatch[idx + 1] = start;
+            relBatch[idx + 2] = end;
+            relBatch[idx + 3] = type;
             idx += 4;
         }
 
