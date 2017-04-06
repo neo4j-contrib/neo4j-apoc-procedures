@@ -13,6 +13,9 @@ import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.api.security.SecurityContext;
+import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.api.exceptions.Status;
+import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
@@ -520,8 +523,6 @@ public class Util {
                 .resolveDependency(ThreadToStatementContextBridge.class)
                 .getKernelTransactionBoundToThisThread(true);
 
-        Optional<Status> reason = ktx.getReasonIfTerminated();
-        return reason.isPresent();
-
+        return ktx.getReasonIfTerminated().isPresent();
     }
 }

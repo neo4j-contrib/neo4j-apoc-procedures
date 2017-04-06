@@ -1,7 +1,6 @@
 package apoc.warmup;
 
 import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
-import org.neo4j.procedure.Description;
 import apoc.util.Util;
 import org.neo4j.cursor.Cursor;
 import org.neo4j.graphdb.Transaction;
