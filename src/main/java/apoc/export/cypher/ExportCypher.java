@@ -19,6 +19,7 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +82,7 @@ public class ExportCypher {
     private Stream<ProgressInfo> exportCypher(@Name("file") String fileName, String source, SubGraph graph, ExportConfig c) throws IOException {
         checkWriteAllowed();
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "cypher"));
-        MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph);
+        MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph, c.getFormat());
         // Pass the full configuration to enable further enhancement
         exporter.export(fileName, c, reporter);
         return reporter.stream();

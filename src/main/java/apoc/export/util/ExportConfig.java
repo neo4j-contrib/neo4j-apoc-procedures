@@ -20,6 +20,7 @@ public class ExportConfig {
     private boolean quotes;
     private boolean useTypes = false;
     private boolean nodesOfRelationships;
+    private ExportFormat format;
     private final Map<String, Object> config;
 
     public int getBatchSize() {
@@ -46,6 +47,7 @@ public class ExportConfig {
         return useTypes;
     }
 
+    public ExportFormat getFormat() { return format; }
 
     public ExportConfig(Map<String,Object> config) {
         config = config != null ? config : Collections.emptyMap();
@@ -55,6 +57,7 @@ public class ExportConfig {
         this.quotes = toBoolean(config.get("quotes"));
         this.useTypes = toBoolean(config.get("useTypes"));
         this.nodesOfRelationships = toBoolean(config.get("nodesOfRelationships"));
+        this.format = ExportFormat.fromString((String) config.get("format"));
         this.config = config;
     }
 
@@ -83,10 +86,14 @@ public class ExportConfig {
     }
 
     public boolean storeNodeIds() {
-        return toBoolean(config.getOrDefault("storeNodeIds",false));
+        return toBoolean(config.getOrDefault("storeNodeIds", false));
     }
 
-    public boolean separateFiles(){
+    public boolean separateFiles() {
         return toBoolean(config.getOrDefault("separateFiles", false));
+    }
+
+    private ExportFormat format(Object format) {
+        return format != null && format instanceof String ? ExportFormat.fromString((String)format) : ExportFormat.NEO4J_SHELL;
     }
 }
