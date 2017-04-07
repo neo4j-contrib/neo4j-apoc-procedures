@@ -157,7 +157,7 @@ public class ExpandPathTest {
 	}
 
 	@Test
-	public void testBlacklistBeforeTerminationList() {
+	public void testBlacklistBeforeTerminationFilter() {
 		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
 
 		TestUtil.testResult(db,
@@ -171,7 +171,7 @@ public class ExpandPathTest {
 	}
 
 	@Test
-	public void testBlacklistBeforeEndNodeList() {
+	public void testBlacklistBeforeEndNodeFilter() {
 		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
 
 		TestUtil.testResult(db,
@@ -185,7 +185,7 @@ public class ExpandPathTest {
 	}
 
 	@Test
-	public void testTerminationListBeforeWhitelist() {
+	public void testTerminationFilterBeforeWhitelist() {
 		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman', 'Christian Bale'] SET c:Western");
 
 		TestUtil.testResult(db,
@@ -201,7 +201,7 @@ public class ExpandPathTest {
 	}
 
 	@Test
-	public void testTerminationListBeforeEndNodeList() {
+	public void testTerminationFilterBeforeEndNodeFilter() {
 		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
 
 		TestUtil.testResult(db,
@@ -217,7 +217,7 @@ public class ExpandPathTest {
 	}
 
 	@Test
-	public void testEndNodeListBeforeWhitelist() {
+	public void testEndNodeFilterBeforeWhitelist() {
 		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
 
 		TestUtil.testResult(db,
