@@ -212,8 +212,12 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 
 === Export to Cypher Script
 
-Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.runFile to the given file.
-
+Data is exported as cypher statements to the given file.
+It is possible to choose between three export formats:
+    * "neo4j-shell": for neo4j shell and partly apoc.cypher.runFile
+    * "cypher-shell": for cypher shell
+    * "plain": doesn't output begin / commit / await just plain cypher
+To change the export format, you have to set it on the config params like `{format : "cypher-shell"}`. By default the format is "neo4j-shell".
 // tag::export.cypher[]
 
 `YIELD file, source, format, nodes, relationships, properties, time`
