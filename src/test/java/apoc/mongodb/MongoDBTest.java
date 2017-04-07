@@ -1,10 +1,10 @@
 package apoc.mongodb;
 
-import apoc.es.ElasticSearch;
+import apoc.util.MapUtil;
 import apoc.util.TestUtil;
+import apoc.util.UrlResolver;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
-import com.mongodb.MongoClientURI;
 import com.mongodb.MongoTimeoutException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -16,14 +16,12 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.net.ConnectException;
-import java.util.Collections;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -59,7 +57,19 @@ public class MongoDBTest {
 
     @AfterClass
     public static void tearDown() {
-        if (db!=null) db.shutdown();
+        if (db != null) db.shutdown();
+    }
+
+    @Test
+    public void testObjectIdtoStringMapping() {
+        Assume.assumeTrue(mongoDBRunning);
+        TestUtil.ignoreException(() -> {
+            String url = new UrlResolver("mongodb", "localhost", 27017).getUrl("mongodb", "localhost");
+            MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "test");
+
+            Map<String, Object> document = coll.first(MapUtil.map("name", "testDocument"));
+            assertTrue(document.get("_id") instanceof String);
+        });
     }
 
     @Test
@@ -74,6 +84,7 @@ public class MongoDBTest {
             });
         }, MongoTimeoutException.class);
     }
+
     @Test
     public void testFirst() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
@@ -86,6 +97,7 @@ public class MongoDBTest {
             });
         }, MongoTimeoutException.class);
     }
+
     @Test
     public void testFind() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
@@ -98,6 +110,7 @@ public class MongoDBTest {
             });
         }, MongoTimeoutException.class);
     }
+
     @Test
     public void testFindSort() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
@@ -110,6 +123,7 @@ public class MongoDBTest {
             });
         }, MongoTimeoutException.class);
     }
+
     @Test
     public void testCount() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
@@ -136,28 +150,30 @@ public class MongoDBTest {
         TestUtil.ignoreException(() -> {
             TestUtil.testCall(db, "CALL apoc.mongodb.update('mongodb://localhost:27017','test','test',{name:'testDocument'},{`$set`:{age:42}})", r -> {
                 assertEquals(1L, r.get("value"));
-                assertEquals(1L, collection.count(new Document(map("age",42L))));
+                assertEquals(1L, collection.count(new Document(map("age", 42L))));
             });
         }, MongoTimeoutException.class);
     }
+
     @Test
     public void testInsert() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
         TestUtil.ignoreException(() -> {
             TestUtil.testCall(db, "CALL apoc.mongodb.insert('mongodb://localhost:27017','test','test',[{Jon:'Snow'}])", r -> {
                 assertEquals(1L, r.get("value"));
-                assertEquals(1L, collection.count(new Document(map("Jon","Snow"))));
+                assertEquals(1L, collection.count(new Document(map("Jon", "Snow"))));
             });
         }, MongoTimeoutException.class);
     }
+
     @Test
     public void testDelete() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
-        collection.insertOne(new Document(map("foo","bar")));
+        collection.insertOne(new Document(map("foo", "bar")));
         TestUtil.ignoreException(() -> {
             TestUtil.testCall(db, "CALL apoc.mongodb.delete('mongodb://localhost:27017','test','test',{foo:'bar'})", r -> {
                 assertEquals(1L, r.get("value"));
-                assertEquals(0L, collection.count(new Document(map("foo","bar"))));
+                assertEquals(0L, collection.count(new Document(map("foo", "bar"))));
             });
         }, MongoTimeoutException.class);
     }

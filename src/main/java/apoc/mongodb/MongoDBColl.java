@@ -39,9 +39,35 @@ class MongoDBColl implements MongoDB.Coll {
         mongoClient.close();
     }
 
+    /**
+     * It translates a MongoDB document into a Map where the "_id" field is not an ObjectId
+     * but a simple String representation of it
+     *
+     * @param document
+     * @return
+     */
+    private Map<String, Object> documentToPackableMap(Map<String, Object> document) {
+        /**
+         * A document in MongoDB has a special field "_id" of type ObjectId
+         * This object is not "packable" by Neo4jPacker so it must be converted to a value that Neo4j can deal with
+         *
+         * If the document is not null we simply override the ObjectId instance with its string representation
+         */
+
+        if (document != null) {
+            Object objectId = document.get("_id");
+            if (objectId != null) {
+                document.put("_id", objectId.toString());
+            }
+
+        }
+
+        return document;
+    }
+
     @Override
     public Map<String, Object> first(Map<String, Object> query) {
-        return collection.find(new Document(query)).first();
+        return documentToPackableMap(collection.find(new Document(query)).first());
     }
 
     @Override
@@ -57,14 +83,14 @@ class MongoDBColl implements MongoDB.Coll {
     private Stream<Map<String, Object>> asStream(FindIterable<Document> result) {
         MongoCursor<Document> iterator = result.iterator();
         Spliterator<Map<String, Object>> spliterator = Spliterators.spliterator(iterator, -1, Spliterator.ORDERED);
-        return StreamSupport.stream(spliterator, false).onClose(iterator::close);
+        return StreamSupport.stream(spliterator, false).map(doc -> this.documentToPackableMap(doc)).onClose(iterator::close);
     }
 
     @Override
     public Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort) {
         FindIterable<Document> documents = query == null ? collection.find() : collection.find(new Document(query));
         if (project != null) documents = documents.projection(new Document(project));
-        if (sort !=null) documents = documents.sort(new Document(sort));
+        if (sort != null) documents = documents.sort(new Document(sort));
         return asStream(documents);
     }
 
