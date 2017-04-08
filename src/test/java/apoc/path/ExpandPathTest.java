@@ -247,4 +247,26 @@ public class ExpandPathTest {
 					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
 				});
 	}
+
+	@Test
+	public void testTerminationFilterDoesNotPruneBelowMinLevel() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'/Western', uniqueness: 'NODE_GLOBAL', minLevel:3}) yield path " +
+						"return path",
+				result -> {
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(1, maps.size());
+					Path path = (Path) maps.get(0).get("path");
+					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
+				});
+	}
+
+	@Test
+	public void testFilterStartNodeFalseDoesNotFilterStartNodeWhenBelowMinLevel() throws Throwable {
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expandConfig(m,{labelFilter:'+Person', minLevel:1, maxLevel:2, filterStartNode:false}) yield path return count(*) as c";
+		TestUtil.testCall(db, query, (row) -> assertEquals(8L,row.get("c")));
+	}
 }
