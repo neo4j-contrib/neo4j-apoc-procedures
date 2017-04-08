@@ -160,4 +160,12 @@ public class Strings {
         if (params == null) return text;
         return String.format(Locale.ENGLISH,text, params.toArray());
     }
+    
+    @UserFunction
+    @Description("apoc.text.slug(text, delim) - slug the text with the given delimiter")
+    public String slug(@Name("text") String text, @Name(value = "delim", defaultValue = "-") String delim) {
+        if (text == null) return null;
+        if (delim == null) return null;
+        return text.trim().replaceAll("[\\W\\s]+", delim);
+    }
 }

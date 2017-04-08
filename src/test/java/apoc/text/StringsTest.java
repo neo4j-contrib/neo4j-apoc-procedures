@@ -246,5 +246,15 @@ public class StringsTest {
         testCall(db, "RETURN apoc.text.regexGroups(null,'<link (\\\\w+)>(\\\\w+)</link>') AS result", row -> { });
         testCall(db, "RETURN apoc.text.regexGroups('abc',null) AS result", row -> { });
     }
-
+    
+    @Test
+    public void testSlug() {
+        testCall(db, "RETURN apoc.text.slug('a-b','-') AS value", row -> assertEquals("a-b", row.get("value")));
+        testCall(db, "RETURN apoc.text.slug('a b  c') AS value", row -> assertEquals("a-b-c", row.get("value")));
+        testCall(db, "RETURN apoc.text.slug(' a b-- c', '.') AS value", row -> assertEquals("a.b.c", row.get("value")));
+        testCall(db, "RETURN apoc.text.slug(' a- b c ', '-') AS value", row -> assertEquals("a-b-c", row.get("value")));
+        testCall(db, "RETURN apoc.text.slug('a- b c', '.') AS value", row -> assertEquals("a.b.c", row.get("value")));
+        testCall(db, "RETURN apoc.text.slug('a- b','-') AS value", row -> assertEquals("a-b", row.get("value")));
+        testCall(db, "RETURN apoc.text.slug('a b c') AS value", row -> assertEquals("a-b-c", row.get("value")));
+    }
 }
