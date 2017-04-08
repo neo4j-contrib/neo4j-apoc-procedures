@@ -234,9 +234,17 @@ public class PathExplorer {
 		@Override
 		public Evaluation evaluate(Path path) {
 			int depth = path.length();
-			// if start node shouldn't be filtered
+			Node check = path.endNode();
+
+			// if start node shouldn't be filtered, exclude/include based on if using termination/endnode filter or not
+			// minLevel evaluator will separately enforce exclusion if we're below minLevel
 			if (depth == 0 && !filterStartNode) {
 				return whitelistAllowedEvaluation;
+			}
+
+			// below minLevel always exclude; continue if blacklist and whitelist allow it
+			if (depth < minLevel) {
+				return labelExists(check, blacklistLabels) || !whitelistAllowed(check) ? EXCLUDE_AND_PRUNE : EXCLUDE_AND_CONTINUE;
 			}
 
 			// cut off expansion when we reach the limit
@@ -244,10 +252,9 @@ public class PathExplorer {
 				return EXCLUDE_AND_PRUNE;
 			}
 
-			Node check = path.endNode();
 			Evaluation result = labelExists(check, blacklistLabels) ? EXCLUDE_AND_PRUNE :
-					labelExists(check, terminationLabels) ? filterEndNode(check, depth, true) :
-					labelExists(check, endNodeLabels) ? filterEndNode(check, depth, false) :
+					labelExists(check, terminationLabels) ? filterEndNode(check, true) :
+					labelExists(check, endNodeLabels) ? filterEndNode(check, false) :
 					whitelistAllowed(check) ? whitelistAllowedEvaluation : EXCLUDE_AND_PRUNE;
 
 			return result;
@@ -270,10 +277,8 @@ public class PathExplorer {
 			return whitelistLabels.isEmpty() || labelExists(node, whitelistLabels);
 		}
 
-		private Evaluation filterEndNode(Node node, int depth, boolean isTerminationFilter) {
-			if (depth >= minLevel) {
-				resultCount++;
-			}
+		private Evaluation filterEndNode(Node node, boolean isTerminationFilter) {
+			resultCount++;
 			return isTerminationFilter || !whitelistAllowed(node) ? INCLUDE_AND_PRUNE : INCLUDE_AND_CONTINUE;
 		}
 	}
