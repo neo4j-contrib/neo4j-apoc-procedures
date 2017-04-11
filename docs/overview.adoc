@@ -245,6 +245,22 @@ GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 |===
 // end::export.graphml[]
 
+.configuration options
+[options=header]
+|===
+| param | default | description
+| batchSize | 20000 | define the batch size
+// | silent | false | if enabled write progress output
+| delim | "," | define the delimiter character (export csv)
+| quotes | | quote-character used for CSV
+| useTypes | false | add type on file header (export csv and graphml export)
+| format | "neo4j-shell" | In export to cypher script define the export format. Possible values are: "cypher-shell","neo4j-shell" and "null-format"
+| nodesOfRelationships | false | if enabled add relationship between nodes (export cypher)
+| storeNodeIds| false | set nodes' ids (import/export graphml)
+| readLabels | false | read nodes' labels (import/export graphml)
+| defaultRelationshipType | "RELATED" | set relationship type (import/export graphml)
+| separateFiles | false | export results in separated file by type (nodes, relationships..)
+|===
 
 == Loading Data from RDBMS
 
