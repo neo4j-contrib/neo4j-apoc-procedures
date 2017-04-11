@@ -25,8 +25,8 @@ public class ElasticSearch {
 
     private final static String fullQueryTemplate = "/%s/%s/%s?%s";
 
-    // /{index}/{type}/_search?q={query}
-    private final static String fullQuerySearchTemplate = "/%s/%s/_search?q=%s";
+    // /{index}/{type}/_search?{query}
+    private final static String fullQuerySearchTemplate = "/%s/%s/_search?%s";
 
     /**
      * With this pattern we can match both key:value params and key=value params
@@ -74,10 +74,7 @@ public class ElasticSearch {
                 type == null ? "_all" : type,
                 toQueryParams(query));
 
-        // We can leave the trailing "&" because is not a problem
-        queryUrl = queryUrl.endsWith("q=") ? queryUrl.substring(0, queryUrl.length() - 2) : queryUrl;
-
-        return queryUrl;
+        return queryUrl.endsWith("?") ? queryUrl.substring(0, queryUrl.length() - 1) : queryUrl;
     }
 
     /**
