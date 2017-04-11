@@ -10,6 +10,7 @@ import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
+import org.neo4j.kernel.KernelApi;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifeSupport;
 import org.neo4j.logging.Log;
@@ -171,8 +172,10 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
 
             final IndexManager indexManager = graphDatabaseService.index();
             for (String indexName : indexManager.nodeIndexNames()) {
+
                 final Index<Node> index = indexManager.forNodes(indexName);
-                Map<String, String> indexConfig = indexManager.getConfiguration(index);
+
+                Map<String, String> indexConfig = KernelApi.getIndexConfiguration(indexName, graphDatabaseService);
 
                 if (Util.toBoolean(indexConfig.get("autoUpdate"))) {
                     String labels = indexConfig.getOrDefault("labels", "");

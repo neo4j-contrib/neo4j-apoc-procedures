@@ -1,10 +1,11 @@
 package apoc.index;
 
 import apoc.ApocKernelExtensionFactory;
+import apoc.util.Util;
+import org.neo4j.kernel.KernelApi;
 import org.neo4j.procedure.*;
 import apoc.result.WeightedNodeResult;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.Sort;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -92,15 +93,18 @@ public class FreeTextSearch {
      * @param query The query specifying what to search for.
      * @return a stream of all matching nodes.
      */
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.READ)
     @Description("apoc.index.search('name', 'query') YIELD node, weight - search for nodes in the free text index matching the given query")
-    public Stream<WeightedNodeResult> search(@Name("index") String index, @Name("query") String query) throws ParseException {
+    public Stream<WeightedNodeResult> search(@Name("index") String index, @Name("query") String query) throws Exception {
         if (!db.index().existsForNodes(index)) {
             return Stream.empty();
         }
-        return result(db.index().forNodes(index).query(
-                new QueryContext(parseFreeTextQuery(query)).sort(Sort.RELEVANCE).top(100)));
+        QueryContext queryParam = new QueryContext(parseFreeTextQuery(query)).sort(Sort.RELEVANCE).top(100);
+        List<WeightedNodeResult> hits = KernelApi.toWeightedNodeResultFromLegacyIndex(KernelApi.nodeQueryIndex(index, queryParam, db), db);
+
+        return hits.stream();
     }
+
 
     @Context
     public GraphDatabaseAPI db;

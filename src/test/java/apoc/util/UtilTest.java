@@ -1,6 +1,13 @@
 package apoc.util;
 
+import apoc.index.FreeTextSearch;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.index.Index;
+import org.neo4j.graphdb.index.IndexHits;
+import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,6 +23,27 @@ import static org.junit.Assert.*;
  * @since 19.05.16
  */
 public class UtilTest {
+
+    private static GraphDatabaseService db;
+
+    private static Node node;
+
+    @BeforeClass
+    public static void setUp() throws Exception {
+        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        TestUtil.registerProcedure(db, Utils.class);
+        TestUtil.registerProcedure(db, FreeTextSearch.class);
+        try (Transaction tx = db.beginTx()) {
+            node = db.createNode(Label.label("User"));
+            node.setProperty("name", "foo");
+            tx.success();
+        }
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        db.shutdown();
+    }
 
     @Test
     public void testSubMap() throws Exception {
@@ -41,6 +69,7 @@ public class UtilTest {
         assertEquals(10,Util.partitionSubList(list,11).count());
         assertEquals(10,Util.partitionSubList(list,20).count());
     }
+    
     @Test
     public void cleanPassword() throws Exception {
         String url = "http://%slocalhost:7474/path?query#ref";
