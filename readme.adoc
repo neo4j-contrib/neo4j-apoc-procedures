@@ -46,6 +46,12 @@ Go to http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/{apoc-relea
 
 to find the latest release and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
 
+NOTE: For *Neo4j Desktop* the `plugins` directory is in a different place, put the jar-file into these (make sure to replace all at upgrade).
+See the https://neo4j.com/docs/operations-manual/current/configuration/file-locations/[Neo4j Manual] for more detail about the install locations.
+
+* OSX: `/Applications/Neo4j\ Community\ Edition\ <version>.app/Contents/Resources/app/plugins` AND `/Users/<user>/Documents/Neo4j/default.graphdb/plugins`
+* Windows: `C:\Program Files\Neo4j CE <version>\plugins`
+
 // tag::version-matrix[]
 === Version Compatibility Matrix
 
