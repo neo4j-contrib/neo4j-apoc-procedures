@@ -1,6 +1,7 @@
 package apoc.export.cypher;
 
 
+import apoc.export.util.ExportConfig;
 import apoc.export.util.FileUtils;
 import apoc.export.util.FormatUtils;
 import apoc.export.util.Reporter;
@@ -54,7 +55,7 @@ public class MultiStatementCypherSubGraphExporter {
      */
     private String normalizeFileName(final String fileName, String suffix) {
         // TODO check if this should be follow the same rules of FileUtils.readerFor
-        return fileName.replace(".cypher", "." + suffix + ".cypher");
+        return fileName.replace(".cypher", suffix != null ? "." + suffix + ".cypher" : ".cypher");
     }
 
     /**
@@ -73,16 +74,33 @@ public class MultiStatementCypherSubGraphExporter {
      * <li>/tmp/myexport.schema.cypher</li>
      * <li>/tmp/myexport.nodes.cypher</li>
      * <li>/tmp/myexport.relationships.cypher</li>
+     * <li>/tmp/myexport.cleanup.cypher</li>
      * </ul>
      *
-     * @param fileName  full path where all the files will be created
-     * @param batchSize
+     * @param fileName full path where all the files will be created
+     * @param config
      * @param reporter
      */
-    public void export(String fileName, int batchSize, Reporter reporter) throws IOException {
+    public void export(String fileName, ExportConfig config, Reporter reporter) throws IOException {
+        int batchSize = config.getBatchSize();
+
+        PrintWriter nodeWriter = null, schemaWriter = null, relationshipsWriter = null, cleanUpWriter = null;
+        if (config.separateFiles()) {
+            nodeWriter = createWriter(fileName, "nodes");
+            schemaWriter = createWriter(fileName, "schema");
+            relationshipsWriter = createWriter(fileName, "relationships");
+            cleanUpWriter = createWriter(fileName, "cleanup");
+        }
+        else {
+            // The same writer --> there is only one file
+            nodeWriter = createWriter(fileName, null);
+            schemaWriter = nodeWriter;
+            relationshipsWriter = nodeWriter;
+            cleanUpWriter = nodeWriter;
+        }
+
         boolean hasNodes = hasData(graph.getNodes());
         if (hasNodes) {
-            PrintWriter nodeWriter = createWriter(fileName, "nodes");
             begin(nodeWriter);
             appendNodes(nodeWriter, batchSize, reporter);
             commit(nodeWriter);
@@ -90,21 +108,21 @@ public class MultiStatementCypherSubGraphExporter {
             nodeWriter.flush();
         }
 
-        PrintWriter schemaWriter = createWriter(fileName, "schema");
         writeMetaInformation(schemaWriter);
+        schemaWriter.flush();
 
         if (hasData(graph.getRelationships())) {
-            PrintWriter relationships = createWriter(fileName, "relationships");
-            begin(relationships);
-            appendRelationships(relationships, batchSize, reporter);
-            commit(relationships);
 
-            relationships.flush();
+            begin(relationshipsWriter);
+            appendRelationships(relationshipsWriter, batchSize, reporter);
+            commit(relationshipsWriter);
+
+            relationshipsWriter.flush();
         }
         if (artificialUniques > 0) {
-            removeArtificialMetadata(schemaWriter, batchSize);
+            removeArtificialMetadata(cleanUpWriter, batchSize);
         }
-        schemaWriter.flush();
+        cleanUpWriter.flush();
     }
 
     private boolean hasData(Iterable<?> it) {

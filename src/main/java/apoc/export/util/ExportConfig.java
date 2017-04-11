@@ -85,4 +85,8 @@ public class ExportConfig {
     public boolean storeNodeIds() {
         return toBoolean(config.getOrDefault("storeNodeIds",false));
     }
+
+    public boolean separateFiles(){
+        return toBoolean(config.getOrDefault("separateFiles", false));
+    }
 }

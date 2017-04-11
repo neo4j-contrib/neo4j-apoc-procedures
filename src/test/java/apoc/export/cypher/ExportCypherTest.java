@@ -10,6 +10,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -22,12 +23,51 @@ import static org.junit.Assert.assertEquals;
  */
 public class ExportCypherTest {
 
-    private static final String EXPECTED_NODES = String.format("begin%nCREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:\"foo\", `UNIQUE IMPORT ID`:0});%nCREATE (:`Bar` {`name`:\"bar\", `age`:42});%nCREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});%ncommit");
+    private static final String EXPECTED = String.format("begin%n" +
+            "CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:\"foo\", `UNIQUE IMPORT ID`:0});%n" +
+            "CREATE (:`Bar` {`name`:\"bar\", `age`:42});%n" +
+            "CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});%n" +
+            "commit%n" +
+            "begin%n" +
+            "CREATE INDEX ON :`Foo`(`name`);%n" +
+            "CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;%n" +
+            "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
+            "commit%n" +
+            "schema await%n" +
+            "begin%n" +
+            "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:\"bar\"}) CREATE (n1)-[:`KNOWS`]->(n2);%n" +
+            "commit%n" +
+            "begin%n" +
+            "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
+            "commit%n" +
+            "begin%n" +
+            "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
+            "commit");
 
-    private static final String EXPECTED_RELATIONSHIPS = String.format("begin%nMATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:\"bar\"}) CREATE (n1)-[:`KNOWS`]->(n2);%ncommit");
+    private static final String EXPECTED_NODES = String.format("begin%n" +
+            "CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:\"foo\", `UNIQUE IMPORT ID`:0});%n" +
+            "CREATE (:`Bar` {`name`:\"bar\", `age`:42});%n" +
+            "CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});%n" +
+            "commit");
 
-    private static final String EXPECTED_SCHEMA = String.format("begin%nCREATE INDEX ON :`Foo`(`name`);%nCREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;%nCREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%ncommit%nschema await%nbegin%nMATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%ncommit%nbegin%nDROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%ncommit");
+    private static final String EXPECTED_SCHEMA = String.format("begin%n" +
+            "CREATE INDEX ON :`Foo`(`name`);%n" +
+            "CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;%n" +
+            "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
+            "commit%n" +
+            "schema await");
 
+    private static final String EXPECTED_RELATIONSHIPS = String.format("begin%n" +
+            "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:\"bar\"}) CREATE (n1)-[:`KNOWS`]->(n2);%n" +
+            "commit");
+
+    private static final String EXPECTED_CLEAN_UP = String.format("begin%n" +
+            "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
+            "commit%n" +
+            "begin%n" +
+            "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
+            "commit");
+private static final Map<String, Object> exportConfig = Collections.singletonMap("separateFiles", true);
     private static GraphDatabaseService db;
     private static File directory = new File("target/import");
 
@@ -53,10 +93,31 @@ public class ExportCypherTest {
         db.shutdown();
     }
 
+    // -- Whole file test -- //
+    @Test
+    public void testExportAllCypher() throws Exception {
+        File output = new File(directory, "all.cypher");
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},null)", map("file", output.getAbsolutePath()),
+                (r) -> assertResults(output, r, "database"));
+        assertEquals(EXPECTED, new Scanner(output).useDelimiter("\\Z").next());
+    }
+
+    @Test
+    public void testExportGraphCypher() throws Exception {
+        File output = new File(directory, "graph.cypher");
+        TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
+                        "CALL apoc.export.cypher.graph(graph, {file},null) " +
+                        "YIELD nodes, relationships, properties, file, source,format, time " +
+                        "RETURN *", map("file", output.getAbsolutePath()),
+                (r) -> assertResults(output, r, "graph"));
+        assertEquals(EXPECTED, new Scanner(output).useDelimiter("\\Z").next());
+    }
+
+    // -- Separate files tests -- //
     @Test
     public void testExportAllCypherNodes() throws Exception {
         File output = new File(directory, "all.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},null)", map("file", output.getAbsolutePath()),
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
                 (r) -> assertResults(output, r, "database"));
         assertEquals(EXPECTED_NODES, new Scanner(new File(directory, "all.nodes.cypher")).useDelimiter("\\Z").next());
     }
@@ -64,7 +125,7 @@ public class ExportCypherTest {
     @Test
     public void testExportAllCypherRelationships() throws Exception {
         File output = new File(directory, "all.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},null)", map("file", output.getAbsolutePath()),
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
                 (r) -> assertResults(output, r, "database"));
         assertEquals(EXPECTED_RELATIONSHIPS, new Scanner(new File(directory, "all.relationships.cypher")).useDelimiter("\\Z").next());
     }
@@ -72,18 +133,26 @@ public class ExportCypherTest {
     @Test
     public void testExportAllCypherSchema() throws Exception {
         File output = new File(directory, "all.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},null)", map("file", output.getAbsolutePath()),
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
                 (r) -> assertResults(output, r, "database"));
         assertEquals(EXPECTED_SCHEMA, new Scanner(new File(directory, "all.schema.cypher")).useDelimiter("\\Z").next());
+    }
+
+    @Test
+    public void testExportAllCypherCleanUp() throws Exception {
+        File output = new File(directory, "all.cypher");
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
+                (r) -> assertResults(output, r, "database"));
+        assertEquals(EXPECTED_CLEAN_UP, new Scanner(new File(directory, "all.cleanup.cypher")).useDelimiter("\\Z").next());
     }
 
     @Test
     public void testExportGraphCypherNodes() throws Exception {
         File output = new File(directory, "graph.cypher");
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                        "CALL apoc.export.cypher.graph(graph, {file},null) " +
+                        "CALL apoc.export.cypher.graph(graph, {file},{exportConfig}) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
-                        "RETURN *", map("file", output.getAbsolutePath()),
+                        "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
                 (r) -> assertResults(output, r, "graph"));
         assertEquals(EXPECTED_NODES, new Scanner(new File(directory, "graph.nodes.cypher")).useDelimiter("\\Z").next());
     }
@@ -92,9 +161,9 @@ public class ExportCypherTest {
     public void testExportGraphCypherRelationships() throws Exception {
         File output = new File(directory, "graph.cypher");
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                        "CALL apoc.export.cypher.graph(graph, {file},null) " +
+                        "CALL apoc.export.cypher.graph(graph, {file},{exportConfig}) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
-                        "RETURN *", map("file", output.getAbsolutePath()),
+                        "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
                 (r) -> assertResults(output, r, "graph"));
         assertEquals(EXPECTED_RELATIONSHIPS, new Scanner(new File(directory, "graph.relationships.cypher")).useDelimiter("\\Z").next());
     }
@@ -103,11 +172,22 @@ public class ExportCypherTest {
     public void testExportGraphCypherSchema() throws Exception {
         File output = new File(directory, "graph.cypher");
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                        "CALL apoc.export.cypher.graph(graph, {file},null) " +
+                        "CALL apoc.export.cypher.graph(graph, {file},{exportConfig}) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
-                        "RETURN *", map("file", output.getAbsolutePath()),
+                        "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
                 (r) -> assertResults(output, r, "graph"));
         assertEquals(EXPECTED_SCHEMA, new Scanner(new File(directory, "graph.schema.cypher")).useDelimiter("\\Z").next());
+    }
+
+    @Test
+    public void testExportGraphCypherCleanUp() throws Exception {
+        File output = new File(directory, "graph.cypher");
+        TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
+                        "CALL apoc.export.cypher.graph(graph, {file},{exportConfig}) " +
+                        "YIELD nodes, relationships, properties, file, source,format, time " +
+                        "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
+                (r) -> assertResults(output, r, "graph"));
+        assertEquals(EXPECTED_CLEAN_UP, new Scanner(new File(directory, "graph.cleanup.cypher")).useDelimiter("\\Z").next());
     }
 
     private void assertResults(File output, Map<String, Object> r, final String source) {

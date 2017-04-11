@@ -82,7 +82,8 @@ public class ExportCypher {
         checkWriteAllowed();
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "cypher"));
         MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph);
-        exporter.export(fileName, c.getBatchSize(), reporter);
+        // Pass the full configuration to enable further enhancement
+        exporter.export(fileName, c, reporter);
         return reporter.stream();
     }
 }
