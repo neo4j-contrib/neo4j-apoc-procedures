@@ -213,9 +213,7 @@ public class FulltextIndexTest {
         db.execute("MATCH " + CHECKIN_PATTERN + " WITH checkin CALL apoc.index.removeRelationshipByName({index}, checkin) RETURN *",map("index","std_index")).close();
         try (Transaction tx = db.beginTx()) {
             assertTrue(index.existsForRelationships("std_index"));
-            // assertNull(index.forRelationships("std_index").query("on", MONTH + "-*").getSingle());
-            Relationship rel = index.forRelationships("std_index").query("on", MONTH + "-*").getSingle();
-            assertEquals(DATE, rel.getProperty("on"));
+            assertNull(index.forRelationships("std_index").query("on", MONTH + "-*").getSingle());
             tx.success();
         }
     }
