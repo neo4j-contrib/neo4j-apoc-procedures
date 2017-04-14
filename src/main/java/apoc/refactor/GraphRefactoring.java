@@ -299,8 +299,16 @@ public class GraphRefactoring {
     }
 
     private Node mergeNodes(Node source, Node target, boolean delete) {
-        copyRelationships(source, copyProperties(source, copyLabels(source, target)), delete);
+        Map<String, Object> properties = source.getAllProperties();
+        copyRelationships(source, copyLabels(source, target), delete);
         if (delete) source.delete();
+        copyProperties(properties, target);
+        return target;
+    }
+
+    private Node copyProperties(Map<String, Object> properties, Node target) {
+        for (Map.Entry<String, Object> prop : properties.entrySet())
+            target.setProperty(prop.getKey(), prop.getValue());
         return target;
     }
 
@@ -326,5 +334,4 @@ public class GraphRefactoring {
     private Relationship copyRelationship(Relationship rel, Node source, Node newSource) {
         return copyProperties(rel,newSource.createRelationshipTo(rel.getOtherNode(source), rel.getType()));
     }
-
 }
