@@ -166,8 +166,7 @@ public class DateTest {
 				row -> {});
 	}
 
-	@Test public void testFromUnixtimeWithNegativeInput() throws Exception {
-		expected.expect(instanceOf(QueryExecutionException.class));
+	@Test public void testFromUnixtimeWithNegativeInputDoesNotThrowException() throws Exception {
 		testCall(db, "RETURN apoc.date.format(-1,'s') AS value", row -> {});
 	}
 
