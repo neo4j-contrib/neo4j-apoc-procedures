@@ -1,10 +1,6 @@
 package apoc.export.cypher;
 
-
-import apoc.export.util.ExportConfig;
-import apoc.export.util.FileUtils;
-import apoc.export.util.FormatUtils;
-import apoc.export.util.Reporter;
+import apoc.export.util.*;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -18,26 +14,26 @@ import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.util.*;
 
-/**
- * Idea is to lookup nodes for relationships via a unqiue index
- * either one inherent to the original node, or a artificial one that indexes the original node-id
- * and which is removed after the import.
- * <p>
- * Outputs indexes and constraints at the beginning as their own transactions
+/*
+ * @author AgileLARUS
+ *
+ * @since 06-04-2017
  */
 public class MultiStatementCypherSubGraphExporter {
     private final static String UNIQUE_ID_LABEL = "UNIQUE IMPORT LABEL";
     private final static String Q_UNIQUE_ID_LABEL = quote(UNIQUE_ID_LABEL);
     private final static String UNIQUE_ID_PROP = "UNIQUE IMPORT ID";
-    private final SubGraph graph;
+    private final SubGraph            graph;
     private final Map<String, String> uniqueConstraints;
-    Set<String> indexNames = new LinkedHashSet<>();
+    Set<String> indexNames        = new LinkedHashSet<>();
     Set<String> indexedProperties = new LinkedHashSet<>();
     private long artificialUniques = 0;
+    private ExportFormat exportFormat = ExportFormat.NEO4J_SHELL;
 
-    public MultiStatementCypherSubGraphExporter(SubGraph graph) {
+    public MultiStatementCypherSubGraphExporter(SubGraph graph, ExportFormat exportFormat) {
         this.graph = graph;
         uniqueConstraints = gatherUniqueConstraints(indexNames, indexedProperties);
+        this.exportFormat = exportFormat != null ? exportFormat : ExportFormat.NEO4J_SHELL;
     }
 
     public static String quote(String id) {
@@ -85,6 +81,7 @@ public class MultiStatementCypherSubGraphExporter {
         int batchSize = config.getBatchSize();
 
         PrintWriter nodeWriter = null, schemaWriter = null, relationshipsWriter = null, cleanUpWriter = null;
+
         if (config.separateFiles()) {
             nodeWriter = createWriter(fileName, "nodes");
             schemaWriter = createWriter(fileName, "schema");
@@ -107,7 +104,6 @@ public class MultiStatementCypherSubGraphExporter {
 
             nodeWriter.flush();
         }
-
         writeMetaInformation(schemaWriter);
         schemaWriter.flush();
 
@@ -147,7 +143,7 @@ public class MultiStatementCypherSubGraphExporter {
         Collection<String> indexes = exportIndexes();
         if (indexes.isEmpty() && artificialUniques == 0) return;
 
-        begin(out);
+		begin(out);
         for (String index : indexes) {
             out.println(index);
         }
@@ -155,35 +151,39 @@ public class MultiStatementCypherSubGraphExporter {
             out.println(uniqueConstraint(UNIQUE_ID_LABEL, UNIQUE_ID_PROP));
         }
         commit(out);
-        out.println("schema await");
+        schemaAwait(out);
     }
+	
+	private void begin(PrintWriter out) {
+		out.print(exportFormat.begin());
+	}
 
-    private void begin(PrintWriter out) {
-        out.println("begin");
-    }
-
+	private void schemaAwait(PrintWriter out){
+		out.print(exportFormat.schemaAwait());
+	}
+	
     private void restart(PrintWriter out) {
-        commit(out);
+		commit(out);
         begin(out);
     }
 
     private void removeArtificialMetadata(PrintWriter out, int batchSize) {
         while (artificialUniques > 0) {
-            begin(out);
+			begin(out);
             out.println("MATCH (n:" + Q_UNIQUE_ID_LABEL + ") " +
                     " WITH n LIMIT " + batchSize +
                     " REMOVE n:" + Q_UNIQUE_ID_LABEL + " REMOVE n." + quote(UNIQUE_ID_PROP) + ";");
-            commit(out);
+			commit(out);
             artificialUniques -= batchSize;
         }
-        begin(out);
+		begin(out);
         out.println(uniqueConstraint(UNIQUE_ID_LABEL, UNIQUE_ID_PROP).replaceAll("^CREATE", "DROP"));
-        commit(out);
+		commit(out);
     }
 
-    private void commit(PrintWriter out) {
-        out.println("commit");
-    }
+	private void commit(PrintWriter out){
+		out.print(exportFormat.commit());
+	}
 
     private Collection<String> exportIndexes() {
         List<String> result = new ArrayList<>();
@@ -218,8 +218,7 @@ public class MultiStatementCypherSubGraphExporter {
         while (labels.hasNext()) {
             Label next = labels.next();
             String labelName = next.name();
-            if (uniqueConstraints.containsKey(labelName) && node.hasProperty(uniqueConstraints.get(labelName)))
-                uniqueFound = true;
+            if (uniqueConstraints.containsKey(labelName) && node.hasProperty(uniqueConstraints.get(labelName))) uniqueFound = true;
             if (indexNames.contains(labelName))
                 result.insert(0, label(labelName));
             else
@@ -364,5 +363,4 @@ public class MultiStatementCypherSubGraphExporter {
         }
         return value.toString();
     }
-
 }
