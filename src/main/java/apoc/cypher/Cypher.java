@@ -365,4 +365,56 @@ public class Cypher {
         Result result = db.execute(cypher, params == null ? Collections.EMPTY_MAP : params);
         return result.stream().map(stringObjectMap -> new MapResult(stringObjectMap));
     }
+
+    @Procedure("apoc.when")
+    @Description("apoc.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes read-only ifQuery or elseQuery with the given parameters")
+    public Stream<MapResult> when(@Name("condition") boolean condition, @Name("ifQuery") String ifQuery, @Name(value="elseQuery", defaultValue = "") String elseQuery, @Name(value="params", defaultValue = "") Map<String, Object> params) {
+        if (params == null) params = Collections.emptyMap();
+        String targetQuery = condition ? ifQuery : elseQuery;
+
+        if (targetQuery.isEmpty()) {
+            return Stream.of(new MapResult(Collections.emptyMap()));
+        } else {
+            return db.execute(withParamMapping(targetQuery, params.keySet()), params).stream().map(MapResult::new);
+        }
+    }
+
+    @Procedure(value="apoc.when.do", mode = Mode.WRITE)
+    @Description("apoc.when.do(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes writing ifQuery or elseQuery with the given parameters")
+    public Stream<MapResult> whenDo(@Name("condition") boolean condition, @Name("ifQuery") String ifQuery, @Name(value="elseQuery", defaultValue = "") String elseQuery, @Name(value="params", defaultValue = "") Map<String, Object> params) {
+        return when(condition, ifQuery, elseQuery, params);
+    }
+
+    @Procedure("apoc.whenMany")
+    @Description("apoc.whenMany([[condition, query], [condition, query], ...], elseQuery:'', params:{}) yield value - given conditional / read-only query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters")
+    public Stream<MapResult> whenMany(@Name("conditionals") List<List<Object>> conditionals, @Name(value="elseQuery", defaultValue = "") String elseQuery, @Name(value="params", defaultValue = "") Map<String, Object> params) {
+        if (params == null) params = Collections.emptyMap();
+
+        for (List<Object> condition : conditionals) {
+            if (condition.size() != 2) {
+                throw new IllegalArgumentException("Conditionals must be collection of boolean/query list pairs");
+            }
+        }
+
+        for (List<Object> condition : conditionals) {
+            boolean bool = (boolean) condition.get(0);
+
+            if (bool) {
+                String ifQuery = (String) condition.get(1);
+                return db.execute(withParamMapping(ifQuery, params.keySet()), params).stream().map(MapResult::new);
+            }
+        }
+
+        if (elseQuery.isEmpty()) {
+            return Stream.of(new MapResult(Collections.emptyMap()));
+        } else {
+            return db.execute(withParamMapping(elseQuery, params.keySet()), params).stream().map(MapResult::new);
+        }
+    }
+
+    @Procedure(value="apoc.whenMany.do", mode = Mode.WRITE)
+    @Description("apoc.whenMany.do([[condition, query], [condition, query], ...], elseQuery:'', params:{}) yield value - given conditional / writing query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters")
+    public Stream<MapResult> whenManyDo(@Name("conditionals") List<List<Object>> conditionals, @Name(value="elseQuery", defaultValue = "") String elseQuery, @Name(value="params", defaultValue = "") Map<String, Object> params) {
+        return whenMany(conditionals, elseQuery, params);
+    }
 }
