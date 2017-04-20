@@ -74,6 +74,28 @@ call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-p
     _description: {_type: description, _text: An in-depth look at creating applications ....
 ----
 
+=== Simple XML Examples
+
+.Example 1
+[source,cypher]
+----
+WITH "https://maps.googleapis.com/maps/api/directions/xml?origin=Mertens%20en%20Torfsstraat%2046,%202018%20Antwerpen&destination=Rubensstraat%2010,%202300%20Turnhout&sensor=false&mode=bicycling&alternatives=false&key=AIzaSyAPPIXGudOyHD_KAa2f_1l_QVNbsd_pMQs" AS url
+CALL apoc.load.xmlSimple(url) YIELD value
+RETURN value._route._leg._distance._value, keys(value), keys(value._route), keys(value._route._leg), keys(value._route._leg._distance._value)
+----
+image::{img}/apoc.load.xmlSimple.ex1.png[width=800]
+
+.Example 2
+[source,cypher]
+----
+WITH "https://maps.googleapis.com/maps/api/directions/xml?origin=Mertens%20en%20Torfsstraat%2046,%202018%20Antwerpen&destination=Rubensstraat%2010,%202300%20Turnhout&sensor=false&mode=bicycling&alternatives=false&key=AIzaSyAPPIXGudOyHD_KAa2f_1l_QVNbsd_pMQs" AS url
+CALL apoc.load.xmlSimple(url) YIELD value
+UNWIND keys(value) AS key
+RETURN key, apoc.meta.type(value[key]);
+----
+image::{img}/apoc.load.xmlSimple.ex2.png[width=800]
+
+
 == Load XML and Introspect
 
 Let's just load it and see what it looks like.
