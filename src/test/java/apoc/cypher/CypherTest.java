@@ -243,7 +243,7 @@ public class CypherTest {
 
     @Test
     public void testDoWhenIfCondition() throws Exception {
-        testCall(db, "CALL apoc.when.do(true, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName',{})",
+        testCall(db, "CALL apoc.do.when(true, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName',{})",
                 r -> {
                     assertEquals("A", ((Map) r.get("value")).get("aName"));
                     assertEquals(null, ((Map) r.get("value")).get("bName"));
@@ -252,7 +252,7 @@ public class CypherTest {
 
     @Test
     public void testDoWhenElseCondition() throws Exception {
-        testCall(db, "CALL apoc.when.do(false, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName',{})",
+        testCall(db, "CALL apoc.do.when(false, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName',{})",
                 r -> {
                     assertEquals("B", ((Map) r.get("value")).get("bName"));
                     assertEquals(null, ((Map) r.get("value")).get("aName"));
@@ -260,32 +260,32 @@ public class CypherTest {
     }
 
     @Test
-    public void testWhenMany() throws Exception {
-        testCall(db, "CALL apoc.whenMany([[false, 'RETURN {a} + 7 as b'], [false, 'RETURN {a} as b'], [true, 'RETURN {a} + 4 as b'], [false, 'RETURN {a} + 1 as b']], 'RETURN {a} + 10 as b', {a:3})",
+    public void testCase() throws Exception {
+        testCall(db, "CALL apoc.case([false, 'RETURN {a} + 7 as b', false, 'RETURN {a} as b', true, 'RETURN {a} + 4 as b', false, 'RETURN {a} + 1 as b'], 'RETURN {a} + 10 as b', {a:3})",
                 r -> assertEquals(7L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testWhenManyElseCondition() throws Exception {
-        testCall(db, "CALL apoc.whenMany([[false, 'RETURN {a} + 7 as b'], [false, 'RETURN {a} as b'], [false, 'RETURN {a} + 4 as b']], 'RETURN {a} + 10 as b', {a:3})",
+    public void testCaseElseCondition() throws Exception {
+        testCall(db, "CALL apoc.case([false, 'RETURN {a} + 7 as b', false, 'RETURN {a} as b', false, 'RETURN {a} + 4 as b'], 'RETURN {a} + 10 as b', {a:3})",
                 r -> assertEquals(13L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testSimpleWhenMany() throws Exception {
-        testCall(db, "CALL apoc.whenMany([[false, 'RETURN 3 + 7 as b'], [false, 'RETURN 3 as b'], [true, 'RETURN 3 + 4 as b']])",
+    public void testSimpleCase() throws Exception {
+        testCall(db, "CALL apoc.case([false, 'RETURN 3 + 7 as b', false, 'RETURN 3 as b', true, 'RETURN 3 + 4 as b'])",
                 r -> assertEquals(7L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testSimpleWhenManyElseCondition() throws Exception {
-        testCall(db, "CALL apoc.whenMany([[false, 'RETURN 3 + 7 as b'], [false, 'RETURN 3 as b'], [false, 'RETURN 3 + 4 as b']], 'RETURN 3 + 10 as b')",
+    public void testSimpleCaseElseCondition() throws Exception {
+        testCall(db, "CALL apoc.case([false, 'RETURN 3 + 7 as b', false, 'RETURN 3 as b', false, 'RETURN 3 + 4 as b'], 'RETURN 3 + 10 as b')",
                 r -> assertEquals(13L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
-    public void testDoWhenMany() throws Exception {
-        testCall(db, "CALL apoc.whenMany.do([[false, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName'], [true, 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName']], 'CREATE (c:Node{name:\"C\"}) RETURN c.name as cName',{})",
+    public void testCaseDo() throws Exception {
+        testCall(db, "CALL apoc.do.case([false, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', true, 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName'], 'CREATE (c:Node{name:\"C\"}) RETURN c.name as cName',{})",
                 r -> {
                     assertEquals(null, ((Map) r.get("value")).get("aName"));
                     assertEquals("B", ((Map) r.get("value")).get("bName"));
@@ -294,8 +294,8 @@ public class CypherTest {
     }
 
     @Test
-    public void testDoWhenManyElseCondition() throws Exception {
-        testCall(db, "CALL apoc.whenMany.do([[false, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName'], [false, 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName']], 'CREATE (c:Node{name:\"C\"}) RETURN c.name as cName',{})",
+    public void testCaseDoElseCondition() throws Exception {
+        testCall(db, "CALL apoc.do.case([false, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', false, 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName'], 'CREATE (c:Node{name:\"C\"}) RETURN c.name as cName',{})",
                 r -> {
                     assertEquals(null, ((Map) r.get("value")).get("aName"));
                     assertEquals(null, ((Map) r.get("value")).get("bName"));
