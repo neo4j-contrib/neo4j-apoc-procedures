@@ -2,10 +2,7 @@ package apoc.cypher;
 
 import apoc.util.TestUtil;
 import apoc.util.Utils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
@@ -53,6 +50,11 @@ public class CypherTest {
     @AfterClass
     public static void tearDown() {
         db.shutdown();
+    }
+
+    @After
+    public void clearDB() {
+        db.execute("MATCH (n) DETACH DELETE n");
     }
 
 
@@ -213,5 +215,91 @@ public class CypherTest {
         thrown.expectMessage("Explicitly terminated by the user.");
         Result result = db.execute("CALL apoc.cypher.runTimeboxed('CALL apoc.util.sleep(10000)', null, {timeout})", Collections.singletonMap("timeout", 100));
         assertFalse(result.hasNext());
+    }
+
+    @Test
+    public void testSimpleWhenIfCondition() throws Exception {
+        testCall(db, "CALL apoc.when(true, 'RETURN 7 as b')",
+                r -> assertEquals(7L, ((Map) r.get("value")).get("b")));
+    }
+
+    @Test
+    public void testSimpleWhenElseCondition() throws Exception {
+        testCall(db, "CALL apoc.when(false, 'RETURN 7 as b') YIELD value RETURN value",
+                r -> assertEquals(null, ((Map) r.get("value")).get("b")));
+    }
+
+    @Test
+    public void testWhenIfCondition() throws Exception {
+        testCall(db, "CALL apoc.when(true, 'RETURN {a} + 7 as b', 'RETURN {a} as b',{a:3})",
+                r -> assertEquals(10L, ((Map) r.get("value")).get("b")));
+    }
+
+    @Test
+    public void testWhenElseCondition() throws Exception {
+        testCall(db, "CALL apoc.when(false, 'RETURN {a} + 7 as b', 'RETURN {a} as b',{a:3})",
+                r -> assertEquals(3L, ((Map) r.get("value")).get("b")));
+    }
+
+    @Test
+    public void testDoWhenIfCondition() throws Exception {
+        testCall(db, "CALL apoc.do.when(true, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName',{})",
+                r -> {
+                    assertEquals("A", ((Map) r.get("value")).get("aName"));
+                    assertEquals(null, ((Map) r.get("value")).get("bName"));
+                });
+    }
+
+    @Test
+    public void testDoWhenElseCondition() throws Exception {
+        testCall(db, "CALL apoc.do.when(false, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName',{})",
+                r -> {
+                    assertEquals("B", ((Map) r.get("value")).get("bName"));
+                    assertEquals(null, ((Map) r.get("value")).get("aName"));
+                });
+    }
+
+    @Test
+    public void testCase() throws Exception {
+        testCall(db, "CALL apoc.case([false, 'RETURN {a} + 7 as b', false, 'RETURN {a} as b', true, 'RETURN {a} + 4 as b', false, 'RETURN {a} + 1 as b'], 'RETURN {a} + 10 as b', {a:3})",
+                r -> assertEquals(7L, ((Map) r.get("value")).get("b")));
+    }
+
+    @Test
+    public void testCaseElseCondition() throws Exception {
+        testCall(db, "CALL apoc.case([false, 'RETURN {a} + 7 as b', false, 'RETURN {a} as b', false, 'RETURN {a} + 4 as b'], 'RETURN {a} + 10 as b', {a:3})",
+                r -> assertEquals(13L, ((Map) r.get("value")).get("b")));
+    }
+
+    @Test
+    public void testSimpleCase() throws Exception {
+        testCall(db, "CALL apoc.case([false, 'RETURN 3 + 7 as b', false, 'RETURN 3 as b', true, 'RETURN 3 + 4 as b'])",
+                r -> assertEquals(7L, ((Map) r.get("value")).get("b")));
+    }
+
+    @Test
+    public void testSimpleCaseElseCondition() throws Exception {
+        testCall(db, "CALL apoc.case([false, 'RETURN 3 + 7 as b', false, 'RETURN 3 as b', false, 'RETURN 3 + 4 as b'], 'RETURN 3 + 10 as b')",
+                r -> assertEquals(13L, ((Map) r.get("value")).get("b")));
+    }
+
+    @Test
+    public void testCaseDo() throws Exception {
+        testCall(db, "CALL apoc.do.case([false, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', true, 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName'], 'CREATE (c:Node{name:\"C\"}) RETURN c.name as cName',{})",
+                r -> {
+                    assertEquals(null, ((Map) r.get("value")).get("aName"));
+                    assertEquals("B", ((Map) r.get("value")).get("bName"));
+                    assertEquals(null, ((Map) r.get("value")).get("cName"));
+                });
+    }
+
+    @Test
+    public void testCaseDoElseCondition() throws Exception {
+        testCall(db, "CALL apoc.do.case([false, 'CREATE (a:Node{name:\"A\"}) RETURN a.name as aName', false, 'CREATE (b:Node{name:\"B\"}) RETURN b.name as bName'], 'CREATE (c:Node{name:\"C\"}) RETURN c.name as cName',{})",
+                r -> {
+                    assertEquals(null, ((Map) r.get("value")).get("aName"));
+                    assertEquals(null, ((Map) r.get("value")).get("bName"));
+                    assertEquals("C", ((Map) r.get("value")).get("cName"));
+                });
     }
 }
