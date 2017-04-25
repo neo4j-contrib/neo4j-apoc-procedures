@@ -140,6 +140,9 @@ public class Jdbc {
             if (value instanceof UUID || value instanceof BigInteger || value instanceof BigDecimal) {
                 return value.toString();
             }
+            if (value instanceof java.util.Date) {
+                return ((java.util.Date) value).getTime();
+            }
             return value;
         }
 
