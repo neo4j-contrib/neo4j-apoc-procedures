@@ -1,16 +1,16 @@
 package apoc;
 
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.helpers.collection.MapUtil;
 
-import java.util.Collections;
 import java.util.Map;
 
 public class IndexTrackingGraphDatabaseState extends GraphDatabaseState {
 
     @Override
     public Map<String, String> getGraphDatabaseConfig() {
-//        return Collections.singletonMap("apoc.autoIndex.enabled", "true");
-        return Collections.EMPTY_MAP;
+        return MapUtil.genericMap("apoc.autoIndex.enabled", "true",
+            "apoc.autoIndex.configUpdateInterval", "-1");
     }
 
     @Override

@@ -18,6 +18,7 @@ import org.neo4j.logging.Log;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -38,11 +39,11 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
 
     private final BlockingQueue<Consumer<Void>> indexCommandQueue = new LinkedBlockingQueue<>(100);
     private Map<String, Map<String, Collection<Index<Node>>>> indexesByLabelAndProperty;
+    private ScheduledFuture<?> configUpdateFuture = null;
 
     public IndexUpdateTransactionEventHandler(GraphDatabaseAPI graphDatabaseService, boolean async) {
         this.graphDatabaseService = graphDatabaseService;
         this.async = async;
-        Pools.SCHEDULED.scheduleAtFixedRate(() -> indexesByLabelAndProperty = initIndexConfiguration(),10,10, TimeUnit.SECONDS);
     }
 
     public BlockingQueue<Consumer<Void>> getIndexCommandQueue() {
@@ -216,6 +217,10 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
                     );
                 }
                 db.registerTransactionEventHandler(indexUpdateTransactionEventHandler);
+                long indexConfigUpdateInternal = Util.toLong(ApocConfiguration.get("autoIndex.configUpdateInterval",10l));
+                if (indexConfigUpdateInternal > 0) {
+                    indexUpdateTransactionEventHandler.startPeriodicIndexConfigChangeUpdates(indexConfigUpdateInternal);
+                }
             }
         }
         private void startIndexTrackingThread(GraphDatabaseAPI db, BlockingQueue<Consumer<Void>> indexCommandQueue, long opsCountRollover, long millisRollover, Log log) {
@@ -262,6 +267,7 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
         public void stop() {
             if (indexUpdateTransactionEventHandler!=null) {
                 db.unregisterTransactionEventHandler(indexUpdateTransactionEventHandler);
+                indexUpdateTransactionEventHandler.stopPeriodicIndexConfigChangeUpdates();
             }
         }
 
@@ -271,4 +277,16 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
             }
         }
     }
+
+    private void startPeriodicIndexConfigChangeUpdates(long indexConfigUpdateInternal) {
+        configUpdateFuture = Pools.SCHEDULED.scheduleAtFixedRate(() ->
+                indexesByLabelAndProperty = initIndexConfiguration(), indexConfigUpdateInternal, indexConfigUpdateInternal, TimeUnit.SECONDS);
+    }
+
+    private void stopPeriodicIndexConfigChangeUpdates() {
+        if (configUpdateFuture!=null) {
+            configUpdateFuture.cancel(true);
+        }
+    }
+
 }
