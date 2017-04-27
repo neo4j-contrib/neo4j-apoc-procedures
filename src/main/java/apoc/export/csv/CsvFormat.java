@@ -34,7 +34,7 @@ public class CsvFormat implements Format {
     @Override
     public ProgressInfo dump(SubGraph graph, Writer writer, Reporter reporter, ExportConfig config) throws Exception {
         try (Transaction tx = db.beginTx()) {
-            CSVWriter out = new CSVWriter(writer, config.getDelimChar());
+            CSVWriter out = config.isQuotes() ? new CSVWriter(writer,config.getDelimChar(), ExportConfig.QUOTECHAR) : new CSVWriter(writer,config.getDelimChar());
             writeAll(graph, reporter, config, out);
             tx.success();
             writer.close();
