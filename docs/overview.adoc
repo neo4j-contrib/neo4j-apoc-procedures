@@ -541,6 +541,17 @@ CALL apoc.generate.simple([2,2,2,2], null, null)
 | CALL apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) | abort statement after timeout millis if not finished
 |===
 
+
+== Conditional Cypher Execution
+
+[cols="1m,5"]
+|===
+| CALL apoc.when(condition, ifQuery, elseQuery:'', params:{}) yield value | based on the conditional, executes read-only ifQuery or elseQuery with the given parameters
+| CALL apoc.do.when(condition, ifQuery, elseQuery:'', params:{}) yield value | based on the conditional, executes writing ifQuery or elseQuery with the given parameters
+| CALL apoc.case([condition, query, condition, query, ...], elseQuery:'', params:{}) yield value | given a list of conditional / read-only query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters
+| CALL apoc.do.case([condition, query, condition, query, ...], elseQuery:'', params:{}) yield value | given a list of conditional / writing query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters
+|===
+
 // end::cypher[]
 // TODO runFile: begin/commit/schema await/constraints/indexes
 
