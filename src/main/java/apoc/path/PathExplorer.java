@@ -18,6 +18,7 @@ import org.neo4j.procedure.Procedure;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.neo4j.graphdb.traversal.Evaluation.*;
 
@@ -57,7 +58,7 @@ public class PathExplorer {
 		configMap.remove("minLevel");
 		configMap.put("uniqueness", "NODE_GLOBAL");
 
-		return expandConfigPrivate(start, configMap).map( path -> new NodeResult(path.endNode()) );
+		return expandConfigPrivate(start, configMap).map( path -> path == null ? new NodeResult(null) : new NodeResult(path.endNode()) );
 	}
 
 	@Procedure("apoc.path.subgraphAll")
@@ -65,6 +66,7 @@ public class PathExplorer {
 	public Stream<GraphResult> subgraphAll(@Name("start") Object start, @Name("config") Map<String,Object> config) throws Exception {
 		Map<String, Object> configMap = new HashMap<>(config);
 		configMap.remove("minLevel");
+		configMap.remove("optional"); // not needed, will return empty collections anyway if no results
 		configMap.put("uniqueness", "NODE_GLOBAL");
 
 		List<Node> subgraphNodes = expandConfigPrivate(start, configMap).map( Path::endNode ).collect(Collectors.toList());
@@ -131,8 +133,15 @@ public class PathExplorer {
 		boolean bfs = Util.toBoolean(config.getOrDefault("bfs",true));
 		boolean filterStartNode = Util.toBoolean(config.getOrDefault("filterStartNode", true));
 		long limit = Util.toLong(config.getOrDefault("limit", "-1"));
+		boolean optional = Util.toBoolean(config.getOrDefault("optional", false));
 
-		return explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness), filterStartNode, limit);
+		Stream<Path> results = explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness), filterStartNode, limit);
+
+		if (optional) {
+			return optionalStream(results);
+		} else {
+			return results;
+		}
 	}
 
 	private Stream<Path> explorePathPrivate(Iterable<Node> startNodes
@@ -146,6 +155,25 @@ public class PathExplorer {
 
 		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs,filterStartNode,limit);
 		return traverser.stream();
+	}
+
+	/**
+	 * If the stream is empty, returns a stream of a single null value, otherwise returns the equivalent of the input stream
+	 * @param stream the input stream
+	 * @return a stream of a single null value if the input stream is empty, otherwise returns the equivalent of the input stream
+	 */
+	private Stream<Path> optionalStream(Stream<Path> stream) {
+		Stream<Path> optionalStream;
+		Iterator<Path> itr = stream.iterator();
+		if (itr.hasNext()) {
+			optionalStream = StreamSupport.stream(Spliterators.spliteratorUnknownSize(itr, 0), false);
+		} else {
+			List<Path> listOfNull = new ArrayList<>();
+			listOfNull.add(null);
+			optionalStream = listOfNull.stream();
+		}
+
+		return optionalStream;
 	}
 
 	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel, Uniqueness uniqueness, boolean bfs, boolean filterStartNode, long limit) {

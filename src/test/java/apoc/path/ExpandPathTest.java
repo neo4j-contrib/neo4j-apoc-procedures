@@ -136,6 +136,8 @@ public class ExpandPathTest {
 					assertEquals(2, maps.size());
 					Path path = (Path) maps.get(0).get("path");
 					assertEquals("Gene Hackman", path.endNode().getProperty("name"));
+					path = (Path) maps.get(1).get("path");
+					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
 				});
 	}
 
@@ -268,5 +270,15 @@ public class ExpandPathTest {
 	public void testFilterStartNodeFalseDoesNotFilterStartNodeWhenBelowMinLevel() throws Throwable {
 		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expandConfig(m,{labelFilter:'+Person', minLevel:1, maxLevel:2, filterStartNode:false}) yield path return count(*) as c";
 		TestUtil.testCall(db, query, (row) -> assertEquals(8L,row.get("c")));
+	}
+
+	@Test
+	public void testOptionalExpandConfigWithNoResultsYieldsNull() {
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expandConfig(m,{labelFilter:'+Agent', minLevel:1, maxLevel:2, filterStartNode:false, optional:true}) yield path return path";
+		TestUtil.testResult(db, query, (result) -> {
+			assertTrue(result.hasNext());
+			Map<String, Object> row = result.next();
+			assertEquals(null,row.get("path"));
+		});
 	}
 }
