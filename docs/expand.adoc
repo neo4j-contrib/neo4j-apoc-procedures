@@ -148,7 +148,8 @@ Takes an additional map parameter, `config`, to provide configuration options:
              RELATIONSHIP_GLOBAL|RELATIONSHIP_LEVEL|RELATIONSHIP_RECENT,
  bfs: true|false,
  filterStartNode: true|false,
- limit: -1|number}
+ limit: -1|number,
+ optional: true|false}
 ----
 
 .Start Node and label filters
@@ -175,6 +176,14 @@ The default limit value, `-1`, means no limit.
 
 If you want to make sure multiple paths should never match to the same node, use `expandConfig()` with 'NODE_GLOBAL' uniqueness, or any expand procedure which already uses this uniqueness
 (`subgraphNodes()`, `subgraphAll()`, and `spanningTree()`).
+
+
+.Optional
+
+When `optional` is set to true, the path expansion is optional, much like an OPTIONAL MATCH, so a `null` value is yielded whenever the expansion would normally eliminate rows due to no results.
+
+By default `optional` is false for all expansion procedures taking a config parameter.
+
 
 .Uniqueness
 
@@ -221,7 +230,7 @@ RETURN count(*);
 == Expand to nodes in a subgraph
 
 ----
-apoc.path.subgraphNodes(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1}) yield node
+apoc.path.subgraphNodes(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1, optional:false}) yield node
 ----
 
 Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
@@ -259,6 +268,8 @@ Returns the collection of nodes in the subgraph, and the collection of relations
 
 Accepts the same `config` values as in `expandConfig()`, though `uniqueness` and `minLevel` are not configurable.
 
+The `optional` config value isn't needed, as empty lists are yielded if there are no results, so rows are never eliminated.
+
 .Example
 
 Expand to local subgraph (and all its relationships) within 4 traversals:
@@ -273,7 +284,7 @@ RETURN nodes, relationships;
 == Expand a spanning tree
 
 ----
-apoc.path.spanningTree(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1}) yield path
+apoc.path.spanningTree(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1, optional:false}) yield path
 ----
 
 Expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters.

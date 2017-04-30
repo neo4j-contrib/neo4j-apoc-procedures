@@ -62,7 +62,7 @@ public class SubgraphTest {
 	}
 	
 	@Test
-	public void testSugbraphWithMaxDepthShouldContainExpectedNodes() throws Throwable {
+	public void testSubgraphWithMaxDepthShouldContainExpectedNodes() throws Throwable {
 		String controlQuery = "MATCH (m:Movie {title: 'The Matrix'})-[*0..3]-(subgraphNode) return collect(distinct subgraphNode) as subgraph";
 		List<NodeResult> subgraph;
 		try (Transaction tx = db.beginTx()) {
@@ -79,7 +79,7 @@ public class SubgraphTest {
 	}
 	
 	@Test
-	public void testSugbraphWithLabelFilterShouldContainExpectedNodes() throws Throwable {
+	public void testSubgraphWithLabelFilterShouldContainExpectedNodes() throws Throwable {
 		String controlQuery = "MATCH path = (:Person {name: 'Keanu Reeves'})-[*0..3]-(subgraphNode) where all(node in nodes(path) where node:Person) return collect(distinct subgraphNode) as subgraph";
 		List<NodeResult> subgraph;
 		try (Transaction tx = db.beginTx()) {
@@ -96,7 +96,7 @@ public class SubgraphTest {
 	}
 	
 	@Test
-	public void testSugbraphWithRelationshipFilterShouldContainExpectedNodes() throws Throwable {
+	public void testSubgraphWithRelationshipFilterShouldContainExpectedNodes() throws Throwable {
 		String controlQuery = "MATCH path = (:Person {name: 'Keanu Reeves'})-[:ACTED_IN*0..3]-(subgraphNode) return collect(distinct subgraphNode) as subgraph";
 		List<NodeResult> subgraph;
 		try (Transaction tx = db.beginTx()) {
@@ -113,7 +113,20 @@ public class SubgraphTest {
 	}
 
 	@Test
-	public void testSugbraphAllShouldContainExpectedNodesAndRels() throws Throwable {
+	public void testOptionalSubgraphNodesShouldReturnNull() throws Throwable {
+		String query =
+				"MATCH (k:Person {name: 'Keanu Reeves'}) " +
+						"CALL apoc.path.subgraphNodes(k,{labelFilter:'+nonExistent', maxLevel:3, optional:true, filterStartNode:true}) yield node " +
+						"return node";
+		TestUtil.testResult(db, query, (result) -> {
+			assertTrue(result.hasNext());
+			Map<String, Object> row = result.next();
+			assertEquals(null, row.get("node"));
+		});
+	}
+
+	@Test
+	public void testSubgraphAllShouldContainExpectedNodesAndRels() throws Throwable {
 		String controlQuery =
 				"MATCH path = (:Person {name: 'Keanu Reeves'})-[*0..3]-(subgraphNode) " +
 				"with collect(distinct subgraphNode) as subgraph " +
@@ -143,6 +156,34 @@ public class SubgraphTest {
 	}
 
 	@Test
+	public void testOptionalSubgraphAllWithNoResultsShouldReturnEmptyLists() throws Throwable {
+		String query =
+				"MATCH (k:Person {name: 'Keanu Reeves'}) " +
+						"CALL apoc.path.subgraphAll(k,{labelFilter:'+nonExistent', maxLevel:3, optional:true, filterStartNode:true}) yield nodes, relationships " +
+						"return nodes as subgraphNodes, relationships as subgraphRelationships";
+		TestUtil.testCall(db, query, (row) -> {
+			List<NodeResult> subgraphNodes = (List<NodeResult>) row.get("subgraphNodes");
+			List<RelationshipResult> subgraphRelationships = (List<RelationshipResult>) row.get("subgraphRelationships");
+			assertEquals(0, subgraphNodes.size());
+			assertEquals(0, subgraphRelationships.size());
+		});
+	}
+
+	@Test
+	public void testSubgraphAllWithNoResultsShouldReturnEmptyLists() throws Throwable {
+		String query =
+				"MATCH (k:Person {name: 'Keanu Reeves'}) " +
+						"CALL apoc.path.subgraphAll(k,{labelFilter:'+nonExistent', maxLevel:3, filterStartNode:true}) yield nodes, relationships " +
+						"return nodes as subgraphNodes, relationships as subgraphRelationships";
+		TestUtil.testCall(db, query, (row) -> {
+			List<NodeResult> subgraphNodes = (List<NodeResult>) row.get("subgraphNodes");
+			List<RelationshipResult> subgraphRelationships = (List<RelationshipResult>) row.get("subgraphRelationships");
+			assertEquals(0, subgraphNodes.size());
+			assertEquals(0, subgraphRelationships.size());
+		});
+	}
+
+	@Test
 	public void testSpanningTreeShouldHaveOnlyOnePathToEachNode() throws Throwable {
 		String controlQuery = "MATCH (m:Movie {title: 'The Matrix'})-[*0..4]-(subgraphNode) return collect(distinct subgraphNode) as subgraph";
 		List<NodeResult> subgraph;
@@ -166,6 +207,36 @@ public class SubgraphTest {
 			assertTrue(subgraph.containsAll(subgraphNodes));
 			// assert every node has a single path to that node - no cycles
 			assertEquals(pathCount, subgraphNodes.size());
+		});
+	}
+
+	@Test
+	public void testOptionalSpanningTreeWithNoResultsShouldReturnNull() throws Throwable {
+		String query =
+				"MATCH (k:Person {name: 'Keanu Reeves'}) " +
+						"CALL apoc.path.spanningTree(k,{labelFilter:'+nonExistent', maxLevel:3, optional:true, filterStartNode:true}) yield path " +
+						"return path";
+		TestUtil.testResult(db, query, (result) -> {
+			assertTrue(result.hasNext());
+			Map<String, Object> row = result.next();
+			assertEquals(null, row.get("path"));
+		});
+	}
+
+	@Test
+	public void testOptionalSubgraphWithResultsShouldYieldExpectedResults() throws Throwable {
+		String controlQuery = "MATCH (m:Movie {title: 'The Matrix'})-[*0..3]-(subgraphNode) return collect(distinct subgraphNode) as subgraph";
+		List<NodeResult> subgraph;
+		try (Transaction tx = db.beginTx()) {
+			Result result = db.execute(controlQuery);
+			subgraph = (List<NodeResult>) result.next().get("subgraph");
+		}
+
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.subgraphNodes(m,{maxLevel:3, optional:true}) yield node return COLLECT(node) as subgraphNodes";
+		TestUtil.testCall(db, query, (row) -> {
+			List<NodeResult> subgraphNodes = (List<NodeResult>) row.get("subgraphNodes");
+			assertEquals(subgraph.size(), subgraphNodes.size());
+			assertTrue(subgraph.containsAll(subgraphNodes));
 		});
 	}
 }
