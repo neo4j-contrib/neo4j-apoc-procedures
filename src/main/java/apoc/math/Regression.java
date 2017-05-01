@@ -19,13 +19,13 @@ public class Regression {
     // Result class
     public static class Output {
         public Number r2;
-        public Number avg_x;
-        public Number avg_y;
+        public Number avgX;
+        public Number avgY;
         public Number slope;
-        public Output(Number r2, Number avg_x, Number avg_y, Number slope){
+        public Output(Number r2, Number avgX, Number avgY, Number slope){
             this.r2 = r2;
-            this.avg_x = avg_x;
-            this.avg_y = avg_y;
+            this.avgX = avgX;
+            this.avgY = avgY;
             this.slope = slope;
         }
     }

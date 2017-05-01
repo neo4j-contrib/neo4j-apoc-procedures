@@ -49,9 +49,9 @@ public class RegressionTest {
 
             assertEquals(expectedRegr.getRSquare(), result.peek().get("r2").asDouble(), 0.1 );
 
-            assertEquals(2.0, result.peek().get("avg_x").asDouble(), 0.1);
+            assertEquals(2.0, result.peek().get("avgX").asDouble(), 0.1);
 
-            assertEquals(3.67, result.peek().get("avg_y").asDouble(), 0.1);
+            assertEquals(3.67, result.peek().get("avgY").asDouble(), 0.1);
 
             assertEquals(expectedRegr.getSlope(), result.peek().get("slope").asDouble(), 0.1);
         }
