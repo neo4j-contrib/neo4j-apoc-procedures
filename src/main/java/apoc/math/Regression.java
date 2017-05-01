@@ -38,8 +38,8 @@ public class Regression {
                                @Name("propertyY") String y, @Name("propertyX") String x ) {
 
         SimpleRegression regr = new SimpleRegression(false);
-        Number regrAvgX = 0;
-        Number regrAvgY = 0;
+        double regrAvgX = 0;
+        double regrAvgY = 0;
         int count = 0;
 
         try (ResourceIterator it = db.findNodes(Label.label(label))) {
@@ -49,15 +49,15 @@ public class Regression {
                 Object propY = node.getProperty(y, null);
                 if(propX != null && propY != null)
                 {
-                    regrAvgX = regrAvgX.doubleValue()  + (Long)propX;
-                    regrAvgY = regrAvgY.doubleValue() +  (Long)propY;
+                    regrAvgX = regrAvgX + (Long)propX;
+                    regrAvgY = regrAvgY +  (Long)propY;
                     regr.addData((Long)propX, (Long)propY);
                     count++;
                 }
             }
         }
-        regrAvgX = regrAvgX.doubleValue() / count;
-        regrAvgY = regrAvgY.doubleValue() / count;
+        regrAvgX = regrAvgX / count;
+        regrAvgY = regrAvgY / count;
         return Stream.of(new Output(regr.getRSquare(), regrAvgX, regrAvgY, regr.getSlope()));
     }
 }
