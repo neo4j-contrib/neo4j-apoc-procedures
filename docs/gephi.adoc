@@ -23,12 +23,25 @@ You can also configure it in `conf/neo4j.conf` via  `apoc.gephi.url=url` or `apo
 
 === Example
 
+You can export your graph as an unweighted network, which results in assigning each relationship a default weight of 1.0. 
+
 [source,cypher]
 ----
 match path = (:Person)-[:ACTED_IN]->(:Movie)
 WITH path LIMIT 1000
 with collect(path) as paths
 call apoc.gephi.add(null,'workspace0', paths) yield nodes, relationships, time
+return nodes, relationships, time
+----
+
+You can export your graph as a weighted network, by specifying the property of a relationship, that holds the weight value.  
+
+[source,cypher]
+----
+match path = (:Person)-[r:ACTED_IN]->(:Movie) where exists r.weightproperty
+WITH path LIMIT 1000
+with collect(path) as paths
+call apoc.gephi.add(null,'workspace0', paths, 'weightproperty') yield nodes, relationships, time
 return nodes, relationships, time
 ----
 
@@ -40,7 +53,7 @@ We send all nodes and relationships of the passed in data convert into individua
 ----
 {"an":{"123":{"TYPE":"Person:Actor","label":"Tom Hanks",                           x:333,y:222,r:0.1,g:0.3,b:0.5}}}\r\n
 {"an":{"345":{"TYPE":"Movie","label":"Forrest Gump",                               x:234,y:122,r:0.2,g:0.2,b:0.7}}}\r\n
-{"ae":{"3344":{"TYPE":"ACTED_IN","label":"Tom Hanks",source:"123",target:"345","directed":true,r:0.1,g:0.3,b:0.5}}}
+{"ae":{"3344":{"TYPE":"ACTED_IN","label":"Tom Hanks",source:"123",target:"345","directed":true,"weight":1.0,r:0.1,g:0.3,b:0.5}}}
 ----
 
 == Specifics Details
@@ -49,4 +62,5 @@ Gephi doesn't render the graph data unless you also provide x,y coordinates in t
 
 We also generate colors per label combination and relationship-type, both of which are also transferred as `TYPE` property.
 
+You can have your weight value stored as a number(integer,float) or a string. If the weight value is not valid or missing, it will use the default 1.0 value.  
 // TODO also generate clustering information.
