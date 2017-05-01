@@ -150,9 +150,6 @@ public class Date {
 	}
 
 	public String parse(final @Name("millis") long millis, final @Name(value = "pattern", defaultValue = DEFAULT_FORMAT) String pattern, final @Name("timezone") String timezone) {
-		if (millis < 0) {
-			throw new IllegalArgumentException("The time argument should be >= 0, got: " + millis);
-		}
 		return getFormat(pattern, timezone).format(new java.util.Date(millis));
 	}
 

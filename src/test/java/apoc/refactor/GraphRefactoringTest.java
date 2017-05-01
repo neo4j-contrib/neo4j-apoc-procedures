@@ -262,4 +262,21 @@ public class GraphRefactoringTest {
     public void testRedirectRelationship() throws Exception {
 
     }
+
+    @Test
+    public void testMergeNodesWithConstraints() throws Exception {
+        db.execute("CREATE CONSTRAINT ON (p:Person) ASSERT p.name IS UNIQUE").close();
+        long id = db.execute("CREATE (p1:Person {name:'Foo'}), (p2:Person {surname:'Bar'}) RETURN id(p1) as id ").<Long>columnAs("id").next();
+        ExecutionPlanDescription plan = db.execute("EXPLAIN MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) CALL apoc.refactor.mergeNodes([o,n]) yield node return node").getExecutionPlanDescription();
+        System.out.println(plan);
+        System.out.flush();
+        testCall(db, "MATCH (o:Person {name:'Foo'}), (n:Person {surname:'Bar'}) CALL apoc.refactor.mergeNodes([o,n]) yield node return node",
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    assertEquals(id, node.getId());
+                    assertEquals(true, node.hasLabel(Label.label("Person")));
+                    assertEquals("Foo", node.getProperty("name"));
+                    assertEquals("Bar", node.getProperty("surname"));
+                });
+    }
 }

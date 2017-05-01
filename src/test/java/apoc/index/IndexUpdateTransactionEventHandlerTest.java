@@ -41,11 +41,10 @@ public class IndexUpdateTransactionEventHandlerTest {
 
         // nothing found in the index after deletion
         testCallCount(db, "start n=node:search_index('City.name:\"Made Up\"') return n", null, 0);
-
     }
 
     @Test
-    public void shouldIndexFieldsBeUsedConsistently() throws InterruptedException {
+    public void shouldIndexFieldsBeUsedConsistently() {
         // setup: add a node, index it and add another node
         testCallEmpty(db, "create (c:City{name:\"Made Up City\",url:\"/places/nowhere/made-up-city\"})", null);
 
@@ -58,8 +57,17 @@ public class IndexUpdateTransactionEventHandlerTest {
         testCallCount(db, "call apoc.index.search('search_index', 'City.name:Made') yield node, weight return node, weight", null, 2);
         testCallCount(db, "start n=node:search_index('name:\"Made Up\"') return n", null, 0);
         testCallCount(db, "start n=node:search_index('City.name:\"Made Up\"') return n", null, 2);
-
     }
 
+    @Test
+    public void shouldRemovingPropertiesWork() {
+        //setup
+        testCallEmpty(db, "call apoc.index.addAllNodesExtended('submarines',{Submarine:['color']},{autoUpdate:true})", null);
+        testCallEmpty(db, "create (s:Submarine{color:\"yellow\",periscope:true})", null);
+        testCallEmpty(db, "create (s:Submarine{color:\"green\"})", null);
+
+        // when & then
+        testCallCount(db, "match (s:Submarine) remove s.periscope return s", null, 2);
+    }
 
 }

@@ -64,6 +64,14 @@ A similarity of `1` means the vectors are identical. A similarity of `-1` means 
 apoc.algo.cosineSimilarity([vector1], [vector2])
 ----
 
+.Usage warnings
+
+Although cosine similarity can be very useful, there are some specific situations where the calculation should not be used.
+
+Do not use when vectors have only one element, as the simiarlity computation will always be 1.
+
+Do not use when the values of a vector may all be 0, as this will return null.
+
 ==== Example
 
 [source,cypher]

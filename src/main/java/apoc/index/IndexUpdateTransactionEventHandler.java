@@ -58,7 +58,7 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
         getIndexesByLabelAndProperty();
         Collection<Consumer<Void>> state = async ? new LinkedList<>() : null;
 
-        iterateNodePropertyChange(stream(data.assignedNodeProperties()),(index, node, key, value, oldValue) -> indexUpdate(state, aVoid -> {
+        iterateNodePropertyChange(stream(data.assignedNodeProperties()),false, (index, node, key, value, oldValue) -> indexUpdate(state, aVoid -> {
             if (oldValue != null) {
                 index.remove(node, key);
                 index.remove(node, FreeTextSearch.KEY);
@@ -68,7 +68,7 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
         }));
 
         // filter out removedNodeProperties from node deletions
-        iterateNodePropertyChange(stream(data.removedNodeProperties()).filter(nodePropertyEntry -> !contains(data.deletedNodes().iterator(), nodePropertyEntry.entity())), (index, node, key, value, oldValue) -> indexUpdate(state, aVoid -> {
+        iterateNodePropertyChange(stream(data.removedNodeProperties()).filter(nodePropertyEntry -> !contains(data.deletedNodes().iterator(), nodePropertyEntry.entity())), true, (index, node, key, value, oldValue) -> indexUpdate(state, aVoid -> {
             index.remove(node, key);
             index.remove(node, FreeTextSearch.KEY);
         }));
@@ -99,12 +99,12 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
         }
     }
 
-    private void iterateNodePropertyChange(Stream<PropertyEntry<Node>> stream,
+    private void iterateNodePropertyChange(Stream<PropertyEntry<Node>> stream, boolean propertyRemoved,
           IndexFunction<Index<Node>, Node, String, Object, Object> function) {
         stream.forEach(nodePropertyEntry -> {
             final Node entity = nodePropertyEntry.entity();
             final String key = nodePropertyEntry.key();
-            final Object value = nodePropertyEntry.value();
+            final Object value = propertyRemoved ? null : nodePropertyEntry.value();
             entity.getLabels().forEach(label -> {
                 final String labelName = label.name();
                 final Map<String, Collection<Index<Node>>> propertyIndexMap = indexesByLabelAndProperty.get(labelName);
