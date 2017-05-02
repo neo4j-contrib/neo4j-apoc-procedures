@@ -151,6 +151,11 @@ $(document).ready(function() {
 </script>
 ++++
 
+== Triggers
+
+include::trigger.adoc[leveloffset=2]
+
 == Appendix: Complete Overview
 
 include::overview.adoc[tags=overview,leveloffset=1]
+
