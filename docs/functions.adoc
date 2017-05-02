@@ -12,7 +12,7 @@ For example:
 ----
 CREATE (v:Value {id:{id}, data:{data}})
 WITH v
-CALL apoc.date.formatDefault(timestamp(), "ms") YIELD value as created
+CALL apoc.date.format(timestamp(), "ms") YIELD value as created
 SET v.created = created
 ----
 

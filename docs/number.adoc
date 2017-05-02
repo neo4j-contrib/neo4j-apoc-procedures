@@ -2,28 +2,27 @@
 
 == Conversion between formatted decimals
 
-* `apoc.number.format(number) yield value` format a long or double using the default system pattern and language to produce a string
-* `apoc.number.format.pattern(number, pattern) yield value` format a long or double using a pattern and the default system language to produce a string
-* `apoc.number.format.lang(number, lang) yield value` format a long or double using the default system pattern pattern and a language to produce a string
-* `apoc.number.format.pattern.lang(number, pattern, lang) yield value` format a long or double using a pattern and a language to produce a string
+* `apoc.number.format(number)` format a long or double using the default system pattern and language to produce a string
+* `apoc.number.format(number, pattern)` format a long or double using a pattern and the default system language to produce a string
+* `apoc.number.format(number, lang)` format a long or double using the default system pattern pattern and a language to produce a string
+* `apoc.number.format(number, pattern, lang)` format a long or double using a pattern and a language to produce a string
 
-* `apoc.number.parseInt(text) yield value` parse a text using the default system pattern and language to produce a long
-* `apoc.number.parseInt.pattern(text, pattern) yield value` parse a text using a pattern and the default system language to produce a long
-* `apoc.number.parseInt.lang(text, lang) yield value` parse a text using the default system pattern and a language to produce a long
-* `apoc.number.parseInt.pattern.lang(text, pattern, lang) yield value` parse a text using a pattern and a language to produce a long
+* `apoc.number.parseInt(text)` parse a text using the default system pattern and language to produce a long
+* `apoc.number.parseInt(text, pattern)` parse a text using a pattern and the default system language to produce a long
+* `apoc.number.parseInt(text, '', lang)` parse a text using the default system pattern and a language to produce a long
+* `apoc.number.parseInt(text, pattern, lang)` parse a text using a pattern and a language to produce a long
 
-* `apoc.number.parseFloat(text) yield value` parse a text using the default system pattern and language to produce a double
-* `apoc.number.parseFloat.pattern(text, pattern) yield value` parse a text using a pattern and the default system language to produce a double
-* `apoc.number.parseFloat.lang(text, lang) yield value` parse a text using the default system pattern and a language to produce a double
-* `apoc.number.parseFloat.pattern.lang(text, pattern, lang) yield value` parse a text using a pattern and a language to produce a double
+* `apoc.number.parseFloat(text)` parse a text using the default system pattern and language to produce a double
+* `apoc.number.parseFloat(text, pattern)` parse a text using a pattern and the default system language to produce a double
+* `apoc.number.parseFloat(text,'',lang)` parse a text using the default system pattern and a language to produce a double
+* `apoc.number.parseFloat(text, pattern, lang)` parse a text using a pattern and a language to produce a double
 
 * The full list of supported values for `pattern` and `lang` params is described in https://docs.oracle.com/javase/9/docs/api/java/text/DecimalFormat.html[DecimalFormat JavaDoc]
 
 == Examples
 
 ....
-  call apoc.number.format(12345.67) yield value
-  return value
+  return apoc.number.format(12345.67) as value
 
   ╒═════════╕
   │value    │
@@ -33,8 +32,7 @@
 ....
 
 ....
-  call apoc.number.format.pattern.lang(12345, '#,##0.00;(#,##0.00)', 'it') yield value
-  return value
+  return apoc.number.format(12345, '#,##0.00;(#,##0.00)', 'it') as value
 
   ╒═════════╕
   │value    │
@@ -44,19 +42,17 @@
 ....
 
 ....
-  call apoc.number.format.pattern.lang(12345.67, '#,##0.00;(#,##0.00)', 'it') yield value
-  return value
-  
+  return apoc.number.format(12345.67, '#,##0.00;(#,##0.00)', 'it') as value
+
   ╒═════════╕
   │value    │
   ╞═════════╡
   │12.345,67│
-  └─────────┘  
+  └─────────┘
 ....
 
 ....
-  call apoc.number.parseInt.pattern.lang('12.345', '#,##0.00;(#,##0.00)', 'it') yield value
-  return value
+  return apoc.number.parseInt('12.345', '#,##0.00;(#,##0.00)', 'it') as value
 
   ╒═════╕
   │value│
@@ -66,9 +62,8 @@
 ....
 
 ....
-  call apoc.number.parseFloat.pattern.lang('12.345,67', '#,##0.00;(#,##0.00)', 'it') yield value
-  return value
-  
+  return apoc.number.parseFloat('12.345,67', '#,##0.00;(#,##0.00)', 'it') as value
+
   ╒════════╕
   │value   │
   ╞════════╡
@@ -77,19 +72,13 @@
 ....
 
 ....
-  call apoc.number.format('aaa') yield value
+  return apoc.number.format('aaa') as value
 
-  Failed to invoke procedure `apoc.number.format`: Caused by: java.lang.IllegalArgumentException: Number parameter must be long or double.
+  null beacuse 'aaa' isn't a number
 ....
 
 ....
-  call apoc.number.format.lang(12345, 'apoc')
+  RETURN apoc.number.parseInt('aaa')
   
-  Failed to invoke procedure `apoc.number.format.lang`: Caused by: java.lang.IllegalArgumentException: Unrecognized language value: 'apoc' isn't a valid ISO language
-....
-
-....
-  call apoc.number.parseInt('aaa')
-  
-  Failed to invoke procedure `apoc.number.parseAsLong`: Caused by: java.text.ParseException: Unparseable number: "aaa"
+  Return null because 'aaa' is unparsable.
 ....
