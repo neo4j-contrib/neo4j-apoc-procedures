@@ -9,6 +9,7 @@ import org.neo4j.graphdb.event.LabelEntry;
 import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.impl.core.GraphProperties;
 import org.neo4j.kernel.impl.core.NodeManager;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -188,7 +189,9 @@ public class Trigger {
                     Map<String,Object> selector = (Map<String, Object>) data.get("selector");
                     if (when(selector, phase)) {
                         params.put("trigger", name);
-                        db.execute((String) data.get("statement"), params);
+                        Result result = db.execute((String) data.get("statement"), params);
+                        Iterators.count(result);
+                        result.close();
                     }
                     tx.success();
                 } catch(Exception e) {
