@@ -65,20 +65,25 @@ public class Jdbc {
             for (int i = 0; i < params.length; i++) stmt.setObject(i+1, params[i]);
             ResultSet rs = stmt.executeQuery();
             rs.setFetchSize(5000);
-            Iterator<Map<String, Object>> supplier = new ResultSetIterator(rs);
+            Iterator<Map<String, Object>> supplier = new ResultSetIterator(log, rs,true);
             Spliterator<Map<String, Object>> spliterator = Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
-            return StreamSupport.stream(spliterator, false).map(RowResult::new).onClose( () -> closeIt(stmt,connection));
+            return StreamSupport.stream(spliterator, false)
+                    .map(RowResult::new)
+                    .onClose( () -> closeIt(log, stmt,connection));
         } catch (SQLException e) {
             log.error(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()),e);
             throw new RuntimeException(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()), e);
         }
     }
 
-    static void closeIt(AutoCloseable...closeables) {
+    static void closeIt(Log log, AutoCloseable...closeables) {
         for (AutoCloseable c : closeables) {
             try {
-                c.close();
+                if (c!=null) {
+                    c.close();
+                }
             } catch (Exception e) {
+                log.warn(String.format("Error closing %s: %s", c.getClass().getSimpleName(), c),e);
                 // ignore
             }
         }
@@ -91,13 +96,17 @@ public class Jdbc {
     }
 
     private static class ResultSetIterator implements Iterator<Map<String, Object>> {
+        private final Log log;
         private final ResultSet rs;
         private final String[] columns;
+        private final boolean closeConnection;
         private Map<String, Object> map;
 
-        public ResultSetIterator(ResultSet rs) throws SQLException {
+        public ResultSetIterator(Log log, ResultSet rs, boolean closeConnection) throws SQLException {
+            this.log = log;
             this.rs = rs;
             this.columns = getMetaData(rs);
+            this.closeConnection = closeConnection;
             this.map = get();
         }
 
@@ -153,7 +162,7 @@ public class Jdbc {
             if (!rs.next()) {
                 if (!rs.isClosed()) {
 //                    rs.close();
-                    rs.getStatement().close();
+                    closeIt(log, rs.getStatement(), closeConnection ? rs.getStatement().getConnection() : null);
                 }
                 return true;
             }
