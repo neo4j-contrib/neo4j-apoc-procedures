@@ -171,21 +171,18 @@ LIMIT 100
 
 == Combined Space and Time search
 
-Combining spatial and date-time procedures can allow for more complex queries:
+Combining spatial and date-time functions can allow for more complex queries:
 
 [source,cypher]
 ----
-CALL apoc.date.parse('2016-06-01 00:00:00','h') YIELD value AS due_date
-WITH due_date,
-point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
+WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
 MATCH (e:Event)
 WHERE exists(e.address) AND exists(e.datetime)
 CALL apoc.spatial.geocodeOnce(e.address) YIELD location
-CALL apoc.date.parse(e.datetime,'h') YIELD value AS hours
 WITH e, location,
 distance(point(location), eiffel) AS distance,
-            (due_date - hours)/24.0 AS days_before_due
-WHERE distance < 5000 AND days_before_due < 14 AND hours < due_date
+            (apoc.date.parse('2016-06-01 00:00:00','h') - apoc.date.parse(e.datetime,'h'))/24.0 AS days_before_due
+WHERE distance < 5000 AND days_before_due < 14 AND apoc.date.parse(e.datetime,'h') < apoc.date.parse('2016-06-01 00:00:00','h')
 RETURN e.name AS event, e.datetime AS date,
 location.description AS description, distance
 ORDER BY distance
