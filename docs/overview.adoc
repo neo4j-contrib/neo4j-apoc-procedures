@@ -454,18 +454,6 @@ Please note that they have negative id's.
 
 // * TODO `CALL apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])
 
-Example
-
-[source,cypher]
-----
-MATCH (a)-[r]->(b)
-WITH head(labels(a)) AS l, head(labels(b)) AS l2, type(r) AS rel_type, count(*) as count
-CALL apoc.create.vNode([l],{name:l}) yield node as a
-CALL apoc.create.vNode([2],{name:l2}) yield node as b
-CALL apoc.create.vRelationship(a,rel_type,{count:count},b) yield rel
-RETURN *;
-----
-
 == Virtual Graph
 
 Create a graph object (map) from information that's passed in.
