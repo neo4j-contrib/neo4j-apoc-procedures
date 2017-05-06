@@ -1,14 +1,18 @@
 package apoc.index;
 
 import apoc.meta.Meta;
+import apoc.monitor.Kernel;
 import apoc.result.WeightedNodeResult;
 import apoc.result.WeightedRelationshipResult;
+import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.index.RelationshipIndex;
 import org.neo4j.index.impl.lucene.legacy.LuceneIndexImplementation;
+import org.neo4j.kernel.KernelApi;
+import org.neo4j.kernel.api.LegacyIndexHits;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
@@ -16,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * @author mh
@@ -34,12 +39,12 @@ public class FulltextIndex {
 
     // CALL apoc.index.nodes('Person','name:jo*')
     @Description("apoc.index.nodes('Label','prop:value*') YIELD node - lucene query on node index with the given label name")
-    @Procedure(mode = Mode.WRITE)
-    public Stream<WeightedNodeResult> nodes(@Name("label") String label, @Name("query") String query) {
+    @Procedure(mode = Mode.READ)
+    public Stream<WeightedNodeResult> nodes(@Name("label") String label, @Name("query") String query) throws Exception {
         if (!db.index().existsForNodes(label)) return Stream.empty();
+        List<WeightedNodeResult> hits = KernelApi.toWeightedNodeResultFromLegacyIndex(KernelApi.nodeQueryIndex(label, query,db), db);
 
-        IndexHits<Node> hits = db.index().forNodes(label).query(query);
-        return toWeightedNodeResult(hits).stream();
+        return hits.stream();
     }
 
     public static class IndexInfo {
@@ -129,48 +134,47 @@ public class FulltextIndex {
 
     // CALL apoc.index.relationships('CHECKIN','on:2010-*')
     @Description("apoc.index.relationships('TYPE','prop:value*') YIELD rel - lucene query on relationship index with the given type name")
-    @Procedure(mode = Mode.WRITE)
-    public Stream<WeightedRelationshipResult> relationships(@Name("type") String type, @Name("query") String query) {
+    @Procedure(mode = Mode.READ)
+    public Stream<WeightedRelationshipResult> relationships(@Name("type") String type, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
-
-        return toWeightedRelationshipResult(db.index().forRelationships(type).query(query)).stream();
+        return KernelApi.toWeightedRelationshipResultFromLegacyIndex(KernelApi.relationshipQueryIndex(type, query, db, null, null), db).stream();
     }
 
     // CALL apoc.index.between(joe, 'KNOWS', null, 'since:2010-*')
     // CALL apoc.index.between(joe, 'CHECKIN', philz, 'on:2016-01-*')
     @Description("apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel - lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)")
-    @Procedure(mode = Mode.WRITE)
-    public Stream<WeightedRelationshipResult> between(@Name("from") Node from, @Name("type") String type, @Name("to") Node to, @Name("query") String query) {
+    @Procedure(mode = Mode.READ)
+    public Stream<WeightedRelationshipResult> between(@Name("from") Node from, @Name("type") String type, @Name("to") Node to, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
 
-        return toWeightedRelationshipResult(db.index().forRelationships(type).query(query, from, to)).stream();
+        return KernelApi.toWeightedRelationshipResultFromLegacyIndex(KernelApi.relationshipQueryIndex(type, query, db,  from.getId(), to.getId()),db).stream();
     }
 
-    // CALL apoc.index.out(joe, 'CHECKIN', 'on:2010-*')
-    @Procedure(mode = Mode.WRITE)
-    @Description("apoc.index.out(node,'TYPE','prop:value*') YIELD node - lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*")
-    public Stream<WeightedNodeResult> out(@Name("from") Node from, @Name("type") String type, @Name("query") String query) {
+    @Procedure(mode = Mode.READ)
+    @Description("out(node,'TYPE','prop:value*') YIELD node - lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*")
+    public Stream<WeightedNodeResult> out(@Name("from") Node from, @Name("type") String type, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
-
-        IndexHits<Relationship> hits = db.index().forRelationships(type).query(query, from, null);
-        List<WeightedNodeResult> results = new ArrayList<>(hits.size());
-        while (hits.hasNext()) {
-            results.add(new WeightedNodeResult(hits.next().getEndNode(),(double)hits.currentScore()));
+        LegacyIndexHits legacyIndexHits = KernelApi.relationshipQueryIndex(type, query, db, from.getId(), null);
+        List<WeightedNodeResult> results = new ArrayList<>(legacyIndexHits.size());
+        while (legacyIndexHits.hasNext()) {
+            results.add(new WeightedNodeResult(KernelApi.getEndNode(db, legacyIndexHits.next()), legacyIndexHits.currentScore()));
         }
+
         return results.stream();
     }
 
     // CALL apoc.index.in(philz, 'CHECKIN', 'on:2010-*')
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.READ)
     @Description("apoc.index.in(node,'TYPE','prop:value*') YIELD node lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*")
-    public Stream<WeightedNodeResult> in(@Name("to") Node to, @Name("type") String type, @Name("query") String query) {
+    public Stream<WeightedNodeResult> in(@Name("to") Node to, @Name("type") String type, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
 
-        IndexHits<Relationship> hits = db.index().forRelationships(type).query(query, null, to);
-        List<WeightedNodeResult> results = new ArrayList<>(hits.size());
-        while (hits.hasNext()) {
-            results.add(new WeightedNodeResult(hits.next().getStartNode(),(double)hits.currentScore()));
+        LegacyIndexHits legacyIndexHits = KernelApi.relationshipQueryIndex(type, query, db, null, to.getId());
+        List<WeightedNodeResult> results = new ArrayList<>(legacyIndexHits.size());
+        while (legacyIndexHits.hasNext()) {
+            results.add(new WeightedNodeResult(db.getNodeById(legacyIndexHits.next()), legacyIndexHits.currentScore()));
         }
+
         return results.stream();
     }
 
