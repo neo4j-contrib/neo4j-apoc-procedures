@@ -151,11 +151,15 @@ $(document).ready(function() {
 </script>
 ++++
 
+== Virtual
+
+include::create-virtual-nodes-rels.adoc[leveloffset=1]
+
 == Triggers
 
 include::trigger.adoc[leveloffset=2]
 
-== Appendix: Complete Overview
+== Appendix : Complete Overview
 
 include::overview.adoc[tags=overview,leveloffset=1]
 
