@@ -12,6 +12,8 @@ import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 /**
@@ -118,5 +120,64 @@ public class TriggerTest {
             assertEquals(true, (Long)((Node)row.get("f")).getProperty("txTime") > start);
         });
     }
+    
+    @Test
+    public void testPauseResult() throws Exception {
+        Trigger.TriggerHandler.add("test","UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}", map("phase","after") );
+        TestUtil.testCall(db, "CALL apoc.trigger.pause('test')", (row) -> {
+            assertEquals("test", row.get("name"));
+            assertEquals(true, row.get("installed"));
+            assertEquals(true, row.get("paused"));
+        });
+    }
+
+    @Test
+    public void testPauseOnCallList() throws Exception {
+        Trigger.TriggerHandler.add("test","UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}", map("phase","after") );
+        db.execute("CALL apoc.trigger.pause('test')");
+        TestUtil.testCall(db, "CALL apoc.trigger.list()", (row) -> {
+            assertEquals("test", row.get("name"));
+            assertEquals(true, row.get("installed"));
+            assertEquals(true, row.get("paused"));
+        });
+    }
+
+    @Test
+    public void testResumeResult() throws Exception {
+        Trigger.TriggerHandler.add("test","UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}", map("phase","after") );
+        db.execute("CALL apoc.trigger.pause('test')");
+        TestUtil.testCall(db, "CALL apoc.trigger.resume('test')", (row) -> {
+            assertEquals("test", row.get("name"));
+            assertEquals(true, row.get("installed"));
+            assertEquals(false, row.get("paused"));
+        });
+    }
+
+    @Test
+    public void testTriggerPause() throws Exception {
+        db.execute("CALL apoc.trigger.add('test','UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}',{})").close();
+        db.execute("CALL apoc.trigger.pause('test')").close();
+        db.execute("CREATE (f:Foo {name:'Michael'})").close();
+        TestUtil.testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
+            assertEquals(false, ((Node)row.get("f")).hasProperty("txId"));
+            assertEquals(false, ((Node)row.get("f")).hasProperty("txTime"));
+            assertEquals(true, ((Node)row.get("f")).hasProperty("name"));
+        });
+    }
+
+    @Test
+    public void testTriggerResume() throws Exception {
+        db.execute("CALL apoc.trigger.add('test','UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}',{})").close();
+        db.execute("CALL apoc.trigger.pause('test')").close();
+        db.execute("CALL apoc.trigger.resume('test')").close();
+        db.execute("CREATE (f:Foo {name:'Michael'})").close();
+        TestUtil.testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
+            assertEquals(true, ((Node)row.get("f")).hasProperty("txId"));
+            assertEquals(true, ((Node)row.get("f")).hasProperty("txTime"));
+            assertEquals(true, ((Node)row.get("f")).hasProperty("name"));
+        });
+    }
+
+
 
 }

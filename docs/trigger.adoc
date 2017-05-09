@@ -5,6 +5,8 @@ Enable `apoc.trigger.enabled=true` in `$NEO4J_HOME/config/neo4j.conf` first.
 | CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed | add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information
 | CALL apoc.trigger.remove(name) yield name, statement, installed | remove previously added trigger, returns trigger information
 | CALL apoc.trigger.list() yield name, statement, installed | update and list all installed triggers
+| CALL apoc.trigger.pause(name) | it pauses the trigger
+| CALL apoc.trigger.resume(name) | it resumes the paused trigger
 |===
 
 Helper Functions
@@ -140,6 +142,18 @@ CREATE (m:Movie {title:'Matrix'})
 
 image::{img}/apoc.trigger.add.create-rel-new-node.png[width=800]
 
+.Pause trigger
+
+We have the possibility to pause a trigger without remove it, if we will need it in the future
+
+image::{img}/apoc.trigger.pause.png[width=800]
+
+
+.Resume paused trigger
+
+When you need again of a trigger paused
+
+image::{img}/apoc.trigger.resume.png[width=800]
 
 .Other examples
 [source,cypher]
