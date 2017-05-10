@@ -150,7 +150,7 @@ public class ExpandPathTest {
 
 		TestUtil.testResult(db,
 				"MATCH (k:Person {name:'Keanu Reeves'}) " +
-						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'+Person|-Person', uniqueness: 'NODE_GLOBAL'}) yield path " +
+						"CALL apoc.path.expandConfig(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'+Person|-Person', uniqueness: 'NODE_GLOBAL', filterStartNode:true}) yield path " +
 						"return path",
 				result -> {
 					List<Map<String, Object>> maps = Iterators.asList(result);
@@ -274,11 +274,18 @@ public class ExpandPathTest {
 
 	@Test
 	public void testOptionalExpandConfigWithNoResultsYieldsNull() {
-		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expandConfig(m,{labelFilter:'+Agent', minLevel:1, maxLevel:2, filterStartNode:false, optional:true}) yield path return path";
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expandConfig(m,{labelFilter:'+Agent', minLevel:1, maxLevel:2, filterStartNode:false, optional:true}) YIELD path RETURN path";
 		TestUtil.testResult(db, query, (result) -> {
 			assertTrue(result.hasNext());
 			Map<String, Object> row = result.next();
-			assertEquals(null,row.get("path"));
+			assertEquals(null, row.get("path"));
 		});
+	}
+
+	@Test
+	public void testFilterStartNodeDefaultsToFalse() throws Throwable {
+		// was default true prior to 3.2.x
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expandConfig(m,{labelFilter:'+Person'}) yield path return count(*) as c";
+		TestUtil.testCall(db, query, (row) -> assertEquals(9L,row.get("c")));
 	}
 }
