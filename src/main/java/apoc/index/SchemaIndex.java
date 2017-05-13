@@ -1,10 +1,5 @@
 package apoc.index;
 
-import org.neo4j.graphdb.*;
-import org.neo4j.kernel.api.schema.IndexQuery;
-import org.neo4j.kernel.api.exceptions.schema.DuplicateSchemaRuleException;
-import org.neo4j.kernel.api.schema.LabelSchemaDescriptor;
-import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import apoc.result.NodeResult;
 import apoc.util.Util;
@@ -14,14 +9,20 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.Sort;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
+import org.neo4j.graphdb.*;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.exceptions.index.IndexNotFoundKernelException;
+import org.neo4j.kernel.api.exceptions.schema.DuplicateSchemaRuleException;
 import org.neo4j.kernel.api.exceptions.schema.SchemaRuleNotFoundException;
 import org.neo4j.kernel.api.impl.schema.reader.SimpleIndexReader;
 import org.neo4j.kernel.api.impl.schema.reader.SortedIndexReader;
+import org.neo4j.kernel.api.schema.IndexQuery;
+import org.neo4j.kernel.api.schema.LabelSchemaDescriptor;
+import org.neo4j.kernel.api.schema.index.IndexDescriptor;
 import org.neo4j.kernel.impl.api.KernelStatement;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.storageengine.api.schema.IndexReader;
@@ -63,7 +64,7 @@ public class SchemaIndex {
 
         int propertyKeyId = reads.propertyKeyGetForName(key);
         LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), propertyKeyId);
-        NewIndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
+        IndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
         IndexReader indexReader = stmt.getStoreStatement().getIndexReader(descriptor);
         IndexQuery.NumberRangePredicate numberRangePredicate = IndexQuery.range(propertyKeyId, Long.MIN_VALUE, true, Long.MAX_VALUE, true);
 
@@ -137,7 +138,7 @@ public class SchemaIndex {
         ReadOperations reads = stmt.readOperations();
 
         LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
-        NewIndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
+        IndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
         return stmt.getStoreStatement().getIndexReader(descriptor);
     }
 
@@ -153,7 +154,7 @@ public class SchemaIndex {
         ReadOperations reads = stmt.readOperations();
 
         LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
-        NewIndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
+        IndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
         SimpleIndexReader reader = (SimpleIndexReader) stmt.getStoreStatement().getIndexReader(descriptor);
         SortedIndexReader sortedIndexReader = new SortedIndexReader(reader, 0, Sort.INDEXORDER);
 
