@@ -129,7 +129,7 @@ public class PathExplorer {
 		long minLevel = Util.toLong(config.getOrDefault("minLevel", "-1"));
 		long maxLevel = Util.toLong(config.getOrDefault("maxLevel", "-1"));
 		boolean bfs = Util.toBoolean(config.getOrDefault("bfs",true));
-		boolean filterStartNode = Util.toBoolean(config.getOrDefault("filterStartNode", true));
+		boolean filterStartNode = Util.toBoolean(config.getOrDefault("filterStartNode", false));
 		long limit = Util.toLong(config.getOrDefault("limit", "-1"));
 
 		return explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness), filterStartNode, limit);
