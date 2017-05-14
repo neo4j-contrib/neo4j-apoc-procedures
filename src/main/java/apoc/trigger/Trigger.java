@@ -4,6 +4,7 @@ import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.coll.SetBackedList;
 import apoc.util.Util;
+import com.couchbase.client.core.annotations.InterfaceAudience;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.event.LabelEntry;
 import org.neo4j.graphdb.event.PropertyEntry;
@@ -34,12 +35,14 @@ public class Trigger {
         public String query;
         public Map<String,Object> selector;
         public boolean installed;
+        public boolean paused;
 
-        public TriggerInfo(String name, String query, Map<String, Object> selector, boolean installed) {
+        public TriggerInfo(String name, String query, Map<String, Object> selector, boolean installed, boolean paused) {
             this.name = name;
             this.query = query;
             this.selector = selector;
             this.installed = installed;
+            this.paused = paused;
         }
     }
 
@@ -96,10 +99,10 @@ public class Trigger {
         Map<String, Object> removed = TriggerHandler.add(name, statement, selector);
         if (removed != null) {
             return Stream.of(
-                    new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"),false),
-                    new TriggerInfo(name,statement,selector,true));
+                    new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"),false, false),
+                    new TriggerInfo(name,statement,selector,true, false));
         }
-        return Stream.of(new TriggerInfo(name,statement,selector,true));
+        return Stream.of(new TriggerInfo(name,statement,selector,true, false));
     }
 
     @Procedure(mode = Mode.WRITE)
@@ -107,9 +110,9 @@ public class Trigger {
     public Stream<TriggerInfo> remove(@Name("name")String name) {
         Map<String, Object> removed = TriggerHandler.remove(name);
         if (removed == null) {
-            Stream.of(new TriggerInfo(name, null, null, false));
+            Stream.of(new TriggerInfo(name, null, null, false, false));
         }
-        return Stream.of(new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"),false));
+        return Stream.of(new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"),false, false));
     }
 
     @PerformsWrites
@@ -117,7 +120,23 @@ public class Trigger {
     @Description("list all installed triggers")
     public Stream<TriggerInfo> list() {
         return TriggerHandler.list().entrySet().stream()
-                .map( (e) -> new TriggerInfo(e.getKey(),(String)e.getValue().get("statement"),(Map<String,Object>)e.getValue().get("selector"),true));
+                .map( (e) -> new TriggerInfo(e.getKey(),(String)e.getValue().get("statement"),(Map<String,Object>)e.getValue().get("selector"),true, (Boolean) e.getValue().get("paused")));
+    }
+
+    @Procedure(mode = Mode.WRITE)
+    @Description("CALL apoc.trigger.pause(name) | it pauses the trigger")
+    public Stream<TriggerInfo> pause(@Name("name")String name) {
+        Map<String, Object> paused = TriggerHandler.paused(name);
+
+        return Stream.of(new TriggerInfo(name,(String)paused.get("statement"), (Map<String,Object>) paused.get("selector"),true, true));
+    }
+
+    @Procedure(mode = Mode.WRITE)
+    @Description("CALL apoc.trigger.resume(name) | it resumes the paused trigger")
+    public Stream<TriggerInfo> resume(@Name("name")String name) {
+        Map<String, Object> resume = TriggerHandler.resume(name);
+
+        return Stream.of(new TriggerInfo(name,(String)resume.get("statement"), (Map<String,Object>) resume.get("selector"),true, false));
     }
 
     public static class TriggerHandler implements TransactionEventHandler {
@@ -125,7 +144,6 @@ public class Trigger {
         static ConcurrentHashMap<String,Map<String,Object>> triggers = new ConcurrentHashMap(map("",map()));
         private static GraphProperties properties;
         private final Log log;
-
         public TriggerHandler(GraphDatabaseAPI api, Log log) {
             properties = api.getDependencyResolver().resolveDependency(NodeManager.class).newGraphProperties();
 //            Pools.SCHEDULED.submit(() -> updateTriggers(null,null));
@@ -133,10 +151,22 @@ public class Trigger {
         }
 
         public static Map<String, Object> add(String name, String statement, Map<String,Object> selector) {
-            return updateTriggers(name, map("statement", statement, "selector", selector));
+            return updateTriggers(name, map("statement", statement, "selector", selector, "paused", false));
         }
         public synchronized static Map<String, Object> remove(String name) {
             return updateTriggers(name,null);
+        }
+
+        public static Map<String, Object> paused(String name) {
+            Map<String, Object> triggerToPause = triggers.get(name);
+            updateTriggers(name, map("statement", triggerToPause.get("statement"), "selector", triggerToPause.get("selector"), "paused", true));
+            return triggers.get(name);
+        }
+
+        public static Map<String, Object> resume(String name) {
+            Map<String, Object> triggerToResume = triggers.get(name);
+            updateTriggers(name, map("statement", triggerToResume.get("statement"), "selector", triggerToResume.get("selector"), "paused", false));
+            return triggers.get(name);
         }
 
         private synchronized static Map<String, Object> updateTriggers(String name, Map<String, Object> value) {
@@ -185,18 +215,21 @@ public class Trigger {
             GraphDatabaseService db = properties.getGraphDatabase();
             Map<String,String> exceptions = new LinkedHashMap<>();
             triggers.forEach((name, data) -> {
-                try (Transaction tx = db.beginTx()) {
-                    Map<String,Object> selector = (Map<String, Object>) data.get("selector");
-                    if (when(selector, phase)) {
-                        params.put("trigger", name);
-                        Result result = db.execute((String) data.get("statement"), params);
-                        Iterators.count(result);
-                        result.close();
+                if( data.get("paused").equals(false)) {
+                    log.info("Inside if " + name + data);
+                    try (Transaction tx = db.beginTx()) {
+                        Map<String,Object> selector = (Map<String, Object>) data.get("selector");
+                        if (when(selector, phase)) {
+                            params.put("trigger", name);
+                            Result result = db.execute((String) data.get("statement"), params);
+                            Iterators.count(result);
+                            result.close();
+                        }
+                        tx.success();
+                    } catch(Exception e) {
+                        log.warn("Error executing trigger "+name+" in phase "+phase,e);
+                        exceptions.put(name, e.getMessage());
                     }
-                    tx.success();
-                } catch(Exception e) {
-                    log.warn("Error executing trigger "+name+" in phase "+phase,e);
-                    exceptions.put(name, e.getMessage());
                 }
             });
             if (!exceptions.isEmpty()) {
@@ -218,6 +251,7 @@ public class Trigger {
         public void afterRollback(TransactionData txData, Object state) {
             executeTriggers(txData, "rollback");
         }
+
     }
 
     public static class LifeCycle {
