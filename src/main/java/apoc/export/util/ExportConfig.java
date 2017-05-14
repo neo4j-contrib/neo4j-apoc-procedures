@@ -94,6 +94,6 @@ public class ExportConfig {
     }
 
     private ExportFormat format(Object format) {
-        return format != null && format instanceof String ? ExportFormat.fromString((String)format) : ExportFormat.NEO4J_SHELL;
+        return format != null && format instanceof String ? ExportFormat.fromString((String)format) : ExportFormat.CYPHER;
     }
 }

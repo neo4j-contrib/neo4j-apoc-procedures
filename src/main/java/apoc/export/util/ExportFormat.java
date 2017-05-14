@@ -1,7 +1,5 @@
 package apoc.export.util;
 
-import java.io.PrintWriter;
-
 /**
  * @author AgileLARUS
  *
@@ -9,9 +7,9 @@ import java.io.PrintWriter;
  */
 public enum ExportFormat {
 
-    NEO4J_SHELL("neo4j-shell", String.format("commit%n"), String.format("begin%n"), String.format("schema await%n")),
-    CYPHER_SHELL("cypher-shell", String.format(":commit%n"), String.format(":begin%n"), ""),
-    PLAIN_FORMAT("plain", "", "", "");
+    CYPHER("cypher", String.format(":COMMIT%n"), String.format(":BEGIN%n"), "CALL db.awaitIndex('%s');%n", ""),
+    NEO4J_SHELL("neo4j-shell", String.format("commit%n"), String.format("begin%n"), "", String.format("schema await%n")),
+    PLAIN_FORMAT("plain", "", "", "", "");
 
     private final String format;
 
@@ -19,12 +17,15 @@ public enum ExportFormat {
 
     private String begin;
 
+    private String indexAwait;
+
     private String schemaAwait;
 
-    ExportFormat(String format, String commit, String begin, String schemaAwait) {
+    ExportFormat(String format, String commit, String begin, String indexAwait, String schemaAwait) {
         this.format = format;
         this.begin = begin;
         this.commit = commit;
+        this.indexAwait = indexAwait;
         this.schemaAwait = schemaAwait;
     }
 
@@ -36,7 +37,7 @@ public enum ExportFormat {
                 }
             }
         }
-        return NEO4J_SHELL;
+        return CYPHER;
     }
 
     public String begin(){
@@ -45,6 +46,10 @@ public enum ExportFormat {
 
     public String commit(){
         return this.commit;
+    }
+
+    public String indexAwait(String indexIdentifier){
+        return String.format(this.indexAwait, indexIdentifier);
     }
 
     public String schemaAwait(){
