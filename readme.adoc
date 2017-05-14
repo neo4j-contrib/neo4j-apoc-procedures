@@ -1,19 +1,25 @@
 :readme:
-:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/docs/img
-:apoc-release: 3.1.3.6
-:neo4j-version: 3.1.3
+:branch: 3.2
+:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/img
+:docs: https://neo4j-contrib.github.io/neo4j-apoc-procedures/index31.html
+:apoc-release: 3.1.3.7
+:neo4j-version: 3.1.4
 
 image:https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Travis CI Status", link="https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures"] image:https://img.shields.io/maven-central/v/org.neo4j.procedure/apoc.svg[alt="Maven status"] image:https://img.shields.io/github/release/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Github release status"] image:https://img.shields.io/github/contributors/neo4j-contrib/neo4j-apoc-procedures.svg[alt="contributor stats"]
 
-= Awesome Procedures for Neo4j 3.1.x
+= Awesome Procedures for Neo4j {branch}.x
+
+// tag::warnings[]
 
 [NOTE]
-*Please note* that about 70 procedures have been turned into user defined functions.
-This includes, `apoc.date.* apoc.number.*, apoc.coll.*, apoc.map.*` and some more packages. 
+====
+Please note that about 70 procedures have been turned from procedures into user defined functions.
+This includes, `+apoc.date.* apoc.number.*, apoc.coll.*, apoc.map.*+` and some more packages.
 See, this https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/144[issue] for a list. 
+====
 
 == Detailed Feature Documentation
-See the https://neo4j-contrib.github.io/neo4j-apoc-procedures[APOC User Guide] for documentation of each of the major features of the library, including data import/export, graph algorithms, spatial, and more.
+See the link:{docs}[APOC User Guide] for documentation of each of the major features of the library, including data import/export, graph algorithms, spatial, and more.
 
 // tag::readme[]
 
@@ -52,7 +58,7 @@ to find the latest release and download the binary jar to place into your `$NEO4
 NOTE: For *Neo4j Desktop* the `plugins` directory is in a different place, put the jar-file into these (make sure to replace all at upgrade).
 See the https://neo4j.com/docs/operations-manual/current/configuration/file-locations/[Neo4j Manual] for more detail about the install locations.
 
-* OSX: `/Applications/Neo4j\ Community\ Edition\ <version>.app/Contents/Resources/app/plugins` AND `/Users/<user>/Documents/Neo4j/default.graphdb/plugins`
+* OSX: `/Applications/Neo4j\ Community\ Edition\ <version>.app/Contents/Resources/app/plugins` *AND* `/Users/<user>/Documents/Neo4j/default.graphdb/plugins`
 * Windows: `C:\Program Files\Neo4j CE <version>\plugins`
 
 // end::tag-matrix[]
@@ -65,8 +71,8 @@ Any version to be released after 1.1.0 will use a different, consistent versioni
 [options=headers]
 |===
 |apoc version | neo4j version
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.2[3.2.0.2] | 3.2.0-alpha07 (3.2.x)
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.3.6[3.1.3.6] | 3.1.3 (3.1.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.3[3.2.0.3] | 3.2.0 (3.2.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.3.7[3.1.3.7] | 3.1.4 (3.1.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.2.5[3.1.2.5] | 3.1.2
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.0.4[3.1.0.4] | 3.1.0-3.1.1 
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.0.8.6[3.0.8.6] | 3.0.5-3.0.9 (3.0.x)
@@ -111,7 +117,7 @@ A full build including running the tests can be run by `./gradlew build`.
 
 == Calling Procedures & Functions within Cypher
 
-User defined *Functions* can be used in any expression or predicate, just like built-in functions.
+User defined *Functions* can be used in *any* expression or predicate, just like built-in functions.
 
 *Procedures* can be called stand-alone with `CALL procedure.name();`
 
@@ -131,21 +137,51 @@ MERGE (p:Person {name:person.name})
 
 // end::intro[]
 
+
+== APOC Procedures & Functions Overview
+
+All included procedures are listed in the link:{docs}#_overview_of_apoc_procedures_functions[overview in the documentation] and detailed in subsequent sections.
+
+== Feedback
+
+Please provide feedback and report bugs as link:./issues[GitHub issues] or join the http://neo4j.com/slack[neo4j-users Slack] and ask on the #apoc channel.
+You might also ask on http://stackoverflow.com/questions/tagged/neo4j+apoc[StackOverflow], please tag your question there with `neo4j` and `apoc`.
+
+=== Built in Help
+
+// tag::help[]
+
+image::{img}/apoc-help-apoc.jpg[width=600]
+
+[cols="1m,5"]
+|===
+| call apoc.help('search') | lists name, description, signature, roles, based on search-string
+|===
+
+.helpful
+[source,cypher]
+----
+CALL apoc.help("apoc") YIELD name, text
+WITH * WHERE text IS null
+RETURN name AS undocumented
+----
+
+// end::help[]
+
 // tag::signature[]
 
 == Procedure & Function Signatures
 
 To call procedures correctly, you need to know their parameter names, types and positions.
-And for YIELDing their results the output column name and type.
+And for YIELDing their results, you have to know the output column names and types.
 
-You can see the procedures signature in the output of `CALL dbms.procedures()`
-(The same applies for functions with `CALL dbms.functions()`)
+INFO: The signatures are shown in error messages, if you use a procedure incorrectly.
+
+You can see the procedures signature in the output of `CALL apoc.help("name")` (which itself uses `CALL dbms.procedures()` and `CALL dbms.functions()`)
 
 [source,cypher]
 ----
-CALL dbms.procedures() YIELD name, signature
-WITH * WHERE name STARTS WITH 'apoc.algo.dijkstra'
-RETURN name, signature
+CALL apoc.help("dijkstra")
 ----
 
 The signature is always `name : : TYPE`, so in this case:
@@ -157,8 +193,7 @@ apoc.algo.dijkstra
 :: (path :: PATH?, weight :: FLOAT?)
 ----
 
-Parameters:
-
+.Parameter Explanation
 [opts=header,cols="m,m"]
 |===
 | Name | Type
@@ -174,32 +209,7 @@ h| Output Return Columns |
 
 // end::signature[]
 
-== APOC Procedures & Functions Overview
-
-All included procedures are listed in the https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_included_procedures_overview[overview in the documentation] and detailed in subsequent sections.
-
-=== Built in Help
-
-// tag::help[]
-
-image::{img}/apoc-help-apoc.jpg[width=600]
-
-[cols="1m,5"]
-|===
-| call apoc.help('search') | lists name, description-text and if the procedure performs writes (descriptions are WIP), search string is checked against beginning (package) or end (name) of procedure
-|===
-
-.helpful
-[source,cypher]
-----
-CALL apoc.help("apoc") YIELD name, text
-WITH * WHERE text IS null
-RETURN name AS undocumented
-----
-
-// end::help[]
-
-=== Builtin Package and Procedure count
+=== Get Package and Procedure count
 
 // tag::procedurecount[]
 
@@ -218,8 +228,3 @@ RETURN 'functions' as type, head(split(name,".")) as package, count(*), collect(
 ----
 
 // end::procedurecount[]
-
-== Feedback
-
-Please provide feedback and report bugs as link:./issues[GitHub issues] or join the http://neo4j.com/slack[neo4j-users Slack] and ask on the #apoc channel.
-You might also ask on http://stackoverflow.com/questions/tagged/neo4j+apoc[StackOverflow], please tag your question there with `neo4j` and `apoc`.
