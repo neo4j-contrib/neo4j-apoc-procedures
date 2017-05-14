@@ -1,10 +1,8 @@
 package apoc.index;
 
 import apoc.meta.Meta;
-import apoc.monitor.Kernel;
 import apoc.result.WeightedNodeResult;
 import apoc.result.WeightedRelationshipResult;
-import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
@@ -20,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * @author mh
@@ -195,8 +192,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.addNodeByName('name', joe, ['name','age','city'])
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addNodeByName('name',node,['prop1',...]) add node to an index for the given name")
     public void addNodeByName(@Name("name") String name, @Name("node") Node node, @Name("properties") List<String> propKeys) {
         Index<Node> index = getNodeIndex(name, null);
@@ -212,8 +208,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.addRelationshipByName('name', checkin, ['on'])
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addRelationshipByName('name',rel,['prop1',...]) add relationship to an index for the given name")
     public void addRelationshipByName(@Name("name") String name, @Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
         RelationshipIndex index = getRelationshipIndex(name, null);
@@ -231,8 +226,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.removeNodeByName('name', joe)
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.removeNodeByName('name',node) remove node from an index for the given name")
     public void removeNodeByName(@Name("name") String name, @Name("node") Node node) {
         Index<Node> index = getNodeIndex(name, null);
@@ -240,8 +234,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.removeRelationshipByName('name', checkin)
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name")
     public void removeRelationshipByName(@Name("name") String name, @Name("relationship") Relationship rel) {
         RelationshipIndex index = getRelationshipIndex(name, null);

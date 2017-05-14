@@ -1,20 +1,20 @@
 package apoc.nodes;
 
-import org.neo4j.procedure.*;
-import apoc.path.RelationshipTypeAndDirections;
-import apoc.periodic.Periodic;
-import apoc.result.BooleanResult;
 import apoc.result.LongResult;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.*;
 
 import java.util.Iterator;
 import java.util.List;
@@ -57,8 +57,7 @@ public class Nodes {
         return Util.nodeStream(db, ids).map(NodeResult::new);
     }
 
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.nodes.delete(node|nodes|id|[ids]) - quickly delete all nodes with these id's")
     public Stream<LongResult> delete(@Name("nodes") Object ids, @Name("batchSize") long batchSize) {
         Iterator<Node> it = Util.nodeStream(db, ids).iterator();
