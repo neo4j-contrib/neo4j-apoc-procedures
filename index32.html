@@ -5,7 +5,7 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.5">
-<title>APOC User Guide 3.2.0.2</title>
+<title>APOC User Guide {apoc-release}</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
@@ -420,7 +420,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
-<h1>APOC User Guide 3.2.0.2</h1>
+<h1>APOC User Guide {apoc-release}</h1>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
@@ -556,6 +556,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_overview_database_integration">Overview: Database Integration</a></li>
 <li><a href="#_mysql_example">MySQL Example</a></li>
 <li><a href="#_load_jdbc_examples">Load JDBC Examples</a></li>
+<li><a href="#_load_jdbc_with_params_examples">Load JDBC with params Examples</a></li>
 <li><a href="#_load_data_in_transactional_batches">Load data in transactional batches</a></li>
 <li><a href="#_cassandra_example">Cassandra Example</a></li>
 <li><a href="#_load_jdbc_resources">LOAD JDBC - Resources</a></li>
@@ -602,7 +603,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_running_cypher_fragments">Running Cypher fragments</a>
 <ul class="sectlevel3">
 <li><a href="#_example_fast_node_counts_by_label">Example: Fast Node-Counts by Label</a></li>
-<li><a href="#_running_a_cypher_statement_timeboxed">running a cypher statement timeboxed</a></li>
+<li><a href="#_running_a_cypher_statement_timeboxed">Running a cypher statement timeboxed</a></li>
+<li><a href="#_conditional_cypher_execution">Conditional cypher execution</a></li>
 </ul>
 </li>
 <li><a href="#_job_management_and_periodic_execution">Job management and periodic execution</a>
@@ -613,6 +615,31 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_further_functions">Further Functions</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li><a href="#_virtual">Virtual</a>
+<ul class="sectlevel2">
+<li><a href="#_virtual_nodes_rels">Virtual Nodes/Rels</a>
+<ul class="sectlevel3">
+<li><a href="#_virtual_nodes_rels_example">Virtual Nodes/Rels Example</a></li>
+</ul>
+</li>
+<li><a href="#_virtual_graph">Virtual Graph</a>
+<ul class="sectlevel3">
+<li><a href="#_virtual_graph_examples">Virtual Graph Examples</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_graph_refactoring_2">Graph Refactoring</a>
+<ul class="sectlevel3">
+<li><a href="#_graph_refactoring_examples">Graph Refactoring Examples</a></li>
+<li><a href="#_rename">Rename</a></li>
+</ul>
+</li>
+<li><a href="#_triggers">Triggers</a>
+<ul class="sectlevel4">
+<li><a href="#_triggers_examples">Triggers Examples</a></li>
 </ul>
 </li>
 <li><a href="#_appendix_complete_overview">Appendix: Complete Overview</a>
@@ -643,15 +670,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_interacting_with_couchbase">Interacting with Couchbase</a></li>
 <li><a href="#_streaming_data_to_gephi_2">Streaming Data to Gephi</a></li>
 <li><a href="#_creating_data">Creating Data</a></li>
-<li><a href="#_virtual_nodes_rels">Virtual Nodes/Rels</a></li>
-<li><a href="#_virtual_graph">Virtual Graph</a></li>
+<li><a href="#_virtual_nodes_rels_2">Virtual Nodes/Rels</a></li>
+<li><a href="#_virtual_graph_2">Virtual Graph</a></li>
 <li><a href="#_generating_graphs">Generating Graphs</a></li>
 <li><a href="#_warmup">Warmup</a></li>
 <li><a href="#_monitoring">Monitoring</a></li>
 <li><a href="#_cypher_execution">Cypher Execution</a></li>
-<li><a href="#_triggers">Triggers</a></li>
+<li><a href="#_conditional_cypher_execution_2">Conditional Cypher Execution</a></li>
+<li><a href="#_triggers_2">Triggers</a></li>
 <li><a href="#_job_management">Job Management</a></li>
-<li><a href="#_graph_refactoring_2">Graph Refactoring</a></li>
+<li><a href="#_graph_refactoring_3">Graph Refactoring</a></li>
 <li><a href="#_spatial_2">Spatial</a></li>
 <li><a href="#_helpers">Helpers</a>
 <ul class="sectlevel3">
@@ -695,6 +723,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect1">
 <h2 id="_introduction"><a class="link" href="#_introduction">Introduction</a></h2>
 <div class="sectionbody">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Go here for documentation for APOC for Neo4j version <a href="index30.html">3.0.x</a> <a href="index31.html">3.1.x</a> <a href="index32.html">3.2.x</a>
+</td>
+</tr>
+</table>
+</div>
 <div class="sect2">
 <h3 id="_notices"><a class="link" href="#_notices">Notices</a></h3>
 <div class="admonitionblock warning">
@@ -704,8 +744,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="title">Warning</div>
 </td>
 <td class="content">
-Neo4j 3.2 has increased security for procedures and functions.
-Procedures that use internal APIs (like <code>GraphDatabaseAPI</code>,<code>KernelTransaction</code>, etc.) have to be whitelisted in <code>$NEO4J_HOME/conf/neoj4.conf</code> with <code>dbms.security.procedures.unrestricted=apoc.*,apoc.meta.*</code> for security reasons.
+Neo4j 3.2 has increased security for procedures and functions (aka sandboxing).
+Procedures that use internal APIs have to be allowed in <code>$NEO4J_HOME/conf/neoj4.conf</code> with, e.g. <code>dbms.security.procedures.unrestricted=apoc.trigger.*,apoc.meta.*</code> for security reasons (or <code>apoc.*</code> for all).
 </td>
 </tr>
 </table>
@@ -717,33 +757,17 @@ Procedures that use internal APIs (like <code>GraphDatabaseAPI</code>,<code>Kern
 <div class="title">Note</div>
 </td>
 <td class="content">
-You can also whitelist procedures and functions to be loaded using: <code>dbms.security.procedures.white_list=apoc.coll.<strong>,apoc.load.</strong></code>
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>You can also whitelist procedures and functions in general to be loaded using: <code>dbms.security.procedures.white_list=apoc.coll.*,apoc.load.*</code></p>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-Neo4j 3.2 introduces user defined aggregation functions, we will use that feature in APOC e.g. for export, graph-algorithms and more, instead of passing in Cypher statements to procedures.
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>Neo4j 3.2 introduces user defined aggregation functions, we will use that feature in APOC in the future, e.g. for export, graph-algorithms and more, instead of passing in Cypher statements to procedures.</p>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-Please note that about 70 procedures have been turned into user defined functions.
-This includes, <code>apoc.date.* apoc.number.<strong>, apoc.coll.</strong>, apoc.map.*</code> and some more packages.
-See, this <a href="https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/144">issue</a> for a list.
+<div class="paragraph">
+<p>Please note that about 70 procedures have been turned from procedures into user defined functions.
+This includes, <code>apoc.date.* apoc.number.*, apoc.coll.*, apoc.map.*</code> and some more packages.
+See, this <a href="https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/144">issue</a> for a list.</p>
+</div>
 </td>
 </tr>
 </table>
@@ -797,8 +821,31 @@ Those procedures are implemented in Java and can be easily deployed into your Ne
 <div class="sect3">
 <h4 id="_download_latest_release"><a class="link" href="#_download_latest_release">Download latest release</a></h4>
 <div class="paragraph">
-<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.2" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.2</a>
+<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/{apoc-release}" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/{apoc-release}</a>
 to find the latest release and download the binary jar to place into your <code>$NEO4J_HOME/plugins</code> folder.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+For <strong>Neo4j Desktop</strong> the <code>plugins</code> directory is in a different place, put the jar-file into these (make sure to replace all at upgrade).
+See the <a href="https://neo4j.com/docs/operations-manual/current/configuration/file-locations/">Neo4j Manual</a> for more detail about the install locations.
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>OSX: <code>/Applications/Neo4j\ Community\ Edition\ &lt;version&gt;.app/Contents/Resources/app/plugins</code> <strong>AND</strong> <code>/Users/&lt;user&gt;/Documents/Neo4j/default.graphdb/plugins</code></p>
+</li>
+<li>
+<p>Windows: <code>C:\Program Files\Neo4j CE &lt;version&gt;\plugins</code></p>
+</li>
+</ul>
 </div>
 </div>
 <div class="sect3">
@@ -820,12 +867,12 @@ to find the latest release and download the binary jar to place into your <code>
 <td class="tableblock halign-left valign-top"><p class="tableblock">neo4j version</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.2">3.2.0.2</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.2.0-alpha07 (3.2.x)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.3">3.2.0.3</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.2.0 (3.2.x)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.3.6">3.1.3.6</a></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.3 (3.1.x)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.3.7">3.1.3.7</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1.4 (3.1.x)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.2.5">3.1.2.5</a></p></td>
@@ -863,9 +910,9 @@ to find the latest release and download the binary jar to place into your <code>
 <div class="content">
 <pre class="highlight"><code class="language-bash" data-lang="bash">mkdir plugins
 pushd plugins
-wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.0.2/apoc-3.2.0.2-all.jar
+wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-{apoc-release}-all.jar
 popd
-docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.2.0-alpha07</code></pre>
+docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.2.0</code></pre>
 </div>
 </div>
 </div>
@@ -887,7 +934,7 @@ $NEO4J_HOME/bin/neo4j restart</pre>
 <div class="sect2">
 <h3 id="_calling_procedures_functions_within_cypher"><a class="link" href="#_calling_procedures_functions_within_cypher">Calling Procedures &amp; Functions within Cypher</a></h3>
 <div class="paragraph">
-<p>User defined <strong>Functions</strong> can be used in any expression or predicate, just like built-in functions.</p>
+<p>User defined <strong>Functions</strong> can be used in <strong>any</strong> expression or predicate, just like built-in functions.</p>
 </div>
 <div class="paragraph">
 <p><strong>Procedures</strong> can be called stand-alone with <code>CALL procedure.name();</code></p>
@@ -911,17 +958,17 @@ MERGE (p:Person {name:person.name})
 <h3 id="_procedure_function_signatures"><a class="link" href="#_procedure_function_signatures">Procedure &amp; Function Signatures</a></h3>
 <div class="paragraph">
 <p>To call procedures correctly, you need to know their parameter names, types and positions.
-And for YIELDing their results the output column name and type.</p>
+And for YIELDing their results, you have to know the output column names and types.</p>
 </div>
 <div class="paragraph">
-<p>You can see the procedures signature in the output of <code>CALL dbms.procedures()</code>
-(The same applies for functions with <code>CALL dbms.functions()</code>)</p>
+<p>INFO: The signatures are shown in error messages, if you use a procedure incorrectly.</p>
+</div>
+<div class="paragraph">
+<p>You can see the procedures signature in the output of <code>CALL apoc.help("name")</code> (which itself uses <code>CALL dbms.procedures()</code> and <code>CALL dbms.functions()</code>)</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL dbms.procedures() YIELD name, signature
-WITH * WHERE name STARTS WITH 'apoc.algo.dijkstra'
-RETURN name, signature</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.help("dijkstra")</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -935,10 +982,8 @@ RETURN name, signature</code></pre>
 :: (path :: PATH?, weight :: FLOAT?)</pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Parameters:</p>
-</div>
 <table class="tableblock frame-all grid-all spread">
+<caption class="title">Table 1. Parameter Explanation</caption>
 <colgroup>
 <col style="width: 50%;">
 <col style="width: 50%;">
@@ -1364,6 +1409,26 @@ RETURN name AS undocumented</code></pre>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.when</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes read-only ifQuery or elseQuery with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.do.when</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.do.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes writing ifQuery or elseQuery with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.case</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.case([condition, query, condition, query, &#8230;&#8203;], elseQuery:'', params:{}) yield value - given a list of conditional / read-only query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.do.case</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.do.case([condition, query, condition, query, &#8230;&#8203;], elseQuery:'', params:{}) yield value - given a list of conditional / writing query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.date.expire</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.date.expire(node,time,'time-unit') - expire node in given time by setting :TTL label and <code>ttl</code> property</p></td>
 </tr>
@@ -1625,7 +1690,7 @@ RETURN name AS undocumented</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.out</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.out(node,'TYPE','prop:value*') YIELD node - lucene query on relationship index with the given type name for <strong>outgoing</strong> relationship of the given node, <strong>returns end-nodes</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">out(node,'TYPE','prop:value*') YIELD node - lucene query on relationship index with the given type name for <strong>outgoing</strong> relationship of the given node, <strong>returns end-nodes</strong></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -1747,6 +1812,11 @@ RETURN name AS undocumented</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.lock.rels</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.lock.rels([relationships]) acquires a write lock on the given relationship</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.math.regr</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.math.regr(label, propertyY, propertyX) - It calculates the coefficient of determination (R-squared) for the values of propertyY and propertyX in the provided label</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -1975,6 +2045,26 @@ RETURN name AS undocumented</code></pre>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.refactor.rename.label</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.refactor.rename.label(oldLabel, newLabel, [nodes]) | rename a label from 'oldLabel' to 'newLabel' for all nodes. If 'nodes' is provided renaming is applied to this set only</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.refactor.rename.type</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.refactor.rename.type(oldType, newType, [rels]) | rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.refactor.rename.nodeProperty</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.refactor.rename.nodeProperty(oldName, newName, [nodes]) | rename all node&#8217;s property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.refactor.rename.typeProperty</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.refactor.rename.typeProperty(oldName, newName, [rels]) | rename all relationship&#8217;s property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.search.nodeAllReduced</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Do a parallel search over multiple indexes returning a reduced representation of the nodes found: node id, labels and the searched property. apoc.search.nodeShortAll( map of label and properties which will be searched upon, operator: EXACT / CONTAINS / STARTS WITH | ENDS WITH / = / &lt;&gt; / &lt; / &gt; &#8230;&#8203;, value ). All 'hits' are returned.</p></td>
 </tr>
@@ -2036,6 +2126,16 @@ RETURN name AS undocumented</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.trigger.list</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.trigger.pause</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.trigger.resume</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
@@ -2590,6 +2690,11 @@ RETURN name AS undocumented</code></pre>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.slug</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.slug(text, delim) - slug the text with the given delimiter</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.trigger.nodesByLabel</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
@@ -2631,7 +2736,7 @@ RETURN name AS undocumented</code></pre>
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (v:Value {id:{id}, data:{data}})
 WITH v
-CALL apoc.date.formatDefault(timestamp(), "ms") YIELD value as created
+CALL apoc.date.format(timestamp(), "ms") YIELD value as created
 SET v.created = created</code></pre>
 </div>
 </div>
@@ -2868,7 +2973,7 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.out</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.out(node,'TYPE','prop:value*') YIELD node - lucene query on relationship index with the given type name for <strong>outgoing</strong> relationship of the given node, <strong>returns end-nodes</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">out(node,'TYPE','prop:value*') YIELD node - lucene query on relationship index with the given type name for <strong>outgoing</strong> relationship of the given node, <strong>returns end-nodes</strong></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -3477,21 +3582,19 @@ RETURN value // will return 'H436'</code></pre>
 <div class="sect2">
 <h3 id="_extract_domain"><a class="link" href="#_extract_domain">Extract Domain</a></h3>
 <div class="paragraph">
-<p>The procedure <code>apoc.data.domain</code> will take a url or email address and try to determine the domain name.
+<p>The User Function <code>apoc.data.domain</code> will take a url or email address and try to determine the domain name.
 This can be useful to make easier correlations and equality tests between differently formatted email addresses, and between urls to the same domains but specifying different locations.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH 'foo@bar.com' AS email
-CALL apoc.data.domain(email) YIELD domain
-RETURN domain // will return 'bar.com'</code></pre>
+RETURN apoc.data.domain(email) // will return 'bar.com'</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH 'http://www.example.com/all-the-things' AS url
-CALL apoc.data.domain(url) YIELD domain
-RETURN domain // will return 'www.example.com'</code></pre>
+RETURN apoc.data.domain(url) // will return 'www.example.com'</code></pre>
 </div>
 </div>
 <div class="sect3">
@@ -3547,19 +3650,10 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 <div class="ulist">
 <ul>
 <li>
-<p><code>apoc.date.parseDefault('2015-03-25 03:15:59','s')</code> get Unix time equivalent of given date (in seconds)</p>
+<p><code>apoc.date.parse('2015/03/25 03-15-59',['s'],['yyyy/MM/dd HH/mm/ss'])</code> same as previous, but accepts custom datetime format</p>
 </li>
 <li>
-<p><code>apoc.date.parse('2015/03/25 03-15-59','s','yyyy/MM/dd HH/mm/ss')</code> same as previous, but accepts custom datetime format</p>
-</li>
-<li>
-<p><code>apoc.date.formatDefault(12345,'s')</code> get string representation of date corresponding to given Unix time (in seconds) in UTC time zone</p>
-</li>
-<li>
-<p><code>apoc.date.format(12345,'s', 'yyyy/MM/dd HH/mm/ss')</code> the same as previous, but accepts custom datetime format</p>
-</li>
-<li>
-<p><code>apoc.date.formatTimeZone(12345,'s', 'yyyy/MM/dd HH/mm/ss', 'ABC')</code> the same as previous, but accepts custom time zone</p>
+<p><code>apoc.date.format(12345,['s'], ['yyyy/MM/dd HH/mm/ss'])</code> the same as previous, but accepts custom datetime format</p>
 </li>
 <li>
 <p>possible unit values: <code>ms,s,m,h,d</code> and their long forms.</p>
@@ -3603,12 +3697,7 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.fields('2015-03-25 03:15:59')</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">RETURN apoc.date.fields('2015-03-25 03:15:59')</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3661,51 +3750,36 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 <h4 id="_examples"><a class="link" href="#_examples">Examples</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.fieldsDefault('2015-03-25 03:15:59')</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>    {
-      'Months': 1,
-      'Days': 2,
-      'Hours': 3,
-      'Minutes': 4,
-      'Seconds': 5,
-      'Years': 2015
-    }</pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">RETURN apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre>  {
-    'ZoneId': 'Europe/Bucharest',
-    'Months': 1,
-    'Days': 2,
-    'Hours': 3,
-    'Minutes': 4,
-    'Seconds': 5,
-    'Years': 2015
+    'weekdays': 5,
+    'years': 2015,
+    'seconds': 5,
+    'zoneid': 'EET',
+    'minutes': 4,
+    'hours': 3,
+    'months': 1,
+    'days': 2
   }</pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z')</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">RETURN apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z')</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre>  {
-    'Years': 2015,
-    'ZoneId': 'Europe/Bucharest',
-    'Months': 1,
-    'Days': 2
+    'weekdays': 5,
+    'years': 2015,
+    'zoneid': 'EET',
+    'months': 1,
+    'days': 2
   }</pre>
 </div>
 </div>
@@ -3740,40 +3814,40 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 <div class="ulist">
 <ul>
 <li>
-<p><code>apoc.number.format(number) yield value</code> format a long or double using the default system pattern and language to produce a string</p>
+<p><code>apoc.number.format(number)</code> format a long or double using the default system pattern and language to produce a string</p>
 </li>
 <li>
-<p><code>apoc.number.format.pattern(number, pattern) yield value</code> format a long or double using a pattern and the default system language to produce a string</p>
+<p><code>apoc.number.format(number, pattern)</code> format a long or double using a pattern and the default system language to produce a string</p>
 </li>
 <li>
-<p><code>apoc.number.format.lang(number, lang) yield value</code> format a long or double using the default system pattern pattern and a language to produce a string</p>
+<p><code>apoc.number.format(number, lang)</code> format a long or double using the default system pattern pattern and a language to produce a string</p>
 </li>
 <li>
-<p><code>apoc.number.format.pattern.lang(number, pattern, lang) yield value</code> format a long or double using a pattern and a language to produce a string</p>
+<p><code>apoc.number.format(number, pattern, lang)</code> format a long or double using a pattern and a language to produce a string</p>
 </li>
 <li>
-<p><code>apoc.number.parseInt(text) yield value</code> parse a text using the default system pattern and language to produce a long</p>
+<p><code>apoc.number.parseInt(text)</code> parse a text using the default system pattern and language to produce a long</p>
 </li>
 <li>
-<p><code>apoc.number.parseInt.pattern(text, pattern) yield value</code> parse a text using a pattern and the default system language to produce a long</p>
+<p><code>apoc.number.parseInt(text, pattern)</code> parse a text using a pattern and the default system language to produce a long</p>
 </li>
 <li>
-<p><code>apoc.number.parseInt.lang(text, lang) yield value</code> parse a text using the default system pattern and a language to produce a long</p>
+<p><code>apoc.number.parseInt(text, '', lang)</code> parse a text using the default system pattern and a language to produce a long</p>
 </li>
 <li>
-<p><code>apoc.number.parseInt.pattern.lang(text, pattern, lang) yield value</code> parse a text using a pattern and a language to produce a long</p>
+<p><code>apoc.number.parseInt(text, pattern, lang)</code> parse a text using a pattern and a language to produce a long</p>
 </li>
 <li>
-<p><code>apoc.number.parseFloat(text) yield value</code> parse a text using the default system pattern and language to produce a double</p>
+<p><code>apoc.number.parseFloat(text)</code> parse a text using the default system pattern and language to produce a double</p>
 </li>
 <li>
-<p><code>apoc.number.parseFloat.pattern(text, pattern) yield value</code> parse a text using a pattern and the default system language to produce a double</p>
+<p><code>apoc.number.parseFloat(text, pattern)</code> parse a text using a pattern and the default system language to produce a double</p>
 </li>
 <li>
-<p><code>apoc.number.parseFloat.lang(text, lang) yield value</code> parse a text using the default system pattern and a language to produce a double</p>
+<p><code>apoc.number.parseFloat(text,'',lang)</code> parse a text using the default system pattern and a language to produce a double</p>
 </li>
 <li>
-<p><code>apoc.number.parseFloat.pattern.lang(text, pattern, lang) yield value</code> parse a text using a pattern and a language to produce a double</p>
+<p><code>apoc.number.parseFloat(text, pattern, lang)</code> parse a text using a pattern and a language to produce a double</p>
 </li>
 <li>
 <p>The full list of supported values for <code>pattern</code> and <code>lang</code> params is described in <a href="https://docs.oracle.com/javase/9/docs/api/java/text/DecimalFormat.html">DecimalFormat JavaDoc</a></p>
@@ -3785,8 +3859,7 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 <h4 id="_examples_2"><a class="link" href="#_examples_2">Examples</a></h4>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.format(12345.67) yield value
-  return value
+<pre>  return apoc.number.format(12345.67) as value
 
   ╒═════════╕
   │value    │
@@ -3797,8 +3870,7 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.format.pattern.lang(12345, '#,##0.00;(#,##0.00)', 'it') yield value
-  return value
+<pre>  return apoc.number.format(12345, '#,##0.00;(#,##0.00)', 'it') as value
 
   ╒═════════╕
   │value    │
@@ -3809,8 +3881,7 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.format.pattern.lang(12345.67, '#,##0.00;(#,##0.00)', 'it') yield value
-  return value
+<pre>  return apoc.number.format(12345.67, '#,##0.00;(#,##0.00)', 'it') as value
 
   ╒═════════╕
   │value    │
@@ -3821,8 +3892,7 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.parseInt.pattern.lang('12.345', '#,##0.00;(#,##0.00)', 'it') yield value
-  return value
+<pre>  return apoc.number.parseInt('12.345', '#,##0.00;(#,##0.00)', 'it') as value
 
   ╒═════╕
   │value│
@@ -3833,8 +3903,7 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.parseFloat.pattern.lang('12.345,67', '#,##0.00;(#,##0.00)', 'it') yield value
-  return value
+<pre>  return apoc.number.parseFloat('12.345,67', '#,##0.00;(#,##0.00)', 'it') as value
 
   ╒════════╕
   │value   │
@@ -3845,23 +3914,16 @@ CALL apoc.date.expire(n,100,'s');</code></pre>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.format('aaa') yield value
+<pre>  return apoc.number.format('aaa') as value
 
-  Failed to invoke procedure `apoc.number.format`: Caused by: java.lang.IllegalArgumentException: Number parameter must be long or double.</pre>
+  null beacuse 'aaa' isn't a number</pre>
 </div>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>  call apoc.number.format.lang(12345, 'apoc')
+<pre>  RETURN apoc.number.parseInt('aaa')
 
-  Failed to invoke procedure `apoc.number.format.lang`: Caused by: java.lang.IllegalArgumentException: Unrecognized language value: 'apoc' isn't a valid ISO language</pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>  call apoc.number.parseInt('aaa')
-
-  Failed to invoke procedure `apoc.number.parseAsLong`: Caused by: java.text.ParseException: Unparseable number: "aaa"</pre>
+  Return null because 'aaa' is unparsable.</pre>
 </div>
 </div>
 </div>
@@ -4158,7 +4220,8 @@ While there is a path from 'Keanu Reeves' to 'Clint Eastwood' through 'Gene Hack
              RELATIONSHIP_GLOBAL|RELATIONSHIP_LEVEL|RELATIONSHIP_RECENT,
  bfs: true|false,
  filterStartNode: true|false,
- limit: -1|number}</pre>
+ limit: -1|number,
+ optional: true|false}</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -4214,6 +4277,13 @@ While there is a path from 'Keanu Reeves' to 'Clint Eastwood' through 'Gene Hack
 <div class="paragraph">
 <p>If you want to make sure multiple paths should never match to the same node, use <code>expandConfig()</code> with 'NODE_GLOBAL' uniqueness, or any expand procedure which already uses this uniqueness
 (<code>subgraphNodes()</code>, <code>subgraphAll()</code>, and <code>spanningTree()</code>).</p>
+</div>
+<div class="paragraph">
+<div class="title">Optional</div>
+<p>When <code>optional</code> is set to true, the path expansion is optional, much like an OPTIONAL MATCH, so a <code>null</code> value is yielded whenever the expansion would normally eliminate rows due to no results.</p>
+</div>
+<div class="paragraph">
+<p>By default <code>optional</code> is false for all expansion procedures taking a config parameter.</p>
 </div>
 <div class="paragraph">
 <div class="title">Uniqueness</div>
@@ -4318,7 +4388,7 @@ RETURN count(*);</code></pre>
 <h4 id="_expand_to_nodes_in_a_subgraph"><a class="link" href="#_expand_to_nodes_in_a_subgraph">Expand to nodes in a subgraph</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre>apoc.path.subgraphNodes(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1}) yield node</pre>
+<pre>apoc.path.subgraphNodes(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1, optional:false}) yield node</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -4364,6 +4434,9 @@ Returns the collection of nodes in the subgraph, and the collection of relations
 <p>Accepts the same <code>config</code> values as in <code>expandConfig()</code>, though <code>uniqueness</code> and <code>minLevel</code> are not configurable.</p>
 </div>
 <div class="paragraph">
+<p>The <code>optional</code> config value isn&#8217;t needed, as empty lists are yielded if there are no results, so rows are never eliminated.</p>
+</div>
+<div class="paragraph">
 <div class="title">Example</div>
 <p>Expand to local subgraph (and all its relationships) within 4 traversals:</p>
 </div>
@@ -4379,7 +4452,7 @@ RETURN nodes, relationships;</code></pre>
 <h4 id="_expand_a_spanning_tree"><a class="link" href="#_expand_a_spanning_tree">Expand a spanning tree</a></h4>
 <div class="listingblock">
 <div class="content">
-<pre>apoc.path.spanningTree(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1}) yield path</pre>
+<pre>apoc.path.spanningTree(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1, optional:false}) yield path</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -4803,21 +4876,18 @@ LIMIT 100</code></pre>
 <div class="sect3">
 <h4 id="_combined_space_and_time_search"><a class="link" href="#_combined_space_and_time_search">Combined Space and Time search</a></h4>
 <div class="paragraph">
-<p>Combining spatial and date-time procedures can allow for more complex queries:</p>
+<p>Combining spatial and date-time functions can allow for more complex queries:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.parse('2016-06-01 00:00:00','h') YIELD value AS due_date
-WITH due_date,
-point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
 MATCH (e:Event)
 WHERE exists(e.address) AND exists(e.datetime)
 CALL apoc.spatial.geocodeOnce(e.address) YIELD location
-CALL apoc.date.parse(e.datetime,'h') YIELD value AS hours
 WITH e, location,
 distance(point(location), eiffel) AS distance,
-            (due_date - hours)/24.0 AS days_before_due
-WHERE distance &lt; 5000 AND days_before_due &lt; 14 AND hours &lt; due_date
+            (apoc.date.parse('2016-06-01 00:00:00','h') - apoc.date.parse(e.datetime,'h'))/24.0 AS days_before_due
+WHERE distance &lt; 5000 AND days_before_due &lt; 14 AND apoc.date.parse(e.datetime,'h') &lt; apoc.date.parse('2016-06-01 00:00:00','h')
 RETURN e.name AS event, e.datetime AS date,
 location.description AS description, distance
 ORDER BY distance</code></pre>
@@ -4858,7 +4928,7 @@ Cypher is pretty good at deconstructing nested documents with dot syntax, slices
 <p><code>$.store.book[0].title</code></p>
 </div>
 <table class="tableblock frame-all grid-all spread">
-<caption class="title">Table 1. Operators</caption>
+<caption class="title">Table 2. Operators</caption>
 <colgroup>
 <col style="width: 33.3333%;">
 <col style="width: 66.6667%;">
@@ -5218,6 +5288,20 @@ RETURN row limit 1;</code></pre>
 </div>
 </div>
 <div class="sect3">
+<h4 id="_load_jdbc_with_params_examples"><a class="link" href="#_load_jdbc_with_params_examples">Load JDBC with params Examples</a></h4>
+<div class="listingblock">
+<div class="content">
+<pre>with "select firstname, lastname from employees where firstname like ? and lastname like ?" as sql
+cypher call apoc.load.jdbcParams("northwind", sql, ['F%', '%w']) yield row
+return row</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>JDBC pretends positional "?" for parameters, so the third apoc parameter has to be an array with values coherent with that positions.
+In case of 2 parameters, firstname and lastname ['firstname-position','lastname-position']</p>
+</div>
+</div>
+<div class="sect3">
 <h4 id="_load_data_in_transactional_batches"><a class="link" href="#_load_data_in_transactional_batches">Load data in transactional batches</a></h4>
 <div class="paragraph">
 <p>You can load data from jdbc and create/update the graph using the query results in batches (and in parallel).</p>
@@ -5531,12 +5615,27 @@ Put the JDBC driver into the <code>$NEO4J_HOME/plugins</code> directory and conf
 </div>
 <div class="sect4">
 <h5 id="_example"><a class="link" href="#_example">Example</a></h5>
+<div class="paragraph">
+<p>You can export your graph as an unweighted network.</p>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">match path = (:Person)-[:ACTED_IN]-&gt;(:Movie)
 WITH path LIMIT 1000
 with collect(path) as paths
 call apoc.gephi.add(null,'workspace0', paths) yield nodes, relationships, time
+return nodes, relationships, time</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can export your graph as a weighted network, by specifying the property of a relationship, that holds the weight value.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">match path = (:Person)-[r:ACTED_IN]-&gt;(:Movie) where exists r.weightproperty
+WITH path LIMIT 1000
+with collect(path) as paths
+call apoc.gephi.add(null,'workspace0', paths, 'weightproperty') yield nodes, relationships, time
 return nodes, relationships, time</code></pre>
 </div>
 </div>
@@ -5550,7 +5649,7 @@ return nodes, relationships, time</code></pre>
 <div class="content">
 <pre class="highlight"><code class="language-javascript" data-lang="javascript">{"an":{"123":{"TYPE":"Person:Actor","label":"Tom Hanks",                           x:333,y:222,r:0.1,g:0.3,b:0.5}}}\r\n
 {"an":{"345":{"TYPE":"Movie","label":"Forrest Gump",                               x:234,y:122,r:0.2,g:0.2,b:0.7}}}\r\n
-{"ae":{"3344":{"TYPE":"ACTED_IN","label":"Tom Hanks",source:"123",target:"345","directed":true,r:0.1,g:0.3,b:0.5}}}</code></pre>
+{"ae":{"3344":{"TYPE":"ACTED_IN","label":"Tom Hanks",source:"123",target:"345","directed":true,"weight":1.0,r:0.1,g:0.3,b:0.5}}}</code></pre>
 </div>
 </div>
 </div>
@@ -5561,6 +5660,9 @@ return nodes, relationships, time</code></pre>
 </div>
 <div class="paragraph">
 <p>We also generate colors per label combination and relationship-type, both of which are also transferred as <code>TYPE</code> property.</p>
+</div>
+<div class="paragraph">
+<p>You can have your weight property stored as a number (integer,float) or a string. If the weight property is invalid or null, it will use the default 1.0 value.</p>
 </div>
 </div>
 </div>
@@ -5872,6 +5974,36 @@ If there is more than one element there will be a list of values.</p>
     _description: {_type: description, _text: An in-depth look at creating applications ....</code></pre>
 </div>
 </div>
+<div class="sect4">
+<h5 id="_simple_xml_examples"><a class="link" href="#_simple_xml_examples">Simple XML Examples</a></h5>
+<div class="listingblock">
+<div class="title">Example 1</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH "https://maps.googleapis.com/maps/api/directions/xml?origin=Mertens%20en%20Torfsstraat%2046,%202018%20Antwerpen&amp;destination=Rubensstraat%2010,%202300%20Turnhout&amp;sensor=false&amp;mode=bicycling&amp;alternatives=false&amp;key=AIzaSyAPPIXGudOyHD_KAa2f_1l_QVNbsd_pMQs" AS url
+CALL apoc.load.xmlSimple(url) YIELD value
+RETURN value._route._leg._distance._value, keys(value), keys(value._route), keys(value._route._leg), keys(value._route._leg._distance._value)</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.load.xmlSimple.ex1.png" alt="apoc.load.xmlSimple.ex1" width="800">
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example 2</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">WITH "https://maps.googleapis.com/maps/api/directions/xml?origin=Mertens%20en%20Torfsstraat%2046,%202018%20Antwerpen&amp;destination=Rubensstraat%2010,%202300%20Turnhout&amp;sensor=false&amp;mode=bicycling&amp;alternatives=false&amp;key=AIzaSyAPPIXGudOyHD_KAa2f_1l_QVNbsd_pMQs" AS url
+CALL apoc.load.xmlSimple(url) YIELD value
+UNWIND keys(value) AS key
+RETURN key, apoc.meta.type(value[key]);</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.load.xmlSimple.ex2.png" alt="apoc.load.xmlSimple.ex2" width="800">
+</div>
+</div>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_load_xml_and_introspect"><a class="link" href="#_load_xml_and_introspect">Load XML and Introspect</a></h4>
@@ -6166,6 +6298,26 @@ RETURN node</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runTimeboxed</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) - abort statement after timeout ms if not finished</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.when</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes read-only ifQuery or elseQuery with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.do.when</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.do.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes writing ifQuery or elseQuery with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.case</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.case([condition, query, condition, query, &#8230;&#8203;], elseQuery:'', params:{}) yield value - given a list of conditional / read-only query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.do.case</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.do.case([condition, query, condition, query, &#8230;&#8203;], elseQuery:'', params:{}) yield value - given a list of conditional / writing query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters</p></td>
+</tr>
 </tbody>
 </table>
 <div class="sect3">
@@ -6218,7 +6370,7 @@ RETURN label, value.keys as keys</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_running_a_cypher_statement_timeboxed"><a class="link" href="#_running_a_cypher_statement_timeboxed">running a cypher statement timeboxed</a></h4>
+<h4 id="_running_a_cypher_statement_timeboxed"><a class="link" href="#_running_a_cypher_statement_timeboxed">Running a cypher statement timeboxed</a></h4>
 <div class="paragraph">
 <p>There&#8217;s a way to terminate a cypher statement if it takes longer than a given threshold. Consider an expensive statement calculating cross product of shortestpaths for each pair of nodes:</p>
 </div>
@@ -6226,6 +6378,95 @@ RETURN label, value.keys as keys</code></pre>
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.cypher.runTimeboxed("match (n),(m) match p=shortestPath((n)-[*]-(m)) return p", null, 10000) yield value
 return value.p</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_conditional_cypher_execution"><a class="link" href="#_conditional_cypher_execution">Conditional cypher execution</a></h4>
+<div class="paragraph">
+<p>Sometimes queries require conditional execution logic that can&#8217;t be adequately expressed in Cypher, even with CASE.</p>
+</div>
+<div class="paragraph">
+<p>APOC&#8217;s conditional execution procedures simulate an if / else structure, where a supplied boolean condition determines which cypher query is executed.</p>
+</div>
+<div class="sect5">
+<h6 id="_when_procedures"><a class="link" href="#_when_procedures">WHEN Procedures</a></h6>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.when(condition, ifQuery, elseQuery:'', params:{}) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">based on the condition, executes read-only ifQuery or elseQuery with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.do.when(condition, ifQuery, elseQuery:'', params:{}) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">based on the condition, executes writing ifQuery or elseQuery with the given parameters</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>For example, if we wanted to match to neighbor nodes one and two traversals away from a start node, and return the smaller set (either those one hop away, or those that are two hops away), we might use:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher"> MATCH (start:Node)-[:REL]-&gt;(a)-[:REL]-&gt;(b)
+ WITH collect(distinct a) as aNodes, collect(distinct b) as bNodes
+ CALL apoc.when(size(aNodes) &lt;= size(bNodes), 'RETURN aNodes as resultNodes', 'RETURN bNodes as resultNodes', {aNodes:aNodes, bNodes:bNodes}) YIELD value
+ RETURN value.resultNodes as resultNodes</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or, if we wanted to conditionally set or create graph elements if we deem some account to be suspicious, but still want to continue other query operations in either case, we could use <code>apoc.do.when</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (acc:Account)
+OPTIONAL MATCH (acc)-[r:ACCESSED_BY]-&gt;(suspect:User)
+WHERE suspect.id in {suspiciousUsersIdList}
+CALL apoc.do.when(r IS NOT NULL, 'SET acc:Suspicious', '', {acc:acc}) YIELD value
+// ignore value and continue
+WITH acc
+...</code></pre>
+</div>
+</div>
+</div>
+<div class="sect5">
+<h6 id="_case_procedures"><a class="link" href="#_case_procedures">CASE Procedures</a></h6>
+<div class="paragraph">
+<p>For more complex conditional logic, case procedures allow for a variable-length list of condition / query pairs, where the query following the first conditional evaluating to true is executed. An elseQuery block is executed if none of the conditionals are true.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.case([condition, query, condition, query, &#8230;&#8203;], elseQuery:'', params:{}) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">given a list of conditional / read-only query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.do.case([condition, query, condition, query, &#8230;&#8203;], elseQuery:'', params:{}) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">given a list of conditional / writing query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>If we wanted to MATCH to selection nodes in a column, we could use entirely different MATCHES depending on query parameters, or based on data already in the graph:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher"> MATCH (me:User{id:{myId}})
+ CALL apoc.case(
+  [{selection} = 'friends', "RETURN [(me)-[:FRIENDS]-(friend) | friend] as selection",
+   {selection} = 'coworkers', "RETURN [(me)-[:WORKS_AT*2]-(coworker) | coworker] as selection",
+   {selection} = 'all', "RETURN apoc.coll.union([(me)-[:FRIENDS]-(friend) | friend], [(me)-[:WORKS_AT*2]-(coworker) | coworker]) as selection"],
+   'RETURN [] as selection', {me:me}) YIELD value
+ RETURN value.selection as selection</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -6268,7 +6509,7 @@ The <strong>second</strong>, inner statement processes <strong>one</strong> elem
 <p>The results of the outer statement are passed into the inner statement as parameters, they are automatically made available with their names.</p>
 </div>
 <table class="tableblock frame-all grid-all spread">
-<caption class="title">Table 2. configuration options</caption>
+<caption class="title">Table 3. configuration options</caption>
 <colgroup>
 <col style="width: 33.3333%;">
 <col style="width: 33.3333%;">
@@ -6473,6 +6714,955 @@ $(document).ready(function() {
 </div>
 </div>
 <div class="sect1">
+<h2 id="_virtual"><a class="link" href="#_virtual">Virtual</a></h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_virtual_nodes_rels"><a class="link" href="#_virtual_nodes_rels">Virtual Nodes/Rels</a></h3>
+<div class="paragraph">
+<p>Virtual Nodes and Relationships don&#8217;t exist in the graph, they are only returned to the UI/user for representing a graph projection.
+They can be visualized or processed otherwise.
+Please note that they have negative id&#8217;s.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.create.vNode(['Label'], {key:value,&#8230;&#8203;}) YIELD node</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns a virtual node</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.create.vNode(['Label'], {key:value,&#8230;&#8203;})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns a virtual node</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.create.vNodes(['Label'], [{key:value,&#8230;&#8203;}])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns virtual nodes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,&#8230;&#8203;}, nodeTo) YIELD rel</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns a virtual relationship</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,&#8230;&#8203;}, nodeTo)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns a virtual relationship</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,&#8230;&#8203;}, {_labels:['LabelB'],key:value})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns a virtual pattern</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,&#8230;&#8203;},['LabelB'],{key:value})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns a virtual pattern</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="_virtual_nodes_rels_example"><a class="link" href="#_virtual_nodes_rels_example">Virtual Nodes/Rels Example</a></h4>
+<div class="paragraph">
+<div class="title">Virtual node and virtual relationship <code>vNode</code>, <code>vRelationship</code></div>
+<p>From a simple dataset</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE(a:Person)-[r:ACTED_IN]-&gt;(b:Movie)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>We can create a virtual copy, adding as attribute <code>name</code> the labels value</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (a)-[r]-&gt;(b)
+WITH head(labels(a)) AS l, head(labels(b)) AS l2, type(r) AS rel_type, count(*) as count
+CALL apoc.create.vNode([l],{name:l}) yield node as a
+CALL apoc.create.vNode([l2],{name:l2}) yield node as b
+CALL apoc.create.vRelationship(a,rel_type,{count:count},b) yield rel
+RETURN *;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.create.vRelationshipAndvNode.png" alt="apoc.create.vRelationshipAndvNode" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>Virtual nodes and virtual relationships have always a negative id</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/vNodeId.png" alt="vNodeId" width="200">
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Virtual pattern <code>vPattern</code></div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.create.vPattern({_labels:['Person'],name:'Mary'},'KNOWS',{since:2012},{_labels:['Person'],name:'Michael'})</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.create.vPattern.png" alt="apoc.create.vPattern" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>We can add more labels, just adding them on <code>_labels</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.create.vPattern({_labels:['Person', 'Woman'],name:'Mary'},'KNOWS',{since:2012},{_labels:['Person', 'Man'],name:'Michael'})</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.create.vPatternLabels.png" alt="apoc.create.vPatternLabels" width="800">
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Virtual pattern full <code>vPatternFull</code></div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.create.vPatternFull(['British','Person'],{name:'James', age:28},'KNOWS',{since:2009},['Swedish','Person'],{name:'Daniel', age:30})</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.create.vPatternFull.png" alt="apoc.create.vPatternFull" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>We can create a virtual pattern from an existing one</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE(a:Person {name:'Daniel'})-[r:KNOWS]-&gt;(b:Person {name:'John'})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>From this dataset we can create a virtual pattern</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (a)-[r]-&gt;(b)
+WITH head(labels(a)) AS labelA, head(labels(b)) AS labelB, type(r) AS rel_type, a.name AS aName, b.name AS bName
+CALL apoc.create.vPatternFull([labelA],{name: aName},rel_type,{since:2009},[labelB],{name: bName}) yield from, rel, to
+RETURN *;</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.create.vPatternFullTwo.png" alt="apoc.create.vPatternFullTwo" width="800">
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_virtual_graph"><a class="link" href="#_virtual_graph">Virtual Graph</a></h3>
+<div class="paragraph">
+<p>Create a graph object (map) from information that&#8217;s passed in.
+It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}</code></p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.from(data,'name',{properties}) yield graph</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing it tries its best to extract the graph information from the data you pass in</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromData([nodes],[relationships],'name',{properties})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromPaths(path,'name',{properties})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromPaths([paths],'name',{properties})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromDB('name',{properties})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromCypher('statement',{params},'name',{properties})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect3">
+<h4 id="_virtual_graph_examples"><a class="link" href="#_virtual_graph_examples">Virtual Graph Examples</a></h4>
+<div class="paragraph">
+<p>We create a dataset for our examples</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (a:Actor {name:'Tom Hanks'})-[r:ACTED_IN {roles:'Forrest'}]-&gt;(m:Movie {title:'Forrest Gump'}) RETURN *</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Virtual graph from data</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (n)-[r]-&gt;(m) CALL apoc.graph.fromData([n,m],[r],'test',{answer:42}) YIELD graph RETURN *</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Virtual graph from path</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH path = (n)-[r]-&gt;(m) CALL apoc.graph.fromPath(path,'test',{answer:42}) YIELD graph RETURN *</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Virtual graph from paths</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH path = (n)-[r]-&gt;(m) CALL apoc.graph.fromPaths([path],'test',{answer:42}) YIELD graph RETURN *</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Virtual graph from DB</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.graph.fromDB('test',{answer:42}) YIELD graph RETURN *</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Virtual graph from Cypher</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.graph.fromCypher('MATCH (n)-[r]-&gt;(m) RETURN *',null,'test',{answer:42}) YIELD graph RETURN *</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As a result we have a virtual graph object for later processing</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.graph.png" alt="apoc.graph" width="800">
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_graph_refactoring_2"><a class="link" href="#_graph_refactoring_2">Graph Refactoring</a></h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.cloneNodes([node1,node2,&#8230;&#8203;])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">clone nodes with their labels and properties</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.cloneNodesWithRelationships([node1,node2,&#8230;&#8203;])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">clone nodes with their labels, properties and relationships</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.mergeNodes([node1,node2])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">merge nodes onto first in list</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.to(rel, endNode)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">redirect relationship to use new end-node</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.from(rel, startNode)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">redirect relationship to use new start-node</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.invert(rel)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">inverts relationship direction</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.setType(rel, 'NEW-TYPE')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">change relationship-type</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.extractNode([rel1,rel2,&#8230;&#8203;], [labels], 'OUT','IN')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">extract node from relationships</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.collapseNode([node1,node2],'TYPE')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">collapse node to relationship, node with one rel becomes self-relationship</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">normalize/convert a property to be boolean</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.categorize(node, propertyKey, type, outgoing, label)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">turn each unique propertyKey into a category node and connect to it</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>TODO:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>merge nodes by label + property</p>
+</li>
+<li>
+<p>merge relationships</p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_graph_refactoring_examples"><a class="link" href="#_graph_refactoring_examples">Graph Refactoring Examples</a></h4>
+<div class="paragraph">
+<div class="title">Clone nodes</div>
+<p>We create a dataset</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (f:Foo{name:'Foo'}),(b:Bar{name:'Bar'})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As result we have two nodes</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.cloneNodes.dataset.png" alt="apoc.refactor.cloneNodes.dataset" width="800">
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (f:Foo{name:'Foo'}),(b:Bar{name:'Bar'}) WITH f,b
+CALL apoc.refactor.cloneNodes([f,b]) yield input, output RETURN *</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As result we have the two nodes that we have created before and their clones</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.cloneNodes.png" alt="apoc.refactor.cloneNodes" width="800">
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Clone nodes with relationship</div>
+<p>We create a dataset of two different nodes of type <code>Actor</code> connected with other two different node of type <code>Movie</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (k:Actor {name:'Keanu Reeves'})-[:ACTED_IN {role:'Neo'}]-&gt;(m:Movie {title:'The Matrix'}),
+	   (t:Actor {name:'Tom Hanks'})-[:ACTED_IN {role:'Forrest'}]-&gt;(f:Movie {title:'Forrest Gump'}) RETURN *</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.cloneNodesWithRelationships.dataset.png" alt="apoc.refactor.cloneNodesWithRelationships.dataset" width="800">
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (k:Actor {name:'Keanu Reeves'}), (t:Actor {name:'Tom Hanks'})
+CALL apoc.refactor.cloneNodesWithRelationships([k,t]) YIELD input, output RETURN *</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As result we have a copy of the nodes and relationships</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.cloneNodesWithRelationships.png" alt="apoc.refactor.cloneNodesWithRelationships" width="800">
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Merge nodes</div>
+<p>We create two nodes with different properties</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (f:Person {name:'Foo'}), (b:Person {surname:'Bar'}) RETURN f,b</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.mergeNodes.dataset.png" alt="apoc.refactor.mergeNodes.dataset" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>Now we want to merge these nodes into one</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (f:Person {name:'Foo'}), (b:Person {surname:'Bar'})
+CALL apoc.refactor.mergeNodes([f,b])
+YIELD node RETURN node</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.mergeNodes.png" alt="apoc.refactor.mergeNodes" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>Thus we have one node with both properties <code>name</code> and <code>surname</code></p>
+</div>
+<div class="paragraph">
+<div class="title">Redirect relationship to</div>
+<p>We start with two nodes related each other with a relationship. We create a new node which we will use to redirect the relationship like end node</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar)
+CREATE (p:Person {name:'Antony'})
+RETURN *</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.to.dataset.png" alt="apoc.refactor.to.dataset" width="800">
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar) with id(rel) as id
+MATCH (p:Person {name:'Antony'}) with p as p
+MATCH ()-[r]-&gt;(), (p:Person)  CALL apoc.refactor.to(r, p) YIELD input, output RETURN *</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.to.png" alt="apoc.refactor.to" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>Now the relationship is towards the new node <code>Person</code></p>
+</div>
+<div class="paragraph">
+<div class="title">Redirect relationship from</div>
+<p>We start with two nodes related each other with a relationship. We create a new node which we will use to redirect the relationship like start node</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar)
+CREATE (p:Person {name:'Antony'})
+RETURN *</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.from.dataset.png" alt="apoc.refactor.from.dataset" width="800">
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar) with id(rel) as id
+MATCH (p:Person {name:'Antony'}) with p as p
+MATCH ()-[r]-&gt;(), (p:Person)  CALL apoc.refactor.from(r, p) YIELD input, output RETURN *</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.from.png" alt="apoc.refactor.from" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>Now the relationship starts from the new node <code>Person</code> from the old node <code>Bar</code></p>
+</div>
+<div class="paragraph">
+<div class="title">Invert relationship</div>
+<p>We start with two nodes connected by a relationship</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar)</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.invert.dataset.png" alt="apoc.refactor.invert.dataset" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>Now we want to invert the relationship direction</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar) WITH id(rel) as id
+MATCH ()-[r]-&gt;() WHERE id(r) = id
+CALL apoc.refactor.invert(r) yield input, output RETURN *</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.invert.call.png" alt="apoc.refactor.invert.call" width="800">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.invert.png" alt="apoc.refactor.invert" width="800">
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Set type</div>
+<p>With a simple relationship between two node</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (f:Foo)-[rel:FOOBAR]-&gt;(b:Bar)</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.setType.dataset.png" alt="apoc.refactor.setType.dataset" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>We can change the relationship type from <code>FOOBAR</code> to <code>NEW-TYPE</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (f:Foo)-[rel:FOOBAR]-&gt;(b:Bar) with rel
+CALL apoc.refactor.setType(rel, 'NEW-TYPE') YIELD input, output RETURN *</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.setType.png" alt="apoc.refactor.setType" width="800">
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Extract node from relationships</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar)</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.extractNode.dataset.png" alt="apoc.refactor.extractNode.dataset" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>We pass the ID of the relationship as parameter to extract a node</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar) WITH id(rel) as id
+CALL apoc.refactor.extractNode(id,['FooBar'],'FOO','BAR')
+YIELD input, output RETURN *</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.extractNode.png" alt="apoc.refactor.extractNode" width="800">
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Collapse node to relationship</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (f:Foo)-[:FOO {a:1}]-&gt;(b:Bar {c:3})-[:BAR {b:2}]-&gt;(f) WITH id(b) as id
+CALL apoc.refactor.collapseNode(id,'FOOBAR')
+YIELD input, output RETURN *</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Before we have this situation</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.collapseNode.dataset.png" alt="apoc.refactor.collapseNode.dataset" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>And the result are</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.collapseNode.png" alt="apoc.refactor.collapseNode" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>The property of the two relationship and the property of the node are joined in one relationship that has the  properties <code>a:1</code>, <code>b:2</code>, <code>name:Bar</code></p>
+</div>
+<div class="listingblock">
+<div class="title">Normalize As Boolean</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (:Person {prop: 'Y', name:'A'}),(:Person {prop: 'Yes', name:'B'}),(:Person {prop: 'NO', name:'C'}),(:Person {prop: 'X', name:'D'})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As a resul we have four nodes with different properties <code>prop</code> like <code>Y</code>, <code>Yes</code>, <code>NO</code>, <code>X</code></p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.normalizeAsBoolean.dataset.png" alt="apoc.refactor.normalizeAsBoolean.dataset" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>Now we want to transform some properties into a boolean, <code>Y</code>, <code>Yes</code> into true and the properties <code>NO</code> into false.
+The other properties that don&#8217;t match these possibilities will be set as <code>null</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (n)  CALL apoc.refactor.normalizeAsBoolean(n,'prop',['Y','Yes'],['NO']) WITH n ORDER BY n.id RETURN n.prop AS prop</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.normalizeAsBoolean.png" alt="apoc.refactor.normalizeAsBoolean" width="800">
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Categorize</div>
+<p>First of all we create some nodes as dataset</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (:Person {prop: 'A', k: 'a', id: 1}),
+       (:Person {prop: 'A', k: 'a', id: 2}),
+       (:Person {prop: 'C', k: 'c', id: 3}),
+       (:Person {                   id: 4}),
+       (:Person {prop: 'B', k: 'b', id: 5}),
+       (:Person {prop: 'C', k: 'c', id: 6})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As result we have six nodes with label 'Person' with different properties</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.categorize.dataset.png" alt="apoc.refactor.categorize.dataset" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>Now we want to transform the property <code>prop</code> into a separate node with label <code>Letter</code> and transfer the properties of the nodes <code>Person</code>: <code>prop</code> (now renamed in <code>name</code>) and <code>k</code>.
+The nodes <code>Person</code> will keep only the propertie <code>id</code>, and will be connected with a relationship <code>IS_A</code> with the new nodes <code>Letter</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.refactor.categorize('prop','IS_A',true,'Letter','name',['k'],1)</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.refactor.categorize.png" alt="apoc.refactor.categorize" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>The direction of the relationship (in this case outgoing) is defined by the third field, if <code>true</code> outgoing else incoming.
+If a node doesn&#8217;t has the property <code>prop</code> (like node with <code>id: 4</code>) it won&#8217;t be managed.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_rename"><a class="link" href="#_rename">Rename</a></h4>
+<div class="paragraph">
+<p>Procedures set for renaming labels, relationship types, nodes and relationships' properties.
+They return the list of eventually impacted constraints and indexes, the user should take care of.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.rename.label(oldLabel, newLabel, [nodes])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">rename a label from 'oldLabel' to 'newLabel' for all nodes. If 'nodes' is provided renaming is applied to this set only</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.rename.type(oldType, newType, [rels])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.rename.nodeProperty(oldName, newName, [nodes])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">rename all node&#8217;s property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.refactor.rename.typeProperty(oldName, newName, [rels])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">rename all relationship&#8217;s property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_triggers"><a class="link" href="#_triggers">Triggers</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Enable <code>apoc.trigger.enabled=true</code> in <code>$NEO4J_HOME/config/neo4j.conf</code> first.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.remove(name) yield name, statement, installed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">remove previously added trigger, returns trigger information</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.list() yield name, statement, installed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">update and list all installed triggers</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.pause(name)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">it pauses the trigger</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.resume(name)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">it resumes the paused trigger</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Helper Functions</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.trigger.nodesByLabel({assignedLabels},'Label')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function to filter labelEntries by label, to be used within a trigger statement with {assignedLabels} and {removedLabels} {phase:'before/after/rollback'} returns previous and new trigger information</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.trigger.propertiesByKey({assignedNodeProperties},'key')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function to filter propertyEntries by property-key, to be used within a trigger statement with {assignedNode/RelationshipProperties} and {removedNode/RelationshipProperties}. Returns [{old,new,key,node,relationship}]</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The statements available are:</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Statement</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">transactionId</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns the id of the transaction</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">commitTime</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">return the date of the transaction in milliseconds</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">createdNodes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a node is created our trigger fires</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">createdRelationships</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a relationship is created our trigger fires</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">deletedNodes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a node is delated our trigger fires</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">deletedRelationships</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a relationship is delated our trigger fires</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">removedLabels</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a label is removed our trigger fires</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">removedNodeProperties</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a properties of node is removed our trigger fires</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">removedRelationshipProperties</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a properties of relationship is removed our trigger fires</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">assignedLabels</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a labes is assigned our trigger fires</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">assignedNodeProperties</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when node property is assigned our trigger fires</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">assignedRelationshipProperties</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when relationship property is assigned our trigger fires</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect4">
+<h5 id="_triggers_examples"><a class="link" href="#_triggers_examples">Triggers Examples</a></h5>
+<div class="paragraph">
+<div class="title">Set properties connected to a node</div>
+<p>We could add a trigger that when is added a specific property on a node, that property is added to all the nodes connected to this node</p>
+</div>
+<div class="paragraph">
+<p>Dataset</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (d:Person {name:'Daniel'})
+CREATE (l:Person {name:'Mary'})
+CREATE (t:Person {name:'Tom'})
+CREATE (j:Person {name:'John'})
+CREATE (m:Person {name:'Michael'})
+CREATE (a:Person {name:'Anne'})
+CREATE (l)-[:DAUGHTER_OF]-&gt;(d)
+CREATE (t)-[:SON_OF]-&gt;(d)
+CREATE (t)-[:BROTHER]-&gt;(j)
+CREATE (a)-[:WIFE_OF]-&gt;(d)
+CREATE (d)-[:SON_OF]-&gt;(m)
+CREATE (j)-[:SON_OF]-&gt;(d)</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.trigger.add.setAllConnectedNodes.dataset.png" alt="apoc.trigger.add.setAllConnectedNodes.dataset" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>Now we add the trigger using <code>apoc.trigger.propertiesByKey</code> on the <code>surname</code> property</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.trigger.add('setAllConnectedNodes','UNWIND apoc.trigger.propertiesByKey({assignedNodeProperties},"surname") as prop
+WITH prop.node as n
+MATCH(n)-[]-(a)
+SET a.surname = n.surname', {phase:'after'});</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So when we add the <code>surname</code> property on a node, it&#8217;s added to all the nodes connected (in this case one level deep)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (d:Person {name:'Daniel'})
+SET d.surname = 'William'</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.trigger.add.setAllConnectedNodes.png" alt="apoc.trigger.add.setAllConnectedNodes" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>surname</code> property is add/change on all related nodes</p>
+</div>
+<div class="paragraph">
+<div class="title">Update labels</div>
+<p>Dataset</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (k:Actor {name:'Keanu Reeves'})
+CREATE (l:Actor {name:'Laurence Fishburne'})
+CREATE (c:Actor {name:'Carrie-Anne Moss'})
+CREATE (m:Movie {title:'Matrix'})
+CREATE (k)-[:ACT_IN]-&gt;(m)
+CREATE (l)-[:ACT_IN]-&gt;(m)
+CREATE (c)-[:ACT_IN]-&gt;(m)</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.trigger.add.setLabels.png" alt="apoc.trigger.add.setLabels" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>We add a trigger using <code>apoc.trigger.nodesByLabel</code> that when the label <code>Actor</code> of a node is removed, update all labels <code>Actor</code> with <code>Person</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.trigger.add('updateLabels',"UNWIND apoc.trigger.nodesByLabel({removedLabels},'Actor') AS node
+MATCH (n:Actor)
+REMOVE n:Actor SET n:Person SET node:Person", {phase:'before'})</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH(k:Actor {name:'Keanu Reeves'})
+REMOVE k:Actor</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.trigger.add.setLabelsResult.png" alt="apoc.trigger.add.setLabelsResult" width="800">
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Create relationship on a new node</div>
+<p>We can add a trigger that connect every new node with label <code>Actor</code> and as  <code>name</code> property a specific value</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.trigger.add('create-rel-new-node',"UNWIND {createdNodes} AS n
+MATCH (m:Movie {title:'Matrix'})
+WHERE n:Actor AND n.name IN ['Keanu Reeves','Laurence Fishburne','Carrie-Anne Moss']
+CREATE (n)-[:ACT_IN]-&gt;(m)", {phase:'before'})</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (k:Actor {name:'Keanu Reeves'})
+CREATE (l:Actor {name:'Laurence Fishburne'})
+CREATE (c:Actor {name:'Carrie-Anne Moss'})
+CREATE (a:Actor {name:'Tom Hanks'})
+CREATE (m:Movie {title:'Matrix'})</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.trigger.add.create-rel-new-node.png" alt="apoc.trigger.add.create rel new node" width="800">
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Pause trigger</div>
+<p>We have the possibility to pause a trigger without remove it, if we will need it in the future</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.trigger.pause.png" alt="apoc.trigger.pause" width="800">
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Resume paused trigger</div>
+<p>When you need again of a trigger paused</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.2/docs/img/apoc.trigger.resume.png" alt="apoc.trigger.resume" width="800">
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Other examples</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.trigger.add('timestamp','UNWIND {createdNodes} AS n SET n.ts = timestamp()');
+CALL apoc.trigger.add('lowercase','UNWIND {createdNodes} AS n SET n.id = toLower(n.name)');
+CALL apoc.trigger.add('txInfo',   'UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}', {phase:'after'});
+CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN {deletedRelationships} WHERE type(r) = "X"])')
+CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n.id = toLower(n.name)')</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_appendix_complete_overview"><a class="link" href="#_appendix_complete_overview">Appendix: Complete Overview</a></h2>
 <div class="sectionbody">
 <div class="sect2">
@@ -6490,11 +7680,11 @@ $(document).ready(function() {
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.trigger.enabled=true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.trigger.enabled=false/true</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Enable triggers</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.ttl.enabled=true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.ttl.enabled=false/true</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Enable time to live background task</p></td>
 </tr>
 <tr>
@@ -6694,7 +7884,7 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 <p>Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.</p>
 </div>
 <table class="tableblock frame-all grid-all spread">
-<caption class="title">Table 3. Procedures</caption>
+<caption class="title">Table 4. Procedures</caption>
 <colgroup>
 <col style="width: 16.6666%;">
 <col style="width: 83.3334%;">
@@ -6723,7 +7913,7 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 </tbody>
 </table>
 <table class="tableblock frame-all grid-all spread">
-<caption class="title">Table 4. Functions</caption>
+<caption class="title">Table 5. Functions</caption>
 <colgroup>
 <col style="width: 16.6666%;">
 <col style="width: 83.3334%;">
@@ -6792,7 +7982,7 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 <div class="sect2">
 <h3 id="_from_tojson"><a class="link" href="#_from_tojson">from/toJson</a></h3>
 <table class="tableblock frame-all grid-all spread">
-<caption class="title">Table 5. Functions</caption>
+<caption class="title">Table 6. Functions</caption>
 <colgroup>
 <col style="width: 16.6666%;">
 <col style="width: 83.3334%;">
@@ -6819,11 +8009,11 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates a stream of nested documents representing the at least one root of these paths</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.json.getJsonProperty(node,key)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.getJsonProperty(node,key)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">converts serialized JSON in property back to original object</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.json.getJsonPropertyMap(node,key)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.convert.getJsonPropertyMap(node,key)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">converts serialized JSON in property back to map</p></td>
 </tr>
 <tr>
@@ -6831,7 +8021,7 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates a stream of nested documents representing the at least one root of these paths</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.json.setJsonProperty(node,key,complexValue)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.convert.setJsonProperty(node,key,complexValue)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">sets value serialized to JSON as property with the given name on the node</p></td>
 </tr>
 </tbody>
@@ -6872,7 +8062,12 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 <div class="sect3">
 <h4 id="_export_to_cypher_script"><a class="link" href="#_export_to_cypher_script">Export to Cypher Script</a></h4>
 <div class="paragraph">
-<p>Data is exported as cypher statements (for neo4j-shell, and partly apoc.cypher.runFile to the given file.</p>
+<p>Data is exported as cypher statements to the given file.
+It is possible to choose between three export formats:
+    * "neo4j-shell": for neo4j shell and partly apoc.cypher.runFile
+    * "cypher-shell": for cypher shell
+    * "plain": doesn&#8217;t output begin / commit / await just plain cypher
+To change the export format, you have to set it on the config params like <code>{format : "cypher-shell"}</code>. By default the format is "neo4j-shell".</p>
 </div>
 <div class="paragraph">
 <p><code>YIELD file, source, format, nodes, relationships, properties, time</code></p>
@@ -6935,6 +8130,73 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.graphml.query(query,file,config)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">exports nodes and relationships from the cypher statement as graphml to the provided file</p></td>
+</tr>
+</tbody>
+</table>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Table 7. configuration options</caption>
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">param</th>
+<th class="tableblock halign-left valign-top">default</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">batchSize</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">20000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">define the batch size</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">delim</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">","</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">define the delimiter character (export csv)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">quotes</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">quote-character used for CSV</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">useTypes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add type on file header (export csv and graphml export)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">format</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"neo4j-shell"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">In export to cypher script define the export format. Possible values are: "cypher-shell","neo4j-shell" and "null-format"</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">nodesOfRelationships</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">if enabled add relationship between nodes (export cypher)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">storeNodeIds</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">set nodes' ids (import/export graphml)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">readLabels</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">read nodes' labels (import/export graphml)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">defaultRelationshipType</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"RELATED"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">set relationship type (import/export graphml)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">separateFiles</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">export results in separated file by type (nodes, relationships..)</p></td>
 </tr>
 </tbody>
 </table>
@@ -7295,7 +8557,7 @@ cp target/dependency/java-client-2.3.1.jar target/dependency/core-io-1.3.1.jar t
 </table>
 </div>
 <div class="sect2">
-<h3 id="_virtual_nodes_rels"><a class="link" href="#_virtual_nodes_rels">Virtual Nodes/Rels</a></h3>
+<h3 id="_virtual_nodes_rels_2"><a class="link" href="#_virtual_nodes_rels_2">Virtual Nodes/Rels</a></h3>
 <div class="paragraph">
 <p>Virtual Nodes and Relationships don&#8217;t exist in the graph, they are only returned to the UI/user for representing a graph projection.
 They can be visualized or processed otherwise.
@@ -7337,22 +8599,9 @@ Please note that they have negative id&#8217;s.</p>
 </tr>
 </tbody>
 </table>
-<div class="paragraph">
-<p>Example</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (a)-[r]-&gt;(b)
-WITH head(labels(a)) AS l, head(labels(b)) AS l2, type(r) AS rel_type, count(*) as count
-CALL apoc.create.vNode([l],{name:l}) yield node as a
-CALL apoc.create.vNode([2],{name:l2}) yield node as b
-CALL apoc.create.vRelationship(a,rel_type,{count:count},b) yield rel
-RETURN *;</code></pre>
-</div>
-</div>
 </div>
 <div class="sect2">
-<h3 id="_virtual_graph"><a class="link" href="#_virtual_graph">Virtual Graph</a></h3>
+<h3 id="_virtual_graph_2"><a class="link" href="#_virtual_graph_2">Virtual Graph</a></h3>
 <div class="paragraph">
 <p>Create a graph object (map) from information that&#8217;s passed in.
 It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}</code></p>
@@ -7522,7 +8771,34 @@ CALL apoc.generate.simple([2,2,2,2], null, null)</code></pre>
 </table>
 </div>
 <div class="sect2">
-<h3 id="_triggers"><a class="link" href="#_triggers">Triggers</a></h3>
+<h3 id="_conditional_cypher_execution_2"><a class="link" href="#_conditional_cypher_execution_2">Conditional Cypher Execution</a></h3>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.when(condition, ifQuery, elseQuery:'', params:{}) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">based on the conditional, executes read-only ifQuery or elseQuery with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.do.when(condition, ifQuery, elseQuery:'', params:{}) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">based on the conditional, executes writing ifQuery or elseQuery with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.case([condition, query, condition, query, &#8230;&#8203;], elseQuery:'', params:{}) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">given a list of conditional / read-only query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.do.case([condition, query, condition, query, &#8230;&#8203;], elseQuery:'', params:{}) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">given a list of conditional / writing query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_triggers_2"><a class="link" href="#_triggers_2">Triggers</a></h3>
 <div class="paragraph">
 <p>Enable <code>apoc.trigger.enabled=true</code> in <code>$NEO4J_HOME/config/neo4j.conf</code> first.</p>
 </div>
@@ -7543,6 +8819,14 @@ CALL apoc.generate.simple([2,2,2,2], null, null)</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.list() yield name, statement, installed</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">update and list all installed triggers</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.pause(name)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">it pauses the trigger</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.resume(name)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">it resumes the paused trigger</p></td>
 </tr>
 </tbody>
 </table>
@@ -7565,16 +8849,6 @@ CALL apoc.generate.simple([2,2,2,2], null, null)</code></pre>
 </tr>
 </tbody>
 </table>
-<div class="listingblock">
-<div class="title">Examples</div>
-<div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.trigger.add('timestamp','UNWIND {createdNodes} AS n SET n.ts = timestamp()');
-CALL apoc.trigger.add('lowercase','UNWIND {createdNodes} AS n SET n.id = toLower(n.name)');
-CALL apoc.trigger.add('txInfo',   'UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}', {phase:'after'});
-CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN {deletedRelationships} WHERE type(r) = "X"])')
-CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n.id = toLower(n.name)')</code></pre>
-</div>
-</div>
 </div>
 <div class="sect2">
 <h3 id="_job_management"><a class="link" href="#_job_management">Job Management</a></h3>
@@ -7632,7 +8906,7 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 </div>
 </div>
 <div class="sect2">
-<h3 id="_graph_refactoring_2"><a class="link" href="#_graph_refactoring_2">Graph Refactoring</a></h3>
+<h3 id="_graph_refactoring_3"><a class="link" href="#_graph_refactoring_3">Graph Refactoring</a></h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16.6666%;">
@@ -7977,7 +9251,7 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns a list of duplicate items in the collection and their count, keyed by <code>item</code> and <code>count</code> (e.g., <code>[{item: xyz, count:2}, {item:zyx, count:5}]</code>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.occurrences(coll)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.occurrences(coll, item)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns the count of the given item in the collection</p></td>
 </tr>
 </tbody>
@@ -8119,7 +9393,7 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 </tbody>
 </table>
 <table class="tableblock frame-all grid-all spread">
-<caption class="title">Table 6. Procedure</caption>
+<caption class="title">Table 8. Procedure</caption>
 <colgroup>
 <col style="width: 16.6666%;">
 <col style="width: 83.3334%;">
@@ -8238,20 +9512,8 @@ SET n.ttl = timestamp() + 3600</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">the same as previous, but accepts custom datetime format</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.formatTimeZone(12345,'s', 'yyyy/MM/dd HH/mm/ss', 'ABC')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">the same as previous, but accepts custom time zone</p></td>
-</tr>
-<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.systemTimezone()</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">return the system timezone display format string</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.parseDefault('2015-03-25 03:15:59','s')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">DEPRECATED get Unix time equivalent of given date (in seconds)</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.date.formatDefault(12345,'s')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">DEPRECATED get string representation of date corresponding to given Unix time (in seconds)</p></td>
 </tr>
 </tbody>
 </table>
@@ -8301,9 +9563,6 @@ SET n.ttl = timestamp() + 3600</code></pre>
 <ul>
 <li>
 <p><code>apoc.date.fields('2015-03-25 03:15:59')</code></p>
-</li>
-<li>
-<p><code>apoc.date.fieldsFormatted('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')</code></p>
 </li>
 </ul>
 </div>
@@ -8416,11 +9675,11 @@ SET n.ttl = timestamp() + 3600</code></pre>
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.expandConfig(startNode &lt;id&gt;Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, uniqueness:'RELATIONSHIP_PATH', filterStartNode:true, limit}) yield path</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.expandConfig(startNode &lt;id&gt;Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, uniqueness:'RELATIONSHIP_PATH', filterStartNode:true, limit, optional:false}) yield path</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">expand from given nodes(s) taking the provided restrictions into account</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.subgraphNodes(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit}) yield node</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.subgraphNodes(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit, optional:false}) yield node</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">expand a subgraph from given nodes(s) taking the provided restrictions into account; returns all nodes in the subgraph</p></td>
 </tr>
 <tr>
@@ -8428,7 +9687,7 @@ SET n.ttl = timestamp() + 3600</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">expand a subgraph from given nodes(s) taking the provided restrictions into account; returns the collection of subgraph nodes, and the collection of all relationships within the subgraph</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.spanningTree(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit}) yield path</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>call apoc.path.spanningTree(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit, optional:false}) yield path</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">expand a spanning tree from given nodes(s) taking the provided restrictions into account; the paths returned collectively form a spanning tree</p></td>
 </tr>
 </tbody>
@@ -8816,7 +10075,7 @@ MATCH (n:Person)</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2017-04-03 04:28:14 MESZ
+Last updated 2017-05-14 18:27:26 MESZ
 </div>
 </div>
 </body>
