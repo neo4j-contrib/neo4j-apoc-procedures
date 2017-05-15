@@ -89,7 +89,7 @@ public class ExportCypher {
     private Stream<ProgressInfo> exportCypher(@Name("file") String fileName, String source, SubGraph graph, ExportConfig c, boolean onlySchema) throws IOException {
         checkWriteAllowed();
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "cypher"));
-        MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph, c.getFormat());
+        MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph, c);
         if(onlySchema)
             exporter.exportOnlySchema(fileName);
         else

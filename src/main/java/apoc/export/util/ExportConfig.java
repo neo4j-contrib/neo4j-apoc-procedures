@@ -1,5 +1,7 @@
 package apoc.export.util;
 
+import apoc.export.cypher.formatter.CypherFormat;
+
 import java.util.Collections;
 import java.util.Map;
 
@@ -21,6 +23,7 @@ public class ExportConfig {
     private boolean useTypes = false;
     private boolean nodesOfRelationships;
     private ExportFormat format;
+    private CypherFormat cypherFormat;
     private final Map<String, Object> config;
 
     public int getBatchSize() {
@@ -49,6 +52,10 @@ public class ExportConfig {
 
     public ExportFormat getFormat() { return format; }
 
+    public CypherFormat getCypherFormat() {
+        return cypherFormat;
+    }
+
     public ExportConfig(Map<String,Object> config) {
         config = config != null ? config : Collections.emptyMap();
         this.silent = toBoolean(config.getOrDefault("silent",false));
@@ -57,7 +64,8 @@ public class ExportConfig {
         this.quotes = toBoolean(config.get("quotes"));
         this.useTypes = toBoolean(config.get("useTypes"));
         this.nodesOfRelationships = toBoolean(config.get("nodesOfRelationships"));
-        this.format = ExportFormat.fromString((String) config.get("format"));
+        this.format = ExportFormat.fromString((String) config.getOrDefault("format", "neo4j-shell"));
+        this.cypherFormat = CypherFormat.fromString((String) config.getOrDefault("cypherFormat", "create"));
         this.config = config;
     }
 
