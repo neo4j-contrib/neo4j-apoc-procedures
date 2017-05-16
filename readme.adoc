@@ -12,13 +12,15 @@ image:https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Travis 
 // tag::warnings[]
 
 [WARNING]
+====
 Neo4j 3.2 has increased security for procedures and functions (aka sandboxing).
-Procedures that use internal APIs have to be allowed in `$NEO4J_HOME/conf/neoj4.conf` with, e.g. `+dbms.security.procedures.unrestricted=apoc.trigger.*,apoc.meta.*+` for security reasons (or `apoc.*` for all).
+Procedures that use internal APIs have to be allowed in `$NEO4J_HOME/conf/neoj4.conf` with, e.g. `+dbms.security.procedures.unrestricted=apoc.trigger.*,apoc.meta.*+` for security reasons (or `+apoc.*+` for all).
+
+If you want to use this via docker, you need to amend `+-e NEO4J_dbms_security_procedures_unrestricted=apoc.\\\*+` to your `docker run ...` command. The three backslashes are necessary to prevent wildcard expansions.
+====
 
 [NOTE]
 ====
-You can also whitelist procedures and functions in general to be loaded using: `+dbms.security.procedures.white_list=apoc.coll.*,apoc.load.*+`
-
 Neo4j 3.2 introduces user defined aggregation functions, we will use that feature in APOC in the future, e.g. for export, graph-algorithms and more, instead of passing in Cypher statements to procedures.
 
 Please note that about 70 procedures have been turned from procedures into user defined functions.
