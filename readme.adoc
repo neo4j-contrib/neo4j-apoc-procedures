@@ -21,6 +21,8 @@ If you want to use this via docker, you need to amend `+-e NEO4J_dbms_security_p
 
 [NOTE]
 ====
+You can also whitelist procedures and functions in general to be loaded using: `+dbms.security.procedures.white_list=apoc.coll.*,apoc.load.*+`
+
 Neo4j 3.2 introduces user defined aggregation functions, we will use that feature in APOC in the future, e.g. for export, graph-algorithms and more, instead of passing in Cypher statements to procedures.
 
 Please note that about 70 procedures have been turned from procedures into user defined functions.
