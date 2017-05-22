@@ -1,5 +1,6 @@
 package apoc.refactor;
 
+import apoc.util.ArrayBackedList;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -7,11 +8,8 @@ import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -301,6 +299,86 @@ public class GraphRefactoringTest {
                     assertEquals(1, node.getDegree(Direction.INCOMING));
                     assertEquals(2, node.getDegree(Direction.OUTGOING));
                     assertEquals("Alice", node.getRelationships(Direction.INCOMING).iterator().next().getStartNode().getProperty("name"));
+
+                });
+    }
+
+    public void testMergeRelsOverwriteEagerAggregation() throws Exception {
+        long id = db.execute("Create (d:Person {name:'Daniele'})\n" + "Create (p:Country {name:'USA'})\n" + "Create (d)-[:TRAVELS_TO {year:1995, reason:\"work\"}]->(p)\n"
+                + "Create (d)-[:GOES_TO {year:2010}]->(p)\n" + "Create (d)-[:FLIGHTS_TO {company:\"Air America\"}]->(p) RETURN id(p) as id ").<Long>columnAs("id").next();
+        testCall(db, "MATCH (d:Person {name:'Daniele'})\n" + "MATCH (p:Country {name:'USA'})\n" + "MATCH (d)-[r:TRAVELS_TO]->(p)\n" + "MATCH (d)-[h:GOES_TO]->(p)\n"
+                        + "MATCH (d)-[l:FLIGHTS_TO]->(p)\n" + "call apoc.refactor.mergeRelationships([r,h,l],{properties:\"overwrite\"}) yield rel\n MATCH (d)-[u]->(p) " + "return p,d,u,u.to as to, count(u) as totRel",
+                (r) -> {
+                    Node node = (Node) r.get("p");
+                    Long totRel = (Long) r.get("totRel");
+                    Relationship rel = (Relationship) r.get("u");
+                    assertEquals(id, node.getId());
+                    assertEquals(true, node.hasLabel(Label.label("Country")));
+                    assertEquals("USA", node.getProperty("name"));
+                    assertEquals(new Long(1),totRel);
+                    assertEquals(true, rel.isType(RelationshipType.withName("TRAVELS_TO")));
+                    assertEquals("work", rel.getProperty("reason"));
+                    assertEquals(2010L, rel.getProperty("year"));
+                });
+    }
+
+    @Test
+    public void testMergeRelsCombineEagerAggregation() throws Exception {
+        long id = db.execute("Create (d:Person {name:'Daniele'})\n" + "Create (p:Country {name:'USA'})\n" + "Create (d)-[:TRAVELS_TO {year:1995, reason:\"work\"}]->(p)\n"
+                + "Create (d)-[:GOES_TO {year:2010, reason:\"fun\"}]->(p)\n" + "Create (d)-[:FLIGHTS_TO {company:\"Air America\"}]->(p) RETURN id(p) as id ").<Long>columnAs("id").next();
+        testCall(db, "MATCH (d:Person {name:'Daniele'})\n" + "MATCH (p:Country {name:'USA'})\n" + "MATCH (d)-[r:TRAVELS_TO]->(p)\n" + "MATCH (d)-[h:GOES_TO]->(p)\n"
+                        + "MATCH (d)-[l:FLIGHTS_TO]->(p)\n" + "call apoc.refactor.mergeRelationships([r,h,l],{properties:\"discard\"}) yield rel\n MATCH (d)-[u]->(p) " + "return p,d,u,u.to as to, count(u) as totRel",
+                (r) -> {
+                    Node node = (Node) r.get("p");
+                    Long totRel = (Long) r.get("totRel");
+                    Relationship rel = (Relationship) r.get("u");
+                    assertEquals(id, node.getId());
+                    assertEquals(true, node.hasLabel(Label.label("Country")));
+                    assertEquals("USA", node.getProperty("name"));
+                    assertEquals(new Long(1),totRel);
+                    assertEquals(true, rel.isType(RelationshipType.withName("TRAVELS_TO")));
+                    assertEquals("work", rel.getProperty("reason"));
+                    assertEquals(1995L, rel.getProperty("year"));
+                });
+    }
+
+    @Test
+    public void testMergeRelsEagerAggregationCombineSingleValuesProperty() throws Exception {
+        long id = db.execute("Create (d:Person {name:'Daniele'})\n" + "Create (p:Country {name:'USA'})\n" + "Create (d)-[:TRAVELS_TO {year:1995, reason:\"work\"}]->(p)\n"
+                + "Create (d)-[:GOES_TO {year:2010, reason:\"fun\"}]->(p)\n" + "Create (d)-[:FLIGHTS_TO {company:\"Air America\"}]->(p) RETURN id(p) as id ").<Long>columnAs("id").next();
+        testCall(db, "MATCH (d:Person {name:'Daniele'})\n" + "MATCH (p:Country {name:'USA'})\n" + "MATCH (d)-[r:TRAVELS_TO]->(p)\n" + "MATCH (d)-[h:GOES_TO]->(p)\n"
+                        + "MATCH (d)-[l:FLIGHTS_TO]->(p)\n" + "call apoc.refactor.mergeRelationships([r,h,l],{properties:\"combine\"}) yield rel\n MATCH (d)-[u]->(p) " + "return p,d,u,u.to as to, count(u) as totRel",
+                (r) -> {
+                    Node node = (Node) r.get("p");
+                    Long totRel = (Long) r.get("totRel");
+                    Relationship rel = (Relationship) r.get("u");
+                    assertEquals(id, node.getId());
+                    assertEquals(true, node.hasLabel(Label.label("Country")));
+                    assertEquals("USA", node.getProperty("name"));
+                    assertEquals(new Long(1),totRel);
+                    assertEquals(true, rel.isType(RelationshipType.withName("TRAVELS_TO")));
+                    assertEquals(Arrays.asList("work", "fun").toArray(), new ArrayBackedList(rel.getProperty("reason")).toArray());
+                    assertEquals(Arrays.asList(1995L, 2010L).toArray(), new ArrayBackedList(rel.getProperty("year")).toArray());
+                });
+    }
+
+    @Test
+    public void testMergeRelsEagerAggregationCombineArrayDifferentValuesTypeProperties() throws Exception {
+        long id = db.execute("Create (d:Person {name:'Daniele'})\n" + "Create (p:Country {name:'USA'})\n" + "Create (d)-[:TRAVELS_TO {year:1995, reason:\"work\"}]->(p)\n"
+                + "Create (d)-[:GOES_TO {year:[\"2010\",\"2015\"], reason:\"fun\"}]->(p)\n" + "Create (d)-[:FLIGHTS_TO {company:\"Air America\"}]->(p) RETURN id(p) as id ").<Long>columnAs("id").next();
+        testCall(db, "MATCH (d:Person {name:'Daniele'})\n" + "MATCH (p:Country {name:'USA'})\n" + "MATCH (d)-[r:TRAVELS_TO]->(p)\n" + "MATCH (d)-[h:GOES_TO]->(p)\n"
+                        + "MATCH (d)-[l:FLIGHTS_TO]->(p)\n" + "call apoc.refactor.mergeRelationships([r,h,l],{properties:\"combine\"}) yield rel\n MATCH (d)-[u]->(p) " + "return p,d,u,u.to as to, count(u) as totRel",
+                (r) -> {
+                    Node node = (Node) r.get("p");
+                    Long totRel = (Long) r.get("totRel");
+                    Relationship rel = (Relationship) r.get("u");
+                    assertEquals(id, node.getId());
+                    assertEquals(true, node.hasLabel(Label.label("Country")));
+                    assertEquals("USA", node.getProperty("name"));
+                    assertEquals(new Long(1),totRel);
+                    assertEquals(true, rel.isType(RelationshipType.withName("TRAVELS_TO")));
+                    assertEquals(Arrays.asList("work", "fun").toArray(), new ArrayBackedList(rel.getProperty("reason")).toArray());
+                    assertEquals(Arrays.asList("1995", "2010", "2015").toArray(), new ArrayBackedList(rel.getProperty("year")).toArray());
                 });
     }
 }
