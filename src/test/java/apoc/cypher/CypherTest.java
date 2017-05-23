@@ -22,6 +22,7 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.toLong;
+import static apoc.util.Util.withMapping;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -172,7 +173,7 @@ public class CypherTest {
                     Map<String, Object> row = r.next();
                     assertEquals(-1L, row.get("row"));
                     Map result = (Map) row.get("result");
-                    assertEquals(1L, toLong(result.get("indexesAdded")));
+                    assertEquals(2L, toLong(result.get("indexesAdded")));
 
 
                     row = r.next();
@@ -206,6 +207,76 @@ public class CypherTest {
                     assertEquals(-1L, row.get("row"));
                     assertEquals(3L, toLong(result.get("nodesDeleted")));
                     assertEquals(false, r.hasNext());
+                });
+    }
+
+    @Test
+    public void testRunFilesMultiple() throws Exception {
+        testResult(db, "CALL apoc.cypher.runFiles(['src/test/resources/create.cypher', 'src/test/resources/create_delete.cypher'])",
+                r -> {
+                    Map<String, Object> row = r.next();
+                    assertEquals(row.get("row"),((Map)row.get("result")).get("id"));
+                    row = r.next();
+                    assertEquals(row.get("row"),((Map)row.get("result")).get("id"));
+                    row = r.next();
+                    assertEquals(row.get("row"),((Map)row.get("result")).get("id"));
+                    row = r.next();
+                    assertEquals(-1L, row.get("row"));
+                    Map result = (Map) row.get("result");
+                    assertEquals(3L, toLong(result.get("nodesCreated")));
+                    assertEquals(3L, toLong(result.get("labelsAdded")));
+                    assertEquals(3L, toLong(result.get("propertiesSet")));
+                    row = r.next();
+                    result = (Map) row.get("result");
+                    assertEquals(3L, toLong(result.get("nodesDeleted")));
+                    row = r.next();
+                    result = (Map) row.get("result");
+                    assertEquals(-1L, row.get("row"));
+                    assertEquals(1L, toLong(result.get("nodesCreated")));
+                    assertEquals(1L, toLong(result.get("labelsAdded")));
+                    assertEquals(1L, toLong(result.get("propertiesSet")));
+                    row = r.next();
+                    result = (Map) row.get("result");
+                    assertEquals(-1L, row.get("row"));
+                    assertEquals(1L, toLong(result.get("nodesDeleted")));
+                    assertEquals(false, r.hasNext());
+                });
+    }
+
+    @Test
+    public void testSchemaRunFile() throws Exception {
+        testResult(db, "CALL apoc.cypher.runSchemaFile('src/test/resources/schema.cypher')",
+                r -> {
+                    Map<String, Object> row = r.next();
+                    Map result = (Map) row.get("result");
+                    assertEquals(1L, toLong(result.get("indexesAdded")));
+                });
+    }
+
+    @Test
+    public void testSchemaRunFiles() throws Exception {
+        testResult(db, "CALL apoc.cypher.runSchemaFiles(['src/test/resources/constraints.cypher', 'src/test/resources/drop_constraints.cypher', 'src/test/resources/index.cypher'])",
+                r -> {
+                    Map<String, Object> row = r.next();
+                    Map result = (Map) row.get("result");
+                    assertEquals(1L, toLong(result.get("constraintsAdded")));
+                    row = r.next();
+                    result = (Map) row.get("result");
+                    assertEquals(1L, toLong(result.get("constraintsRemoved")));
+                    row = r.next();
+                    result = (Map) row.get("result");
+                    assertEquals(1L, toLong(result.get("indexesAdded")));
+
+                });
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testSchemaRunMixedSchemaAndDataFile() throws Exception {
+        testResult(db, "CALL apoc.cypher.runSchemaFile('src/test/resources/schema_create.cypher')",
+                r -> {
+                    Map<String, Object> row = r.next();
+                    Map result = (Map) row.get("result");
+                    assertEquals(1L, toLong(result.get("indexesAdded")));
                 });
     }
 
