@@ -117,7 +117,7 @@ public class Gephi {
         for (String caption : CAPTIONS) {
             for (String key : n.getPropertyKeys()) {
                 if (first==null) first = key;
-                if (key.toLowerCase().contains(caption)) return n.getProperty(caption).toString();
+                if (key.toLowerCase().contains(caption)) return n.getProperty(key).toString();
             }
         }
         return first == null ? idStr(n) : n.getProperty(first).toString();
