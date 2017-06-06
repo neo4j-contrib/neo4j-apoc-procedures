@@ -119,6 +119,8 @@ include::datetime.adoc[leveloffset=2]
 
 include::number.adoc[leveloffset=2]
 
+include::exact.adoc[leveloffset=2]
+
 == Graph Algorithms
 
 include::algo.adoc[leveloffset=2]
