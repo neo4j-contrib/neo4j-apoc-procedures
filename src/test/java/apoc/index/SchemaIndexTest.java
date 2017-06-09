@@ -12,9 +12,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import java.util.stream.LongStream;
-import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -137,6 +135,24 @@ public class SchemaIndexTest {
                 map("label",label,"key",key),
                 (row) -> assertEquals(asList("one","two"), row.get("value"))
         );
+        db.execute("MATCH (f:Foo) DETACH DELETE f").close();
     }
 
+    @Test
+    public void testDistinctCountProperties() throws Exception {
+        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.execute("CREATE (f:Foo {bar:'three'}), (f2a:Foo {bar:'four'}), (f2b:Foo {bar:'four'})").close();
+        String label = "Foo";
+        String key = "bar";
+        try (Transaction tx = db.beginTx()) {
+            db.schema().awaitIndexesOnline(2, TimeUnit.SECONDS);
+            tx.success();
+        }
+
+        testCall(db,"CALL apoc.schema.properties.distinctCount({label}, {key})",
+                map("label",label,"key",key),
+                (row) -> assertEquals(map("three",1,"four",2), row.get("value"))
+        );
+        db.execute("MATCH (f:Foo) DETACH DELETE f").close();
+    }
 }

@@ -1,5 +1,6 @@
 package apoc.index;
 
+import apoc.result.MapResult;
 import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import apoc.result.NodeResult;
@@ -159,18 +160,37 @@ public class SchemaIndex {
                 values.add(termsEnum.term().utf8ToString());
             }
         }
-        /*
-        terms = fields.terms("number");
-        if (terms != null) {
-            termsEnum = terms.iterator();
-            while ((termsEnum.next()) != null) {
-                BytesRef value = termsEnum.term();
-                System.out.println("value = " + NumericUtils.prefixCodedToLong(value));
-//                values.add(value.isEmpty() ? null : Double.parseDouble(value));
-            }
-        }
-        */
+
         return new ArrayList<>(values);
     }
 
+    @Procedure("apoc.schema.properties.distinctCount")
+    @Description("apoc.schema.properties.distinctCount(label, key) - quickly returns all distinct values and counts for a given key")
+    public Stream<MapResult> distinctCount(@Name("label") String label, @Name("key")  String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
+        Map<String, Object> values = distinctTermsCount(label, key);
+        return Stream.of(new MapResult(values));
+    }
+
+    private Map<String, Object> distinctTermsCount(@Name("label") String label, @Name("key") String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
+        KernelStatement stmt = (KernelStatement) tx.acquireStatement();
+        ReadOperations reads = stmt.readOperations();
+
+        IndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
+        SimpleIndexReader reader = (SimpleIndexReader) stmt.getStoreStatement().getIndexReader(descriptor);
+        SortedIndexReader sortedIndexReader = new SortedIndexReader(reader, 0, Sort.INDEXORDER);
+
+        Fields fields = MultiFields.getFields(sortedIndexReader.getIndexSearcher().getIndexReader());
+
+        Map<String, Object> values = new HashMap<>();
+        TermsEnum termsEnum;
+        Terms terms = fields.terms("string");
+        if (terms != null) {
+            termsEnum = terms.iterator();
+            while ((termsEnum.next()) != null) {
+                values.put(termsEnum.term().utf8ToString(), termsEnum.docFreq());
+            }
+        }
+
+        return values;
+    }
 }
