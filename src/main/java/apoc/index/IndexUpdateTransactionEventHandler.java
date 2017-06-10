@@ -11,6 +11,7 @@ import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.kernel.KernelApi;
+import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifeSupport;
 import org.neo4j.logging.Log;
@@ -75,12 +76,19 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
             index.remove(node, FreeTextSearch.KEY);
         }));
 
-        iterateLabelChanges(stream(data.assignedLabels()).filter(labelEntry -> !contains(data.createdNodes().iterator(), labelEntry.node())), (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
+        // performance tweak: converted create/deleted nodes to a set, so we can apply `contains` on it fast
+        final Set<Node> createdNodes = Iterables.asSet(data.createdNodes());
+        final Set<Node> deletedNodes = Iterables.asSet(data.deletedNodes());
+        iterateLabelChanges(
+                stream(data.assignedLabels()).filter( labelEntry -> !createdNodes.contains( labelEntry.node() ) ),
+                (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
             index.add(node, key, value);
             index.add(node, FreeTextSearch.KEY, value);
         }));
 
-        iterateLabelChanges(stream(data.removedLabels()).filter(labelEntry -> !contains(data.deletedNodes().iterator(), labelEntry.node())), (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
+        iterateLabelChanges(
+                stream(data.removedLabels()).filter( labelEntry -> !deletedNodes.contains( labelEntry.node() ) ),
+                (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
             index.remove(node, key);
             index.remove(node, FreeTextSearch.KEY);
         }));
