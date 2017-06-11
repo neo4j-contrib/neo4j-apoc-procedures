@@ -3,6 +3,7 @@ package apoc.couchbase;
 import java.util.List;
 import java.util.stream.Stream;
 
+import apoc.util.MissingDependencyException;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
@@ -96,9 +97,10 @@ public class Couchbase {
   @Procedure
   @Description("apoc.couchbase.get(nodes, bucket, documentId) yield id, expiry, cas, mutationToken, content - retrieves a couchbase json document by its unique ID.")
   public Stream<CouchbaseJsonDocument> get(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
-      @Name("documentId") String documentId) {
+      @Name("documentId") String documentId){
     Stream<CouchbaseJsonDocument> result = null;
-    try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(nodes, bucket)) {
+
+    try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {
       JsonDocument jsonDocument = couchbaseConnection.get(documentId);
       if (jsonDocument != null) {
         result = Stream.of(new CouchbaseJsonDocument(jsonDocument));
@@ -127,9 +129,9 @@ public class Couchbase {
   @Procedure
   @Description("apoc.couchbase.exists(nodes, bucket, documentId) yield value - check whether a couchbase json document with the given ID does exist.")
   public Stream<BooleanResult> exists(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
-      @Name("documentId") String documentId) {
+      @Name("documentId") String documentId){
     Stream<BooleanResult> result = null;
-    try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(nodes, bucket)) {
+    try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {
       result = Stream.of(new BooleanResult(couchbaseConnection.exists(documentId)));
     }
     return result;
@@ -157,9 +159,9 @@ public class Couchbase {
   @Procedure
   @Description("apoc.couchbase.insert(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert a couchbase json document with its unique ID.")
   public Stream<CouchbaseJsonDocument> insert(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
-      @Name("documentId") String documentId, @Name("json") String json) {
+      @Name("documentId") String documentId, @Name("json") String json){
     Stream<CouchbaseJsonDocument> result = null;
-    try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(nodes, bucket)) {
+    try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {
       JsonDocument jsonDocument = couchbaseConnection.insert(documentId, json);
       if (jsonDocument != null) {
         result = Stream.of(new CouchbaseJsonDocument(jsonDocument));
@@ -191,9 +193,9 @@ public class Couchbase {
   @Procedure
   @Description("apoc.couchbase.upsert(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert or overwrite a couchbase json document with its unique ID.")
   public Stream<CouchbaseJsonDocument> upsert(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
-      @Name("documentId") String documentId, @Name("json") String json) {
+      @Name("documentId") String documentId, @Name("json") String json){
     Stream<CouchbaseJsonDocument> result = null;
-    try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(nodes, bucket)) {
+    try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {
       JsonDocument jsonDocument = couchbaseConnection.upsert(documentId, json);
       if (jsonDocument != null) {
         result = Stream.of(new CouchbaseJsonDocument(jsonDocument));
@@ -224,9 +226,9 @@ public class Couchbase {
   @Procedure
   @Description("apoc.couchbase.append(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - append a couchbase json document to an existing one.")
   public Stream<CouchbaseJsonDocument> append(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
-      @Name("documentId") String documentId, @Name("json") String json) {
+      @Name("documentId") String documentId, @Name("json") String json){
     Stream<CouchbaseJsonDocument> result = null;
-    try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(nodes, bucket)) {
+    try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {
       JsonDocument jsonDocument = couchbaseConnection.append(documentId, json);
       if (jsonDocument != null) {
         result = Stream.of(new CouchbaseJsonDocument(jsonDocument));
@@ -257,9 +259,9 @@ public class Couchbase {
   @Procedure
   @Description("apoc.couchbase.prepend(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - prepend a couchbase json document to an existing one.")
   public Stream<CouchbaseJsonDocument> prepend(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
-      @Name("documentId") String documentId, @Name("json") String json) {
+      @Name("documentId") String documentId, @Name("json") String json){
     Stream<CouchbaseJsonDocument> result = null;
-    try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(nodes, bucket)) {
+    try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {
       JsonDocument jsonDocument = couchbaseConnection.prepend(documentId, json);
       if (jsonDocument != null) {
         result = Stream.of(new CouchbaseJsonDocument(jsonDocument));
@@ -288,9 +290,9 @@ public class Couchbase {
   @Procedure
   @Description("apoc.couchbase.remove(nodes, bucket, documentId) yield id, expiry, cas, mutationToken, content - remove the couchbase json document identified by its unique ID.")
   public Stream<CouchbaseJsonDocument> remove(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
-      @Name("documentId") String documentId) {
+      @Name("documentId") String documentId){
     Stream<CouchbaseJsonDocument> result = null;
-    try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(nodes, bucket)) {
+    try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {
       JsonDocument jsonDocument = couchbaseConnection.remove(documentId);
       if (jsonDocument != null) {
         result = Stream.of(new CouchbaseJsonDocument(jsonDocument));
@@ -322,9 +324,9 @@ public class Couchbase {
   @Procedure
   @Description("apoc.couchbase.replace(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - replace the content of the couchbase json document identified by its unique ID.")
   public Stream<CouchbaseJsonDocument> replace(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
-      @Name("documentId") String documentId, @Name("json") String json) {
+      @Name("documentId") String documentId, @Name("json") String json){
     Stream<CouchbaseJsonDocument> result = null;
-    try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(nodes, bucket)) {
+    try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {
       JsonDocument jsonDocument = couchbaseConnection.replace(documentId, json);
       if (jsonDocument != null) {
         result = Stream.of(new CouchbaseJsonDocument(jsonDocument));
@@ -354,9 +356,9 @@ public class Couchbase {
   @Procedure
   @Description("apoc.couchbase.query(nodes, bucket, statement) yield queryResult - executes a plain un-parameterized N1QL statement.")
   public Stream<CouchbaseQueryResult> query(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
-      @Name("statement") String statement) {
+      @Name("statement") String statement){
     Stream<CouchbaseQueryResult> result = null;
-    try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(nodes, bucket)) {
+    try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {
       List<JsonObject> statementResult = couchbaseConnection.executeStatement(statement);
       if (statementResult != null) {
         result = Stream.of(CouchbaseUtils.convertToCouchbaseQueryResult(statementResult));
@@ -389,9 +391,9 @@ public class Couchbase {
   @Procedure
   @Description("apoc.couchbase.posParamsQuery(nodes, bucket, statement, params) yield queryResult - executes a N1QL statement with positional parameters.")
   public Stream<CouchbaseQueryResult> posParamsQuery(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
-      @Name("statement") String statement, @Name("params") List<Object> params) {
+      @Name("statement") String statement, @Name("params") List<Object> params){
     Stream<CouchbaseQueryResult> result = null;
-    try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(nodes, bucket)) {
+    try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {
       List<JsonObject> statementResult = couchbaseConnection.executeParametrizedStatement(statement, params);
       if (statementResult != null) {
         result = Stream.of(CouchbaseUtils.convertToCouchbaseQueryResult(statementResult));
@@ -427,9 +429,9 @@ public class Couchbase {
   @Description("apoc.couchbase.namedParamsQuery(nodes, bucket, statement, paramNames, paramValues) yield queryResult - executes a N1QL statement with named parameters.")
   public Stream<CouchbaseQueryResult> namedParamsQuery(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
       @Name("statement") String statement, @Name("paramNames") List<String> paramNames,
-      @Name("paramValues") List<Object> paramValues) {
+      @Name("paramValues") List<Object> paramValues){
     Stream<CouchbaseQueryResult> result = null;
-    try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(nodes, bucket)) {
+    try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {
       List<JsonObject> statementResult = couchbaseConnection.executeParametrizedStatement(statement, paramNames,
           paramValues);
       if (statementResult != null) {
@@ -437,5 +439,21 @@ public class Couchbase {
       }
     }
     return result;
+  }
+
+  private CouchbaseConnection getCouchbaseConnection(List<String> nodes, String bucket){
+    try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(nodes, bucket)) {
+      return couchbaseConnection;
+    } catch (NoClassDefFoundError e){
+      throw new MissingDependencyException("Cannot find the jar into the plugins folder. \n"+
+              "Please put these jar in the plugins folder : \n\n" +
+              "java-client-x.y.z.jar\n" +
+              "\n" +
+              "core-io-x.y.z.jar\n" +
+              "\n" +
+              "rxjava-x.y.z.jar\n" +
+              "\n" +
+              "See the documentation: https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_interacting_with_couchbase");
+    }
   }
 }

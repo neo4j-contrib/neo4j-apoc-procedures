@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import apoc.util.MissingDependencyException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -99,7 +100,7 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
   }
 
   @Test
-  public void testInsertWithAlreadyExistingID() {
+  public void testInsertWithAlreadyExistingID(){
     expectedEx.expect(DocumentAlreadyExistsException.class);
     //@eclipse-formatter:off
     new Couchbase().insert(Arrays.asList("localhost"), "default", "artist:vincent_van_gogh", JsonObject.empty().toString());
