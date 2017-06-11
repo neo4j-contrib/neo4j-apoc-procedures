@@ -72,7 +72,9 @@ public class Jdbc {
                     .onClose( () -> closeIt(log, stmt,connection));
         } catch (SQLException e) {
             log.error(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()),e);
-            throw new RuntimeException(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()), e);
+            String errorMessage = "Cannot execute SQL statement `%s`.%nError:%n%s";
+            if(e.getMessage().contains("No suitable driver")) errorMessage="Cannot execute SQL statement `%s`.%nError:%n%s%n%s";
+            throw new RuntimeException(String.format(errorMessage, query, e.getMessage(), "Please download and copy the JDBC driver into $NEO4J_HOME/plugins,more details at https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_load_jdbc_resources"), e);
         }
     }
 
