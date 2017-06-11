@@ -1,6 +1,5 @@
 package apoc.cypher;
 
-import org.neo4j.procedure.*;
 import apoc.Pools;
 import apoc.export.util.FileUtils;
 import apoc.result.MapResult;
@@ -8,17 +7,20 @@ import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
+import org.neo4j.procedure.*;
 
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -61,33 +63,88 @@ public class Cypher {
     @Procedure
     @Description("apoc.cypher.runFile(file or url) - runs each statement in the file, all semicolon separated - currently no schema operations")
     public Stream<RowResult> runFile(@Name("file") String fileName) {
-        Reader reader = readerForFile(fileName);
-        Scanner scanner = new Scanner(reader);
-        return runManyStatements(scanner, Collections.emptyMap());
+        return runManyStatements(readerForFile(fileName), Collections.emptyMap(), false);
     }
 
-    private Stream<RowResult> runManyStatements(Scanner scanner, Map<String, Object> params) {
-        scanner.useDelimiter(";\r?\n");
+    @Procedure
+    @Description("apoc.cypher.runFiles([files or urls]) - runs each statement in the files, all semicolon separated")
+    public Stream<RowResult> runFiles(@Name("file") List<String> fileNames) {
+        List<RowResult> result = new ArrayList<>();
+        for (String f : fileNames) {
+            List<RowResult> rowResults = runManyStatements(readerForFile(f), Collections.emptyMap(), false).collect(Collectors.toList());
+            result.addAll(rowResults);
+        }
+        return result.stream();
+    }
+
+    @Procedure(mode=Mode.SCHEMA)
+    @Description("apoc.cypher.runSchemaFile(file or url) - allows only schema operations, runs each schema statement in the file, all semicolon separated")
+    public Stream<RowResult> runSchemaFile(@Name("file") String fileName) {
+        return runManyStatements(readerForFile(fileName), Collections.emptyMap(), true);
+    }
+
+    @Procedure(mode=Mode.SCHEMA)
+    @Description("apoc.cypher.runSchemaFiles([files or urls]) - allows only schema operations, runs each schema statement in the files, all semicolon separated")
+    public Stream<RowResult> runSchemaFiles(@Name("file") List<String> fileNames) {
+        List<RowResult> result = new ArrayList<>();
+        for (String f : fileNames) {
+            List<RowResult> rowResults = runManyStatements(readerForFile(f), Collections.emptyMap(), true).collect(Collectors.toList());
+            result.addAll(rowResults);
+        }
+        return result.stream();
+    }
+
+    private Stream<RowResult> runManyStatements(Reader reader, Map<String, Object> params, boolean schemaOperation) {
         BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100);
+        try (Transaction transaction = db.beginTx()) {
+            if(schemaOperation) {
+                runSchemaStatementsInTx(reader, queue, params);
+            }else
+                runDataStatementsInTx(reader, queue, params);
+            Util.inThread(() -> { queue.put(RowResult.TOMBSTONE); return null;});
+            transaction.success();
+        }
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE), false);
+    }
+
+    private void runDataStatementsInTx(Reader reader, BlockingQueue<RowResult> queue, Map<String, Object> params) {
+        Scanner scanner = new Scanner(reader);
+        scanner.useDelimiter(";\r?\n");
         while (scanner.hasNext()) {
             String stmt = scanner.next();
-            if (isSchemaOperation(stmt)) // alternatively could just skip them
+            if (isSchemaOperation(stmt)) {// alternatively could just skip them
                 throw new RuntimeException("Schema Operations can't yet be mixed with data operations");
-
+            }
             if (isPeriodicOperation(stmt)) Util.inThread(() -> executeStatement(queue, stmt, params,true));
             else Util.inTx(api, () -> executeStatement(queue, stmt, params,true));
         }
-        Util.inThread(() -> { queue.put(RowResult.TOMBSTONE);return null;});
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE),false);
+    }
+
+    private void runSchemaStatementsInTx(Reader reader, BlockingQueue<RowResult> queue, Map<String, Object> params) {
+        Scanner scanner = new Scanner(reader);
+        scanner.useDelimiter(";\r?\n");
+        while (scanner.hasNext()) {
+            String stmt = scanner.next();
+            if (!isSchemaOperation(stmt)) {
+                throw new RuntimeException("Schema Operations can't yet be mixed with data operations");
+            }
+            try {
+                executeStatement(queue, stmt, params, true);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Procedure
     @Description("apoc.cypher.runMany('cypher;\\nstatements;',{params}) - runs each semicolon separated statement and returns summary - currently no schema operations")
     public Stream<RowResult> runMany(@Name("cypher") String cypher, @Name("params") Map<String,Object> params) {
-        return runManyStatements(new Scanner(cypher),params);
+        StringReader stringReader = new StringReader(cypher);
+        return runManyStatements(stringReader ,params, false);
     }
 
     private Object executeStatement(BlockingQueue<RowResult> queue, String stmt, Map<String, Object> params, boolean addStatistics) throws InterruptedException {
+
         try (Result result = api.execute(stmt,params)) {
             long time = System.currentTimeMillis();
             int row = 0;
@@ -185,7 +242,6 @@ public class Cypher {
         return db.execute(statement,params).stream().map(MapResult::new);
         */
     }
-
 
     @Procedure
     @Description("apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _")

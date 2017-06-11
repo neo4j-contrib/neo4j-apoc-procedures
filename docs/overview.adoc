@@ -523,6 +523,9 @@ CALL apoc.generate.simple([2,2,2,2], null, null)
 |===
 | CALL apoc.cypher.run(fragment, params) yield value | executes reading fragment with the given parameters
 | CALL apoc.cypher.runFile(file or url) yield row, result | runs each statement in the file, all semicolon separated - currently no schema operations
+| CALL apoc.cypher.runFiles([files or urls]) yield row, result | runs each statement in the files, all semicolon separated
+| CALL apoc.cypher.runSchemaFile(file or url) - allows only schema operations, runs each schema statement in the file, all semicolon separated
+| CALL apoc.cypher.runSchemaFiles([files or urls]) - allows only schema operations, runs each schema statement in the files, all semicolon separated
 | CALL apoc.cypher.runMany('cypher;\nstatements;',{params}) | runs each semicolon separated statement and returns summary - currently no schema operations
 | CALL apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value | executes fragment in parallel batches with the list segments being assigned to _
 | CALL apoc.cypher.doIt(fragment, params) yield value | executes writing fragment with the given parameters
