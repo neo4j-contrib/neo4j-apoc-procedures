@@ -163,7 +163,7 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 
 [cols="1m,5"]
 |===
-| apoc.schema.assert({indexLabel:[indexKeys],...},{constraintLabel:[constraintKeys,...]}, dropExisting : true) yield label, key, unique, action | drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label.
+| apoc.schema.assert({indexLabel:[indexKeys],...},{constraintLabel:[constraintKeys],...}, dropExisting : true) yield label, key, unique, action | drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label.
 |===
 
 

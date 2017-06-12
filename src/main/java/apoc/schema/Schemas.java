@@ -20,7 +20,7 @@ public class Schemas {
     public GraphDatabaseAPI db;
 
     @Procedure(value = "apoc.schema.assert", mode = Mode.SCHEMA)
-    @Description("apoc.schema.assert(")
+    @Description("apoc.schema.assert({indexLabel:[indexKeys], ...}, {constraintLabel:[constraintKeys], ...}, dropExisting : true) yield label, key, unique, action - drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label")
     public Stream<AssertSchemaResult> schemaAssert(@Name("indexes") Map<String, List<String>> indexes, @Name("constraints") Map<String, List<String>> constraints, @Name(value="dropExisting", defaultValue = "true") boolean dropExisting) throws ExecutionException, InterruptedException {
         return Stream.concat(
                 assertIndexes(indexes, dropExisting).stream(),
