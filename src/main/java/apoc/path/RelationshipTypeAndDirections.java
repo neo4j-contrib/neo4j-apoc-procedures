@@ -5,7 +5,7 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.collection.Pair;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 import static org.neo4j.graphdb.Direction.*;
 
@@ -17,8 +17,8 @@ public abstract class RelationshipTypeAndDirections {
 
 	public static final char BACKTICK = '`';
 
-	public static Iterable<Pair<RelationshipType, Direction>> parse(String pathFilter) {
-		Collection<Pair<RelationshipType, Direction>> relsAndDirs = new ArrayList<>();
+	public static List<Pair<RelationshipType, Direction>> parse(String pathFilter) {
+		List<Pair<RelationshipType, Direction>> relsAndDirs = new ArrayList<>();
 		if (pathFilter == null) {
 			relsAndDirs.add(Pair.of(null, BOTH)); // todo can we remove this?
 		} else {
