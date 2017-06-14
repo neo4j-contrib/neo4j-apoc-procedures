@@ -75,7 +75,7 @@ public class Cypher {
         return runManyStatements(readerForFile(fileName), Collections.emptyMap(), false);
     }
 
-    @Procedure
+    @Procedure(mode = WRITE)
     @Description("apoc.cypher.runFiles([files or urls]) - runs each statement in the files, all semicolon separated")
     public Stream<RowResult> runFiles(@Name("file") List<String> fileNames) {
         List<RowResult> result = new ArrayList<>();
