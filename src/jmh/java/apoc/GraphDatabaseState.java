@@ -21,12 +21,11 @@ public class GraphDatabaseState {
     }
 
     @Setup(Level.Invocation)
-    public final void setup() throws KernelException {
+    public final void setup() {
         graphDatabaseService = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
                 .setConfig(getGraphDatabaseConfig())
                 .newGraphDatabase();
         setupGraphDatabase(graphDatabaseService);
-//            System.out.println("new graphdb");
     }
 
     @TearDown(Level.Invocation)

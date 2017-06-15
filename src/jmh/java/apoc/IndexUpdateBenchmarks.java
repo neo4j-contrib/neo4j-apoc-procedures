@@ -10,31 +10,35 @@ public class IndexUpdateBenchmarks {
 
     @Benchmark
     public void add10kNonIndexedNodes(GraphDatabaseState state) {
-        final GraphDatabaseService db = state.getGraphDatabaseService();
-        final Label label = Label.label("Person");
-        try (Transaction tx = db.beginTx()) {
-            for (int i=0; i<10000; i++) {
-                Node n = db.createNode(label);
-                n.setProperty("name", "myname_i");
-            }
-            tx.success();
-        }
-
+        populateDb( state, 10000 );
     }
 
     @Benchmark
-    public void add10kIndexedNodes(IndexTrackingGraphDatabaseState state) {
-//    public void add10kIndexedNodes(GraphDatabaseState state) throws KernelException {
-//        TestUtil.registerProcedure(state.getGraphDatabaseService(), FreeTextSearch.class);
+    public void add10kNodesWithBackgroundUpdatesEnabled(IndexTrackingGraphDatabaseState state) {
+        populateDb( state, 10000 );
+    }
+
+    @Benchmark
+    public void add10kIndexedSyncNodes(SyncIndexingGraphDatabaseState state) {
+        populateDb( state, 10000 );
+    }
+
+    @Benchmark
+    public void add10kIndexedAsyncNodes(AsyncIndexingGraphDatabaseState state) {
+        populateDb( state, 10000 );
+    }
+
+    private void populateDb( GraphDatabaseState state, int numberOfNodes )
+    {
         final GraphDatabaseService db = state.getGraphDatabaseService();
         final Label label = Label.label("Person");
         try (Transaction tx = db.beginTx()) {
-            for (int i=0; i<10000; i++) {
+            for (int i=0; i<numberOfNodes; i++) {
                 Node n = db.createNode(label);
                 n.setProperty("name", "myname_i");
             }
             tx.success();
         }
-
     }
+
 }
