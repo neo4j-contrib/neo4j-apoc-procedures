@@ -9,14 +9,14 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.neo4j.graphdb.traversal.Evaluators.toDepth;
 
 public class MetaTest {
@@ -201,6 +201,68 @@ public class MetaTest {
                         count ++;
                     }
                     assertEquals(5,count);
+                });
+    }
+
+    @Test
+    public void testMetaSchema() {
+        db.execute("create index on :Movie(title)").close();
+        db.execute("create constraint on (p:Person) assert p.name is unique").close();
+        db.execute("CREATE (:Person:Actor:Director {name:'Tom', born:'05-06-1956', dead:false})-[:ACTED_IN {roles:'Forrest'}]->(:Movie {title:'Forrest Gump'})").close();
+        testCall(db, "CALL apoc.meta.schema()",
+                (row) -> {
+                    List<String> emprtyList = new ArrayList<String>();
+                    List<String> fullList = Arrays.asList("Actor","Director");
+                    Map<String, Object> emptyMap = new LinkedHashMap();
+
+                    Map<String, Object> o = (Map<String, Object>) row.get("value");
+                    assertEquals(5, o.size());
+
+                    Map<String, Object>  movie = (Map<String, Object>) o.get("Movie");
+                    Map<String, Object>  movieProperties = (Map<String, Object>) movie.get("properties");
+                    Map<String, Object>  movieTitleProperties = (Map<String, Object>) movieProperties.get("title");
+                    assertNotNull(movie);
+                    assertEquals("node", movie.get("type"));
+                    assertEquals(1L, movie.get("count"));
+                    assertEquals(emprtyList, movie.get("labels"));
+                    assertEquals(emptyMap, movie.get("relationships"));
+                    assertEquals(3, movieTitleProperties.size());
+                    assertEquals("STRING", movieTitleProperties.get("type"));
+                    assertEquals(true, movieTitleProperties.get("indexed"));
+                    assertEquals(false, movieTitleProperties.get("unique"));
+
+                    Map<String, Object>  person = (Map<String, Object>) o.get("Person");
+                    Map<String, Object>  personProperties = (Map<String, Object>) person.get("properties");
+                    Map<String, Object>  personNameProperty = (Map<String, Object>) personProperties.get("name");
+                    assertNotNull(person);
+                    assertEquals("node", person.get("type"));
+                    assertEquals(1L, person.get("count"));
+                    assertEquals(fullList, person.get("labels"));
+                    assertEquals(true, personNameProperty.get("unique"));
+                    assertEquals(3, personProperties.size());
+
+                    Map<String, Object>  actor = (Map<String, Object>) o.get("Actor");
+                    assertNotNull(actor);
+                    assertEquals("node", actor.get("type"));
+                    assertEquals(1L, actor.get("count"));
+                    assertEquals(emprtyList, actor.get("labels"));
+
+                    Map<String, Object>  director = (Map<String, Object>) o.get("Director");
+                    Map<String, Object>  directorProperties = (Map<String, Object>) director.get("properties");
+                    assertNotNull(director);
+                    assertEquals("node", director.get("type"));
+                    assertEquals(1L, director.get("count"));
+                    assertEquals(emprtyList, director.get("labels"));
+                    assertEquals(3, directorProperties.size());
+
+                    Map<String, Object>  actedIn = (Map<String, Object>) o.get("ACTED_IN");
+                    Map<String, Object>  actedInProperties = (Map<String, Object>) actedIn.get("properties");
+                    Map<String, Object>  actedInRoleProperty = (Map<String, Object>) actedInProperties.get("roles");
+                    assertNotNull(actedIn);
+                    assertEquals("relationship", actedIn.get("type"));
+                    assertEquals("STRING", actedInRoleProperty.get("type"));
+                    assertEquals(false, actedInRoleProperty.get("array"));
+                    assertEquals(false, actedInRoleProperty.get("existence"));
                 });
     }
 
