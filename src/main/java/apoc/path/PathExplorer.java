@@ -236,8 +236,7 @@ public class PathExplorer {
 						case '-':
 						case '/':
 						case '>':
-							labelMap.putIfAbsent(operator, new HashSet<>());
-							labels = labelMap.get(operator);
+							labels = labelMap.computeIfAbsent(operator, character -> new HashSet<>());
 							def = def.substring(1);
 					}
 
@@ -251,10 +250,10 @@ public class PathExplorer {
 				}
 			}
 
-			whitelistLabels = labelMap.getOrDefault('+', Collections.emptySet());
-			blacklistLabels = labelMap.getOrDefault('-', Collections.emptySet());
-			terminationLabels = labelMap.getOrDefault('/', Collections.emptySet());
-			endNodeLabels = labelMap.getOrDefault('>', Collections.emptySet());
+			whitelistLabels = labelMap.computeIfAbsent('+', character -> Collections.emptySet());
+			blacklistLabels = labelMap.computeIfAbsent('-', character -> Collections.emptySet());
+			terminationLabels = labelMap.computeIfAbsent('/', character -> Collections.emptySet());
+			endNodeLabels = labelMap.computeIfAbsent('>', character -> Collections.emptySet());
 			endNodesOnly = !terminationLabels.isEmpty() || !endNodeLabels.isEmpty();
 			whitelistAllowedEvaluation = endNodesOnly ? EXCLUDE_AND_CONTINUE : INCLUDE_AND_CONTINUE;
 		}
