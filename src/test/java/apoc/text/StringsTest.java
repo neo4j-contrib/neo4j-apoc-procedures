@@ -144,6 +144,32 @@ public class StringsTest {
                 row -> assertEquals(true, row.get("eq")));
     }
 
+    @Test
+    public void testGetLevenshteinDistance() {
+        String text1 = "Levenshtein";
+        String text2 = "Levenstein";
+
+        testCall(db, "RETURN apoc.text.getLevenshteinDistance({a}, {b}) as distance",
+            map("a", text1, "b", text2),
+            row -> assertEquals(1L, row.get("distance")));
+    }
+
+    @Test
+    public void testFuzzyMatch() {
+        Strings strings = new Strings();
+        assertFalse(strings.fuzzyMatch("Th", "th"));
+        assertFalse(strings.fuzzyMatch("THe", "the"));
+        assertFalse(strings.fuzzyMatch("THEthe", "thethe"));
+        assertTrue(strings.fuzzyMatch("The", "the"));
+        assertTrue(strings.fuzzyMatch("THethe", "thethe"));
+    }
+
+    @Test
+    public void testFuzzyMatchIntegration() {
+        testCall(db, "RETURN apoc.text.fuzzyMatch({a}, {b}) as distance",
+            map("a", "The", "b", "the"),
+            row -> assertEquals(true, row.get("distance")));
+    }
 
     // Documentation tests
     // These are here to verify the claims made in string.adoc

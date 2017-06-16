@@ -15,6 +15,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * @author mh
  * @since 05.05.16
@@ -81,6 +83,27 @@ public class Strings {
             return false;
         }
         return removeNonWordCharacters(text1).equals(removeNonWordCharacters(text2));
+    }
+
+    @UserFunction
+    @Description("apoc.text.getLevenshteinDistance(text1, text2) - compare the given strings with the StringUtils.getLevenshteinDistance(text1, text2) method")
+    public Long getLevenshteinDistance(final @Name("text1") String text1, @Name("text1")final String text2) {
+        return Long.valueOf(StringUtils.getLevenshteinDistance(text1, text2));
+    }
+
+    @UserFunction
+    @Description("apoc.text.fuzzyMatch(text1, text2) - check if 2 words can be matched in a fuzzy way. Depending on the" +
+                 " length of the String it will allow more characters that needs to be editted to match the second String.")
+    public Boolean fuzzyMatch(final @Name("text1") String text1, @Name("text1")final String text2) {
+        if (text1 == null || text2 == null) {
+            return false;
+        }
+        int termLength = text1.length();
+        int maxDistanceAllowed = termLength < 3 ? 0 : termLength < 5 ? 1 : 2;
+
+        Long distance = getLevenshteinDistance(text1, text2);
+
+        return distance <= maxDistanceAllowed;
     }
 
     @UserFunction
