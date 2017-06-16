@@ -1,7 +1,6 @@
 package apoc;
 
 import apoc.index.IndexUpdateTransactionEventHandler;
-import apoc.schema.AssertSchemaProcedure;
 import apoc.trigger.Trigger;
 import apoc.ttl.TTLLifeCycle;
 import org.neo4j.kernel.extension.KernelExtensionFactory;
@@ -75,11 +74,7 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
         }
 
         public void registerCustomProcedures() {
-            try {
-                dependencies.procedures().register(new AssertSchemaProcedure(db, log.getUserLog(AssertSchemaProcedure.class)));
-            } catch(Exception|Error e) {
-                log.getUserLog(ArithmeticException.class).error("Cannot register procedure AssertSchemaProcedure",e);
-            }
+
         }
 
         @Override
