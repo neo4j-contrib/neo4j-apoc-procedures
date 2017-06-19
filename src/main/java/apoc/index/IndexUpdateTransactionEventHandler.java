@@ -3,6 +3,7 @@ package apoc.index;
 import apoc.ApocConfiguration;
 import apoc.Pools;
 import apoc.util.Util;
+import org.apache.commons.lang3.time.StopWatch;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.event.LabelEntry;
 import org.neo4j.graphdb.event.PropertyEntry;
@@ -22,6 +23,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static org.neo4j.helpers.collection.Iterables.stream;
@@ -38,13 +41,18 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
     private final GraphDatabaseService graphDatabaseService;
     private final boolean async;
 
-    private final BlockingQueue<Consumer<Void>> indexCommandQueue = new LinkedBlockingQueue<>(100);
+    private final BlockingQueue<Consumer<Void>> indexCommandQueue ;
+    private final boolean stopWatchEnabled;
+    private final Log log;
     private Map<String, Map<String, Collection<Index<Node>>>> indexesByLabelAndProperty;
     private ScheduledFuture<?> configUpdateFuture = null;
 
-    public IndexUpdateTransactionEventHandler(GraphDatabaseAPI graphDatabaseService, boolean async) {
+    public IndexUpdateTransactionEventHandler(GraphDatabaseAPI graphDatabaseService, Log log, boolean async, int queueCapacity, boolean stopWatchEnabled) {
         this.graphDatabaseService = graphDatabaseService;
+        this.log = log;
         this.async = async;
+        this.indexCommandQueue = new LinkedBlockingQueue<>(queueCapacity);
+        this.stopWatchEnabled = stopWatchEnabled;
     }
 
     public BlockingQueue<Consumer<Void>> getIndexCommandQueue() {
@@ -56,57 +64,82 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
         void apply (A a, B b, C c, D d, E e);
     }
 
+    private Object logDuration(String message, Supplier supplier) {
+        if (stopWatchEnabled) {
+            StopWatch sw = new StopWatch();
+            try {
+                sw.start();
+                return supplier.get();
+
+            } finally {
+                sw.stop();
+                log.info(message + " took " + sw.getTime() + " millsi");
+            }
+        } else {
+            return supplier.get();
+        }
+    }
+
     @Override
     public Collection<Consumer<Void>> beforeCommit(TransactionData data) throws Exception {
-        getIndexesByLabelAndProperty();
-        Collection<Consumer<Void>> state = async ? new LinkedList<>() : null;
 
-        iterateNodePropertyChange(stream(data.assignedNodeProperties()),false, (index, node, key, value, oldValue) -> indexUpdate(state, aVoid -> {
-            if (oldValue != null) {
+        return (Collection<Consumer<Void>>) logDuration("beforeCommit", () -> {
+            getIndexesByLabelAndProperty();
+            Collection<Consumer<Void>> state = async ? new LinkedList<>() : null;
+
+            iterateNodePropertyChange(stream(data.assignedNodeProperties()),false, (index, node, key, value, oldValue) -> indexUpdate(state, aVoid -> {
+                if (oldValue != null) {
+                    index.remove(node, key);
+                    index.remove(node, FreeTextSearch.KEY);
+                }
+                index.add(node, key, value);
+                index.add(node, FreeTextSearch.KEY, value);
+            }));
+
+            // filter out removedNodeProperties from node deletions
+            iterateNodePropertyChange(stream(data.removedNodeProperties()).filter(nodePropertyEntry -> !contains(data.deletedNodes().iterator(), nodePropertyEntry.entity())), true, (index, node, key, value, oldValue) -> indexUpdate(state, aVoid -> {
                 index.remove(node, key);
                 index.remove(node, FreeTextSearch.KEY);
-            }
-            index.add(node, key, value);
-            index.add(node, FreeTextSearch.KEY, value);
-        }));
+            }));
 
-        // filter out removedNodeProperties from node deletions
-        iterateNodePropertyChange(stream(data.removedNodeProperties()).filter(nodePropertyEntry -> !contains(data.deletedNodes().iterator(), nodePropertyEntry.entity())), true, (index, node, key, value, oldValue) -> indexUpdate(state, aVoid -> {
-            index.remove(node, key);
-            index.remove(node, FreeTextSearch.KEY);
-        }));
+            // performance tweak: converted create/deleted nodes to a set, so we can apply `contains` on it fast
+            final Set<Node> createdNodes = Iterables.asSet(data.createdNodes());
+            final Set<Node> deletedNodes = Iterables.asSet(data.deletedNodes());
+            iterateLabelChanges(
+                    stream(data.assignedLabels()).filter( labelEntry -> !createdNodes.contains( labelEntry.node() ) ),
+                    (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
+                        index.add(node, key, value);
+                        index.add(node, FreeTextSearch.KEY, value);
+                    }));
 
-        // performance tweak: converted create/deleted nodes to a set, so we can apply `contains` on it fast
-        final Set<Node> createdNodes = Iterables.asSet(data.createdNodes());
-        final Set<Node> deletedNodes = Iterables.asSet(data.deletedNodes());
-        iterateLabelChanges(
-                stream(data.assignedLabels()).filter( labelEntry -> !createdNodes.contains( labelEntry.node() ) ),
-                (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
-            index.add(node, key, value);
-            index.add(node, FreeTextSearch.KEY, value);
-        }));
+            iterateLabelChanges(
+                    stream(data.removedLabels()).filter( labelEntry -> !deletedNodes.contains( labelEntry.node() ) ),
+                    (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
+                        index.remove(node, key);
+                        index.remove(node, FreeTextSearch.KEY);
+                    }));
 
-        iterateLabelChanges(
-                stream(data.removedLabels()).filter( labelEntry -> !deletedNodes.contains( labelEntry.node() ) ),
-                (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
-            index.remove(node, key);
-            index.remove(node, FreeTextSearch.KEY);
-        }));
+            return state;
 
-        return state;
+        });
+
+
     }
 
     @Override
     public void afterCommit(TransactionData data, Collection<Consumer<Void>> state) {
-        if (async) {
-            for (Consumer<Void> consumer: state) {
-                try {
-                    indexCommandQueue.put(consumer);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+        logDuration("afterCommit", () -> {
+            if (async) {
+                for (Consumer<Void> consumer: state) {
+                    try {
+                        indexCommandQueue.put(consumer);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
-        }
+            return null;
+        });
     }
 
     private void iterateNodePropertyChange(Stream<PropertyEntry<Node>> stream, boolean propertyRemoved,
@@ -216,10 +249,12 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
             boolean enabled = ApocConfiguration.isEnabled("autoIndex.enabled");
             if (enabled) {
                 boolean async = ApocConfiguration.isEnabled("autoIndex.async");
-                indexUpdateTransactionEventHandler = new IndexUpdateTransactionEventHandler(db, async);
+                boolean stopWatchEnabled = ApocConfiguration.isEnabled("autoIndex.tx_handler_stopwatch");
+                int queueCapacity = Integer.parseInt(ApocConfiguration.get("autoIndex.queue_capacity", "100000"));
+                indexUpdateTransactionEventHandler = new IndexUpdateTransactionEventHandler(db, log, async, queueCapacity, stopWatchEnabled);
                 if (async) {
                     startIndexTrackingThread(db, indexUpdateTransactionEventHandler.getIndexCommandQueue(),
-                            Long.parseLong(ApocConfiguration.get("autoIndex.async_rollover_opscount", "10000")),
+                            Long.parseLong(ApocConfiguration.get("autoIndex.async_rollover_opscount", "50000")),
                             Long.parseLong(ApocConfiguration.get("autoIndex.async_rollover_millis", "5000")),
                             log
                     );
@@ -240,18 +275,23 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
                     while (true) {
                         Consumer<Void> indexCommand = indexCommandQueue.poll(millisRollover, TimeUnit.MILLISECONDS);
                         long now = System.currentTimeMillis();
-                        if ((opsCount>0) && ((now - lastCommit > millisRollover) || (opsCount > opsCountRollover))) {
+                        if ((opsCount>0) && ((now - lastCommit > millisRollover) || (opsCount >= opsCountRollover))) {
                             tx.success();
                             tx.close();
                             tx = db.beginTx();
+                            log.info("background indexing thread doing tx rollover, opscount " + opsCount + ", millis since last rollover " + (now-lastCommit));
                             lastCommit = now;
                             opsCount = 0;
-                            log.info("background indexing thread doing tx rollover");
                         }
                         if (indexCommand == null) {
-                            // check if a database shutdown is already in progress, if so, terminate this thread
                             boolean running = db.getDependencyResolver().resolveDependency(LifeSupport.class).isRunning();
-                            if (!running) {
+                            if (running) {
+                                // in case we couldn't get anything from queue, we'll update lastcommit to prevent too early commits
+                                if (opsCount==0) {
+                                    lastCommit = now;
+                                }
+                            } else {
+                                // check if a database shutdown is already in progress, if so, terminate this thread
                                 log.info("system shutdown detected, terminating indexing background thread");
                                 break;
                             }

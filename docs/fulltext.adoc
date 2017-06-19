@@ -194,17 +194,22 @@ Alternatively, you can decide to perform index updates asynchronously in a separ
 apoc.autoIndex.async=true
 -----
 
-With setting enabled, index updates are fed to a buffer queue that is consumed asynchronously using transaction batches. 
+With this setting enabled, index updates are fed to a buffer queue that is consumed asynchronously using transaction batches.
 The batching can be further configured using
 
 [source,properties]
 -----
-apoc.autoIndex.async_rollover_opscount=10000
+apoc.autoIndex.queue_capacity=100000
+apoc.autoIndex.async_rollover_opscount=50000
 apoc.autoIndex.async_rollover_millis=5000
+apoc.autoIndex.tx_handler_stopwatch=false
 -----
 
 The values above are the default setting. 
-In this example the index updates are consumed in transactions of maximum 10000 operations or 5000 milliseconds - whichever triggers first will cause the index update transaction to be committed and rolled over.
+In this example the index updates are consumed in transactions of maximum 50000 operations or 5000 milliseconds - whichever triggers first will cause the index update transaction to be committed and rolled over.
+
+If `apoc.autoIndex.tx_handler_stopwatch` is enabled, the time spent in `beforeCommit` and `afterCommit` is traced to `debug.log`.
+Use this setting only for diagnosis.
 
 === A Worked Example on Fulltext Index Tracking
 
