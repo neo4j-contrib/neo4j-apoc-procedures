@@ -88,17 +88,17 @@ public class Periodic {
         public final long executions;
         public final long runtime;
         public final long batches;
-        public final long faileBatches;
+        public final long failedBatches;
         public final Map<String, Long> batchErrors;
         public final long failedCommits;
         public final Map<String, Long> commitErrors;
 
-        public RundownResult(long total, long executions, long timeTaken, long batches, long faileBatches, Map<String, Long> batchErrors, long failedCommits, Map<String, Long> commitErrors) {
+        public RundownResult(long total, long executions, long timeTaken, long batches, long failedBatches, Map<String, Long> batchErrors, long failedCommits, Map<String, Long> commitErrors) {
             this.updates = total;
             this.executions = executions;
             this.runtime = timeTaken;
             this.batches = batches;
-            this.faileBatches = faileBatches;
+            this.failedBatches = failedBatches;
             this.batchErrors = batchErrors;
             this.failedCommits = failedCommits;
             this.commitErrors = commitErrors;
