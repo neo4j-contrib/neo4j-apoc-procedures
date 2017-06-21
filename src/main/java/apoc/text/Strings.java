@@ -88,6 +88,9 @@ public class Strings {
     @UserFunction
     @Description("apoc.text.getLevenshteinDistance(text1, text2) - compare the given strings with the StringUtils.getLevenshteinDistance(text1, text2) method")
     public Long getLevenshteinDistance(final @Name("text1") String text1, @Name("text1")final String text2) {
+        if (text1 == null || text2 == null) {
+            return null;
+        }
         return Long.valueOf(StringUtils.getLevenshteinDistance(text1, text2));
     }
 
@@ -96,7 +99,7 @@ public class Strings {
                  " length of the String it will allow more characters that needs to be editted to match the second String.")
     public Boolean fuzzyMatch(final @Name("text1") String text1, @Name("text1")final String text2) {
         if (text1 == null || text2 == null) {
-            return false;
+            return null;
         }
         int termLength = text1.length();
         int maxDistanceAllowed = termLength < 3 ? 0 : termLength < 5 ? 1 : 2;
