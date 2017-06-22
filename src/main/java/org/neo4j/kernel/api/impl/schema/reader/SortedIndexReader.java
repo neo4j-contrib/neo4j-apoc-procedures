@@ -50,7 +50,7 @@ public class SortedIndexReader {
 
     public PrimitiveLongIterator query(Query query) {
         try {
-            DocValuesCollector e = new DocValuesCollector();
+            DocValuesCollector e = new DocValuesCollector(sort == Sort.RELEVANCE);
             this.getIndexSearcher().search(query, e);
             return e.getSortedValuesIterator("id", sort, topN);
         } catch (IOException var3) {

@@ -1,5 +1,8 @@
 package apoc.index;
 
+import org.apache.lucene.search.SortField;
+import org.apache.lucene.search.SortedNumericSortField;
+import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import apoc.result.NodeResult;
 import apoc.util.Util;
@@ -88,11 +91,23 @@ public class SchemaIndex {
     @Procedure
     @Description("apoc.index.orderedRange(label,key,min,max,sort-relevance,limit) yield node - schema range scan which keeps index order and adds limit, values can be null, boundaries are inclusive")
     public Stream<NodeResult> orderedRange(@Name("label") String label, @Name("key") String key, @Name("min") Object min, @Name("max") Object max, @Name("relevance") boolean relevance, @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
-        SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, limit, Sort.INDEXORDER);
+
+        SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, limit, getSort(min, max, relevance));
 
         PrimitiveLongIterator it = queryForRange(sortedIndexReader, min, max);
 //        return Util.toLongStream(it).mapToObj(id -> new NodeResult(new VirtualNode(id, db)));
         return Util.toLongStream(it).mapToObj(id -> new NodeResult(db.getNodeById(id)));
+    }
+
+    public Sort getSort(Object min, Object max, boolean relevance) {
+        return Sort.RELEVANCE;
+/*
+        return relevance ? Sort.RELEVANCE :
+                    (min instanceof Number || max instanceof  Number) ? new Sort(new SortedNumericSortField("number", SortField.Type.DOUBLE)) :
+                            (min instanceof String || max instanceof String) ? new Sort(new SortedNumericSortField("string", SortField.Type.STRING)) :
+                            (min instanceof Boolean || max instanceof Boolean) ? new Sort(new SortedNumericSortField("bool", SortField.Type.STRING)) :
+                            Sort.INDEXORDER;
+*/
     }
 
     private PrimitiveLongIterator queryForRange(SortedIndexReader sortedIndexReader, Object min, Object max) {
@@ -108,7 +123,7 @@ public class SchemaIndex {
     @Procedure
     @Description("apoc.index.orderedByText(label,key,operator,value,sort-relevance,limit) yield node - schema string search which keeps index order and adds limit, operator is 'STARTS WITH' or 'CONTAINS'")
     public Stream<NodeResult> orderedByText(@Name("label") String label, @Name("key") String key, @Name("operator") String operator, @Name("value") String value, @Name("relevance") boolean relevance, @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
-        SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, limit, Sort.INDEXORDER);
+        SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, limit, getSort(value,value,relevance));
         PrimitiveLongIterator it = queryForString(sortedIndexReader, operator, value);
 //        return Util.toLongStream(it).mapToObj(id -> new NodeResult(new VirtualNode(id, db)));
         return Util.toLongStream(it).mapToObj(id -> new NodeResult(db.getNodeById(id)));
