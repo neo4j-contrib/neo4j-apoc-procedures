@@ -52,6 +52,11 @@ public class JdbcTest {
                 (row) -> assertEquals( Util.map("NAME", "John", "HIRE_DATE", hireDate.getTime(),"EFFECTIVE_FROM_DATE",
                         effectiveFromDate.getTime()), row.get("row")));
     }
+    @Test
+    public void testLoadJdbcSelectColumnNames() throws Exception {
+        testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT NAME, HIRE_DATE AS DATE FROM PERSON')",
+                (row) -> assertEquals( Util.map("NAME", "John", "DATE", hireDate.getTime()), row.get("row")));
+    }
 
     @Test
     public void testLoadJdbcParams() throws Exception {
