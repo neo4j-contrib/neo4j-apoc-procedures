@@ -58,6 +58,7 @@ public class SchemaIndexTest {
             assertEquals(false, r.hasNext());
         });
     }
+
     @Test
     public void testOrderedRangeNumbers() throws Exception {
         TestUtil.testResult(db, "CALL apoc.index.orderedRange('Person','age',10,30,false,10)", r -> {
