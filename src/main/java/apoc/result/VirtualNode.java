@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -15,6 +16,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.collection.FilteringIterable;
 import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.helpers.collection.Iterators;
 
 import static java.util.Arrays.asList;
 
@@ -112,24 +114,24 @@ public class VirtualNode implements Node {
 
     @Override
     public boolean hasRelationship(RelationshipType relationshipType, Direction direction) {
-        return false;
+        return getRelationships(relationshipType, direction).iterator().hasNext();
     }
 
     @Override
     public Relationship getSingleRelationship(RelationshipType relationshipType, Direction direction) {
-        return null;
+        return Iterables.single(getRelationships(relationshipType, direction));
     }
 
     @Override
     public Relationship createRelationshipTo(Node node, RelationshipType relationshipType) {
-        Relationship rel = new VirtualRelationship(this,node,relationshipType);
-
-        return null;
+        VirtualRelationship rel = new VirtualRelationship(this, node, relationshipType);
+        rels.add(rel);
+        return rel;
     }
 
     @Override
     public Iterable<RelationshipType> getRelationshipTypes() {
-        return null;
+        return rels.stream().map(Relationship::getType).collect(Collectors.toList());
     }
 
     @Override
@@ -217,7 +219,7 @@ public class VirtualNode implements Node {
     @Override
     public Map<String, Object> getProperties(String... strings) {
         HashMap<String, Object> res = new HashMap<>(props);
-        res.entrySet().retainAll(asList(strings));
+        res.keySet().retainAll(asList(strings));
         return res;
     }
 
