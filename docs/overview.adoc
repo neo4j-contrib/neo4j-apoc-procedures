@@ -695,6 +695,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.toSet([list]) | returns a unique list backed by a set
 | apoc.coll.sort(coll) | sort on Collections
 | apoc.coll.sortNodes([nodes], 'name') | sort nodes by property
+| apoc.coll.sortMaps([maps], 'key') | sort maps by map key
 | apoc.coll.reverse(coll) | returns the reversed list
 | apoc.coll.contains(coll, value) | optimized contains operation (using a HashSet) (returns single row or not)
 | apoc.coll.containsAll(coll, values) | optimized contains-all operation (using a HashSet) (returns single row or not)
