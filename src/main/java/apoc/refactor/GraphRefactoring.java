@@ -331,7 +331,14 @@ public class GraphRefactoring {
         return target;
     }
 
-    private Relationship copyRelationship(Relationship rel, Node source, Node newSource) {
-        return copyProperties(rel,newSource.createRelationshipTo(rel.getOtherNode(source), rel.getType()));
+    private Relationship copyRelationship(Relationship rel, Node source, Node target) {
+        //Check the relationship's direction
+        if (rel.getStartNode().getId() == source.getId()) {
+            //Outgoing from source - new relationship should be outgoing from target
+            return copyProperties(rel, target.createRelationshipTo(rel.getOtherNode(source), rel.getType()));
+        } else {
+            //Ingoing to source - new relationship should be ingoing to target
+            return copyProperties(rel, rel.getStartNode().createRelationshipTo(target, rel.getType()));
+        }
     }
 }
