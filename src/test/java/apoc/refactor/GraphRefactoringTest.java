@@ -279,4 +279,28 @@ public class GraphRefactoringTest {
                     assertEquals("Bar", node.getProperty("surname"));
                 });
     }
+
+    @Test
+    public void testMergeNodesWithIngoingRelationships() throws Exception {
+        db.execute("CREATE \n" +
+                "(alice:Person {name:'Alice'}),\n" +
+                "(bob:Person {name:'Bob'}),\n" +
+                "(john:Person {name:'John'}),\n" +
+                "(lisa:Person {name:'Lisa'}),\n" +
+                "(alice)-[:knows]->(bob),\n" +
+                "(lisa)-[:knows]->(alice),\n" +
+                "(bob)-[:knows]->(john)");
+
+        //Merge (Bob) into (Lisa).
+        // The updated node should have one ingoing edge from (Alice), and two outgoing edges to (John) and (Alice).
+        testCall(db,
+                "MATCH (bob:Person {name:'Bob'}), (lisa:Person {name:'Lisa'}) CALL apoc.refactor.mergeNodes([lisa, bob]) yield node return node",
+                (r)-> {
+                    Node node = (Node) r.get("node");
+                    assertEquals("Bob", node.getProperty("name"));
+                    assertEquals(1, node.getDegree(Direction.INCOMING));
+                    assertEquals(2, node.getDegree(Direction.OUTGOING));
+                    assertEquals("Alice", node.getRelationships(Direction.INCOMING).iterator().next().getStartNode().getProperty("name"));
+                });
+    }
 }
