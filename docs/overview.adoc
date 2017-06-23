@@ -774,6 +774,8 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list
 | apoc.util.sleep({duration}) | sleeps for <duration> millis, transaction termination is honored
 | apoc.util.validate(predicate, message,[params]) | raises exception if prediate evaluates to true
+| apoc.util.fail(message,[params]) | raises exception with the given message
+| apoc.util.assert(predicate, message, [params]) | raises exception with given message if predicate evaluates to false
 |===
 
 

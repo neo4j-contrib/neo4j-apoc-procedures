@@ -34,6 +34,22 @@ public class Utils {
     }
 
     @Procedure
+    @Description("apoc.util.fail(message, [parameters]) | throw an exception and abort the transaction")
+    public void fail(@Name("message") String message, @Name(value = "parameters", defaultValue = "[]") List<Object> parameters) throws RuntimeException {
+        String exceptionMessage = String.format(message, parameters.toArray());
+        throw new RuntimeException(exceptionMessage);
+    }
+
+    @Procedure(value = "apoc.util.assert")
+    @Description("apoc.util.assert(predicate, message, [parameters]) | throw an exception and abort the transaction if the predicate is false")
+    public void assertPredicate(@Name("predicate") boolean predicate, @Name("message") String message, @Name(value = "parameters", defaultValue = "[]") List<Object> parameters) {
+        if (!predicate) {
+            String exceptionMessage = String.format(message, parameters.toArray());
+            throw new RuntimeException(exceptionMessage);
+        }
+    }
+
+    @Procedure
     @Description("apoc.util.sleep(<duration>) | sleeps for <duration> millis, transaction termination is honored")
     public void sleep(@Name("duration") long duration) throws InterruptedException {
         long started = System.currentTimeMillis();
