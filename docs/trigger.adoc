@@ -155,6 +155,24 @@ When you need again of a trigger paused
 
 image::{img}/apoc.trigger.resume.png[width=800]
 
+.Enforcing property type
+
+For this example, we would like that all the `reference` node properties are of type `STRING`
+
+[source,cypher]
+----
+CALL apoc.trigger.add("forceStringType",
+"UNWIND apoc.trigger.propertiesByKey({assignedNodeProperties}, 'reference') AS prop
+CALL apoc.util.validate(apoc.meta.type(prop) <> 'STRING', 'expected string property type, got %s', [apoc.meta.type(prop)]) RETURN null", {phase:'before'})
+----
+
+[source,cypher]
+----
+CREATE (a:Node) SET a.reference = 1
+
+Neo.ClientError.Transaction.TransactionHookFailed
+----
+
 .Other examples
 [source,cypher]
 ----
