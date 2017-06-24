@@ -6,6 +6,7 @@ import org.neo4j.kernel.impl.util.JobScheduler;
 
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 
 public class Pools {
@@ -29,12 +30,8 @@ public class Pools {
         @Override
         public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
             if (!executor.isShutdown()) {
-                try {
-                    // block caller for 100ms
-                    Thread.sleep(100);
-                } catch (InterruptedException ie) {
-                    // ignore
-                }
+                // block caller for 100ns
+                LockSupport.parkNanos(100);
                 try {
                     // submit again
                     executor.submit(r).get();
