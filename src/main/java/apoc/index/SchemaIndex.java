@@ -1,7 +1,7 @@
 package apoc.index;
 
-import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.SortedNumericSortField;
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import apoc.result.NodeResult;
@@ -12,10 +12,6 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.Sort;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.exceptions.index.IndexNotFoundKernelException;
@@ -33,6 +29,7 @@ import org.neo4j.storageengine.api.schema.IndexReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * @author mh
@@ -48,21 +45,27 @@ public class SchemaIndex {
     @Procedure
     @Description("apoc.index.relatedNodes([nodes],label,key,'<TYPE'/'TYPE>'/'TYPE',limit) yield node - schema range scan which keeps index order and adds limit and checks opposite node of relationship against the given set of nodes")
     public Stream<NodeResult> related(@Name("nodes") List<Node> nodes,
-                                           @Name("label") String label, @Name("key") String key,
-                                           @Name("relationship") String relationship,
-                                           @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
+                                      @Name("label") String label, @Name("key") String key,
+                                      @Name("relationship") String relationship,
+                                      @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
         Set<Node> nodeSet = new HashSet<>(nodes);
         Direction dir = Direction.BOTH;
-        if (relationship.startsWith("<")) {dir = Direction.INCOMING; relationship = relationship.substring(1);}
-        if (relationship.endsWith(">"))   {dir = Direction.OUTGOING; relationship = relationship.substring(0,relationship.length()-1);}
+        if (relationship.startsWith("<")) {
+            dir = Direction.INCOMING;
+            relationship = relationship.substring(1);
+        }
+        if (relationship.endsWith(">")) {
+            dir = Direction.OUTGOING;
+            relationship = relationship.substring(0, relationship.length() - 1);
+        }
         RelationshipType type = RelationshipType.withName(relationship);
-        System.out.println(distinctTerms(label,key));
-        List<Node> result = new ArrayList<>((int)limit);
+        System.out.println(distinctTerms(label, key));
+        List<Node> result = new ArrayList<>((int) limit);
         boolean reverse = false;
 //        SortField sortField = new SortField("number" /*string*/, SortField.Type.STRING, reverse);
 //        SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, Math.max(nodeSet.size(),limit), Sort.INDEXORDER); // new Sort(sortField));
         // PrimitiveLongIterator it = getIndexReader(label, key).rangeSeekByString("",true,String.valueOf((char)0xFF),true);
-        PrimitiveLongIterator it = getIndexReader(label, key).rangeSeekByNumberInclusive(Long.MIN_VALUE,Long.MAX_VALUE);
+        PrimitiveLongIterator it = getIndexReader(label, key).rangeSeekByNumberInclusive(Long.MIN_VALUE, Long.MAX_VALUE);
 //        PrimitiveLongIterator it = sortedIndexReader.query(new MatchAllDocsQuery());
 
         while (it.hasNext() && result.size() < limit) {
@@ -114,7 +117,7 @@ public class SchemaIndex {
     @Procedure
     @Description("apoc.index.orderedByText(label,key,operator,value,sort-relevance,limit) yield node - schema string search which keeps index order and adds limit, operator is 'STARTS WITH' or 'CONTAINS'")
     public Stream<NodeResult> orderedByText(@Name("label") String label, @Name("key") String key, @Name("operator") String operator, @Name("value") String value, @Name("relevance") boolean relevance, @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException {
-        SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, limit, getSort(value,value,relevance));
+        SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, limit, getSort(value, value, relevance));
         PrimitiveLongIterator it = queryForString(sortedIndexReader, operator, value);
 //        return Util.toLongStream(it).mapToObj(id -> new NodeResult(new VirtualNode(id, db)));
         return Util.toLongStream(it).mapToObj(id -> new NodeResult(db.getNodeById(id)));
@@ -149,7 +152,7 @@ public class SchemaIndex {
 
     @Procedure("apoc.schema.properties.distinct")
     @Description("apoc.schema.properties.distinct(label, key) - quickly returns all distinct values for a given key")
-    public Stream<ListResult> distinct(@Name("label") String label, @Name("key")  String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
+    public Stream<ListResult> distinct(@Name("label") String label, @Name("key") String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
         List<Object> values = distinctTerms(label, key);
         return Stream.of(new ListResult(values));
     }
@@ -187,4 +190,59 @@ public class SchemaIndex {
         return new ArrayList<>(values);
     }
 
+    public static class PropertyValueCount {
+        public String label;
+        public String key;
+        public String value;
+        public long count;
+
+        public PropertyValueCount(String label, String key, String value, long count) {
+            this.label = label;
+            this.key = key;
+            this.value = value;
+            this.count = count;
+        }
+    }
+
+    @Procedure("apoc.schema.properties.distinctCount")
+    @Description("apoc.schema.properties.distinctCount([label], [key]) YIELD label, key, value, count - quickly returns all distinct values and counts for a given key")
+    public Stream<PropertyValueCount> distinctCount(@Name(value = "label", defaultValue = "") String labelName, @Name(value = "key", defaultValue = "") String keyName) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
+        Iterable<IndexDefinition> labels = (labelName.isEmpty()) ? db.schema().getIndexes(Label.label(labelName)) : db.schema().getIndexes(Label.label(labelName));
+        return StreamSupport.stream(labels.spliterator(), false).flatMap(
+                index -> {
+                    Iterable<String> keys = keyName.isEmpty() ? index.getPropertyKeys() : Collections.singletonList(keyName);
+                    return StreamSupport.stream(keys.spliterator(), false).flatMap(key -> {
+                        String label = index.getLabel().name();
+                        return distinctTermsCount(label, key).
+                                entrySet().stream().map(e -> new PropertyValueCount(label, key, e.getKey(), e.getValue()));
+                    });
+                }
+        );
+    }
+
+    private Map<String, Integer> distinctTermsCount(@Name("label") String label, @Name("key") String key) {
+        try {
+            KernelStatement stmt = (KernelStatement) tx.acquireStatement();
+            ReadOperations reads = stmt.readOperations();
+
+            IndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
+            SimpleIndexReader reader = (SimpleIndexReader) stmt.getStoreStatement().getIndexReader(descriptor);
+            SortedIndexReader sortedIndexReader = new SortedIndexReader(reader, 0, Sort.INDEXORDER);
+
+            Fields fields = MultiFields.getFields(sortedIndexReader.getIndexSearcher().getIndexReader());
+
+            Map<String, Integer> values = new HashMap<>();
+            TermsEnum termsEnum;
+            Terms terms = fields.terms("string");
+            if (terms != null) {
+                termsEnum = terms.iterator();
+                while ((termsEnum.next()) != null) {
+                    values.put(termsEnum.term().utf8ToString(), termsEnum.docFreq());
+                }
+            }
+            return values;
+        } catch (Exception e) {
+            throw new RuntimeException("Error collecting distinct terms of label: " + label + " and key: " + key, e);
+        }
+    }
 }
