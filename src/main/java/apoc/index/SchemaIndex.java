@@ -1,7 +1,8 @@
 package apoc.index;
 
-import org.apache.lucene.search.SortField;
-import org.apache.lucene.search.SortedNumericSortField;
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.kernel.api.exceptions.index.IndexNotApplicableKernelException;
 import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import apoc.result.NodeResult;
@@ -33,6 +34,7 @@ import org.neo4j.storageengine.api.schema.IndexReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * @author mh
@@ -48,35 +50,33 @@ public class SchemaIndex {
     @Procedure
     @Description("apoc.index.relatedNodes([nodes],label,key,'<TYPE'/'TYPE>'/'TYPE',limit) yield node - schema range scan which keeps index order and adds limit and checks opposite node of relationship against the given set of nodes")
     public Stream<NodeResult> related(@Name("nodes") List<Node> nodes,
-                                           @Name("label") String label, @Name("key") String key,
-                                           @Name("relationship") String relationship,
-                                           @Name("limit") long limit) throws Exception {
+                                      @Name("label") String label, @Name("key") String key,
+                                      @Name("relationship") String relationship,
+                                      @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException, DuplicateSchemaRuleException, IndexNotApplicableKernelException {
         Set<Node> nodeSet = new HashSet<>(nodes);
         Direction dir = Direction.BOTH;
-        if (relationship.startsWith("<")) {dir = Direction.INCOMING; relationship = relationship.substring(1);}
-        if (relationship.endsWith(">"))   {dir = Direction.OUTGOING; relationship = relationship.substring(0,relationship.length()-1);}
+        if (relationship.startsWith("<")) {
+            dir = Direction.INCOMING;
+            relationship = relationship.substring(1);
+        }
+        if (relationship.endsWith(">")) {
+            dir = Direction.OUTGOING;
+            relationship = relationship.substring(0, relationship.length() - 1);
+        }
         RelationshipType type = RelationshipType.withName(relationship);
-        System.out.println(distinctTerms(label,key));
-        List<Node> result = new ArrayList<>((int)limit);
+        List<Node> result = new ArrayList<>((int) limit);
         boolean reverse = false;
 //        SortField sortField = new SortField("number" /*string*/, SortField.Type.STRING, reverse);
 //        SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, Math.max(nodeSet.size(),limit), Sort.INDEXORDER); // new Sort(sortField));
         // PrimitiveLongIterator it = getIndexReader(label, key).rangeSeekByString("",true,String.valueOf((char)0xFF),true);
         KernelStatement stmt = (KernelStatement) tx.acquireStatement();
-        ReadOperations reads = stmt.readOperations();
-
-        int propertyKeyId = reads.propertyKeyGetForName(key);
-        LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), propertyKeyId);
-        IndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
-        IndexReader indexReader = stmt.getStoreStatement().getIndexReader(descriptor);
-        IndexQuery.NumberRangePredicate numberRangePredicate = IndexQuery.range(propertyKeyId, Long.MIN_VALUE, true, Long.MAX_VALUE, true);
-
-        PrimitiveLongIterator it = indexReader.query(numberRangePredicate);
-//        PrimitiveLongIterator it = sortedIndexReader.query(new MatchAllDocsQuery());
+        int keyId = stmt.readOperations().propertyKeyGetForName(key);
+        IndexQuery.NumberRangePredicate numberRangePredicate = IndexQuery.range(keyId, Long.MIN_VALUE, true, Long.MAX_VALUE, true);
+        PrimitiveLongIterator it = getIndexReader(label, key).query(numberRangePredicate);
 
         while (it.hasNext() && result.size() < limit) {
             Node node = db.getNodeById(it.next());
-            System.out.println("id  " + node.getProperty("id") + " age " + node.getProperty("age"));
+//            System.out.println("id  " + node.getProperty("id") + " age " + node.getProperty("age"));
             for (Relationship rel : node.getRelationships(dir, type)) {
                 Node other = rel.getOtherNode(node);
                 if (nodeSet.contains(other)) {
@@ -198,4 +198,54 @@ public class SchemaIndex {
         return new ArrayList<>(values);
     }
 
+    public static class PropertyValueCount {
+        public String label;
+        public String key;
+        public String value;
+        public long count;
+
+        public PropertyValueCount(String label, String key, String value, long count) {
+            this.label = label;
+            this.key = key;
+            this.value = value;
+            this.count = count;
+        }
+    }
+
+    @Procedure("apoc.schema.properties.distinctCount")
+    @Description("apoc.schema.properties.distinctCount([label], [key]) YIELD label, key, value, count - quickly returns all distinct values and counts for a given key")
+    public Stream<PropertyValueCount> distinctCount(@Name(value = "label", defaultValue = "") String labelName, @Name(value = "key", defaultValue = "") String keyName) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
+        Iterable<IndexDefinition> labels = (labelName.isEmpty()) ? db.schema().getIndexes(Label.label(labelName)) : db.schema().getIndexes(Label.label(labelName));
+        return StreamSupport.stream(labels.spliterator(), false).flatMap(
+                index -> {
+                    Iterable<String> keys = keyName.isEmpty() ? index.getPropertyKeys() : Collections.singletonList(keyName);
+                    return StreamSupport.stream(keys.spliterator(), false).flatMap(key -> {
+                        String label = index.getLabel().name();
+                        return distinctTermsCount(label, key).
+                                entrySet().stream().map(e -> new PropertyValueCount(label, key, e.getKey(), e.getValue()));
+                    });
+                }
+        );
+    }
+
+    private Map<String, Integer> distinctTermsCount(@Name("label") String label, @Name("key") String key) {
+        try {
+            SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, 0, Sort.INDEXORDER);
+
+            Fields fields = MultiFields.getFields(sortedIndexReader.getIndexSearcher().getIndexReader());
+
+            Map<String, Integer> values = new HashMap<>();
+            TermsEnum termsEnum;
+            Terms terms = fields.terms("string");
+            if (terms != null) {
+                termsEnum = terms.iterator();
+                while ((termsEnum.next()) != null) {
+                    values.put(termsEnum.term().utf8ToString(), termsEnum.docFreq());
+                }
+            }
+            return values;
+        } catch (Exception e) {
+            throw new RuntimeException("Error collecting distinct terms of label: " + label + " and key: " + key, e);
+        }
+    }
 }
