@@ -29,6 +29,27 @@ public class Utils {
     }
 
     @UserFunction
+    @Description("apoc.util.sha256([values]) | computes the sha256 of the concatenation of all string values of the list")
+    public String sha256(@Name("values") List<Object> values) {
+        String value = values.stream().map(v -> v == null ? "" : v.toString()).collect(Collectors.joining());
+        return DigestUtils.sha256Hex(value);
+    }
+
+    @UserFunction
+    @Description("apoc.util.sha384([values]) | computes the sha384 of the concatenation of all string values of the list")
+    public String sha384(@Name("values") List<Object> values) {
+        String value = values.stream().map(v -> v == null ? "" : v.toString()).collect(Collectors.joining());
+        return DigestUtils.sha384Hex(value);
+    }
+
+    @UserFunction
+    @Description("apoc.util.sha512([values]) | computes the sha512 of the concatenation of all string values of the list")
+    public String sha512(@Name("values") List<Object> values) {
+        String value = values.stream().map(v -> v == null ? "" : v.toString()).collect(Collectors.joining());
+        return DigestUtils.sha512Hex(value);
+    }
+
+    @UserFunction
     @Description("apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list")
     public String md5(@Name("values") List<Object> values) {
         String value = values.stream().map(v -> v == null ? "" : v.toString()).collect(Collectors.joining());
