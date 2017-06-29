@@ -1,6 +1,8 @@
 package apoc.meta;
 
+import apoc.util.MapUtil;
 import org.neo4j.helpers.collection.Pair;
+import org.neo4j.kernel.impl.core.NodeProxy;
 import org.neo4j.procedure.*;
 import apoc.result.*;
 import org.neo4j.graphdb.*;
@@ -9,6 +11,8 @@ import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.Description;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -24,6 +28,8 @@ public class Meta {
 
     @Context
     public GraphDatabaseService db;
+    @Context
+    public GraphDatabaseAPI api;
 
     @Context
     public KernelTransaction kernelTx;
@@ -39,7 +45,7 @@ public class Meta {
             }
             if (Number.class.isAssignableFrom(type)) {
                 return double.class.isAssignableFrom(type) || Double.class.isAssignableFrom(type) ||
-                       Float.class.isAssignableFrom(type) || float.class.isAssignableFrom(type) ? FLOAT : INTEGER;
+                        Float.class.isAssignableFrom(type) || float.class.isAssignableFrom(type) ? FLOAT : INTEGER;
             }
             if (type == Boolean.class || type == boolean.class) return BOOLEAN;
             if (value instanceof String) return STRING;
@@ -74,6 +80,13 @@ public class Meta {
         public long left; // 0,1,
         public long right; // 0,1,many
         public List<String> other = new ArrayList<>();
+        public List<String> otherLabels = new ArrayList<>();
+        public String elementType;
+
+        public MetaResult addLabel(String label) {
+            this.otherLabels.add(label);
+            return this;
+        }
 
         public MetaResult(String label, String name) {
             this.label = label;
@@ -110,7 +123,16 @@ public class Meta {
             this.array = array;
             return this;
         }
+
+        public MetaResult elementType(String elementType) {
+            switch(elementType){
+                case "NODE" : this.elementType = "node"; break;
+                case "RELATIONSHIP" : this.elementType = "relationship"; break;
+            }
+            return this;
+        }
     }
+
     static final int SAMPLE = 100;
 
 
@@ -262,7 +284,23 @@ public class Meta {
     @Procedure
     @Description("apoc.meta.data  - examines a subset of the graph to provide a tabular meta information")
     public Stream<MetaResult> data() {
-        // db size, all labels, all rel-types
+        return collectMetaData().values().stream().flatMap(x -> x.values().stream());
+    }
+
+    @Procedure
+    @Description("apoc.meta.schema  - examines a subset of the graph to provide a map-like meta information")
+    public Stream<MapResult> schema() {
+        MetaStats metaStats = collectStats();
+        Map<String, Map<String, MetaResult>> metaData = collectMetaData();
+
+        Map<String, Object> relationships = collectRelationshipsMetaData(metaStats, metaData);
+        Map<String, Object> nodes = collectNodesMetaData(metaStats, metaData, relationships);
+
+        nodes.putAll(relationships);
+        return Stream.of(new MapResult(nodes));
+    }
+
+    private Map<String, Map<String, MetaResult>> collectMetaData () {
         Map<String,Map<String,MetaResult>> metaData = new LinkedHashMap<>(100);
         Schema schema = db.schema();
 
@@ -287,25 +325,96 @@ public class Meta {
                 int count = 0;
                 while (nodes.hasNext() && count++ < SAMPLE) {
                     Node node = nodes.next();
+
                     addRelationships(metaData,nodeMeta, labelName, node,relConstraints);
-                    addProperties(nodeMeta, labelName, constraints, indexed, node);
+                    addProperties(nodeMeta, labelName, constraints, indexed, node, node);
                 }
             }
         }
-        return metaData.values().stream().flatMap(x -> x.values().stream());
+        return metaData;
     }
 
-    private void addProperties(Map<String, MetaResult> properties, String labelName, Iterable<ConstraintDefinition> constraints, Set<String> indexed, PropertyContainer pc) {
+    private Map<String, Object> collectNodesMetaData(MetaStats metaStats, Map<String, Map<String, MetaResult>> metaData, Map<String, Object> relationships) {
+        Map<String, Object> nodes = new LinkedHashMap<>();
+        for(String entityName : metaData.keySet()) {
+            Map<String, MetaResult> entityData = metaData.get(entityName);
+            Map<String, Object> entityProperties = new LinkedHashMap<>();
+            Map<String, Object> entityRelationships = new LinkedHashMap<>();
+            List<String> labels = new LinkedList<>();
+            boolean isNode = true;
+            for (String entityDataKey : entityData.keySet()) {
+                MetaResult metaResult = entityData.get(entityDataKey);
+                if (metaResult.elementType.equals("relationship")) {
+                    isNode = false;
+                    break;
+                } else {
+                    if (metaResult.unique)
+                        labels = metaResult.otherLabels;
+                    if (!metaResult.type.equals("RELATIONSHIP")) { // NODE PROPERTY
+                        entityProperties.put(entityDataKey,
+                                MapUtil.map("type", metaResult.type, "indexed", metaResult.index, "unique", metaResult.unique));
+                    } else {
+                        entityRelationships.put(metaResult.property,
+                                MapUtil.map("direction", "out", "count", metaResult.rightCount, "labels", metaResult.other,
+                                        "properties", ((Map<String, Object>) relationships.get(metaResult.property)).get("properties")));
+                    }
+                }
+            }
+            if (isNode) {
+                nodes.put(entityName, MapUtil.map(
+                        "type", "node",
+                        "count", metaStats.labels.get(entityName),
+                        "labels", labels,
+                        "properties", entityProperties,
+                        "relationships", entityRelationships
+                ));
+            }
+        }
+        return nodes;
+    }
+
+    private Map<String, Object> collectRelationshipsMetaData(MetaStats metaStats, Map<String, Map<String, MetaResult>> metaData) {
+        Map<String, Object> relationships = new LinkedHashMap<>();
+        for(String entityName : metaData.keySet()) {
+            Map<String, MetaResult> entityData = metaData.get(entityName);
+            Map<String, Object> entityProperties = new LinkedHashMap<>();
+            boolean isRelationship = true;
+            for (String entityDataKey : entityData.keySet()) {
+                MetaResult metaResult = entityData.get(entityDataKey);
+                if (!metaResult.elementType.equals("relationship")) {
+                    isRelationship = false;
+                    break;
+                }
+                if (!metaResult.type.equals("RELATIONSHIP")) { // RELATIONSHIP PROPERTY
+                    entityProperties.put(entityDataKey, MapUtil.map(
+                            "type", metaResult.type,
+                            "array", metaResult.array,
+                            "existence", metaResult.existence));
+                }
+            }
+            if (isRelationship) {
+                relationships.put(entityName, MapUtil.map(
+                        "type", "relationship",
+                        "count", metaStats.relTypes.getOrDefault(entityName, 0L),
+                        "properties", entityProperties));
+            }
+        }
+        return relationships;
+    }
+
+    private void addProperties(Map<String, MetaResult> properties, String labelName, Iterable<ConstraintDefinition> constraints, Set<String> indexed, PropertyContainer pc, Node node) {
         for (String prop : pc.getPropertyKeys()) {
             if (properties.containsKey(prop)) continue;
             MetaResult res = metaResultForProp(pc, labelName, prop);
-            addSchemaInfo(res, prop, constraints, indexed);
+            res.elementType(Types.of(pc).name());
+            addSchemaInfo(res, prop, constraints, indexed, node);
             properties.put(prop,res);
         }
     }
 
     private void addRelationships(Map<String, Map<String, MetaResult>> metaData, Map<String, MetaResult> nodeMeta, String labelName, Node node, Map<String, Iterable<ConstraintDefinition>> relConstraints) {
         for (RelationshipType type : node.getRelationshipTypes()) {
+
             int out = node.getDegree(type, Direction.OUTGOING);
             if (out == 0) continue;
 
@@ -324,17 +433,20 @@ public class Meta {
 
     private void addOtherNodeInfo(Node node, String labelName, int out, RelationshipType type, MetaResult relMeta, Map<String, MetaResult> typeMeta, Iterable<ConstraintDefinition> relConstraints) {
         MetaResult relNodeMeta = typeMeta.get(labelName);
+        relMeta.elementType(Types.of(node).name());
         for (Relationship rel : node.getRelationships(type, Direction.OUTGOING)) {
             Node endNode = rel.getEndNode();
             List<String> labels = toStrings(endNode.getLabels());
             int in = endNode.getDegree(type, Direction.INCOMING);
             relMeta.inc().other(labels).rel(out , in);
             relNodeMeta.inc().other(labels).rel(out,in);
-            addProperties(typeMeta, type.name(), relConstraints, Collections.emptySet(), rel);
+            addProperties(typeMeta, type.name(), relConstraints, Collections.emptySet(), rel, node);
+            relNodeMeta.elementType(Types.RELATIONSHIP.name());
         }
     }
 
-    private void addSchemaInfo(MetaResult res, String prop, Iterable<ConstraintDefinition> constraints, Set<String> indexed) {
+    private void addSchemaInfo(MetaResult res, String prop, Iterable<ConstraintDefinition> constraints, Set<String> indexed, Node node) {
+
         if (indexed.contains(prop)) {
             res.index = true;
         }
@@ -343,7 +455,12 @@ public class Meta {
             for (String key : constraint.getPropertyKeys()) {
                 if (key.equals(prop)) {
                     switch (constraint.getConstraintType()) {
-                        case UNIQUENESS: res.unique = true; break;
+                        case UNIQUENESS: res.unique = true;
+                        node.getLabels().forEach(l -> {
+                            if(res.label != l.name())
+                                res.addLabel(l.name());
+                        });
+                        break;
                         case NODE_PROPERTY_EXISTENCE:res.existence = true; break;
                         case RELATIONSHIP_PROPERTY_EXISTENCE: res.existence = true; break;
                     }
@@ -355,7 +472,8 @@ public class Meta {
     private MetaResult metaResultForProp(PropertyContainer pc, String labelName, String prop) {
         MetaResult res = new MetaResult(labelName, prop);
         Object value = pc.getProperty(prop);
-        res = res.type(Types.of(value).name());
+        res.type(Types.of(value).name());
+        res.elementType(Types.of(pc).name());
         if (value.getClass().isArray()) {
             res.array = true;
         }
