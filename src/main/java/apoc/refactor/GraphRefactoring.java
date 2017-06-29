@@ -1,5 +1,8 @@
 package apoc.refactor;
 
+import apoc.refactor.util.PropertiesManager;
+import apoc.refactor.util.RefactorConfig;
+import apoc.result.RelationshipResult;
 import org.neo4j.procedure.*;
 import apoc.Pools;
 import apoc.result.NodeResult;
@@ -107,15 +110,37 @@ public class GraphRefactoring {
      */
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.mergeNodes([node1,node2]) merge nodes onto first in list")
-    public Stream<NodeResult> mergeNodes(@Name("nodes") List<Node> nodes) {
+    public Stream<NodeResult> mergeNodes(@Name("nodes") List<Node> nodes, @Name(value= "config", defaultValue = "") Map<String, Object> config) {
         if (nodes.isEmpty()) return Stream.empty();
+        RefactorConfig conf = new RefactorConfig(config);
         Iterator<Node> it = nodes.iterator();
         Node first = it.next();
         while (it.hasNext()) {
             Node other = it.next();
-            mergeNodes(other, first, true);
+            mergeNodes(other, first, true, conf);
         }
         return Stream.of(new NodeResult(first));
+    }
+
+    /**
+     * Merges the relationships onto the first relationship and delete them.
+     * All relationships must have the same starting node and ending node.
+     */
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.refactor.mergeRelationships([rel1,rel2]) merge relationships onto first in list")
+    public Stream<RelationshipResult> mergeRelationships(@Name("rels") List<Relationship> relationships, @Name(value= "config", defaultValue = "") Map<String, Object> config) {
+        if (relationships.isEmpty()) return Stream.empty();
+        RefactorConfig conf = new RefactorConfig(config);
+        Iterator<Relationship> it = relationships.iterator();
+        Relationship first = it.next();
+        while (it.hasNext()) {
+            Relationship other = it.next();
+            if(first.getStartNode().equals(other.getStartNode()) && first.getEndNode().equals(other.getEndNode()))
+                mergeRels(other, first, true, conf);
+            else
+                throw new RuntimeException("All Relationships must have the same start and end nodes.");
+        }
+        return Stream.of(new RelationshipResult(first));
     }
 
     /**
@@ -298,17 +323,18 @@ public class GraphRefactoring {
         });
     }
 
-    private Node mergeNodes(Node source, Node target, boolean delete) {
+    private Node mergeNodes(Node source, Node target, boolean delete, RefactorConfig conf) {
         Map<String, Object> properties = source.getAllProperties();
         copyRelationships(source, copyLabels(source, target), delete);
         if (delete) source.delete();
-        copyProperties(properties, target);
+        PropertiesManager.mergeProperties(properties, target, conf.getPropertiesManagement());
         return target;
     }
 
-    private Node copyProperties(Map<String, Object> properties, Node target) {
-        for (Map.Entry<String, Object> prop : properties.entrySet())
-            target.setProperty(prop.getKey(), prop.getValue());
+    private Relationship mergeRels(Relationship source, Relationship target, boolean delete, RefactorConfig conf) {
+        Map<String, Object> properties = source.getAllProperties();
+        if (delete) source.delete();
+        PropertiesManager.mergeProperties(properties, target, conf.getPropertiesManagement());
         return target;
     }
 

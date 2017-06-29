@@ -611,6 +611,7 @@ CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (
 | call apoc.refactor.cloneNodes([node1,node2,...]) |  clone nodes with their labels and properties
 | call apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) | clone nodes with their labels, properties and relationships
 | call apoc.refactor.mergeNodes([node1,node2]) | merge nodes onto first in list
+| call apoc.refactor.mergeRelationships([rel1,rel2,...],{config}) | merge relationships onto first in list
 | call apoc.refactor.to(rel, endNode) | redirect relationship to use new end-node
 | call apoc.refactor.from(rel, startNode) | redirect relationship to use new start-node
 | call apoc.refactor.invert(rel) | inverts relationship direction
@@ -621,10 +622,14 @@ CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (
 | call apoc.refactor.categorize(node, propertyKey, type, outgoing, label) | turn each unique propertyKey into a category node and connect to it
 |===
 
+On mergeRelationship with config properties you can choose from 3 different management:
+ * "overwrite" : if there is the same property in more relationship, in the new one will have the last relationship's property value
+ * "discard" : if there is the same property in more relationship, the new one will have the first relationship's property value
+ * "combine" : if there is the same property in more relationship, the new one a value's array with all relationships' values
+
 TODO:
 
 * merge nodes by label + property
-* merge relationships
 
 
 == Spatial
