@@ -45,6 +45,6 @@ CREATE (:Movie {title: 'A Few Good Men', genre: 'Drama'})
 ----
 MATCH (n:Movie) 
 CALL apoc.create.addLabels( id(n), [ n.genre ] ) YIELD node 
-REMOVE node.studio
+REMOVE node.genre
 RETURN node
 ----
