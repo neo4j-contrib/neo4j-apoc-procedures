@@ -1,10 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <parent name="databases">
     <child name="Neo4j">
         Neo4j is a graph database
     </child>
     <child name="relational">
-        <grandchild name="MySQL">
-            MySQL is a database &amp; relational
+        <grandchild name="MySQL"><![CDATA[
+            MySQL is a database & relational
+            ]]>
         </grandchild>
         <grandchild name="Postgres">
             Postgres is a relational database

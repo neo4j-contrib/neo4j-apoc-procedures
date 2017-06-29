@@ -95,6 +95,38 @@ RETURN key, apoc.meta.type(value[key]);
 ----
 image::{img}/apoc.load.xmlSimple.ex2.png[width=800]
 
+== xPath
+
+It's possible to define a xPath (optional) to selecting nodes from the XML document.
+
+=== xPath Example
+
+From the Microsoft's book.xml file we can get only the books that have as `genre` Computer
+
+[source,cypher]
+----
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/src/test/resources/books.xml", '/catalog/book[genre=\"Computer\"]') yield value as book
+WITH book.id as id, [attr IN book._children WHERE attr._type IN ['title','price'] | attr._text] as pairs
+RETURN id, pairs[0] as title, pairs[1] as price
+----
+
+image::{img}/apoc.load.xml.xpath.png[width=800]
+
+In this case we return only `id`, `title` and `prize` but we can return any other elements
+
+We can also return just a single specific element.
+For example the `author` of the book with `id = bg102`
+
+[source,cypher]
+----
+call apoc.load.xml('https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/src/test/resources/books.xml', '/catalog/book[@id="bk102"]/author') yield value as result
+WITH result._text as author
+RETURN author
+----
+
+image::{img}/apoc.load.xml.xpath2.png[width=800]
+
+
 
 == Load XML and Introspect
 
