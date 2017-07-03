@@ -1,0 +1,8 @@
+[cols="1m,3"]
+|===
+| CALL apoc.schema.existsIndex(indexLabel, propertyName) yield value | it returns true if an index exists for a label "indexLabel" and a property "propertyName"
+| CALL apoc.schema.existsConstraintForNode(indexLabel, propertyName, constraintType) yield value | it returns true if a constraint exists for a label "indexLabel" and a property "propertyName". The constraint can be a uniqueness constraint or an existence constraint so you need to pass the third parameter to specify what type of constraints you are looking for. Possible values are: UNIQUENESS or NODE_PROPERTY_EXISTENCE.
+| CALL apoc.schema.existsConstraintForRelationship(relationshipType, propertyName) yield value | it returns true if a constraint exists for a relationship type "relationshipType" and a property "propertyName".
+|===
+
+N.B. Constraints for property existence on nodes and relationships are available only for the Enterprise Edition.
