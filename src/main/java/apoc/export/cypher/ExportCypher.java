@@ -47,7 +47,7 @@ public class ExportCypher {
     public Stream<ProgressInfo> all(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws IOException {
 
         String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(db), Util.relCount(db));
-        return exportCypher(fileName, source, new DatabaseSubGraph(db), new ExportConfig(config));
+        return exportCypher(fileName, source, new DatabaseSubGraph(db), new ExportConfig(config), false);
     }
 
     @Procedure
@@ -55,7 +55,7 @@ public class ExportCypher {
     public Stream<ProgressInfo> data(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws IOException {
 
         String source = String.format("data: nodes(%d), rels(%d)", nodes.size(), rels.size());
-        return exportCypher(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), new ExportConfig(config));
+        return exportCypher(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), new ExportConfig(config), false);
     }
 
     @Procedure
@@ -65,7 +65,7 @@ public class ExportCypher {
         Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
         Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
         String source = String.format("graph: nodes(%d), rels(%d)", nodes.size(), rels.size());
-        return exportCypher(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), new ExportConfig(config));
+        return exportCypher(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), new ExportConfig(config), false);
     }
 
     @Procedure
@@ -76,15 +76,24 @@ public class ExportCypher {
         SubGraph graph = CypherResultSubGraph.from(result, db, c.getRelsInBetween());
         String source = String.format("statement: nodes(%d), rels(%d)",
                 Iterables.count(graph.getNodes()), Iterables.count(graph.getRelationships()));
-        return exportCypher(fileName, source, graph, c);
+        return exportCypher(fileName, source, graph, c, false);
     }
 
-    private Stream<ProgressInfo> exportCypher(@Name("file") String fileName, String source, SubGraph graph, ExportConfig c) throws IOException {
+    @Procedure
+    @Description("apoc.export.cypher.schema(file,config) - exports all schema indexes and constraints to cypher")
+    public Stream<ProgressInfo> schema(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws IOException {
+        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(db), Util.relCount(db));
+        return exportCypher(fileName, source, new DatabaseSubGraph(db), new ExportConfig(config), true);
+    }
+
+    private Stream<ProgressInfo> exportCypher(@Name("file") String fileName, String source, SubGraph graph, ExportConfig c, boolean onlySchema) throws IOException {
         checkWriteAllowed();
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "cypher"));
         MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph, c.getFormat());
-        // Pass the full configuration to enable further enhancement
-        exporter.export(fileName, c, reporter);
+        if(onlySchema)
+            exporter.exportOnlySchema(fileName);
+        else
+            exporter.export(fileName, c, reporter); // Pass the full configuration to enable further enhancement
         return reporter.stream();
     }
 }
