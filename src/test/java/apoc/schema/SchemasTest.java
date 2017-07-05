@@ -21,6 +21,7 @@ import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -251,9 +252,17 @@ public class SchemasTest {
     @Test
     public void testIndexExists() {
         db.execute("CREATE INDEX ON :Foo(bar)").close();
-        testResult(db, "CALL apoc.schema.existsIndex('Foo', ['bar'])", (result) -> {
+        testResult(db, "CALL apoc.schema.nodes()", (result) -> {
+            // Get the index info
             Map<String, Object> r = result.next();
-            assertEquals(true, r.get("value"));
+
+            assertEquals(":Foo(bar)", r.get("name"));
+            assertEquals("ONLINE", r.get("status"));
+            assertEquals("Foo", r.get("label"));
+            assertEquals("INDEX", r.get("type"));
+            assertEquals("bar", ((List<String>) r.get("properties")).get(0));
+
+            assertTrue(!result.hasNext());
         });
     }
 
@@ -264,37 +273,55 @@ public class SchemasTest {
     public void testIndexExistsOnMultipleProperties() {
         ignoreException(() -> {
             db.execute("CREATE INDEX ON :Foo(bar, foo)").close();
-            testResult(db, "CALL apoc.schema.existsIndex('Foo', ['bar', 'foo'])", (result) -> {
+            testResult(db, "CALL apoc.schema.nodes()", (result) -> {
+                // Get the index info
                 Map<String, Object> r = result.next();
-                assertEquals(true, r.get("value"));
+
+                assertEquals(":Foo(bar,foo)", r.get("name"));
+                assertEquals("ONLINE", r.get("status"));
+                assertEquals("Foo", r.get("label"));
+                assertEquals("INDEX", r.get("type"));
+                assertTrue(((List<String>) r.get("properties")).contains("bar"));
+                assertTrue(((List<String>) r.get("properties")).contains("foo"));
+
+                assertTrue(!result.hasNext());
             });
         }, QueryExecutionException.class);
     }
 
     @Test
-    public void testIndexNotExists() {
-        db.execute("CREATE INDEX ON :Bar(foo)").close();
-        testResult(db, "CALL apoc.schema.existsIndex('Foo', ['bar'])", (result) -> {
-            Map<String, Object> r = result.next();
-            assertEquals(false, r.get("value"));
-        });
-    }
-
-    @Test
     public void testUniquenessContraintsOnNode() {
         db.execute("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE").close();
-        testResult(db, "CALL apoc.schema.existsConstraintForNode('Bar', 'foo', 'UNIQUENESS')", (result) -> {
+        testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             Map<String, Object> r = result.next();
-            assertEquals(true, r.get("value"));
+
+            assertEquals("CONSTRAINT ON ( bar:Bar ) ASSERT bar.foo IS UNIQUE", r.get("name"));
+            assertEquals("Bar", r.get("label"));
+            assertEquals("UNIQUENESS", r.get("type"));
+            assertEquals("foo", ((List<String>) r.get("properties")).get(0));
+
+            assertTrue(!result.hasNext());
         });
     }
 
     @Test
-    public void testUniquenessContraintsOnNodeNotExists() {
+    public void testIndexAndConstraint() {
+        db.execute("CREATE INDEX ON :Foo(foo)").close();
         db.execute("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.bar IS UNIQUE").close();
-        testResult(db, "CALL apoc.schema.existsConstraintForNode('Bar', 'foo', 'UNIQUENESS')", (result) -> {
+        testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             Map<String, Object> r = result.next();
-            assertEquals(false, r.get("value"));
+
+            assertEquals("Foo", r.get("label"));
+            assertEquals("INDEX", r.get("type"));
+            assertEquals("foo", ((List<String>) r.get("properties")).get(0));
+            assertEquals("ONLINE", r.get("status"));
+
+            r = result.next();
+            assertEquals("Bar", r.get("label"));
+            assertEquals("UNIQUENESS", r.get("type"));
+            assertEquals("bar", ((List<String>) r.get("properties")).get(0));
+
+            assertTrue(!result.hasNext());
         });
     }
 
@@ -305,20 +332,16 @@ public class SchemasTest {
     public void testPropertyExistsContraintsOnNode() {
         ignoreException(() -> {
             db.execute("CREATE CONSTRAINT ON (bar:Bar) ASSERT exists(bar.foobar)").close();
-            testResult(db, "CALL apoc.schema.existsConstraintForNode('Bar', 'foobar', 'NODE_PROPERTY_EXISTENCE')", (result) -> {
+            testResult(db, "CALL apoc.schema.nodes()", (result) -> {
                 Map<String, Object> r = result.next();
-                assertEquals(false, r.get("value"));
+
+                assertEquals("Bar", r.get("label"));
+                assertEquals("NODE_PROPERTY_EXISTENCE", r.get("type"));
+                assertEquals("foobar", ((List<String>) r.get("properties")).get(0));
+
+                assertTrue(!result.hasNext());
             });
         }, QueryExecutionException.class);
-    }
-
-    @Test
-    public void testUniquenessContraintsOnNodeButDifferentType() {
-        db.execute("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE").close();
-        testResult(db, "CALL apoc.schema.existsConstraintForNode('Bar', 'foo', 'NODE_PROPERTY_EXISTENCE')", (result) -> {
-            Map<String, Object> r = result.next();
-            assertEquals(false, r.get("value"));
-        });
     }
 
     /**
