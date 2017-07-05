@@ -1,8 +1,17 @@
-[cols="1m,3"]
+[cols="1m,2a"]
 |===
-| CALL apoc.schema.existsIndex(indexLabel, propertyName) yield value | it returns true if an index exists for a label "indexLabel" and a property "propertyName"
-| CALL apoc.schema.existsConstraintForNode(indexLabel, propertyName, constraintType) yield value | it returns true if a constraint exists for a label "indexLabel" and a property "propertyName". The constraint can be a uniqueness constraint or an existence constraint so you need to pass the third parameter to specify what type of constraints you are looking for. Possible values are: UNIQUENESS or NODE_PROPERTY_EXISTENCE.
-| CALL apoc.schema.existsConstraintForRelationship(relationshipType, propertyName) yield value | it returns true if a constraint exists for a relationship type "relationshipType" and a property "propertyName".
+| CALL apoc.schema.nodes() yield name, label, properties, status, type
+| * name of the index/constraint,
+  * label
+  * properties, (for Neo4j 3.1 and lower versions is a single element array) that are affected by the constraint
+  * status, for index can be one of the following values: ONLINE, POPULATING and FAILED
+| CALL apoc.schema.relationships() yield name, startLabel, type, endLabel, properties, status
+| * name of the constraint
+  * startLabel, an array of labels for all the starting nodes related to this type of relationship
+  * type of the relationship
+  * endLabel, an array of labels for all the ending nodes related to this type of relationship
+  * properties, (for Neo4j 3.1 and lower versions is a single element array) that are affected by the constraint
+  * status
 |===
 
 N.B. Constraints for property existence on nodes and relationships are available only for the Enterprise Edition.
