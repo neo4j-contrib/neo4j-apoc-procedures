@@ -683,6 +683,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.map.clean(map,[keys],[values]) yield value | removes the keys and values (e.g. null-placeholders) contained in those lists, good for data cleaning from CSV/JSON
 | apoc.map.groupBy([maps/nodes/relationships],'key') yield value | creates a map of the list keyed by the given property, with single values
 | apoc.map.groupByMulti([maps/nodes/relationships],'key') yield value | creates a map of the list keyed by the given property, with list values
+| apoc.map.sortedProperties(map, ignoreCase:true) | returns a list of key/value list pairs, with pairs sorted by keys alphabetically, with optional case sensitivity
 |===
 
 

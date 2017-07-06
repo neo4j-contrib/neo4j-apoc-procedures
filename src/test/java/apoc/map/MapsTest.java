@@ -9,6 +9,8 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
@@ -153,6 +155,32 @@ public class MapsTest {
                     "nested.anotherkey", "anotherValue",
                     "nested.nested.somekey", "someValue",
                     "nested.nested.somenumeric", 123), resultMap);
+        });
+    }
+
+    @Test
+    public void testSortedProperties() {
+        TestUtil.testCall(db, "WITH {b:8, d:3, a:2, E: 12, C:9} as map RETURN apoc.map.sortedProperties(map, false) AS sortedProperties", (r) -> {
+            List<List<String>> sortedProperties = (List<List<String>>)r.get("sortedProperties");
+            assertEquals(5, sortedProperties.size());
+            assertEquals(asList("C", 9l), sortedProperties.get(0));
+            assertEquals(asList("E", 12l), sortedProperties.get(1));
+            assertEquals(asList("a", 2l), sortedProperties.get(2));
+            assertEquals(asList("b", 8l), sortedProperties.get(3));
+            assertEquals(asList("d", 3l), sortedProperties.get(4));
+        });
+    }
+
+    @Test
+    public void testCaseInsensitiveSortedProperties() {
+        TestUtil.testCall(db, "WITH {b:8, d:3, a:2, E: 12, C:9} as map RETURN apoc.map.sortedProperties(map) AS sortedProperties", (r) -> {
+            List<List<String>> sortedProperties = (List<List<String>>)r.get("sortedProperties");
+            assertEquals(5, sortedProperties.size());
+            assertEquals(asList("a", 2l), sortedProperties.get(0));
+            assertEquals(asList("b", 8l), sortedProperties.get(1));
+            assertEquals(asList("C", 9l), sortedProperties.get(2));
+            assertEquals(asList("d", 3l), sortedProperties.get(3));
+            assertEquals(asList("E", 12l), sortedProperties.get(4));
         });
     }
 }
