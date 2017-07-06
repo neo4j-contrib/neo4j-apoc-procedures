@@ -1030,7 +1030,6 @@ Example: find the weighted shortest path based on relationship property `d` from
 MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'})
 CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as weight
 RETURN path, weight
-MATCH (n:Person)
 ----
 
 // end::overview[] 
