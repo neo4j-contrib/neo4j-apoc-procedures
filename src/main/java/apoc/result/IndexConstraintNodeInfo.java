@@ -1,14 +1,5 @@
 package apoc.result;
 
-import org.neo4j.graphdb.schema.ConstraintType;
-import org.neo4j.kernel.api.ReadOperations;
-import org.neo4j.kernel.api.StatementTokenNameLookup;
-import org.neo4j.kernel.api.constraints.NodePropertyConstraint;
-import org.neo4j.kernel.api.constraints.PropertyConstraint;
-import org.neo4j.kernel.api.constraints.UniquenessConstraint;
-import org.neo4j.kernel.api.index.IndexDescriptor;
-
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -27,38 +18,19 @@ public class IndexConstraintNodeInfo {
     public final String type;
 
     /**
-     * Constructor using ReadOperations and IndexDescriptor
-     * It is used for wrapping index information
+     * Default constructor
      *
-     * @param readOperations
-     * @param indexDescriptor
-     * @throws Exception
+     * @param name
+     * @param label
+     * @param properties
+     * @param status status of the index, if it's a constraint it will be empty
+     * @param type if it is an index type will be "INDEX" otherwise it will be the type of constraint
      */
-    public IndexConstraintNodeInfo(ReadOperations readOperations, IndexDescriptor indexDescriptor) throws Exception {
-        // We use StatementTokenNameLookUp to get the name
-        name = indexDescriptor.userDescription(new StatementTokenNameLookup(readOperations));
-        label = readOperations.labelGetName(indexDescriptor.getLabelId());
-        properties = Collections.singletonList(readOperations.propertyKeyGetName(indexDescriptor.getPropertyKeyId()));
-        status = readOperations.indexGetState(indexDescriptor).name();
-        type = "INDEX";
-    }
-
-    /**
-     * Alternative constructor using ReadOperations and PropertyConstraint
-     * It is used for wrapping constraint information
-     *
-     * @param readOperations
-     * @param propertyConstraint
-     * @throws Exception
-     */
-    public IndexConstraintNodeInfo(ReadOperations readOperations, PropertyConstraint propertyConstraint) throws Exception {
-        // We use StatementTokenNameLookUp to get the names
-        StatementTokenNameLookup lookup = new StatementTokenNameLookup(readOperations);
-
-        name = propertyConstraint.userDescription(lookup);
-        label = lookup.labelGetName(((NodePropertyConstraint) propertyConstraint).label());
-        properties = Collections.singletonList(lookup.propertyKeyGetName(propertyConstraint.propertyKey()));
-        status = "";
-        type = propertyConstraint instanceof UniquenessConstraint ? ConstraintType.UNIQUENESS.name() : ConstraintType.NODE_PROPERTY_EXISTENCE.name();
+    public IndexConstraintNodeInfo(String name, String label, List<String> properties, String status, String type) {
+        this.name = name;
+        this.label = label;
+        this.properties = properties;
+        this.status = status;
+        this.type = type;
     }
 }

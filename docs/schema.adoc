@@ -1,17 +1,102 @@
-[cols="1m,2a"]
-|===
-| CALL apoc.schema.nodes() yield name, label, properties, status, type
-| * name of the index/constraint,
+To retrieve indexes and constraints information for all the node labels in your database, you can use the following procedure:
+
+```cypher
+CALL apoc.schema.nodes() yield name, label, properties, status, type
+```
+
+Where the outputs are:
+
+  * name of the index/constraint,
   * label
   * properties, (for Neo4j 3.1 and lower versions is a single element array) that are affected by the constraint
   * status, for index can be one of the following values: ONLINE, POPULATING and FAILED
-| CALL apoc.schema.relationships() yield name, startLabel, type, endLabel, properties, status
-| * name of the constraint
-  * startLabel, an array of labels for all the starting nodes related to this type of relationship
+  * type, always "INDEX" for indexes, constraint type for constraints
+
+To retrieve the constraint information for all the relationship types in your database, you can use the following procedure:
+
+```cypher
+CALL apoc.schema.relationships() yield name, type, properties, status
+```
+
+Where the outputs are:
+
+  * name of the constraint
   * type of the relationship
-  * endLabel, an array of labels for all the ending nodes related to this type of relationship
   * properties, (for Neo4j 3.1 and lower versions is a single element array) that are affected by the constraint
   * status
-|===
 
 N.B. Constraints for property existence on nodes and relationships are available only for the Enterprise Edition.
+
+=== Examples
+
+===== List indexes and constraints for nodes
+
+Given the following cypher statements:
+
+```cypher
+CREATE CONSTRAINT ON (bar:Bar) ASSERT exists(bar.foobar)
+CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE
+CREATE INDEX ON :Person(name)
+CREATE INDEX ON :Publication(name)
+CREATE INDEX ON :Source(name)
+```
+
+When you
+
+```cypher
+CALL apoc.schema.nodes()
+```
+
+you will receive this result:
+
+image::img/apoc.schema.nodes.png[]
+
+===== List constraints for relationships
+
+Given the following cypher statements:
+
+```cypher
+CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)
+CREATE CONSTRAINT ON ()-[starred:STARRED]-() ASSERT exists(starred.month)
+```
+
+When you
+
+```cypher
+CALL apoc.schema.relationships()
+```
+
+you will receive this result:
+
+image::img/apoc.schema.relationships.png[]
+
+==== Check if an index or a constraint exists for a Label and property
+
+Given the previous index definitions, running this statement:
+
+```cypher
+RETURN apoc.schema.node.indexExists("Publication", ["name"])
+```
+produces the following output:
+
+image::img/apoc.schema.node.indexExists.png[]
+
+
+Given the previous constraint definitions, running this statement:
+
+```cypher
+RETURN apoc.schema.node.constraintExists("Bar", ["foobar"])
+```
+produces the following output:
+
+image::img/apoc.schema.node.constraintExists.png[]
+
+If you want to check if a constraint exists for a relationship you can run this statement:
+
+```cypher
+RETURN apoc.schema.relationship.constraintExists('LIKED', ['day'])
+```
+
+and you get the following result:
+
+image:img/apoc.schema.relationship.constraintExists.png[]
