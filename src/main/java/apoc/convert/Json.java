@@ -103,6 +103,34 @@ public class Json {
                 .map(MapResult::new);
     }
 
+    @UserFunction("apoc.convert.toSortedJsonMap")
+    @Description("apoc.convert.toSortedJsonMap(node|map, ignoreCase:true) - returns a JSON map with keys sorted alphabetically, with optional case sensitivity")
+    public String toSortedJsonMap(@Name("value") Object value, @Name(value="ignoreCase", defaultValue = "true") boolean ignoreCase) {
+        Map<String, Object> inputMap;
+        Map<String, Object> sortedMap;
+
+        if (value instanceof Node) {
+            inputMap = ((Node)value).getAllProperties();
+        } else if (value instanceof Map) {
+            inputMap = (Map<String, Object>) value;
+        } else {
+            throw new IllegalArgumentException("input value must be a Node or a map");
+        }
+
+        if (ignoreCase) {
+            sortedMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+            sortedMap.putAll(inputMap);
+        } else {
+            sortedMap = new TreeMap<>(inputMap);
+        }
+
+        try {
+            return JsonUtil.OBJECT_MAPPER.writeValueAsString(sortedMap);
+        } catch (IOException e) {
+            throw new RuntimeException("Can't convert " + value + " to json", e);
+        }
+    }
+
     private Map<String, Object> addRelProperties(Map<String, Object> mMap, String typeName, Relationship r) {
         Map<String, Object> rProps = r.getAllProperties();
         if (rProps.isEmpty()) return mMap;
