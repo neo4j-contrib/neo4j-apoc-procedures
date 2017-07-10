@@ -1,10 +1,8 @@
 package apoc.periodic;
 
 import apoc.load.Jdbc;
-import apoc.periodic.Periodic;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
-import apoc.util.Util;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,18 +11,19 @@ import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.net.ConnectException;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Map;
 
-import static apoc.util.TestUtil.*;
+import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 public class PeriodicTest {
 
+    public static final long RUNDONW_COUNT = 1000;
+    public static final int BATCH_SIZE = 399;
     private GraphDatabaseService db;
 
     @Before
@@ -53,18 +52,15 @@ public class PeriodicTest {
                     assertEquals(0L, row.get("rate"));
                 });
         Thread.sleep(2000);
-        ResourceIterator<Object> it = db.execute("MATCH (:Foo) RETURN count(*) as c").columnAs("c");
+        ResourceIterator<Object> it = db.execute("MATCH (:Foo) RETURN COUNT(*) AS c").columnAs("c");
         assertEquals(1L, it.next());
         it.close();
         testCall(db, callList, (r) -> assertEquals(true, r.get("done")));
     }
 
-    public static final long RUNDONW_COUNT = 1000;
-    public static final int BATCH_SIZE = 399;
-
     @Test
     public void testRunDown() throws Exception {
-        db.execute("UNWIND range(1,{count}) as id CREATE (n:Person {id:id})", MapUtil.map("count", RUNDONW_COUNT)).close();
+        db.execute("UNWIND range(1,{count}) AS id CREATE (n:Person {id:id})", MapUtil.map("count", RUNDONW_COUNT)).close();
 
         String query = "MATCH (p:Person) WHERE NOT p:Processed WITH p LIMIT {limit} SET p:Processed RETURN count(*)";
 
@@ -73,7 +69,7 @@ public class PeriodicTest {
             assertEquals(RUNDONW_COUNT, r.get("updates"));
         });
 
-        ResourceIterator<Long> it = db.execute("MATCH (p:Processed) return count(*) as c").<Long>columnAs("c");
+        ResourceIterator<Long> it = db.execute("MATCH (p:Processed) RETURN COUNT(*) AS c").<Long>columnAs("c");
         long count = it.next();
         it.close();
         assertEquals(RUNDONW_COUNT, count);
@@ -83,7 +79,7 @@ public class PeriodicTest {
     @Test
     public void testRock_n_roll() throws Exception {
         // setup
-        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+        db.execute("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})").close();
 
         // when&then
 
@@ -110,7 +106,7 @@ public class PeriodicTest {
             assertEquals(10L, row.get("failedOperations"));
             assertEquals(10L, row.get("failedBatches"));
             Map<String, Object> batchErrors = map("org.neo4j.graphdb.TransactionFailureException: Transaction was marked as successful, but unable to commit transaction so rolled back.", 10L);
-            assertEquals(batchErrors, ((Map)row.get("batch")).get("errors"));
+            assertEquals(batchErrors, ((Map) row.get("batch")).get("errors"));
             Map<String, Object> operationsErrors = map("/ by zero", 10L);
             assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
         });
@@ -118,7 +114,7 @@ public class PeriodicTest {
 
     @Test
     public void testIterate() throws Exception {
-        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+        db.execute("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})").close();
 
         testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'WITH {p} as p SET p.lastname =p.name REMOVE p.name', {batchSize:10,parallel:true})", result -> {
             Map<String, Object> row = Iterators.single(result);
@@ -131,9 +127,10 @@ public class PeriodicTest {
                 row -> assertEquals(100L, row.get("count"))
         );
     }
+
     @Test
     public void testIteratePrefix() throws Exception {
-        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+        db.execute("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})").close();
 
         testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'SET p.lastname =p.name REMOVE p.name', {batchSize:10,parallel:true})", result -> {
             Map<String, Object> row = Iterators.single(result);
@@ -146,9 +143,10 @@ public class PeriodicTest {
                 row -> assertEquals(100L, row.get("count"))
         );
     }
+
     @Test
     public void testIterateBatch() throws Exception {
-        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+        db.execute("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})").close();
 
         testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'UNWIND {_batch} as row WITH row.p as p SET p.lastname = p.name REMOVE p.name', {batchSize:10, iterateList:true, parallel:true})", result -> {
             Map<String, Object> row = Iterators.single(result);
@@ -165,7 +163,7 @@ public class PeriodicTest {
 
     @Test
     public void testIterateBatchPrefix() throws Exception {
-        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+        db.execute("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})").close();
 
         testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'SET p.lastname = p.name REMOVE p.name', {batchSize:10, iterateList:true, parallel:true})", result -> {
             Map<String, Object> row = Iterators.single(result);
@@ -179,6 +177,7 @@ public class PeriodicTest {
                 row -> assertEquals(100L, row.get("count"))
         );
     }
+
     @Test
     public void testIterateRetries() throws Exception {
         testResult(db, "CALL apoc.periodic.iterate('return 1', 'CREATE (n {prop: 1/{_retry}})', {retries:1})", result -> {
@@ -192,7 +191,7 @@ public class PeriodicTest {
 
     @Test
     public void testIterateFail() throws Exception {
-        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+        db.execute("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})").close();
         testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'WITH {p} as p SET p.lastname = p.name REMOVE x.name', {batchSize:10,parallel:true})", result -> {
             Map<String, Object> row = Iterators.single(result);
             System.out.println("row = " + row);
@@ -227,7 +226,7 @@ public class PeriodicTest {
     @Test
     public void testRock_n_roll_while() throws Exception {
         // setup
-        db.execute("UNWIND range(1,100) as x create (:Person{name:'Person_'+x})").close();
+        db.execute("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})").close();
 
         // when&then
         testResult(db, "CALL apoc.periodic.rock_n_roll_while('return coalesce({previous},3)-1 as loop', 'match (p:Person) return p', 'MATCH (p) where p={p} SET p.lastname =p.name', 10)", result -> {
@@ -246,6 +245,28 @@ public class PeriodicTest {
                 "MATCH (p:Person) where p.lastname is not null return count(p) as count",
                 row -> assertEquals(100L, row.get("count"))
         );
+    }
+
+    @Test
+    public void testCountdown() {
+        int startValue = 10;
+        int rate = 1;
+
+        db.execute("CREATE (counter:Counter {c: " + startValue + "})");
+        String statementToRepeat = "MATCH (counter:Counter) SET counter.c = counter.c - 1 RETURN counter.c as count";
+
+        Map<String, Object> params = map("statement", statementToRepeat, "rate", rate);
+        testResult(db, "CALL apoc.periodic.countdown('decrement',{statement}, {rate})", params, r -> {
+            try {
+                // Number of iterations per rate (in seconds)
+                Thread.sleep(startValue * rate * 1000);
+            } catch (InterruptedException e) {
+
+            }
+
+            Map<String, Object> result = db.execute("MATCH (counter:Counter) RETURN counter.c as c").next();
+            assertEquals(0L, result.get("c"));
+        });
     }
 
 }
