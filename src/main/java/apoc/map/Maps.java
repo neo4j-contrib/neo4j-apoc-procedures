@@ -1,13 +1,13 @@
 package apoc.map;
 
+import apoc.result.MapResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.UserFunction;
+import org.neo4j.procedure.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Maps {
 
@@ -179,4 +179,22 @@ public class Maps {
         }
     }
 
+    @UserFunction
+    @Description("apoc.map.sortedProperties(map, ignoreCase:true) - returns a list of key/value list pairs, with pairs sorted by keys alphabetically, with optional case sensitivity")
+    public List<List<Object>> sortedProperties(@Name("map") Map<String, Object> map, @Name(value="ignoreCase", defaultValue = "true") boolean ignoreCase) {
+        List<List<Object>> sortedProperties = new ArrayList<>();
+        List<String> keys = new ArrayList<>(map.keySet());
+
+        if (ignoreCase) {
+            Collections.sort(keys, String.CASE_INSENSITIVE_ORDER);
+        } else {
+            Collections.sort(keys);
+        }
+
+        for (String key : keys) {
+            sortedProperties.add(Arrays.asList(key, map.get(key)));
+        }
+
+        return sortedProperties;
+    }
 }

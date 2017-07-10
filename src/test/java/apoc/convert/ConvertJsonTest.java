@@ -116,4 +116,13 @@ public class ConvertJsonTest {
                     assertEquals("CPU", cpu.get("name"));
                 });
     }
+    @Test public void testToJsonMapSortingProperties() throws Exception {
+        testCall(db, "WITH {b:8, d:3, a:2, E: 12, C:9} as map RETURN apoc.convert.toSortedJsonMap(map, false) as value",
+                (row) -> assertEquals("{\"C\":9,\"E\":12,\"a\":2,\"b\":8,\"d\":3}", row.get("value")) );
+    }
+
+    @Test public void testToJsonMapSortingPropertiesIgnoringCase() throws Exception {
+        testCall(db, "WITH {b:8, d:3, a:2, E: 12, C:9} as map RETURN apoc.convert.toSortedJsonMap(map) as value",
+                (row) -> assertEquals("{\"a\":2,\"b\":8,\"C\":9,\"d\":3,\"E\":12}", row.get("value")) );
+    }
 }
