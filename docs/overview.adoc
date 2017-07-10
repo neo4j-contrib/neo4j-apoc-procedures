@@ -205,31 +205,33 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 
 [cols="1m,5"]
 |===
-| apoc.export.csv.query(query,file,config) | exports results from the cypher statement as csv to the provided file
-| apoc.export.csv.all(file,config) | exports whole database as csv to the provided file
-| apoc.export.csv.data(nodes,rels,file,config) | exports given nodes and relationships as csv to the provided file
-| apoc.export.csv.graph(graph,file,config) | exports given graph object as csv to the provided file
+| apoc.export.csv.query(query,file,config) | exports results from the Cypher statement as CSV to the provided file
+| apoc.export.csv.all(file,config) | exports whole database as CSV to the provided file
+| apoc.export.csv.data(nodes,rels,file,config) | exports given nodes and relationships as CSV to the provided file
+| apoc.export.csv.graph(graph,file,config) | exports given graph object as CSV to the provided file
 |===
 // end::export.csv[]
 
 === Export to Cypher Script
 
-Data is exported as cypher statements to the given file.
+Data is exported as Cypher statements to the given file.
 It is possible to choose between three export formats:
-    * "neo4j-shell": for neo4j shell and partly apoc.cypher.runFile
-    * "cypher-shell": for cypher shell
-    * "plain": doesn't output begin / commit / await just plain cypher
-To change the export format, you have to set it on the config params like `{format : "cypher-shell"}`. By default the format is "neo4j-shell".
+
+    * `neo4j-shell`: for Neo4j Shell and partly `apoc.cypher.runFile`
+    * `cypher-shell`: for Cypher shell
+    * `plain`: doesn't output begin / commit / await just plain Cypher
+
+To change the export format, you have to set it on the config params like `{format : "cypher-shell"}`. By default the format is `neo4j-shell`.
 // tag::export.cypher[]
 
 `YIELD file, source, format, nodes, relationships, properties, time`
 
 [cols="1m,5"]
 |===
-| apoc.export.cypher.all(file,config) | exports whole database incl. indexes as cypher statements to the provided file
-| apoc.export.cypher.data(nodes,rels,file,config) | exports given nodes and relationships incl. indexes as cypher statements to the provided file
-| apoc.export.cypher.graph(graph,file,config) | exports given graph object incl. indexes as cypher statements to the provided file
-| apoc.export.cypher.query(query,file,config) | exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file
+| apoc.export.cypher.all(file,config) | exports whole database incl. indexes as Cypher statements to the provided file
+| apoc.export.cypher.data(nodes,rels,file,config) | exports given nodes and relationships incl. indexes as Cypher statements to the provided file
+| apoc.export.cypher.graph(graph,file,config) | exports given graph object incl. indexes as Cypher statements to the provided file
+| apoc.export.cypher.query(query,file,config) | exports nodes and relationships from the Cypher statement incl. indexes as Cypher statements to the provided file
 |===
 // end::export.cypher[]
 
@@ -247,7 +249,7 @@ GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 | apoc.export.graphml.all(file,config) | exports whole database as graphml to the provided file
 | apoc.export.graphml.data(nodes,rels,file,config) | exports given nodes and relationships as graphml to the provided file
 | apoc.export.graphml.graph(graph,file,config) | exports given graph object as graphml to the provided file
-| apoc.export.graphml.query(query,file,config) | exports nodes and relationships from the cypher statement as graphml to the provided file
+| apoc.export.graphml.query(query,file,config) | exports nodes and relationships from the Cypher statement as graphml to the provided file
 |===
 // end::export.graphml[]
 
@@ -260,8 +262,8 @@ GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 | delim | "," | define the delimiter character (export csv)
 | quotes | | quote-character used for CSV
 | useTypes | false | add type on file header (export csv and graphml export)
-| format | "neo4j-shell" | In export to cypher script define the export format. Possible values are: "cypher-shell","neo4j-shell" and "plain"
-| nodesOfRelationships | false | if enabled add relationship between nodes (export cypher)
+| format | "neo4j-shell" | In export to Cypher script define the export format. Possible values are: "cypher-shell","neo4j-shell" and "plain"
+| nodesOfRelationships | false | if enabled add relationship between nodes (export Cypher)
 | storeNodeIds| false | set nodes' ids (import/export graphml)
 | readLabels | false | read nodes' labels (import/export graphml)
 | defaultRelationshipType | "RELATED" | set relationship type (import/export graphml)
@@ -1034,4 +1036,4 @@ CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as wei
 RETURN path, weight
 ----
 
-// end::overview[] 
+// end::overview[]
