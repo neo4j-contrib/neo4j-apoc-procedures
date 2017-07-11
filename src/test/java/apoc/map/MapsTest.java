@@ -142,6 +142,13 @@ public class MapsTest {
     }
 
     @Test
+    public void testUpdateTree() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.updateTree({id:1,c:{id:2},d:[{id:3}]},'id',[[1,{a:1}],[2,{a:2}],[3,{a:3}]]) AS value", (r) -> {
+            assertEquals(map("id",1L,"a",1L,"c",map("id",2L,"a",2L),"d",asList(map("id",3L,"a",3L))),r.get("value"));
+        });
+    }
+
+    @Test
     @SuppressWarnings("unchecked")
     public void testFlatten() {
         Map<String, Object> nestedMap = map("somekey", "someValue", "somenumeric", 123);
