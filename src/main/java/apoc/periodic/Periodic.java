@@ -152,10 +152,11 @@ public class Periodic {
         return Stream.of(info);
     }
 
-    // TODO
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) submit a repeatedly-called background statement until it returns 0")
     public Stream<JobInfo> countdown(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
         JobInfo info = submit(name, new Countdown(name, statement, rate));
+        info.rate = rate;
         return Stream.of(info);
     }
 
@@ -448,7 +449,7 @@ public class Periodic {
 
         @Override
         public void run() {
-            if (Periodic.this.executeNumericResultStatement(statement, null) > 0) {
+            if (Periodic.this.executeNumericResultStatement(statement, Collections.emptyMap()) > 0) {
                 Pools.SCHEDULED.schedule(() -> submit(name, this), rate, TimeUnit.SECONDS);
             }
         }
