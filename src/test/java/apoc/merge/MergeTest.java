@@ -1,20 +1,19 @@
 package apoc.merge;
 
+import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.Map;
+
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class MergeTest {
 
@@ -85,6 +84,37 @@ public class MergeTest {
                     assertEquals("OTHER", rel.getType().name());
                     assertTrue(rel.getAllProperties().isEmpty());
                 });
+    }
+
+    @Test
+    public void testMergeWithEmptyIdentityPropertiesShouldFail() {
+        for (String idProps: new String[]{"null", "{}"}) {
+            try {
+                testCall(db, "CALL apoc.merge.node(['Person']," + idProps +", {name:'John'}) YIELD node RETURN node",
+                        row -> assertTrue(row.get("node") instanceof Node));
+                fail();
+            } catch (QueryExecutionException e) {
+                assertTrue(e.getMessage().contains("you need to supply at least one identifying property for a merge"));
+            }
+        }
+    }
+
+    @Test
+    public void testLabelsWithSpecialCharactersShouldWork() {
+        for (String label: new String[]{"Label with spaces", ":LabelWithColon", "label-with-dash", "LabelWithUmlautsÄÖÜ"}) {
+            Map<String, Object> params = MapUtil.map("label", label);
+            testCall(db, "CALL apoc.merge.node([$label],{id:1}, {name:'John'}) YIELD node RETURN node", params,
+                    row -> assertTrue(row.get("node") instanceof Node));
+        }
+    }
+
+    @Test
+    public void testRelationshipTypesWithSpecialCharactersShouldWork() {
+        for (String relType: new String[]{"Reltype with space", ":ReltypeWithCOlon", "rel-type-with-dash"}) {
+            Map<String, Object> params = MapUtil.map("relType", relType);
+            testCall(db, "CREATE (a), (b) WITH a,b CALL apoc.merge.relationship(a, $relType, null, null, b) YIELD rel RETURN rel", params,
+                    row -> assertTrue(row.get("rel") instanceof Relationship));
+        }
     }
 
 }
