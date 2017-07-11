@@ -152,7 +152,7 @@ public class Periodic {
         return Stream.of(info);
     }
 
-    @Procedure
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) submit a repeatedly-called background statement until it returns 0")
     public Stream<JobInfo> countdown(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
         JobInfo info = submit(name, new Countdown(name, statement, rate));
