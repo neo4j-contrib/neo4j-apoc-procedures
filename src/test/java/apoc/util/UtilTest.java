@@ -75,4 +75,9 @@ public class UtilTest {
         String url = "http://%slocalhost:7474/path?query#ref";
         assertEquals(format(url,""), Util.cleanUrl(format(url, "user:pass@")));
     }
+
+    @Test
+    public void mergeNullMaps() {
+        assertNotNull(Util.merge(null, null));
+    }
 }

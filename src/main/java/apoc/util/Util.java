@@ -386,8 +386,8 @@ public class Util {
     }
 
     public static Map<String, Object> merge(Map<String, Object> first, Map<String, Object> second) {
-        if (second == null || second.isEmpty()) return first;
-        if (first == null || first.isEmpty()) return second;
+        if (second == null || second.isEmpty()) return first == null ? Collections.EMPTY_MAP : first;
+        if (first == null || first.isEmpty()) return second == null ? Collections.EMPTY_MAP : second;
         Map<String,Object> combined = new HashMap<>(first);
         combined.putAll(second);
         return combined;
