@@ -1,11 +1,13 @@
 package apoc.map;
 
 import apoc.result.MapResult;
+import apoc.result.ObjectResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.*;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -159,6 +161,46 @@ public class Maps {
         }
         return res;
     }
+
+    @UserFunction
+    @Description("apoc.map.updateTree(tree,key,[[value,{data}]]) returns map - adds the {data} map on each level of the nested tree, where the key-value pairs match")
+    public Map<String,Object> updateTree(@Name("tree") Map<String, Object> tree, @Name("key") String key, @Name("data") List<List<Object>> data) {
+        Map<Object,Map<String,Object>> map = new HashMap<>(data.size());
+        for (List<Object> datum : data) {
+            if (datum.size()<2 || !((datum.get(1) instanceof Map))) throw new IllegalArgumentException("Wrong data list entry: "+datum);
+            map.put(datum.get(0), (Map)datum.get(1));
+        }
+        return visit(tree, (m) -> {
+            Map<String, Object> entry = map.get(m.get(key));
+            if (entry != null) {
+                m.putAll(entry);
+            }
+            return m;
+        });
+    }
+
+    Map<String,Object> visit(Map<String,Object> tree, Function<Map<String,Object>,Map<String,Object>> mapper) {
+        Map<String, Object> result = mapper.apply(new LinkedHashMap<>(tree));
+
+        result.entrySet().forEach(e -> {
+            if (e.getValue() instanceof List) {
+                List<Object> list = (List<Object>) e.getValue();
+                List newList = list.stream().map(v -> {
+                    if (v instanceof Map) {
+                        Map<String, Object> map = (Map<String, Object>) v;
+                        return visit(map, mapper);
+                    }
+                    return v;
+                }).collect(Collectors.toList());
+                e.setValue(newList);
+            } else if (e.getValue() instanceof Map) {
+                Map<String, Object> map = (Map<String, Object>) e.getValue();
+                e.setValue(visit(map,mapper));
+            }
+        });
+        return result;
+    }
+
 
     @UserFunction
     @Description("apoc.map.flatten(map) yield map - flattens nested items in map using dot notation")
