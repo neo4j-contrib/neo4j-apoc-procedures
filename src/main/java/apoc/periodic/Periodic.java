@@ -80,7 +80,16 @@ public class Periodic {
     }
 
     private void recordError(Map<String, Long> executionErrors, Exception e) {
-        executionErrors.compute(e.getMessage(),(s,i) -> i == null ? 1 : i + 1);
+        executionErrors.compute(getMessages(e),(s, i) -> i == null ? 1 : i + 1);
+    }
+
+    private String getMessages(Throwable e) {
+        Set<String> errors = new LinkedHashSet<>();
+        do {
+            errors.add(e.getMessage());
+            e = e.getCause();
+        } while (e.getCause() != null && !e.getCause().equals(e));
+        return String.join("\n",errors);
     }
 
     public static class RundownResult {

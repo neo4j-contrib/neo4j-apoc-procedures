@@ -111,6 +111,23 @@ public class PeriodicTest {
             assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
         });
     }
+    @Test
+    public void testPeriodicIterateErrors() throws Exception {
+        testResult(db, "CALL apoc.periodic.iterate('UNWIND range(0,99) as id RETURN id', 'CREATE null', {batchSize:10,iterateList:true})", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertEquals(10L, row.get("batches"));
+            assertEquals(100L, row.get("total"));
+            assertEquals(0L, row.get("committedOperations"));
+            assertEquals(100L, row.get("failedOperations"));
+            assertEquals(10L, row.get("failedBatches"));
+            Map<String, Object> batchErrors = map("org.neo4j.graphdb.TransactionFailureException: Transaction was marked as successful, but unable to commit transaction so rolled back.", 10L);
+            assertEquals(batchErrors, ((Map) row.get("batch")).get("errors"));
+            Map<String, Object> operationsErrors = map("Parentheses are required to identify nodes in patterns, i.e. (null) (line 1, column 66 (offset: 65))\n" +
+                    "\"UNWIND {`_batch`} AS `_batch` WITH `_batch`.`id` AS `id`  CREATE null\"\n" +
+                    "                                                                  ^", 10L);
+            assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
+        });
+    }
 
     @Test
     public void testIterate() throws Exception {
