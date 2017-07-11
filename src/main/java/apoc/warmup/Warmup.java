@@ -81,7 +81,7 @@ public class Warmup {
 
     public <R extends AbstractBaseRecord> long loadRecords(int recordsPerPage, long highestRecordId, RecordStore<R> recordStore, R record) {
         long pages = 0;
-        for (int id = 0; id <= highestRecordId; id += recordsPerPage) {
+        for (long id = 0; id <= highestRecordId; id += recordsPerPage) {
             if (pages % 100_000 == 0) {
                 if (Util.transactionIsTerminated(db)) return pages;
             }
