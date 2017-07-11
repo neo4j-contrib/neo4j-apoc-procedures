@@ -7,7 +7,9 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.helpers.collection.Pair;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -31,6 +33,17 @@ public class MultiStatementCypherSubGraphExporter {
     Set<String> indexedProperties = new LinkedHashSet<>();
     private long artificialUniques = 0;
     private ExportFormat exportFormat = ExportFormat.NEO4J_SHELL;
+
+    private static class IndexStatement
+    {
+        String create;
+        String await;
+
+        public IndexStatement(String create, String await) {
+            this.create = create;
+            this.await = await;
+        }
+    }
 
     public MultiStatementCypherSubGraphExporter(SubGraph graph, ExportFormat exportFormat) {
         this.graph = graph;
@@ -142,26 +155,27 @@ public class MultiStatementCypherSubGraphExporter {
     }
 
     private void writeMetaInformation(PrintWriter out) {
-        Collection<String> indexes = exportIndexes();
+        Collection<IndexStatement> indexes = exportIndexes();
         if (indexes.isEmpty() && artificialUniques == 0) return;
 
 		begin(out);
-        for (String index : indexes) {
-            out.println(index);
+        for (IndexStatement index : indexes) {
+            out.println(index.create);
         }
         if (artificialUniques > 0) {
             out.println(uniqueConstraint(UNIQUE_ID_LABEL, UNIQUE_ID_PROP));
         }
         commit(out);
+
+        for (IndexStatement index : indexes) {
+            out.print(index.await);
+        }
+
         schemaAwait(out);
     }
 	
 	private void begin(PrintWriter out) {
 		out.print(exportFormat.begin());
-	}
-
-	private void schemaAwait(PrintWriter out){
-		out.print(exportFormat.schemaAwait());
 	}
 	
     private void restart(PrintWriter out) {
@@ -187,15 +201,21 @@ public class MultiStatementCypherSubGraphExporter {
 		out.print(exportFormat.commit());
 	}
 
-    private Collection<String> exportIndexes() {
-        List<String> result = new ArrayList<>();
+	private void schemaAwait(PrintWriter out){
+	    out.print(exportFormat.schemaAwait());
+    }
+
+    private Collection<IndexStatement> exportIndexes() {
+        List<IndexStatement> result = new ArrayList<>();
         for (IndexDefinition index : graph.getIndexes()) {
             String label = index.getLabel().name();
             String prop = Iterables.single(index.getPropertyKeys());
             if (index.isConstraintIndex()) {
-                result.add(uniqueConstraint(label, prop));
+                result.add(new IndexStatement(
+                        uniqueConstraint(label, prop), awaitIndex(label, prop))
+                );
             } else {
-                result.add(0, index(label, prop));
+                result.add(0, new IndexStatement(index(label, prop), awaitIndex(label, prop)));
             }
         }
         return result;
@@ -207,6 +227,10 @@ public class MultiStatementCypherSubGraphExporter {
 
     private String uniqueConstraint(String label, String key) {
         return "CREATE CONSTRAINT ON (node:" + quote(label) + ") ASSERT node." + quote(key) + " IS UNIQUE;";
+    }
+
+    private String awaitIndex(String label, String key){
+        return exportFormat.indexAwait(":" + quote(label) + "(" + quote(key) + ")");
     }
 
     private boolean hasProperties(PropertyContainer node) {

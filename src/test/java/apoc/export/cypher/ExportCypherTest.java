@@ -1,6 +1,5 @@
 package apoc.export.cypher;
 
-import apoc.export.util.ExportFormat;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -15,9 +14,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-import static apoc.export.util.ExportFormat.CYPHER_SHELL;
-import static apoc.export.util.ExportFormat.NEO4J_SHELL;
-import static apoc.export.util.ExportFormat.PLAIN_FORMAT;
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.assertEquals;
 
@@ -27,41 +23,130 @@ import static org.junit.Assert.assertEquals;
  */
 public class ExportCypherTest {
 
-    private static final String EXPECTED_NODES = String.format("begin%n" +
-            "CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:\"foo\", `UNIQUE IMPORT ID`:0});%n" +
-            "CREATE (:`Bar` {`name`:\"bar\", `age`:42});%n" +
-            "CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});%n" +
-            "commit%n");
+    private interface ExpectedOutputs {
+        String nodes();
+        String schema();
+        String relationships();
+        String cleanup();
+        default String all()
+        {
+            return nodes() + schema() + relationships() + cleanup();
+        }
+    }
 
-    private static final String EXPECTED_SCHEMA = String.format("begin%n" +
-            "CREATE INDEX ON :`Foo`(`name`);%n" +
-            "CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;%n" +
-            "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
-            "commit%n" +
-            "schema await%n");
+    private static class CypherOutput implements ExpectedOutputs
+    {
+        @Override
+        public String nodes() {
+            return String.format(":BEGIN%n" +
+                    "CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:\"foo\", `UNIQUE IMPORT ID`:0});%n" +
+                    "CREATE (:`Bar` {`name`:\"bar\", `age`:42});%n" +
+                    "CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});%n" +
+                    ":COMMIT%n");
+        }
 
-    private static final String EXPECTED_RELATIONSHIPS = String.format("begin%n" +
-            "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:\"bar\"}) CREATE (n1)-[:`KNOWS`]->(n2);%n" +
-            "commit%n");
+        @Override
+        public String schema() {
+            return String.format(":BEGIN%n" +
+                    "CREATE INDEX ON :`Foo`(`name`);%n" +
+                    "CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;%n" +
+                    "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
+                    ":COMMIT%n" +
+                    "CALL db.awaitIndex(':`Foo`(`name`)');%n" +
+                    "CALL db.awaitIndex(':`Bar`(`name`)');%n");
+        }
 
-    private static final String EXPECTED_CLEAN_UP = String.format("begin%n" +
-            "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
-            "commit%n" +
-            "begin%n" +
-            "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
-            "commit%n");
+        @Override
+        public String relationships() {
+            return String.format(":BEGIN%n" +
+                    "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:\"bar\"}) CREATE (n1)-[:`KNOWS`]->(n2);%n" +
+                    ":COMMIT%n");
+        }
 
-    private static final String EXPECTED_NEO4J_SHELL = EXPECTED_NODES + EXPECTED_SCHEMA + EXPECTED_RELATIONSHIPS + EXPECTED_CLEAN_UP;
+        @Override
+        public String cleanup() {
+            return String.format(":BEGIN%n" +
+                    "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
+                    ":COMMIT%n" +
+                    ":BEGIN%n" +
+                    "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
+                    ":COMMIT%n");
+        }
+    }
+    private static ExpectedOutputs cypherOutput = new CypherOutput();
 
-    private static final String EXPECTED_CYPHER_SHELL = EXPECTED_NEO4J_SHELL
-            .replace(NEO4J_SHELL.begin(), CYPHER_SHELL.begin())
-            .replace(NEO4J_SHELL.commit(),CYPHER_SHELL.commit())
-            .replace(NEO4J_SHELL.schemaAwait(),CYPHER_SHELL.schemaAwait());
+    private static class Neo4jShellOutput implements ExpectedOutputs
+    {
+        @Override
+        public String nodes() {
+            return String.format("begin%n" +
+                    "CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:\"foo\", `UNIQUE IMPORT ID`:0});%n" +
+                    "CREATE (:`Bar` {`name`:\"bar\", `age`:42});%n" +
+                    "CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});%n" +
+                    "commit%n");
+        }
 
-    private static final String EXPECTED_PLAIN = EXPECTED_NEO4J_SHELL
-            .replace(NEO4J_SHELL.begin(), PLAIN_FORMAT.begin())
-            .replace(NEO4J_SHELL.commit(),PLAIN_FORMAT.commit())
-            .replace(NEO4J_SHELL.schemaAwait(),PLAIN_FORMAT.schemaAwait());
+        @Override
+        public String schema() {
+            return String.format("begin%n" +
+                    "CREATE INDEX ON :`Foo`(`name`);%n" +
+                    "CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;%n" +
+                    "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
+                    "commit%n" +
+                    "schema await%n");
+        }
+
+        @Override
+        public String relationships() {
+            return String.format("begin%n" +
+                    "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:\"bar\"}) CREATE (n1)-[:`KNOWS`]->(n2);%n" +
+                    "commit%n");
+        }
+
+        @Override
+        public String cleanup() {
+            return String.format("begin%n" +
+                    "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
+                    "commit%n" +
+                    "begin%n" +
+                    "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
+                    "commit%n");
+        }
+    }
+    private static ExpectedOutputs neo4jShellOutput = new Neo4jShellOutput();
+
+    private static class PlainOutput implements ExpectedOutputs
+    {
+        @Override
+        public String nodes() {
+            return String.format(
+                    "CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:\"foo\", `UNIQUE IMPORT ID`:0});%n" +
+                    "CREATE (:`Bar` {`name`:\"bar\", `age`:42});%n" +
+                    "CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});%n");
+        }
+
+        @Override
+        public String schema() {
+            return String.format(
+                    "CREATE INDEX ON :`Foo`(`name`);%n" +
+                    "CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;%n" +
+                    "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n");
+        }
+
+        @Override
+        public String relationships() {
+            return String.format(
+                    "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:\"bar\"}) CREATE (n1)-[:`KNOWS`]->(n2);%n");
+        }
+
+        @Override
+        public String cleanup() {
+            return String.format(
+                    "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
+                    "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n");
+        }
+    }
+    private static ExpectedOutputs plainOutput = new PlainOutput();
 
     private static final Map<String, Object> exportConfig = Collections.singletonMap("separateFiles", true);
     private static GraphDatabaseService db;
@@ -88,14 +173,14 @@ public class ExportCypherTest {
     @Test public void testExportAllCypherDefault() throws Exception {
         File output = new File(directory, "all.cypher");
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},null)", map("file", output.getAbsolutePath()), (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_NEO4J_SHELL, readFile(output));
+        assertEquals(cypherOutput.all(), readFile(output));
     }
 
     @Test public void testExportAllCypherForCypherShell() throws Exception {
         File output = new File(directory, "all.cypher");
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{config})",
                 map("file", output.getAbsolutePath(), "config", Util.map("format", "cypher-shell")), (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_CYPHER_SHELL, readFile(output));
+        assertEquals(cypherOutput.all(), readFile(output));
     }
 
     @Test public void testExportQueryCypherForNeo4j() throws Exception {
@@ -104,7 +189,7 @@ public class ExportCypherTest {
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
                 map("file", output.getAbsolutePath(), "query", query, "config", Util.map("format", "neo4j-shell")), (r) -> {
                 });
-        assertEquals(EXPECTED_NEO4J_SHELL, readFile(output));
+        assertEquals(neo4jShellOutput.all(), readFile(output));
     }
 
     public static String readFile(File output) throws FileNotFoundException {
@@ -117,7 +202,7 @@ public class ExportCypherTest {
                 "CALL apoc.export.cypher.graph(graph, {file},null) " +
                 "YIELD nodes, relationships, properties, file, source,format, time " +
                 "RETURN *", map("file", output.getAbsolutePath()), (r) -> assertResults(output, r, "graph"));
-        assertEquals(EXPECTED_NEO4J_SHELL, readFile(output));
+        assertEquals(cypherOutput.all(), readFile(output));
     }
 
     // -- Separate files tests -- //
@@ -125,28 +210,28 @@ public class ExportCypherTest {
         File output = new File(directory, "all.cypher");
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
                 (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_NODES, readFile(new File(directory, "all.nodes.cypher")));
+        assertEquals(cypherOutput.nodes(), readFile(new File(directory, "all.nodes.cypher")));
     }
 
     @Test public void testExportAllCypherRelationships() throws Exception {
         File output = new File(directory, "all.cypher");
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
                 (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_RELATIONSHIPS, readFile(new File(directory, "all.relationships.cypher")));
+        assertEquals(cypherOutput.relationships(), readFile(new File(directory, "all.relationships.cypher")));
     }
 
     @Test public void testExportAllCypherSchema() throws Exception {
         File output = new File(directory, "all.cypher");
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
                 (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_SCHEMA, readFile(new File(directory, "all.schema.cypher")));
+        assertEquals(cypherOutput.schema(), readFile(new File(directory, "all.schema.cypher")));
     }
 
     @Test public void testExportAllCypherCleanUp() throws Exception {
         File output = new File(directory, "all.cypher");
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
                 (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_CLEAN_UP, readFile(new File(directory, "all.cleanup.cypher")));
+        assertEquals(cypherOutput.cleanup(), readFile(new File(directory, "all.cleanup.cypher")));
     }
 
     @Test public void testExportGraphCypherNodes() throws Exception {
@@ -155,7 +240,7 @@ public class ExportCypherTest {
                         "CALL apoc.export.cypher.graph(graph, {file},{exportConfig}) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
                         "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig), (r) -> assertResults(output, r, "graph"));
-        assertEquals(EXPECTED_NODES, readFile(new File(directory, "graph.nodes.cypher")));
+        assertEquals(cypherOutput.nodes(), readFile(new File(directory, "graph.nodes.cypher")));
     }
 
     @Test public void testExportGraphCypherRelationships() throws Exception {
@@ -165,7 +250,7 @@ public class ExportCypherTest {
                         "YIELD nodes, relationships, properties, file, source,format, time " +
                         "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
                 (r) -> assertResults(output, r, "graph"));
-        assertEquals(EXPECTED_RELATIONSHIPS, readFile(new File(directory, "graph.relationships.cypher")));
+        assertEquals(cypherOutput.relationships(), readFile(new File(directory, "graph.relationships.cypher")));
     }
 
     @Test
@@ -176,7 +261,7 @@ public class ExportCypherTest {
                         "YIELD nodes, relationships, properties, file, source,format, time " +
                         "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
                 (r) -> assertResults(output, r, "graph"));
-        assertEquals(EXPECTED_SCHEMA, readFile(new File(directory, "graph.schema.cypher")));
+        assertEquals(cypherOutput.schema(), readFile(new File(directory, "graph.schema.cypher")));
     }
 
     @Test
@@ -187,7 +272,7 @@ public class ExportCypherTest {
                         "YIELD nodes, relationships, properties, file, source,format, time " +
                         "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
                 (r) -> assertResults(output, r, "graph"));
-        assertEquals(EXPECTED_CLEAN_UP, readFile(new File(directory, "graph.cleanup.cypher")));
+        assertEquals(cypherOutput.cleanup(), readFile(new File(directory, "graph.cleanup.cypher")));
     }
 
     private void assertResults(File output, Map<String, Object> r, final String source) {
@@ -207,6 +292,6 @@ public class ExportCypherTest {
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
                 map("file", output.getAbsolutePath(), "query", query, "config", Util.map("format", "plain")), (r) -> {
         });
-        assertEquals(EXPECTED_PLAIN, readFile(output));
+        assertEquals(plainOutput.all(), readFile(output));
     }
 }
