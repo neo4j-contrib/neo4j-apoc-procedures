@@ -51,6 +51,12 @@ public class ExportCypherTest {
             "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
             "commit%n");
 
+    private static final String EXPECTED_ONLY_SCHEMA_NEO4J_SHELL = String.format("begin%n" +
+            "CREATE INDEX ON :`Foo`(`name`);%n" +
+            "CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;%n" +
+            "commit%n" +
+            "schema await%n");
+
     private static final String EXPECTED_NEO4J_SHELL = EXPECTED_NODES + EXPECTED_SCHEMA + EXPECTED_RELATIONSHIPS + EXPECTED_CLEAN_UP;
 
     private static final String EXPECTED_CYPHER_SHELL = EXPECTED_NEO4J_SHELL
@@ -60,8 +66,10 @@ public class ExportCypherTest {
 
     private static final String EXPECTED_PLAIN = EXPECTED_NEO4J_SHELL
             .replace(NEO4J_SHELL.begin(), PLAIN_FORMAT.begin())
-            .replace(NEO4J_SHELL.commit(),PLAIN_FORMAT.commit())
-            .replace(NEO4J_SHELL.schemaAwait(),PLAIN_FORMAT.schemaAwait());
+            .replace(NEO4J_SHELL.commit(), PLAIN_FORMAT.commit()).replace(NEO4J_SHELL.schemaAwait(), PLAIN_FORMAT.schemaAwait());
+
+    private static final String EXPECTED_ONLY_SCHEMA_CYPHER_SHELL = EXPECTED_ONLY_SCHEMA_NEO4J_SHELL.replace(NEO4J_SHELL.begin(), CYPHER_SHELL.begin())
+            .replace(NEO4J_SHELL.commit(), CYPHER_SHELL.commit()).replace(NEO4J_SHELL.schemaAwait(), CYPHER_SHELL.schemaAwait());
 
     private static final Map<String, Object> exportConfig = Collections.singletonMap("separateFiles", true);
     private static GraphDatabaseService db;
@@ -108,7 +116,7 @@ public class ExportCypherTest {
     }
 
     public static String readFile(File output) throws FileNotFoundException {
-        return new Scanner(output).useDelimiter("\\Z").next()+String.format("%n");
+        return new Scanner(output).useDelimiter("\\Z").next() + String.format("%n");
     }
 
     @Test public void testExportGraphCypher() throws Exception {
@@ -152,9 +160,9 @@ public class ExportCypherTest {
     @Test public void testExportGraphCypherNodes() throws Exception {
         File output = new File(directory, "graph.cypher");
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                        "CALL apoc.export.cypher.graph(graph, {file},{exportConfig}) " +
-                        "YIELD nodes, relationships, properties, file, source,format, time " +
-                        "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig), (r) -> assertResults(output, r, "graph"));
+                "CALL apoc.export.cypher.graph(graph, {file},{exportConfig}) " +
+                "YIELD nodes, relationships, properties, file, source,format, time " +
+                "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig), (r) -> assertResults(output, r, "graph"));
         assertEquals(EXPECTED_NODES, readFile(new File(directory, "graph.nodes.cypher")));
     }
 
@@ -206,7 +214,19 @@ public class ExportCypherTest {
         String query = "MATCH (n) OPTIONAL MATCH p = (n)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
                 map("file", output.getAbsolutePath(), "query", query, "config", Util.map("format", "plain")), (r) -> {
-        });
+                });
         assertEquals(EXPECTED_PLAIN, readFile(output));
+    }
+
+    @Test public void testExportSchemaCypher() throws Exception {
+        File output = new File(directory, "onlySchema.cypher");
+        TestUtil.testCall(db, "CALL apoc.export.cypher.schema({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig), (r) -> {});
+        assertEquals(EXPECTED_ONLY_SCHEMA_NEO4J_SHELL, readFile(new File(directory, "onlySchema.cypher")));
+    }
+
+    @Test public void testExportSchemaCypherShell() throws Exception {
+        File output = new File(directory, "onlySchema.cypher");
+        TestUtil.testCall(db, "CALL apoc.export.cypher.schema({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", Util.map("format", "cypher-shell")), (r) -> {});
+        assertEquals(EXPECTED_ONLY_SCHEMA_CYPHER_SHELL, readFile(new File(directory, "onlySchema.cypher")));
     }
 }

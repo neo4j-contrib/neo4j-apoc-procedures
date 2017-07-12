@@ -214,26 +214,7 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 
 === Export to Cypher Script
 
-Data is exported as Cypher statements to the given file.
-It is possible to choose between three export formats:
-
-    * `neo4j-shell`: for Neo4j Shell and partly `apoc.cypher.runFile`
-    * `cypher-shell`: for Cypher shell
-    * `plain`: doesn't output begin / commit / await just plain Cypher
-
-To change the export format, you have to set it on the config params like `{format : "cypher-shell"}`. By default the format is `neo4j-shell`.
-// tag::export.cypher[]
-
-`YIELD file, source, format, nodes, relationships, properties, time`
-
-[cols="1m,5"]
-|===
-| apoc.export.cypher.all(file,config) | exports whole database incl. indexes as Cypher statements to the provided file
-| apoc.export.cypher.data(nodes,rels,file,config) | exports given nodes and relationships incl. indexes as Cypher statements to the provided file
-| apoc.export.cypher.graph(graph,file,config) | exports given graph object incl. indexes as Cypher statements to the provided file
-| apoc.export.cypher.query(query,file,config) | exports nodes and relationships from the Cypher statement incl. indexes as Cypher statements to the provided file
-|===
-// end::export.cypher[]
+include::exportCypher.adoc[leveloffset=1]
 
 === GraphML Import / Export
 
