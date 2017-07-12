@@ -74,7 +74,6 @@ public class MultiStatementCypherSubGraphExporter {
      * <li>/tmp/myexport.relationships.cypher</li>
      * <li>/tmp/myexport.cleanup.cypher</li>
      * </ul>
-     *
      * @param fileName full path where all the files will be created
      * @param config
      * @param reporter
@@ -89,8 +88,7 @@ public class MultiStatementCypherSubGraphExporter {
             schemaWriter = createWriter(fileName, "schema");
             relationshipsWriter = createWriter(fileName, "relationships");
             cleanUpWriter = createWriter(fileName, "cleanup");
-        }
-        else {
+        } else {
             // The same writer --> there is only one file
             nodeWriter = createWriter(fileName, null);
             schemaWriter = nodeWriter;
@@ -123,6 +121,12 @@ public class MultiStatementCypherSubGraphExporter {
         cleanUpWriter.flush();
     }
 
+    public void exportOnlySchema(String fileName) throws IOException {
+            PrintWriter schemaWriter = createWriter(fileName,null);
+            writeMetaInformation(schemaWriter);
+            schemaWriter.flush();
+    }
+
     private boolean hasData(Iterable<?> it) {
         return it.iterator().hasNext();
     }
@@ -145,7 +149,7 @@ public class MultiStatementCypherSubGraphExporter {
         Collection<String> indexes = exportIndexes();
         if (indexes.isEmpty() && artificialUniques == 0) return;
 
-		begin(out);
+        begin(out);
         for (String index : indexes) {
             out.println(index);
         }
@@ -155,37 +159,37 @@ public class MultiStatementCypherSubGraphExporter {
         commit(out);
         schemaAwait(out);
     }
-	
-	private void begin(PrintWriter out) {
-		out.print(exportFormat.begin());
-	}
 
-	private void schemaAwait(PrintWriter out){
-		out.print(exportFormat.schemaAwait());
-	}
-	
+    private void begin(PrintWriter out) {
+        out.print(exportFormat.begin());
+    }
+
+    private void schemaAwait(PrintWriter out){
+        out.print(exportFormat.schemaAwait());
+    }
+
     private void restart(PrintWriter out) {
-		commit(out);
+        commit(out);
         begin(out);
     }
 
     private void removeArtificialMetadata(PrintWriter out, int batchSize) {
         while (artificialUniques > 0) {
-			begin(out);
+            begin(out);
             out.println("MATCH (n:" + Q_UNIQUE_ID_LABEL + ") " +
                     " WITH n LIMIT " + batchSize +
                     " REMOVE n:" + Q_UNIQUE_ID_LABEL + " REMOVE n." + quote(UNIQUE_ID_PROP) + ";");
-			commit(out);
+            commit(out);
             artificialUniques -= batchSize;
         }
-		begin(out);
+        begin(out);
         out.println(uniqueConstraint(UNIQUE_ID_LABEL, UNIQUE_ID_PROP).replaceAll("^CREATE", "DROP"));
-		commit(out);
+        commit(out);
     }
 
-	private void commit(PrintWriter out){
-		out.print(exportFormat.commit());
-	}
+    private void commit(PrintWriter out){
+        out.print(exportFormat.commit());
+    }
 
     private Collection<String> exportIndexes() {
         List<String> result = new ArrayList<>();
