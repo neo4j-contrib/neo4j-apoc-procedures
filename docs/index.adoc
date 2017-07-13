@@ -5,6 +5,7 @@
 :sectlinks:
 :toclevels: 3
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/img
+:script: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/script
 
 == Introduction
 
@@ -181,3 +182,7 @@ include::schema.adoc[leveloffset=2]
 == Appendix: Complete Overview
 
 include::overview.adoc[tags=overview,leveloffset=1]
+
+== Performance Tests
+
+include::big-graph-from-cypher.adoc[leveloffset=1]
