@@ -15,15 +15,14 @@ We created a script that execute all the tests explained below, you can run it l
 
 == Export all
 
-[source,bash,subs=attributes]
+[source,cypher]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword
-"call apoc.export.graphml.all('yourPath/exportAll.graphml',null)"
+call apoc.export.graphml.all('yourPath/exportAll.graphml',null)
 ----
 
 === Results
 
-.no configuraion params
+.no configuration params
 
 ----
 real    1m25.530s
@@ -65,19 +64,18 @@ sys     0m0.068s
 
 .Full config
 
-[source,bash,subs=attributes]
+[source,cypher]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword
-"call apoc.export.graphml.all('yourPath/exportAll.graphml',{storeNodeIds:true, readLabels:true, useTypes:true, defaultRelationshipType:'RELATED'})"
+call apoc.export.graphml.all('yourPath/exportAll.graphml',{storeNodeIds:true, readLabels:true, useTypes:true, defaultRelationshipType:'RELATED'})
 ----
 
 == Export GraphML from query
 
-[source,bash,subs=attributes]
+[source,cypher]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword
-"call apoc.export.graphml.query('MATCH (n) OPTIONAL MATCH p = (n)-[r]-(m) RETURN n,r,m',
- 'yourPath/exportQuery.graphml', {useTypes:true})"
+call apoc.export.graphml.query(
+'MATCH (n) OPTIONAL MATCH p = (n)-[r]-(m) RETURN n,r,m',
+ 'yourPath/exportQuery.graphml', {useTypes:true})
 ----
 
 === Results
@@ -99,12 +97,12 @@ sys     0m0.132s
 
 == Export GraphML from Graph object
 
-[source,bash,subs=attributes]
+[source,cypher]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword
-"CALL apoc.graph.fromDB('test',{}) yield graph
+CALL apoc.graph.fromDB('test',{}) yield graph
 CALL apoc.export.graphml.graph(graph, 'yourPath/exportGraph.graphml',null)
-YIELD nodes, relationships, properties, file, source,format, time return *" > 'yourPath/exportGraphML'
+YIELD nodes, relationships, properties, file, source,format, time 
+RETURN *
 ----
 
 === Results
@@ -128,13 +126,13 @@ sys     0m13.421s
 
 == Export GraphML from given nodes and rels
 
-[source,bash,subs=attributes]
+[source,cypher]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword
-"match (n:Person)-[r:LIKES_COMMENT]->(c:Comment)
-with collect(n) as colN, collect(c) as colC, collect(r) as colR
+MATCH (n:Person)-[r:LIKES_COMMENT]->(c:Comment)
+WITH collect(n) as colN, collect(c) as colC, collect(r) as colR
 CALL apoc.export.cypher.data(colN+colC,colR, 'yourPath/exportData.graphml',{useTypes:true})
-yield nodes, relationships return 'none'" > 'yourPath/exportDataResult'
+YIELD nodes, relationships 
+RETURN 'none'
 ----
 
 === Results
@@ -161,10 +159,9 @@ Test of import in a blank database of the export files created before
 
 .Only batch size as parameter
 
-[source,bash,subs=attributes]
+[source,cypher]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword  
-"call apoc.import.graphml('yourPath/exportAll.graphml',{batchSize: 10000})"
+call apoc.import.graphml('yourPath/exportAll.graphml',{batchSize: 10000})
 ----
 
 ----
@@ -183,10 +180,10 @@ Like we can see from the output we have the same number of nodes and relationshi
 
 .With parameters
 
-[source,bash,subs=attributes]
+[source,cypher]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword  
-"call apoc.import.graphml('yourPath/exportAllConfig.graphml',{batchSize: 10000, readLabels: true, storeNodeIds: false, defaultRelationshipType:'RELATED'})"
+"call apoc.import.graphml('yourPath/exportAllConfig.graphml',
+{batchSize: 10000, readLabels: true, storeNodeIds: false, defaultRelationshipType:'RELATED'})
 ----
 
 ----
