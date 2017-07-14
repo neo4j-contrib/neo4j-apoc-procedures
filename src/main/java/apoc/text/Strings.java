@@ -86,12 +86,12 @@ public class Strings {
     }
 
     @UserFunction
-    @Description("apoc.text.getLevenshteinDistance(text1, text2) - compare the given strings with the StringUtils.getLevenshteinDistance(text1, text2) method")
-    public Long getLevenshteinDistance(final @Name("text1") String text1, @Name("text1")final String text2) {
+    @Description("apoc.text.distance(text1, text2) - compare the given strings with the StringUtils.distance(text1, text2) method")
+    public Long distance(final @Name("text1") String text1, @Name("text1")final String text2) {
         if (text1 == null || text2 == null) {
             return null;
         }
-        return Long.valueOf(StringUtils.getLevenshteinDistance(text1, text2));
+        return (long) StringUtils.getLevenshteinDistance(text1, text2);
     }
 
     @UserFunction
@@ -104,7 +104,7 @@ public class Strings {
         int termLength = text1.length();
         int maxDistanceAllowed = termLength < 3 ? 0 : termLength < 5 ? 1 : 2;
 
-        Long distance = getLevenshteinDistance(text1, text2);
+        Long distance = distance(text1, text2);
 
         return distance <= maxDistanceAllowed;
     }
