@@ -186,3 +186,5 @@ include::overview.adoc[tags=overview,leveloffset=1]
 == Performance Tests
 
 include::big-graph-from-cypher.adoc[leveloffset=1]
+
+include::graphml-tests.adoc[leveloffset=1]
