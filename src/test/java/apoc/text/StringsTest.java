@@ -149,7 +149,7 @@ public class StringsTest {
         String text1 = "Levenshtein";
         String text2 = "Levenstein";
 
-        testCall(db, "RETURN apoc.text.getLevenshteinDistance({a}, {b}) as distance",
+        testCall(db, "RETURN apoc.text.distance({a}, {b}) as distance",
             map("a", text1, "b", text2),
             row -> assertEquals(1L, row.get("distance")));
     }
