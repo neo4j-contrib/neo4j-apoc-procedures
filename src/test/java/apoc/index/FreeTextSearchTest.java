@@ -199,6 +199,18 @@ public class FreeTextSearchTest {
 
         // then
         assertEquals(100, Iterators.count(result));
+
+        // when
+        result = db.execute("CALL apoc.index.search('numbers', 'The', 10)");
+
+        // then
+        assertEquals(10, Iterators.count(result));
+
+        // when
+        result = db.execute("CALL apoc.index.search('numbers', 'The', -1)");
+
+        // then
+        assertEquals(10000, Iterators.count(result));
     }
 
     @Test
