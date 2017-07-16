@@ -82,8 +82,8 @@ public class Nodes {
         return Util.relsStream(db, ids).map(RelationshipResult::new);
     }
 
-    @UserFunction("apoc.nodes.relationship.exists")
-    @Description("apoc.nodes.relationship.exists(node, [rel-direction-pattern]) - yields true effectively when the node has the relationships of the pattern")
+    @UserFunction("apoc.node.relationship.exists")
+    @Description("apoc.node.relationship.exists(node, [rel-direction-pattern]) - yields true effectively when the node has the relationships of the pattern")
     public boolean hasRelationship(@Name("node") Node node, @Name(value = "types",defaultValue = "") String types) throws EntityNotFoundException {
         if (types==null || types.isEmpty()) return node.hasRelationship();
         ReadOperations ops = ktx.acquireStatement().readOperations();
