@@ -107,6 +107,38 @@ public class UtilsTest {
         });
     }
 
+    @Test
+    public void testFail() {
+        try {
+            db.execute("call apoc.util.fail('invalid property type')");
+        } catch (QueryExecutionException e) {
+            assertEquals("Failed to invoke procedure `apoc.util.fail`: Caused by: java.lang.RuntimeException: invalid property type", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testFailWithStringFormat() {
+        try {
+            db.execute("call apoc.util.fail('invalid %s, expected %d', ['string',12])");
+        } catch (QueryExecutionException e) {
+            assertEquals("Failed to invoke procedure `apoc.util.fail`: Caused by: java.lang.RuntimeException: invalid string, expected 12", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testAssertWithValidPredicateShouldNotThrowException() {
+        db.execute("CREATE (n:Node) WITH n CALL apoc.util.assert('Node' IN labels(n), 'invalid') RETURN true");
+    }
+
+    @Test
+    public void testAssertWithInvalidPredicateShouldThrowException() {
+        try {
+            db.execute("CREATE (n:Node) WITH n CALL apoc.util.assert('NotNode' IN labels(n), 'invalid') RETURN true");
+        } catch (QueryExecutionException e) {
+            assertEquals("Failed to invoke procedure `apoc.util.assert`: Caused by: java.lang.RuntimeException: invalid", e.getMessage());
+        }
+    }
+
     private void sleepUntil(Predicate<Void> predicate) {
         while (!predicate.test(null)) {
             try {
