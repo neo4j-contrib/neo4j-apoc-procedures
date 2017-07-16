@@ -1,6 +1,5 @@
 package apoc.export.cypher;
 
-import apoc.export.util.ExportFormat;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -27,49 +26,83 @@ import static org.junit.Assert.assertEquals;
  */
 public class ExportCypherTest {
 
-    private static final String EXPECTED_NODES = String.format("begin%n" +
+    private static final String EXPECTED_NODES = String.format("BEGIN%n" +
             "CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:\"foo\", `UNIQUE IMPORT ID`:0});%n" +
-            "CREATE (:`Bar` {`name`:\"bar\", `age`:42});%n" +
+            "CREATE (:`Bar` {`age`:42, `name`:\"bar\"});%n" +
             "CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});%n" +
-            "commit%n");
+            "COMMIT%n");
 
-    private static final String EXPECTED_SCHEMA = String.format("begin%n" +
+    private static final String EXPECTED_NODES_MERGE = String.format("BEGIN%n" +
+            "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}) SET n.`name`=\"foo\", n:`Foo`;%n" +
+            "MERGE (n:`Bar`{`name`:\"bar\"}) SET n.`age`=42;%n" +
+            "MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:2}) SET n.`age`=12, n:`Bar`;%n" +
+            "COMMIT%n");
+
+    private static final String EXPECTED_NODES_MERGE_ON_CREATE_SET =
+            EXPECTED_NODES_MERGE.replaceAll(" SET ", " ON CREATE SET ");
+
+    private static final String EXPECTED_NODES_EMPTY = String.format("BEGIN%n" +
+            "COMMIT%n");
+
+    private static final String EXPECTED_SCHEMA = String.format("BEGIN%n" +
             "CREATE INDEX ON :`Foo`(`name`);%n" +
             "CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;%n" +
             "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
-            "commit%n" +
-            "schema await%n");
+            "COMMIT%n" +
+            "SCHEMA AWAIT%n");
 
-    private static final String EXPECTED_RELATIONSHIPS = String.format("begin%n" +
-            "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:\"bar\"}) CREATE (n1)-[:`KNOWS`]->(n2);%n" +
-            "commit%n");
+    private static final String EXPECTED_SCHEMA_EMPTY = String.format("BEGIN%n" +
+            "COMMIT%n" +
+            "SCHEMA AWAIT%n");
 
-    private static final String EXPECTED_CLEAN_UP = String.format("begin%n" +
+    private static final String EXPECTED_INDEXES_AWAIT = String.format("CALL db.awaitIndex(':`Foo`(`name`)');%n" +
+            "CALL db.awaitIndex(':`Bar`(`name`)');%n");
+
+    private static final String EXPECTED_RELATIONSHIPS = String.format("BEGIN%n" +
+            "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:\"bar\"}) CREATE (n1)-[r:`KNOWS` {`since`:2016}]->(n2);%n" +
+            "COMMIT%n");
+
+    private static final String EXPECTED_RELATIONSHIPS_MERGE = String.format("BEGIN%n" +
+            "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:\"bar\"}) MERGE (n1)-[r:`KNOWS`]->(n2) SET r.`since`=2016;%n" +
+            "COMMIT%n");
+
+    private static final String EXPECTED_RELATIONSHIPS_MERGE_ON_CREATE_SET =
+            EXPECTED_RELATIONSHIPS_MERGE.replaceAll(" SET ", " ON CREATE SET ");
+
+    private static final String EXPECTED_CLEAN_UP = String.format("BEGIN%n" +
             "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
-            "commit%n" +
-            "begin%n" +
+            "COMMIT%n" +
+            "BEGIN%n" +
             "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
-            "commit%n");
+            "COMMIT%n");
 
-    private static final String EXPECTED_ONLY_SCHEMA_NEO4J_SHELL = String.format("begin%n" +
+    private static final String EXPECTED_CLEAN_UP_EMPTY = String.format("BEGIN%n" +
+            "COMMIT%n" +
+            "BEGIN%n" +
+            "COMMIT%n");
+
+    private static final String EXPECTED_ONLY_SCHEMA_NEO4J_SHELL = String.format("BEGIN%n" +
             "CREATE INDEX ON :`Foo`(`name`);%n" +
             "CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;%n" +
-            "commit%n" +
-            "schema await%n");
+            "COMMIT%n" +
+            "SCHEMA AWAIT%n");
 
     private static final String EXPECTED_NEO4J_SHELL = EXPECTED_NODES + EXPECTED_SCHEMA + EXPECTED_RELATIONSHIPS + EXPECTED_CLEAN_UP;
 
     private static final String EXPECTED_CYPHER_SHELL = EXPECTED_NEO4J_SHELL
             .replace(NEO4J_SHELL.begin(), CYPHER_SHELL.begin())
             .replace(NEO4J_SHELL.commit(),CYPHER_SHELL.commit())
+            .replace(NEO4J_SHELL.schemaAwait(), EXPECTED_INDEXES_AWAIT)
             .replace(NEO4J_SHELL.schemaAwait(),CYPHER_SHELL.schemaAwait());
 
     private static final String EXPECTED_PLAIN = EXPECTED_NEO4J_SHELL
-            .replace(NEO4J_SHELL.begin(), PLAIN_FORMAT.begin())
-            .replace(NEO4J_SHELL.commit(), PLAIN_FORMAT.commit()).replace(NEO4J_SHELL.schemaAwait(), PLAIN_FORMAT.schemaAwait());
+            .replace(NEO4J_SHELL.begin(), PLAIN_FORMAT.begin()).replace(NEO4J_SHELL.commit(), PLAIN_FORMAT.commit())
+            .replace(NEO4J_SHELL.schemaAwait(), PLAIN_FORMAT.schemaAwait());
+
+    private static final String EXPECTED_NEO4J_MERGE = EXPECTED_NODES_MERGE + EXPECTED_SCHEMA + EXPECTED_RELATIONSHIPS_MERGE + EXPECTED_CLEAN_UP;
 
     private static final String EXPECTED_ONLY_SCHEMA_CYPHER_SHELL = EXPECTED_ONLY_SCHEMA_NEO4J_SHELL.replace(NEO4J_SHELL.begin(), CYPHER_SHELL.begin())
-            .replace(NEO4J_SHELL.commit(), CYPHER_SHELL.commit()).replace(NEO4J_SHELL.schemaAwait(), CYPHER_SHELL.schemaAwait());
+            .replace(NEO4J_SHELL.commit(), CYPHER_SHELL.commit()).replace(NEO4J_SHELL.schemaAwait(), CYPHER_SHELL.schemaAwait()) + EXPECTED_INDEXES_AWAIT;
 
     private static final Map<String, Object> exportConfig = Collections.singletonMap("separateFiles", true);
     private static GraphDatabaseService db;
@@ -85,7 +118,7 @@ public class ExportCypherTest {
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
         db.execute("CREATE INDEX ON :Foo(name)").close();
         db.execute("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE").close();
-        db.execute("CREATE (f:Foo {name:'foo'})-[:KNOWS]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12})").close();
+        db.execute("CREATE (f:Foo {name:'foo'})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12})").close();
     }
 
     @AfterClass public static void tearDown() {
@@ -201,7 +234,7 @@ public class ExportCypherTest {
     private void assertResults(File output, Map<String, Object> r, final String source) {
         assertEquals(3L, r.get("nodes"));
         assertEquals(1L, r.get("relationships"));
-        assertEquals(4L, r.get("properties"));
+        assertEquals(5L, r.get("properties"));
         assertEquals(output.getAbsolutePath(), r.get("file"));
         assertEquals(source + ": nodes(3), rels(1)", r.get("source"));
         assertEquals("cypher", r.get("format"));
@@ -209,13 +242,43 @@ public class ExportCypherTest {
     }
 
     @Test
-    public void testExportQueryCypherNullFormat() throws Exception {
+    public void testExportQueryCypherPlainFormat() throws Exception {
         File output = new File(directory, "all.cypher");
         String query = "MATCH (n) OPTIONAL MATCH p = (n)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
                 map("file", output.getAbsolutePath(), "query", query, "config", Util.map("format", "plain")), (r) -> {
                 });
         assertEquals(EXPECTED_PLAIN, readFile(output));
+    }
+
+    @Test
+    public void testExportQueryCypherFormatUpdateAll() throws Exception {
+        File output = new File(directory, "all.cypher");
+        String query = "MATCH (n) OPTIONAL MATCH p = (n)-[r]-(m) RETURN n,r,m";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
+                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("format", "neo4j-shell","cypherFormat","updateAll")), (r) -> {
+                });
+        assertEquals(EXPECTED_NEO4J_MERGE, readFile(output));
+    }
+
+    @Test
+    public void testExportQueryCypherFormatAddStructure() throws Exception {
+        File output = new File(directory, "all.cypher");
+        String query = "MATCH (n) OPTIONAL MATCH p = (n)-[r]-(m) RETURN n,r,m";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
+                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("format", "neo4j-shell","cypherFormat","addStructure")), (r) -> {
+                });
+        assertEquals(EXPECTED_NODES_MERGE_ON_CREATE_SET + EXPECTED_SCHEMA_EMPTY + EXPECTED_RELATIONSHIPS + EXPECTED_CLEAN_UP_EMPTY, readFile(output));
+    }
+
+    @Test
+    public void testExportQueryCypherFormatUpdateStructure() throws Exception {
+        File output = new File(directory, "all.cypher");
+        String query = "MATCH (n) OPTIONAL MATCH p = (n)-[r]-(m) RETURN n,r,m";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
+                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("format", "neo4j-shell","cypherFormat","updateStructure")), (r) -> {
+                });
+        assertEquals(EXPECTED_NODES_EMPTY + EXPECTED_SCHEMA_EMPTY + EXPECTED_RELATIONSHIPS_MERGE_ON_CREATE_SET + EXPECTED_CLEAN_UP_EMPTY, readFile(output));
     }
 
     @Test public void testExportSchemaCypher() throws Exception {

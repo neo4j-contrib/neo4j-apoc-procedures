@@ -1,6 +1,9 @@
 package apoc.export.util;
 
-import java.io.PrintWriter;
+import apoc.export.cypher.formatter.CypherFormatter;
+import apoc.export.cypher.formatter.CypherFormatterUtils;
+
+import static java.lang.String.format;
 
 /**
  * @author AgileLARUS
@@ -9,9 +12,13 @@ import java.io.PrintWriter;
  */
 public enum ExportFormat {
 
-    NEO4J_SHELL("neo4j-shell", String.format("commit%n"), String.format("begin%n"), String.format("schema await%n")),
-    CYPHER_SHELL("cypher-shell", String.format(":commit%n"), String.format(":begin%n"), ""),
-    PLAIN_FORMAT("plain", "", "", "");
+    NEO4J_SHELL("neo4j-shell",
+            format("COMMIT%n"), format("BEGIN%n"), format("SCHEMA AWAIT%n"), ""),
+
+    CYPHER_SHELL("cypher-shell",
+            format(":COMMIT%n"), format(":BEGIN%n"), "", "CALL db.awaitIndex('%s(%s)');%n"),
+
+    PLAIN_FORMAT("plain", "", "", "", "");
 
     private final String format;
 
@@ -19,13 +26,16 @@ public enum ExportFormat {
 
     private String begin;
 
+    private String indexAwait;
+
     private String schemaAwait;
 
-    ExportFormat(String format, String commit, String begin, String schemaAwait) {
+    ExportFormat(String format, String commit, String begin, String schemaAwait, String indexAwait) {
         this.format = format;
         this.begin = begin;
         this.commit = commit;
         this.schemaAwait = schemaAwait;
+        this.indexAwait = indexAwait;
     }
 
     public static final ExportFormat fromString(String format) {
@@ -49,5 +59,9 @@ public enum ExportFormat {
 
     public String schemaAwait(){
         return this.schemaAwait;
+    }
+
+    public String indexAwait(String label, String property){
+        return format(this.indexAwait, CypherFormatterUtils.label(label), CypherFormatterUtils.quote(property));
     }
 }

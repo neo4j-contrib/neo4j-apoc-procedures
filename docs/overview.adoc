@@ -249,6 +249,7 @@ GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 | readLabels | false | read nodes' labels (import/export graphml)
 | defaultRelationshipType | "RELATED" | set relationship type (import/export graphml)
 | separateFiles | false | export results in separated file by type (nodes, relationships..)
+| cypherFormat | create | In export to cypher script, define the cypher format (for example use `MERGE` instead of `CREATE`). Possible values are: "create", "updateAll", "addStructure", "updateStructure".
 |===
 
 == Loading Data from RDBMS
