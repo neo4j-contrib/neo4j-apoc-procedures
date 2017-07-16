@@ -8,7 +8,15 @@ It is possible to choose between three export formats:
 * `plain`: doesn't output begin / commit / await just plain Cypher
 
 To change the export format, you have to set it on the config params like `{format : "cypher-shell"}`.
+
 By default the format is `neo4j-shell`.
+
+It is possible to choose between four cypher export formats:
+
+* "create": all CREATE
+* "updateAll": MERGE instead of CREATE
+* "addStructure": MATCH for nodes + MERGE for rels
+* "updateStructure": MERGE + MATCH for nodes and rels
 
 // tag::export.cypher[]
 `YIELD file, source, format, nodes, relationships, properties, time`
