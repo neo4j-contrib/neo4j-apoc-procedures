@@ -1,5 +1,6 @@
 package apoc.convert;
 
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.procedure.Description;
 import apoc.coll.SetBackedList;
 import apoc.result.*;
@@ -25,8 +26,16 @@ public class Convert {
     @UserFunction
     @Description("apoc.convert.toMap(value) | tries it's best to convert the value to a map")
     public Map<String, Object> toMap(@Name("map") Object map) {
-        return map instanceof Map ? (Map<String, Object>) map :  null;
+
+        if (map instanceof PropertyContainer) {
+            return ((PropertyContainer)map).getAllProperties();
+        } else if (map instanceof Map) {
+            return (Map<String, Object>) map;
+        } else {
+            return null;
+        }
     }
+
     @UserFunction
     @Description("apoc.convert.toString(value) | tries it's best to convert the value to a string")
     public String toString(@Name("string") Object string) {
