@@ -179,6 +179,10 @@ include::trigger.adoc[leveloffset=2]
 
 include::schema.adoc[leveloffset=2]
 
+== Atomic
+
+include::atomic.adoc[leveloffset=1]
+
 == Appendix: Complete Overview
 
 include::overview.adoc[tags=overview,leveloffset=1]
