@@ -131,6 +131,7 @@ asciidoctor {
     sources { include 'index.adoc' }
     outputDir = file('build/docs')
     attributes  'apoc-version' : version,
+                'apoc-release' : "3.2.0.4",
                 'neo4j-version' : neo4jVersion,
                 'branch' : "3.2"
 }
@@ -138,11 +139,10 @@ asciidoctor {
 asciidoctor.doLast {
     copy {
         from 'build/docs/html5/index.html'
-        into "$projectDir/x"
+        into "build/docs"
         rename { String filename -> filename.replace("index","index32") }
     }
 }
-
 assemble.dependsOn(asciidoctor)
 
 /******
