@@ -98,6 +98,14 @@ Any version to be released after 1.1.0 will use a different, consistent versioni
 |===
 
 // end::version-matrix[]
+=== Get APOC Version
+
+To know your current `apoc` version you can use the *Function* :
+
+[source,cypher]
+----
+RETURN apoc.version()
+----
 
 === using APOC with Neo4j Docker image
 
