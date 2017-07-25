@@ -20,6 +20,12 @@ result> [["<link xxx1>yyy1</link>", "xxx1", "yyy1"], ["<link xxx2>yyy2</link>", 
 
 
 
+.will return ['Hello', 'World']
+[source,cypher]
+----
+CALL apoc.text.split('Hello World', ' ')
+----
+
 .will return 'Hello World'
 [source,cypher]
 ----

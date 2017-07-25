@@ -10,6 +10,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static apoc.util.MapUtil.map;
@@ -71,6 +72,48 @@ public class StringsTest {
                 "RETURN apoc.text.regreplace({text},{regex},{replacement}) AS value",
                 map("text",text,"regex",regex,"replacement",null),
                 row -> assertEquals(null, row.get("value")));
+    }
+
+    @Test
+    public void testSplit() throws Exception {
+        String text = "1,2,3,4";
+        String regex = ",";
+
+        testCall(db,
+                "RETURN apoc.text.split({text}, {regex}) AS value",
+                map("text", text, "regex", regex),
+                row -> assertEquals(Arrays.asList("1", "2", "3", "4"), row.get("value")));
+
+        testCall(db,
+                "RETURN apoc.text.split({text}, {regex}, 2) AS value",
+                map("text", text, "regex", regex),
+                row -> assertEquals(Arrays.asList("1", "2,3,4"), row.get("value")));
+    }
+
+    @Test
+    public void testSplitWithNull() throws Exception {
+        String text = "Hello World";
+        String regex = " ";
+
+        testCall(db,
+                "RETURN apoc.text.split({text}, {regex}) AS value",
+                map("text", null, "regex", regex),
+                row -> assertEquals(null, row.get("value")));
+
+        testCall(db,
+                "RETURN apoc.text.split({text}, {regex}) AS value",
+                map("text", text, "regex", null),
+                row -> assertEquals(null, row.get("value")));
+
+        testCall(db,
+                "RETURN apoc.text.split({text}, {regex}, null) AS value",
+                map("text", text, "regex", regex),
+                row -> assertEquals(null, row.get("value")));
+
+        testCall(db,
+                "RETURN apoc.text.split({text}, {regex}) AS value",
+                map("text", "", "regex", ""),
+                row -> assertEquals(Collections.singletonList(""), row.get("value")));
     }
 
     @Test
