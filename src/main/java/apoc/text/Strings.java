@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import static java.util.Arrays.asList;
 
 /**
  * @author mh
@@ -35,6 +36,16 @@ public class Strings {
             return null;
         }
         return text.replaceAll(regex, replacement);
+    }
+
+    @UserFunction
+    @Description("apoc.text.split(text, regex, limit) - splits the given text around matches of the given regex.")
+    public List<String> split(final @Name("text") String text, final @Name("regex") String regex, final @Name(value = "limit", defaultValue = "0") Long limit) {
+        if (text == null || regex == null || limit == null) {
+            return null;
+        }
+        String[] resultArray = text.split(regex, limit.intValue());
+        return new ArrayList<>(asList(resultArray));
     }
 
     @UserFunction
