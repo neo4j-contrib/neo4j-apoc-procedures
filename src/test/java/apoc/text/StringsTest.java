@@ -76,8 +76,8 @@ public class StringsTest {
 
     @Test
     public void testSplit() throws Exception {
-        String text = "1,2,3,4";
-        String regex = ",";
+        String text = "1,  2, 3,4";
+        String regex = ", *";
 
         testCall(db,
                 "RETURN apoc.text.split({text}, {regex}) AS value",
@@ -87,7 +87,7 @@ public class StringsTest {
         testCall(db,
                 "RETURN apoc.text.split({text}, {regex}, 2) AS value",
                 map("text", text, "regex", regex),
-                row -> assertEquals(Arrays.asList("1", "2,3,4"), row.get("value")));
+                row -> assertEquals(Arrays.asList("1", "2, 3,4"), row.get("value")));
     }
 
     @Test
