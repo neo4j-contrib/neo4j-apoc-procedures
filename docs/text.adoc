@@ -2,6 +2,8 @@
 
 Basic utility procedures for string manipulation, comparison, filtering etc.
 
+The `replace`, `split` and `regexpGroups` functions work with regular expressions.
+
 The clean functionality can be useful for cleaning up slightly dirty text data with inconsistent formatting for non-exact comparisons.
 
 Cleaning will strip the string of all non-alphanumeric characters (including spaces) and convert it to lower case.
@@ -20,10 +22,10 @@ result> [["<link xxx1>yyy1</link>", "xxx1", "yyy1"], ["<link xxx2>yyy2</link>", 
 
 
 
-.will return ['Hello', 'World']
+.will split with the given regular expression return ['Hello', 'World']
 [source,cypher]
 ----
-CALL apoc.text.split('Hello World', ' ')
+CALL apoc.text.split('Hello   World', ' +')
 ----
 
 .will return 'Hello World'
