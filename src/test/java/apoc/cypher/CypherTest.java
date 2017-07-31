@@ -1,6 +1,7 @@
 package apoc.cypher;
 
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import apoc.util.Utils;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
@@ -21,7 +22,6 @@ import java.util.Map;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static apoc.util.Util.toLong;
 import static apoc.util.Util.withMapping;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -116,6 +116,9 @@ public class CypherTest {
                 });
     }
 
+    private long toLong(Object value) {
+    	return Util.toLong(value);
+    }
 
     @Test
     public void testRunMany() throws Exception {
