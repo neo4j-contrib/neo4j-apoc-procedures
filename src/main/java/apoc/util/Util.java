@@ -220,7 +220,11 @@ public class Util {
     public static Double toDouble(Object value) {
         if (value == null) return null;
         if (value instanceof Number) return ((Number) value).doubleValue();
-        return Double.parseDouble(value.toString());
+        try {
+        	return Double.parseDouble(value.toString());
+        } catch (NumberFormatException e) {
+        	return null;
+        }
     }
 
     public static Map<String, Object> subMap(Map<String, ?> params, String prefix) {
@@ -235,9 +239,14 @@ public class Util {
         return config;
     }
 
-    public static long toLong(Object value) {
+    public static Long toLong(Object value) {
+    	if (value == null) return null;
         if (value instanceof Number) return ((Number)value).longValue();
-        return Long.parseLong(value.toString());
+        try {
+        	return Long.parseLong(value.toString());
+        } catch (NumberFormatException e) {
+        	return null;
+        }
     }
 
     public static URLConnection openUrlConnection(String url, Map<String, Object> headers) throws IOException {
@@ -255,8 +264,8 @@ public class Util {
             headers.forEach((k,v) -> con.setRequestProperty(k, v == null ? "" : v.toString()));
         }
         con.setDoInput(true);
-        con.setConnectTimeout((int)toLong(ApocConfiguration.get("http.timeout.connect",10_000)));
-        con.setReadTimeout((int)toLong(ApocConfiguration.get("http.timeout.read",60_000)));
+        con.setConnectTimeout(toLong(ApocConfiguration.get("http.timeout.connect",10_000)).intValue());
+        con.setReadTimeout(toLong(ApocConfiguration.get("http.timeout.read",60_000)).intValue());
         return con;
     }
 

@@ -39,8 +39,11 @@ public class Meta {
         INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST;
 
         public static Types of(Object value) {
-            if (value==null) return NULL;
-            Class type = value.getClass();
+            return of(value == null ? null : value.getClass());
+        }
+
+        public static Types of(Class<?> type) {
+            if (type==null) return NULL;
             if (type.isArray()) {
                 type = type.getComponentType();
             }
@@ -49,7 +52,7 @@ public class Meta {
                         Float.class.isAssignableFrom(type) || float.class.isAssignableFrom(type) ? FLOAT : INTEGER;
             }
             if (type == Boolean.class || type == boolean.class) return BOOLEAN;
-            if (value instanceof String) return STRING;
+            if (String.class.isAssignableFrom(type)) return STRING;
             if (Map.class.isAssignableFrom(type)) return MAP;
             if (Node.class.isAssignableFrom(type)) return NODE;
             if (Relationship.class.isAssignableFrom(type)) return RELATIONSHIP;

@@ -1,21 +1,28 @@
 package apoc.convert;
 
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.procedure.Description;
-import apoc.coll.SetBackedList;
-import apoc.result.*;
-import apoc.util.Util;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Iterators;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.UserFunction;
 
-import java.lang.reflect.Array;
-import java.util.*;
-import java.util.stream.Stream;
+import apoc.coll.SetBackedList;
+import apoc.meta.Meta.Types;
+import apoc.util.Util;
+
 
 /**
  * @author mh
@@ -47,6 +54,7 @@ public class Convert {
     public List<Object> toList(@Name("list") Object list) {
         return convertToList(list);
     }
+
     @UserFunction
     @Description("apoc.convert.toBoolean(value) | tries it's best to convert the value to a boolean")
     public Boolean toBoolean(@Name("bool") Object bool) {
@@ -79,12 +87,81 @@ public class Convert {
         }
         return null;
     }
-
+    
     @SuppressWarnings("unchecked")
+    private <T> List<T> convertToList(Object list, Class<T> type) {
+        List<Object> convertedList = convertToList(list);
+        if (convertedList == null) {
+        	return null;
+        }
+        Stream<T> stream = null;
+        Types varType = Types.of(type);
+    	switch (varType) {
+    	case INTEGER:
+    		stream = (Stream<T>) convertedList.stream().map(Util::toLong);
+    		break;
+    	case FLOAT:
+    		stream = (Stream<T>) convertedList.stream().map(Util::toDouble);
+    		break;
+    	case STRING:
+    		stream = (Stream<T>) convertedList.stream().map(this::toString);
+    		break;
+    	case BOOLEAN:
+    		stream = (Stream<T>) convertedList.stream().map(this::toBoolean);
+    		break;
+    	case NODE:
+    		stream = (Stream<T>) convertedList.stream().map(this::toNode);
+    		break;
+    	case RELATIONSHIP:
+    		stream = (Stream<T>) convertedList.stream().map(this::toRelationship);
+    		break;
+		default:
+			throw new RuntimeException("Supported types are: Integer, Float, String, Boolean, Node, Relationship");
+    	}
+    	return stream.collect(Collectors.toList());
+    }
+
+	@SuppressWarnings("unchecked")
     @UserFunction
     @Description("apoc.convert.toSet(value) | tries it's best to convert the value to a set")
     public List<Object> toSet(@Name("list") Object value) {
         List list = convertToList(value);
         return list == null ? null : new SetBackedList(new LinkedHashSet<>(list));
-    }    
+    }
+    
+	@UserFunction
+    @Description("apoc.convert.toIntList(value) | tries it's best to convert "
+    		+ "the value to a list of integers")
+    public List<Long> toIntList(@Name("list") Object list) {
+        return convertToList(list, Long.class);
+    }
+
+	@UserFunction
+	@Description("apoc.convert.toStringList(value) | tries it's best to convert "
+			+ "the value to a list of strings")
+	public List<String> toStringList(@Name("list") Object list) {
+        return convertToList(list, String.class);
+	}
+
+	@UserFunction
+	@Description("apoc.convert.toBooleanList(value) | tries it's best to convert "
+			+ "the value to a list of booleans")
+	public List<Boolean> toBooleanList(@Name("list") Object list) {
+        return convertToList(list, Boolean.class);
+	}
+
+	@UserFunction
+	@Description("apoc.convert.toNodeList(value) | tries it's best to convert "
+			+ "the value to a list of nodes")
+	public List<Node> toNodeList(@Name("list") Object list) {
+        return convertToList(list, Node.class);
+	}
+
+	@UserFunction
+	@Description("apoc.convert.toRelationshipList(value) | tries it's best to convert "
+			+ "the value to a list of relationships")
+	public List<Relationship> toRelationshipList(@Name("list") Object list) {
+        return convertToList(list, Relationship.class);
+	}
+	
 }

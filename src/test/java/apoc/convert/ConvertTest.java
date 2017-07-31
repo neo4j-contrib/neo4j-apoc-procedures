@@ -1,21 +1,24 @@
 package apoc.convert;
 
-import apoc.coll.Coll;
-import apoc.util.TestUtil;
-import org.junit.*;
+import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.testCall;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.Collections;
-import java.util.Map;
-
-import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.testCall;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import apoc.util.TestUtil;
 
 /**
  * @author mh
@@ -96,4 +99,45 @@ public class ConvertTest {
         testCall(db, "return apoc.convert.toSet({a}) as value", map("a", singletonList("a")), r -> assertEquals(singletonList("a"), r.get("value")));
         testCall(db, "return apoc.convert.toSet({a}) as value", map("a", singletonList("a").iterator()), r -> assertEquals(singletonList("a"), r.get("value")));
     }
+
+    @Test
+    public void testToStringList() throws Exception {
+         testCall(db, "return apoc.convert.toStringList([null, 'a', 1, true, [1]]) as value",
+        		 r -> assertEquals(Arrays.asList(null, "a", "1", "true", "[1]"), r.get("value")));
+    }
+
+    @Test
+    public void testToIntList() throws Exception {
+         testCall(db, "return apoc.convert.toIntList([null, 1, '1']) as value",
+        		 r -> assertEquals(Arrays.asList(null, 1L, 1L), r.get("value")));
+    }
+
+    @Test
+    public void testToBooleanList() throws Exception {
+    	testCall(db, "return apoc.convert.toBooleanList(['false', 0, 'no', '', null]) as value",
+    			r -> assertEquals(Arrays.asList(false, false, false, false, false), r.get("value")));
+		testCall(db, "return apoc.convert.toBooleanList(['true', 1, 'yes']) as value",
+				r -> assertEquals(Arrays.asList(true, true, true), r.get("value")));
+    }
+
+    @Test
+    public void testToNodeList() throws Exception {
+        testCall(db, "CREATE (n) WITH [n] as x RETURN apoc.convert.toNodeList(x) as nodes",
+                r -> {
+					assertEquals(true, r.get("nodes") instanceof List);
+					List<Node> nodes = (List<Node>) r.get("nodes");
+					assertEquals(true, nodes.get(0) instanceof Node);
+                });
+    }
+
+    @Test
+    public void testToRelationshipList() throws Exception {
+        testCall(db, "CREATE (n)-[r:KNOWS]->(m) WITH [r] as x  RETURN apoc.convert.toRelationshipList(x) as rels",
+                r -> {
+					assertEquals(true, r.get("rels") instanceof List);
+					List<Relationship> rels = (List<Relationship>) r.get("rels");
+					assertEquals(true, rels.get(0) instanceof Relationship);
+                });
+    }
+
 }
