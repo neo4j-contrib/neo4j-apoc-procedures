@@ -15,7 +15,9 @@ import org.neo4j.procedure.UserFunction;
 
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 
 /**
  * @author mh
@@ -47,6 +49,7 @@ public class Convert {
     public List<Object> toList(@Name("list") Object list) {
         return convertToList(list);
     }
+
     @UserFunction
     @Description("apoc.convert.toBoolean(value) | tries it's best to convert the value to a boolean")
     public Boolean toBoolean(@Name("bool") Object bool) {
@@ -86,5 +89,50 @@ public class Convert {
     public List<Object> toSet(@Name("list") Object value) {
         List list = convertToList(value);
         return list == null ? null : new SetBackedList(new LinkedHashSet<>(list));
-    }    
+    }
+    
+    @SuppressWarnings("rawtypes")
+	@UserFunction
+    @Description("apoc.convert.toListOf(value, type) | tries it's best to convert "
+    		+ "the value to a list of supported type, supported types are: "
+    		+ "int, long, double, String, boolean, node, relationship")
+    public List toListOf(@Name("list") Object list, @Name("type") String type) {
+        List objectList = convertToList(list);
+        if (objectList == null) {
+        	return null;
+        }
+        return convertToListOf(objectList, type);
+    }
+
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private List convertToListOf(List list, String type) {
+		Stream stream = list.stream();
+		switch (type.toLowerCase()) {
+		case "int":
+			stream = (Stream) stream.map(e -> Integer.parseInt(e.toString()));
+			break;
+		case "long":
+			stream = (Stream) stream.map(e -> Long.parseLong(e.toString()));
+			break;
+		case "double":
+			stream = (Stream) stream.map(e -> Double.parseDouble(e.toString()));
+			break;
+		case "string":
+			stream = (Stream) stream.map(this::toString);
+			break;
+		case "boolean":
+			stream = (Stream) stream.map(this::toBoolean);
+			break;
+		case "node":
+			stream = (Stream) stream.map(this::toNode);
+			break;
+		case "relationship":
+			stream = (Stream) stream.map(this::toRelationship);
+			break;
+		default:
+			throw new UnsupportedTypeException("Supported types are: int, long, double, String, boolean, node, relationship");
+		}
+		return (List) stream.collect(Collectors.toList());
+	}
+
 }

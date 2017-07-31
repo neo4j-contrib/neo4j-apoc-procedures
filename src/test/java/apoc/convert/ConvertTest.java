@@ -1,21 +1,24 @@
 package apoc.convert;
 
-import apoc.coll.Coll;
-import apoc.util.TestUtil;
-import org.junit.*;
+import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.testCall;
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.Collections;
-import java.util.Map;
-
-import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.testCall;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import apoc.util.TestUtil;
 
 /**
  * @author mh
@@ -95,5 +98,40 @@ public class ConvertTest {
         testCall(db, "return apoc.convert.toSet({a}) as value", map("a", singleton("a")), r -> assertEquals(singletonList("a"), r.get("value")));
         testCall(db, "return apoc.convert.toSet({a}) as value", map("a", singletonList("a")), r -> assertEquals(singletonList("a"), r.get("value")));
         testCall(db, "return apoc.convert.toSet({a}) as value", map("a", singletonList("a").iterator()), r -> assertEquals(singletonList("a"), r.get("value")));
+    }
+
+    @Test
+    public void toListOf() throws Exception {
+         testCall(db, "return apoc.convert.toListOf({a}, 'string') as value", map("a", null),
+        		 r -> assertEquals(null, r.get("value")));
+         testCall(db, "return apoc.convert.toListOf({a}, 'string') as value", map("a", new Object[]{"a"}),
+        		 r -> assertEquals(singletonList("a"), r.get("value")));
+         testCall(db, "return apoc.convert.toListOf({a}, 'int') as value", map("a", new Object[]{"1"}),
+        		 r -> assertEquals(singletonList(1), r.get("value")));
+         testCall(db, "return apoc.convert.toListOf({a}, 'double') as value", map("a", new Object[]{"1.0"}),
+        		 r -> assertEquals(singletonList(1.0d), r.get("value")));
+         testCall(db, "CREATE (n) WITH [n] as x RETURN apoc.convert.toListOf(x, 'node') as nodes",
+                 r -> {
+                	 assertEquals(true, r.get("nodes") instanceof List);
+                	 List<Node> nodes = (List<Node>) r.get("nodes");
+                	 assertEquals(true, nodes.get(0) instanceof Node);
+                 });
+         testCall(db, "CREATE (n)-[r:KNOWS]->(m) WITH [r] as x RETURN apoc.convert.toListOf(x, 'relationship') AS rels",
+                 r -> {
+                	 assertEquals(true, r.get("rels") instanceof List);
+                	 List<Relationship> rels = (List<Relationship>) r.get("rels");
+                	 assertEquals(true, rels.get(0) instanceof Relationship);
+                 });
+         testCall(db, "return apoc.convert.toListOf({a}, 'boolean') as value",
+        		 map("a", new Object[]{"true", 1, "yes"}),
+        		 r -> assertEquals(Arrays.asList(true, true, true), r.get("value")));
+         testCall(db, "return apoc.convert.toListOf({a}, 'boolean') as value",
+        		 map("a", new Object[]{"false", 0, "no", "", null}),
+        		 r -> assertEquals(Arrays.asList(false, false, false, false, false), r.get("value")));
+    }
+    
+    @Test(expected = UnsupportedTypeException.class)
+    public void toListOfShouldThrowException() throws Exception {
+    	new Convert().toListOf(new Object[]{"1"}, "integer");
     }
 }
