@@ -1,5 +1,8 @@
 package apoc.mongodb;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.FindIterable;
@@ -24,6 +27,7 @@ import java.util.stream.StreamSupport;
  */
 class MongoDBColl implements MongoDB.Coll {
 
+    private final ObjectMapper jsonMapper = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
     private MongoCollection<Document> collection;
     private MongoClient mongoClient;
 
@@ -44,9 +48,19 @@ class MongoDBColl implements MongoDB.Coll {
      * but a simple String representation of it
      *
      * @param document
+     * @param compatibleValues if true we convert the document to JSON and than back to a Map
      * @return
      */
-    private Map<String, Object> documentToPackableMap(Map<String, Object> document) {
+    private Map<String, Object> documentToPackableMap(Map<String, Object> document, boolean compatibleValues) {
+        if (compatibleValues) {
+            try {
+                return jsonMapper.readValue(jsonMapper.writeValueAsBytes(document), new TypeReference<Map<String, Object>>() {
+                });
+            } catch (Exception e) {
+                throw new RuntimeException("Cannot convert document to json and back to Map " + e.getMessage());
+            }
+        }
+
         /**
          * A document in MongoDB has a special field "_id" of type ObjectId
          * This object is not "packable" by Neo4jPacker so it must be converted to a value that Neo4j can deal with
@@ -66,13 +80,13 @@ class MongoDBColl implements MongoDB.Coll {
     }
 
     @Override
-    public Map<String, Object> first(Map<String, Object> query) {
-        return documentToPackableMap(collection.find(new Document(query)).first());
+    public Map<String, Object> first(Map<String, Object> query, boolean compatibleValues) {
+        return documentToPackableMap(collection.find(new Document(query)).first(), compatibleValues);
     }
 
     @Override
-    public Stream<Map<String, Object>> all(Map<String, Object> query) {
-        return asStream(query == null ? collection.find() : collection.find(new Document(query)));
+    public Stream<Map<String, Object>> all(Map<String, Object> query, boolean compatibleValues) {
+        return asStream(query == null ? collection.find() : collection.find(new Document(query)), compatibleValues);
     }
 
     @Override
@@ -80,18 +94,18 @@ class MongoDBColl implements MongoDB.Coll {
         return query == null ? collection.count() : collection.count(new Document(query));
     }
 
-    private Stream<Map<String, Object>> asStream(FindIterable<Document> result) {
+    private Stream<Map<String, Object>> asStream(FindIterable<Document> result, boolean compatibleValues) {
         MongoCursor<Document> iterator = result.iterator();
         Spliterator<Map<String, Object>> spliterator = Spliterators.spliterator(iterator, -1, Spliterator.ORDERED);
-        return StreamSupport.stream(spliterator, false).map(doc -> this.documentToPackableMap(doc)).onClose(iterator::close);
+        return StreamSupport.stream(spliterator, false).map(doc -> this.documentToPackableMap(doc, compatibleValues)).onClose(iterator::close);
     }
 
     @Override
-    public Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort) {
+    public Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, boolean compatibleValues) {
         FindIterable<Document> documents = query == null ? collection.find() : collection.find(new Document(query));
         if (project != null) documents = documents.projection(new Document(project));
         if (sort != null) documents = documents.sort(new Document(sort));
-        return asStream(documents);
+        return asStream(documents, compatibleValues);
     }
 
     @Override
