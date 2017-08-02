@@ -101,37 +101,43 @@ public class ConvertTest {
     }
 
     @Test
-    public void toListOf() throws Exception {
-         testCall(db, "return apoc.convert.toListOf({a}, 'string') as value", map("a", null),
-        		 r -> assertEquals(null, r.get("value")));
-         testCall(db, "return apoc.convert.toListOf({a}, 'string') as value", map("a", new Object[]{"a"}),
-        		 r -> assertEquals(singletonList("a"), r.get("value")));
-         testCall(db, "return apoc.convert.toListOf({a}, 'int') as value", map("a", new Object[]{"1"}),
-        		 r -> assertEquals(singletonList(1), r.get("value")));
-         testCall(db, "return apoc.convert.toListOf({a}, 'double') as value", map("a", new Object[]{"1.0"}),
-        		 r -> assertEquals(singletonList(1.0d), r.get("value")));
-         testCall(db, "CREATE (n) WITH [n] as x RETURN apoc.convert.toListOf(x, 'node') as nodes",
-                 r -> {
-                	 assertEquals(true, r.get("nodes") instanceof List);
-                	 List<Node> nodes = (List<Node>) r.get("nodes");
-                	 assertEquals(true, nodes.get(0) instanceof Node);
-                 });
-         testCall(db, "CREATE (n)-[r:KNOWS]->(m) WITH [r] as x RETURN apoc.convert.toListOf(x, 'relationship') AS rels",
-                 r -> {
-                	 assertEquals(true, r.get("rels") instanceof List);
-                	 List<Relationship> rels = (List<Relationship>) r.get("rels");
-                	 assertEquals(true, rels.get(0) instanceof Relationship);
-                 });
-         testCall(db, "return apoc.convert.toListOf({a}, 'boolean') as value",
-        		 map("a", new Object[]{"true", 1, "yes"}),
-        		 r -> assertEquals(Arrays.asList(true, true, true), r.get("value")));
-         testCall(db, "return apoc.convert.toListOf({a}, 'boolean') as value",
-        		 map("a", new Object[]{"false", 0, "no", "", null}),
-        		 r -> assertEquals(Arrays.asList(false, false, false, false, false), r.get("value")));
+    public void testToStringList() throws Exception {
+         testCall(db, "return apoc.convert.toStringList([null, 'a', 1, true, [1]]) as value",
+        		 r -> assertEquals(Arrays.asList(null, "a", "1", "true", "[1]"), r.get("value")));
     }
-    
-    @Test(expected = UnsupportedTypeException.class)
-    public void toListOfShouldThrowException() throws Exception {
-    	new Convert().toListOf(new Object[]{"1"}, "integer");
+
+    @Test
+    public void testToIntList() throws Exception {
+         testCall(db, "return apoc.convert.toIntList([null, 1, '1']) as value",
+        		 r -> assertEquals(Arrays.asList(null, 1, 1), r.get("value")));
     }
+
+    @Test
+    public void testToBooleanList() throws Exception {
+    	testCall(db, "return apoc.convert.toBooleanList(['false', 0, 'no', '', null]) as value",
+    			r -> assertEquals(Arrays.asList(false, false, false, false, false), r.get("value")));
+		testCall(db, "return apoc.convert.toBooleanList(['true', 1, 'yes']) as value",
+				r -> assertEquals(Arrays.asList(true, true, true), r.get("value")));
+    }
+
+    @Test
+    public void testToNodeList() throws Exception {
+        testCall(db, "CREATE (n) WITH [n] as x RETURN apoc.convert.toNodeList(x) as nodes",
+                r -> {
+					assertEquals(true, r.get("nodes") instanceof List);
+					List<Node> nodes = (List<Node>) r.get("nodes");
+					assertEquals(true, nodes.get(0) instanceof Node);
+                });
+    }
+
+    @Test
+    public void testToRelationshipList() throws Exception {
+        testCall(db, "CREATE (n)-[r:KNOWS]->(m) WITH [r] as x  RETURN apoc.convert.toRelationshipList(x) as rels",
+                r -> {
+					assertEquals(true, r.get("rels") instanceof List);
+					List<Relationship> rels = (List<Relationship>) r.get("rels");
+					assertEquals(true, rels.get(0) instanceof Relationship);
+                });
+    }
+
 }

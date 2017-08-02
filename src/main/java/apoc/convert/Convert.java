@@ -91,48 +91,69 @@ public class Convert {
         return list == null ? null : new SetBackedList(new LinkedHashSet<>(list));
     }
     
-    @SuppressWarnings("rawtypes")
 	@UserFunction
-    @Description("apoc.convert.toListOf(value, type) | tries it's best to convert "
-    		+ "the value to a list of supported type, supported types are: "
-    		+ "int, long, double, String, boolean, node, relationship")
-    public List toListOf(@Name("list") Object list, @Name("type") String type) {
-        List objectList = convertToList(list);
+    @Description("apoc.convert.toIntList(value) | tries it's best to convert "
+    		+ "the value to a list of integers")
+    public List<Integer> toIntList(@Name("list") Object list) {
+        List<Object> objectList = convertToList(list);
         if (objectList == null) {
         	return null;
         }
-        return convertToListOf(objectList, type);
+        return objectList.stream()
+        		.map(e -> e != null ? Integer.parseInt(e.toString()) : null)
+        		.collect(Collectors.toList());
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    private List convertToListOf(List list, String type) {
-		Stream stream = list.stream();
-		switch (type.toLowerCase()) {
-		case "int":
-			stream = (Stream) stream.map(e -> Integer.parseInt(e.toString()));
-			break;
-		case "long":
-			stream = (Stream) stream.map(e -> Long.parseLong(e.toString()));
-			break;
-		case "double":
-			stream = (Stream) stream.map(e -> Double.parseDouble(e.toString()));
-			break;
-		case "string":
-			stream = (Stream) stream.map(this::toString);
-			break;
-		case "boolean":
-			stream = (Stream) stream.map(this::toBoolean);
-			break;
-		case "node":
-			stream = (Stream) stream.map(this::toNode);
-			break;
-		case "relationship":
-			stream = (Stream) stream.map(this::toRelationship);
-			break;
-		default:
-			throw new UnsupportedTypeException("Supported types are: int, long, double, String, boolean, node, relationship");
+	@UserFunction
+	@Description("apoc.convert.toStringList(value) | tries it's best to convert "
+			+ "the value to a list of strings")
+	public List<String> toStringList(@Name("list") Object list) {
+		List<Object> objectList = convertToList(list);
+		if (objectList == null) {
+			return null;
 		}
-		return (List) stream.collect(Collectors.toList());
+		return objectList.stream()
+				.map(this::toString)
+				.collect(Collectors.toList());
 	}
 
+	@UserFunction
+	@Description("apoc.convert.toBooleanList(value) | tries it's best to convert "
+			+ "the value to a list of booleans")
+	public List<Boolean> toBooleanList(@Name("list") Object list) {
+		List<Object> objectList = convertToList(list);
+		if (objectList == null) {
+			return null;
+		}
+		return objectList.stream()
+				.map(this::toBoolean)
+				.collect(Collectors.toList());
+	}
+
+	@UserFunction
+	@Description("apoc.convert.toNodeList(value) | tries it's best to convert "
+			+ "the value to a list of nodes")
+	public List<Node> toNodeList(@Name("list") Object list) {
+		List<Object> objectList = convertToList(list);
+		if (objectList == null) {
+			return null;
+		}
+		return objectList.stream()
+				.map(this::toNode)
+				.collect(Collectors.toList());
+	}
+
+	@UserFunction
+	@Description("apoc.convert.toRelationshipList(value) | tries it's best to convert "
+			+ "the value to a list of relationships")
+	public List<Relationship> toRelationshipList(@Name("list") Object list) {
+		List<Object> objectList = convertToList(list);
+		if (objectList == null) {
+			return null;
+		}
+		return objectList.stream()
+				.map(this::toRelationship)
+				.collect(Collectors.toList());
+	}
+	
 }
