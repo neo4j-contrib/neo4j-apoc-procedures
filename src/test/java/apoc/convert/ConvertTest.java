@@ -109,7 +109,7 @@ public class ConvertTest {
     @Test
     public void testToIntList() throws Exception {
          testCall(db, "return apoc.convert.toIntList([null, 1, '1']) as value",
-        		 r -> assertEquals(Arrays.asList(null, 1, 1), r.get("value")));
+        		 r -> assertEquals(Arrays.asList(null, 1L, 1L), r.get("value")));
     }
 
     @Test

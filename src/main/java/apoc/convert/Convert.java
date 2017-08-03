@@ -1,22 +1,28 @@
 package apoc.convert;
 
-import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.procedure.Description;
-import apoc.coll.SetBackedList;
-import apoc.result.*;
-import apoc.util.Util;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Iterators;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.UserFunction;
 
-import java.lang.reflect.Array;
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import apoc.coll.SetBackedList;
+import apoc.number.exact.Exact;
+import apoc.util.Util;
 
 
 /**
@@ -82,8 +88,51 @@ public class Convert {
         }
         return null;
     }
-
+    
     @SuppressWarnings("unchecked")
+    private <T> List<T> convertToList(Object list, Class<T> type) {
+        List<Object> convertedList = convertToList(list);
+        if (convertedList == null) {
+        	return null;
+        }
+        Stream<T> stream = null;
+    	if (type.isAssignableFrom(Long.class)) {
+    		final Exact exact = new Exact();
+    		stream = (Stream<T>) convertedList.stream().map(e -> {
+    			if (e == null) {
+    				return null;
+    			}
+    			if (e instanceof Number) {
+    				return ((Number)e).longValue();
+    			}
+    			return exact.toInteger(toString(e), 0L, RoundingMode.HALF_UP.toString());
+    		});
+    	} else if (type.isAssignableFrom(Double.class)) {
+    		final Exact exact = new Exact();
+    		stream = (Stream<T>) convertedList.stream().map(e -> {
+				if (e == null) {
+    				return null;
+    			}
+    			if (e instanceof Number) {
+    				return ((Number)e).doubleValue();
+    			}
+    			return exact.toFloat(toString(e), 0L, RoundingMode.HALF_UP.toString());
+    		});
+    	} else if (type.isAssignableFrom(String.class)) {
+    		stream = (Stream<T>) convertedList.stream().map(this::toString);
+    	} else if (type.isAssignableFrom(Boolean.class)) {
+    		stream = (Stream<T>) convertedList.stream().map(this::toBoolean);
+    	} else if (type.isAssignableFrom(Node.class)) {
+    		stream = (Stream<T>) convertedList.stream().map(this::toNode);
+    	} else if (type.isAssignableFrom(Relationship.class)) {
+    		stream = (Stream<T>) convertedList.stream().map(this::toRelationship);
+    	} else {
+    		throw new UnsupportedTypeException("Supported types are: Long, Double, String, Boolean, Node, Relationship");
+    	}
+    	return stream.collect(Collectors.toList());
+    }
+
+	@SuppressWarnings("unchecked")
     @UserFunction
     @Description("apoc.convert.toSet(value) | tries it's best to convert the value to a set")
     public List<Object> toSet(@Name("list") Object value) {
@@ -94,66 +143,36 @@ public class Convert {
 	@UserFunction
     @Description("apoc.convert.toIntList(value) | tries it's best to convert "
     		+ "the value to a list of integers")
-    public List<Integer> toIntList(@Name("list") Object list) {
-        List<Object> objectList = convertToList(list);
-        if (objectList == null) {
-        	return null;
-        }
-        return objectList.stream()
-        		.map(e -> e != null ? Integer.parseInt(e.toString()) : null)
-        		.collect(Collectors.toList());
+    public List<Long> toIntList(@Name("list") Object list) {
+        return convertToList(list, Long.class);
     }
 
 	@UserFunction
 	@Description("apoc.convert.toStringList(value) | tries it's best to convert "
 			+ "the value to a list of strings")
 	public List<String> toStringList(@Name("list") Object list) {
-		List<Object> objectList = convertToList(list);
-		if (objectList == null) {
-			return null;
-		}
-		return objectList.stream()
-				.map(this::toString)
-				.collect(Collectors.toList());
+        return convertToList(list, String.class);
 	}
 
 	@UserFunction
 	@Description("apoc.convert.toBooleanList(value) | tries it's best to convert "
 			+ "the value to a list of booleans")
 	public List<Boolean> toBooleanList(@Name("list") Object list) {
-		List<Object> objectList = convertToList(list);
-		if (objectList == null) {
-			return null;
-		}
-		return objectList.stream()
-				.map(this::toBoolean)
-				.collect(Collectors.toList());
+        return convertToList(list, Boolean.class);
 	}
 
 	@UserFunction
 	@Description("apoc.convert.toNodeList(value) | tries it's best to convert "
 			+ "the value to a list of nodes")
 	public List<Node> toNodeList(@Name("list") Object list) {
-		List<Object> objectList = convertToList(list);
-		if (objectList == null) {
-			return null;
-		}
-		return objectList.stream()
-				.map(this::toNode)
-				.collect(Collectors.toList());
+        return convertToList(list, Node.class);
 	}
 
 	@UserFunction
 	@Description("apoc.convert.toRelationshipList(value) | tries it's best to convert "
 			+ "the value to a list of relationships")
 	public List<Relationship> toRelationshipList(@Name("list") Object list) {
-		List<Object> objectList = convertToList(list);
-		if (objectList == null) {
-			return null;
-		}
-		return objectList.stream()
-				.map(this::toRelationship)
-				.collect(Collectors.toList());
+        return convertToList(list, Relationship.class);
 	}
 	
 }
