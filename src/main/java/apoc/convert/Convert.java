@@ -1,6 +1,5 @@
 package apoc.convert;
 
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -21,7 +20,7 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
 
 import apoc.coll.SetBackedList;
-import apoc.number.exact.Exact;
+import apoc.meta.Meta.Types;
 import apoc.util.Util;
 
 
@@ -96,38 +95,28 @@ public class Convert {
         	return null;
         }
         Stream<T> stream = null;
-    	if (type.isAssignableFrom(Long.class)) {
-    		final Exact exact = new Exact();
-    		stream = (Stream<T>) convertedList.stream().map(e -> {
-    			if (e == null) {
-    				return null;
-    			}
-    			if (e instanceof Number) {
-    				return ((Number)e).longValue();
-    			}
-    			return exact.toInteger(toString(e), 0L, RoundingMode.HALF_UP.toString());
-    		});
-    	} else if (type.isAssignableFrom(Double.class)) {
-    		final Exact exact = new Exact();
-    		stream = (Stream<T>) convertedList.stream().map(e -> {
-				if (e == null) {
-    				return null;
-    			}
-    			if (e instanceof Number) {
-    				return ((Number)e).doubleValue();
-    			}
-    			return exact.toFloat(toString(e), 0L, RoundingMode.HALF_UP.toString());
-    		});
-    	} else if (type.isAssignableFrom(String.class)) {
+        Types varType = Types.of(type);
+    	switch (varType) {
+    	case INTEGER:
+    		stream = (Stream<T>) convertedList.stream().map(Util::toLong);
+    		break;
+    	case FLOAT:
+    		stream = (Stream<T>) convertedList.stream().map(Util::toDouble);
+    		break;
+    	case STRING:
     		stream = (Stream<T>) convertedList.stream().map(this::toString);
-    	} else if (type.isAssignableFrom(Boolean.class)) {
+    		break;
+    	case BOOLEAN:
     		stream = (Stream<T>) convertedList.stream().map(this::toBoolean);
-    	} else if (type.isAssignableFrom(Node.class)) {
+    		break;
+    	case NODE:
     		stream = (Stream<T>) convertedList.stream().map(this::toNode);
-    	} else if (type.isAssignableFrom(Relationship.class)) {
+    		break;
+    	case RELATIONSHIP:
     		stream = (Stream<T>) convertedList.stream().map(this::toRelationship);
-    	} else {
-    		throw new UnsupportedTypeException("Supported types are: Long, Double, String, Boolean, Node, Relationship");
+    		break;
+		default:
+			throw new RuntimeException("Supported types are: Integer, Float, String, Boolean, Node, Relationship");
     	}
     	return stream.collect(Collectors.toList());
     }
