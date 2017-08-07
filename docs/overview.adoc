@@ -995,6 +995,7 @@ Provides some graph algorithms (not very optimized yet)
 | apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance','lat','lon')  YIELD path, weight | run A* with relationship property name as cost function
 | apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', {weight:'dist',default:10, x:'lon',y:'lat'}) YIELD path, weight | run A* with relationship property name as cost function
 | apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 5) YIELD path,  weight | run allSimplePaths with relationships given and maxNodes
+| apoc.stats.degrees(relTypesDirections) yield type, direction, total, min, max, mean, p50, p75, p90, p95, p99, p999 | compute degree distribution in parallel
 |===
 
 

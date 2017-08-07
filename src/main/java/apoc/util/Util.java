@@ -9,6 +9,8 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.api.ReadOperations;
+import org.neo4j.kernel.api.Statement;
 import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -23,7 +25,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.*;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
@@ -170,6 +173,27 @@ public class Util {
             });
         } catch (Exception e) {
             throw new RuntimeException("Error executing in separate transaction", e);
+        }
+    }
+
+    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseAPI db, BiFunction<Statement, ReadOperations, T> callable) {
+        try {
+            return pool.submit(() -> {
+                try (Transaction tx = db.beginTx()) {
+                    try (Statement statement = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class).get()) {
+                        T result = callable.apply(statement, statement.readOperations());
+                        tx.success();
+                        return result;
+                    }
+                }
+            });
+        } catch (Exception e) {
+            throw new RuntimeException("Error executing in separate transaction", e);
+        }
+    }
+    public static <T> T withStatement(GraphDatabaseAPI db, BiFunction<Statement, ReadOperations, T> callable) {
+        try (Statement statement = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class).get()) {
+            return callable.apply(statement, statement.readOperations());
         }
     }
     public static <T> T inTx(GraphDatabaseAPI db, Callable<T> callable) {
@@ -379,6 +403,14 @@ public class Util {
         }
         return result;
     }
+    public static long[] takeIds(PrimitiveLongIterator iterator, int batchsize) {
+        long[] result = new long[batchsize];
+        int i;
+        for (i = 0; i < batchsize && iterator.hasNext(); i++) {
+            result[i] = iterator.next();
+        }
+        return i < batchsize ? Arrays.copyOf(result,i) : result;
+    }
 
     public static Map<String, Object> merge(Map<String, Object> first, Map<String, Object> second) {
         if (second == null || second.isEmpty()) return first == null ? Collections.EMPTY_MAP : first;
@@ -524,5 +556,21 @@ public class Util {
         }
 
         return false;
+    }
+
+    public static void waitForFutures(List<Future> futures) {
+        for (Future future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                // ignore
+            }
+        }
+    }
+
+    public static void removeFinished(List<Future> futures) {
+        if (futures.size() > 25) {
+            futures.removeIf(Future::isDone);
+        }
     }
 }
