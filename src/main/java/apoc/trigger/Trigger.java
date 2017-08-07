@@ -216,7 +216,6 @@ public class Trigger {
             Map<String,String> exceptions = new LinkedHashMap<>();
             triggers.forEach((name, data) -> {
                 if( data.get("paused").equals(false)) {
-                    log.info("Inside if " + name + data);
                     try (Transaction tx = db.beginTx()) {
                         Map<String,Object> selector = (Map<String, Object>) data.get("selector");
                         if (when(selector, phase)) {
