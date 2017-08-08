@@ -16,12 +16,11 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.Date;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author mh
@@ -33,6 +32,10 @@ public class MongoDBTest {
     private static MongoCollection<Document> collection;
     private static MongoClient mongoClient;
 
+    private static Date currentTime = new Date();
+
+    private static long longValue = 10_000L;
+
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.ignoreException(() -> {
@@ -40,11 +43,11 @@ public class MongoDBTest {
                     .socketTimeout(100).serverSelectionTimeout(100)
                     .heartbeatConnectTimeout(100).heartbeatSocketTimeout(100).heartbeatFrequency(100).minHeartbeatFrequency(100)
                     .maxWaitTime(100).connectTimeout(100).build();
-            mongoClient = new MongoClient("localhost", options);
+            mongoClient = new MongoClient("192.168.99.100", options);
             MongoDatabase database = mongoClient.getDatabase("test");
             collection = database.getCollection("test");
             collection.deleteMany(new Document());
-            collection.insertOne(new Document(map("name", "testDocument")));
+            collection.insertOne(new Document(map("name", "testDocument", "date", currentTime, "longValue", longValue)));
             mongoDBRunning = true;
         }, MongoTimeoutException.class);
         if (mongoDBRunning) {
@@ -64,8 +67,8 @@ public class MongoDBTest {
     public void testObjectIdtoStringMapping() {
         Assume.assumeTrue(mongoDBRunning);
         TestUtil.ignoreException(() -> {
-            String url = new UrlResolver("mongodb", "localhost", 27017).getUrl("mongodb", "localhost");
-            MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "test");
+            String url = new UrlResolver("mongodb", "192.168.99.100", 27017).getUrl("mongodb", "192.168.99.100");
+            MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "test", false);
 
             Map<String, Object> document = coll.first(MapUtil.map("name", "testDocument"));
             assertTrue(document.get("_id") instanceof String);
@@ -73,10 +76,24 @@ public class MongoDBTest {
     }
 
     @Test
+    public void testCompatibleValues() {
+        Assume.assumeTrue(mongoDBRunning);
+        TestUtil.ignoreException(() -> {
+            String url = new UrlResolver("mongodb", "192.168.99.100", 27017).getUrl("mongodb", "192.168.99.100");
+            MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "test", true);
+
+            Map<String, Object> document = coll.first(MapUtil.map("name", "testDocument"));
+            assertNotNull(((Map<String, Object>) document.get("_id")).get("timestamp"));
+            assertEquals(currentTime.getTime(), document.get("date"));
+            assertEquals(longValue, document.get("longValue"));
+        });
+    }
+
+    @Test
     public void testGet() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.mongodb.get('mongodb://localhost:27017','test','test',null)", r -> {
+            TestUtil.testCall(db, "CALL apoc.mongodb.get('mongodb://192.168.99.100:27017','test','test',null)", r -> {
                 Map doc = (Map) r.get("value");
                 System.out.println("doc = " + doc);
                 assertNotNull(doc.get("_id"));
@@ -86,10 +103,23 @@ public class MongoDBTest {
     }
 
     @Test
+    public void testGetCompatible() throws Exception {
+        Assume.assumeTrue(mongoDBRunning);
+        TestUtil.ignoreException(() -> {
+            TestUtil.testCall(db, "CALL apoc.mongodb.get('mongodb://192.168.99.100:27017','test','test',null,true)", r -> {
+                Map doc = (Map) r.get("value");
+                assertNotNull(doc.get("_id"));
+                assertEquals("testDocument", doc.get("name"));
+                assertEquals(currentTime.getTime(), doc.get("date"));
+            });
+        }, MongoTimeoutException.class);
+    }
+
+    @Test
     public void testFirst() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDocument'})", r -> {
+            TestUtil.testCall(db, "CALL apoc.mongodb.first('mongodb://192.168.99.100:27017','test','test',{name:'testDocument'})", r -> {
                 Map doc = (Map) r.get("value");
                 System.out.println("doc = " + doc);
                 assertNotNull(doc.get("_id"));
@@ -102,7 +132,7 @@ public class MongoDBTest {
     public void testFind() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.mongodb.find('mongodb://localhost:27017','test','test',{name:'testDocument'},null,null)", r -> {
+            TestUtil.testCall(db, "CALL apoc.mongodb.find('mongodb://192.168.99.100:27017','test','test',{name:'testDocument'},null,null)", r -> {
                 Map doc = (Map) r.get("value");
                 System.out.println("doc = " + doc);
                 assertNotNull(doc.get("_id"));
@@ -115,7 +145,7 @@ public class MongoDBTest {
     public void testFindSort() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.mongodb.find('mongodb://localhost:27017','test','test',{name:'testDocument'},null,{name:1})", r -> {
+            TestUtil.testCall(db, "CALL apoc.mongodb.find('mongodb://192.168.99.100:27017','test','test',{name:'testDocument'},null,{name:1})", r -> {
                 Map doc = (Map) r.get("value");
                 System.out.println("doc = " + doc);
                 assertNotNull(doc.get("_id"));
@@ -128,7 +158,7 @@ public class MongoDBTest {
     public void testCount() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.mongodb.count('mongodb://localhost:27017','test','test',{name:'testDocument'})", r -> {
+            TestUtil.testCall(db, "CALL apoc.mongodb.count('mongodb://192.168.99.100:27017','test','test',{name:'testDocument'})", r -> {
                 assertEquals(1L, r.get("value"));
             });
         }, MongoTimeoutException.class);
@@ -138,7 +168,7 @@ public class MongoDBTest {
     public void testCountAll() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.mongodb.count('mongodb://localhost:27017','test','test',null)", r -> {
+            TestUtil.testCall(db, "CALL apoc.mongodb.count('mongodb://192.168.99.100:27017','test','test',null)", r -> {
                 assertEquals(1L, r.get("value"));
             });
         }, MongoTimeoutException.class);
@@ -148,7 +178,7 @@ public class MongoDBTest {
     public void testUpdate() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.mongodb.update('mongodb://localhost:27017','test','test',{name:'testDocument'},{`$set`:{age:42}})", r -> {
+            TestUtil.testCall(db, "CALL apoc.mongodb.update('mongodb://192.168.99.100:27017','test','test',{name:'testDocument'},{`$set`:{age:42}})", r -> {
                 assertEquals(1L, r.get("value"));
                 assertEquals(1L, collection.count(new Document(map("age", 42L))));
             });
@@ -159,7 +189,7 @@ public class MongoDBTest {
     public void testInsert() throws Exception {
         Assume.assumeTrue(mongoDBRunning);
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.mongodb.insert('mongodb://localhost:27017','test','test',[{Jon:'Snow'}])", r -> {
+            TestUtil.testCall(db, "CALL apoc.mongodb.insert('mongodb://192.168.99.100:27017','test','test',[{Jon:'Snow'}])", r -> {
                 assertEquals(1L, r.get("value"));
                 assertEquals(1L, collection.count(new Document(map("Jon", "Snow"))));
             });
@@ -171,7 +201,7 @@ public class MongoDBTest {
         Assume.assumeTrue(mongoDBRunning);
         collection.insertOne(new Document(map("foo", "bar")));
         TestUtil.ignoreException(() -> {
-            TestUtil.testCall(db, "CALL apoc.mongodb.delete('mongodb://localhost:27017','test','test',{foo:'bar'})", r -> {
+            TestUtil.testCall(db, "CALL apoc.mongodb.delete('mongodb://192.168.99.100:27017','test','test',{foo:'bar'})", r -> {
                 assertEquals(1L, r.get("value"));
                 assertEquals(0L, collection.count(new Document(map("foo", "bar"))));
             });
