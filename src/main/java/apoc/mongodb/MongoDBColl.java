@@ -1,5 +1,8 @@
 package apoc.mongodb;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.FindIterable;
@@ -24,14 +27,28 @@ import java.util.stream.StreamSupport;
  */
 class MongoDBColl implements MongoDB.Coll {
 
+    private static final ObjectMapper jsonMapper = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
     private MongoCollection<Document> collection;
     private MongoClient mongoClient;
+    private boolean compatibleValues = false;
 
     public MongoDBColl(String url, String db, String coll) {
         MongoClientURI connectionString = new MongoClientURI(url);
         mongoClient = new MongoClient(connectionString);
         MongoDatabase database = mongoClient.getDatabase(db);
         collection = database.getCollection(coll);
+    }
+
+    /**
+     *
+     * @param url
+     * @param db
+     * @param coll
+     * @param compatibleValues if true we convert the document to JSON and than back to a Map
+     */
+    public MongoDBColl(String url, String db, String coll, Boolean compatibleValues) {
+        this(url, db, coll);
+        this.compatibleValues = compatibleValues;
     }
 
     @Override
@@ -44,9 +61,19 @@ class MongoDBColl implements MongoDB.Coll {
      * but a simple String representation of it
      *
      * @param document
+     *
      * @return
      */
     private Map<String, Object> documentToPackableMap(Map<String, Object> document) {
+        if (compatibleValues) {
+            try {
+                return jsonMapper.readValue(jsonMapper.writeValueAsBytes(document), new TypeReference<Map<String, Object>>() {
+                });
+            } catch (Exception e) {
+                throw new RuntimeException("Cannot convert document to json and back to Map " + e.getMessage());
+            }
+        }
+
         /**
          * A document in MongoDB has a special field "_id" of type ObjectId
          * This object is not "packable" by Neo4jPacker so it must be converted to a value that Neo4j can deal with
