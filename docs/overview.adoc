@@ -340,14 +340,21 @@ Copy these jars into the plugins directory:
 * mongo-java-driver-3.4.2.jar
 * mongodb-driver-3.4.2.jar
 * mongodb-driver-core-3.4.2.jar
+* jackson-annotations-2.9.0.jar
+* jackson-core-2.9.0.jar
+* jackson-databind-2.9.0.jar
 
-You should be able to get them from https://mongodb.github.io/mongo-java-driver/[here] and https://mvnrepository.com/artifact/org.mongodb/bson/3.4.2[here (BSON)] (via Download)
+You should be able to get them from https://mongodb.github.io/mongo-java-driver/[here], https://mvnrepository.com/artifact/com.fasterxml.jackson.core[here (fasterxml-jackson)] and https://mvnrepository.com/artifact/org.mongodb/bson/3.4.2[here (BSON)] (via Download)
 
 Or you get them locally from your gradle build of apoc.
 
 ----
 gradle copyRuntimeLibs
+<<<<<<< HEAD
 cp lib/mongodb*.jar lib/bson*.jar $NEO4J_HOME/plugins/
+=======
+cp lib/mongodb*.jar lib/bson*.jar lib/jackson-*-2.9.0.jar $NEO4J_HOME/plugins/
+>>>>>>> dd3ce14d0ba6865eaef2c174f9ea23ea3a4569f5
 ----
 
 [source,cypher]
