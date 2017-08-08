@@ -1,19 +1,11 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.5.3"
-    }
-}
-
 plugins {
     id 'java'
     id 'idea'
-    id 'com.github.johnrengelman.shadow' version '1.2.4'
+    id 'com.github.johnrengelman.shadow' version '2.0.1'
     id "org.asciidoctor.convert" version "1.5.3"
     id "com.bmuschko.nexus" version "2.3.1"
-    id "me.champeau.gradle.jmh" version "0.3.1"
+    id "me.champeau.gradle.jmh" version "0.4.4"
+    id "io.codearte.nexus-staging" version "0.9.0"
 }
 asciidoctorj {
     version = '1.5.5'
@@ -48,9 +40,9 @@ ext {
 }
 
 repositories {
-     mavenLocal()
-     maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
+     //mavenLocal() // please don't add mavenLocal here - it causes the build to be dependent on local existence of jar files
      mavenCentral()
+     maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
      maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
 //     maven { url "https://m2.neo4j.org/content/groups/everything/" }
 }
@@ -115,20 +107,6 @@ javadoc {
     failOnError = false
     options.addStringOption('Xdoclint:none', '-quiet')
 }
-
-shadowJar {
-    dependencies {
-        include(dependency('commons-codec:commons-codec'))
-        include(dependency('org.hdrhistogram:HdrHistogram'))
-        include(dependency('com.jayway.jsonpath:json-path'))
-        include(dependency('net.minidev:asm'))
-        include(dependency('net.minidev:json-smart'))
-        include(dependency('org.slf4j:slf4j-api'))
-        include(dependency('net.minidev:accessors-smart'))
-        include(dependency('com.github.javafaker:javafaker'))
-    }
-}
-
 
 /**************
 * ASCIIDOCTOR *
