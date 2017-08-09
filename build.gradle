@@ -48,7 +48,7 @@ ext {
 }
 
 repositories {
-     mavenLocal()
+//     mavenLocal()
      maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
      mavenCentral()
      maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
@@ -72,6 +72,8 @@ dependencies {
     compile 'com.jayway.jsonpath:json-path:2.2.0'
     compile 'org.hdrhistogram:HdrHistogram:2.1.9'
     compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version:'1.2'
+
+    compile 'com.novell.ldap:jldap:2009-10-07'
 
     testCompile group: 'junit', name: 'junit', version:'4.12'
     testCompile group: 'org.hamcrest', name: 'hamcrest-library', version:'1.3'
