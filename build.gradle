@@ -40,11 +40,10 @@ ext {
 }
 
 repositories {
-     //mavenLocal() // please don't add mavenLocal here - it causes the build to be dependent on local existence of jar files
+     maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
      mavenCentral()
      maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
      maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
-//     maven { url "https://m2.neo4j.org/content/groups/everything/" }
 }
 
 compileJava {
@@ -64,6 +63,8 @@ dependencies {
     compile 'com.jayway.jsonpath:json-path:2.2.0'
     compile 'org.hdrhistogram:HdrHistogram:2.1.9'
     compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version:'1.2'
+
+    compile 'com.novell.ldap:jldap:2009-10-07'
 
     testCompile group: 'junit', name: 'junit', version:'4.12'
     testCompile group: 'org.hamcrest', name: 'hamcrest-library', version:'1.3'
