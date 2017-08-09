@@ -9,6 +9,7 @@ import org.junit.runners.Parameterized;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.kernel.api.exceptions.KernelException;
 
 import java.util.Arrays;
@@ -111,6 +112,7 @@ public class UpdateFreetextIndexTest {
 
     private GraphDatabaseService initGraphDatabase() {
         GraphDatabaseBuilder graphDatabaseBuilder = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(tmpFolder.getRoot());
+        graphDatabaseBuilder.setConfig(GraphDatabaseSettings.pagecache_memory, "8M");
         graphDatabaseBuilder.setConfig("apoc.autoIndex.enabled", Boolean.toString(paramEnableAutoUpdatesInApocConfig));
         graphDatabaseBuilder.setConfig("apoc.autoIndex.async", Boolean.toString(paramDoUpdatesAsync));
         graphDatabaseBuilder.setConfig("apoc.autoIndex.async_rollover_opscount", "10");
