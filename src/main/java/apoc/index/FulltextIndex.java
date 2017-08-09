@@ -99,7 +99,7 @@ public class FulltextIndex {
     }
 
     @Description("apoc.index.list() - YIELD type,name,config - lists all manual indexes")
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.READ)
     public Stream<IndexInfo> list() {
         IndexManager mgr = db.index();
         List<IndexInfo> indexInfos = new ArrayList<>(100);
