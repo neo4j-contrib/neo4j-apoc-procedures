@@ -1,18 +1,20 @@
 package apoc.meta;
 
+import apoc.result.GraphResult;
+import apoc.result.MapResult;
+import apoc.result.VirtualNode;
+import apoc.result.VirtualRelationship;
 import apoc.util.MapUtil;
-import org.neo4j.helpers.collection.Pair;
-import org.neo4j.kernel.impl.core.NodeProxy;
-import org.neo4j.procedure.*;
-import apoc.result.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
+import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
+import org.neo4j.kernel.impl.api.KernelStatement;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -219,57 +221,63 @@ public class Meta {
     }
 
     private MetaStats collectStats() {
-        ReadOperations ops = kernelTx.acquireStatement().readOperations();
-        int labelCount = ops.labelCount();
-        int relTypeCount = ops.relationshipTypeCount();
-
-        Map<String, Long> labelStats = new LinkedHashMap<>(labelCount);
-        Map<String, Long> relStats = new LinkedHashMap<>(2 * relTypeCount);
         Map<String, Long> relStatsCount = new LinkedHashMap<>();
+        try (KernelStatement stmt = (KernelStatement) kernelTx.acquireStatement()) {
+            ReadOperations ops = stmt.readOperations();
 
-        collectStats(null, null, new StatsCallback() {
-            public void label(int labelId, String labelName, long count) {
-                if (count > 0) labelStats.put(labelName, count);
-            }
+            int labelCount = ops.labelCount();
+            int relTypeCount = ops.relationshipTypeCount();
 
-            public void rel(int typeId, String typeName, long count) {
-                if (count > 0) relStats.put("()-[:" + typeName + "]->()", count);
-            }
+            Map<String, Long> labelStats = new LinkedHashMap<>(labelCount);
+            Map<String, Long> relStats = new LinkedHashMap<>(2 * relTypeCount);
 
-            public void rel(int typeId, String typeName, int labelId, String labelName, long out, long in) {
-                if (out > 0) {
-                    relStatsCount.put(typeName, relStatsCount.getOrDefault(typeName, 0L) + out);
-                    relStats.put("(:" + labelName + ")-[:" + typeName + "]->()", out);
+            collectStats(null, null, new StatsCallback() {
+                public void label(int labelId, String labelName, long count) {
+                    if (count > 0) labelStats.put(labelName, count);
                 }
-                if (in > 0) {
-                    relStats.put("()-[:" + typeName + "]->(:" + labelName + ")", in);
+
+                public void rel(int typeId, String typeName, long count) {
+                    if (count > 0) relStats.put("()-[:" + typeName + "]->()", count);
                 }
-            }
-        });
-        return new MetaStats(labelCount, relTypeCount, ops.propertyKeyCount(),
-                ops.nodesGetCount(), ops.relationshipsGetCount(), labelStats, relStats, relStatsCount);
+
+                public void rel(int typeId, String typeName, int labelId, String labelName, long out, long in) {
+                    if (out > 0) {
+                        relStatsCount.put(typeName, relStatsCount.getOrDefault(typeName, 0L) + out);
+                        relStats.put("(:" + labelName + ")-[:" + typeName + "]->()", out);
+                    }
+                    if (in > 0) {
+                        relStats.put("()-[:" + typeName + "]->(:" + labelName + ")", in);
+                    }
+                }
+            });
+
+            return new MetaStats(labelCount, relTypeCount, ops.propertyKeyCount(),
+                    ops.nodesGetCount(), ops.relationshipsGetCount(), labelStats, relStats, relStatsCount);
+        }
     }
 
     private void collectStats(Collection<String> labelNames, Collection<String> relTypeNames, StatsCallback cb) {
-        ReadOperations ops = kernelTx.acquireStatement().readOperations();
+        try (KernelStatement stmt = (KernelStatement) kernelTx.acquireStatement()) {
+            ReadOperations ops = stmt.readOperations();
 
-        Map<String,Integer> labels = labelsInUse(ops, labelNames);
-        Map<String,Integer> relTypes = relTypesInUse(ops, relTypeNames);
+            Map<String, Integer> labels = labelsInUse(ops, labelNames);
+            Map<String, Integer> relTypes = relTypesInUse(ops, relTypeNames);
 
-        labels.forEach((name,id) -> {
-            long count = ops.countsForNodeWithoutTxState(id);
-            if (count>0) {
-                cb.label(id,name,count);
-                relTypes.forEach((typeName, typeId) -> {
-                    long relCountOut = ops.countsForRelationship(id, typeId, ANY_LABEL);
-                    long relCountIn = ops.countsForRelationship(ANY_LABEL, typeId, id);
-                    cb.rel(typeId, typeName, id, name, relCountOut, relCountIn);
-                });
-            }
-        });
-        relTypes.forEach((typeName, typeId) -> {
-            cb.rel(typeId,typeName, ops.countsForRelationship(ANY_LABEL, typeId, ANY_LABEL));
-        });
+            labels.forEach((name, id) -> {
+                long count = ops.countsForNodeWithoutTxState(id);
+                if (count > 0) {
+                    cb.label(id, name, count);
+                    relTypes.forEach((typeName, typeId) -> {
+                        long relCountOut = ops.countsForRelationship(id, typeId, ANY_LABEL);
+                        long relCountIn = ops.countsForRelationship(ANY_LABEL, typeId, id);
+                        cb.rel(typeId, typeName, id, name, relCountOut, relCountIn);
+                    });
+                }
+            });
+            relTypes.forEach((typeName, typeId) -> {
+                cb.rel(typeId, typeName, ops.countsForRelationship(ANY_LABEL, typeId, ANY_LABEL));
+            });
+        }
     }
 
     private Map<String, Integer> relTypesInUse(ReadOperations ops, Collection<String> relTypeNames) {
@@ -611,40 +619,44 @@ public class Meta {
     }
 
     private Stream<GraphResult> metaGraph(Collection<String> labelNames, Collection<String> relTypeNames, boolean removeMissing) {
-        ReadOperations ops = kernelTx.acquireStatement().readOperations();
-        Map<String,Integer> labels = labelsInUse(ops, labelNames);
-        Map<String,Integer> relTypes = relTypesInUse(ops, relTypeNames);
-        Map<String,Node> vNodes = new TreeMap<>();
-        Map<Pattern,Relationship> vRels = new HashMap<>(relTypes.size()*2);
+        try (KernelStatement stmt = (KernelStatement) kernelTx.acquireStatement()) {
+            ReadOperations ops = stmt.readOperations();
 
+            Map<String, Integer> labels = labelsInUse(ops, labelNames);
+            Map<String, Integer> relTypes = relTypesInUse(ops, relTypeNames);
 
-        labels.forEach((labelName, id) -> {
-            long count = ops.countsForNodeWithoutTxState(id);
-            if (count>0) {
-                mergeMetaNode(Label.label(labelName), vNodes, count);
-            }
-        });
-        relTypes.forEach((typeName, typeId) -> {
-            long global = ops.countsForRelationshipWithoutTxState(ANY_LABEL, typeId, ANY_LABEL);
-            labels.forEach((labelNameA, labelIdA) -> {
-                long relCountOut = ops.countsForRelationshipWithoutTxState(labelIdA, typeId, ANY_LABEL);
-                if (relCountOut > 0) {
-                    labels.forEach((labelNameB, labelIdB) -> {
-                        long relCountIn = ops.countsForRelationshipWithoutTxState(ANY_LABEL, typeId, labelIdB);
-                        if (relCountIn > 0) {
-                            Node nodeA = vNodes.get(labelNameA);
-                            Node nodeB = vNodes.get(labelNameB);
-                            Relationship vRel = new VirtualRelationship(nodeA, nodeB, RelationshipType.withName(typeName))
-                                    .withProperties(map("type", typeName, "out", relCountOut, "in", relCountIn, "count", global));
-                            vRels.put(Pattern.of(labelNameA, typeName, labelNameB), vRel);
-                        }
-                    });
+            Map<String, Node> vNodes = new TreeMap<>();
+            Map<Pattern, Relationship> vRels = new HashMap<>(relTypes.size() * 2);
+
+            labels.forEach((labelName, id) -> {
+                long count = ops.countsForNodeWithoutTxState(id);
+                if (count > 0) {
+                    mergeMetaNode(Label.label(labelName), vNodes, count);
                 }
             });
-        });
-        if (removeMissing) filterNonExistingRelationships(vRels);
-        GraphResult graphResult = new GraphResult(new ArrayList<>(vNodes.values()), new ArrayList<>(vRels.values()));
-        return Stream.of(graphResult);
+            relTypes.forEach((typeName, typeId) -> {
+                long global = ops.countsForRelationshipWithoutTxState(ANY_LABEL, typeId, ANY_LABEL);
+                labels.forEach((labelNameA, labelIdA) -> {
+                    long relCountOut = ops.countsForRelationshipWithoutTxState(labelIdA, typeId, ANY_LABEL);
+                    if (relCountOut > 0) {
+                        labels.forEach((labelNameB, labelIdB) -> {
+                            long relCountIn = ops.countsForRelationshipWithoutTxState(ANY_LABEL, typeId, labelIdB);
+                            if (relCountIn > 0) {
+                                Node nodeA = vNodes.get(labelNameA);
+                                Node nodeB = vNodes.get(labelNameB);
+                                Relationship vRel = new VirtualRelationship(nodeA, nodeB, RelationshipType.withName(typeName))
+                                        .withProperties(map("type", typeName, "out", relCountOut, "in", relCountIn, "count", global));
+                                vRels.put(Pattern.of(labelNameA, typeName, labelNameB), vRel);
+                            }
+                        });
+                    }
+                });
+            });
+
+            if (removeMissing) filterNonExistingRelationships(vRels);
+            GraphResult graphResult = new GraphResult(new ArrayList<>(vNodes.values()), new ArrayList<>(vRels.values()));
+            return Stream.of(graphResult);
+        }
     }
 
     private void filterNonExistingRelationships(Map<Pattern, Relationship> vRels) {
