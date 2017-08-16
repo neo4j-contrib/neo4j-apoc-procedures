@@ -53,7 +53,6 @@ public class Pools {
     }
 
     private static ScheduledExecutorService createScheduledPool(int numOfThreads) {
-        System.out.println("Pools.createScheduledPool ---> " + numOfThreads);
         return Executors.newScheduledThreadPool(Math.max(1, numOfThreads));
     }
 
