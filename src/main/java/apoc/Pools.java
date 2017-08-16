@@ -10,9 +10,11 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 
 public class Pools {
+    private final static String DEFAULT_NUM_OF_THREADS = new Integer(Runtime.getRuntime().availableProcessors() / 4).toString();
+
     public final static ExecutorService SINGLE = createSinglePool();
     public final static ExecutorService DEFAULT = createDefaultPool();
-    public final static ScheduledExecutorService SCHEDULED = createScheduledPool();
+    public final static ScheduledExecutorService SCHEDULED = createScheduledPool(Integer.parseInt(ApocConfiguration.get("jobs.scheduled.num_threads", DEFAULT_NUM_OF_THREADS)));
     public static JobScheduler NEO4J_SCHEDULER = null;
 
     private Pools() {
@@ -50,8 +52,9 @@ public class Pools {
         return Executors.newSingleThreadExecutor();
     }
 
-    private static ScheduledExecutorService createScheduledPool() {
-        return Executors.newScheduledThreadPool(Math.max(1, Runtime.getRuntime().availableProcessors() / 4));
+    private static ScheduledExecutorService createScheduledPool(int numOfThreads) {
+        System.out.println("Pools.createScheduledPool ---> " + numOfThreads);
+        return Executors.newScheduledThreadPool(Math.max(1, numOfThreads));
     }
 
     public static <T> Future<Void> processBatch(List<T> batch, GraphDatabaseService db, Consumer<T> action) {
