@@ -33,10 +33,9 @@ public class TestUtil {
     public static void testCall(GraphDatabaseService db, String call,Map<String,Object> params, Consumer<Map<String, Object>> consumer) {
         testResult(db, call, params, (res) -> {
             try {
-                if (res.hasNext()) {
-                    Map<String, Object> row = res.next();
-                    consumer.accept(row);
-                }
+                assertTrue(res.hasNext());
+                Map<String, Object> row = res.next();
+                consumer.accept(row);
                 assertFalse(res.hasNext());
             } catch(Throwable t) {
                 printFullStackTrace(t);
