@@ -1,8 +1,5 @@
 package apoc.index;
 
-import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.schema.IndexDefinition;
-import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import apoc.result.NodeResult;
 import apoc.util.Util;
@@ -12,8 +9,15 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.Sort;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
+import org.neo4j.kernel.api.exceptions.TransactionFailureException;
 import org.neo4j.kernel.api.exceptions.index.IndexNotFoundKernelException;
 import org.neo4j.kernel.api.exceptions.schema.SchemaRuleNotFoundException;
 import org.neo4j.kernel.api.impl.schema.reader.SimpleIndexReader;
@@ -22,6 +26,7 @@ import org.neo4j.kernel.api.index.IndexDescriptor;
 import org.neo4j.kernel.impl.api.KernelStatement;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.storageengine.api.schema.IndexReader;
@@ -143,11 +148,11 @@ public class SchemaIndex {
     }
 
     private IndexReader getIndexReader(String label, String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException {
-        KernelStatement stmt = (KernelStatement) tx.acquireStatement();
-        ReadOperations reads = stmt.readOperations();
-
-        IndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
-        return stmt.getStoreStatement().getIndexReader(descriptor);
+        try (KernelStatement stmt = (KernelStatement) tx.acquireStatement()) {
+            ReadOperations reads = stmt.readOperations();
+            IndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
+            return stmt.getStoreStatement().getIndexReader(descriptor);
+        }
     }
 
     @Procedure("apoc.schema.properties.distinct")
@@ -158,50 +163,29 @@ public class SchemaIndex {
     }
 
     private List<Object> distinctTerms(@Name("label") String label, @Name("key") String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
-        KernelStatement stmt = (KernelStatement) tx.acquireStatement();
-        ReadOperations reads = stmt.readOperations();
-
-        IndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
-        SimpleIndexReader reader = (SimpleIndexReader) stmt.getStoreStatement().getIndexReader(descriptor);
-        SortedIndexReader sortedIndexReader = new SortedIndexReader(reader, 0, Sort.INDEXORDER);
-
-        Fields fields = MultiFields.getFields(sortedIndexReader.getIndexSearcher().getIndexReader());
-
         Set<Object> values = new LinkedHashSet<>(100);
         TermsEnum termsEnum;
-        Terms terms = fields.terms("string");
-        if (terms != null) {
-            termsEnum = terms.iterator();
-            while ((termsEnum.next()) != null) {
-                values.add(termsEnum.term().utf8ToString());
+
+        try (KernelStatement stmt = (KernelStatement) tx.acquireStatement()) {
+            ReadOperations reads = stmt.readOperations();
+
+            IndexDescriptor descriptor = reads.indexGetForLabelAndPropertyKey(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
+            SimpleIndexReader reader = (SimpleIndexReader) stmt.getStoreStatement().getIndexReader(descriptor);
+
+            SortedIndexReader sortedIndexReader = new SortedIndexReader(reader, 0, Sort.INDEXORDER);
+
+            Fields fields = MultiFields.getFields(sortedIndexReader.getIndexSearcher().getIndexReader());
+
+            Terms terms = fields.terms("string");
+            if (terms != null) {
+                termsEnum = terms.iterator();
+                while ((termsEnum.next()) != null) {
+                    values.add(termsEnum.term().utf8ToString());
+                }
             }
         }
-        /*
-        terms = fields.terms("number");
-        if (terms != null) {
-            termsEnum = terms.iterator();
-            while ((termsEnum.next()) != null) {
-                BytesRef value = termsEnum.term();
-                System.out.println("value = " + NumericUtils.prefixCodedToLong(value));
-//                values.add(value.isEmpty() ? null : Double.parseDouble(value));
-            }
-        }
-        */
+
         return new ArrayList<>(values);
-    }
-
-    public static class PropertyValueCount {
-        public String label;
-        public String key;
-        public String value;
-        public long count;
-
-        public PropertyValueCount(String label, String key, String value, long count) {
-            this.label = label;
-            this.key = key;
-            this.value = value;
-            this.count = count;
-        }
     }
 
     @Procedure("apoc.schema.properties.distinctCount")
@@ -242,7 +226,36 @@ public class SchemaIndex {
             }
             return values;
         } catch (Exception e) {
+            if (tx.isOpen()) {
+                try {
+                    tx.close();
+                } catch (TransactionFailureException tfe) {
+                    throw new RuntimeException("Error collecting distinct terms due to transaction failure", e);
+                }
+            }
             throw new RuntimeException("Error collecting distinct terms of label: " + label + " and key: " + key, e);
+        } finally {
+            if (tx.isOpen()) {
+                try {
+                    tx.close();
+                } catch (TransactionFailureException tfe) {
+
+                }
+            }
+        }
+    }
+
+    public static class PropertyValueCount {
+        public String label;
+        public String key;
+        public String value;
+        public long count;
+
+        public PropertyValueCount(String label, String key, String value, long count) {
+            this.label = label;
+            this.key = key;
+            this.value = value;
+            this.count = count;
         }
     }
 }
