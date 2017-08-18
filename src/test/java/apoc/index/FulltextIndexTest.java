@@ -55,7 +55,7 @@ public class FulltextIndexTest {
     @Test
     public void testNodes() throws Exception {
         createData();
-        testCall(db,"CALL apoc.index.nodes('Person', 'name:jo*')",
+        testCall(db,"CALL apoc.index.nodes('Person', 'name:Jo*')",
                 (row) -> {
                     Node node = (Node) row.get("node");
                     assertEquals(true, node.hasLabel(Label.label(PERSON)));
