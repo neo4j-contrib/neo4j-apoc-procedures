@@ -14,8 +14,15 @@ import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.Sort;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
+import org.neo4j.kernel.api.exceptions.TransactionFailureException;
 import org.neo4j.kernel.api.exceptions.index.IndexNotFoundKernelException;
 import org.neo4j.kernel.api.exceptions.schema.DuplicateSchemaRuleException;
 import org.neo4j.kernel.api.exceptions.schema.SchemaRuleNotFoundException;
@@ -149,12 +156,13 @@ public class SchemaIndex {
     }
 
     private IndexReader getIndexReader(String label, String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
-        KernelStatement stmt = (KernelStatement) tx.acquireStatement();
+        try (KernelStatement stmt = (KernelStatement) tx.acquireStatement()) {
         ReadOperations reads = stmt.readOperations();
 
         LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
         IndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
         return stmt.getStoreStatement().getIndexReader(descriptor);
+        }
     }
 
     @Procedure("apoc.schema.properties.distinct")
@@ -165,50 +173,26 @@ public class SchemaIndex {
     }
 
     private List<Object> distinctTerms(@Name("label") String label, @Name("key") String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException, DuplicateSchemaRuleException {
-        KernelStatement stmt = (KernelStatement) tx.acquireStatement();
-        ReadOperations reads = stmt.readOperations();
+        try (KernelStatement stmt = (KernelStatement) tx.acquireStatement()) {
+            ReadOperations reads = stmt.readOperations();
+    
+            LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
+            IndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
+            SimpleIndexReader reader = (SimpleIndexReader) stmt.getStoreStatement().getIndexReader(descriptor);
+            SortedIndexReader sortedIndexReader = new SortedIndexReader(reader, 0, Sort.INDEXORDER);
+            Set<Object> values = new LinkedHashSet<>(100);
+            TermsEnum termsEnum;
 
-        LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
-        IndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
-        SimpleIndexReader reader = (SimpleIndexReader) stmt.getStoreStatement().getIndexReader(descriptor);
-        SortedIndexReader sortedIndexReader = new SortedIndexReader(reader, 0, Sort.INDEXORDER);
+            Fields fields = MultiFields.getFields(sortedIndexReader.getIndexSearcher().getIndexReader());
 
-        Fields fields = MultiFields.getFields(sortedIndexReader.getIndexSearcher().getIndexReader());
-
-        Set<Object> values = new LinkedHashSet<>(100);
-        TermsEnum termsEnum;
-        Terms terms = fields.terms("string");
-        if (terms != null) {
-            termsEnum = terms.iterator();
-            while ((termsEnum.next()) != null) {
-                values.add(termsEnum.term().utf8ToString());
+            Terms terms = fields.terms("string");
+            if (terms != null) {
+                termsEnum = terms.iterator();
+                while ((termsEnum.next()) != null) {
+                    values.add(termsEnum.term().utf8ToString());
+                }
             }
-        }
-        /*
-        terms = fields.terms("number");
-        if (terms != null) {
-            termsEnum = terms.iterator();
-            while ((termsEnum.next()) != null) {
-                BytesRef value = termsEnum.term();
-                System.out.println("value = " + NumericUtils.prefixCodedToLong(value));
-//                values.add(value.isEmpty() ? null : Double.parseDouble(value));
-            }
-        }
-        */
-        return new ArrayList<>(values);
-    }
-
-    public static class PropertyValueCount {
-        public String label;
-        public String key;
-        public String value;
-        public long count;
-
-        public PropertyValueCount(String label, String key, String value, long count) {
-            this.label = label;
-            this.key = key;
-            this.value = value;
-            this.count = count;
+            return new ArrayList<>(values);
         }
     }
 
@@ -245,7 +229,36 @@ public class SchemaIndex {
             }
             return values;
         } catch (Exception e) {
+            if (tx.isOpen()) {
+                try {
+                    tx.close();
+                } catch (TransactionFailureException tfe) {
+                    throw new RuntimeException("Error collecting distinct terms due to transaction failure", e);
+                }
+            }
             throw new RuntimeException("Error collecting distinct terms of label: " + label + " and key: " + key, e);
+        } finally {
+            if (tx.isOpen()) {
+                try {
+                    tx.close();
+                } catch (TransactionFailureException tfe) {
+
+                }
+            }
+        }
+    }
+
+    public static class PropertyValueCount {
+        public String label;
+        public String key;
+        public String value;
+        public long count;
+
+        public PropertyValueCount(String label, String key, String value, long count) {
+            this.label = label;
+            this.key = key;
+            this.value = value;
+            this.count = count;
         }
     }
 }

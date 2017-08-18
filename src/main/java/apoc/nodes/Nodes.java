@@ -10,20 +10,24 @@ import apoc.result.LongResult;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
+import org.neo4j.collection.primitive.PrimitiveIntIterator;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.Statement;
 import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
+import org.neo4j.kernel.impl.api.KernelStatement;
+import org.neo4j.kernel.impl.api.RelationshipVisitor;
+import org.neo4j.kernel.impl.api.store.RelationshipIterator;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.*;
 import org.neo4j.storageengine.api.Token;
 
 import java.util.*;
-import java.util.BitSet;
 import java.util.stream.Stream;
 
 import static apoc.path.RelationshipTypeAndDirections.parse;
@@ -76,35 +80,45 @@ public class Nodes {
 
     @UserFunction("apoc.node.relationship.exists")
     @Description("apoc.node.relationship.exists(node, [rel-direction-pattern]) - yields true effectively when the node has the relationships of the pattern")
-    public boolean hasRelationship(@Name("node") Node node, @Name(value = "types",defaultValue = "") String types) throws EntityNotFoundException {
-        if (types==null || types.isEmpty()) return node.hasRelationship();
-        ReadOperations ops = ktx.acquireStatement().readOperations();
+    public boolean hasRelationship(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types) throws EntityNotFoundException {
+        if (types == null || types.isEmpty()) return node.hasRelationship();
         long id = node.getId();
-        boolean dense = ops.nodeIsDense(id);
-        for (Pair<RelationshipType, Direction> pair : parse(types)) {
+        try (KernelStatement stmt = (KernelStatement) ktx.acquireStatement()) {
+            ReadOperations ops = stmt.readOperations();
+            boolean dense = ops.nodeIsDense(id);
+            for (Pair<RelationshipType, Direction> pair : parse(types)) {
             int typeId = ops.relationshipTypeGetForName(pair.first().name());
             Direction direction = pair.other();
             boolean hasRelationship = (dense) ?
                     ops.nodeGetDegree(id,direction,typeId) > 0 :
                     ops.nodeGetRelationships(id, direction,new int[] {typeId}).hasNext();
             if (hasRelationship) return true;
+            }
         }
+
         return false;
     }
+
     @UserFunction("apoc.nodes.connected")
     @Description("apoc.nodes.connected(start, end, [rel-direction-pattern]) - yields true effectively when the node is connected to the other node")
-    public boolean connected(@Name("start") Node start, @Name("start") Node end, @Name(value = "types",defaultValue = "") String types) throws EntityNotFoundException {
+    public boolean connected(@Name("start") Node start, @Name("start") Node end, @Name(value = "types", defaultValue = "") String types) throws EntityNotFoundException {
         if (start == null || end == null) return false;
         if (start.equals(end)) return true;
-        ReadOperations ops = ktx.acquireStatement().readOperations();
+
         long startId = start.getId();
         long endId = end.getId();
-        boolean startDense = ops.nodeIsDense(startId);
-        boolean endDense = ops.nodeIsDense(endId);
         List<Pair<RelationshipType, Direction>> pairs = (types == null || types.isEmpty()) ? null : parse(types);
-        if (!startDense) return connected(ops, startId, endId, typedDirections(ops, pairs,true));
-        if (!endDense) return connected(ops, endId, startId, typedDirections(ops, pairs,false));
-        return connectedDense(ops, startId, endId, pairs);
+
+        try (KernelStatement stmt = (KernelStatement) ktx.acquireStatement()) {
+            ReadOperations ops = stmt.readOperations();
+
+            boolean startDense = ops.nodeIsDense(startId);
+            boolean endDense = ops.nodeIsDense(endId);
+
+            if (!startDense) return connected(ops, startId, endId, typedDirections(ops, pairs, true));
+            if (!endDense) return connected(ops, endId, startId, typedDirections(ops, pairs, false));
+            return connectedDense(ops, startId, endId, pairs);
+        }
     }
 
     private boolean connected(ReadOperations ops, long start, long end, int[][] typedDirections) throws EntityNotFoundException {
