@@ -3,17 +3,12 @@ package apoc.trigger;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.*;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 /**
@@ -41,7 +36,7 @@ public class TriggerTest {
     @Test
     public void testListTriggers() throws Exception {
         String query = "MATCH (c:Counter) SET c.count = c.count + size([f IN {deletedNodes} WHERE id(f) > 0])";
-        db.execute("CALL apoc.trigger.add('count-removals',{query},{})",map("query",query)).close();
+        assertEquals(1, Iterators.count(db.execute("CALL apoc.trigger.add('count-removals',{query},{}) YIELD name RETURN name", map("query", query))));
         TestUtil.testCall(db, "CALL apoc.trigger.list()", (row) -> {
             assertEquals("count-removals", row.get("name"));
             assertEquals(query, row.get("query"));
@@ -54,17 +49,18 @@ public class TriggerTest {
         db.execute("CREATE (f:Foo)").close();
         db.execute("CALL apoc.trigger.add('count-removals','MATCH (c:Counter) SET c.count = c.count + size([f IN {deletedNodes} WHERE id(f) > 0])',{})").close();
         db.execute("MATCH (f:Foo) DELETE f").close();
-        TestUtil.testCall(db, "MATCH (c:Count) RETURN c.count as count", (row) -> {
+        TestUtil.testCall(db, "MATCH (c:Counter) RETURN c.count as count", (row) -> {
             assertEquals(1L, row.get("count"));
         });
     }
+
     @Test
     public void testRemoveRelationship() throws Exception {
         db.execute("CREATE (:Counter {count:0})").close();
         db.execute("CREATE (f:Foo)-[:X]->(f)").close();
         db.execute("CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size({deletedRelationships})',{})").close();
         db.execute("MATCH (f:Foo) DETACH DELETE f").close();
-        TestUtil.testCall(db, "MATCH (c:Count) RETURN c.count as count", (row) -> {
+        TestUtil.testCall(db, "MATCH (c:Counter) RETURN c.count as count", (row) -> {
             assertEquals(1L, row.get("count"));
         });
     }
