@@ -87,6 +87,7 @@ dependencies {
     compile(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.0')
     compileOnly(group: 'org.ow2.asm', name: 'asm', version:'5.0.2')
     compile group: 'com.github.javafaker', name: 'javafaker', version:'0.10'
+    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.4.0'
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version:neo4jVersion
@@ -247,4 +248,39 @@ jmh {
 
 jmhJar {
     mergeServiceFiles()
+}
+
+
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+task versions {
+    if (System.getProperty("offline") != null) return;
+    def slurper = new JsonSlurper()
+
+    // get tags
+    def pattern = ~/(?m)ext\s*\{\s*neo4jVersion\s*=\s*"(.*)".*/
+    def tags = slurper.parseText(new URL("https://api.github.com/repos/neo4j-contrib/neo4j-apoc-procedures/tags").getText())
+    def versions = []
+    for (tag in tags) {
+        def buildText = new URL("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/" + tag.name + "/build.gradle").getText()
+
+        // search for neo4j version
+        def matcher = pattern.matcher(buildText)
+        for (def i = 0; i < matcher.getCount(); i++) {
+
+            def version = "{\n" +
+                    "      \"neo4j\": \"" + matcher[i][1] + "\",\n" +
+                    "        \"apoc\": \"" + tag.name + "\",\n" +
+                    "        \"url\": \"http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/" + tag.name + "\",\n" +
+                    "        \"jar\": \"https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/" + tag.name + "/apoc-" + tag.name + "-all.jar\"\n" +
+                    "}"
+
+            versions.add(slurper.parseText(version))
+        }
+    }
+
+    def versionsFile = new File(new File("build"),"versions.json")
+
+    versionsFile.write(JsonOutput.prettyPrint(JsonOutput.toJson(versions)))
 }
