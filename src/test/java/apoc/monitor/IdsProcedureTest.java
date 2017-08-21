@@ -29,10 +29,10 @@ public class IdsProcedureTest extends MonitorTestCase {
     }
 
     private void createData() {
-        testCall(db, "CREATE (n)", (row) -> {});
-        testCall(db, "CREATE (n)-[:REL_TYPE1]->(n2)", (row) -> {});
-        testCall(db, "CREATE (n)-[:REL_TYPE2]->(n2)", (row) -> {});
-        testCall(db, "CREATE (n) SET n.key = 123", (row) -> {});
+        db.execute("CREATE (n)");
+        db.execute("CREATE (n)-[:REL_TYPE1]->(n2)");
+        db.execute("CREATE (n)-[:REL_TYPE2]->(n2)");
+        db.execute("CREATE (n) SET n.key = 123");
     }
 
 }

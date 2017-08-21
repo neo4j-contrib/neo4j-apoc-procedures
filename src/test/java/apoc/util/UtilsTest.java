@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Predicate;
 
+import static apoc.util.TestUtil.testCallEmpty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -65,12 +66,11 @@ public class UtilsTest {
     @Test
     public void testSleep() {
         String cypherSleep = "call apoc.util.sleep({duration})";
-        TestUtil.testCall(db, cypherSleep, MapUtil.map("duration", 0l), r -> {
-        });  // force building query plan
+        testCallEmpty(db, cypherSleep, MapUtil.map("duration", 0l));  // force building query plan
 
         long duration = 300;
         TestUtil.assertDuration(Matchers.greaterThanOrEqualTo(duration), () -> {
-            TestUtil.testCall(db, cypherSleep, MapUtil.map("duration", duration), r -> { });
+            testCallEmpty(db, cypherSleep, MapUtil.map("duration", duration));
             return null;
         });
     }
@@ -78,8 +78,7 @@ public class UtilsTest {
     @Test
     public void testSleepWithTerminate() {
         String cypherSleep = "call apoc.util.sleep({duration})";
-        TestUtil.testCall(db, cypherSleep, MapUtil.map("duration", 0l), r -> {
-        });  // force building query plan
+        testCallEmpty(db, cypherSleep, MapUtil.map("duration", 0l));  // force building query plan
 
         long duration = 300;
         TestUtil.assertDuration(Matchers.lessThan(duration), () -> {
