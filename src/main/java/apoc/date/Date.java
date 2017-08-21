@@ -92,6 +92,13 @@ public class Date {
 		return result.asMap();
 	}
 
+    @UserFunction
+    @Description( "apoc.date.currentTimestamp() - returns System.currentTimeMillis()" )
+    public long currentTimestamp()
+    {
+        return System.currentTimeMillis();
+    }
+
 	public static class FieldResult {
 		public final Map<String,Object> value = new LinkedHashMap<>();
 		public long years, months, days, weekdays, hours, minutes, seconds;

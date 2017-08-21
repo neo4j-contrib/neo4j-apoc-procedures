@@ -849,6 +849,10 @@ Splits date (optionally, using given custom format) into fields returning a map 
 
 * `apoc.date.fields('2015-03-25 03:15:59')`
 
+== Current timestamp
+
+`apoc.date.currentTimestamp()` provides the System.currentTimeMillis which is current throughout transaction execution compared to Cypher's timestamp() function which does not update within a transaction
+
 == Bitwise operations
 
 // TODO function
