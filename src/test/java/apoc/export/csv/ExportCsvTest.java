@@ -112,6 +112,6 @@ public class ExportCsvTest {
         assertEquals(source + ": nodes(3), rels(1)", r.get("source"));
         assertEquals(output.getAbsolutePath(), r.get("file"));
         assertEquals("csv", r.get("format"));
-        assertEquals(true, ((long) r.get("time")) > 0);
+        assertEquals(true, ((long) r.get("time")) >= 0);
     }
 }

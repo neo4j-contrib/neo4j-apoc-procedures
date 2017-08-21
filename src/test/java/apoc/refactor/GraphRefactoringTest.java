@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -48,11 +49,11 @@ public class GraphRefactoringTest {
         ExecutionPlanDescription plan = db.execute("EXPLAIN MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) DELETE o RETURN o as node").getExecutionPlanDescription();
         System.out.println(plan);
         System.out.flush();
-        testCall(db, "EXPLAIN MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) DELETE o RETURN o as node",
+        testCall(db, "MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) DELETE o RETURN n as node",
                       map("oldID", 1L, "newID",2L),
                 (r) -> {
                     Node node = (Node) r.get("node");
-                    assertEquals(id, node.getId());
+                    assertNotEquals(id, node.getId());
                     assertEquals(true, node.hasLabel(Label.label("Person")));
                     assertEquals(2L, node.getProperty("ID"));
                 });
@@ -167,24 +168,26 @@ public class GraphRefactoringTest {
         );
     }
 
-    @Test
-    public void testCategorizeOutgoing() throws Exception {
+    private void categorizeWithDirection(Direction direction) {
         db.execute(
                 "CREATE ({prop: 'A', k: 'a', id: 1}) " +
-                "CREATE ({prop: 'A', k: 'a', id: 2}) " +
-                "CREATE ({prop: 'C', k: 'c', id: 3}) " +
-                "CREATE ({                   id: 4}) " +
-                "CREATE ({prop: 'B', k: 'b', id: 5}) " +
-                "CREATE ({prop: 'C', k: 'c', id: 6})").close();
+                        "CREATE ({prop: 'A', k: 'a', id: 2}) " +
+                        "CREATE ({prop: 'C', k: 'c', id: 3}) " +
+                        "CREATE ({                   id: 4}) " +
+                        "CREATE ({prop: 'B', k: 'b', id: 5}) " +
+                        "CREATE ({prop: 'C', k: 'c', id: 6})").close();
 
-        testCall(
-            db,
-            "CALL apoc.refactor.categorize('prop','IS_A',true,'Letter','name',['k'],1)",
-            (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(6L))
+
+        final boolean outgoing = direction == Direction.OUTGOING ? true : false;
+        testCallEmpty(
+                db,
+                "CALL apoc.refactor.categorize('prop','IS_A', $direction, 'Letter','name',['k'],1)",
+                map("direction", outgoing)
         );
 
+        String traversePattern = (outgoing ? "" : "<") + "-[:IS_A]-" + (outgoing ? ">" : "");
         {
-            Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)-[:IS_A]->(cat:Letter) RETURN collect(cat.name) AS cats");
+            Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)" + traversePattern + "(cat:Letter) RETURN collect(cat.name) AS cats");
             List<?> cats = (List<?>) result.next().get("cats");
             result.close();
 
@@ -192,7 +195,7 @@ public class GraphRefactoringTest {
         }
 
         {
-            Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)-[:IS_A]->(cat:Letter) RETURN collect(cat.k) AS cats");
+            Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)" + traversePattern + "(cat:Letter) RETURN collect(cat.k) AS cats");
             List<?> cats = (List<?>) result.next().get("cats");
             result.close();
 
@@ -203,38 +206,13 @@ public class GraphRefactoringTest {
     }
 
     @Test
+    public void testCategorizeOutgoing() throws Exception {
+        categorizeWithDirection(Direction.OUTGOING);
+    }
+
+    @Test
     public void testCategorizeIncoming() throws Exception {
-        db.execute(
-                "CREATE ({prop: 'A', k: 'a', id: 1}) " +
-                "CREATE ({prop: 'A', k: 'a', id: 2}) " +
-                "CREATE ({prop: 'C', k: 'c', id: 3}) " +
-                "CREATE ({                   id: 4}) " +
-                "CREATE ({prop: 'B', k: 'b', id: 5}) " +
-                "CREATE ({prop: 'C', k: 'c', id: 6})").close();
-
-        testCall(
-                db,
-                "CALL apoc.refactor.categorize('prop','IS_A',false,'Letter','name',['k'],1)",
-                (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(6L))
-        );
-
-        {
-            Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)<-[:IS_A]-(cat:Letter) RETURN collect(cat.name) AS cats");
-            List<?> cats = (List<?>) result.next().get("cats");
-            result.close();
-
-            assertThat(cats, equalTo(asList("A", "A", "C", "B", "C")));
-        }
-
-        {
-            Result result = db.execute("MATCH (n) WITH n ORDER BY n.id MATCH (n)<-[:IS_A]-(cat:Letter) RETURN collect(cat.k) AS cats");
-            List<?> cats = (List<?>) result.next().get("cats");
-            result.close();
-
-            assertThat(cats, equalTo(asList("a", "a", "c", "b", "c")));
-        }
-
-        testCall(db, "MATCH (n) WHERE n.prop IS NOT NULL RETURN count(n) AS count", (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(0L)));
+        categorizeWithDirection(Direction.INCOMING);
     }
 
     @Test
