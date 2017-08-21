@@ -58,6 +58,7 @@ All boolean options default to **false**, i.e. they are disabled, unless mention
 | apoc.es.<key>.uri=es-url-with-credentials | store es-urls under a key to be used by elasticsearch procedures
 | apoc.mongodb.<key>.uri=mongodb-url-with-credentials | store mongodb-urls under a key to be used by mongodb procedures
 | apoc.couchbase.<key>.uri=couchbase-url-with-credentials | store couchbase-urls under a key to be used by couchbase procedures
+| apoc.jobs.scheduled.num_threads=number-of-threads | Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size. You can configure the pool size using this configuration property
 |===
 
 
