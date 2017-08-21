@@ -24,6 +24,10 @@ endif::env-guide[]
 
 * possible unit values: `ms,s,m,h,d` and their long forms.
 
+== Current timestamp
+
+`apoc.date.currentTimestamp()` provides the System.currentTimeMillis which is current throughout transaction execution compared to Cypher's timestamp() function which does not update within a transaction
+
 == Reading separate datetime fields:
 
 Splits date (optionally, using given custom format) into fields returning a map from field name to its value.
