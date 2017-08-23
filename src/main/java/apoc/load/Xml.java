@@ -2,18 +2,20 @@ package apoc.load;
 
 import apoc.export.util.FileUtils;
 import apoc.result.MapResult;
+import apoc.result.NodeResult;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.procedure.*;
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.*;
 
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.xpath.XPath;
@@ -95,10 +97,10 @@ public class Xml {
         }
     }
 
-    private XMLStreamReader getXMLStreamReaderFromUrl(@Name("url") String url) throws IOException, XMLStreamException {
+    private XMLStreamReader getXMLStreamReaderFromUrl(String url) throws IOException, XMLStreamException {
         FileUtils.checkReadAllowed(url);
         URLConnection urlConnection = new URL(url).openConnection();
-        FACTORY.setProperty("javax.xml.stream.isCoalescing", true);
+        FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
         return FACTORY.createXMLStreamReader(urlConnection.getInputStream());
     }
 
@@ -314,5 +316,82 @@ public class Xml {
                 map.put(key, list);
             }
         }
+    }
+
+    @Procedure(mode = Mode.WRITE, value = "apoc.xml.import")
+    public Stream<NodeResult> importToGraph(@Name("url") String url, @Name(value="config", defaultValue = "{}") Map<String, String> config) throws IOException, XMLStreamException {
+        final XMLStreamReader xml = getXMLStreamReaderFromUrl(url);
+
+        //TODO: make labels, reltypes and magic properties configurable
+
+        Deque<org.neo4j.graphdb.Node> parents = new ArrayDeque<>();
+        org.neo4j.graphdb.Node root = db.createNode(Label.label("XmlDocument"));;
+        root.setProperty("_xmlVersion", xml.getVersion());
+        root.setProperty("_xmlEncoding", xml.getEncoding());
+        root.setProperty("url", url);
+        parents.push(root);
+        org.neo4j.graphdb.Node last = root;
+
+        while (xml.hasNext()) {
+            xml.next();
+
+            switch (xml.getEventType()) {
+                case XMLStreamConstants.START_DOCUMENT:
+                    // xmlsteamreader starts off by definition at START_DOCUMENT prior to call next() - so ignore this one
+                    break;
+
+                case XMLStreamConstants.PROCESSING_INSTRUCTION:
+                    org.neo4j.graphdb.Node pi = db.createNode(Label.label("XmlProcessingInstruction"));
+                    pi.setProperty("_piData", xml.getPIData());
+                    pi.setProperty("_piTarget", xml.getPITarget());
+                    last.createRelationshipTo(pi, RelationshipType.withName("NEXT"));
+                    pi.createRelationshipTo(parents.peek(), RelationshipType.withName("IS_CHILD_OF"));
+                    last = pi;
+                    break;
+
+                case XMLStreamConstants.START_ELEMENT:
+                    final QName qName = xml.getName();
+                    final org.neo4j.graphdb.Node tag = db.createNode(Label.label("XmlTag"));
+                    tag.setProperty("_name", qName.getLocalPart());
+                    for (int i=0; i<xml.getAttributeCount(); i++) {
+                        tag.setProperty(xml.getAttributeLocalName(i), xml.getAttributeValue(i));
+                    }
+                    last.createRelationshipTo(tag, RelationshipType.withName("NEXT"));
+                    tag.createRelationshipTo(parents.peek(), RelationshipType.withName("IS_CHILD_OF"));
+                    last = tag;
+                    parents.push(tag);
+                    break;
+
+                case XMLStreamConstants.CHARACTERS:
+                    String text = xml.getText().trim();
+                    if (!text.isEmpty()) {
+                        String[] words = text.split("\\s");
+                        for (int i=0; i<words.length; i++) {
+                            org.neo4j.graphdb.Node word = db.createNode(Label.label("XmlWord"));
+                            word.setProperty("text", words[i]);
+                            last.createRelationshipTo(word, RelationshipType.withName("NEXT"));
+                            word.createRelationshipTo(parents.peek(), RelationshipType.withName("IS_CHILD_OF"));
+                            last = word;
+                        }
+                    }
+
+                    break;
+
+                case XMLStreamConstants.END_ELEMENT:
+                    parents.pop();
+                    break;
+
+                case XMLStreamConstants.END_DOCUMENT:
+                    parents.pop();
+                    break;
+                default:
+                    throw new UnsupportedOperationException("dunno how deal with xml event type " + xml.getEventType());
+            }
+
+        }
+        if (!parents.isEmpty()) {
+            throw new IllegalStateException("non empty parents");
+        }
+        return Stream.of(new NodeResult(root));
     }
 }

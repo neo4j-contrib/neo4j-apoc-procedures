@@ -1,7 +1,6 @@
 package apoc.load;
 
 import apoc.util.TestUtil;
-import org.apache.commons.lang.math.IntRange;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,18 +8,15 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.sql.Time;
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class XmlTest {
@@ -222,5 +218,20 @@ public class XmlTest {
                     assertEquals("Visual Studio 7: A Comprehensive Guide", ((Map) childrenList.get(1)).get("_text"));
                     assertEquals(false, r.hasNext());
                 });
+    }
+
+    @Test
+    public void testLoadXmlWithImport() {
+        testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5.xml') yield node",
+                row -> {
+                   assertNotNull(row.get("node"));
+                });
+        testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
+            final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));
+            assertEquals(2l, (long)resultMap.get("XmlProcessingInstruction"));
+            assertEquals(1l, (long)resultMap.get("XmlDocument"));
+            assertEquals(2013l, (long)resultMap.get("XmlWord"));
+            assertEquals(454l, (long)resultMap.get("XmlTag"));
+        });
     }
 }
