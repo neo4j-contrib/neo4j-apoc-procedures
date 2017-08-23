@@ -1,7 +1,6 @@
 package apoc.load;
 
 import apoc.util.TestUtil;
-import org.apache.commons.lang.math.IntRange;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,19 +8,17 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.sql.Time;
-import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class XmlTest {
@@ -77,7 +74,7 @@ public class XmlTest {
 
     @Test
     public void testMixedContent() {
-        testCall(db, "CALL apoc.load.xml('file:src/test/resources/mixedcontent.xml')", //  YIELD value RETURN value
+        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/mixedcontent.xml')", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
                     //assertEquals("{_type=root, _children=[{_type=text, _children=[text0, {_type=mixed}, text1]}, {_type=text, _text=text as cdata}]}", value.toString());
@@ -88,7 +85,7 @@ public class XmlTest {
 
     @Test
     public void testBookIds() {
-        testResult(db, "call apoc.load.xml('file:src/test/resources/books.xml') yield value as catalog\n" +
+        testResult(db, "call apoc.load.xml('file:src/test/resources/xml/books.xml') yield value as catalog\n" +
                 "UNWIND catalog._children as book\n" +
                 "RETURN book.id as id\n", result -> {
             List<Object> ids = Iterators.asList(result.columnAs("id"));
@@ -98,7 +95,7 @@ public class XmlTest {
 
     @Test
     public void testFilterIntoCollection() {
-        testResult(db, "call apoc.load.xml('file:src/test/resources/books.xml') yield value as catalog\n" +
+        testResult(db, "call apoc.load.xml('file:src/test/resources/xml/books.xml') yield value as catalog\n" +
                         "    UNWIND catalog._children as book\n" +
                         "    RETURN book.id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs"
                 , result -> {
@@ -124,7 +121,7 @@ public class XmlTest {
 
     @Test
     public void testReturnCollectionElements() {
-        testResult(db, "call apoc.load.xml('file:src/test/resources/books.xml') yield value as catalog\n"+
+        testResult(db, "call apoc.load.xml('file:src/test/resources/xml/books.xml') yield value as catalog\n"+
                         "UNWIND catalog._children as book\n" +
                         "WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | attr._text] as pairs\n" +
                         "RETURN id, pairs[0] as author, pairs[1] as title"
@@ -151,7 +148,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlXpathAuthorFromBookId () {
-        testCall(db, "CALL apoc.load.xml('file:src/test/resources/books.xml', '/catalog/book[@id=\"bk102\"]/author') yield value as result",
+        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[@id=\"bk102\"]/author') yield value as result",
                 (r) -> {
                     assertEquals("author", ((Map) r.get("result")).get("_type"));
                     assertEquals("Ralls, Kim", ((Map) r.get("result")).get("_text"));
@@ -160,7 +157,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlXpathGenreFromBookTitle () {
-        testCall(db, "CALL apoc.load.xml('file:src/test/resources/books.xml', '/catalog/book[title=\"Maeve Ascendant\"]/genre') yield value as result",
+        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[title=\"Maeve Ascendant\"]/genre') yield value as result",
                 (r) -> {
                     assertEquals("genre", ((Map) r.get("result")).get("_type"));
                     assertEquals("Fantasy", ((Map) r.get("result")).get("_text"));
@@ -169,7 +166,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlXpathReturnBookFromBookTitle () {
-        testCall(db, "CALL apoc.load.xml('file:src/test/resources/books.xml', '/catalog/book[title=\"Maeve Ascendant\"]/.') yield value as result",
+        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[title=\"Maeve Ascendant\"]/.') yield value as result",
                 (r) -> {
                     Object value = r.values();
                     assertEquals(XML_XPATH_AS_NESTED_MAP, value.toString());
@@ -178,7 +175,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlXpathBooKsFromGenre () {
-        testResult(db, "CALL apoc.load.xml('file:src/test/resources/books.xml', '/catalog/book[genre=\"Computer\"]') yield value as result",
+            testResult(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[genre=\"Computer\"]') yield value as result",
                 (r) -> {
                     Map<String, Object> next = r.next();
                     Object result = next.get("result");
@@ -232,5 +229,36 @@ public class XmlTest {
                     Map resultMap = (Map) r.get("result");
                     assertEquals(Collections.emptyMap(), resultMap);
                 });
+    }
+
+    @Test
+    public void testLoadXmlWithImport() {
+        testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5.xml', {createNextWordRelationships: true}) yield node",
+                row -> {
+                   assertNotNull(row.get("node"));
+                });
+        testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
+            final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));
+            assertEquals(2l, (long)resultMap.get("XmlProcessingInstruction"));
+            assertEquals(1l, (long)resultMap.get("XmlDocument"));
+            assertEquals(1737l, (long)resultMap.get("XmlWord"));
+            assertEquals(454l, (long)resultMap.get("XmlTag"));
+        });
+
+        // no node more than one NEXT/NEXT_SIBLING
+        testCallEmpty(db, "match (n) where size( (n)-[:NEXT]->() ) > 1 return n", null);
+        testCallEmpty(db, "match (n) where size( (n)-[:NEXT_SIBLING]->() ) > 1 return n", null);
+
+        // no node more than one IS_FIRST_CHILD / IS_LAST_CHILD
+        testCallEmpty(db, "match (n) where size( (n)<-[:FIRST_CHILD_OF]-() ) > 1 return n", null);
+        testCallEmpty(db, "match (n) where size( (n)<-[:LAST_CHILD_OF]-() ) > 1 return n", null);
+
+        // NEXT_WORD relationship do connect all word nodes
+        testResult(db, "match p=(:XmlDocument)-[:NEXT_WORD*]->(e:XmlWord) where not (e)-[:NEXT_WORD]->() return length(p) as len",
+                result -> {
+                    Map<String, Object> r = Iterators.single(result);
+                    assertEquals(1737l, r.get("len"));
+                });
+
     }
 }
