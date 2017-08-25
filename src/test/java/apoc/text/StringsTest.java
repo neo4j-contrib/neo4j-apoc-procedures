@@ -12,10 +12,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static java.lang.Math.toIntExact;
 import static org.junit.Assert.*;
 
 /**
@@ -325,5 +328,28 @@ public class StringsTest {
         testCall(db, "RETURN apoc.text.slug('a- b c', '.') AS value", row -> assertEquals("a.b.c", row.get("value")));
         testCall(db, "RETURN apoc.text.slug('a- b','-') AS value", row -> assertEquals("a-b", row.get("value")));
         testCall(db, "RETURN apoc.text.slug('a b c') AS value", row -> assertEquals("a-b-c", row.get("value")));
+    }
+
+    @Test
+    public void testRandom() {
+        Long length = 10L;
+        String valid = "A-Z0-9.";
+
+        testCall(
+                db,
+                "RETURN apoc.text.random({length}, {valid}) as value",
+                map("length", length, "valid", valid),
+                row -> {
+                    String value = row.get("value").toString();
+
+                    Pattern pattern = Pattern.compile("^"+valid+"$");
+                    Matcher matcher = pattern.matcher(value);
+
+                    assertEquals(toIntExact(length), value.length());
+                    assertTrue(matcher.matches());
+
+
+                }
+        );
     }
 }
