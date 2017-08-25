@@ -28,7 +28,7 @@ public class GroupingTest {
     public static void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, Grouping.class);
-        db.execute("CREATE (a:Person {name:'Alice',female:true})-[:KNOWS]->(b:Person {name:'Bob', female:false})<-[:KNOWS]-(c:Person {name:'Cath',female:true})")
+        db.execute("CREATE (a:Person {name:'Alice',female:true,age:32,kids:1})-[:KNOWS]->(b:Person {name:'Bob', female:false, age:42,kids:3})<-[:KNOWS]-(c:Person {name:'Cath',female:true,age:28,kids:2})")
 
                 .close();
     }
@@ -40,29 +40,34 @@ public class GroupingTest {
 
     @Test
     public void testGroupNode() throws Exception {
-        testResult(db, "CALL apoc.nodes.group(['Person'],['female'])",
+        Map<String, Object> female = map("female", true, "count_*", 2L, "sum_kids", 3L, "min_age", 28L, "max_age", 32L, "avg_age", 30D);
+        Map<String, Object> male = map("female", false, "count_*", 1L, "sum_kids", 3L, "min_age", 42L, "max_age", 42L, "avg_age", 42D);
+        testResult(db, "CALL apoc.nodes.group(['Person'],['female'],[{`*`:'count',kids:'sum',age:['min','max','avg'],gender:'collect'},{`*`:'count'}])",
                 (result) -> {
                     assertTrue(result.hasNext());
                     Map<String, Object> row = result.next();
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     assertEquals(1,nodes.size());
                     Node node = nodes.get(0);
-                    assertEquals(map("female",true,"count",2L),node.getProperties("count","female"));
+                    String[] keys = {"count_*", "female", "sum_kids", "min_age", "max_age", "avg_age"};
+                    assertEquals(node.getProperty("female").equals(true) ? female : male, node.getProperties(keys));
                     List<Relationship> rels = (List<Relationship>) row.get("relationships");
                     assertEquals(1,rels.size());
                     Relationship rel = rels.get(0);
-                    assertEquals(2L,rel.getProperty("count"));
+                    assertEquals(2L,rel.getProperty("count_*"));
                     assertEquals("KNOWS",rel.getType().name());
-                    assertEquals(map("female",false,"count",1L),rel.getEndNode().getProperties("count","female"));
+                    node = rel.getOtherNode(node);
+                    assertEquals(node.getProperty("female").equals(true) ? female : male, node.getProperties(keys));
                     assertTrue(result.hasNext());
 
                     row = result.next();
                     nodes = (List<Node>) row.get("nodes");
                     assertEquals(1,nodes.size());
+                    node = nodes.get(0);
+                    assertEquals(node.getProperty("female").equals(true) ? female : male, node.getProperties(keys));
+
                     rels = (List<Relationship>) row.get("relationships");
                     assertEquals(0,rels.size());
-                    node = nodes.get(0);
-                    assertEquals(map("female",false,"count",1L),node.getProperties("count","female"));
                 });
     }
 }
