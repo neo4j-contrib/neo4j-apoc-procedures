@@ -347,9 +347,99 @@ public class StringsTest {
 
                     assertEquals(toIntExact(length), value.length());
                     assertTrue(matcher.matches());
-
-
                 }
+        );
+    }
+
+    @Test
+    public void testCapitalize() {
+        String text = "neo4j";
+
+        testCall(
+                db,
+                "RETURN apoc.text.capitalize({text}) as value",
+                map("text", text),
+                row -> assertEquals("Neo4j", row.get("value").toString())
+        );
+    }
+
+
+    @Test
+    public void testCapitalizeAll() {
+        String text = "graph database";
+
+        testCall(
+                db,
+                "RETURN apoc.text.capitalizeAll({text}) as value",
+                map("text", text),
+                row -> assertEquals("Graph Database", row.get("value").toString())
+
+        );
+    }
+
+    @Test
+    public void testDecapitalize() {
+        String text = "Graph Database";
+
+        testCall(
+                db,
+                "RETURN apoc.text.capitalizeAll({text}) as value",
+                map("text", text),
+                row -> assertEquals("graph database", row.get("value").toString())
+
+        );
+    }
+
+    @Test
+    public void testSwapCase() {
+        String text = "Neo4j";
+
+        testCall(
+                db,
+                "RETURN apoc.text.swapCase({text}) as value",
+                map("text", text),
+                row -> assertEquals("nEO4J", row.get("value").toString())
+
+        );
+    }
+
+    @Test
+    public void testCamelCase() {
+        String text = "test Camel case";
+
+        testCall(
+                db,
+                "RETURN apoc.text.swapCase({text}) as value",
+                map("text", text),
+                row -> assertEquals("testCamelCase", row.get("value").toString())
+
+        );
+    }
+
+
+    @Test
+    public void testSnakeCase() {
+        String text = "test snake CASE";
+
+        testCall(
+                db,
+                "RETURN apoc.text.snakeCase({text}) as value",
+                map("text", text),
+                row -> assertEquals("test-snake-case", row.get("value").toString())
+
+        );
+    }
+
+    @Test
+    public void testToUpperCase() {
+        String text = "test upper CASE";
+
+        testCall(
+                db,
+                "RETURN apoc.text.toUpperCase({text}) as value",
+                map("text", text),
+                row -> assertEquals("TEST_UPPER_CASE", row.get("value").toString())
+
         );
     }
 }

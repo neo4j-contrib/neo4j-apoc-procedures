@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
 
 import static java.lang.Math.toIntExact;
 import static java.util.Arrays.asList;
@@ -226,5 +227,54 @@ public class Strings {
         }
 
         return output.toString();
+    }
+
+    @UserFunction
+    @Description("apoc.text.capitalize(text) YIELD value - capitalise the first letter of the word")
+    public String capitalize(@Name("text") String text) {
+        return text.substring(0, 1).toUpperCase() + text.substring(1);
+    }
+
+    @UserFunction
+    @Description("apoc.text.capitalizeAll(text) YIELD value - capitalise the first letter of every word in the text")
+    public String capitalizeAll(@Name("text") String text) {
+        return WordUtils.capitalizeFully(text);
+    }
+
+    @UserFunction
+    @Description("apoc.text.decapitalize(text) YIELD value - decapitalize the first letter of the word")
+    public String decapitalize(@Name("text") String text) {
+        return StringUtils.uncapitalize(text);
+    }
+
+    @UserFunction
+    @Description("apoc.text.swapCase(text) YIELD value - Swap the case of a string")
+    public String swapCase(@Name("text") String text) {
+        return StringUtils.swapCase(text);
+    }
+
+    @UserFunction
+    @Description("apoc.text.camelCase(text) YIELD value - Convert a string to camelCase")
+    public String camelCase(@Name("text") String text) {
+        String converted = WordUtils.capitalizeFully(text);
+        converted = converted.substring(0, 1).toUpperCase() + converted.substring(1);
+
+        return converted.replaceAll(" ", "");
+    }
+
+    @UserFunction
+    @Description("apoc.text.snakeCase(text) YIELD value - Convert a string to snake-case")
+    public String snakeCase(@Name("text") String text) {
+        text = text.toLowerCase();
+
+        return text.replaceAll(" ", "-");
+    }
+
+    @UserFunction
+    @Description("apoc.text.toUpperCase(text) YIELD value - Convert a string to UPPER_CASE")
+    public String toUpperCase(@Name("text") String text) {
+        text = text.toUpperCase();
+
+        return text.replaceAll(" ", "_");
     }
 }
