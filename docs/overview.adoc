@@ -447,7 +447,7 @@ Please note that they have negative id's.
 | apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) | returns a virtual relationship
 | CALL apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) | returns a virtual pattern
 | CALL apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) | returns a virtual pattern
-| CALL apoc.nodes.group([labels],[properties]) yield nodes, relationships | Group all nodes and their relationships by given keys, create virtual nodes and relationships for the summary information
+| CALL apoc.nodes.group([labels],[properties],[{node-aggregation},{rel-aggregation]) yield nodes, relationships | Group all nodes and their relationships by given keys, create virtual nodes and relationships for the summary information, you can provide an aggregations map for nodes and rels [{kids:'sum',age:['min','max','avg'],gender:'collect'},{`*`,'count'}]
 |===
 
 // * TODO `CALL apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])
