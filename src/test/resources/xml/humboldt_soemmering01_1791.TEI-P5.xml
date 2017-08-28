@@ -1,0 +1,732 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://www.deutschestextarchiv.de/basisformat.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<?xml-model href="http://www.deutschestextarchiv.de/basisformat.sch" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+    <teiHeader>
+        <fileDesc>
+            <titleStmt>
+                <title type="main">Brief an Samuel Thomas Soemmerring</title>
+                <title type="sub">Hamburg, 28. Januar bis 20. Feburar 1791</title>
+                <author>
+                    <persName>
+                        <surname>Alexander von</surname>
+                        <forename>Humboldt</forename>
+                    </persName>
+                </author>
+                <editor corresp="#DTACorpusPublisher">
+                    <persName ref="http://d-nb.info/gnd/115266127">
+                        <surname>Geyken</surname>
+                        <forename>Alexander</forename>
+                    </persName>
+                </editor>
+                <editor corresp="#DTACorpusPublisher">
+                    <persName ref="http://d-nb.info/gnd/1018099549">
+                        <surname>Haaf</surname>
+                        <forename>Susanne</forename>
+                    </persName>
+                </editor>
+                <editor corresp="#DTACorpusPublisher">
+                    <persName ref="http://d-nb.info/gnd/1019062681">
+                        <surname>Jurish</surname>
+                        <forename>Bryan</forename>
+                    </persName>
+                </editor>
+                <editor corresp="#DTACorpusPublisher">
+                    <persName>
+                        <surname>Boenig</surname>
+                        <forename>Matthias</forename>
+                    </persName>
+                </editor>
+                <editor corresp="#DTACorpusPublisher">
+                    <persName>
+                        <surname>Thomas</surname>
+                        <forename>Christian</forename>
+                    </persName>
+                </editor>
+                <editor corresp="#DTACorpusPublisher">
+                    <persName>
+                        <surname>Wiegand</surname>
+                        <forename>Frank</forename>
+                    </persName>
+                </editor>
+                <respStmt>
+                    <persName>
+                        <surname>Gerlach</surname>
+                        <forename>Klaus</forename>
+                    </persName>
+                    <resp>
+                        <note type="remarkResponsibility">Bereitstellung der Texttranskription.</note>
+                        <date type="importDTA">2016-09-27T17:00:45Z</date>
+                    </resp>
+                </respStmt>
+                <respStmt>
+                    <persName>
+                        <surname>Gerlach</surname>
+                        <forename>Klaus</forename>
+                    </persName>
+                    <persName>
+                        <surname>Päsler</surname>
+                        <forename>Ulrich</forename>
+                    </persName>
+                    <resp>
+                        <note type="remarkResponsibility">TEI-Textannotation.</note>
+                        <note type="remarkRevisionDTA">Bitte beachten Sie, dass die aktuelle Transkription (und
+                            Textauszeichnung) mittlerweile nicht mehr dem Stand zum Zeitpunkt der Übernahme des Werkes
+                            in das DTA entsprechen muss.
+                        </note>
+                        <date type="importDTA">2016-09-27T17:00:45Z</date>
+                    </resp>
+                </respStmt>
+                <respStmt>
+                    <orgName ref="http://www.clarin-d.de">CLARIN-D</orgName>
+                    <resp>
+                        <note type="remarkResponsibility">Langfristige Bereitstellung der DTA-Ausgabe</note>
+                        <ref target="http://fedora.dwds.de"/>
+                    </resp>
+                </respStmt>
+            </titleStmt>
+            <editionStmt>
+                <edition>Vollständige digitalisierte Ausgabe.</edition>
+            </editionStmt>
+            <extent>
+                <measure type="images">8</measure>
+                <measure type="tokens">1451</measure>
+                <measure type="types">771</measure>
+                <measure type="characters">9779</measure>
+            </extent>
+            <publicationStmt>
+                <publisher xml:id="DTACorpusPublisher">
+                    <email>dta@bbaw.de</email>
+                    <orgName role="project">Deutsches Textarchiv</orgName>
+                    <orgName role="hostingInstitution" xml:lang="en">Berlin-Brandenburg Academy of Sciences and
+                        Humanities (BBAW)
+                    </orgName>
+                    <orgName role="hostingInstitution" xml:lang="de">Berlin-Brandenburgische Akademie der Wissenschaften
+                        (BBAW)
+                    </orgName>
+                    <address>
+                        <addrLine>Jägerstr. 22/23, 10117 Berlin</addrLine>
+                        <country>Germany</country>
+                    </address>
+                </publisher>
+                <pubPlace>Berlin</pubPlace>
+                <date type="publication">2016-09-28T07:59:59Z</date>
+                <availability>
+                    <licence target="http://creativecommons.org/licenses/by-sa/4.0/">Distributed under the Creative
+                        Commons Attribution-ShareAlike 4.0 International license
+                    </licence>
+                </availability>
+                <idno>
+                    <idno type="URLWeb">http://www.deutschestextarchiv.de/humboldt_soemmering01_1791</idno>
+                    <idno type="URLXML">
+                        http://www.deutschestextarchiv.de/dtaq/book/download_xml/humboldt_soemmering01_1791
+                    </idno>
+                    <idno type="URLHTML">
+                        http://www.deutschestextarchiv.de/dtaq/book/download_html/humboldt_soemmering01_1791
+                    </idno>
+                    <idno type="URLText">
+                        http://www.deutschestextarchiv.de/dtaq/book/download_text/humboldt_soemmering01_1791
+                    </idno>
+                    <idno type="DTADirName">humboldt_soemmering01_1791</idno>
+                    <idno type="DTAID">31105</idno>
+                </idno>
+            </publicationStmt>
+            <sourceDesc>
+                <bibl type="MAN">Humboldt, Alexander von: Brief an Samuel Thomas Soemmerring. Hamburg, 28.01.-20.02.1791
+                    (=Alexander von Humboldt auf Reisen - Wissenschaft aus der Bewegung 2016).
+                </bibl>
+                <biblFull>
+                    <titleStmt>
+                        <title level="m" type="main">Brief an Samuel Thomas Soemmerring</title>
+                        <title level="m" type="sub">Hamburg, 28. Januar bis 20. Feburar 1791</title>
+                        <author>
+                            <persName>
+                                <surname>Alexander von</surname>
+                                <forename>Humboldt</forename>
+                            </persName>
+                        </author>
+                    </titleStmt>
+                    <editionStmt>
+                        <edition n="1"/>
+                    </editionStmt>
+                    <publicationStmt>
+                        <publisher/>
+                        <pubPlace>Hamburg</pubPlace>
+                        <date type="creation">1791</date>
+                    </publicationStmt>
+                </biblFull>
+                <msDesc>
+                    <msIdentifier>
+                        <repository>Freies Deutsches Hochstift / Frankfurter Goethe-Museum (Frankfurt am Main):
+                            Handschriftenabteilung
+                        </repository>
+                        <idno>
+                            <idno type="shelfmark">Hs-5051</idno>
+                        </idno>
+                    </msIdentifier>
+                    <physDesc>
+                        <typeDesc>
+                            <p>Current</p>
+                        </typeDesc>
+                    </physDesc>
+                </msDesc>
+            </sourceDesc>
+        </fileDesc>
+        <encodingDesc>
+            <editorialDecl>
+                <p/>
+                <p>
+                    <![CDATA[
+<p>Dieses Werk wurde in XML/TEI P5 nach <a href="http://www.deutschestextarchiv.de/doku/basisformat">DTA-Basisformat</a> kodiert.</p>
+]]>
+                </p>
+            </editorialDecl>
+            <tagsDecl>
+                <rendition scheme="css" xml:id="rendition-aq">font-family:sans-serif</rendition>
+                <rendition scheme="css" xml:id="rendition-b">font-weight:bold</rendition>
+                <rendition scheme="css" xml:id="rendition-blue">color:blue</rendition>
+                <rendition scheme="css" xml:id="rendition-c">display:block; text-align:center</rendition>
+                <rendition scheme="css" xml:id="rendition-et">display:block; margin-left:2em; text-indent:0</rendition>
+                <rendition scheme="css" xml:id="rendition-et2">display:block; margin-left:4em; text-indent:0</rendition>
+                <rendition scheme="css" xml:id="rendition-et3">display:block; margin-left:6em; text-indent:0</rendition>
+                <rendition scheme="css" xml:id="rendition-f">border:1px dotted silver</rendition>
+                <rendition scheme="css" xml:id="rendition-fr">border:1px dotted silver</rendition>
+                <rendition scheme="css" xml:id="rendition-g">letter-spacing:0.125em</rendition>
+                <rendition scheme="css" xml:id="rendition-i">font-style:italic</rendition>
+                <rendition scheme="css" xml:id="rendition-in">font-size:150%</rendition>
+                <rendition scheme="css" xml:id="rendition-k">font-variant:small-caps</rendition>
+                <rendition scheme="css" xml:id="rendition-larger">font-size:larger</rendition>
+                <rendition scheme="css" xml:id="rendition-red">color:red</rendition>
+                <rendition scheme="css" xml:id="rendition-right">display:block; text-align:right</rendition>
+                <rendition scheme="css" xml:id="rendition-s">text-decoration:line-through</rendition>
+                <rendition scheme="css" xml:id="rendition-smaller">font-size:smaller</rendition>
+                <rendition scheme="css" xml:id="rendition-sub">vertical-align:sub; font-size:.7em</rendition>
+                <rendition scheme="css" xml:id="rendition-sup">vertical-align:super; font-size:.7em</rendition>
+                <rendition scheme="css" xml:id="rendition-u">text-decoration:underline</rendition>
+                <rendition scheme="css" xml:id="rendition-uu">border-bottom:double 3px #000</rendition>
+            </tagsDecl>
+        </encodingDesc>
+        <profileDesc>
+            <langUsage>
+                <language ident="deu">German</language>
+            </langUsage>
+            <textClass>
+                <classCode scheme="http://www.deutschestextarchiv.de/doku/klassifikation#dwds1main">Gebrauchsliteratur
+                </classCode>
+                <classCode scheme="http://www.deutschestextarchiv.de/doku/klassifikation#dwds1sub">Brief</classCode>
+                <classCode scheme="http://www.deutschestextarchiv.de/doku/klassifikation#DTACorpus">dtae</classCode>
+            </textClass>
+        </profileDesc>
+    </teiHeader>
+    <text>
+        <body>
+            <pb n="1r" facs="#f0001"/>
+            <div type="letter" n="1">
+                <opener>
+                    <dateline rendition="#right">Hamburg, den 28.ten
+                        <choice>
+                            <abbr>Jan.</abbr>
+                            <expan>Januar</expan>
+                        </choice>
+                        1791.
+                    </dateline>
+                </opener>
+                <p>Fünf volle Monathe sind nun schon verflossen, seitdem ich
+                    <lb/>
+                    die                         <placeName>Rheinufer</placeName> verließ. Wenn Sie aus der Art, wie ich
+                    mich
+                    <lb/>
+                    damals an Sie drängte, aus der frohen Stimmung, in die
+                    <lb/>
+                    mich jede Aeußerung Ihres Vertrauens und Ihrer liebevollen
+                    <lb/>
+                    Zuneigung versezte, auf Wärme und Herzlichkeit des Charakters
+                    <lb/>
+                    in mir schlossen, so muß es Ihnen jezt um so
+                    <lb/>
+                    räthselhafter sein, daß Sie seit fünf Monathenø keine
+                    <lb/>
+                    Zeile von mir sahen, daß ich eine Erlaubniß nicht
+                    <lb/>
+                    benuzte, die Sie mir selbst freiwillig ertheilten. Nicht
+                    <lb/>
+                    jugendliche Eitelkeit allein (von der ich mich übrigens nur zu
+                    <lb/>
+                    wenig frei fühle!) sondern die Empfindung, durch die Ach-
+                    <lb/>
+                    tung guter und edler Menschen geehrt zu sein, läßt
+                    <lb/>
+                    mich wünschen, daß Ihnen mein Stillschweigen nicht gleich-
+                    <lb/>
+                    gültig und unbemerkt gewesen ist. Ich möchte die Schuld
+                    <lb/>
+                    gern vermehren, weil ich es doch nicht unternehme,
+                    <lb/>
+                    mich zu rechtfertigen. In der That, mein Bester, die Ursa-
+                    <lb/>
+                    chen meiner Nachlässigkeit sind so einfach, daß sie gewiß
+                    <lb/>
+                    <pb n="1v" facs="#f0002"/>
+                    jedem andern, als Ihnen, geringfügig scheinen würden,
+                    <lb/>
+                    der Sie wissen, daß Einfachheit und Wahrheit immer
+                    <lb/>
+                    am nächsten mit einander verwandt sind. Ich verließ
+                    <lb/>
+                    <placeName>Aschaffenburg</placeName>
+                    (das mir <persName>Müllers</persName> geistvolle Unterhaltung
+                    <lb/>
+                    und                         <persName>Gollizins</persName> ungekünstelte Gutmüthigkeit in der That
+                    <lb/>
+                    sehr, sehr lieb gemacht hatten) mit dem festen
+                    <lb/>
+                    Entschlusse, Ihnen, sobald ich <placeName>Hamburg</placeName> erreicht haben
+                    <lb/>
+                    würde, so manches auszuschütten, wo von mein Herz da-
+                    <lb/>
+                    mals sehr voll war. Ich glaubte, so manches beobach-
+                    <lb/>
+                    tet zu haben, woraus ich frohe Aussichten in die
+                    <lb/>
+                    Zukunft ahndete, und ich glaubte, dies alles noch
+                    <lb/>
+                    einmal inniger und froher zu genießen, wenn ich es ei-
+                    <lb/>
+                    nem teilnehmenden Freunde mittheilte. Eine unglükliche
+                    <lb/>
+                    Tour, die ich bald zu Fuß, bald zu Wagen, in dem
+                    <lb/>
+                    unfreundlichsten Wetter, durch das <placeName>Vogelsgebirge</placeName> und einen
+                    <lb/>
+                    Theil der <placeName>Rhöne</placeName> machte, knüpfte bald eine neue Ge-
+                    <lb/>
+                    dankenreihe an jene an. Die gesammleten Minerialien
+                    <lb/>
+                    sollten geordnet, manche kleine Beobachtung (Sie wissen
+                    <lb/>
+                    wohl, was man in meinem Alter für einen Werth
+                    <lb/>
+                    auf so etwas legt!) aufgezeichnet werden. Der neue Auf-
+                    <lb/>
+                    <pb n="2r" facs="#f0003"/>
+                    enthalt in <placeName>Hamburg</placeName> und hundertlei kleine Geschäfte, welche
+                    <lb/>
+                    mit jeder Einrichtung unzertrennlich verbunden sind, zerstreu-
+                    <lb/>
+                    ten mich noch mehr. So war, ohne daß ich es mir
+                    <lb/>
+                    selbst kaum bewußt war, eine lange, lange Zeit
+                    <lb/>
+                    verflossen und fast meine ganze Correspondenz blieb un
+                    <lb/>
+                    terbrochen. Ein vernachlässigter Brief liegt einem Zentner
+                    <lb/>
+                    schwer auf dem Herzen, er ist immer drükkender,
+                    <lb/>
+                    je weniger man sich durch eine <hi rendition="#u">höfliche</hi> Entschuldigung
+                    <lb/>
+                    rechtfertigen darf. Man wartet,
+                    <subst>
+                        <del rendition="#s">sich zu</del>
+                        <add place="intralinear">aus einer</add>
+                    </subst>
+                    <lb/>
+                    Art von Rechthaberei, ein Hinderniß ab, auf das man, ex
+                    <lb/>
+                    post, die ganze Schuld schieben könne und so vergeht ei-
+                    <lb/>
+                    ne Woche nach der anderen, bis die Schaam sich darin
+                    <lb/>
+                    mengt und einen völlig verstummen macht. Wenn es
+                    <lb/>
+                    gegründet ist, daß diese Schaam und Gewissenhaf-
+                    <lb/>
+                    tigkeit von einer allzugroßen Leber herrühren, so
+                    <lb/>
+                    leide ich warlich stark an der Leberkrankheit, und die
+                    <lb/>
+                    einzige Kurmethode, die ich Ihnen vorschlagen kann,
+                    <lb/>
+                    ist daß Sie mir für mein offenherziges Geständniß
+                    <lb/>
+                    Verzeihung schenken und mir die Freundschaft und Lie-
+                    <lb/>
+                    be wiedergeben, in deren Besiz ich mich so glücklich schäze.
+                    <lb/>
+                    <pb n="2v" facs="#f0004"/>
+                    Außer dem, was meine individuelle Lage betrift und die
+                    <lb/>
+                    Sie wahrscheinlich schon durch <persName>Forster</persName>                     kennen, darf ich
+                    Ihnen
+                    <lb/>
+                    von hier aus wenig verkündigen. Ich lebe in <placeName>Hamburg</placeName>
+                    <lb/>
+                    <hi rendition="#u">zufrieden</hi>, aber nicht <hi rendition="#u">froh</hi>, weniger froh selbst als
+                    in
+                    <placeName>Göt
+                        <lb/>
+                        tingen
+                    </placeName>
+                    , wo der Umgang von ein
+                    <choice>
+                        <abbr>od.</abbr>
+                        <expan>oder</expan>
+                    </choice>
+                    zwei Freunden und <add place="superlinear">die</add> Nähe
+                    <lb/>
+                    Moosbewachsener Berge mich für die Einförmigkeit meiner Lage
+                    <lb/>
+                    entschädigten. Zufrieden, das heißt durch Ueberlegung zu
+                    <lb/>
+                    frieden bin ich überall, wo ich meinen Zwekken nä
+                    <lb/>
+                    her komme. Ich lerne auf der hiesigen Handelsakademie und
+                    <lb/>
+                    durch <persName>Büschens</persName> Umgang sehr viel. Alles Mercantilische
+                    <lb/>
+                    war mir neu, und ich liebe es, weil ich es für nüzlich
+                    <lb/>
+                    halte. Eigentliche Kollegia höre ich wenig, desto fleißiger
+                    <lb/>
+                    suche ich für mich zu sein. <persName>Ebelings</persName> große Bibliothek
+                    <lb/>
+                    kommt mir sehr zu statten. Philologie, Reisebeschreibungen,
+                    <lb/>
+                    Geschichtsbücher besizt <persName>Ebeling</persName>, alles Mathematische und Physikalische
+                    <lb/>
+                    <persName>Büsch</persName>
+                    und das Naturhistorische <persName>Reimarus</persName> sehr vollständig.
+                    <lb/>
+                    Denken Sie Sich nun den freiesten Gebrauch aller dieser
+                    <lb/>
+                    Hülfsmittel, ein enges Zimmer in einem einsamen
+                    <lb/>
+                    Garten, keine Stöhrung, als eine Glokke, die zum
+                    <lb/>
+                    Mittag und Abendessen läutet &#x2013; und Sie müssen gestehen,
+                    <lb/>
+                    mein Lieber, daß man in <placeName>Hamburg</placeName>, troz                         <placeName>
+                        Göttingen</placeName>, studi-
+                    <lb/>
+                    ren kann. Mineralogie und Botanik (beide aus Büchern!!) fül
+                    <lb/>
+                    len meine Nebenstunden aus. Dazu habe ich angefangen dänisch
+                    <lb/>
+                    und schwedisch zu lernen, weil die Gelegenheit dazu hier
+                    <lb/>
+                    <pb n="3r" facs="#f0005"/>
+                    sehr bequem ist. Ein 7
+                    <choice>
+                        <abbr>od</abbr>
+                        <expan>oder</expan>
+                    </choice>
+                    8 Monath ist so ein Leben erträglich,
+                    <lb/>
+                    aber nach diesen sehnt man sich auch nach einem freieren Wirkungs-
+                    <lb/>
+                    kreise. An Umgang, nemlich Zusammenessen nennt man hier
+                    <lb/>
+                    Umgang, fehlt es mir bei dem allen nicht. Ich bin in allen
+                    <lb/>
+                    Cirklen, in den bürgerlichen und adelichen, die sich nach
+                    <lb/>
+                    der löblichen Indianischen Methode hübsch kastenmäßig von ein-
+                    <lb/>
+                    ander getrennt haben. Da aber hier alles Karten spielt,
+                    <lb/>
+                    so besuche ich keine Gesellschaft vor dem Abendessen, wo denn
+                    <lb/>
+                    der physische Genuß freilich sehr groß ist. So viel man am
+                    <lb/>
+                    <placeName>Rhein</placeName>
+                    auch immer über Adelsstolz klagen mag, so möchte
+                    <lb/>
+                    ich doch behaupten, daß der Uebermuth des hiesigen
+                    <persName>Bentincki-
+                        <lb/>
+                        schen
+                    </persName>
+                    (nicht
+                    <persName>
+                        <choice>
+                            <abbr>Schimmelman&#x0305;ischen</abbr>
+                            <expan>Schimmelmannischen</expan>
+                        </choice>
+                    </persName>
+                    ) Cirkels jenen weit übertrift<supplied cert="high">.</supplied>
+                    <lb/>
+                    Die Vernunft unserer westlichen Nachbarn wird dieses Jahrhun-
+                    <lb/>
+                    dert überleben, aber Deutschland wird noch lange anstaunen, prü
+                    <lb/>
+                    fen, vorbereiten &#x2014; und den entscheidenden Augenblik versäumen.
+                    <lb/>
+                    Ist Ihnen die
+                    <choice>
+                        <abbr>Berlin.</abbr>
+                        <expan>Berlinische</expan>
+                    </choice>
+                    Monathsschrift und
+                    <choice>
+                        <abbr>H.</abbr>
+                        <expan>Herrn</expan>
+                    </choice>
+                    von <persName>Rhamdors</persName>
+                    <lb/>
+                    Verteidigung des Adels in die Hände gefallen? Ich kann
+                    <lb/>
+                    dem nichts als                         <persName>Plattners</persName> Dedication an den <persName>
+                        Kurfürsten
+                    </persName>
+                    <lb/>
+                    vor der Neuen Anthropologie
+                    <subst>
+                        <del rendition="#s">entges</del>
+                        <add place="intralinear">entgegenstellen</add>
+                    </subst>
+                    <subst>
+                        <del rendition="#ow">?</del>
+                        <add place="intralinear">!</add>
+                    </subst>
+                    Von
+                    <lb/>
+                    einem Leipziger Professor ließ sich so etwas erwarten.
+                    <persName>Platt-
+                        <lb/>
+                        ner
+                    </persName>
+                    kennt nur zwei Wege, entweder in den Stand der
+                    <lb/>
+                    Natur zurüktreten, à la <persName>Rousseau</persName> auf allen Vieren gehen,
+                    <lb/>
+                    und wie die Philosophen im <persName>Luzian</persName> Erdschwämme suchen,
+                    <lb/>
+                    oder unter den Ministern eines
+                    <persName>
+                        <choice>
+                            <abbr>Kf.</abbr>
+                            <expan>Kurfürsten</expan>
+                        </choice>
+                        von Sachsen
+                    </persName>
+                    zu stehen, das
+                    <lb/>
+                    <pb n="3v" facs="#f0006"/>
+                    Abendmahl wie ein moralisches Purgirmittel gebrauchen zu müs-
+                    <lb/>
+                    sen, dabei aber eine Audienz bei einem Fürsten haben
+                    <lb/>
+                    <subst>
+                        <del rendition="#s">zu können</del>
+                        <add place="intralinear">, es dem Publikum öffentlich sagen zu
+                            <lb/>
+                            können....
+                        </add>
+                    </subst>
+                    das sind unsere Philosophen und dann
+                    <lb/>
+                    fürchten die Despoten unser philosophisches Jahrhundert!
+                    <lb/>
+                    Es ist mir ein sehr niederschlagender Gedanke, wenn Män-
+                    <lb/>
+                    ner wie <persName>Garve</persName>, <persName>Plattner</persName>, <persName>Zimmermann</persName> p.
+                    niederreißen, was
+                    <lb/>
+                    andere so mühsam aufgeführt haben. Es giebt derer,
+                    <lb/>
+                    welche mehr auf Glauben wie auf Ueberzeugung, auf
+                    <lb/>
+                    Autorität mehr, wie auf eigenes Nachdenken bauen
+                    <lb/>
+                    so viele, und darin liegt der Grund einer Wahrheit,
+                    <lb/>
+                    deucht mich, die so oft verkannt wird, daß die großen
+                    <lb/>
+                    Charaktere allgemein <hi rendition="#u">bewunderter</hi> und gefeierter Menschen
+                    <lb/>
+                    durch ihre Schwachheiten oft mehr böses für die Nachwelt
+                    <lb/>
+                    stiften, als ihre Tugenden Seegen und Wohlthat ver-
+                    <lb/>
+                    breiten. &#x2013; <persName>Campe</persName>                     hat ein Projekt, nach <placeName>
+                        Amerika
+                    </placeName> zu
+                    <lb/>
+                    reisen. Ob er es ausführt ist noch ungewiß. Denken
+                    <choice>
+                        <sic>sie</sic>
+                        <corr>Sie</corr>
+                    </choice>
+                    <lb/>
+                    Sich aber, Lieber,
+                    <choice>
+                        <sic>den</sic>
+                        <corr>die</corr>
+                    </choice>
+                    <subst>
+                        <del rendition="#s">Grund</del>
+                        <add place="superlinear">Veranlassung</add>
+                    </subst>
+                    <subst>
+                        <del rendition="#s">den</del>
+                        <add place="across">die</add>
+                    </subst>
+                    er angiebt, nicht
+                    <lb/>
+                    etwa um die
+                    <choice>
+                        <abbr>westind.</abbr>
+                        <expan>westindische</expan>
+                    </choice>
+                    Jugend mit einem Transport
+                    <lb/>
+                    seiner Kinderbibliotheken, Robinsonaden p. zu beglükken,
+                    <lb/>
+                    nicht um den Wilden seinen neuen Beweis für die Un-
+                    <lb/>
+                    sterblichkeit der Seele zu predigen, nicht um das Tanzen
+                    <lb/>
+                    in                         <placeName>Philadelphia</placeName> nach den Regeln der Keuschheit zu
+                    reguliren,
+                    <lb/>
+                    &#x2013; nein um die Verfassung des
+                    <placeName>
+                        <choice>
+                            <abbr>Nordamerikan.</abbr>
+                            <expan>Nordamerikanischen</expan>
+                        </choice>
+                        Freistaats
+                    </placeName>
+                    in der Nähe
+                    <lb/>
+                    <pb n="4r" facs="#f0007"/>
+                    zu studiren,
+                    <subst>
+                        <del rendition="#s">es</del>
+                        <add place="intralinear">sie</add>
+                    </subst>
+                    nach einem Jahre (denn so lange soll ihn
+                    <lb/>
+                    Europa entbehren) der alten Welt laut zu verkündigen
+                    <lb/>
+                    und so Freiheit und Wahrheit über die Menschheit zu ver
+                    <lb/>
+                    breiten. Ist je eine drolligere Idee in eines Menschen
+                    <lb/>
+                    Kopf gekommen! Ich erwarte täglich den Brief, worin
+                    <lb/>
+                    <persName>Campe</persName>
+                    mir das Mitreisen anbietet.
+                </p>
+                <p>den 20ten
+                    <choice>
+                        <abbr>Febr.</abbr>
+                        <expan>Februar</expan>
+                    </choice>
+                </p>
+                <p>So weit schrieb ich diesen Brief vor etwa 3 Wochen. Ich
+                    <lb/>
+                    wollte ihn nicht unvollendet abschikken, und ich wurde wenige
+                    <lb/>
+                    Tage nachher krank. Verschleimungen waren wahrscheinlich wieder
+                    <lb/>
+                    die Ursachen eines <add place="superlinear">ziemlich</add> heftigen Flußfiebers. Ich fürchtete ein
+                    <lb/>
+                    Faulfieber, das hier wie eine allgemeine Epidemie war.
+                    <lb/>
+                    Aber ich kam diesmal besser davon und bin jezt ganz
+                    <lb/>
+                    hergestellt. &#x2013; Von unserem treflichen <persName>Jacobi</persName> habe ich lange
+                    <lb/>
+                    nichts vernommen. Durch <persName>Claudius</persName> weiß ich daß Sie die-
+                    <lb/>
+                    sen Herbst bei ihm waren. Schreiben Sie mir doch ja
+                    <lb/>
+                    von ihm, von seinen jezigen Arbeiten p<supplied cert="high">.</supplied>
+                </p>
+                <p>Ich lege diesem langen Briefe eine Zeichnung von einer
+                    <lb/>
+                    sogenannten versteinten Kinderhand bei, welche im
+                    <placeName>Riegels-
+                        <lb/>
+                        dorfer
+                    </placeName>
+                    Schiefer gefunden ist. Die Phalangen zeigen
+                    <lb/>
+                    wohl hinlänglich, daß die Taze keinem
+                    <choice>
+                        <abbr>menschl.</abbr>
+                        <expan>menschlichen</expan>
+                    </choice>
+                    Geschöpfe
+                    <lb/>
+                    gehört hat. Vielleicht wissen Sie mir zu bestimmen,
+                    <lb/>
+                    was es sei, etwa eine Otter? Das wäre nicht unpas
+                    <lb/>
+                    send. Denn 30 Lachter vom Tage liegt in <placeName>Riegelsdorf</placeName>
+                    <lb/>
+                    ein mächtiges Lager verkiester Fische und zwar gekrümm-
+                    <lb/>
+                    ter.
+                </p>
+                <p>
+                    <pb n="4v" facs="#f0008"/>
+                    Ist <persName>Sikkingen</persName>
+                    <persName>Forstern</persName> noch nicht näher? Wenn Sie sie
+                    <lb/>
+                    doch zusammen bringen könnten. <persName>Forster</persName>
+                    <add place="superlinear">würde</add> gewiß den <persName>Grafen</persName>
+                    <lb/>
+                    sehr lieb gewinnen. Versichern Sie <add place="superlinear">ihn</add> doch
+                    <subst>
+                        <del rendition="#s">der</del>
+                        <add place="intralinear">meiner</add>
+                    </subst>
+                    innigsten
+                    <lb/>
+                    Hochachtung und sagen Sie ihm, daß ich die Versuche
+                    <lb/>
+                    mit dem Phosphoresciren der Kartoffeln nachgemacht, viel
+                    <lb/>
+                    fältig wiederholt habe und daß es mir nie mit dem
+                    <lb/>
+                    Leuchten geglükt habe. Wenn wir die Entdekkung von
+                    <lb/>
+                    <persName>Fourcroy</persName>
+                    daß viele Pflanzen Eiweißmaterie enthalten,
+                    <lb/>
+                    den thierischen Leimen der Cerealien, das flüchtige
+                    <lb/>
+                    Alkali der Tetradydinamisten, das Leuchten der Kartof-
+                    <lb/>
+                    feln (das sich beim Rindfleisch und Lachs ja auch
+                    <lb/>
+                    findet) zusammen nehmen, so kommen wir den Ue-
+                    <lb/>
+                    bereinstimmungen zwischen Thier und Pflanze immer nä-
+                    <lb/>
+                    her. &#x2013; Noch eine Frage, mein Bester! Wo lese ich
+                    <lb/>
+                    wohl etwas ausführliches über die Entstehung der thierischen
+                    <lb/>
+                    Knochen, die doch wahrer Kalkstein mit Phosphorsäure ge-
+                    <lb/>
+                    sättigt, <persName>Wernersche</persName> uncristallisirte Apatiten sind. Ich
+                    <lb/>
+                    möchte gern wissen woher die Kalkerde, bei der
+                    <choice>
+                        <abbr>wenig</abbr>
+                        <expan>wenigen</expan>
+                    </choice>
+                    <lb/>
+                    Nahrung des Kindes, entsteht.
+                </p>
+                <closer rend="paragraph">
+                    <salute>Leben Sie wohl, mein Bester! Grüßen Sie Forsters und vergessen Sie nicht Ihren</salute>
+                    <signed>Humboldt.</signed>
+                </closer>
+            </div>
+        </body>
+    </text>
+</TEI>
