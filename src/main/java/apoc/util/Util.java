@@ -248,6 +248,15 @@ public class Util {
         	return null;
         }
     }
+    public static Integer toInteger(Object value) {
+    	if (value == null) return null;
+        if (value instanceof Number) return ((Number)value).intValue();
+        try {
+        	return Integer.parseInt(value.toString());
+        } catch (NumberFormatException e) {
+        	return null;
+        }
+    }
 
     public static URLConnection openUrlConnection(String url, Map<String, Object> headers) throws IOException {
         URL src = new URL(url);
