@@ -21,7 +21,10 @@ To change the cypher export format, you have to set it on the config params like
 
 Format and cypherFormat can be used both in the same query giving you complete control over the exact export format:
 
-`call apoc.export.cypher.query("MATCH (e)","/tmp/theExportFile", {format:'plain',cypherFormat:'updateStructure'})`
+[source,cypher]
+----
+call apoc.export.cypher.query("MATCH (e)","/tmp/theExportFile", {format:'plain',cypherFormat:'updateStructure'})`
+----
 
 // tag::export.cypher[]
 `YIELD file, source, format, nodes, relationships, properties, time`
