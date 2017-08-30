@@ -1,5 +1,6 @@
 package apoc;
 
+import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.impl.util.JobScheduler;
@@ -10,11 +11,16 @@ import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 
 public class Pools {
-    private final static String DEFAULT_NUM_OF_THREADS = new Integer(Runtime.getRuntime().availableProcessors() / 4).toString();
+
+    static final String CONFIG_JOBS_SCHEDULED_NUM_THREADS = "jobs.scheduled.num_threads";
+    static final String CONFIG_JOBS_POOL_NUM_THREADS = "jobs.pool.num_threads";
+
+    private final static int DEFAULT_SCHEDULED_THREADS = Runtime.getRuntime().availableProcessors() / 4;
+    private final static int DEFAULT_POOL_THREADS = Runtime.getRuntime().availableProcessors() * 2;
 
     public final static ExecutorService SINGLE = createSinglePool();
     public final static ExecutorService DEFAULT = createDefaultPool();
-    public final static ScheduledExecutorService SCHEDULED = createScheduledPool(Integer.parseInt(ApocConfiguration.get("jobs.scheduled.num_threads", DEFAULT_NUM_OF_THREADS)));
+    public final static ScheduledExecutorService SCHEDULED = createScheduledPool();
     public static JobScheduler NEO4J_SCHEDULER = null;
 
     private Pools() {
@@ -22,7 +28,7 @@ public class Pools {
     }
 
     public static ExecutorService createDefaultPool() {
-        int threads = Runtime.getRuntime().availableProcessors()*2;
+        int threads = getNoThreadsInDefaultPool();
         int queueSize = threads * 25;
         return new ThreadPoolExecutor(threads / 2, threads, 30L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(queueSize),
                 new CallerBlocksPolicy());
@@ -45,15 +51,20 @@ public class Pools {
     }
 
     public static int getNoThreadsInDefaultPool() {
-        return  Runtime.getRuntime().availableProcessors();
+        Integer maxThreads = Util.toInteger(ApocConfiguration.get(CONFIG_JOBS_POOL_NUM_THREADS, DEFAULT_POOL_THREADS));
+        return Math.max(1, maxThreads == null ? DEFAULT_POOL_THREADS : maxThreads);
+    }
+    public static int getNoThreadsInScheduledPool() {
+        Integer maxThreads = Util.toInteger(ApocConfiguration.get(CONFIG_JOBS_SCHEDULED_NUM_THREADS, DEFAULT_SCHEDULED_THREADS));
+        return Math.max(1, maxThreads == null ? DEFAULT_POOL_THREADS : maxThreads);
     }
 
     private static ExecutorService createSinglePool() {
         return Executors.newSingleThreadExecutor();
     }
 
-    private static ScheduledExecutorService createScheduledPool(int numOfThreads) {
-        return Executors.newScheduledThreadPool(Math.max(1, numOfThreads));
+    private static ScheduledExecutorService createScheduledPool() {
+        return Executors.newScheduledThreadPool(getNoThreadsInScheduledPool());
     }
 
     public static <T> Future<Void> processBatch(List<T> batch, GraphDatabaseService db, Consumer<T> action) {
