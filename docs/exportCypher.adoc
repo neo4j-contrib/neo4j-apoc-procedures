@@ -23,7 +23,10 @@ Format and cypherFormat can be used both in the same query giving you complete c
 
 [source,cypher]
 ----
-call apoc.export.cypher.query("MATCH (e)","/tmp/theExportFile", {format:'plain',cypherFormat:'updateStructure'})`
+call apoc.export.cypher.query(
+"MATCH (p1:Person)-[r:KNOWS]->(p2:Person) RETURN p1,r,p2",
+"/tmp/theExportFile", 
+{format:'plain',cypherFormat:'updateStructure'})`
 ----
 
 // tag::export.cypher[]
