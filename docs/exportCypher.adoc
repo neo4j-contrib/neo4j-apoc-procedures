@@ -14,10 +14,10 @@ By default the format is `neo4j-shell`.
 It is possible to choose between four cypher export formats:
 To change the cypher export format, you have to set it on the config params like `{cypherFormat: "updateAll"}`
 
-* "create": all CREATE
-* "updateAll": MERGE instead of CREATE
-* "addStructure": MATCH for nodes + MERGE for rels
-* "updateStructure": MERGE + MATCH for nodes and rels
+* `create`: all CREATE
+* `updateAll`: MERGE instead of CREATE
+* `addStructure`: MATCH for nodes + MERGE for rels
+* `updateStructure`: MERGE + MATCH for nodes and rels
 
 Format and cypherFormat can be used both in the same query giving you complete control over the exact export format:
 
