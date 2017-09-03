@@ -62,7 +62,7 @@ public class SpatialTest {
         TestUtil.registerProcedure(db, Date.class);
         TestUtil.registerProcedure(db, MockGeocode.class);
         URL url = ClassLoader.getSystemResource("spatial.json");
-        Map tests = (Map) JsonUtil.loadJson(url.toString());
+        Map tests = (Map) JsonUtil.loadJson(url.toString()).findFirst().orElse(null);
         for (Object event : (List) tests.get("events")) {
             addEventData((Map) event);
         }
