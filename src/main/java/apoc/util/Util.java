@@ -591,4 +591,12 @@ public class Util {
             futures.removeIf(Future::isDone);
         }
     }
+
+    public static void close(Closeable closeable) {
+        try {
+            if (closeable!=null) closeable.close();
+        } catch (IOException e) {
+            // ignore
+        }
+    }
 }

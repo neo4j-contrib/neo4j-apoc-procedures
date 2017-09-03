@@ -25,13 +25,15 @@ public class LoadJson {
     @Procedure
     @Description("apoc.load.jsonArray('url') YIELD value - load array from JSON URL (e.g. web-api) to import JSON as stream of values")
     public Stream<ObjectResult> jsonArray(@Name("url") String url, @Name(value = "path",defaultValue = "") String path) {
-        Object value = JsonUtil.loadJson(url,null,null,path);
-        if (value instanceof List) {
-            List list = (List) value;
-            if (list.isEmpty()) return Stream.empty();
-            if (list.get(0) instanceof Map) return list.stream().map(ObjectResult::new);
-        }
-        return Stream.of(new ObjectResult(value));
+        return JsonUtil.loadJson(url, null, null, path)
+                .flatMap((value) -> {
+                    if (value instanceof List) {
+                        List list = (List) value;
+                        if (list.isEmpty()) return Stream.empty();
+                        if (list.get(0) instanceof Map) return list.stream().map(ObjectResult::new);
+                    }
+                    return Stream.of(new ObjectResult(value));
+                });
         // throw new RuntimeException("Incompatible Type " + (value == null ? "null" : value.getClass()));
     }
 
@@ -54,17 +56,19 @@ public class LoadJson {
     public static Stream<MapResult> loadJsonStream(@Name("url") String url, @Name("headers") Map<String, Object> headers, @Name("payload") String payload, String path) {
         headers = null != headers ? headers : new HashMap<>();
         headers.putAll(extractCredentialsIfNeeded(url));
-        Object value = JsonUtil.loadJson(url,headers,payload, path);
-        if (value instanceof Map) {
-            return Stream.of(new MapResult((Map) value));
-        }
-        if (value instanceof List) {
-            if (((List)value).isEmpty()) return Stream.empty();
-            if (((List) value).get(0) instanceof Map)
-                return ((List) value).stream().map((v) -> new MapResult((Map) v));
-            return Stream.of(new MapResult(Collections.singletonMap("result",value)));
-        }
-        throw new RuntimeException("Incompatible Type " + (value == null ? "null" : value.getClass()));
+        Stream<Object> stream = JsonUtil.loadJson(url,headers,payload, path);
+        return stream.flatMap((value) -> {
+            if (value instanceof Map) {
+                return Stream.of(new MapResult((Map) value));
+            }
+            if (value instanceof List) {
+                if (((List)value).isEmpty()) return Stream.empty();
+                if (((List) value).get(0) instanceof Map)
+                    return ((List) value).stream().map((v) -> new MapResult((Map) v));
+                return Stream.of(new MapResult(Collections.singletonMap("result",value)));
+            }
+            throw new RuntimeException("Incompatible Type " + (value == null ? "null" : value.getClass()));
+        });
     }
 
     private static Map<String, Object> extractCredentialsIfNeeded(String url) {

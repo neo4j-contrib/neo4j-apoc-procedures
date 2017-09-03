@@ -102,7 +102,7 @@ public class Geocode {
         public Stream<GeoCodeResult> geocode(String address, long maxResults) {
             throttler.waitForThrottle();
             String url = urlTemplate.replace("PLACE", Util.encodeUrlComponent(address));
-            Object value = JsonUtil.loadJson(url);
+            Object value = JsonUtil.loadJson(url).findFirst().orElse(null);
             if (value instanceof List) {
                 return findResults((List<Map<String, Object>>) value, maxResults);
             } else if (value instanceof Map) {
@@ -154,7 +154,7 @@ public class Geocode {
         @SuppressWarnings("unchecked")
         public Stream<GeoCodeResult> geocode(String address, long maxResults) {
             throttler.waitForThrottle();
-            Object value = JsonUtil.loadJson(OSM_URL + Util.encodeUrlComponent(address));
+            Object value = JsonUtil.loadJson(OSM_URL + Util.encodeUrlComponent(address)).findFirst().orElse(null);
             if (value instanceof List) {
                 return ((List<Map<String, Object>>) value).stream().limit(maxResults).map(data ->
                         new GeoCodeResult(toDouble(data.get("lat")), toDouble(data.get("lon")), valueOf(data.get("display_name")), data));
@@ -188,7 +188,7 @@ public class Geocode {
                 return Stream.empty();
             }
             throttler.waitForThrottle();
-            Object value = JsonUtil.loadJson(baseUrl + Util.encodeUrlComponent(address));
+            Object value = JsonUtil.loadJson(baseUrl + Util.encodeUrlComponent(address)).findFirst().orElse(null);
             if (value instanceof Map) {
                 Object results = ((Map) value).get("results");
                 if (results instanceof List) {

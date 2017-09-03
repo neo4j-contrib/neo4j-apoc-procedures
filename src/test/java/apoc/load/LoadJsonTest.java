@@ -13,11 +13,13 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 public class LoadJsonTest {
 
@@ -36,6 +38,29 @@ public class LoadJsonTest {
 		testCall(db, "CALL apoc.load.json({url})",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
                 (row) -> {
                     assertEquals(map("foo",asList(1,2,3)), row.get("value"));
+                });
+    }
+
+    @Test public void testLoadMultiJson() throws Exception {
+		URL url = ClassLoader.getSystemResource("multi.json");
+		testResult(db, "CALL apoc.load.json({url})",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
+                (result) -> {
+                    Map<String, Object> row = result.next();
+                    assertEquals(map("foo",asList(1,2,3)), row.get("value"));
+                    row = result.next();
+                    assertEquals(map("bar",asList(4,5,6)), row.get("value"));
+                    assertFalse(result.hasNext());
+                });
+    }
+    @Test public void testLoadMultiJsonPaths() throws Exception {
+		URL url = ClassLoader.getSystemResource("multi.json");
+		testResult(db, "CALL apoc.load.json({url},'$')",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
+                (result) -> {
+                    Map<String, Object> row = result.next();
+                    assertEquals(map("foo",asList(1,2,3)), row.get("value"));
+                    row = result.next();
+                    assertEquals(map("bar",asList(4,5,6)), row.get("value"));
+                    assertFalse(result.hasNext());
                 });
     }
     @Test public void testLoadJsonPath() throws Exception {

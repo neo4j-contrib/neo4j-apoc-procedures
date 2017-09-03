@@ -55,7 +55,7 @@ public class Gephi {
         HashSet<Relationship> rels = new HashSet<>(10000);
         if (Graphs.extract(data, nodes, rels)) {
             String payload = toGephiStreaming(nodes, rels, weightproperty);
-            JsonUtil.loadJson(url,map("method","POST"), payload);
+            JsonUtil.loadJson(url,map("method","POST"), payload).count();
             return Stream.of(new ProgressInfo(url,"graph","gephi").update(nodes.size(),rels.size(),nodes.size()).done(start));
         }
         return Stream.empty();
