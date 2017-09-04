@@ -12,6 +12,7 @@ import java.net.URLEncoder;
 import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -219,11 +220,10 @@ public class Strings {
     public String random(final @Name("length") long length, @Name(value = "valid", defaultValue = "A-Za-z0-9") String valid) {
         valid = valid.replaceAll("A-Z", upper).replaceAll("a-z", lower).replaceAll("0-9", numeric);
 
-        SecureRandom rnd = new SecureRandom();
         StringBuilder output = new StringBuilder( toIntExact(length) );
 
         while ( output.length() < length ) {
-            output.append( valid.charAt( rnd.nextInt(valid.length()) ) );
+            output.append( valid.charAt( ThreadLocalRandom.current().nextInt(valid.length()) ) );
         }
 
         return output.toString();
