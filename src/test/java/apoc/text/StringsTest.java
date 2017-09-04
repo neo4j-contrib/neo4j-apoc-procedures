@@ -31,7 +31,6 @@ public class StringsTest {
     @Rule
     public ExpectedException thrown= ExpectedException.none();
 
-
     @BeforeClass
     public static void setUp() throws Exception
     {
@@ -150,7 +149,6 @@ public class StringsTest {
                 map("texts",texts,"delimiter",delimiter),
                 row -> assertEquals(expected, row.get("value")));
     }
-
 
     @Test public void testCleanWithNull() throws Exception {
         testCall(db,
@@ -276,7 +274,6 @@ public class StringsTest {
         );
     }
 
-
     @Test
     public void testLPad() {
         testCall(db, "RETURN apoc.text.lpad('ab',4,' ')    AS value", row -> assertEquals("  ab", row.get("value")));
@@ -318,7 +315,7 @@ public class StringsTest {
         testCall(db, "RETURN apoc.text.regexGroups(null,'<link (\\\\w+)>(\\\\w+)</link>') AS result", row -> { });
         testCall(db, "RETURN apoc.text.regexGroups('abc',null) AS result", row -> { });
     }
-    
+
     @Test
     public void testSlug() {
         testCall(db, "RETURN apoc.text.slug('a-b','-') AS value", row -> assertEquals("a-b", row.get("value")));
@@ -333,7 +330,7 @@ public class StringsTest {
     @Test
     public void testRandom() {
         Long length = 10L;
-        String valid = "A-Z0-9.";
+        String valid = "A-Z0-9";
 
         testCall(
                 db,
@@ -342,11 +339,10 @@ public class StringsTest {
                 row -> {
                     String value = row.get("value").toString();
 
-                    Pattern pattern = Pattern.compile("^"+valid+"$");
+                    Pattern pattern = Pattern.compile("^(["+valid+"]{"+ toIntExact(length) +"})$");
                     Matcher matcher = pattern.matcher(value);
 
-                    assertEquals(toIntExact(length), value.length());
-                    assertTrue(matcher.matches());
+                    assertTrue("String +" +value+ "+ should match the supplied pattern "+ pattern.toString(), matcher.matches());
                 }
         );
     }
@@ -362,7 +358,6 @@ public class StringsTest {
                 row -> assertEquals("Neo4j", row.get("value").toString())
         );
     }
-
 
     @Test
     public void testCapitalizeAll() {
@@ -383,9 +378,9 @@ public class StringsTest {
 
         testCall(
                 db,
-                "RETURN apoc.text.capitalizeAll({text}) as value",
+                "RETURN apoc.text.decapitalize({text}) as value",
                 map("text", text),
-                row -> assertEquals("graph database", row.get("value").toString())
+                row -> assertEquals("graph Database", row.get("value").toString())
 
         );
     }
@@ -405,41 +400,32 @@ public class StringsTest {
 
     @Test
     public void testCamelCase() {
-        String text = "test Camel case";
-
-        testCall(
-                db,
-                "RETURN apoc.text.swapCase({text}) as value",
-                map("text", text),
-                row -> assertEquals("testCamelCase", row.get("value").toString())
-
-        );
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "FOO_BAR"), row -> assertEquals("fooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "Foo bar"), row -> assertEquals("fooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "Foo22 bar"), row -> assertEquals("foo22Bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "foo-bar"), row -> assertEquals("fooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "Foobar"), row -> assertEquals("foobar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "Foo$$Bar"), row -> assertEquals("fooBar", row.get("value").toString()));
     }
-
 
     @Test
     public void testSnakeCase() {
-        String text = "test snake CASE";
-
-        testCall(
-                db,
-                "RETURN apoc.text.snakeCase({text}) as value",
-                map("text", text),
-                row -> assertEquals("test-snake-case", row.get("value").toString())
-
-        );
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "test Snake Case"), row -> assertEquals("test-snake-case", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "FOO_BAR"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "Foo bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "fooBar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "foo-bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "Foo bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "Foo  bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
     }
 
     @Test
     public void testToUpperCase() {
-        String text = "test upper CASE";
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "test upper CASE"), row -> assertEquals("TEST_UPPER_CASE", row.get("value").toString()));
 
-        testCall(
-                db,
-                "RETURN apoc.text.toUpperCase({text}) as value",
-                map("text", text),
-                row -> assertEquals("TEST_UPPER_CASE", row.get("value").toString())
-
-        );
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "FooBar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "fooBar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo-bar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
     }
+
 }
