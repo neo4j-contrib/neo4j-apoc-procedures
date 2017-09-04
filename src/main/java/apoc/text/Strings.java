@@ -307,11 +307,11 @@ public class Strings {
         for (String part : parts) {
             part = part.trim();
 
-            if (output.length() > 0) {
-                output.append("-");
-            }
-
             if (part.length() > 0) {
+                if (output.length() > 0) {
+                    output.append("-");
+                }
+
                 output.append( part.toLowerCase().trim().replace("(^[a-z0-9]+)", "-") );
             }
         }
@@ -328,10 +328,15 @@ public class Strings {
         for (String part : parts) {
             part = part.trim();
 
+            if (part.length() > 0) {
+                if (output.length() > 0) {
+                    output.append("_");
+                }
 
+                output.append(part.toUpperCase().replaceAll("[^A-Z0-9]", ""));
+            }
+        }
 
-            text = text.toUpperCase();
-
-        return text.replaceAll(" ", "_");
+        return output.toString();
     }
 }
