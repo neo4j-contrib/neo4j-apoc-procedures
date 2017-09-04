@@ -222,8 +222,10 @@ public class Strings {
 
         StringBuilder output = new StringBuilder( toIntExact(length) );
 
+        ThreadLocalRandom rand = ThreadLocalRandom.current();
+
         while ( output.length() < length ) {
-            output.append( valid.charAt( ThreadLocalRandom.current().nextInt(valid.length()) ) );
+            output.append( valid.charAt( rand.nextInt(valid.length()) ) );
         }
 
         return output.toString();
