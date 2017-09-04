@@ -238,13 +238,37 @@ public class Strings {
     @UserFunction
     @Description("apoc.text.capitalizeAll(text) YIELD value - capitalise the first letter of every word in the text")
     public String capitalizeAll(@Name("text") String text) {
-        return WordUtils.capitalizeFully(text);
+        String[] parts = text.split(" ");
+
+        StringBuilder output = new StringBuilder();
+
+        for (String part : parts) {
+            output.append( StringUtils.capitalize(part) + " " );
+
+        }
+
+        return output.toString().trim();
     }
 
     @UserFunction
     @Description("apoc.text.decapitalize(text) YIELD value - decapitalize the first letter of the word")
     public String decapitalize(@Name("text") String text) {
         return StringUtils.uncapitalize(text);
+    }
+
+    @UserFunction
+    @Description("apoc.text.decapitalizeAll(text) YIELD value - decapitalize the first letter of the word")
+    public String decapitalizeAll(@Name("text") String text) {
+        String[] parts = text.split(" ");
+
+        StringBuilder output = new StringBuilder();
+
+        for (String part : parts) {
+            output.append( StringUtils.uncapitalize(part) + " " );
+
+        }
+
+        return output.toString().trim();
     }
 
     @UserFunction
@@ -256,24 +280,57 @@ public class Strings {
     @UserFunction
     @Description("apoc.text.camelCase(text) YIELD value - Convert a string to camelCase")
     public String camelCase(@Name("text") String text) {
-        String converted = WordUtils.capitalizeFully(text);
-        converted = converted.substring(0, 1).toUpperCase() + converted.substring(1);
+        text = text.replaceAll("([^A-Za-z0-9])", " ");
 
-        return converted.replaceAll(" ", "");
+        String[] parts = text.split("(\\s)");
+        StringBuilder output = new StringBuilder();
+
+        for (String part : parts) {
+            part = part.toLowerCase().replaceAll("([^a-z0-9]+)", "");
+            output.append( StringUtils.capitalize( part ) );
+        }
+
+        return output.substring(0, 1).toLowerCase() + output.substring(1);
     }
 
     @UserFunction
     @Description("apoc.text.snakeCase(text) YIELD value - Convert a string to snake-case")
     public String snakeCase(@Name("text") String text) {
-        text = text.toLowerCase();
+        // Convert Snake Case
+        if ( text.matches("^([A-Z0-9_]+)$") ) {
+            text = text.toLowerCase().replace("_", " ");
+        }
 
-        return text.replaceAll(" ", "-");
+        String[] parts = text.split("(?=[^a-z0-9])");
+        StringBuilder output = new StringBuilder();
+
+        for (String part : parts) {
+            part = part.trim();
+
+            if (output.length() > 0) {
+                output.append("-");
+            }
+
+            if (part.length() > 0) {
+                output.append( part.toLowerCase().trim().replace("(^[a-z0-9]+)", "-") );
+            }
+        }
+
+        return output.toString().toLowerCase().replaceAll("--", "-");
     }
 
     @UserFunction
     @Description("apoc.text.toUpperCase(text) YIELD value - Convert a string to UPPER_CASE")
     public String toUpperCase(@Name("text") String text) {
-        text = text.toUpperCase();
+        String[] parts = text.split("(?=[^a-z0-9])");
+        StringBuilder output = new StringBuilder();
+
+        for (String part : parts) {
+            part = part.trim();
+
+
+
+            text = text.toUpperCase();
 
         return text.replaceAll(" ", "_");
     }
