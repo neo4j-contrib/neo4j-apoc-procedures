@@ -289,6 +289,7 @@ public class Strings {
 
         for (String part : parts) {
             part = part.toLowerCase();
+
             output.append( StringUtils.capitalize( part ) );
         }
 
