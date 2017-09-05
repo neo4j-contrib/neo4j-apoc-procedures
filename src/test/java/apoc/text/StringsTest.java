@@ -409,6 +409,16 @@ public class StringsTest {
     }
 
     @Test
+    public void testUpperCamelCase() {
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "FOO_BAR"), row -> assertEquals("FooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "Foo bar"), row -> assertEquals("FooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "Foo22 bar"), row -> assertEquals("Foo22Bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "foo-bar"), row -> assertEquals("FooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "Foobar"), row -> assertEquals("Foobar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "Foo$$Bar"), row -> assertEquals("FooBar", row.get("value").toString()));
+    }
+
+    @Test
     public void testSnakeCase() {
         testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "test Snake Case"), row -> assertEquals("test-snake-case", row.get("value").toString()));
         testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "FOO_BAR"), row -> assertEquals("foo-bar", row.get("value").toString()));

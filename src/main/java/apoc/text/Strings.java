@@ -282,17 +282,25 @@ public class Strings {
     @UserFunction
     @Description("apoc.text.camelCase(text) YIELD value - Convert a string to camelCase")
     public String camelCase(@Name("text") String text) {
-        text = text.replaceAll("([^A-Za-z0-9])", " ");
+        text = text.replaceAll("\\W|_+", " ");
 
         String[] parts = text.split("(\\s)");
         StringBuilder output = new StringBuilder();
 
         for (String part : parts) {
-            part = part.toLowerCase().replaceAll("([^a-z0-9]+)", "");
+            part = part.toLowerCase().replaceAll("\\W+", "");
             output.append( StringUtils.capitalize( part ) );
         }
 
         return output.substring(0, 1).toLowerCase() + output.substring(1);
+    }
+
+    @UserFunction
+    @Description("apoc.text.upperCamelCase(text) YIELD value - Convert a string to camelCase")
+    public String upperCamelCase(@Name("text") String text) {
+        String output = camelCase(text);
+
+        return output.substring(0, 1).toUpperCase() + output.substring(1);
     }
 
     @UserFunction
