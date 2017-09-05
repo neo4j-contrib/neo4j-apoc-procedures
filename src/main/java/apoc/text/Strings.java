@@ -284,11 +284,11 @@ public class Strings {
     public String camelCase(@Name("text") String text) {
         text = text.replaceAll("\\W|_+", " ");
 
-        String[] parts = text.split("(\\s)");
+        String[] parts = text.split("(\\s+)");
         StringBuilder output = new StringBuilder();
 
         for (String part : parts) {
-            part = part.toLowerCase().replaceAll("\\W+", "");
+            part = part.toLowerCase();
             output.append( StringUtils.capitalize( part ) );
         }
 
