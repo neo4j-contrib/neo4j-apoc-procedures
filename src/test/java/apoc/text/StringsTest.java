@@ -435,6 +435,8 @@ public class StringsTest {
         testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "FooBar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
         testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "fooBar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
         testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo-bar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo--bar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo$$bar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
         testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo 22 bar"), row -> assertEquals("FOO_22_BAR", row.get("value").toString()));
     }
 

@@ -332,18 +332,18 @@ public class Strings {
     @UserFunction
     @Description("apoc.text.toUpperCase(text) YIELD value - Convert a string to UPPER_CASE")
     public String toUpperCase(@Name("text") String text) {
-        String[] parts = text.split("(?=[^a-z0-9])");
+        String[] parts = text.split("(?=[^a-z0-9]+)");
         StringBuilder output = new StringBuilder();
 
         for (String part : parts) {
-            part = part.trim();
+            part = part.trim().toUpperCase().replaceAll("[^A-Z0-9]+", "");
 
             if (part.length() > 0) {
                 if (output.length() > 0) {
                     output.append("_");
                 }
 
-                output.append(part.toUpperCase().replaceAll("[^A-Z0-9]", ""));
+                output.append(part);
             }
         }
 
