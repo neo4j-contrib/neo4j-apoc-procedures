@@ -31,6 +31,14 @@ public class VirtualRelationship implements Relationship {
         this.type = type;
     }
 
+    public VirtualRelationship(long id, Node startNode, Node endNode, RelationshipType type, Map<String, Object> props) {
+        this.id = id;
+        this.startNode = startNode;
+        this.endNode = endNode;
+        this.type = type;
+        this.props.putAll(props);
+    }
+
     @Override
     public long getId() {
         return id;
