@@ -69,7 +69,7 @@ public class UtilTest {
         assertEquals(10,Util.partitionSubList(list,11).count());
         assertEquals(10,Util.partitionSubList(list,20).count());
     }
-    
+
     @Test
     public void cleanPassword() throws Exception {
         String url = "http://%slocalhost:7474/path?query#ref";
