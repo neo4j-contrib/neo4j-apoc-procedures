@@ -176,6 +176,10 @@ include::schema.adoc[leveloffset=2]
 
 include::atomic.adoc[leveloffset=1]
 
+== Bolt
+
+include::bolt.adoc[leveloffset=1]
+
 == Appendix: Complete Overview
 
 include::overview.adoc[tags=overview,leveloffset=1]

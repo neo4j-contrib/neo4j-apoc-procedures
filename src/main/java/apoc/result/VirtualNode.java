@@ -39,6 +39,13 @@ public class VirtualNode implements Node {
         this.props.putAll(props);
     }
 
+    public VirtualNode(long nodeId, Label[] labels, Map<String, Object> props, GraphDatabaseService db) {
+        this.id = nodeId;
+        this.db = db;
+        this.labels.addAll(asList(labels));
+        this.props.putAll(props);
+    }
+
     public VirtualNode(long nodeId, GraphDatabaseService db) {
         this.id = nodeId;
         this.db = db;
