@@ -36,10 +36,9 @@ def collectNeo4jReleases() {
  * - if there is no available version of APOC for a given NEO4j release than take the prior available version of APOC
  */
 task versions {
-    if (System.getProperty("offline") != null) return
     def neo4jReleases = collectNeo4jReleases()
 
-    def slurper = groovy.json.JsonSlurper()
+    def slurper = new JsonSlurper()
 
     // get tags
     def pattern = ~/(?m)ext\s*\{\s*neo4jVersion\s*=\s*"(.*)".*/
@@ -74,7 +73,6 @@ task versions {
         def backwardApocVersion
         // If there is no APOC release for a Neo4j release we have to guess which one to associate
         if (!neo4jToApoc.containsKey(neo4jRelease)) {
-            println "missing APOC for " + neo4jRelease + " j = " + j
             // Handle latest release if not present
             if (j == 0) {
                 // Get the latest release of APOC and put as default for the latest release of Neo4j
@@ -99,14 +97,17 @@ task versions {
             }
         }
 
-        def version = "{\n" +
-                "      \"neo4j\": \"" + neo4jRelease + "\",\n" +
-                "        \"apoc\": \"" + neo4jToApoc[neo4jRelease] + "\",\n" +
-                "        \"url\": \"http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/" + neo4jToApoc[neo4jRelease] + "\",\n" +
-                "        \"jar\": \"https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/" + neo4jToApoc[neo4jRelease] + "/apoc-" + neo4jToApoc[neo4jRelease] + "-all.jar\"\n" +
-                "}"
+        // We skip all the releases prior to Neo4j 3.x version (that is 2.x)
+        if (neo4jRelease.substring(0, neo4jRelease.indexOf(".")) >= "3") {
+            def version = "{\n" +
+                    "      \"neo4j\": \"" + neo4jRelease + "\",\n" +
+                    "        \"apoc\": \"" + neo4jToApoc[neo4jRelease] + "\",\n" +
+                    "        \"url\": \"http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/" + neo4jToApoc[neo4jRelease] + "\",\n" +
+                    "        \"jar\": \"https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/" + neo4jToApoc[neo4jRelease] + "/apoc-" + neo4jToApoc[neo4jRelease] + "-all.jar\"\n" +
+                    "}"
 
-        versions.add(slurper.parseText(version))
+            versions.add(slurper.parseText(version))
+        }
     }
 
     def versionsFile = new File("build/versions.json")
