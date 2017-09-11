@@ -258,7 +258,7 @@ public class Strings {
     }
 
     @UserFunction
-    @Description("apoc.text.decapitalizeAll(text) YIELD value - decapitalize the first letter of the word")
+    @Description("apoc.text.decapitalizeAll(text) YIELD value - decapitalize the first letter of all words")
     public String decapitalizeAll(@Name("text") String text) {
         String[] parts = text.split(" ");
 
