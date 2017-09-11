@@ -350,4 +350,96 @@ public class StringsTest {
                 }
         );
     }
+    @Test
+    public void testCapitalize() {
+        String text = "neo4j";
+
+        testCall(
+                db,
+                "RETURN apoc.text.capitalize({text}) as value",
+                map("text", text),
+                row -> assertEquals("Neo4j", row.get("value").toString())
+        );
+    }
+
+    @Test
+    public void testCapitalizeAll() {
+        String text = "graph database";
+
+        testCall(
+                db,
+                "RETURN apoc.text.capitalizeAll({text}) as value",
+                map("text", text),
+                row -> assertEquals("Graph Database", row.get("value").toString())
+
+        );
+    }
+
+    @Test
+    public void testDecapitalize() {
+        String text = "Graph Database";
+
+        testCall(
+                db,
+                "RETURN apoc.text.decapitalize({text}) as value",
+                map("text", text),
+                row -> assertEquals("graph Database", row.get("value").toString())
+
+        );
+    }
+
+    @Test
+    public void testSwapCase() {
+        String text = "Neo4j";
+
+        testCall(
+                db,
+                "RETURN apoc.text.swapCase({text}) as value",
+                map("text", text),
+                row -> assertEquals("nEO4J", row.get("value").toString())
+
+        );
+    }
+
+    @Test
+    public void testCamelCase() {
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "FOO_BAR"), row -> assertEquals("fooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "Foo bar"), row -> assertEquals("fooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "Foo22 bar"), row -> assertEquals("foo22Bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "foo-bar"), row -> assertEquals("fooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "Foobar"), row -> assertEquals("foobar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "Foo$$Bar"), row -> assertEquals("fooBar", row.get("value").toString()));
+    }
+
+    @Test
+    public void testUpperCamelCase() {
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "FOO_BAR"), row -> assertEquals("FooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "Foo bar"), row -> assertEquals("FooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "Foo22 bar"), row -> assertEquals("Foo22Bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "foo-bar"), row -> assertEquals("FooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "Foobar"), row -> assertEquals("Foobar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "Foo$$Bar"), row -> assertEquals("FooBar", row.get("value").toString()));
+    }
+
+    @Test
+    public void testSnakeCase() {
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "test Snake Case"), row -> assertEquals("test-snake-case", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "FOO_BAR"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "Foo bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "fooBar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "foo-bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "Foo bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "Foo  bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+    }
+
+    @Test
+    public void testToUpperCase() {
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "test upper case"), row -> assertEquals("TEST_UPPER_CASE", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "FooBar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "fooBar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo-bar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo--bar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo$$bar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo 22 bar"), row -> assertEquals("FOO_22_BAR", row.get("value").toString()));
+    }
 }
