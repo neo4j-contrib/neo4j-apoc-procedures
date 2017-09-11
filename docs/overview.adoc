@@ -757,6 +757,16 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.text.lpad(text,count,delim) | left pad the string to the given width
 | apoc.text.rpad(text,count,delim) | right pad the string to the given width
 | apoc.data.domain(email_or_url) | returns domain part of the value
+| apoc.text.random(length, [valid]) | returns a random string to the specified length
+| apoc.text.capitalize(text) | capitalise the first letter of the word
+| apoc.text.capitalizeAll(text) | capitalise the first letter of every word in the text
+| apoc.text.decapitalize(text) | decapitalize the first letter of the word
+| apoc.text.apoc.text.decapitalizeAll(text) | decapitalize the first letter of all words
+| apoc.text.swapCase(text) | Swap the case of a string
+| apoc.text.camelCase(text) | Convert a string to camelCase
+| apoc.text.upperCamelCase(text) | Convert a string to UpperCamelCase
+| apoc.text.snakeCase(text) | Convert a string to snake-case
+| apoc.text.toUpperCase(text) | Convert a string to UPPER_CASE
 |===
 
 === Phonetic Comparison Functions
