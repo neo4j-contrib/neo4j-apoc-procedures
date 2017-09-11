@@ -9,13 +9,18 @@ import org.neo4j.procedure.UserFunction;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
+import java.security.SecureRandom;
 import java.text.Normalizer;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.WordUtils;
+
+import static java.lang.Math.toIntExact;
 import static java.util.Arrays.asList;
 
 /**
@@ -204,5 +209,145 @@ public class Strings {
         if (text == null) return null;
         if (delim == null) return null;
         return text.trim().replaceAll("[\\W\\s]+", delim);
+    }
+
+    private static final String lower = "abcdefghijklmnopqrstuvwxyz";
+    private static final String upper = lower.toUpperCase();
+    private static final String numeric = "0123456789";
+
+    @UserFunction
+    @Description("apoc.text.random(length, valid) YIELD value - generate a random string")
+    public String random(final @Name("length") long length, @Name(value = "valid", defaultValue = "A-Za-z0-9") String valid) {
+        valid = valid.replaceAll("A-Z", upper).replaceAll("a-z", lower).replaceAll("0-9", numeric);
+
+        StringBuilder output = new StringBuilder( toIntExact(length) );
+
+        ThreadLocalRandom rand = ThreadLocalRandom.current();
+
+        while ( output.length() < length ) {
+            output.append( valid.charAt( rand.nextInt(valid.length()) ) );
+        }
+
+        return output.toString();
+    }
+
+    @UserFunction
+    @Description("apoc.text.capitalize(text) YIELD value - capitalise the first letter of the word")
+    public String capitalize(@Name("text") String text) {
+        return text.substring(0, 1).toUpperCase() + text.substring(1);
+    }
+
+    @UserFunction
+    @Description("apoc.text.capitalizeAll(text) YIELD value - capitalise the first letter of every word in the text")
+    public String capitalizeAll(@Name("text") String text) {
+        String[] parts = text.split(" ");
+
+        StringBuilder output = new StringBuilder();
+
+        for (String part : parts) {
+            output.append( StringUtils.capitalize(part) + " " );
+
+        }
+
+        return output.toString().trim();
+    }
+
+    @UserFunction
+    @Description("apoc.text.decapitalize(text) YIELD value - decapitalize the first letter of the word")
+    public String decapitalize(@Name("text") String text) {
+        return StringUtils.uncapitalize(text);
+    }
+
+    @UserFunction
+    @Description("apoc.text.decapitalizeAll(text) YIELD value - decapitalize the first letter of the word")
+    public String decapitalizeAll(@Name("text") String text) {
+        String[] parts = text.split(" ");
+
+        StringBuilder output = new StringBuilder();
+
+        for (String part : parts) {
+            output.append( StringUtils.uncapitalize(part) + " " );
+
+        }
+
+        return output.toString().trim();
+    }
+
+    @UserFunction
+    @Description("apoc.text.swapCase(text) YIELD value - Swap the case of a string")
+    public String swapCase(@Name("text") String text) {
+        return StringUtils.swapCase(text);
+    }
+
+    @UserFunction
+    @Description("apoc.text.camelCase(text) YIELD value - Convert a string to camelCase")
+    public String camelCase(@Name("text") String text) {
+        text = text.replaceAll("\\W|_+", " ");
+
+        String[] parts = text.split("(\\s+)");
+        StringBuilder output = new StringBuilder();
+
+        for (String part : parts) {
+            part = part.toLowerCase();
+
+            output.append( StringUtils.capitalize( part ) );
+        }
+
+        return output.substring(0, 1).toLowerCase() + output.substring(1);
+    }
+
+    @UserFunction
+    @Description("apoc.text.upperCamelCase(text) YIELD value - Convert a string to camelCase")
+    public String upperCamelCase(@Name("text") String text) {
+        String output = camelCase(text);
+
+        return output.substring(0, 1).toUpperCase() + output.substring(1);
+    }
+
+    @UserFunction
+    @Description("apoc.text.snakeCase(text) YIELD value - Convert a string to snake-case")
+    public String snakeCase(@Name("text") String text) {
+        // Convert Snake Case
+        if ( text.matches("^([A-Z0-9_]+)$") ) {
+            text = text.toLowerCase().replace("_", " ");
+        }
+
+        String[] parts = text.split("(?=[^a-z0-9])");
+        StringBuilder output = new StringBuilder();
+
+        for (String part : parts) {
+            part = part.trim();
+
+            if (part.length() > 0) {
+                if (output.length() > 0) {
+                    output.append("-");
+                }
+
+                output.append( part.toLowerCase().trim().replace("(^[a-z0-9]+)", "-") );
+            }
+        }
+
+        return output.toString().toLowerCase().replaceAll("--", "-");
+    }
+
+    @UserFunction
+    @Description("apoc.text.toUpperCase(text) YIELD value - Convert a string to UPPER_CASE")
+    public String toUpperCase(@Name("text") String text) {
+        String[] parts = text.split("(?=[^a-z0-9]+)");
+        StringBuilder output = new StringBuilder();
+
+        for (String part : parts) {
+            part = part.trim().toUpperCase().replaceAll("[^A-Z0-9]+", "");
+
+            if (part.length() > 0) {
+                if (output.length() > 0) {
+                    output.append("_");
+                }
+
+                output.append(part);
+            }
+        }
+
+        return output.toString();
     }
 }

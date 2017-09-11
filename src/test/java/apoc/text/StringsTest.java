@@ -12,10 +12,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static java.lang.Math.toIntExact;
 import static org.junit.Assert.*;
 
 /**
@@ -27,7 +30,6 @@ public class StringsTest {
 
     @Rule
     public ExpectedException thrown= ExpectedException.none();
-
 
     @BeforeClass
     public static void setUp() throws Exception
@@ -147,7 +149,6 @@ public class StringsTest {
                 map("texts",texts,"delimiter",delimiter),
                 row -> assertEquals(expected, row.get("value")));
     }
-
 
     @Test public void testCleanWithNull() throws Exception {
         testCall(db,
@@ -273,7 +274,6 @@ public class StringsTest {
         );
     }
 
-
     @Test
     public void testLPad() {
         testCall(db, "RETURN apoc.text.lpad('ab',4,' ')    AS value", row -> assertEquals("  ab", row.get("value")));
@@ -315,7 +315,7 @@ public class StringsTest {
         testCall(db, "RETURN apoc.text.regexGroups(null,'<link (\\\\w+)>(\\\\w+)</link>') AS result", row -> { });
         testCall(db, "RETURN apoc.text.regexGroups('abc',null) AS result", row -> { });
     }
-    
+
     @Test
     public void testSlug() {
         testCall(db, "RETURN apoc.text.slug('a-b','-') AS value", row -> assertEquals("a-b", row.get("value")));
@@ -326,4 +326,118 @@ public class StringsTest {
         testCall(db, "RETURN apoc.text.slug('a- b','-') AS value", row -> assertEquals("a-b", row.get("value")));
         testCall(db, "RETURN apoc.text.slug('a b c') AS value", row -> assertEquals("a-b-c", row.get("value")));
     }
+
+    @Test
+    public void testRandom() {
+        Long length = 10L;
+        String valid = "A-Z0-9";
+
+        testCall(
+                db,
+                "RETURN apoc.text.random({length}, {valid}) as value",
+                map("length", length, "valid", valid),
+                row -> {
+                    String value = row.get("value").toString();
+
+                    Pattern pattern = Pattern.compile("^(["+valid+"]{"+ toIntExact(length) +"})$");
+                    Matcher matcher = pattern.matcher(value);
+
+                    assertTrue("String +" +value+ "+ should match the supplied pattern "+ pattern.toString(), matcher.matches());
+                }
+        );
+    }
+
+    @Test
+    public void testCapitalize() {
+        String text = "neo4j";
+
+        testCall(
+                db,
+                "RETURN apoc.text.capitalize({text}) as value",
+                map("text", text),
+                row -> assertEquals("Neo4j", row.get("value").toString())
+        );
+    }
+
+    @Test
+    public void testCapitalizeAll() {
+        String text = "graph database";
+
+        testCall(
+                db,
+                "RETURN apoc.text.capitalizeAll({text}) as value",
+                map("text", text),
+                row -> assertEquals("Graph Database", row.get("value").toString())
+
+        );
+    }
+
+    @Test
+    public void testDecapitalize() {
+        String text = "Graph Database";
+
+        testCall(
+                db,
+                "RETURN apoc.text.decapitalize({text}) as value",
+                map("text", text),
+                row -> assertEquals("graph Database", row.get("value").toString())
+
+        );
+    }
+
+    @Test
+    public void testSwapCase() {
+        String text = "Neo4j";
+
+        testCall(
+                db,
+                "RETURN apoc.text.swapCase({text}) as value",
+                map("text", text),
+                row -> assertEquals("nEO4J", row.get("value").toString())
+
+        );
+    }
+
+    @Test
+    public void testCamelCase() {
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "FOO_BAR"), row -> assertEquals("fooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "Foo bar"), row -> assertEquals("fooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "Foo22 bar"), row -> assertEquals("foo22Bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "foo-bar"), row -> assertEquals("fooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "Foobar"), row -> assertEquals("foobar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.camelCase({text}) as value",  map("text", "Foo$$Bar"), row -> assertEquals("fooBar", row.get("value").toString()));
+    }
+
+    @Test
+    public void testUpperCamelCase() {
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "FOO_BAR"), row -> assertEquals("FooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "Foo bar"), row -> assertEquals("FooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "Foo22 bar"), row -> assertEquals("Foo22Bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "foo-bar"), row -> assertEquals("FooBar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "Foobar"), row -> assertEquals("Foobar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.upperCamelCase({text}) as value",  map("text", "Foo$$Bar"), row -> assertEquals("FooBar", row.get("value").toString()));
+    }
+
+    @Test
+    public void testSnakeCase() {
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "test Snake Case"), row -> assertEquals("test-snake-case", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "FOO_BAR"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "Foo bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "fooBar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "foo-bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "Foo bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+        testCall(db, "RETURN apoc.text.snakeCase({text}) as value",  map("text", "Foo  bar"), row -> assertEquals("foo-bar", row.get("value").toString()));
+    }
+
+    @Test
+    public void testToUpperCase() {
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "test upper case"), row -> assertEquals("TEST_UPPER_CASE", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "FooBar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "fooBar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo-bar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo--bar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo$$bar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
+        testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo 22 bar"), row -> assertEquals("FOO_22_BAR", row.get("value").toString()));
+    }
+
 }
