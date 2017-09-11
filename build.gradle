@@ -1,33 +1,116 @@
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
+/**
+ * Get all the Neo4j releases
+ * The source of truth is https://api.github.com/repos/neo4j/neo4j/releases
+ * We don't consider all the tags with "prerelease" attribute to true
+ *
+ * @return
+ */
+def collectNeo4jReleases() {
+    def slurper = new JsonSlurper()
+
+    // get from tags or releases?
+    // https://api.github.com/repos/neo4j/neo4j/releases
+    def releases = slurper.parseText(new URL("http://search.maven.org/solrsearch/select?q=g:%22org.neo4j%22+AND+a:%22neo4j%22&core=gav&rows=500&wt=json").getText())
+    releases = releases.response.docs
+
+    def actualReleases = []
+    for (release in releases) {
+        actualReleases.add(release.v)
+    }
+
+    // We sort considering that X.Y.Z-SOMETHING should be considered lower than X.Y.Z --> it's not a lexicographical ordering
+    return actualReleases
+            .sort{ o1, o2 -> o1.indexOf("-") > 0 && o1.substring(0, o1.indexOf("-")) == o2 ? -1 : o1 <=> o2 }
+            .reverse()
+}
+
+/**
+ * Coupling Neo4j with APOC
+ *
+ * There are two heuristic in place:
+ *
+ * - latest version of Neo4j with latest version of APOC
+ * - if there is no available version of APOC for a given NEO4j release than take the prior available version of APOC
+ */
 task versions {
-    if (System.getProperty("offline") != null) return;
+    def neo4jReleases = collectNeo4jReleases()
+
     def slurper = new JsonSlurper()
 
     // get tags
     def pattern = ~/(?m)ext\s*\{\s*neo4jVersion\s*=\s*"(.*)".*/
-    def tags = slurper.parseText(new URL("https://api.github.com/repos/neo4j-contrib/neo4j-apoc-procedures/tags").getText())
+    def releases = slurper.parseText(new URL("https://api.github.com/repos/neo4j-contrib/neo4j-apoc-procedures/releases?page=1&per_page=500").getText())
     def versions = []
-    for (tag in tags) {
-        def buildText = new URL("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/" + tag.name + "/build.gradle").getText()
+    def neo4jToApoc = [:]
+    def latestApoc, oldestApoc
+    for (release in releases) {
+        def buildText = new URL("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/" + release.tag_name + "/build.gradle").getText()
 
-        // search for neo4j version
         def matcher = pattern.matcher(buildText)
         for (def i = 0; i < matcher.getCount(); i++) {
+            def neo4jVersion = matcher[i][1]
 
+            //println neo4jVersion + ", " + release.tag_name
+            if (!neo4jToApoc.containsKey(neo4jVersion)) {
+                neo4jToApoc[neo4jVersion] = release.tag_name
+            }
+
+            if (latestApoc == null) {
+                latestApoc = release.tag_name
+            }
+
+            oldestApoc = release.tag_name
+        }
+    }
+
+    println "LATEST APOC IS " + latestApoc + " WHILE OLDEST IS " + oldestApoc
+
+    for (def j = 0; j < neo4jReleases.size(); j++) {
+        def neo4jRelease = neo4jReleases.get(j)
+        def backwardApocVersion
+        // If there is no APOC release for a Neo4j release we have to guess which one to associate
+        if (!neo4jToApoc.containsKey(neo4jRelease)) {
+            // Handle latest release if not present
+            if (j == 0) {
+                // Get the latest release of APOC and put as default for the latest release of Neo4j
+                neo4jToApoc[neo4jRelease] = latestApoc
+            } else {
+                // go backward until we find a non-empty association
+                for (def k = 0; k < neo4jReleases.size() - j; k++) {
+                    def apocCandidateVersion = neo4jToApoc.get(neo4jReleases.get(j + k))
+                    //println "checking for candidate " + apocCandidateVersion + " --> " + neo4jReleases.get(j + k)
+                    if (apocCandidateVersion != null) {
+                        backwardApocVersion = apocCandidateVersion
+                        break
+                    }
+                }
+
+                // Get the oldest apoc version
+                if (backwardApocVersion == null) {
+                    backwardApocVersion = oldestApoc
+                }
+
+                neo4jToApoc[neo4jRelease] = backwardApocVersion
+            }
+        }
+
+        // We skip all the releases prior to Neo4j 3.x version (that is 2.x)
+        if (neo4jRelease.substring(0, neo4jRelease.indexOf(".")) >= "3") {
             def version = "{\n" +
-                    "      \"neo4j\": \"" + matcher[i][1] + "\",\n" +
-                    "        \"apoc\": \"" + tag.name + "\",\n" +
-                    "        \"url\": \"http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/" + tag.name + "\",\n" +
-                    "        \"jar\": \"https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/" + tag.name + "/apoc-" + tag.name + "-all.jar\"\n" +
+                    "      \"neo4j\": \"" + neo4jRelease + "\",\n" +
+                    "        \"apoc\": \"" + neo4jToApoc[neo4jRelease] + "\",\n" +
+                    "        \"url\": \"http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/" + neo4jToApoc[neo4jRelease] + "\",\n" +
+                    "        \"jar\": \"https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/" + neo4jToApoc[neo4jRelease] + "/apoc-" + neo4jToApoc[neo4jRelease] + "-all.jar\"\n" +
                     "}"
 
             versions.add(slurper.parseText(version))
         }
     }
-    def versionsFile = new File("versions.json")
+
+    def versionsFile = new File("build/versions.json")
 
     versionsFile.write(JsonOutput.prettyPrint(JsonOutput.toJson(versions)))
 }
-
