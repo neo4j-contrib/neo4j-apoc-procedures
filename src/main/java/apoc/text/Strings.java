@@ -11,11 +11,14 @@ import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.text.Normalizer;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+
+import static java.lang.Math.toIntExact;
 import static java.util.Arrays.asList;
 
 /**
@@ -197,7 +200,7 @@ public class Strings {
         if (params == null) return text;
         return String.format(Locale.ENGLISH,text, params.toArray());
     }
-    
+
     @UserFunction
     @Description("apoc.text.slug(text, delim) - slug the text with the given delimiter")
     public String slug(@Name("text") String text, @Name(value = "delim", defaultValue = "-") String delim) {
@@ -205,4 +208,26 @@ public class Strings {
         if (delim == null) return null;
         return text.trim().replaceAll("[\\W\\s]+", delim);
     }
+
+
+    private static final String lower = "abcdefghijklmnopqrstuvwxyz";
+    private static final String upper = lower.toUpperCase();
+    private static final String numeric = "0123456789";
+
+    @UserFunction
+    @Description("apoc.text.random(length, valid) YIELD value - generate a random string")
+    public String random(final @Name("length") long length, @Name(value = "valid", defaultValue = "A-Za-z0-9") String valid) {
+        valid = valid.replaceAll("A-Z", upper).replaceAll("a-z", lower).replaceAll("0-9", numeric);
+
+        StringBuilder output = new StringBuilder( toIntExact(length) );
+
+        ThreadLocalRandom rand = ThreadLocalRandom.current();
+
+        while ( output.length() < length ) {
+            output.append( valid.charAt( rand.nextInt(valid.length()) ) );
+        }
+
+        return output.toString();
+    }
+
 }
