@@ -13,6 +13,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -308,6 +309,9 @@ public class Periodic {
         AtomicInteger failedOps = new AtomicInteger();
         AtomicLong retried = new AtomicLong();
         Map<String,Long> operationErrors = new ConcurrentHashMap<>();
+        AtomicInteger failedBatches = new AtomicInteger();
+        Map<String,Long> batchErrors = new HashMap<>();
+        long successes = 0;
         do {
             if (log.isDebugEnabled()) log.debug("execute in batch no " + batches + " batch size " + batchsize);
             List<Map<String,Object>> batch = Util.take(iterator, batchsize);
@@ -343,11 +347,22 @@ public class Periodic {
             }
             futures.add(Util.inTxFuture(pool, db, task));
             batches++;
+            if (futures.size() > 50) {
+                while (futures.stream().filter(Future::isDone).count()==0) { // none done yet, block for a bit
+                    LockSupport.parkNanos(1000);
+                }
+                Iterator<Future<Long>> it = futures.iterator();
+                while (it.hasNext()) {
+                    Future<Long> future = it.next();
+                    if (future.isDone()) {
+                        successes += Util.getFuture(future, batchErrors, failedBatches, 0L);
+                        it.remove();
+                    }
+                }
+            }
         } while (iterator.hasNext());
 
-        AtomicInteger failedBatches = new AtomicInteger();
-        Map<String,Long> batchErrors = new HashMap<>();
-        long successes = futures.stream().mapToLong(f -> Util.getFuture(f, batchErrors, failedBatches, 0L)).sum();
+        successes += futures.stream().mapToLong(f -> Util.getFuture(f, batchErrors, failedBatches, 0L)).sum();
         Util.logErrors("Error during iterate.commit:", batchErrors, log);
         Util.logErrors("Error during iterate.execute:", operationErrors, log);
         long timeTaken = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
