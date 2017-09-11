@@ -53,3 +53,100 @@ UNWIND ['Hello World!', 'hello worlds'] as text
 CALL apoc.text.filterCleanMatches(text, 'hello_world')
 RETURN text
 ----
+
+
+== Case Change Functions
+
+=== apoc.text.capitalize(text)
+Capitalise the first letter of the word
+
+[source,cypher]
+RETURN apoc.text.capitalize("neo4j") // "Neo4j"
+
+
+=== apoc.text.capitalizeAll(text)
+Capitalise the first letter of every word in the text
+
+[source,cypher]
+RETURN apoc.text.capitalize("graph database") // "Graph Database"
+
+=== apoc.text.decapitalize(text)
+Decapitalize the first letter of the string
+
+[source,cypher]
+RETURN apoc.text.capitalize("Graph Database") // "graph Database"
+
+=== apoc.text.apoc.text.decapitalizeAll(text)
+Decapitalize the first letter of all words
+[source,cypher]
+RETURN apoc.text.capitalize("Graph Databases") // "graph databases"
+
+=== apoc.text.swapCase(text)
+Swap the case of a string
+
+[source,cypher]
+RETURN apoc.text.capitalize("Neo4j") // nEO4J
+
+=== apoc.text.camelCase(text) |
+Convert a string to lower camelCase
+
+[source,cypher]
+RETURN apoc.text.camelCase("FOO_BAR")    // "fooBar"
+RETURN apoc.text.camelCase("Foo bar")    // "fooBar"
+RETURN apoc.text.camelCase("Foo22 bar")  // "foo22Bar"
+RETURN apoc.text.camelCase("foo-bar")    // "fooBar"
+RETURN apoc.text.camelCase("Foobar")     // "foobar"
+RETURN apoc.text.camelCase("Foo$$Bar")   // "fooBar"
+
+=== apoc.text.upperCamelCase(text)
+Convert a string to UpperCamelCase
+
+[source,cypher]
+RETURN apoc.text.upperCamelCase("FOO_BAR")   // "FooBar"
+RETURN apoc.text.upperCamelCase("Foo bar")   // "FooBar"
+RETURN apoc.text.upperCamelCase("Foo22 bar") // "Foo22Bar"
+RETURN apoc.text.upperCamelCase("foo-bar")   // "FooBar"
+RETURN apoc.text.upperCamelCase("Foobar")    // "Foobar"
+RETURN apoc.text.upperCamelCase("Foo$$Bar")  // "FooBar"
+
+=== apoc.text.snakeCase(text)
+Convert a string to snake-case
+
+[source,cypher]
+RETURN apoc.text.snakeCase("test Snake Case") // "test-snake-case"
+RETURN apoc.text.snakeCase("FOO_BAR")         // "foo-bar"
+RETURN apoc.text.snakeCase("Foo bar")         // "foo-bar"
+RETURN apoc.text.snakeCase("fooBar")          // "foo-bar"
+RETURN apoc.text.snakeCase("foo-bar")         // "foo-bar"
+RETURN apoc.text.snakeCase("Foo bar")         // "foo-bar"
+RETURN apoc.text.snakeCase("Foo  bar")        // "foo-bar"
+
+=== apoc.text.toUpperCase(text) | Convert a string to UPPER_CASE
+[source,cypher]
+RETURN apoc.text.toUpperCase("test upper case") // "TEST_UPPER_CASE"
+RETURN apoc.text.toUpperCase("FooBar")          // "FOO_BAR"
+RETURN apoc.text.toUpperCase("fooBar")          // "FOO_BAR"
+RETURN apoc.text.toUpperCase("foo-bar")         // "FOO_BAR"
+RETURN apoc.text.toUpperCase("foo--bar")        // "FOO_BAR"
+RETURN apoc.text.toUpperCase("foo$$bar")        // "FOO_BAR"
+RETURN apoc.text.toUpperCase("foo 22 bar")      // "FOO_22_BAR"
+
+
+== Random String
+
+You can generate a random string to a specified length by calling `apoc.text.random` with a length parameter and optional string of valid characters.
+
+The `valid` parameter will accept the following regex patterns, alternatively you can provide a string of letters and/or characters.
+
+[cols="1m,5"]
+|===
+| Pattern | Description
+| A-Z | A-Z in uppercase
+| a-z | A-Z in lowercase
+| 0-9 | Numbers 0-9 inclusive
+|===
+
+The following call will return a random string including uppercase letters, numbers and `.` and `$` characters.
+
+[source,cypher]
+RETURN apoc.text.random(10, "A-Z0-9.$")
