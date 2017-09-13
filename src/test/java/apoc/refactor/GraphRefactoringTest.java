@@ -108,6 +108,31 @@ public class GraphRefactoringTest {
                     assertEquals(2L, node.getProperty("ID"));
                 });
     }
+
+    /*
+    ISSUE #590
+     */
+    @Test
+    public void testMergeMultipleNodesRelationshipDirection() {
+        db.execute("create (a1:ALabel {name:'a1'})-[:HAS_REL]->(b1:BLabel {name:'b1'})," +
+                "          (a2:ALabel {name:'a2'})-[:HAS_REL]->(b2:BLabel {name:'b2'})," +
+                "          (a3:ALabel {name:'a3'})-[:HAS_REL]->(b3:BLabel {name:'b3'}), " +
+                "          (a4:ALabel {name:'a4'})-[:HAS_REL]->(b4:BLabel {name:'b4'})");
+        Map<String,Object> params = null;
+
+        testCall(db, "MATCH (b1:BLabel {name:'b1'}), (b2:BLabel {name:'b2'}), (b3:BLabel {name:'b3'}), (b4:BLabel {name:'b4'}) " +
+                "     WITH head(collect([b1,b2,b3,b4])) as nodes CALL apoc.refactor.mergeNodes(nodes) yield node return node", params,
+                row -> {
+                    assertTrue(row.get("node") != null);
+                    assertTrue(row.get("node") instanceof Node);
+                    Node resultingNode = (Node)(row.get("node"));
+                    assertTrue(resultingNode.getDegree(Direction.OUTGOING) == 0);
+                    assertTrue(resultingNode.getDegree(Direction.INCOMING) == 4);
+                }
+        );
+
+    }
+
     @Test
     public void testExtractNode() throws Exception {
         Long id = db.execute("CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) RETURN id(rel) as id").<Long>columnAs("id").next();
