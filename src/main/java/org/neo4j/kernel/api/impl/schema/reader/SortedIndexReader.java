@@ -10,10 +10,12 @@ import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.ArrayIterator;
 import org.neo4j.helpers.collection.PrefetchingIterator;
-import org.neo4j.index.impl.lucene.legacy.AbstractIndexHits;
-import org.neo4j.index.impl.lucene.legacy.EmptyIndexHits;
+import org.neo4j.index.impl.lucene.explicit.AbstractExplicitIndexHits;
+import org.neo4j.index.impl.lucene.explicit.EmptyIndexHits;
 import org.neo4j.kernel.api.impl.index.collector.DocValuesAccess;
 import org.neo4j.kernel.api.impl.schema.LuceneDocumentStructure;
+import org.neo4j.kernel.impl.api.explicitindex.AbstractIndexHits;
+import org.neo4j.values.storable.Value;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -66,8 +68,8 @@ public class SortedIndexReader {
         }
     }
 
-    public PrimitiveLongIterator seek(Object value) {
-        return this.query(LuceneDocumentStructure.newSeekQuery(value));
+    private PrimitiveLongIterator seek( Value... values ) {
+        return this.query(LuceneDocumentStructure.newSeekQuery(values));
     }
 
     public PrimitiveLongIterator rangeSeekByNumberInclusive(Number lower, Number upper) {

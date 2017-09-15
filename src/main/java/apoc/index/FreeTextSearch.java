@@ -2,6 +2,7 @@ package apoc.index;
 
 import apoc.ApocKernelExtensionFactory;
 import apoc.util.Util;
+import org.neo4j.index.impl.lucene.explicit.LuceneDataSource;
 import org.neo4j.kernel.KernelApi;
 import org.neo4j.procedure.*;
 import apoc.result.WeightedNodeResult;
@@ -12,11 +13,11 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.index.impl.lucene.legacy.LuceneDataSource;
-import org.neo4j.index.impl.lucene.legacy.LuceneIndexImplementation;
+import org.neo4j.index.impl.lucene.explicit.LuceneDataSource;
+import org.neo4j.index.impl.lucene.explicit.LuceneIndexImplementation;
 import org.neo4j.index.lucene.QueryContext;
 import org.neo4j.index.lucene.ValueContext;
-import org.neo4j.kernel.impl.util.JobScheduler;
+import org.neo4j.scheduler.JobScheduler;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
@@ -105,7 +106,7 @@ public class FreeTextSearch {
         if (maxNumberOfresults!=-1) {
             queryParam = queryParam.top((int)maxNumberOfresults);
         }
-        List<WeightedNodeResult> hits = KernelApi.toWeightedNodeResultFromLegacyIndex(KernelApi.nodeQueryIndex(index, queryParam, db), db);
+        List<WeightedNodeResult> hits = KernelApi.toWeightedNodeResultFromExplicitIndex(KernelApi.nodeQueryIndex(index, queryParam, db), db);
 
         return hits.stream();
     }
@@ -121,8 +122,7 @@ public class FreeTextSearch {
 
     private static final Map<String, String> CONFIG = LuceneIndexImplementation.FULLTEXT_CONFIG;
     static final String KEY = "search";
-    private static final JobScheduler.Group GROUP = new JobScheduler.Group(
-            FreeTextSearch.class.getSimpleName(), JobScheduler.SchedulingStrategy.POOLED);
+    private static final JobScheduler.Group GROUP = new JobScheduler.Group(FreeTextSearch.class.getSimpleName());
 
     private static Stream<WeightedNodeResult> result(IndexHits<Node> hits) {
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(new Iterator<WeightedNodeResult>() {

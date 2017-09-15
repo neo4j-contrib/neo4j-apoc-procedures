@@ -10,9 +10,9 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.index.RelationshipIndex;
-import org.neo4j.index.impl.lucene.legacy.LuceneIndexImplementation;
+import org.neo4j.index.impl.lucene.explicit.LuceneIndexImplementation;
 import org.neo4j.kernel.KernelApi;
-import org.neo4j.kernel.api.LegacyIndexHits;
+import org.neo4j.kernel.api.ExplicitIndexHits;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
@@ -42,7 +42,7 @@ public class FulltextIndex {
     @Procedure(mode = Mode.READ)
     public Stream<WeightedNodeResult> nodes(@Name("label") String label, @Name("query") String query) throws Exception {
         if (!db.index().existsForNodes(label)) return Stream.empty();
-        List<WeightedNodeResult> hits = KernelApi.toWeightedNodeResultFromLegacyIndex(KernelApi.nodeQueryIndex(label, query,db), db);
+        List<WeightedNodeResult> hits = KernelApi.toWeightedNodeResultFromExplicitIndex(KernelApi.nodeQueryIndex(label, query,db), db);
 
         return hits.stream();
     }
@@ -137,7 +137,7 @@ public class FulltextIndex {
     @Procedure(mode = Mode.READ)
     public Stream<WeightedRelationshipResult> relationships(@Name("type") String type, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
-        return KernelApi.toWeightedRelationshipResultFromLegacyIndex(KernelApi.relationshipQueryIndex(type, query, db, null, null), db).stream();
+        return KernelApi.toWeightedRelationshipResultFromExplicitIndex(KernelApi.relationshipQueryIndex(type, query, db, null, null), db).stream();
     }
 
     // CALL apoc.index.between(joe, 'KNOWS', null, 'since:2010-*')
@@ -147,14 +147,14 @@ public class FulltextIndex {
     public Stream<WeightedRelationshipResult> between(@Name("from") Node from, @Name("type") String type, @Name("to") Node to, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
 
-        return KernelApi.toWeightedRelationshipResultFromLegacyIndex(KernelApi.relationshipQueryIndex(type, query, db,  from.getId(), to.getId()),db).stream();
+        return KernelApi.toWeightedRelationshipResultFromExplicitIndex(KernelApi.relationshipQueryIndex(type, query, db,  from.getId(), to.getId()),db).stream();
     }
 
     @Procedure(mode = Mode.READ)
     @Description("out(node,'TYPE','prop:value*') YIELD node - lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*")
     public Stream<WeightedNodeResult> out(@Name("from") Node from, @Name("type") String type, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
-        LegacyIndexHits legacyIndexHits = KernelApi.relationshipQueryIndex(type, query, db, from.getId(), null);
+        ExplicitIndexHits legacyIndexHits = KernelApi.relationshipQueryIndex(type, query, db, from.getId(), null);
         List<WeightedNodeResult> results = new ArrayList<>(legacyIndexHits.size());
         while (legacyIndexHits.hasNext()) {
             results.add(new WeightedNodeResult(KernelApi.getEndNode(db, legacyIndexHits.next()), legacyIndexHits.currentScore()));
@@ -169,7 +169,7 @@ public class FulltextIndex {
     public Stream<WeightedNodeResult> in(@Name("to") Node to, @Name("type") String type, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
 
-        LegacyIndexHits legacyIndexHits = KernelApi.relationshipQueryIndex(type, query, db, null, to.getId());
+        ExplicitIndexHits legacyIndexHits = KernelApi.relationshipQueryIndex(type, query, db, null, to.getId());
         List<WeightedNodeResult> results = new ArrayList<>(legacyIndexHits.size());
         while (legacyIndexHits.hasNext()) {
             results.add(new WeightedNodeResult(db.getNodeById(legacyIndexHits.next()), legacyIndexHits.currentScore()));
@@ -195,8 +195,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.addNodeByName('name', joe, ['name','age','city'])
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addNodeByName('name',node,['prop1',...]) add node to an index for the given name")
     public void addNodeByName(@Name("name") String name, @Name("node") Node node, @Name("properties") List<String> propKeys) {
         Index<Node> index = getNodeIndex(name, null);
@@ -212,8 +211,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.addRelationshipByName('name', checkin, ['on'])
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addRelationshipByName('name',rel,['prop1',...]) add relationship to an index for the given name")
     public void addRelationshipByName(@Name("name") String name, @Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
         RelationshipIndex index = getRelationshipIndex(name, null);
@@ -231,8 +229,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.removeNodeByName('name', joe)
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.removeNodeByName('name',node) remove node from an index for the given name")
     public void removeNodeByName(@Name("name") String name, @Name("node") Node node) {
         Index<Node> index = getNodeIndex(name, null);
@@ -240,8 +237,7 @@ public class FulltextIndex {
     }
 
     // CALL apoc.index.removeRelationshipByName('name', checkin)
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name")
     public void removeRelationshipByName(@Name("name") String name, @Name("relationship") Relationship rel) {
         RelationshipIndex index = getRelationshipIndex(name, null);

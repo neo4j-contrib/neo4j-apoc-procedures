@@ -5,11 +5,13 @@ import org.neo4j.cypher.EntityNotFoundException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.DataWriteOperations;
 import org.neo4j.kernel.api.exceptions.InvalidTransactionTypeKernelException;
-import org.neo4j.kernel.api.exceptions.legacyindex.AutoIndexingKernelException;
+import org.neo4j.kernel.api.exceptions.explicitindex.AutoIndexingKernelException;
 import org.neo4j.kernel.api.exceptions.schema.IllegalTokenNameException;
-import org.neo4j.kernel.api.properties.DefinedProperty;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.values.storable.DoubleValue;
+import org.neo4j.values.storable.Value;
+import org.neo4j.values.storable.Values;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,7 +95,7 @@ public class AlgoUtils {
                             if (graphNode == -1) {
                                 System.out.println("Node node found for " + graphNode + " mapped node " + nodeIndex);
                             } else
-                                ops.nodeSetProperty(graphNode, DefinedProperty.doubleProperty(propertyNameId, value));
+                                ops.nodeSetProperty(graphNode, propertyNameId, Values.doubleValue(value));
                         }
                         tx.success();
                     } catch (Exception e) {

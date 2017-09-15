@@ -115,8 +115,7 @@ public class Trigger {
         return Stream.of(new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"),false, false));
     }
 
-    @PerformsWrites
-    @Procedure
+    @Procedure(mode = Mode.WRITE)
     @Description("list all installed triggers")
     public Stream<TriggerInfo> list() {
         return TriggerHandler.list().entrySet().stream()
