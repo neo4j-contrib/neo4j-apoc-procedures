@@ -40,12 +40,36 @@ public class Lock {
             tx.success();
         }
     }
+
+    @Procedure(mode = Mode.READ, name = "apoc.lock.read.nodes")
+    @Description("apoc.lock.read.nodes([nodes]) acquires a read lock on the given nodes")
+    public void readLockOnNodes(@Name("nodes") List<Node> nodes) {
+        try (Transaction tx = db.beginTx()) {
+            for (Node node : nodes) {
+                tx.acquireReadLock(node);
+            }
+            tx.success();
+        }
+    }
+
+
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.lock.rels([relationships]) acquires a write lock on the given relationship")
     public void rels(@Name("rels") List<Relationship> rels) {
         try (Transaction tx = db.beginTx()) {
             for (Relationship rel : rels) {
                 tx.acquireWriteLock(rel);
+            }
+            tx.success();
+        }
+    }
+
+    @Procedure(mode = Mode.READ, name = "apoc.lock.read.rels")
+    @Description("apoc.lock.read.rels([relationships]) acquires a read lock on the given relationship")
+    public void readLocksOnRels(@Name("rels") List<Relationship> rels) {
+        try (Transaction tx = db.beginTx()) {
+            for (Relationship rel : rels) {
+                tx.acquireReadLock(rel);
             }
             tx.success();
         }
