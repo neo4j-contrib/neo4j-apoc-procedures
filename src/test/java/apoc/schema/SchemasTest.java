@@ -295,6 +295,10 @@ public class SchemasTest {
     public void testIndexOnMultipleProperties() {
         ignoreException(() -> {
             db.execute("CREATE INDEX ON :Foo(bar, foo)").close();
+            try (Transaction tx = db.beginTx()) {
+                db.schema().awaitIndexesOnline(1, TimeUnit.SECONDS);
+                tx.success();
+            }
             testResult(db, "CALL apoc.schema.nodes()", (result) -> {
                 // Get the index info
                 Map<String, Object> r = result.next();
