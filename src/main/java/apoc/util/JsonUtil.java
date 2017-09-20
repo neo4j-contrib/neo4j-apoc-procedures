@@ -59,6 +59,7 @@ public class JsonUtil {
     public static Stream<Object> loadJson(String url, Map<String,Object> headers, String payload, String path, boolean failOnError) {
         try {
             FileUtils.checkReadAllowed(url);
+            url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
             InputStream input = Util.openInputStream(url, headers, payload);
             JsonParser parser = OBJECT_MAPPER.getJsonFactory().createJsonParser(input);
             MappingIterator<Object> it = OBJECT_MAPPER.readValues(parser, Object.class);
