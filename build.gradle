@@ -62,6 +62,7 @@ dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version:'1.9'
     compile 'com.jayway.jsonpath:json-path:2.2.0'
     compile 'org.hdrhistogram:HdrHistogram:2.1.9'
+    compile 'org.neo4j.driver:neo4j-java-driver:1.4.4'
     compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version:'1.2'
 
     compile 'com.novell.ldap:jldap:2009-10-07'
