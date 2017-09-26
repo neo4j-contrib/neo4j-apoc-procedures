@@ -54,9 +54,9 @@ public class JsonUtil {
     }
 
     public static Stream<Object> loadJson(String url, Map<String,Object> headers, String payload) {
-        return loadJson(url,headers,payload,"");
+        return loadJson(url,headers,payload,"", true);
     }
-    public static Stream<Object> loadJson(String url, Map<String,Object> headers, String payload, String path) {
+    public static Stream<Object> loadJson(String url, Map<String,Object> headers, String payload, String path, boolean failOnError) {
         try {
             FileUtils.checkReadAllowed(url);
             InputStream input = Util.openInputStream(url, headers, payload);
@@ -66,12 +66,15 @@ public class JsonUtil {
             return (path==null||path.isEmpty()) ? stream  : stream.map((value) -> JsonPath.parse(value,JSON_PATH_CONFIG).read(path));
         } catch (IOException e) {
             String u = Util.cleanUrl(url);
-            throw new RuntimeException("Can't read url " + u + " as json: "+e.getMessage(), e);
+            if(!failOnError)
+                return Stream.of();
+            else
+                throw new RuntimeException("Can't read url " + u + " as json: "+e.getMessage(), e);
         }
     }
 
     public static Stream<Object> loadJson(@Name("url") String url) {
-        return loadJson(url,null,null,"");
+        return loadJson(url,null,null,"", true);
     }
 
     public static <T> T parse(String json, String path, Class<T> type) {
