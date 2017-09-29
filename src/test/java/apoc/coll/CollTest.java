@@ -232,6 +232,18 @@ public class CollTest {
     }
 
     @Test
+    public void testSortMapsMulti() throws Exception {
+        testCall(db,
+                "RETURN apoc.coll.sortMulti([{name:'foo'},{name:'bar',age:32},{name:'bar',age:42}], ['^name','age'],1,1) as maps",
+                (row) -> {
+                    List<Map> maps = (List<Map>) row.get("maps");
+                    assertEquals(1, maps.size());
+                    assertEquals("bar", maps.get(0).get("name"));
+                    assertEquals(32L, maps.get(0).get("age")); // 2nd element
+                });
+    }
+
+    @Test
     public void testSetOperations() throws Exception {
         testCall(db, "RETURN apoc.coll.union([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L, 2L, 3L)), asSet((Iterable) r.get("value"))));
         testCall(db, "RETURN apoc.coll.intersection([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(2L)), asSet((Iterable) r.get("value"))));
@@ -479,5 +491,10 @@ public class CollTest {
     public void testReverse() throws Exception {
         testCall(db, "RETURN apoc.coll.reverse([1,2,1,3,2,5,2,3,1,2]) as value",
                 (row) -> assertEquals(asList(2l, 1l, 3l, 2l, 5l, 2l, 3l, 1l, 2l, 1l), row.get("value")));
+    }
+    @Test
+    public void testFlatten() throws Exception {
+        testCall(db, "RETURN apoc.coll.flatten([[1,2],[3,4],[4],[5,6,7]]) as value",
+                (row) -> assertEquals(asList(1L,2L,3L,4L,4L,5L,6L,7L), row.get("value")));
     }
 }
