@@ -524,6 +524,7 @@ CALL apoc.generate.simple([2,2,2,2], null, null)
 [cols="1m,5"]
 |===
 | CALL apoc.cypher.run(fragment, params) yield value | executes reading fragment with the given parameters
+| apoc.cypher.runFirstColumn(statement, params, [expectMultiplevalues]) | function that executes statement with given parameters returning first column only, if expectMultipleValues is true will collect results into a list
 | CALL apoc.cypher.runFile(file or url) yield row, result | runs each statement in the file, all semicolon separated - currently no schema operations
 | CALL apoc.cypher.runFiles([files or urls]) yield row, result | runs each statement in the files, all semicolon separated
 | CALL apoc.cypher.runSchemaFile(file or url) - allows only schema operations, runs each schema statement in the file, all semicolon separated
@@ -726,6 +727,8 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.duplicates(coll) | returns a list of duplicate items in the collection
 | apoc.coll.duplicatesWithCount(coll) | returns a list of duplicate items in the collection and their count, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)
 | apoc.coll.occurrences(coll, item) | returns the count of the given item in the collection
+| apoc.coll.sortMulti | sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip
+| apoc.coll.flatten | flattens a nested list
 |===
 
 === Lookup Functions

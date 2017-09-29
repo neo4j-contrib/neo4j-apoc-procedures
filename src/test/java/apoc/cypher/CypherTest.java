@@ -14,17 +14,13 @@ import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.withMapping;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 /**
  * @author mh
@@ -46,6 +42,7 @@ public class CypherTest {
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, Cypher.class);
         TestUtil.registerProcedure(db, Utils.class);
+        TestUtil.registerProcedure(db, CypherFunctions.class);
     }
 
     @AfterClass
@@ -79,6 +76,19 @@ public class CypherTest {
     public void testRunVariable() throws Exception {
         testCall(db, "CALL apoc.cypher.run('RETURN a + 7 as b',{a:3})",
                 r -> assertEquals(10L, ((Map) r.get("value")).get("b")));
+    }
+
+    @Test
+    public void testRunFirstColumn() throws Exception {
+        testCall(db, "RETURN apoc.cypher.runFirstColumn('RETURN a + 7 AS b', {a: 3}, false) AS s",
+                r -> assertEquals(10L, (r.get("s"))));
+    }
+
+    @Test
+    public void testRunFirstColumnMultipleValues() throws Exception {
+        Object[] expected = new Object[]{1L, 2L, 3L};
+        testCall(db, "RETURN apoc.cypher.runFirstColumn('UNWIND [1, 2, 3] AS e RETURN e', {}, true) AS arr",
+                r -> assertArrayEquals(expected, (Object[])(r.get("arr"))));
     }
 
     @Test

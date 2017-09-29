@@ -1,5 +1,6 @@
 package apoc.coll;
 
+import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.impl.util.statistics.IntCounter;
 import org.neo4j.procedure.*;
 import apoc.result.*;
@@ -9,10 +10,12 @@ import org.neo4j.graphdb.Relationship;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
+import static org.neo4j.helpers.collection.Pair.*;
 
 public class Coll {
 
@@ -390,6 +393,13 @@ public class Coll {
         return occurrences;
     }
 
+
+    @UserFunction
+    @Description("apoc.coll.flatten(coll) - flattens nested list")
+    public List<Object> flatten(@Name("coll") List<List<Object>> coll) {
+        return coll.stream().flatMap(Collection::stream).collect(Collectors.toList());
+    }
+
     @UserFunction
     @Description("apoc.coll.reverse(coll) - returns reversed list")
     public List<Object> reverse(@Name("coll") List<Object> coll) {
@@ -404,4 +414,43 @@ public class Coll {
 
         return reversed;
     }
+
+    @UserFunction("apoc.coll.sortMulti")
+    @Description("apoc.coll.sortMulti(coll, ['^name','age'],[limit],[skip]) - sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip")
+    public List<Map<String,Object>> sortMulti(@Name("coll") java.util.List<Map<String,Object>> coll,
+                 @Name(value="orderFields", defaultValue = "[]") java.util.List<String> orderFields,
+                 @Name(value="limit", defaultValue = "-1") long limit,
+                 @Name(value="skip", defaultValue = "0") long skip) {
+        List<Map<String,Object>> result = new ArrayList<>(coll);
+
+        if (orderFields != null && !orderFields.isEmpty()) {
+
+            List<Pair<String, Boolean>> fields = orderFields.stream().map(v -> {
+                boolean asc = v.charAt(0) == '^';
+                return of(asc ? v.substring(1) : v, asc);
+            }).collect(Collectors.toList());
+
+            Comparator<Map<String, Comparable<Object>>> compare = (o1, o2) -> {
+                int a = 0;
+                for (Pair<String, Boolean> s : fields) {
+                    if (a != 0) break;
+                    String name = s.first();
+                    Comparable<Object> v1 = o1.get(name);
+                    Comparable<Object> v2 = o2.get(name);
+                    if (v1 != v2) {
+                        int cmp = (v1 == null) ? -1 : (v2 == null) ? 1 : v1.compareTo(v2);
+                        a = (s.other()) ? cmp : -cmp;
+                    }
+                }
+                return a;
+            };
+
+            Collections.sort((List<Map<String, Comparable<Object>>>) (List) result, compare);
+        }
+        if (skip > 0 && limit != -1L) return result.subList ((int)skip, (int)(skip + limit));
+        if (skip > 0) return result.subList ((int)skip, result.size());
+        if (limit != -1L) return result.subList (0, (int)limit);
+        return result;
+    }
+
 }
