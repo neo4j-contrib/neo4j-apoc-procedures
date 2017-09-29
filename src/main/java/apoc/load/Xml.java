@@ -20,6 +20,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -37,9 +38,9 @@ public class Xml {
     public GraphDatabaseService db;
 
     @Procedure
-    @Description("apoc.load.xml('http://example.com/test.xml', 'xPath', false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.")
-    public Stream<MapResult> xml(@Name("url") String url, @Name(value = "path", defaultValue = "/") String path, @Name(value = "simple", defaultValue = "false") boolean simpleMode) throws Exception {
-        return xmlXpathToMapResult(url, simpleMode, path);
+    @Description("apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.")
+    public Stream<MapResult> xml(@Name("url") String url, @Name(value = "path", defaultValue = "/") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config, @Name(value = "simple", defaultValue = "false") boolean simpleMode) throws Exception {
+        return xmlXpathToMapResult(url, simpleMode, path ,config);
     }
 
     @Procedure(deprecatedBy = "apoc.load.xml")
@@ -49,34 +50,48 @@ public class Xml {
         return xmlToMapResult(url, true);
     }
 
-    private Stream<MapResult> xmlXpathToMapResult(@Name("url") String url, boolean simpleMode, String path) throws Exception {
-
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        documentBuilderFactory.setNamespaceAware(true);
-        documentBuilderFactory.setIgnoringElementContentWhitespace(true);
-        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-
-        FileUtils.checkReadAllowed(url);
-        URLConnection urlConnection = new URL(url).openConnection();
-        Document doc = documentBuilder.parse(urlConnection.getInputStream());
-
-        XPathFactory xPathFactory = XPathFactory.newInstance();
-
-        XPath xPath = xPathFactory.newXPath();
-
-        path = StringUtils.isEmpty(path) ? "/" : path;
-        XPathExpression xPathExpression = xPath.compile(path);
-        NodeList nodeList = (NodeList) xPathExpression.evaluate(doc, XPathConstants.NODESET);
-
+    private Stream<MapResult> xmlXpathToMapResult(@Name("url") String url, boolean simpleMode, String path, Map<String, Object> config) throws Exception {
+        if (config == null) config = Collections.emptyMap();
+        boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
         List<MapResult> result = new ArrayList<>();
+        try {
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            documentBuilderFactory.setNamespaceAware(true);
+            documentBuilderFactory.setIgnoringElementContentWhitespace(true);
+            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 
-        for (int i = 0; i < nodeList.getLength(); i++) {
-            final Deque<Map<String, Object>> stack = new LinkedList<>();
+            FileUtils.checkReadAllowed(url);
+            URLConnection urlConnection = new URL(url).openConnection();
+            Document doc = documentBuilder.parse(urlConnection.getInputStream());
 
-            handleNode(stack, nodeList.item(i), simpleMode);
-            for (int index = 0; index < stack.size(); index++) {
-                result.add(new MapResult(stack.pollFirst()));
+            XPathFactory xPathFactory = XPathFactory.newInstance();
+
+            XPath xPath = xPathFactory.newXPath();
+
+            path = StringUtils.isEmpty(path) ? "/" : path;
+            XPathExpression xPathExpression = xPath.compile(path);
+            NodeList nodeList = (NodeList) xPathExpression.evaluate(doc, XPathConstants.NODESET);
+
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                final Deque<Map<String, Object>> stack = new LinkedList<>();
+
+                handleNode(stack, nodeList.item(i), simpleMode);
+                for (int index = 0; index < stack.size(); index++) {
+                    result.add(new MapResult(stack.pollFirst()));
+                }
             }
+        }
+        catch (FileNotFoundException e){
+            if(!failOnError)
+                return Stream.of(new MapResult(Collections.emptyMap()));
+            else
+                throw new FileNotFoundException(e.getMessage());
+        }
+        catch (Exception e){
+            if(!failOnError)
+                return Stream.of(new MapResult(Collections.emptyMap()));
+            else
+                throw new Exception(e);
         }
         return result.stream();
     }

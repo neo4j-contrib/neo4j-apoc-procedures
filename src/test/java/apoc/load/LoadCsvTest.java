@@ -10,6 +10,7 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.net.URL;
+import java.util.Collections;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
@@ -17,6 +18,7 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 public class LoadCsvTest {
 
@@ -130,6 +132,19 @@ public class LoadCsvTest {
                     assertRow(r, "Selma", "8", 0L);
                     assertRow(r, "Rana", "11", 1L);
                     assertRow(r, "Selina", "18", 2L);
+                    assertEquals(false, r.hasNext());
+                });
+    }
+
+    @Test
+    public void testLoadCsvNoFailOnError() throws Exception {
+        String url = "test.csv";
+        testResult(db, "CALL apoc.load.csv({url},{failOnError:false})", map("url",url), // 'file:test.csv'
+                (r) -> {
+                    Map<String, Object> row = r.next();
+                    assertEquals(0L, row.get("lineNo"));
+                    assertEquals(Collections.emptyList(), row.get("list"));
+                    assertEquals(Collections.emptyMap(), row.get("map"));
                     assertEquals(false, r.hasNext());
                 });
     }

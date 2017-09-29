@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.*;
 import java.util.stream.IntStream;
 
 import static apoc.util.MapUtil.map;
@@ -221,6 +222,15 @@ public class XmlTest {
                     assertEquals("title", ((Map) childrenList.get(1)).get("_type"));
                     assertEquals("Visual Studio 7: A Comprehensive Guide", ((Map) childrenList.get(1)).get("_text"));
                     assertEquals(false, r.hasNext());
+                });
+    }
+
+    @Test
+    public void testLoadXmlNoFailOnError () {
+        testCall(db, "CALL apoc.load.xml('file:src/test/resources/books.xm', '', {failOnError:false}) yield value as result",
+                (r) -> {
+                    Map resultMap = (Map) r.get("result");
+                    assertEquals(Collections.emptyMap(), resultMap);
                 });
     }
 }
