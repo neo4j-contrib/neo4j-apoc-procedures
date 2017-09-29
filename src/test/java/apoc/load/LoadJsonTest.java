@@ -100,4 +100,12 @@ public class LoadJsonTest {
                     assertEquals(true, value.containsKey("nodes"));
                 });
     }
+
+    @Test public void testLoadJsonNoFailOnError() throws Exception {
+        String url = "file.json";
+        testResult(db, "CALL apoc.load.json({url},null, {failOnError:false})",map("url", url), // 'file:map.json' YIELD value RETURN value
+                (row) -> {
+                    assertFalse(row.hasNext());
+                });
+    }
 }
