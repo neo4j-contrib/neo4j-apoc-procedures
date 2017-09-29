@@ -30,6 +30,7 @@ public class LoadCsv {
     @Procedure
     @Description("apoc.load.csv('url',{config}) YIELD lineNo, list, map - load CSV fom URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
     public Stream<CSVResult> csv(@Name("url") String url, @Name("config") Map<String, Object> config) {
+        boolean failOnError = booleanValue(config, "failOnError", true);
         try {
             CountingReader reader = FileUtils.readerFor(url);
 
@@ -47,7 +48,11 @@ public class LoadCsv {
             boolean checkIgnore = !ignore.isEmpty() || mappings.values().stream().anyMatch( m -> m.ignore);
             return StreamSupport.stream(new CSVSpliterator(csv, header, url, skip, limit, checkIgnore,mappings), false);
         } catch (IOException e) {
-            throw new RuntimeException("Can't read CSV from URL " + cleanUrl(url), e);
+
+            if(!failOnError)
+                return Stream.of(new  CSVResult(new String[0], new String[0], 0, true, Collections.emptyMap()));
+            else
+                throw new RuntimeException("Can't read CSV from URL " + cleanUrl(url), e);
         }
     }
 
