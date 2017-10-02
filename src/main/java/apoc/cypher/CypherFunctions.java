@@ -21,17 +21,14 @@ public class CypherFunctions {
 
     @UserFunction
     @Description("apoc.cypher.runFirstColumn(statement, params, expectMultipleValues) - executes statement with given parameters, returns first column only, if expectMultipleValues is true will collect results into an array")
-    public Object runFirstColumn(@Name("cypher") String statement, @Name("params") Map<String, Object> params, @Name(value = "expectMultipleValues",defaultValue = "true") Boolean expectMultipleValues) {
+    public Object runFirstColumn(@Name("cypher") String statement, @Name("params") Map<String, Object> params, @Name(value = "expectMultipleValues",defaultValue = "true") boolean expectMultipleValues) {
         if (params == null) params = Collections.emptyMap();
-        Result result = db.execute(withParamMapping(statement, params.keySet()), params);
+        try (Result result = db.execute(withParamMapping(statement, params.keySet()), params)) {
 
         String firstColumn = result.columns().get(0);
-
-        if (expectMultipleValues) {
-            return result.columnAs(firstColumn).stream().toArray();
-        } else {
-            return result.columnAs(firstColumn).next();
+        try (ResourceIterator<Object> iter = result.columnAs(firstColumn)) { 
+           return expectMultipleValues ? iter.stream().toArray() : iter.next();
         }
+      }
     }
-
 }
