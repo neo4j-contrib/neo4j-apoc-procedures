@@ -349,4 +349,18 @@ public class Strings {
 
         return output.toString();
     }
+
+    @UserFunction
+    @Description("apoc.text.base64Encode(text) YIELD value - Encode a string with Base64")
+    public String base64Encode(@Name("text") String text) {
+        byte[] encoded = Base64.getEncoder().encode(text.getBytes());
+        return new String(encoded);
+    }
+
+    @UserFunction
+    @Description("apoc.text.base64Decode(text) YIELD value - Decode Base64 encoded string")
+    public String base64Decode(@Name("text") String text) {
+        byte[] decoded = Base64.getDecoder().decode(text.getBytes());
+        return new String(decoded);
+    }
 }
