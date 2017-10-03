@@ -661,6 +661,8 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.convert.toNode(value) | tries it's best to convert the value to a node
 | apoc.convert.toRelationship(value) | tries it's best to convert the value to a relationship
 | apoc.convert.toSet(value) | tries it's best to convert the value to a set
+| apoc.convert.toFloat(value) | tries it's best to convert the value to a floating point value
+| apoc.convert.toInteger(value) | tries it's best to convert the value to a integer value
 |===
 
 === Map Functions
