@@ -12,7 +12,7 @@ import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
-import org.neo4j.kernel.impl.api.KernelStatement;
+import org.neo4j.kernel.api.Statement;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.*;
 
@@ -225,7 +225,7 @@ public class Meta {
 
     private MetaStats collectStats() {
         Map<String, Long> relStatsCount = new LinkedHashMap<>();
-        try (KernelStatement stmt = (KernelStatement) kernelTx.acquireStatement()) {
+        try (Statement stmt = kernelTx.acquireStatement()) {
             ReadOperations ops = stmt.readOperations();
 
             int labelCount = ops.labelCount();
@@ -260,7 +260,7 @@ public class Meta {
     }
 
     private void collectStats(Collection<String> labelNames, Collection<String> relTypeNames, StatsCallback cb) {
-        try (KernelStatement stmt = (KernelStatement) kernelTx.acquireStatement()) {
+        try (Statement stmt = kernelTx.acquireStatement()) {
             ReadOperations ops = stmt.readOperations();
 
             Map<String, Integer> labels = labelsInUse(ops, labelNames);
@@ -622,7 +622,7 @@ public class Meta {
     }
 
     private Stream<GraphResult> metaGraph(Collection<String> labelNames, Collection<String> relTypeNames, boolean removeMissing) {
-        try (KernelStatement stmt = (KernelStatement) kernelTx.acquireStatement()) {
+        try (Statement stmt = kernelTx.acquireStatement()) {
             ReadOperations ops = stmt.readOperations();
 
             Map<String, Integer> labels = labelsInUse(ops, labelNames);

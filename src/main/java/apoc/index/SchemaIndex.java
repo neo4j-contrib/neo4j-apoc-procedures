@@ -1,5 +1,9 @@
 package apoc.index;
 
+import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.kernel.api.Statement;
+import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import apoc.result.NodeResult;
 import apoc.util.Util;

@@ -13,8 +13,8 @@ import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
+import org.neo4j.kernel.api.Statement;
 import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
-import org.neo4j.kernel.impl.api.KernelStatement;
 import org.neo4j.kernel.impl.api.RelationshipVisitor;
 import org.neo4j.kernel.impl.api.store.RelationshipIterator;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
@@ -86,8 +86,7 @@ public class Nodes {
     public boolean hasRelationship(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types) throws EntityNotFoundException {
         if (types == null || types.isEmpty()) return node.hasRelationship();
         long id = node.getId();
-
-        try (KernelStatement stmt = (KernelStatement) ktx.acquireStatement()) {
+        try (Statement stmt = ktx.acquireStatement()) {
             ReadOperations ops = stmt.readOperations();
 
             boolean dense = ops.nodeIsDense(id);
@@ -115,7 +114,7 @@ public class Nodes {
         long endId = end.getId();
         List<Pair<RelationshipType, Direction>> pairs = (types == null || types.isEmpty()) ? null : parse(types);
 
-        try (KernelStatement stmt = (KernelStatement) ktx.acquireStatement()) {
+        try (Statement stmt = ktx.acquireStatement()) {
             ReadOperations ops = stmt.readOperations();
 
             boolean startDense = ops.nodeIsDense(startId);
@@ -310,9 +309,9 @@ public class Nodes {
     @UserFunction
     @Description("apoc.nodes.isDense(node) - returns true if it is a dense node")
     public boolean isDense(@Name("node") Node node) {
-        ThreadToStatementContextBridge ctx = api.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
-        ReadOperations ops = ctx.get().readOperations();
-        return isDense(ops,node);
+        try (Statement stmt = ktx.acquireStatement()) {
+            return isDense(stmt.readOperations(), node);
+        }
     }
 
     public boolean isDense(ReadOperations ops, Node n) {
