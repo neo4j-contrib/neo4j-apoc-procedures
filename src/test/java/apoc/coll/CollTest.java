@@ -16,6 +16,7 @@ import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.neo4j.helpers.collection.Iterables.asSet;
 
@@ -130,6 +131,47 @@ public class CollTest {
         testCall(db, "RETURN apoc.coll.indexOf([1,2,3],4) AS value", r -> assertEquals(-1L, r.get("value")));
         testCall(db, "RETURN apoc.coll.indexOf([1,2,3],0) AS value", r -> assertEquals(-1L, r.get("value")));
         testCall(db, "RETURN apoc.coll.indexOf([1,2,3],null) AS value", r -> assertEquals(-1L, r.get("value")));
+    }
+
+    @Test
+    public void testSet() throws Exception {
+        testCall(db, "RETURN apoc.coll.set(null,0,4) AS value", r -> assertNull(r.get("value")));
+        testCall(db, "RETURN apoc.coll.set([1,2,3],-1,4)[0] AS value", r -> assertEquals(1L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.set([1,2,3],0,null)[0] AS value", r -> assertEquals(1L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.set([1,2,3],0,4)[0] AS value", r -> assertEquals(4L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.set([1,2,3],1,4)[1] AS value", r -> assertEquals(4L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.set([1,2,3],2,4)[2] AS value", r -> assertEquals(4L, r.get("value")));
+    }
+
+    @Test
+    public void testInsert() throws Exception {
+        testCall(db, "RETURN apoc.coll.insert(null,0,4) AS value", r -> assertNull(r.get("value")));
+        testCall(db, "RETURN apoc.coll.insert([1,2,3],-1,4)[0] AS value", r -> assertEquals(1L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.insert([1,2,3],0,null)[0] AS value", r -> assertEquals(1L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.insert([1,2,3],0,4)[0] AS value", r -> assertEquals(4L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.insert([1,2,3],1,4)[1] AS value", r -> assertEquals(4L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.insert([1,2,3],2,4)[2] AS value", r -> assertEquals(4L, r.get("value")));
+    }
+
+    @Test
+    public void testInsertList() throws Exception {
+        testCall(db, "RETURN apoc.coll.insertList(null,0,[4,5,6]) AS value", r -> assertNull(r.get("value")));
+        testCall(db, "RETURN apoc.coll.insertList([1,2,3],-1,[4,5,6])[0] AS value", r -> assertEquals(1L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.insertList([1,2,3],0,null)[0] AS value", r -> assertEquals(1L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.insertList([1,2,3],0,[4,5,6])[0] AS value", r -> assertEquals(4L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.insertList([1,2,3],1,[4,5,6])[2] AS value", r -> assertEquals(5L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.insertList([1,2,3],2,[4,5,6])[4] AS value", r -> assertEquals(6L, r.get("value")));
+    }
+
+    @Test
+    public void testRemove() throws Exception {
+        testCall(db, "RETURN apoc.coll.remove(null,0,0) AS value", r -> assertNull(r.get("value")));
+        testCall(db, "RETURN apoc.coll.remove([1,2,3],-1,0)[0] AS value", r -> assertEquals(1L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.remove([1,2,3],0,-1)[0] AS value", r -> assertEquals(1L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.remove([1,2,3],0,0)[0] AS value", r -> assertEquals(1L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.remove([1,2,3],0,1)[0] AS value", r -> assertEquals(2L, r.get("value")));
+        testCall(db, "RETURN apoc.coll.remove([1,2,3],1,1)[1] AS value", r -> assertEquals(3L, r.get("value")));
+        testCall(db, "RETURN size(apoc.coll.remove([1,2,3],1,2)) AS value", r -> assertEquals(1L, r.get("value")));
     }
 
     @Test

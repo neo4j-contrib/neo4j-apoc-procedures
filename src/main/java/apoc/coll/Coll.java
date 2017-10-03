@@ -127,6 +127,53 @@ public class Coll {
     }
 
     @UserFunction
+    @Description("apoc.coll.set(coll, index, value) | set index to value")
+    public List<Object> set(@Name("coll") List<Object> coll, @Name("index") long index, @Name("value") Object value) {
+        if (coll == null) return null;
+        if (index < 0 || value == null) return coll;
+
+        List<Object> list = new ArrayList<>(coll);
+        list.set( (int) index, value );
+        return list;
+    }
+
+    @UserFunction
+    @Description("apoc.coll.insert(coll, index, value) | insert value at index")
+    public List<Object> insert(@Name("coll") List<Object> coll, @Name("index") long index, @Name("value") Object value) {
+        if (coll == null) return null;
+        if (index < 0 || value == null) return coll;
+
+        List<Object> list = new ArrayList<>(coll);
+        list.add( (int) index, value );
+        return list;
+    }
+
+    @UserFunction
+    @Description("apoc.coll.insertList(coll, index, values) | insert values at index")
+    public List<Object> insertList(@Name("coll") List<Object> coll, @Name("index") long index, @Name("values") List<Object> values) {
+        if (coll == null) return null;
+        if (index < 0 || values == null) return coll;
+
+        List<Object> list = new ArrayList<>(coll);
+        list.addAll( (int) index, values );
+        return list;
+    }
+
+    @UserFunction
+    @Description("apoc.coll.remove(coll, index, [length=1]) | remove range of values from index to length")
+    public List<Object> remove(@Name("coll") List<Object> coll, @Name("index") long index, @Name(value = "length") long length) {
+        if (coll == null) return null;
+        if (index < 0 || length < 0) return coll;
+
+        List<Object> list = new ArrayList<>(coll);
+        for (int i = 0; i < length; i++)
+        {
+            list.remove( (int) index );
+        }
+        return list;
+    }
+
+    @UserFunction
     @Description("apoc.coll.containsAll(coll, values) optimized contains-all operation (using a HashSet) (returns single row or not)")
     public boolean containsAll(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
         return new HashSet<>(coll).containsAll(values);
