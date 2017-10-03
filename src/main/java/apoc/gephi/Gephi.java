@@ -42,7 +42,8 @@ public class Gephi {
     }
 
     public static final String[] CAPTIONS = new String[]{"name", "title", "label"};
-
+    public static final String[] RESERVED_PARAMS = new String[]{"label", "TYPE", "id", "source", "target", "weight", "directed"};
+ 
     // http://127.0.0.1:8080/workspace0?operation=updateGraph
     // TODO configure property-filters or transfer all properties
     @Procedure
@@ -77,6 +78,7 @@ public class Gephi {
             Map<String, Object> attributes = map("label", caption(n), "TYPE", labels);
             attributes.putAll(positions());
             attributes.putAll(color(labels,colors));
+            attributes.putAll(properties(n));
             return map(idStr(n), attributes);
         }
         if (pc instanceof Relationship) {
@@ -86,6 +88,7 @@ public class Gephi {
             Double weight = Util.doubleValue(r,weightproperty,1.0);
             attributes.putAll(map("source", idStr(r.getStartNode()), "target", idStr(r.getEndNode()), "directed", true,"weight",weight));
             attributes.putAll(color(type, colors));
+            attributes.putAll(properties(r));
             return map(String.valueOf(r.getId()), attributes);
         }
         return map();
@@ -121,5 +124,13 @@ public class Gephi {
             }
         }
         return first == null ? idStr(n) : n.getProperty(first).toString();
+    }
+
+    private Map properties(PropertyContainer pc) {
+        Map<String, Object> props = pc.getAllProperties();
+        for (String reserved_param : RESERVED_PARAMS) {
+        props.remove(reserved_param);
+        }
+        return props;    
     }
 }
