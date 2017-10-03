@@ -2,6 +2,7 @@ package apoc.index;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.kernel.api.Statement;
 import org.neo4j.kernel.api.exceptions.index.IndexNotApplicableKernelException;
 import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
@@ -76,8 +77,10 @@ public class SchemaIndex {
 //        SortField sortField = new SortField("number" /*string*/, SortField.Type.STRING, reverse);
 //        SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, Math.max(nodeSet.size(),limit), Sort.INDEXORDER); // new Sort(sortField));
         // PrimitiveLongIterator it = getIndexReader(label, key).rangeSeekByString("",true,String.valueOf((char)0xFF),true);
-        KernelStatement stmt = (KernelStatement) tx.acquireStatement();
-        int keyId = stmt.readOperations().propertyKeyGetForName(key);
+        int keyId;
+        try (Statement stmt = tx.acquireStatement()) {
+            keyId = stmt.readOperations().propertyKeyGetForName(key);
+        }
         IndexQuery.NumberRangePredicate numberRangePredicate = IndexQuery.range(keyId, Long.MIN_VALUE, true, Long.MAX_VALUE, true);
         PrimitiveLongIterator it = getIndexReader(label, key).query(numberRangePredicate);
 
@@ -157,11 +160,11 @@ public class SchemaIndex {
 
     private IndexReader getIndexReader(String label, String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
         try (KernelStatement stmt = (KernelStatement) tx.acquireStatement()) {
-        ReadOperations reads = stmt.readOperations();
+            ReadOperations reads = stmt.readOperations();
 
-        LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
-        IndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
-        return stmt.getStoreStatement().getIndexReader(descriptor);
+            LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
+            IndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
+            return stmt.getStoreStatement().getIndexReader(descriptor);
         }
     }
 
