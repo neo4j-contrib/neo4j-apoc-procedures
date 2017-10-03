@@ -442,4 +442,28 @@ public class StringsTest {
         testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo$$bar"), row -> assertEquals("FOO_BAR", row.get("value").toString()));
         testCall(db,  "RETURN apoc.text.toUpperCase({text}) as value",  map("text", "foo 22 bar"), row -> assertEquals("FOO_22_BAR", row.get("value").toString()));
     }
+
+    @Test
+    public void testBase64Encode() {
+        String text = "neo4j";
+
+        testCall(
+                db,
+                "RETURN apoc.text.base64Encode({text}) as value",
+                map("text", text),
+                row -> assertEquals("bmVvNGo=", row.get("value").toString())
+        );
+    }
+
+    @Test
+    public void testBase64Decode() {
+        String text = "bmVvNGo=";
+
+        testCall(
+                db,
+                "RETURN apoc.text.base64Decode({text}) as value",
+                map("text", text),
+                row -> assertEquals("neo4j", row.get("value").toString())
+        );
+    }
 }
