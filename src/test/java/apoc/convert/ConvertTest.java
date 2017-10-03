@@ -140,4 +140,39 @@ public class ConvertTest {
                 });
     }
 
+    @Test
+    public void testToInteger() throws Exception {
+        testCall(db, "return apoc.convert.toInteger('true') as value", r -> assertEquals(1, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger(1) as value", r -> assertEquals(1, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger('false') as value", r -> assertEquals(0, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger(0) as value", r -> assertEquals(0, r.get("value")));
+
+        testCall(db, "return apoc.convert.toInteger('123') as value", r -> assertEquals(123, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger('123.15') as value", r -> assertEquals(123, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger(123) as value", r -> assertEquals(123, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger(123.15) as value", r -> assertEquals(123, r.get("value")));
+
+        testCall(db, "return apoc.convert.toInteger('0x15') as value", r -> assertEquals(21, r.get("value")));
+
+        testCall(db, "return apoc.convert.toInteger('') as value", r -> assertEquals(null, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger(null) as value", r -> assertEquals(null, r.get("value")));
+    }
+
+    @Test
+    public void testToDouble() throws Exception {
+        testCall(db, "return apoc.convert.toDouble('true') as value", r -> assertEquals(1.0, r.get("value")));
+        testCall(db, "return apoc.convert.toDouble(1) as value", r -> assertEquals(1.0, r.get("value")));
+        testCall(db, "return apoc.convert.toDouble('false') as value", r -> assertEquals(0.0, r.get("value")));
+        testCall(db, "return apoc.convert.toDouble(0) as value", r -> assertEquals(0.0, r.get("value")));
+
+        testCall(db, "return apoc.convert.toDouble('123') as value", r -> assertEquals(123.0, r.get("value")));
+        testCall(db, "return apoc.convert.toDouble(123) as value", r -> assertEquals(123.0, r.get("value")));
+        testCall(db, "return apoc.convert.toDouble('123.15') as value", r -> assertEquals(123.15, r.get("value")));
+        testCall(db, "return apoc.convert.toDouble('123.15') as value", r -> assertEquals(123.15, r.get("value")));
+
+        testCall(db, "return apoc.convert.toDouble('0x402e800000000000') as value", r -> assertEquals(15.25, r.get("value")));
+
+        testCall(db, "return apoc.convert.toDouble('') as value", r -> assertEquals(null, r.get("value")));
+        testCall(db, "return apoc.convert.toDouble(null) as value", r -> assertEquals(null, r.get("value")));
+    }
 }

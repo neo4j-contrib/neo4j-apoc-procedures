@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -163,5 +165,85 @@ public class Convert {
 	public List<Relationship> toRelationshipList(@Name("list") Object list) {
         return convertToList(list, Relationship.class);
 	}
-	
+
+    @UserFunction
+    @Description("apoc.convert.toInteger(value) | tries it's best to convert the value to an integer")
+    public Number toInteger(@Name("object") Object obj) {
+        if (obj == null || obj.equals("")) {
+            return null;
+        }
+
+        Types varType = Types.of(obj);
+        Number result;
+        switch (varType) {
+            case INTEGER:
+            case FLOAT:
+                result = ((Number) obj).intValue();
+                break;
+            case STRING:
+                result = parseIntString((String)obj);
+                break;
+            case BOOLEAN:
+                result = ((boolean) obj) ? 1 : 0;
+                break;
+            default:
+                throw new RuntimeException("Supported types are: Integer, Float, String, Boolean, HexString");
+        }
+        return result;
+    }
+
+    private Integer parseIntString(String input) {
+        if (input.equals("true")) {
+            return 1;
+        } else if (input.equals("false")) {
+            return 0;
+        } else if (input.startsWith("0x")) {
+            return Integer.valueOf(input.substring(2), 16);
+        } else {
+            return (int) Float.parseFloat(input);
+        }
+    }
+
+    @UserFunction
+    @Description("apoc.convert.toDouble(value) | tries it's best to convert the value to a float")
+    public Double toDouble(@Name("object") Object obj) {
+        if (obj == null || obj.equals("")) {
+            return null;
+        }
+
+        Types varType = Types.of(obj);
+        Double result;
+        switch (varType) {
+            case INTEGER:
+                result = ((Number) obj).doubleValue();
+                break;
+            case STRING:
+                result = parseDoubleString((String)obj);
+                break;
+            case FLOAT:
+                result = (Double) obj;
+                break;
+            case BOOLEAN:
+                result = ((boolean) obj) ? 1.0 : 0.0;
+                break;
+            default:
+                throw new RuntimeException("Supported types are: Integer, Float, String, Boolean, HexString");
+        }
+        return result;
+    }
+
+
+    private Double parseDoubleString(String input) {
+        if (input.equals("true")) {
+            return 1.0;
+        } else if (input.equals("false")) {
+            return 0.0;
+        } else if (input.startsWith("0x")) {
+            Long i = Long.parseLong(input.substring(2), 16);
+            return Double.longBitsToDouble(i);
+        } else {
+            return Double.parseDouble(input);
+        }
+    }
+
 }
