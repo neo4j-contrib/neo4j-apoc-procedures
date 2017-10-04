@@ -142,17 +142,17 @@ public class ConvertTest {
 
     @Test
     public void testToInteger() throws Exception {
-        testCall(db, "return apoc.convert.toInteger('true') as value", r -> assertEquals(1, r.get("value")));
-        testCall(db, "return apoc.convert.toInteger(1) as value", r -> assertEquals(1, r.get("value")));
-        testCall(db, "return apoc.convert.toInteger('false') as value", r -> assertEquals(0, r.get("value")));
-        testCall(db, "return apoc.convert.toInteger(0) as value", r -> assertEquals(0, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger('true') as value", r -> assertEquals(1L, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger(1) as value", r -> assertEquals(1L, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger('false') as value", r -> assertEquals(0L, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger(0) as value", r -> assertEquals(0L, r.get("value")));
 
-        testCall(db, "return apoc.convert.toInteger('123') as value", r -> assertEquals(123, r.get("value")));
-        testCall(db, "return apoc.convert.toInteger('123.15') as value", r -> assertEquals(123, r.get("value")));
-        testCall(db, "return apoc.convert.toInteger(123) as value", r -> assertEquals(123, r.get("value")));
-        testCall(db, "return apoc.convert.toInteger(123.15) as value", r -> assertEquals(123, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger('123') as value", r -> assertEquals(123L, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger('123.15') as value", r -> assertEquals(123L, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger(123) as value", r -> assertEquals(123L, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger(123.15) as value", r -> assertEquals(123L, r.get("value")));
 
-        testCall(db, "return apoc.convert.toInteger('0x15') as value", r -> assertEquals(21, r.get("value")));
+        testCall(db, "return apoc.convert.toInteger('0x15') as value", r -> assertEquals(21L, r.get("value")));
 
         testCall(db, "return apoc.convert.toInteger('') as value", r -> assertEquals(null, r.get("value")));
         testCall(db, "return apoc.convert.toInteger(null) as value", r -> assertEquals(null, r.get("value")));
