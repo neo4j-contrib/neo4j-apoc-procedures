@@ -36,7 +36,7 @@ jar {
 description = """neo4j-apoc-procedures"""
 
 ext {
-    neo4jVersion = "3.3.0-beta02"
+    neo4jVersion = "3.3.0-rc1"
 }
 
 repositories {
