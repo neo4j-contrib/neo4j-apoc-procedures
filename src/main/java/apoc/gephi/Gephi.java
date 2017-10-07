@@ -15,6 +15,7 @@ import org.neo4j.procedure.Procedure;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
 import java.util.Arrays;
@@ -55,31 +56,33 @@ public class Gephi {
         long start = System.currentTimeMillis();
         HashSet<Node> nodes = new HashSet<>(1000);
         HashSet<Relationship> rels = new HashSet<>(10000);
+        List<String> propertyNames = new ArrayList<>(exportproperties);
+        propertyNames.removeAll(RESERVED);
         if (Graphs.extract(data, nodes, rels)) {
-            String payload = toGephiStreaming(nodes, rels, weightproperty, exportproperties);
+            String payload = toGephiStreaming(nodes, rels, weightproperty, propertyNames.toArray(new String[propertyNames.size()]));
             JsonUtil.loadJson(url,map("method","POST"), payload).count();
             return Stream.of(new ProgressInfo(url,"graph","gephi").update(nodes.size(),rels.size(),nodes.size()).done(start));
         }
         return Stream.empty();
     }
 
-    private String toGephiStreaming(Collection<Node> nodes, Collection<Relationship> rels,String weightproperty, List<String> exportproperties) {
+    private String toGephiStreaming(Collection<Node> nodes, Collection<Relationship> rels,String weightproperty, String[] exportproperties) {
         return Stream.concat(toGraphStream(nodes, "an", weightproperty, exportproperties), toGraphStream(rels, "ae", weightproperty, exportproperties)).collect(Collectors.joining("\r\n"));
     }
 
-    private Stream<String> toGraphStream(Collection<? extends PropertyContainer> source, String operation,String weightproperty, List<String> exportproperties) {
+    private Stream<String> toGraphStream(Collection<? extends PropertyContainer> source, String operation,String weightproperty, String[] exportproperties) {
         Map<String,Map<String,Object>> colors=new HashMap<>();
         return source.stream().map(n -> map(operation, data(n,colors,weightproperty, exportproperties))).map(Util::toJson);
     }
 
-    private Map<String, Object> data(PropertyContainer pc, Map<String, Map<String, Object>> colors, String weightproperty, List<String> exportproperties) {
+    private Map<String, Object> data(PropertyContainer pc, Map<String, Map<String, Object>> colors, String weightproperty, String[] exportproperties) {
         if (pc instanceof Node) {
             Node n = (Node) pc;
             String labels = Util.labelString(n);
             Map<String, Object> attributes = map("label", caption(n), "TYPE", labels);
             attributes.putAll(positions());
             attributes.putAll(color(labels,colors));
-            if (!exportproperties.isEmpty()) attributes.putAll(properties(n,exportproperties));
+            if (exportproperties.length > 0) attributes.putAll(n.getProperties(exportproperties));
             return map(idStr(n), attributes);
         }
         if (pc instanceof Relationship) {
@@ -89,7 +92,7 @@ public class Gephi {
             Double weight = Util.doubleValue(r,weightproperty,1.0);
             attributes.putAll(map("source", idStr(r.getStartNode()), "target", idStr(r.getEndNode()), "directed", true,"weight",weight));
             attributes.putAll(color(type, colors));
-            if (!exportproperties.isEmpty()) attributes.putAll(properties(r,exportproperties));
+            if (exportproperties.length > 0) attributes.putAll(r.getProperties(exportproperties));
             return map(String.valueOf(r.getId()), attributes);
         }
         return map();
@@ -125,13 +128,5 @@ public class Gephi {
             }
         }
         return first == null ? idStr(n) : n.getProperty(first).toString();
-    }
-
-    private Map properties(PropertyContainer pc, List<String> exportproperties) {
-        Map<String, Object> props = new HashMap<String, Object>();
-        for (String exportproperty : exportproperties) {
-            if (pc.hasProperty(exportproperty) && (!RESERVED.contains(exportproperty))) props.put(exportproperty, pc.getProperty(exportproperty));
-        }
-        return props;
     }
 }
