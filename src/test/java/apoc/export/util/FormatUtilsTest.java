@@ -21,4 +21,19 @@ public class FormatUtilsTest {
         assertEquals("\"\\\\\"",FormatUtils.formatString('\\'));
     }
 
+    @Test
+    public void joinLabels() throws Exception {
+        GraphDatabaseService db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().newGraphDatabase();
+        final String delimiter = ":";
+        try (Transaction t = db.beginTx()) {
+            Node node = db.createNode();
+            assertEquals("", NeoExample.joinLabels(node, delimiter));
+
+            node.addLabel(Label.label("label_a"));
+            node.addLabel(Label.label("label_c"));
+            node.addLabel(Label.label("label_b"));
+            assertEquals("label_a:label_b:label_c", NeoExample.joinLabels(node, delimiter));
+        }
+    }
+
 }
