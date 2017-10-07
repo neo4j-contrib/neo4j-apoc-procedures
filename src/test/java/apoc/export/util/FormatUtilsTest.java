@@ -1,6 +1,8 @@
 package apoc.export.util;
 
 import org.junit.Test;
+import org.neo4j.graphdb.*;
+import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static org.junit.Assert.*;
 
@@ -27,12 +29,12 @@ public class FormatUtilsTest {
         final String delimiter = ":";
         try (Transaction t = db.beginTx()) {
             Node node = db.createNode();
-            assertEquals("", NeoExample.joinLabels(node, delimiter));
+            assertEquals("", FormatUtils.joinLabels(node, delimiter));
 
             node.addLabel(Label.label("label_a"));
             node.addLabel(Label.label("label_c"));
             node.addLabel(Label.label("label_b"));
-            assertEquals("label_a:label_b:label_c", NeoExample.joinLabels(node, delimiter));
+            assertEquals("label_a:label_b:label_c", FormatUtils.joinLabels(node, delimiter));
         }
     }
 
