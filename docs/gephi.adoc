@@ -45,6 +45,18 @@ call apoc.gephi.add(null,'workspace0', paths, 'weightproperty') yield nodes, rel
 return nodes, relationships, time
 ----
 
+You can also export with your graph other properties of your nodes and/or relationship by adding an optional array with the property names you want to export.
+Example for exporting `birthYear` and `role` property.
+
+[source,cypher]
+----
+match path = (:Person)-[r:ACTED_IN]->(:Movie) where exists r.weightproperty
+WITH path LIMIT 1000
+with collect(path) as paths
+call apoc.gephi.add(null,'workspace0', paths, 'weightproperty',['birthYear', 'role']) yield nodes, relationships, time
+return nodes, relationships, time
+----
+
 == Format
 
 We send all nodes and relationships of the passed in data convert into individual Gephi-Streaming JSON fragements, separated by `\r\n`.
