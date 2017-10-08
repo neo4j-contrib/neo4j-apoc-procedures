@@ -63,7 +63,7 @@ public class SchemaIndexTest {
     public void testRelated() throws Exception {
         testResult(db, "MATCH (city:City) WITH city CALL apoc.index.related([city],'Person','age','LIVES_IN>',5) YIELD node RETURN *", r -> {
             Function<Result,Object> age = (res) -> ((Node)res.next().get("node")).getProperty("age");
-            LongStream.of(1,2,3,4,5).forEach( (a) -> assertEquals(a,age.apply(r)));
+            LongStream.of(0,0,1,1,2).forEach( (a) -> assertEquals(a,age.apply(r)));
             assertEquals(false, r.hasNext());
         });
     }
@@ -72,7 +72,11 @@ public class SchemaIndexTest {
     public void testOrderedRangeNumbers() throws Exception {
         testResult(db, "CALL apoc.index.orderedRange('Person','age',10,30,false,10)", r -> {
             for (long i=10;i<20;i++) {
-                assertEquals(i,((Node)r.next().get("node")).getProperty("id"));
+                Node node = (Node) r.next().get("node");
+                long id = (Long) node.getProperty("id");
+                long age = (Long) node.getProperty("age");
+                assertEquals(id % 100, age);
+                assertEquals(true, 10 <= age && age <= 30);
             }
             assertEquals(false, r.hasNext());
         });
@@ -82,7 +86,11 @@ public class SchemaIndexTest {
     public void testOrderedRangeNumbersLowerBound() throws Exception {
         testResult(db, "CALL apoc.index.orderedRange('Person','age',10,null,false,5)", r -> {
             for (long i=10;i<15;i++) {
-                assertEquals(i,((Node)r.next().get("node")).getProperty("id"));
+                Node node = (Node) r.next().get("node");
+                long id = (Long) node.getProperty("id");
+                long age = (Long) node.getProperty("age");
+                assertEquals(id % 100, age);
+                assertEquals(true, 10 <= age);
             }
             assertEquals(false, r.hasNext());
         });
@@ -91,7 +99,11 @@ public class SchemaIndexTest {
     public void testOrderedRangeNumbersUpperBound() throws Exception {
         testResult(db, "CALL apoc.index.orderedRange('Person','age',null,10,false,5)", r -> {
             for (long i=1;i<6;i++) {
-                assertEquals(i,((Node)r.next().get("node")).getProperty("id"));
+                Node node = (Node) r.next().get("node");
+                long id = (Long) node.getProperty("id");
+                long age = (Long) node.getProperty("age");
+                assertEquals(id % 100, age);
+                assertEquals(true, age <= 10);
             }
             assertEquals(false, r.hasNext());
         });
@@ -100,11 +112,12 @@ public class SchemaIndexTest {
     @Test
     public void testOrderedRangeNumbersRangeSmallerSize() throws Exception {
         testResult(db, "CALL apoc.index.orderedRange('Person','age',10,15,false,10)", r -> {
-            for (long i=10;i<16;i++) {
-                assertEquals(i,((Node)r.next().get("node")).getProperty("id"));
-            }
-            for (long i=110;i<114;i++) {
-                assertEquals(i,((Node)r.next().get("node")).getProperty("id"));
+            for (long i=0;i<10;i++) {
+                Node node = (Node) r.next().get("node");
+                long id = (Long) node.getProperty("id");
+                long age = (Long) node.getProperty("age");
+                assertEquals(id % 100, age);
+                assertEquals(true, 10 <= age && age <= 15);
             }
             assertEquals(false, r.hasNext());
         });

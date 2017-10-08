@@ -295,6 +295,7 @@ public class SchemasTest {
     public void testIndexOnMultipleProperties() {
         ignoreException(() -> {
             db.execute("CREATE INDEX ON :Foo(bar, foo)").close();
+            db.execute("CALL db.awaitIndex(':Foo(bar, foo)')").close();
             testResult(db, "CALL apoc.schema.nodes()", (result) -> {
                 // Get the index info
                 Map<String, Object> r = result.next();

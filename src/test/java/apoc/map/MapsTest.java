@@ -16,6 +16,7 @@ import java.util.Map;
 import static apoc.util.MapUtil.map;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
+import static org.neo4j.helpers.collection.Iterators.asSet;
 
 /**
  * @author mh
@@ -39,7 +40,7 @@ public class MapsTest {
         db.execute("UNWIND range(1,3) as id create (:Person {name:'name'+id})").close();
         TestUtil.testCall(db, "RETURN apoc.map.fromNodes('Person','name') as value", (r) -> {
             Map<String,Node> map = (Map<String, Node>) r.get("value");
-            assertEquals(asList("name1","name2","name3"),new ArrayList<>(map.keySet()));
+            assertEquals(asSet("name1","name2","name3"),map.keySet());
             map.forEach((k,v) -> assertEquals(k, v.getProperty("name")));
         });
     }

@@ -2,6 +2,7 @@ package apoc.index;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.exceptions.index.IndexNotApplicableKernelException;
 import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
@@ -13,13 +14,11 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.Sort;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
-import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.exceptions.TransactionFailureException;
@@ -33,15 +32,18 @@ import org.neo4j.kernel.api.schema.LabelSchemaDescriptor;
 import org.neo4j.kernel.api.schema.index.IndexDescriptor;
 import org.neo4j.kernel.impl.api.KernelStatement;
 import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.storageengine.api.schema.IndexReader;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static apoc.util.MapUtil.map;
+import static apoc.path.RelationshipTypeAndDirections.parse;
 
 /**
  * @author mh
@@ -61,49 +63,41 @@ public class SchemaIndex {
                                       @Name("relationship") String relationship,
                                       @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException, DuplicateSchemaRuleException, IndexNotApplicableKernelException {
         Set<Node> nodeSet = new HashSet<>(nodes);
-        Direction dir = Direction.BOTH;
-        if (relationship.startsWith("<")) {
-            dir = Direction.INCOMING;
-            relationship = relationship.substring(1);
-        }
-        if (relationship.endsWith(">")) {
-            dir = Direction.OUTGOING;
-            relationship = relationship.substring(0, relationship.length() - 1);
-        }
-        RelationshipType type = RelationshipType.withName(relationship);
-        List<Node> result = new ArrayList<>((int) limit);
-        boolean reverse = false;
-//        SortField sortField = new SortField("number" /*string*/, SortField.Type.STRING, reverse);
-//        SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, Math.max(nodeSet.size(),limit), Sort.INDEXORDER); // new Sort(sortField));
-        // PrimitiveLongIterator it = getIndexReader(label, key).rangeSeekByString("",true,String.valueOf((char)0xFF),true);
-        KernelStatement stmt = (KernelStatement) tx.acquireStatement();
-        int keyId = stmt.readOperations().propertyKeyGetForName(key);
-        IndexQuery.NumberRangePredicate numberRangePredicate = IndexQuery.range(keyId, Long.MIN_VALUE, true, Long.MAX_VALUE, true);
-        PrimitiveLongIterator it = getIndexReader(label, key).query(numberRangePredicate);
+        Pair<RelationshipType, Direction> relTypeDirection = parse(relationship).get(0);
+        RelationshipType type = relTypeDirection.first();
+        Direction dir = relTypeDirection.other();
 
-        while (it.hasNext() && result.size() < limit) {
-            Node node = db.getNodeById(it.next());
-//            System.out.println("id  " + node.getProperty("id") + " age " + node.getProperty("age"));
+        return queryForRange(label,key,Long.MIN_VALUE,Long.MAX_VALUE,0).filter((node) -> {
             for (Relationship rel : node.getRelationships(dir, type)) {
                 Node other = rel.getOtherNode(node);
                 if (nodeSet.contains(other)) {
-                    result.add(node);
-                    break;
+                    return true;
                 }
             }
-        }
-        return result.stream().map(NodeResult::new);
+            return false;
+        }).map(NodeResult::new).limit(limit);
     }
 
     @Procedure
     @Description("apoc.index.orderedRange(label,key,min,max,sort-relevance,limit) yield node - schema range scan which keeps index order and adds limit, values can be null, boundaries are inclusive")
     public Stream<NodeResult> orderedRange(@Name("label") String label, @Name("key") String key, @Name("min") Object min, @Name("max") Object max, @Name("relevance") boolean relevance, @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
 
-        SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, limit, getSort(min, max, relevance));
+        return queryForRange(label, key, min, max, limit).map(NodeResult::new);
+    }
 
-        PrimitiveLongIterator it = queryForRange(sortedIndexReader, min, max);
-//        return Util.toLongStream(it).mapToObj(id -> new NodeResult(new VirtualNode(id, db)));
-        return Util.toLongStream(it).mapToObj(id -> new NodeResult(db.getNodeById(id)));
+    public Stream<Node> queryForRange(@Name("label") String label, @Name("key") String key, @Name("min") Object min, @Name("max") Object max, @Name("limit") long limit) {
+        Map<String, Object> params = map("min", min, "max", max, "limit", limit);
+        String query = "MATCH (n:`" + label + "`)";
+        if (min != null || max != null) {
+            query += " WHERE ";
+            if (min != null) query += "{min} <=";
+            query += " n.`" + key + "` ";
+            if (max != null) query += "<= {max}";
+        }
+        query += " RETURN n ";
+        if (limit > 0) query+="LIMIT {limit}";
+        ResourceIterator<Node> it = db.execute(query, params).columnAs("n");
+        return it.stream().onClose(it::close);
     }
 
     public Sort getSort(Object min, Object max, boolean relevance) {
@@ -132,7 +126,6 @@ public class SchemaIndex {
     public Stream<NodeResult> orderedByText(@Name("label") String label, @Name("key") String key, @Name("operator") String operator, @Name("value") String value, @Name("relevance") boolean relevance, @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
         SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, limit, getSort(value,value,relevance));
         PrimitiveLongIterator it = queryForString(sortedIndexReader, operator, value);
-//        return Util.toLongStream(it).mapToObj(id -> new NodeResult(new VirtualNode(id, db)));
         return Util.toLongStream(it).mapToObj(id -> new NodeResult(db.getNodeById(id)));
     }
 
@@ -142,8 +135,8 @@ public class SchemaIndex {
                 return sortedIndexReader.containsString(value);
             case "STARTS WITH":
                 return sortedIndexReader.rangeSeekByPrefix(value);
-            // todo
-            // case "ENDS WITH" : it = sortedIndexReader.rangeSeekByPrefix(value);
+            case "ENDS WITH" :
+                return sortedIndexReader.containsString('*'+value);
             default:
                 throw new IllegalArgumentException("Unknown Operator " + operator);
         }
@@ -151,17 +144,27 @@ public class SchemaIndex {
 
     private SortedIndexReader getSortedIndexReader(String label, String key, long limit, Sort sort) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
         // todo PartitionedIndexReader
-        SimpleIndexReader reader = (SimpleIndexReader) getIndexReader(label, key);
+        SimpleIndexReader reader = getLuceneIndexReader(label, key);
         return new SortedIndexReader(reader, limit, sort);
     }
 
-    private IndexReader getIndexReader(String label, String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
+    private SimpleIndexReader getLuceneIndexReader(String label, String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
         try (KernelStatement stmt = (KernelStatement) tx.acquireStatement()) {
-        ReadOperations reads = stmt.readOperations();
+            ReadOperations reads = stmt.readOperations();
 
-        LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
-        IndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
-        return stmt.getStoreStatement().getIndexReader(descriptor);
+            LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
+            IndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
+            IndexReader indexReader = stmt.getStoreStatement().getIndexReader(descriptor);
+            if (indexReader.getClass().getName().endsWith("FusionIndexReader")) {
+                try {
+                    Field field = indexReader.getClass().getDeclaredField("luceneReader");
+                    field.setAccessible(true);
+                    return (SimpleIndexReader) field.get(indexReader);
+                } catch (IllegalAccessException | NoSuchFieldException e) {
+                    throw new RuntimeException("Error accessing index reader",e);
+                }
+            }
+            return (SimpleIndexReader)indexReader;
         }
     }
 
@@ -173,27 +176,21 @@ public class SchemaIndex {
     }
 
     private List<Object> distinctTerms(@Name("label") String label, @Name("key") String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException, DuplicateSchemaRuleException {
-        try (KernelStatement stmt = (KernelStatement) tx.acquireStatement()) {
-            ReadOperations reads = stmt.readOperations();
-    
-            LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
-            IndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
-            SimpleIndexReader reader = (SimpleIndexReader) stmt.getStoreStatement().getIndexReader(descriptor);
-            SortedIndexReader sortedIndexReader = new SortedIndexReader(reader, 0, Sort.INDEXORDER);
-            Set<Object> values = new LinkedHashSet<>(100);
-            TermsEnum termsEnum;
+        SimpleIndexReader reader = getLuceneIndexReader(label,key);
+        SortedIndexReader sortedIndexReader = new SortedIndexReader(reader, 0, Sort.INDEXORDER);
+        Set<Object> values = new LinkedHashSet<>(100);
+        TermsEnum termsEnum;
 
-            Fields fields = MultiFields.getFields(sortedIndexReader.getIndexSearcher().getIndexReader());
+        Fields fields = MultiFields.getFields(sortedIndexReader.getIndexSearcher().getIndexReader());
 
-            Terms terms = fields.terms("string");
-            if (terms != null) {
-                termsEnum = terms.iterator();
-                while ((termsEnum.next()) != null) {
-                    values.add(termsEnum.term().utf8ToString());
-                }
+        Terms terms = fields.terms("string");
+        if (terms != null) {
+            termsEnum = terms.iterator();
+            while ((termsEnum.next()) != null) {
+                values.add(termsEnum.term().utf8ToString());
             }
-            return new ArrayList<>(values);
         }
+        return new ArrayList<>(values);
     }
 
     @Procedure("apoc.schema.properties.distinctCount")
