@@ -407,7 +407,7 @@ CALL apoc.couchbase.get(['localhost'], 'default', 'artist:vincent_van_gogh')
 
 [cols="1m,5"]
 |===
-| apoc.gephi.add(url-or-key, workspace, data) | streams provided data to Gephi
+| apoc.gephi.add(url-or-key, workspace, data, weightproperty, ['exportproperty']) | streams provided data to Gephi
 |===
 
 // end::gephi[]
