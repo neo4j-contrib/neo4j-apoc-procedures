@@ -36,7 +36,10 @@ jar {
 description = """neo4j-apoc-procedures"""
 
 ext {
-    neo4jVersion = project.hasProperty("neo4jVersion") ? project.getProperty("neo4jVersion") : "3.2.2"
+    // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
+    neo4jVersion = "3.3.0"
+    // instead we apply the override logic here
+    neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
 }
 
 repositories {
@@ -70,14 +73,15 @@ dependencies {
 
     testCompile group: 'junit', name: 'junit', version:'4.12'
     testCompile group: 'org.hamcrest', name: 'hamcrest-library', version:'1.3'
-    testCompile group: 'org.neo4j.test', name: 'neo4j-harness', version:neo4jVersion
+    testCompile group: 'org.neo4j.test', name: 'neo4j-harness', version:neo4jVersionEffective
     testCompile group: 'org.apache.derby', name: 'derby', version:'10.12.1.1'
-    testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version:neo4jVersion
-    testCompile group: 'org.neo4j', name: 'neo4j-common', version:neo4jVersion, classifier: "tests"
-    testCompile group: 'org.neo4j', name: 'neo4j-com', version:neo4jVersion, classifier: "tests"
-    testCompile group: 'org.neo4j', name: 'neo4j-causal-clustering', version:neo4jVersion, classifier: "tests"
-    testCompile group: 'org.neo4j', name: 'neo4j-kernel', version:neo4jVersion, classifier: "tests"
-    testCompile group: 'org.neo4j', name: 'neo4j-io', version:neo4jVersion, classifier: "tests"
+
+    testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version:neo4jVersionEffective
+    testCompile group: 'org.neo4j', name: 'neo4j-common', version:neo4jVersionEffective, classifier: "tests"
+    testCompile group: 'org.neo4j', name: 'neo4j-com', version:neo4jVersionEffective, classifier: "tests"
+    testCompile group: 'org.neo4j', name: 'neo4j-causal-clustering', version:neo4jVersionEffective, classifier: "tests"
+    testCompile group: 'org.neo4j', name: 'neo4j-kernel', version:neo4jVersionEffective, classifier: "tests"
+    testCompile group: 'org.neo4j', name: 'neo4j-io', version:neo4jVersionEffective, classifier: "tests"
 
     compileOnly 'org.mongodb:mongodb-driver:3.2.2'
     testCompile 'org.mongodb:mongodb-driver:3.2.2'
@@ -85,8 +89,8 @@ dependencies {
     compileOnly 'com.couchbase.client:java-client:2.3.1'
     testCompile 'com.couchbase.client:java-client:2.3.1'
 
-    compileOnly(group: 'org.neo4j', name: 'neo4j', version:neo4jVersion)
-    compileOnly(group: 'org.neo4j', name: 'neo4j-enterprise', version:neo4jVersion)
+    compileOnly(group: 'org.neo4j', name: 'neo4j', version:neo4jVersionEffective)
+    compileOnly(group: 'org.neo4j', name: 'neo4j-enterprise', version:neo4jVersionEffective)
     compileOnly(group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version:'1.9.7')
     testCompile(group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version:'1.9.7')
     compile(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.0')
@@ -94,8 +98,8 @@ dependencies {
     compile group: 'com.github.javafaker', name: 'javafaker', version:'0.10'
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
-    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version:neo4jVersion
-    jmh group: 'org.neo4j', name: 'neo4j-kernel', version:neo4jVersion, classifier: "tests"
+    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version:neo4jVersionEffective
+    jmh group: 'org.neo4j', name: 'neo4j-kernel', version:neo4jVersionEffective, classifier: "tests"
 }
 
 test {
@@ -125,7 +129,7 @@ asciidoctor {
     outputDir = file('build/docs')
     attributes  'apoc-version' : version,
                 'apoc-release' : "3.3.0.1",
-                'neo4j-version' : neo4jVersion,
+                'neo4j-version' : neo4jVersionEffective,
                 'branch' : "3.3"
 }
 
