@@ -39,7 +39,7 @@ public class FormatUtils {
     }
 
     public static String joinLabels(Node node, String delimiter) {
-        return StreamSupport.stream(node.getLabels().spliterator(),false).map(Label::name).collect(Collectors.joining(delimiter));
+        return StreamSupport.stream(node.getLabels().spliterator(),false).map(Label::name).sorted().collect(Collectors.joining(delimiter));
     }
 
     public static Map<String,Object> toMap(PropertyContainer pc) {
