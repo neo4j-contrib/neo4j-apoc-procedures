@@ -43,10 +43,11 @@ ext {
 }
 
 repositories {
-     maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
-     mavenCentral()
-     maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
-     maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
+    mavenCentral()
+    maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
+    maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
+    flatDir { dirs 'lib' }
 }
 
 compileJava {
@@ -78,6 +79,8 @@ dependencies {
     testCompile group: 'org.neo4j', name: 'neo4j-causal-clustering', version:neo4jVersionEffective, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-kernel', version:neo4jVersionEffective, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-io', version:neo4jVersionEffective, classifier: "tests"
+    testCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
+    testCompile group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
 
     compileOnly 'org.mongodb:mongodb-driver:3.2.2'
     testCompile 'org.mongodb:mongodb-driver:3.2.2'
@@ -116,17 +119,17 @@ javadoc {
 }
 
 /**************
-* ASCIIDOCTOR *
-**************/
+ * ASCIIDOCTOR *
+ **************/
 
 asciidoctor {
     sourceDir = file('docs')
     sources { include 'index.adoc' }
     outputDir = file('build/docs')
     attributes  'apoc-version' : version,
-                'apoc-release' : "3.2.3.5",
-                'neo4j-version' : neo4jVersionEffective,
-                'branch' : "3.2"
+            'apoc-release' : "3.2.3.5",
+            'neo4j-version' : neo4jVersionEffective,
+            'branch' : "3.2"
 }
 
 asciidoctor.doLast {
@@ -139,8 +142,8 @@ asciidoctor.doLast {
 assemble.dependsOn(asciidoctor)
 
 /******
-* END *
-******/
+ * END *
+ ******/
 
 // publishing
 
@@ -194,21 +197,21 @@ and not for its dependencies."""
 // tweaks for travis
 // from
 if (System.env.TRAVIS == 'true') {
-  allprojects {
-    tasks.withType(GroovyCompile) {
-      groovyOptions.fork = false
+    allprojects {
+        tasks.withType(GroovyCompile) {
+            groovyOptions.fork = false
+        }
+        tasks.withType(Test) {
+            // containers (currently) have 2 dedicated cores and 4GB of memory
+            maxParallelForks = 2
+            minHeapSize = '128m'
+        }
     }
-    tasks.withType(Test) {
-      // containers (currently) have 2 dedicated cores and 4GB of memory
-      maxParallelForks = 2
-      minHeapSize = '128m'
-    }
-  }
 }
 
 task copyRuntimeLibs(type: Copy) {
     into "lib"
-    from configurations.testRuntime 
+    from configurations.testRuntime
 }
 
 jmh {
