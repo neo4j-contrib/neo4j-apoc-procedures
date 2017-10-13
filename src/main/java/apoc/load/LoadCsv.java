@@ -90,7 +90,7 @@ public class LoadCsv {
         }
 
         private Object convertArray(String value) {
-            String[] values = value.split(arrayPattern);
+            String[] values = value.split(Pattern.quote(arrayPattern));
             List<Object> result = new ArrayList<>(values.length);
             for (String v : values) {
                 result.add(convertType(v));
