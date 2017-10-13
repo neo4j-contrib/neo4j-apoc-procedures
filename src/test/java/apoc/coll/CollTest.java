@@ -82,7 +82,6 @@ public class CollTest {
     public void testMin() throws Exception {
         testCall(db, "RETURN apoc.coll.min([1,2,3]) as value",
                 (row) -> assertEquals(1L, row.get("value")));
-
         testCall(db, "RETURN apoc.coll.min([0.5,1,2.3]) as value",
                 (row) -> assertEquals(0.5D, row.get("value")));
     }
