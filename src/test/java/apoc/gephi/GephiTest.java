@@ -24,7 +24,7 @@ public class GephiTest {
     public static void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db,Gephi.class);
-        db.execute("CREATE (:Foo {name:'Foo'})-[:KNOWS{weight:7.2}]->(:Bar {name:'Bar'})").close();
+        db.execute("CREATE (:Foo {name:'Foo'})-[:KNOWS{weight:7.2,foo:'foo',bar:3.0,directed:'error',label:'foo'}]->(:Bar {name:'Bar'})").close();
     }
     @AfterClass
     public static void tearDown() {
@@ -54,6 +54,36 @@ public class GephiTest {
     public void testWrongWeightParameter() throws Exception {
         TestUtil.ignoreException(() -> {
             TestUtil.testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,'workspace1',p,'test') yield nodes, relationships, format return *", r -> {
+                assertEquals(2L, r.get("nodes"));
+                assertEquals(1L, r.get("relationships"));
+                assertEquals("gephi", r.get("format"));
+            });
+        }, java.io.FileNotFoundException.class, java.net.ConnectException.class, IOException.class);
+    }
+
+    public void testRightExportParameter() throws Exception {
+        TestUtil.ignoreException(() -> {
+            TestUtil.testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,'workspace1',p,'weight',['foo']) yield nodes, relationships, format return *", r -> {
+                assertEquals(2L, r.get("nodes"));
+                assertEquals(1L, r.get("relationships"));
+                assertEquals("gephi", r.get("format"));
+            });
+        }, java.io.FileNotFoundException.class, java.net.ConnectException.class, IOException.class);
+    }
+
+    public void testWrongExportParameter() throws Exception {
+        TestUtil.ignoreException(() -> {
+            TestUtil.testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,'workspace1',p,'weight',['faa','fee']) yield nodes, relationships, format return *", r -> {
+                assertEquals(2L, r.get("nodes"));
+                assertEquals(1L, r.get("relationships"));
+                assertEquals("gephi", r.get("format"));
+            });
+        }, java.io.FileNotFoundException.class, java.net.ConnectException.class, IOException.class);
+    }
+
+    public void reservedExportParameter() throws Exception {
+        TestUtil.ignoreException(() -> {
+            TestUtil.testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,'workspace1',p,'weight',['directed','label']) yield nodes, relationships, format return *", r -> {
                 assertEquals(2L, r.get("nodes"));
                 assertEquals(1L, r.get("relationships"));
                 assertEquals("gephi", r.get("format"));
