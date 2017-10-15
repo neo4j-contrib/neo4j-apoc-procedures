@@ -73,7 +73,7 @@ public class LoadCsv {
         final boolean array;
         final boolean ignore;
         final char arraySep;
-        private final String arrayPattern;
+        private final Pattern arrayPattern;
 
         public Mapping(String name, Map<String, Object> mapping, char arraySep, boolean ignore) {
             this.name = mapping.getOrDefault("name", name).toString();
@@ -81,7 +81,7 @@ public class LoadCsv {
             this.ignore = (Boolean) mapping.getOrDefault("ignore", ignore);
             this.arraySep = separator(mapping.getOrDefault("arraySep", arraySep).toString(),DEFAULT_ARRAY_SEP);
             this.type = Meta.Types.from(mapping.getOrDefault("type", "STRING").toString());
-            this.arrayPattern = Pattern.compile(String.valueOf(this.arraySep), Pattern.LITERAL).toString();
+            this.arrayPattern = Pattern.compile(String.valueOf(this.arraySep), Pattern.LITERAL);
 
         }
 
@@ -90,7 +90,7 @@ public class LoadCsv {
         }
 
         private Object convertArray(String value) {
-            String[] values = value.split(arrayPattern);
+            String[] values = arrayPattern.split(value);
             List<Object> result = new ArrayList<>(values.length);
             for (String v : values) {
                 result.add(convertType(v));
@@ -105,7 +105,7 @@ public class LoadCsv {
                 case FLOAT: return Double.parseDouble(value);
                 case BOOLEAN: return Boolean.parseBoolean(value);
                 case NULL: return null;
-                case LIST: return asList(value.split(arrayPattern));
+                case LIST: return asList(arrayPattern.split(value));
                 default: return value;
             }
         }
