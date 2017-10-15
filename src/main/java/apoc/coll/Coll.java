@@ -13,6 +13,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.math.BigDecimal;
 
 import static java.util.Arrays.asList;
 import static org.neo4j.helpers.collection.Pair.*;
@@ -74,13 +75,17 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.min([0.5,1,2.3])")
     public Object min(@Name("values") List<Object> list) {
-        return Collections.min((List)list);
+        return Collections.min((List)list, Coll::compareAsDoubles);
     }
 
     @UserFunction
     @Description("apoc.coll.max([0.5,1,2.3])")
     public Object max(@Name("values") List<Object> list) {
-        return Collections.max((List)list);
+        return Collections.max((List)list, Coll::compareAsDoubles);
+    }
+
+    private static int compareAsDoubles(Object a, Object b) {
+        return Double.compare(((Number)a).doubleValue(), ((Number)b).doubleValue());
     }
 
     @Procedure
