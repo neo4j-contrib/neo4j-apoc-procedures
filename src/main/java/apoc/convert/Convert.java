@@ -17,6 +17,8 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Iterators;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
@@ -25,12 +27,17 @@ import apoc.coll.SetBackedList;
 import apoc.meta.Meta.Types;
 import apoc.util.Util;
 
+import static apoc.meta.Meta.Types.UNKNOWN;
+
 
 /**
  * @author mh
  * @since 29.05.16
  */
 public class Convert {
+
+    @Context
+    public Log log;
 
     @UserFunction
     @Description("apoc.convert.toMap(value) | tries it's best to convert the value to a map")
@@ -183,7 +190,7 @@ public class Convert {
             case BOOLEAN:
                 return ((boolean) obj) ? 1L : 0L;
             default:
-                throw new RuntimeException("Supported types are: Integer, Float, String, Boolean, HexString");
+                return null;
         }
     }
 
@@ -197,7 +204,12 @@ public class Convert {
         if (input.startsWith("0x")) {
             return Long.valueOf(input.substring(2), 16);
         }
-        return (long) Float.parseFloat(input);
+        try {
+            return (long) Float.parseFloat(input);
+        } catch (NumberFormatException ex) {
+            log.error("Converting toInteger", ex);
+            return null;
+        }
     }
 
     @UserFunction
@@ -214,27 +226,31 @@ public class Convert {
             case STRING:
                 return parseDoubleString((String)obj);
             case FLOAT:
-                return (Double) obj;
+                return ((Number) obj).doubleValue();
             case BOOLEAN:
                 return ((boolean) obj) ? 1.0 : 0.0;
             default:
-                throw new RuntimeException("Supported types are: Integer, Float, String, Boolean, HexString");
+                return null;
         }
     }
 
 
     private Double parseDoubleString(String input) {
-        if (input.equals("true")) {
+        if (input.equalsIgnoreCase("true")) {
             return 1.0;
         }
-        if (input.equals("false")) {
+        if (input.equalsIgnoreCase("false")) {
             return 0.0;
         }
-        if (input.startsWith("0x")) {
-            Long i = Long.parseLong(input.substring(2), 16);
-            return Double.longBitsToDouble(i);
+        try {
+            if (input.startsWith("0x")) {
+                Long i = Long.parseLong(input.substring(2), 16);
+                return Double.longBitsToDouble(i);
+            }
+            return Double.parseDouble(input);
+        } catch (NumberFormatException ex) {
+            log.error("Converting toDouble", ex);
+            return null;
         }
-        return Double.parseDouble(input);
     }
-
 }
