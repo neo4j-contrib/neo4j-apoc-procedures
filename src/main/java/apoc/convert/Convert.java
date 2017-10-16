@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -15,6 +17,8 @@ import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Iterators;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
@@ -23,12 +27,17 @@ import apoc.coll.SetBackedList;
 import apoc.meta.Meta.Types;
 import apoc.util.Util;
 
+import static apoc.meta.Meta.Types.UNKNOWN;
+
 
 /**
  * @author mh
  * @since 29.05.16
  */
 public class Convert {
+
+    @Context
+    public Log log;
 
     @UserFunction
     @Description("apoc.convert.toMap(value) | tries it's best to convert the value to a map")
@@ -163,5 +172,85 @@ public class Convert {
 	public List<Relationship> toRelationshipList(@Name("list") Object list) {
         return convertToList(list, Relationship.class);
 	}
-	
+
+    @UserFunction
+    @Description("apoc.convert.toInteger(value) | tries it's best to convert the value to an integer")
+    public Long toInteger(@Name("object") Object obj) {
+        if (obj == null || obj.equals("")) {
+            return null;
+        }
+
+        Types varType = Types.of(obj);
+        switch (varType) {
+            case INTEGER:
+            case FLOAT:
+                return ((Number) obj).longValue();
+            case STRING:
+                return parseLongString((String)obj);
+            case BOOLEAN:
+                return ((boolean) obj) ? 1L : 0L;
+            default:
+                return null;
+        }
+    }
+
+    private Long parseLongString(String input) {
+        if (input.equals("true")) {
+            return 1L;
+        }
+        if (input.equals("false")) {
+            return 0L;
+        }
+        if (input.startsWith("0x")) {
+            return Long.valueOf(input.substring(2), 16);
+        }
+        try {
+            return (long) Float.parseFloat(input);
+        } catch (NumberFormatException ex) {
+            log.error("Converting toInteger", ex);
+            return null;
+        }
+    }
+
+    @UserFunction
+    @Description("apoc.convert.toDouble(value) | tries it's best to convert the value to a float")
+    public Double toDouble(@Name("object") Object obj) {
+        if (obj == null || obj.equals("")) {
+            return null;
+        }
+
+        Types varType = Types.of(obj);
+        switch (varType) {
+            case INTEGER:
+                return ((Number) obj).doubleValue();
+            case STRING:
+                return parseDoubleString((String)obj);
+            case FLOAT:
+                return ((Number) obj).doubleValue();
+            case BOOLEAN:
+                return ((boolean) obj) ? 1.0 : 0.0;
+            default:
+                return null;
+        }
+    }
+
+
+    private Double parseDoubleString(String input) {
+        if (input.equalsIgnoreCase("true")) {
+            return 1.0;
+        }
+        if (input.equalsIgnoreCase("false")) {
+            return 0.0;
+        }
+        try {
+            if (input.startsWith("0x")) {
+                Long i = Long.parseLong(input.substring(2), 16);
+                return Double.longBitsToDouble(i);
+            }
+            return Double.parseDouble(input);
+        } catch (NumberFormatException ex) {
+            log.error("Converting toDouble", ex);
+            return null;
+        }
+    }
 }
