@@ -4,7 +4,6 @@ import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.coll.SetBackedList;
 import apoc.util.Util;
-import com.couchbase.client.core.annotations.InterfaceAudience;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.event.LabelEntry;
 import org.neo4j.graphdb.event.PropertyEntry;
@@ -46,51 +45,49 @@ public class Trigger {
         }
     }
 
+    @Context public GraphDatabaseService db;
+
     @UserFunction
     @Description("function to filter labelEntries by label, to be used within a trigger statement with {assignedLabels}, {removedLabels}, {assigned/removedNodeProperties}")
     public List<Node> nodesByLabel(@Name("labelEntries") Object entries, @Name("label") String labelString) {
-        if (!(entries instanceof Iterable)) return Collections.emptyList();
-        Iterable iterable = (Iterable) entries;
-        Iterator it = iterable.iterator();
-        if (!it.hasNext()) return Collections.emptyList();
-        Object value = it.next();
-        List<Node> nodes = null;
-        if (value instanceof LabelEntry) {
-            for (LabelEntry labelEntry : (Iterable<LabelEntry>) entries) {
-                if (labelString == null || labelEntry.label().name().equals(labelString)) {
-                    if (nodes==null) nodes = new ArrayList<>(100);
-                    nodes.add(labelEntry.node());
+        if (!(entries instanceof Map)) return Collections.emptyList();
+        Map map = (Map) entries;
+        if (map.isEmpty()) return Collections.emptyList();
+        Object result = ((Map) entries).get(labelString);
+        if (result instanceof List) return (List<Node>) result;
+        Object anEntry = map.values().iterator().next();
+
+        if (anEntry instanceof List) {
+            List list = (List) anEntry;
+            if (!list.isEmpty()) {
+                if (list.get(0) instanceof Map) {
+                    Set<Node> nodeSet = new HashSet<>(100);
+                    Label label = labelString == null ? null : Label.label(labelString);
+                    for (List<Map<String,Object>> entry : (Collection<List<Map<String,Object>>>) map.values()) {
+                        for (Map<String, Object> propertyEntry : entry) {
+                            Object node = propertyEntry.get("node");
+                            if (node instanceof Node && (label == null || ((Node)node).hasLabel(label))) {
+                                nodeSet.add((Node)node);
+                            }
+                        }
+                    }
+                    if (!nodeSet.isEmpty()) return new SetBackedList<>(nodeSet);
+                } else if (list.get(0) instanceof Node) {
+                    if (labelString==null) {
+                        Set<Node> nodeSet = new HashSet<>(map.size()*list.size());
+                        map.values().forEach((l) -> nodeSet.addAll((Collection<Node>)l));
+                        return new SetBackedList<>(nodeSet);
+                    }
                 }
             }
         }
-        if (value instanceof PropertyEntry) {
-            Set<Node> nodeSet = null;
-            Label label = labelString == null ? null : Label.label(labelString);
-            for (PropertyEntry<Node> entry : (Iterable<PropertyEntry<Node>>) entries) {
-                if (label == null || entry.entity().hasLabel(label)) {
-                    if (nodeSet==null) nodeSet = new HashSet<>(100);
-                    nodeSet.add(entry.entity());
-                }
-            }
-            if (nodeSet!=null && !nodeSet.isEmpty()) nodes = new SetBackedList<>(nodeSet);
-        }
-        return nodes == null ? Collections.emptyList() : nodes;
+        return Collections.emptyList();
     }
 
     @UserFunction
     @Description("function to filter propertyEntries by property-key, to be used within a trigger statement with {assignedNode/RelationshipProperties} and {removedNode/RelationshipProperties}. Returns [{old,new,key,node,relationship}]")
-    public List<Map<String,Object>> propertiesByKey(@Name("propertyEntries") Object propertyEntries, @Name("key") String key) {
-        if (!(propertyEntries instanceof Iterable)) return Collections.emptyList();
-        List<Map<String,Object>> result = null;
-        for (PropertyEntry<?> entry : (Iterable<PropertyEntry<?>>) propertyEntries) {
-            if (entry.key().equals(key)) {
-                if (result==null) result = new ArrayList<>(100);
-                PropertyContainer entity = entry.entity();
-                Map<String, Object> map = map("old", entry.previouslyCommitedValue(), "new", entry.value(), "key", key, (entity instanceof Node ? "node" : "relationship"), entity);
-                result.add(map);
-            }
-        }
-        return result;
+    public List<Map<String,Object>> propertiesByKey(@Name("propertyEntries") Map<String,List<Map<String,Object>>> propertyEntries, @Name("key") String key) {
+        return propertyEntries.getOrDefault(key,Collections.emptyList());
     }
 
     @Procedure(mode = Mode.WRITE)
@@ -198,22 +195,10 @@ public class Trigger {
         }
 
         private void executeTriggers(TransactionData txData, String phase) {
-            Map<String, Object> params = map(
-                    "transactionId", phase.equals("after") ? txData.getTransactionId() : -1,
-                    "commitTime", phase.equals("after") ? txData.getCommitTime() : -1,
-                    "createdNodes", txData.createdNodes(),
-                    "createdRelationships", txData.createdRelationships(),
-                    "deletedNodes", txData.deletedNodes(),
-                    "deletedRelationships", txData.deletedRelationships(),
-                    "removedLabels", txData.removedLabels(),
-                    "removedNodeProperties", txData.removedNodeProperties(),
-                    "removedRelationshipProperties", txData.removedRelationshipProperties(),
-                    "assignedLabels",txData.assignedLabels(),
-                    "assignedNodeProperties",txData.assignedNodeProperties(),
-                    "assignedRelationshipProperties",txData.assignedRelationshipProperties());
             if (triggers.containsKey("")) updateTriggers(null,null);
             GraphDatabaseService db = properties.getGraphDatabase();
             Map<String,String> exceptions = new LinkedHashMap<>();
+            Map<String, Object> params = txDataParams(txData, phase);
             triggers.forEach((name, data) -> {
                 if( data.get("paused").equals(false)) {
                     try (Transaction tx = db.beginTx()) {
@@ -251,6 +236,51 @@ public class Trigger {
             executeTriggers(txData, "rollback");
         }
 
+    }
+
+    private static Map<String, Object> txDataParams(TransactionData txData, String phase) {
+        return map("transactionId", phase.equals("after") ? txData.getTransactionId() : -1,
+                        "commitTime", phase.equals("after") ? txData.getCommitTime() : -1,
+                        "createdNodes", txData.createdNodes(),
+                        "createdRelationships", txData.createdRelationships(),
+                        "deletedNodes", txData.deletedNodes(),
+                        "deletedRelationships", txData.deletedRelationships(),
+                        "removedLabels", aggregateLabels(txData.removedLabels()),
+                        "removedNodeProperties", aggregatePropertyKeys(txData.removedNodeProperties(),true,true),
+                        "removedRelationshipProperties", aggregatePropertyKeys(txData.removedRelationshipProperties(),false,true),
+                        "assignedLabels", aggregateLabels(txData.assignedLabels()),
+                        "assignedNodeProperties",aggregatePropertyKeys(txData.assignedNodeProperties(),true,false),
+                        "assignedRelationshipProperties",aggregatePropertyKeys(txData.assignedRelationshipProperties(),false,false));
+    }
+
+    private static <T extends PropertyContainer> Map<String,List<Map<String,Object>>> aggregatePropertyKeys(Iterable<PropertyEntry<T>> entries, boolean nodes, boolean removed) {
+        if (!entries.iterator().hasNext()) return Collections.emptyMap();
+        Map<String,List<Map<String,Object>>> result = new HashMap<>();
+        String entityType = nodes ? "node" : "relationship";
+        for (PropertyEntry<T> entry : entries) {
+            result.compute(entry.key(),
+                    (k, v) -> {
+                        if (v == null) v = new ArrayList<>(100);
+                        Map<String, Object> map = map("key", k, entityType, entry.entity(), "old", entry.previouslyCommitedValue());
+                        if (!removed) map.put("new", entry.value());
+                        v.add(map);
+                        return v;
+                    });
+        }
+        return result;
+    }
+    private static Map<String,List<Node>> aggregateLabels(Iterable<LabelEntry> labelEntries) {
+        if (!labelEntries.iterator().hasNext()) return Collections.emptyMap();
+        Map<String,List<Node>> result = new HashMap<>();
+        for (LabelEntry entry : labelEntries) {
+            result.compute(entry.label().name(),
+                    (k, v) -> {
+                        if (v == null) v = new ArrayList<>(100);
+                        v.add(entry.node());
+                        return v;
+                    });
+        }
+        return result;
     }
 
     public static class LifeCycle {

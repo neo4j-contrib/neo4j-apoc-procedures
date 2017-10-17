@@ -1,3 +1,6 @@
+In a trigger you register Cypher statements that are called when data in Neo4j is changed, you can run them before or after commit.
+
+
 Enable `apoc.trigger.enabled=true` in `$NEO4J_HOME/config/neo4j.conf` first.
 
 [cols="1m,5"]
@@ -9,31 +12,34 @@ Enable `apoc.trigger.enabled=true` in `$NEO4J_HOME/config/neo4j.conf` first.
 | CALL apoc.trigger.resume(name) | it resumes the paused trigger
 |===
 
-Helper Functions
+The transaction data from Neo4j is turned into appropriate data structures to be consumed as parameters to your statement.
 
-[cols="1m,5"]
-|===
-| apoc.trigger.nodesByLabel({assignedLabels},'Label') | function to filter labelEntries by label, to be used within a trigger statement with {assignedLabels} and {removedLabels} {phase:'before/after/rollback'} returns previous and new trigger information
-| apoc.trigger.propertiesByKey({assignedNodeProperties},'key') | function to filter propertyEntries by property-key, to be used within a trigger statement with {assignedNode/RelationshipProperties} and {removedNode/RelationshipProperties}. Returns [{old,new,key,node,relationship}]
-|===
-
-The statements available are:
+The parameters available are:
 
 [options="header"]
 |===
 |Statement | Description
 |transactionId | returns the id of the transaction
 |commitTime | return the date of the transaction in milliseconds
-|createdNodes | when a node is created our trigger fires
-|createdRelationships | when a relationship is created our trigger fires
-|deletedNodes | when a node is delated our trigger fires
-|deletedRelationships | when a relationship is delated our trigger fires
-|removedLabels | when a label is removed our trigger fires
-|removedNodeProperties | when a properties of node is removed our trigger fires
-|removedRelationshipProperties | when a properties of relationship is removed our trigger fires
-|assignedLabels | when a labes is assigned our trigger fires
-|assignedNodeProperties | when node property is assigned our trigger fires
-|assignedRelationshipProperties | when relationship property is assigned our trigger fires
+|createdNodes | when a node is created our trigger fires (list of nodes)
+|createdRelationships | when a relationship is created our trigger fires (list of relationships)
+|deletedNodes | when a node is delated our trigger fires (list of nodes)
+|deletedRelationships | when a relationship is delated our trigger fires (list of relationships)
+|removedLabels | when a label is removed our trigger fires (map of label to list of nodes)
+|removedNodeProperties | when a properties of node is removed our trigger fires (map of key to list of map of key,old,node)
+|removedRelationshipProperties | when a properties of relationship is removed our trigger fires (map of key to list of map of key,old,relationship)
+|assignedLabels | when a labes is assigned our trigger fires  (map of label to list of nodes)
+|assignedNodeProperties | when node property is assigned our trigger fires (map of key to list of map of key,old,new,node)
+|assignedRelationshipProperties | when relationship property is assigned our trigger fires (map of key to list of map of key,old,new,relationship)
+|===
+
+You can use these helper functions to extract nodes by label or
+
+.Helper Functions
+[cols="1m,5"]
+|===
+| apoc.trigger.nodesByLabel({assignedLabels/assignedNodeProperties},'Label') | function to filter labelEntries by label, to be used within a trigger statement with {assignedLabels} and {removedLabels} {phase:'before/after/rollback'} returns previous and new trigger information
+| apoc.trigger.propertiesByKey({assignedNodeProperties},'key') | function to filter propertyEntries by property-key, to be used within a trigger statement with {assignedNode/RelationshipProperties} and {removedNode/RelationshipProperties}. Returns [{old,[new],key,node,relationship}]
 |===
 
 === Triggers Examples
