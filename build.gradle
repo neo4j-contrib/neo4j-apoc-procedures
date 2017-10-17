@@ -36,10 +36,11 @@ jar {
 description = """neo4j-apoc-procedures"""
 
 ext {
-    neo4jVersion = "3.3.0-rc1"
+    neo4jVersion = "3.3.0-SNAPSHOT"
 }
 
 repositories {
+     mavenLocal()
      maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
      mavenCentral()
      maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
@@ -70,6 +71,8 @@ dependencies {
     testCompile group: 'org.hamcrest', name: 'hamcrest-library', version:'1.3'
     testCompile group: 'org.apache.derby', name: 'derby', version:'10.12.1.1'
     testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version:neo4jVersion
+    testCompile group: 'org.neo4j', name: 'neo4j-common', version:neo4jVersion, classifier: "tests"
+    testCompile group: 'org.neo4j', name: 'neo4j-com', version:neo4jVersion, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-causal-clustering', version:neo4jVersion, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-kernel', version:neo4jVersion, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-io', version:neo4jVersion, classifier: "tests"

@@ -190,7 +190,9 @@ public class Geocode {
             throttler.waitForThrottle();
             Object value = JsonUtil.loadJson(baseUrl + Util.encodeUrlComponent(address)).findFirst().orElse(null);
             if (value instanceof Map) {
-                Object results = ((Map) value).get("results");
+                Map map = (Map) value;
+                if (map.get("status").equals("OVER_QUERY_LIMIT")) throw new IllegalStateException("QUOTA_EXCEEDED from geocode API: "+map.get("status")+" message: "+map.get("error_message"));
+                Object results = map.get("results");
                 if (results instanceof List) {
                     return ((List<Map<String, Object>>) results).stream().limit(maxResults).map(data -> {
                         Map location = (Map) ((Map) data.get("geometry")).get("location");
@@ -218,13 +220,18 @@ public class Geocode {
     @Procedure
     @Description("apoc.spatial.geocodeOnce('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from openstreetmap geocoding service")
     public Stream<GeoCodeResult> geocodeOnce(@Name("location") String address) throws UnsupportedEncodingException {
-        return geocode(address, 1L);
+        return geocode(address, 1L,false);
     }
 
     @Procedure
     @Description("apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from openstreetmap geocoding service")
-    public Stream<GeoCodeResult> geocode(@Name("location") String address, @Name("maxResults") long maxResults) {
-        return getSupplier().geocode(address, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults,1), MAX_RESULTS));
+    public Stream<GeoCodeResult> geocode(@Name("location") String address, @Name(value = "maxResults",defaultValue = "100") long maxResults, @Name(value = "quotaException",defaultValue = "false") boolean quotaException) {
+        try {
+            return getSupplier().geocode(address, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults, 1), MAX_RESULTS));
+        } catch(IllegalStateException re) {
+            if (!quotaException && re.getMessage().startsWith("QUOTA_EXCEEDED")) return Stream.empty();
+            throw re;
+        }
     }
 
     public static class GeoCodeResult {

@@ -21,9 +21,13 @@ public class IdsProcedureTest extends MonitorTestCase {
             long relIds = (long) row.get("relIds");
             long propIds = (long) row.get("propIds");
             long relTypeIds = (long) row.get("relTypeIds");
-            assertEquals(6L, nodeIds);
-            assertEquals(2L, relIds);
-            assertEquals(1L, propIds);
+            assertEquals(true, nodeIds >= 6L);
+            // no longer correct, due to batch id-allocation:
+            // assertEquals(6L, nodeIds);
+            // assertEquals(2L, relIds);
+            // assertEquals(1L, propIds);
+            assertEquals(true, relIds >= 2L);
+            assertEquals(true, propIds >= 1L);
             assertEquals(2L, relTypeIds);
         });
     }

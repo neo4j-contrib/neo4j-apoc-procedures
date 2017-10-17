@@ -3,6 +3,7 @@ package apoc.monitor;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -28,6 +29,7 @@ public class LockProcedureTest {
 
 
     @Test
+    @Ignore("information no longer available from Neo4j")
     public void testGetLockInfo() {
         testCall(db, "CALL apoc.monitor.locks(1000)", (row) -> {
             assertEquals("Showing contended locks where threads have waited for at least 1000 ms.", row.get("info"));

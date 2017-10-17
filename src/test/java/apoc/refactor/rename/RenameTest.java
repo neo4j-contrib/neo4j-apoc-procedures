@@ -15,6 +15,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -40,10 +41,9 @@ public class RenameTest {
 
 	@Test
 	public void testRenameLabelForSomeNodes() throws Exception {
-		for (int i = 0; i < 10; i++)
-			db.execute("CREATE (f:Foo {id: {id}})", MapUtil.map("id", i));
+		List<Node> nodes = db.execute("UNWIND range(0,9) as id CREATE (f:Foo {id: id, name: 'name'+id}) RETURN f").<Node>columnAs("f").stream().collect(Collectors.toList());
 		testCall(db, "CALL apoc.refactor.rename.label({oldName},{newName}, {nodes})",
-				map("oldName", "Foo", "newName", "Bar", "nodes", mockNodes()), (r) -> {});
+				map("oldName", "Foo", "newName", "Bar", "nodes", nodes.subList(0,3)), (r) -> {});
 
 		assertEquals(new Long(3), resultNodesMatches("Bar", null));
 		assertEquals(new Long(7), resultNodesMatches("Foo", null));
@@ -86,8 +86,7 @@ public class RenameTest {
 
 	@Test
 	public void testRenameNodesProperty() throws Exception {
-		for (int i = 0; i < 10; i++)
-			db.execute("CREATE (f:Foo {id: {id}, name: {name}})", MapUtil.map("id", i, "name", "name"+i));
+		List<Node> nodes = db.execute("UNWIND range(0,9) as id CREATE (f:Foo {id: id, name: 'name'+id}) RETURN f").<Node>columnAs("f").stream().collect(Collectors.toList());
 		testCall(db, "CALL apoc.refactor.rename.nodeProperty({oldName},{newName})",
 				map("oldName", "name", "newName", "surname"), (r) -> {});
 
@@ -97,11 +96,10 @@ public class RenameTest {
 
 	@Test
 	public void testRenamePropertyForSomeNodes() throws Exception {
-		for (int i = 0; i < 10; i++)
-			db.execute("CREATE (f:Foo {id: {id}, name: {name}})", MapUtil.map("id", i, "name", "name"+i));
+		List<Node> nodes = db.execute("UNWIND range(0,9) as id CREATE (f:Foo {id: id, name: 'name'+id}) RETURN f").<Node>columnAs("f").stream().collect(Collectors.toList());
 		db.execute("Create constraint on (n:Foo) assert n.name is UNIQUE");
 		testCall(db, "CALL apoc.refactor.rename.nodeProperty({oldName},{newName},{nodes})",
-				map("oldName", "name", "newName", "surname","nodes",mockNodes()), (r) -> {});
+				map("oldName", "name", "newName", "surname","nodes",nodes.subList(0,3)), (r) -> {});
 
 		assertEquals(new Long(3), resultNodesMatches(null, "surname"));
 		assertEquals(new Long(7), resultNodesMatches(null, "name"));
@@ -150,12 +148,5 @@ public class RenameTest {
 		Relationship r1 = (Relationship) result.next().get("r");
 		Relationship r2 = (Relationship) result.next().get("r");
 		return Arrays.asList(r1, r2);
-	}
-
-	private List<Node> mockNodes(){
-		Node node0 = new VirtualNode(0, db);
-		Node node1 = new VirtualNode(1, db);
-		Node node2 = new VirtualNode(2, db);
-		return Arrays.asList(node0, node1,node2);
 	}
 }

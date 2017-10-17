@@ -59,7 +59,7 @@ public class Cluster
             String role = (String) next.get( "role" );
             String id = (String) next.get( "id" );
             Label roleLabel = Label.label( role );
-            String[] addresses = Arrays.stream( (Object[]) next.get( "addresses" ) ).toArray( String[]::new );
+            String[] addresses = ((List<String>) next.get( "addresses" )).toArray( new String[0] );
             Map<String,Object> properties = new HashMap<>();
             properties.put( "name", shortName.get( role ) );
             properties.put( "title", role );

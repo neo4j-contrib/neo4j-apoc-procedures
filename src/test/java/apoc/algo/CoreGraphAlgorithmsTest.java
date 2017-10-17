@@ -9,6 +9,7 @@ import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -45,6 +46,7 @@ public class CoreGraphAlgorithmsTest {
         idC = (int)(long)row.get("id(c)");
         idD = (int)(long)row.get("id(d)");
         result.close();
+        db.execute("MATCH (n) return n, id(n)").writeAsStringTo(new PrintWriter(System.out));
     }
 
     @After

@@ -10,6 +10,8 @@ import org.neo4j.kernel.impl.api.store.RelationshipIterator;
 import org.neo4j.storageengine.api.NodeItem;
 import org.neo4j.storageengine.api.RelationshipItem;
 
+import java.util.Arrays;
+
 import static org.neo4j.graphdb.Direction.OUTGOING;
 import static org.neo4j.kernel.api.ReadOperations.ANY_LABEL;
 import static org.neo4j.kernel.api.ReadOperations.ANY_RELATIONSHIP_TYPE;
@@ -191,18 +193,23 @@ public class CoreGraphAlgorithms {
     private int[] loadNodes(ReadOperations ops, PrimitiveLongIterator nodeIds, int size, int relType, Direction direction) throws EntityNotFoundException {
         // todo reuse array
         int[] offsets = new int[size];
+        Arrays.fill(offsets,-1);
         int offset = 0;
+        int maxIdx = 0;
         while (nodeIds.hasNext()) {
             long nodeId = nodeIds.next();
             int degree = relType == ANY_RELATIONSHIP_TYPE ? ops.nodeGetDegree(nodeId, direction) : ops.nodeGetDegree(nodeId, direction, relType);
-            offsets[mapId(nodeId)] = offset;
+            int idx = mapId(nodeId);
+            offsets[idx] = offset;
             offset += degree;
+            if (idx > maxIdx) maxIdx = idx;
         }
-        return offsets;
+        return maxIdx < offsets.length -1 ? Arrays.copyOf(offsets,maxIdx+1) : offsets;
     }
 
     private int[] loadDegrees(ReadOperations ops, PrimitiveLongIterator nodeIds, int size, int relType, Direction direction) throws EntityNotFoundException {
         int[] degrees = new int[size];
+        Arrays.fill(degrees,-1);
         while (nodeIds.hasNext()) {
             long nodeId = nodeIds.next();
             degrees[mapId(nodeId)] = relType == ANY_RELATIONSHIP_TYPE ? ops.nodeGetDegree(nodeId, direction) : ops.nodeGetDegree(nodeId, direction, relType);
@@ -215,13 +222,15 @@ public class CoreGraphAlgorithms {
         int[] degrees = new int[nodeCount];
         if (relName == null) {
             for (int nodeIdx=0; nodeIdx<nodeCount; nodeIdx++) {
-                degrees[nodeIdx] = ops.nodeGetDegree(unMapId(nodeIdx), direction);
+                long nodeId = unMapId(nodeIdx);
+                degrees[nodeIdx] = ops.nodeExists(nodeId) ? ops.nodeGetDegree(nodeId, direction) : -1;
             }
         }
         else {
             int relType = ops.relationshipTypeGetForName(relName);
             for (int nodeIdx=0; nodeIdx<nodeCount; nodeIdx++) {
-                degrees[nodeIdx] = ops.nodeGetDegree(unMapId(nodeIdx), direction, relType);
+                long nodeId = unMapId(nodeIdx);
+                degrees[nodeIdx] = ops.nodeExists(nodeId) ? ops.nodeGetDegree(nodeId, direction, relType) : -1;
             }
         }
         return degrees;
@@ -230,9 +239,14 @@ public class CoreGraphAlgorithms {
         try {
             int[] degrees = new int[nodeCount];
             for (int nodeIdx = 0; nodeIdx < nodeCount; nodeIdx++) {
-                degrees[nodeIdx] = relType == ANY_RELATIONSHIP_TYPE ?
-                        ops.nodeGetDegree(unMapId(nodeIdx), direction) :
-                        ops.nodeGetDegree(unMapId(nodeIdx), direction, relType);
+                long nodeId = unMapId(nodeIdx);
+                if (ops.nodeExists(nodeId)) {
+                    degrees[nodeIdx] = relType == ANY_RELATIONSHIP_TYPE ?
+                            ops.nodeGetDegree(nodeId, direction) :
+                            ops.nodeGetDegree(nodeId, direction, relType);
+                } else {
+                    degrees[nodeIdx] = -1;
+                }
             }
             return degrees;
         } catch (EntityNotFoundException e) {
@@ -286,6 +300,7 @@ public class CoreGraphAlgorithms {
         int start;
         for (start = 0; start < nodeCount ; start++) {
             int offset = offsets[start];
+            if (offset == -1) continue;
             int nextOffset = start+1 == nodeCount ? rels.length : offsets[start+1];
             while (offset != nextOffset) {
                 int end = rels[offset];
@@ -490,8 +505,8 @@ public class CoreGraphAlgorithms {
         this.relTypeId = relTypeId;
         int allNodeCount = (int) ops.nodesGetCount();
         if (labelId == ANY_LABEL) {
-            this.nodeCount = allNodeCount;
-            this.nodeRelOffsets = loadNodes(ops, ops.nodesGetAll(), nodeCount, relTypeId, OUTGOING);
+            this.nodeRelOffsets = loadNodes(ops, ops.nodesGetAll(), allNodeCount, relTypeId, OUTGOING);
+            this.nodeCount = nodeRelOffsets.length;
         } else {
             this.nodeCount = (int) ops.countsForNodeWithoutTxState(labelId);
             float percentage = (float)nodeCount / (float)allNodeCount;

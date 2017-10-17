@@ -35,7 +35,8 @@ public class Locks {
 
 
     @Procedure("apoc.monitor.locks")
-    @Description("apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLockCount, minimumWaitTimeMs, contendedLocks, info")
+    @Deprecated
+    @Description("deprecated, the information is not provided by neo4j anymore.\napoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLockCount, minimumWaitTimeMs, contendedLocks, info")
     public Stream<LockInfoResult> lockInfo(@Name("minWaitTime") Long minWaitTime) {
 
         if (minWaitTime == null || minWaitTime < 0) minWaitTime = 0L;
