@@ -1,8 +1,8 @@
 :readme:
-:branch: 3.2
-:docs: https://neo4j-contrib.github.io/neo4j-apoc-procedures/index32.html
-:apoc-release: 3.2.0.4
-:neo4j-version: 3.2.2
+:branch: 3.3
+:docs: https://neo4j-contrib.github.io/neo4j-apoc-procedures/index33.html
+:apoc-release: 3.3.0.1
+:neo4j-version: 3.3.0
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/img
 
 image:https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Travis CI Status", link="https://travis-ci.org/neo4j-contrib/neo4j-apoc-procedures"] image:https://img.shields.io/maven-central/v/org.neo4j.procedure/apoc.svg[alt="Maven status"] image:https://img.shields.io/github/release/neo4j-contrib/neo4j-apoc-procedures.svg[alt="Github release status"] image:https://img.shields.io/github/contributors/neo4j-contrib/neo4j-apoc-procedures.svg[alt="contributor stats"]
@@ -80,14 +80,18 @@ See the https://neo4j.com/docs/operations-manual/current/configuration/file-loca
 
 Since APOC relies in some places on Neo4j's internal APIs you need to use the right APOC version for your Neo4j installaton.
 
-Any version to be released after 1.1.0 will use a different, consistent versioning scheme: `<neo4j-version>.<apoc>` version. The trailing `<apoc>` part of the version number will be incremented with every apoc release.
+APOC uses a consistent versioning scheme: `<neo4j-version>.<apoc>` version. 
+The trailing `<apoc>` part of the version number will be incremented with every apoc release.
 
 [options=headers]
 |===
 |apoc version | neo4j version
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.4[3.2.0.4] | 3.2.2 (3.2.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.1[3.3.0.1] | 3.3.0 (3.3.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.5[3.2.0.5] | 3.2.3 (3.2.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.4[3.2.0.4] | 3.2.2
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.3[3.2.0.3] | 3.2.0
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.3.8[3.1.3.8] | 3.1.5 (3.1.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.3.9[3.1.3.9] | 3.1.6 (3.1.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.3.8[3.1.3.8] | 3.1.5
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.3.7[3.1.3.7] | 3.1.4
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.2.5[3.1.2.5] | 3.1.2
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.0.4[3.1.0.4] | 3.1.0-3.1.1 
@@ -182,14 +186,6 @@ image::{img}/apoc-help-apoc.jpg[width=600]
 | call apoc.help('search') | lists name, description, signature, roles, based on search-string
 |===
 
-.helpful
-[source,cypher]
-----
-CALL apoc.help("apoc") YIELD name, text
-WITH * WHERE text IS null
-RETURN name AS undocumented
-----
-
 // end::help[]
 
 // tag::signature[]
@@ -201,7 +197,7 @@ And for YIELDing their results, you have to know the output column names and typ
 
 INFO: The signatures are shown in error messages, if you use a procedure incorrectly.
 
-You can see the procedures signature in the output of `CALL apoc.help("name")` (which itself uses `CALL dbms.procedures()` and `CALL dbms.functions()`)
+You can see the procedures signature in the output of `CALL apoc.help("name")` (which itself uses `dbms.procedures()` and `dbms.functions()`)
 
 [source,cypher]
 ----
@@ -232,23 +228,3 @@ h| Output Return Columns |
 |===
 
 // end::signature[]
-
-=== Get Package and Procedure count
-
-// tag::procedurecount[]
-
-To find the procedure count with the package in Neo4j: 
-
-image::{img}/apoc.dbms.procedure.count.jpg[width=600]
-
-.Cypher for getting count of procedure in a package
-[source,cypher]
-----
-CALL dbms.procedures() YIELD name
-RETURN 'procedures' as type, head(split(name,".")) as package, count(*), collect(name) as names
-UNION ALL
-CALL dbms.functions() YIELD name
-RETURN 'functions' as type, head(split(name,".")) as package, count(*), collect(name) as names;
-----
-
-// end::procedurecount[]

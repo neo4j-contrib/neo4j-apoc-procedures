@@ -43,7 +43,7 @@ ext {
 }
 
 repositories {
-     mavenLocal()
+//     mavenLocal()
      maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
      mavenCentral()
      maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
@@ -137,7 +137,7 @@ asciidoctor.doLast {
     copy {
         from 'build/docs/html5/index.html'
         into "build/docs"
-        rename { String filename -> filename.replace("index","index32") }
+        rename { String filename -> filename.replace("index","index33") }
     }
 }
 assemble.dependsOn(asciidoctor)
