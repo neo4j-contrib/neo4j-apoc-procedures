@@ -43,12 +43,13 @@ public class WattsStrogatzGeneratorTest {
 
     private void assertUsingDatabase(int numberOfNodes, int meanDegree, double beta) {
         GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        try {
+            new Neo4jGraphGenerator(database).generateGraph(getGeneratorConfiguration(numberOfNodes, meanDegree, beta));
 
-        new Neo4jGraphGenerator(database).generateGraph(getGeneratorConfiguration(numberOfNodes, meanDegree, beta));
-
-        assertCorrectNumberOfNodesAndRelationships(database, numberOfNodes, meanDegree);
-
-        database.shutdown();
+            assertCorrectNumberOfNodesAndRelationships(database, numberOfNodes, meanDegree);
+        } finally {
+            database.shutdown();
+        }
     }
 
     private void assertCorrectNumberOfNodesAndRelationships(GraphDatabaseService database, int numberOfNodes, int meanDegree) {

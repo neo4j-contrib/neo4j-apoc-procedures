@@ -46,12 +46,13 @@ public class ErdosRenyiGeneratorTest {
 
     private void assertUsingDatabase(int numberOfNodes, int numberOfEdges) {
         GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        try {
+            new Neo4jGraphGenerator(database).generateGraph(getGeneratorConfiguration(numberOfNodes, numberOfEdges));
 
-        new Neo4jGraphGenerator(database).generateGraph(getGeneratorConfiguration(numberOfNodes, numberOfEdges));
-
-        assertCorrectNumberOfNodesAndRelationships(database, numberOfNodes, numberOfEdges);
-
-        database.shutdown();
+            assertCorrectNumberOfNodesAndRelationships(database, numberOfNodes, numberOfEdges);
+        } finally {
+            database.shutdown();
+        }
     }
 
     private void assertCorrectNumberOfNodesAndRelationships(GraphDatabaseService database, int numberOfNodes, int numberOfEdges) {

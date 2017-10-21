@@ -44,24 +44,25 @@ public class BarabasiAlbertGeneratorTest {
     @Test
     public void shouldGeneratePowerLawDistribution() {
         GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        try {
+            new Neo4jGraphGenerator(database).generateGraph(getGeneratorConfiguration(100, 2));
 
-        new Neo4jGraphGenerator(database).generateGraph(getGeneratorConfiguration(100, 2));
+            List<Integer> degrees = new LinkedList<>();
 
-        List<Integer> degrees = new LinkedList<>();
-
-        try (Transaction tx = database.beginTx()) {
-            for (Node node : database.getAllNodes()) {
-                degrees.add(node.getDegree());
+            try (Transaction tx = database.beginTx()) {
+                for (Node node : database.getAllNodes()) {
+                    degrees.add(node.getDegree());
+                }
+                tx.success();
             }
-            tx.success();
+
+            Collections.sort(degrees, Collections.reverseOrder());
+
+            //todo make this an automated test
+            System.out.println(ArrayUtils.toString(degrees.toArray(new Integer[degrees.size()])));
+        } finally {
+            database.shutdown();
         }
-
-        Collections.sort(degrees, Collections.reverseOrder());
-
-        //todo make this an automated test
-        System.out.println(ArrayUtils.toString(degrees.toArray(new Integer[degrees.size()])));
-
-        database.shutdown();
     }
 
     @Test(timeout = 10 * 1000)

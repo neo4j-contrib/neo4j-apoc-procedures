@@ -86,9 +86,9 @@ public class CypherTest {
 
     @Test
     public void testRunFirstColumnMultipleValues() throws Exception {
-        Object[] expected = new Object[]{1L, 2L, 3L};
+        List expected = Arrays.asList(1L, 2L, 3L);
         testCall(db, "RETURN apoc.cypher.runFirstColumn('UNWIND [1, 2, 3] AS e RETURN e', {}, true) AS arr",
-                r -> assertArrayEquals(expected, (Object[])(r.get("arr"))));
+                r -> assertEquals(expected, r.get("arr")));
     }
 
     @Test
