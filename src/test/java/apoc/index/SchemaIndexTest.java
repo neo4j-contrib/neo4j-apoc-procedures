@@ -176,4 +176,31 @@ public class SchemaIndexTest {
                 });
     }
 
+    @Test
+    public void testDistinctPropertiesOnEmptyLabel() throws Exception {
+        String key = "bar";
+        testResult(db,"CALL apoc.schema.properties.distinctCount({label}, {key}) YIELD label,key,value,count RETURN * ORDER BY value",
+                map("label","","key",key),
+                (result) -> {
+                    assertTrue(result.hasNext());
+                    assertEquals(map("label","Foo","key",key,"value","four","count",2L),result.next());
+                    assertEquals(map("label","Foo","key",key,"value","three","count",1L),result.next());
+                    assertFalse(result.hasNext());
+                });
+    }
+
+    @Test
+    public void testDistinctPropertiesOnEmptyKey() throws Exception {
+        String label = "Foo";
+        testResult(db,"CALL apoc.schema.properties.distinctCount({label}, {key}) YIELD label,key,value,count RETURN * ORDER BY value",
+                map("label",label,"key",""),
+                (result) -> {
+                    assertTrue(result.hasNext());
+                    assertEquals(map("label",label,"key","baz","value","five","count",1L),result.next());
+                    assertEquals(map("label",label,"key","bar","value","four","count",2L),result.next());
+                    assertEquals(map("label",label,"key","bar","value","three","count",1L),result.next());
+                    assertFalse(result.hasNext());
+                });
+    }
+
 }

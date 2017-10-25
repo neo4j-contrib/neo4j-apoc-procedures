@@ -203,7 +203,7 @@ public class SchemaIndex {
     @Procedure("apoc.schema.properties.distinctCount")
     @Description("apoc.schema.properties.distinctCount([label], [key]) YIELD label, key, value, count - quickly returns all distinct values and counts for a given key")
     public Stream<PropertyValueCount> distinctCount(@Name(value = "label", defaultValue = "") String labelName, @Name(value = "key", defaultValue = "") String keyName) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
-        Iterable<IndexDefinition> labels = (labelName.isEmpty()) ? db.schema().getIndexes(Label.label(labelName)) : db.schema().getIndexes(Label.label(labelName));
+        Iterable<IndexDefinition> labels = (labelName.isEmpty()) ? db.schema().getIndexes() : db.schema().getIndexes(Label.label(labelName));
         return StreamSupport.stream(labels.spliterator(), false).filter(i -> keyName.isEmpty() || isKeyIndexed(i, keyName)).flatMap(
                 index -> {
                     Iterable<String> keys = keyName.isEmpty() ? index.getPropertyKeys() : Collections.singletonList(keyName);
