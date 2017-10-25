@@ -1,5 +1,6 @@
 package apoc.index;
 
+import com.hazelcast.util.IterableUtil;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.kernel.api.Statement;
@@ -203,7 +204,7 @@ public class SchemaIndex {
     @Description("apoc.schema.properties.distinctCount([label], [key]) YIELD label, key, value, count - quickly returns all distinct values and counts for a given key")
     public Stream<PropertyValueCount> distinctCount(@Name(value = "label", defaultValue = "") String labelName, @Name(value = "key", defaultValue = "") String keyName) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
         Iterable<IndexDefinition> labels = (labelName.isEmpty()) ? db.schema().getIndexes(Label.label(labelName)) : db.schema().getIndexes(Label.label(labelName));
-        return StreamSupport.stream(labels.spliterator(), false).flatMap(
+        return StreamSupport.stream(labels.spliterator(), false).filter(i -> keyName.isEmpty() || isKeyIndexed(i, keyName)).flatMap(
                 index -> {
                     Iterable<String> keys = keyName.isEmpty() ? index.getPropertyKeys() : Collections.singletonList(keyName);
                     return StreamSupport.stream(keys.spliterator(), false).flatMap(key -> {
@@ -213,6 +214,10 @@ public class SchemaIndex {
                     });
                 }
         );
+    }
+
+    private boolean isKeyIndexed(@Name("index") IndexDefinition index, @Name("key") String key) {
+        return StreamSupport.stream(index.getPropertyKeys().spliterator(), false).anyMatch(k -> k.equals(key));
     }
 
     private Map<String, Integer> distinctTermsCount(@Name("label") String label, @Name("key") String key) {
@@ -240,14 +245,6 @@ public class SchemaIndex {
                 }
             }
             throw new RuntimeException("Error collecting distinct terms of label: " + label + " and key: " + key, e);
-        } finally {
-            if (tx.isOpen()) {
-                try {
-                    tx.close();
-                } catch (TransactionFailureException tfe) {
-
-                }
-            }
         }
     }
 

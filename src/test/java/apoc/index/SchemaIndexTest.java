@@ -46,7 +46,8 @@ public class SchemaIndexTest {
         db.execute("CREATE INDEX ON :Person(age)").close();
         db.execute("CREATE CONSTRAINT ON (p:Person) ASSERT p.id IS UNIQUE").close();
         db.execute("CREATE INDEX ON :Foo(bar)").close();
-        db.execute("CREATE (f:Foo {bar:'three'}), (f2a:Foo {bar:'four'}), (f2b:Foo {bar:'four'})").close();
+        db.execute("CREATE INDEX ON :Foo(baz)").close();
+        db.execute("CREATE (f:Foo {bar:'three'}), (f2a:Foo {bar:'four'}), (f2b:Foo {bar:'four', baz:'five'})").close();
 
         try (Transaction tx=db.beginTx()) {
             db.schema().awaitIndexesOnline(2,TimeUnit.SECONDS);
@@ -133,7 +134,7 @@ public class SchemaIndexTest {
     }
 
     @Test
-    public void testDistinctProperties() throws Exception {
+    public void testDistinctPropertiesOnFirstIndex() throws Exception {
         testCall(db,"CALL apoc.schema.properties.distinct({label}, {key})",
                 map("label", "Foo","key", "bar"),
                 (row) -> assertEquals(new HashSet<>(asList("three","four")), new HashSet<>((Collection<String>) row.get("value")))
@@ -141,7 +142,15 @@ public class SchemaIndexTest {
     }
 
     @Test
-    public void testDistinctCountProperties() throws Exception {
+    public void testDistinctPropertiesOnSecondIndex() throws Exception {
+        testCall(db,"CALL apoc.schema.properties.distinct({label}, {key})",
+                map("label", "Foo","key", "baz"),
+                (row) -> assertEquals(new HashSet<>(asList("five")), new HashSet<>((Collection<String>) row.get("value")))
+        );
+    }
+
+    @Test
+    public void testDistinctCountPropertiesOnFirstIndex() throws Exception {
         String label = "Foo";
         String key = "bar";
         testResult(db,"CALL apoc.schema.properties.distinctCount({label}, {key}) YIELD label,key,value,count RETURN * ORDER BY value",
@@ -153,4 +162,18 @@ public class SchemaIndexTest {
                     assertFalse(result.hasNext());
         });
     }
+
+    @Test
+    public void testDistinctCountPropertiesOnSecondIndex() throws Exception {
+        String label = "Foo";
+        String key = "baz";
+        testResult(db,"CALL apoc.schema.properties.distinctCount({label}, {key}) YIELD label,key,value,count RETURN * ORDER BY value",
+                map("label",label,"key",key),
+                (result) -> {
+                    assertTrue(result.hasNext());
+                    assertEquals(map("label",label,"key",key,"value","five","count",1L),result.next());
+                    assertFalse(result.hasNext());
+                });
+    }
+
 }
