@@ -188,7 +188,6 @@ public class SchemaIndex {
             TermsEnum termsEnum;
 
             Fields fields = MultiFields.getFields(sortedIndexReader.getIndexSearcher().getIndexReader());
-
             Terms terms = fields.terms("string");
             if (terms != null) {
                 termsEnum = terms.iterator();
