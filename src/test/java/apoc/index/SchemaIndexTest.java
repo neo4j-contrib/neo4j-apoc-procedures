@@ -12,19 +12,19 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
-import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -168,10 +168,7 @@ public class SchemaIndexTest {
         testResult(db,"CALL apoc.schema.properties.distinctCount({label}, {key}) YIELD label,key,value,count RETURN * ORDER BY value",
                 map("label",label,"key",key),
                 (result) -> {
-                    personNames.stream().forEach((name) -> {
-                        assertTrue(result.hasNext());
-                        assertEquals(map("label",label,"key",key,"value",name,"count",1L),result.next());
-                    });
+                    assertDistinctCountProperties("Person", "name", personNames, () -> 1L, result);
                     assertFalse(result.hasNext());
         });
     }
@@ -183,96 +180,64 @@ public class SchemaIndexTest {
         testResult(db,"CALL apoc.schema.properties.distinctCount({label}, {key}) YIELD label,key,value,count RETURN * ORDER BY value",
                 map("label",label,"key",key),
                 (result) -> {
-                    personAddresses.stream().forEach((address) -> {
-                        assertTrue(result.hasNext());
-                        assertEquals(map("label",label,"key",key,"value",address,"count",1L),result.next());
-                    });
+                    assertDistinctCountProperties("Person", "address", personAddresses, () -> 1L, result);
                     assertFalse(result.hasNext());
                 });
     }
 
     @Test
-    public void testDistinctPropertiesOnEmptyLabel() throws Exception {
-        String key = "bar";
+    public void testDistinctCountPropertiesOnEmptyLabel() throws Exception {
+        String key = "name";
         testResult(db,"CALL apoc.schema.properties.distinctCount({label}, {key}) YIELD label,key,value,count RETURN * ORDER BY value",
                 map("label","","key",key),
                 (result) -> {
-                    assertTrue(result.hasNext());
-                    assertEquals(map("label","Foo","key",key,"value","four","count",2L),result.next());
-                    assertEquals(map("label","Foo","key",key,"value","three","count",1L),result.next());
+                    assertDistinctCountProperties("Person", "name", personNames, () -> 1L, result);
                     assertFalse(result.hasNext());
                 });
     }
 
     @Test
-    public void testDistinctPropertiesOnEmptyKey() throws Exception {
+    public void testDistinctCountPropertiesOnEmptyKey() throws Exception {
         String label = "Person";
         testResult(db,"CALL apoc.schema.properties.distinctCount({label}, {key}) YIELD label,key,value,count RETURN * ORDER BY key,value",
                 map("label",label,"key",""),
                 (result) -> {
-                    personAddresses.stream().forEach((address) -> {
-                        assertTrue(result.hasNext());
-                        Map<String,Object> map = result.next();
-                        assertEquals("Person", map.get("label"));
-                        assertEquals("address", map.get("key"));
-                        assertEquals(address, map.get("value"));
-                        assertEquals(1L, map.get("count"));
-                    });
-                    personNames.stream().forEach((name) -> {
-                        assertTrue(result.hasNext());
-                        Map<String,Object> map = result.next();
-                        assertEquals("Person", map.get("label"));
-                        assertEquals("name", map.get("key"));
-                        assertEquals(name, map.get("value"));
-                        assertEquals(1L, map.get("count"));
-                    });
-//                    personAges.stream().forEach((age) -> {
-//                        assertTrue(result.hasNext());
-//                        Map<String,Object> map = result.next();
-//                        assertEquals("Person", map.get("label"));
-//                        assertEquals("age", map.get("key"));
-//                        assertEquals(age, map.get("value"));
-//                        assertEquals(1L, map.get("count"));
-//                    });
-//                    personIds.stream().forEach((id) -> {
-//                        assertTrue(result.hasNext());
-//                        Map<String,Object> map = result.next();
-//                        assertEquals("Person", map.get("label"));
-//                        assertEquals("id", map.get("key"));
-//                        assertEquals(id, map.get("value"));
-//                        assertEquals(1L, map.get("count"));
-//                    });
+                    assertDistinctCountProperties("Person", "address", personAddresses, () -> 1L, result);
+                    assertDistinctCountProperties("Person", "name", personNames, () -> 1L, result);
+                    //todo: update when number terms are supported
+                    //assertDistinctCountProperties("Person", "id", personIds, () -> 1L, result);
+                    //assertDistinctCountProperties("Person", "age", personAges, () -> 1L, result);
                     assertFalse(result.hasNext());
                 });
     }
 
     @Test
-    public void testDistinctPropertiesOnEmptyLabelAndEmptyKey() throws Exception {
+    public void testDistinctCountPropertiesOnEmptyLabelAndEmptyKey() throws Exception {
         testResult(db,"CALL apoc.schema.properties.distinctCount({label}, {key}) YIELD label,key,value,count RETURN * ORDER BY label,key,value",
                 map("label","","key",""),
                 (result) -> {
                     assertTrue(result.hasNext());
                     assertEquals(map("label","Foo","key","bar","value","four","count",2L),result.next());
                     assertEquals(map("label","Foo","key","bar","value","three","count",1L),result.next());
-
-                    personAddresses.forEach((name) -> {
-                                assertTrue(result.hasNext());
-                                Map<String,Object> map = result.next();
-                                assertEquals("Person", map.get("label"));
-                                assertEquals("address", map.get("key"));
-                                assertEquals(name, map.get("value"));
-                            }
-                    );
-                    personNames.forEach((name) -> {
-                            assertTrue(result.hasNext());
-                            Map<String,Object> map = result.next();
-                            assertEquals("Person", map.get("label"));
-                            assertEquals("name", map.get("key"));
-                            assertEquals(name, map.get("value"));
-                        }
-                    );
+                    assertDistinctCountProperties("Person", "address", personAddresses, () -> 1L, result);
+                    assertDistinctCountProperties("Person", "name", personNames, () -> 1L, result);
+                    //todo: update when number terms are supported
+                    //assertDistinctCountProperties("Person", "id", personIds, () -> 1L, result);
+                    //assertDistinctCountProperties("Person", "age", personAges, () -> 1L, result);
                     assertFalse(result.hasNext());
                 });
     }
 
+    private <T> void assertDistinctCountProperties(String label, String key, Collection<T> values, Supplier<Long> counts, Result result) {
+        Iterator<T> valueIterator = values.iterator();
+
+        while (valueIterator.hasNext()) {
+            assertTrue(result.hasNext());
+            Map<String,Object> map = result.next();
+            assertEquals(label, map.get("label"));
+            assertEquals(key, map.get("key"));
+            assertEquals(valueIterator.next(), map.get("value"));
+            assertEquals(counts.get(), map.get("count"));
+        }
+    }
 }
