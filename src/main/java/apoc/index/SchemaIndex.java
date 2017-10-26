@@ -232,13 +232,6 @@ public class SchemaIndex {
             }
             return values;
         } catch (Exception e) {
-            if (tx.isOpen()) {
-                try {
-                    tx.close();
-                } catch (TransactionFailureException tfe) {
-                    throw new RuntimeException("Error collecting distinct terms due to transaction failure", e);
-                }
-            }
             throw new RuntimeException("Error collecting distinct terms of label: " + label + " and key: " + key, e);
         }
     }
