@@ -381,6 +381,37 @@ public class Coll {
     }
 
     @UserFunction
+    @Description("apoc.coll.frequencies(coll) - returns a list of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)")
+    public List<Map<String, Object>> frequencies(@Name("coll") List<Object> coll) {
+        if (coll == null || coll.size() == 0) {
+            return Collections.emptyList();
+        }
+
+        // mimicking a counted bag
+        Map<Object, IntCounter> counts = new LinkedHashMap<>(coll.size());
+        List<Map<String, Object>> resultList = new ArrayList<>();
+
+        for (Object obj : coll) {
+            IntCounter counter = counts.get(obj);
+            if (counter == null) {
+                counter = new IntCounter();
+                counts.put(obj, counter);
+            }
+            counter.increment();
+        }
+
+        counts.forEach((o, intCounter) -> {
+            int count = intCounter.value();
+            Map<String, Object> entry = new LinkedHashMap<>(2);
+            entry.put("item", o);
+            entry.put("count", Long.valueOf(count));
+            resultList.add(entry);
+        });
+
+        return resultList;
+    }
+
+    @UserFunction
     @Description("apoc.coll.occurrences(coll, item) - returns the count of the given item in the collection")
     public long occurrences(@Name("coll") List<Object> coll, @Name("item") Object item) {
         if (coll == null || coll.isEmpty()) {
