@@ -14,13 +14,11 @@ import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.Sort;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
-import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.exceptions.TransactionFailureException;
@@ -34,7 +32,6 @@ import org.neo4j.kernel.api.schema.LabelSchemaDescriptor;
 import org.neo4j.kernel.api.schema.index.IndexDescriptor;
 import org.neo4j.kernel.impl.api.KernelStatement;
 import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.storageengine.api.schema.IndexReader;
@@ -187,7 +184,6 @@ public class SchemaIndex {
             TermsEnum termsEnum;
 
             Fields fields = MultiFields.getFields(sortedIndexReader.getIndexSearcher().getIndexReader());
-
             Terms terms = fields.terms("string");
             if (terms != null) {
                 termsEnum = terms.iterator();
@@ -202,8 +198,8 @@ public class SchemaIndex {
     @Procedure("apoc.schema.properties.distinctCount")
     @Description("apoc.schema.properties.distinctCount([label], [key]) YIELD label, key, value, count - quickly returns all distinct values and counts for a given key")
     public Stream<PropertyValueCount> distinctCount(@Name(value = "label", defaultValue = "") String labelName, @Name(value = "key", defaultValue = "") String keyName) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
-        Iterable<IndexDefinition> labels = (labelName.isEmpty()) ? db.schema().getIndexes(Label.label(labelName)) : db.schema().getIndexes(Label.label(labelName));
-        return StreamSupport.stream(labels.spliterator(), false).flatMap(
+        Iterable<IndexDefinition> labels = (labelName.isEmpty()) ? db.schema().getIndexes() : db.schema().getIndexes(Label.label(labelName));
+        return StreamSupport.stream(labels.spliterator(), false).filter(i -> keyName.isEmpty() || isKeyIndexed(i, keyName)).flatMap(
                 index -> {
                     Iterable<String> keys = keyName.isEmpty() ? index.getPropertyKeys() : Collections.singletonList(keyName);
                     return StreamSupport.stream(keys.spliterator(), false).flatMap(key -> {
@@ -213,6 +209,10 @@ public class SchemaIndex {
                     });
                 }
         );
+    }
+
+    private boolean isKeyIndexed(@Name("index") IndexDefinition index, @Name("key") String key) {
+        return StreamSupport.stream(index.getPropertyKeys().spliterator(), false).anyMatch(k -> k.equals(key));
     }
 
     private Map<String, Integer> distinctTermsCount(@Name("label") String label, @Name("key") String key) {
@@ -232,22 +232,7 @@ public class SchemaIndex {
             }
             return values;
         } catch (Exception e) {
-            if (tx.isOpen()) {
-                try {
-                    tx.close();
-                } catch (TransactionFailureException tfe) {
-                    throw new RuntimeException("Error collecting distinct terms due to transaction failure", e);
-                }
-            }
             throw new RuntimeException("Error collecting distinct terms of label: " + label + " and key: " + key, e);
-        } finally {
-            if (tx.isOpen()) {
-                try {
-                    tx.close();
-                } catch (TransactionFailureException tfe) {
-
-                }
-            }
         }
     }
 
