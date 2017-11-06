@@ -14,10 +14,12 @@ import org.neo4j.procedure.Procedure;
 
 import java.io.PrintWriter;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static apoc.cypher.Cypher.withParamMapping;
 import static apoc.export.util.FileUtils.checkWriteAllowed;
 import static apoc.export.util.FileUtils.getPrintWriter;
 
@@ -64,7 +66,8 @@ public class ExportCSV {
     @Procedure
     @Description("apoc.export.csv.query(query,file,config) - exports results from the cypher statement as csv to the provided file")
     public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
-        Result result = db.execute(query);
+        if (config == null) config = Collections.emptyMap();
+        Result result = db.execute(withParamMapping(query, config.keySet()), config);
 
         String source = String.format("statement: cols(%d)", result.columns().size());
         return exportCsv(fileName, source,result,config);
