@@ -112,6 +112,7 @@ public class Cypher {
         scanner.useDelimiter(";\r?\n");
         while (scanner.hasNext()) {
             String stmt = scanner.next();
+            if ( stmt.trim().isEmpty() ) continue;
             if (isSchemaOperation(stmt)) {// alternatively could just skip them
                 throw new RuntimeException("Schema Operations can't yet be mixed with data operations");
             }
@@ -125,6 +126,7 @@ public class Cypher {
         scanner.useDelimiter(";\r?\n");
         while (scanner.hasNext()) {
             String stmt = scanner.next();
+            if ( stmt.trim().isEmpty() ) continue;
             if (!isSchemaOperation(stmt)) {
                 throw new RuntimeException("Schema Operations can't yet be mixed with data operations");
             }
