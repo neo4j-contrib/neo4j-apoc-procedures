@@ -125,6 +125,8 @@ Schema Index lookups that keep order and can apply limits
 |===
 | apoc.index.orderedRange(label,key,min,max,sort-relevance,limit) yield node | schema range scan which keeps index order and adds limit, values can be null, boundaries are inclusive
 | apoc.index.orderedByText(label,key,operator,value,sort-relevance,limit) yield node | schema string search which keeps index order and adds limit, operator is 'STARTS WITH' or 'CONTAINS'
+| apoc.schema.properties.distinct(label,key) yield values | quickly returns all distinct values in a label for a given key
+| apoc.schema.properties.distinctCount(label,key) yield label,key,value,count | quickly returns all distinct values and counts in a label for a given key; empty label means any label and empty key means any key
 |===
 
 
