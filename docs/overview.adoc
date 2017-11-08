@@ -614,7 +614,7 @@ CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (
 | call apoc.refactor.cloneNodes([node1,node2,...]) |  clone nodes with their labels and properties
 | call apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) | clone nodes with their labels, properties and relationships
 | call apoc.refactor.mergeNodes([node1,node2]) | merge nodes onto first in list
-| call apoc.refactor.mergeRelationships([rel1,rel2,...],{config}) | merge relationships onto first in list
+| call apoc.refactor.mergeRelationships([rel1,rel2,...],{config}) | merge relationships onto first in list. Config param is `properties`.
 | call apoc.refactor.to(rel, endNode) | redirect relationship to use new end-node
 | call apoc.refactor.from(rel, startNode) | redirect relationship to use new start-node
 | call apoc.refactor.invert(rel) | inverts relationship direction
@@ -623,17 +623,20 @@ CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (
 | call apoc.refactor.collapseNode([node1,node2],'TYPE') | collapse node to relationship, node with one rel becomes self-relationship
 | call apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) | normalize/convert a property to be boolean
 | call apoc.refactor.categorize(node, propertyKey, type, outgoing, label) | turn each unique propertyKey into a category node and connect to it
+| call apoc.refactor.rename.label(oldLabel, newLabel, [nodes]) | rename a label from 'oldLabel' to 'newLabel' for all nodes. If 'nodes' is provided renaming is applied to this set only
+| call apoc.refactor.rename.type(oldType, newType, [rels]) | rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only
+| call apoc.refactor.rename.nodeProperty(oldName, newName, [nodes]) | rename all node's property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only
+| call apoc.refactor.rename.typeProperty(oldName, newName, [rels]) | rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only
 |===
 
 On mergeRelationship with config properties you can choose from 3 different management:
- * "overwrite" : if there is the same property in more relationship, in the new one will have the last relationship's property value
- * "discard" : if there is the same property in more relationship, the new one will have the first relationship's property value
- * "combine" : if there is the same property in more relationship, the new one a value's array with all relationships' values
+* "overwrite" : if there is the same property in more relationship, in the new one will have the last relationship's property value
+* "discard" : if there is the same property in more relationship, the new one will have the first relationship's property value
+* "combine" : if there is the same property in more relationship, the new one a value's array with all relationships' values
 
 TODO:
 
 * merge nodes by label + property
-
 
 == Spatial
 

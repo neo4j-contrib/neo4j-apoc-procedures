@@ -167,10 +167,6 @@ include::create-virtual-nodes-rels.adoc[leveloffset=1]
 
 include::virtual-graph.adoc[leveloffset=1]
 
-== Graph Refactoring
-
-include::graph-refactor.adoc[leveloffset=1]
-
 == Triggers
 
 include::trigger.adoc[leveloffset=2]
