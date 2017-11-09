@@ -30,6 +30,355 @@ CALL apoc.refactor.categorize('color','HAS_ATTRIBUTE',true,'Color','colour',['po
 
 Additionally, it will also copy over the first 'popularity' property value encountered on any node n for each newly created :Color node and remove any occurrences of that property value on nodes with the same 'Color'.
 
+=== Graph Refactoring Examples
+
+.Clone nodes
+
+We create a dataset
+[source,cypher]
+----
+CREATE (f:Foo{name:'Foo'}),(b:Bar{name:'Bar'})
+----
+
+As result we have two nodes
+
+image::{img}/apoc.refactor.cloneNodes.dataset.png[width=800]
+
+[source,cypher]
+----
+MATCH (f:Foo{name:'Foo'}),(b:Bar{name:'Bar'}) WITH f,b
+CALL apoc.refactor.cloneNodes([f,b]) yield input, output RETURN *
+----
+
+As result we have the two nodes that we have created before and their clones
+
+image::{img}/apoc.refactor.cloneNodes.png[width=800]
+
+.Clone nodes with relationship
+
+We create a dataset of two different nodes of type `Actor` connected with other two different node of type `Movie`
+
+[source,cypher]
+----
+CREATE (k:Actor {name:'Keanu Reeves'})-[:ACTED_IN {role:'Neo'}]->(m:Movie {title:'The Matrix'}),
+	   (t:Actor {name:'Tom Hanks'})-[:ACTED_IN {role:'Forrest'}]->(f:Movie {title:'Forrest Gump'}) RETURN *
+----
+
+image::{img}/apoc.refactor.cloneNodesWithRelationships.dataset.png[width=800]
+
+[source,cypher]
+----
+MATCH (k:Actor {name:'Keanu Reeves'}), (t:Actor {name:'Tom Hanks'})
+CALL apoc.refactor.cloneNodesWithRelationships([k,t]) YIELD input, output RETURN *
+----
+
+As result we have a copy of the nodes and relationships
+
+image::{img}/apoc.refactor.cloneNodesWithRelationships.png[width=800]
+
+.Merge nodes
+
+We create two nodes with different properties
+
+[source,cypher]
+----
+CREATE (f:Person {name:'Foo'}), (b:Person {surname:'Bar'}) RETURN f,b
+----
+
+image::{img}/apoc.refactor.mergeNodes.dataset.png[width=800]
+
+Now we want to merge these nodes into one
+
+[source,cypher]
+----
+MATCH (f:Person {name:'Foo'}), (b:Person {surname:'Bar'})
+CALL apoc.refactor.mergeNodes([f,b])
+YIELD node RETURN node
+----
+
+image::{img}/apoc.refactor.mergeNodes.png[width=800]
+
+Thus we have one node with both properties `name` and `surname`
+
+.Redirect relationship to
+
+We start with two nodes related each other with a relationship. We create a new node which we will use to redirect the relationship like end node
+
+[source,cypher]
+----
+CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
+CREATE (p:Person {name:'Antony'})
+RETURN *
+----
+
+image::{img}/apoc.refactor.to.dataset.png[width=800]
+
+[source,cypher]
+----
+MATCH (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) with id(rel) as id
+MATCH (p:Person {name:'Antony'}) with p as p
+MATCH ()-[r]->(), (p:Person)  CALL apoc.refactor.to(r, p) YIELD input, output RETURN *
+----
+
+image::{img}/apoc.refactor.to.png[width=800]
+
+Now the relationship is towards the new node `Person`
+
+.Redirect relationship from
+
+We start with two nodes related each other with a relationship. We create a new node which we will use to redirect the relationship like start node
+
+[source,cypher]
+----
+CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
+CREATE (p:Person {name:'Antony'})
+RETURN *
+----
+
+image::{img}/apoc.refactor.from.dataset.png[width=800]
+
+[source,cypher]
+----
+MATCH (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) with id(rel) as id
+MATCH (p:Person {name:'Antony'}) with p as p
+MATCH ()-[r]->(), (p:Person)  CALL apoc.refactor.from(r, p) YIELD input, output RETURN *
+----
+
+image::{img}/apoc.refactor.from.png[width=800]
+
+Now the relationship starts from the new node `Person` from the old node `Bar`
+
+.Invert relationship
+
+We start with two nodes connected by a relationship
+
+[source,cypher]
+----
+CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
+----
+
+image::{img}/apoc.refactor.invert.dataset.png[width=800]
+
+Now we want to invert the relationship direction
+
+[source,cypher]
+----
+MATCH (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) WITH id(rel) as id
+MATCH ()-[r]->() WHERE id(r) = id
+CALL apoc.refactor.invert(r) yield input, output RETURN *
+----
+
+image::{img}/apoc.refactor.invert.call.png[width=800]
+
+image::{img}/apoc.refactor.invert.png[width=800]
+
+.Set type
+
+With a simple relationship between two node
+
+[source,cypher]
+----
+CREATE (f:Foo)-[rel:FOOBAR]->(b:Bar)
+----
+
+image::{img}/apoc.refactor.setType.dataset.png[width=800]
+
+We can change the relationship type from `FOOBAR` to `NEW-TYPE`
+
+[source,cypher]
+----
+MATCH (f:Foo)-[rel:FOOBAR]->(b:Bar) with rel
+CALL apoc.refactor.setType(rel, 'NEW-TYPE') YIELD input, output RETURN *
+----
+
+image::{img}/apoc.refactor.setType.png[width=800]
+
+.Extract node from relationships
+
+[source,cypher]
+----
+CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
+----
+
+image::{img}/apoc.refactor.extractNode.dataset.png[width=800]
+
+We pass the ID of the relationship as parameter to extract a node
+
+[source,cypher]
+----
+MATCH (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) WITH id(rel) as id
+CALL apoc.refactor.extractNode(id,['FooBar'],'FOO','BAR')
+YIELD input, output RETURN *
+----
+
+image::{img}/apoc.refactor.extractNode.png[width=800]
+
+.Collapse node to relationship
+
+[source,cypher]
+----
+CREATE (f:Foo)-[:FOO {a:1}]->(b:Bar {c:3})-[:BAR {b:2}]->(f) WITH id(b) as id
+CALL apoc.refactor.collapseNode(id,'FOOBAR')
+YIELD input, output RETURN *
+----
+
+Before we have this situation
+
+image::{img}/apoc.refactor.collapseNode.dataset.png[width=800]
+
+And the result are
+
+image::{img}/apoc.refactor.collapseNode.png[width=800]
+
+The property of the two relationship and the property of the node are joined in one relationship that has the  properties `a:1`, `b:2`, `name:Bar`
+
+.Normalize As Boolean
+
+[source,cypher]
+----
+CREATE (:Person {prop: 'Y', name:'A'}),(:Person {prop: 'Yes', name:'B'}),(:Person {prop: 'NO', name:'C'}),(:Person {prop: 'X', name:'D'})
+----
+
+As a resul we have four nodes with different properties `prop` like `Y`, `Yes`, `NO`, `X`
+
+image::{img}/apoc.refactor.normalizeAsBoolean.dataset.png[width=800]
+
+Now we want to transform some properties into a boolean, `Y`, `Yes` into true and the properties `NO` into false.
+The other properties that don't match these possibilities will be set as `null`.
+
+[source,cypher]
+----
+MATCH (n)  CALL apoc.refactor.normalizeAsBoolean(n,'prop',['Y','Yes'],['NO']) WITH n ORDER BY n.id RETURN n.prop AS prop
+----
+
+image::{img}/apoc.refactor.normalizeAsBoolean.png[width=800]
+
+.Categorize
+
+First of all we create some nodes as dataset
+
+[source,cypher]
+----
+CREATE (:Person {prop: 'A', k: 'a', id: 1}),
+       (:Person {prop: 'A', k: 'a', id: 2}),
+       (:Person {prop: 'C', k: 'c', id: 3}),
+       (:Person {                   id: 4}),
+       (:Person {prop: 'B', k: 'b', id: 5}),
+       (:Person {prop: 'C', k: 'c', id: 6})
+----
+
+As result we have six nodes with label 'Person' with different properties
+
+image::{img}/apoc.refactor.categorize.dataset.png[width=800]
+
+Now we want to transform the property `prop` into a separate node with label `Letter` and transfer the properties of the nodes `Person`: `prop` (now renamed in `name`) and `k`.
+The nodes `Person` will keep only the propertie `id`, and will be connected with a relationship `IS_A` with the new nodes `Letter`.
+
+[source,cypher]
+----
+CALL apoc.refactor.categorize('prop','IS_A',true,'Letter','name',['k'],1)
+----
+
+image::{img}/apoc.refactor.categorize.png[width=800]
+
+The direction of the relationship (in this case outgoing) is defined by the third field, if `true` outgoing else incoming.
+If a node doesn't has the property `prop` (like node with `id: 4`) it won't be managed.
+
+.Merge relationships (combine properties)
+
+We create two nodes with three relationships (two with same properties)
+
+[source,cypher]
+----
+CREATE (d:Person {name:'John'})
+CREATE (p:Country {name:'USA'})
+CREATE (d)-[:TRAVELS_TO {year:1995, reason:'work'}]->(p)
+CREATE (d)-[:GOES_TO {year:["2010","2015"], reason:"fun"}]->(p)
+CREATE (d)-[:FLIGHTS_TO {company:"Air America"}]->(p)
+RETURN d,p
+----
+
+image::{img}/apoc.refactor.mergeRelationships.dataset.png[width=800]
+
+Now we want to merge relationships into one combining properties
+
+[source,cypher]
+----
+MATCH (d:Person {name:'John'})
+MATCH (p:Country {name:'USA'})
+MATCH (d)-[r:TRAVELS_TO]->(p)
+MATCH (d)-[h:GOES_TO]->(p)
+MATCH (d)-[l:FLIGHTS_TO]->(p)
+CALL apoc.refactor.mergeRelationships([r,h,l],{properties:"combine"}) YIELD rel
+RETURN p,d
+----
+
+image::{img}/apoc.refactor.mergeRelationships.combine.png[width=800]
+
+Thus we have two nodes with one relationship with both properties `year`, `reason` and `company`.
+
+.Merge relationships (discard properties)
+
+We create two nodes with two relationships with same properties
+
+[source,cypher]
+----
+CREATE (d:Person {name:'John'})
+CREATE (p:Country {name:'USA'})
+CREATE (d)-[:TRAVELS_TO {year:1995, reason:'work'}]->(p)
+CREATE (d)-[:GOES_TO {year:["2010","2015"], reason:"fun"}]->(p)
+RETURN d,p
+----
+
+image::{img}/apoc.refactor.mergeRelationships.dataset2.png[width=800]
+
+Now we want to merge relationships into one discarding properties
+
+[source,cypher]
+----
+MATCH (d:Person {name:'John'})
+MATCH (p:Country {name:'USA'})
+MATCH (d)-[r:TRAVELS_TO]->(p)
+MATCH (d)-[h:GOES_TO]->(p)
+CALL apoc.refactor.mergeRelationships([r,h],{properties:"discard"}) YIELD rel
+RETURN p,d
+----
+
+image::{img}/apoc.refactor.mergeRelationships.discard.png[width=800]
+
+Thus we have two nodes with one relationship with both properties. Properties values are the first read.
+
+.Merge relationships (overwrite properties)
+
+We create two nodes with two relationships with same properties
+
+[source,cypher]
+----
+CREATE (d:Person {name:'John'})
+CREATE (p:Country {name:'USA'})
+CREATE (d)-[:TRAVELS_TO {year:1995, reason:'work'}]->(p)
+CREATE (d)-[:GOES_TO {year:["2010","2015"], reason:"fun"}]->(p)
+RETURN d,p
+----
+
+image::{img}/apoc.refactor.mergeRelationships.dataset2.png[width=800]
+
+Now we want to merge relationships into one discarding properties
+
+[source,cypher]
+----
+MATCH (d:Person {name:'John'})
+MATCH (p:Country {name:'USA'})
+MATCH (d)-[r:TRAVELS_TO]->(p)
+MATCH (d)-[h:GOES_TO]->(p)
+CALL apoc.refactor.mergeRelationships([r,h],{properties:"overwrite"}) YIELD rel
+RETURN p,d
+----
+
+image::{img}/apoc.refactor.mergeRelationships.overwrite.png[width=800]
+
+Thus we have two nodes with one relationship with both properties. Properties values are the last read.
+
 = Using Cypher and APOC to move a property value to a label
 
 You can use the procedure link:#_creating_data[`apoc.create.addLabels`] to move a property to a label with Cypher as follows
