@@ -5,7 +5,7 @@
 Data Integration is an important topic.
 Reading data from relational databases to create and augment data models is a very helpful exercise.
 
-With `apoc.load.jdbc` you can access any database that provides a JDBC driver, and execute queries whose results are turned into streams of rows. 
+With `apoc.load.jdbc` you can access any database that provides a JDBC driver, and execute queries whose results are turned into streams of rows.
 Those rows can then be used to update or create graph structures.
 
 [separator=¦,opts=header,cols="1,1m,5"]
@@ -40,7 +40,6 @@ CALL apoc.load.jdbc('myDB','PERSON')
 ----
 
 The 3rd value in the `apoc.jdbc.<alias>.url=` effectively defines an alias to be used in  `apoc.load.jdbc('<alias>',....`
-
 
 == MySQL Example
 
@@ -297,7 +296,7 @@ Put the JDBC driver into the `$NEO4J_HOME/plugins` directory and configure the J
 |===
 |Database | JDBC-URL | Driver Source
 
-|MySQL 
+|MySQL
 |jdbc:mysql://<hostname>:<port/3306>/<database>?user=<user>&password=<pass>
 |http://dev.mysql.com/downloads/connector/j/[MySQL Driver]
 
@@ -321,7 +320,7 @@ Put the JDBC driver into the `$NEO4J_HOME/plugins` directory and configure the J
 |jdbc:derby:derbyDB
 |Included in JDK6-8
 
-|Cassandra 
+|Cassandra
 |jdbc:cassandra://<host>:<port/9042>/<database>
 |link:https://github.com/adejanovski/cassandra-jdbc-wrapper#installing[Cassandra JDBC Wrapper]
 |===
@@ -330,5 +329,5 @@ There are a number of blog posts / examples that details usage of apoc.load.jdbc
 
 * https://jesusbarrasa.wordpress.com/2016/09/30/quickgraph4-explore-your-browser-history-in-neo4j/[Explore your browser history in Neo4j]
 * https://blog.knoldus.com/2016/09/12/neo4j-with-scala-migrate-data-from-other-database-to-neo4j/[Neo4j With Scala : Migrate Data From Other Database to Neo4j]
-* 
+*
 * https://neo4j.com/blog/apoc-database-integration-import-export-cypher/[APOC: Database Integration, Import and Export with Awesome Procedures On Cypher]

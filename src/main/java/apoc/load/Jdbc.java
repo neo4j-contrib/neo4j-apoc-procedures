@@ -1,5 +1,6 @@
 package apoc.load;
 
+import org.apache.commons.compress.utils.IOUtils;
 import org.neo4j.procedure.Description;
 import apoc.result.RowResult;
 import apoc.ApocConfiguration;
@@ -10,6 +11,7 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.*;
@@ -169,7 +171,8 @@ public class Jdbc {
                 if (handleEndOfResults()) return null;
                 Map<String, Object> row = new LinkedHashMap<>(columns.length);
                 for (int col = 1; col < columns.length; col++) {
-                    row.put(columns[col], convert(rs.getObject(col)));
+                    int sqlType = rs.getMetaData().getColumnType(col);
+                    row.put(columns[col], convert(col, sqlType));
                 }
                 return row;
             } catch (SQLException e) {
@@ -177,14 +180,45 @@ public class Jdbc {
             }
         }
 
-        private Object convert(Object value) {
-            if (value instanceof UUID || value instanceof BigInteger || value instanceof BigDecimal) {
-                return value.toString();
-            }
-            if (value instanceof java.util.Date) {
-                return ((java.util.Date) value).getTime();
+        private Object convert(int col,int type) throws SQLException {
+            Object value = rs.getObject(col);
+
+            switch (type) {
+                case Types.TIMESTAMP:
+                    return rs.getTimestamp(col).getTime();
+                case Types.DATE:
+                    return rs.getTimestamp(col).getTime();
+                case Types.OTHER:
+                    return value.toString();
+                case Types.BIGINT:
+                    return value.toString();
+                case Types.DECIMAL:
+                    return value.toString();
+                case Types.BLOB:
+                    Blob blob = ((Blob) value);
+                    return getValue(blob.getBinaryStream());
+                case Types.CLOB:
+                    Clob clob = ((Clob) value);
+                    return getValue(clob.getAsciiStream());
+                case Types.BINARY:
+                    byte[] bytes = (byte[]) value;
+                    value = new String(bytes);
             }
             return value;
+        }
+
+        private Object getValue(InputStream is){
+            try {
+                return new String(IOUtils.toByteArray(is));
+            } catch (Exception e) {
+                return "";
+            }
+            finally {
+                try {
+                    is.close();
+                } catch(Exception e) {
+                }
+            }
         }
 
         private boolean handleEndOfResults() throws SQLException {
@@ -193,7 +227,7 @@ public class Jdbc {
             }
             if (!rs.next()) {
                 if (!rs.isClosed()) {
-//                    rs.close();
+                    //                    rs.close();
                     closeIt(log, rs.getStatement(), closeConnection ? rs.getStatement().getConnection() : null);
                 }
                 return true;
