@@ -91,6 +91,7 @@ public class ExportCsvTest {
                 });
         assertEquals(EXPECTED_QUERY, new Scanner(output).useDelimiter("\\Z").next());
     }
+
     @Test
     public void testExportQueryNodesCsv() throws Exception {
         File output = new File(directory, "query_nodes.csv");
