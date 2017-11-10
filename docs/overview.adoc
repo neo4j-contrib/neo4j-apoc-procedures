@@ -727,6 +727,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.duplicates(coll) | returns a list of duplicate items in the collection
 | apoc.coll.duplicatesWithCount(coll) | returns a list of duplicate items in the collection and their count, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)
 | apoc.coll.occurrences(coll, item) | returns the count of the given item in the collection
+| apoc.coll.frequencies(coll) | returns a list of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}, {item:abc, count:1}]`)
 | apoc.coll.sortMulti | sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip
 | apoc.coll.flatten | flattens a nested list
 |===

@@ -381,7 +381,7 @@ public class Coll {
     }
 
     @UserFunction
-    @Description("apoc.coll.frequencies(coll) - returns a list of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)")
+    @Description("apoc.coll.frequencies(coll) - returns a list of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}, {item:abc, count:1}]`)")
     public List<Map<String, Object>> frequencies(@Name("coll") List<Object> coll) {
         if (coll == null || coll.size() == 0) {
             return Collections.emptyList();
