@@ -462,6 +462,41 @@ public class CollTest {
     }
 
     @Test
+    public void testFrequenciesOnNullAndEmptyList() throws Exception {
+        testCall(db, "RETURN apoc.coll.frequencies([]) as value",
+                (row) -> assertEquals(Collections.EMPTY_LIST, row.get("value")));
+        testCall(db, "RETURN apoc.coll.frequencies(null) as value",
+                (row) -> assertEquals(Collections.EMPTY_LIST, row.get("value")));
+    }
+
+    @Test
+    public void testFrequencies() throws Exception {
+        testCall(db, "RETURN apoc.coll.frequencies([1,2,1,3,2,5,2,3,1,2]) as value",
+                (row) -> {
+                    Map<Long, Long> expectedMap = new HashMap<>(4);
+                    expectedMap.put(1l, 3l);
+                    expectedMap.put(2l, 4l);
+                    expectedMap.put(3l, 2l);
+                    expectedMap.put(5l, 1l);
+
+                    List<Map<String, Object>> result = (List<Map<String, Object>>) row.get("value");
+                    assertEquals(4, result.size());
+
+                    Set<Long> keys = new HashSet<>(4);
+
+                    for (Map<String, Object> map : result) {
+                        Object item = map.get("item");
+                        Long count = (Long) map.get("count");
+                        keys.add((Long) item);
+                        assertTrue(expectedMap.containsKey(item));
+                        assertEquals(expectedMap.get(item), count);
+                    }
+
+                    assertEquals(expectedMap.keySet(), keys);
+                });
+    }
+
+    @Test
     public void testOccurrencesOnNullAndEmptyList() throws Exception {
         testCall(db, "RETURN apoc.coll.occurrences([], 5) as value",
                 (row) -> assertEquals(0l, row.get("value")));
