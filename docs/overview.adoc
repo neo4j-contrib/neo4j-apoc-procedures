@@ -734,6 +734,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.occurrences(coll, item) | returns the count of the given item in the collection
 | apoc.coll.sortMulti | sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip
 | apoc.coll.flatten | flattens a nested list
+| apoc.coll.combinations(coll, minSelect, maxSelect:minSelect) | Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive
 |===
 
 === Lookup Functions
