@@ -1,5 +1,6 @@
 package apoc.coll;
 
+import org.apache.commons.math3.util.Combinations;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.impl.util.statistics.IntCounter;
 import org.neo4j.procedure.*;
@@ -7,6 +8,7 @@ import apoc.result.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import scala.collection.SeqLike;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -456,6 +458,37 @@ public class Coll {
         if (skip > 0) return result.subList ((int)skip, result.size());
         if (limit != -1L) return result.subList (0, (int)limit);
         return result;
+    }
+
+    @UserFunction
+    @Description("apoc.coll.combinations(coll, minSelect, maxSelect:minSelect) - Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive")
+    public List<List<Object>> combinations(@Name("coll") List<Object> coll, @Name(value="minSelect") long minSelectIn, @Name(value="maxSelect",defaultValue = "-1") long maxSelectIn) {
+        int minSelect = (int) minSelectIn;
+        int maxSelect = (int) maxSelectIn;
+        maxSelect = maxSelect == -1 ? minSelect : maxSelect;
+
+        if (coll == null || coll.isEmpty() || minSelect < 1 || minSelect > coll.size() || minSelect > maxSelect || maxSelect > coll.size()) {
+            return Collections.emptyList();
+        }
+
+        List<List<Object>> combinations = new ArrayList<>();
+
+        for (int i = minSelect; i <= maxSelect; i++) {
+            Iterator<int[]> itr = new Combinations(coll.size(), i).iterator();
+
+            while (itr.hasNext()) {
+                List<Object> entry = new ArrayList<>(i);
+                int[] indexes = itr.next();
+                if (indexes.length > 0) {
+                    for (int index : indexes) {
+                        entry.add(coll.get(index));
+                    }
+                    combinations.add(entry);
+                }
+            }
+        }
+
+        return combinations;
     }
 
 }

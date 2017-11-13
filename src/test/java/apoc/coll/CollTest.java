@@ -501,4 +501,91 @@ public class CollTest {
         testCall(db, "RETURN apoc.coll.flatten([[1,2],[3,4],[4],[5,6,7]]) as value",
                 (row) -> assertEquals(asList(1L,2L,3L,4L,4L,5L,6L,7L), row.get("value")));
     }
+
+    @Test
+    public void testCombinationsWith0() throws Exception {
+        testCall(db, "RETURN apoc.coll.combinations([1,2,3,4,5], 0) as value",
+                (row) -> assertEquals(Collections.emptyList(), row.get("value")));
+    }
+
+    @Test
+    public void testCombinationsWithNegative() throws Exception {
+        testCall(db, "RETURN apoc.coll.combinations([1,2,3,4,5], -1) as value",
+                (row) -> assertEquals(Collections.emptyList(), row.get("value")));
+    }
+
+    @Test
+    public void testCombinationsWithEmptyCollection() throws Exception {
+        testCall(db, "RETURN apoc.coll.combinations([], 0) as value",
+                (row) -> assertEquals(Collections.emptyList(), row.get("value")));
+    }
+
+    @Test
+    public void testCombinationsWithNullCollection() throws Exception {
+        testCall(db, "RETURN apoc.coll.combinations(null, 0) as value",
+                (row) -> assertEquals(Collections.emptyList(), row.get("value")));
+    }
+
+    @Test
+    public void testCombinationsWithTooLargeSelect() throws Exception {
+        testCall(db, "RETURN apoc.coll.combinations([1,2,3,4,5], 6) as value",
+                (row) -> assertEquals(Collections.emptyList(), row.get("value")));
+    }
+
+    @Test
+    public void testCombinationsWithListSizeSelect() throws Exception {
+        testCall(db, "RETURN apoc.coll.combinations([1,2,3,4,5], 5) as value",
+                (row) -> {
+            List<List<Object>> result = new ArrayList<>();
+            result.add(asList(1l,2l,3l,4l,5l));
+            assertEquals(result, row.get("value"));
+        });
+    }
+
+    @Test
+    public void testCombinationsWithSingleSelect() throws Exception {
+        testCall(db, "RETURN apoc.coll.combinations([1,2,3,4,5], 3) as value",
+                (row) -> {
+                    List<List<Object>> result = new ArrayList<>();
+                    result.add(asList(1l,2l,3l));
+                    result.add(asList(1l,2l,4l));
+                    result.add(asList(1l,3l,4l));
+                    result.add(asList(2l,3l,4l));
+                    result.add(asList(1l,2l,5l));
+                    result.add(asList(1l,3l,5l));
+                    result.add(asList(2l,3l,5l));
+                    result.add(asList(1l,4l,5l));
+                    result.add(asList(2l,4l,5l));
+                    result.add(asList(3l,4l,5l));
+                    assertEquals(result, row.get("value"));
+                });
+    }
+
+    @Test
+    public void testCombinationsWithMinSelectGreaterThanMax() throws Exception {
+        testCall(db, "RETURN apoc.coll.combinations([1,2,3,4], 3, 2) as value",
+                (row) -> {
+                    assertEquals(Collections.emptyList(), row.get("value"));
+                });
+    }
+
+    @Test
+    public void testCombinationsWithMinAndMaxSelect() throws Exception {
+        testCall(db, "RETURN apoc.coll.combinations([1,2,3,4], 2, 3) as value",
+                (row) -> {
+                    List<List<Object>> result = new ArrayList<>();
+                    result.add(asList(1l,2l));
+                    result.add(asList(1l,3l));
+                    result.add(asList(2l,3l));
+                    result.add(asList(1l,4l));
+                    result.add(asList(2l,4l));
+                    result.add(asList(3l,4l));
+                    result.add(asList(1l,2l,3l));
+                    result.add(asList(1l,2l,4l));
+                    result.add(asList(1l,3l,4l));
+                    result.add(asList(2l,3l,4l));
+
+                    assertEquals(result, row.get("value"));
+                });
+    }
 }
