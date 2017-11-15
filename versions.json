@@ -1,27 +1,99 @@
 [
     {
+        "neo4j": "3.3.0",
+        "apoc": "3.3.0.1",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.1",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.3.0.1/apoc-3.3.0.1-all.jar"
+    },
+    {
+        "neo4j": "3.3.0-rc1",
+        "apoc": "3.3.0.1",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.1",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.3.0.1/apoc-3.3.0.1-all.jar"
+    },
+    {
+        "neo4j": "3.3.0-beta02",
+        "apoc": "3.3.0.1",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.1",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.3.0.1/apoc-3.3.0.1-all.jar"
+    },
+    {
+        "neo4j": "3.3.0-beta01",
+        "apoc": "3.3.0.1",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.1",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.3.0.1/apoc-3.3.0.1-all.jar"
+    },
+    {
+        "neo4j": "3.3.0-alpha07",
+        "apoc": "3.3.0.1",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.1",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.3.0.1/apoc-3.3.0.1-all.jar"
+    },
+    {
+        "neo4j": "3.3.0-alpha06",
+        "apoc": "3.3.0.1",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.1",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.3.0.1/apoc-3.3.0.1-all.jar"
+    },
+    {
+        "neo4j": "3.3.0-alpha05",
+        "apoc": "3.3.0.1",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.1",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.3.0.1/apoc-3.3.0.1-all.jar"
+    },
+    {
+        "neo4j": "3.3.0-alpha04",
+        "apoc": "3.3.0.1",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.1",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.3.0.1/apoc-3.3.0.1-all.jar"
+    },
+    {
+        "neo4j": "3.3.0-alpha03",
+        "apoc": "3.3.0.1",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.1",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.3.0.1/apoc-3.3.0.1-all.jar"
+    },
+    {
+        "neo4j": "3.3.0-alpha02",
+        "apoc": "3.3.0.1",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.1",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.3.0.1/apoc-3.3.0.1-all.jar"
+    },
+    {
+        "neo4j": "3.3.0-alpha01",
+        "apoc": "3.3.0.1",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.1",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.3.0.1/apoc-3.3.0.1-all.jar"
+    },
+    {
+        "neo4j": "3.2.7",
+        "apoc": "3.2.3.5",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.3.5",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.3.5/apoc-3.2.3.5-all.jar"
+    },
+    {
         "neo4j": "3.2.6",
-        "apoc": "3.2.0.4",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.4",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.0.4/apoc-3.2.0.4-all.jar"
+        "apoc": "3.2.3.5",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.3.5",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.3.5/apoc-3.2.3.5-all.jar"
     },
     {
         "neo4j": "3.2.5",
-        "apoc": "3.2.0.4",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.4",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.0.4/apoc-3.2.0.4-all.jar"
+        "apoc": "3.2.3.5",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.3.5",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.3.5/apoc-3.2.3.5-all.jar"
     },
     {
         "neo4j": "3.2.4",
-        "apoc": "3.2.0.4",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.4",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.0.4/apoc-3.2.0.4-all.jar"
+        "apoc": "3.2.3.5",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.3.5",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.3.5/apoc-3.2.3.5-all.jar"
     },
     {
         "neo4j": "3.2.3",
-        "apoc": "3.2.0.4",
-        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.4",
-        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.0.4/apoc-3.2.0.4-all.jar"
+        "apoc": "3.2.3.5",
+        "url": "http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.3.5",
+        "jar": "https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.3.5/apoc-3.2.3.5-all.jar"
     },
     {
         "neo4j": "3.2.2",

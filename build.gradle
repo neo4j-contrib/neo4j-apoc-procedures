@@ -45,7 +45,7 @@ task versions {
     def slurper = new JsonSlurper()
 
     // get tags
-    def pattern = ~/(?m)ext\s*\{\s*neo4jVersion\s*=\s*"(.*)".*/
+    def pattern = ~/neo4jVersion\s*=\s*"(.*)".*/
     def releases = slurper.parseText(new URL("https://api.github.com/repos/neo4j-contrib/neo4j-apoc-procedures/releases?page=1&per_page=500").getText())
     def versions = []
     def neo4jToApoc = [:]
@@ -53,12 +53,11 @@ task versions {
     for (release in releases) {
         if (release.prerelease || release.draft) continue;
         def buildText = new URL("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/" + release.tag_name + "/build.gradle").getText()
-
         def matcher = pattern.matcher(buildText)
         for (def i = 0; i < matcher.getCount(); i++) {
             def neo4jVersion = matcher[i][1]
 
-            //println neo4jVersion + ", " + release.tag_name
+            println "neo " + neo4jVersion + ", apoc " + release.tag_name 
             if (!neo4jToApoc.containsKey(neo4jVersion)) {
                 neo4jToApoc[neo4jVersion] = release.tag_name
             }
