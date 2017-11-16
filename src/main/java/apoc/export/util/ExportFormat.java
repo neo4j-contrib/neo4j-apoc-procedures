@@ -16,7 +16,7 @@ public enum ExportFormat {
             format("COMMIT%n"), format("BEGIN%n"), format("SCHEMA AWAIT%n"), ""),
 
     CYPHER_SHELL("cypher-shell",
-            format(":COMMIT%n"), format(":BEGIN%n"), "", "CALL db.awaitIndex('%s(%s)');%n"),
+            format(":commit%n"), format(":begin%n"), "", "CALL db.awaitIndex('%s(%s)');%n"),
 
     PLAIN_FORMAT("plain", "", "", "", "");
 
