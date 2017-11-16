@@ -17,7 +17,7 @@ public interface CypherFormatter {
 
 	String statementForRelationship(Relationship relationship,  Map<String, String> uniqueConstraints, Set<String> indexedProperties);
 
-	String statementForIndex(String label, String key);
+	String statementForIndex(String label, Iterable<String> keys);
 
 	String statementForConstraint(String label, String key);
 

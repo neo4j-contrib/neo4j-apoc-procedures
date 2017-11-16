@@ -45,6 +45,7 @@ public class ExportCypherTest {
             "COMMIT%n");
 
     private static final String EXPECTED_SCHEMA = String.format("BEGIN%n" +
+            "CREATE INDEX ON :`Bar`(`first_name`,`last_name`);%n" +
             "CREATE INDEX ON :`Foo`(`name`);%n" +
             "CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;%n" +
             "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
@@ -56,6 +57,7 @@ public class ExportCypherTest {
             "SCHEMA AWAIT%n");
 
     private static final String EXPECTED_INDEXES_AWAIT = String.format("CALL db.awaitIndex(':`Foo`(`name`)');%n" +
+            "CALL db.awaitIndex(':`Bar`(`first_name`,`last_name`)');%n" +
             "CALL db.awaitIndex(':`Bar`(`name`)');%n");
 
     private static final String EXPECTED_RELATIONSHIPS = String.format("BEGIN%n" +
@@ -82,6 +84,7 @@ public class ExportCypherTest {
             "COMMIT%n");
 
     private static final String EXPECTED_ONLY_SCHEMA_NEO4J_SHELL = String.format("BEGIN%n" +
+            "CREATE INDEX ON :`Bar`(`first_name`,`last_name`);%n" +
             "CREATE INDEX ON :`Foo`(`name`);%n" +
             "CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;%n" +
             "COMMIT%n" +
@@ -117,6 +120,7 @@ public class ExportCypherTest {
                 .setConfig("apoc.export.file.enabled", "true").newGraphDatabase();
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
         db.execute("CREATE INDEX ON :Foo(name)").close();
+        db.execute("CREATE INDEX ON :Bar(first_name, last_name)").close();
         db.execute("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE").close();
         db.execute("CREATE (f:Foo {name:'foo'})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12})").close();
     }
