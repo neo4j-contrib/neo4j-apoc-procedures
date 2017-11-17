@@ -48,7 +48,7 @@ So if you were to add an `:Actor` label to several million `:Person` nodes, you 
 ----
 CALL apoc.periodic.iterate(
 "MATCH (p:Person) WHERE (p)-[:ACTED_IN]->() RETURN p",
-"SET p:Actor", {batchSize:10000, parallel:true})
+"WITH {p} AS p SET p:Actor", {batchSize:10000, parallel:true})
 ----
 
 Which would take 10k people from the stream and update them in a single transaction, executing the *second* statement for each person.
@@ -62,7 +62,7 @@ If you attempt complex operations, try to use e.g. `retries:3` to retry failed o
 ----
 CALL apoc.periodic.iterate(
 "MATCH (o:Order) WHERE o.date > '2016-10-13' RETURN o",
-"MATCH (o)-[:HAS_ITEM]->(i) WITH o, sum(i.value) as value SET o.value = value", {batchSize:100, parallel:true})
+"WITH {o} AS o MATCH (o)-[:HAS_ITEM]->(i) WITH o, sum(i.value) as value SET o.value = value", {batchSize:100, parallel:true})
 ----
 
 .iterating over the whole batch (more efficient)
@@ -70,7 +70,7 @@ CALL apoc.periodic.iterate(
 ----
 CALL apoc.periodic.iterate(
 "MATCH (o:Order) WHERE o.date > '2016-10-13' RETURN o",
-"MATCH (o)-[:HAS_ITEM]->(i) WITH o, sum(i.value) as value SET o.value = value", {batchSize:100, iterateList:true, parallel:true})
+"WITH {o} AS o MATCH (o)-[:HAS_ITEM]->(i) WITH o, sum(i.value) as value SET o.value = value", {batchSize:100, iterateList:true, parallel:true})
 ----
 
 The stream of other data can also come from another source, like a different database, CSV or JSON file.
