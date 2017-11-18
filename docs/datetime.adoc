@@ -95,3 +95,38 @@ RETURN apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z')
 * if the timezone pattern is specified, the timezone is extracted from the date string, otherwise an error will be reported
 * the `to/fromSeconds` timestamp values are in POSIX (Unix time) system, i.e. timestamps represent the number of seconds elapsed since https://en.wikipedia.org/wiki/Unix_time[00:00:00 UTC, Thursday, 1 January 1970]
 * the full list of supported formats is described in https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html[SimpleDateFormat JavaDoc]
+
+== Reading single datetime field from UTC Epoch:
+
+Extracts the value of one field from a datetime epoch.
+
+[source,cypher]
+----
+RETURN apoc.date.field(12345)
+----
+
+
+Following fields are supported:
+
+[options="header"]
+|===============================================================================================================
+| Result field	| Represents
+| 'years'		| year
+| 'months' 		| month of year
+| 'days' 		| day of month
+| 'hours' 		| hour of day
+| 'minutes' 	| minute of hour
+| 'seconds'		| second of minute
+| 'millis'		| milliseconds of a second
+|===============================================================================================================
+
+== Examples
+
+[source,cypher]
+----
+RETURN apoc.date.field(12345, 'days')
+----
+
+----
+    2
+----

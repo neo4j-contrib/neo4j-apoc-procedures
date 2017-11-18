@@ -4,8 +4,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +24,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
+import static java.util.Objects.isNull;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.*;
@@ -274,6 +275,35 @@ public class DateTest {
 					Map<String, Object> split = (Map<String, Object>) row.get("value");
 					assertTrue(split.isEmpty());
 				});
+	}
+
+	@Test
+	public void testfield() throws Exception {
+		long epoch = LocalDateTime.of( 1982, 1, 23, 22, 30, 42 )
+				.atZone( ZoneId.of( "UTC" ) )
+				.toInstant()
+				.toEpochMilli();
+		testCall(db,
+				"RETURN apoc.date.field(" + epoch + ") AS value",
+				row -> assertEquals(23L, (long) row.get("value")));
+	}
+
+	@Test
+	public void testfieldCustomField() throws Exception {
+		long epoch = LocalDateTime.of( 1982, 1, 23, 22, 30 )
+				.atZone( ZoneId.of( "UTC" ) )
+				.toInstant()
+				.toEpochMilli();
+		testCall(db,
+				"RETURN apoc.date.field(" + epoch + ", 'year','UTC') AS value",
+				row -> assertEquals(1982L, (long) row.get("value")));
+	}
+
+	@Test
+	public void testfieldNullInput() throws Exception {
+		testCall(db,
+				"RETURN apoc.date.field(NULL) AS value",
+				row -> assertTrue(isNull(row.get("value"))));
 	}
 
 	@Test

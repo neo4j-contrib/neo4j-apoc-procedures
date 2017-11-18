@@ -8,7 +8,9 @@ import org.neo4j.procedure.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
 import java.time.temporal.ChronoField;
@@ -18,7 +20,6 @@ import java.time.temporal.TemporalQuery;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import static java.time.temporal.ChronoField.*;
 
@@ -92,7 +93,17 @@ public class Date {
 		return result.asMap();
 	}
 
-    @UserFunction
+	@UserFunction
+	@Description("apoc.date.field(12345,('ms|s|m|h|d|month|year'),('TZ')")
+	public Long field(final @Name("time") Long time,  @Name(value = "unit", defaultValue = "d") String unit, @Name(value = "timezone",defaultValue = "UTC") String timezone) {
+		return (time == null)
+			   ? null
+			   : (long) ZonedDateTime
+					   .ofInstant( Instant.ofEpochMilli( time ), ZoneId.of( timezone ) )
+					   .get( chronoField( unit ) );
+	}
+
+	@UserFunction
     @Description( "apoc.date.currentTimestamp() - returns System.currentTimeMillis()" )
     public long currentTimestamp()
     {
@@ -122,6 +133,19 @@ public class Date {
 //			case "years":case "year": return TimeUnit.YEARS;
 		}
 		return TimeUnit.MILLISECONDS;
+	}
+
+	private ChronoField chronoField(String unit) {
+		switch (unit.toLowerCase()) {
+		case "ms": case "milli":  case "millis": case "milliseconds": return ChronoField.MILLI_OF_SECOND;
+		case "s":  case "second": case "seconds": return ChronoField.SECOND_OF_MINUTE;
+		case "m":  case "minute": case "minutes": return ChronoField.MINUTE_OF_HOUR;
+		case "h":  case "hour":   case "hours":   return ChronoField.HOUR_OF_DAY;
+		case "d":  case "day":    case "days":    return ChronoField.DAY_OF_MONTH;
+		case "month":case "months": return ChronoField.MONTH_OF_YEAR;
+		case "year":case "years": return ChronoField.YEAR;
+		default: return ChronoField.YEAR;
+		}
 	}
 
 	@UserFunction
