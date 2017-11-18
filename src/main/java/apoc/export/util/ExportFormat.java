@@ -61,7 +61,7 @@ public enum ExportFormat {
         return this.schemaAwait;
     }
 
-    public String indexAwait(String label, String property){
-        return format(this.indexAwait, CypherFormatterUtils.label(label), CypherFormatterUtils.quote(property));
+    public String indexAwait(String label, Iterable<String> properties){
+        return format(this.indexAwait, CypherFormatterUtils.label(label), CypherFormatterUtils.quote(properties));
     }
 }

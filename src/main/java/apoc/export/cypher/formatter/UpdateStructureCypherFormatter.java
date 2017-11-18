@@ -29,7 +29,7 @@ public class UpdateStructureCypherFormatter extends AbstractCypherFormatter impl
 	}
 
 	@Override
-	public String statementForIndex(String label, String key) {
+	public String statementForIndex(String label, Iterable<String> key) {
 		return "";
 	}
 
