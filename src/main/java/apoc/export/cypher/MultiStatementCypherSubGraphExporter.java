@@ -160,14 +160,14 @@ public class MultiStatementCypherSubGraphExporter {
         List<String> result = new ArrayList<>();
         for (IndexDefinition index : graph.getIndexes()) {
             String label = index.getLabel().name();
-            String prop = Iterables.single(index.getPropertyKeys());
+            Iterable<String> props = index.getPropertyKeys();
             if (index.isConstraintIndex()) {
-                String cypher = this.cypherFormat.statementForConstraint(label, prop);
+                String cypher = this.cypherFormat.statementForConstraint(label, Iterables.single(props));
                 if (cypher != null && !"".equals(cypher)) {
                     result.add(cypher);
                 }
             } else {
-                String cypher = this.cypherFormat.statementForIndex(label, prop);
+                String cypher = this.cypherFormat.statementForIndex(label, props);
                 if (cypher != null && !"".equals(cypher)) {
                     result.add(0, cypher);
                 }
@@ -180,8 +180,7 @@ public class MultiStatementCypherSubGraphExporter {
         List<String> result = new ArrayList<>();
         for (IndexDefinition index : graph.getIndexes()) {
             String label = index.getLabel().name();
-            String prop = Iterables.single(index.getPropertyKeys());
-            String indexAwait = this.exportFormat.indexAwait(label, prop);
+            String indexAwait = this.exportFormat.indexAwait(label, index.getPropertyKeys());
             if (indexAwait != null && !"".equals(indexAwait))
                 result.add(indexAwait);
         }

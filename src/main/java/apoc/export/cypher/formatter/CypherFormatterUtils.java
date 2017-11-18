@@ -169,6 +169,18 @@ public class CypherFormatterUtils {
 
 	// ---- to string ----
 
+    public static String quote(Iterable<String> ids) {
+        StringBuilder builder = new StringBuilder();
+        for (Iterator<String> iterator = ids.iterator(); iterator.hasNext(); ) {
+            String id = iterator.next();
+            builder.append(quote(id));
+            if (iterator.hasNext()) {
+                builder.append(",");
+            }
+        }
+        return builder.toString();
+    }
+
     public static String quote(String id) {
         return "`" + id + "`";
     }
