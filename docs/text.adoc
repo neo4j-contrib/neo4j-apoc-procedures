@@ -87,7 +87,7 @@ Swap the case of a string
 [source,cypher]
 RETURN apoc.text.capitalize("Neo4j") // nEO4J
 
-=== apoc.text.camelCase(text) |
+=== apoc.text.camelCase(text)
 Convert a string to lower camelCase
 
 [source,cypher]

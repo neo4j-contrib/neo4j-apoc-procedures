@@ -110,7 +110,7 @@ public class Strings {
 
     @UserFunction
     @Description("apoc.text.fuzzyMatch(text1, text2) - check if 2 words can be matched in a fuzzy way. Depending on the" +
-                 " length of the String it will allow more characters that needs to be editted to match the second String.")
+                 " length of the String it will allow more characters that needs to be edited to match the second String.")
     public Boolean fuzzyMatch(final @Name("text1") String text1, @Name("text2")final String text2) {
         if (text1 == null || text2 == null) {
             return null;
