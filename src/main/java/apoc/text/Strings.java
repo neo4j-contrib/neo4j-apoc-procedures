@@ -109,6 +109,15 @@ public class Strings {
     }
 
     @UserFunction
+    @Description("apoc.text.sorensenDiceSimilarityWithLanguage(text1, text2, languageTag) - compare the given strings with the Sørensen–Dice coefficient formula, with the provided IETF language tag")
+    public Double sorensenDiceSimilarity(final @Name("text1") String text1, final @Name("text2") String text2, final @Name(value = "languageTag", defaultValue = "en") String languageTag) {
+        if (text1 == null || text2 == null || languageTag == null) {
+            return null;
+        }
+        return SorensenDiceCoefficient.compute(text1, text2, languageTag);
+    }
+
+    @UserFunction
     @Description("apoc.text.fuzzyMatch(text1, text2) - check if 2 words can be matched in a fuzzy way. Depending on the" +
                  " length of the String it will allow more characters that needs to be edited to match the second String.")
     public Boolean fuzzyMatch(final @Name("text1") String text1, @Name("text2")final String text2) {

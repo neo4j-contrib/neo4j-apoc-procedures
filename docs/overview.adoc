@@ -778,6 +778,16 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.text.toUpperCase(text) | Convert a string to UPPER_CASE
 |===
 
+=== Text Similarity Functions
+
+[cols="1m,5"]
+|===
+| apoc.text.distance(text1, text2) | compare the given strings with the StringUtils.distance(text1, text2) method
+| apoc.text.sorensenDiceSimilarity(text1, text2) | compare the given strings with the Sørensen–Dice coefficient formula, assuming an English locale
+| apoc.text.sorensenDiceSimilarityWithLanguage(text1, text2, languageTag) | compare the given strings with the Sørensen–Dice coefficient formula, with the provided IETF language tag
+| apoc.text.fuzzyMatch(text1, text2) | check if 2 words can be matched in a fuzzy way. Depending on the length of the String it will allow more characters that needs to be edited to match the second String.
+|===
+
 === Phonetic Comparison Functions
 
 [cols="1m,5"]
