@@ -101,7 +101,7 @@ public class Strings {
 
     @UserFunction
     @Description("apoc.text.distance(text1, text2) - compare the given strings with the StringUtils.distance(text1, text2) method")
-    public Long distance(final @Name("text1") String text1, @Name("text1")final String text2) {
+    public Long distance(final @Name("text1") String text1, @Name("text2")final String text2) {
         if (text1 == null || text2 == null) {
             return null;
         }
@@ -111,7 +111,7 @@ public class Strings {
     @UserFunction
     @Description("apoc.text.fuzzyMatch(text1, text2) - check if 2 words can be matched in a fuzzy way. Depending on the" +
                  " length of the String it will allow more characters that needs to be editted to match the second String.")
-    public Boolean fuzzyMatch(final @Name("text1") String text1, @Name("text1")final String text2) {
+    public Boolean fuzzyMatch(final @Name("text1") String text1, @Name("text2")final String text2) {
         if (text1 == null || text2 == null) {
             return null;
         }
