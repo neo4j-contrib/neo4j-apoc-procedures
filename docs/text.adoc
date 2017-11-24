@@ -87,7 +87,7 @@ Swap the case of a string
 [source,cypher]
 RETURN apoc.text.capitalize("Neo4j") // nEO4J
 
-=== apoc.text.camelCase(text) |
+=== apoc.text.camelCase(text)
 Convert a string to lower camelCase
 
 [source,cypher]
@@ -150,3 +150,33 @@ The following call will return a random string including uppercase letters, numb
 
 [source,cypher]
 RETURN apoc.text.random(10, "A-Z0-9.$")
+
+== Text Similarity Functions
+
+=== apoc.text.distance(text1, text2)
+Compare the given strings with the StringUtils.distance(text1, text2) method (Levenshtein).
+
+[source,cypher]
+RETURN apoc.text.distance("Levenshtein", "Levenstein") // 1
+
+=== apoc.text.sorensenDiceSimilarity
+Compare the given strings with the Sørensen–Dice coefficient formula.
+
+.computes the similarity assuming Locale.ENGLISH
+[source,cypher]
+----
+RETURN apoc.text.sorensenDiceSimilarity("belly", "jolly") // 0.5
+----
+
+.computes the similarity with an explicit locale
+[source,cypher]
+----
+RETURN apoc.text.sorensenDiceSimilarityWithLanguage("halım", "halim", "tr-TR") // 0.5
+----
+
+=== apoc.text.fuzzyMatch(text1, text2)
+Check if 2 words can be matched in a fuzzy way.
+Depending on the length of the String it will allow more characters that needs to be edited to match the second String.
+
+[source,cypher]
+RETURN apoc.text.fuzzyMatch("The", "the") // true
