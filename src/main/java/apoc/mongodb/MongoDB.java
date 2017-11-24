@@ -70,9 +70,9 @@ public class MongoDB {
     }
 
     @Procedure
-    @Description("apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,[compatibleValues=true|false]) yield value - perform a find,project,sort operation on mongodb collection")
-    public Stream<MapResult> find(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name("project") Map<String, Object> project, @Name("sort") Map<String, Object> sort, @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues) {
-        return getMongoColl(hostOrKey, db, collection, compatibleValues).find(query, project, sort).map(MapResult::new);
+    @Description("apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,pagination,[compatibleValues=true|false]) yield value - perform a find,project,sort operation on mongodb collection")
+    public Stream<MapResult> find(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name("project") Map<String, Object> project, @Name("sort") Map<String, Object> sort, @Name("pagination") Map<String, Object> pagination, @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues) {
+        return getMongoColl(hostOrKey, db, collection, compatibleValues).find(query, project, sort, pagination).map(MapResult::new);
     }
 
     @Procedure
@@ -124,7 +124,7 @@ public class MongoDB {
 
         long count(Map<String, Object> query);
 
-        Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort);
+        Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Map<String, Object> pagination);
 
         void insert(List<Map<String, Object>> docs);
 
