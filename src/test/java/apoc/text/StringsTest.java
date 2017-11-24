@@ -466,4 +466,27 @@ public class StringsTest {
                 row -> assertEquals("neo4j", row.get("value").toString())
         );
     }
+
+    @Test
+    public void testSorensenDiceSimilarity() {
+        String text1 = "belly";
+        String text2 = "jolly";
+
+        testCall(db,
+                 "RETURN apoc.text.sorensenDiceSimilarity({text1}, {text2}) AS value",
+                 map("text1",text1,"text2", text2),
+                 row -> assertEquals(0.5, row.get("value")));
+    }
+
+    @Test
+    public void testSorensenDiceSimilarityWithTurkishLocale() {
+        String text1 = "halım";
+        String text2 = "halim";
+        String languageTag = "tr-TR";
+
+        testCall(db,
+                 "RETURN apoc.text.sorensenDiceSimilarity({text1}, {text2}, {languageTag}) AS value",
+                 map("text1",text1,"text2", text2, "languageTag", languageTag),
+                 row -> assertEquals(0.5, row.get("value")));
+    }
 }
