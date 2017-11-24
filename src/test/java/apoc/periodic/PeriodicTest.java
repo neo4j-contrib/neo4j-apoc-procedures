@@ -17,8 +17,10 @@ import java.util.Map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 
 public class PeriodicTest {
 
@@ -51,10 +53,11 @@ public class PeriodicTest {
                     assertEquals(0L, row.get("delay"));
                     assertEquals(0L, row.get("rate"));
                 });
-        Thread.sleep(2000);
-        ResourceIterator<Object> it = db.execute("MATCH (:Foo) RETURN COUNT(*) AS c").columnAs("c");
-        assertEquals(1L, it.next());
-        it.close();
+
+        long count = tryReadCount(50, "MATCH (:Foo) RETURN COUNT(*) AS count");
+
+        assertThat(String.format("Expected %d, got %d ", 1L, count), count, equalTo(1L));
+
         testCall(db, callList, (r) -> assertEquals(true, r.get("done")));
     }
 
@@ -111,6 +114,7 @@ public class PeriodicTest {
             assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
         });
     }
+
     @Test
     public void testPeriodicIterateErrors() throws Exception {
         testResult(db, "CALL apoc.periodic.iterate('UNWIND range(0,99) as id RETURN id', 'CREATE null', {batchSize:10,iterateList:true})", result -> {
@@ -128,7 +132,6 @@ public class PeriodicTest {
             assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
         });
     }
-
     @Test
     public void testIterate() throws Exception {
         db.execute("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})").close();
@@ -286,4 +289,21 @@ public class PeriodicTest {
         });
     }
 
+
+    private long tryReadCount(int maxAttempts, String statement) throws InterruptedException {
+        int attempts = 0;
+        long count;
+        do {
+            Thread.sleep(100);
+            attempts++;
+            count = readCount(statement);
+        } while (attempts < maxAttempts && count != 1L);
+        return count;
+    }
+
+    private long readCount(String statement) {
+        try (ResourceIterator<Long> it = db.execute(statement).columnAs("count")) {
+            return Iterators.single(it);
+        }
+    }
 }
