@@ -331,7 +331,7 @@ Adding on config the parameter `failOnError:false` (by default `true`), in case 
 | CALL apoc.mongodb.get(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true\|false]) yield value | perform a find operation on mongodb collection
 | CALL apoc.mongodb.count(host-or-port,db-or-null,collection-or-null,query-or-null) yield value | perform a find operation on mongodb collection
 | CALL apoc.mongodb.first(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true\|false]) yield value | perform a first operation on mongodb collection
-| CALL apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,[compatibleValues=true\|false]) yield value | perform a find,project,sort operation on mongodb collection
+| CALL apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,pagination-or-null[compatibleValues=true\|false]) yield value | perform a find,project,sort operation on mongodb collection
 | CALL apoc.mongodb.insert(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
 | CALL apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
 | CALL apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
