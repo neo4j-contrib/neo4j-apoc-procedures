@@ -2,7 +2,6 @@ package apoc.index;
 
 import apoc.ApocKernelExtensionFactory;
 import apoc.util.Util;
-import org.neo4j.kernel.KernelApi;
 import org.neo4j.procedure.*;
 import apoc.result.WeightedNodeResult;
 import org.apache.lucene.analysis.Analyzer;
@@ -105,9 +104,15 @@ public class FreeTextSearch {
         if (maxNumberOfresults!=-1) {
             queryParam = queryParam.top((int)maxNumberOfresults);
         }
-        List<WeightedNodeResult> hits = KernelApi.toWeightedNodeResultFromLegacyIndex(KernelApi.nodeQueryIndex(index, queryParam, db), db);
+        return toWeightedNodeResult(db.index().forNodes(index).query(queryParam));    
+    }
 
-        return hits.stream();
+    private Stream<WeightedNodeResult> toWeightedNodeResult(IndexHits<Node> hits) {
+        List<WeightedNodeResult> results = new ArrayList<>(hits.size());
+        while (hits.hasNext()) {
+            results.add(new WeightedNodeResult(hits.next(),(double)hits.currentScore()));
+        }
+        return results.stream();
     }
 
 
