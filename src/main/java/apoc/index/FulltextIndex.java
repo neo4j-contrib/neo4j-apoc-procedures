@@ -1,18 +1,14 @@
 package apoc.index;
 
 import apoc.meta.Meta;
-import apoc.monitor.Kernel;
 import apoc.result.WeightedNodeResult;
 import apoc.result.WeightedRelationshipResult;
-import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.index.RelationshipIndex;
 import org.neo4j.index.impl.lucene.explicit.LuceneIndexImplementation;
-import org.neo4j.kernel.KernelApi;
-import org.neo4j.kernel.api.ExplicitIndexHits;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
@@ -20,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * @author mh
@@ -42,9 +37,7 @@ public class FulltextIndex {
     @Procedure(mode = Mode.READ)
     public Stream<WeightedNodeResult> nodes(@Name("label") String label, @Name("query") String query) throws Exception {
         if (!db.index().existsForNodes(label)) return Stream.empty();
-        List<WeightedNodeResult> hits = KernelApi.toWeightedNodeResultFromExplicitIndex(KernelApi.nodeQueryIndex(label, query,db), db);
-
-        return hits.stream();
+        return toWeightedNodeResult(db.index().forNodes(label).query(query));
     }
 
     public static class IndexInfo {
@@ -61,24 +54,24 @@ public class FulltextIndex {
 
     @Description("apoc.index.forNodes('name',{config}) YIELD type,name,config - gets or creates node index")
     @Procedure(mode = Mode.WRITE)
-    public Stream<IndexInfo> forNodes(@Name("name") String name, @Name("config") Map<String,String> config) {
+    public Stream<IndexInfo> forNodes(@Name("name") String name, @Name(value="config",defaultValue="") Map<String,String> config) {
         Index<Node> index = getNodeIndex(name, config);
         return Stream.of(new IndexInfo(NODE, name, db.index().getConfiguration(index)));
     }
 
-    private Index<Node> getNodeIndex(@Name("name") String name, @Name("config") Map<String, String> config) {
+    private Index<Node> getNodeIndex(String name, Map<String, String> config) {
         IndexManager mgr = db.index();
         return config == null ? mgr.forNodes(name) : mgr.forNodes(name, config);
     }
 
     @Description("apoc.index.forRelationships('name',{config}) YIELD type,name,config - gets or creates relationship index")
     @Procedure(mode = Mode.WRITE)
-    public Stream<IndexInfo> forRelationships(@Name("name") String name, @Name("config") Map<String,String> config) {
+    public Stream<IndexInfo> forRelationships(@Name("name") String name, @Name(value="config",defaultValue="") Map<String,String> config) {
         RelationshipIndex index = getRelationshipIndex(name, config);
         return Stream.of(new IndexInfo(RELATIONSHIP, name, db.index().getConfiguration(index)));
     }
 
-    private RelationshipIndex getRelationshipIndex(@Name("name") String name, @Name("config") Map<String, String> config) {
+    private RelationshipIndex getRelationshipIndex(String name, Map<String, String> config) {
         IndexManager mgr = db.index();
         return config == null ? mgr.forRelationships(name) : mgr.forRelationships(name, config);
     }
@@ -102,7 +95,7 @@ public class FulltextIndex {
     }
 
     @Description("apoc.index.list() - YIELD type,name,config - lists all manual indexes")
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.READ)
     public Stream<IndexInfo> list() {
         IndexManager mgr = db.index();
         List<IndexInfo> indexInfos = new ArrayList<>(100);
@@ -117,19 +110,19 @@ public class FulltextIndex {
         return indexInfos.stream();
     }
 
-    private List<WeightedNodeResult> toWeightedNodeResult(IndexHits<Node> hits) {
+    private Stream<WeightedNodeResult> toWeightedNodeResult(IndexHits<Node> hits) {
         List<WeightedNodeResult> results = new ArrayList<>(hits.size());
         while (hits.hasNext()) {
             results.add(new WeightedNodeResult(hits.next(),(double)hits.currentScore()));
         }
-        return results;
+        return results.stream();
     }
-    private List<WeightedRelationshipResult> toWeightedRelationshipResult(IndexHits<Relationship> hits) {
+    private Stream<WeightedRelationshipResult> toWeightedRelationshipResult(IndexHits<Relationship> hits) {
         List<WeightedRelationshipResult> results = new ArrayList<>(hits.size());
         while (hits.hasNext()) {
             results.add(new WeightedRelationshipResult(hits.next(),(double)hits.currentScore()));
         }
-        return results;
+        return results.stream();
     }
 
     // CALL apoc.index.relationships('CHECKIN','on:2010-*')
@@ -137,7 +130,7 @@ public class FulltextIndex {
     @Procedure(mode = Mode.READ)
     public Stream<WeightedRelationshipResult> relationships(@Name("type") String type, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
-        return KernelApi.toWeightedRelationshipResultFromExplicitIndex(KernelApi.relationshipQueryIndex(type, query, db, null, null), db).stream();
+        return toWeightedRelationshipResult(db.index().forRelationships(type).query(query,null,null));
     }
 
     // CALL apoc.index.between(joe, 'KNOWS', null, 'since:2010-*')
@@ -146,21 +139,14 @@ public class FulltextIndex {
     @Procedure(mode = Mode.READ)
     public Stream<WeightedRelationshipResult> between(@Name("from") Node from, @Name("type") String type, @Name("to") Node to, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
-
-        return KernelApi.toWeightedRelationshipResultFromExplicitIndex(KernelApi.relationshipQueryIndex(type, query, db,  from.getId(), to.getId()),db).stream();
+        return toWeightedRelationshipResult(db.index().forRelationships(type).query(query,from,to));
     }
 
     @Procedure(mode = Mode.READ)
     @Description("out(node,'TYPE','prop:value*') YIELD node - lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*")
     public Stream<WeightedNodeResult> out(@Name("from") Node from, @Name("type") String type, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
-        ExplicitIndexHits legacyIndexHits = KernelApi.relationshipQueryIndex(type, query, db, from.getId(), null);
-        List<WeightedNodeResult> results = new ArrayList<>(legacyIndexHits.size());
-        while (legacyIndexHits.hasNext()) {
-            results.add(new WeightedNodeResult(KernelApi.getEndNode(db, legacyIndexHits.next()), legacyIndexHits.currentScore()));
-        }
-
-        return results.stream();
+        return toWeightedRelationshipResult(db.index().forRelationships(type).query(query,from,null)).map((w) -> new WeightedNodeResult(w.rel.getEndNode(), w.weight));
     }
 
     // CALL apoc.index.in(philz, 'CHECKIN', 'on:2010-*')
@@ -168,14 +154,7 @@ public class FulltextIndex {
     @Description("apoc.index.in(node,'TYPE','prop:value*') YIELD node lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*")
     public Stream<WeightedNodeResult> in(@Name("to") Node to, @Name("type") String type, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
-
-        ExplicitIndexHits legacyIndexHits = KernelApi.relationshipQueryIndex(type, query, db, null, to.getId());
-        List<WeightedNodeResult> results = new ArrayList<>(legacyIndexHits.size());
-        while (legacyIndexHits.hasNext()) {
-            results.add(new WeightedNodeResult(db.getNodeById(legacyIndexHits.next()), legacyIndexHits.currentScore()));
-        }
-
-        return results.stream();
+        return toWeightedRelationshipResult(db.index().forRelationships(type).query(query,null,to)).map((w) -> new WeightedNodeResult(w.rel.getStartNode(), w.weight));
     }
 
     // CALL apoc.index.addNode(joe, ['name','age','city'])
