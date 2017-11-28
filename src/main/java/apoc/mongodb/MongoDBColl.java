@@ -118,8 +118,8 @@ class MongoDBColl implements MongoDB.Coll {
         FindIterable<Document> documents = query == null ? collection.find() : collection.find(new Document(query));
         if (project != null) documents = documents.projection(new Document(project));
         if (sort != null) documents = documents.sort(new Document(sort));
-        if (skip != null) documents = documents.skip(skip.intValue());
-        if (limit != null) documents = documents.limit(limit.intValue());
+        if (skip != 0) documents = documents.skip(skip.intValue());
+        if (limit != 0) documents = documents.limit(limit.intValue());
         return asStream(documents);
     }
 
