@@ -330,10 +330,10 @@ Adding on config the parameter `failOnError:false` (by default `true`), in case 
 
 [cols="3m,2"]
 |===
-| CALL apoc.mongodb.get(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true|false]) yield value | perform a find operation on mongodb collection
+| CALL apoc.mongodb.get(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true\|false]) yield value | perform a find operation on mongodb collection
 | CALL apoc.mongodb.count(host-or-port,db-or-null,collection-or-null,query-or-null) yield value | perform a find operation on mongodb collection
-| CALL apoc.mongodb.first(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true|false]) yield value | perform a first operation on mongodb collection
-| CALL apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,[compatibleValues=true|false]) yield value | perform a find,project,sort operation on mongodb collection
+| CALL apoc.mongodb.first(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true\|false]) yield value | perform a first operation on mongodb collection
+| CALL apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,[compatibleValues=true\|false]) yield value | perform a find,project,sort operation on mongodb collection
 | CALL apoc.mongodb.insert(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
 | CALL apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
 | CALL apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
@@ -429,14 +429,8 @@ CALL apoc.couchbase.get(['localhost'], 'default', 'artist:vincent_van_gogh')
 | CALL apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) | create relationship with dynamic rel-type
 | CALL apoc.create.uuids(count) YIELD uuid, row | creates count UUIDs
 | CALL apoc.nodes.link([nodes],'REL_TYPE') | creates a linked list of nodes from first to last
-| CALL apoc.nodes.isDense(node/[nodes]/id/[ids]) yield node, dense | returns each node and a 'dense' flag if it is a dense node
-| CALL apoc.node.relationship.exists(node, rel-direction-pattern) | yields true effectively when the node has the relationships of the pattern
 |===
 
-[cols="1m,5"]
-|===
-| apoc.create.uuid() | returns an UUID
-|===
 
 == Virtual Nodes/Rels
 
@@ -738,13 +732,32 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.combinations(coll, minSelect, maxSelect:minSelect) | Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive
 |===
 
-=== Lookup Functions
+=== Lookup and Manipulation Procedures
 
 [cols="1m,5"]
 |===
-| CALL apoc.get.nodes(node|id|[ids]) yield node | quickly returns all nodes with these id's
-| CALL apoc.get.rels(rels|id|[ids]) yield rel | quickly returns all relationships with these id's
+| CALL apoc.nodes.get(node\|nodes\|id\|[ids]) | quickly returns all nodes with these ids
+| CALL apoc.get.rels(rel\|id\|[ids]) | quickly returns all relationships with these ids
+| CALL apoc.nodes.delete(node\|nodes\|id\|[ids]) | quickly delete all nodes with these ids
 |===
+
+
+=== Node Functions
+
+[cols="1m,5"]
+|===
+| apoc.nodes.isDense(node) | returns true if it is a dense node
+| apoc.nodes.connected(start, end, rel-direction-pattern) | returns true when the node is connected to the other node, optimized for dense nodes
+| apoc.node.relationship.exists(node, rel-direction-pattern) | returns true when the node has the relationships of the pattern
+| apoc.node.relationship.types(node, rel-direction-pattern) | returns a list of distinct relationship types
+| apoc.node.degree(node, rel-direction-pattern) | returns total degrees of the given relationships in the pattern
+| apoc.create.uuid() | returns a UUID string
+|===
+
+==== rel-direction-pattern syntax:
+`[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
+
+
 
 === Math Functions
 
