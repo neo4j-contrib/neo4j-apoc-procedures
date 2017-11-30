@@ -107,17 +107,22 @@ public class Schemas {
         for (IndexDefinition definition : schema.getIndexes()) {
             if (definition.isConstraintIndex()) continue;
             String label = definition.getLabel().name();
-            String key = Iterables.single(definition.getPropertyKeys());
-            AssertSchemaResult info = new AssertSchemaResult(label, key);
 
-            if (!indexes.containsKey(label) || !indexes.get(label).remove(key)) {
-                if (dropExisting) {
-                    definition.drop();
-                    info.dropped();
+            Boolean alreadyDropped = false;
+            for (String key : definition.getPropertyKeys()) {
+
+                AssertSchemaResult info = new AssertSchemaResult(label, key);
+
+                if (!indexes.containsKey(label) || !indexes.get(label).remove(key)) {
+                    if (dropExisting && !alreadyDropped) {
+                        definition.drop();
+                        alreadyDropped = true;
+                    }
+                    if(alreadyDropped)
+                        info.dropped();
                 }
+                result.add(info);
             }
-
-            result.add(info);
         }
 
         for (Map.Entry<String, List<String>> index : indexes.entrySet()) {

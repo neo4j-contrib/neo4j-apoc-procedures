@@ -385,4 +385,29 @@ public class SchemasTest {
 
         }, QueryExecutionException.class);
     }
+
+    /*
+      This is only for 3.2+
+    */
+    @Test
+    public void testDropCompoundIndexWhenUsingDropExisting() throws Exception {
+        db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        testResult(db, "CALL apoc.schema.assert(null,null)", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals("bar", r.get("key"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("DROPPED", r.get("action"));
+
+            r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals("baa", r.get("key"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("DROPPED", r.get("action"));
+        });
+        try (Transaction tx = db.beginTx()) {
+            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            assertEquals(0, indexes.size());
+        }
+    }
 }
