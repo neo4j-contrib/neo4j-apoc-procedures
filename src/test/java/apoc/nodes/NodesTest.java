@@ -132,4 +132,47 @@ public class NodesTest {
 
         // todo inverse e,s then also incoming
     }
+
+    @Test
+    public void testDegreeTypeAndDirection() {
+        db.execute("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(b) CREATE (f)-[:Y]->(b) CREATE (f)-[:X]->(b) CREATE (f)<-[:X]-(b)").close();
+
+        TestUtil.testCall(db, "MATCH (f:Foo),(b:Bar)  RETURN apoc.node.degree(f, '<X') as in, apoc.node.degree(f, 'Y>') as out", (r) -> {
+            assertEquals(1l, r.get("in"));
+            assertEquals(2l, r.get("out"));
+        });
+
+    }
+
+    @Test
+    public void testDegreeMultiple() {
+        db.execute("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(b) CREATE (f)-[:Y]->(b) CREATE (f)-[:X]->(b) CREATE (f)<-[:X]-(b)").close();
+
+        TestUtil.testCall(db, "MATCH (f:Foo),(b:Bar)  RETURN apoc.node.degree(f, '<X|Y') as all", (r) -> {
+            assertEquals(3l, r.get("all"));
+        });
+
+    }
+
+    @Test
+    public void testDegreeTypeOnly() {
+        db.execute("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(b) CREATE (f)-[:Y]->(b) CREATE (f)-[:X]->(b) CREATE (f)<-[:X]-(b)").close();
+
+        TestUtil.testCall(db, "MATCH (f:Foo),(b:Bar)  RETURN apoc.node.degree(f, 'X') as in, apoc.node.degree(f, 'Y') as out", (r) -> {
+            assertEquals(2l, r.get("in"));
+            assertEquals(2l, r.get("out"));
+        });
+
+    }
+
+    @Test
+    public void testDegreeDirectionOnly() {
+        db.execute("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(b) CREATE (f)-[:X]->(b) CREATE (f)<-[:X]-(b)").close();
+
+        TestUtil.testCall(db, "MATCH (f:Foo),(b:Bar)  RETURN apoc.node.degree(f, '<') as in, apoc.node.degree(f, '>') as out", (r) -> {
+            assertEquals(1l, r.get("in"));
+            assertEquals(2l, r.get("out"));
+        });
+
+    }
 }
