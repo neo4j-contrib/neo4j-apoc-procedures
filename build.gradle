@@ -64,6 +64,8 @@ compileJava {
 
 dependencies {
     compile group: 'commons-codec', name: 'commons-codec', version:'1.9'
+    compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
+    testCompile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     compile 'com.jayway.jsonpath:json-path:2.2.0'
     compile 'org.hdrhistogram:HdrHistogram:2.1.9'
     compile 'org.neo4j.driver:neo4j-java-driver:1.4.4'

@@ -808,7 +808,6 @@ Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in 
 | apoc.text.format(text,[params]) | sprintf format the string with the params given
 | apoc.text.lpad(text,count,delim) | left pad the string to the given width
 | apoc.text.rpad(text,count,delim) | right pad the string to the given width
-| apoc.data.domain(email_or_url) | returns domain part of the value
 | apoc.text.random(length, [valid]) | returns a random string to the specified length
 | apoc.text.capitalize(text) | capitalise the first letter of the word
 | apoc.text.capitalizeAll(text) | capitalise the first letter of every word in the text
@@ -822,6 +821,16 @@ Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in 
 | apoc.text.charAt(text, index) | Returns the decimal value of the character at the given index
 | apoc.text.hexCharAt(text, index) | Returns the hex value string of the character at the given index
 | apoc.text.hexValue(value) | Returns the hex value string of the given value
+|===
+
+=== Data Extraction
+
+
+[cols="1m,5"]
+|===
+| apoc.data.url('url') as {protocol,user,host,port,path,query,file,anchor} | turn URL into map structure
+| apoc.data.email('email_address') as {personal,user,domain} | extract the personal name, user and domain as a map (needs javax.mail jar)
+| apoc.data.domain(email_or_url) | *deprecated* returns domain part of the value
 |===
 
 === Text Similarity Functions

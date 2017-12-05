@@ -6,6 +6,11 @@ import org.neo4j.procedure.UserFunction;
 
 import java.util.regex.Pattern;
 
+/**
+ * Extracts domains from URLs and email addresses
+ * @deprecated use ExtractEmail or ExtractURI
+ */
+@Deprecated
 public class Extract {
 
     public static final Pattern DOMAIN = Pattern.compile("([\\w-]+\\.[\\w-]+)+(\\w+)");
