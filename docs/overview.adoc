@@ -744,13 +744,14 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.nodes.connected(start, end, rel-direction-pattern) | returns true when the node is connected to the other node, optimized for dense nodes
 | apoc.node.relationship.exists(node, rel-direction-pattern) | returns true when the node has the relationships of the pattern
 | apoc.node.relationship.types(node, rel-direction-pattern) | returns a list of distinct relationship types
-| apoc.node.degree(node, rel-direction-pattern) | returns total degrees of the given relationships in the pattern
+| apoc.node.degree(node, rel-direction-pattern) | returns total degrees of the given relationships in the pattern, can use `'>'` or `'<'` for all outgoing or incoming relationships
 | apoc.create.uuid() | returns a UUID string
 |===
 
 ==== rel-direction-pattern syntax:
 `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 
+Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in either direction, outgoing :MENTORS relationships, and incoming :REPORTS_TO relationships.
 
 
 === Math Functions

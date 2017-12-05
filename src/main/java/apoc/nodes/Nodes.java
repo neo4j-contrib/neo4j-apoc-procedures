@@ -275,12 +275,12 @@ public class Nodes {
     }
 
     @UserFunction("apoc.node.degree")
-    @Description("apoc.node.degree(node, rel-direction-pattern) - returns total degrees of the given relationships in the pattern")
+    @Description("apoc.node.degree(node, rel-direction-pattern) - returns total degrees of the given relationships in the pattern, can use '>' or '<' for all outgoing or incoming relationships")
     public long degree(@Name("node") Node node, @Name(value = "types",defaultValue = "") String types) throws EntityNotFoundException {
         if (types==null || types.isEmpty()) return node.getDegree();
         long degree = 0;
         for (Pair<RelationshipType, Direction> pair : parse(types)) {
-            degree += node.getDegree(pair.first(), pair.other());
+            degree += getDegreeSafe(node, pair.first(), pair.other());
         }
         return degree;
     }
@@ -309,12 +309,29 @@ public class Nodes {
         }
     }
 
-    public boolean isDense(ReadOperations ops, Node n) {
+    private boolean isDense(ReadOperations ops, Node n) {
         try {
             return ops.nodeIsDense(n.getId());
         } catch (EntityNotFoundException e) {
             return false;
         }
+    }
+
+    // works in cases when relType is null
+    private int getDegreeSafe(Node node, RelationshipType relType, Direction direction) {
+        if (relType == null) {
+            return node.getDegree(direction);
+        }
+
+        return node.getDegree(relType, direction);
+    }
+
+    private int getDegreeSafe(ReadOperations ops, long id, Direction direction, int typeId) throws EntityNotFoundException {
+        if (typeId != -1) {
+            return ops.nodeGetDegree(id, direction, typeId);
+        }
+
+        return ops.nodeGetDegree(id, direction);
     }
 
     public static class DenseNodeResult {
