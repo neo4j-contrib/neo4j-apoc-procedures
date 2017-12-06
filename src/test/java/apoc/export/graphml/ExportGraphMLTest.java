@@ -39,6 +39,7 @@ public class ExportGraphMLTest {
     private static final String EXPECTED = String.format(HEADER + GRAPH + DATA + FOOTER);
     private static final String EXPECTED_TYPES = String.format(HEADER + KEY_TYPES +GRAPH +DATA + FOOTER);
 
+
     private static GraphDatabaseService db;
     private static File directory = new File("target/import");
 
@@ -65,12 +66,18 @@ public class ExportGraphMLTest {
 
     @Test
     public void testImportGraphML() throws Exception {
+        db.execute("MATCH (n) DETACH DELETE n").close();
+
         File output = new File(directory, "import.graphml");
         FileWriter fw = new FileWriter(output);
-        fw.write(EXPECTED); fw.close();
+        fw.write(EXPECTED_TYPES); fw.close();
         TestUtil.testCall(db, "CALL apoc.import.graphml({file},{readLabels:true})", map("file", output.getAbsolutePath()),
                 (r) -> assertResults(output, r, "database"));
+
+        TestUtil.testCall(db, "MATCH  (c:Bar {age: 12, values: [1,2,3]}) RETURN COUNT(c) AS c", null, (r) -> assertEquals(1L, r.get("c")));
     }
+
+
     @Test
     public void testExportAllGraphML() throws Exception {
         File output = new File(directory, "all.graphml");
