@@ -294,7 +294,7 @@ The 3rd value in the `apoc.jdbc.<alias>.url=` effectively defines an alias to be
 == Loading Data from Web-APIs (JSON, XML, CSV)
 
 // tag::xml[]
-Supported protocols are `file`, `http`, `https` with redirect allowed. In case no protocol is passed, this procedure set will try to check whether the url is actually a file.
+Supported protocols are `file`, `http`, `https`, `s3` with redirect allowed. In case no protocol is passed, this procedure set will try to check whether the url is actually a file.
 Moreover, if 'apoc.import.file.use_neo4j_config' is enabled the procedures verify whether file system access is allowed and eventually constrained to a specific directory by
 reading the two configuration parameters `dbms.security.allow_csv_import_from_file_urls` and `dbms.directories.import` respectively.
 [cols="1m,5"]
@@ -306,6 +306,23 @@ reading the two configuration parameters `dbms.security.allow_csv_import_from_fi
 config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['aColumn'],arraySep:';',results:['map','list','strings','stringMap'], +
 nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false,nullValues:['n.A.']}}`
 |===
+
+.Using S3 protocol
+
+For using S3 protocol you have to copy these jars into the plugins directory:
+
+* aws-java-sdk-core-1.11.250.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-core/1.11.250)
+* aws-java-sdk-s3-1.11.250.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3/1.11.250)
+* httpclient-4.4.8.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient/4.5.4)
+* httpcore-4.5.4.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore/4.4.8)
+* joda-time-2.9.9.jar (https://mvnrepository.com/artifact/joda-time/joda-time/2.9.9)
+
+S3 Url must be:
+
+* s3://accessKey:secretKey@endpoint:port/bucket/key
+or
+* s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey
+
 
 .failOnError
 

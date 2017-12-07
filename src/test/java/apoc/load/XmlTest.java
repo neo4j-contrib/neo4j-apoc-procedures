@@ -233,4 +233,19 @@ public class XmlTest {
                     assertEquals(Collections.emptyMap(), resultMap);
                 });
     }
+
+    @Test
+    public void testLoadXmlS3() throws Exception {
+        String bucketName = "dddbucketddd";
+        String filePath = "src/test/resources/books.xml";
+        MinioSetUp minioSetUp = new MinioSetUp(bucketName, filePath);
+        String url = minioSetUp.initialize();
+
+        testCall(db, "CALL apoc.load.xml({url},'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", map("url", url), (r) -> {
+            Object value = r.values();
+            assertEquals(XML_XPATH_AS_NESTED_MAP, value.toString());
+        });
+
+        minioSetUp.deleteAll();
+    }
 }
