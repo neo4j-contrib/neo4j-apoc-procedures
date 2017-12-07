@@ -17,6 +17,7 @@ import java.util.stream.IntStream;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
+import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -260,5 +261,19 @@ public class XmlTest {
                     assertEquals(1737l, r.get("len"));
                 });
 
+    }
+
+    public void testLoadXmlS3() throws Exception {
+        String bucketName = "dddbucketddd";
+        String filePath = "src/test/resources/books.xml";
+        MinioSetUp minioSetUp = new MinioSetUp(bucketName, filePath);
+        String url = minioSetUp.initialize();
+
+        testCall(db, "CALL apoc.load.xml({url},'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", map("url", url), (r) -> {
+            Object value = r.values();
+            assertEquals(XML_XPATH_AS_NESTED_MAP, value.toString());
+        });
+
+        minioSetUp.deleteAll();
     }
 }

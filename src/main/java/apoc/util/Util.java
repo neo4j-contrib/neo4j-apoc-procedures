@@ -4,12 +4,14 @@ import apoc.ApocConfiguration;
 import apoc.Pools;
 import apoc.export.util.CountingInputStream;
 import apoc.path.RelationshipTypeAndDirections;
+import apoc.util.s3util.S3Params;
+import apoc.util.s3util.S3ParamsExtractor;
+import com.amazonaws.regions.Regions;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
-import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.Statement;
 import org.neo4j.kernel.api.security.SecurityContext;
@@ -17,7 +19,9 @@ import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
+import org.w3c.dom.Document;
 
+import javax.xml.parsers.DocumentBuilder;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.*;
@@ -44,6 +48,7 @@ public class Util {
     public static final String NODE_COUNT = "MATCH (n) RETURN count(*) as result";
     public static final String REL_COUNT = "MATCH ()-->() RETURN count(*) as result";
     public static final String COMPILED = "interpreted"; // todo handle enterprise properly
+    public static final String S3_PROTOCOL = "s3";
 
 
     public static String labelString(Node n) {
@@ -298,16 +303,18 @@ public class Util {
        return con.getHeaderField("Location");
     }
 
-    public static CountingInputStream openInputStream(String url, Map<String, Object> headers, String payload) throws IOException {
+    public static CountingInputStream openInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
+        URL url = new URL(urlAddress);
+        if(S3_PROTOCOL.equals(url.getProtocol())) return openS3InputStream(url);
         URLConnection con;
         boolean redirect;
         do {
             redirect = false;
-            con = openUrlConnection(url, headers);
+            con = openUrlConnection(urlAddress, headers);
             writePayload(con, payload);
-            String newUrl = handleRedirect(con, url);
-            if (newUrl != null && !url.equals(newUrl)) {
-                url = newUrl;
+            String newUrl = handleRedirect(con, urlAddress);
+            if (newUrl != null && !urlAddress.equals(newUrl)) {
+                urlAddress = newUrl;
                 redirect = true;
                 con.getInputStream().close();
             }
@@ -317,13 +324,41 @@ public class Util {
         InputStream stream = con.getInputStream();
 
         String encoding = con.getContentEncoding();
-        if ("gzip".equals(encoding) || url.endsWith(".gz")) {
+        if ("gzip".equals(encoding) || urlAddress.endsWith(".gz")) {
             stream = new GZIPInputStream(stream);
         }
         if ("deflate".equals(encoding)) {
             stream = new DeflaterInputStream(stream);
         }
         return new CountingInputStream(stream, size);
+    }
+
+    public static CountingInputStream openS3InputStream(URL url) throws IOException {
+        InputStream is;
+
+        try {
+            S3Params s3Params = S3ParamsExtractor.extract(url);
+            String region = Objects.nonNull(s3Params.getRegion()) ? s3Params.getRegion() : Regions.US_EAST_1.getName();
+            Class classS3Aws = Class.forName("apoc.util.s3util.S3Aws");
+            is = (InputStream) classS3Aws.getMethod("getS3AwsInputStream",new Class[]{S3Params.class}).invoke(classS3Aws.getConstructor(S3Params.class, String.class).newInstance(s3Params, region), new Object[]{s3Params});
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException | ClassNotFoundException e) {
+            e.printStackTrace();
+            throw new RuntimeException("Could not create S3ClientWrapper instance: " + e.getCause(), e);
+        } catch (NoClassDefFoundError e){
+            throw new MissingDependencyException("Cannot find the jar into the plugins folder. \n" +
+                    "Please put these jar in the plugins folder :\n\n" +
+                    "aws-java-sdk-core-x.y.z.jar\n" +
+                    "\n" +
+                    "aws-java-sdk-s3-x.y.z.jar\n" +
+                    "\n" +
+                    "httpclient-x.y.z.jar\n" +
+                    "\n" +
+                    "httpcore-x.y.z.jar\n" +
+                    "\n" +
+                    "joda-time-x.y.z.jar\n\nSee the documentation: https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_loading_data_from_web_apis_json_xml_csv");
+
+        }
+        return new CountingInputStream(is , 1);
     }
 
     public static boolean toBoolean(Object value) {
@@ -604,5 +639,36 @@ public class Util {
     }
     public static boolean isNullOrEmpty(String s) {
         return s==null || s.trim().length()==0;
+    }
+
+
+    public static Document builderDocument(String urlAddress, DocumentBuilder documentBuilder) throws Exception{
+        Document doc;
+        URL url = new URL(urlAddress);
+
+        if(S3_PROTOCOL.equals(url.getProtocol())){
+            doc = documentBuilder.parse(Util.openS3InputStream(url));
+        }
+        else {
+            URLConnection urlConnection = url.openConnection();
+            doc = documentBuilder.parse(urlConnection.getInputStream());
+        }
+        return doc;
+    }
+
+    public static Map<String, String> getRequestParameter(String parameters){
+        Map<String, String> params = null;
+
+        if(Objects.nonNull(parameters)){
+            params = new HashMap<>();
+            String[] queryStrings = parameters.split("&");
+            for (String query : queryStrings) {
+                String[] parts = query.split("=");
+                if (parts.length == 2) {
+                    params.put(parts[0], parts[1]);
+                }
+            }
+        }
+        return params;
     }
 }

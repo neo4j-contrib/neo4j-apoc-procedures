@@ -3,6 +3,7 @@ package apoc.load;
 import apoc.export.util.FileUtils;
 import apoc.result.MapResult;
 import apoc.result.NodeResult;
+import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -68,9 +69,7 @@ public class Xml {
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 
             FileUtils.checkReadAllowed(url);
-            URLConnection urlConnection = new URL(url).openConnection();
-            Document doc = documentBuilder.parse(urlConnection.getInputStream());
-
+            Document doc = Util.builderDocument(url, documentBuilder);
             XPathFactory xPathFactory = XPathFactory.newInstance();
 
             XPath xPath = xPathFactory.newXPath();
