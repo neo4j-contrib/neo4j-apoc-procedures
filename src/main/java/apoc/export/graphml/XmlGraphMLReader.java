@@ -13,6 +13,8 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.Reader;
+import java.lang.reflect.Array;
+import java.util.function.Function;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,8 +66,7 @@ public class XmlGraphMLReader {
             }
 
             Object parseList(String value) {
-                List parsedList = JsonUtil.parse(value, null, List.class);
-                return parsedList.toArray(new Boolean[parsedList.size()]);
+                return Type.parseList(value, Boolean.class, (i) -> (Boolean)i);
             }
         }, INT() {
             Object parse(String value) {
@@ -73,8 +74,7 @@ public class XmlGraphMLReader {
             }
 
             Object parseList(String value) {
-                List parsedList = JsonUtil.parse(value, null, List.class);
-                return parsedList.toArray(new Integer[parsedList.size()]);
+                return Type.parseList(value, Integer.class, (n) -> ((Number)n).intValue());
             }
         }, LONG() {
             Object parse(String value) {
@@ -82,19 +82,7 @@ public class XmlGraphMLReader {
             }
 
             Object parseList(String value) {
-                List parsedList = JsonUtil.parse(value, null, List.class);
-                Long[] result = new Long[parsedList.size()];
-                for (int i = 0; i < parsedList.size(); i++) {
-                    Object item = parsedList.get(i);
-                    if (item instanceof Long) {
-                        result[i] = (Long)item;
-                    } else if (item instanceof Integer) {
-                        result[i] = new Long((Integer)item);
-                    } else {
-                        throw new IllegalArgumentException("cannot convert value to Long");
-                    }
-                }
-                return result;
+                return Type.parseList(value, Long.class, (i) -> ((Number)i).longValue());
             }
         }, FLOAT() {
             Object parse(String value) {
@@ -102,8 +90,7 @@ public class XmlGraphMLReader {
             }
 
             Object parseList(String value) {
-                List parsedList = JsonUtil.parse(value, null, List.class);
-                return parsedList.toArray(new Float[parsedList.size()]);
+                return Type.parseList(value, Float.class, (i) -> ((Number)i).floatValue());
             }
         }, DOUBLE() {
             Object parse(String value) {
@@ -111,19 +98,7 @@ public class XmlGraphMLReader {
             }
 
             Object parseList(String value) {
-                List parsedList = JsonUtil.parse(value, null, List.class);
-                Double[] result = new Double[parsedList.size()];
-                for (int i = 0; i < parsedList.size(); i++) {
-                    Object item = parsedList.get(i);
-                    if (item instanceof Double) {
-                        result[i] = (Double)item;
-                    } else if (item instanceof Float) {
-                        result[i] = new Double((Float)item);
-                    } else {
-                        throw new IllegalArgumentException("cannot convert value to Double");
-                    }
-                }
-                return result;
+                return Type.parseList(value, Double.class, (i) -> ((Number)i).doubleValue());
             }
         }, STRING() {
             Object parse(String value) {
@@ -131,13 +106,21 @@ public class XmlGraphMLReader {
             }
 
             Object parseList(String value) {
-                List parsedList = JsonUtil.parse(value, null, List.class);
-                return parsedList.toArray(new String[parsedList.size()]);
+                return Type.parseList(value, String.class, (i) -> (String)i);
             }
         };
 
         abstract Object parse(String value);
         abstract Object parseList(String value);
+
+        public static <T> T[] parseList(String value, Class<T> asClass, Function<Object, T> convert) {
+            List parsed = JsonUtil.parse(value, null, List.class);
+            T[] converted = (T[])Array.newInstance(asClass, parsed.size());
+
+            for (int i = 0; i < parsed.size(); i++)
+                converted[i] = convert.apply(parsed.get(i));
+            return converted;
+        }
 
         public static Type forType(String type) {
             if (type==null) return STRING;
