@@ -233,6 +233,7 @@ public class SchemasTest {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
             assertEquals("bar", r.get("key"));
+            assertEquals(expectedKeys("bar"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("KEPT", r.get("action"));
 

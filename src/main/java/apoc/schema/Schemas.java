@@ -3,6 +3,7 @@ package apoc.schema;
 import apoc.result.AssertSchemaResult;
 import apoc.result.ConstraintRelationshipInfo;
 import apoc.result.IndexConstraintNodeInfo;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.RelationshipType;
@@ -30,7 +31,7 @@ public class Schemas {
     public KernelTransaction tx;
 
     @Procedure(value = "apoc.schema.assert", mode = Mode.SCHEMA)
-    @Description("apoc.schema.assert({indexLabel:[indexKeys], ...}, {constraintLabel:[constraintKeys], ...}, dropExisting : true) yield label, key, unique, action - drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label")
+    @Description("apoc.schema.assert({indexLabel:[[indexKeys]], ...}, {constraintLabel:[constraintKeys], ...}, dropExisting : true) yield label, key, keys, unique, action - drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label. Non-constraint indexes can define compound indexes with label:[key1,key2...] pairings.")
     public Stream<AssertSchemaResult> schemaAssert(@Name("indexes") Map<String, List<Object>> indexes, @Name("constraints") Map<String, List<String>> constraints, @Name(value = "dropExisting", defaultValue = "true") boolean dropExisting) throws ExecutionException, InterruptedException {
         return Stream.concat(
                 assertIndexes(indexes, dropExisting).stream(),
@@ -67,7 +68,6 @@ public class Schemas {
         return constraintsExistsForRelationship(type, propertyNames);
     }
 
-
     public List<AssertSchemaResult> assertConstraints(Map<String, List<String>> constraints0, boolean dropExisting) throws ExecutionException, InterruptedException {
         Map<String, List<String>> constraints = copy(constraints0);
         List<AssertSchemaResult> result = new ArrayList<>(constraints.size());
@@ -98,7 +98,6 @@ public class Schemas {
 
         return result;
     }
-
 
     public List<AssertSchemaResult> assertIndexes(Map<String, List<Object>> indexes0, boolean dropExisting) throws ExecutionException, InterruptedException, IllegalArgumentException {
         Schema schema = db.schema();
@@ -152,26 +151,15 @@ public class Schemas {
     }
 
     private AssertSchemaResult createCompoundIndex(String label, List<String> keys) {
-        db.execute(String.format("CREATE INDEX ON :%s (%s)", label, String.join(",", keys)));
+        List<String> backTickedKeys = new ArrayList<>();
+        keys.forEach(key->backTickedKeys.add(String.format("`%s`", key)));
+
+        db.execute(String.format("CREATE INDEX ON :`%s` (%s)", label, String.join(",", backTickedKeys)));
         return new AssertSchemaResult(label, keys).created();
     }
 
     private Boolean compareKeys(List<String> keys1, List<Object> keys2) {
-        if (keys1 == null && keys2 == null)
-            return true;
-
-        if (keys1 == null || keys2 == null)
-            return false;
-
-        if (keys1.size() != keys2.size())
-            return false;
-
-        for (String item : keys1) {
-            if (!keys2.contains(item))
-                return false;
-        }
-
-        return true;
+        return CollectionUtils.isEqualCollection(keys1, keys2);
     }
 
     private Map<String, List<Object>> copyMapOfObjects(Map<String, List<Object>> input) {

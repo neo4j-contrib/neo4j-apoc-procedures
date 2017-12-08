@@ -1,5 +1,6 @@
 package apoc.result;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -12,18 +13,18 @@ public class AssertSchemaResult {
 
     public AssertSchemaResult(String label, List<String> keys) {
         this.label = label;
-        if(keys.size() > 1) {
+        if (keys.size() == 1) {
+            this.key = keys.get(0);
+            this.keys = keys;
+        } else {
             this.keys = keys;
             this.key = null;
-        } else {
-            this.key = keys.get(0);
-            this.keys = null;
         }
     }
 
     public AssertSchemaResult(String label, String key){
         this.label = label;
-        this.keys = null;
+        this.keys = Arrays.asList(key);
         this.key = key;
     }
 
