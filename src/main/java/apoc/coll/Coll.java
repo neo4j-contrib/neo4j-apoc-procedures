@@ -1,6 +1,7 @@
 package apoc.coll;
 
 import org.apache.commons.math3.util.Combinations;
+import org.neo4j.graphdb.Path;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.impl.util.statistics.IntCounter;
 import org.neo4j.procedure.*;
@@ -8,14 +9,12 @@ import apoc.result.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import scala.collection.SeqLike;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import java.math.BigDecimal;
 
 import static java.util.Arrays.asList;
 import static org.neo4j.helpers.collection.Pair.*;
@@ -88,6 +87,207 @@ public class Coll {
 
     private static int compareAsDoubles(Object a, Object b) {
         return Double.compare(((Number)a).doubleValue(), ((Number)b).doubleValue());
+    }
+
+    @Procedure
+    @Description("apoc.coll.elements(list,limit,offset) yield _1,_2,..,_10,_1s,_2i,_3f,_4m,_5l,_6n,_7r,_8p - deconstruct subset of mixed list into identifiers of the correct type")
+    public Stream<ElementsResult> elements(@Name("values") List<Object> list, @Name(value = "limit",defaultValue = "-1") long limit,@Name(value = "offset",defaultValue = "0") long offset) {
+        int elements =  (limit < 0 ? list.size() : Math.min((int)(offset+limit),list.size())) - (int)offset;
+        if (elements > ElementsResult.MAX_ELEMENTS) elements = ElementsResult.MAX_ELEMENTS;
+        ElementsResult result = new ElementsResult();
+        for (int i=0;i<elements;i++) {
+            result.add(list.get((int)offset+i));
+        }
+        return Stream.of(result);
+    }
+
+    public static class ElementsResult {
+        public Object       _1,_2,_3,_4,_5,_6,_7,_8,_9,_10;
+        public String       _1s,_2s,_3s,_4s,_5s,_6s,_7s,_8s,_9s,_10s;
+        public Long         _1i,_2i,_3i,_4i,_5i,_6i,_7i,_8i,_9i,_10i;
+        public Double       _1f,_2f,_3f,_4f,_5f,_6f,_7f,_8f,_9f,_10f;
+        public Boolean      _1b,_2b,_3b,_4b,_5b,_6b,_7b,_8b,_9b,_10b;
+        public List<Object> _1l,_2l,_3l,_4l,_5l,_6l,_7l,_8l,_9l,_10l;
+        public Map<String,Object> _1m,_2m,_3m,_4m,_5m,_6m,_7m,_8m,_9m,_10m;
+        public Node         _1n,_2n,_3n,_4n,_5n,_6n,_7n,_8n,_9n,_10n;
+        public Relationship _1r,_2r,_3r,_4r,_5r,_6r,_7r,_8r,_9r,_10r;
+        public Path         _1p,_2p,_3p,_4p,_5p,_6p,_7p,_8p,_9p,_10p;
+        public long         elements;
+        static final int MAX_ELEMENTS = 10;
+        void add(Object o) {
+            if (elements==MAX_ELEMENTS) return;
+            setObject(o, (int) elements);
+            if (o instanceof String) {
+                setString((String)o, (int) elements);
+            }
+            if (o instanceof Number) {
+                setLong(((Number)o).longValue(), (int) elements);
+                setDouble(((Number)o).doubleValue(), (int) elements);
+            }
+            if (o instanceof Boolean) {
+                setBoolean((Boolean)o, (int) elements);
+            }
+            if (o instanceof Map) {
+                setMap((Map)o, (int)elements);
+            }
+            if (o instanceof Map) {
+                setMap((Map)o, (int)elements);
+            }
+            if (o instanceof List) {
+                setList((List)o, (int)elements);
+            }
+            if (o instanceof Node) {
+                setNode((Node)o, (int)elements);
+            }
+            if (o instanceof Relationship) {
+                setRelationship((Relationship)o, (int)elements);
+            }
+            if (o instanceof Path) {
+                setPath((Path)o, (int)elements);
+            }
+            elements++;
+        }
+
+        public void setObject(Object o, int idx) {
+            switch (idx) {
+                case 0: _1 = o; break;
+                case 1: _2 = o; break;
+                case 2: _3 = o; break;
+                case 3: _4 = o; break;
+                case 4: _5 = o; break;
+                case 5: _6 = o; break;
+                case 6: _7 = o; break;
+                case 7: _8 = o; break;
+                case 8: _9 = o; break;
+                case 9: _10= o; break;
+            }
+        }
+        public void setString(String o, int idx) {
+            switch (idx) {
+                case 0: _1s = o; break;
+                case 1: _2s = o; break;
+                case 2: _3s = o; break;
+                case 3: _4s = o; break;
+                case 4: _5s = o; break;
+                case 5: _6s = o; break;
+                case 6: _7s = o; break;
+                case 7: _8s = o; break;
+                case 8: _9s = o; break;
+                case 9: _10s= o; break;
+            }
+        }
+        public void setLong(Long o, int idx) {
+            switch (idx) {
+                case 0: _1i = o; break;
+                case 1: _2i = o; break;
+                case 2: _3i = o; break;
+                case 3: _4i = o; break;
+                case 4: _5i = o; break;
+                case 5: _6i = o; break;
+                case 6: _7i = o; break;
+                case 7: _8i = o; break;
+                case 8: _9i = o; break;
+                case 9: _10i= o; break;
+            }
+        }
+        public void setBoolean(Boolean o, int idx) {
+            switch (idx) {
+                case 0: _1b = o; break;
+                case 1: _2b = o; break;
+                case 2: _3b = o; break;
+                case 3: _4b = o; break;
+                case 4: _5b = o; break;
+                case 5: _6b = o; break;
+                case 6: _7b = o; break;
+                case 7: _8b = o; break;
+                case 8: _9b = o; break;
+                case 9: _10b= o; break;
+            }
+        }
+        public void setDouble(Double o, int idx) {
+            switch (idx) {
+                case 0: _1f = o; break;
+                case 1: _2f = o; break;
+                case 2: _3f = o; break;
+                case 3: _4f = o; break;
+                case 4: _5f = o; break;
+                case 5: _6f = o; break;
+                case 6: _7f = o; break;
+                case 7: _8f = o; break;
+                case 8: _9f = o; break;
+                case 9: _10f= o; break;
+            }
+        }
+        public void setNode(Node o, int idx) {
+            switch (idx) {
+                case 0: _1n = o; break;
+                case 1: _2n = o; break;
+                case 2: _3n = o; break;
+                case 3: _4n = o; break;
+                case 4: _5n = o; break;
+                case 5: _6n = o; break;
+                case 6: _7n = o; break;
+                case 7: _8n = o; break;
+                case 8: _9n = o; break;
+                case 9: _10n= o; break;
+            }
+        }
+        public void setRelationship(Relationship o, int idx) {
+            switch (idx) {
+                case 0: _1r = o; break;
+                case 1: _2r = o; break;
+                case 2: _3r = o; break;
+                case 3: _4r = o; break;
+                case 4: _5r = o; break;
+                case 5: _6r = o; break;
+                case 6: _7r = o; break;
+                case 7: _8r = o; break;
+                case 8: _9r = o; break;
+                case 9: _10r= o; break;
+            }
+        }
+        public void setPath(Path o, int idx) {
+            switch (idx) {
+                case 0: _1p = o; break;
+                case 1: _2p = o; break;
+                case 2: _3p = o; break;
+                case 3: _4p = o; break;
+                case 4: _5p = o; break;
+                case 5: _6p = o; break;
+                case 6: _7p = o; break;
+                case 7: _8p = o; break;
+                case 8: _9p = o; break;
+                case 9: _10p= o; break;
+            }
+        }
+        public void setMap(Map o, int idx) {
+            switch (idx) {
+                case 0: _1m = o; break;
+                case 1: _2m = o; break;
+                case 2: _3m = o; break;
+                case 3: _4m = o; break;
+                case 4: _5m = o; break;
+                case 5: _6m = o; break;
+                case 6: _7m = o; break;
+                case 7: _8m = o; break;
+                case 8: _9m = o; break;
+                case 9: _10m= o; break;
+            }
+        }
+        public void setList(List o, int idx) {
+            switch (idx) {
+                case 0: _1l = o; break;
+                case 1: _2l = o; break;
+                case 2: _3l = o; break;
+                case 3: _4l = o; break;
+                case 4: _5l = o; break;
+                case 5: _6l = o; break;
+                case 6: _7l = o; break;
+                case 7: _8l = o; break;
+                case 8: _9l = o; break;
+                case 9: _10l= o; break;
+            }
+        }
     }
 
     @Procedure

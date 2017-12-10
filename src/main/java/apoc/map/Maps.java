@@ -79,6 +79,18 @@ public class Maps {
     public Map<String,Object> fromLists(@Name("keys") List<String> keys, @Name("values") List<Object> values) {
         return Util.mapFromLists(keys, values);
     }
+
+    @UserFunction
+    @Description("apoc.map.values(map, [key1,key2,key3,...],[addNullsForMissing]) returns list of values indicated by the keys")
+    public List<Object> values(@Name("map") Map<String,Object> map, @Name(value = "keys",defaultValue = "[]") List<String> keys, @Name(value = "addNullsForMissing",defaultValue = "false") boolean addNullsForMissing) {
+        if (keys == null || keys.isEmpty()) return Collections.emptyList();
+        List<Object> values = new ArrayList<>(keys.size());
+        for (String key : keys) {
+            if (addNullsForMissing || map.containsKey(key)) values.add(map.get(key));
+        }
+        return values;
+    }
+
     @UserFunction
     @Description("apoc.map.fromValues([key1,value1,key2,value2,...])")
     public Map<String,Object> fromValues(@Name("values") List<Object> values) {
