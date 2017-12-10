@@ -10,6 +10,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
@@ -211,6 +212,25 @@ public class FreeTextSearchTest {
 
         // then
         assertEquals(10000, Iterators.count(result));
+    }
+
+
+    @Test
+    @Ignore("until this is sorted out: Write operations are not allowed for AUTH_DISABLED with FULL restricted to READ - LegacyIndexProxy.internalRemove ")
+    public void shouldHandleDeletion() throws Exception {
+        // given
+        String john = "John Doe";
+        String jim = "Jim Done";
+        Map params = singletonMap("names", Iterators.array(john, jim));
+        execute("UNWIND {names} as name CREATE (:Hacker{name:name})", params);
+        execute("CALL apoc.index.addAllNodes('hackerz', {Hacker:['name']})");
+        execute("MATCH (h:Hacker {name:{name}}) DELETE h", map("name",john));
+        // expect
+        TestUtil.testResult(db, "CALL apoc.index.search('hackerz', 'D*') YIELD node, weight " +
+                "RETURN node.name AS name", result -> {
+            List<Object> names = Iterators.asList(result.columnAs("name"));
+            assertTrue(names.contains(jim));
+        });
     }
 
     @Test

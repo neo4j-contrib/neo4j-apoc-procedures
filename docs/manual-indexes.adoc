@@ -76,6 +76,43 @@ To remove the node index `Airport` created, use:
 CALL apoc.index.remove('Airport')
 ----
 
+=== Add "document" to index
+
+Instead of the key-value pairs of a node or relationship properties, you can also compute a map containing information and add that to the index.
+So you could find a node or relationship by information from it's neighbours or relationships.
+
+[source,cypher]
+----
+CREATE (company:Company {name:'Neo4j,Inc.'})
+CREATE (company)<-[:WORKS_AT {since:2013}]-(:Employee {name:'Mark'})
+CREATE (company)<-[:WORKS_AT {since:2014}]-(:Employee {name:'Martin'})
+----
+
+[source,cypher]
+----
+MATCH (company:Company)<-[worksAt:WORKS_AT]-(employee)
+WITH company, { name: company.name, employees:collect(employee.name),startDates:collect(worksAt.since)} as data
+CALL apoc.index.addNodeMap(company, data)
+RETURN count(*)
+----
+
+These could be example searches that all return the same result node.
+
+[source,cypher]
+----
+CALL apoc.index.nodes('Company','name:Ne* AND employees:Ma*')
+----
+
+[source,cypher]
+----
+CALL apoc.index.nodes('Company','employees:Ma*')
+----
+
+[source,cypher]
+----
+CALL apoc.index.nodes('Company','startDates:[2013 TO 2014]')
+----
+
 == Using Manual Index on Relationship Properties
 
 The procedure `apoc.index.addRelationship` is used to create a manual index on relationship properties.

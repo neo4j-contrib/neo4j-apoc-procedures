@@ -79,8 +79,12 @@ NOTE: Please note that there are (case-sensitive) http://neo4j.com/docs/develope
 | apoc.index.addNode(node,['prop1',...]) | add node to an index for each label it has
 | apoc.index.addNodeByLabel('Label',node,['prop1',...]) | add node to an index for the given label
 | apoc.index.addNodeByName('name',node,['prop1',...]) | add node to an index for the given name
+| apoc.index.addNodeMap(node,{key:value}) | add node to an index for each label it has with the given attributes which can also be computed
+| apoc.index.addNodeMapByName(index, node,{key:value}) | add node to an index for each label it has with the given attributes which can also be computed
 | apoc.index.addRelationship(rel,['prop1',...]) | add relationship to an index for its type
 | apoc.index.addRelationshipByName('name',rel,['prop1',...]) | add relationship to an index for the given name
+| apoc.index.addRelationshipMap(rel,{key:value}) | add relationship to an index for its type indexing the given document which can be computed
+| apoc.index.addRelationshipMapByName(index, rel,{key:value}) | add relationship to an index for its type indexing the given document which can be computed
 | apoc.index.removeNodeByName('name',node) remove node from an index for the given name
 | apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name
 |===
