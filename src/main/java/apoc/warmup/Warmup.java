@@ -6,8 +6,10 @@ import org.neo4j.kernel.impl.storageengine.impl.recordstorage.RecordStorageEngin
 import org.neo4j.kernel.impl.store.NeoStores;
 import org.neo4j.kernel.impl.store.RecordStore;
 import org.neo4j.kernel.impl.store.StoreAccess;
+import org.neo4j.kernel.impl.store.StoreType;
 import org.neo4j.kernel.impl.store.format.standard.NodeRecordFormat;
 import org.neo4j.kernel.impl.store.format.standard.PropertyRecordFormat;
+import org.neo4j.kernel.impl.store.format.standard.RelationshipGroupRecordFormat;
 import org.neo4j.kernel.impl.store.format.standard.RelationshipRecordFormat;
 import org.neo4j.kernel.impl.store.record.*;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -17,10 +19,7 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
@@ -34,57 +33,82 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 public class Warmup {
 
     private static final int BATCH_SIZE = 100_000;
+    private static final int PAGE_SIZE = 1 << 13;
     @Context
     public GraphDatabaseAPI db;
     @Context
     public Log log;
 
+    static class Records<T extends AbstractBaseRecord> {
+        long highId;
+        long pageSize = PAGE_SIZE;
+        int recordsPerPage;
+        RecordStore<T> store;
+        T initalRecord;
+        long pages;
+        long count;
+        long time;
+
+        public Records(RecordStore<T> store, T initalRecord) {
+            this(store,initalRecord,store.getHighestPossibleIdInUse()+1);
+        }
+        public Records(RecordStore<T> store, T initalRecord, long count) {
+            this.store = store;
+            this.initalRecord = initalRecord;
+            this.highId = store.getHighestPossibleIdInUse();
+            this.recordsPerPage = store.getRecordsPerPage();
+            this.count = count;
+        }
+        public void load(GraphDatabaseAPI db) {
+            long start = System.nanoTime();
+            try {
+                this.pages = loadRecords(recordsPerPage, highId, store, initalRecord, db);
+            } finally {
+               time = NANOSECONDS.toSeconds(System.nanoTime() - start);
+            }
+        }
+    }
     @Procedure
     @Description("apoc.warmup.run() - quickly loads all nodes and rels into memory by skipping one page at a time")
-    public Stream<WarmupResult> run(@Name(value = "loadProperties", defaultValue = "false") boolean loadProperties) {
-
-        int pageSize = 1 << 13; // default page size, todo read from config
-        int nodesPerPage = pageSize / NodeRecordFormat.RECORD_SIZE;
-        int relsPerPage = pageSize / RelationshipRecordFormat.RECORD_SIZE;
-        int propsPerPage = pageSize / PropertyRecordFormat.RECORD_SIZE;
+    public Stream<WarmupResult> run(@Name(value = "loadProperties", defaultValue = "false") boolean loadProperties, @Name(value = "loadDynamicProperties", defaultValue = "false") boolean loadDynamicProperties) {
         long nodesTotal = Util.nodeCount(db);
         long relsTotal = Util.relCount(db);
-        long nodePages, relPages, propPages = 0;
-        long start, timeNodes, timeRels, timeProps = 0;
 
         StoreAccess storeAccess = new StoreAccess(db.getDependencyResolver()
                 .resolveDependency(RecordStorageEngine.class).testAccessNeoStores());
         NeoStores neoStore = storeAccess.getRawNeoStores();
-        long highestNodeId = neoStore.getNodeStore().getHighestPossibleIdInUse();
-        long highestRelationshipId = neoStore.getRelationshipStore().getHighestPossibleIdInUse();
-        long highestPropertyId = neoStore.getPropertyStore().getHighestPossibleIdInUse();
-        long propRecordsTotal = highestPropertyId + 1;
+
+        Map<StoreType,Records<?>> records = new LinkedHashMap<>();
+        records.put(StoreType.NODE,new Records<>(neoStore.getNodeStore(), new NodeRecord(-1),nodesTotal));
+        records.put(StoreType.RELATIONSHIP,new Records<>(neoStore.getRelationshipStore(), new RelationshipRecord(-1),relsTotal));
+        records.put(StoreType.RELATIONSHIP_GROUP,new Records<>(neoStore.getRelationshipGroupStore(), new RelationshipGroupRecord(-1)));
 
         if (loadProperties) {
-            start = System.nanoTime();
-            propPages = loadRecords(propsPerPage, highestPropertyId, neoStore.getPropertyStore(), new PropertyRecord(-1));
-            timeProps = System.nanoTime() - start;
+            records.put(StoreType.PROPERTY,new Records<>(neoStore.getPropertyStore(),new PropertyRecord(-1)));
         }
-
-        start = System.nanoTime();
-        relPages = loadRecords(relsPerPage, highestRelationshipId, neoStore.getRelationshipStore(), new RelationshipRecord(-1));
-        timeRels = System.nanoTime() - start;
-
-        start = System.nanoTime();
-        nodePages = loadRecords(nodesPerPage, highestNodeId, neoStore.getNodeStore(), new NodeRecord(-1));
-        timeNodes = System.nanoTime() - start;
+        if (loadDynamicProperties) {
+            records.put(StoreType.PROPERTY_STRING,new Records<>(neoStore.getRecordStore(StoreType.PROPERTY_STRING),new DynamicRecord(-1)));
+            records.put(StoreType.PROPERTY_ARRAY, new Records<>(neoStore.getRecordStore(StoreType.PROPERTY_ARRAY),new DynamicRecord(-1)));
+        }
+        records.values().parallelStream().forEach((r)->r.load(db));
 
         WarmupResult result = new WarmupResult(
-                pageSize,
-                nodesPerPage, nodesTotal, nodePages, NANOSECONDS.toSeconds(timeNodes),
-                relsPerPage, relsTotal, relPages, NANOSECONDS.toSeconds(timeRels),
-                loadProperties, propsPerPage, propRecordsTotal, propPages, NANOSECONDS.toSeconds(timeProps),
-                NANOSECONDS.toSeconds(timeNodes+timeRels+timeProps),
-                Util.transactionIsTerminated(db));
+                PAGE_SIZE,
+                records.get(StoreType.NODE),
+                records.get(StoreType.RELATIONSHIP),
+                records.get(StoreType.RELATIONSHIP_GROUP),
+                loadProperties,
+                records.get(StoreType.PROPERTY),
+                records.values().stream().mapToLong((r)->r.time).sum(),
+                Util.transactionIsTerminated(db),
+                loadDynamicProperties,
+                records.get(StoreType.PROPERTY_STRING),
+                records.get(StoreType.PROPERTY_ARRAY)
+                );
         return Stream.of(result);
     }
 
-    public <R extends AbstractBaseRecord> long loadRecords(int recordsPerPage, long highestRecordId, RecordStore<R> recordStore, R record) {
+    public static <R extends AbstractBaseRecord> long loadRecords(int recordsPerPage, long highestRecordId, RecordStore<R> recordStore, R record, GraphDatabaseAPI db) {
         long[] ids = new long[BATCH_SIZE];
         long pages = 0;
         int idx = 0;
@@ -94,19 +118,19 @@ public class Warmup {
             if (idx == BATCH_SIZE) {
                 long[] submitted = ids.clone();
                 idx = 0;
-                futures.add(Util.inTxFuture(Pools.DEFAULT, db, () -> loadRecords(submitted, record, recordStore)));
+                futures.add(Util.inTxFuture(Pools.DEFAULT, db, () -> loadRecords(submitted, record, recordStore, db)));
             }
             pages += removeDone(futures, false);
         }
         if (idx > 0) {
             long[] submitted = Arrays.copyOf(ids, idx);
-            futures.add(Util.inTxFuture(Pools.DEFAULT, db, () -> loadRecords(submitted, record, recordStore)));
+            futures.add(Util.inTxFuture(Pools.DEFAULT, db, () -> loadRecords(submitted, record, recordStore, db)));
         }
         pages += removeDone(futures, true);
         return pages;
     }
 
-    public <R extends AbstractBaseRecord> long loadRecords(long[] submitted, R record, RecordStore<R> recordStore) {
+    public static <R extends AbstractBaseRecord> long loadRecords(long[] submitted, R record, RecordStore<R> recordStore, GraphDatabaseAPI db) {
         if (Util.transactionIsTerminated(db)) return 0;
         for (long recordId : submitted) {
             record.setId(recordId);
@@ -120,7 +144,7 @@ public class Warmup {
         return submitted.length;
     }
 
-    public long removeDone(List<Future<Long>> futures, boolean wait) {
+    public static long removeDone(List<Future<Long>> futures, boolean wait) {
         long pages = 0;
         if (wait || futures.size() > 25) {
             Iterator<Future<Long>> it = futures.iterator();
@@ -130,7 +154,7 @@ public class Warmup {
                     try {
                         pages += future.get();
                     } catch (InterruptedException | ExecutionException e) {
-                        log.warn("Error during task execution", e);
+                        // log.warn("Error during task execution", e);
                     }
                     it.remove();
                 }
@@ -141,6 +165,9 @@ public class Warmup {
 
     public static class WarmupResult {
         public final long pageSize;
+        public final long totalTime;
+        public final boolean transactionWasTerminated;
+
         public final long nodesPerPage;
         public final long nodesTotal;
         public final long nodePages;
@@ -150,37 +177,75 @@ public class Warmup {
         public final long relsTotal;
         public final long relPages;
         public final long relsTime;
+        public final long relGroupsPerPage;
+        public final long relGroupsTotal;
+        public final long relGroupPages;
+        public final long relGroupsTime;
         public final boolean propertiesLoaded;
-        public final long propsPerPage;
-        public final long propRecordsTotal;
-        public final long propPages;
-        public final long propsTime;
-        public final long totalTime;
-        public final boolean transactionWasTerminated;
+        public final boolean dynamicPropertiesLoaded;
+        public long propsPerPage;
+        public long propRecordsTotal;
+        public long propPages;
+        public long propsTime;
+        public long stringPropsPerPage;
+        public long stringPropRecordsTotal;
+        public long stringPropPages;
+        public long stringPropsTime;
+        public long arrayPropsPerPage;
+        public long arrayPropRecordsTotal;
+        public long arrayPropPages;
+        public long arrayPropsTime;
 
         public WarmupResult(long pageSize,
-                            long nodesPerPage, long nodesTotal, long nodePages, long nodesTime,
-                            long relsPerPage, long relsTotal, long relPages, long relsTime,
+                            Records nodes,
+                            Records rels,
+                            Records relGroups,
                             boolean propertiesLoaded,
-                            long propsPerPage, long propRecordsTotal, long propPages, long propsTime,
-                            long totalTime, boolean transactionWasTerminated) {
+                            Records props,
+                            long totalTime, boolean transactionWasTerminated,
+                            boolean dynamicPropertiesLoaded,
+                            Records stringProps,
+                            Records arrayProps
+                            ) {
             this.pageSize = pageSize;
-            this.nodesPerPage = nodesPerPage;
-            this.nodesTotal = nodesTotal;
-            this.nodePages = nodePages;
-            this.nodesTime = nodesTime;
-            this.relsPerPage = relsPerPage;
-            this.relsTotal = relsTotal;
-            this.relPages = relPages;
-            this.relsTime = relsTime;
-            this.propertiesLoaded = propertiesLoaded;
-            this.propsPerPage = propsPerPage;
-            this.propRecordsTotal = propRecordsTotal;
-            this.propPages = propPages;
-            this.propsTime = propsTime;
-            this.totalTime = totalTime;
             this.transactionWasTerminated = transactionWasTerminated;
+            this.totalTime = totalTime;
+            this.propertiesLoaded = propertiesLoaded;
+            this.dynamicPropertiesLoaded = dynamicPropertiesLoaded;
+
+            this.nodesPerPage = nodes.recordsPerPage;
+            this.nodesTotal = nodes.count;
+            this.nodePages = nodes.pages;
+            this.nodesTime = nodes.time;
+
+            this.relsPerPage = rels.recordsPerPage;
+            this.relsTotal = rels.count;
+            this.relPages = rels.pages;
+            this.relsTime = rels.time;
+
+            this.relGroupsPerPage = relGroups.recordsPerPage;
+            this.relGroupsTotal = relGroups.count;
+            this.relGroupPages = relGroups.pages;
+            this.relGroupsTime = relGroups.time;
+
+            if (props!=null) {
+                this.propsPerPage = props.recordsPerPage;
+                this.propRecordsTotal = props.count;
+                this.propPages = props.pages;
+                this.propsTime = props.time;
+            }
+            if (stringProps != null) {
+                this.stringPropsPerPage = stringProps.recordsPerPage;
+                this.stringPropRecordsTotal = stringProps.count;
+                this.stringPropPages = stringProps.pages;
+                this.stringPropsTime = stringProps.time;
+            }
+            if (arrayProps != null) {
+                this.arrayPropsPerPage = arrayProps.recordsPerPage;
+                this.arrayPropRecordsTotal = arrayProps.count;
+                this.arrayPropPages = arrayProps.pages;
+                this.arrayPropsTime = arrayProps.time;
+            }
         }
     }
-
 }

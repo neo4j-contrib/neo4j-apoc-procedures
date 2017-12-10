@@ -499,7 +499,7 @@ CALL apoc.generate.simple([2,2,2,2], null, null)
 
 [cols="1m,5"]
 |===
-| CALL apoc.warmup.run() | Warmup the node and relationship page-caches by loading one page at a time
+| CALL apoc.warmup.run([loadProperties],[loadDynamicProperties]) | Warmup the node, relationship, relationship-group page-caches by loading one page at a time, optionally load property-records and dynamic-properties
 |===
 
 == Monitoring
