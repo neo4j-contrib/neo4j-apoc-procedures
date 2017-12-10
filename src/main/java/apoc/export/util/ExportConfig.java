@@ -15,6 +15,7 @@ public class ExportConfig {
     public static final char QUOTECHAR = '"';
     public static final int DEFAULT_BATCH_SIZE = 20000;
     public static final String DEFAULT_DELIM = ",";
+    private final boolean streamStatements;
 
     private int batchSize = DEFAULT_BATCH_SIZE;
     private boolean silent = false;
@@ -67,6 +68,7 @@ public class ExportConfig {
         this.format = ExportFormat.fromString((String) config.getOrDefault("format", "neo4j-shell"));
         this.cypherFormat = CypherFormat.fromString((String) config.getOrDefault("cypherFormat", "create"));
         this.config = config;
+        this.streamStatements = toBoolean(config.get("streamStatements"));
     }
 
     public boolean getRelsInBetween() {
@@ -103,5 +105,9 @@ public class ExportConfig {
 
     private ExportFormat format(Object format) {
         return format != null && format instanceof String ? ExportFormat.fromString((String)format) : ExportFormat.NEO4J_SHELL;
+    }
+
+    public boolean streamStatements() {
+        return streamStatements;
     }
 }

@@ -2,6 +2,7 @@ package apoc.export.cypher;
 
 import apoc.export.util.*;
 import apoc.export.cypher.formatter.CypherFormatter;
+import apoc.util.Util;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -51,26 +52,23 @@ public class MultiStatementCypherSubGraphExporter {
      * <li>/tmp/myexport.cleanup.cypher</li>
      * </ul>
      * Otherwise all statement will be saved in the original file.
-     *
-     * @param fileName full path where all the files will be created
      * @param config
      * @param reporter
+     * @param cypherFileManager
      */
-    public void export(String fileName, ExportConfig config, Reporter reporter) throws IOException {
+    public void export(ExportConfig config, Reporter reporter, FileManagerFactory.ExportCypherFileManager cypherFileManager) throws IOException {
 
         int batchSize = config.getBatchSize();
 
-        ExportCypherFileManager exportCypherFileManager = new ExportCypherFileManager(config.separateFiles());
-
-        exportNodes(exportCypherFileManager.getPrintWriter(fileName, "nodes"), reporter, batchSize);
-        exportSchema(exportCypherFileManager.getPrintWriter(fileName, "schema"));
-        exportRelationships(exportCypherFileManager.getPrintWriter(fileName, "relationships"), reporter, batchSize);
-        exportCleanUp(exportCypherFileManager.getPrintWriter(fileName, "cleanup"), batchSize);
+        exportNodes(cypherFileManager.getPrintWriter("nodes"), reporter, batchSize);
+        exportSchema(cypherFileManager.getPrintWriter("schema"));
+        exportRelationships(cypherFileManager.getPrintWriter("relationships"), reporter, batchSize);
+        exportCleanUp(cypherFileManager.getPrintWriter("cleanup"), batchSize);
+        reporter.done();
     }
 
-    public void exportOnlySchema(String fileName) throws IOException {
-        ExportCypherFileManager exportCypherFileManager = new ExportCypherFileManager(false);
-        exportSchema(exportCypherFileManager.getPrintWriter(fileName, "schema"));
+    public void exportOnlySchema(FileManagerFactory.ExportCypherFileManager cypherFileManager) throws IOException {
+        exportSchema(cypherFileManager.getPrintWriter("schema"));
     }
 
     // ---- Nodes ----
@@ -97,7 +95,7 @@ public class MultiStatementCypherSubGraphExporter {
     private void appendNode(PrintWriter out, Node node, Reporter reporter) {
         artificialUniques += countArtificialUniques(node);
         String cypher = this.cypherFormat.statementForNode(node, uniqueConstraints, indexedProperties, indexNames);
-        if (cypher != null && !"".equals(cypher)) {
+        if (Util.isNotNullOrEmpty(cypher)) {
             out.println(cypher);
             reporter.update(1, 0, Iterables.count(node.getPropertyKeys()));
         }
@@ -255,32 +253,5 @@ public class MultiStatementCypherSubGraphExporter {
             artificialUniques++;
         }
         return artificialUniques;
-    }
-
-    private class ExportCypherFileManager {
-
-        private boolean separatedFiles;
-        private PrintWriter writer;
-
-        public ExportCypherFileManager(boolean separatedFiles) {
-            this.separatedFiles = separatedFiles;
-        }
-
-        private PrintWriter getPrintWriter(String fileName, String suffix) throws IOException {
-
-            if (this.separatedFiles) {
-                return FileUtils.getPrintWriter(normalizeFileName(fileName, suffix), null);
-            } else {
-                if (this.writer == null) {
-                    this.writer = FileUtils.getPrintWriter(normalizeFileName(fileName, null), null);
-                }
-                return this.writer;
-            }
-        }
-
-        private String normalizeFileName(final String fileName, String suffix) {
-            // TODO check if this should be follow the same rules of FileUtils.readerFor
-            return fileName.replace(".cypher", suffix != null ? "." + suffix + ".cypher" : ".cypher");
-        }
     }
 }
