@@ -3,6 +3,7 @@ package apoc.cypher;
 import apoc.Pools;
 import apoc.export.util.FileUtils;
 import apoc.result.MapResult;
+import apoc.util.QueueBasedSpliterator;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryStatistics;
@@ -19,7 +20,6 @@ import org.neo4j.procedure.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -30,7 +30,6 @@ import static apoc.util.Util.quote;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toList;
 import static org.neo4j.procedure.Mode.WRITE;
 
@@ -113,7 +112,7 @@ public class Cypher {
             Util.inThread(() -> { queue.put(RowResult.TOMBSTONE); return null;});
             transaction.success();
         }
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE), false);
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard), false);
     }
 
     private void runDataStatementsInTx(Reader reader, BlockingQueue<RowResult> queue, Map<String, Object> params) {
@@ -278,7 +277,7 @@ public class Cypher {
             queue.put(RowResult.TOMBSTONE);
             return total;
         });
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE),true).map((rowResult) -> new MapResult(rowResult.result));
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard),true).map((rowResult) -> new MapResult(rowResult.result));
     }
 
     // todo proper Collector
@@ -375,45 +374,6 @@ public class Cypher {
         return db.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
     }
 
-    private class QueueBasedSpliterator<T> implements Spliterator<T> {
-        private final BlockingQueue<T> queue;
-        private T tombstone;
-        private T entry;
-
-        public QueueBasedSpliterator(BlockingQueue<T> queue, T tombstone) {
-            this.queue = queue;
-            this.tombstone = tombstone;
-            entry = poll();
-        }
-
-        @Override
-        public boolean tryAdvance(Consumer<? super T> action) {
-            terminationGuard.check();
-            if (isEnd()) return false;
-            action.accept(entry);
-            entry = poll();
-            return !isEnd();
-        }
-
-        private boolean isEnd() {
-            return entry == null || entry == tombstone;
-        }
-
-        private T poll() {
-            try {
-                return queue.poll(10, SECONDS);
-            } catch (InterruptedException e) {
-                return null;
-            }
-        }
-
-        public Spliterator<T> trySplit() { return null; }
-
-        public long estimateSize() { return Long.MAX_VALUE; }
-
-        public int characteristics() { return NONNULL ; }
-    }
-
     @Procedure
     @Description("apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) - abort statement after timeout ms if not finished")
     public Stream<MapResult> runTimeboxed(@Name("cypher") String cypher, @Name("params") Map<String, Object> params, @Name("timeout") long timeout) {
@@ -425,7 +385,7 @@ public class Cypher {
         }, timeout, MILLISECONDS);
 
         Result result = db.execute(cypher, params == null ? Collections.EMPTY_MAP : params);
-        return result.stream().map(stringObjectMap -> new MapResult(stringObjectMap));
+        return result.stream().map(MapResult::new);
     }
 
     @Procedure("apoc.when")

@@ -579,8 +579,9 @@ public class Util {
     public static void waitForFutures(List<Future> futures) {
         for (Future future : futures) {
             try {
-                future.get();
+                if (future != null) future.get();
             } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
                 // ignore
             }
         }
@@ -598,5 +599,12 @@ public class Util {
         } catch (IOException e) {
             // ignore
         }
+    }
+
+    public static boolean isNotNullOrEmpty(String s) {
+        return s!=null && s.trim().length()!=0;
+    }
+    public static boolean isNullOrEmpty(String s) {
+        return s==null || s.trim().length()==0;
     }
 }

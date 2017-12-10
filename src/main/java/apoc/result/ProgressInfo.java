@@ -5,6 +5,7 @@ package apoc.result;
  * @since 22.05.16
  */
 public class ProgressInfo {
+    public static final ProgressInfo EMPTY = new ProgressInfo(null, null, null);
     public final String file;
     public String source;
     public final String format;
@@ -13,6 +14,9 @@ public class ProgressInfo {
     public long properties;
     public long time;
     public long rows;
+    public long batchSize = -1;
+    public long batches;
+    public boolean done;
 
     public ProgressInfo(String file, String source, String format) {
         this.file = file;
@@ -32,9 +36,13 @@ public class ProgressInfo {
         return this;
     }
 
-    public ProgressInfo done(long start) {
+    public ProgressInfo updateTime(long start) {
         this.time = System.currentTimeMillis() - start;
         return this;
+    }
+    public ProgressInfo done(long start) {
+        this.done = true;
+        return updateTime(start);
     }
 
     public void nextRow() {
