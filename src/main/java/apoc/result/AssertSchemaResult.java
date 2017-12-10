@@ -1,13 +1,30 @@
 package apoc.result;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class AssertSchemaResult {
     public final String label;
     public final String key;
+    public final List<String> keys;
     public boolean unique = false;
     public String action = "KEPT";
 
-    public AssertSchemaResult(String label, String key) {
+    public AssertSchemaResult(String label, List<String> keys) {
         this.label = label;
+        if (keys.size() == 1) {
+            this.key = keys.get(0);
+            this.keys = keys;
+        } else {
+            this.keys = keys;
+            this.key = null;
+        }
+    }
+
+    public AssertSchemaResult(String label, String key){
+        this.label = label;
+        this.keys = Arrays.asList(key);
         this.key = key;
     }
 

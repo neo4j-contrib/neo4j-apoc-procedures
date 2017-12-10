@@ -3,6 +3,7 @@ package apoc.schema;
 import apoc.result.AssertSchemaResult;
 import apoc.result.ConstraintRelationshipInfo;
 import apoc.result.IndexConstraintNodeInfo;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.RelationshipType;
@@ -30,8 +31,8 @@ public class Schemas {
     public KernelTransaction tx;
 
     @Procedure(value = "apoc.schema.assert", mode = Mode.SCHEMA)
-    @Description("apoc.schema.assert({indexLabel:[indexKeys], ...}, {constraintLabel:[constraintKeys], ...}, dropExisting : true) yield label, key, unique, action - drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label")
-    public Stream<AssertSchemaResult> schemaAssert(@Name("indexes") Map<String, List<String>> indexes, @Name("constraints") Map<String, List<String>> constraints, @Name(value = "dropExisting", defaultValue = "true") boolean dropExisting) throws ExecutionException, InterruptedException {
+    @Description("apoc.schema.assert({indexLabel:[[indexKeys]], ...}, {constraintLabel:[constraintKeys], ...}, dropExisting : true) yield label, key, keys, unique, action - drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label. Non-constraint indexes can define compound indexes with label:[key1,key2...] pairings.")
+    public Stream<AssertSchemaResult> schemaAssert(@Name("indexes") Map<String, List<Object>> indexes, @Name("constraints") Map<String, List<String>> constraints, @Name(value = "dropExisting", defaultValue = "true") boolean dropExisting) throws ExecutionException, InterruptedException {
         return Stream.concat(
                 assertIndexes(indexes, dropExisting).stream(),
                 assertConstraints(constraints, dropExisting).stream());
@@ -67,7 +68,6 @@ public class Schemas {
         return constraintsExistsForRelationship(type, propertyNames);
     }
 
-
     public List<AssertSchemaResult> assertConstraints(Map<String, List<String>> constraints0, boolean dropExisting) throws ExecutionException, InterruptedException {
         Map<String, List<String>> constraints = copy(constraints0);
         List<AssertSchemaResult> result = new ArrayList<>(constraints.size());
@@ -99,36 +99,80 @@ public class Schemas {
         return result;
     }
 
-    public List<AssertSchemaResult> assertIndexes(Map<String, List<String>> indexes0, boolean dropExisting) throws ExecutionException, InterruptedException {
+    public List<AssertSchemaResult> assertIndexes(Map<String, List<Object>> indexes0, boolean dropExisting) throws ExecutionException, InterruptedException, IllegalArgumentException {
         Schema schema = db.schema();
-        Map<String, List<String>> indexes = copy(indexes0);
+        Map<String, List<Object>> indexes = copyMapOfObjects(indexes0);
         List<AssertSchemaResult> result = new ArrayList<>(indexes.size());
 
         for (IndexDefinition definition : schema.getIndexes()) {
-            if (definition.isConstraintIndex()) continue;
-            String label = definition.getLabel().name();
-            String key = Iterables.single(definition.getPropertyKeys());
-            AssertSchemaResult info = new AssertSchemaResult(label, key);
+            if (definition.isConstraintIndex())
+                continue;
 
-            if (!indexes.containsKey(label) || !indexes.get(label).remove(key)) {
-                if (dropExisting) {
-                    definition.drop();
-                    info.dropped();
-                }
+            String label = definition.getLabel().name();
+            List<String> keys = new ArrayList<>();
+            definition.getPropertyKeys().forEach(keys::add);
+
+            AssertSchemaResult info = new AssertSchemaResult(label, keys);
+            if(indexes.containsKey(label)) {
+                if (keys.size() > 1) {
+                    indexes.get(label).remove(keys);
+                } else if (keys.size() == 1) {
+                    indexes.get(label).remove(keys.get(0));
+                } else
+                    throw new IllegalArgumentException("Label given with no keys.");
+            }
+
+            if (dropExisting) {
+                definition.drop();
+                info.dropped();
             }
 
             result.add(info);
         }
 
-        for (Map.Entry<String, List<String>> index : indexes.entrySet()) {
-            for (String key : index.getValue()) {
-                schema.indexFor(label(index.getKey())).on(key).create();
-                result.add(new AssertSchemaResult(index.getKey(), key).created());
+        if (dropExisting)
+            indexes = copyMapOfObjects(indexes0);
+
+        for (Map.Entry<String, List<Object>> index : indexes.entrySet()) {
+            for (Object key : index.getValue()) {
+                if (key instanceof String) {
+                    result.add(createSinglePropertyIndex(schema, index.getKey(), (String) key));
+                } else if (key instanceof List) {
+                    result.add(createCompoundIndex(index.getKey(), (List<String>) key));
+                }
             }
         }
-
         return result;
     }
+
+    private AssertSchemaResult createSinglePropertyIndex(Schema schema, String lbl, String key) {
+        schema.indexFor(label(lbl)).on(key).create();
+        return new AssertSchemaResult(lbl, key).created();
+    }
+
+    private AssertSchemaResult createCompoundIndex(String label, List<String> keys) {
+        List<String> backTickedKeys = new ArrayList<>();
+        keys.forEach(key->backTickedKeys.add(String.format("`%s`", key)));
+
+        db.execute(String.format("CREATE INDEX ON :`%s` (%s)", label, String.join(",", backTickedKeys)));
+        return new AssertSchemaResult(label, keys).created();
+    }
+
+    private Boolean compareKeys(List<String> keys1, List<Object> keys2) {
+        return CollectionUtils.isEqualCollection(keys1, keys2);
+    }
+
+    private Map<String, List<Object>> copyMapOfObjects(Map<String, List<Object>> input) {
+        if (input == null) {
+            return Collections.emptyMap();
+        }
+
+        HashMap<String, List<Object>> result = new HashMap<>(input.size());
+
+        input.forEach((k, v) -> result.put(k, new ArrayList<>(v)));
+        return result;
+    }
+
 
     private Map<String, List<String>> copy(Map<String, List<String>> input) {
         if (input == null) {
@@ -136,7 +180,7 @@ public class Schemas {
         }
 
         HashMap<String, List<String>> result = new HashMap<>(input.size());
-        if (input == null) return result;
+
         input.forEach((k, v) -> result.put(k, new ArrayList<>(v)));
         return result;
     }
