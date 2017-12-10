@@ -2,6 +2,7 @@ package apoc.index;
 
 import apoc.ApocKernelExtensionFactory;
 import apoc.util.Util;
+import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.procedure.*;
 import apoc.result.WeightedNodeResult;
 import org.apache.lucene.analysis.Analyzer;
@@ -110,7 +111,13 @@ public class FreeTextSearch {
     private Stream<WeightedNodeResult> toWeightedNodeResult(IndexHits<Node> hits) {
         List<WeightedNodeResult> results = new ArrayList<>(hits.size());
         while (hits.hasNext()) {
-            results.add(new WeightedNodeResult(hits.next(),(double)hits.currentScore()));
+            try {
+                Node node = hits.next();
+                node.getGraphDatabase();
+                results.add(new WeightedNodeResult(node, (double) hits.currentScore()));
+            } catch(NotFoundException nfe) {
+                // ignore
+            }
         }
         return results.stream();
     }

@@ -1,17 +1,14 @@
 package apoc.index;
 
 import apoc.meta.Meta;
-import apoc.monitor.Kernel;
 import apoc.result.WeightedNodeResult;
 import apoc.result.WeightedRelationshipResult;
-import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.graphdb.index.RelationshipIndex;
 import org.neo4j.index.impl.lucene.legacy.LuceneIndexImplementation;
-import org.neo4j.kernel.api.LegacyIndexHits;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
@@ -19,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * @author mh
@@ -36,7 +32,6 @@ public class FulltextIndex {
     @Context
     public Log log;
 
-    // CALL apoc.index.nodes('Person','name:jo*')
     @Description("apoc.index.nodes('Label','prop:value*') YIELD node - lucene query on node index with the given label name")
     @Procedure(mode = Mode.READ)
     public Stream<WeightedNodeResult> nodes(@Name("label") String label, @Name("query") String query) throws Exception {
@@ -170,46 +165,72 @@ public class FulltextIndex {
         }
     }
 
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.index.addNodeMap(node,{key:value}) add node to an index for each label it has with the given attributes which can also be computed")
+    public void addNodeMap(@Name("node") Node node, @Name("properties") Map<String, Object> document) {
+        for (Label label : node.getLabels()) {
+            addNodeMapByName(label.name(), node, document);
+        }
+    }
+
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.index.addNodeMapByName(index, node,{key:value}) add node to an index for each label it has with the given attributes which can also be computed")
+    public void addNodeMapByName(@Name("index") String index, @Name("node") Node node, @Name("properties") Map<String, Object> document) {
+        indexEntityWithMap(node, document, getNodeIndex(index, FULL_TEXT));
+    }
+
     // CALL apoc.index.addNode(joe, 'Person', ['name','age','city'])
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addNodeByLabel(node,'Label',['prop1',...]) add node to an index for the given label")
     public void addNodeByLabel(@Name("label") String label, @Name("node") Node node, @Name("properties") List<String> propKeys) {
-        indexContainer(node, propKeys, getNodeIndex(label,FULL_TEXT));
+        indexEntityProperties(node, propKeys, getNodeIndex(label,FULL_TEXT));
     }
 
     // CALL apoc.index.addNodeByName('name', joe, ['name','age','city'])
-    @Procedure
-    @PerformsWrites
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addNodeByName('name',node,['prop1',...]) add node to an index for the given name")
     public void addNodeByName(@Name("name") String name, @Name("node") Node node, @Name("properties") List<String> propKeys) {
         Index<Node> index = getNodeIndex(name, null);
-        indexContainer(node, propKeys, index);
+        indexEntityProperties(node, propKeys, index);
     }
 
-    // CALL apoc.index.addRelationship(checkin, ['on'])
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addRelationship(rel,['prop1',...]) add relationship to an index for its type")
     public void addRelationship(@Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
         RelationshipIndex index = getRelationshipIndex(rel.getType().name(), FULL_TEXT);
-        indexContainer(rel, propKeys, index);
+        indexEntityProperties(rel, propKeys, index);
     }
 
-    // CALL apoc.index.addRelationshipByName('name', checkin, ['on'])
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.index.addRelationshipMap(rel,{key:value}) add relationship to an index for its type indexing the given document which can be computed")
+    public void addRelationshipMap(@Name("relationship") Relationship rel, @Name("docuemnt") Map<String,Object> document) {
+        addRelationshipMapByName(rel.getType().name(), rel, document);
+    }
+
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.index.addRelationshipMapByName(index, rel,{key:value}) add relationship to an index for its type indexing the given document which can be computed")
+    public void addRelationshipMapByName(@Name("index") String indexName, @Name("relationship") Relationship rel, @Name("docuemnt") Map<String,Object> document) {
+        indexEntityWithMap(rel, document, getRelationshipIndex(indexName, FULL_TEXT));
+    }
+
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.index.addRelationshipByName('name',rel,['prop1',...]) add relationship to an index for the given name")
     public void addRelationshipByName(@Name("name") String name, @Name("relationship") Relationship rel, @Name("properties") List<String> propKeys) {
         RelationshipIndex index = getRelationshipIndex(name, null);
-        indexContainer(rel, propKeys, index);
+        indexEntityProperties(rel, propKeys, index);
     }
 
-    private <T extends PropertyContainer> void indexContainer(T pc, @Name("properties") List<String> propKeys, org.neo4j.graphdb.index.Index<T> index) {
+    private <T extends PropertyContainer> void indexEntityProperties(T pc, List<String> propKeys, org.neo4j.graphdb.index.Index<T> index) {
+        Map<String, Object> properties = pc.getProperties(propKeys.toArray(new String[propKeys.size()]));
+        indexEntityWithMap(pc, properties, index);
+    }
+
+    private <T extends PropertyContainer> void indexEntityWithMap(T pc, Map<String, Object> document, Index<T> index) {
         index.remove(pc);
-        for (String key : propKeys) {
-            Object value = pc.getProperty(key, null);
-            if (value == null) continue;
-            index.remove(pc,key);
+        document.forEach((key, value) -> {
+            index.remove(pc, key);
             index.add(pc, key, value);
-        }
+        });
     }
 
     // CALL apoc.index.removeNodeByName('name', joe)
