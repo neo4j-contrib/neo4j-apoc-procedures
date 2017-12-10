@@ -13,7 +13,9 @@ import java.util.*;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static apoc.util.Util.map;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -221,6 +223,27 @@ public class CollTest {
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     assertEquals("bar", nodes.get(0).getProperty("name"));
                     assertEquals("foo", nodes.get(1).getProperty("name"));
+                });
+    }
+
+    @Test
+    public void testElements() throws Exception {
+        testCall(db,
+                "CREATE p=(n {name:'foo'})-[r:R]->(n) WITH n,r,p CALL apoc.coll.elements([0,null,n,r,p,42,3.14,true,[42],{a:42},13], 9,1) YIELD elements,_1,_7,_10,_2n,_3r,_4p,_5i,_5f,_6i,_6f,_7b,_8l,_9m RETURN *",
+                (row) -> {
+                    assertEquals(9L, row.get("elements"));
+                    assertEquals(null, row.get("_1"));
+                    assertEquals(row.get("n"), row.get("_2n"));
+                    assertEquals(row.get("r"), row.get("_3r"));
+                    assertEquals(row.get("p"), row.get("_4p"));
+                    assertEquals(42L, row.get("_5i"));
+                    assertEquals(42D, row.get("_5f"));
+                    assertEquals(3.14D, row.get("_6f"));
+                    assertEquals(true, row.get("_7"));
+                    assertEquals(true, row.get("_7b"));
+                    assertEquals(singletonList(42L), row.get("_8l"));
+                    assertEquals(map("a",42L), row.get("_9m"));
+                    assertEquals(null, row.get("_10"));
                 });
     }
 

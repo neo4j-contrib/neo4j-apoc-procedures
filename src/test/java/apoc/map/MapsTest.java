@@ -8,13 +8,11 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static apoc.util.MapUtil.map;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static org.junit.Assert.*;
 import static org.neo4j.helpers.collection.Iterators.asSet;
 
@@ -42,6 +40,22 @@ public class MapsTest {
             Map<String,Node> map = (Map<String, Node>) r.get("value");
             assertEquals(asSet("name1","name2","name3"),map.keySet());
             map.forEach((k,v) -> assertEquals(k, v.getProperty("name")));
+        });
+    }
+
+    @Test
+    public void testValues() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.values({b:42,a:'foo',c:false},['a','b','d']) as value", (r) -> {
+            assertEquals(asList("foo",42L),r.get("value"));
+        });
+        TestUtil.testCall(db, "RETURN apoc.map.values({b:42,a:'foo',c:false},['a','b','d'],true) as value", (r) -> {
+            assertEquals(asList("foo",42L,null),r.get("value"));
+        });
+        TestUtil.testCall(db, "RETURN apoc.map.values({b:42,a:'foo',c:false},null) as value", (r) -> {
+            assertEquals(emptyList(),r.get("value"));
+        });
+        TestUtil.testCall(db, "RETURN apoc.map.values({b:42,a:'foo',c:false},[]) as value", (r) -> {
+            assertEquals(emptyList(),r.get("value"));
         });
     }
     @Test
