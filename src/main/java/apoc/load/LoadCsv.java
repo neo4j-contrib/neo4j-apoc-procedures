@@ -3,6 +3,7 @@ package apoc.load;
 import apoc.export.util.CountingReader;
 import apoc.export.util.FileUtils;
 import apoc.meta.Meta;
+import apoc.util.Util;
 import au.com.bytecode.opencsv.CSVReader;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
@@ -14,11 +15,14 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.Util.cleanUrl;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 
 public class LoadCsv {
 
@@ -26,6 +30,10 @@ public class LoadCsv {
     public static final char DEFAULT_SEP = ',';
     @Context
     public GraphDatabaseService db;
+
+    enum Results {
+        map, list, strings, stringMap
+    }
 
     @Procedure
     @Description("apoc.load.csv('url',{config}) YIELD lineNo, list, map - load CSV fom URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
@@ -40,17 +48,24 @@ public class LoadCsv {
             boolean hasHeader = booleanValue(config, "header", true);
             long limit = longValue(config, "limit", Long.MAX_VALUE);
 
-            List<String> ignore = value(config, "ignore", Collections.emptyList());
-            Map<String, Mapping> mappings = createMapping(value(config, "mapping", Collections.emptyMap()), arraySep, ignore);
+            EnumSet<Results> results = EnumSet.noneOf(Results.class);
+            for (String result : value(config, "results", asList("map","list"))) {
+                results.add(Results.valueOf(result));
+            }
+
+            List<String> ignore = value(config, "ignore", emptyList());
+            List<String> nullValues = value(config, "nullValues", emptyList());
+            Map<String, Map<String, Object>> mapping = value(config, "mapping", Collections.emptyMap());
+            Map<String, Mapping> mappings = createMapping(mapping, arraySep, ignore);
 
             CSVReader csv = new CSVReader(reader, separator);
             String[] header = getHeader(hasHeader, csv, ignore, mappings);
             boolean checkIgnore = !ignore.isEmpty() || mappings.values().stream().anyMatch( m -> m.ignore);
-            return StreamSupport.stream(new CSVSpliterator(csv, header, url, skip, limit, checkIgnore,mappings), false);
+            return StreamSupport.stream(new CSVSpliterator(csv, header, url, skip, limit, checkIgnore,mappings, nullValues,results), false);
         } catch (IOException e) {
 
             if(!failOnError)
-                return Stream.of(new  CSVResult(new String[0], new String[0], 0, true, Collections.emptyMap()));
+                return Stream.of(new  CSVResult(new String[0], new String[0], 0, true, Collections.emptyMap(), emptyList(), EnumSet.noneOf(Results.class)));
             else
                 throw new RuntimeException("Can't read CSV from URL " + cleanUrl(url), e);
         }
@@ -69,6 +84,7 @@ public class LoadCsv {
     static class Mapping {
         public static final Mapping EMPTY = new Mapping("", Collections.emptyMap(), DEFAULT_ARRAY_SEP, false);
         final String name;
+        final Collection<String> nullValues;
         final Meta.Types type;
         final boolean array;
         final boolean ignore;
@@ -79,6 +95,7 @@ public class LoadCsv {
             this.name = mapping.getOrDefault("name", name).toString();
             this.array = (Boolean) mapping.getOrDefault("array", false);
             this.ignore = (Boolean) mapping.getOrDefault("ignore", ignore);
+            this.nullValues = (Collection<String>) mapping.getOrDefault("nullValues", emptyList());
             this.arraySep = separator(mapping.getOrDefault("arraySep", arraySep).toString(),DEFAULT_ARRAY_SEP);
             this.type = Meta.Types.from(mapping.getOrDefault("type", "STRING").toString());
             this.arrayPattern = Pattern.compile(String.valueOf(this.arraySep), Pattern.LITERAL);
@@ -99,13 +116,14 @@ public class LoadCsv {
         }
 
         private Object convertType(String value) {
+            if (nullValues.contains(value)) return null;
             if (type == Meta.Types.STRING) return value;
             switch (type) {
-                case INTEGER: return Long.parseLong(value);
-                case FLOAT: return Double.parseDouble(value);
-                case BOOLEAN: return Boolean.parseBoolean(value);
+                case INTEGER: return Util.toLong(value);
+                case FLOAT: return Util.toDouble(value);
+                case BOOLEAN: return Util.toBoolean(value);
                 case NULL: return null;
-                case LIST: return asList(arrayPattern.split(value));
+                case LIST: return Arrays.stream(arrayPattern.split(value)).map(this::convertType).collect(Collectors.toList());
                 default: return value;
             }
         }
@@ -159,16 +177,33 @@ public class LoadCsv {
     public static class CSVResult {
         public long lineNo;
         public List<Object> list;
+        public List<String> strings;
         public Map<String, Object> map;
+        public Map<String, String> stringMap;
 
-        public CSVResult(String[] header, String[] list, long lineNo, boolean ignore, Map<String, Mapping> mapping) {
+        public CSVResult(String[] header, String[] list, long lineNo, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results) {
             this.lineNo = lineNo;
-            this.list = createList(header, list, ignore, mapping);
-            this.map = createMap(header, list, ignore, mapping);
+            removeNullValues(list, nullValues);
+
+            this.strings = results.contains(Results.strings) ?
+                    (List)createList(header, list, ignore, mapping, false) : emptyList();
+            this.stringMap = results.contains(Results.stringMap) ?
+                    (Map)createMap(header, list, ignore, mapping,false) : emptyMap();
+            this.map = results.contains(Results.map) ?
+                    createMap(header, list, ignore, mapping,true) : emptyMap();
+            this.list = results.contains(Results.list) ?
+                        createList(header, list, ignore, mapping, true) : emptyList();
         }
 
-        private List<Object> createList(String[] header, String[] list, boolean ignore, Map<String, Mapping> mappings) {
-            if (!ignore && mappings.isEmpty()) return asList((Object[])list);
+        public void removeNullValues(String[] list, List<String> nullValues) {
+            if (nullValues.isEmpty()) return;
+            for (int i = 0; i < list.length; i++) {
+                if (nullValues.contains(list[i]))list[i] = null;
+            }
+        }
+
+        private List<Object> createList(String[] header, String[] list, boolean ignore, Map<String, Mapping> mappings, boolean convert) {
+            if (!ignore && mappings.isEmpty()) return asList((Object[]) list);
             ArrayList<Object> result = new ArrayList<>(list.length);
             for (int i = 0; i < header.length; i++) {
                 String name = header[i];
@@ -176,7 +211,7 @@ public class LoadCsv {
                 Mapping mapping = mappings.get(name);
                 if (mapping != null) {
                     if (mapping.ignore) continue;
-                    result.add(mapping.convert(list[i]));
+                    result.add(convert ? mapping.convert(list[i]) : list[i]);
                 } else {
                     result.add(list[i]);
                 }
@@ -184,7 +219,7 @@ public class LoadCsv {
             return result;
         }
 
-        private Map<String, Object> createMap(String[] header, String[] list, boolean ignore, Map<String, Mapping> mappings) {
+        private Map<String, Object> createMap(String[] header, String[] list, boolean ignore, Map<String, Mapping> mappings, boolean convert) {
             if (header == null) return null;
             Map<String, Object> map = new LinkedHashMap<>(header.length, 1f);
             for (int i = 0; i < header.length; i++) {
@@ -195,7 +230,7 @@ public class LoadCsv {
                     map.put(name, list[i]);
                 } else {
                     if (mapping.ignore) continue;
-                    map.put(mapping.name, mapping.convert(list[i]));
+                    map.put(mapping.name, convert ? mapping.convert(list[i]) : list[i]);
                 }
             }
             return map;
@@ -209,15 +244,19 @@ public class LoadCsv {
         private final long limit;
         private final boolean ignore;
         private final Map<String, Mapping> mapping;
+        private final List<String> nullValues;
+        private final EnumSet<Results> results;
         long lineNo;
 
-        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping) throws IOException {
+        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results) throws IOException {
             super(Long.MAX_VALUE, Spliterator.ORDERED);
             this.csv = csv;
             this.header = header;
             this.url = url;
             this.ignore = ignore;
             this.mapping = mapping;
+            this.nullValues = nullValues;
+            this.results = results;
             this.limit = skip + limit;
             lineNo = skip;
             while (skip-- > 0) {
@@ -230,7 +269,7 @@ public class LoadCsv {
             try {
                 String[] row = csv.readNext();
                 if (row != null && lineNo < limit) {
-                    action.accept(new CSVResult(header, row, lineNo++, ignore,mapping));
+                    action.accept(new CSVResult(header, row, lineNo++, ignore,mapping, nullValues,results));
                     return true;
                 }
                 return false;
