@@ -2,6 +2,7 @@ package apoc.export.graphml;
 
 import apoc.export.util.BatchTransaction;
 import apoc.export.util.Reporter;
+import apoc.util.JsonUtil;
 import org.neo4j.graphdb.*;
 
 import javax.xml.namespace.QName;
@@ -12,7 +13,10 @@ import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.Reader;
+import java.lang.reflect.Array;
+import java.util.function.Function;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -60,30 +64,63 @@ public class XmlGraphMLReader {
             Object parse(String value) {
                 return Boolean.valueOf(value);
             }
+
+            Object parseList(String value) {
+                return Type.parseList(value, Boolean.class, (i) -> (Boolean)i);
+            }
         }, INT() {
             Object parse(String value) {
                 return Integer.parseInt(value);
+            }
+
+            Object parseList(String value) {
+                return Type.parseList(value, Integer.class, (n) -> ((Number)n).intValue());
             }
         }, LONG() {
             Object parse(String value) {
                 return Long.parseLong(value);
             }
+
+            Object parseList(String value) {
+                return Type.parseList(value, Long.class, (i) -> ((Number)i).longValue());
+            }
         }, FLOAT() {
             Object parse(String value) {
                 return Float.parseFloat(value);
+            }
+
+            Object parseList(String value) {
+                return Type.parseList(value, Float.class, (i) -> ((Number)i).floatValue());
             }
         }, DOUBLE() {
             Object parse(String value) {
                 return Double.parseDouble(value);
             }
 
+            Object parseList(String value) {
+                return Type.parseList(value, Double.class, (i) -> ((Number)i).doubleValue());
+            }
         }, STRING() {
             Object parse(String value) {
                 return value;
             }
+
+            Object parseList(String value) {
+                return Type.parseList(value, String.class, (i) -> (String)i);
+            }
         };
 
         abstract Object parse(String value);
+        abstract Object parseList(String value);
+
+        public static <T> T[] parseList(String value, Class<T> asClass, Function<Object, T> convert) {
+            List parsed = JsonUtil.parse(value, null, List.class);
+            T[] converted = (T[])Array.newInstance(asClass, parsed.size());
+
+            for (int i = 0; i < parsed.size(); i++)
+                converted[i] = convert.apply(parsed.get(i));
+            return converted;
+        }
 
         public static Type forType(String type) {
             if (type==null) return STRING;
@@ -95,18 +132,22 @@ public class XmlGraphMLReader {
         String id;
         String name;
         boolean forNode;
+        Type listType;
         Type type;
         Object defaultValue;
 
-        public Key(String id, String name, String type, String forNode) {
+        public Key(String id, String name, String type, String listType, String forNode) {
             this.id = id;
             this.name = name;
             this.type = Type.forType(type);
+            if (listType != null) {
+                this.listType = Type.forType(listType);
+            }
             this.forNode = forNode == null || forNode.equalsIgnoreCase("node");
         }
 
         private static Key defaultKey(String id, boolean forNode) {
-            return new Key(id,id,"string", forNode ? "node" : "edge");
+            return new Key(id,id,"string", null, forNode ? "node" : "edge");
         }
 
         public void setDefault(String data) {
@@ -115,6 +156,7 @@ public class XmlGraphMLReader {
 
         public Object parseValue(String input) {
             if (input == null || input.trim().isEmpty()) return defaultValue;
+            if (listType != null) return listType.parseList(input);
             return type.parse(input);
         }
     }
@@ -127,6 +169,7 @@ public class XmlGraphMLReader {
     public static final QName FOR = QName.valueOf("for");
     public static final QName NAME = QName.valueOf("attr.name");
     public static final QName TYPE = QName.valueOf("attr.type");
+    public static final QName LIST = QName.valueOf("attr.list");
     public static final QName KEY = QName.valueOf("key");
 
     public XmlGraphMLReader(GraphDatabaseService gdb) {
@@ -154,7 +197,7 @@ public class XmlGraphMLReader {
                     if (name.equals("graphml") || name.equals("graph")) continue;
                     if (name.equals("key")) {
                         String id = getAttribute(element, ID);
-                        Key key = new Key(id, getAttribute(element, NAME), getAttribute(element, TYPE), getAttribute(element, FOR));
+                        Key key = new Key(id, getAttribute(element, NAME), getAttribute(element, TYPE), getAttribute(element, LIST), getAttribute(element, FOR));
 
                         XMLEvent next = peek(reader);
                         if (next.isStartElement() && next.asStartElement().getName().getLocalPart().equals("default")) {
