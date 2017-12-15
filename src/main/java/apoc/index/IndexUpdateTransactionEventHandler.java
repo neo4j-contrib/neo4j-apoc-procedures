@@ -11,7 +11,6 @@ import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
-import org.neo4j.kernel.KernelApi;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifeSupport;
@@ -23,7 +22,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -217,7 +215,7 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
 
                 final Index<Node> index = indexManager.forNodes(indexName);
 
-                Map<String, String> indexConfig = KernelApi.getIndexConfiguration(indexName, graphDatabaseService);
+                Map<String, String> indexConfig = indexManager.getConfiguration(index);
 
                 if (Util.toBoolean(indexConfig.get("autoUpdate"))) {
                     String labels = indexConfig.getOrDefault("labels", "");

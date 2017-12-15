@@ -1,28 +1,22 @@
 package apoc.nodes;
 
-import org.neo4j.collection.primitive.PrimitiveIntIterator;
-import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.impl.api.RelationshipVisitor;
-import org.neo4j.kernel.impl.api.store.RelationshipIterator;
-import org.neo4j.procedure.*;
 import apoc.result.LongResult;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
 import org.neo4j.collection.primitive.PrimitiveIntIterator;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.Statement;
 import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
 import org.neo4j.kernel.impl.api.RelationshipVisitor;
 import org.neo4j.kernel.impl.api.store.RelationshipIterator;
-import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.*;
 import org.neo4j.storageengine.api.Token;
 
@@ -34,7 +28,7 @@ import static apoc.util.Util.map;
 
 public class Nodes {
 
-    @Context public GraphDatabaseAPI db;
+    @Context public GraphDatabaseService db;
     @Context public KernelTransaction ktx;
 
     @Procedure(mode = Mode.WRITE)

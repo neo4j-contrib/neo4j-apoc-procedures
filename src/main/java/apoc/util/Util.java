@@ -2,24 +2,21 @@ package apoc.util;
 
 import apoc.ApocConfiguration;
 import apoc.Pools;
-import apoc.export.util.*; // todo
+import apoc.export.util.CountingInputStream;
 import apoc.path.RelationshipTypeAndDirections;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.Statement;
-import org.neo4j.kernel.api.exceptions.Status;
-import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.api.security.SecurityContext;
-import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -568,12 +565,13 @@ public class Util {
      * @return
      *
      */
-    public static boolean transactionIsTerminated(GraphDatabaseAPI db) {
-        final KernelTransaction ktx = db.getDependencyResolver()
-                .resolveDependency(ThreadToStatementContextBridge.class)
-                .getKernelTransactionBoundToThisThread(true);
-
-        return ktx.getReasonIfTerminated().isPresent();
+    public static boolean transactionIsTerminated(TerminationGuard db) {
+        try {
+            db.check();
+            return false;
+        } catch (TransactionGuardException | TransactionTerminatedException tge) {
+            return true;
+        }
     }
 
     public static void waitForFutures(List<Future> futures) {

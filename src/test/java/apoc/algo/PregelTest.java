@@ -1,6 +1,5 @@
 package apoc.algo;
 
-import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -13,6 +12,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.Statement;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.TerminationGuard;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.*;
@@ -27,6 +27,9 @@ import static org.junit.Assert.assertEquals;
 public class PregelTest {
 
     public static final RelationshipType TYPE = RelationshipType.withName("FOO");
+    private TerminationGuard guard = new TerminationGuard() {
+        public void check() { }
+    };
 
     @Before
     public void skipOnTravis() {
@@ -46,7 +49,7 @@ public class PregelTest {
             }
             tx.success();
         }
-        Pregel pregel = new Pregel(db).withBatchSize(1000);
+        Pregel pregel = new Pregel(db, guard).withBatchSize(1000);
 
 
         PrimitiveLongIterator nodes;
@@ -77,7 +80,7 @@ public class PregelTest {
         createRankTestData(db, nodeCount, degrees);
 
         long start = System.currentTimeMillis();
-        Pregel pregel = new Pregel(db).withBatchSize(10000);
+        Pregel pregel = new Pregel(db, guard).withBatchSize(10000);
 
         PrimitiveLongIterator nodes;
         try (Transaction tx = db.beginTx()) {
@@ -104,7 +107,7 @@ public class PregelTest {
         createRankTestData(db, nodeCount, degrees);
 
         long start = System.currentTimeMillis();
-        Pregel pregel = new Pregel(db).withBatchSize(10000);
+        Pregel pregel = new Pregel(db, guard).withBatchSize(10000);
 
         PrimitiveLongIterator nodes;
         try (Transaction tx = db.beginTx()) {

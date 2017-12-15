@@ -16,15 +16,19 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.impl.api.RelationshipVisitor;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
+import org.neo4j.kernel.impl.storageengine.impl.recordstorage.RecordStorageEngine;
+import org.neo4j.kernel.impl.store.NeoStores;
+import org.neo4j.kernel.impl.store.StoreAccess;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.TerminationGuard;
 
 import static apoc.algo.pagerank.PageRankArrayStorageParallelCypher.WRITE_BATCH;
 import static apoc.algo.pagerank.PageRankUtils.*;
 
-public class PageRankArrayStorageParallelSPI implements PageRank, AlgorithmInterface
-{
-    public static final int ONE_MINUS_ALPHA_INT = toInt( ONE_MINUS_ALPHA );
+public class PageRankArrayStorageParallelSPI implements PageRank, AlgorithmInterface {
+    public static final int ONE_MINUS_ALPHA_INT = toInt(ONE_MINUS_ALPHA);
     private final GraphDatabaseAPI db;
+    private final TerminationGuard guard;
     private final int nodeCount;
     private final ExecutorService pool;
     private final int relCount;
@@ -34,48 +38,45 @@ public class PageRankArrayStorageParallelSPI implements PageRank, AlgorithmInter
 
     public PageRankArrayStorageParallelSPI(
             GraphDatabaseService db,
-            ExecutorService pool )
-    {
+            TerminationGuard guard, ExecutorService pool) {
+        this.guard = guard;
         this.pool = pool;
         this.db = (GraphDatabaseAPI) db;
-        this.nodeCount = new NodeCounter().getNodeCount( db );
-        this.relCount = new NodeCounter().getRelationshipCount( db );
+        this.nodeCount = getNodeCount(this.db);
+        this.relCount = getRelationshipCount(this.db);
     }
 
     @Override
     public void compute(
             int iterations,
-            RelationshipType... relationshipTypes )
-    {
+            RelationshipType... relationshipTypes) {
         stats.iterations = iterations;
         long start = System.currentTimeMillis();
         final int[] src = new int[nodeCount];
-        dst = new AtomicIntegerArray( nodeCount );
+        dst = new AtomicIntegerArray(nodeCount);
         final int[] degrees = computeDegrees(ctx(this.db));
         stats.readNodeMillis = System.currentTimeMillis() - start;
         stats.nodes = nodeCount;
         start = System.currentTimeMillis();
 
         final ReadOperations ops = ctx(this.db).get().readOperations();
-        final IntPredicate isValidRelationshipType = relationshipTypeArrayToIntPredicate( ops, relationshipTypes );
+        final IntPredicate isValidRelationshipType = relationshipTypeArrayToIntPredicate(ops, relationshipTypes);
         final RelationshipVisitor<RuntimeException> visitor = isValidRelationshipType == null ?
-                ( relId, relTypeId, startNode, endNode ) -> dst.addAndGet((int) endNode, src[(int) startNode] ) :
-                ( relId, relTypeId, startNode, endNode ) -> {
-                    if ( isValidRelationshipType.test( relTypeId ) )
-                    {
-                        dst.addAndGet( (int) endNode, src[(int) startNode] );
+                (relId, relTypeId, startNode, endNode) -> dst.addAndGet((int) endNode, src[(int) startNode]) :
+                (relId, relTypeId, startNode, endNode) -> {
+                    if (isValidRelationshipType.test(relTypeId)) {
+                        dst.addAndGet((int) endNode, src[(int) startNode]);
                     }
                 };
 
         PrimitiveLongIterator rels = ops.relationshipsGetAll();
-        List<BatchRunnable> runners = prepareOperations(rels, relCount, db, (readOps, id) -> readOps.relationshipVisit(id, visitor));
+        List<BatchRunnable> runners = prepareOperations(rels, relCount, db, (readOps, id) -> readOps.relationshipVisit(id, visitor), guard);
         stats.readRelationshipMillis = System.currentTimeMillis() - start;
         stats.relationships = relCount;
 
         start = System.currentTimeMillis();
-        for ( int iteration = 0; iteration < iterations; iteration++ )
-        {
-            startIteration( src, dst, degrees );
+        for (int iteration = 0; iteration < iterations; iteration++) {
+            startIteration(src, dst, degrees);
             //PrimitiveLongIterator rels = ops.relationshipsGetAll();
             //runOperations( pool, rels, relCount, ctx, (readOps, id) -> readOps.relationshipVisit( id, visitor ) );
             runOperations(pool, runners);
@@ -85,17 +86,12 @@ public class PageRankArrayStorageParallelSPI implements PageRank, AlgorithmInter
 
     private IntPredicate relationshipTypeArrayToIntPredicate(
             ReadOperations ops,
-            RelationshipType... relationshipTypes )
-    {
-        if ( 0 == relationshipTypes.length )
-        {
+            RelationshipType... relationshipTypes) {
+        if (0 == relationshipTypes.length) {
             return null;
-        }
-        else
-        {
-            BitSet relationshipTypeSet = new BitSet( relationshipTypes.length );
-            for ( RelationshipType relationshipType : relationshipTypes )
-            {
+        } else {
+            BitSet relationshipTypeSet = new BitSet(relationshipTypes.length);
+            for (RelationshipType relationshipType : relationshipTypes) {
                 int relTypeId = ops.relationshipTypeGetForName(relationshipType.name());
                 if (relTypeId >= 0) relationshipTypeSet.set(relTypeId);
             }
@@ -103,40 +99,35 @@ public class PageRankArrayStorageParallelSPI implements PageRank, AlgorithmInter
         }
     }
 
-    private void startIteration( int[] src, AtomicIntegerArray dst, int[] degrees )
-    {
-        for ( int node = 0; node < this.nodeCount; node++ )
-        {
-            if ( degrees[node] == -1 )
-            { continue; }
-            src[node] = toInt( ALPHA * toFloat( dst.getAndSet( node, ONE_MINUS_ALPHA_INT ) ) / degrees[node] );
+    private void startIteration(int[] src, AtomicIntegerArray dst, int[] degrees) {
+        for (int node = 0; node < this.nodeCount; node++) {
+            if (degrees[node] == -1) {
+                continue;
+            }
+            src[node] = toInt(ALPHA * toFloat(dst.getAndSet(node, ONE_MINUS_ALPHA_INT)) / degrees[node]);
 
         }
     }
 
-    private int[] computeDegrees( final ThreadToStatementContextBridge ctx )
-    {
+    private int[] computeDegrees(final ThreadToStatementContextBridge ctx) {
         final int[] degree = new int[nodeCount];
-        Arrays.fill( degree, -1 );
+        Arrays.fill(degree, -1);
         PrimitiveLongIterator it = ctx.get().readOperations().nodesGetAll();
         int totalCount = nodeCount;
-        runOperations( pool, it, totalCount, db , (ops,id) -> degree[id] = ops.nodeGetDegree( id, Direction.OUTGOING ) );
+        runOperations(pool, it, totalCount, db, (ops, id) -> degree[id] = ops.nodeGetDegree(id, Direction.OUTGOING), guard);
         return degree;
     }
 
-    public double getResult( long node )
-    {
-        return dst != null ? toFloat( dst.get( (int) node ) ) : 0;
+    public double getResult(long node) {
+        return dst != null ? toFloat(dst.get((int) node)) : 0;
     }
 
 
-    public long numberOfNodes()
-    {
+    public long numberOfNodes() {
         return nodeCount;
     }
 
-    public String getPropertyName()
-    {
+    public String getPropertyName() {
         return "pagerank";
     }
 
@@ -153,10 +144,24 @@ public class PageRankArrayStorageParallelSPI implements PageRank, AlgorithmInter
     public void writeResultsToDB() {
         stats.write = true;
         long before = System.currentTimeMillis();
-        AlgoUtils.writeBackResults(pool, db, this, WRITE_BATCH);
+        AlgoUtils.writeBackResults(pool, db, this, WRITE_BATCH, guard);
         stats.write = true;
         stats.writeMillis = System.currentTimeMillis() - before;
         stats.property = getPropertyName();
     }
 
+    private int getNodeCount(GraphDatabaseAPI db) {
+        return (int) getNeoStores(db).getNodeStore().getHighestPossibleIdInUse() + 1;
+    }
+
+    private NeoStores getNeoStores(GraphDatabaseAPI db) {
+        RecordStorageEngine recordStorageEngine = db.getDependencyResolver()
+                .resolveDependency(RecordStorageEngine.class);
+        StoreAccess storeAccess = new StoreAccess(recordStorageEngine.testAccessNeoStores());
+        return storeAccess.getRawNeoStores();
+    }
+
+    private int getRelationshipCount(GraphDatabaseAPI db) {
+        return (int) getNeoStores(db).getRelationshipStore().getHighestPossibleIdInUse() + 1;
+    }
 }

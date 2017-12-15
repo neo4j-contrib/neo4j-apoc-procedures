@@ -13,7 +13,6 @@ import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.exceptions.Status;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
@@ -46,8 +45,6 @@ public class Cypher {
     public static final String WITH_UNWIND = "#WITH #UNWIND";
     @Context
     public GraphDatabaseService db;
-    @Context
-    public GraphDatabaseAPI api;
     @Context
     public KernelTransaction tx;
     @Context
@@ -152,7 +149,7 @@ public class Cypher {
     }
 
     private Object executeStatement(BlockingQueue<RowResult> queue, String stmt, Map<String, Object> params, boolean addStatistics) throws InterruptedException {
-        try (Result result = api.execute(stmt,params)) {
+        try (Result result = db.execute(stmt,params)) {
             long time = System.currentTimeMillis();
             int row = 0;
             while (result.hasNext()) {

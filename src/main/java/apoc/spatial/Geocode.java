@@ -5,7 +5,6 @@ import org.neo4j.procedure.*;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
 import java.io.UnsupportedEncodingException;
@@ -26,9 +25,6 @@ public class Geocode {
 
     @Context
     public GraphDatabaseService db;
-
-    @Context
-    public GraphDatabaseAPI graph;
 
     @Context
     public TerminationGuard terminationGuard;

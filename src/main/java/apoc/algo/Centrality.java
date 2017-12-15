@@ -38,6 +38,10 @@ public class Centrality {
     @Context
     public GraphDatabaseAPI dbAPI;
 
+    @Context
+    public TerminationGuard guard;
+
+
     static final ExecutorService pool = Pools.DEFAULT;
 
     @Procedure("apoc.algo.betweenness")
@@ -89,7 +93,7 @@ public class Centrality {
         long beforeReading = System.currentTimeMillis();
         log.info("BetweennessCypher: Reading data into local ds");
         apoc.algo.algorithms.BetweennessCentrality betweennessCentrality =
-                new apoc.algo.algorithms.BetweennessCentrality(dbAPI, pool, log);
+                new apoc.algo.algorithms.BetweennessCentrality(dbAPI, pool, log, guard);
 
         boolean success = betweennessCentrality.readNodeAndRelCypherData(
                 relCypher, nodeCypher, weight, batchSize, concurrency);

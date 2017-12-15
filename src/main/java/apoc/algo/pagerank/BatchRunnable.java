@@ -6,6 +6,7 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.util.Arrays;
 
@@ -16,9 +17,11 @@ public class BatchRunnable implements Runnable, OpsRunner {
     private final OpsRunner runner;
     private final GraphDatabaseAPI api;
     int offset = 0;
+    private final TerminationGuard guard;
 
-    public BatchRunnable(final GraphDatabaseAPI api, PrimitiveLongIterator iterator, int batchSize, OpsRunner runner) {
+    public BatchRunnable(final GraphDatabaseAPI api, PrimitiveLongIterator iterator, int batchSize, OpsRunner runner, TerminationGuard guard) {
         this.api = api;
+        this.guard = guard;
         ids = add(iterator, batchSize);
         this.runner = runner;
     }
@@ -35,7 +38,7 @@ public class BatchRunnable implements Runnable, OpsRunner {
     public void run() {
         try (Transaction tx = api.beginTx()) {
             // If the transaction is terminated it simply returns
-            if (Util.transactionIsTerminated(api)) {
+            if (Util.transactionIsTerminated(guard)) {
                 return;
             }
             ReadOperations ops = ctx(api).get().readOperations();

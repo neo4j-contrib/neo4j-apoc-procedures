@@ -54,7 +54,7 @@ public class PeriodicTest {
                     assertEquals(0L, row.get("rate"));
                 });
 
-        long count = tryReadCount(50, "MATCH (:Foo) RETURN COUNT(*) AS count");
+        long count = tryReadCount(50, "MATCH (:Foo) RETURN COUNT(*) AS count", 1L);
 
         assertThat(String.format("Expected %d, got %d ", 1L, count), count, equalTo(1L));
 
@@ -290,14 +290,14 @@ public class PeriodicTest {
     }
 
 
-    private long tryReadCount(int maxAttempts, String statement) throws InterruptedException {
+    private long tryReadCount(int maxAttempts, String statement, long expected) throws InterruptedException {
         int attempts = 0;
         long count;
         do {
             Thread.sleep(100);
             attempts++;
             count = readCount(statement);
-        } while (attempts < maxAttempts && count != 1L);
+        } while (attempts < maxAttempts && count != expected);
         return count;
     }
 

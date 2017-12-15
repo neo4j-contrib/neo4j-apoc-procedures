@@ -1,12 +1,12 @@
 package apoc.search;
 
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Description;
 import apoc.result.NodeResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -29,7 +29,7 @@ public class ParallelNodeSearch {
     private final static Set<String> OPERATORS = new HashSet<>(asList("exact","starts with", "ends with", "contains", "<", ">", "=", "<>", "<=", ">=", "=~"));
 
     @Context
-    public GraphDatabaseAPI api;
+    public GraphDatabaseService api;
 
     @Context
     public Log log;
@@ -110,12 +110,12 @@ public class ParallelNodeSearch {
     }
 
     public static class QueryWorker {
-        private GraphDatabaseAPI db;
+        private GraphDatabaseService db;
         private String label, prop, operator;
         Object value;
         private Log log;
 
-        public QueryWorker(GraphDatabaseAPI db, String label, String prop, String operator, Object value, Log log) {
+        public QueryWorker(GraphDatabaseService db, String label, String prop, String operator, Object value, Log log) {
             this.db = db;
             this.label = label;
             this.prop = prop;

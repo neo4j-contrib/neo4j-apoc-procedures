@@ -10,6 +10,7 @@ import org.neo4j.kernel.api.exceptions.schema.IllegalTokenNameException;
 import org.neo4j.kernel.api.properties.DefinedProperty;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,12 +57,12 @@ public class AlgoUtils {
     }
 
     public static void writeBackResults(ExecutorService pool, GraphDatabaseAPI db, AlgorithmInterface algorithm,
-                                        int batchSize) {
+                                        int batchSize, TerminationGuard guard) {
         ThreadToStatementContextBridge ctx = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
         int propertyNameId;
         try (Transaction tx = db.beginTx()) {
             // If the transaction is terminated just return
-            if (Util.transactionIsTerminated(db)) {
+            if (Util.transactionIsTerminated(guard)) {
                 return;
             }
             propertyNameId = ctx.get().tokenWriteOperations().propertyKeyGetOrCreateForName(algorithm.getPropertyName());
@@ -79,7 +80,7 @@ public class AlgoUtils {
                 public void run() {
                     try (Transaction tx = db.beginTx()) {
                         // If the transaction is terminated just return
-                        if (Util.transactionIsTerminated(db)) {
+                        if (Util.transactionIsTerminated(guard)) {
                             return;
                         }
 

@@ -12,6 +12,7 @@ import org.neo4j.kernel.impl.api.RelationshipVisitor;
 import org.neo4j.kernel.impl.api.store.RelationshipIterator;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -71,10 +72,13 @@ public class Pregel {
     private ThreadToStatementContextBridge ctx;
     private int batchSize = 10_000;
     private ExecutorService pool = Pools.DEFAULT;
+    private final TerminationGuard guard;
 
-    public Pregel(GraphDatabaseAPI api) {
+
+    public Pregel(GraphDatabaseAPI api, TerminationGuard guard) {
         this.api = api;
         ctx = api.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
+        this.guard = guard;
     }
 
     public Pregel withBatchSize(int batchSize) {
@@ -169,7 +173,7 @@ public class Pregel {
             Future<long[]> future = pool.submit(() -> {
                 try (Transaction tx = api.beginTx()) {
                     // If the transaction is terminated it returns an empty list
-                    if (Util.transactionIsTerminated(api)) {
+                    if (Util.transactionIsTerminated(guard)) {
                         return new long[0];
                     }
 
@@ -213,7 +217,7 @@ public class Pregel {
     private int grabBatch(PrimitiveLongIterator nodes, long[] batch) {
         try (Transaction tx = api.beginTx()) {
             // If the transaction is terminated it returns 0 (default start index)
-            if (Util.transactionIsTerminated(api)) {
+            if (Util.transactionIsTerminated(guard)) {
                 return 0;
             }
 
@@ -231,7 +235,7 @@ public class Pregel {
         return pool.submit(() -> {
             try (Transaction tx = api.beginTx()) {
                 // If the transaction is terminated it returns the program state as it is passed
-                if (Util.transactionIsTerminated(api)) {
+                if (Util.transactionIsTerminated(guard)) {
                     return program.state();
                 }
 
@@ -251,7 +255,7 @@ public class Pregel {
         return pool.submit(() -> {
             try (Transaction tx = api.beginTx()) {
                 // If the transaction is terminated it returns the program state as it is passed
-                if (Util.transactionIsTerminated(api)) {
+                if (Util.transactionIsTerminated(guard)) {
                     return program.state();
                 }
 
