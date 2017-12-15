@@ -12,7 +12,6 @@ import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -20,8 +19,8 @@ import java.util.concurrent.TimeUnit;
 
 import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
-import static java.util.Collections.singleton;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -208,7 +207,7 @@ public class SchemasTest {
     @Test
     public void testKeepIndex() throws Exception {
         db.execute("CREATE INDEX ON :Foo(bar)").close();
-        testResult(db, "CALL apoc.schema.assert({Foo:['bar', 'foo']},null)", (result) -> {
+        testResult(db, "CALL apoc.schema.assert({Foo:['bar', 'foo']},null,false)", (result) -> { 
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
             assertEquals("bar", r.get("key"));
@@ -234,6 +233,7 @@ public class SchemasTest {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
             assertEquals("bar", r.get("key"));
+            assertEquals(expectedKeys("bar"), r.get("keys"));
             assertEquals(true, r.get("unique"));
             assertEquals("KEPT", r.get("action"));
 
@@ -358,7 +358,7 @@ public class SchemasTest {
             testResult(db, "CALL apoc.schema.nodes()", (result) -> {
                 Map<String, Object> r = result.next();
 
-                assertEquals("Bar", r.get("label"));
+                assertEquals("bar", r.get("label"));
                 assertEquals("NODE_PROPERTY_EXISTENCE", r.get("type"));
                 assertEquals("foobar", ((List<String>) r.get("properties")).get(0));
 
@@ -381,5 +381,140 @@ public class SchemasTest {
             });
 
         }, QueryExecutionException.class);
+    }
+
+    /*
+      This is only for 3.2+
+    */
+    @Test
+    public void testDropCompoundIndexWhenUsingDropExisting() throws Exception {
+        db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        testResult(db, "CALL apoc.schema.assert(null,null,true)", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("bar", "baa"), r.get("keys"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("DROPPED", r.get("action"));
+        });
+        try (Transaction tx = db.beginTx()) {
+            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            assertEquals(0, indexes.size());
+        }
+    }
+
+    /*
+        This is only for 3.2+
+    */
+    @Test
+    public void testDropCompoundIndexAndRecreateWithDropExisting() throws Exception {
+        db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,true)", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("bar", "baa"), r.get("keys"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("DROPPED", r.get("action"));
+        });
+        try (Transaction tx = db.beginTx()) {
+            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            assertEquals(1, indexes.size());
+        }
+    }
+
+    /*
+        This is only for 3.2+
+    */
+    @Test
+    public void testDoesntDropCompoundIndexWhenSupplyingSameCompoundIndex() throws Exception {
+        db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,false)", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("bar", "baa"), r.get("keys"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("KEPT", r.get("action"));
+        });
+        try (Transaction tx = db.beginTx()) {
+            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            assertEquals(1, indexes.size());
+        }
+    }
+    /*
+        This is only for 3.2+
+    */
+    @Test
+    public void testKeepCompoundIndex() throws Exception {
+        db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa'], ['foo','faa']]},null,false)", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("bar", "baa"), r.get("keys"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("KEPT", r.get("action"));
+
+            r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("foo", "faa"), r.get("keys"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("CREATED", r.get("action"));
+        });
+        try (Transaction tx = db.beginTx()) {
+            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            assertEquals(2, indexes.size());
+        }
+    }
+
+    /*
+        This is only for 3.2+
+    */
+    @Test
+    public void testDropIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
+        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        testResult(db, "CALL apoc.schema.assert({Bar:[['foo','bar']]},null)", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals("bar", r.get("key"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("DROPPED", r.get("action"));
+
+            r = result.next();
+            assertEquals("Bar", r.get("label"));
+            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("CREATED", r.get("action"));
+        });
+        try (Transaction tx = db.beginTx()) {
+            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            assertEquals(1, indexes.size());
+        }
+    }
+
+    /*
+        This is only for 3.2+
+    */
+    @Test
+    public void testDropCompoundIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
+        db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null)", (result) -> {
+            Map<String, Object> r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("bar","baa"), r.get("keys"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("DROPPED", r.get("action"));
+
+            r = result.next();
+            assertEquals("Foo", r.get("label"));
+            assertEquals(expectedKeys("bar", "baa"), r.get("keys"));
+            assertEquals(false, r.get("unique"));
+            assertEquals("CREATED", r.get("action"));
+        });
+        try (Transaction tx = db.beginTx()) {
+            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            assertEquals(1, indexes.size());
+        }
+    }
+
+    private List<String> expectedKeys(String... keys){
+        return asList(keys);
     }
 }

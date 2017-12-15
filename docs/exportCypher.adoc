@@ -40,6 +40,31 @@ call apoc.export.cypher.query(
 | apoc.export.cypher.schema(file,config) | exports all schema indexes and constraints to cypher
 |===
 // end::export.cypher[]
+
+== Stream back Exported Cypher Script as columns
+
+If you leave off the file-name as `null` the export will instead be streamed back.
+
+In general there will be a `cypherStatements` column with the script.
+
+If you use multi-file-splitting as configuration parameter, there will be extra columns with content for
+
+* nodeStatements
+* relationshipStatements
+* cleanupStatements
+* schemaStatements
+
+If you also specify the `streamStatements:true` then each batch (by `batchSize` which defaults to 10k) of statements will be returned as a row.
+So you can use your client to reconstruct the cypher script.
+
+.Simple Example for Streaming
+[source,cypher]
+----
+echo "
+CALL apoc.export.cypher.all(null,{streamStatements:true,batchSize:100}) YIELD cypherStatements RETURN cypherStatements;
+" | ./bin/cypher-shell --non-interactive --format plain
+----
+
 == Examples
 
 .exportAll (neo4j-shell format)

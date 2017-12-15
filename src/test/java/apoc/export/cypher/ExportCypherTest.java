@@ -129,6 +129,43 @@ public class ExportCypherTest {
         db.shutdown();
     }
 
+
+    @Test public void testExportAllCypherResults() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all(null,null)", (r) -> {
+            System.out.println(r);
+            assertResults(null, r, "database");
+            assertEquals(EXPECTED_NEO4J_SHELL,r.get("cypherStatements"));
+        });
+    }
+
+    @Test public void testExportAllCypherStreaming() throws Exception {
+        StringBuilder sb=new StringBuilder();
+        TestUtil.testResult(db, "CALL apoc.export.cypher.all(null,{streamStatements:true,batchSize:3})", (res) -> {
+            Map<String, Object> r = res.next();
+            assertEquals(3L, r.get("batchSize"));
+            assertEquals(1L, r.get("batches"));
+            assertEquals(3L, r.get("nodes"));
+            assertEquals(3L, r.get("rows"));
+            assertEquals(0L, r.get("relationships"));
+            assertEquals(4L, r.get("properties"));
+            assertEquals(null, r.get("file"));
+            assertEquals("cypher", r.get("format"));
+            assertEquals(true, ((long) r.get("time")) >= 0);
+            sb.append(r.get("cypherStatements"));
+            r = res.next();
+            System.out.println(r);
+            assertEquals(3L, r.get("batchSize"));
+            assertEquals(2L, r.get("batches"));
+            assertEquals(3L, r.get("nodes"));
+            assertEquals(4L, r.get("rows"));
+            assertEquals(1L, r.get("relationships"));
+            assertEquals(5L, r.get("properties"));
+            assertEquals(true, ((long) r.get("time")) >= 0);
+            sb.append(r.get("cypherStatements"));
+        });
+        assertEquals(EXPECTED_NEO4J_SHELL.replace("LIMIT 20000","LIMIT 3"),sb.toString());
+    }
+
     // -- Whole file test -- //
     @Test public void testExportAllCypherDefault() throws Exception {
         File output = new File(directory, "all.cypher");
@@ -239,7 +276,7 @@ public class ExportCypherTest {
         assertEquals(3L, r.get("nodes"));
         assertEquals(1L, r.get("relationships"));
         assertEquals(5L, r.get("properties"));
-        assertEquals(output.getAbsolutePath(), r.get("file"));
+        assertEquals(output==null ? null : output.getAbsolutePath(), r.get("file"));
         assertEquals(source + ": nodes(3), rels(1)", r.get("source"));
         assertEquals("cypher", r.get("format"));
         assertEquals(true, ((long) r.get("time")) >= 0);

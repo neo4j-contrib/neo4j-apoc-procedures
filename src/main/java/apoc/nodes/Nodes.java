@@ -53,13 +53,13 @@ public class Nodes {
     }
 
     @Procedure
-    @Description("apoc.nodes.get(node|nodes|id|[ids]) - quickly returns all nodes with these id's")
+    @Description("apoc.nodes.get(node|nodes|id|[ids]) - quickly returns all nodes with these ids")
     public Stream<NodeResult> get(@Name("nodes") Object ids) {
         return Util.nodeStream(db, ids).map(NodeResult::new);
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.nodes.delete(node|nodes|id|[ids]) - quickly delete all nodes with these id's")
+    @Description("apoc.nodes.delete(node|nodes|id|[ids]) - quickly delete all nodes with these ids")
     public Stream<LongResult> delete(@Name("nodes") Object ids, @Name("batchSize") long batchSize) {
         Iterator<Node> it = Util.nodeStream(db, ids).iterator();
         long count = 0;
@@ -72,13 +72,13 @@ public class Nodes {
     }
 
     @Procedure
-    @Description("apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these id's")
+    @Description("apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these ids")
     public Stream<RelationshipResult> rels(@Name("relationships") Object ids) {
         return Util.relsStream(db, ids).map(RelationshipResult::new);
     }
 
     @UserFunction("apoc.node.relationship.exists")
-    @Description("apoc.node.relationship.exists(node, [rel-direction-pattern]) - yields true effectively when the node has the relationships of the pattern")
+    @Description("apoc.node.relationship.exists(node, rel-direction-pattern) - returns true when the node has the relationships of the pattern")
     public boolean hasRelationship(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types) throws EntityNotFoundException {
         if (types == null || types.isEmpty()) return node.hasRelationship();
         long id = node.getId();
@@ -99,7 +99,7 @@ public class Nodes {
     }
 
     @UserFunction("apoc.nodes.connected")
-    @Description("apoc.nodes.connected(start, end, [rel-direction-pattern]) - yields true effectively when the node is connected to the other node")
+    @Description("apoc.nodes.connected(start, end, rel-direction-pattern) - returns true when the node is connected to the other node, optimized for dense nodes")
     public boolean connected(@Name("start") Node start, @Name("start") Node end, @Name(value = "types", defaultValue = "") String types) throws EntityNotFoundException {
         if (start == null || end == null) return false;
         if (start.equals(end)) return true;
@@ -275,18 +275,18 @@ public class Nodes {
     }
 
     @UserFunction("apoc.node.degree")
-    @Description("apoc.node.degree(node, [rel-direction-pattern]) - yields degree effectively when the node has the relationships of the pattern")
+    @Description("apoc.node.degree(node, rel-direction-pattern) - returns total degrees of the given relationships in the pattern, can use '>' or '<' for all outgoing or incoming relationships")
     public long degree(@Name("node") Node node, @Name(value = "types",defaultValue = "") String types) throws EntityNotFoundException {
         if (types==null || types.isEmpty()) return node.getDegree();
         long degree = 0;
         for (Pair<RelationshipType, Direction> pair : parse(types)) {
-            degree += node.getDegree(pair.first(), pair.other());
+            degree += getDegreeSafe(node, pair.first(), pair.other());
         }
         return degree;
     }
 
     @UserFunction("apoc.node.relationship.types")
-    @Description("apoc.node.relationship.types(node, [rel-direction-pattern]) - yields distinct relationship-types")
+    @Description("apoc.node.relationship.types(node, rel-direction-pattern) - returns a list of distinct relationship types")
     public List<String> relationshipTypes(@Name("node") Node node, @Name(value = "types",defaultValue = "") String types) {
         if (node==null) return null;
         List<String> relTypes = Iterables.asList(Iterables.map(RelationshipType::name, node.getRelationshipTypes()));
@@ -309,12 +309,29 @@ public class Nodes {
         }
     }
 
-    public boolean isDense(ReadOperations ops, Node n) {
+    private boolean isDense(ReadOperations ops, Node n) {
         try {
             return ops.nodeIsDense(n.getId());
         } catch (EntityNotFoundException e) {
             return false;
         }
+    }
+
+    // works in cases when relType is null
+    private int getDegreeSafe(Node node, RelationshipType relType, Direction direction) {
+        if (relType == null) {
+            return node.getDegree(direction);
+        }
+
+        return node.getDegree(relType, direction);
+    }
+
+    private int getDegreeSafe(ReadOperations ops, long id, Direction direction, int typeId) throws EntityNotFoundException {
+        if (typeId != -1) {
+            return ops.nodeGetDegree(id, direction, typeId);
+        }
+
+        return ops.nodeGetDegree(id, direction);
     }
 
     public static class DenseNodeResult {

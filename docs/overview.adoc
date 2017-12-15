@@ -79,8 +79,12 @@ NOTE: Please note that there are (case-sensitive) http://neo4j.com/docs/develope
 | apoc.index.addNode(node,['prop1',...]) | add node to an index for each label it has
 | apoc.index.addNodeByLabel('Label',node,['prop1',...]) | add node to an index for the given label
 | apoc.index.addNodeByName('name',node,['prop1',...]) | add node to an index for the given name
+| apoc.index.addNodeMap(node,{key:value}) | add node to an index for each label it has with the given attributes which can also be computed
+| apoc.index.addNodeMapByName(index, node,{key:value}) | add node to an index for each label it has with the given attributes which can also be computed
 | apoc.index.addRelationship(rel,['prop1',...]) | add relationship to an index for its type
 | apoc.index.addRelationshipByName('name',rel,['prop1',...]) | add relationship to an index for the given name
+| apoc.index.addRelationshipMap(rel,{key:value}) | add relationship to an index for its type indexing the given document which can be computed
+| apoc.index.addRelationshipMapByName(index, rel,{key:value}) | add relationship to an index for its type indexing the given document which can be computed
 | apoc.index.removeNodeByName('name',node) remove node from an index for the given name
 | apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name
 |===
@@ -296,8 +300,9 @@ reading the two configuration parameters `dbms.security.allow_csv_import_from_fi
 | CALL apoc.load.json('http://example.com/map.json', [path], [config]) YIELD value as person CREATE (p:Person) SET p = person | load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map
 | CALL apoc.load.xml('http://example.com/test.xml', ['xPath'], [config]) YIELD value as doc CREATE (p:Person) SET p.name = doc.name | load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `_type`, `_text` and `_children` fields.
 | CALL apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name | load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `_type`, `_text` fields and `_<childtype>` collections per child-element-type.
-| CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, map | load CSV fom URL as stream of values +
-config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}`
+| CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, strings, map, stringMap | load CSV fom URL as stream of values +
+config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['aColumn'],arraySep:';',results:['map','list','strings','stringMap'], +
+nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false,nullValues:['n.A.']}}`
 |===
 
 .failOnError
@@ -331,7 +336,11 @@ Adding on config the parameter `failOnError:false` (by default `true`), in case 
 | CALL apoc.mongodb.get(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true\|false]) yield value | perform a find operation on mongodb collection
 | CALL apoc.mongodb.count(host-or-port,db-or-null,collection-or-null,query-or-null) yield value | perform a find operation on mongodb collection
 | CALL apoc.mongodb.first(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true\|false]) yield value | perform a first operation on mongodb collection
+<<<<<<< HEAD
 | CALL apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,[compatibleValues=true\|false],skip-or-null,limit-or-null) yield value | perform a find,project,sort operation on mongodb collection
+=======
+| CALL apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,[compatibleValues=true\|false]) yield value | perform a find,project,sort operation on mongodb collection
+>>>>>>> upstream/3.3
 | CALL apoc.mongodb.insert(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
 | CALL apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
 | CALL apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
@@ -427,14 +436,8 @@ CALL apoc.couchbase.get(['localhost'], 'default', 'artist:vincent_van_gogh')
 | CALL apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) | create relationship with dynamic rel-type
 | CALL apoc.create.uuids(count) YIELD uuid, row | creates count UUIDs
 | CALL apoc.nodes.link([nodes],'REL_TYPE') | creates a linked list of nodes from first to last
-| CALL apoc.nodes.isDense(node/[nodes]/id/[ids]) yield node, dense | returns each node and a 'dense' flag if it is a dense node
-| CALL apoc.node.relationship.exists(node, rel-direction-pattern) | yields true effectively when the node has the relationships of the pattern
 |===
 
-[cols="1m,5"]
-|===
-| apoc.create.uuid() | returns an UUID
-|===
 
 == Virtual Nodes/Rels
 
@@ -499,7 +502,7 @@ CALL apoc.generate.simple([2,2,2,2], null, null)
 
 [cols="1m,5"]
 |===
-| CALL apoc.warmup.run() | Warmup the node and relationship page-caches by loading one page at a time
+| CALL apoc.warmup.run([loadProperties],[loadDynamicProperties]) | Warmup the node, relationship, relationship-group page-caches by loading one page at a time, optionally load property-records and dynamic-properties
 |===
 
 == Monitoring
@@ -687,6 +690,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.map.groupByMulti([maps/nodes/relationships],'key') yield value | creates a map of the list keyed by the given property, with list values
 | apoc.map.sortedProperties(map, ignoreCase:true) | returns a list of key/value list pairs, with pairs sorted by keys alphabetically, with optional case sensitivity
 | apoc.map.updateTree(tree,key,[[value,{data}]]) | returns map - adds the {data} map on each level of the nested tree, where the key-value pairs match
+| apoc.map.values(map, [key1,key2,key3,...],[addNullsForMissing]) returns list of values indicated by the keys
 |===
 
 
@@ -730,15 +734,37 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.frequencies(coll) | returns a list of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}, {item:abc, count:1}]`)
 | apoc.coll.sortMulti | sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip
 | apoc.coll.flatten | flattens a nested list
+| apoc.coll.combinations(coll, minSelect, maxSelect:minSelect) | Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive
+| CALL apoc.coll.elements(list,limit,offset) yield _1,_2,..,_10,_1s,_2i,_3f,_4m,_5l,_6n,_7r,_8p | deconstruct subset of mixed list into identifiers of the correct type
 |===
 
-=== Lookup Functions
+=== Lookup and Manipulation Procedures
 
 [cols="1m,5"]
 |===
-| CALL apoc.get.nodes(node|id|[ids]) yield node | quickly returns all nodes with these id's
-| CALL apoc.get.rels(rels|id|[ids]) yield rel | quickly returns all relationships with these id's
+| CALL apoc.nodes.get(node\|nodes\|id\|[ids]) | quickly returns all nodes with these ids
+| CALL apoc.get.rels(rel\|id\|[ids]) | quickly returns all relationships with these ids
+| CALL apoc.nodes.delete(node\|nodes\|id\|[ids]) | quickly delete all nodes with these ids
 |===
+
+
+=== Node Functions
+
+[cols="1m,5"]
+|===
+| apoc.nodes.isDense(node) | returns true if it is a dense node
+| apoc.nodes.connected(start, end, rel-direction-pattern) | returns true when the node is connected to the other node, optimized for dense nodes
+| apoc.node.relationship.exists(node, rel-direction-pattern) | returns true when the node has the relationships of the pattern
+| apoc.node.relationship.types(node, rel-direction-pattern) | returns a list of distinct relationship types
+| apoc.node.degree(node, rel-direction-pattern) | returns total degrees of the given relationships in the pattern, can use `'>'` or `'<'` for all outgoing or incoming relationships
+| apoc.create.uuid() | returns a UUID string
+|===
+
+==== rel-direction-pattern syntax:
+`[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
+
+Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in either direction, outgoing :MENTORS relationships, and incoming :REPORTS_TO relationships.
+
 
 === Math Functions
 

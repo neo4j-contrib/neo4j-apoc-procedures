@@ -10,6 +10,8 @@ public interface Reporter {
     void progress(String msg);
     void update(long nodes, long rels, long properties);
 
+    void done();
+
     ProgressInfo getTotal();
 
     void nextRow();

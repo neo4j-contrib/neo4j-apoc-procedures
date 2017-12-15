@@ -1,13 +1,16 @@
 package apoc.index;
 
-import apoc.refactor.GraphRefactoring;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.test.TestGraphDatabaseFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -64,6 +67,14 @@ public class FulltextIndexTest {
     }
 
     @Test
+    @Ignore("until this is sorted out: Write operations are not allowed for AUTH_DISABLED with FULL restricted to READ - LegacyIndexProxy.internalRemove ")
+    public void testNodesDeletion() throws Exception {
+        createData();
+        db.execute("MATCH "+JOE_PATTERN+" detach delete joe").close();
+        assertFalse(db.execute("CALL apoc.index.nodes('Person', 'name:Jo*') yield node return node.name").hasNext());
+    }
+
+    @Test
     public void testRelationships() throws Exception {
         createData();
         testCall(db,"CALL apoc.index.relationships('CHECKIN', 'on:2015-*')",
@@ -76,6 +87,14 @@ public class FulltextIndexTest {
                     assertEquals(DATE, rel.getProperty("on"));
                     assertEquals(TYPE, rel.getType().name());
                 });
+    }
+
+    @Test
+    @Ignore("until this is sorted out: Write operations are not allowed for AUTH_DISABLED with FULL restricted to READ - LegacyIndexProxy.internalRemove ")
+    public void testRelationshipsDeletion() throws Exception {
+        createData();
+        db.execute("MATCH ()-[r:CHECKIN]->() DELETE r").close();
+        assertFalse(db.execute("CALL apoc.index.relationships('CHECKIN', 'on:2015-*')").hasNext());
     }
 
     @Test
@@ -116,14 +135,17 @@ public class FulltextIndexTest {
                 });
     }
 
-    private void createData() {
+    private Map<String, Object> createData() {
+        Map<String,Object> result = new HashMap<>();
         testCall(db, "CREATE "+CHECKIN_PATTERN+" RETURN *",(row)->{
             Node joe = (Node) row.get("joe");
             db.index().forNodes(PERSON).add(joe,"name",joe.getProperty("name"));
             Node philz = (Node) row.get("philz");
             db.index().forNodes(PLACE).add(philz,"name",philz.getProperty("name"));
             db.index().forRelationships(TYPE).add((Relationship) row.get("checkin"),"on",DATE);
+            result.putAll(row);
         });
+        return result;
     }
 
     @Test
@@ -136,6 +158,37 @@ public class FulltextIndexTest {
             assertNull(index.forNodes(PERSON).query(AGE, "42").getSingle());
             tx.success();
         }
+    }
+
+    @Test
+    public void testAddNodeMap() throws Exception {
+        testCall(db, ("CREATE " + JOE_PATTERN + " WITH joe CALL apoc.index.addNodeMap(joe,{doc}) RETURN *"),map("doc",map(NAME,JOE)),(row) -> { });
+        try (Transaction tx = db.beginTx()) {
+            assertTrue(index.existsForNodes(PERSON));
+            assertTrue(index.existsForNodes(HIPSTER));
+            assertEquals(JOE, index.forNodes(PERSON).query(NAME, "jo*").getSingle().getProperty(NAME));
+            assertNull(index.forNodes(PERSON).query(AGE, "42").getSingle());
+            tx.success();
+        }
+    }
+
+    @Test
+    public void testAddNodeMapComplex() throws Exception {
+        db.execute("CREATE (company:Company {name:'Neo4j,Inc.'})\n" +
+                "CREATE (company)<-[:WORKS_AT {since:2013}]-(:Employee {name:'Mark'})\n" +
+                "CREATE (company)<-[:WORKS_AT {since:2014}]-(:Employee {name:'Martin'})\n").close();
+        db.execute("MATCH (company:Company)<-[worksAt:WORKS_AT]-(employee)\n" +
+                "WITH company, { name: company.name, employees:collect(employee.name),startDates:collect(worksAt.since)} AS data\n" +
+                "CALL apoc.index.addNodeMap(company, data) RETURN count(*)").close();
+        testCall(db, "CALL apoc.index.nodes('Company','name:Ne* AND employees:Ma*')",(row) -> {
+            assertEquals("Neo4j,Inc.",((Node)row.get("node")).getProperty("name"));
+        });
+        testCall(db, "CALL apoc.index.nodes('Company','employees:Ma*')",(row) -> {
+            assertEquals("Neo4j,Inc.",((Node)row.get("node")).getProperty("name"));
+        });
+        testCall(db, "CALL apoc.index.nodes('Company','startDates:[2013 TO 2014]')",(row) -> {
+            assertEquals("Neo4j,Inc.",((Node)row.get("node")).getProperty("name"));
+        });
     }
 
     @Test
@@ -175,6 +228,15 @@ public class FulltextIndexTest {
     @Test
     public void testAddRelationship() throws Exception {
         testCall(db, "CREATE " + CHECKIN_PATTERN + " WITH checkin CALL apoc.index.addRelationship(checkin, ['on']) RETURN *",(row) -> { });
+        try (Transaction tx = db.beginTx()) {
+            Relationship rel = index.forRelationships(TYPE).query("on", MONTH + "-*").getSingle();
+            assertEquals(DATE, rel.getProperty("on"));
+            tx.success();
+        }
+    }
+    @Test
+    public void testAddRelationshipMap() throws Exception {
+        testCall(db, "CREATE " + CHECKIN_PATTERN + " WITH checkin CALL apoc.index.addRelationshipMap(checkin, {doc}) RETURN *",map("doc",map("on",DATE)),(row) -> { });
         try (Transaction tx = db.beginTx()) {
             Relationship rel = index.forRelationships(TYPE).query("on", MONTH + "-*").getSingle();
             assertEquals(DATE, rel.getProperty("on"));
