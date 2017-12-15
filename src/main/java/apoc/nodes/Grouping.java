@@ -7,7 +7,6 @@ import apoc.result.VirtualNode;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -34,7 +33,7 @@ public class Grouping {
     private static final String ASTERISK = "*";
 
     @Context
-    public GraphDatabaseAPI db;
+    public GraphDatabaseService db;
     @Context
     public Log log;
 

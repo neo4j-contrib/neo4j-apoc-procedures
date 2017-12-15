@@ -3,9 +3,9 @@ package apoc.algo;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -20,7 +20,7 @@ import java.util.stream.StreamSupport;
 public class Cover {
 
     @Context
-    public GraphDatabaseAPI db;
+    public GraphDatabaseService db;
 
     @Procedure
     @Description("apoc.algo.cover(nodes) yield rel - returns all relationships between this set of nodes")

@@ -9,6 +9,7 @@ import java.util.concurrent.Future;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.TerminationGuard;
 
 public class PageRankUtils
 {
@@ -44,12 +45,12 @@ public class PageRankUtils
     }
 
     public static void runOperations(ExecutorService pool, final PrimitiveLongIterator it, int totalCount,
-                                     final GraphDatabaseAPI api, OpsRunner runner )
+                                     final GraphDatabaseAPI api, OpsRunner runner, TerminationGuard guard)
     {
         List<Future> futures = new ArrayList<>( totalCount / BATCH_SIZE + 1);
         while ( it.hasNext() )
         {
-            futures.add( pool.submit( new BatchRunnable( api, it, BATCH_SIZE, runner ) ) );
+            futures.add( pool.submit( new BatchRunnable( api, it, BATCH_SIZE, runner, guard) ) );
         }
         PageRankUtils.waitForTasks( futures );
     }
@@ -63,12 +64,12 @@ public class PageRankUtils
     }
 
     public static List<BatchRunnable> prepareOperations(final PrimitiveLongIterator it, int totalCount,
-                                                        final GraphDatabaseAPI api, OpsRunner runner )
+                                                        final GraphDatabaseAPI api, OpsRunner runner, TerminationGuard guard)
     {
         List<BatchRunnable> runners = new ArrayList<>( (int) (totalCount / BATCH_SIZE) + 1);
         while ( it.hasNext() )
         {
-            runners.add( new BatchRunnable( api, it, BATCH_SIZE, runner ) );
+            runners.add( new BatchRunnable( api, it, BATCH_SIZE, runner, guard) );
         }
         return runners;
     }

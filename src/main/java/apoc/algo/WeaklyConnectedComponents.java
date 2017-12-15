@@ -1,33 +1,24 @@
 package apoc.algo;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Stack;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import apoc.algo.wcc.CCVar;
+import apoc.result.CCResult;
 import org.neo4j.collection.primitive.Primitive;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.collection.primitive.PrimitiveLongSet;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.graphdb.*;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Procedure;
 
-import org.neo4j.procedure.Description;
-import apoc.algo.wcc.CCVar;
-import apoc.result.CCResult;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class WeaklyConnectedComponents {
 
 	@Context
-	public GraphDatabaseAPI dbAPI;
+	public GraphDatabaseService db;
 
 	@Context
 	public Log log;
@@ -36,7 +27,7 @@ public class WeaklyConnectedComponents {
 	@Description("CALL apoc.algo.wcc() YIELD number of weakly connected components")
 	public Stream<CCResult> wcc() {
 		List<List<CCVar>> results = new LinkedList<List<CCVar>>();
-		ResourceIterator<Node> nodes = dbAPI.getAllNodes().iterator();
+		ResourceIterator<Node> nodes = db.getAllNodes().iterator();
 		PrimitiveLongSet allNodes = Primitive.longSet(0);
 		while (nodes.hasNext()) {
 			Node node = nodes.next();
@@ -55,7 +46,7 @@ public class WeaklyConnectedComponents {
 			try {
 				long n = it.next();
 				List<CCVar> result = new LinkedList<CCVar>();
-				PrimitiveLongIterator reachableIDs = go(dbAPI.getNodeById(n), Direction.BOTH,result).iterator();
+				PrimitiveLongIterator reachableIDs = go(db.getNodeById(n), Direction.BOTH,result).iterator();
 				while (reachableIDs.hasNext()) {
 					long id = (long) reachableIDs.next();
 					allNodes.remove(id);

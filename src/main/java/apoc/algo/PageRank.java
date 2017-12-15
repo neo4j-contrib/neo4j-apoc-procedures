@@ -32,6 +32,9 @@ public class PageRank {
     public GraphDatabaseAPI db;
 
     @Context
+    public TerminationGuard guard;
+
+    @Context
     public Log log;
 
 
@@ -81,7 +84,7 @@ public class PageRank {
 
         long beforeReading = System.currentTimeMillis();
         log.info("Pagerank: Reading data into local ds");
-        PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(db, pool, log);
+        PageRankArrayStorageParallelCypher pageRank = new PageRankArrayStorageParallelCypher(db, guard, pool, log);
         boolean success = pageRank.readNodeAndRelCypherData(
                 relCypher, nodeCypher,weight, batchSize, concurrency);
         if (!success) {
@@ -110,7 +113,7 @@ public class PageRank {
 
     private Stream<NodeScore> innerPageRank(Long iterations, List<Node> nodes, RelationshipType... types) {
         try {
-            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI(db, pool);
+            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI(db, guard, pool);
             pageRank.compute(iterations.intValue(), types);
             return nodes.stream().map(node -> new NodeScore(node, pageRank.getResult(node.getId())));
         } catch (Exception e) {
@@ -121,7 +124,7 @@ public class PageRank {
     }
     private Stream<PageRankStatistics> innerPageRankStats(int iterations, Map<String,Object> config, RelationshipType... types) {
         try {
-            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI(db, pool);
+            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI(db, guard, pool);
             pageRank.compute(iterations, types);
             if ((boolean)config.getOrDefault(SETTING_WRITE, DEFAULT_PAGE_RANK_WRITE)) {
                 pageRank.writeResultsToDB();

@@ -1,13 +1,13 @@
 package apoc.index;
 
 import apoc.ApocKernelExtensionFactory;
-import apoc.util.Util;
-import org.neo4j.graphdb.NotFoundException;
+import apoc.Pools;
 import apoc.result.WeightedNodeResult;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.Sort;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
@@ -253,7 +253,7 @@ public class FreeTextSearch {
     }
 
     private Executor executor() {
-        return db.getDependencyResolver().resolveDependency(JobScheduler.class).executor(GROUP);
+        return Pools.DEFAULT;
     }
 
     static Analyzer analyzer() {

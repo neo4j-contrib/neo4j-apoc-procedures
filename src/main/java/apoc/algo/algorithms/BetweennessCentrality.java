@@ -5,6 +5,7 @@ import org.neo4j.collection.primitive.Primitive;
 import org.neo4j.collection.primitive.PrimitiveIntObjectMap;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -24,13 +25,15 @@ public class BetweennessCentrality implements AlgorithmInterface {
     private PrimitiveIntObjectMap intermediateBcPerThread;
     float betweennessCentrality[];
     private String property;
+    private final TerminationGuard guard;
 
     public BetweennessCentrality(GraphDatabaseAPI db,
-                                 ExecutorService pool, Log log)
+                                 ExecutorService pool, Log log, TerminationGuard guard)
     {
         this.pool = pool;
         this.db = db;
         this.log = log;
+        this.guard = guard;
         algorithm = new Algorithm(db, pool, log);
     }
 
@@ -272,7 +275,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
         this.property = property;
         stats.write = true;
         long before = System.currentTimeMillis();
-        AlgoUtils.writeBackResults(pool, db, this, WRITE_BATCH);
+        AlgoUtils.writeBackResults(pool, db, this, WRITE_BATCH, guard);
         stats.writeMillis = System.currentTimeMillis() - before;
         stats.property = getPropertyName();
     }

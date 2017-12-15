@@ -12,6 +12,7 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.values.storable.DoubleValue;
 import org.neo4j.values.storable.Value;
 import org.neo4j.values.storable.Values;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,12 +59,12 @@ public class AlgoUtils {
     }
 
     public static void writeBackResults(ExecutorService pool, GraphDatabaseAPI db, AlgorithmInterface algorithm,
-                                        int batchSize) {
+                                        int batchSize, TerminationGuard guard) {
         ThreadToStatementContextBridge ctx = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
         int propertyNameId;
         try (Transaction tx = db.beginTx()) {
             // If the transaction is terminated just return
-            if (Util.transactionIsTerminated(db)) {
+            if (Util.transactionIsTerminated(guard)) {
                 return;
             }
             propertyNameId = ctx.get().tokenWriteOperations().propertyKeyGetOrCreateForName(algorithm.getPropertyName());
@@ -81,7 +82,7 @@ public class AlgoUtils {
                 public void run() {
                     try (Transaction tx = db.beginTx()) {
                         // If the transaction is terminated just return
-                        if (Util.transactionIsTerminated(db)) {
+                        if (Util.transactionIsTerminated(guard)) {
                             return;
                         }
 

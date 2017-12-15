@@ -3,25 +3,20 @@ package apoc.algo;
 import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import static apoc.util.Util.parseDirection;
 
 public class LabelPropagation {
-    static final ExecutorService pool = Pools.DEFAULT;
-
     @Context
     public GraphDatabaseService db;
-
     @Context
-    public GraphDatabaseAPI dbAPI;
+    public TerminationGuard guard;
 
     @Context
     public Log log;
@@ -48,13 +43,13 @@ public class LabelPropagation {
         for (int i = 0; i < times; i++) {
             List<Node> batch = null;
             List<Future<Void>> futures = new ArrayList<>();
-            try (Transaction tx = dbAPI.beginTx()) {
+            try (Transaction tx = db.beginTx()) {
                 // Before doing anything we check the transaction status
-                if (Util.transactionIsTerminated(dbAPI)) {
+                if (Util.transactionIsTerminated(guard)) {
                     return;
                 }
 
-                for (Node node : dbAPI.getAllNodes()) {
+                for (Node node : db.getAllNodes()) {
                     boolean add = labels.size() == 0;
                     if (!add) {
                         Iterator<Label> nodeLabels = node.getLabels().iterator();
@@ -88,7 +83,7 @@ public class LabelPropagation {
     }
 
     private Future<Void> clusterBatch(List<Node> batch, String partitionKey, RelationshipType relationshipType, Direction direction, String weightKey) {
-        return Pools.processBatch(batch, dbAPI, (node) -> {
+        return Pools.processBatch(batch, db, (node) -> {
             Map<Object, Double> votes = new HashMap<>();
             for (Relationship rel :
                     relationshipType == null

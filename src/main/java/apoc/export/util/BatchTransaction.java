@@ -9,7 +9,7 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 * @since 16.01.14
 */
 public class BatchTransaction implements AutoCloseable {
-    private final GraphDatabaseAPI gdb;
+    private final GraphDatabaseService gdb;
     private final int batchSize;
     private final Reporter reporter;
     Transaction tx;

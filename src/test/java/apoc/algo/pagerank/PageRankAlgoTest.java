@@ -16,6 +16,9 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.TerminationGuard;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static org.junit.Assert.assertEquals;
@@ -61,12 +64,18 @@ public class PageRankAlgoTest
 
     public static final double EXPECTED = 2.87711;
     static ExecutorService pool = Pools.DEFAULT;
+    private TerminationGuard guard = new TerminationGuard() {
+        @Override
+        public void check() {
+        }
+    };
 
     @Before
     public void setUp() throws Exception
     {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure( db, LabelPropagation.class );
+
     }
 
     @After
@@ -80,7 +89,7 @@ public class PageRankAlgoTest
     {
         db.execute( COMPANIES_QUERY ).close();
         try (Transaction tx = db.beginTx()) {
-            PageRank pageRank = new PageRankArrayStorageParallelSPI(db, pool);
+            PageRank pageRank = new PageRankArrayStorageParallelSPI(db, guard, pool);
             pageRank.compute(20);
             long id = (long) getEntry("b").get("id");
             assertEquals(EXPECTED, pageRank.getResult(id), 0.1D);
@@ -97,7 +106,7 @@ public class PageRankAlgoTest
     {
         db.execute( COMPANIES_QUERY ).close();
         try (Transaction tx = db.beginTx()) {
-            PageRank pageRank = new PageRankArrayStorageParallelSPI(db, pool);
+            PageRank pageRank = new PageRankArrayStorageParallelSPI(db, guard, pool);
             pageRank.compute(20, RelationshipType.withName("TYPE_1"), RelationshipType.withName("TYPE_2"));
             long id = (long) getEntry("b").get("id");
             assertEquals(EXPECTED, pageRank.getResult(id), 0.1D);

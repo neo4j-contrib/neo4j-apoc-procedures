@@ -1,13 +1,13 @@
 package apoc.periodic;
 
-import org.neo4j.procedure.*;
 import apoc.Pools;
 import apoc.util.Util;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
+import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -24,7 +24,7 @@ import static java.util.Collections.singletonMap;
 
 public class Periodic {
 
-    @Context public GraphDatabaseAPI db;
+    @Context public GraphDatabaseService db;
 
     @Context public Log log;
 
@@ -142,7 +142,7 @@ public class Periodic {
         return Stream.empty();
     }
 
-    @Procedure
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.submit('name',statement) - submit a one-off background statement")
     public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement) {
         JobInfo info = submit(name, () -> {
@@ -155,7 +155,7 @@ public class Periodic {
         return Stream.of(info);
     }
 
-    @Procedure
+    @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.repeat('name',statement,repeat-rate-in-seconds) submit a repeatedly-called background statement")
     public Stream<JobInfo> repeat(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
         JobInfo info = schedule(name, () -> Iterators.count(db.execute(statement)),0,rate);

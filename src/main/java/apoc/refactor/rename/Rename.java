@@ -4,14 +4,10 @@ import apoc.periodic.Periodic;
 import apoc.periodic.Periodic.BatchAndTotalResult;
 import apoc.util.MapUtil;
 import apoc.util.Util;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
@@ -29,7 +25,7 @@ import java.util.stream.Stream;
  */
 public class Rename {
 
-	@Context public GraphDatabaseAPI db;
+	@Context public GraphDatabaseService db;
     @Context public Log log;
     @Context public KernelTransaction tx;
 
@@ -95,7 +91,7 @@ public class Rename {
 	/*
 	 * Create the response for rename apoc with impacted constraints and indexes
 	 */
-	private Stream<BatchAndTotalResultWithInfo> getResultOfBatchAndTotalWithInfo(Stream<BatchAndTotalResult> iterate, GraphDatabaseAPI db, String label, String rel, String prop) {
+	private Stream<BatchAndTotalResultWithInfo> getResultOfBatchAndTotalWithInfo(Stream<BatchAndTotalResult> iterate, GraphDatabaseService db, String label, String rel, String prop) {
 		List<String> constraints = new ArrayList<>();
 		List<String> indexes = new ArrayList<>();
 

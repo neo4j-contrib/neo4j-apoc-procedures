@@ -6,6 +6,7 @@ import apoc.algo.algorithms.AlgorithmInterface;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmIn
     public static final int INITIAL_ARRAY_SIZE=100_000;
     public final int BATCH_SIZE = 100_000 ;
     private final GraphDatabaseAPI db;
+    private final TerminationGuard guard;
     private final Log log;
     private final ExecutorService pool;
     private int nodeCount;
@@ -38,8 +40,9 @@ public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmIn
 
     public PageRankArrayStorageParallelCypher(
             GraphDatabaseAPI db,
-            ExecutorService pool, Log log)
+            TerminationGuard guard, ExecutorService pool, Log log)
     {
+        this.guard = guard;
         this.pool = pool;
         this.db = db;
         this.log = log;
@@ -177,7 +180,7 @@ public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmIn
         this.property = property;
         stats.write = true;
         long before = System.currentTimeMillis();
-        AlgoUtils.writeBackResults(pool, db, this, WRITE_BATCH);
+        AlgoUtils.writeBackResults(pool, db, this, WRITE_BATCH, guard);
         stats.writeMillis = System.currentTimeMillis() - before;
         stats.property = getPropertyName();
     }

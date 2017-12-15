@@ -9,11 +9,11 @@ import apoc.util.Util;
 import org.neo4j.cypher.export.CypherResultSubGraph;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.*;
 
 import javax.xml.stream.XMLStreamException;
@@ -31,7 +31,7 @@ import static apoc.export.util.FileUtils.getPrintWriter;
  */
 public class ExportGraphML {
     @Context
-    public GraphDatabaseAPI db;
+    public GraphDatabaseService db;
 
     @Procedure(name = "apoc.import.graphml",mode = Mode.WRITE)
     @Description("apoc.import.graphml(file,config) - imports graphml file")

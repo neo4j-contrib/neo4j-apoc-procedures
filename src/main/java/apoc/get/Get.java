@@ -1,12 +1,11 @@
 package apoc.get;
 
-import org.neo4j.procedure.Description;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
@@ -15,9 +14,9 @@ import java.util.stream.Stream;
 public class Get {
 
     @Context
-    public GraphDatabaseAPI db;
+    public GraphDatabaseService db;
 
-    public Get(GraphDatabaseAPI db) {
+    public Get(GraphDatabaseService db) {
         this.db = db;
     }
 

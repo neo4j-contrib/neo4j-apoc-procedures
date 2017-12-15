@@ -14,10 +14,7 @@ import org.neo4j.kernel.impl.store.format.standard.RelationshipRecordFormat;
 import org.neo4j.kernel.impl.store.record.*;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -36,6 +33,8 @@ public class Warmup {
     private static final int PAGE_SIZE = 1 << 13;
     @Context
     public GraphDatabaseAPI db;
+    @Context
+    public TerminationGuard guard;
     @Context
     public Log log;
 
@@ -59,10 +58,10 @@ public class Warmup {
             this.recordsPerPage = store.getRecordsPerPage();
             this.count = count;
         }
-        public void load(GraphDatabaseAPI db) {
+        public void load(GraphDatabaseAPI db, TerminationGuard guard) {
             long start = System.nanoTime();
             try {
-                this.pages = loadRecords(recordsPerPage, highId, store, initalRecord, db);
+                this.pages = loadRecords(recordsPerPage, highId, store, initalRecord, db, guard);
             } finally {
                time = NANOSECONDS.toSeconds(System.nanoTime() - start);
             }
@@ -90,7 +89,7 @@ public class Warmup {
             records.put(StoreType.PROPERTY_STRING,new Records<>(neoStore.getRecordStore(StoreType.PROPERTY_STRING),new DynamicRecord(-1)));
             records.put(StoreType.PROPERTY_ARRAY, new Records<>(neoStore.getRecordStore(StoreType.PROPERTY_ARRAY),new DynamicRecord(-1)));
         }
-        records.values().parallelStream().forEach((r)->r.load(db));
+        records.values().parallelStream().forEach((r)->r.load(db,guard));
 
         WarmupResult result = new WarmupResult(
                 PAGE_SIZE,
@@ -100,7 +99,7 @@ public class Warmup {
                 loadProperties,
                 records.get(StoreType.PROPERTY),
                 records.values().stream().mapToLong((r)->r.time).sum(),
-                Util.transactionIsTerminated(db),
+                Util.transactionIsTerminated(guard),
                 loadDynamicProperties,
                 records.get(StoreType.PROPERTY_STRING),
                 records.get(StoreType.PROPERTY_ARRAY)
@@ -108,7 +107,7 @@ public class Warmup {
         return Stream.of(result);
     }
 
-    public static <R extends AbstractBaseRecord> long loadRecords(int recordsPerPage, long highestRecordId, RecordStore<R> recordStore, R record, GraphDatabaseAPI db) {
+    public static <R extends AbstractBaseRecord> long loadRecords(int recordsPerPage, long highestRecordId, RecordStore<R> recordStore, R record, GraphDatabaseAPI db, TerminationGuard guard) {
         long[] ids = new long[BATCH_SIZE];
         long pages = 0;
         int idx = 0;
@@ -118,20 +117,20 @@ public class Warmup {
             if (idx == BATCH_SIZE) {
                 long[] submitted = ids.clone();
                 idx = 0;
-                futures.add(Util.inTxFuture(Pools.DEFAULT, db, () -> loadRecords(submitted, record, recordStore, db)));
+                futures.add(Util.inTxFuture(Pools.DEFAULT, db, () -> loadRecords(submitted, record, recordStore, guard)));
             }
             pages += removeDone(futures, false);
         }
         if (idx > 0) {
             long[] submitted = Arrays.copyOf(ids, idx);
-            futures.add(Util.inTxFuture(Pools.DEFAULT, db, () -> loadRecords(submitted, record, recordStore, db)));
+            futures.add(Util.inTxFuture(Pools.DEFAULT, db, () -> loadRecords(submitted, record, recordStore, guard)));
         }
         pages += removeDone(futures, true);
         return pages;
     }
 
-    public static <R extends AbstractBaseRecord> long loadRecords(long[] submitted, R record, RecordStore<R> recordStore, GraphDatabaseAPI db) {
-        if (Util.transactionIsTerminated(db)) return 0;
+    public static <R extends AbstractBaseRecord> long loadRecords(long[] submitted, R record, RecordStore<R> recordStore, TerminationGuard guard) {
+        if (Util.transactionIsTerminated(guard)) return 0;
         for (long recordId : submitted) {
             record.setId(recordId);
             record.clear();

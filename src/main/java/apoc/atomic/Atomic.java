@@ -4,17 +4,20 @@ import apoc.atomic.util.AtomicUtils;
 import apoc.util.ArrayBackedList;
 import apoc.util.MapUtil;
 import org.apache.commons.lang3.ArrayUtils;
-import org.neo4j.graphdb.*;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Lock;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.helpers.TransactionTemplate;
 import org.neo4j.procedure.*;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import org.neo4j.helpers.TransactionTemplate;
 
 /**
  * @author AgileLARUS
@@ -23,7 +26,7 @@ import org.neo4j.helpers.TransactionTemplate;
 public class Atomic {
 
     @Context
-    public GraphDatabaseAPI db;
+    public GraphDatabaseService db;
 
     /**
      * increment a property's value

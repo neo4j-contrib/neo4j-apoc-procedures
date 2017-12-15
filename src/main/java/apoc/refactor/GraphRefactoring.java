@@ -1,15 +1,14 @@
 package apoc.refactor;
 
+import apoc.Pools;
 import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
-import apoc.result.RelationshipResult;
-import org.neo4j.procedure.*;
-import apoc.Pools;
 import apoc.result.NodeResult;
+import apoc.result.RelationshipResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
+import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -19,9 +18,6 @@ import java.util.stream.Stream;
 public class GraphRefactoring {
     @Context
     public GraphDatabaseService db;
-
-    @Context
-    public GraphDatabaseAPI dbAPI;
 
     @Context
     public Log log;
@@ -264,8 +260,8 @@ public class GraphRefactoring {
         // Create batches of nodes
         List<Node> batch = null;
         List<Future<Void>> futures = new ArrayList<>();
-        try(Transaction tx = dbAPI.beginTx()) {
-            for (Node node : dbAPI.getAllNodes()) {
+        try(Transaction tx = db.beginTx()) {
+            for (Node node : db.getAllNodes()) {
                 if (batch == null) {
                     batch = new ArrayList<>((int) batchSize);
                 }
@@ -288,7 +284,7 @@ public class GraphRefactoring {
     }
 
     private Future<Void> categorizeNodes(List<Node> batch, String sourceKey, String relationshipType, Boolean outgoing, String label, String targetKey, List<String> copiedKeys) {
-        return Pools.processBatch(batch, dbAPI, (Node node) -> {
+        return Pools.processBatch(batch, db, (Node node) -> {
             Object value = node.getProperty(sourceKey, null);
             if (value != null) {
                 String q =
@@ -300,7 +296,7 @@ public class GraphRefactoring {
                 Map<String, Object> params = new HashMap<>(2);
                 params.put("node", node);
                 params.put("value", value);
-                Result result = dbAPI.execute(q, params);
+                Result result = db.execute(q, params);
                 if (result.hasNext()) {
                     Node cat = (Node) result.next().get("cat");
                     for (String copiedKey : copiedKeys) {
