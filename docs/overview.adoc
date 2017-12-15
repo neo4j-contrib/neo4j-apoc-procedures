@@ -193,7 +193,7 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 | apoc.convert.toSortedJsonMap(node\|map, ignoreCase:true ) | returns a JSON map with keys sorted alphabetically, with optional case sensitivity
 | apoc.convert.fromJsonList('[1,2,3]') | converts json list to Cypher list
 | apoc.convert.fromJsonMap( '{"a":42,"b":"foo","c":[1,2,3]}') | converts json map to Cypher map
-| apoc.convert.toTree([paths]) | creates a stream of nested documents representing the at least one root of these paths
+| apoc.convert.toTree([paths],[lowerCaseRels=true]) | creates a stream of nested documents representing the at least one root of these paths
 | apoc.convert.getJsonProperty(node,key) | converts serialized JSON in property back to original object
 | apoc.convert.getJsonPropertyMap(node,key) | converts serialized JSON in property back to map
 | CALL apoc.convert.toTree([paths]) yield value | creates a stream of nested documents representing the at least one root of these paths
