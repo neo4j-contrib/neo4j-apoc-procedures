@@ -105,6 +105,20 @@ public class ExportCsvTest {
         assertEquals(EXPECTED_QUERY_NODES, new Scanner(output).useDelimiter("\\Z").next());
     }
 
+    @Test
+    public void testExportQueryNodesCsvParams() throws Exception {
+        File output = new File(directory, "query_nodes.csv");
+        String query = "MATCH (u:User) WHERE u.age > {age} return u";
+        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},{params:{age:10}})", map("file", output.getAbsolutePath(),"query",query),
+                (r) -> {
+                    assertEquals(true,r.get("source").toString().contains("statement: cols(1)"));
+                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    assertEquals("csv", r.get("format"));
+
+                });
+        assertEquals(EXPECTED_QUERY_NODES, new Scanner(output).useDelimiter("\\Z").next());
+    }
+
     private void assertResults(File output, Map<String, Object> r, final String source) {
         assertEquals(3L, r.get("nodes"));
         assertEquals(1L, r.get("relationships"));
