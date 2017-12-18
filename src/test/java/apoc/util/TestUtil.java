@@ -93,6 +93,7 @@ public class TestUtil {
         for (Class<?> procedure : procedures) {
             proceduresService.registerProcedure(procedure);
             proceduresService.registerFunction(procedure);
+            proceduresService.registerAggregationFunction(procedure);
         }
     }
 
