@@ -15,6 +15,7 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ConvertJsonTest {
 
@@ -100,6 +101,14 @@ public class ConvertJsonTest {
                     assertEquals(true, actors.get(0).get("ACTED_IN.role").toString().matches("R[12]"));
                 });
     }
+    @Test public void testTreeOfEmptyList() throws Exception {
+        testCall(db, " CALL apoc.convert.toTree([]) YIELD value RETURN value",
+                (row) -> {
+                    Map root = (Map) row.get("value");
+                    assertTrue(root.isEmpty());
+                });
+    }
+
     @Test public void testToTreeLeafNodes() throws Exception {
         String createStatement = "CREATE\n" +
                 "  (c1:Category {name: 'PC'}),\n" +
