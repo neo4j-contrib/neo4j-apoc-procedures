@@ -5,6 +5,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.scheduler.JobScheduler;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.LockSupport;
@@ -23,6 +24,18 @@ public class Pools {
     public final static ScheduledExecutorService SCHEDULED = createScheduledPool();
     public static JobScheduler NEO4J_SCHEDULER = null;
 
+    static {
+        for (ExecutorService service : Arrays.asList(SINGLE, DEFAULT, SCHEDULED)) {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    service.shutdown();
+                    service.awaitTermination(10,TimeUnit.SECONDS);
+                } catch(Exception ignore) {
+                    //
+                }
+            }));
+        }
+    }
     private Pools() {
         throw new UnsupportedOperationException();
     }
