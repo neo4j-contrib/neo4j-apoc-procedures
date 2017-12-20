@@ -6,7 +6,9 @@ import org.HdrHistogram.HistogramUtil;
 import org.neo4j.procedure.*;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 
@@ -14,15 +16,15 @@ import static java.util.Arrays.asList;
  * @author mh
  * @since 18.12.17
  */
-public class Percentiles {
-    @UserAggregationFunction("apoc.agg.percentiles")
-    @Description("apoc.agg.percentiles(value,[percentiles = 0.5,0.75,0.9,0.95,0.99]) - returns given percentiles for values")
-    public PercentilesFunction percentiles() {
-        return new PercentilesFunction();
+public class Statistics {
+    @UserAggregationFunction("apoc.agg.statistics")
+    @Description("apoc.agg.statistics(value,[percentiles = 0.5,0.75,0.9,0.95,0.99]) - returns numeric statistics (percentiles, min,minNonZero,max,total,mean,stdev) for values")
+    public StatisticsFunction statistics() {
+        return new StatisticsFunction();
     }
 
 
-    public static class PercentilesFunction {
+    public static class StatisticsFunction {
 
         private Histogram values = new Histogram(3);
         private DoubleHistogram doubles;
@@ -45,18 +47,23 @@ public class Percentiles {
         }
 
         @UserAggregationResult
-        public List<Number> result() {
+        public Map<String,Number> result() {
             long totalCount = values != null ? values.getTotalCount() : doubles.getTotalCount();
             boolean empty = totalCount == 0;
-            List<Number> result = new ArrayList<>(percentiles.size());
+            Map<String,Number> result = new LinkedHashMap<>(percentiles.size()+6);
+            result.put("min",values != null ? (Number)values.getMinValue() : (Number)doubles.getMinValue());
+            result.put("minNonZero",values != null ? (Number)values.getMinNonZeroValue() : (Number)doubles.getMinNonZeroValue());
+            result.put("max",values != null ? (Number)values.getMaxValue() : (Number)doubles.getMaxValue());
+            result.put("total",totalCount);
+            result.put("mean",values != null ? values.getMean() : doubles.getMean());
+            result.put("stdev",values != null ? values.getStdDeviation() : doubles.getStdDeviation());
+
             for (Double percentile : percentiles) {
-                if (percentile == null || empty) {
-                    result.add(null);
-                } else {
+                if (percentile != null && !empty) {
                     if (values != null) {
-                        result.add(values.getValueAtPercentile(percentile * 100D));
+                        result.put(percentile.toString(), values.getValueAtPercentile(percentile * 100D));
                     } else {
-                        result.add(doubles.getValueAtPercentile(percentile * 100D));
+                        result.put(percentile.toString(), doubles.getValueAtPercentile(percentile * 100D));
                     }
                 }
             }
