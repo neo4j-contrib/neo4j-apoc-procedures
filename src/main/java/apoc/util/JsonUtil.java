@@ -1,9 +1,6 @@
 package apoc.util;
 
-import apoc.ApocConfiguration;
-import apoc.export.util.FileUtils;
 import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import org.codehaus.jackson.JsonParser;
@@ -11,16 +8,11 @@ import org.codehaus.jackson.map.MappingIterator;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.neo4j.procedure.Name;
 
-import java.io.EOFException;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.Scanner;
-import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 

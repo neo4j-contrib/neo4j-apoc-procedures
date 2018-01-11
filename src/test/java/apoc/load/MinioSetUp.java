@@ -4,8 +4,6 @@ import io.minio.MinioClient;
 import io.minio.Result;
 import io.minio.messages.Item;
 
-import java.util.Iterator;
-
 public class MinioSetUp {
 
     private static final String S3_PROTOCOL = "s3://";
@@ -16,17 +14,14 @@ public class MinioSetUp {
 
     private MinioClient minioClient;
     private String bucketName;
-    private String filePath;
-    private String fileName;
 
-    public MinioSetUp(String bucketName, String filePath) throws Exception{
+    public MinioSetUp(String bucketName) throws Exception{
         minioClient = new MinioClient("https://" + ENDPOINT, ACCESS_KEY, SECRET_KEY, REGION);
         this.bucketName = bucketName;
-        this.filePath = filePath;
-        this.fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
     }
 
-    public String  initialize() throws Exception{
+    public String putFile(String filePath) throws Exception{
+        String fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
         if(!minioClient.bucketExists(bucketName)) {
             minioClient.makeBucket(bucketName);
         }

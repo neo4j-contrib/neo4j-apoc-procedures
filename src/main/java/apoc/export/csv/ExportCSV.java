@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.export.util.FileUtils.checkWriteAllowed;
-import static apoc.export.util.FileUtils.getPrintWriter;
+import static apoc.util.FileUtils.checkWriteAllowed;
+import static apoc.util.FileUtils.getPrintWriter;
 
 /**
  * @author mh

@@ -3,6 +3,7 @@ package apoc;
 import apoc.index.IndexUpdateTransactionEventHandler;
 import apoc.trigger.Trigger;
 import apoc.ttl.TTLLifeCycle;
+import apoc.util.ApocUrlStreamHandlerFactory;
 import org.neo4j.kernel.extension.KernelExtensionFactory;
 import org.neo4j.kernel.impl.logging.LogService;
 import org.neo4j.kernel.impl.proc.Procedures;
@@ -13,12 +14,17 @@ import org.neo4j.kernel.lifecycle.Lifecycle;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 
+import java.net.URL;
+
 /**
  * @author mh
  * @since 14.05.16
  */
 public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKernelExtensionFactory.Dependencies>{
 
+    static {
+        URL.setURLStreamHandlerFactory(new ApocUrlStreamHandlerFactory());
+    }
     public ApocKernelExtensionFactory() {
         super("APOC");
     }

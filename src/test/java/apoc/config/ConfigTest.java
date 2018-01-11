@@ -1,7 +1,7 @@
 package apoc.config;
 
 import apoc.ApocConfiguration;
-import apoc.export.util.FileUtils;
+import apoc.util.FileUtils;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -10,7 +10,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 
 import static org.junit.Assert.*;

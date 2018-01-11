@@ -1,10 +1,14 @@
-package apoc.util.s3util;
+package apoc.util.s3;
 
+import apoc.util.StreamConnection;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
+import com.amazonaws.regions.Regions;
 
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Objects;
 
 public class S3URLConnection extends URLConnection {
 
@@ -37,4 +41,12 @@ public class S3URLConnection extends URLConnection {
 
         return clientConfig;
     }
+
+
+    public static StreamConnection openS3InputStream(URL url) throws IOException {
+        S3Params s3Params = S3ParamsExtractor.extract(url);
+        String region = Objects.nonNull(s3Params.getRegion()) ? s3Params.getRegion() : Regions.US_EAST_1.getName();
+        return new S3Aws(s3Params, region).getS3AwsInputStream(s3Params);
+    }
+
 }

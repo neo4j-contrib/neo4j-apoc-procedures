@@ -24,7 +24,7 @@ import java.util.concurrent.Future;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.export.util.FileUtils.checkWriteAllowed;
+import static apoc.util.FileUtils.checkWriteAllowed;
 
 /**
  * @author mh
