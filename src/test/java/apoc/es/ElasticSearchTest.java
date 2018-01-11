@@ -298,8 +298,8 @@ public class ElasticSearchTest {
             Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"tags\":[\"awesome\"]}", id);
 
             TestUtil.testCall(db, "CALL apoc.es.put({host},{index},{type},{id},null,{payload}) yield value", params, r -> {
-                Object created = extractValueFromResponse(r, "$.created");
-                assertEquals(true, created);
+                Object created = extractValueFromResponse(r, "$.result");
+                assertEquals("created", created);
             });
 
             params = createDefaultProcedureParametersWithPayloadAndId("{\"doc\":{\"tags\":[\"beautiful\"]}}", id + "/_update");
@@ -327,8 +327,8 @@ public class ElasticSearchTest {
             Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"tags\":[\"awesome\"]}", UUID.randomUUID().toString());
 
             TestUtil.testCall(db, "CALL apoc.es.put({host},{index},{type},{id},null,{payload}) yield value", params, r -> {
-                Object created = extractValueFromResponse(r, "$.created");
-                assertEquals(true, created);
+                Object created = extractValueFromResponse(r, "$.result");
+                assertEquals("created", created);
             });
 
             // We try to get the document back

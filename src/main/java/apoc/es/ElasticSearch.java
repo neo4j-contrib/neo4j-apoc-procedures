@@ -107,6 +107,11 @@ public class ElasticSearch {
         return payload.toString();
     }
 
+    private String contentType(Object payload) {
+        return "application/json";
+    }
+
+
     /**
      * @param query
      * @return
@@ -137,38 +142,38 @@ public class ElasticSearch {
     @Procedure
     @Description("apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a GET operation on elastic search")
     public Stream<MapResult> get(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload) {
-        return LoadJson.loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), null, toPayload(payload));
+        return LoadJson.loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("content-type",contentType(payload)), toPayload(payload));
     }
 
     @Procedure
     @Description("apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a SEARCH operation on elastic search")
     public Stream<MapResult> query(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("query") Object query, @Name("payload") Object payload) {
-        return LoadJson.loadJsonStream(getSearchQueryUrl(hostOrKey, index, type, query), null, toPayload(payload));
+        return LoadJson.loadJsonStream(getSearchQueryUrl(hostOrKey, index, type, query), map("content-type",contentType(payload)), toPayload(payload));
     }
 
     @Procedure
     @Description("apoc.es.getRaw(host-or-port,path,payload-or-null) yield value - perform a raw GET operation on elastic search")
     public Stream<MapResult> getRaw(@Name("host") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload) {
         String url = getElasticSearchUrl(hostOrKey);
-        return LoadJson.loadJsonStream(url + "/" + suffix, null, toPayload(payload));
+        return LoadJson.loadJsonStream(url + "/" + suffix, map("content-type",contentType(payload)), toPayload(payload));
     }
 
     @Procedure
     @Description("apoc.es.postRaw(host-or-port,path,payload-or-null) yield value - perform a raw POST operation on elastic search")
     public Stream<MapResult> postRaw(@Name("host") String hostOrKey, @Name("path") String suffix, @Name("payload") Object payload) {
         String url = getElasticSearchUrl(hostOrKey);
-        return LoadJson.loadJsonStream(url + "/" + suffix, map("method", "POST"), toPayload(payload));
+        return LoadJson.loadJsonStream(url + "/" + suffix, map("method", "POST","content-type",contentType(payload)), toPayload(payload));
     }
 
     @Procedure
     @Description("apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a POST operation on elastic search")
     public Stream<MapResult> post(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload) {
-        return LoadJson.loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("method", "POST"), toPayload(payload));
+        return LoadJson.loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("method", "POST","content-type",contentType(payload)), toPayload(payload));
     }
 
     @Procedure
     @Description("apoc.es.put(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a PUT operation on elastic search")
     public Stream<MapResult> put(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload) {
-        return LoadJson.loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("method", "PUT"), toPayload(payload));
+        return LoadJson.loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("method", "PUT","content-type",contentType(payload)), toPayload(payload));
     }
 }
