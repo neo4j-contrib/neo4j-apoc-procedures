@@ -1,4 +1,4 @@
-package apoc.util.s3util;
+package apoc.util.s3;
 
 public class S3Params {
 

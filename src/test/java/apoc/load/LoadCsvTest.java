@@ -23,6 +23,7 @@ import static org.junit.Assert.assertFalse;
 public class LoadCsvTest {
 
     private GraphDatabaseService db;
+
     @Before public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig("apoc.import.file.enabled","true").newGraphDatabase();
         TestUtil.registerProcedure(db, LoadCsv.class);
@@ -82,7 +83,7 @@ RETURN m.col_1,m.col_2,m.col_3
                 });
     }
 
-    private void assertRow(Result r, long lineNo, Object...data) {
+    static void assertRow(Result r, long lineNo, Object...data) {
         Map<String, Object> row = r.next();
         Map<String, Object> map = map(data);
         assertEquals(map, row.get("map"));
@@ -93,7 +94,7 @@ RETURN m.col_1,m.col_2,m.col_3
         assertEquals(new ArrayList<>(stringMap.values()), row.get("strings"));
         assertEquals(lineNo, row.get("lineNo"));
     }
-    private void assertRow(Result r, String name, String age, long lineNo) {
+    static void assertRow(Result r, String name, String age, long lineNo) {
         Map<String, Object> row = r.next();
         assertEquals(map("name", name,"age", age), row.get("map"));
         assertEquals(asList(name, age), row.get("list"));
@@ -208,22 +209,5 @@ RETURN m.col_1,m.col_2,m.col_3
                     assertEquals(Collections.emptyMap(), row.get("stringMap"));
                     assertEquals(false, r.hasNext());
                 });
-    }
-
-    @Test
-    public void testLoadCsvS3() throws Exception {
-        String bucketName = "dddbucketddd";
-        String filePath = "src/test/resources/test.csv";
-        MinioSetUp minioSetUp = new MinioSetUp(bucketName, filePath);
-        String url = minioSetUp.initialize();
-
-        testResult(db, "CALL apoc.load.csv({url},{failOnError:false})", map("url", url), (r) -> {
-            assertRow(r, "Selma", "8", 0L);
-            assertRow(r, "Rana", "11", 1L);
-            assertRow(r, "Selina", "18", 2L);
-            assertEquals(false, r.hasNext());
-        });
-
-        minioSetUp.deleteAll();
     }
 }

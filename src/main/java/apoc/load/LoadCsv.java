@@ -1,7 +1,7 @@
 package apoc.load;
 
 import apoc.export.util.CountingReader;
-import apoc.export.util.FileUtils;
+import apoc.util.FileUtils;
 import apoc.meta.Meta;
 import apoc.util.Util;
 import au.com.bytecode.opencsv.CSVReader;

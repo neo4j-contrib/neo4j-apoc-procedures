@@ -105,18 +105,4 @@ public class LoadJsonTest {
                     assertFalse(row.hasNext());
                 });
     }
-
-    @Test public void testLoadJsonS3() throws Exception {
-        String bucketName = "dddbucketddd";
-        String filePath = "src/test/resources/map.json";
-        MinioSetUp minioSetUp = new MinioSetUp(bucketName, filePath);
-        String url = minioSetUp.initialize();
-
-	    testCall(db, "CALL apoc.load.json({url},'')",map("url", url),
-                    (row) -> {
-                        assertEquals(map("foo",asList(1,2,3)), row.get("value"));
-                    });
-
-        minioSetUp.deleteAll();
-    }
 }

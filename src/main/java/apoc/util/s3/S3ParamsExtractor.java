@@ -1,9 +1,8 @@
-package apoc.util.s3util;
+package apoc.util.s3;
 
 import apoc.util.Util;
 import com.amazonaws.regions.Regions;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Map;
 import java.util.Objects;

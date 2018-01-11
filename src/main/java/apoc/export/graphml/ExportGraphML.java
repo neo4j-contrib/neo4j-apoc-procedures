@@ -1,7 +1,7 @@
 package apoc.export.graphml;
 
 import apoc.export.util.ExportConfig;
-import apoc.export.util.FileUtils;
+import apoc.util.FileUtils;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.export.util.FileUtils.getPrintWriter;
+import static apoc.util.FileUtils.getPrintWriter;
 
 /**
  * @author mh

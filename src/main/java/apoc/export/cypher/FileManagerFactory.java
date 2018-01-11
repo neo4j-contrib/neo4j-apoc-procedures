@@ -1,6 +1,6 @@
 package apoc.export.cypher;
 
-import apoc.export.util.FileUtils;
+import apoc.util.FileUtils;
 
 import java.io.IOException;
 import java.io.PrintWriter;

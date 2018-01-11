@@ -1,6 +1,6 @@
 package apoc.load;
 
-import apoc.export.util.FileUtils;
+import apoc.util.FileUtils;
 import apoc.result.MapResult;
 import apoc.result.NodeResult;
 import apoc.util.Util;
@@ -26,7 +26,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
@@ -69,7 +68,7 @@ public class Xml {
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 
             FileUtils.checkReadAllowed(url);
-            Document doc = Util.builderDocument(url, documentBuilder);
+            Document doc = documentBuilder.parse(Util.openInputStream(url, Collections.emptyMap(), null));
             XPathFactory xPathFactory = XPathFactory.newInstance();
 
             XPath xPath = xPathFactory.newXPath();

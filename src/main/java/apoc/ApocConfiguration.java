@@ -2,11 +2,9 @@ package apoc;
 
 import apoc.cache.Static;
 import apoc.util.Util;
-import apoc.util.s3util.S3UrlStreamHandlerFactory;
 import org.neo4j.kernel.configuration.Config;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -25,7 +23,6 @@ public class ApocConfiguration {
     static {
         PARAM_WHITELIST.put("dbms.directories.import", "import.file.directory");
         PARAM_WHITELIST.put("dbms.security.allow_csv_import_from_file_urls", "import.file.allow_read_from_filesystem");
-        URL.setURLStreamHandlerFactory(new S3UrlStreamHandlerFactory());
     }
 
     public static void initialize(GraphDatabaseAPI db) {
