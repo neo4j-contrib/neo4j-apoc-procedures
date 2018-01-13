@@ -42,7 +42,7 @@ public class FileUtils {
 
 	private static CountingReader readHdfs(String fileName) {
 		try {
-			InputStream inputStream = HDFSUtils.invokeFileSystemOpen(fileName);
+	        InputStream inputStream = HDFSUtils.readFile(fileName);
 			Reader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
 			return new CountingReader(reader, inputStream.available());
 		} catch (Exception e) {
@@ -96,17 +96,11 @@ public class FileUtils {
         Writer writer;
         
         if (HDFSUtils.isHdfs(fileName)) {
-        	Pattern pattern = Pattern.compile("^(hdfs:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
-        	Matcher matcher = pattern.matcher(fileName);
-        	if (matcher.find()) {
-				try {
-					writer = new OutputStreamWriter(HDFSUtils.invokeFileSystemCreate(fileName));
-				} catch (Exception e) {
-					throw new RuntimeException(e);
-				}
-        	} else {
-        		return null;
-        	}
+        	try {
+				writer = new OutputStreamWriter(HDFSUtils.writeFile(fileName));
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
         } else {
         	writer = fileName.equals("-") ? out : new BufferedWriter(new FileWriter(fileName));
         }
