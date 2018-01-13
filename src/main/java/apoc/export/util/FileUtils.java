@@ -1,12 +1,24 @@
 package apoc.export.util;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.Writer;
+import java.net.URI;
+import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import apoc.ApocConfiguration;
 import apoc.util.Util;
-
-import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 /**
  * @author mh
@@ -17,14 +29,32 @@ public class FileUtils {
     public static CountingReader readerFor(String fileName) throws IOException {
         checkReadAllowed(fileName);
         if (fileName==null) return null;
-        fileName= changeFileUrlIfImportDirectoryConstrained(fileName);
+        fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
         if (fileName.matches("^\\w+:/.+")) {
-            return Util.openInputStream(fileName,null,null).asReader();
+        	if (HDFSUtils.isHdfs(fileName)) {
+        		return readHdfs(fileName);
+        	} else {
+        		return Util.openInputStream(fileName,null,null).asReader();
+        	}
         }
-        File file = new File(fileName);
+        return readFile(fileName);
+    }
+
+	private static CountingReader readHdfs(String fileName) {
+		try {
+	        InputStream inputStream = HDFSUtils.readFile(fileName);
+			Reader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+			return new CountingReader(reader, inputStream.available());
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static CountingReader readFile(String fileName) throws IOException, FileNotFoundException {
+		File file = new File(fileName);
         if (!file.exists() || !file.isFile() || !file.canRead()) throw new IOException("Cannot open file "+fileName+" for reading.");
         return new CountingReader(file);
-    }
+	}
 
     public static String changeFileUrlIfImportDirectoryConstrained(String url) throws IOException {
         if (isFile(url) && ApocConfiguration.isEnabled("import.file.use_neo4j_config")) {
@@ -52,17 +82,29 @@ public class FileUtils {
         }
         return url;
     }
-
+    
     public static boolean isFile(String fileName) {
         if (fileName==null) return false;
         if (fileName.toLowerCase().startsWith("http")) return false;
+        if (HDFSUtils.isHdfs(fileName)) return false;
         if (fileName.toLowerCase().startsWith("file:")) return true;
         return true;
     }
 
     public static PrintWriter getPrintWriter(String fileName, Writer out) throws IOException {
         if (fileName == null) return null;
-        Writer writer = fileName.equals("-") ? out : new BufferedWriter(new FileWriter(fileName));
+        Writer writer;
+        
+        if (HDFSUtils.isHdfs(fileName)) {
+        	try {
+				writer = new OutputStreamWriter(HDFSUtils.writeFile(fileName));
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+        } else {
+        	writer = fileName.equals("-") ? out : new BufferedWriter(new FileWriter(fileName));
+        }
+        
         return new PrintWriter(writer);
     }
 

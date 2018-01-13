@@ -45,7 +45,6 @@ ext {
 repositories {
     maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
     mavenCentral()
-    maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
     maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
     flatDir { dirs 'lib' }
 }
@@ -81,6 +80,10 @@ dependencies {
     testCompile group: 'org.neo4j', name: 'neo4j-io', version:neo4jVersionEffective, classifier: "tests"
     testCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
     testCompile group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
+    
+    testCompile group: 'org.apache.hadoop', name: 'hadoop-client', version: '2.7.1'
+    testCompile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '2.7.1'
+
 
     compileOnly 'org.mongodb:mongodb-driver:3.2.2'
     testCompile 'org.mongodb:mongodb-driver:3.2.2'
