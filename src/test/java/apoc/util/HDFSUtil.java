@@ -37,7 +37,7 @@ public class HDFSUtil {
     	setHadoopHomeWindows();
     	Configuration conf = new HdfsConfiguration();
     	conf.set("fs.defaultFS", "hdfs://localhost");
-		File hdfsPath = new File(Path.SEPARATOR + "hadoop" + Path.SEPARATOR + "hdfs");
+		File hdfsPath = new File(System.getProperty("user.dir") + Path.SEPARATOR + "hadoop" + Path.SEPARATOR + "hdfs");
 		conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, hdfsPath.getAbsolutePath());
 		MiniDFSCluster miniDFSCluster = new MiniDFSCluster.Builder(conf)
                 .nameNodePort(12345)
