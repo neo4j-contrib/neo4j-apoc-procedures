@@ -14,8 +14,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import apoc.ApocConfiguration;
 import apoc.util.Util;

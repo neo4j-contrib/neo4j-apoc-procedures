@@ -81,7 +81,8 @@ dependencies {
     testCompile group: 'com.oracle', name: 'ojdbc7', version: '12.1.0.2'
     testCompile group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
     
-    testCompile group: 'org.apache.hadoop', name: 'hadoop-client', version: '2.7.1'
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.1'
+    compileOnly group: 'org.apache.hadoop', name: 'hadoop-common', version: '2.7.1'
     testCompile group: 'org.apache.hadoop', name: 'hadoop-minicluster', version: '2.7.1'
 
 

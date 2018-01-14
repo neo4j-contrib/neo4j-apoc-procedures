@@ -3,7 +3,6 @@ package apoc.util;
 import java.io.File;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 
@@ -20,8 +19,8 @@ public class HDFSUtil {
     }
 
 	private static void loadLibs(String windowsLibDir) {
-		System.load(new File(windowsLibDir + Path.SEPARATOR + "/bin/hadoop.dll").getAbsolutePath());
-		System.load(new File(windowsLibDir + Path.SEPARATOR + "/bin/hdfs.dll").getAbsolutePath());
+		System.load(new File(windowsLibDir + File.separator + "/bin/hadoop.dll").getAbsolutePath());
+		System.load(new File(windowsLibDir + File.separator + "/bin/hdfs.dll").getAbsolutePath());
 	}
 
     private static String getHadoopHome() {
@@ -37,7 +36,7 @@ public class HDFSUtil {
     	setHadoopHomeWindows();
     	Configuration conf = new HdfsConfiguration();
     	conf.set("fs.defaultFS", "hdfs://localhost");
-		File hdfsPath = new File(System.getProperty("user.dir") + Path.SEPARATOR + "hadoop" + Path.SEPARATOR + "hdfs");
+		File hdfsPath = new File(System.getProperty("user.dir") + File.separator + "hadoop" + File.separator + "hdfs");
 		conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, hdfsPath.getAbsolutePath());
 		MiniDFSCluster miniDFSCluster = new MiniDFSCluster.Builder(conf)
                 .nameNodePort(12345)
