@@ -14,6 +14,8 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import apoc.ApocConfiguration;
 import apoc.util.Util;
@@ -23,13 +25,15 @@ import apoc.util.Util;
  * @since 22.05.16
  */
 public class FileUtils {
+	
+	public static Pattern HDFS_PATTERN = Pattern.compile("^(hdfs:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
 
     public static CountingReader readerFor(String fileName) throws IOException {
         checkReadAllowed(fileName);
         if (fileName==null) return null;
         fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
         if (fileName.matches("^\\w+:/.+")) {
-        	if (HDFSUtils.isHdfs(fileName)) {
+        	if (isHdfs(fileName)) {
         		return readHdfs(fileName);
         	} else {
         		return Util.openInputStream(fileName,null,null).asReader();
@@ -81,10 +85,15 @@ public class FileUtils {
         return url;
     }
     
+    private static boolean isHdfs(String fileName) {
+    	Matcher matcher = HDFS_PATTERN.matcher(fileName);
+    	return matcher.find();
+    }
+    
     public static boolean isFile(String fileName) {
         if (fileName==null) return false;
         if (fileName.toLowerCase().startsWith("http")) return false;
-        if (HDFSUtils.isHdfs(fileName)) return false;
+        if (isHdfs(fileName)) return false;
         if (fileName.toLowerCase().startsWith("file:")) return true;
         return true;
     }
@@ -93,7 +102,7 @@ public class FileUtils {
         if (fileName == null) return null;
         Writer writer;
         
-        if (HDFSUtils.isHdfs(fileName)) {
+        if (isHdfs(fileName)) {
         	try {
 				writer = new OutputStreamWriter(HDFSUtils.writeFile(fileName));
 			} catch (Exception e) {
