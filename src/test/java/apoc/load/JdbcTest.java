@@ -73,6 +73,17 @@ public class JdbcTest {
 
     }
 
+    @Test(expected = RuntimeException.class)
+    public void testLoadJdbcError() throws Exception {
+        db.execute("CALL apoc.load.jdbc(''jdbc:derby:derbyDB'','PERSON2')").next();
+        // todo count derby connections?
+    }
+    @Test(expected = RuntimeException.class)
+    public void testLoadJdbcProcessingError() throws Exception {
+        db.execute("CALL apoc.load.jdbc(''jdbc:derby:derbyDB'','PERSON') YIELD row where row.name / 2 = 5 RETURN row").next();
+        // todo count derby connections?
+    }
+
     @Test
     public void testLoadJdbcUpdate() throws Exception {
         testCall(db, "CALL apoc.load.jdbcUpdate('jdbc:derby:derbyDB','UPDATE PERSON SET NAME = \\\'John\\\' WHERE NAME = \\\'John\\\'')",
