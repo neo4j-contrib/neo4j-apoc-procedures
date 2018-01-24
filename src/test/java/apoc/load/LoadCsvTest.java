@@ -15,12 +15,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 
 public class LoadCsvTest {
 
@@ -210,5 +208,22 @@ RETURN m.col_1,m.col_2,m.col_3
                     assertEquals(Collections.emptyMap(), row.get("stringMap"));
                     assertEquals(false, r.hasNext());
                 });
+    }
+
+    @Test
+    public void testLoadCsvS3() throws Exception {
+        String bucketName = "dddbucketddd";
+        String filePath = "src/test/resources/test.csv";
+        MinioSetUp minioSetUp = new MinioSetUp(bucketName, filePath);
+        String url = minioSetUp.initialize();
+
+        testResult(db, "CALL apoc.load.csv({url},{failOnError:false})", map("url", url), (r) -> {
+            assertRow(r, "Selma", "8", 0L);
+            assertRow(r, "Rana", "11", 1L);
+            assertRow(r, "Selina", "18", 2L);
+            assertEquals(false, r.hasNext());
+        });
+
+        minioSetUp.deleteAll();
     }
 }
