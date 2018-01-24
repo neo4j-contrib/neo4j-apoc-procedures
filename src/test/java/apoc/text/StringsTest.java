@@ -489,4 +489,42 @@ public class StringsTest {
                  map("text1",text1,"text2", text2, "languageTag", languageTag),
                  row -> assertEquals(0.5, row.get("value")));
     }
+
+
+    @Test
+    public void testHexvalue() {
+        testCall(db,  "RETURN [x IN {values} | apoc.text.hexValue(x)] as value",  
+                      map("values", Arrays.<Long>asList(null,0L,1L,255L,65534L,65536L,305419896L,2309737967L,4294967294L,187723572702975L)),
+                      row -> assertEquals(Arrays.<String>asList(null,"0000","0001","00FF","FFFE","00010000","12345678","89ABCDEF","FFFFFFFE","0000AABBCCDDEEFF"), row.get("value")));
+    }
+
+    @Test
+    public void testCharAt() {
+        testCall(db,  "RETURN apoc.text.charAt({text}, 0) as value",  map("text", ""), row -> assertEquals(null, row.get("value")));
+        testCall(db,  "RETURN apoc.text.charAt({text}, -1) as value",  map("text", "Té$™ 中П."), row -> assertEquals(null, row.get("value")));
+        testCall(db,  "RETURN apoc.text.charAt({text}, 0) as value",  map("text", "Té$™ 中П."), row -> assertEquals(84L, row.get("value")));
+        testCall(db,  "RETURN apoc.text.charAt({text}, 1) as value",  map("text", "Té$™ 中П."), row -> assertEquals(233L, row.get("value")));
+        testCall(db,  "RETURN apoc.text.charAt({text}, 2) as value",  map("text", "Té$™ 中П."), row -> assertEquals(36L, row.get("value")));
+        testCall(db,  "RETURN apoc.text.charAt({text}, 3) as value",  map("text", "Té$™ 中П."), row -> assertEquals(8482L, row.get("value")));
+        testCall(db,  "RETURN apoc.text.charAt({text}, 4) as value",  map("text", "Té$™ 中П."), row -> assertEquals(32L, row.get("value")));
+        testCall(db,  "RETURN apoc.text.charAt({text}, 5) as value",  map("text", "Té$™ 中П."), row -> assertEquals(20013L, row.get("value")));
+        testCall(db,  "RETURN apoc.text.charAt({text}, 6) as value",  map("text", "Té$™ 中П."), row -> assertEquals(1055L, row.get("value")));
+        testCall(db,  "RETURN apoc.text.charAt({text}, 7) as value",  map("text", "Té$™ 中П."), row -> assertEquals(46L, row.get("value")));
+        testCall(db,  "RETURN apoc.text.charAt({text}, 8) as value",  map("text", "Té$™ 中П."), row -> assertEquals(null, row.get("value")));
+    }
+
+    @Test
+    public void testHexCharAt() {
+        testCall(db,  "RETURN apoc.text.hexCharAt({text}, 0) as value",  map("text", ""), row -> assertEquals(null, row.get("value")));
+        testCall(db,  "RETURN apoc.text.hexCharAt({text}, -1) as value",  map("text", "Té$™ 中П."), row -> assertEquals(null, row.get("value")));
+        testCall(db,  "RETURN apoc.text.hexCharAt({text}, 0) as value",  map("text", "Té$™ 中П."), row -> assertEquals("0054", row.get("value")));
+        testCall(db,  "RETURN apoc.text.hexCharAt({text}, 1) as value",  map("text", "Té$™ 中П."), row -> assertEquals("00E9", row.get("value")));
+        testCall(db,  "RETURN apoc.text.hexCharAt({text}, 2) as value",  map("text", "Té$™ 中П."), row -> assertEquals("0024", row.get("value")));
+        testCall(db,  "RETURN apoc.text.hexCharAt({text}, 3) as value",  map("text", "Té$™ 中П."), row -> assertEquals("2122", row.get("value")));
+        testCall(db,  "RETURN apoc.text.hexCharAt({text}, 4) as value",  map("text", "Té$™ 中П."), row -> assertEquals("0020", row.get("value")));
+        testCall(db,  "RETURN apoc.text.hexCharAt({text}, 5) as value",  map("text", "Té$™ 中П."), row -> assertEquals("4E2D", row.get("value")));
+        testCall(db,  "RETURN apoc.text.hexCharAt({text}, 6) as value",  map("text", "Té$™ 中П."), row -> assertEquals("041F", row.get("value")));
+        testCall(db,  "RETURN apoc.text.hexCharAt({text}, 7) as value",  map("text", "Té$™ 中П."), row -> assertEquals("002E", row.get("value")));
+        testCall(db,  "RETURN apoc.text.hexCharAt({text}, 8) as value",  map("text", "Té$™ 中П."), row -> assertEquals(null, row.get("value")));
+    }
 }

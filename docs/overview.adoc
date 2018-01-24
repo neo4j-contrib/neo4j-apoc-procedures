@@ -817,6 +817,9 @@ Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in 
 | apoc.text.upperCamelCase(text) | Convert a string to UpperCamelCase
 | apoc.text.snakeCase(text) | Convert a string to snake-case
 | apoc.text.toUpperCase(text) | Convert a string to UPPER_CASE
+| apoc.text.charAt(text, index) | Returns the decimal value of the character at the given index
+| apoc.text.hexCharAt(text, index) | Returns the hex value string of the character at the given index
+| apoc.text.hexValue(value) | Returns the hex value string of the given value
 |===
 
 === Text Similarity Functions
