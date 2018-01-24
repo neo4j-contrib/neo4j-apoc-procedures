@@ -374,8 +374,18 @@ public class Strings {
     }
 
     @UserFunction
-    @Description("apoc.text.charAt(text, index) - the hex value string of the character at the given index")
-    public String charAt(@Name("text") String text, @Name("index") Long index) {
+    @Description("apoc.text.charAt(text, index) - the decimal value of the character at the given index")
+    public Long charAt(@Name("text") String text, @Name("index") Long index) {
+        if (index == null || text == null || text.isEmpty() || index < 0 || index >= text.length()) {
+            return -1l;
+        }
+
+        return ((long) text.charAt(index.intValue()));
+    }
+
+    @UserFunction
+    @Description("apoc.text.hexCharAt(text, index) - the hex value string of the character at the given index")
+    public String hexCharAt(@Name("text") String text, @Name("index") Long index) {
         if (index == null || text == null || text.isEmpty() || index < 0 || index >= text.length()) {
             return "";
         }
