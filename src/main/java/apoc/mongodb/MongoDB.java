@@ -45,9 +45,14 @@ MERGE (c)-[:OFFERED_BY]->(u)
 public class MongoDB {
 
     @Procedure
-    @Description("apoc.mongodb.get(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true|false]) yield value - perform a find operation on mongodb collection")
-    public Stream<MapResult> get(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues) {
-        return getMongoColl(hostOrKey, db, collection, compatibleValues).all(query).map(MapResult::new);
+    @Description("apoc.mongodb.get(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true|false],skip-or-null,limit-or-null) yield value - perform a find operation on mongodb collection")
+    public Stream<MapResult> get(@Name("host") String hostOrKey,
+                                 @Name("db") String db,
+                                 @Name("collection") String collection,
+                                 @Name("query") Map<String, Object> query,
+                                 @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues, @Name(value = "skip", defaultValue = "0") Long skip,
+                                 @Name(value = "limit", defaultValue = "0") Long limit) {
+        return getMongoColl(hostOrKey, db, collection, compatibleValues).all(query, skip, limit).map(MapResult::new);
     }
 
     @Procedure
@@ -70,9 +75,17 @@ public class MongoDB {
     }
 
     @Procedure
-    @Description("apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,[compatibleValues=true|false]) yield value - perform a find,project,sort operation on mongodb collection")
-    public Stream<MapResult> find(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name("project") Map<String, Object> project, @Name("sort") Map<String, Object> sort, @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues) {
-        return getMongoColl(hostOrKey, db, collection, compatibleValues).find(query, project, sort).map(MapResult::new);
+    @Description("apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,pagination,[compatibleValues=true|false],skip-or-null,limit-or-null) yield value - perform a find,project,sort operation on mongodb collection")
+    public Stream<MapResult> find(@Name("host") String hostOrKey,
+                                  @Name("db") String db,
+                                  @Name("collection") String collection,
+                                  @Name("query") Map<String, Object> query,
+                                  @Name("project") Map<String, Object> project,
+                                  @Name("sort") Map<String, Object> sort,
+                                  @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues,
+                                  @Name(value = "skip", defaultValue = "0") Long skip,
+                                  @Name(value = "limit", defaultValue = "0") Long limit) {
+        return getMongoColl(hostOrKey, db, collection, compatibleValues).find(query, project, sort, skip, limit).map(MapResult::new);
     }
 
     @Procedure
@@ -120,11 +133,11 @@ public class MongoDB {
     interface Coll extends Closeable {
         Map<String, Object> first(Map<String, Object> params);
 
-        Stream<Map<String, Object>> all(Map<String, Object> query);
+        Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit);
 
         long count(Map<String, Object> query);
 
-        Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort);
+        Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit);
 
         void insert(List<Map<String, Object>> docs);
 
