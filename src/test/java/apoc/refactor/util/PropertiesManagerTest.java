@@ -6,13 +6,16 @@ import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.*;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.Util.map;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -46,9 +49,9 @@ public class PropertiesManagerTest {
 			Relationship rel1 = (Relationship) r.get("rel1");
 			Relationship rel2 = (Relationship) r.get("rel2");
 
-			PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, "combine");
+			PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, new RefactorConfig(map("properties","combine")));
 
-			assertEquals(Arrays.asList(2010L, 2015L,1995L).toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
+			assertEquals(asList(2010L, 2015L,1995L).toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
 		});
 
 	}
@@ -61,9 +64,9 @@ public class PropertiesManagerTest {
 					Relationship rel1 = (Relationship) r.get("rel1");
 					Relationship rel2 = (Relationship) r.get("rel2");
 
-					PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, "combine");
+					PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, new RefactorConfig(map("properties","combine")));
 
-					assertEquals(Arrays.asList(1995L,2010L, 2015L).toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
+					assertEquals(asList(1995L,2010L, 2015L).toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
 				});
 
 	}
@@ -76,9 +79,9 @@ public class PropertiesManagerTest {
 					Relationship rel1 = (Relationship) r.get("rel1");
 					Relationship rel2 = (Relationship) r.get("rel2");
 
-					PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, "combine");
+					PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, new RefactorConfig(map("properties","combine")));
 
-					assertEquals(Arrays.asList(1995L,2014L,2010L, 2015L).toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
+					assertEquals(asList(1995L,2014L,2010L, 2015L).toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
 				});
 
 	}
@@ -91,9 +94,9 @@ public class PropertiesManagerTest {
 			Relationship rel1 = (Relationship) r.get("rel1");
 			Relationship rel2 = (Relationship) r.get("rel2");
 
-			PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, "combine");
+			PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, new RefactorConfig(map("properties","combine")));
 
-			assertEquals(Arrays.asList("2010", "2015","1995").toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
+			assertEquals(asList("2010", "2015","1995").toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
 		});
 
 	}
@@ -106,9 +109,9 @@ public class PropertiesManagerTest {
 			Relationship rel1 = (Relationship) r.get("rel1");
 			Relationship rel2 = (Relationship) r.get("rel2");
 
-			PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, "combine");
+			PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, new RefactorConfig(map("properties","combine")));
 
-			assertEquals(Arrays.asList("1995","2010", "2015").toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
+			assertEquals(asList("1995","2010", "2015").toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
 		});
 
 	}
@@ -121,9 +124,9 @@ public class PropertiesManagerTest {
 			Relationship rel1 = (Relationship) r.get("rel1");
 			Relationship rel2 = (Relationship) r.get("rel2");
 
-			PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, "combine");
+			PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, new RefactorConfig(map("properties","combine")));
 
-			assertEquals(Arrays.asList("1995","2014","2010","2015").toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
+			assertEquals(asList("1995","2014","2010","2015").toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
 		});
 
 	}
@@ -136,7 +139,7 @@ public class PropertiesManagerTest {
 			Relationship rel1 = (Relationship) r.get("rel1");
 			Relationship rel2 = (Relationship) r.get("rel2");
 
-			PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, "combine");
+			PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, new RefactorConfig(map("properties","combine")));
 
 			assertEquals(1996L, rel1.getProperty("year"));
 		});
@@ -151,12 +154,26 @@ public class PropertiesManagerTest {
 			Relationship rel1 = (Relationship) r.get("rel1");
 			Relationship rel2 = (Relationship) r.get("rel2");
 
-			PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, "combine");
+			PropertiesManager.mergeProperties(rel2.getProperties("year"), rel1, new RefactorConfig(map("properties","combine")));
 
-			assertEquals(Arrays.asList(1995L,2014L,2010L).toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
+			assertEquals(asList(1995L,2014L,2010L).toArray(), new ArrayBackedList(rel1.getProperty("year")).toArray());
 		});
 
 	}
 
 
+	@Test
+	public void testMergeProperties() throws Exception {
+		String query = "UNWIND [{name:'Joe',age:42,kids:'Jane'},{name:'Jane',age:32,kids:'June'}] AS data CREATE (p:Person) SET p = data RETURN p";
+		List<Node> nodes = Iterators.asList(db.execute(query).<Node>columnAs("p"));
+		try (Transaction tx = db.beginTx()) {
+			Node target = nodes.get(0);
+			PropertiesManager.mergeProperties(nodes.get(1).getAllProperties(), target, new RefactorConfig(
+					map("properties",map("nam.*", RefactorConfig.DISCARD, "age", RefactorConfig.OVERWRITE, "kids", RefactorConfig.COMBINE))));
+			assertEquals("Joe", target.getProperty("name"));
+			assertEquals(32L, target.getProperty("age"));
+			assertEquals(asList("Jane","June"), asList((String[])target.getProperty("kids")));
+			tx.success();
+		}
+	}
 }
