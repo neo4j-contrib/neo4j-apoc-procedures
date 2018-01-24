@@ -105,7 +105,7 @@ public class GraphRefactoring {
      * The other nodes are deleted and their relationships moved onto that first node.
      */
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.refactor.mergeNodes([node1,node2]) merge nodes onto first in list")
+    @Description("apoc.refactor.mergeNodes([node1,node2],[{properties:'override' or 'discard' or 'combine'}]) merge nodes onto first in list")
     public Stream<NodeResult> mergeNodes(@Name("nodes") List<Node> nodes, @Name(value= "config", defaultValue = "") Map<String, Object> config) {
         if (nodes.isEmpty()) return Stream.empty();
         RefactorConfig conf = new RefactorConfig(config);
@@ -323,14 +323,14 @@ public class GraphRefactoring {
         Map<String, Object> properties = source.getAllProperties();
         copyRelationships(source, copyLabels(source, target), delete);
         if (delete) source.delete();
-        PropertiesManager.mergeProperties(properties, target, conf.getPropertiesManagement());
+        PropertiesManager.mergeProperties(properties, target, conf);
         return target;
     }
 
     private Relationship mergeRels(Relationship source, Relationship target, boolean delete, RefactorConfig conf) {
         Map<String, Object> properties = source.getAllProperties();
         if (delete) source.delete();
-        PropertiesManager.mergeProperties(properties, target, conf.getPropertiesManagement());
+        PropertiesManager.mergeProperties(properties, target, conf);
         return target;
     }
 

@@ -3,6 +3,32 @@
 These procedures help refactor the structure of your graph.
 This is helpful when you need to change your data model or for cleaning up data that was imported from an external source.
 
+== Merging Nodes
+
+You can merge a list of nodes onto the first one in the list.
+
+All relationships are merged onto that node too.
+You can specify the merge behavior for properties globally and/or individually.
+
+---
+MATCH (p:Person)
+WITH p ORDER BY p.created DESC // newest one first
+WITH p.email, collect(p) as nodes
+CALL apoc.refactor.mergeNodes(nodes, {properties: {name:'discard', age:'override', kids:'combine', `addr.*`, 'override',`.*`: 'discard'}}) YIELD node
+RETURN node
+---
+
+This config option also works for `apoc.refactor.mergeRelationships([rels],{config})`.
+
+[opts=header]
+|===
+| type | operations
+| discard | the first nodes' property will remain if already set, otherwise the first property in list will be written
+| override | last property in list wins
+| combine | if there is only one property in list, it will be set / kept as single property otherwise create an array, tries to coerce values
+|===
+
+
 == Normalize boolean properties
 
 Given raw data boolean properties are often represented by placeholder values.

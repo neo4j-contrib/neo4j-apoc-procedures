@@ -8,62 +8,48 @@ import java.util.*;
 
 /**
  * @author AgileLARUS
- *
  * @since 3.0.0
  */
 public class PropertiesManager {
 
-	public static final String OVERWRITE = "overwrite";
-	public static final String COMBINE   = "combine";
-    public static final String DISCARD = "discard";
-
     private PropertiesManager() {
     }
 
-    public static void mergeProperties(Map<String, Object> properties, PropertyContainer target, String propertyManagementMode) {
-        switch (propertyManagementMode) {
-            case OVERWRITE:
-                overwriteProperties(properties, target);
-                break;
-            case DISCARD:
-                discardProperties(properties, target);
-                break;
-			case COMBINE:
-				combineProperties(properties, target);
-                break;
-		}
-	}
-
-	public static void overwriteProperties(Map<String, Object> properties, PropertyContainer target){
-		for (Map.Entry<String, Object> prop : properties.entrySet()) {
-			target.setProperty(prop.getKey(), prop.getValue());
-		}
-	}
-
-    public static void discardProperties(Map<String, Object> properties, PropertyContainer target){
+    public static void mergeProperties(Map<String, Object> properties, PropertyContainer target, RefactorConfig propertyManagementMode) {
         for (Map.Entry<String, Object> prop : properties.entrySet()) {
-            if(!target.hasProperty(prop.getKey()))
-                target.setProperty(prop.getKey(), prop.getValue());
+            String mergeMode = propertyManagementMode.getMergeMode(prop.getKey());
+            switch (mergeMode) {
+                case RefactorConfig.OVERWRITE:
+                    target.setProperty(prop.getKey(), prop.getValue());
+                    break;
+                case RefactorConfig.DISCARD:
+                    if (!target.hasProperty(prop.getKey())) {
+                        target.setProperty(prop.getKey(), prop.getValue());
+                    }
+                    break;
+                case RefactorConfig.COMBINE:
+                    combineProperties(prop, target);
+                    break;
+            }
         }
     }
 
-    public static void combineProperties(Map<String, Object> properties, PropertyContainer target) {
-        for (Map.Entry<String, Object> prop : properties.entrySet())
-            if (!target.hasProperty(prop.getKey()))
-                target.setProperty(prop.getKey(), prop.getValue());
-            else {
-                Set<Object> values = new LinkedHashSet<>();
-                if (target.getProperty(prop.getKey()).getClass().isArray())
-                    values.addAll(new ArrayBackedList(target.getProperty(prop.getKey())));
-                else
-                    values.add(target.getProperty(prop.getKey()));
-                if (prop.getValue().getClass().isArray())
-                    values.addAll(new ArrayBackedList(prop.getValue()));
-                else
-                    values.add(prop.getValue());
-                Object array = createPropertyValueFromSet(values);
-                target.setProperty(prop.getKey(), array);
-            }
+    public static void combineProperties(Map.Entry<String, Object> prop, PropertyContainer target) {
+        if (!target.hasProperty(prop.getKey()))
+            target.setProperty(prop.getKey(), prop.getValue());
+        else {
+            Set<Object> values = new LinkedHashSet<>();
+            if (target.getProperty(prop.getKey()).getClass().isArray())
+                values.addAll(new ArrayBackedList(target.getProperty(prop.getKey())));
+            else
+                values.add(target.getProperty(prop.getKey()));
+            if (prop.getValue().getClass().isArray())
+                values.addAll(new ArrayBackedList(prop.getValue()));
+            else
+                values.add(prop.getValue());
+            Object array = createPropertyValueFromSet(values);
+            target.setProperty(prop.getKey(), array);
+        }
     }
 
     private static Object createPropertyValueFromSet(Set<Object> input) {
@@ -76,7 +62,7 @@ public class PropertiesManager {
                     Class clazz = Class.forName(input.toArray()[0].getClass().getName());
                     array = Array.newInstance(clazz, input.size());
                     System.arraycopy(input.toArray(), 0, array, 0, input.size());
-                }  else {
+                } else {
                     array = new String[input.size()];
                     Object[] elements = input.toArray();
                     for (int i = 0; i < elements.length; i++) {
