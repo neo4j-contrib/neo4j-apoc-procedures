@@ -324,11 +324,14 @@ Put the JDBC driver into the `$NEO4J_HOME/plugins` directory and configure the J
 |Cassandra 
 |jdbc:cassandra://<host>:<port/9042>/<database>
 |link:https://github.com/adejanovski/cassandra-jdbc-wrapper#installing[Cassandra JDBC Wrapper]
+
+|SAP Hana
+|jdbc:sap://<host>:<port/39015>/?user=<user>&password=<pass>
+|https://www.sap.com/developer/topics/sap-hana-express.html[SAP Hana ngdbc Driver]
 |===
 
 There are a number of blog posts / examples that details usage of apoc.load.jdbc
 
 * https://jesusbarrasa.wordpress.com/2016/09/30/quickgraph4-explore-your-browser-history-in-neo4j/[Explore your browser history in Neo4j]
 * https://blog.knoldus.com/2016/09/12/neo4j-with-scala-migrate-data-from-other-database-to-neo4j/[Neo4j With Scala : Migrate Data From Other Database to Neo4j]
-* 
 * https://neo4j.com/blog/apoc-database-integration-import-export-cypher/[APOC: Database Integration, Import and Export with Awesome Procedures On Cypher]
