@@ -377,19 +377,23 @@ public class Strings {
     @Description("apoc.text.charAt(text, index) - the decimal value of the character at the given index")
     public Long charAt(@Name("text") String text, @Name("index") Long index) {
         if (index == null || text == null || text.isEmpty() || index < 0 || index >= text.length()) {
-            return -1l;
+            return null;
         }
-
         return ((long) text.charAt(index.intValue()));
+    }
+
+    @UserFunction
+    @Description("apoc.text.hexValue(value) - the hex value string of the given number")
+    public String hexValue(@Name("value") Long value) {
+        if (value == null) {
+            return null;
+        }
+        return value > Integer.MAX_VALUE ? String.format("%08x", value) : String.format("%04x", (int)value.intValue());
     }
 
     @UserFunction
     @Description("apoc.text.hexCharAt(text, index) - the hex value string of the character at the given index")
     public String hexCharAt(@Name("text") String text, @Name("index") Long index) {
-        if (index == null || text == null || text.isEmpty() || index < 0 || index >= text.length()) {
-            return "";
-        }
-
-        return String.format("%04x", (int) text.charAt(index.intValue()));
+        return hexValue(charAt(text, index));
     }
 }
