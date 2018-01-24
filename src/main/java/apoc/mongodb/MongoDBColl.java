@@ -98,8 +98,11 @@ class MongoDBColl implements MongoDB.Coll {
     }
 
     @Override
-    public Stream<Map<String, Object>> all(Map<String, Object> query) {
-        return asStream(query == null ? collection.find() : collection.find(new Document(query)));
+    public Stream<Map<String, Object>> all(Map<String, Object> query, Long skip, Long limit) {
+        FindIterable<Document> documents = query == null ? collection.find() : collection.find(new Document(query));
+        if (skip != 0) documents = documents.skip(skip.intValue());
+        if (limit != 0) documents = documents.limit(limit.intValue());
+        return asStream(documents);
     }
 
     @Override
@@ -114,10 +117,12 @@ class MongoDBColl implements MongoDB.Coll {
     }
 
     @Override
-    public Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort) {
+    public Stream<Map<String, Object>> find(Map<String, Object> query, Map<String, Object> project, Map<String, Object> sort, Long skip, Long limit) {
         FindIterable<Document> documents = query == null ? collection.find() : collection.find(new Document(query));
         if (project != null) documents = documents.projection(new Document(project));
         if (sort != null) documents = documents.sort(new Document(sort));
+        if (skip != 0) documents = documents.skip(skip.intValue());
+        if (limit != 0) documents = documents.limit(limit.intValue());
         return asStream(documents);
     }
 
