@@ -372,4 +372,28 @@ public class Strings {
         byte[] decoded = Base64.getDecoder().decode(text.getBytes());
         return new String(decoded);
     }
+
+    @UserFunction
+    @Description("apoc.text.charAt(text, index) - the decimal value of the character at the given index")
+    public Long charAt(@Name("text") String text, @Name("index") Long index) {
+        if (index == null || text == null || text.isEmpty() || index < 0 || index >= text.length()) {
+            return null;
+        }
+        return ((long) text.charAt(index.intValue()));
+    }
+
+    @UserFunction
+    @Description("apoc.text.hexValue(value) - the hex value string of the given number")
+    public String hexValue(@Name("value") Long value) {
+        if (value == null) {
+            return null;
+        }
+        return value > Integer.MAX_VALUE ? String.format("%016x", value) : value > Character.MAX_VALUE ?  String.format("%08x", (int)value.intValue()) : String.format("%04x", (int)value.intValue());
+    }
+
+    @UserFunction
+    @Description("apoc.text.hexCharAt(text, index) - the hex value string of the character at the given index")
+    public String hexCharAt(@Name("text") String text, @Name("index") Long index) {
+        return hexValue(charAt(text, index));
+    }
 }
