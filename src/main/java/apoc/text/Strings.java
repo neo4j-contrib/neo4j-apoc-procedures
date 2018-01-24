@@ -388,7 +388,7 @@ public class Strings {
         if (value == null) {
             return null;
         }
-        return value > Integer.MAX_VALUE ? String.format("%08x", value) : String.format("%04x", (int)value.intValue());
+        return value > Integer.MAX_VALUE ? String.format("%016x", value) : value > Character.MAX_VALUE ?  String.format("%08x", (int)value.intValue()) : String.format("%04x", (int)value.intValue());
     }
 
     @UserFunction
