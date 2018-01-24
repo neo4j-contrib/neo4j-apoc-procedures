@@ -372,4 +372,14 @@ public class Strings {
         byte[] decoded = Base64.getDecoder().decode(text.getBytes());
         return new String(decoded);
     }
+
+    @UserFunction
+    @Description("apoc.text.charAt(text, index) - the hex value string of the character at the given index")
+    public String charAt(@Name("text") String text, @Name("index") Long index) {
+        if (index == null || text == null || text.isEmpty() || index < 0 || index >= text.length()) {
+            return "";
+        }
+
+        return String.format("%04x", (int) text.charAt(index.intValue()));
+    }
 }
