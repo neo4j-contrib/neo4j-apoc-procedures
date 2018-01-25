@@ -746,6 +746,11 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.flatten | flattens a nested list
 | apoc.coll.combinations(coll, minSelect, maxSelect:minSelect) | Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive
 | CALL apoc.coll.elements(list,limit,offset) yield _1,_2,..,_10,_1s,_2i,_3f,_4m,_5l,_6n,_7r,_8p | deconstruct subset of mixed list into identifiers of the correct type
+| apoc.coll.set(coll, index, value) | set index to value
+| apoc.coll.insert(coll, index, value) | insert value at index
+| apoc.coll.insertAll(coll, index, values) | insert values at index
+| apoc.coll.remove(coll, index, [length=1]) | remove range of values from index to length
+
 |===
 
 === Lookup and Manipulation Procedures
