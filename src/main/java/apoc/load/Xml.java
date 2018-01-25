@@ -2,18 +2,21 @@ package apoc.load;
 
 import apoc.export.util.FileUtils;
 import apoc.result.MapResult;
+import apoc.result.NodeResult;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.*;
 import org.w3c.dom.CharacterData;
 import org.w3c.dom.*;
 
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.xpath.XPath;
@@ -22,6 +25,7 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
@@ -36,6 +40,9 @@ public class Xml {
 
     @Context
     public GraphDatabaseService db;
+
+    @Context
+    public Log log;
 
     @Procedure
     @Description("apoc.load.xml('http://example.com/test.xml', 'xPath',config, false) YIELD value as doc CREATE (p:Person) SET p.name = doc.name load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _childrenx fields.")
@@ -110,10 +117,10 @@ public class Xml {
         }
     }
 
-    private XMLStreamReader getXMLStreamReaderFromUrl(@Name("url") String url) throws IOException, XMLStreamException {
+    private XMLStreamReader getXMLStreamReaderFromUrl(String url) throws IOException, XMLStreamException {
         FileUtils.checkReadAllowed(url);
         URLConnection urlConnection = new URL(url).openConnection();
-        FACTORY.setProperty("javax.xml.stream.isCoalescing", true);
+        FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
         return FACTORY.createXMLStreamReader(urlConnection.getInputStream());
     }
 
@@ -329,5 +336,169 @@ public class Xml {
                 map.put(key, list);
             }
         }
+    }
+
+    public static class ParentAndChildPair {
+        private org.neo4j.graphdb.Node parent;
+        private org.neo4j.graphdb.Node previousChild=null;
+
+        public ParentAndChildPair(org.neo4j.graphdb.Node parent) {
+            this.parent = parent;
+        }
+
+        public org.neo4j.graphdb.Node getParent() {
+            return parent;
+        }
+
+        public void setParent(org.neo4j.graphdb.Node parent) {
+            this.parent = parent;
+        }
+
+        public org.neo4j.graphdb.Node getPreviousChild() {
+            return previousChild;
+        }
+
+        public void setPreviousChild(org.neo4j.graphdb.Node previousChild) {
+            this.previousChild = previousChild;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            ParentAndChildPair that = (ParentAndChildPair) o;
+            return parent.equals(that.parent);
+        }
+
+        @Override
+        public int hashCode() {
+            return parent.hashCode();
+        }
+    }
+
+    private static class XmlImportConfig {
+
+        private boolean createNextWordRelationship = false;
+
+        public boolean isCreateNextWordRelationship() {
+            return createNextWordRelationship;
+        }
+
+        public XmlImportConfig(Map<String,Object> config) {
+            Boolean _createNextWordRelationship = (Boolean) config.get("createNextWordRelationships");
+            if (_createNextWordRelationship!=null) {
+                createNextWordRelationship = _createNextWordRelationship;
+            }
+        }
+
+    }
+
+    @Procedure(mode = Mode.WRITE, value = "apoc.xml.import")
+    public Stream<NodeResult> importToGraph(@Name("url") String url, @Name(value="config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {
+        final XMLStreamReader xml = getXMLStreamReaderFromUrl(url);
+
+        XmlImportConfig importConfig = new XmlImportConfig(config);
+        //TODO: make labels, reltypes and magic properties configurable
+
+        // stores parents and their most recent child
+        Deque<ParentAndChildPair> parents = new ArrayDeque<>();
+        org.neo4j.graphdb.Node root = db.createNode(Label.label("XmlDocument"));
+        setPropertyIfNotNull(root, "_xmlVersion", xml.getVersion());
+        setPropertyIfNotNull(root, "_xmlEncoding", xml.getEncoding());
+        root.setProperty("url", url);
+        parents.push(new ParentAndChildPair(root));
+        org.neo4j.graphdb.Node last = root;
+        org.neo4j.graphdb.Node lastWord = root;
+
+        while (xml.hasNext()) {
+            xml.next();
+
+            switch (xml.getEventType()) {
+                case XMLStreamConstants.START_DOCUMENT:
+                    // xmlsteamreader starts off by definition at START_DOCUMENT prior to call next() - so ignore this one
+                    break;
+
+                case XMLStreamConstants.PROCESSING_INSTRUCTION:
+                    org.neo4j.graphdb.Node pi = db.createNode(Label.label("XmlProcessingInstruction"));
+                    pi.setProperty("_piData", xml.getPIData());
+                    pi.setProperty("_piTarget", xml.getPITarget());
+                    last = connectWithParent(pi, parents.peek(), last);
+                    break;
+
+                case XMLStreamConstants.START_ELEMENT:
+                    final QName qName = xml.getName();
+                    final org.neo4j.graphdb.Node tag = db.createNode(Label.label("XmlTag"));
+                    tag.setProperty("_name", qName.getLocalPart());
+                    for (int i=0; i<xml.getAttributeCount(); i++) {
+                        tag.setProperty(xml.getAttributeLocalName(i), xml.getAttributeValue(i));
+                    }
+
+                    last = connectWithParent(tag, parents.peek(), last);
+                    parents.push(new ParentAndChildPair(tag));
+                    break;
+
+                case XMLStreamConstants.CHARACTERS:
+                    String text = xml.getText().trim();
+                    String[] words = text.split("\\s");
+                    for (int i = 0; i < words.length; i++) {
+                        final String currentWord = words[i];
+                        if (!currentWord.isEmpty()) {
+                            org.neo4j.graphdb.Node word = db.createNode(Label.label("XmlWord"));
+                            word.setProperty("text", currentWord);
+                            last = connectWithParent(word, parents.peek(), last);
+                            if (importConfig.isCreateNextWordRelationship()) {
+                                lastWord.createRelationshipTo(word, RelationshipType.withName("NEXT_WORD"));
+                                lastWord = word;
+                            }
+                        }
+                    }
+                    break;
+
+                case XMLStreamConstants.END_ELEMENT:
+                    ParentAndChildPair parent = parents.pop();
+                    if (parent.getPreviousChild()!=null) {
+                        parent.getPreviousChild().createRelationshipTo(parent.getParent(), RelationshipType.withName("LAST_CHILD_OF"));
+                    }
+                    break;
+
+                case XMLStreamConstants.END_DOCUMENT:
+                    parents.pop();
+                    break;
+
+                case XMLStreamConstants.COMMENT:
+                case XMLStreamConstants.SPACE:
+                    // intentionally do nothing
+                    break;
+                default:
+                    log.warn("xml file contains a {} type structure - ignoring this.", xml.getEventType());
+            }
+
+        }
+        if (!parents.isEmpty()) {
+            throw new IllegalStateException("non empty parents");
+        }
+        return Stream.of(new NodeResult(root));
+    }
+
+    private void setPropertyIfNotNull(org.neo4j.graphdb.Node root, String propertyKey, Object value) {
+        if (value!=null) {
+            root.setProperty(propertyKey, value);
+        }
+    }
+
+    private org.neo4j.graphdb.Node connectWithParent(org.neo4j.graphdb.Node thisNode, ParentAndChildPair parentAndChildPair, org.neo4j.graphdb.Node last) {
+        final org.neo4j.graphdb.Node parent = parentAndChildPair.getParent();
+        final org.neo4j.graphdb.Node previousChild = parentAndChildPair.getPreviousChild();
+
+        last.createRelationshipTo(thisNode, RelationshipType.withName("NEXT"));
+        thisNode.createRelationshipTo(parent, RelationshipType.withName("IS_CHILD_OF"));
+        if (previousChild ==null) {
+            thisNode.createRelationshipTo(parent, RelationshipType.withName("FIRST_CHILD_OF"));
+        } else {
+            previousChild.createRelationshipTo(thisNode, RelationshipType.withName("NEXT_SIBLING"));
+        }
+        parentAndChildPair.setPreviousChild(thisNode);
+        last = thisNode;
+        return last;
     }
 }
