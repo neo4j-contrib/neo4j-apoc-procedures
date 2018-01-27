@@ -1,20 +1,29 @@
 package apoc.load;
 
-import org.neo4j.procedure.Description;
 import apoc.result.RowResult;
 import apoc.ApocConfiguration;
 import apoc.util.MapUtil;
-
+import org.apache.commons.compress.utils.IOUtils;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import javax.security.auth.Subject;
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.PasswordCallback;
+import javax.security.auth.login.LoginContext;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.sql.*;
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -32,6 +41,32 @@ public class Jdbc {
 
     @Context
     public Log log;
+
+    private static Connection getConnection(String jdbcUrl) throws Exception {
+        URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
+        String userInfo = uri.getUserInfo();
+        String[] user = userInfo != null ? userInfo.split(":"): new String[]{null, ""};
+        String cleanUrl = userInfo != null ? jdbcUrl.substring(0,jdbcUrl.indexOf("://")+3)+jdbcUrl.substring(jdbcUrl.indexOf("@")+1) : jdbcUrl;
+
+        if (jdbcUrl.contains(";auth=kerberos")) {
+            String client = System.getProperty("java.security.auth.login.config.client", "KerberosClient");
+            LoginContext lc = new LoginContext(client, callbacks -> {
+                for (Callback cb : callbacks) {
+                    if (cb instanceof NameCallback) ((NameCallback) cb).setName(user[0]);
+                    if (cb instanceof PasswordCallback) ((PasswordCallback) cb).setPassword(user[1].toCharArray());
+                }
+            });
+            lc.login();
+            Subject subject = lc.getSubject();
+            try {
+                return Subject.doAs(subject, (PrivilegedExceptionAction<Connection>) () -> DriverManager.getConnection(cleanUrl, user[0], user[1]));
+            } catch (PrivilegedActionException pae) {
+                throw pae.getException();
+            }
+        } else {
+            return DriverManager.getConnection(cleanUrl, user[0], user[1]);
+        }
+    }
 
     @Procedure
     @Description("apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database")
@@ -65,7 +100,7 @@ public class Jdbc {
         String url = urlOrKey.contains(":") ? urlOrKey : getJdbcUrl(urlOrKey);
         String query = tableOrSelect.indexOf(' ') == -1 ? "SELECT * FROM " + tableOrSelect : tableOrSelect;
         try {
-            Connection connection = DriverManager.getConnection(url);
+            Connection connection = getConnection(url);
             try {
                 PreparedStatement stmt = connection.prepareStatement(query);
                 try {
@@ -103,7 +138,7 @@ public class Jdbc {
     private Stream<RowResult> executeUpdate(String urlOrKey, String query, Object...params) {
         String url = urlOrKey.contains(":") ? urlOrKey : getJdbcUrl(urlOrKey);
         try {
-            Connection connection = DriverManager.getConnection(url);
+            Connection connection = getConnection(url);
             try {
             PreparedStatement stmt = connection.prepareStatement(query);
                 try {
@@ -211,7 +246,8 @@ public class Jdbc {
         }
 
         private boolean handleEndOfResults() throws SQLException {
-            if (rs.isClosed()) {
+            Boolean closed = ignore(rs::isClosed);
+            if (closed!=null && closed) {
                 return true;
             }
             if (!rs.next()) {
