@@ -148,13 +148,22 @@ public class PathExplorer {
 			, String pathFilter
 			, String labelFilter
 			, long minLevel
-			, long maxLevel, boolean bfs, Uniqueness uniqueness, boolean filterStartNode, long limit) {
-		// LabelFilter
-		// -|Label|:Label|:Label excluded label list
+			, long maxLevel
+			, boolean bfs
+			, Uniqueness uniqueness
+			, boolean filterStartNode
+			, long limit) {
+		// LabelMatcher
+		// -Label|:Label|:Label excluded label list
 		// +:Label or :Label include labels
 
-		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs,filterStartNode,limit);
-		return traverser.stream();
+		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs,filterStartNode);
+
+		if (limit == -1) {
+			return traverser.stream();
+		} else {
+			return traverser.stream().limit(limit);
+		}
 	}
 
 	/**
@@ -176,7 +185,7 @@ public class PathExplorer {
 		return optionalStream;
 	}
 
-	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel, Uniqueness uniqueness, boolean bfs, boolean filterStartNode, long limit) {
+	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel, Uniqueness uniqueness, boolean bfs, boolean filterStartNode) {
 		TraversalDescription td = traversalDescription;
 		// based on the pathFilter definition now the possible relationships and directions must be shown
 
@@ -196,7 +205,7 @@ public class PathExplorer {
 		if (maxLevel != -1) td = td.evaluator(Evaluators.toDepth((int) maxLevel));
 
 		if (labelFilter != null && !labelFilter.trim().isEmpty()) {
-			td = td.evaluator(new LabelEvaluator(labelFilter, filterStartNode, limit, (int) minLevel));
+			td = td.evaluator(new LabelEvaluator(labelFilter, filterStartNode, (int) minLevel));
 		}
 
 		td = td.uniqueness(uniqueness); // this is how Cypher works !! Uniqueness.RELATIONSHIP_PATH
@@ -205,29 +214,26 @@ public class PathExplorer {
 	}
 
 	public static class LabelEvaluator implements Evaluator {
-		private Set<String> whitelistLabels;
-		private Set<String> blacklistLabels;
-		private Set<String> terminationLabels;
-		private Set<String> endNodeLabels;
+		private LabelMatcher whitelistMatcher;
+		private LabelMatcher blacklistMatcher;
+		private LabelMatcher terminatorMatcher;
+		private LabelMatcher endNodeMatcher;
+
 		private Evaluation whitelistAllowedEvaluation;
-		private boolean endNodesOnly;
 		private boolean filterStartNode;
-		private long limit = -1;
 		private long minLevel = -1;
-		private long resultCount = 0;
 
-		public LabelEvaluator(String labelFilter, boolean filterStartNode, long limit, int minLevel) {
+		public LabelEvaluator(String labelString, boolean filterStartNode, int minLevel) {
 			this.filterStartNode = filterStartNode;
-			this.limit = limit;
 			this.minLevel = minLevel;
-			Map<Character, Set<String>> labelMap = new HashMap<>(4);
+			Map<Character, LabelMatcher> matcherMap = new HashMap<>(4);
 
-			if (labelFilter !=  null && !labelFilter.isEmpty()) {
+			if (labelString !=  null && !labelString.isEmpty()) {
 
 				// parse the filter
 				// split on |
-				String[] defs = labelFilter.split("\\|");
-				Set<String> labels = null;
+				String[] defs = labelString.split("\\|");
+				LabelMatcher labelMatcher = null;
 
 				for (String def : defs) {
 					char operator = def.charAt(0);
@@ -236,8 +242,15 @@ public class PathExplorer {
 						case '-':
 						case '/':
 						case '>':
-							labels = labelMap.computeIfAbsent(operator, character -> new HashSet<>());
+							labelMatcher = matcherMap.computeIfAbsent(operator, character -> new LabelMatcher());
 							def = def.substring(1);
+							break;
+						default:
+							if (labelMatcher == null) {
+								// default to whitelist if no previous matcher
+								labelMatcher = matcherMap.computeIfAbsent('+', character -> new LabelMatcher());
+							} // else use the currently selected matcher (the one used previously)
+							break;
 					}
 
 					if (def.startsWith(":")) {
@@ -245,68 +258,55 @@ public class PathExplorer {
 					}
 
 					if (!def.isEmpty()) {
-						labels.add(def);
+						labelMatcher.addLabel(def);
 					}
 				}
 			}
 
-			whitelistLabels = labelMap.computeIfAbsent('+', character -> Collections.emptySet());
-			blacklistLabels = labelMap.computeIfAbsent('-', character -> Collections.emptySet());
-			terminationLabels = labelMap.computeIfAbsent('/', character -> Collections.emptySet());
-			endNodeLabels = labelMap.computeIfAbsent('>', character -> Collections.emptySet());
-			endNodesOnly = !terminationLabels.isEmpty() || !endNodeLabels.isEmpty();
+			whitelistMatcher = matcherMap.computeIfAbsent('+', character -> LabelMatcher.acceptsAllLabelMatcher());
+			blacklistMatcher = matcherMap.get('-');
+			terminatorMatcher = matcherMap.get('/');
+			endNodeMatcher = matcherMap.get('>');
+
+			// if we have terminator or end node matchers, we will only include nodes with labels of those types, and exclude all others
+			boolean endNodesOnly = terminatorMatcher != null || endNodeMatcher != null;
 			whitelistAllowedEvaluation = endNodesOnly ? EXCLUDE_AND_CONTINUE : INCLUDE_AND_CONTINUE;
 		}
 
 		@Override
 		public Evaluation evaluate(Path path) {
 			int depth = path.length();
-			Node check = path.endNode();
+			Node node = path.endNode();
 
-			// if start node shouldn't be filtered, exclude/include based on if using termination/endnode filter or not
+			// if start node shouldn't be filtered, continue, but exclude/include based on if only returning end nodes
 			// minLevel evaluator will separately enforce exclusion if we're below minLevel
 			if (depth == 0 && !filterStartNode) {
 				return whitelistAllowedEvaluation;
 			}
 
-			// below minLevel always exclude; continue if blacklist and whitelist allow it
-			if (depth < minLevel) {
-				return labelExists(check, blacklistLabels) || !whitelistAllowed(check) ? EXCLUDE_AND_PRUNE : EXCLUDE_AND_CONTINUE;
-			}
-
-			// cut off expansion when we reach the limit
-			if (limit != -1 && resultCount >= limit) {
+			// always exclude and prune if caught in the blacklist
+			if (blacklistMatcher != null && blacklistMatcher.matchesLabels(node)) {
 				return EXCLUDE_AND_PRUNE;
 			}
 
-			Evaluation result = labelExists(check, blacklistLabels) ? EXCLUDE_AND_PRUNE :
-					labelExists(check, terminationLabels) ? filterEndNode(check, true) :
-					labelExists(check, endNodeLabels) ? filterEndNode(check, false) :
-					whitelistAllowed(check) ? whitelistAllowedEvaluation : EXCLUDE_AND_PRUNE;
-
-			return result;
-		}
-
-		private boolean labelExists(Node node, Set<String> labels) {
-			if (labels.isEmpty()) {
-				return false;
+			// always include and prune if found in the terminator matcher (if at or above minLevel)
+			if (terminatorMatcher != null && depth >= minLevel && terminatorMatcher.matchesLabels(node)) {
+				return INCLUDE_AND_PRUNE;
 			}
 
-			for ( Label lab : node.getLabels() ) {
-				if (labels.contains(lab.name())) {
-					return true;
-				}
+			// always include if found in the end node matcher, but only continue if passes whitelist
+			// minLevel evaluator will separately enforce exclusion if we're below minLevel
+			if (endNodeMatcher != null && endNodeMatcher.matchesLabels(node)) {
+				return whitelistMatcher.matchesLabels(node) ? INCLUDE_AND_CONTINUE : INCLUDE_AND_PRUNE;
 			}
-			return false;
-		}
 
-		private boolean whitelistAllowed(Node node) {
-			return whitelistLabels.isEmpty() || labelExists(node, whitelistLabels);
-		}
+			// always continue if found in the whitelist, but include/exclude based on if only end nodes are being returned
+			// minLevel evaluator will separately enforce exclusion if we're below minLevel
+			if (whitelistMatcher.matchesLabels(node)) {
+				return whitelistAllowedEvaluation;
+			}
 
-		private Evaluation filterEndNode(Node node, boolean isTerminationFilter) {
-			resultCount++;
-			return isTerminationFilter || !whitelistAllowed(node) ? INCLUDE_AND_PRUNE : INCLUDE_AND_CONTINUE;
+			return EXCLUDE_AND_PRUNE;
 		}
 	}
 }

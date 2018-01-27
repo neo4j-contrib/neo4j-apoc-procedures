@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import apoc.util.Util;
 import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.helpers.collection.Iterators;
@@ -287,5 +288,39 @@ public class ExpandPathTest {
 		// was default true prior to 3.2.x
 		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expandConfig(m,{labelFilter:'+Person'}) yield path return count(*) as c";
 		TestUtil.testCall(db, query, (row) -> assertEquals(9L,row.get("c")));
+	}
+
+	@Test
+	public void testCompoundLabelMatchesOnlyNodeWithBothLabels() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western WITH c WHERE c.name = 'Gene Hackman' REMOVE c:Person");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.subgraphNodes(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'/Western:Person', uniqueness: 'NODE_GLOBAL'}) yield node " +
+						"return node",
+				result -> {
+
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(1, maps.size());
+					Node node = (Node) maps.get(0).get("node");
+					assertEquals("Clint Eastwood", node.getProperty("name")); // otherwise Gene would block path to Clint
+				});
+	}
+
+	@Test
+	public void testCompoundLabelWorksInBlacklist() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western WITH c WHERE c.name = 'Clint Eastwood' SET c:Blacklist");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.subgraphNodes(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'>Western|-Western:Blacklist', uniqueness: 'NODE_GLOBAL'}) yield node " +
+						"return node",
+				result -> {
+
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(1, maps.size());
+					Node node = (Node) maps.get(0).get("node");
+					assertEquals("Gene Hackman", node.getProperty("name"));
+				});
 	}
 }
