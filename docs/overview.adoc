@@ -993,10 +993,11 @@ Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 Syntax: `[+-/>]LABEL1|LABEL2|...`
 
 As of APOC 3.1.3.x multiple label filter operations are allowed.
-
 In prior versions, only one type of operation is allowed in the label filter (`+` or `-` or `/` or `>`, never more than one).
 
 With APOC 3.2.x.x, label filters will no longer apply to starting nodes of the expansion by default.
+
+With the APOC releases in January 2018, compound labels are supported (like `Person:Manager`), and only apply to nodes with all of those labels present (order agnositic).
 
 [opts=header,cols="m,m,a"]
 |===
