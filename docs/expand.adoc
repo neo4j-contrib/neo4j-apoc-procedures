@@ -150,7 +150,9 @@ Takes an additional map parameter, `config`, to provide configuration options:
  bfs: true|false,
  filterStartNode: true|false,
  limit: -1|number,
- optional: true|false}
+ optional: true|false,
+ endNodes: [nodes]
+ terminatorNodes: [nodes]}
 ----
 
 .Start Node and label filters
@@ -169,7 +171,7 @@ Use `filterStartNode = false` when you want your label filter to only apply to a
 
 .Limit
 
-Only when using the termination label filter `/` or end node filter `>`, you can use the `limit` config parameter to limit the number of paths returned.
+You can use the `limit` config parameter to limit the number of paths returned.
 
 When using `bfs:true` (which is the default for all expand procedures), this has the effect of returning paths to the `n` nearest nodes with labels in the termination or end node filter, where `n` is the limit given.
 
@@ -207,6 +209,16 @@ For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemo
 | RELATIONSHIP_RECENT | Same as for NODE_RECENT, but for relationships.
 | NONE | No restriction (the user will have to manage it)
 |===
+
+.endNodes and terminatorNodes
+
+As of the January 2018 APOC releases, if the end nodes of the expansion are known ahead of time (such as when testing reachability), then these nodes can be passed in as `endNodes` or `terminatorNodes`.
+
+This restricts the returned paths (or nodes) to only these nodes (or nodes with the given ids, if an integer list is passed).
+
+For `endNodes`, expansion continues past end nodes.
+
+For `terminatorNodes`, expansion down a path stops when a terminator node is reached.
 
 .Examples
 
