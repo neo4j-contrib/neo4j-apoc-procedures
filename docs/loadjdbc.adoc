@@ -288,6 +288,86 @@ CREATE (t)-[:GENRE]->(g);
 Added 63213 labels, created 63213 nodes, set 182413 properties, created 119200 relationships, statement executed in 40076 ms.
 ----
 
+== Support for Hive with Kerberos Auth
+
+Support for Hive especially with Kerberos is more involved.
+
+First of all the required configuration is more detailed, make sure to get this information:
+
+* kerberos user / password
+* kerberos realm / kdc
+* hive hostname + port (10000)
+
+Create this `login.conf` file at a known location:
+
+.login.conf
+----
+KerberosClient {
+  com.sun.security.auth.module.Krb5LoginModule required
+  debug=true debugNative=true;
+};
+----
+
+Add these options to your `conf/neo4j.conf`
+
+.neo4j.conf
+----
+dbms.jvm.additional=-Djava.security.auth.login.config=/path/to/login.conf
+dbms.jvm.additional=-Djava.security.auth.login.config.client=KerberosClient
+dbms.jvm.additional=-Djava.security.krb5.realm=KRB.REALM.COM
+dbms.jvm.additional=-Djava.security.krb5.kdc=krb-kdc.host.com
+----
+
+Unlike other JDBC drivers, Hive comes with a bunch of dependencies, you can download these from the Hadoop providers
+
+* https://www.cloudera.com/downloads/connectors/hive/jdbc/2-5-20.html[Cloudera Hive Drivers^]
+* https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.3/bk_data-access/content/hive-jdbc-odbc-drivers.html[Hortonworks Hive Drivers^]
+* https://cwiki.apache.org/confluence/display/Hive/HiveServer2+Clients#HiveServer2Clients-JDBC[Apache Hive Driver^]
+
+or grab them from https://search.maven.org[maven central^].
+
+The versions might vary, use what comes with your Hive driver.
+
+* hadoop-common-2.7.3.2.6.1.0-129.jar
+* hive-exec-1.2.1000.2.6.1.0-129.jar
+* hive-jdbc-1.2.1000.2.6.1.0-129.jar
+* hive-metastore-1.2.1000.2.6.1.0-129.jar
+* hive-service-1.2.1000.2.6.1.0-129.jar
+* httpclient-4.4.jar
+* httpcore-4.4.jar
+* libfb303-0.9.2.jar
+* libthrift-0.9.3.jar
+
+Now you can use a JDBC URL like this from APOC.
+
+NOTE: This has no newlines, it's just wrapped because it is too long.
+
+`jdbc:hive2://username%40krb-realm:password@hive-hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject`
+
+And then call:
+
+[source,cypher]
+----
+WITH 'jdbc:hive2://username%40krb-realm:password@hive-hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject' AS url
+CALL apoc.load.jdbc(url,'PRODUCTS') YIELD row
+RETURN row.name, row.price;
+----
+
+You can also set it in your `conf/neo4j.conf` as a key:
+
+.neo4j.conf
+----
+apoc.jdbc.my-hive.url=jdbc:hive2://username%40krb-realm:password@hive-hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject
+----
+
+And then use the more compact call:
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('my-hive','SELECT * PRODUCTS');
+----
+
+
 == LOAD JDBC - Resources
 
 To use other JDBC drivers use these download links and JDBC URL.
@@ -330,7 +410,7 @@ Put the JDBC driver into the `$NEO4J_HOME/plugins` directory and configure the J
 |https://www.sap.com/developer/topics/sap-hana-express.html[SAP Hana ngdbc Driver]
 
 |Apache Hive (w/ Kerberos)
-|jdbc:hive2://username%40krb-hostname:password@hostname:10000/default;principal=hive/hostname@krb-hostname;auth=kerberos;kerberosAuthType=fromSubject
+|jdbc:hive2://username%40krb-realm:password@hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject
 | https://cwiki.apache.org/confluence/display/Hive/HiveServer2+Clients#HiveServer2Clients-JDBC[Apache Hive Driver] https://www.cloudera.com/downloads/connectors/hive/jdbc/2-5-20.html[(Cloudera)] https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.3/bk_data-access/content/hive-jdbc-odbc-drivers.html[(Hortonworks)]
  There are several jars (hadoop-common-xxx.jar hive-exec-xxx.jar hive-jdbc-xxx.jar hive-metastore-xxx.jar hive-service-xxx.jar httpclient-4.4.jar httpcore-4.4.jar libfb303-0.9.2.jar libthrift-0.9.3.jar)
 |===
