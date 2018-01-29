@@ -43,8 +43,8 @@ public class ExpandPathTest {
     }
 
     @After
-    public void removeWesternLabels() {
-		db.execute("MATCH (c:Western) REMOVE c:Western");
+    public void removeOtherLabels() {
+		db.execute("OPTIONAL MATCH (c:Western) REMOVE c:Western WITH DISTINCT 1 as ignore OPTIONAL MATCH (c:Blacklist) REMOVE c:Blacklist");
 	}
 
 	@Test
@@ -292,11 +292,11 @@ public class ExpandPathTest {
 
 	@Test
 	public void testCompoundLabelMatchesOnlyNodeWithBothLabels() {
-		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western WITH c WHERE c.name = 'Gene Hackman' REMOVE c:Person");
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western WITH c WHERE c.name = 'Clint Eastwood' SET c:Eastwood");
 
 		TestUtil.testResult(db,
 				"MATCH (k:Person {name:'Keanu Reeves'}) " +
-						"CALL apoc.path.subgraphNodes(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'/Western:Person', uniqueness: 'NODE_GLOBAL'}) yield node " +
+						"CALL apoc.path.subgraphNodes(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', labelFilter:'/Western:Eastwood', uniqueness: 'NODE_GLOBAL'}) yield node " +
 						"return node",
 				result -> {
 
@@ -326,7 +326,7 @@ public class ExpandPathTest {
 
 	@Test
 	public void testTerminatorNodesPruneExpansion() {
-		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western WITH c WHERE c.name = 'Clint Eastwood' SET c:Blacklist");
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
 
 		TestUtil.testResult(db,
 				"MATCH (k:Person {name:'Keanu Reeves'}), (gene:Person {name:'Gene Hackman'}), (clint:Person {name:'Clint Eastwood'}) " +
@@ -362,7 +362,7 @@ public class ExpandPathTest {
 
 	@Test
 	public void testEndNodesWithTerminationFilterPrunesExpansion() {
-		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western WITH c WHERE c.name = 'Clint Eastwood' SET c:Blacklist");
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
 
 		TestUtil.testResult(db,
 				"MATCH (k:Person {name:'Keanu Reeves'}), (gene:Person {name:'Gene Hackman'}), (clint:Person {name:'Clint Eastwood'}) " +
@@ -379,7 +379,7 @@ public class ExpandPathTest {
 
 	@Test
 	public void testTerminatorNodesWithEndNodeFilterPrunesExpansion() {
-		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western WITH c WHERE c.name = 'Clint Eastwood' SET c:Blacklist");
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
 
 		TestUtil.testResult(db,
 				"MATCH (k:Person {name:'Keanu Reeves'}), (gene:Person {name:'Gene Hackman'}), (clint:Person {name:'Clint Eastwood'}) " +
