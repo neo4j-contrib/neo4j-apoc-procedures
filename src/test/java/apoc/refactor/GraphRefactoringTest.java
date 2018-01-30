@@ -16,6 +16,7 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testCallEmpty;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
@@ -242,11 +243,35 @@ public class GraphRefactoringTest {
 
     @Test
     public void testCloneNodes() throws Exception {
-//        TestUtil.testCall(db,
-//                "",
-//                (row) -> {
-//
-//        });
+        Node node = db.execute("CREATE (f:Foo {name:'foo',age:42})-[:FB]->(:Bar) RETURN f").<Node>columnAs("f").next();
+        TestUtil.testCall(db, "CALL apoc.refactor.cloneNodes([$node]) yield output as node return properties(node) as props,[(node)-[r]->() | type(r)] as types",
+                map("node",node),
+                (row) -> {
+                assertEquals(map("name","foo","age",42L),row.get("props"));
+                assertEquals(emptyList(),row.get("types"));
+                }
+        );
+        TestUtil.testCall(db, "CALL apoc.refactor.cloneNodes([$node],true,[]) yield output as node return properties(node) as props,[(node)-[r]->() | type(r)] as types",
+                map("node",node),
+                (row) -> {
+                assertEquals(map("name","foo","age",42L),row.get("props"));
+                assertEquals(singletonList("FB"),row.get("types"));
+                }
+        );
+        TestUtil.testCall(db, "CALL apoc.refactor.cloneNodes([$node],false,[]) yield output as node return properties(node) as props,[(node)-[r]->() | type(r)] as types",
+                map("node",node),
+                (row) -> {
+                assertEquals(map("name","foo","age",42L),row.get("props"));
+                assertEquals(emptyList(),row.get("types"));
+                }
+        );
+        TestUtil.testCall(db, "CALL apoc.refactor.cloneNodes([$node],true,['age']) yield output as node return properties(node) as props,[(node)-[r]->() | type(r)] as types",
+                map("node",node),
+                (row) -> {
+                assertEquals(map("name","foo"),row.get("props"));
+                assertEquals(singletonList("FB"),row.get("types"));
+                }
+        );
     }
 
     @Test
