@@ -383,6 +383,15 @@ public class Strings {
     }
 
     @UserFunction
+    @Description("apoc.text.code(codepoint) - Returns the unicode character of the given codepoint")
+    public String code(@Name("codepoint") Long codepoint) {
+        if (codepoint == null || codepoint < 0 || codepoint > Character.MAX_VALUE) {
+            return null;
+        }
+        return String.valueOf((char)codepoint.intValue());
+    }
+
+    @UserFunction
     @Description("apoc.text.hexValue(value) - the hex value string of the given number")
     public String hexValue(@Name("value") Long value) {
         if (value == null) {
