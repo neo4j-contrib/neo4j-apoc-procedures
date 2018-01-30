@@ -1,5 +1,6 @@
 package apoc.nodes;
 
+import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
 import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -7,10 +8,7 @@ import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static apoc.util.Util.map;
 import static java.util.Arrays.asList;
@@ -28,6 +26,7 @@ public class NodesTest {
     public void setUp() throws Exception {
         db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
         TestUtil.registerProcedure(db,Nodes.class);
+        TestUtil.registerProcedure(db, Periodic.class);
     }
 
     @After
@@ -175,4 +174,57 @@ public class NodesTest {
         });
 
     }
+
+    @Test
+    public void testRemoveNodesWithLabels_NoParams() {
+        String[] labels = {};
+        Map params = new HashMap();
+        params.put("labels", labels);
+        TestUtil.testResult(db,
+                "CALL apoc.remove.nodes.withlabel",
+                params,
+                r -> {
+                });
+    }
+
+    @Test
+    public void testRemoveNodesWithLabels_OkParams() {
+        String[] labels = {"aa", "bb", "cc"};
+        Map params = new HashMap();
+        params.put("labels", labels);
+        TestUtil.testResult(db,
+                "CALL apoc.remove.nodes.withlabel",
+                params,
+                r -> {
+                });
+    }
+
+    @Test
+    public void testRemoveNodesWithLabels_AnEmptyParam() {
+        String[] labels = {"aa","bb","  ","cc"};
+        Map params = new HashMap();
+        params.put("labels", labels);
+        TestUtil.testResult(db,
+                "CALL apoc.remove.nodes.withlabel",
+                params,
+                r -> {
+                });
+    }
+
+    @Test
+    public void testRemoveNodesWithLabels_KoParamsMissing() {
+        boolean caught = false;
+        try {
+            TestUtil.testCall(db,
+                    "CALL apoc.remove.nodes.withlabel(['aa','',,'bb'])",
+                    null,
+                    r -> {
+                    });
+        } catch (Exception e) {
+            caught = true;
+        }
+        Assert.assertTrue(caught);
+    }
+
+
 }

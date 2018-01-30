@@ -303,6 +303,16 @@ public class Nodes {
         }
     }
 
+    @Procedure(value = "apoc.remove.nodes.withlabel", mode = Mode.WRITE)
+    @Description("Will remove all the nodes having one of the given labels, via DETACH DELETE")
+    public void removeNodesWithLabels(@Name("labels") List<String> labels) {
+        for (String label : labels) {
+            if (label!=null && label.trim().length()>0)
+                db.execute("CALL apoc.periodic.commit('MATCH (n:`" + label + "`) DETACH DELETE n;',null)");
+        }
+    }
+
+
     private boolean isDense(ReadOperations ops, Node n) {
         try {
             return ops.nodeIsDense(n.getId());
