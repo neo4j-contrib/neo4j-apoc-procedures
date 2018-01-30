@@ -22,11 +22,18 @@ public class GraphRefactoring {
     @Context
     public Log log;
 
-    private Stream<NodeRefactorResult> doCloneNodes(@Name("nodes") List<Node> nodes, @Name("withRelationships") boolean withRelationships) {
+    private Stream<NodeRefactorResult> doCloneNodes(@Name("nodes") List<Node> nodes, @Name("withRelationships") boolean withRelationships, List<String> skipProperties) {
+        if (nodes == null) return Stream.empty();
         return nodes.stream().map((node) -> {
             NodeRefactorResult result = new NodeRefactorResult(node.getId());
             try {
-                Node copy = copyProperties(node, copyLabels(node, db.createNode()));
+                Node newNode = copyLabels(node, db.createNode());
+
+                Map<String, Object> properties = node.getAllProperties();
+                if (skipProperties!=null && !skipProperties.isEmpty())
+                    for (String skip : skipProperties) properties.remove(skip);
+
+                Node copy = copyProperties(properties, newNode);
                 if (withRelationships) {
                     copyRelationships(node, copy,false);
                 }
@@ -87,17 +94,20 @@ public class GraphRefactoring {
      */
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.cloneNodes([node1,node2,...]) clone nodes with their labels and properties")
-    public Stream<NodeRefactorResult> cloneNodes(@Name("nodes") List<Node> nodes) {
-        return doCloneNodes(nodes,false);
+    public Stream<NodeRefactorResult> cloneNodes(@Name("nodes") List<Node> nodes,
+                                                 @Name(value = "withRelationships",defaultValue = "false") boolean withRelationships,
+                                                 @Name(value = "skipProperties",defaultValue = "[]") List<String> skipProperties) {
+        return doCloneNodes(nodes,withRelationships,skipProperties);
     }
 
     /**
      * this procedure takes a list of nodes and clones them with their labels, properties and relationships
      */
     @Procedure(mode = Mode.WRITE)
+    @Deprecated
     @Description("apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) clone nodes with their labels, properties and relationships")
     public Stream<NodeRefactorResult> cloneNodesWithRelationships(@Name("nodes") List<Node> nodes) {
-        return doCloneNodes(nodes,true);
+        return doCloneNodes(nodes,true, Collections.emptyList());
     }
 
     /**
@@ -107,7 +117,7 @@ public class GraphRefactoring {
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.mergeNodes([node1,node2],[{properties:'override' or 'discard' or 'combine'}]) merge nodes onto first in list")
     public Stream<NodeResult> mergeNodes(@Name("nodes") List<Node> nodes, @Name(value= "config", defaultValue = "") Map<String, Object> config) {
-        if (nodes.isEmpty()) return Stream.empty();
+        if (nodes == null || nodes.isEmpty()) return Stream.empty();
         RefactorConfig conf = new RefactorConfig(config);
         Iterator<Node> it = nodes.iterator();
         Node first = it.next();
@@ -125,7 +135,7 @@ public class GraphRefactoring {
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.mergeRelationships([rel1,rel2]) merge relationships onto first in list")
     public Stream<RelationshipResult> mergeRelationships(@Name("rels") List<Relationship> relationships, @Name(value= "config", defaultValue = "") Map<String, Object> config) {
-        if (relationships.isEmpty()) return Stream.empty();
+        if (relationships == null || relationships.isEmpty()) return Stream.empty();
         RefactorConfig conf = new RefactorConfig(config);
         Iterator<Relationship> it = relationships.iterator();
         Relationship first = it.next();
@@ -146,6 +156,7 @@ public class GraphRefactoring {
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.setType(rel, 'NEW-TYPE') change relationship-type")
     public Stream<RelationshipRefactorResult> setType(@Name("relationship") Relationship rel, @Name("newType") String newType) {
+        if (rel == null) return Stream.empty();
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
         try {
             Relationship newRel = rel.getStartNode().createRelationshipTo(rel.getEndNode(), RelationshipType.withName(newType));
@@ -163,6 +174,7 @@ public class GraphRefactoring {
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.to(rel, endNode) redirect relationship to use new end-node")
     public Stream<RelationshipRefactorResult> to(@Name("relationship") Relationship rel, @Name("newNode") Node newNode) {
+        if (rel == null || newNode == null) return Stream.empty();
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
         try {
             Relationship newRel = rel.getStartNode().createRelationshipTo(newNode, rel.getType());
@@ -177,6 +189,7 @@ public class GraphRefactoring {
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.invert(rel) inverts relationship direction")
     public Stream<RelationshipRefactorResult> invert(@Name("relationship") Relationship rel) {
+        if (rel == null) return Stream.empty();
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
         try {
             Relationship newRel = rel.getEndNode().createRelationshipTo(rel.getStartNode(), rel.getType());
@@ -194,6 +207,7 @@ public class GraphRefactoring {
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.from(rel, startNode) redirect relationship to use new start-node")
     public Stream<RelationshipRefactorResult> from(@Name("relationship") Relationship rel, @Name("newNode") Node newNode) {
+        if (rel == null || newNode == null) return Stream.empty();
         RelationshipRefactorResult result = new RelationshipRefactorResult(rel.getId());
         try {
             Relationship newRel = newNode.createRelationshipTo(rel.getEndNode(), rel.getType());
@@ -348,7 +362,11 @@ public class GraphRefactoring {
     }
 
     private <T extends PropertyContainer> T copyProperties(PropertyContainer source, T target) {
-        for (Map.Entry<String, Object> prop : source.getAllProperties().entrySet())
+        return copyProperties(source.getAllProperties(),target);
+    }
+
+    private <T extends PropertyContainer> T copyProperties(Map<String,Object> source, T target) {
+        for (Map.Entry<String, Object> prop : source.entrySet())
             target.setProperty(prop.getKey(), prop.getValue());
         return target;
     }

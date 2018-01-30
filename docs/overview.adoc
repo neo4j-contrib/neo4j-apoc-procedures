@@ -627,8 +627,8 @@ CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (
 
 [cols="1m,5"]
 |===
-| call apoc.refactor.cloneNodes([node1,node2,...]) |  clone nodes with their labels and properties
-| call apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) | clone nodes with their labels, properties and relationships
+| call apoc.refactor.cloneNodes([node1,node2,...],[withRelationships=false],[skipProperties=[]]) |  clone nodes with their labels and properties
+| call apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) | deprecated
 | call apoc.refactor.mergeNodes([node1,node2],{config}) | merge nodes onto first in list
 | call apoc.refactor.mergeRelationships([rel1,rel2,...],{config}) | merge relationships onto first in list. Config param is `properties`.
 | call apoc.refactor.to(rel, endNode) | redirect relationship to use new end-node
