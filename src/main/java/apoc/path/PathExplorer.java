@@ -34,25 +34,26 @@ public class PathExplorer {
     public Log log;
 
 	@Procedure("apoc.path.expand")
-	@Description("apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path expand from start node following the given relationships from min to max-level adhering to the label filters")
+	@Description("apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel', minLevel, maxLevel ) yield path - expand from start node following the given relationships from min to max-level adhering to the label filters")
 	public Stream<PathResult> explorePath(@Name("start") Object start
 			                   , @Name("relationshipFilter") String pathFilter
 			                   , @Name("labelFilter") String labelFilter
 			                   , @Name("minLevel") long minLevel
 			                   , @Name("maxLevel") long maxLevel ) throws Exception {
 		List<Node> nodes = startToNodes(start);
-		return explorePathPrivate(nodes, pathFilter, labelFilter, minLevel, maxLevel, BFS, UNIQUENESS, false, -1).map( PathResult::new );
+		return explorePathPrivate(nodes, pathFilter, labelFilter, minLevel, maxLevel, BFS, UNIQUENESS, false, -1, Collections.emptyList(), Collections.emptyList()).map( PathResult::new );
 	}
 
 	//
 	@Procedure("apoc.path.expandConfig")
-	@Description("apoc.path.expandConfig(startNode <id>|Node|list, {minLevel,maxLevel,uniqueness,relationshipFilter,labelFilter,uniqueness:'RELATIONSHIP_PATH',bfs:true, filterStartNode:false}) yield path expand from start node following the given relationships from min to max-level adhering to the label filters")
+	@Description("apoc.path.expandConfig(startNode <id>|Node|list, {minLevel,maxLevel,uniqueness,relationshipFilter,labelFilter,uniqueness:'RELATIONSHIP_PATH',bfs:true, filterStartNode:false, limit:-1, optional:false, endNodes:[], terminatorNodes:[]}) yield path - " +
+			"expand from start node following the given relationships from min to max-level adhering to the label filters. ")
 	public Stream<PathResult> expandConfig(@Name("start") Object start, @Name("config") Map<String,Object> config) throws Exception {
 		return expandConfigPrivate(start, config).map( PathResult::new );
 	}
 
 	@Procedure("apoc.path.subgraphNodes")
-	@Description("apoc.path.subgraphNodes(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false}) yield node expand the subgraph nodes reachable from start node following relationships to max-level adhering to the label filters")
+	@Description("apoc.path.subgraphNodes(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false, limit:-1, optional:false, endNodes:[], terminatorNodes:[]}) yield node - expand the subgraph nodes reachable from start node following relationships to max-level adhering to the label filters")
 	public Stream<NodeResult> subgraphNodes(@Name("start") Object start, @Name("config") Map<String,Object> config) throws Exception {
 		Map<String, Object> configMap = new HashMap<>(config);
 		configMap.remove("minLevel");
@@ -62,7 +63,7 @@ public class PathExplorer {
 	}
 
 	@Procedure("apoc.path.subgraphAll")
-	@Description("apoc.path.subgraphAll(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false}) yield nodes, relationships expand the subgraph reachable from start node following relationships to max-level adhering to the label filters, and also return all relationships within the subgraph")
+	@Description("apoc.path.subgraphAll(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false, limit:-1, endNodes:[], terminatorNodes:[]}) yield nodes, relationships - expand the subgraph reachable from start node following relationships to max-level adhering to the label filters, and also return all relationships within the subgraph")
 	public Stream<GraphResult> subgraphAll(@Name("start") Object start, @Name("config") Map<String,Object> config) throws Exception {
 		Map<String, Object> configMap = new HashMap<>(config);
 		configMap.remove("minLevel");
@@ -76,7 +77,7 @@ public class PathExplorer {
 	}
 
 	@Procedure("apoc.path.spanningTree")
-	@Description("apoc.path.spanningTree(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false}) yield path expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters")
+	@Description("apoc.path.spanningTree(startNode <id>|Node|list, {maxLevel,relationshipFilter,labelFilter,bfs:true, filterStartNode:false, limit:-1, optional:false, endNodes:[], terminatorNodes:[]}) yield path - expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters")
 	public Stream<PathResult> spanningTree(@Name("start") Object start, @Name("config") Map<String,Object> config) throws Exception {
 		Map<String, Object> configMap = new HashMap<>(config);
 		configMap.remove("minLevel");
@@ -134,8 +135,10 @@ public class PathExplorer {
 		boolean filterStartNode = Util.toBoolean(config.getOrDefault("filterStartNode", false));
 		long limit = Util.toLong(config.getOrDefault("limit", "-1"));
 		boolean optional = Util.toBoolean(config.getOrDefault("optional", false));
+		List<Node> endNodes = startToNodes(config.get("endNodes"));
+		List<Node> terminatorNodes = startToNodes(config.get("terminatorNodes"));
 
-		Stream<Path> results = explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness), filterStartNode, limit);
+		Stream<Path> results = explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness), filterStartNode, limit, endNodes, terminatorNodes);
 
 		if (optional) {
 			return optionalStream(results);
@@ -148,13 +151,24 @@ public class PathExplorer {
 			, String pathFilter
 			, String labelFilter
 			, long minLevel
-			, long maxLevel, boolean bfs, Uniqueness uniqueness, boolean filterStartNode, long limit) {
-		// LabelFilter
-		// -|Label|:Label|:Label excluded label list
+			, long maxLevel
+			, boolean bfs
+			, Uniqueness uniqueness
+			, boolean filterStartNode
+			, long limit
+	        , List<Node> endNodes
+	        , List<Node> terminatorNodes) {
+		// LabelMatcher
+		// -Label|:Label|:Label excluded label list
 		// +:Label or :Label include labels
 
-		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs,filterStartNode,limit);
-		return traverser.stream();
+		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs,filterStartNode, endNodes, terminatorNodes);
+
+		if (limit == -1) {
+			return traverser.stream();
+		} else {
+			return traverser.stream().limit(limit);
+		}
 	}
 
 	/**
@@ -176,7 +190,7 @@ public class PathExplorer {
 		return optionalStream;
 	}
 
-	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel, Uniqueness uniqueness, boolean bfs, boolean filterStartNode, long limit) {
+	public static Traverser traverse(TraversalDescription traversalDescription, Iterable<Node> startNodes, String pathFilter, String labelFilter, long minLevel, long maxLevel, Uniqueness uniqueness, boolean bfs, boolean filterStartNode, List<Node> endNodes, List<Node> terminatorNodes) {
 		TraversalDescription td = traversalDescription;
 		// based on the pathFilter definition now the possible relationships and directions must be shown
 
@@ -196,7 +210,20 @@ public class PathExplorer {
 		if (maxLevel != -1) td = td.evaluator(Evaluators.toDepth((int) maxLevel));
 
 		if (labelFilter != null && !labelFilter.trim().isEmpty()) {
-			td = td.evaluator(new LabelEvaluator(labelFilter, filterStartNode, limit, (int) minLevel));
+			td = td.evaluator(new LabelEvaluator(labelFilter, filterStartNode, (int) minLevel));
+		}
+
+		// empty list from default can't be added to, so if we need to add, need new instance
+		endNodes = !endNodes.isEmpty() ? endNodes : (terminatorNodes.isEmpty() ? endNodes : new ArrayList<Node>(terminatorNodes));
+
+		if (!endNodes.isEmpty()) {
+			Node[] nodes = endNodes.toArray(new Node[endNodes.size()]);
+			td = td.evaluator(Evaluators.includeWhereEndNodeIs(nodes));
+		}
+
+		if (!terminatorNodes.isEmpty()) {
+			Node[] nodes = terminatorNodes.toArray(new Node[terminatorNodes.size()]);
+			td = td.evaluator(Evaluators.pruneWhereEndNodeIs(nodes));
 		}
 
 		td = td.uniqueness(uniqueness); // this is how Cypher works !! Uniqueness.RELATIONSHIP_PATH
@@ -205,29 +232,26 @@ public class PathExplorer {
 	}
 
 	public static class LabelEvaluator implements Evaluator {
-		private Set<String> whitelistLabels;
-		private Set<String> blacklistLabels;
-		private Set<String> terminationLabels;
-		private Set<String> endNodeLabels;
+		private LabelMatcher whitelistMatcher;
+		private LabelMatcher blacklistMatcher;
+		private LabelMatcher terminatorMatcher;
+		private LabelMatcher endNodeMatcher;
+
 		private Evaluation whitelistAllowedEvaluation;
-		private boolean endNodesOnly;
 		private boolean filterStartNode;
-		private long limit = -1;
 		private long minLevel = -1;
-		private long resultCount = 0;
 
-		public LabelEvaluator(String labelFilter, boolean filterStartNode, long limit, int minLevel) {
+		public LabelEvaluator(String labelString, boolean filterStartNode, int minLevel) {
 			this.filterStartNode = filterStartNode;
-			this.limit = limit;
 			this.minLevel = minLevel;
-			Map<Character, Set<String>> labelMap = new HashMap<>(4);
+			Map<Character, LabelMatcher> matcherMap = new HashMap<>(4);
 
-			if (labelFilter !=  null && !labelFilter.isEmpty()) {
+			if (labelString !=  null && !labelString.isEmpty()) {
 
 				// parse the filter
 				// split on |
-				String[] defs = labelFilter.split("\\|");
-				Set<String> labels = null;
+				String[] defs = labelString.split("\\|");
+				LabelMatcher labelMatcher = null;
 
 				for (String def : defs) {
 					char operator = def.charAt(0);
@@ -236,8 +260,15 @@ public class PathExplorer {
 						case '-':
 						case '/':
 						case '>':
-							labels = labelMap.computeIfAbsent(operator, character -> new HashSet<>());
+							labelMatcher = matcherMap.computeIfAbsent(operator, character -> new LabelMatcher());
 							def = def.substring(1);
+							break;
+						default:
+							if (labelMatcher == null) {
+								// default to whitelist if no previous matcher
+								labelMatcher = matcherMap.computeIfAbsent('+', character -> new LabelMatcher());
+							} // else use the currently selected matcher (the one used previously)
+							break;
 					}
 
 					if (def.startsWith(":")) {
@@ -245,68 +276,55 @@ public class PathExplorer {
 					}
 
 					if (!def.isEmpty()) {
-						labels.add(def);
+						labelMatcher.addLabel(def);
 					}
 				}
 			}
 
-			whitelistLabels = labelMap.computeIfAbsent('+', character -> Collections.emptySet());
-			blacklistLabels = labelMap.computeIfAbsent('-', character -> Collections.emptySet());
-			terminationLabels = labelMap.computeIfAbsent('/', character -> Collections.emptySet());
-			endNodeLabels = labelMap.computeIfAbsent('>', character -> Collections.emptySet());
-			endNodesOnly = !terminationLabels.isEmpty() || !endNodeLabels.isEmpty();
+			whitelistMatcher = matcherMap.computeIfAbsent('+', character -> LabelMatcher.acceptsAllLabelMatcher());
+			blacklistMatcher = matcherMap.get('-');
+			terminatorMatcher = matcherMap.get('/');
+			endNodeMatcher = matcherMap.get('>');
+
+			// if we have terminator or end node matchers, we will only include nodes with labels of those types, and exclude all others
+			boolean endNodesOnly = terminatorMatcher != null || endNodeMatcher != null;
 			whitelistAllowedEvaluation = endNodesOnly ? EXCLUDE_AND_CONTINUE : INCLUDE_AND_CONTINUE;
 		}
 
 		@Override
 		public Evaluation evaluate(Path path) {
 			int depth = path.length();
-			Node check = path.endNode();
+			Node node = path.endNode();
 
-			// if start node shouldn't be filtered, exclude/include based on if using termination/endnode filter or not
+			// if start node shouldn't be filtered, continue, but exclude/include based on if only returning end nodes
 			// minLevel evaluator will separately enforce exclusion if we're below minLevel
 			if (depth == 0 && !filterStartNode) {
 				return whitelistAllowedEvaluation;
 			}
 
-			// below minLevel always exclude; continue if blacklist and whitelist allow it
-			if (depth < minLevel) {
-				return labelExists(check, blacklistLabels) || !whitelistAllowed(check) ? EXCLUDE_AND_PRUNE : EXCLUDE_AND_CONTINUE;
-			}
-
-			// cut off expansion when we reach the limit
-			if (limit != -1 && resultCount >= limit) {
+			// always exclude and prune if caught in the blacklist
+			if (blacklistMatcher != null && blacklistMatcher.matchesLabels(node)) {
 				return EXCLUDE_AND_PRUNE;
 			}
 
-			Evaluation result = labelExists(check, blacklistLabels) ? EXCLUDE_AND_PRUNE :
-					labelExists(check, terminationLabels) ? filterEndNode(check, true) :
-					labelExists(check, endNodeLabels) ? filterEndNode(check, false) :
-					whitelistAllowed(check) ? whitelistAllowedEvaluation : EXCLUDE_AND_PRUNE;
-
-			return result;
-		}
-
-		private boolean labelExists(Node node, Set<String> labels) {
-			if (labels.isEmpty()) {
-				return false;
+			// always include and prune if found in the terminator matcher (if at or above minLevel)
+			if (terminatorMatcher != null && depth >= minLevel && terminatorMatcher.matchesLabels(node)) {
+				return INCLUDE_AND_PRUNE;
 			}
 
-			for ( Label lab : node.getLabels() ) {
-				if (labels.contains(lab.name())) {
-					return true;
-				}
+			// always include if found in the end node matcher, but only continue if passes whitelist
+			// minLevel evaluator will separately enforce exclusion if we're below minLevel
+			if (endNodeMatcher != null && endNodeMatcher.matchesLabels(node)) {
+				return whitelistMatcher.matchesLabels(node) ? INCLUDE_AND_CONTINUE : INCLUDE_AND_PRUNE;
 			}
-			return false;
-		}
 
-		private boolean whitelistAllowed(Node node) {
-			return whitelistLabels.isEmpty() || labelExists(node, whitelistLabels);
-		}
+			// always continue if found in the whitelist, but include/exclude based on if only end nodes are being returned
+			// minLevel evaluator will separately enforce exclusion if we're below minLevel
+			if (whitelistMatcher.matchesLabels(node)) {
+				return whitelistAllowedEvaluation;
+			}
 
-		private Evaluation filterEndNode(Node node, boolean isTerminationFilter) {
-			resultCount++;
-			return isTerminationFilter || !whitelistAllowed(node) ? INCLUDE_AND_PRUNE : INCLUDE_AND_CONTINUE;
+			return EXCLUDE_AND_PRUNE;
 		}
 	}
 }

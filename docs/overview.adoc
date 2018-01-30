@@ -1003,10 +1003,10 @@ Variations allow more configurable expansions, and expansions for more specific 
 
 [cols="1m,5"]
 |===
-| call apoc.path.expandConfig(startNode <id>Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, uniqueness:'RELATIONSHIP_PATH', filterStartNode:true, limit, optional:false}) yield path | expand from given nodes(s) taking the provided restrictions into account
-| call apoc.path.subgraphNodes(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit, optional:false}) yield node | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns all nodes in the subgraph
-| call apoc.path.subgraphAll(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit}) yield nodes, relationships | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns the collection of subgraph nodes, and the collection of all relationships within the subgraph
-| call apoc.path.spanningTree(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit, optional:false}) yield path | expand a spanning tree from given nodes(s) taking the provided restrictions into account; the paths returned collectively form a spanning tree
+| call apoc.path.expandConfig(startNode <id>Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, uniqueness:'RELATIONSHIP_PATH', filterStartNode:true, limit, optional:false, endNodes, terminatorNodes}) yield path | expand from given nodes(s) taking the provided restrictions into account
+| call apoc.path.subgraphNodes(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit, optional:false, endNodes, terminatorNodes}) yield node | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns all nodes in the subgraph
+| call apoc.path.subgraphAll(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit, endNodes, terminatorNodes}) yield nodes, relationships | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns the collection of subgraph nodes, and the collection of all relationships within the subgraph
+| call apoc.path.spanningTree(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit, optional:false, endNodes, terminatorNodes}) yield path | expand a spanning tree from given nodes(s) taking the provided restrictions into account; the paths returned collectively form a spanning tree
 |===
 
 === Relationship Filter
@@ -1026,10 +1026,11 @@ Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 Syntax: `[+-/>]LABEL1|LABEL2|...`
 
 As of APOC 3.1.3.x multiple label filter operations are allowed.
-
 In prior versions, only one type of operation is allowed in the label filter (`+` or `-` or `/` or `>`, never more than one).
 
 With APOC 3.2.x.x, label filters will no longer apply to starting nodes of the expansion by default.
+
+With the APOC releases in January 2018, compound labels are supported (like `Person:Manager`), and only apply to nodes with all of those labels present (order agnositic).
 
 [opts=header,cols="m,m,a"]
 |===
@@ -1069,6 +1070,18 @@ For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemo
 |===
 
 
+=== End nodes and terminator nodes
+
+As of the January 2018 APOC releases, you can optionally use `endNodes` and `terminatorNodes` params in the config param map when the end nodes of the expansion are known.
+
+When `endNodes` are present, only these end nodes must be at the end of the expanded paths.
+Expansion continues beyond found end nodes.
+This behavior is similar to the end node filter `>` in the label filters.
+
+Nodes given as `terminatorNodes` behave just like `endNodes` (they must be at the end of expanded paths), but stops treversal beyond the found nodes.
+This behavior is similar to the termination filter `/` in the label filters.
+
+`endNodes` and/or `terminatorNodes` can freely be used along with the labelFilter.
 
 == Parallel Node Search
 
