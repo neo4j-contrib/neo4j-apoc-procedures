@@ -844,6 +844,7 @@ Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in 
 | apoc.text.code(codepoint) | Returns the unicode character of the given codepoint
 | apoc.text.hexCharAt(text, index) | Returns the hex value string of the character at the given index
 | apoc.text.hexValue(value) | Returns the hex value string of the given value
+| apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end}) | tries it's best to convert the value to a cypher-property-string
 |===
 
 === Data Extraction

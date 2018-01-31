@@ -3,16 +3,13 @@ package apoc.text;
 import apoc.util.TestUtil;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static java.lang.Math.toIntExact;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -532,5 +529,34 @@ public class StringsTest {
         testCall(db,  "RETURN apoc.text.hexCharAt({text}, 6) as value",  map("text", "Té$™ 中П."), row -> assertEquals("041F", row.get("value")));
         testCall(db,  "RETURN apoc.text.hexCharAt({text}, 7) as value",  map("text", "Té$™ 中П."), row -> assertEquals("002E", row.get("value")));
         testCall(db,  "RETURN apoc.text.hexCharAt({text}, 8) as value",  map("text", "Té$™ 中П."), row -> assertEquals(null, row.get("value")));
+    }
+
+    @Test
+    public void testToCypher() throws Exception {
+        try (Transaction tx = db.beginTx()) {
+            String stmtmt = "CREATE (f:Foo {foo:'foo',answer:42})-[fb:`F B` {fb:'fb',`an swer`:31}]->(b:`B ar` {bar:'bar',answer:41}) RETURN {f:f,fb:fb,b:b} AS data";
+            Map<String, PropertyContainer> data = (Map<String, PropertyContainer>) db.execute(stmtmt).columnAs("data").next();
+            testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", data.get("f")), (row) -> assertEquals("(:Foo {answer:42,foo:'foo'})", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v,{node:'f'}) AS value", map("v", data.get("f")), (row) -> assertEquals("(f:Foo {answer:42,foo:'foo'})", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v,{skipKeys:['answer']}) AS value", map("v", data.get("f")), (row) -> assertEquals("(:Foo {foo:'foo'})", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v,{keepKeys:['answer']}) AS value", map("v", data.get("f")), (row) -> assertEquals("(:Foo {answer:42})", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v,{keepValues:[42]}) AS value", map("v", data.get("f")), (row) -> assertEquals("(:Foo {answer:42})", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v,{skipValues:[42]}) AS value", map("v", data.get("f")), (row) -> assertEquals("(:Foo {foo:'foo'})", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", data.get("b")), (row) -> assertEquals("(:`B ar` {answer:41,bar:'bar'})", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", data.get("fb")),
+                    (row) -> assertEquals("(:Foo {answer:42,foo:'foo'})-[:`F B` {`an swer`:31,fb:'fb'}]->(:`B ar` {answer:41,bar:'bar'})", row.get("value")));
+
+            testCall(db, "RETURN apoc.text.toCypher($v,{start:'f',end:'b', relationship:'fb'}) AS value", map("v", data.get("fb")),
+                    (row) -> assertEquals("(f)-[fb:`F B` {`an swer`:31,fb:'fb'}]->(b)", row.get("value")));
+
+            testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", data.get("b").getAllProperties()), (row) -> assertEquals("{answer:41,bar:'bar'}", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", data.get("b").getProperties("answer", "bar")), (row) -> assertEquals("{answer:41,bar:'bar'}", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", asList(41,"bar",false,null)), (row) -> assertEquals("[41,'bar',false,null]", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", 41), (row) -> assertEquals("41", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", "bar"), (row) -> assertEquals("'bar'", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", null), (row) -> assertEquals("null", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", true), (row) -> assertEquals("true", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", false), (row) -> assertEquals("false", row.get("value")));
+        }
     }
 }
