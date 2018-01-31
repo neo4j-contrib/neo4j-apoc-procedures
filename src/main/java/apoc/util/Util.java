@@ -18,6 +18,7 @@ import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
 import org.w3c.dom.Document;
 
+import javax.lang.model.SourceVersion;
 import javax.xml.parsers.DocumentBuilder;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -537,7 +538,7 @@ public class Util {
     }
 
     public static String quote(String var) {
-        return var.indexOf('`') == -1 ? '`'+var+'`' : var;
+        return SourceVersion.isIdentifier(var) ? var : '`' + var + '`';
     }
 
     public static String param(String var) {

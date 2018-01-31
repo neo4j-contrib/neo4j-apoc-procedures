@@ -1,5 +1,9 @@
 package apoc.text;
 
+import apoc.util.Util;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.helpers.collection.Pair;
 import org.neo4j.procedure.Description;
 import apoc.result.StringResult;
 import org.neo4j.procedure.Name;
@@ -12,12 +16,17 @@ import java.net.URLEncoder;
 import java.text.Normalizer;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.StringUtils;
 
+import static apoc.util.Util.quote;
 import static java.lang.Math.toIntExact;
 import static java.util.Arrays.asList;
 
@@ -404,5 +413,59 @@ public class Strings {
     @Description("apoc.text.hexCharAt(text, index) - the hex value string of the character at the given index")
     public String hexCharAt(@Name("text") String text, @Name("index") Long index) {
         return hexValue(charAt(text, index));
+    }
+
+    private boolean isPrimitive(Object value) {
+        return value == null || value instanceof String || value instanceof Number || value instanceof Boolean;
+    }
+
+    private String cypherName(Map<String,Object> config, String key, Supplier<String> s, Function<String,String> quoter) {
+        Object name = config.get(key);
+        if (name!=null) return quoter.apply(name.toString());
+        return s.get();
+    }
+
+    @UserFunction
+    @Description("apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end}) | tries it's best to convert the value to a cypher-property-string")
+    public String toCypher(@Name("value") Object value, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        if (config.containsKey("keepValues") && !((Collection)config.get("keepValues")).stream().noneMatch((v) -> (v.getClass().isInstance(value) || isPrimitive(value) && isPrimitive(v)) && !value.equals(v))) return null;
+        else if (config.containsKey("skipValues") && ((Collection) config.get("skipValues")).contains(value)) return null;
+
+        if (value==null) return "null";
+        if (value instanceof Number || value instanceof Boolean) return value.toString();
+        if (value instanceof String) return '\''+value.toString()+'\'';
+        if (value instanceof Iterable) return '['+StreamSupport.stream(((Iterable<?>)value).spliterator(),false).map(v -> toCypher(v,config)).filter(Objects::nonNull).collect(Collectors.joining(","))+']';
+        if (value.getClass().isArray()) return '['+Arrays.stream((Object[])value).map(v -> toCypher(v,config)).filter(Objects::nonNull).collect(Collectors.joining(","))+']';
+        if (value instanceof Node) {
+            Node node = (Node) value;
+            String labels = StreamSupport.stream(node.getLabels().spliterator(),false).map(l -> quote(l.name())).collect(Collectors.joining(":"));
+            if (!labels.isEmpty()) labels = ':'+labels;
+            String var = cypherName(config, "node", () -> "", Util::quote);
+            return '('+ var +labels+' '+ toCypher(node.getAllProperties(), config)+')';
+        }
+        if (value instanceof Relationship) {
+            Relationship rel = (Relationship) value;
+            String type = ':'+quote(rel.getType().name());
+            String start = cypherName(config, "start", () -> toCypher(rel.getStartNode(), config),(s)->'('+quote(s)+')');
+            String relationship = cypherName(config, "relationship", () -> "", Util::quote);
+            String end = cypherName(config,"end", ()->toCypher(rel.getEndNode(),config),(s)->'('+quote(s)+')');
+            return start+"-["+relationship+type+' '+ toCypher(rel.getAllProperties(), config)+"]->"+ end;
+        }
+        if (value instanceof Map) {
+            Map<String,Object> values = (Map<String, Object>) value;
+            if (config.containsKey("keepKeys")) {
+                values.keySet().retainAll((List<String>)(config.get("keepKeys")));
+            }
+            if (config.containsKey("skipKeys")) {
+                values.keySet().removeAll((List<String>)(config.get("skipKeys")));
+            }
+            return '{'+values.entrySet().stream()
+                    .map((e)-> Pair.of(e.getKey(), toCypher(e.getValue(),config)))
+                    .filter((p)->p.other() != null)
+                    .sorted(Comparator.comparing(Pair::first))
+                    .map((p) -> quote(p.first())+":"+p.other())
+                    .collect(Collectors.joining(","))+'}';
+        }
+        return null;
     }
 }
