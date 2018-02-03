@@ -17,11 +17,17 @@ public class QueueBasedSpliterator<T> implements Spliterator<T> {
     private T tombstone;
     private T entry;
     private TerminationGuard terminationGuard;
+    private final int timeout;
 
     public QueueBasedSpliterator(BlockingQueue<T> queue, T tombstone, TerminationGuard terminationGuard) {
+        this(queue, tombstone, terminationGuard, 10);
+    }
+
+    public QueueBasedSpliterator(BlockingQueue<T> queue, T tombstone, TerminationGuard terminationGuard, int timeout) {
         this.queue = queue;
         this.tombstone = tombstone;
         this.terminationGuard = terminationGuard;
+        this.timeout = timeout;
         entry = poll();
     }
 
@@ -40,7 +46,7 @@ public class QueueBasedSpliterator<T> implements Spliterator<T> {
 
     private T poll() {
         try {
-            return queue.poll(10, SECONDS);
+            return queue.poll(timeout, SECONDS);
         } catch (InterruptedException e) {
             return null;
         }

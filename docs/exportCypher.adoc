@@ -1,3 +1,10 @@
+Make sure to set the config options in your `neo4j.conf`
+
+.neo4j.conf
+----
+apoc.export.file.enabled=true
+apoc.import.file.enabled=true
+----
 
 Data is exported as Cypher statements to the given file.
 
@@ -11,8 +18,10 @@ To change the export format, you have to set it on the config params like `{form
 
 By default the format is `neo4j-shell`.
 
-It is possible to choose between four cypher export formats:
-To change the cypher export format, you have to set it on the config params like `{cypherFormat: "updateAll"}`
+If you want to export to separate files, e.g. to later use the `apoc.cypher.runFiles/runSchemaFiles` procedures, you can add `separateFiles:true`.
+
+It is possible to choose between four cypher update operation types:
+To change the cypher update operation, you have to set it on the config params like `{cypherFormat: "updateAll"}`
 
 * `create`: all CREATE
 * `updateAll`: MERGE instead of CREATE
@@ -40,6 +49,55 @@ call apoc.export.cypher.query(
 | apoc.export.cypher.schema(file,config) | exports all schema indexes and constraints to cypher
 |===
 // end::export.cypher[]
+
+=== Roundtrip Example
+
+You can use this roundtrip example e.g. on the `:play movies` movie graph.
+
+Make sure to set the config options in your `neo4j.conf`
+
+.neo4j.conf
+----
+apoc.export.file.enabled=true
+apoc.import.file.enabled=true
+----
+
+Export the data in plain format and multiple files:
+
+[source,cypher]
+----
+call apoc.export.cypher.query("match (n)-[r]->(n2) return * limit 100",
+ "/tmp/mysubset.cypher",
+ {format:'plain',separateFiles:true});
+----
+
+This should result in 4 files in your directory.
+
+[source,shell]
+----
+ls -1 /tmp/mysubset.*
+/tmp/mysubset.cleanup.cypher
+/tmp/mysubset.nodes.cypher
+/tmp/mysubset.relationships.cypher
+/tmp/mysubset.schema.cypher
+----
+
+Import the data in 4 steps, first the schema, then nodes and relationships, then cleanup.
+
+---
+call apoc.cypher.runSchemaFile('/tmp/mysubset.schema.cypher');
+call apoc.cypher.runFiles(['/tmp/mysubset.nodes.cypher','/tmp/mysubset.relationships.cypher']);
+
+// remove temporary node properties
+call apoc.cypher.runFile('/tmp/mysubset.cleanup.cypher');
+// drop import specific constraint
+call apoc.cypher.runSchemaFile('/tmp/mysubset.cleanup.cypher');
+---
+
+The `run*` procedures have some optional config:
+
+* `{statistics:true/false}` to output a row of update-stats per statement, default is true
+* `{timeout:1 or 10}` for how long the stream waits for new data, default is 10
 
 == Stream back Exported Cypher Script as columns
 

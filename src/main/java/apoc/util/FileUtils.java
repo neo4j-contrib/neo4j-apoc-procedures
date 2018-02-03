@@ -8,6 +8,8 @@ import apoc.util.s3.S3URLConnection;
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author mh
@@ -19,13 +21,14 @@ public class FileUtils {
     public static final boolean S3_ENABLED = Util.classExists("com.amazonaws.services.s3.AmazonS3");
     public static final String HDFS_PROTOCOL = "hdfs";
     public static final boolean HDFS_ENABLED = Util.classExists("org.apache.hadoop.fs.FileSystem");
+    public static final Pattern HDFS_PATTERN = Pattern.compile("^(hdfs:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
 
     public static CountingReader readerFor(String fileName) throws IOException {
         checkReadAllowed(fileName);
         if (fileName==null) return null;
         fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
         if (fileName.matches("^\\w+:/.+")) {
-        	if (HDFSUtils.isHdfs(fileName)) {
+        	if (isHdfs(fileName)) {
         		return readHdfs(fileName);
         	} else {
         		return Util.openInputStream(fileName,null,null).asReader();
@@ -80,7 +83,7 @@ public class FileUtils {
     public static boolean isFile(String fileName) {
         if (fileName==null) return false;
         if (fileName.toLowerCase().startsWith("http")) return false;
-        if (HDFSUtils.isHdfs(fileName)) return false;
+        if (isHdfs(fileName)) return false;
         if (fileName.toLowerCase().startsWith("file:")) return true;
         return true;
     }
@@ -89,7 +92,7 @@ public class FileUtils {
         if (fileName == null) return null;
         Writer writer;
         
-        if (HDFSUtils.isHdfs(fileName)) {
+        if (isHdfs(fileName)) {
         	try {
 				writer = new OutputStreamWriter(HDFSUtils.writeFile(fileName));
 			} catch (Exception e) {
@@ -139,5 +142,10 @@ public class FileUtils {
                     "\nSee the documentation: https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_loading_data_from_web_apis_json_xml_csv");
         }
         return HDFSUtils.readFile(url);
+    }
+
+    public static boolean isHdfs(String fileName) {
+        Matcher matcher = HDFS_PATTERN.matcher(fileName);
+        return matcher.find();
     }
 }

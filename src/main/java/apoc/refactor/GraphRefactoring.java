@@ -357,7 +357,11 @@ public class GraphRefactoring {
     }
 
     private Node copyLabels(Node source, Node target) {
-        for (Label label : source.getLabels()) target.addLabel(label);
+        for (Label label : source.getLabels()) {
+            if (!target.hasLabel(label)) {
+                    target.addLabel(label);
+            }
+        }
         return target;
     }
 

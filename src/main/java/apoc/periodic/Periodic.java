@@ -244,7 +244,7 @@ public class Periodic {
      * @param cypherAction
      */
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:false,parallel:true}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows")
+    @Description("apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows")
     public Stream<BatchAndTotalResult> iterate(
             @Name("cypherIterate") String cypherIterate,
             @Name("cypherAction") String cypherAction,
@@ -252,11 +252,12 @@ public class Periodic {
 
         long batchSize = Util.toLong(config.getOrDefault("batchSize", 10000));
         boolean parallel = Util.toBoolean(config.getOrDefault("parallel", false));
-        boolean iterateList = Util.toBoolean(config.getOrDefault("iterateList", false));
+        boolean iterateList = Util.toBoolean(config.getOrDefault("iterateList", true));
         long retries = Util.toLong(config.getOrDefault("retries", 0)); // todo sleep/delay or push to end of batch to try again or immediate ?
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
         try (Result result = db.execute(cypherIterate,params)) {
             String innerStatement = prepareInnerStatement(cypherAction, iterateList, result.columns(), "_batch");
+            if (innerStatement.equals(cypherAction)) iterateList=false; // could not prepend UNWIND
             log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
             return iterateAndExecuteBatchedInSeparateThread((int)batchSize, parallel, iterateList, retries, result, (p) -> db.execute(innerStatement, merge(params, p)).close());
         }
