@@ -17,14 +17,15 @@ public class PropertiesManager {
 
     public static void mergeProperties(Map<String, Object> properties, PropertyContainer target, RefactorConfig propertyManagementMode) {
         for (Map.Entry<String, Object> prop : properties.entrySet()) {
-            String mergeMode = propertyManagementMode.getMergeMode(prop.getKey());
+            String key = prop.getKey();
+            String mergeMode = propertyManagementMode.getMergeMode(key);
             switch (mergeMode) {
                 case RefactorConfig.OVERWRITE:
-                    target.setProperty(prop.getKey(), prop.getValue());
+                    target.setProperty(key, prop.getValue());
                     break;
                 case RefactorConfig.DISCARD:
-                    if (!target.hasProperty(prop.getKey())) {
-                        target.setProperty(prop.getKey(), prop.getValue());
+                    if (!target.hasProperty(key)) {
+                        target.setProperty(key, prop.getValue());
                     }
                     break;
                 case RefactorConfig.COMBINE:

@@ -5,11 +5,10 @@ import apoc.util.Util;
 import apoc.util.Utils;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.TransientTransactionFailureException;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
+import org.neo4j.graphdb.schema.ConstraintDefinition;
+import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
@@ -19,7 +18,6 @@ import java.util.*;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static apoc.util.Util.withMapping;
 import static org.junit.Assert.*;
 
 /**
@@ -53,6 +51,11 @@ public class CypherTest {
     @After
     public void clearDB() {
         db.execute("MATCH (n) DETACH DELETE n");
+        try (Transaction tx = db.beginTx()) {
+            db.schema().getIndexes().forEach(IndexDefinition::drop);
+            db.schema().getConstraints().forEach(ConstraintDefinition::drop);
+            tx.success();
+        }
     }
 
 
@@ -179,21 +182,15 @@ public class CypherTest {
                 });
     }
 
-    @Test(expected = QueryExecutionException.class)
+    @Test
     public void testRunFileWithSchema() throws Exception {
         testResult(db, "CALL apoc.cypher.runFile('src/test/resources/schema_create.cypher')",
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(-1L, row.get("row"));
                     Map result = (Map) row.get("result");
-                    assertEquals(2L, toLong(result.get("indexesAdded")));
-
-
-                    row = r.next();
-                    assertEquals(-1L, row.get("row"));
-                    result = (Map) row.get("result");
+                    assertEquals(0L, toLong(result.get("indexesAdded")));
                     assertEquals(1L, toLong(result.get("nodesCreated")));
-                    assertEquals(1L, toLong(result.get("labelsAdded")));
                     assertEquals(1L, toLong(result.get("propertiesSet")));
                     assertEquals(false, r.hasNext());
                 });
@@ -283,7 +280,7 @@ public class CypherTest {
                 });
     }
 
-    @Test(expected = QueryExecutionException.class)
+    @Test
     public void testSchemaRunMixedSchemaAndDataFile() throws Exception {
         testResult(db, "CALL apoc.cypher.runSchemaFile('src/test/resources/schema_create.cypher')",
                 r -> {

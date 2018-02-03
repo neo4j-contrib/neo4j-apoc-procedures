@@ -1,5 +1,6 @@
 package apoc.util.hdfs;
 
+import apoc.util.FileUtils;
 import apoc.util.StreamConnection;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -13,11 +14,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class HDFSUtils {
-
-	public static Pattern HDFS_PATTERN = Pattern.compile("^(hdfs:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
 
 	private HDFSUtils() {}
 
@@ -48,7 +46,7 @@ public class HDFSUtils {
 	}
 	
 	private static String getHDFSUri(String fileName) {
-		Matcher matcher = HDFS_PATTERN.matcher(fileName);
+		Matcher matcher = FileUtils.HDFS_PATTERN.matcher(fileName);
     	if (!matcher.find()) {
     		throw new RuntimeException("Not valid HDFS url");
     	}
@@ -80,8 +78,4 @@ public class HDFSUtils {
 		}
 	}
 
-	public static boolean isHdfs(String fileName) {
-        Matcher matcher = HDFS_PATTERN.matcher(fileName);
-        return matcher.find();
-    }
 }
