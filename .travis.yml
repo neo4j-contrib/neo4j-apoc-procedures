@@ -15,7 +15,7 @@ env:
 before_script:
   - sleep 10
 
-script: ./gradlew --stacktrace --info build --continue
+script: ./gradlew --stacktrace build --continue
 
 # enable section below for travis debugging
 #after_failure:
