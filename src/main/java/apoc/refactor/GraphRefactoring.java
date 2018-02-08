@@ -358,13 +358,18 @@ public class GraphRefactoring {
     }
 
     private Relationship copyRelationship(Relationship rel, Node source, Node target) {
-        //Check the relationship's direction
-        if (rel.getStartNode().getId() == source.getId()) {
-            //Outgoing from source - new relationship should be outgoing from target
-            return copyProperties(rel, target.createRelationshipTo(rel.getOtherNode(source), rel.getType()));
-        } else {
-            //Ingoing to source - new relationship should be ingoing to target
-            return copyProperties(rel, rel.getStartNode().createRelationshipTo(target, rel.getType()));
+        Node startNode = rel.getStartNode();
+        Node endNode = rel.getEndNode();
+
+        if (startNode.getId() == source.getId()) {
+            startNode = target;
         }
+
+        if (endNode.getId() == source.getId()) {
+            endNode = target;
+        }
+
+        Relationship newrel = startNode.createRelationshipTo(endNode, rel.getType());
+        return copyProperties(rel, newrel);
     }
 }
