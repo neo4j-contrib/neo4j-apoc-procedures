@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class GraphRefactoring {
     @Context
@@ -111,14 +112,25 @@ public class GraphRefactoring {
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.mergeNodes([node1,node2]) merge nodes onto first in list")
     public Stream<NodeResult> mergeNodes(@Name("nodes") List<Node> nodes, @Name(value= "config", defaultValue = "") Map<String, Object> config) {
-        if (nodes.isEmpty()) return Stream.empty();
+        if (nodes == null || nodes.isEmpty()) return Stream.empty();
+
+        // grab write locks upfront consistently ordered
+        try (Transaction tx=db.beginTx()) {
+            SortedSet<Node> sortList = new TreeSet<>(Comparator.comparingLong(Node::getId));
+            sortList.addAll(nodes);
+            for (Node node: sortList) {
+                tx.acquireWriteLock(node);
+            }
+            tx.success();
+        }
+
         RefactorConfig conf = new RefactorConfig(config);
         Iterator<Node> it = nodes.iterator();
-        Node first = it.next();
-        while (it.hasNext()) {
-            Node other = it.next();
-            mergeNodes(other, first, true, conf);
-        }
+        final Node first = it.next();
+        // merge the rest of nodes with "distinct" to prevent NotFoundExceptions
+        StreamSupport.stream(Spliterators.spliteratorUnknownSize(it, Spliterator.ORDERED), false).distinct().forEach(
+                node -> mergeNodes(node, first, true, conf)
+        );
         return Stream.of(new NodeResult(first));
     }
 

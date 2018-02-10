@@ -130,7 +130,45 @@ public class GraphRefactoringTest {
                     assertTrue(resultingNode.getDegree(Direction.INCOMING) == 4);
                 }
         );
+    }
 
+    @Test
+    public void testMergeNodesWithNonDistinct() {
+        db.execute("create (a1:ALabel {name:'a1'})-[:HAS_REL]->(b1:BLabel {name:'b1'})," +
+                "          (a2:ALabel {name:'a2'})-[:HAS_REL]->(b2:BLabel {name:'b2'})," +
+                "          (a3:ALabel {name:'a3'})-[:HAS_REL]->(b3:BLabel {name:'b3'}) ");
+
+        testCall(db, "MATCH (a1:ALabel{name:'a1'}),(a2:ALabel{name:'a2'}),(a3:ALabel{name:'a3'}) " +
+                //                 | here we're using a2 two times!
+                //                \/
+                        "WITH [a1,a2,a2,a3] as nodes limit 1 " +
+                        "CALL apoc.refactor.mergeNodes(nodes) yield node return node",
+                row -> {
+                    Node node = (Node) row.get("node");
+                    assertNotNull(node);
+                    assertTrue(node.getDegree(Direction.OUTGOING) == 3);
+                    assertTrue(node.getDegree(Direction.INCOMING) == 0);
+                }
+        );
+
+        testResult(db, "MATCH (a:ALabel) return count(*) as count", result -> {
+            assertEquals( "other ALabel nodes have been deleted", 1, (long)Iterators.single(result.columnAs("count")));
+        });
+    }
+
+    @Test
+    public void testMergeNodesOneSingleNode() {
+        db.execute("create (a1:ALabel {name:'a1'})-[:HAS_REL]->(b1:BLabel {name:'b1'})");
+        testCall(db, "MATCH (a1:ALabel{name:'a1'}) " +
+                        "WITH a1 limit 1 " +
+                        "CALL apoc.refactor.mergeNodes([a1]) yield node return node",
+                row -> {
+                    Node node = (Node) row.get("node");
+                    assertNotNull(node);
+                    assertTrue(node.getDegree(Direction.OUTGOING) == 1);
+                    assertTrue(node.getDegree(Direction.INCOMING) == 0);
+                }
+        );
     }
 
     @Test
