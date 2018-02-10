@@ -336,10 +336,14 @@ public class GraphRefactoring {
     }
 
     private Node mergeNodes(Node source, Node target, boolean delete, RefactorConfig conf) {
-        Map<String, Object> properties = source.getAllProperties();
-        copyRelationships(source, copyLabels(source, target), delete);
-        if (delete) source.delete();
-        PropertiesManager.mergeProperties(properties, target, conf.getPropertiesManagement());
+        try {
+            Map<String, Object> properties = source.getAllProperties();
+            copyRelationships(source, copyLabels(source, target), delete);
+            if (delete) source.delete();
+            PropertiesManager.mergeProperties(properties, target, conf.getPropertiesManagement());
+        } catch (NotFoundException e) {
+            log.warn("skipping a node for merging: " + e.getCause().getMessage());
+        }
         return target;
     }
 

@@ -172,6 +172,25 @@ public class GraphRefactoringTest {
     }
 
     @Test
+    public void testMergeNodesIsTolerantForDeletedNodes() {
+        db.execute("create (a1:ALabel {name:'a1'})-[:HAS_REL]->(b1:BLabel {name:'b1'})," +
+                "(a2:ALabel {name:'a2'}), " +
+                "(a3:ALabel {name:'a3'})-[:HAS_REL]->(b1)");
+        testCall(db, "MATCH (a1:ALabel{name:'a1'}), (a2:ALabel{name:'a2'}), (a3:ALabel{name:'a3'}) " +
+                        "WITH a1,a2,a3 limit 1 " +
+                        "DELETE a2 " +
+                        "WITH a1, a2, a3 " +
+                        "CALL apoc.refactor.mergeNodes([a1,a2,a3]) yield node return node",
+                row -> {
+                    Node node = (Node) row.get("node");
+                    assertNotNull(node);
+                    assertTrue(node.getDegree(Direction.OUTGOING) == 2);
+                    assertTrue(node.getDegree(Direction.INCOMING) == 0);
+                }
+        );
+    }
+
+    @Test
     public void testExtractNode() throws Exception {
         Long id = db.execute("CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) RETURN id(rel) as id").<Long>columnAs("id").next();
         testCall(db, "CALL apoc.refactor.extractNode({ids},['FooBar'],'FOO','BAR')", map("ids", singletonList(id)),
