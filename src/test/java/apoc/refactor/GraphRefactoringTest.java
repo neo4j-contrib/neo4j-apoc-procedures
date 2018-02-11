@@ -6,10 +6,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -131,7 +131,64 @@ public class GraphRefactoringTest {
                     assertTrue(resultingNode.getDegree(Direction.INCOMING) == 4);
                 }
         );
+    }
 
+    @Test
+    public void testMergeNodesWithNonDistinct() {
+        db.execute("create (a1:ALabel {name:'a1'})-[:HAS_REL]->(b1:BLabel {name:'b1'})," +
+                "          (a2:ALabel {name:'a2'})-[:HAS_REL]->(b2:BLabel {name:'b2'})," +
+                "          (a3:ALabel {name:'a3'})-[:HAS_REL]->(b3:BLabel {name:'b3'}) ");
+
+        testCall(db, "MATCH (a1:ALabel{name:'a1'}),(a2:ALabel{name:'a2'}),(a3:ALabel{name:'a3'}) " +
+                //                 | here we're using a2 two times!
+                //                \/
+                        "WITH [a1,a2,a2,a3] as nodes limit 1 " +
+                        "CALL apoc.refactor.mergeNodes(nodes) yield node return node",
+                row -> {
+                    Node node = (Node) row.get("node");
+                    assertNotNull(node);
+                    assertTrue(node.getDegree(Direction.OUTGOING) == 3);
+                    assertTrue(node.getDegree(Direction.INCOMING) == 0);
+                }
+        );
+
+        testResult(db, "MATCH (a:ALabel) return count(*) as count", result -> {
+            assertEquals( "other ALabel nodes have been deleted", 1, (long)Iterators.single(result.columnAs("count")));
+        });
+    }
+
+    @Test
+    public void testMergeNodesOneSingleNode() {
+        db.execute("create (a1:ALabel {name:'a1'})-[:HAS_REL]->(b1:BLabel {name:'b1'})");
+        testCall(db, "MATCH (a1:ALabel{name:'a1'}) " +
+                        "WITH a1 limit 1 " +
+                        "CALL apoc.refactor.mergeNodes([a1]) yield node return node",
+                row -> {
+                    Node node = (Node) row.get("node");
+                    assertNotNull(node);
+                    assertTrue(node.getDegree(Direction.OUTGOING) == 1);
+                    assertTrue(node.getDegree(Direction.INCOMING) == 0);
+                }
+        );
+    }
+
+    @Test
+    public void testMergeNodesIsTolerantForDeletedNodes() {
+        db.execute("create (a1:ALabel {name:'a1'})-[:HAS_REL]->(b1:BLabel {name:'b1'})," +
+                "(a2:ALabel {name:'a2'}), " +
+                "(a3:ALabel {name:'a3'})-[:HAS_REL]->(b1)");
+        testCall(db, "MATCH (a1:ALabel{name:'a1'}), (a2:ALabel{name:'a2'}), (a3:ALabel{name:'a3'}) " +
+                        "WITH a1,a2,a3 limit 1 " +
+                        "DELETE a2 " +
+                        "WITH a1, a2, a3 " +
+                        "CALL apoc.refactor.mergeNodes([a1,a2,a3]) yield node return node",
+                row -> {
+                    Node node = (Node) row.get("node");
+                    assertNotNull(node);
+                    assertTrue(node.getDegree(Direction.OUTGOING) == 2);
+                    assertTrue(node.getDegree(Direction.INCOMING) == 0);
+                }
+        );
     }
 
     @Test
@@ -308,21 +365,22 @@ public class GraphRefactoringTest {
 
     @Test
     public void testMergeNodesWithIngoingRelationships() throws Exception {
-        db.execute("CREATE \n" +
+        long lisaId = Iterators.single(db.execute("CREATE \n" +
                 "(alice:Person {name:'Alice'}),\n" +
                 "(bob:Person {name:'Bob'}),\n" +
                 "(john:Person {name:'John'}),\n" +
                 "(lisa:Person {name:'Lisa'}),\n" +
                 "(alice)-[:knows]->(bob),\n" +
                 "(lisa)-[:knows]->(alice),\n" +
-                "(bob)-[:knows]->(john)");
+                "(bob)-[:knows]->(john) return id(lisa) as lisaId").columnAs("lisaId"));
 
         //Merge (Bob) into (Lisa).
         // The updated node should have one ingoing edge from (Alice), and two outgoing edges to (John) and (Alice).
         testCall(db,
-                "MATCH (bob:Person {name:'Bob'}), (lisa:Person {name:'Lisa'}) CALL apoc.refactor.mergeNodes([lisa, bob]) yield node return node",
+                "MATCH (bob:Person {name:'Bob'}), (lisa:Person {name:'Lisa'}) CALL apoc.refactor.mergeNodes([lisa, bob]) yield node return node, bob",
                 (r)-> {
                     Node node = (Node) r.get("node");
+                    assertEquals(lisaId, node.getId());
                     assertEquals("Bob", node.getProperty("name"));
                     assertEquals(1, node.getDegree(Direction.INCOMING));
                     assertEquals(2, node.getDegree(Direction.OUTGOING));
@@ -331,6 +389,29 @@ public class GraphRefactoringTest {
                 });
     }
 
+    @Test
+    public void testMergeNodesWithSelfRelationships() throws Exception {
+        Map<String, Object> result = Iterators.single(db.execute("CREATE \n" +
+                "(alice:Person {name:'Alice'}),\n" +
+                "(bob:Person {name:'Bob'}),\n" +
+                "(bob)-[:likes]->(bob) RETURN id(alice) AS aliceId, id(bob) AS bobId"));
+
+        // Merge (bob) into (alice).
+        // The updated node should have one self relationship.
+        // NB: the "LIMIT 1" here is important otherwise Cypher tries to check if another MATCH is found, causing a failing read attempt to deleted node
+        testCall(db,
+                "MATCH (alice:Person {name:'Alice'}), (bob:Person {name:'Bob'}) WITH * LIMIT 1 CALL apoc.refactor.mergeNodes([alice, bob]) yield node return node",
+                (r)-> {
+                    Node node = (Node) r.get("node");
+                    assertEquals(result.get("aliceId"), node.getId());
+                    assertEquals("Bob", node.getProperty("name"));
+                    assertEquals(1, node.getDegree(Direction.INCOMING));
+                    assertEquals(1, node.getDegree(Direction.OUTGOING));
+                    assertTrue(node.getSingleRelationship(RelationshipType.withName("likes"), Direction.OUTGOING).getEndNode().equals(node));
+                });
+    }
+
+    @Test
     public void testMergeRelsOverwriteEagerAggregation() throws Exception {
         long id = db.execute("Create (d:Person {name:'Daniele'})\n" + "Create (p:Country {name:'USA'})\n" + "Create (d)-[:TRAVELS_TO {year:1995, reason:\"work\"}]->(p)\n"
                 + "Create (d)-[:GOES_TO {year:2010}]->(p)\n" + "Create (d)-[:FLIGHTS_TO {company:\"Air America\"}]->(p) RETURN id(p) as id ").<Long>columnAs("id").next();
