@@ -225,6 +225,4 @@ public class NodesTest {
         }
         Assert.assertTrue(caught);
     }
-
-
 }
