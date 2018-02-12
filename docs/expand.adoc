@@ -42,7 +42,7 @@ In prior versions, only one type of operation is allowed in the label filter (`+
 
 With APOC 3.2.x.x, label filters will no longer apply to starting nodes of the expansion by default.
 
-With the APOC releases in January 2018, compound labels are supported (like `Person:Manager`), and only apply to nodes with all of those labels present (order agnositic).
+With the APOC releases in February 2018, compound labels are supported (like `Person:Manager`), and only apply to nodes with all of those labels present (order agnositic).
 
 [opts=header,cols="m,m,a"]
 |===
@@ -151,14 +151,16 @@ Takes an additional map parameter, `config`, to provide configuration options:
  filterStartNode: true|false,
  limit: -1|number,
  optional: true|false,
- endNodes: [nodes]
- terminatorNodes: [nodes]}
+ endNodes: [nodes],
+ terminatorNodes: [nodes],
+ labelSequence: '[+-/>]LABEL1|LABEL2, [+-/>]LABEL3|LABEL4, ...',
+ beginLabelSequenceAtStart: true|false}
 ----
 
 .Start Node and label filters
-The config parameter `filterStartNode` defines whether or not the labelFilter applies to the start node of the expansion.
+The config parameter `filterStartNode` defines whether or not the labelFilter (and labelSequence filter) applies to the start node of the expansion.
 
-Use `filterStartNode = false` when you want your label filter to only apply to all other nodes in the path, ignoring the start node.
+Use `filterStartNode: false` when you want your label filter to only apply to all other nodes in the path, ignoring the start node.
 
 `filterStartNode` defaults for all path expander procedures:
 
@@ -212,7 +214,7 @@ For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemo
 
 .endNodes and terminatorNodes
 
-As of the January 2018 APOC releases, if the end nodes of the expansion are known ahead of time (such as when testing reachability), then these nodes can be passed in as `endNodes` or `terminatorNodes`.
+As of the February 2018 APOC releases, if the end nodes of the expansion are known ahead of time (such as when testing reachability), then these nodes can be passed in as `endNodes` or `terminatorNodes`.
 
 This restricts the returned paths (or nodes) to only these nodes (or nodes with the given ids, if an integer list is passed).
 
@@ -220,7 +222,42 @@ For `endNodes`, expansion continues past end nodes.
 
 For `terminatorNodes`, expansion down a path stops when a terminator node is reached.
 
-.Examples
+.Label Sequences
+
+Introduced in the February 2018 APOC releases, `labelSequence` allows the definition of label filters for each step in a looping sequence.
+
+This can be used, for example, to expand along a repeating sequence of the labels :A, :B, and :C.
+
+`labelSequence` uses similar syntax to the `labelFilter` (`+`,`-`,`>`,`/` for whitelist, blacklist, end node, and terminator node, respectively),
+but these filters only apply to a specific step in the sequence, not the entire sequence. Commas (`,`) separate the filters for each step in the sequence.
+
+As a more complex example, `labelSequence: 'A|D, B|-E, C:F'` means: the first node should be :A or :D, the second node should be :B (but never labeled :E), and the last in the sequence should be labeled both :C and :F. The sequence then repeats.
+We could add end node or termination filters to any step, which would change which paths are returned (or nodes, if using `subgraphNodes()`) even as we keep expanding along the repeating sequence (terminating of course when reaching a node with a terminator filter).
+
+Aside from the comma separators, there are a few differences in syntax between this and the `labelFilter`.
+
+1. In the `labelFilter`, a label without a symbol reused the previously used filter (and may error out if no previous filter symbol is present).
+In `labelSequence`, no filter symbol instead means the label is whitelisted. In effect, `+` is now optional when whitelisting a label.
+
+2. In the `labelFilter`, the termination and end node filters applied to labels. In `labelSequence`, it's more correct to say they apply to the step in the sequence as a whole, and any labels provided are considered whitelisted for that step.
+Because of this, it doesn't matter which label the end node or terminator node filter is applied to...as long as the filter is present in the sequence step, that node in the sequence will be treated as an end node or terminator node.
+So as a result, `>C|D` is equivalent to `C|>D` . The nodes at that step of the sequence (that are labeled :C or :D) will be treated as end nodes.
+We recommend the convention of using the end node or terminator filter at the start of the step in the sequence.
+
+3. You can provide `*` in place of a label, which stands in for all labels.
+This can be used to specify that at a certain step in the sequence, it doesn't matter what the labels are, everything is whitelisted.
+
+Remember that `filterStartNode` defaults to false for APOC 3.2.x.x and newer. If you want the start node filtered according to the first step in the sequence, you may need to set this explicitly to false.
+
+There may be some cases where the sequence you're expanding starts at the first step away from the start node, rather than at the start node itself, and the start node isn't involved in the sequence at all.
+For these cases, use `beginLabelSequenceAtStart:false`.
+
+If you need to limit the number of times a sequence repeats, this can be done with the `maxLevel` config param (multiply the number of iterations with the size of the sequence).
+
+`labelSequence`, `labelFilter`, and `endNodes` and `terminatorNodes` can be freely used together,
+for example if needing to expand a repeating sequence of labels to specific already-matched end-nodes, with a blacklist defined for the expansion.
+
+.General Examples
 
 You can turn this cypher query:
 

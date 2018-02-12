@@ -14,6 +14,8 @@ import java.util.*;
  * If the LabelMatcher only had `Person:Manager` and `Person:Boss`, then only nodes with both :Person and :Manager, or :Person and :Boss, would match.
  * Some nodes that would not match would be: :Person, :Boss, :Manager, :Boss:Manager, but :Boss:Person:HeadHoncho would match fine.
  * Also accepts a special `*` label, indicating that the matcher will always return a positive match.
+ * LabelMatchers hold no context about what a match means, and do not handle labels prefixed with filter symbols (+, -, /, >).
+ * Please strip these symbols from the start of each label before adding to the matcher.
  */
 public class LabelMatcher {
     private List<String> labels = new ArrayList<>();
@@ -28,6 +30,11 @@ public class LabelMatcher {
         @Override
         public LabelMatcher addLabel(String label) {
             return this; // no-op
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return false;
         }
     };
 
@@ -77,6 +84,10 @@ public class LabelMatcher {
         }
 
         return false;
+    }
+
+    public boolean isEmpty() {
+        return labels.isEmpty() && (compoundLabels == null || compoundLabels.isEmpty());
     }
 }
 
