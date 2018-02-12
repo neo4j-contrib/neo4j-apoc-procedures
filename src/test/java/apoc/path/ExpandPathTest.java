@@ -361,6 +361,25 @@ public class ExpandPathTest {
 	}
 
 	@Test
+	public void testEndNodesAndTerminatorNodesReturnExpectedResults() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western WITH c WHERE c.name = 'Clint Eastwood' SET c:Blacklist");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}), (gene:Person {name:'Gene Hackman'}), (clint:Person {name:'Clint Eastwood'}) " +
+						"CALL apoc.path.subgraphNodes(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', endNodes:[gene], terminatorNodes:[clint]}) yield node " +
+						"return node",
+				result -> {
+
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(2, maps.size());
+					Node node = (Node) maps.get(0).get("node");
+					assertEquals("Gene Hackman", node.getProperty("name"));;
+					node = (Node) maps.get(1).get("node");
+					assertEquals("Clint Eastwood", node.getProperty("name"));
+				});
+	}
+
+	@Test
 	public void testEndNodesWithTerminationFilterPrunesExpansion() {
 		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
 

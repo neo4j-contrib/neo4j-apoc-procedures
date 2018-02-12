@@ -215,24 +215,28 @@ public class PathExplorer {
 		if (maxLevel != -1) td = td.evaluator(Evaluators.toDepth((int) maxLevel));
 
 		if (labelFilter != null && !labelFilter.trim().isEmpty()) {
-			td = td.evaluator(new LabelEvaluator(labelFilter, filterStartNode, (int) minLevel));
+			td = td.evaluator(new LabelEvaluator(labelFilter.trim(), filterStartNode, (int) minLevel));
 		}
 
-		// empty list from default can't be added to, so if we need to add, need new instance
-		endNodes = !endNodes.isEmpty() ? endNodes : (terminatorNodes.isEmpty() ? endNodes : new ArrayList<Node>(terminatorNodes));
+		Evaluator endNodeEvaluator = null;
+		Evaluator terminatorNodeEvaluator = null;
 
 		if (!endNodes.isEmpty()) {
 			Node[] nodes = endNodes.toArray(new Node[endNodes.size()]);
-			td = td.evaluator(Evaluators.includeWhereEndNodeIs(nodes));
+			endNodeEvaluator = Evaluators.includeWhereEndNodeIs(nodes);
 		}
 
 		if (!terminatorNodes.isEmpty()) {
 			Node[] nodes = terminatorNodes.toArray(new Node[terminatorNodes.size()]);
-			td = td.evaluator(Evaluators.pruneWhereEndNodeIs(nodes));
+			terminatorNodeEvaluator = Evaluators.pruneWhereEndNodeIs(nodes);
+		}
+
+		if (endNodeEvaluator != null || terminatorNodeEvaluator != null) {
+			td = td.evaluator(new EndAndTerminatorNodeEvaluator(endNodeEvaluator, terminatorNodeEvaluator));
 		}
 
 		if (labelSequence != null && !labelSequence.trim().isEmpty()) {
-			td = td.evaluator(new LabelSequenceEvaluator(labelSequence, filterStartNode, beginLabelSequenceAtStart, (int) minLevel));
+			td = td.evaluator(new LabelSequenceEvaluator(labelSequence.trim(), filterStartNode, beginLabelSequenceAtStart, (int) minLevel));
 		}
 
 		td = td.uniqueness(uniqueness); // this is how Cypher works !! Uniqueness.RELATIONSHIP_PATH
@@ -339,7 +343,7 @@ public class PathExplorer {
 
 
 	public static class LabelSequenceEvaluator implements Evaluator {
-		private List<LabelMatcherGroup> sequenceFilters;
+		private List<LabelMatcherGroup> sequenceMatchers;
 
 		private Evaluation whitelistAllowedEvaluation;
 		private boolean endNodesOnly;
@@ -356,11 +360,11 @@ public class PathExplorer {
 			// parse sequence
 			if (labelSequence != null && !labelSequence.isEmpty()) {
 				String[] elements = labelSequence.split(",");
-				sequenceFilters = new ArrayList<>(elements.length);
+				sequenceMatchers = new ArrayList<>(elements.length);
 
 				for (String labelFilterString : elements) {
 					LabelMatcherGroup matcherGroup = new LabelMatcherGroup().addLabels(labelFilterString.trim());
-					sequenceFilters.add(matcherGroup);
+					sequenceMatchers.add(matcherGroup);
 					endNodesOnly = endNodesOnly || matcherGroup.isEndNode() || matcherGroup.isTerminatorNode();
 				}
 
@@ -382,7 +386,7 @@ public class PathExplorer {
 			}
 
 			// the user may want the sequence to begin at the start node (default), or the sequence may only apply from the next node on
-			LabelMatcherGroup matcherGroup = sequenceFilters.get((beginLabelSequenceAtStart ? depth : depth - 1) % sequenceFilters.size());
+			LabelMatcherGroup matcherGroup = sequenceMatchers.get((beginLabelSequenceAtStart ? depth : depth - 1) % sequenceMatchers.size());
 
 			// below minLevel always exclude; continue if blacklist and whitelist allow it
 			if (depth < minLevel) {
@@ -406,7 +410,28 @@ public class PathExplorer {
 			}
 
 		}
+	}
 
+	// The evaluators from pruneWhereEndNodeIs and includeWhereEndNodeIs interfere with each other, this makes them play nice
+	public static class EndAndTerminatorNodeEvaluator implements Evaluator {
+		private Evaluator endNodeEvaluator;
+		private Evaluator terminatorNodeEvaluator;
 
+		public EndAndTerminatorNodeEvaluator(Evaluator endNodeEvaluator, Evaluator terminatorNodeEvaluator) {
+			this.endNodeEvaluator = endNodeEvaluator;
+			this.terminatorNodeEvaluator = terminatorNodeEvaluator;
+		}
+
+		@Override
+		public Evaluation evaluate(Path path) {
+			boolean includes = evalIncludes(endNodeEvaluator, path) || evalIncludes(terminatorNodeEvaluator, path);
+			boolean continues = terminatorNodeEvaluator == null || terminatorNodeEvaluator.evaluate(path).continues();
+
+			return Evaluation.of(includes, continues);
+		}
+
+		private boolean evalIncludes(Evaluator eval, Path path) {
+			return eval != null && eval.evaluate(path).includes();
+		}
 	}
 }
