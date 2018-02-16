@@ -58,6 +58,10 @@ public class PathExplorer {
 		Map<String, Object> configMap = new HashMap<>(config);
 		configMap.put("uniqueness", "NODE_GLOBAL");
 
+		if (config.containsKey("minLevel")) {
+			throw new IllegalArgumentException("minLevel not supported in subgraphNodes");
+		}
+
 		return expandConfigPrivate(start, configMap).map( path -> path == null ? new NodeResult(null) : new NodeResult(path.endNode()) );
 	}
 
@@ -67,6 +71,10 @@ public class PathExplorer {
 		Map<String, Object> configMap = new HashMap<>(config);
 		configMap.remove("optional"); // not needed, will return empty collections anyway if no results
 		configMap.put("uniqueness", "NODE_GLOBAL");
+
+		if (config.containsKey("minLevel")) {
+			throw new IllegalArgumentException("minLevel not supported in subgraphAll");
+		}
 
 		List<Node> subgraphNodes = expandConfigPrivate(start, configMap).map( Path::endNode ).collect(Collectors.toList());
 		List<Relationship> subgraphRels = Cover.coverNodes(subgraphNodes).collect(Collectors.toList());
@@ -79,6 +87,10 @@ public class PathExplorer {
 	public Stream<PathResult> spanningTree(@Name("start") Object start, @Name("config") Map<String,Object> config) throws Exception {
 		Map<String, Object> configMap = new HashMap<>(config);
 		configMap.put("uniqueness", "NODE_GLOBAL");
+
+		if (config.containsKey("minLevel")) {
+			throw new IllegalArgumentException("minLevel not supported in spanningTree");
+		}
 
 		if (configMap.containsKey("sequence") || configMap.containsKey("labelSequence") || configMap.containsKey("relationshipSequence")) {
 			throw new IllegalArgumentException("sequences not supported by spanningTree");
