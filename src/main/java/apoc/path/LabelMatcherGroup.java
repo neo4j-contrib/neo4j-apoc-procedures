@@ -1,24 +1,26 @@
 package apoc.path;
 
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.traversal.Evaluation;
+
+import static org.neo4j.graphdb.traversal.Evaluation.*;
 
 /**
- * A matcher for evaluating whether or not a node has at least one of the whitelisted labels (and does not have any blacklisted label).
+ * A matcher for evaluating whether or not a node is accepted by a group of matchers comprised of a blacklist, whitelist, endNode and termination node matchers.
  * Unlike a LabelMatcher, LabelMatcherGroups interpret context for labels according to filter symbols provided.
  * Labels can be added that are prefixed with filter symbols (+, -, /, >) (for whitelist, blacklist, terminator, and end node respectively).
- * Lack of a symbol is interpreted as whitelisted. Labels provided with the endnode and terminator filter symbols are also considered whitelisted.
- * The group as a whole carries the status of terminator node or end node...if any label added has the appropriate filter symbol, the appropriate flag is toggled on for the entire group,
- * which will be reflected in `isEndNode()` and `isTerminatorNode()`.
- * Because of this, the endnode and terminator filter symbols can be prefixed in combination with a whitelist or blacklist symbol.
- * For example, '>-EXCLUDED' means that there is a blacklist on any node with the label 'EXCLUDED', but if not caught by the blacklist the
- * node is marked as an endnode.
+ * Lack of a symbol is interpreted as whitelisted.
  * If no labels are set as whitelisted, then all labels are considered whitelisted (if not otherwise disallowed by the blacklist).
+ * The node will not be included if blacklisted, or not matched via the whitelist, end node, or termination node matchers.
+ * If end nodes only, then the node will only be included if matched via the end node and termination node matchers.
+ * The path will be pruned if matching the blacklist, the termination node matchers, or otherwise not included by any of the other matchers.
  */
 public class LabelMatcherGroup {
-    private boolean isEndNode;
-    private boolean isTerminatorNode;
+    private boolean endNodesOnly;
     private LabelMatcher whitelistMatcher = new LabelMatcher();
     private LabelMatcher blacklistMatcher = new LabelMatcher();
+    private LabelMatcher endNodeMatcher = new LabelMatcher();
+    private LabelMatcher terminatorNodeMatcher = new LabelMatcher();
 
     public LabelMatcherGroup addLabels(String fullFilterString) {
         if (fullFilterString !=  null && !fullFilterString.isEmpty()) {
@@ -34,26 +36,29 @@ public class LabelMatcherGroup {
 
     public LabelMatcherGroup addLabel(String filterString) {
         if (filterString !=  null && !filterString.isEmpty()) {
-
-            char operator = filterString.charAt(0);
-            if (operator == '>') {
-                isEndNode = true;
-                filterString = filterString.substring(1);
-            } else if (operator == '/') {
-                isTerminatorNode = true;
-                filterString = filterString.substring(1);
-            }
-
             LabelMatcher matcher;
 
-            if (filterString.charAt(0) == '-') {
-                matcher = blacklistMatcher;
-                filterString = filterString.substring(1);
-            } else if (filterString.charAt(0) == '+') {
-                matcher = whitelistMatcher;
-                filterString = filterString.substring(1);
-            } else {
-                matcher = whitelistMatcher;
+            char operator = filterString.charAt(0);
+
+            switch (operator) {
+                case '>':
+                    endNodesOnly = true;
+                    matcher = endNodeMatcher;
+                    filterString = filterString.substring(1);
+                    break;
+                case '/':
+                    endNodesOnly = true;
+                    matcher = terminatorNodeMatcher;
+                    filterString = filterString.substring(1);
+                    break;
+                case '-':
+                    matcher = blacklistMatcher;
+                    filterString = filterString.substring(1);
+                    break;
+                case '+':
+                    filterString = filterString.substring(1);
+                default:
+                    matcher = whitelistMatcher;
             }
 
             matcher.addLabel(filterString);
@@ -62,24 +67,31 @@ public class LabelMatcherGroup {
         return this;
     }
 
-    public boolean matchesLabels(Node node) {
+    public Evaluation evaluate(Node node, boolean belowMinLevel) {
         if (blacklistMatcher.matchesLabels(node)) {
-            return false;
+            return EXCLUDE_AND_PRUNE;
         }
 
-        // empty whitelist is equivalent to everything whitelisted (unless caught by blacklist above)
+        if (terminatorNodeMatcher.matchesLabels(node)) {
+            return belowMinLevel ? EXCLUDE_AND_CONTINUE : INCLUDE_AND_PRUNE;
+        }
+
+        if (endNodeMatcher.matchesLabels(node)) {
+            return belowMinLevel ? EXCLUDE_AND_CONTINUE : INCLUDE_AND_CONTINUE;
+        }
+
         if (whitelistMatcher.isEmpty() || whitelistMatcher.matchesLabels(node)) {
-            return true;
+            return endNodesOnly || belowMinLevel ? EXCLUDE_AND_CONTINUE : INCLUDE_AND_CONTINUE;
         }
 
-        return false;
+        return EXCLUDE_AND_PRUNE;
     }
 
-    public boolean isEndNode() {
-        return isEndNode;
+    public boolean isEndNodesOnly() {
+        return endNodesOnly;
     }
 
-    public boolean isTerminatorNode() {
-        return isTerminatorNode;
+    public void setEndNodesOnly(boolean endNodesOnly) {
+        this.endNodesOnly = endNodesOnly;
     }
 }

@@ -1123,21 +1123,25 @@ Label filtering in sequences work together with the `endNodes`+`terminatorNodes`
 Aside from the comma separators, there are a few differences in syntax between this and the `labelFilter`.
 
 1. In the `labelFilter`, a label without a symbol reused the previously used filter (and may error out if no previous filter symbol is present).
-In `labelSequence`, no filter symbol instead means the label is whitelisted. In effect, `+` is now optional when whitelisting a label.
+In `labelSequence` and `sequence`, no filter symbol instead means the label is whitelisted. In effect, `+` is now optional when whitelisting a label.
 
-2. In the `labelFilter`, the termination and end node filters applied to labels. In `labelSequence`, it's more correct to say they apply to the step in the sequence as a whole, and any labels provided are considered whitelisted for that step.
-Because of this, it doesn't matter which label the end node or terminator node filter is applied to...as long as the filter is present in the sequence step, that node in the sequence will be treated as an end node or terminator node.
-So as a result, `>C|D` is equivalent to `C|>D` . The nodes at that step of the sequence (that are labeled :C or :D) will be treated as end nodes.
-We recommend the convention of using the end node or terminator filter at the start of the step in the sequence.
-
-3. You can provide `*` in place of a label, which stands in for all labels.
+2. You can provide `*` in place of a label, which stands in for all labels.
 This can be used to specify that at a certain step in the sequence, it doesn't matter what the labels are, everything is whitelisted.
 (relationships can still use `''` for any relationship type/direction, or just the direction arrow).
+
+3. In the `labelFilter`, a label with the end node filter isn't automatically whitelisted. It is included in the results, but to expand beyond it the node must pass the whitelist filter.
+In `labelSequence` and `sequence`, a node with the end node filter is automatically considered whitelisted, and expansion will continue.
+
+4. Behavior is slightly different on matches when depth is below `minLevel`, though these nodes are never included in the results.
+In the `labelFilter`, when below `minLevel`, only nodes allowed by the whitelist and not disallowed by the blacklist would continue.
+In `labelSequence` and `sequence`, this additionally includes nodes with labels in the end node and termination node filters (though the termination node filter will not prune when below `minLevel`).
 
 Remember that `filterStartNode` defaults to false for APOC 3.2.x.x and newer. If you want the start node filtered according to the first step in the sequence, you may need to set this explicitly to false.
 
 If you need to limit the number of times a sequence repeats, this can be done with the `maxLevel` config param (multiply the number of iterations with the size of the nodes in the sequence).
 
+As paths are important when expanding sequences, we recommend avoiding `apoc.path.subgraphNodes()`, `apoc.path.subgraphAll()`, and `apoc.path.spanningTree()` when using sequences,
+as the configurations that make these efficient at matching to distinct nodes may interfere with sequence pathfinding.
 
 == Parallel Node Search
 

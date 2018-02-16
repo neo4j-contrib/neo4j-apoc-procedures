@@ -109,4 +109,34 @@ public class LabelSequenceTest {
             assertTrue(names.containsAll(Arrays.asList("a", "ac")));
         });
     }
+
+    @Test
+    public void testSequenceWithTerminatorNodeAsStartNodeWithoutFilteringStartNode() throws Throwable {
+        String query = "MATCH (a:A {name: 'a'}) CALL apoc.path.subgraphNodes(a,{labelSequence:'/A, B', filterStartNode:false}) yield node return collect(distinct node.name) as nodes";
+        TestUtil.testCall(db, query, (row) -> {
+            List<String> names = (List<String>) row.get("nodes");
+            assertEquals(1L, names.size());
+            assertTrue(names.containsAll(Arrays.asList("ac")));
+        });
+    }
+
+    @Test
+    public void testSequenceWithTerminatorNodeAndEndNode() throws Throwable {
+        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelSequence:'>A|C|/A:C, B', beginSequenceAtStart:false}) yield node return collect(distinct node.name) as nodes";
+        TestUtil.testCall(db, query, (row) -> {
+            List<String> names = (List<String>) row.get("nodes");
+            assertEquals(2L, names.size());
+            assertTrue(names.containsAll(Arrays.asList("a", "ac")));
+        });
+    }
+
+    @Test
+    public void testSequenceWithTerminatorNodeWhenUsingMinLevel() throws Throwable {
+        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.expandConfig(s,{labelSequence:'/A, B', beginSequenceAtStart:false, minLevel:3}) yield path return collect(distinct last(nodes(path)).name) as nodes";
+        TestUtil.testCall(db, query, (row) -> {
+            List<String> names = (List<String>) row.get("nodes");
+            assertEquals(1L, names.size());
+            assertTrue(names.containsAll(Arrays.asList("ac")));
+        });
+    }
 }
