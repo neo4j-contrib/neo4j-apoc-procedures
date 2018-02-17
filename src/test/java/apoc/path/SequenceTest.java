@@ -97,8 +97,8 @@ public class SequenceTest {
     }
 
     @Test
-    public void testExpandWithSequenceIgnoresLabelSequence() throws Throwable {
-        String query = "MATCH (t:Person {name: 'Tom Hanks'}) CALL apoc.path.expandConfig(t,{sequence:'>Person, ACTED_IN>, Movie, <DIRECTED', labelSequence:'-Person,-Movie'}) yield path with distinct last(nodes(path)) as node return collect(node.name) as names";
+    public void testExpandWithSequenceIgnoresLabelFilter() throws Throwable {
+        String query = "MATCH (t:Person {name: 'Tom Hanks'}) CALL apoc.path.expandConfig(t,{sequence:'>Person, ACTED_IN>, Movie, <DIRECTED', labelFilter:'-Person,-Movie'}) yield path with distinct last(nodes(path)) as node return collect(node.name) as names";
         TestUtil.testCall(db, query, (row) -> {
             List<String> expectedNames = new ArrayList<>(Arrays.asList("Robert Zemeckis", "Mike Nichols", "Ron Howard", "Frank Darabont", "Tom Tykwer", "Andy Wachowski", "Lana Wachowski", "Tom Hanks", "John Patrick Stanley", "Nora Ephron", "Penny Marshall", "Rob Reiner"));
             List<String> names = (List<String>) row.get("names");

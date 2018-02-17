@@ -43,7 +43,7 @@ public class LabelSequenceTest {
 
     @Test
     public void testBasicSequence() throws Throwable {
-        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelSequence:'A,B', beginSequenceAtStart:false}) yield node return collect(distinct node.name) as nodes";
+        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelFilter:'A,B', beginSequenceAtStart:false}) yield node return collect(distinct node.name) as nodes";
         TestUtil.testCall(db, query, (row) -> {
             List<String> names = (List<String>) row.get("nodes");
             assertEquals(6L,names.size());
@@ -53,7 +53,7 @@ public class LabelSequenceTest {
 
     @Test
     public void testNoMatchWhenImproperlyStartingSequenceAtStart() throws Throwable {
-        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelSequence:'A,B', beginSequenceAtStart:true, filterStartNode:true}) yield node return collect(distinct node.name) as nodes";
+        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelFilter:'A,B', beginSequenceAtStart:true, filterStartNode:true}) yield node return collect(distinct node.name) as nodes";
         TestUtil.testCall(db, query, (row) -> {
             List<String> names = (List<String>) row.get("nodes");
             assertEquals(0L,names.size());
@@ -62,7 +62,7 @@ public class LabelSequenceTest {
 
     @Test
     public void testMatchWhenProperlyStartingSequenceAtStart() throws Throwable {
-        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelSequence:'Start,A,B', beginSequenceAtStart:true, filterStartNode:true}) yield node return collect(distinct node.name) as nodes";
+        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelFilter:'Start,A,B', beginSequenceAtStart:true, filterStartNode:true}) yield node return collect(distinct node.name) as nodes";
         TestUtil.testCall(db, query, (row) -> {
             List<String> names = (List<String>) row.get("nodes");
             assertEquals(3L,names.size());
@@ -72,7 +72,7 @@ public class LabelSequenceTest {
 
     @Test
     public void testSequenceWithBlacklist() throws Throwable {
-        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelSequence:'A|-C,B', beginSequenceAtStart:false}) yield node return collect(distinct node.name) as nodes";
+        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelFilter:'A|-C,B', beginSequenceAtStart:false}) yield node return collect(distinct node.name) as nodes";
         TestUtil.testCall(db, query, (row) -> {
             List<String> names = (List<String>) row.get("nodes");
             assertEquals(3L, names.size());
@@ -82,7 +82,7 @@ public class LabelSequenceTest {
 
     @Test
     public void testSequenceWithTerminatorNode() throws Throwable {
-        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelSequence:'/A|C,B', beginSequenceAtStart:false}) yield node return collect(distinct node.name) as nodes";
+        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelFilter:'/A|C,B', beginSequenceAtStart:false}) yield node return collect(distinct node.name) as nodes";
         TestUtil.testCall(db, query, (row) -> {
             List<String> names = (List<String>) row.get("nodes");
             assertEquals(1L, names.size());
@@ -92,7 +92,7 @@ public class LabelSequenceTest {
 
     @Test
     public void testSequenceWithEndNode() throws Throwable {
-        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelSequence:'>A|C,B', beginSequenceAtStart:false}) yield node return collect(distinct node.name) as nodes";
+        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelFilter:'>A|C,B', beginSequenceAtStart:false}) yield node return collect(distinct node.name) as nodes";
         TestUtil.testCall(db, query, (row) -> {
             List<String> names = (List<String>) row.get("nodes");
             assertEquals(3L, names.size());
@@ -102,7 +102,7 @@ public class LabelSequenceTest {
 
     @Test
     public void testSequenceWithEndNodeAndLimit() throws Throwable {
-        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelSequence:'>A|C,B', beginSequenceAtStart:false, limit:2}) yield node return collect(distinct node.name) as nodes";
+        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelFilter:'>A|C,B', beginSequenceAtStart:false, limit:2}) yield node return collect(distinct node.name) as nodes";
         TestUtil.testCall(db, query, (row) -> {
             List<String> names = (List<String>) row.get("nodes");
             assertEquals(2L, names.size());
@@ -112,7 +112,7 @@ public class LabelSequenceTest {
 
     @Test
     public void testSequenceWithTerminatorNodeAsStartNodeWithoutFilteringStartNode() throws Throwable {
-        String query = "MATCH (a:A {name: 'a'}) CALL apoc.path.subgraphNodes(a,{labelSequence:'/A, B', filterStartNode:false}) yield node return collect(distinct node.name) as nodes";
+        String query = "MATCH (a:A {name: 'a'}) CALL apoc.path.subgraphNodes(a,{labelFilter:'/A, B', filterStartNode:false}) yield node return collect(distinct node.name) as nodes";
         TestUtil.testCall(db, query, (row) -> {
             List<String> names = (List<String>) row.get("nodes");
             assertEquals(1L, names.size());
@@ -122,7 +122,7 @@ public class LabelSequenceTest {
 
     @Test
     public void testSequenceWithTerminatorNodeAndEndNode() throws Throwable {
-        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelSequence:'>A|C|/A:C, B', beginSequenceAtStart:false}) yield node return collect(distinct node.name) as nodes";
+        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.subgraphNodes(s,{labelFilter:'>A|C|/A:C, B', beginSequenceAtStart:false}) yield node return collect(distinct node.name) as nodes";
         TestUtil.testCall(db, query, (row) -> {
             List<String> names = (List<String>) row.get("nodes");
             assertEquals(2L, names.size());
@@ -132,7 +132,7 @@ public class LabelSequenceTest {
 
     @Test
     public void testSequenceWithTerminatorNodeWhenUsingMinLevel() throws Throwable {
-        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.expandConfig(s,{labelSequence:'/A, B', beginSequenceAtStart:false, minLevel:3}) yield path return collect(distinct last(nodes(path)).name) as nodes";
+        String query = "MATCH (s:Start {name: 'start'}) CALL apoc.path.expandConfig(s,{labelFilter:'/A, B', beginSequenceAtStart:false, minLevel:3}) yield path return collect(distinct last(nodes(path)).name) as nodes";
         TestUtil.testCall(db, query, (row) -> {
             List<String> names = (List<String>) row.get("nodes");
             assertEquals(1L, names.size());
