@@ -453,6 +453,17 @@ CALL apoc.couchbase.get(['localhost'], 'default', 'artist:vincent_van_gogh')
 | CALL apoc.nodes.link([nodes],'REL_TYPE') | creates a linked list of nodes from first to last
 |===
 
+== Paths
+
+Functions to create, combine and split paths
+
+[cols="1m,5"]
+|===
+| apoc.path.create(startNode,[rels]) | creates a path instance of the given elements
+| apoc.path.slice(path, [offset], [length]) | creates a sub-path with the given offset and length
+| apoc.path.combine(path1, path2) | combines the paths into one if the connecting node matches
+| apoc.path.elements(path) | returns a list of node-relationship-node-...
+|===
 
 == Virtual Nodes/Rels
 
