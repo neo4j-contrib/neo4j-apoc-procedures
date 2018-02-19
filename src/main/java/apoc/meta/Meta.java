@@ -25,6 +25,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toMap;
 import static org.neo4j.kernel.api.ReadOperations.ANY_LABEL;
+import static org.neo4j.kernel.api.ReadOperations.ANY_RELATIONSHIP_TYPE;
 
 public class Meta {
 
@@ -255,7 +256,7 @@ public class Meta {
             });
 
             return new MetaStats(labelCount, relTypeCount, ops.propertyKeyCount(),
-                    ops.nodesGetCount(), ops.relationshipsGetCount(), labelStats, relStats, relStatsCount);
+                    ops.countsForNodeWithoutTxState(ANY_LABEL), ops.countsForRelationshipWithoutTxState(ANY_LABEL,ANY_RELATIONSHIP_TYPE,ANY_LABEL), labelStats, relStats, relStatsCount);
         }
     }
 
