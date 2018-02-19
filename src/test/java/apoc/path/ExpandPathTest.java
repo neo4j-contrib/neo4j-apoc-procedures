@@ -49,13 +49,13 @@ public class ExpandPathTest {
 
 	@Test
 	public void testExplorePathRelationshipsTest() throws Throwable {
-		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,'<ACTED_IN|PRODUCED>|FOLLOWS','-',0,2) yield path return count(*) as c";
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,'<ACTED_IN|PRODUCED>|FOLLOWS','',0,2) yield path return count(*) as c";
 		TestUtil.testCall(db, query, (row) -> assertEquals(11L,row.get("c")));
 	}
 
 	@Test
 	public void testExplorePathLabelWhiteListTest() throws Throwable {
-		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,'ACTED_IN|PRODUCED|FOLLOWS','+Person|Movie',0,3) yield path return count(*) as c";
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,'ACTED_IN|PRODUCED|FOLLOWS','+Person|+Movie',0,3) yield path return count(*) as c";
 		TestUtil.testCall(db, query, (row) -> assertEquals(107L,row.get("c"))); // 59 with Uniqueness.RELATIONSHIP_GLOBAL
 	}
 
@@ -220,7 +220,7 @@ public class ExpandPathTest {
 	}
 
 	@Test
-	public void testEndNodeFilterBeforeWhitelist() {
+	public void testEndNodeFilterAsWhitelist() {
 		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
 
 		TestUtil.testResult(db,
@@ -229,9 +229,11 @@ public class ExpandPathTest {
 						"return path",
 				result -> {
 					List<Map<String, Object>> maps = Iterators.asList(result);
-					assertEquals(1, maps.size());
+					assertEquals(2, maps.size());
 					Path path = (Path) maps.get(0).get("path");
 					assertEquals("Gene Hackman", path.endNode().getProperty("name"));
+					path = (Path) maps.get(1).get("path");
+					assertEquals("Clint Eastwood", path.endNode().getProperty("name"));
 				});
 	}
 
@@ -348,6 +350,25 @@ public class ExpandPathTest {
 		TestUtil.testResult(db,
 				"MATCH (k:Person {name:'Keanu Reeves'}), (gene:Person {name:'Gene Hackman'}), (clint:Person {name:'Clint Eastwood'}) " +
 						"CALL apoc.path.subgraphNodes(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', endNodes:[gene, clint]}) yield node " +
+						"return node",
+				result -> {
+
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(2, maps.size());
+					Node node = (Node) maps.get(0).get("node");
+					assertEquals("Gene Hackman", node.getProperty("name"));;
+					node = (Node) maps.get(1).get("node");
+					assertEquals("Clint Eastwood", node.getProperty("name"));
+				});
+	}
+
+	@Test
+	public void testEndNodesAndTerminatorNodesReturnExpectedResults() {
+		db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western WITH c WHERE c.name = 'Clint Eastwood' SET c:Blacklist");
+
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}), (gene:Person {name:'Gene Hackman'}), (clint:Person {name:'Clint Eastwood'}) " +
+						"CALL apoc.path.subgraphNodes(k, {relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', endNodes:[gene], terminatorNodes:[clint]}) yield node " +
 						"return node",
 				result -> {
 

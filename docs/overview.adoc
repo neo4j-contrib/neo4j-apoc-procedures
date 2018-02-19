@@ -1005,10 +1005,10 @@ Variations allow more configurable expansions, and expansions for more specific 
 
 [cols="1m,5"]
 |===
-| call apoc.path.expandConfig(startNode <id>Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, uniqueness:'RELATIONSHIP_PATH', filterStartNode:true, limit, optional:false, endNodes, terminatorNodes}) yield path | expand from given nodes(s) taking the provided restrictions into account
-| call apoc.path.subgraphNodes(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit, optional:false, endNodes, terminatorNodes}) yield node | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns all nodes in the subgraph
-| call apoc.path.subgraphAll(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit, endNodes, terminatorNodes}) yield nodes, relationships | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns the collection of subgraph nodes, and the collection of all relationships within the subgraph
-| call apoc.path.spanningTree(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit, optional:false, endNodes, terminatorNodes}) yield path | expand a spanning tree from given nodes(s) taking the provided restrictions into account; the paths returned collectively form a spanning tree
+| call apoc.path.expandConfig(startNode <id>Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, uniqueness:'RELATIONSHIP_PATH', filterStartNode:true, limit, optional:false, endNodes, terminatorNodes, sequence, beginSequenceAtStart:true}) yield path | expand from given nodes(s) taking the provided restrictions into account
+| call apoc.path.subgraphNodes(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit, optional:false, endNodes, terminatorNodes, sequence, beginSequenceAtStart:true}) yield node | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns all nodes in the subgraph
+| call apoc.path.subgraphAll(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit, endNodes, terminatorNodes, sequence, beginSequenceAtStart:true}) yield nodes, relationships | expand a subgraph from given nodes(s) taking the provided restrictions into account; returns the collection of subgraph nodes, and the collection of all relationships within the subgraph
+| call apoc.path.spanningTree(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit, optional:false, endNodes, terminatorNodes, sequence, beginSequenceAtStart:true}) yield path | expand a spanning tree from given nodes(s) taking the provided restrictions into account; the paths returned collectively form a spanning tree
 |===
 
 === Relationship Filter
@@ -1025,29 +1025,100 @@ Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 
 === Label Filter
 
-Syntax: `[+-/>]LABEL1|LABEL2|...`
+Syntax: `[+-/>]LABEL1|LABEL2|*|...`
+
+
+[opts=header,cols="m,a"]
+|===
+| input | result
+| -Foe | blacklist filter - No node in the path will have a label in the blacklist.
+| +Friend | whitelist filter - All nodes in the path must have a label in the whitelist (exempting termination and end nodes, if using those filters).
+If no whitelist operator is present, all labels are considered whitelisted.
+| /Friend | termination filter - Only return paths up to a node of the given labels, and stop further expansion beyond it.
+Termination nodes do not have to respect the whitelist. Termination filtering takes precedence over end node filtering.
+| >Friend | end node filter - Only return paths up to a node of the given labels, but continue expansion to match on end nodes beyond it.
+End nodes do not have to respect the whitelist to be returned, but expansion beyond them is only allowed if the node has a label in the whitelist.
+|===
+
+.Syntax Changes
 
 As of APOC 3.1.3.x multiple label filter operations are allowed.
 In prior versions, only one type of operation is allowed in the label filter (`+` or `-` or `/` or `>`, never more than one).
 
-With APOC 3.2.x.x, label filters will no longer apply to starting nodes of the expansion by default.
+With APOC 3.2.x.x, label filters will no longer apply to starting nodes of the expansion by default, but this can be toggled with the `filterStartNode` config parameter.
 
-With the APOC releases in January 2018, compound labels are supported (like `Person:Manager`), and only apply to nodes with all of those labels present (order agnositic).
+With the APOC releases in January 2018, some behavior has changed in the label filters:
 
-[opts=header,cols="m,m,a"]
+[opts=header,cols="m,a"]
 |===
-| input | label | result
-| -Foe | Foe | blacklist filter - No node in the path will have a label in the blacklist.
-| +Friend | Friend | whitelist filter - All nodes in the path must have a label in the whitelist (exempting termination and end nodes, if using those filters).
-
-If no whitelist operator is present, all labels are considered whitelisted.
-| /Friend | Friend | termination filter - Only return paths up to a node of the given labels, and stop further expansion beyond it.
-
-Termination nodes do not have to respect the whitelist. Termination filtering takes precedence over end node filtering.
-| >Friend | Friend | end node filter - Only return paths up to a node of the given labels, but continue expansion to match on end nodes beyond it.
-
-End nodes do not have to respect the whitelist to be returned, but expansion beyond them is only allowed if the node has a label in the whitelist.
+| filter | changed behavior
+| No filter | Now indicates the label is whitelisted, same as if it were prefixed with `+`.
+Previously, a label without a filter symbol reused the previously used symbol.
+| `>` (end node filter) | The label is additionally whitelisted, so expansion will always continue beyond an end node (unless prevented by the blacklist).
+Previously, expansion would only continue if allowed by the whitelist and not disallowed by the blacklist.
+This also applies at a depth below `minLevel`, allowing expansion to continue.
+| `/` (termination filter) | When at depth below `minLevel`, expansion is allowed to continue and no pruning will take place (unless prevented by the blacklist).
+Previously, expansion would only continue if allowed by the whitelist and not disallowed by the blacklist.
+| All filters | `*` is allowed as a standin for all labels.
+Additionally, compound labels are supported (like `Person:Manager`), and only apply to nodes with all of those labels present (order agnositic).
 |===
+
+
+=== Sequences
+
+Introduced in the February 2018 APOC releases, path expander procedures can expand on repeating sequences of labels, relationship types, or both.
+
+If only using label sequences, just use the `labelFilter`, but use commas to separate the filtering for each step in the repeating sequence.
+
+If only using relationship sequences, just use the `relationshipFilter`, but use commas to separate the filtering for each step of the repeating sequence.
+
+If using sequences of both relationships and labels, use the `sequence` parameter.
+
+[opts=header,cols="a, m,a,m,a"]
+|===
+| Usage | config param | description | syntax | explanation
+| label sequences only | labelFilter | Same syntax and filters, but uses commas (`,`) to separate the filters for each step in the sequence. |
+ labelFilter:'Post\|-Blocked,Reply,>Admin' | Start node must be a :Post node that isn't :Blocked, next node must be a :Reply, and the next must be an :Admin, then repeat if able. Only paths ending with the `:Admin` node in that position of the sequence will be returned.
+| relationship sequences only | relationshipFilter | Same syntax, but uses commas (`,`) to separate the filters for each relationship traversal in the sequence. |
+relationshipFilter:'NEXT>,<FROM,POSTED>\|REPLIED>' | Expansion will first expand `NEXT>` from the start node, then `<FROM`, then either `POSTED>` or `REPLIED>`, then repeat if able.
+| sequences of both labels and relationships | sequence | A string of comma-separated alternating label and relationship filters, for each step in a repeating sequence. The sequence should begin with a label filter, and end with a relationship filter. If present, `labelFilter`, and `relationshipFilter` are ignored, as this takes priority. |
+sequence:'Post\|-Blocked, NEXT>, Reply, <FROM, >Admin, POSTED>\|REPLIED>'  | Combines the behaviors above.
+|===
+
+
+==== Starting the sequence at one-off from the start node
+
+There are some uses cases where the sequence does not begin at the start node, but at one node distant.
+
+A new config parameter, `beginSequenceAtStart`, can toggle this behavior.
+
+Default value is `true`.
+
+If set to `false`, this changes the expected values for `labelFilter`, `relationshipFilter`, and `sequence` as noted below:
+
+
+[opts=header,cols="m,a,m,a"]
+|===
+| sequence | altered behavior | example | explanation
+| labelFilter | The start node is not considered part of the sequence. The sequence begins one node off from the start node. |
+beginSequenceAtStart:false, labelFilter:'Post\|-Blocked,Reply,>Admin' | The next node(s) out from the start node begins the sequence (and must be a :Post node that isn't :Blocked), and only paths ending with `Admin` nodes returned.
+| relationshipFilter | The first relationship filter in the sequence string will not be considered part of the repeating sequence, and will only be used for the first relationship from the start node to the node that will be the actual start of the sequence. |
+beginSequenceAtStart:false, relationshipFilter:'FIRST>,NEXT>,<FROM,POSTED>\|REPLIED>' | `FIRST>` will be traversed just from the start node to the node that will be the start of the repeating `NEXT>,<FROM,POSTED>\|REPLIED>` sequence.
+| sequence | Combines the above two behaviors. |
+beginSequenceAtStart:false, sequence:'FIRST>, Post\|-Blocked, NEXT>, Reply, <FROM, >Admin, POSTED>\|REPLIED>' | Combines the behaviors above.
+|===
+
+.Sequence tips
+
+Label filtering in sequences work together with the `endNodes`+`terminatorNodes`, though inclusion of a node must be unanimous.
+
+Remember that `filterStartNode` defaults to `false` for APOC 3.2.x.x and newer. If you want the start node filtered according to the first step in the sequence, you may need to set this explicitly to `true`.
+
+If you need to limit the number of times a sequence repeats, this can be done with the `maxLevel` config param (multiply the number of iterations with the size of the nodes in the sequence).
+
+As paths are important when expanding sequences, we recommend avoiding `apoc.path.subgraphNodes()`, `apoc.path.subgraphAll()`, and `apoc.path.spanningTree()` when using sequences,
+as the configurations that make these efficient at matching to distinct nodes may interfere with sequence pathfinding.
+
 
 === Uniqueness
 
@@ -1077,13 +1148,14 @@ For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemo
 As of the January 2018 APOC releases, you can optionally use `endNodes` and `terminatorNodes` params in the config param map when the end nodes of the expansion are known.
 
 When `endNodes` are present, only these end nodes must be at the end of the expanded paths.
-Expansion continues beyond found end nodes.
+Expansion continues beyond end nodes.
 This behavior is similar to the end node filter `>` in the label filters.
 
-Nodes given as `terminatorNodes` behave just like `endNodes` (they must be at the end of expanded paths), but stops treversal beyond the found nodes.
+Nodes given as `terminatorNodes` behave just like `endNodes` (they must be at the end of expanded paths), but stops traversal beyond the terminator nodes.
 This behavior is similar to the termination filter `/` in the label filters.
 
-`endNodes` and/or `terminatorNodes` can freely be used along with the labelFilter.
+`endNodes` and/or `terminatorNodes` do not conflict with each other (an end node will be returned even if not present in the terminator nodes, and vice versa),
+and they can freely be used along with the labelFilter, but a node can only be included by unanimous agreement from endNodes+terminatoNodes and the labelFilter.
 
 == Parallel Node Search
 
