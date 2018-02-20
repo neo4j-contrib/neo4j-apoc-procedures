@@ -1,8 +1,8 @@
 package apoc.cypher;
 
 import apoc.Pools;
-import apoc.util.FileUtils;
 import apoc.result.MapResult;
+import apoc.util.FileUtils;
 import apoc.util.QueueBasedSpliterator;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -10,12 +10,12 @@ import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
@@ -30,7 +30,6 @@ import static apoc.util.Util.quote;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.Collections.singletonList;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.stream.Collectors.toList;
 import static org.neo4j.procedure.Mode.WRITE;
 
@@ -46,8 +45,6 @@ public class Cypher {
     public static final int MAX_BATCH = 10000;
     @Context
     public GraphDatabaseService db;
-    @Context
-    public KernelTransaction tx;
     @Context
     public Log log;
     @Context
@@ -384,20 +381,6 @@ public class Cypher {
     public Stream<MapResult> doIt(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         if (params == null) params = Collections.emptyMap();
         return db.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
-    }
-
-    @Procedure
-    @Description("apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) - abort statement after timeout ms if not finished")
-    public Stream<MapResult> runTimeboxed(@Name("cypher") String cypher, @Name("params") Map<String, Object> params, @Name("timeout") long timeout) {
-
-        Pools.SCHEDULED.schedule(() -> {
-            String txString = tx == null ? "<null>" : tx.toString();
-            log.warn("marking " + txString + " for termination");
-            tx.markForTermination(Status.Transaction.Terminated);
-        }, timeout, MILLISECONDS);
-
-        Result result = db.execute(cypher, params == null ? Collections.EMPTY_MAP : params);
-        return result.stream().map(MapResult::new);
     }
 
     @Procedure("apoc.when")

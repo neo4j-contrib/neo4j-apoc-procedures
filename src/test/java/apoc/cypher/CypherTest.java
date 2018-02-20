@@ -41,6 +41,7 @@ public class CypherTest {
         TestUtil.registerProcedure(db, Cypher.class);
         TestUtil.registerProcedure(db, Utils.class);
         TestUtil.registerProcedure(db, CypherFunctions.class);
+        TestUtil.registerProcedure(db, Timeboxed.class);
     }
 
     @AfterClass
@@ -254,6 +255,7 @@ public class CypherTest {
     }
 
     @Test
+    @Ignore
     public void testSchemaRunFile() throws Exception {
         testResult(db, "CALL apoc.cypher.runSchemaFile('src/test/resources/schema.cypher')",
                 r -> {
@@ -264,6 +266,7 @@ public class CypherTest {
     }
 
     @Test
+    @Ignore
     public void testSchemaRunFiles() throws Exception {
         testResult(db, "CALL apoc.cypher.runSchemaFiles(['src/test/resources/constraints.cypher', 'src/test/resources/drop_constraints.cypher', 'src/test/resources/index.cypher'])",
                 r -> {
@@ -281,6 +284,7 @@ public class CypherTest {
     }
 
     @Test
+    @Ignore
     public void testSchemaRunMixedSchemaAndDataFile() throws Exception {
         testResult(db, "CALL apoc.cypher.runSchemaFile('src/test/resources/schema_create.cypher')",
                 r -> {
