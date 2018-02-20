@@ -60,7 +60,7 @@ public class Gephi {
         propertyNames.removeAll(RESERVED);
         if (Graphs.extract(data, nodes, rels)) {
             String payload = toGephiStreaming(nodes, rels, weightproperty, propertyNames.toArray(new String[propertyNames.size()]));
-            JsonUtil.loadJson(url,map("method","POST"), payload).count();
+            JsonUtil.loadJson(url,map("method","POST","Content-Type","application/json; charset=utf-8"), payload).count();
             return Stream.of(new ProgressInfo(url,"graph","gephi").update(nodes.size(),rels.size(),nodes.size()).done(start));
         }
         return Stream.empty();
