@@ -46,15 +46,16 @@ public class Create {
     @Description("apoc.create.setProperty( [node,id,ids,nodes], key, value) - sets the given property on the node(s)")
     public Stream<NodeResult> setProperty(@Name("nodes") Object nodes, @Name("key") String key, @Name("value") Object value) {
         return new Get(db).nodes(nodes).map((r) -> {
-            r.node.setProperty(key,toPropertyValue(value));
+            setProperty(r.node, key,toPropertyValue(value));
             return r;
         });
     }
+
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.create.setRelProperty( [rel,id,ids,rels], key, value) - sets the given property on the relationship(s)")
     public Stream<RelationshipResult> setRelProperty(@Name("relationships") Object rels, @Name("key") String key, @Name("value") Object value) {
         return new Get(db).rels(rels).map((r) -> {
-            r.rel.setProperty(key,toPropertyValue(value));
+            setProperty(r.rel,key,toPropertyValue(value));
             return r;
         });
     }
@@ -67,12 +68,29 @@ public class Create {
             return r;
         });
     }
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.create.removeProperties( [node,id,ids,nodes], [keys]) - removes the given property from the nodes(s)")
+    public Stream<NodeResult> removeProperties(@Name("nodes") Object nodes, @Name("keys") List<String> keys) {
+        return new Get(db).nodes(nodes).map((r) -> {
+            keys.forEach( r.node::removeProperty );
+            return r;
+        });
+    }
 
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.create.setRelProperties( [rel,id,ids,rels], [keys], [values]) - sets the given property on the relationship(s)")
     public Stream<RelationshipResult> setRelProperties(@Name("rels") Object rels, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
         return new Get(db).rels(rels).map((r) -> {
             setProperties(r.rel, Util.mapFromLists(keys,values));
+            return r;
+        });
+    }
+
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.create.removeRelProperties( [rel,id,ids,rels], [keys], [values]) - removes the given property from the relationship(s)")
+    public Stream<RelationshipResult> removeRelProperties(@Name("rels") Object rels, @Name("keys") List<String> keys) {
+        return new Get(db).rels(rels).map((r) -> {
+            keys.forEach( r.rel::removeProperty);
             return r;
         });
     }
@@ -180,8 +198,15 @@ public class Create {
 
     private <T extends PropertyContainer> T setProperties(T pc, Map<String, Object> p) {
         if (p == null) return pc;
-        for (Map.Entry<String, Object> entry : p.entrySet()) pc.setProperty(entry.getKey(), toPropertyValue(entry.getValue()));
+        for (Map.Entry<String, Object> entry : p.entrySet()) {
+            setProperty(pc, entry.getKey(), entry.getValue());
+        }
         return pc;
+    }
+
+    private <T extends PropertyContainer> void setProperty(T pc, String key, Object value) {
+        if (value == null) pc.removeProperty(key);
+        else pc.setProperty(key, toPropertyValue(value));
     }
 
     @UserFunction
