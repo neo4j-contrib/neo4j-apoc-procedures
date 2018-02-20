@@ -56,6 +56,19 @@ public class CreateTest {
                     assertEquals(false,result.hasNext());
                 });
     }
+    @Test public void testRemoveProperty() throws Exception {
+        testCall(db, "CREATE (n:Foo {name:'foo'}) WITH n CALL apoc.create.setProperty(n,'name',null) YIELD node RETURN node",
+                (row) -> assertEquals(false, ((Node) row.get("node")).hasProperty("name")));
+        testCall(db, "CREATE (n:Foo {name:'foo'}) WITH n CALL apoc.create.removeProperties(n,['name']) YIELD node RETURN node",
+                (row) -> assertEquals(false, ((Node) row.get("node")).hasProperty("name")));
+    }
+
+    @Test public void testRemoveRelProperty() throws Exception {
+        testCall(db, "CREATE (n)-[r:TEST {name:'foo'}]->(m) WITH r CALL apoc.create.setRelProperty(r,'name',null) YIELD rel RETURN rel",
+                (row) -> assertEquals(false, ((Relationship) row.get("rel")).hasProperty("name")));
+        testCall(db, "CREATE (n)-[r:TEST {name:'foo'}]->(m) WITH r CALL apoc.create.removeRelProperties(r,['name']) YIELD rel RETURN rel",
+                (row) -> assertEquals(false, ((Relationship) row.get("rel")).hasProperty("name")));
+    }
     @Test public void testSetRelProperties() throws Exception {
         testResult(db, "CREATE (n)-[r:X]->(m),(m)-[r2:Y]->(n) WITH r,r2 CALL apoc.create.setRelProperties([id(r),r2],['name','age'],['John',42]) YIELD rel RETURN rel",
                 (result) -> {
