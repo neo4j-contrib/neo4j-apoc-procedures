@@ -72,8 +72,8 @@ public class Paths {
 
     @UserFunction
     @Description("apoc.path.elements(path) - returns a list of node-relationship-node-...")
-    public List<PropertyContainer> elements(@Name("path") Path path) {
+    public List<Object> elements(@Name("path") Path path) {
         if (path == null) return null;
-        return Iterables.asList(path);
+        return Iterables.asList((Iterable)path);
     }
 }
