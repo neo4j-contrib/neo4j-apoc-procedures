@@ -48,24 +48,7 @@ public class Jdbc {
         String[] user = userInfo != null ? userInfo.split(":"): new String[]{null, ""};
         String cleanUrl = userInfo != null ? jdbcUrl.substring(0,jdbcUrl.indexOf("://")+3)+jdbcUrl.substring(jdbcUrl.indexOf("@")+1) : jdbcUrl;
 
-        if (jdbcUrl.contains(";auth=kerberos")) {
-            String client = System.getProperty("java.security.auth.login.config.client", "KerberosClient");
-            LoginContext lc = new LoginContext(client, callbacks -> {
-                for (Callback cb : callbacks) {
-                    if (cb instanceof NameCallback) ((NameCallback) cb).setName(user[0]);
-                    if (cb instanceof PasswordCallback) ((PasswordCallback) cb).setPassword(user[1].toCharArray());
-                }
-            });
-            lc.login();
-            Subject subject = lc.getSubject();
-            try {
-                return Subject.doAs(subject, (PrivilegedExceptionAction<Connection>) () -> DriverManager.getConnection(cleanUrl, user[0], user[1]));
-            } catch (PrivilegedActionException pae) {
-                throw pae.getException();
-            }
-        } else {
-            return DriverManager.getConnection(cleanUrl, user[0], user[1]);
-        }
+        return DriverManager.getConnection(cleanUrl, user[0], user[1]);
     }
 
     @Procedure

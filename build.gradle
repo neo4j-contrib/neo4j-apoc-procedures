@@ -95,7 +95,6 @@ dependencies {
         exclude group: 'org.eclipse.jetty'
         exclude group: 'org.eclipse.jetty.aggregate'
         exclude group: 'com.sun.jersey'
-        exclude group: 'org.apache.hive', module: 'hive-service'
     }
     compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.5', withoutServers
     testCompile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.5', withoutServers
@@ -108,8 +107,6 @@ dependencies {
 
     compileOnly 'com.couchbase.client:java-client:2.3.1'
     testCompile 'com.couchbase.client:java-client:2.3.1'
-
-    testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
     compileOnly(group: 'org.neo4j', name: 'neo4j', version:neo4jVersionEffective)
     compileOnly(group: 'org.neo4j', name: 'neo4j-enterprise', version:neo4jVersionEffective)
