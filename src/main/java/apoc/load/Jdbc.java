@@ -45,10 +45,12 @@ public class Jdbc {
     private static Connection getConnection(String jdbcUrl) throws Exception {
         URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
         String userInfo = uri.getUserInfo();
-        String[] user = userInfo != null ? userInfo.split(":"): new String[]{null, ""};
-        String cleanUrl = userInfo != null ? jdbcUrl.substring(0,jdbcUrl.indexOf("://")+3)+jdbcUrl.substring(jdbcUrl.indexOf("@")+1) : jdbcUrl;
-
-        return DriverManager.getConnection(cleanUrl, user[0], user[1]);
+        if (userInfo != null) {
+            String[] user = userInfo.split(":");
+            String cleanUrl = jdbcUrl.substring(0,jdbcUrl.indexOf("://")+3)+jdbcUrl.substring(jdbcUrl.indexOf("@")+1);
+            return DriverManager.getConnection(cleanUrl, user[0], user[1]);
+        }
+        return DriverManager.getConnection(jdbcUrl);
     }
 
     @Procedure
