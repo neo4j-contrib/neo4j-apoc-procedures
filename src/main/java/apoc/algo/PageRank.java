@@ -38,6 +38,7 @@ public class PageRank {
     public Log log;
 
 
+    @Deprecated
     @Procedure("apoc.algo.pageRank")
     @Description("CALL apoc.algo.pageRank(nodes) YIELD node, score - calculates page rank for given nodes")
     public Stream<NodeScore> pageRank(
@@ -47,6 +48,7 @@ public class PageRank {
                 nodes);
     }
 
+    @Deprecated
     @Procedure("apoc.algo.pageRankWithConfig")
     @Description(
             "CALL apoc.algo.pageRankWithConfig(nodes,{iterations:_,types:_}) YIELD node, score, info - calculates page rank" +
@@ -59,6 +61,7 @@ public class PageRank {
                     nodes,
                     Util.typesAndDirectionsToTypesArray((String) config.getOrDefault(SETTING_PAGE_RANK_TYPES, "")));
     }
+    @Deprecated
     @Procedure(value = "apoc.algo.pageRankStats",mode = Mode.WRITE)
     @Description(
             "CALL apoc.algo.pageRankStats({iterations:_,types:_,write:true,...}) YIELD nodeCount - calculates page rank on graph " +
@@ -69,6 +72,7 @@ public class PageRank {
         return innerPageRankStats(iterations.intValue(), config, types);
     }
 
+    @Deprecated
     @Procedure(value = "apoc.algo.pageRankWithCypher",mode = Mode.WRITE)
     @Description("CALL apoc.algo.pageRankWithCypher({iterations,node_cypher,rel_cypher,write,property,numCpu}) - calculates page rank based on cypher input")
     public Stream<PageRankStatistics> pageRankWithCypher(

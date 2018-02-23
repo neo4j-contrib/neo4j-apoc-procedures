@@ -23,6 +23,7 @@ public class WeaklyConnectedComponents {
 	@Context
 	public Log log;
 
+	@Deprecated
 	@Procedure("apoc.algo.wcc")
 	@Description("CALL apoc.algo.wcc() YIELD number of weakly connected components")
 	public Stream<CCResult> wcc() {

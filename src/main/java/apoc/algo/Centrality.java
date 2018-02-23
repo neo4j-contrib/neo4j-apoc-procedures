@@ -44,6 +44,7 @@ public class Centrality {
 
     static final ExecutorService pool = Pools.DEFAULT;
 
+    @Deprecated
     @Procedure("apoc.algo.betweenness")
     @Description("CALL apoc.algo.betweenness(['TYPE',...],nodes,BOTH) YIELD node, score - calculate betweenness " +
             "centrality for given nodes")
@@ -77,6 +78,7 @@ public class Centrality {
     }
 
 
+    @Deprecated
     @Procedure(value = "apoc.algo.betweennessCypher",mode = Mode.WRITE)
     @Description("CALL apoc.algo.betweennessCypher(node_cypher,rel_cypher,write) - calculates betweeness " +
     " centrality based on cypher input")
@@ -125,6 +127,7 @@ public class Centrality {
     }
 
 
+    @Deprecated
     @Procedure("apoc.algo.closeness")
     @Description("CALL apoc.algo.closeness(['TYPE',...],nodes, INCOMING) YIELD node, score - calculate closeness " +
             "centrality for given nodes")

@@ -21,6 +21,7 @@ public class LabelPropagation {
     @Context
     public Log log;
 
+    @Deprecated
     @Procedure(name = "apoc.algo.community", mode = Mode.WRITE)
     @Description("CALL apoc.algo.community(times,labels,partitionKey,type,direction,weightKey,batchSize) - simple label propagation kernel")
     public void community(

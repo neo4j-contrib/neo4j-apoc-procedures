@@ -21,6 +21,7 @@ public class Cliques {
     @Context
     public GraphDatabaseService db;
 
+    @Deprecated
     @Procedure
     @Description("apoc.algo.cliques(minSize) YIELD cliques - search the graph and return all maximal cliques at least at " +
             "large as the minimum size argument.")
@@ -37,6 +38,7 @@ public class Cliques {
                 cliqueResult -> cliqueResult.clique.size() >= size.intValue() );
     }
 
+    @Deprecated
     @Procedure
     @Description("apoc.algo.cliquesWithNode(startNode, minSize) YIELD cliques - search the graph and return all maximal cliques that " +
             "are at least as large than the minimum size argument and contain this node ")
