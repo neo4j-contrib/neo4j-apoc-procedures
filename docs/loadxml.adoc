@@ -280,26 +280,26 @@ CALL apoc.import.xml(<url>, <config>?) YIELD node
 The procedure will return a node representing the xml document containing nodes/rels underneath mapping to the xml structure. The following mapping rules are applied:
 
 [options="header"]
-|===========
+|===
 | xml | label | properties
 | document | XmlDocument | _xmlVersion, _xmlEncoding
 | processing instruction | XmlProcessingInstruction | _piData, _piTarget
 | Element/Tag | XmlTag | _name
 | Attribute | n/a | property in the XmlTag node
 | Text | XmlWord | for each word a separate node is created
-|===========
+|===
 
 The nodes for the xml document are connected:
 
 [options="header"]
-|=====
+|===
 | relationship type | description
 | :IS_CHILD_OF | pointing to a nested xml element
 | :FIRST_CHILD_OF | pointing to the first child
 | :NEXT_SIBLING | pointing to the next xml element on the same nesting level
 | :NEXT | produces a linear chain through the full document
 | :NEXT_WORD | only produced if config map has `createNextWordRelationships:true`. Connects words in xml to a text flow.
-|====
+|===
 
 === example
 
