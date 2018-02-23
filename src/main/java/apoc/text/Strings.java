@@ -41,6 +41,23 @@ public class Strings {
     public String replace(final @Name("text") String text, final @Name("regex") String regex, final @Name("replacement") String replacement) {
         return regreplace(text,regex,replacement);
     }
+
+    @UserFunction
+    @Description("apoc.text.byteCount(text,[charset]) - return size of text in bytes")
+    public long byteCount(final @Name("text") String text, @Name(value = "charset", defaultValue = "UTF-8") String charset) throws UnsupportedEncodingException {
+        return text.getBytes(charset).length;
+    }
+    @UserFunction
+    @Description("apoc.text.bytes(text,[charset]) - return bytes of the text")
+    public List<Long> bytes(final @Name("text") String text, @Name(value = "charset", defaultValue = "UTF-8") String charset) throws UnsupportedEncodingException {
+        byte[] bytes = text.getBytes(charset);
+        List<Long> result = new ArrayList<>(bytes.length);
+        for (byte b : bytes) {
+            result.add((long)b & 0xFFL);
+        }
+        return result;
+    }
+
     @UserFunction
     @Description("apoc.text.regreplace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.")
     public String regreplace(final @Name("text") String text, final @Name("regex") String regex, final @Name("replacement") String replacement) {
