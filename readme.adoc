@@ -1,7 +1,7 @@
 :readme:
 :branch: 3.3
 :docs: https://neo4j-contrib.github.io/neo4j-apoc-procedures/index33.html
-:apoc-release: 3.3.0.1
+:apoc-release: 3.3.0.2
 :neo4j-version: 3.3.0
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/img
 
