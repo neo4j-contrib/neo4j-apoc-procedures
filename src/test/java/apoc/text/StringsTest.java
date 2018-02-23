@@ -277,6 +277,27 @@ public class StringsTest {
 
 
     @Test
+    public void testByteCount() {
+        testCall(db, "RETURN apoc.text.byteCount('') AS value", row -> assertEquals(0L, row.get("value")));
+        testCall(db, "RETURN apoc.text.byteCount('a') AS value", row -> assertEquals(1L, row.get("value")));
+        testCall(db, "RETURN apoc.text.byteCount('Ä') AS value", row -> assertEquals(2L, row.get("value")));
+        testCall(db, "RETURN apoc.text.byteCount('\uD843\uDD7C') AS value", row -> assertEquals(4L, row.get("value")));
+        testCall(db, "RETURN apoc.text.byteCount('‱') AS value", row -> assertEquals(3L, row.get("value")));
+        testCall(db, "RETURN apoc.text.byteCount('ሴ') AS value", row -> assertEquals(3L, row.get("value")));
+        testCall(db, "RETURN apoc.text.byteCount('z̫̮̤̯͖̪̤̗̫') AS value", row -> assertEquals(19L, row.get("value")));
+    }
+    @Test
+    public void testBytes() {
+        testCall(db, "RETURN apoc.text.bytes('') AS value", row -> assertEquals(asList(), row.get("value")));
+        testCall(db, "RETURN apoc.text.bytes('a') AS value", row -> assertEquals(asList(97L), row.get("value")));
+        testCall(db, "RETURN apoc.text.bytes('Ä') AS value", row -> assertEquals(asList(195L, 132L), row.get("value")));
+        testCall(db, "RETURN apoc.text.bytes('\uD843\uDD7C') AS value", row -> assertEquals(asList(240L, 160L, 181L, 188L), row.get("value")));
+        testCall(db, "RETURN apoc.text.bytes('‱') AS value", row -> assertEquals(asList(226L, 128L, 177L), row.get("value")));
+        testCall(db, "RETURN apoc.text.bytes('ሴ') AS value", row -> assertEquals(asList(225L, 136L, 180L), row.get("value")));
+        testCall(db, "RETURN apoc.text.bytes('z̫̮̤̯͖̪̤̗̫') AS value", row -> assertEquals(asList(122L, 204L, 171L, 204L, 174L, 204L, 164L, 204L, 175L, 205L, 150L, 204L, 170L, 204L, 164L, 204L, 151L, 204L, 171L), row.get("value")));
+    }
+
+    @Test
     public void testLPad() {
         testCall(db, "RETURN apoc.text.lpad('ab',4,' ')    AS value", row -> assertEquals("  ab", row.get("value")));
         testCall(db, "RETURN apoc.text.lpad('ab',4,'0')    AS value", row -> assertEquals("00ab", row.get("value")));
