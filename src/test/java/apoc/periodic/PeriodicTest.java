@@ -6,9 +6,9 @@ import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterators;
+import org.neo4j.kernel.enterprise.builtinprocs.EnterpriseBuiltInDbmsProcedures;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.sql.SQLException;
@@ -18,9 +18,7 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class PeriodicTest {
 
@@ -31,7 +29,7 @@ public class PeriodicTest {
     @Before
     public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure(db, Periodic.class, Jdbc.class);
+        TestUtil.registerProcedure(db, Periodic.class, Jdbc.class, EnterpriseBuiltInDbmsProcedures.class);
     }
 
     @After
@@ -59,6 +57,11 @@ public class PeriodicTest {
         assertThat(String.format("Expected %d, got %d ", 1L, count), count, equalTo(1L));
 
         testCall(db, callList, (r) -> assertEquals(true, r.get("done")));
+    }
+
+    @Test
+    public void testTerminateCommit() throws Exception {
+        testTerminatePeriodicQuery("CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id LIMIT {limit} CREATE (:Foo {id: {id}})', {limit:1})");
     }
 
     @Test
@@ -100,6 +103,41 @@ public class PeriodicTest {
     }
 
     @Test
+    public void testTerminateRockNRoll() throws Exception {
+        testTerminatePeriodicQuery("CALL apoc.periodic.rock_n_roll('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: {id}})', 10)");
+    }
+
+    public void testTerminatePeriodicQuery(String periodicQuery) {
+        killPeriodicQueryAsync();
+        try {
+            testResult(db, periodicQuery, result -> {
+                Map<String, Object> row = Iterators.single(result);
+                assertEquals(true, row.get("wasTerminated"));
+            });
+            fail("Should have terminated");
+        } catch(Exception tfe) {
+            assertEquals(tfe.getMessage(),true, tfe.getMessage().contains("terminated"));
+        }
+    }
+
+    private final static String KILL_PERIODIC_QUERY = "call dbms.listQueries() yield queryId, query, status\n" +
+            "with * where query contains ('apoc.' + 'periodic')\n" +
+            "call dbms.killQuery(queryId) yield queryId as killedId\n" +
+            "return killedId";
+    public void killPeriodicQueryAsync() {
+        new Thread(() -> {
+            int retries = 10;
+            try {
+                while (retries-- > 0 && !db.execute(KILL_PERIODIC_QUERY).hasNext()) {
+                    Thread.sleep(10);
+                }
+            } catch (InterruptedException e) {
+                // ignore
+            }
+        }).start();
+    }
+
+    @Test
     public void testIterateErrors() throws Exception {
         testResult(db, "CALL apoc.periodic.rock_n_roll('UNWIND range(0,99) as id RETURN id', 'CREATE (:Foo {id: 1 / ({id}%10)})', 10)", result -> {
             Map<String, Object> row = Iterators.single(result);
@@ -132,6 +170,14 @@ public class PeriodicTest {
             assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
         });
     }
+
+    @Test
+    public void testTerminateIterate() throws Exception {
+        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: {id}})', {batchSize:1,parallel:true})");
+        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: {id}})', {batchSize:10,iterateList:true})");
+        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: {id}})', {batchSize:10,iterateList:false})");
+    }
+
 
     @Test
     public void testIteratePrefixGiven() throws Exception {

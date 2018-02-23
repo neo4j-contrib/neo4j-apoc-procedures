@@ -515,6 +515,19 @@ public class Util {
             return errorValue;
         }
     }
+    public static <T> T getFutureOrCancel(Future<T> f, Map<String, Long> errorMessages, AtomicInteger errors, T errorValue) {
+        try {
+            if (f.isDone()) return f.get();
+            else {
+                f.cancel(true);
+                errors.incrementAndGet();
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            errors.incrementAndGet();
+            errorMessages.compute(e.getMessage(),(s, i) -> i == null ? 1 : i + 1);
+        }
+        return errorValue;
+    }
 
     public static void logErrors(String message, Map<String, Long> errors, Log log) {
         if (!errors.isEmpty()) {
