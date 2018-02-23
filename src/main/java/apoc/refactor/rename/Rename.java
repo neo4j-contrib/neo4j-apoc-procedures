@@ -27,7 +27,7 @@ public class Rename {
 
 	@Context public GraphDatabaseService db;
     @Context public Log log;
-    @Context public KernelTransaction tx;
+    @Context public TerminationGuard terminationGuard;
 
     /**
 	 * Rename the Label of a node by creating a new one and deleting the old.
@@ -84,7 +84,7 @@ public class Rename {
         Periodic periodic = new Periodic();
         periodic.db = this.db;
         periodic.log = this.log;
-        periodic.tx = this.tx;
+        periodic.terminationGuard = this.terminationGuard;
         return periodic;
     }
 
