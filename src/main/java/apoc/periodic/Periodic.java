@@ -40,9 +40,6 @@ public class Periodic {
         Pools.SCHEDULED.scheduleAtFixedRate(runnable,10,10,TimeUnit.SECONDS);
     }
 
-    @Context
-    public KernelTransaction tx;
-
     @Procedure
     @Description("apoc.periodic.list - list all jobs")
     public Stream<JobInfo> list() {
