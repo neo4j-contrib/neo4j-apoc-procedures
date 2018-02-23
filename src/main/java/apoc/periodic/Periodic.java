@@ -25,6 +25,7 @@ import static java.util.Collections.singletonMap;
 public class Periodic {
 
     @Context public GraphDatabaseService db;
+    @Context public TerminationGuard terminationGuard;
 
     @Context public Log log;
 
@@ -75,9 +76,10 @@ public class Periodic {
             }), commitErrors, failedCommits, 0L);
             total += updates;
             if (updates > 0) executions++;
-        } while (updates > 0);
+        } while (updates > 0 && !Util.transactionIsTerminated(terminationGuard));
         long timeTaken = TimeUnit.NANOSECONDS.toSeconds(nanoTime() - start);
-        return Stream.of(new RundownResult(total,executions, timeTaken, batches.get(),failedBatches.get(),batchErrors, failedCommits.get(), commitErrors));
+        boolean wasTerminated = Util.transactionIsTerminated(terminationGuard);
+        return Stream.of(new RundownResult(total,executions, timeTaken, batches.get(),failedBatches.get(),batchErrors, failedCommits.get(), commitErrors, wasTerminated));
     }
 
     private void recordError(Map<String, Long> executionErrors, Exception e) {
@@ -102,8 +104,9 @@ public class Periodic {
         public final Map<String, Long> batchErrors;
         public final long failedCommits;
         public final Map<String, Long> commitErrors;
+        public final boolean wasTerminated;
 
-        public RundownResult(long total, long executions, long timeTaken, long batches, long failedBatches, Map<String, Long> batchErrors, long failedCommits, Map<String, Long> commitErrors) {
+        public RundownResult(long total, long executions, long timeTaken, long batches, long failedBatches, Map<String, Long> batchErrors, long failedCommits, Map<String, Long> commitErrors, boolean wasTerminated) {
             this.updates = total;
             this.executions = executions;
             this.runtime = timeTaken;
@@ -112,6 +115,7 @@ public class Periodic {
             this.batchErrors = batchErrors;
             this.failedCommits = failedCommits;
             this.commitErrors = commitErrors;
+            this.wasTerminated = wasTerminated;
         }
     }
 
@@ -314,6 +318,7 @@ public class Periodic {
         Map<String,Long> batchErrors = new HashMap<>();
         long successes = 0;
         do {
+            if (Util.transactionIsTerminated(terminationGuard)) break;
             if (log.isDebugEnabled()) log.debug("execute in batch no " + batches + " batch size " + batchsize);
             List<Map<String,Object>> batch = Util.take(iterator, batchsize);
             long currentBatchSize = batch.size();
@@ -321,6 +326,7 @@ public class Periodic {
             if (iterateList) {
                 task = () -> {
                     long c = count.addAndGet(currentBatchSize);
+                    if (Util.transactionIsTerminated(terminationGuard)) return 0L;
                     List<Map<String,Object>> batchLocal = batch;
                     try {
                         Map<String, Object> params = Util.map("_count", c, "_batch", batchLocal);
@@ -332,9 +338,12 @@ public class Periodic {
                     return currentBatchSize;
                 };
             } else {
-                task = () -> batch.stream().map(
+                task = () -> {
+                    if (Util.transactionIsTerminated(terminationGuard)) return 0L;
+                    return batch.stream().map(
                         p -> {
                             long c = count.incrementAndGet();
+                            if (c % 1000 == 0 && Util.transactionIsTerminated(terminationGuard)) return 0;
                             List<Map<String,Object>> batchLocal = batch;
                             try {
                                 Map<String, Object> params = merge(p, Util.map("_count", c, "_batch", batchLocal));
@@ -345,6 +354,7 @@ public class Periodic {
                             }
                             return 1;
                         }).mapToLong(l -> l).sum();
+                };
             }
             futures.add(Util.inTxFuture(pool, db, task));
             batches++;
@@ -362,13 +372,17 @@ public class Periodic {
                 }
             }
         } while (iterator.hasNext());
-
-        successes += futures.stream().mapToLong(f -> Util.getFuture(f, batchErrors, failedBatches, 0L)).sum();
+        boolean wasTerminated = Util.transactionIsTerminated(terminationGuard);
+        if (wasTerminated) {
+            successes += futures.stream().mapToLong(f -> Util.getFutureOrCancel(f, batchErrors, failedBatches, 0L)).sum();
+        } else {
+            successes += futures.stream().mapToLong(f -> Util.getFuture(f, batchErrors, failedBatches, 0L)).sum();
+        }
         Util.logErrors("Error during iterate.commit:", batchErrors, log);
         Util.logErrors("Error during iterate.execute:", operationErrors, log);
         long timeTaken = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
         BatchAndTotalResult result =
-                new BatchAndTotalResult(batches, count.get(), timeTaken, successes, failedOps.get(), failedBatches.get(), retried.get(), operationErrors, batchErrors);
+                new BatchAndTotalResult(batches, count.get(), timeTaken, successes, failedOps.get(), failedBatches.get(), retried.get(), operationErrors, batchErrors, wasTerminated);
         return Stream.of(result);
     }
 
@@ -383,8 +397,11 @@ public class Periodic {
         public final Map<String,Long> errorMessages;
         public final Map<String,Object> batch;
         public final Map<String,Object> operations;
+        public final boolean wasTerminated;
 
-        public BatchAndTotalResult(long batches, long total, long timeTaken, long committedOperations, long failedOperations, long failedBatches,long retries, Map<String, Long> operationErrors, Map<String, Long> batchErrors) {
+        public BatchAndTotalResult(long batches, long total, long timeTaken, long committedOperations,
+                                   long failedOperations, long failedBatches, long retries,
+                                   Map<String, Long> operationErrors, Map<String, Long> batchErrors, boolean wasTerminated) {
             this.batches = batches;
             this.total = total;
             this.timeTaken = timeTaken;
@@ -393,6 +410,7 @@ public class Periodic {
             this.failedBatches = failedBatches;
             this.retries = retries;
             this.errorMessages = operationErrors;
+            this.wasTerminated = wasTerminated;
             this.batch = Util.map("total",batches,"failed",failedBatches,"committed",batches-failedBatches,"errors",batchErrors);
             this.operations = Util.map("total",total,"failed",failedOperations,"committed", committedOperations,"errors",operationErrors);
         }

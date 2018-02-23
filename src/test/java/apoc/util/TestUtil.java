@@ -91,9 +91,9 @@ public class TestUtil {
     public static void registerProcedure(GraphDatabaseService db, Class<?>...procedures) throws KernelException {
         Procedures proceduresService = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(Procedures.class);
         for (Class<?> procedure : procedures) {
-            proceduresService.registerProcedure(procedure);
-            proceduresService.registerFunction(procedure);
-            proceduresService.registerAggregationFunction(procedure);
+            proceduresService.registerProcedure(procedure,true);
+            proceduresService.registerFunction(procedure, true);
+            proceduresService.registerAggregationFunction(procedure, true);
         }
     }
 
