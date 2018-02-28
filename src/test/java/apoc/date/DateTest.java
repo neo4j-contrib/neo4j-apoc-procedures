@@ -122,6 +122,18 @@ public class DateTest {
 				});
 	}
 
+	@Test public void testFromUnixtimeWithNullInputReturnsNull() throws Exception {
+		testCall(db,
+				"RETURN apoc.date.format(null,'s') AS value",
+				row -> assertEquals(null, row.get("value")));
+	}
+
+	@Test public void testToISO8601() throws Exception {
+		testCall(db,
+				"RETURN apoc.date.toISO8601(0) AS value",
+				row -> assertEquals("1970-01-01T00:00:00.000Z", row.get("value")));
+	}
+
 	@Test public void testFromUnixtimeWithCorrectFormat() throws Exception {
 		String pattern = "MM/dd/yyyy HH:mm:ss";
 		SimpleDateFormat customFormat = formatInUtcZone(pattern);
