@@ -13,6 +13,7 @@ import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.kernel.KernelApi;
 import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.kernel.AvailabilityGuard;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifeSupport;
 import org.neo4j.logging.Log;
@@ -268,10 +269,13 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
         }
         private void startIndexTrackingThread(GraphDatabaseAPI db, BlockingQueue<Consumer<Void>> indexCommandQueue, long opsCountRollover, long millisRollover, Log log) {
             new Thread(() -> {
-                Transaction tx = db.beginTx();
-                int opsCount = 0;
-                long lastCommit = System.currentTimeMillis();
+                Transaction tx = null;
                 try {
+                    final AvailabilityGuard availabilityGuard = db.getDependencyResolver().resolveDependency(AvailabilityGuard.class);
+                    availabilityGuard.await(60_000);
+                    tx = db.beginTx();
+                    int opsCount = 0;
+                    long lastCommit = System.currentTimeMillis();
                     while (true) {
                         Consumer<Void> indexCommand = indexCommandQueue.poll(millisRollover, TimeUnit.MILLISECONDS);
                         long now = System.currentTimeMillis();
@@ -300,12 +304,14 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
                             indexCommand.accept(null);
                         }
                     }
-                } catch (InterruptedException e) {
+                } catch (InterruptedException|AvailabilityGuard.UnavailableException e) {
                     log.error(e.getMessage(), e);
                     throw new RuntimeException(e);
                 } finally {
-                    tx.success();
-                    tx.close();
+                    if (tx!=null) {
+                        tx.success();
+                        tx.close();
+                    }
                     log.info("stopping background thread for async index updates");
                 }
             }).start();
