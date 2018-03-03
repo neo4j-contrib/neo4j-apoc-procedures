@@ -1,14 +1,9 @@
 package apoc.nodes;
 
-import apoc.result.LongResult;
-import apoc.result.NodeResult;
-import apoc.result.RelationshipResult;
+import apoc.result.*;
 import apoc.util.Util;
 import org.neo4j.collection.primitive.PrimitiveIntIterator;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.KernelTransaction;
@@ -17,6 +12,7 @@ import org.neo4j.kernel.api.Statement;
 import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
 import org.neo4j.kernel.impl.api.RelationshipVisitor;
 import org.neo4j.kernel.impl.api.store.RelationshipIterator;
+import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 import org.neo4j.storageengine.api.Token;
 
@@ -303,13 +299,35 @@ public class Nodes {
         }
     }
 
-    @Procedure(value = "apoc.remove.nodes.withlabel", mode = Mode.WRITE)
-    @Description("Will remove all the nodes having one of the given labels, via DETACH DELETE")
-    public void removeNodesWithLabels(@Name("labels") List<String> labels) {
-        for (String label : labels) {
-            if (label!=null && label.trim().length()>0)
-                db.execute("CALL apoc.periodic.commit('MATCH (n:`" + label + "`) DETACH DELETE n;',null)");
+    @Procedure(value = "apoc.remove.nodes.withlabels", mode = Mode.WRITE)
+    @Description("apoc.remove.nodes.withlabels(['Person','Movie'],-1) | Will remove all the nodes having one of the given labels, via DETACH DELETE. Use a negative limit for no limit in deletion. Same limit used for each label.")
+    public Stream<MapResult> removeNodesWithLabels(@Name("labels") List<String> labels, @Name("limit") Long limit) {
+        StringBuilder query = new StringBuilder();
+
+        Map<String,Object> results = new HashMap<String, Object>();
+        HashMap<String, Object> parameters = new HashMap<>();
+
+        for( String label: labels) {
+            if(label != null && !label.trim().equals("")) {
+                query.setLength(0);
+                query.append("MATCH (n:");
+                query.append(label);
+                query.append(")");
+                if (limit > 0) {
+                    query.append(" WITH n LIMIT ");
+                    query.append(limit);
+                }
+                query.append(" DETACH DELETE n RETURN");
+                query.append(" \"");
+                query.append(label);
+                query.append("\"");
+                query.append(" AS label, count(n) AS deletedNodes");
+                Result r = db.execute(query.toString(), parameters);
+                results.put(label, r.getQueryStatistics().getNodesDeleted());
+            }
         }
+        MapResult mapResult = new MapResult(results);
+        return Stream.of(mapResult);
     }
 
 

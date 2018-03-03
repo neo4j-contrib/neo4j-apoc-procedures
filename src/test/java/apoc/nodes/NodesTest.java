@@ -176,38 +176,37 @@ public class NodesTest {
     }
 
     @Test
-    public void testRemoveNodesWithLabels_NoParams() {
+    public void testRemoveNodesEmptyLabels() {
         String[] labels = {};
         Map params = new HashMap();
         params.put("labels", labels);
+        params.put("limit", 50);
         TestUtil.testResult(db,
-                "CALL apoc.remove.nodes.withlabel",
+                "CALL apoc.remove.nodes.withlabels",
                 params,
                 r -> {
+                    Map m = r.next();
+                    Map map = (Map) m.get("value");
+                    assertNotNull(map);
+                    assertEquals(0,map.size());
                 });
     }
 
-    @Test
-    public void testRemoveNodesWithLabels_OkParams() {
-        String[] labels = {"aa", "bb", "cc"};
-        Map params = new HashMap();
-        params.put("labels", labels);
-        TestUtil.testResult(db,
-                "CALL apoc.remove.nodes.withlabel",
-                params,
-                r -> {
-                });
-    }
 
     @Test
-    public void testRemoveNodesWithLabels_AnEmptyParam() {
+    public void testRemoveNodesWithLabels_AnEmptyLabel() {
         String[] labels = {"aa","bb","  ","cc"};
         Map params = new HashMap();
         params.put("labels", labels);
+        params.put("limit", 50);
         TestUtil.testResult(db,
-                "CALL apoc.remove.nodes.withlabel",
+                "CALL apoc.remove.nodes.withlabels",
                 params,
                 r -> {
+                    Map m = r.next();
+                    Map map = (Map) m.get("value");
+                    assertNotNull(map);
+                    assertEquals(3,map.size());
                 });
     }
 
@@ -224,5 +223,25 @@ public class NodesTest {
             caught = true;
         }
         Assert.assertTrue(caught);
+    }
+
+    @Test
+    public void testRemoveNodesWithLabels_OkParamsWithLimit() {
+        String[] labels = {"aa", "bb", "cc"};
+        Map params = new HashMap();
+        params.put("labels", labels);
+        params.put("limit", 50);
+        TestUtil.testResult(db,
+                "CALL apoc.remove.nodes.withlabels",
+                params,
+                r -> {
+                    Map m = r.next();
+                    Map map = (Map) m.get("value");
+                    assertNotNull(map);
+                    assertEquals(3,map.size());
+                    assertEquals(0, map.get("aa") );
+                    assertEquals(0, map.get("bb") );
+                    assertEquals(0, map.get("cc") );
+                });
     }
 }
