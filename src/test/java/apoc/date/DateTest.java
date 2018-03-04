@@ -29,7 +29,6 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.*;
 
-
 public class DateTest {
 	@Rule public ExpectedException expected = ExpectedException.none();
 	private static GraphDatabaseService db;
@@ -120,6 +119,18 @@ public class DateTest {
 						throw new RuntimeException(e);
 					}
 				});
+	}
+
+	@Test public void testFromUnixtimeWithNullInputReturnsNull() throws Exception {
+		testCall(db,
+				"RETURN apoc.date.format(null,'s') AS value",
+				row -> assertEquals(null, row.get("value")));
+	}
+
+	@Test public void testToISO8601() throws Exception {
+		testCall(db,
+				"RETURN apoc.date.toISO8601(0) AS value",
+				row -> assertEquals("1970-01-01T00:00:00.000Z", row.get("value")));
 	}
 
 	@Test public void testFromUnixtimeWithCorrectFormat() throws Exception {

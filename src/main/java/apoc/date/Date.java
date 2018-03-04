@@ -150,8 +150,14 @@ public class Date {
 
 	@UserFunction
 	@Description("apoc.date.format(12345,('ms|s|m|h|d'),('yyyy-MM-dd HH:mm:ss zzz'),('TZ')) get string representation of time value optionally using the specified unit (default ms) using specified format (default ISO) and specified time zone (default current TZ)")
-	public String format(final @Name("time") long time, @Name(value = "unit", defaultValue = "ms") String unit, @Name(value = "format",defaultValue = DEFAULT_FORMAT) String format, @Name(value = "timezone",defaultValue = "") String timezone) {
-		return parse(unit(unit).toMillis(time), format, timezone);
+	public String format(final @Name("time") Long time, @Name(value = "unit", defaultValue = "ms") String unit, @Name(value = "format",defaultValue = DEFAULT_FORMAT) String format, @Name(value = "timezone",defaultValue = "") String timezone) {
+		return time == null ? null : parse(unit(unit).toMillis(time), format, timezone);
+	}
+
+	@UserFunction
+	@Description("apoc.date.toISO8601(12345,('ms|s|m|h|d') return string representation of time in ISO8601 format")
+	public String toISO8601(final @Name("time") Long time, @Name(value = "unit", defaultValue = "ms") String unit) {
+		return time == null ? null : parse(unit(unit).toMillis(time), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", null);
 	}
 
 	@UserFunction
