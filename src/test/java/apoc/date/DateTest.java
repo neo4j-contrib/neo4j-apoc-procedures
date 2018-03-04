@@ -29,7 +29,6 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.*;
 
-
 public class DateTest {
 	@Rule public ExpectedException expected = ExpectedException.none();
 	private static GraphDatabaseService db;
