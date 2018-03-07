@@ -331,6 +331,7 @@ public class Nodes {
     }
 
 
+
     private boolean isDense(ReadOperations ops, Node n) {
         try {
             return ops.nodeIsDense(n.getId());
