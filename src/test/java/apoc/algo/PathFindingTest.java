@@ -148,19 +148,17 @@ public class PathFindingTest {
         db.execute(SETUP_SIMPLE).close();
         testResult(db,
                 "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
-                        "CALL apoc.algo.dijkstra(from, to, 'ROAD>', 'd', 3) yield path, weight " +
+                        "CALL apoc.algo.dijkstra(from, to, 'ROAD>', 'd', 99999, 3) yield path, weight " +
                         "RETURN path, weight",
                 result -> {
                     List<Map<String, Object>> records = Iterators.asList(result);
-                    final List<Integer> pathLengths = map(records, map -> ((Path) map.get("path")).length());
-                    final List<Object> weights = map(records, map -> map.get("weight"));
                     assertThat(
-                            weights,
+                            map(records, map -> map.get("weight")),
                             contains(50.0, 60.0, 100.0)
                     );
 
                     assertThat(
-                            pathLengths,
+                            map(records, map -> ((Path) map.get("path")).length()),
                             contains(2, 3, 1)
                     );
                 }
