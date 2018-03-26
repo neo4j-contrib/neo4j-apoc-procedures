@@ -469,6 +469,14 @@ public class Util {
         return res;
     }
 
+    public static <T,R> List<R> map(Stream<T> stream, Function<T,R> mapper) {
+        return stream.map(mapper).collect(Collectors.toList());
+    }
+
+    public static <T,R> List<R> map(Collection<T> collection, Function<T,R> mapper) {
+        return map(collection.stream(), mapper);
+    }
+
     public static Map<String, Object> mapFromLists(List<String> keys, List<Object> values) {
         if (keys == null || values == null || keys.size() != values.size())
             throw new RuntimeException("keys and values lists have to be not null and of same size");
