@@ -72,11 +72,13 @@ public class PathFinding {
             @Name("startNode") Node startNode,
             @Name("endNode") Node endNode,
             @Name("relationshipTypesAndDirections") String relTypesAndDirs,
-            @Name("weightPropertyName") String weightPropertyName) {
+            @Name("weightPropertyName") String weightPropertyName,
+            @Name(value = "numberOfWantedPaths", defaultValue = "1") long numberOfWantedPaths) {
 
         PathFinder<WeightedPath> algo = GraphAlgoFactory.dijkstra(
                 buildPathExpander(relTypesAndDirs),
-                weightPropertyName
+                weightPropertyName,
+                (int)numberOfWantedPaths
         );
         return WeightedPathResult.streamWeightedPathResult(startNode, endNode, algo);
     }

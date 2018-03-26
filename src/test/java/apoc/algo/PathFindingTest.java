@@ -7,21 +7,26 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static org.hamcrest.core.IsEqual.equalTo;
+import static apoc.util.Util.map;
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class PathFindingTest {
 
-    private static final String SETUP_SIMPLE = "CREATE " +
+    private static final String SETUP_MISSING_PROPERTY = "CREATE " +
             "(a:Loc{name:'A'}), " +
             "(b:Loc{name:'B'}), " +
             "(c:Loc{name:'C'}), " +
@@ -32,7 +37,18 @@ public class PathFindingTest {
             "(b)-[:ROAD {d:20}]->(c), " +
             "(c)-[:ROAD]->(d), " +
             "(a)-[:ROAD {d:20}]->(c) ";
-    private static final String SETUP = "CREATE (b:City {name:'Berlin',lat:52.52464,lon:13.40514})\n" +
+    private static final String SETUP_SIMPLE = "CREATE " +
+            "(a:Loc{name:'A'}), " +
+            "(b:Loc{name:'B'}), " +
+            "(c:Loc{name:'C'}), " +
+            "(d:Loc{name:'D'}), " +
+            "(a)-[:ROAD {d:100}]->(d), " +
+            "(a)-[:RAIL {d:5}]->(d), " +
+            "(a)-[:ROAD {d:10}]->(b), " +
+            "(b)-[:ROAD {d:20}]->(c), " +
+            "(c)-[:ROAD {d:30}]->(d), " +
+            "(a)-[:ROAD {d:20}]->(c) ";
+    private static final String SETUP_GEO = "CREATE (b:City {name:'Berlin',lat:52.52464,lon:13.40514})\n" +
             "CREATE (m:City {name:'München',lat:48.1374,lon:11.5755})\n" +
             "CREATE (f:City {name:'Frankfurt',lat:50.1167,lon:8.68333})\n" +
             "CREATE (h:City {name:'Hamburg',lat:53.554423,lon:9.994583})\n" +
@@ -56,63 +72,43 @@ public class PathFindingTest {
    	}
 
     @Test
-    public void testAStar() throws Exception {
-        db.execute(SETUP).close();
+    public void testAStar() {
+        db.execute(SETUP_GEO).close();
         testResult(db,
                 "MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'}) " +
                         "CALL apoc.algo.aStar(from, to, 'DIRECT', 'dist', 'lat', 'lon') yield path, weight " +
                         "RETURN path, weight" ,
-                r ->  {
-                    assertEquals(true, r.hasNext());
-                    Map<String, Object> row = r.next();
-                    assertEquals(697, ((Number)row.get("weight")).intValue()/1000) ;
-                    Path path = (Path) row.get("path");
-                    assertEquals(2, path.length()) ; // 3nodes, 2 rels
-                    List<Node> nodes = Iterables.asList(path.nodes());
-                    assertEquals("München", nodes.get(0).getProperty("name")) ;
-                    assertEquals("Frankfurt", nodes.get(1).getProperty("name")) ;
-                    assertEquals("Hamburg", nodes.get(2).getProperty("name")) ;
-
-                    assertEquals(false,r.hasNext());
-                }
+                r -> assertAStarResult(r)
         );
     }
+
     @Test
-    public void testAStarConfig() throws Exception {
-        db.execute(SETUP).close();
+    public void testAStarConfig() {
+        db.execute(SETUP_GEO).close();
         testResult(db,
                 "MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'}) " +
                         "CALL apoc.algo.aStarConfig(from, to, 'DIRECT', {weight:'dist',y:'lat', x:'lon',default:100}) yield path, weight " +
                         "RETURN path, weight" ,
-                r ->  {
-                    assertEquals(true, r.hasNext());
-                    Map<String, Object> row = r.next();
-                    assertEquals(697, ((Number)row.get("weight")).intValue()/1000) ;
-                    Path path = (Path)row.get("path");
-                    assertEquals(2, path.length()) ; // 3nodes, 2 rels
-                    List<Node> nodes = Iterables.asList(path.nodes());
-                    assertEquals("München", nodes.get(0).getProperty("name")) ;
-                    assertEquals("Frankfurt", nodes.get(1).getProperty("name")) ;
-                    assertEquals("Hamburg", nodes.get(2).getProperty("name")) ;
-
-                    assertEquals(false,r.hasNext());
-                }
+                r -> assertAStarResult(r)
         );
+    }
+
+    private void assertAStarResult(Result r) {
+        assertEquals(true, r.hasNext());
+        Map<String, Object> row = r.next();
+        assertEquals(697, ((Number)row.get("weight")).intValue()/1000) ;
+        Path path = (Path) row.get("path");
+        assertEquals(2, path.length()) ; // 3nodes, 2 rels
+        List<Node> nodes = Iterables.asList(path.nodes());
+        assertEquals("München", nodes.get(0).getProperty("name")) ;
+        assertEquals("Frankfurt", nodes.get(1).getProperty("name")) ;
+        assertEquals("Hamburg", nodes.get(2).getProperty("name")) ;
+        assertEquals(false,r.hasNext());
     }
 
     @Test
     public void testDijkstra() {
-        db.execute("CREATE " +
-                "(a:Loc{name:'A'}), " +
-                "(b:Loc{name:'B'}), " +
-                "(c:Loc{name:'C'}), " +
-                "(d:Loc{name:'D'}), " +
-                "(a)-[:ROAD {d:100}]->(d), " +
-                "(a)-[:RAIL {d:5}]->(d), " +
-                "(a)-[:ROAD {d:10}]->(b), " +
-                "(b)-[:ROAD {d:20}]->(c), " +
-                "(c)-[:ROAD {d:30}]->(d), " +
-                "(a)-[:ROAD {d:20}]->(c) ").close();
+        db.execute(SETUP_SIMPLE).close();
         testCall(db,
             "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
             "CALL apoc.algo.dijkstra(from, to, 'ROAD>', 'd') yield path, weight " +
@@ -135,7 +131,7 @@ public class PathFindingTest {
 
     @Test
     public void testDijkstraWithDefaultWeight() {
-        db.execute(SETUP_SIMPLE).close();
+        db.execute(SETUP_MISSING_PROPERTY).close();
         testCall(db,
                 "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
                         "CALL apoc.algo.dijkstraWithDefaultWeight(from, to, 'ROAD>', 'd', 10.5) yield path, weight " +
@@ -148,8 +144,32 @@ public class PathFindingTest {
     }
 
     @Test
-    public void testAllSimplePaths() {
+    public void testDijkstraMultipleShortest() {
         db.execute(SETUP_SIMPLE).close();
+        testResult(db,
+                "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
+                        "CALL apoc.algo.dijkstra(from, to, 'ROAD>', 'd', 3) yield path, weight " +
+                        "RETURN path, weight",
+                result -> {
+                    List<Map<String, Object>> records = Iterators.asList(result);
+                    final List<Integer> pathLengths = map(records, map -> ((Path) map.get("path")).length());
+                    final List<Object> weights = map(records, map -> map.get("weight"));
+                    assertThat(
+                            weights,
+                            contains(50.0, 60.0, 100.0)
+                    );
+
+                    assertThat(
+                            pathLengths,
+                            contains(2, 3, 1)
+                    );
+                }
+        );
+    }
+
+    @Test
+    public void testAllSimplePaths() {
+        db.execute(SETUP_MISSING_PROPERTY).close();
         testResult(db,
                 "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
                         "CALL apoc.algo.allSimplePaths(from, to, 'ROAD>', 3) yield path " +
@@ -168,7 +188,7 @@ public class PathFindingTest {
     }
     @Test
     public void testAllSimplePathResults() {
-        db.execute(SETUP_SIMPLE).close();
+        db.execute(SETUP_MISSING_PROPERTY).close();
         testResult(db,
                 "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
                         "CALL apoc.algo.allSimplePaths(from, to, 'ROAD>', 3) yield path " +
