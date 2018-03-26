@@ -66,17 +66,20 @@ public class PathFinding {
     }
 
     @Procedure
-    @Description("apoc.algo.dijkstra(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 'distance') YIELD path," +
+    @Description("apoc.algo.dijkstra(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 'distance', defaultValue, numberOfWantedResults) YIELD path," +
             " weight - run dijkstra with relationship property name as cost function")
     public Stream<WeightedPathResult> dijkstra(
             @Name("startNode") Node startNode,
             @Name("endNode") Node endNode,
             @Name("relationshipTypesAndDirections") String relTypesAndDirs,
-            @Name("weightPropertyName") String weightPropertyName) {
+            @Name("weightPropertyName") String weightPropertyName,
+            @Name(value = "defaultWeight", defaultValue = "NaN") double defaultWeight,
+            @Name(value = "numberOfWantedPaths", defaultValue = "1") long numberOfWantedPaths) {
 
         PathFinder<WeightedPath> algo = GraphAlgoFactory.dijkstra(
                 buildPathExpander(relTypesAndDirs),
-                weightPropertyName
+                (relationship, direction) -> Util.toDouble(relationship.getProperty(weightPropertyName, defaultWeight)),
+                (int)numberOfWantedPaths
         );
         return WeightedPathResult.streamWeightedPathResult(startNode, endNode, algo);
     }
@@ -99,10 +102,11 @@ public class PathFinding {
                 .map(PathResult::new);
     }
 
-    @Procedure
+    @Procedure(deprecatedBy = "apoc.algo.dijkstra")
     @Description("apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', " +
             "'distance', 10) YIELD path, weight - run dijkstra with relationship property name as cost function" +
             " and a default weight if the property does not exist")
+    @Deprecated
     public Stream<WeightedPathResult> dijkstraWithDefaultWeight(
             @Name("startNode") Node startNode,
             @Name("endNode") Node endNode,
