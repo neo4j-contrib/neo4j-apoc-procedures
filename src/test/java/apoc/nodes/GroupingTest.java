@@ -131,7 +131,6 @@ public class GroupingTest {
                     assertTrue(result.hasNext());
 
                     row = result.next();
-                    System.out.println(row);
                     nodes = (List<Node>) row.get("nodes");
                     assertEquals(1,nodes.size());
                     node = nodes.get(0);

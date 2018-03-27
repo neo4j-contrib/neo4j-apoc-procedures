@@ -132,7 +132,6 @@ public class ExportCypherTest {
 
     @Test public void testExportAllCypherResults() throws Exception {
         TestUtil.testCall(db, "CALL apoc.export.cypher.all(null,null)", (r) -> {
-            System.out.println(r);
             assertResults(null, r, "database");
             assertEquals(EXPECTED_NEO4J_SHELL,r.get("cypherStatements"));
         });
@@ -153,7 +152,6 @@ public class ExportCypherTest {
             assertEquals(true, ((long) r.get("time")) >= 0);
             sb.append(r.get("cypherStatements"));
             r = res.next();
-            System.out.println(r);
             assertEquals(3L, r.get("batchSize"));
             assertEquals(2L, r.get("batches"));
             assertEquals(3L, r.get("nodes"));

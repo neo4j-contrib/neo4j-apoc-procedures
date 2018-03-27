@@ -131,7 +131,6 @@ public class PeriodicTest {
                 while (retries-- > 0 && !db.execute(KILL_PERIODIC_QUERY).hasNext()) {
                     Thread.sleep(10);
                 }
-                System.err.println("killPeriodicQuery after " + retries + " retries.");
             } catch (InterruptedException e) {
                 // ignore
             }
@@ -234,7 +233,6 @@ public class PeriodicTest {
 
         testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'SET p.lastname = p.name REMOVE p.name', {batchSize:10, iterateList:true, parallel:true})", result -> {
             Map<String, Object> row = Iterators.single(result);
-            System.out.println(result);
             assertEquals(10L, row.get("batches"));
             assertEquals(100L, row.get("total"));
         });
@@ -251,7 +249,6 @@ public class PeriodicTest {
 
         testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'SET p.lastname = p.name REMOVE p.name', {batchSize:10, iterateList:true, parallel:true})", result -> {
             Map<String, Object> row = Iterators.single(result);
-            System.out.println(result);
             assertEquals(10L, row.get("batches"));
             assertEquals(100L, row.get("total"));
         });
@@ -266,7 +263,6 @@ public class PeriodicTest {
     public void testIterateRetries() throws Exception {
         testResult(db, "CALL apoc.periodic.iterate('return 1', 'CREATE (n {prop: 1/{_retry}})', {retries:1})", result -> {
             Map<String, Object> row = Iterators.single(result);
-            System.out.println(result);
             assertEquals(1L, row.get("batches"));
             assertEquals(1L, row.get("total"));
             assertEquals(1L, row.get("retries"));
@@ -278,7 +274,6 @@ public class PeriodicTest {
         db.execute("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})").close();
         testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'WITH {p} as p SET p.lastname = p.name REMOVE x.name', {batchSize:10,parallel:true})", result -> {
             Map<String, Object> row = Iterators.single(result);
-            System.out.println("row = " + row);
             assertEquals(10L, row.get("batches"));
             assertEquals(100L, row.get("total"));
             assertEquals(100L, row.get("failedOperations"));

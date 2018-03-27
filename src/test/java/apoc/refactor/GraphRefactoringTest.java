@@ -47,9 +47,6 @@ public class GraphRefactoringTest {
     @Test
     public void testDeleteOneNode() throws Exception {
         long id = db.execute("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ").<Long>columnAs("id").next();
-        ExecutionPlanDescription plan = db.execute("EXPLAIN MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) DELETE o RETURN o as node").getExecutionPlanDescription();
-        System.out.println(plan);
-        System.out.flush();
         testCall(db, "MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) DELETE o RETURN n as node",
                       map("oldID", 1L, "newID",2L),
                 (r) -> {
@@ -64,9 +61,6 @@ public class GraphRefactoringTest {
     public void testEagernessMergeNodesFails() throws Exception {
         db.execute("CREATE INDEX ON :Person(ID)").close();
         long id = db.execute("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ").<Long>columnAs("id").next();
-        ExecutionPlanDescription plan = db.execute("EXPLAIN MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) CALL apoc.refactor.mergeNodes([o,n]) yield node return node").getExecutionPlanDescription();
-        System.out.println(plan);
-        System.out.flush();
         testCall(db, "MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) CALL apoc.refactor.mergeNodes([o,n]) yield node return node",
                       map("oldID", 1L, "newID",2L),
                 (r) -> {
@@ -80,9 +74,6 @@ public class GraphRefactoringTest {
     @Test
     public void testMergeNodesEagerAggregation() throws Exception {
         long id = db.execute("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ").<Long>columnAs("id").next();
-        ExecutionPlanDescription plan = db.execute("EXPLAIN MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) WITH head(collect([o,n])) as nodes CALL apoc.refactor.mergeNodes(nodes) yield node return node").getExecutionPlanDescription();
-        System.out.println(plan);
-        System.out.flush();
         testCall(db, "MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) WITH head(collect([o,n])) as nodes CALL apoc.refactor.mergeNodes(nodes) yield node return node",
                       map("oldID", 1L, "newID",2L),
                 (r) -> {
@@ -97,9 +88,6 @@ public class GraphRefactoringTest {
     public void testMergeNodesEagerIndex() throws Exception {
         db.execute("CREATE INDEX ON :Person(ID)").close();
         long id = db.execute("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ").<Long>columnAs("id").next();
-        ExecutionPlanDescription plan = db.execute("EXPLAIN MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) USING INDEX o:Person(ID) USING INDEX n:Person(ID) CALL apoc.refactor.mergeNodes([o,n]) yield node return node").getExecutionPlanDescription();
-        System.out.println(plan);
-        System.out.flush();
         testCall(db, "MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) USING INDEX o:Person(ID) USING INDEX n:Person(ID) CALL apoc.refactor.mergeNodes([o,n]) yield node return node",
                       map("oldID", 1L, "newID",2L),
                 (r) -> {
@@ -350,9 +338,6 @@ public class GraphRefactoringTest {
     public void testMergeNodesWithConstraints() throws Exception {
         db.execute("CREATE CONSTRAINT ON (p:Person) ASSERT p.name IS UNIQUE").close();
         long id = db.execute("CREATE (p1:Person {name:'Foo'}), (p2:Person {surname:'Bar'}) RETURN id(p1) as id ").<Long>columnAs("id").next();
-        ExecutionPlanDescription plan = db.execute("EXPLAIN MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) CALL apoc.refactor.mergeNodes([o,n]) yield node return node").getExecutionPlanDescription();
-        System.out.println(plan);
-        System.out.flush();
         testCall(db, "MATCH (o:Person {name:'Foo'}), (n:Person {surname:'Bar'}) CALL apoc.refactor.mergeNodes([o,n]) yield node return node",
                 (r) -> {
                     Node node = (Node) r.get("node");
