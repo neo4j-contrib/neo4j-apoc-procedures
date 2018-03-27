@@ -3,7 +3,6 @@ package apoc.schema;
 import apoc.result.AssertSchemaResult;
 import apoc.result.ConstraintRelationshipInfo;
 import apoc.result.IndexConstraintNodeInfo;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -156,10 +155,6 @@ public class Schemas {
 
         db.execute(String.format("CREATE INDEX ON :`%s` (%s)", label, String.join(",", backTickedKeys)));
         return new AssertSchemaResult(label, keys).created();
-    }
-
-    private Boolean compareKeys(List<String> keys1, List<Object> keys2) {
-        return CollectionUtils.isEqualCollection(keys1, keys2);
     }
 
     private Map<String, List<Object>> copyMapOfObjects(Map<String, List<Object>> input) {
