@@ -129,7 +129,7 @@ test {
     testLogging {
         // taken from https://stackoverflow.com/a/36130467/158701
         events TestLogEvent.FAILED,
-                TestLogEvent.PASSED,
+//                TestLogEvent.PASSED,
                 TestLogEvent.SKIPPED,
                 TestLogEvent.STANDARD_OUT,
                 TestLogEvent.STANDARD_ERROR
