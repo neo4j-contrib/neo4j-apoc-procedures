@@ -112,7 +112,7 @@ public class PeriodicTest {
         try {
             testResult(db, periodicQuery, result -> {
                 Map<String, Object> row = Iterators.single(result);
-                assertEquals(true, row.get("wasTerminated"));
+                assertEquals( row.toString(), true, row.get("wasTerminated"));
             });
             fail("Should have terminated");
         } catch(Exception tfe) {
@@ -131,6 +131,7 @@ public class PeriodicTest {
                 while (retries-- > 0 && !db.execute(KILL_PERIODIC_QUERY).hasNext()) {
                     Thread.sleep(10);
                 }
+                System.err.println("killPeriodicQuery after " + retries + " retries.");
             } catch (InterruptedException e) {
                 // ignore
             }
