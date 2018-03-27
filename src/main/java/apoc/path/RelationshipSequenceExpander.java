@@ -1,14 +1,12 @@
 package apoc.path;
 
-import org.apache.commons.collections.IteratorUtils;
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.impl.StandardExpander;
 import org.neo4j.graphdb.traversal.BranchState;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.helpers.collection.NestingIterator;
 import org.neo4j.helpers.collection.Pair;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -84,7 +82,7 @@ public class RelationshipSequenceExpander implements PathExpander {
             stepRels = relSequences.get((initialRels == null ? depth : depth - 1) % relSequences.size());
         }
 
-        return IteratorUtils.toList(
+        return Iterators.asList(
          new NestingIterator<Relationship, Pair<RelationshipType, Direction>>(
                 stepRels.iterator() )
         {
