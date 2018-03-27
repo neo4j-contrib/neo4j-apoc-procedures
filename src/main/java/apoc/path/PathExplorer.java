@@ -23,7 +23,6 @@ import static org.neo4j.graphdb.traversal.Evaluation.*;
 
 
 public class PathExplorer {
-	private static final String VERSION = "0.5";
 	public static final Uniqueness UNIQUENESS = Uniqueness.RELATIONSHIP_PATH;
 	public static final boolean BFS = true;
 	@Context

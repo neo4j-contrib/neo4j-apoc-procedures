@@ -118,12 +118,47 @@ dependencies {
     jmh group: 'org.neo4j', name: 'neo4j-kernel', version:neo4jVersionEffective, classifier: "tests"
 }
 
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 test {
     systemProperties 'user.language': 'en', 'user.country': 'US'
     testLogging {
-        events "failed"
-        exceptionFormat "short"
+        // taken from https://stackoverflow.com/a/36130467/158701
+        events TestLogEvent.FAILED,
+                TestLogEvent.PASSED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_OUT,
+                TestLogEvent.STANDARD_ERROR
+        exceptionFormat TestExceptionFormat.FULL
+        showExceptions true
+        showCauses true
+        showStackTraces true
+
+        // set options for log level DEBUG and INFO
+        debug {
+            events TestLogEvent.STARTED,
+                    TestLogEvent.FAILED,
+                    TestLogEvent.PASSED,
+                    TestLogEvent.SKIPPED,
+                    TestLogEvent.STANDARD_ERROR,
+                    TestLogEvent.STANDARD_OUT
+            exceptionFormat TestExceptionFormat.FULL
+        }
+        info.events = debug.events
+        info.exceptionFormat = debug.exceptionFormat
+
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+                def startItem = '|  ', endItem = '  |'
+                def repeatLength = startItem.length() + output.length() + endItem.length()
+                println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
+            }
+        }
     }
+
+
     if (System.env.TRAVIS !=null) {
         minHeapSize = "128m"
         maxHeapSize = "512m"
@@ -212,7 +247,6 @@ and not for its dependencies."""
 }
 
 // tweaks for travis
-// from
 if (System.env.TRAVIS == 'true') {
     allprojects {
         tasks.withType(GroovyCompile) {
