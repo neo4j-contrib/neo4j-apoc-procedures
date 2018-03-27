@@ -11,6 +11,7 @@ import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.net.Socket;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -143,5 +144,14 @@ public class TestUtil {
 
     public static GraphDatabaseBuilder apocGraphDatabaseBuilder() {
         return new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*");
+    }
+
+    public static boolean serverListening(String host, int port)
+    {
+        try (Socket s = new Socket(host, port)){
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
