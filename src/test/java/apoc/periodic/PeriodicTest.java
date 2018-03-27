@@ -61,7 +61,7 @@ public class PeriodicTest {
 
     @Test
     public void testTerminateCommit() throws Exception {
-        testTerminatePeriodicQuery("CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id LIMIT {limit} CREATE (:Foo {id: {id}})', {limit:1})");
+        testTerminatePeriodicQuery("CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (:Foo {id: id})', {})");
     }
 
     @Test
@@ -104,7 +104,7 @@ public class PeriodicTest {
 
     @Test
     public void testTerminateRockNRoll() throws Exception {
-        testTerminatePeriodicQuery("CALL apoc.periodic.rock_n_roll('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: {id}})', 10)");
+        testTerminatePeriodicQuery("CALL apoc.periodic.rock_n_roll('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: $id})', 10)");
     }
 
     public void testTerminatePeriodicQuery(String periodicQuery) {
@@ -112,7 +112,7 @@ public class PeriodicTest {
         try {
             testResult(db, periodicQuery, result -> {
                 Map<String, Object> row = Iterators.single(result);
-                assertEquals(true, row.get("wasTerminated"));
+                assertEquals( periodicQuery + " result: " + row.toString(), true, row.get("wasTerminated"));
             });
             fail("Should have terminated");
         } catch(Exception tfe) {
@@ -131,6 +131,7 @@ public class PeriodicTest {
                 while (retries-- > 0 && !db.execute(KILL_PERIODIC_QUERY).hasNext()) {
                     Thread.sleep(10);
                 }
+                System.err.println("killPeriodicQuery after " + retries + " retries.");
             } catch (InterruptedException e) {
                 // ignore
             }
@@ -139,7 +140,7 @@ public class PeriodicTest {
 
     @Test
     public void testIterateErrors() throws Exception {
-        testResult(db, "CALL apoc.periodic.rock_n_roll('UNWIND range(0,99) as id RETURN id', 'CREATE (:Foo {id: 1 / ({id}%10)})', 10)", result -> {
+        testResult(db, "CALL apoc.periodic.rock_n_roll('UNWIND range(0,99) as id RETURN id', 'CREATE (:Foo {id: 1 / ($id % 10)})', 10)", result -> {
             Map<String, Object> row = Iterators.single(result);
             assertEquals(10L, row.get("batches"));
             assertEquals(100L, row.get("total"));
@@ -173,9 +174,9 @@ public class PeriodicTest {
 
     @Test
     public void testTerminateIterate() throws Exception {
-        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: {id}})', {batchSize:1,parallel:true})");
-        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: {id}})', {batchSize:10,iterateList:true})");
-        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: {id}})', {batchSize:10,iterateList:false})");
+        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: $id})', {batchSize:1,parallel:true})");
+        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: $id})', {batchSize:10,iterateList:true})");
+        testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'CREATE (:Foo {id: $id})', {batchSize:10,iterateList:false})");
     }
 
 
