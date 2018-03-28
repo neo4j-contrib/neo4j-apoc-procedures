@@ -3,6 +3,7 @@ package apoc.cypher;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.Utils;
+import org.hamcrest.Matchers;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.*;
@@ -18,6 +19,7 @@ import java.util.*;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static java.util.Collections.singletonMap;
 import static org.junit.Assert.*;
 
 /**
@@ -296,9 +298,28 @@ public class CypherTest {
 
     @Test(timeout=9000)
     public void testWithTimeout() {
-        thrown.expect(TransientTransactionFailureException.class);
-        thrown.expectMessage("Explicitly terminated by the user.");
-        Result result = db.execute("CALL apoc.cypher.runTimeboxed('CALL apoc.util.sleep(10000)', null, {timeout})", Collections.singletonMap("timeout", 100));
+        Result result = db.execute("CALL apoc.cypher.runTimeboxed('CALL apoc.util.sleep(10000)', null, {timeout})", singletonMap("timeout", 100));
+        assertFalse(result.hasNext());
+    }
+
+    @Test
+    public void shouldTimeboxedReturnAllResultsSoFar() {
+        db.execute(Util.readResourceFile("movies.cypher"));
+//        System.out.println("movies imported");
+
+        long start = System.currentTimeMillis();
+        try (Transaction tx = db.beginTx()) {
+            Result result = db.execute("CALL apoc.cypher.runTimeboxed('match(n) -[*]-(m) return id(n),id(m)', {}, 1000) YIELD value RETURN value");
+            assertTrue(Iterators.count(result)>0);
+            tx.success();
+        }
+        long duration= System.currentTimeMillis() - start;
+        assertThat("test runs in less than 1500 millis", duration, Matchers.lessThan(1500l));
+    }
+
+    @Test(timeout=9000)
+    public void shouldTooLongTimeboxBeNotHarmful() {
+        Result result = db.execute("CALL apoc.cypher.runTimeboxed('CALL apoc.util.sleep(10)', null, {timeout})", singletonMap("timeout", 10000));
         assertFalse(result.hasNext());
     }
 
