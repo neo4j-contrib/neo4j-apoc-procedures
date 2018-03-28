@@ -63,7 +63,7 @@ public class PregelTest {
         long start = System.currentTimeMillis();
         int[] degrees = pregel.runProgram(nodes, new Pregel.AllExpander(), new OutDegrees(nodeCount));
         long time = System.currentTimeMillis() - start;
-        System.err.println("Program ran for "+nodeCount+" nodes in "+time+" ms.");
+//        System.err.println("Program ran for "+nodeCount+" nodes in "+time+" ms.");
         assertEquals(0, degrees[0]);
         assertEquals(1, degrees[100]);
         assertEquals(10, degrees[1000]);
@@ -94,7 +94,7 @@ public class PregelTest {
         long time = System.currentTimeMillis() - start;
 
         Arrays.sort(ranks);
-        System.err.println("PageRank Program ran for "+nodeCount+" nodes in "+time+" ms. 10 hightest Ranks "+Arrays.toString(Arrays.copyOfRange(ranks,ranks.length-10,ranks.length)));
+//        System.err.println("PageRank Program ran for "+nodeCount+" nodes in "+time+" ms. 10 hightest Ranks "+Arrays.toString(Arrays.copyOfRange(ranks,ranks.length-10,ranks.length)));
         db.shutdown();
     }
 
@@ -120,7 +120,7 @@ public class PregelTest {
         long time = System.currentTimeMillis() - start;
 
         Arrays.sort(ranks);
-        System.err.println("PageRank Program ran for "+nodeCount+" nodes in "+time+" ms. 10 hightest Ranks "+Arrays.toString(Arrays.copyOfRange(ranks,ranks.length-10,ranks.length)));
+//        System.err.println("PageRank Program ran for "+nodeCount+" nodes in "+time+" ms. 10 hightest Ranks "+Arrays.toString(Arrays.copyOfRange(ranks,ranks.length-10,ranks.length)));
         db.shutdown();
     }
 
@@ -147,7 +147,7 @@ public class PregelTest {
             }
             tx.success();
         }
-        System.err.println("Generating Data took "+(System.currentTimeMillis() - start)+" ms. nodes "+nodeCount+ " rels "+rels);
+//        System.err.println("Generating Data took "+(System.currentTimeMillis() - start)+" ms. nodes "+nodeCount+ " rels "+rels);
     }
 
     private static class OutDegrees implements Pregel.PregelProgram<int[], int[]> {

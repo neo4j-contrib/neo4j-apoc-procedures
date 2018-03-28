@@ -45,6 +45,7 @@ public class CoreGraphAlgorithmsTest {
         idC = (int)(long)row.get("id(c)");
         idD = (int)(long)row.get("id(d)");
         result.close();
+//        db.execute("MATCH (n) return n, id(n)").writeAsStringTo(new PrintWriter(System.out));
     }
 
     @After
@@ -102,7 +103,6 @@ public class CoreGraphAlgorithmsTest {
     public void pageRank() throws Exception {
         CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init();
         float[] rank = algos.pageRank(2);
-        System.out.println("rank = " + Arrays.toString(rank));
         assertEquals(0.85f,rank[idA],0f);
         assertEquals(0.9775f,rank[idB],0f);
         assertEquals(0.9775f,rank[idC],0f);

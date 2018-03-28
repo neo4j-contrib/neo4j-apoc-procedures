@@ -95,10 +95,6 @@ public class PageRankAlgoTest
             assertEquals(EXPECTED, pageRank.getResult(id), 0.1D);
             tx.success();
         }
-//        for ( int i = 0; i < pageRank.numberOfNodes(); i++ )
-//        {
-//            System.out.println( pageRank.getResult( i ) );
-//        }
     }
 
     @Test
@@ -112,10 +108,6 @@ public class PageRankAlgoTest
             assertEquals(EXPECTED, pageRank.getResult(id), 0.1D);
             tx.success();
         }
-//        for ( int i = 0; i < pageRank.numberOfNodes(); i++ )
-//        {
-//            System.out.println( pageRank.getResult( i ) );
-//        }
     }
 
     private Map<String,Object> getEntry( String name )

@@ -30,7 +30,6 @@ public class ExamplesTest {
     @Test
     public void testMovies() throws Exception {
         TestUtil.testCall(db,"CALL apoc.example.movies", r -> {
-            System.out.println(r);
             assertEquals("movies.cypher",r.get("file"));
             assertEquals(169L,r.get("nodes"));
             assertEquals(250L,r.get("relationships"));

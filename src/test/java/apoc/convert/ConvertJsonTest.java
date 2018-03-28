@@ -77,7 +77,6 @@ public class ConvertJsonTest {
                 " CALL apoc.convert.toTree(paths) YIELD value RETURN value",
                 (row) -> {
                     Map root = (Map) row.get("value");
-                    System.out.println("root = " + root);
                     assertEquals("Movie", root.get("_type"));
                     assertEquals("M", root.get("title"));
                     List<Map> actors = (List<Map>) root.get("acted_in");
@@ -92,7 +91,6 @@ public class ConvertJsonTest {
                 " CALL apoc.convert.toTree(paths,false) YIELD value RETURN value",
                 (row) -> {
                     Map root = (Map) row.get("value");
-                    System.out.println("root = " + root);
                     assertEquals("Movie", root.get("_type"));
                     assertEquals("M", root.get("title"));
                     List<Map> actors = (List<Map>) root.get("ACTED_IN");
@@ -124,7 +122,6 @@ public class ConvertJsonTest {
         testCall(db, call,
                 (row) -> {
                     Map root = (Map) row.get("value");
-                    System.out.println("root = " + root);
 
                     assertEquals("Category", root.get("_type"));
                     assertEquals("PC", root.get("name"));
