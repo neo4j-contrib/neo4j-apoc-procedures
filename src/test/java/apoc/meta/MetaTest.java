@@ -197,7 +197,6 @@ public class MetaTest {
                     while (r.hasNext()) {
                         Map<String, Object> row = r.next();
                         // todo more assertions
-                        System.out.println(row);
                         count ++;
                     }
                     assertEquals(5,count);

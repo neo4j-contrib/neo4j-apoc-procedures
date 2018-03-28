@@ -95,7 +95,6 @@ public class MongoDBTest {
         TestUtil.ignoreException(() -> {
             TestUtil.testCall(db, "CALL apoc.mongodb.get('mongodb://192.168.99.100:27017','test','test',null)", r -> {
                 Map doc = (Map) r.get("value");
-                System.out.println("doc = " + doc);
                 assertNotNull(doc.get("_id"));
                 assertEquals("testDocument", doc.get("name"));
             });
@@ -121,7 +120,6 @@ public class MongoDBTest {
         TestUtil.ignoreException(() -> {
             TestUtil.testCall(db, "CALL apoc.mongodb.first('mongodb://192.168.99.100:27017','test','test',{name:'testDocument'})", r -> {
                 Map doc = (Map) r.get("value");
-                System.out.println("doc = " + doc);
                 assertNotNull(doc.get("_id"));
                 assertEquals("testDocument", doc.get("name"));
             });
@@ -134,7 +132,6 @@ public class MongoDBTest {
         TestUtil.ignoreException(() -> {
             TestUtil.testCall(db, "CALL apoc.mongodb.find('mongodb://192.168.99.100:27017','test','test',{name:'testDocument'},null,null)", r -> {
                 Map doc = (Map) r.get("value");
-                System.out.println("doc = " + doc);
                 assertNotNull(doc.get("_id"));
                 assertEquals("testDocument", doc.get("name"));
             });
@@ -147,7 +144,6 @@ public class MongoDBTest {
         TestUtil.ignoreException(() -> {
             TestUtil.testCall(db, "CALL apoc.mongodb.find('mongodb://192.168.99.100:27017','test','test',{name:'testDocument'},null,{name:1})", r -> {
                 Map doc = (Map) r.get("value");
-                System.out.println("doc = " + doc);
                 assertNotNull(doc.get("_id"));
                 assertEquals("testDocument", doc.get("name"));
             });

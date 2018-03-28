@@ -62,34 +62,36 @@ compileJava {
 }
 
 dependencies {
-    compile group: 'commons-codec', name: 'commons-codec', version:'1.9'
+
+    compile group: 'commons-codec', name: 'commons-codec', version: '1.9'
     compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     testCompile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
-    compile 'com.jayway.jsonpath:json-path:2.2.0'
-    compile 'org.hdrhistogram:HdrHistogram:2.1.9'
-    compile 'org.neo4j.driver:neo4j-java-driver:1.4.4'
-    compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version:'1.2'
+    compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.2.0'
+    compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
+    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.4.4'
+    compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version: '1.2'
 
-    compile 'com.novell.ldap:jldap:2009-10-07'
+    compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
     testCompile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
 
-    testCompile group: 'junit', name: 'junit', version:'4.12'
-    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version:'1.3'
-    testCompile group: 'org.neo4j.test', name: 'neo4j-harness', version:neo4jVersionEffective
-    testCompile group: 'org.eclipse.jetty', name: 'jetty-server', version:'9.2.22.v20170606'
-    testCompile group: 'org.apache.derby', name: 'derby', version:'10.12.1.1'
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
+    testCompile group: 'org.neo4j.test', name: 'neo4j-harness', version: neo4jVersionEffective
+    testCompile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.2.22.v20170606'
+    testCompile group: 'org.apache.derby', name: 'derby', version: '10.12.1.1'
 
-    testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version:neo4jVersionEffective
-    testCompile group: 'org.neo4j', name: 'neo4j-common', version:neo4jVersionEffective, classifier: "tests"
-    testCompile group: 'org.neo4j', name: 'neo4j-com', version:neo4jVersionEffective, classifier: "tests"
-    testCompile group: 'org.neo4j', name: 'neo4j-causal-clustering', version:neo4jVersionEffective, classifier: "tests"
-    testCompile group: 'org.neo4j', name: 'neo4j-kernel', version:neo4jVersionEffective, classifier: "tests"
-    testCompile group: 'org.neo4j', name: 'neo4j-io', version:neo4jVersionEffective, classifier: "tests"
+    testCompile group: 'org.neo4j', name: 'neo4j-enterprise', version: neo4jVersionEffective
+
+    testCompile group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests"
+    testCompile group: 'org.neo4j', name: 'neo4j-com', version: neo4jVersionEffective, classifier: "tests"
+    testCompile group: 'org.neo4j', name: 'neo4j-causal-clustering', version: neo4jVersionEffective, classifier: "tests"
+    testCompile group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
+    testCompile group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
 
     testCompile group: 'org.postgresql', name: 'postgresql', version: '42.1.4'
-    testCompile 'io.minio:minio:3.0.11'
-    
+    testCompile group: 'io.minio', name: 'minio', version: '3.0.11'
+
     def withoutServers = {
 //        exclude group: 'org.mortbay.jetty'
         exclude group: 'org.eclipse.jetty'
@@ -108,17 +110,21 @@ dependencies {
     compileOnly 'com.couchbase.client:java-client:2.3.1'
     testCompile 'com.couchbase.client:java-client:2.3.1'
 
-    compileOnly(group: 'org.neo4j', name: 'neo4j', version:neo4jVersionEffective)
-    compileOnly(group: 'org.neo4j', name: 'neo4j-enterprise', version:neo4jVersionEffective)
-    compileOnly(group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version:'1.9.7')
-    testCompile(group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version:'1.9.7')
-    compile(group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.0')
-    compileOnly(group: 'org.ow2.asm', name: 'asm', version:'5.0.2')
-    compile group: 'com.github.javafaker', name: 'javafaker', version:'0.10'
+    compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
+    compileOnly group: 'org.neo4j', name: 'neo4j-enterprise', version: neo4jVersionEffective
+    compileOnly group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
+    testCompile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.0'
+    compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
+    compile group: 'com.github.javafaker', name: 'javafaker', version: '0.10'
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
-    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version:neo4jVersionEffective
-    jmh group: 'org.neo4j', name: 'neo4j-kernel', version:neo4jVersionEffective, classifier: "tests"
+    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
+    jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
+
+    configurations.all {
+        exclude group: 'org.slf4j', module: 'slf4j-nop'
+    }
 }
 
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
@@ -129,7 +135,7 @@ test {
     testLogging {
         // taken from https://stackoverflow.com/a/36130467/158701
         events TestLogEvent.FAILED,
-                TestLogEvent.PASSED,
+//                TestLogEvent.PASSED,
                 TestLogEvent.SKIPPED,
                 TestLogEvent.STANDARD_OUT,
                 TestLogEvent.STANDARD_ERROR

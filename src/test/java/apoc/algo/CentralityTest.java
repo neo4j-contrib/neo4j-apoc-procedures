@@ -311,7 +311,6 @@ public class CentralityTest
     {
         db.execute( STAR_GRAPH ).close();
         Result result = db.execute("CALL apoc.algo.betweennessCypher({write:true})");
-        System.out.println(result.resultAsString());
         Result t =  db.execute("MATCH (n) RETURN n.name as name, n.betweenness_centrality as score ORDER BY score DESC LIMIT 1");
         assertTrue( t.hasNext() );
         assertEquals( CentralityTest.STAR_GRAPH_EXPECTED,
@@ -325,7 +324,6 @@ public class CentralityTest
     {
         db.execute( MULTIPLE_SHORTEST_PATH ).close();
         Result result = db.execute("CALL apoc.algo.betweennessCypher({write:true})");
-        System.out.println(result.resultAsString());
         Result t =  db.execute("MATCH (n) RETURN n.name as name, n.betweenness_centrality as score ORDER BY score DESC LIMIT 1");
         assertTrue(t.hasNext());
         assertEquals( CentralityTest.MULTIPLE_SHORTEST_PATH_EXPECTED,
@@ -340,7 +338,6 @@ public class CentralityTest
         db.execute( STAR_GRAPH_LABELS ).close();
         Result result = db.execute("CALL apoc.algo.betweennessCypher({relCypher: \"MATCH (s:Company)-[r]->(t:Company) RETURN id(s) as source, id(t) as target, 1 as weight\"," +
                 "write:true})");
-        System.out.println(result.resultAsString());
         Result t =  db.execute("MATCH (n:Company) RETURN n.name as name, n.betweenness_centrality as score ORDER BY score DESC LIMIT 1");
         assertTrue( t.hasNext() );
         assertEquals( CentralityTest.STAR_GRAPH_LABELS_EXPECTED,

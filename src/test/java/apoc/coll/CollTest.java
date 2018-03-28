@@ -240,7 +240,6 @@ public class CollTest {
         long start = System.currentTimeMillis();
         testCall(db, "RETURN apoc.coll.contains({list},{value}) AS value", params,
                 (res) -> assertEquals(true, res.get("value")));
-        System.out.printf("contains test on %d elements took %d ms%n", elements, System.currentTimeMillis() - start);
     }
 
     @Test
@@ -256,7 +255,6 @@ public class CollTest {
         long start = System.currentTimeMillis();
         testCall(db, "RETURN apoc.coll.containsSorted({list},{value}) AS value", params,
                 (res) -> assertEquals(true, res.get("value")));
-        System.out.printf("contains sorted test on %d elements took %d ms%n", elements, System.currentTimeMillis() - start);
     }
 
     @Test

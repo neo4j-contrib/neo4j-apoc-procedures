@@ -59,7 +59,7 @@ public class BarabasiAlbertGeneratorTest {
             Collections.sort(degrees, Collections.reverseOrder());
 
             //todo make this an automated test
-            System.out.println(ArrayUtils.toString(degrees.toArray(new Integer[degrees.size()])));
+            //System.out.println(ArrayUtils.toString(degrees.toArray(new Integer[degrees.size()])));
         } finally {
             database.shutdown();
         }
