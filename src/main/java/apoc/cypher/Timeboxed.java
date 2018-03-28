@@ -50,7 +50,6 @@ public class Timeboxed {
                     queue.put(map);
                 }
                 queue.put(POISON);
-                System.out.println("cypher processed completely - poison sent");
                 tx.success();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
