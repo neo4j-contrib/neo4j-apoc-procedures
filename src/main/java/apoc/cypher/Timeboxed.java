@@ -30,7 +30,7 @@ public class Timeboxed {
     @Context
     public Log log;
 
-    private static Map<String,Object> POISON = Collections.singletonMap("__magic", "POISON");
+    private final static Map<String,Object> POISON = Collections.singletonMap("__magic", "POISON");
 
     @Procedure
     @Description("apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) - abort statement after timeout ms if not finished")
@@ -47,12 +47,10 @@ public class Timeboxed {
                 Result result = db.execute(cypher, params == null ? Collections.EMPTY_MAP : params);
                 while (result.hasNext()) {
                     final Map<String, Object> map = result.next();
-                    queue.put(map);
+                    offerToQueue(queue, map, timeout);
                 }
-                queue.put(POISON);
+                offerToQueue(queue, POISON, timeout);
                 tx.success();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
             } catch (TransactionTerminatedException e) {
                 log.warn("query " + cypher + " has been terminated");
             } finally {
@@ -64,32 +62,33 @@ public class Timeboxed {
         Pools.SCHEDULED.schedule(() -> {
             Transaction tx = txAtomic.get();
             if (tx==null) {
-                log.error("oops, tx is null, maybe other thread already finished?");
+                log.info("tx is null, either the other transaction finished gracefully or has not yet been start.");
             } else {
                 tx.terminate();
-                try {
-                    queue.put(POISON);
-                    log.warn("terminating transaction, putting POISON onto queue");
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                offerToQueue(queue, POISON, timeout);
+                log.warn("terminating transaction, putting POISON onto queue");
             }
         }, timeout, MILLISECONDS);
 
         // consume the blocking queue using a custom iterator finishing upon POISON
         Iterator<Map<String,Object>> queueConsumer = new Iterator<Map<String, Object>>() {
             Map<String,Object> nextElement = null;
-            boolean hasPoisoned = false;
+            boolean hasFinished = false;
 
             @Override
             public boolean hasNext() {
-                if (hasPoisoned) {
+                if (hasFinished) {
                     return false;
                 } else {
                     try {
-                        nextElement = queue.take();
-                        hasPoisoned = POISON.equals(nextElement);
-                        return !hasPoisoned;
+                        nextElement = queue.poll(timeout, MILLISECONDS);
+                        if (nextElement==null) {
+                            log.warn("couldn't grab queue element, aborting - this should never happen");
+                            hasFinished = true;
+                        } else {
+                            hasFinished = POISON.equals(nextElement);
+                        }
+                        return !hasFinished;
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -104,5 +103,16 @@ public class Timeboxed {
         return StreamSupport
                 .stream( Spliterators.spliteratorUnknownSize(queueConsumer, Spliterator.ORDERED), false)
                 .map(MapResult::new);
+    }
+
+    private void offerToQueue(BlockingQueue<Map<String, Object>> queue, Map<String, Object> map, long timeout)  {
+        try {
+            boolean hasBeenAdded = queue.offer(map, timeout, MILLISECONDS);
+            if (!hasBeenAdded) {
+                throw new IllegalStateException("couldn't add a value to a queue of size " + queue.size() + ". Either increase capacity or fix consumption of the queue");
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
