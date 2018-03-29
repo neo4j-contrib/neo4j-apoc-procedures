@@ -66,6 +66,7 @@ call apoc.cypher.runTimeboxed("match (n),(m) match p=shortestPath((n)-[*]-(m)) r
 return value.p
 ----
 
+This will return all results being returned within 10000 milliseconds. The expensive statement will be terminated after that period.
 
 == Run multiple Statements
 
