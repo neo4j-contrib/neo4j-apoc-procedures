@@ -14,7 +14,6 @@ import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.kernel.AvailabilityGuard;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.kernel.lifecycle.LifeSupport;
 import org.neo4j.logging.Log;
 
 import java.util.*;
@@ -27,7 +26,6 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static org.neo4j.helpers.collection.Iterables.stream;
-import static org.neo4j.helpers.collection.Iterators.*;
 
 /**
  * a transaction event handler that updates manual indexes based on configuration in graph properties
@@ -40,18 +38,22 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
     private final GraphDatabaseService graphDatabaseService;
     private final boolean async;
 
-    private final BlockingQueue<Consumer<Void>> indexCommandQueue ;
+    private final BlockingQueue<Consumer<Void>> indexCommandQueue;
     private final boolean stopWatchEnabled;
     private final Log log;
     private Map<String, Map<String, Collection<Index<Node>>>> indexesByLabelAndProperty;
     private ScheduledFuture<?> configUpdateFuture = null;
 
+    // "magic" command for queue to perform a tx rollover
+    private static boolean forceTxRolloverFlag = false;
+    private static final Consumer<Void> FORCE_TX_ROLLOVER = aVoid -> forceTxRolloverFlag = true;
+
     public IndexUpdateTransactionEventHandler(GraphDatabaseAPI graphDatabaseService, Log log, boolean async, int queueCapacity, boolean stopWatchEnabled) {
         this.graphDatabaseService = graphDatabaseService;
         this.log = log;
         this.async = async;
-        this.indexCommandQueue = new LinkedBlockingQueue<>(queueCapacity);
         this.stopWatchEnabled = stopWatchEnabled;
+        this.indexCommandQueue = async ? new LinkedBlockingQueue<>(queueCapacity) : null;
     }
 
     public BlockingQueue<Consumer<Void>> getIndexCommandQueue() {
@@ -63,7 +65,7 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
         void apply (A a, B b, C c, D d, E e);
     }
 
-    private Object logDuration(String message, Supplier supplier) {
+    private <T> T logDuration(String message, Supplier<T> supplier) {
         if (stopWatchEnabled) {
             StopWatch sw = new StopWatch();
             try {
@@ -82,7 +84,7 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
     @Override
     public Collection<Consumer<Void>> beforeCommit(TransactionData data) throws Exception {
 
-        return (Collection<Consumer<Void>>) logDuration("beforeCommit", () -> {
+        return logDuration("beforeCommit", () -> {
             getIndexesByLabelAndProperty();
             Collection<Consumer<Void>> state = async ? new LinkedList<>() : null;
 
@@ -96,14 +98,13 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
             }));
 
             // filter out removedNodeProperties from node deletions
-            iterateNodePropertyChange(stream(data.removedNodeProperties()).filter(nodePropertyEntry -> !contains(data.deletedNodes().iterator(), nodePropertyEntry.entity())), true, (index, node, key, value, oldValue) -> indexUpdate(state, aVoid -> {
+            iterateNodePropertyChange(stream(data.removedNodeProperties()).filter(nodePropertyEntry -> !data.isDeleted(nodePropertyEntry.entity())), true, (index, node, key, value, oldValue) -> indexUpdate(state, aVoid -> {
                 index.remove(node, key);
                 index.remove(node, FreeTextSearch.KEY);
             }));
 
-            // performance tweak: converted create/deleted nodes to a set, so we can apply `contains` on it fast
+            // performance tweak: converted created nodes to a set, so we can apply `contains` on it fast
             final Set<Node> createdNodes = Iterables.asSet(data.createdNodes());
-            final Set<Node> deletedNodes = Iterables.asSet(data.deletedNodes());
             iterateLabelChanges(
                     stream(data.assignedLabels()).filter( labelEntry -> !createdNodes.contains( labelEntry.node() ) ),
                     (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
@@ -112,17 +113,16 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
                     }));
 
             iterateLabelChanges(
-                    stream(data.removedLabels()).filter( labelEntry -> !deletedNodes.contains( labelEntry.node() ) ),
+                    stream(data.removedLabels()).filter( labelEntry -> !data.isDeleted(labelEntry.node()) ),
                     (index, node, key, value, ignore) -> indexUpdate(state, aVoid -> {
                         index.remove(node, key);
                         index.remove(node, FreeTextSearch.KEY);
                     }));
 
+            iterateNodeDeletions(stream(data.removedLabels()).filter( labelEntry -> data.isDeleted(labelEntry.node())),
+                    (nodeIndex, node, void1, void2, void3) -> indexUpdate(state, aVoid -> nodeIndex.remove(node)));
             return state;
-
         });
-
-
     }
 
     @Override
@@ -183,14 +183,27 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
         });
     }
 
+    private void iterateNodeDeletions(Stream<LabelEntry> stream, IndexFunction<Index<Node>, Node, Void, Void, Void> function) {
+        stream.forEach(labelEntry -> {
+            final Map<String, Collection<Index<Node>>> propertyIndicesMap = indexesByLabelAndProperty.get(labelEntry.label().name());
+            if (propertyIndicesMap!=null) {
+                for (Collection<Index<Node>> indices: propertyIndicesMap.values()) {
+                    for (Index<Node> index: indices) {
+                        function.apply(index, labelEntry.node(), null, null, null);
+                    }
+                }
+            }
+        });
+    }
+
     /**
      * in async mode add the index action to a collection for consumption in {@link #afterCommit(TransactionData, Collection)}, in sync mode, run it directly
      */
     private Void indexUpdate(Collection<Consumer<Void>> state, Consumer<Void> indexAction) {
-        if (state==null) {  // sync
-            indexAction.accept(null);
-        } else { // async
+        if (async) {
             state.add(indexAction);
+        } else {
+            indexAction.accept(null);
         }
         return null;
     }
@@ -215,7 +228,6 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
             for (String indexName : indexManager.nodeIndexNames()) {
 
                 final Index<Node> index = indexManager.forNodes(indexName);
-
                 Map<String, String> indexConfig = indexManager.getConfiguration(index);
 
                 if (Util.toBoolean(indexConfig.get("autoUpdate"))) {
@@ -276,8 +288,18 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
                     long lastCommit = System.currentTimeMillis();
                     while (true) {
                         Consumer<Void> indexCommand = indexCommandQueue.poll(millisRollover, TimeUnit.MILLISECONDS);
+
+                        if (availabilityGuard.isShutdown()) {
+                            log.debug("shutdown in progress. Aborting index tracking thread.");
+                            break;
+                        }
+
                         long now = System.currentTimeMillis();
-                        if ((opsCount>0) && ((now - lastCommit > millisRollover) || (opsCount >= opsCountRollover))) {
+                        if (
+                                FORCE_TX_ROLLOVER.equals(indexCommand) ||
+                                ((opsCount>0) && ((now - lastCommit > millisRollover) || (opsCount >= opsCountRollover)))
+
+                                ) {
                             tx.success();
                             tx.close();
                             tx = db.beginTx();
@@ -286,16 +308,9 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
                             opsCount = 0;
                         }
                         if (indexCommand == null) {
-                            boolean running = db.getDependencyResolver().resolveDependency(LifeSupport.class).isRunning();
-                            if (running) {
-                                // in case we couldn't get anything from queue, we'll update lastcommit to prevent too early commits
-                                if (opsCount==0) {
-                                    lastCommit = now;
-                                }
-                            } else {
-                                // check if a database shutdown is already in progress, if so, terminate this thread
-                                log.info("system shutdown detected, terminating indexing background thread");
-                                break;
+                            // in case we couldn't get anything from queue, we'll update lastcommit to prevent too early commits
+                            if (opsCount == 0) {
+                                lastCommit = now;
                             }
                         } else {
                             opsCount++;
@@ -305,10 +320,18 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
                 } catch (InterruptedException|AvailabilityGuard.UnavailableException e) {
                     log.error(e.getMessage(), e);
                     throw new RuntimeException(e);
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                    throw new RuntimeException(e);
                 } finally {
                     if (tx!=null) {
                         tx.success();
-                        tx.close();
+                        try {
+                            tx.close();
+                            log.debug("final commit in background thread");
+                        } catch (TransactionTerminatedException e) {
+                            log.error(e.getMessage(), e);
+                        }
                     }
                     log.info("stopping background thread for async index updates");
                 }
@@ -328,6 +351,11 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
                 indexUpdateTransactionEventHandler.resetConfiguration();
             }
         }
+
+        public IndexUpdateTransactionEventHandler getIndexUpdateTransactionEventHandler() {
+            return indexUpdateTransactionEventHandler;
+        }
+
     }
 
     private void startPeriodicIndexConfigChangeUpdates(long indexConfigUpdateInternal) {
@@ -339,6 +367,24 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
         if (configUpdateFuture!=null) {
             configUpdateFuture.cancel(true);
         }
+    }
+
+    /**
+     * to be used from unit tests to ensure a tx rollover has happenend
+     */
+    public synchronized void forceTxRollover() {
+        if (async) {
+            try {
+                forceTxRolloverFlag = false;
+                indexCommandQueue.put(FORCE_TX_ROLLOVER);
+                while (!forceTxRolloverFlag) {
+                    Thread.sleep(5);
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
     }
 
 }
