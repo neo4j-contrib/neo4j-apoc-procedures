@@ -750,10 +750,10 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.sortNodes([nodes], 'name') | sort nodes by property
 | apoc.coll.sortMaps([maps], 'key') | sort maps by map key
 | apoc.coll.reverse(coll) | returns the reversed list
-| apoc.coll.contains(coll, value) | optimized contains operation (using a HashSet) (returns single row or not)
-| apoc.coll.containsAll(coll, values) | optimized contains-all operation (using a HashSet) (returns single row or not)
-| apoc.coll.containsSorted(coll, value) | optimized contains on a sorted list operation (Collections.binarySearch) (returns single row or not)
-| apoc.coll.containsAllSorted(coll, value) | optimized contains-all on a sorted list operation (Collections.binarySearch) (returns single row or not)
+| apoc.coll.contains(coll, value) | returns true if collection contains the value
+| apoc.coll.containsAll(coll, values) | optimized contains-all operation (using a HashSet) returns true or false
+| apoc.coll.containsSorted(coll, value) | optimized contains on a sorted list operation (Collections.binarySearch) (returns true or false)
+| apoc.coll.containsAllSorted(coll, value) | optimized contains-all on a sorted list operation (Collections.binarySearch) (returns true or false)
 | apoc.coll.union(first, second) | creates the distinct union of the 2 lists
 | apoc.coll.subtract(first, second) | returns unique set of first list with all elements of second list removed
 | apoc.coll.removeAll(first, second) | returns first list with all elements of second list removed
