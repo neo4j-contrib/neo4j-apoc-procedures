@@ -13,7 +13,6 @@ import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.impl.api.RelationshipVisitor;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.impl.storageengine.impl.recordstorage.RecordStorageEngine;
@@ -22,10 +21,10 @@ import org.neo4j.kernel.impl.store.StoreAccess;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.TerminationGuard;
 
-import static apoc.algo.pagerank.PageRankArrayStorageParallelCypher.WRITE_BATCH;
+//import static apoc.algo.pagerank.PageRankArrayStorageParallelCypher.WRITE_BATCH;
 import static apoc.algo.pagerank.PageRankUtils.*;
 
-public class PageRankArrayStorageParallelSPI implements PageRank, AlgorithmInterface {
+/*public class PageRankArrayStorageParallelSPI implements PageRank, AlgorithmInterface {
     public static final int ONE_MINUS_ALPHA_INT = toInt(ONE_MINUS_ALPHA);
     private final GraphDatabaseAPI db;
     private final TerminationGuard guard;
@@ -164,4 +163,4 @@ public class PageRankArrayStorageParallelSPI implements PageRank, AlgorithmInter
     private int getRelationshipCount(GraphDatabaseAPI db) {
         return (int) getNeoStores(db).getRelationshipStore().getHighestPossibleIdInUse() + 1;
     }
-}
+}*/

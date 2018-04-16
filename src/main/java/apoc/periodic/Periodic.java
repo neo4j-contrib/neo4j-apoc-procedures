@@ -49,8 +49,8 @@ public class Periodic {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.commit(statement,params) - runs the given statement in separate transactions until it returns 0")
-    public Stream<RundownResult> commit(@Name("statement") String statement, @Name("params") Map<String,Object> parameters) throws ExecutionException, InterruptedException {
+    @Description("apoc.periodic.commit(kernelTransaction,params) - runs the given kernelTransaction in separate transactions until it returns 0")
+    public Stream<RundownResult> commit(@Name("kernelTransaction") String statement, @Name("params") Map<String,Object> parameters) throws ExecutionException, InterruptedException {
         Map<String,Object> params = parameters == null ? Collections.emptyMap() : parameters;
         long total = 0, executions = 0, updates = 0;
         long start = nanoTime();
@@ -118,7 +118,7 @@ public class Periodic {
         }
     }
 
-    private long executeNumericResultStatement(@Name("statement") String statement, @Name("params") Map<String, Object> parameters) {
+    private long executeNumericResultStatement(@Name("kernelTransaction") String statement, @Name("params") Map<String, Object> parameters) {
         long sum = 0;
         try (Result result = db.execute(statement, parameters)) {
             while (result.hasNext()) {
@@ -146,8 +146,8 @@ public class Periodic {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.submit('name',statement) - submit a one-off background statement")
-    public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement) {
+    @Description("apoc.periodic.submit('name',kernelTransaction) - submit a one-off background kernelTransaction")
+    public Stream<JobInfo> submit(@Name("name") String name, @Name("kernelTransaction") String statement) {
         JobInfo info = submit(name, () -> {
             try {
                 Iterators.count(db.execute(statement));
@@ -159,15 +159,15 @@ public class Periodic {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.repeat('name',statement,repeat-rate-in-seconds) submit a repeatedly-called background statement")
-    public Stream<JobInfo> repeat(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
+    @Description("apoc.periodic.repeat('name',kernelTransaction,repeat-rate-in-seconds) submit a repeatedly-called background kernelTransaction")
+    public Stream<JobInfo> repeat(@Name("name") String name, @Name("kernelTransaction") String statement, @Name("rate") long rate) {
         JobInfo info = schedule(name, () -> Iterators.count(db.execute(statement)),0,rate);
         return Stream.of(info);
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) submit a repeatedly-called background statement until it returns 0")
-    public Stream<JobInfo> countdown(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
+    @Description("apoc.periodic.countdown('name',kernelTransaction,repeat-rate-in-seconds) submit a repeatedly-called background kernelTransaction until it returns 0")
+    public Stream<JobInfo> countdown(@Name("name") String name, @Name("kernelTransaction") String statement, @Name("rate") long rate) {
         JobInfo info = submit(name, new Countdown(name, statement, rate));
         info.rate = rate;
         return Stream.of(info);
@@ -211,7 +211,7 @@ public class Periodic {
      * @param batchSize
      */
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
+    @Description("apoc.periodic.rock_n_roll_while('some cypher for knowing when to stop', 'some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action kernelTransaction in batches over the iterator kernelTransaction's results in a separate thread. Returns number of batches and total processed rows")
     public Stream<LoopingBatchAndTotalResult> rock_n_roll_while(
             @Name("cypherLoop") String cypherLoop,
             @Name("cypherIterate") String cypherIterate,
@@ -247,7 +247,7 @@ public class Periodic {
      * @param cypherAction
      */
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows")
+    @Description("apoc.periodic.iterate('kernelTransaction returning items', 'kernelTransaction per item', {batchSize:1000,iterateList:true,parallel:false}) YIELD batches, total - run the second kernelTransaction for each item returned by the first kernelTransaction. Returns number of batches and total processed rows")
     public Stream<BatchAndTotalResult> iterate(
             @Name("cypherIterate") String cypherIterate,
             @Name("cypherAction") String cypherAction,
@@ -298,7 +298,7 @@ public class Periodic {
 
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
+    @Description("apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action kernelTransaction in batches over the iterator kernelTransaction's results in a separate thread. Returns number of batches and total processed rows")
     public Stream<BatchAndTotalResult> rock_n_roll(
             @Name("cypherIterate") String cypherIterate,
             @Name("cypherAction") String cypherAction,

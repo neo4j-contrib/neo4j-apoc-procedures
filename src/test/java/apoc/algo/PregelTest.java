@@ -9,7 +9,6 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
-import org.neo4j.kernel.api.ReadOperations;
 import org.neo4j.kernel.api.Statement;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.TerminationGuard;
@@ -24,7 +23,7 @@ import static org.junit.Assert.assertEquals;
  * @author mh
  * @since 21.07.16
  */
-public class PregelTest {
+/*public class PregelTest {
 
     public static final RelationshipType TYPE = RelationshipType.withName("FOO");
     private TerminationGuard guard = new TerminationGuard() {
@@ -55,7 +54,7 @@ public class PregelTest {
         PrimitiveLongIterator nodes;
         long nodeCount;
         try (Transaction tx = db.beginTx()) {
-            ReadOperations reads = pregel.statement().readOperations();
+            ReadOperations reads = pregel.kernelTransaction().readOperations();
             nodes = reads.nodesGetAll();
             nodeCount = reads.nodesGetCount();
             tx.success();
@@ -84,7 +83,7 @@ public class PregelTest {
 
         PrimitiveLongIterator nodes;
         try (Transaction tx = db.beginTx()) {
-            ReadOperations reads = pregel.statement().readOperations();
+            ReadOperations reads = pregel.kernelTransaction().readOperations();
             nodes = reads.nodesGetAll();
             tx.success();
         }
@@ -111,7 +110,7 @@ public class PregelTest {
 
         PrimitiveLongIterator nodes;
         try (Transaction tx = db.beginTx()) {
-            nodes = pregel.statement().readOperations().nodesGetAll();
+            nodes = pregel.kernelTransaction().readOperations().nodesGetAll();
             tx.success();
         }
 
@@ -157,7 +156,7 @@ public class PregelTest {
             this.nodeCount = nodeCount;
         }
 
-        public boolean accept(long relId, long start, long end, int type, Statement stmt, int[] degrees) {
+        public boolean accept(long relId, long start, long end, int type, int[] degrees) {
             degrees[(int) start]++;
             return true;
         }
@@ -228,7 +227,7 @@ public class PregelTest {
         }
 
         @Override
-        public boolean accept(long relId, long start, long end, int type, Statement stmt, float[] dst) {
+        public boolean accept(long relId, long start, long end, int type, float[] dst) {
             dst[(int) end] += src[(int) start]; // todo global state?
             return true;
         }
@@ -280,7 +279,7 @@ public class PregelTest {
         }
         private LinkedList<float[]> pool = null;
     }
-    /*
+    *//*
 
 org.neo4j.graphdb.TransactionFailureException: Transaction was marked as successful, but unable to commit transaction so rolled back.
 
@@ -369,5 +368,5 @@ Caused by: java.lang.IllegalArgumentException
 	at org.neo4j.graphdb.mockfs.EphemeralFileSystemAbstraction$DynamicByteBuffer.put(EphemeralFileSystemAbstraction.java:1126)
 	... 17 more
 
-     */
-}
+     *//*
+}*/

@@ -43,7 +43,7 @@ public class Export {
 
     @Procedure
     @Deprecated
-    @Description("apoc.export.cypherQuery(query,file,config) - exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file")
+    @Description("apoc.export.cypherQuery(query,file,config) - exports nodes and relationships from the cypher kernelTransaction incl. indexes as cypher statements to the provided file")
     public Stream<ExportCypher.DataProgressInfo> cypherQuery(@Name("query") String query, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         return new ExportCypher(db).query(query,fileName,config);
     }

@@ -68,7 +68,7 @@ public class Jdbc {
     }
 
     @Procedure
-    @Description("apoc.load.jdbc('key or url','table or statement') YIELD row - load from relational database, from a full table or a sql statement")
+    @Description("apoc.load.jdbc('key or url','table or kernelTransaction') YIELD row - load from relational database, from a full table or a sql kernelTransaction")
     public Stream<RowResult> jdbc(@Name("jdbc") String urlOrKey, @Name("tableOrSql") String tableOrSelect, @Name
             (value = "params", defaultValue = "[]") List<Object> params) {
         return executeQuery(urlOrKey, tableOrSelect, params.toArray(new Object[params.size()]));
@@ -76,7 +76,7 @@ public class Jdbc {
 
     @Procedure
     @Deprecated
-    @Description("deprecated - please use: apoc.load.jdbc('key or url','statement',[params]) YIELD row - load from relational database, from a sql statement with parameters")
+    @Description("deprecated - please use: apoc.load.jdbc('key or url','kernelTransaction',[params]) YIELD row - load from relational database, from a sql kernelTransaction with parameters")
     public Stream<RowResult> jdbcParams(@Name("jdbc") String urlOrKey, @Name("sql") String select, @Name("params") List<Object> params) {
         return executeQuery(urlOrKey, select,params.toArray(new Object[params.size()]));
     }
@@ -106,15 +106,15 @@ public class Jdbc {
                 throw sqle;
             }
         } catch (Exception e) {
-            log.error(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()),e);
-            String errorMessage = "Cannot execute SQL statement `%s`.%nError:%n%s";
-            if(e.getMessage().contains("No suitable driver")) errorMessage="Cannot execute SQL statement `%s`.%nError:%n%s%n%s";
+            log.error(String.format("Cannot execute SQL kernelTransaction `%s`.%nError:%n%s", query, e.getMessage()),e);
+            String errorMessage = "Cannot execute SQL kernelTransaction `%s`.%nError:%n%s";
+            if(e.getMessage().contains("No suitable driver")) errorMessage="Cannot execute SQL kernelTransaction `%s`.%nError:%n%s%n%s";
             throw new RuntimeException(String.format(errorMessage, query, e.getMessage(), "Please download and copy the JDBC driver into $NEO4J_HOME/plugins,more details at https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_load_jdbc_resources"), e);
         }
     }
 
     @Procedure
-    @Description("apoc.load.jdbcUpdate('key or url','statement',[params]) YIELD row - update relational database, from a SQL statement with optional parameters")
+    @Description("apoc.load.jdbcUpdate('key or url','kernelTransaction',[params]) YIELD row - update relational database, from a SQL kernelTransaction with optional parameters")
     public Stream<RowResult> jdbcUpdate(@Name("jdbc") String urlOrKey, @Name("query") String query, @Name(value = "params", defaultValue = "[]") List<Object> params) {
         log.info( String.format( "Executing SQL update: %s", query ) );
         return executeUpdate(urlOrKey, query, params.toArray(new Object[params.size()]));
@@ -142,9 +142,9 @@ public class Jdbc {
                 throw sqle;
             }
         } catch (Exception e) {
-            log.error(String.format("Cannot execute SQL statement `%s`.%nError:%n%s", query, e.getMessage()),e);
-            String errorMessage = "Cannot execute SQL statement `%s`.%nError:%n%s";
-            if(e.getMessage().contains("No suitable driver")) errorMessage="Cannot execute SQL statement `%s`.%nError:%n%s%n%s";
+            log.error(String.format("Cannot execute SQL kernelTransaction `%s`.%nError:%n%s", query, e.getMessage()),e);
+            String errorMessage = "Cannot execute SQL kernelTransaction `%s`.%nError:%n%s";
+            if(e.getMessage().contains("No suitable driver")) errorMessage="Cannot execute SQL kernelTransaction `%s`.%nError:%n%s%n%s";
             throw new RuntimeException(String.format(errorMessage, query, e.getMessage(), "Please download and copy the JDBC driver into $NEO4J_HOME/plugins,more details at https://neo4j-contrib.github.io/neo4j-apoc-procedures/#_load_jdbc_resources"), e);
         }
     }

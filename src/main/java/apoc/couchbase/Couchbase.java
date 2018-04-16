@@ -336,7 +336,7 @@ public class Couchbase {
   }
 
   /**
-   * Executes a plain un-parameterized N1QL statement.
+   * Executes a plain un-parameterized N1QL kernelTransaction.
    * <p/>
    * Example:
    * <code>CALL apoc.couchbase.query(['localhost'], 'default', 'select * from default where lastName = "Van Gogh"']) yield queryResult</code>
@@ -347,16 +347,16 @@ public class Couchbase {
    *          the bucket to open; if null is passed then it's used the "default"
    *          bucket
    * @param statement
-   *          the raw statement string to execute
+   *          the raw kernelTransaction string to execute
    * @return the list of {@link JsonObject}s retrieved by this query in the form
    *         of a {@link CouchbaseQueryResult}
    * 
    * @see N1qlQuery#simple(Statement)
    */
   @Procedure
-  @Description("apoc.couchbase.query(nodes, bucket, statement) yield queryResult - executes a plain un-parameterized N1QL statement.")
+  @Description("apoc.couchbase.query(nodes, bucket, kernelTransaction) yield queryResult - executes a plain un-parameterized N1QL kernelTransaction.")
   public Stream<CouchbaseQueryResult> query(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
-      @Name("statement") String statement){
+      @Name("kernelTransaction") String statement){
     Stream<CouchbaseQueryResult> result = null;
     try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {
       List<JsonObject> statementResult = couchbaseConnection.executeStatement(statement);
@@ -368,7 +368,7 @@ public class Couchbase {
   }
 
   /**
-   * Executes a N1QL statement with positional parameters.
+   * Executes a N1QL kernelTransaction with positional parameters.
    * <p/>
    * Example:
    * <code>CALL apoc.couchbase.posParamsQuery(['localhost'], 'default', 'select * from default where lastName = $1', ['Van Gogh']) yield queryResult</code>
@@ -379,19 +379,19 @@ public class Couchbase {
    *          the bucket to open; if null is passed then it's used the "default"
    *          bucket
    * @param statement
-   *          the raw statement string to execute (containing positional
+   *          the raw kernelTransaction string to execute (containing positional
    *          placeholders: $1, $2, ...)
    * @param params
-   *          the values for the positional placeholders in statement
+   *          the values for the positional placeholders in kernelTransaction
    * @return the list of {@link JsonObject}s retrieved by this query in the form
    *         of a {@link CouchbaseQueryResult}
    * 
    * @see N1qlQuery#parameterized(Statement, JsonArray)
    */
   @Procedure
-  @Description("apoc.couchbase.posParamsQuery(nodes, bucket, statement, params) yield queryResult - executes a N1QL statement with positional parameters.")
+  @Description("apoc.couchbase.posParamsQuery(nodes, bucket, kernelTransaction, params) yield queryResult - executes a N1QL kernelTransaction with positional parameters.")
   public Stream<CouchbaseQueryResult> posParamsQuery(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
-      @Name("statement") String statement, @Name("params") List<Object> params){
+      @Name("kernelTransaction") String statement, @Name("params") List<Object> params){
     Stream<CouchbaseQueryResult> result = null;
     try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {
       List<JsonObject> statementResult = couchbaseConnection.executeParametrizedStatement(statement, params);
@@ -403,7 +403,7 @@ public class Couchbase {
   }
 
   /**
-   * Executes a N1QL statement with named parameters.
+   * Executes a N1QL kernelTransaction with named parameters.
    * <p/>
    * Example:
    * <code>CALL apoc.couchbase.namedParamsQuery(['localhost'], 'default', 'select * from default where lastName = $lastName', ['lastName'], ['Van Gogh']) yield queryResult</code>
@@ -414,21 +414,21 @@ public class Couchbase {
    *          the bucket to open; if null is passed then it's used the "default"
    *          bucket
    * @param statement
-   *          the raw statement string to execute (containing named
+   *          the raw kernelTransaction string to execute (containing named
    *          placeholders: $param1, $param2, ...)
    * @param paramNames
-   *          the placeholders' names in statement
+   *          the placeholders' names in kernelTransaction
    * @param paramValues
-   *          the values for the named placeholders in statement
+   *          the values for the named placeholders in kernelTransaction
    * @return the list of {@link JsonObject}s retrieved by this query in the form
    *         of a {@link CouchbaseQueryResult}
    * 
    * @see N1qlQuery#parameterized(Statement, JsonObject)
    */
   @Procedure
-  @Description("apoc.couchbase.namedParamsQuery(nodes, bucket, statement, paramNames, paramValues) yield queryResult - executes a N1QL statement with named parameters.")
+  @Description("apoc.couchbase.namedParamsQuery(nodes, bucket, kernelTransaction, paramNames, paramValues) yield queryResult - executes a N1QL kernelTransaction with named parameters.")
   public Stream<CouchbaseQueryResult> namedParamsQuery(@Name("nodes") List<String> nodes, @Name("bucket") String bucket,
-      @Name("statement") String statement, @Name("paramNames") List<String> paramNames,
+      @Name("kernelTransaction") String statement, @Name("paramNames") List<String> paramNames,
       @Name("paramValues") List<Object> paramValues){
     Stream<CouchbaseQueryResult> result = null;
     try (CouchbaseConnection couchbaseConnection = getCouchbaseConnection(nodes, bucket)) {

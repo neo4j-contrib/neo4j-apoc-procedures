@@ -3,13 +3,10 @@ package apoc.algo;
 import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
-import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.kernel.api.ReadOperations;
-import org.neo4j.kernel.api.Statement;
-import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
+import org.neo4j.internal.kernel.api.*;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.impl.api.RelationshipVisitor;
-import org.neo4j.kernel.impl.api.store.RelationshipIterator;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.TerminationGuard;
@@ -28,7 +25,7 @@ public class Pregel {
      # of threads ?? depends if the operation is io-bound or CPU bound
      consider using LMAX disruptor?
      Pregel:
-     BSP algorithm, called for each relationship, (rel-id, start, end-node, statement, state) concurrently
+     BSP algorithm, called for each relationship, (rel-id, start, end-node, kernelTransaction, state) concurrently
      Superstep called after all concurrent steps have been processed with all states, returns true if algorithm is to continue
      Also returns "combined" state?
 
@@ -177,11 +174,11 @@ public class Pregel {
                         return new long[0];
                     }
 
-                    Statement statement = statement();
+                    KernelTransaction ktx = kernelTransaction();
                     CollectingRelationshipVisitor visitor = new CollectingRelationshipVisitor();
                     for (long node : batch) {
                         if (node == -1) break;
-                        expander.expand(node, statement, visitor);
+                        expander.expand(node, ktx.cursors(), ktx.dataRead(), visitor);
                     }
                     tx.success();
                     return visitor.getRelBatch();
@@ -239,11 +236,10 @@ public class Pregel {
                     return program.state();
                 }
 
-                Statement statement = ctx.get();
                 STATE state = program.state();
                 int len = relBatch.length;
                 for (int idx = 0; idx < len; idx += 4) {
-                    program.accept(relBatch[idx], relBatch[idx + 1], relBatch[idx + 2], (int) relBatch[idx + 3], statement, state);
+                    program.accept(relBatch[idx], relBatch[idx + 1], relBatch[idx + 2], (int) relBatch[idx + 3], state);
                 }
                 tx.success();
                 return state;
@@ -259,13 +255,11 @@ public class Pregel {
                     return program.state();
                 }
 
-                Statement statement = ctx.get();
+                KernelTransaction ktx = kernelTransaction();
                 STATE state = program.state();
                 for (long node : batch) {
                     if (node == -1) break;
-                    expander.expand(node, statement, (id, type, start, end) -> {
-                        program.accept(id, start, end, type, statement, state);
-                    });
+                    expander.expand(node, ktx.cursors(), ktx.dataRead(), (id, type, start, end) -> program.accept(id, start, end, type, state));
                 }
                 tx.success();
                 return state;
@@ -273,16 +267,16 @@ public class Pregel {
         });
     }
 
-    public Statement statement() {
-        return ctx.get();
+    public KernelTransaction kernelTransaction() {
+        return ctx.getKernelTransactionBoundToThisThread(true);
     }
 
     public interface NodeExpander {
-        boolean expand(long node, Statement stmt, RelationshipVisitor<RuntimeException> callback);
+        boolean expand(long node, CursorFactory cursors, Read read, RelationshipVisitor<RuntimeException> callback);
     }
 
     public interface PregelProgram<STATE, RESULT> {
-        boolean accept(long relId, long start, long end, int type, Statement stmt, STATE state);
+        boolean accept(long relId, long start, long end, int type, STATE state);
 
         RESULT next(List<STATE> states);
 
@@ -292,21 +286,21 @@ public class Pregel {
     }
 
     public static class AllExpander implements NodeExpander {
-        public boolean expand(long node, Statement stmt, RelationshipVisitor<RuntimeException> callback) {
-            ReadOperations reads = stmt.readOperations();
-            RelationshipIterator rels = relationships(node, reads);
-            while (rels.hasNext()) {
-                rels.relationshipVisit(rels.next(), callback);
+        public boolean expand(long node, CursorFactory cursors, Read read, RelationshipVisitor<RuntimeException> callback) {
+            try ( NodeCursor nodeCursor = cursors.allocateNodeCursor();
+                  RelationshipGroupCursor group = cursors.allocateRelationshipGroupCursor();
+                  RelationshipTraversalCursor cursor = cursors.allocateRelationshipTraversalCursor()) {
+                read.singleNode(node, nodeCursor);
+                nodeCursor.next();
+                read.relationshipGroups(node, nodeCursor.relationshipGroupReference(), group);
+                while (group.next()) {
+                    read.relationships(node, group.incomingReference(), cursor);
+                    while (cursor.next()) {
+                        callback.visit(cursor.relationshipReference(), cursor.type(), cursor.sourceNodeReference(), cursor.targetNodeReference());
+                    }
+                }
             }
             return false;
-        }
-
-        private RelationshipIterator relationships(long node, ReadOperations reads) {
-            try {
-                return reads.nodeGetRelationships(node, Direction.BOTH);
-            } catch (EntityNotFoundException e) {
-                throw new RuntimeException("error expanding node " + node, e);
-            }
         }
     }
 

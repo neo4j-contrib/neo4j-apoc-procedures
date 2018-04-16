@@ -4,6 +4,7 @@ import org.junit.*;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.Statement;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -23,7 +24,7 @@ public class CoreGraphAlgorithmsTest {
 
     private static GraphDatabaseAPI db;
     private Transaction tx;
-    private Statement stmt;
+    private KernelTransaction ktx;
     private static int idA, idB, idC, idD;
 
     @BeforeClass
@@ -35,7 +36,7 @@ public class CoreGraphAlgorithmsTest {
     @Before
     public void setUp() throws Exception {
         tx = db.beginTx();
-        stmt = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class).get();
+        ktx = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class).getKernelTransactionBoundToThisThread(true);
     }
 
     private static void createData() {
@@ -63,7 +64,7 @@ public class CoreGraphAlgorithmsTest {
 
     @Test
     public void testInitAll() throws Exception {
-        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init();
+        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(ktx).init();
         assertEquals(4,algos.getNodeCount());
         assertEquals(2,algos.getRelCount());
         int[] offsets = algos.getNodeRelOffsets();
@@ -78,7 +79,7 @@ public class CoreGraphAlgorithmsTest {
 
     @Test
     public void testInitLabel() throws Exception {
-        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init("A");
+        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(ktx).init("A");
         assertEquals(2,algos.getNodeCount());
         assertEquals(2,algos.getRelCount());
         int[] degrees = algos.getNodeRelOffsets();
@@ -90,7 +91,7 @@ public class CoreGraphAlgorithmsTest {
     }
     @Test
     public void testInitLabelRel() throws Exception {
-        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init("A","X");
+        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(ktx).init("A","X");
         assertEquals(2,algos.getNodeCount());
         assertEquals(1,algos.getRelCount());
         int[] degrees = algos.getNodeRelOffsets();
@@ -102,7 +103,7 @@ public class CoreGraphAlgorithmsTest {
 
     @Test
     public void pageRank() throws Exception {
-        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init();
+        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(ktx).init();
         float[] rank = algos.pageRank(2);
         assertEquals(0.85f,rank[idA],0f);
         assertEquals(0.9775f,rank[idB],0f);
@@ -113,7 +114,7 @@ public class CoreGraphAlgorithmsTest {
 
     @Test
     public void labelPropagation() throws Exception {
-        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init();
+        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(ktx).init();
         int[] labels = algos.labelPropagation();
         assertEquals(idA,labels[idA]);
         assertEquals(idA,labels[idB]);
@@ -123,7 +124,7 @@ public class CoreGraphAlgorithmsTest {
 
     @Test
     public void unionFind() throws Exception {
-        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init();
+        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(ktx).init();
         int[] labels = algos.unionFind();
         assertEquals(idA,labels[idA]);
         assertEquals(idA,labels[idB]);
@@ -133,7 +134,7 @@ public class CoreGraphAlgorithmsTest {
 
     @Test
     public void testLoadDegreesOutgoing() throws Exception {
-        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init();
+        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(ktx).init();
         int[] degrees = algos.loadDegrees(null, Direction.OUTGOING);
         assertEquals(1,degrees[idA]);
         assertEquals(1,degrees[idB]);
@@ -142,7 +143,7 @@ public class CoreGraphAlgorithmsTest {
     }
     @Test
     public void testLoadDegreesBoth() throws Exception {
-        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init();
+        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(ktx).init();
         int[] degrees = algos.loadDegrees(null, Direction.BOTH);
         assertEquals(1,degrees[idA]);
         assertEquals(2,degrees[idB]);
@@ -152,7 +153,7 @@ public class CoreGraphAlgorithmsTest {
 
     @Test
     public void testLoadDegreesOutgoingType() throws Exception {
-        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init();
+        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(ktx).init();
         int[] degrees = algos.loadDegrees("X", Direction.OUTGOING);
         assertEquals(1,degrees[idA]);
         assertEquals(0,degrees[idB]);
@@ -161,7 +162,7 @@ public class CoreGraphAlgorithmsTest {
     }
     @Test
     public void testLoadDegreesIncoming() throws Exception {
-        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init();
+        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(ktx).init();
         int[] degrees = algos.loadDegrees(null, Direction.INCOMING);
         assertEquals(0,degrees[idA]);
         assertEquals(1,degrees[idB]);
@@ -170,7 +171,7 @@ public class CoreGraphAlgorithmsTest {
     }
     @Test
     public void testLoadDegreesIncomingType() throws Exception {
-        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(stmt).init();
+        CoreGraphAlgorithms algos = new CoreGraphAlgorithms(ktx).init();
         int[] degrees = algos.loadDegrees("Y", Direction.INCOMING);
         assertEquals(0,degrees[idA]);
         assertEquals(0,degrees[idB]);

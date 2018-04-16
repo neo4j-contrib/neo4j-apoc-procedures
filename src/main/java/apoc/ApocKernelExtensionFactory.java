@@ -37,7 +37,7 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
     }
 
     @Override
-    public Lifecycle newInstance(KernelContext context, Dependencies dependencies) throws Throwable {
+    public Lifecycle newInstance(KernelContext context, Dependencies dependencies) {
         GraphDatabaseAPI db = dependencies.graphdatabaseAPI();
         LogService log = dependencies.log();
         return new ApocLifecycle(log, db, dependencies);

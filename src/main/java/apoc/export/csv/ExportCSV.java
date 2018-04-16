@@ -67,12 +67,12 @@ public class ExportCSV {
     }
 
     @Procedure
-    @Description("apoc.export.csv.query(query,file,{config,...,params:{params}}) - exports results from the cypher statement as csv to the provided file")
+    @Description("apoc.export.csv.query(query,file,{config,...,params:{params}}) - exports results from the cypher kernelTransaction as csv to the provided file")
     public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         Map<String,Object> params = config == null ? Collections.emptyMap() : (Map<String,Object>)config.getOrDefault("params", Collections.emptyMap());
         Result result = db.execute(query,params);
 
-        String source = String.format("statement: cols(%d)", result.columns().size());
+        String source = String.format("kernelTransaction: cols(%d)", result.columns().size());
         return exportCsv(fileName, source,result,config);
     }
 

@@ -33,7 +33,7 @@ public class Timeboxed {
     private final static Map<String,Object> POISON = Collections.singletonMap("__magic", "POISON");
 
     @Procedure
-    @Description("apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) - abort statement after timeout ms if not finished")
+    @Description("apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) - abort kernelTransaction after timeout ms if not finished")
     public Stream<MapResult> runTimeboxed(@Name("cypher") String cypher, @Name("params") Map<String, Object> params, @Name("timeout") long timeout) {
 
         final BlockingQueue<Map<String, Object>> queue = new ArrayBlockingQueue<>(100);

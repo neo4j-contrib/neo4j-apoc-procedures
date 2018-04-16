@@ -79,12 +79,12 @@ public class ExportGraphML {
     }
 
     @Procedure
-    @Description("apoc.export.graphml.query(query,file,config) - exports nodes and relationships from the cypher statement as graphml to the provided file")
+    @Description("apoc.export.graphml.query(query,file,config) - exports nodes and relationships from the cypher kernelTransaction as graphml to the provided file")
     public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         ExportConfig c = new ExportConfig(config);
         Result result = db.execute(query);
         SubGraph graph = CypherResultSubGraph.from(result, db, c.getRelsInBetween());
-        String source = String.format("statement: nodes(%d), rels(%d)",
+        String source = String.format("kernelTransaction: nodes(%d), rels(%d)",
                 Iterables.count(graph.getNodes()), Iterables.count(graph.getRelationships()));
         return exportGraphML(fileName, source, graph, c);
     }

@@ -8,6 +8,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Collection;
@@ -47,6 +48,7 @@ public class SchemaIndexTest {
     public static void setUp() throws Exception {
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
+                .setConfig(GraphDatabaseSettings.default_schema_provider, GraphDatabaseSettings.SchemaIndex.NATIVE10.providerName())  // TODO: switch to NATIVE20 - the default in 3.4
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, SchemaIndex.class);
         db.execute("CREATE (city:City {name:'London'}) WITH city UNWIND range("+firstPerson+","+lastPerson+") as id CREATE (:Person {name:'name'+id, id:id, age:id % 100, address:id+'Main St.'})-[:LIVES_IN]->(city)").close();

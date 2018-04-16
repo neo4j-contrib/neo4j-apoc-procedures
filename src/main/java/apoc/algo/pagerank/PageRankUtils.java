@@ -44,6 +44,7 @@ public class PageRankUtils
         return total;
     }
 
+/*
     public static void runOperations(ExecutorService pool, final PrimitiveLongIterator it, int totalCount,
                                      final GraphDatabaseAPI api, OpsRunner runner, TerminationGuard guard)
     {
@@ -54,16 +55,17 @@ public class PageRankUtils
         }
         PageRankUtils.waitForTasks( futures );
     }
-    public static void runOperations(ExecutorService pool, List<BatchRunnable> runners )
+*/
+    /*public static void runOperations(ExecutorService pool, List<BatchRunnable> runners )
     {
         List<Future> futures = new ArrayList<>( runners.size() );
         for (BatchRunnable runnable : runners) {
             futures.add( pool.submit( runnable ) );
         }
         PageRankUtils.waitForTasks( futures );
-    }
+    }*/
 
-    public static List<BatchRunnable> prepareOperations(final PrimitiveLongIterator it, int totalCount,
+    /*public static List<BatchRunnable> prepareOperations(final PrimitiveLongIterator it, int totalCount,
                                                         final GraphDatabaseAPI api, OpsRunner runner, TerminationGuard guard)
     {
         List<BatchRunnable> runners = new ArrayList<>( (int) (totalCount / BATCH_SIZE) + 1);
@@ -72,7 +74,7 @@ public class PageRankUtils
             runners.add( new BatchRunnable( api, it, BATCH_SIZE, runner, guard) );
         }
         return runners;
-    }
+    }*/
 
     public static ThreadToStatementContextBridge ctx(GraphDatabaseAPI db) {
         return db.getDependencyResolver().resolveDependency( ThreadToStatementContextBridge.class );

@@ -51,7 +51,7 @@ public class MultiStatementCypherSubGraphExporter {
      * <li>/tmp/myexport.relationships.cypher</li>
      * <li>/tmp/myexport.cleanup.cypher</li>
      * </ul>
-     * Otherwise all statement will be saved in the original file.
+     * Otherwise all kernelTransaction will be saved in the original file.
      * @param config
      * @param reporter
      * @param cypherFileManager

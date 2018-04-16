@@ -27,7 +27,7 @@ public class ClusterTest
     private org.neo4j.causalclustering.discovery.Cluster cluster;
 
     @Rule
-    public ClusterRule clusterRule = new ClusterRule( getClass() );
+    public ClusterRule clusterRule = new ClusterRule();
 
     @Before
     public void setUp() throws Exception

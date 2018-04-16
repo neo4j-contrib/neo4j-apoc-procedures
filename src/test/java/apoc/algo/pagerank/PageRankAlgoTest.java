@@ -23,7 +23,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static org.junit.Assert.assertEquals;
 
-public class PageRankAlgoTest
+/*public class PageRankAlgoTest
 {
     private GraphDatabaseService db;
 
@@ -118,5 +118,5 @@ public class PageRankAlgoTest
             return result.next();
         }
     }
-}
+}*/
 

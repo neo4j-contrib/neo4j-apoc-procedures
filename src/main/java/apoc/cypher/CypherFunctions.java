@@ -21,7 +21,7 @@ public class CypherFunctions {
     public GraphDatabaseService db;
 
     @UserFunction
-    @Description("apoc.cypher.runFirstColumn(statement, params, expectMultipleValues) - executes statement with given parameters, returns first column only, if expectMultipleValues is true will collect results into an array")
+    @Description("apoc.cypher.runFirstColumn(kernelTransaction, params, expectMultipleValues) - executes kernelTransaction with given parameters, returns first column only, if expectMultipleValues is true will collect results into an array")
     public Object runFirstColumn(@Name("cypher") String statement, @Name("params") Map<String, Object> params, @Name(value = "expectMultipleValues",defaultValue = "true") boolean expectMultipleValues) {
         if (params == null) params = Collections.emptyMap();
         try (Result result = db.execute(withParamMapping(statement, params.keySet()), params)) {

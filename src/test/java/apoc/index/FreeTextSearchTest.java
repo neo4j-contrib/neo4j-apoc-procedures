@@ -7,6 +7,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.After;
 import org.junit.Before;
@@ -186,7 +187,7 @@ public class FreeTextSearchTest {
                         "RETURN node.name").columnAs("node.name");
 
         // then
-        assertEquals(asList("The 101th", "The 102th", "The 103th", "The 104th", "The 105th"), Iterators.asList(names));
+        assertThat(Iterators.asList(names), Matchers.containsInAnyOrder("The 101th", "The 102th", "The 103th", "The 104th", "The 105th"));
     }
 
     @Test

@@ -64,13 +64,13 @@ public class Cypher {
     }
 
     @Procedure(mode = WRITE)
-    @Description("apoc.cypher.runFile(file or url,[{statistics:true,timeout:10}]) - runs each statement in the file, all semicolon separated - currently no schema operations")
+    @Description("apoc.cypher.runFile(file or url,[{statistics:true,timeout:10}]) - runs each kernelTransaction in the file, all semicolon separated - currently no schema operations")
     public Stream<RowResult> runFile(@Name("file") String fileName, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         return runFiles(singletonList(fileName),config);
     }
 
     @Procedure(mode = WRITE)
-    @Description("apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10}])) - runs each statement in the files, all semicolon separated")
+    @Description("apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10}])) - runs each kernelTransaction in the files, all semicolon separated")
     public Stream<RowResult> runFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",10));
@@ -83,13 +83,13 @@ public class Cypher {
     }
 
     @Procedure(mode=Mode.SCHEMA)
-    @Description("apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated")
+    @Description("apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema kernelTransaction in the file, all semicolon separated")
     public Stream<RowResult> runSchemaFile(@Name("file") String fileName, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         return runSchemaFiles(singletonList(fileName),config);
     }
 
     @Procedure(mode=Mode.SCHEMA)
-    @Description("apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema statement in the files, all semicolon separated")
+    @Description("apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema kernelTransaction in the files, all semicolon separated")
     public Stream<RowResult> runSchemaFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",10));
@@ -142,7 +142,7 @@ public class Cypher {
     }
 
     @Procedure(mode = WRITE)
-    @Description("apoc.cypher.runMany('cypher;\\nstatements;',{params},[{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations")
+    @Description("apoc.cypher.runMany('cypher;\\nstatements;',{params},[{statistics:true,timeout:10}]) - runs each semicolon separated kernelTransaction and returns summary - currently no schema operations")
     public Stream<RowResult> runMany(@Name("cypher") String cypher, @Name("params") Map<String,Object> params, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",1));
@@ -255,7 +255,7 @@ public class Cypher {
                     Map map = new HashMap<>(params);
                     map.put(e.getKey(),as)
                 }));
-        return db.execute(statement,params).stream().map(MapResult::new);
+        return db.execute(kernelTransaction,params).stream().map(MapResult::new);
         */
     }
 

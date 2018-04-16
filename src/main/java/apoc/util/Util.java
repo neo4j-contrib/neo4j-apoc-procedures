@@ -9,17 +9,14 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
-import org.neo4j.kernel.api.ReadOperations;
-import org.neo4j.kernel.api.Statement;
-import org.neo4j.kernel.api.security.SecurityContext;
+import org.neo4j.internal.kernel.api.security.SecurityContext;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
-import org.w3c.dom.Document;
 
 import javax.lang.model.SourceVersion;
-import javax.xml.parsers.DocumentBuilder;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.*;
@@ -29,7 +26,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.*;
 import java.util.zip.DeflaterInputStream;
@@ -179,26 +175,25 @@ public class Util {
         }
     }
 
-    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseAPI db, BiFunction<Statement, ReadOperations, T> callable) {
+    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseAPI db, Function<KernelTransaction, T> callable) {
         try {
             return pool.submit(() -> {
                 try (Transaction tx = db.beginTx()) {
-                    try (Statement statement = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class).get()) {
-                        T result = callable.apply(statement, statement.readOperations());
-                        tx.success();
-                        return result;
-                    }
+                    final KernelTransaction kernelTransaction = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class).getKernelTransactionBoundToThisThread(true);
+                    T result = callable.apply(kernelTransaction);
+                    tx.success();
+                    return result;
                 }
             });
         } catch (Exception e) {
             throw new RuntimeException("Error executing in separate transaction", e);
         }
     }
-    public static <T> T withStatement(GraphDatabaseAPI db, BiFunction<Statement, ReadOperations, T> callable) {
-        try (Statement statement = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class).get()) {
-            return callable.apply(statement, statement.readOperations());
+    /*public static <T> T withStatement(GraphDatabaseAPI db, BiFunction<Statement, ReadOperations, T> callable) {
+        try (Statement kernelTransaction = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class).get()) {
+            return callable.apply(kernelTransaction, kernelTransaction.readOperations());
         }
-    }
+    }*/
     public static <T> T inTx(GraphDatabaseService db, Callable<T> callable) {
         try {
             return inTxFuture(Pools.DEFAULT, db, callable).get();
@@ -435,14 +430,6 @@ public class Util {
             result.add(iterator.next());
         }
         return result;
-    }
-    public static long[] takeIds(PrimitiveLongIterator iterator, int batchsize) {
-        long[] result = new long[batchsize];
-        int i;
-        for (i = 0; i < batchsize && iterator.hasNext(); i++) {
-            result[i] = iterator.next();
-        }
-        return i < batchsize ? Arrays.copyOf(result,i) : result;
     }
 
     public static Map<String, Object> merge(Map<String, Object> first, Map<String, Object> second) {

@@ -3,8 +3,13 @@ package apoc.index;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.helpers.collection.Pair;
-import org.neo4j.kernel.api.Statement;
+import org.neo4j.internal.kernel.api.TokenRead;
 import org.neo4j.kernel.api.exceptions.index.IndexNotApplicableKernelException;
+import org.neo4j.kernel.api.schema.SchemaDescriptorFactory;
+import org.neo4j.kernel.api.schema.index.SchemaIndexDescriptor;
+import org.neo4j.kernel.impl.index.schema.fusion.FusionIndexBase;
+import org.neo4j.kernel.impl.storageengine.impl.recordstorage.RecordStorageEngine;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Description;
 import apoc.result.ListResult;
 import apoc.result.NodeResult;
@@ -21,16 +26,12 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Label;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.api.ReadOperations;
-import org.neo4j.kernel.api.exceptions.TransactionFailureException;
 import org.neo4j.kernel.api.exceptions.index.IndexNotFoundKernelException;
 import org.neo4j.kernel.api.exceptions.schema.DuplicateSchemaRuleException;
 import org.neo4j.kernel.api.exceptions.schema.SchemaRuleNotFoundException;
 import org.neo4j.kernel.api.impl.schema.reader.SimpleIndexReader;
 import org.neo4j.kernel.api.impl.schema.reader.SortedIndexReader;
-import org.neo4j.kernel.api.schema.IndexQuery;
 import org.neo4j.kernel.api.schema.LabelSchemaDescriptor;
-import org.neo4j.kernel.api.schema.index.IndexDescriptor;
 import org.neo4j.kernel.impl.api.KernelStatement;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
@@ -53,7 +54,8 @@ import static apoc.path.RelationshipTypeAndDirections.parse;
 public class SchemaIndex {
 
     @Context
-    public GraphDatabaseService db;
+    public GraphDatabaseAPI db;
+
     @Context
     public KernelTransaction tx;
 
@@ -143,24 +145,28 @@ public class SchemaIndex {
         }
     }
 
-    private SortedIndexReader getSortedIndexReader(String label, String key, long limit, Sort sort) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
+    private SortedIndexReader getSortedIndexReader(String label, String key, long limit, Sort sort) throws  IndexNotFoundKernelException {
         // todo PartitionedIndexReader
         SimpleIndexReader reader = getLuceneIndexReader(label, key);
         return new SortedIndexReader(reader, limit, sort);
     }
 
-    private SimpleIndexReader getLuceneIndexReader(String label, String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
+    private SimpleIndexReader getLuceneIndexReader(String label, String key) throws  IndexNotFoundKernelException {
         try (KernelStatement stmt = (KernelStatement) tx.acquireStatement()) {
-            ReadOperations reads = stmt.readOperations();
 
-            LabelSchemaDescriptor labelSchemaDescriptor = new LabelSchemaDescriptor(reads.labelGetForName(label), reads.propertyKeyGetForName(key));
-            IndexDescriptor descriptor = reads.indexGetForSchema(labelSchemaDescriptor);
+            TokenRead tokenRead = tx.tokenRead();
+            LabelSchemaDescriptor labelSchemaDescriptor = SchemaDescriptorFactory.forLabel(tokenRead.nodeLabel(label), tokenRead.propertyKey(key));
+            RecordStorageEngine recordStorageEngine = db.getDependencyResolver().resolveDependency(RecordStorageEngine.class);
+
+            SchemaIndexDescriptor descriptor = recordStorageEngine.storeReadLayer().indexGetForSchema(labelSchemaDescriptor);
+
             IndexReader indexReader = stmt.getStoreStatement().getIndexReader(descriptor);
-            if (indexReader.getClass().getName().endsWith("FusionIndexReader")) {
+            if (indexReader instanceof FusionIndexBase) {
                 try {
-                    Field field = indexReader.getClass().getDeclaredField("luceneReader");
+                    Field field = FusionIndexBase.class.getDeclaredField("instances");
                     field.setAccessible(true);
-                    return (SimpleIndexReader) field.get(indexReader);
+                    IndexReader[] instances = (IndexReader[])field.get(indexReader);
+                    return (SimpleIndexReader) (instances[4]); // from https://github.com/neo4j/neo4j/blob/c6ed903dd35f89865ee765d894b7e2138220fef0/community/kernel/src/main/java/org/neo4j/kernel/impl/index/schema/fusion/FusionIndexBase.java#L46
                 } catch (IllegalAccessException | NoSuchFieldException e) {
                     throw new RuntimeException("Error accessing index reader",e);
                 }

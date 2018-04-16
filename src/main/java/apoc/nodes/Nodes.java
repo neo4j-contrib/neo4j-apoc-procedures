@@ -4,21 +4,12 @@ import apoc.result.LongResult;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
-import org.neo4j.collection.primitive.PrimitiveIntIterator;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
+import org.neo4j.internal.kernel.api.*;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.api.ReadOperations;
-import org.neo4j.kernel.api.Statement;
-import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
-import org.neo4j.kernel.impl.api.RelationshipVisitor;
-import org.neo4j.kernel.impl.api.store.RelationshipIterator;
 import org.neo4j.procedure.*;
-import org.neo4j.storageengine.api.Token;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -73,28 +64,44 @@ public class Nodes {
 
     @UserFunction("apoc.node.relationship.exists")
     @Description("apoc.node.relationship.exists(node, rel-direction-pattern) - returns true when the node has the relationships of the pattern")
-    public boolean hasRelationship(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types) throws EntityNotFoundException {
+    public boolean hasRelationship(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types) {
         if (types == null || types.isEmpty()) return node.hasRelationship();
         long id = node.getId();
-        try (Statement stmt = ktx.acquireStatement()) {
-            ReadOperations ops = stmt.readOperations();
-            boolean dense = ops.nodeIsDense(id);
+        try ( NodeCursor nodeCursor = ktx.nodeCursor()) {
+
+            ktx.dataRead().singleNode(id, nodeCursor);
+            nodeCursor.next();
+            TokenRead tokenRead = ktx.tokenRead();
+
             for (Pair<RelationshipType, Direction> pair : parse(types)) {
-            int typeId = ops.relationshipTypeGetForName(pair.first().name());
-            Direction direction = pair.other();
-            boolean hasRelationship = (dense) ?
-                    ops.nodeGetDegree(id,direction,typeId) > 0 :
-                    ops.nodeGetRelationships(id, direction,new int[] {typeId}).hasNext();
-            if (hasRelationship) return true;
+                int typeId = tokenRead.relationshipType(pair.first().name());
+                Direction direction = pair.other();
+
+                int count;
+                switch (direction) {
+                    case INCOMING:
+                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countIncoming(nodeCursor, ktx.cursors(), typeId);
+                        break;
+                    case OUTGOING:
+                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countOutgoing(nodeCursor, ktx.cursors(), typeId);
+                        break;
+                    case BOTH:
+                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countAll(nodeCursor, ktx.cursors(), typeId);
+                        break;
+                    default:
+                        throw new UnsupportedOperationException("invalid direction " + direction);
+                }
+                if (count > 0) {
+                    return true;
+                }
             }
         }
-
         return false;
     }
 
     @UserFunction("apoc.nodes.connected")
     @Description("apoc.nodes.connected(start, end, rel-direction-pattern) - returns true when the node is connected to the other node, optimized for dense nodes")
-    public boolean connected(@Name("start") Node start, @Name("start") Node end, @Name(value = "types", defaultValue = "") String types) throws EntityNotFoundException {
+    public boolean connected(@Name("start") Node start, @Name("start") Node end, @Name(value = "types", defaultValue = "") String types)  {
         if (start == null || end == null) return false;
         if (start.equals(end)) return true;
 
@@ -102,34 +109,80 @@ public class Nodes {
         long endId = end.getId();
         List<Pair<RelationshipType, Direction>> pairs = (types == null || types.isEmpty()) ? null : parse(types);
 
-        try (Statement stmt = ktx.acquireStatement()) {
-            ReadOperations ops = stmt.readOperations();
+        Read dataRead = ktx.dataRead();
+        TokenRead tokenRead = ktx.tokenRead();
+        CursorFactory cursors = ktx.cursors();
 
-            boolean startDense = ops.nodeIsDense(startId);
-            boolean endDense = ops.nodeIsDense(endId);
+        try (NodeCursor startNodeCursor = cursors.allocateNodeCursor();
+             NodeCursor endNodeCursor = cursors.allocateNodeCursor()) {
 
-            if (!startDense) return connected(ops, startId, endId, typedDirections(ops, pairs, true));
-            if (!endDense) return connected(ops, endId, startId, typedDirections(ops, pairs, false));
-            return connectedDense(ops, startId, endId, pairs);
+            dataRead.singleNode(startId, startNodeCursor);
+            if (!startNodeCursor.next()) {
+                throw new IllegalArgumentException("node with id " + startId + " does not exist.");
+            }
+
+            boolean startDense = startNodeCursor.isDense();
+            dataRead.singleNode(endId, endNodeCursor);
+            if (!endNodeCursor.next()) {
+                throw new IllegalArgumentException("node with id " + endId + " does not exist.");
+            }
+            boolean endDense = endNodeCursor.isDense();
+
+            if (!startDense) return connected(startNodeCursor, endId, typedDirections(tokenRead, pairs, true));
+            if (!endDense) return connected(endNodeCursor, startId, typedDirections(tokenRead, pairs, false));
+            return connectedDense(startNodeCursor, endNodeCursor, typedDirections(tokenRead, pairs, true));
         }
     }
 
-    private boolean connected(ReadOperations ops, long start, long end, int[][] typedDirections) throws EntityNotFoundException {
-        MatchingRelationshipVisitor matcher = (typedDirections == null) ?
-                new MatchingRelationshipAllVisitor(end) :
-                new MatchingRelationshipTypesDirectionVisitor(typedDirections,end);
-        return checkRelationships(ops.nodeGetRelationships(start, Direction.BOTH), matcher);
+    /**
+     * TODO: be more efficient, in
+     * @param start
+     * @param end
+     * @param typedDirections
+     * @return
+     */
+    private boolean connected(NodeCursor start, long end, int[][] typedDirections) {
+        try (RelationshipTraversalCursor relationship = ktx.cursors().allocateRelationshipTraversalCursor()) {
+            start.allRelationships(relationship);
+            while (relationship.next()) {
+                if (relationship.neighbourNodeReference() ==end) {
+                    if (typedDirections==null) {
+                        return true;
+                    } else {
+                        int direction = relationship.targetNodeReference() == end ? 0 : 1 ;
+                        int[] types = typedDirections[direction];
+                        if (arrayContains(types, relationship.type())) return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
-    private int[][] typedDirections(ReadOperations ops, List<Pair<RelationshipType, Direction>> pairs, boolean outgoing) {
+    private boolean arrayContains(int[] array, int element) {
+        for (int i=0; i<array.length; i++) {
+            if (array[i]==element) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     *
+     * @param ops
+     * @param pairs
+     * @param outgoing
+     * @return a int[][] where the first index is 0 for outgoing, 1 for incoming. second array contains rel type ids
+     */
+    private int[][] typedDirections(TokenRead ops, List<Pair<RelationshipType, Direction>> pairs, boolean outgoing) {
         if (pairs==null) return null;
-        int from=0;int to=0, both = 0;
-        int[][] result = new int[Direction.values().length][pairs.size()];
+        int from=0;int to=0;
+        int[][] result = new int[2][pairs.size()];
         int outIdx = Direction.OUTGOING.ordinal();
         int inIdx = Direction.INCOMING.ordinal();
-        int bothIdx = Direction.BOTH.ordinal();
         for (Pair<RelationshipType, Direction> pair : pairs) {
-            int type = ops.relationshipTypeGetForName(pair.first().name());
+            int type = ops.relationshipType(pair.first().name());
             if (type == -1) continue;
             if (pair.other() != Direction.INCOMING) {
                 result[outIdx][from++]= type;
@@ -137,11 +190,9 @@ public class Nodes {
             if (pair.other() != Direction.OUTGOING) {
                 result[inIdx][to++]= type;
             }
-            result[bothIdx][both++]= type;
         }
         result[outIdx] = Arrays.copyOf(result[outIdx], from);
         result[inIdx] = Arrays.copyOf(result[inIdx], to);
-        result[bothIdx] = Arrays.copyOf(result[bothIdx], both);
         if (!outgoing) {
             int[] tmp = result[outIdx];
             result[outIdx] = result[inIdx];
@@ -152,15 +203,13 @@ public class Nodes {
 
     static class Degree implements Comparable<Degree> {
         public final long node;
-        public final int type;
-        public final Direction direction;
+        private final long group;
         public final int degree;
         public final long other;
 
-        public Degree(long node, int type, Direction direction, int degree, long other) {
+        public Degree(long node, long group, int degree, long other) {
             this.node = node;
-            this.type = type;
-            this.direction = direction;
+            this.group = group;
             this.degree = degree;
             this.other = other;
         }
@@ -170,107 +219,63 @@ public class Nodes {
             return Integer.compare(degree, o.degree);
         }
 
-        public boolean isConnected(ReadOperations ops, MatchingRelationshipVisitor matcher) throws EntityNotFoundException {
-            if (degree == 0) return false;
-            if (other == node) return true;
-            matcher.reset();
-            int[] types = {type};
-            if (direction == Direction.OUTGOING) return checkRelationships(ops.nodeGetRelationships(node, Direction.OUTGOING, types), matcher);
-            if (direction == Direction.INCOMING) return checkRelationships(ops.nodeGetRelationships(node, Direction.INCOMING, types), matcher);
-            return checkRelationships(ops.nodeGetRelationships(node, Direction.BOTH, types), matcher);
-        }
-    }
-
-    public static boolean checkRelationships(RelationshipIterator it, MatchingRelationshipVisitor matcher) {
-        long id;
-        while (it.hasNext()) {
-            id = it.next();
-            it.relationshipVisit(id, matcher);
-            if (matcher.matched()) return true;
-        }
-        return false;
-    }
-
-
-    private boolean connectedDense(ReadOperations ops, long start, long end, List<Pair<RelationshipType, Direction>> pairs) throws EntityNotFoundException {
-        List<Degree> degrees = new ArrayList<>(32);
-
-        // direction -> [typeIdOut,typeIdOut,...typeIdIn,typeIdIn]
-        int[][] typedDirectionsOut = typedDirections(ops, pairs,true);
-        if (pairs == null) {
-            int totalTypes = ops.relationshipTypeCount();
-            BitSet given = new BitSet(totalTypes);
-
-            Iterator<Token> tokens = ops.relationshipTypesGetAllTokens();
-            while (tokens.hasNext()) {
-                given.set(tokens.next().id());
-            }
-
-            BitSet types = typesOf(ops, totalTypes, given, start);
-            types.and(typesOf(ops, totalTypes, given, end));
-
-            if (types.isEmpty()) return false;
-
-            int length = types.length();
-            for (int type = 0; type < length; type++) {
-                if (types.get(type)) {
-                    addSmallestDegree(ops, degrees, start, end, type, Direction.OUTGOING);
-                    addSmallestDegree(ops, degrees, start, end, type, Direction.INCOMING);
+        public boolean isConnected(Read read, RelationshipTraversalCursor relationship) {
+            read.relationships(node, group, relationship);
+            while (relationship.next()) {
+                if (relationship.neighbourNodeReference()==other) {
+                    return true;
                 }
             }
-        } else {
-            int totalTypes = typedDirectionsOut.length;
-            BitSet given = new BitSet(totalTypes);
-            for (int type : typedDirectionsOut[Direction.BOTH.ordinal()]) {
-                given.set(type);
-            }
-            BitSet types = typesOf(ops, totalTypes, given, start);
-            types.and(typesOf(ops, totalTypes, given, end));
-
-            for (int type : typedDirectionsOut[Direction.OUTGOING.ordinal()]) {
-                addSmallestDegree(ops, degrees, start, end, type, Direction.OUTGOING);
-            }
-            for (int type : typedDirectionsOut[Direction.INCOMING.ordinal()]) {
-                addSmallestDegree(ops, degrees, start, end, type, Direction.INCOMING);
-            }
+            return false;
         }
+    }
+
+    private boolean connectedDense(NodeCursor start, NodeCursor end, int[][] typedDirections) {
+        List<Degree> degrees = new ArrayList<>(32);
+
+        Read read = ktx.dataRead();
+
+        try (RelationshipGroupCursor relationshipGroup = ktx.cursors().allocateRelationshipGroupCursor()) {
+            addDegreesForNode(read, start, end, degrees, relationshipGroup, typedDirections);
+            addDegreesForNode(read, end, start, degrees, relationshipGroup, typedDirections);
+        }
+
+
         Collections.sort(degrees);
-        MatchingRelationshipVisitor startMatcher = new MatchingRelationshipAllVisitor(start);
-        MatchingRelationshipVisitor endMatcher = new MatchingRelationshipAllVisitor(end);
-        for (Degree degree : degrees) {
-            MatchingRelationshipVisitor matcher = degree.other == start ? startMatcher : endMatcher;
-            if (degree.isConnected(ops,matcher)) return true;
+        try (RelationshipTraversalCursor relationship = ktx.cursors().allocateRelationshipTraversalCursor()) {
+            for (Degree degree : degrees) {
+                if (degree.isConnected(ktx.dataRead(), relationship)) return true;
+            }
+            return false;
         }
-        return false;
     }
 
-    private BitSet typesOf(ReadOperations ops, int totalTypes, BitSet given, long node) throws EntityNotFoundException {
-        BitSet types = new BitSet(totalTypes);
-        PrimitiveIntIterator it = ops.nodeGetRelationshipTypes(node);
-        while (it.hasNext()) {
-            int type = it.next();
-            if (given.get(type)) types.set(type);
+    private void addDegreesForNode(Read dataRead, NodeCursor node, NodeCursor other, List<Degree> degrees, RelationshipGroupCursor relationshipGroup, int[][] typedDirections) {
+        long nodeId = node.nodeReference();
+        long otherId = other.nodeReference();
+
+        dataRead.relationshipGroups(nodeId, node.relationshipGroupReference(), relationshipGroup);
+        while (relationshipGroup.next()) {
+            int type = relationshipGroup.type();
+            if ((typedDirections==null) || (arrayContains(typedDirections[0], type))) {
+                addDegreeWithDirection(degrees, relationshipGroup.outgoingReference(), relationshipGroup.outgoingCount(), nodeId, otherId);
+            }
+
+            if ((typedDirections==null) || (arrayContains(typedDirections[1], type))) {
+                addDegreeWithDirection(degrees, relationshipGroup.incomingReference(), relationshipGroup.incomingCount(), nodeId, otherId);
+            }
         }
-        return types;
     }
 
-    private void addSmallestDegree(ReadOperations ops, List<Degree> degrees, long start, long end, int type, Direction direction) throws EntityNotFoundException {
-        int startDegree = ops.nodeGetDegree(start,direction,type);
-        if (startDegree == 0) return;
-        Direction reverse = direction.reverse();
-        int endDegree = ops.nodeGetDegree(end,reverse,type);
-        if (endDegree == 0) return;
-        if (startDegree < endDegree) degrees.add(new Degree(start, type, direction, startDegree, end));
-        else degrees.add(new Degree(end, type, reverse, endDegree, start));
-    }
-
-    private <T> List<T> asList(Iterable<T> types) {
-        return (types instanceof List) ? (List<T>) types : Iterables.asList(types);
+    private void addDegreeWithDirection(List<Degree> degrees, long relationshipGroup, int degree, long nodeId, long otherId) {
+        if (degree > 0 ) {
+            degrees.add(new Degree(nodeId, relationshipGroup, degree, otherId));
+        }
     }
 
     @UserFunction("apoc.node.degree")
     @Description("apoc.node.degree(node, rel-direction-pattern) - returns total degrees of the given relationships in the pattern, can use '>' or '<' for all outgoing or incoming relationships")
-    public long degree(@Name("node") Node node, @Name(value = "types",defaultValue = "") String types) throws EntityNotFoundException {
+    public long degree(@Name("node") Node node, @Name(value = "types",defaultValue = "") String types) {
         if (types==null || types.isEmpty()) return node.getDegree();
         long degree = 0;
         for (Pair<RelationshipType, Direction> pair : parse(types)) {
@@ -298,16 +303,14 @@ public class Nodes {
     @UserFunction
     @Description("apoc.nodes.isDense(node) - returns true if it is a dense node")
     public boolean isDense(@Name("node") Node node) {
-        try (Statement stmt = ktx.acquireStatement()) {
-            return isDense(stmt.readOperations(), node);
-        }
-    }
-
-    private boolean isDense(ReadOperations ops, Node n) {
-        try {
-            return ops.nodeIsDense(n.getId());
-        } catch (EntityNotFoundException e) {
-            return false;
+        try (NodeCursor nodeCursor = ktx.nodeCursor()) {
+            final long id = node.getId();
+            ktx.dataRead().singleNode(id, nodeCursor);
+            if (nodeCursor.next()) {
+                return nodeCursor.isDense();
+            } else {
+                throw new IllegalArgumentException("node with id " + id + " does not exist.");
+            }
         }
     }
 
@@ -320,80 +323,4 @@ public class Nodes {
         return node.getDegree(relType, direction);
     }
 
-    private int getDegreeSafe(ReadOperations ops, long id, Direction direction, int typeId) throws EntityNotFoundException {
-        if (typeId != -1) {
-            return ops.nodeGetDegree(id, direction, typeId);
-        }
-
-        return ops.nodeGetDegree(id, direction);
-    }
-
-    public static class DenseNodeResult {
-        public final Node node;
-        public final boolean dense;
-
-        public DenseNodeResult(Node node, boolean dense) {
-            this.node = node;
-            this.dense = dense;
-        }
-    }
-
-    interface MatchingRelationshipVisitor extends RelationshipVisitor<RuntimeException> {
-        boolean matched();
-
-        void reset();
-    }
-
-    private static class MatchingRelationshipAllVisitor implements MatchingRelationshipVisitor {
-        final long targetId;
-        boolean matched;
-
-        private MatchingRelationshipAllVisitor(long targetId) {
-            this.targetId = targetId;
-        }
-
-        public void visit(long relationshipId, int typeId, long startNodeId, long endNodeId) throws RuntimeException {
-            matched = endNodeId == targetId || startNodeId == targetId;
-        }
-
-        @Override
-        public boolean matched() {
-            return matched;
-        }
-
-        @Override
-        public void reset() {
-            matched = false;
-        }
-    }
-    private static class MatchingRelationshipTypesDirectionVisitor implements MatchingRelationshipVisitor {
-        private final int[][] typedDirections;
-        final long targetId;
-        boolean matched;
-
-        private MatchingRelationshipTypesDirectionVisitor(int[][] typedDirections, long targetId) {
-            this.typedDirections = typedDirections;
-            this.targetId = targetId;
-        }
-
-        public void visit(long relationshipId, int typeId, long startNodeId, long endNodeId) throws RuntimeException {
-            matched = false;
-            if (endNodeId == targetId) {
-                for (int type : typedDirections[Direction.OUTGOING.ordinal()]) if (type == typeId) matched = true;
-            }
-            if (startNodeId == targetId) {
-                for (int type : typedDirections[Direction.INCOMING.ordinal()]) if (type == typeId) matched = true;
-            }
-        }
-
-        @Override
-        public boolean matched() {
-            return matched;
-        }
-
-        @Override
-        public void reset() {
-            matched = false;
-        }
-    }
 }

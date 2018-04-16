@@ -93,9 +93,9 @@ public class Graphs {
         return Stream.of(new VirtualGraph(name,db.getAllNodes(),db.getAllRelationships(),properties));
     }
 
-    @Description("apoc.graph.fromCypher('statement',{params},'name',{properties}) - creates a virtual graph object for later processing")
+    @Description("apoc.graph.fromCypher('kernelTransaction',{params},'name',{properties}) - creates a virtual graph object for later processing")
     @Procedure
-    public Stream<VirtualGraph> fromCypher(@Name("statement") String statement,  @Name("params") Map<String,Object> params,@Name("name") String name,  @Name("properties") Map<String,Object> properties) {
+    public Stream<VirtualGraph> fromCypher(@Name("kernelTransaction") String statement,  @Name("params") Map<String,Object> params,@Name("name") String name,  @Name("properties") Map<String,Object> properties) {
         params = params == null ? Collections.emptyMap() : params;
         Set<Node> nodes = new HashSet<>(1000);
         Set<Relationship> rels = new HashSet<>(1000);

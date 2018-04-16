@@ -3,8 +3,6 @@ package apoc.algo.pagerank;
 import apoc.util.Util;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.kernel.api.ReadOperations;
-import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.TerminationGuard;
 
@@ -12,7 +10,7 @@ import java.util.Arrays;
 
 import static apoc.algo.pagerank.PageRankUtils.ctx;
 
-public class BatchRunnable implements Runnable, OpsRunner {
+/*public class BatchRunnable implements Runnable, OpsRunner {
     final long[] ids;
     private final OpsRunner runner;
     private final GraphDatabaseAPI api;
@@ -41,15 +39,15 @@ public class BatchRunnable implements Runnable, OpsRunner {
             if (Util.transactionIsTerminated(guard)) {
                 return;
             }
-            ReadOperations ops = ctx(api).get().readOperations();
+//            ReadOperations ops = ctx(api).get().readOperations();
             int notFound = 0;
             for (int i = 0; i < offset; i++) {
                 if (ids[i] == -1L) break;
-                try {
+//                try {
                     run(ops, (int) ids[i]);
-                } catch (EntityNotFoundException e) {
-                    notFound++;
-                }
+//                } catch (EntityNotFoundException e) {
+//                    notFound++;
+//                }
             }
             if (notFound > 0) {
                 System.err.println("Entities not found " + notFound);
@@ -59,7 +57,7 @@ public class BatchRunnable implements Runnable, OpsRunner {
     }
 
     @Override
-    public void run(ReadOperations ops, int node) throws EntityNotFoundException {
+    public void run(ReadOperations ops, int node)  {
         runner.run(ops, node);
     }
-}
+}*/

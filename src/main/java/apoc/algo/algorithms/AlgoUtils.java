@@ -3,10 +3,6 @@ package apoc.algo.algorithms;
 import apoc.util.Util;
 import org.neo4j.cypher.EntityNotFoundException;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.kernel.api.DataWriteOperations;
-import org.neo4j.kernel.api.exceptions.InvalidTransactionTypeKernelException;
-import org.neo4j.kernel.api.exceptions.explicitindex.AutoIndexingKernelException;
-import org.neo4j.kernel.api.exceptions.schema.IllegalTokenNameException;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.values.storable.DoubleValue;
@@ -58,7 +54,7 @@ public class AlgoUtils {
         return total;
     }
 
-    public static void writeBackResults(ExecutorService pool, GraphDatabaseAPI db, AlgorithmInterface algorithm,
+    /*public static void writeBackResults(ExecutorService pool, GraphDatabaseAPI db, AlgorithmInterface algorithm,
                                         int batchSize, TerminationGuard guard) {
         ThreadToStatementContextBridge ctx = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
         int propertyNameId;
@@ -108,5 +104,5 @@ public class AlgoUtils {
             futures.add(future);
         }
         AlgoUtils.waitForTasks(futures);
-    }
+    }*/
 }

@@ -78,6 +78,7 @@ public class Centrality {
     }
 
 
+/*
     @Deprecated
     @Procedure(value = "apoc.algo.betweennessCypher",mode = Mode.WRITE)
     @Description("CALL apoc.algo.betweennessCypher(node_cypher,rel_cypher,write) - calculates betweeness " +
@@ -125,6 +126,7 @@ public class Centrality {
         return Stream.of(betweennessCentrality.getStatistics());
 
     }
+*/
 
 
     @Deprecated

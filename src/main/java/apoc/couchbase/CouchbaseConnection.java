@@ -181,10 +181,10 @@ public class CouchbaseConnection implements AutoCloseable {
   }
 
   /**
-   * Executes a plain un-parameterized N1QL statement.
+   * Executes a plain un-parameterized N1QL kernelTransaction.
    * 
    * @param statement
-   *          the raw statement string to execute
+   *          the raw kernelTransaction string to execute
    * @return the list of {@link JsonObject}s retrieved by this query
    * 
    * @see N1qlQuery#simple(Statement)
@@ -195,13 +195,13 @@ public class CouchbaseConnection implements AutoCloseable {
   }
 
   /**
-   * Executes a N1QL statement with positional parameters.
+   * Executes a N1QL kernelTransaction with positional parameters.
    * 
    * @param statement
-   *          the raw statement string to execute (containing positional
+   *          the raw kernelTransaction string to execute (containing positional
    *          placeholders: $1, $2, ...)
    * @param parameters
-   *          the values for the positional placeholders in statement
+   *          the values for the positional placeholders in kernelTransaction
    * @return the list of {@link JsonObject}s retrieved by this query
    * 
    * @see N1qlQuery#parameterized(Statement, JsonArray)
@@ -213,15 +213,15 @@ public class CouchbaseConnection implements AutoCloseable {
   }
 
   /**
-   * Executes a N1QL statement with named parameters.
+   * Executes a N1QL kernelTransaction with named parameters.
    * 
    * @param statement
-   *          the raw statement string to execute (containing named
+   *          the raw kernelTransaction string to execute (containing named
    *          placeholders: $param1, $param2, ...)
    * @param parameterNames
-   *          the placeholders' names in statement
+   *          the placeholders' names in kernelTransaction
    * @param parameterValues
-   *          the values for the named placeholders in statement
+   *          the values for the named placeholders in kernelTransaction
    * @return the list of {@link JsonObject}s retrieved by this query
    * 
    * @see N1qlQuery#parameterized(Statement, JsonObject)

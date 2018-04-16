@@ -1,20 +1,17 @@
 package apoc.algo;
 
-import org.neo4j.collection.primitive.PrimitiveLongIterator;
-import org.neo4j.cursor.Cursor;
+import apoc.stats.DegreeUtil;
 import org.neo4j.graphdb.Direction;
-import org.neo4j.kernel.api.ReadOperations;
-import org.neo4j.kernel.api.Statement;
-import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
-import org.neo4j.kernel.impl.api.store.RelationshipIterator;
-import org.neo4j.storageengine.api.NodeItem;
-import org.neo4j.storageengine.api.RelationshipItem;
+import org.neo4j.internal.kernel.api.*;
+import org.neo4j.internal.kernel.api.helpers.RelationshipSelectionCursor;
+import org.neo4j.internal.kernel.api.helpers.RelationshipSelections;
+import org.neo4j.kernel.api.KernelTransaction;
 
 import java.util.Arrays;
 
 import static org.neo4j.graphdb.Direction.OUTGOING;
-import static org.neo4j.kernel.api.ReadOperations.ANY_LABEL;
-import static org.neo4j.kernel.api.ReadOperations.ANY_RELATIONSHIP_TYPE;
+import static org.neo4j.internal.kernel.api.Read.ANY_LABEL;
+import static org.neo4j.internal.kernel.api.Read.ANY_RELATIONSHIP_TYPE;
 
 /**
  * @author mh
@@ -26,7 +23,9 @@ import static org.neo4j.kernel.api.ReadOperations.ANY_RELATIONSHIP_TYPE;
  * http://stackoverflow.com/questions/106237/calculate-the-hilbert-value-of-a-point-for-use-in-a-hilbert-r-tree/106277
  */
 public class CoreGraphAlgorithms {
-    private final Statement stmt;
+    private final KernelTransaction ktx;
+    private final Read read;
+    private final CursorFactory cursors;
     private int nodeCount;
     private int relCount;
     private int[] nodeRelOffsets;
@@ -190,102 +189,75 @@ public class CoreGraphAlgorithms {
 
     // todo parallel, see if java8 streams are performing
     // pass in array, use array batches (pass in batch-no)
-    private int[] loadNodes(ReadOperations ops, PrimitiveLongIterator nodeIds, int size, int relType, Direction direction) throws EntityNotFoundException {
-        // todo reuse array
-        int[] offsets = new int[size];
-        Arrays.fill(offsets,-1);
-        int offset = 0;
-        int maxIdx = 0;
-        while (nodeIds.hasNext()) {
-            long nodeId = nodeIds.next();
-            int degree = relType == ANY_RELATIONSHIP_TYPE ? ops.nodeGetDegree(nodeId, direction) : ops.nodeGetDegree(nodeId, direction, relType);
-            int idx = mapId(nodeId);
-            offsets[idx] = offset;
-            offset += degree;
-            if (idx > maxIdx) maxIdx = idx;
+    private int[] loadNodes(int size, int relType, Direction direction) {
+        final CursorFactory cursors = ktx.cursors();
+        try (NodeCursor node = cursors.allocateNodeCursor()) {
+            // todo reuse array
+            int[] offsets = new int[size];
+            Arrays.fill(offsets,-1);
+//            int offset = 0;
+            int maxIdx = 0;
+
+            ktx.dataRead().allNodesScan(node);
+
+            while (node.next()) {
+                int degree = DegreeUtil.degree(node, cursors, relType, direction);
+                int idx = mapId(node.nodeReference());
+                offsets[idx] = degree;
+//                offsets[idx] = offset;
+//                offset += degree;
+                if (idx > maxIdx) maxIdx = idx;
+            }
+
+            return maxIdx < offsets.length -1 ? Arrays.copyOf(offsets,maxIdx+1) : offsets;
         }
-        return maxIdx < offsets.length -1 ? Arrays.copyOf(offsets,maxIdx+1) : offsets;
     }
 
-    private int[] loadDegrees(ReadOperations ops, PrimitiveLongIterator nodeIds, int size, int relType, Direction direction) throws EntityNotFoundException {
+/*
+    private int[] loadDegrees(ReadOperations ops, PrimitiveLongIterator nodeIds, int size, int relType, Direction direction) {
         int[] degrees = new int[size];
         Arrays.fill(degrees,-1);
         while (nodeIds.hasNext()) {
             long nodeId = nodeIds.next();
+
             degrees[mapId(nodeId)] = relType == ANY_RELATIONSHIP_TYPE ? ops.nodeGetDegree(nodeId, direction) : ops.nodeGetDegree(nodeId, direction, relType);
         }
         return degrees;
+    }*/
+
+    public int[] loadDegrees(String relName, Direction direction) {
+        return loadDegrees(ktx.tokenRead().relationshipType(relName), direction);
     }
 
-    public int[] loadDegrees(String relName, Direction direction) throws EntityNotFoundException {
-        ReadOperations ops = stmt.readOperations();
-        int[] degrees = new int[nodeCount];
-        if (relName == null) {
-            for (int nodeIdx=0; nodeIdx<nodeCount; nodeIdx++) {
-                long nodeId = unMapId(nodeIdx);
-                degrees[nodeIdx] = ops.nodeExists(nodeId) ? ops.nodeGetDegree(nodeId, direction) : -1;
-            }
-        }
-        else {
-            int relType = ops.relationshipTypeGetForName(relName);
-            for (int nodeIdx=0; nodeIdx<nodeCount; nodeIdx++) {
-                long nodeId = unMapId(nodeIdx);
-                degrees[nodeIdx] = ops.nodeExists(nodeId) ? ops.nodeGetDegree(nodeId, direction, relType) : -1;
-            }
-        }
-        return degrees;
-    }
-    private int[] loadDegrees(ReadOperations ops, int relType, Direction direction) {
-        try {
+    private int[] loadDegrees(int relType, Direction direction) {
+
+        try (NodeCursor nodeCursor = cursors.allocateNodeCursor()) {
             int[] degrees = new int[nodeCount];
             for (int nodeIdx = 0; nodeIdx < nodeCount; nodeIdx++) {
                 long nodeId = unMapId(nodeIdx);
-                if (ops.nodeExists(nodeId)) {
-                    degrees[nodeIdx] = relType == ANY_RELATIONSHIP_TYPE ?
-                            ops.nodeGetDegree(nodeId, direction) :
-                            ops.nodeGetDegree(nodeId, direction, relType);
-                } else {
-                    degrees[nodeIdx] = -1;
-                }
+                read.singleNode(nodeId, nodeCursor);
+                degrees[nodeIdx] = nodeCursor.next() ? DegreeUtil.degree(nodeCursor, cursors, relType, direction) : -1;
             }
             return degrees;
-        } catch (EntityNotFoundException e) {
-            throw new RuntimeException("Error loading node degrees",e);
         }
     }
 
-    private int[] loadNodes(ReadOperations ops, PrimitiveLongIterator nodeIds, int labelId, int size, int relType) throws EntityNotFoundException {
-        // todo reuse array
-        int[] degrees = new int[size];
-        while (nodeIds.hasNext()) {
-            long nodeId = nodeIds.next();
-            if (labelId != -1) {
-                Cursor<NodeItem> c = ops.nodeCursorById(nodeId);
-                if (!(c.next() && c.get().hasLabel(labelId))) continue;
-            }
-            degrees[mapId(nodeId)] = relType == ANY_RELATIONSHIP_TYPE ? ops.nodeGetDegree(nodeId, OUTGOING) : ops.nodeGetDegree(nodeId, OUTGOING, relType);
-        }
-        return degrees;
-    }
+    private int[] loadNodesForLabel(int labelId, int nodeCount, int relTypeId, Direction direction) {
+        try (NodeLabelIndexCursor nodeIndex = cursors.allocateNodeLabelIndexCursor();
+            NodeCursor node = cursors.allocateNodeCursor()
+            ) {
+            // todo reuse array
+            int[] degrees = new int[nodeCount];
 
-    // todo fix node offsets when no rel found
-    private int loadNodeRels(ReadOperations ops, PrimitiveLongIterator nodeIds, int relType, int[] rels) throws EntityNotFoundException {
-        int idx = 0;
-        int count = 0;
-        while (nodeIds.hasNext()) {
-            long id = nodeIds.next();
-            int[] relTypes = {relType};
-            RelationshipIterator relIds = relType == ANY_RELATIONSHIP_TYPE ? ops.nodeGetRelationships(id, OUTGOING) : ops.nodeGetRelationships(id, OUTGOING, relTypes);
-            while (relIds.hasNext()) {
-                Cursor<RelationshipItem> c = ops.relationshipCursorById(relIds.next());
-//                if (c.next()) {
-                    rels[idx] = mapId(c.get().endNode());
-                    count++;
-//                }
-                idx++;
+            read.nodeLabelScan(labelId, nodeIndex);
+            while (nodeIndex.next()) {
+
+                nodeIndex.node(node);
+                node.next();
+                degrees[mapId(nodeIndex.nodeReference())] = DegreeUtil.degree(node, cursors, relTypeId, direction);
             }
+            return degrees;
         }
-        return count;
     }
 
     interface RelationshipProgram {
@@ -328,7 +300,7 @@ public class CoreGraphAlgorithms {
 
     public float[] pageRank(int iterations) {
         float oneMinusAlpha = 1 - ALPHA;
-        int[] degrees = loadDegrees(stmt.readOperations(), relTypeId , OUTGOING);
+        int[] degrees = loadDegrees(relTypeId , OUTGOING);
         float[] dst = new float[nodeCount]; float[] src = new float[nodeCount];
 
         for (int it = 0; it < iterations; it++) {
@@ -457,7 +429,7 @@ public class CoreGraphAlgorithms {
         return root;
     }
 
-    private int loadRels(ReadOperations ops, PrimitiveLongIterator relIds, int size, int relType, int[] rels) throws EntityNotFoundException {
+/*    private int loadRels(ReadOperations ops, PrimitiveLongIterator relIds, int size, int relType, int[] rels) throws EntityNotFoundException {
         // todo reuse array
         int idx = 0, count = 0;
         while (relIds.hasNext()) {
@@ -472,7 +444,7 @@ public class CoreGraphAlgorithms {
             idx++;
         }
         return count;
-    }
+    }*/
 
 
     private static int mapId(long id) {
@@ -482,47 +454,71 @@ public class CoreGraphAlgorithms {
         return (long) id; // TODO proper mapping to smaller array
     }
 
-    public CoreGraphAlgorithms(Statement stmt) {
-        this.stmt = stmt;
+    public CoreGraphAlgorithms(KernelTransaction ktx) {
+        this.ktx = ktx;
+        this.read = ktx.dataRead();
+        this.cursors = ktx.cursors();
     }
 
-    private void loadRels(ReadOperations ops, int labelId, int relTypeId) throws EntityNotFoundException {
-        int allRelCount = (int) ops.relationshipsGetCount();
-        this.relCount = (int) ops.countsForRelationshipWithoutTxState(labelId,relTypeId, ANY_LABEL);
+    private void loadRels(int labelId, int relTypeId) {
+//        int allRelCount = (int)
+        //   ops.relationshipsGetCount();
+
+        this.relCount = (int) read.countsForRelationshipWithoutTxState(labelId, relTypeId, ANY_LABEL);
         this.rels = new int[relCount];
-        float percentage = (float) relCount / (float) allRelCount;
+//        float percentage = (float) relCount / (float) allRelCount;
 //        if (percentage > 0.5) {
 //            this.relCount = loadRels(ops, ops.relationshipsGetAll(), relCount, relTypeId,rels);
 //        }
 //        else {
-            PrimitiveLongIterator nodeIds = labelId == -1 ? ops.nodesGetAll() : ops.nodesGetForLabel(labelId);
-            this.relCount = loadNodeRels(ops, nodeIds, relTypeId, rels);
+//            PrimitiveLongIterator nodeIds = labelId == -1 ? ops.nodesGetAll() : ops.nodesGetForLabel(labelId);
+//            this.relCount = loadNodeRels(ops, nodeIds, relTypeId, rels);
 //        }
-    }
 
-    private void loadNodes(ReadOperations ops, int labelId, int relTypeId) throws EntityNotFoundException {
-        this.labelId = labelId;
-        this.relTypeId = relTypeId;
-        int allNodeCount = (int) ops.nodesGetCount();
-        if (labelId == ANY_LABEL) {
-            this.nodeRelOffsets = loadNodes(ops, ops.nodesGetAll(), allNodeCount, relTypeId, OUTGOING);
-            this.nodeCount = nodeRelOffsets.length;
-        } else {
-            this.nodeCount = (int) ops.countsForNodeWithoutTxState(labelId);
-            float percentage = (float)nodeCount / (float)allNodeCount;
+        try (NodeLabelIndexCursor nodeIndex = cursors.allocateNodeLabelIndexCursor();
+             NodeCursor node = cursors.allocateNodeCursor()
+            ) {
+            read.nodeLabelScan(labelId, nodeIndex);
 
-            this.nodeRelOffsets = (percentage > 0.5f) ?
-                    loadNodes(ops, ops.nodesGetAll(), labelId,    nodeCount, relTypeId) :
-                    loadNodes(ops, ops.nodesGetForLabel(labelId), nodeCount, relTypeId, OUTGOING);
+            int idx = 0;
+            while (nodeIndex.next()) {
+
+                nodeIndex.node(node);
+                if (!node.next()) {
+                    throw new IllegalArgumentException("could not position curor");
+                }
+                int[] relTypes = {relTypeId};
+                RelationshipSelectionCursor relationshipSelectionCursor = RelationshipSelections.outgoingCursor(cursors, node, relTypes);
+
+                while (relationshipSelectionCursor.next()) {
+                    rels[idx++] = mapId(relationshipSelectionCursor.otherNodeReference());
+                }
+            }
         }
     }
 
-    public CoreGraphAlgorithms init(String label) throws EntityNotFoundException {
-        ReadOperations ops = stmt.readOperations();
+    private void loadNodes(int labelId, int relTypeId)  {
+        this.labelId = labelId;
+        this.relTypeId = relTypeId;
 
-        int labelId = ops.labelGetForName(label);
-        loadNodes(ops, labelId, ANY_RELATIONSHIP_TYPE);
-        loadRels(ops, labelId, ANY_RELATIONSHIP_TYPE);
+        int allNodeCount = (int) ktx.dataRead().nodesGetCount();
+        if (labelId == ANY_LABEL) {
+            this.nodeRelOffsets = loadNodes(allNodeCount, relTypeId, OUTGOING);
+            this.nodeCount = nodeRelOffsets.length;
+        } else {
+            this.nodeCount = (int) ktx.dataRead().countsForNodeWithoutTxState(labelId);
+            float percentage = (float)nodeCount / (float)allNodeCount;
+
+            this.nodeRelOffsets = (percentage > 0.5f) ?
+                    loadNodesForLabel(labelId,    nodeCount, relTypeId, OUTGOING) :
+                    loadNodes( nodeCount, relTypeId, OUTGOING);
+        }
+    }
+
+    public CoreGraphAlgorithms init(String label) {
+        int labelId = ktx.tokenRead().nodeLabel(label);
+        loadNodes(labelId, ANY_RELATIONSHIP_TYPE);
+        loadRels(labelId, ANY_RELATIONSHIP_TYPE);
         return this;
     }
 
@@ -534,19 +530,18 @@ public class CoreGraphAlgorithms {
     // multiple rel-types
     // parallel loading (parallel degrees + serial offsets + parallel rels + serial compaction (flag if need to)
     // keep threads with open worker-tx for reads
-    public CoreGraphAlgorithms init(String label, String rel) throws EntityNotFoundException {
-        ReadOperations ops = stmt.readOperations();
-        int labelId = ops.labelGetForName(label);
-        int relTypeId = ops.relationshipTypeGetForName(rel);
-        loadNodes(ops,labelId,relTypeId);
-        loadRels(ops, labelId, relTypeId);
+    public CoreGraphAlgorithms init(String label, String rel)  {
+        TokenRead token = ktx.tokenRead();
+        int labelId = token.nodeLabel(label);
+        int relTypeId = token.relationshipType(rel);
+        loadNodes(labelId, relTypeId);
+        loadRels(labelId, relTypeId);
         return this;
     }
 
-    public CoreGraphAlgorithms init() throws EntityNotFoundException {
-        ReadOperations ops = stmt.readOperations();
-        loadNodes(ops, ANY_LABEL, ANY_RELATIONSHIP_TYPE);
-        loadRels(ops, ANY_LABEL,ANY_RELATIONSHIP_TYPE);
+    public CoreGraphAlgorithms init() {
+        loadNodes(ANY_LABEL, ANY_RELATIONSHIP_TYPE);
+        loadRels(ANY_LABEL, ANY_RELATIONSHIP_TYPE);
         return this;
     }
 
@@ -566,3 +561,4 @@ public class CoreGraphAlgorithms {
         return rels;
     }
 }
+

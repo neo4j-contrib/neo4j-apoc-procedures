@@ -1,6 +1,6 @@
 package apoc.algo;
 
-import apoc.algo.pagerank.PageRankAlgoTest;
+//import apoc.algo.pagerank.PageRankAlgoTest;
 import apoc.util.TestUtil;
 import org.junit.*;
 
@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class CentralityTest
+/*public class CentralityTest
 {
     private static GraphDatabaseService db;
     public static final String RANDOM_GRAPH =
@@ -391,5 +391,5 @@ public class CentralityTest
             }
         } );
     }
-}
+}*/
 

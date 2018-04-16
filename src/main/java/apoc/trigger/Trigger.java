@@ -10,10 +10,9 @@ import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.helpers.collection.Iterators;
+import org.neo4j.kernel.impl.core.EmbeddedProxySPI;
 import org.neo4j.kernel.impl.core.GraphProperties;
-import org.neo4j.kernel.impl.core.NodeManager;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-//import org.neo4j.procedure.Mode;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
@@ -48,7 +47,7 @@ public class Trigger {
     @Context public GraphDatabaseService db;
 
     @UserFunction
-    @Description("function to filter labelEntries by label, to be used within a trigger statement with {assignedLabels}, {removedLabels}, {assigned/removedNodeProperties}")
+    @Description("function to filter labelEntries by label, to be used within a trigger kernelTransaction with {assignedLabels}, {removedLabels}, {assigned/removedNodeProperties}")
     public List<Node> nodesByLabel(@Name("labelEntries") Object entries, @Name("label") String labelString) {
         if (!(entries instanceof Map)) return Collections.emptyList();
         Map map = (Map) entries;
@@ -85,18 +84,18 @@ public class Trigger {
     }
 
     @UserFunction
-    @Description("function to filter propertyEntries by property-key, to be used within a trigger statement with {assignedNode/RelationshipProperties} and {removedNode/RelationshipProperties}. Returns [{old,new,key,node,relationship}]")
+    @Description("function to filter propertyEntries by property-key, to be used within a trigger kernelTransaction with {assignedNode/RelationshipProperties} and {removedNode/RelationshipProperties}. Returns [{old,new,key,node,relationship}]")
     public List<Map<String,Object>> propertiesByKey(@Name("propertyEntries") Map<String,List<Map<String,Object>>> propertyEntries, @Name("key") String key) {
         return propertyEntries.getOrDefault(key,Collections.emptyList());
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information")
-    public Stream<TriggerInfo> add(@Name("name") String name, @Name("statement") String statement, @Name(value = "selector"/*, defaultValue = "{}"*/)  Map<String,Object> selector) {
+    @Description("add a trigger kernelTransaction under a name, in the kernelTransaction you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information")
+    public Stream<TriggerInfo> add(@Name("name") String name, @Name("kernelTransaction") String statement, @Name(value = "selector"/*, defaultValue = "{}"*/)  Map<String,Object> selector) {
         Map<String, Object> removed = TriggerHandler.add(name, statement, selector);
         if (removed != null) {
             return Stream.of(
-                    new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"),false, false),
+                    new TriggerInfo(name,(String)removed.get("kernelTransaction"), (Map<String, Object>) removed.get("selector"),false, false),
                     new TriggerInfo(name,statement,selector,true, false));
         }
         return Stream.of(new TriggerInfo(name,statement,selector,true, false));
@@ -109,14 +108,14 @@ public class Trigger {
         if (removed == null) {
             Stream.of(new TriggerInfo(name, null, null, false, false));
         }
-        return Stream.of(new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"),false, false));
+        return Stream.of(new TriggerInfo(name,(String)removed.get("kernelTransaction"), (Map<String, Object>) removed.get("selector"),false, false));
     }
 
     @Procedure(mode = Mode.WRITE)
     @Description("list all installed triggers")
     public Stream<TriggerInfo> list() {
         return TriggerHandler.list().entrySet().stream()
-                .map( (e) -> new TriggerInfo(e.getKey(),(String)e.getValue().get("statement"),(Map<String,Object>)e.getValue().get("selector"),true, (Boolean) e.getValue().get("paused")));
+                .map( (e) -> new TriggerInfo(e.getKey(),(String)e.getValue().get("kernelTransaction"),(Map<String,Object>)e.getValue().get("selector"),true, (Boolean) e.getValue().get("paused")));
     }
 
     @Procedure(mode = Mode.WRITE)
@@ -124,7 +123,7 @@ public class Trigger {
     public Stream<TriggerInfo> pause(@Name("name")String name) {
         Map<String, Object> paused = TriggerHandler.paused(name);
 
-        return Stream.of(new TriggerInfo(name,(String)paused.get("statement"), (Map<String,Object>) paused.get("selector"),true, true));
+        return Stream.of(new TriggerInfo(name,(String)paused.get("kernelTransaction"), (Map<String,Object>) paused.get("selector"),true, true));
     }
 
     @Procedure(mode = Mode.WRITE)
@@ -132,7 +131,7 @@ public class Trigger {
     public Stream<TriggerInfo> resume(@Name("name")String name) {
         Map<String, Object> resume = TriggerHandler.resume(name);
 
-        return Stream.of(new TriggerInfo(name,(String)resume.get("statement"), (Map<String,Object>) resume.get("selector"),true, false));
+        return Stream.of(new TriggerInfo(name,(String)resume.get("kernelTransaction"), (Map<String,Object>) resume.get("selector"),true, false));
     }
 
     public static class TriggerHandler implements TransactionEventHandler {
@@ -141,13 +140,13 @@ public class Trigger {
         private static GraphProperties properties;
         private final Log log;
         public TriggerHandler(GraphDatabaseAPI api, Log log) {
-            properties = api.getDependencyResolver().resolveDependency(NodeManager.class).newGraphProperties();
+            properties = api.getDependencyResolver().resolveDependency(EmbeddedProxySPI.class).newGraphPropertiesProxy();
 //            Pools.SCHEDULED.submit(() -> updateTriggers(null,null));
             this.log = log;
         }
 
         public static Map<String, Object> add(String name, String statement, Map<String,Object> selector) {
-            return updateTriggers(name, map("statement", statement, "selector", selector, "paused", false));
+            return updateTriggers(name, map("kernelTransaction", statement, "selector", selector, "paused", false));
         }
         public synchronized static Map<String, Object> remove(String name) {
             return updateTriggers(name,null);
@@ -155,13 +154,13 @@ public class Trigger {
 
         public static Map<String, Object> paused(String name) {
             Map<String, Object> triggerToPause = triggers.get(name);
-            updateTriggers(name, map("statement", triggerToPause.get("statement"), "selector", triggerToPause.get("selector"), "paused", true));
+            updateTriggers(name, map("kernelTransaction", triggerToPause.get("kernelTransaction"), "selector", triggerToPause.get("selector"), "paused", true));
             return triggers.get(name);
         }
 
         public static Map<String, Object> resume(String name) {
             Map<String, Object> triggerToResume = triggers.get(name);
-            updateTriggers(name, map("statement", triggerToResume.get("statement"), "selector", triggerToResume.get("selector"), "paused", false));
+            updateTriggers(name, map("kernelTransaction", triggerToResume.get("kernelTransaction"), "selector", triggerToResume.get("selector"), "paused", false));
             return triggers.get(name);
         }
 
@@ -204,7 +203,7 @@ public class Trigger {
                         Map<String,Object> selector = (Map<String, Object>) data.get("selector");
                         if (when(selector, phase)) {
                             params.put("trigger", name);
-                            Result result = db.execute((String) data.get("statement"), params);
+                            Result result = db.execute((String) data.get("kernelTransaction"), params);
                             Iterators.count(result);
                             result.close();
                         }

@@ -89,7 +89,7 @@ public class PeriodicTest {
 
         // when&then
 
-        // TODO: remove forcing rule based in the 2nd statement next line when 3.0.2 is released, due to https://github.com/neo4j/neo4j/pull/7152
+        // TODO: remove forcing rule based in the 2nd kernelTransaction next line when 3.0.2 is released, due to https://github.com/neo4j/neo4j/pull/7152
         testResult(db, "CALL apoc.periodic.rock_n_roll('match (p:Person) return p', 'WITH {p} as p SET p.lastname =p.name REMOVE p.name', 10)", result -> {
             Map<String, Object> row = Iterators.single(result);
             assertEquals(10L, row.get("batches"));
@@ -334,8 +334,8 @@ public class PeriodicTest {
         db.execute("CREATE (counter:Counter {c: " + startValue + "})");
         String statementToRepeat = "MATCH (counter:Counter) SET counter.c = counter.c - 1 RETURN counter.c as count";
 
-        Map<String, Object> params = map("statement", statementToRepeat, "rate", rate);
-        testResult(db, "CALL apoc.periodic.countdown('decrement',{statement}, {rate})", params, r -> {
+        Map<String, Object> params = map("kernelTransaction", statementToRepeat, "rate", rate);
+        testResult(db, "CALL apoc.periodic.countdown('decrement',{kernelTransaction}, {rate})", params, r -> {
             try {
                 // Number of iterations per rate (in seconds)
                 Thread.sleep(startValue * rate * 1000);

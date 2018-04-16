@@ -4,6 +4,10 @@ import apoc.ApocKernelExtensionFactory;
 import apoc.Pools;
 import apoc.result.WeightedNodeResult;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.Tokenizer;
+import org.apache.lucene.analysis.core.LowerCaseFilter;
+import org.apache.lucene.analysis.core.WhitespaceTokenizer;
 import org.apache.lucene.search.Sort;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -256,8 +260,24 @@ public class FreeTextSearch {
         return Pools.DEFAULT;
     }
 
+    /* same as LuceneDataSource.LOWER_CASE_WHITESPACE_ANALYZER */
     static Analyzer analyzer() {
-        return LuceneDataSource.LOWER_CASE_WHITESPACE_ANALYZER;
+        return new Analyzer()
+        {
+            @Override
+            protected TokenStreamComponents createComponents( String fieldName )
+            {
+                Tokenizer source = new WhitespaceTokenizer();
+                TokenStream filter = new LowerCaseFilter( source );
+                return new TokenStreamComponents( source, filter );
+            }
+
+            @Override
+            public String toString()
+            {
+                return "LOWER_CASE_WHITESPACE_ANALYZER";
+            }
+        };
     }
 
     private static String escape(Collection<String> keys) {
