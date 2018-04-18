@@ -195,7 +195,7 @@ public class CoreGraphAlgorithms {
             // todo reuse array
             int[] offsets = new int[size];
             Arrays.fill(offsets,-1);
-//            int offset = 0;
+            int offset = 0;
             int maxIdx = 0;
 
             ktx.dataRead().allNodesScan(node);
@@ -203,9 +203,9 @@ public class CoreGraphAlgorithms {
             while (node.next()) {
                 int degree = DegreeUtil.degree(node, cursors, relType, direction);
                 int idx = mapId(node.nodeReference());
-                offsets[idx] = degree;
-//                offsets[idx] = offset;
-//                offset += degree;
+//                offsets[idx] = degree;
+                offsets[idx] = offset;
+                offset += degree;
                 if (idx > maxIdx) maxIdx = idx;
             }
 
@@ -461,9 +461,6 @@ public class CoreGraphAlgorithms {
     }
 
     private void loadRels(int labelId, int relTypeId) {
-//        int allRelCount = (int)
-        //   ops.relationshipsGetCount();
-
         this.relCount = (int) read.countsForRelationshipWithoutTxState(labelId, relTypeId, ANY_LABEL);
         this.rels = new int[relCount];
 //        float percentage = (float) relCount / (float) allRelCount;
@@ -475,26 +472,36 @@ public class CoreGraphAlgorithms {
 //            this.relCount = loadNodeRels(ops, nodeIds, relTypeId, rels);
 //        }
 
-        try (NodeLabelIndexCursor nodeIndex = cursors.allocateNodeLabelIndexCursor();
-             NodeCursor node = cursors.allocateNodeCursor()
+        try (NodeLabelIndexCursor nodeLabelIndexCursor = cursors.allocateNodeLabelIndexCursor();
+             NodeCursor nodeCursor = cursors.allocateNodeCursor()
             ) {
-            read.nodeLabelScan(labelId, nodeIndex);
 
             int idx = 0;
-            while (nodeIndex.next()) {
-
-                nodeIndex.node(node);
-                if (!node.next()) {
-                    throw new IllegalArgumentException("could not position curor");
+            int[] relTypes = relTypeId == ANY_RELATIONSHIP_TYPE ? null : new int[]{relTypeId};
+            if (labelId == ANY_LABEL) {
+                read.allNodesScan(nodeCursor);
+                while (nodeCursor.next()) {
+                    idx = loadRelsForNode(nodeCursor, idx, relTypes);
                 }
-                int[] relTypes = {relTypeId};
-                RelationshipSelectionCursor relationshipSelectionCursor = RelationshipSelections.outgoingCursor(cursors, node, relTypes);
-
-                while (relationshipSelectionCursor.next()) {
-                    rels[idx++] = mapId(relationshipSelectionCursor.otherNodeReference());
+            } else {
+                read.nodeLabelScan(labelId, nodeLabelIndexCursor);
+                while (nodeLabelIndexCursor.next()) {
+                    nodeLabelIndexCursor.node(nodeCursor);
+                    if (!nodeCursor.next()) {
+                        throw new IllegalArgumentException("could not position cursor");
+                    }
+                    idx = loadRelsForNode(nodeCursor, idx, relTypes);
                 }
             }
         }
+    }
+
+    private int loadRelsForNode(NodeCursor nodeCursor, int idx, int[] relTypes) {
+        RelationshipSelectionCursor relationshipSelectionCursor = RelationshipSelections.outgoingCursor(cursors, nodeCursor, relTypes);
+        while (relationshipSelectionCursor.next()) {
+            rels[idx++] = mapId(relationshipSelectionCursor.otherNodeReference());
+        }
+        return idx;
     }
 
     private void loadNodes(int labelId, int relTypeId)  {
@@ -511,7 +518,7 @@ public class CoreGraphAlgorithms {
 
             this.nodeRelOffsets = (percentage > 0.5f) ?
                     loadNodesForLabel(labelId,    nodeCount, relTypeId, OUTGOING) :
-                    loadNodes( nodeCount, relTypeId, OUTGOING);
+                    loadNodes( allNodeCount, relTypeId, OUTGOING);
         }
     }
 
