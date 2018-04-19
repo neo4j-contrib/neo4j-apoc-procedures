@@ -2,7 +2,7 @@ package apoc.stats;
 
 import apoc.Pools;
 import apoc.path.RelationshipTypeAndDirections;
-import apoc.util.Util;
+import apoc.util.kernel.MultiThreadedGlobalGraphOperations;
 import org.HdrHistogram.AtomicHistogram;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
@@ -17,7 +17,6 @@ import org.neo4j.procedure.Procedure;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Future;
 import java.util.stream.Stream;
 
 import static org.neo4j.internal.kernel.api.Read.ANY_LABEL;
@@ -29,8 +28,7 @@ import static org.neo4j.kernel.api.StatementConstants.ANY_RELATIONSHIP_TYPE;
  */
 public class DegreeDistribution {
 
-
-    private static final long BATCHSIZE = 10_000;
+    private static final int BATCHSIZE = 10_000;
 
     public static class DegreeStats {
         public final String typeName;
@@ -91,32 +89,11 @@ public class DegreeDistribution {
     @Procedure
     public Stream<DegreeStats.Result> degrees(@Name(value = "types", defaultValue = "") String types) {
         List<DegreeStats> stats = prepareStats(types);
-        final Read read = tx.dataRead();
-        long highestNodeId = read.nodesGetCount();
-        List<Future> futures = new ArrayList<>();
-        for (long batchStartId = 0; batchStartId < highestNodeId; batchStartId += BATCHSIZE) {
-            long finalBatchStartId = batchStartId;
-            futures.add(Util.inTxFuture(Pools.DEFAULT, db, (ktx) -> computeDegree(ktx, stats, finalBatchStartId)));
-            Util.removeFinished(futures);
-        }
-        Util.waitForFutures(futures);
-        return stats.stream().map(DegreeStats::done);
-    }
 
-    public long computeDegree(KernelTransaction ktx, List<DegreeStats> stats, long batchStartId) {
-        CursorFactory cursors = ktx.cursors();
-        Read read = ktx.dataRead();
-        try (NodeCursor nodeCursor = cursors.allocateNodeCursor()) {
-            long id = batchStartId;
-            while (id < batchStartId+BATCHSIZE) {
-                read.singleNode(id, nodeCursor);
-                if (nodeCursor.next()) {
-                    stats.forEach((s) -> s.computeDegree(nodeCursor, cursors));
-                }
-                id++;
-            }
-            return id-batchStartId;
-        }
+        MultiThreadedGlobalGraphOperations.forAllNodes(db, Pools.DEFAULT, BATCHSIZE,
+                (ktx,nodeCursor)-> stats.forEach((s) -> s.computeDegree(nodeCursor, ktx.cursors()))
+        );
+        return stats.stream().map(DegreeStats::done);
     }
 
     public List<DegreeStats> prepareStats(String types) {
