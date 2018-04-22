@@ -1,4 +1,3 @@
-/*
 package apoc.algo;
 
 import apoc.algo.pagerank.PageRankAlgoTest;
@@ -271,5 +270,3 @@ public class PageRankTest
         } );
     }
 }
-
-*/

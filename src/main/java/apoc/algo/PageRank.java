@@ -1,11 +1,12 @@
 package apoc.algo;
 
 import apoc.algo.pagerank.PageRank.PageRankStatistics;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.procedure.*;
 import apoc.Pools;
 import apoc.algo.algorithms.AlgoUtils;
-//import apoc.algo.pagerank.PageRankArrayStorageParallelCypher;
-//import apoc.algo.pagerank.PageRankArrayStorageParallelSPI;
+import apoc.algo.pagerank.PageRankArrayStorageParallelCypher;
+import apoc.algo.pagerank.PageRankArrayStorageParallelSPI;
 import apoc.result.NodeScore;
 import apoc.util.Util;
 import org.neo4j.graphdb.Node;
@@ -35,10 +36,13 @@ public class PageRank {
     public TerminationGuard guard;
 
     @Context
+    public KernelTransaction ktx;
+
+    @Context
     public Log log;
 
 
-    /*@Deprecated
+    @Deprecated
     @Procedure("apoc.algo.pageRank")
     @Description("CALL apoc.algo.pageRank(nodes) YIELD node, score - calculates page rank for given nodes")
     public Stream<NodeScore> pageRank(
@@ -46,9 +50,9 @@ public class PageRank {
         return innerPageRank(
                 DEFAULT_PAGE_RANK_ITERATIONS,
                 nodes);
-    }*/
+    }
 
-    /*@Deprecated
+    @Deprecated
     @Procedure("apoc.algo.pageRankWithConfig")
     @Description(
             "CALL apoc.algo.pageRankWithConfig(nodes,{iterations:_,types:_}) YIELD node, score, info - calculates page rank" +
@@ -60,8 +64,8 @@ public class PageRank {
                     (Long) config.getOrDefault(SETTING_PAGE_RANK_ITERATIONS, DEFAULT_PAGE_RANK_ITERATIONS),
                     nodes,
                     Util.typesAndDirectionsToTypesArray((String) config.getOrDefault(SETTING_PAGE_RANK_TYPES, "")));
-    }*/
-    /*@Deprecated
+    }
+    @Deprecated
     @Procedure(value = "apoc.algo.pageRankStats",mode = Mode.WRITE)
     @Description(
             "CALL apoc.algo.pageRankStats({iterations:_,types:_,write:true,...}) YIELD nodeCount - calculates page rank on graph " +
@@ -70,9 +74,9 @@ public class PageRank {
         Long iterations = (Long) config.getOrDefault(SETTING_PAGE_RANK_ITERATIONS, DEFAULT_PAGE_RANK_ITERATIONS);
         RelationshipType[] types = Util.typesAndDirectionsToTypesArray((String) config.getOrDefault(SETTING_PAGE_RANK_TYPES, ""));
         return innerPageRankStats(iterations.intValue(), config, types);
-    }*/
+    }
 
-    /*@Deprecated
+    @Deprecated
     @Procedure(value = "apoc.algo.pageRankWithCypher",mode = Mode.WRITE)
     @Description("CALL apoc.algo.pageRankWithCypher({iterations,node_cypher,rel_cypher,write,property,numCpu}) - calculates page rank based on cypher input")
     public Stream<PageRankStatistics> pageRankWithCypher(
@@ -113,11 +117,11 @@ public class PageRank {
             log.info("Pagerank: Writeback took " + (afterWrite - afterComputation) + " milliseconds");
         }
         return Stream.of(pageRank.getStatistics());
-    }*/
+    }
 
-    /*private Stream<NodeScore> innerPageRank(Long iterations, List<Node> nodes, RelationshipType... types) {
+    private Stream<NodeScore> innerPageRank(Long iterations, List<Node> nodes, RelationshipType... types) {
         try {
-            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI(db, guard, pool);
+            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI(db, ktx, guard, pool);
             pageRank.compute(iterations.intValue(), types);
             return nodes.stream().map(node -> new NodeScore(node, pageRank.getResult(node.getId())));
         } catch (Exception e) {
@@ -125,10 +129,10 @@ public class PageRank {
             log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }
-    }*/
-    /*private Stream<PageRankStatistics> innerPageRankStats(int iterations, Map<String,Object> config, RelationshipType... types) {
+    }
+    private Stream<PageRankStatistics> innerPageRankStats(int iterations, Map<String,Object> config, RelationshipType... types) {
         try {
-            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI(db, guard, pool);
+            PageRankArrayStorageParallelSPI pageRank = new PageRankArrayStorageParallelSPI(db, ktx, guard, pool);
             pageRank.compute(iterations, types);
             if ((boolean)config.getOrDefault(SETTING_WRITE, DEFAULT_PAGE_RANK_WRITE)) {
                 pageRank.writeResultsToDB();
@@ -139,5 +143,5 @@ public class PageRank {
             log.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }
-    }*/
+    }
 }

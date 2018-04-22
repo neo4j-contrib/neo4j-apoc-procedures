@@ -3,6 +3,8 @@ package apoc.algo.algorithms;
 import apoc.util.Util;
 import org.neo4j.cypher.EntityNotFoundException;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.kernel.api.Write;
+import org.neo4j.internal.kernel.api.exceptions.schema.IllegalTokenNameException;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.values.storable.DoubleValue;
@@ -54,7 +56,7 @@ public class AlgoUtils {
         return total;
     }
 
-    /*public static void writeBackResults(ExecutorService pool, GraphDatabaseAPI db, AlgorithmInterface algorithm,
+    public static void writeBackResults(ExecutorService pool, GraphDatabaseAPI db, AlgorithmInterface algorithm,
                                         int batchSize, TerminationGuard guard) {
         ThreadToStatementContextBridge ctx = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
         int propertyNameId;
@@ -63,7 +65,7 @@ public class AlgoUtils {
             if (Util.transactionIsTerminated(guard)) {
                 return;
             }
-            propertyNameId = ctx.get().tokenWriteOperations().propertyKeyGetOrCreateForName(algorithm.getPropertyName());
+            propertyNameId = ctx.getKernelTransactionBoundToThisThread(true).tokenWrite().propertyKeyGetOrCreateForName(algorithm.getPropertyName());
             tx.success();
         } catch (IllegalTokenNameException e) {
             throw new RuntimeException(e);
@@ -82,7 +84,7 @@ public class AlgoUtils {
                             return;
                         }
 
-                        DataWriteOperations ops = ctx.get().dataWriteOperations();
+                        Write write = ctx.getKernelTransactionBoundToThisThread(true).dataWrite();
                         for (int i = 0; i < batchSize; i++) {
                             int nodeIndex = i + start;
                             if (nodeIndex >= totalNodes) break;
@@ -92,7 +94,7 @@ public class AlgoUtils {
                             if (graphNode == -1) {
                                 System.out.println("Node node found for " + graphNode + " mapped node " + nodeIndex);
                             } else
-                                ops.nodeSetProperty(graphNode, propertyNameId, Values.doubleValue(value));
+                                write.nodeSetProperty(graphNode, propertyNameId, Values.doubleValue(value));
                         }
                         tx.success();
                     } catch (Exception e) {
@@ -104,5 +106,5 @@ public class AlgoUtils {
             futures.add(future);
         }
         AlgoUtils.waitForTasks(futures);
-    }*/
+    }
 }

@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-/*public class BetweennessCentrality implements AlgorithmInterface {
+public class BetweennessCentrality implements AlgorithmInterface {
     public static final int WRITE_BATCH=100_000;
     public final int MINIMUM_BATCH_SIZE =10_000 ;
     private Algorithm algorithm;
@@ -279,4 +279,4 @@ import java.util.concurrent.Future;
         stats.writeMillis = System.currentTimeMillis() - before;
         stats.property = getPropertyName();
     }
-}*/
+}

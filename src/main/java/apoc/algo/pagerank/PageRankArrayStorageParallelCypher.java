@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
 import static apoc.algo.pagerank.PageRankUtils.toFloat;
 import static apoc.algo.pagerank.PageRankUtils.toInt;
 
-/*public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmInterface
+public class PageRankArrayStorageParallelCypher implements PageRank, AlgorithmInterface
 {
     public static final int ONE_MINUS_ALPHA_INT = toInt( ONE_MINUS_ALPHA );
     public static final int WRITE_BATCH=100_100;
@@ -142,7 +142,7 @@ import static apoc.algo.pagerank.PageRankUtils.toInt;
             futures.add(future);
         }
 
-        PageRankUtils.waitForTasks(futures);
+        AlgoUtils.waitForTasks(futures);
     }
 
     private int getTotalWeightForNode(int node,
@@ -213,4 +213,4 @@ import static apoc.algo.pagerank.PageRankUtils.toInt;
     public PageRankStatistics getStatistics() {
         return stats;
     }
-}*/
+}

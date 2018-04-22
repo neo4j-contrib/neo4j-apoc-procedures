@@ -17,13 +17,14 @@ import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.TerminationGuard;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static org.junit.Assert.assertEquals;
 
-/*public class PageRankAlgoTest
+public class PageRankAlgoTest
 {
     private GraphDatabaseService db;
 
@@ -64,6 +65,8 @@ import static org.junit.Assert.assertEquals;
 
     public static final double EXPECTED = 2.87711;
     static ExecutorService pool = Pools.DEFAULT;
+    private ThreadToStatementContextBridge ctx;
+
     private TerminationGuard guard = new TerminationGuard() {
         @Override
         public void check() {
@@ -74,8 +77,8 @@ import static org.junit.Assert.assertEquals;
     public void setUp() throws Exception
     {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        ctx = ((GraphDatabaseAPI)db).getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
         TestUtil.registerProcedure( db, LabelPropagation.class );
-
     }
 
     @After
@@ -89,7 +92,8 @@ import static org.junit.Assert.assertEquals;
     {
         db.execute( COMPANIES_QUERY ).close();
         try (Transaction tx = db.beginTx()) {
-            PageRank pageRank = new PageRankArrayStorageParallelSPI(db, guard, pool);
+
+            PageRank pageRank = new PageRankArrayStorageParallelSPI(db, ctx.getKernelTransactionBoundToThisThread(true), guard, pool);
             pageRank.compute(20);
             long id = (long) getEntry("b").get("id");
             assertEquals(EXPECTED, pageRank.getResult(id), 0.1D);
@@ -102,7 +106,7 @@ import static org.junit.Assert.assertEquals;
     {
         db.execute( COMPANIES_QUERY ).close();
         try (Transaction tx = db.beginTx()) {
-            PageRank pageRank = new PageRankArrayStorageParallelSPI(db, guard, pool);
+            PageRank pageRank = new PageRankArrayStorageParallelSPI(db, ctx.getKernelTransactionBoundToThisThread(true), guard, pool);
             pageRank.compute(20, RelationshipType.withName("TYPE_1"), RelationshipType.withName("TYPE_2"));
             long id = (long) getEntry("b").get("id");
             assertEquals(EXPECTED, pageRank.getResult(id), 0.1D);
@@ -112,11 +116,8 @@ import static org.junit.Assert.assertEquals;
 
     private Map<String,Object> getEntry( String name )
     {
-        try ( Result result = db
-                .execute( COMPANY_RESULT_QUERY, Collections.<String,Object>singletonMap( "name", name ) ) )
-        {
+        try ( Result result = db.execute( COMPANY_RESULT_QUERY, Collections.singletonMap( "name", name ) ) ) {
             return result.next();
         }
     }
-}*/
-
+}
