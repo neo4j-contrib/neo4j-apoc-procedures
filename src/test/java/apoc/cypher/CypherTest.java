@@ -98,6 +98,13 @@ public class CypherTest {
     }
 
     @Test
+    public void testRunFirstColumnWrites() throws Exception {
+        String expected = "Wildlife Documentary";
+        testCall(db, "CALL apoc.cypher.runFirstColumnWrites('CREATE (g:Genre) SET g.name = $name RETURN g', {name:'Wildlife Documentary'}) YIELD node AS genre RETURN genre { .name } AS genre",
+                r -> assertEquals(expected, ((Map<String, Object>)r.get("genre") ).get("name")));
+    }
+
+    @Test
     public void testParallel() throws Exception {
         int size = 10_000;
         testResult(db, "CALL apoc.cypher.parallel2('UNWIND range(0,9) as b RETURN b',{a:range(1,{size})},'a')", map("size", size),
