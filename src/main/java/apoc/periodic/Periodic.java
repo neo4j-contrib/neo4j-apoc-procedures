@@ -5,6 +5,7 @@ import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterators;
+import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
@@ -16,6 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.util.Util.merge;
@@ -257,8 +259,9 @@ public class Periodic {
         long retries = Util.toLong(config.getOrDefault("retries", 0)); // todo sleep/delay or push to end of batch to try again or immediate ?
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
         try (Result result = db.execute(cypherIterate,params)) {
-            String innerStatement = prepareInnerStatement(cypherAction, iterateList, result.columns(), "_batch");
-            if (innerStatement.equals(cypherAction)) iterateList=false; // could not prepend UNWIND
+            Pair<String,Boolean> prepared = prepareInnerStatement(cypherAction, iterateList, result.columns(), "_batch");
+            String innerStatement = prepared.first();
+            iterateList=prepared.other();
             log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
             return iterateAndExecuteBatchedInSeparateThread((int)batchSize, parallel, iterateList, retries, result, (p) -> db.execute(innerStatement, merge(params, p)).close());
         }
@@ -277,14 +280,20 @@ public class Periodic {
     }
 
 
-    static Pattern CONTAINS_PARAM_MAPPING = Pattern.compile("(WITH|UNWIND)\\s*[{$]",Pattern.CASE_INSENSITIVE|Pattern.MULTILINE|Pattern.DOTALL);
-    public String prepareInnerStatement(String cypherAction, boolean iterateList, List<String> columns, String iterator) {
-        if (CONTAINS_PARAM_MAPPING.matcher(cypherAction).find()) return cypherAction;
+    public Pair<String,Boolean> prepareInnerStatement(String cypherAction, boolean iterateList, List<String> columns, String iterator) {
+        String names = columns.stream().map(Util::quote).collect(Collectors.joining("|"));
+        boolean withCheck = regNoCaseMultiLine("[{$](" + names + ")\\}?\\s+AS\\s+").matcher(cypherAction).find();
+        if (withCheck) return Pair.of(cypherAction, false);
         if (iterateList) {
+            if (regNoCaseMultiLine("UNWIND\\s+[{$]" + iterator+"\\}?\\s+AS\\s+").matcher(cypherAction).find()) return Pair.of(cypherAction, true);
             String with = Util.withMapping(columns.stream(), (c) -> Util.quote(iterator) + "." + Util.quote(c) + " AS " + Util.quote(c));
-            return "UNWIND "+ Util.param(iterator)+" AS "+ Util.quote(iterator) + with + " " + cypherAction;
+            return Pair.of("UNWIND "+ Util.param(iterator)+" AS "+ Util.quote(iterator) + with + " " + cypherAction,true);
         }
-        return Util.withMapping(columns.stream(), (c) ->  Util.param(c) + " AS " + Util.quote(c)) + cypherAction;
+        return Pair.of(Util.withMapping(columns.stream(), (c) ->  Util.param(c) + " AS " + Util.quote(c)) + cypherAction,false);
+    }
+
+    public Pattern regNoCaseMultiLine(String pattern) {
+        return Pattern.compile(pattern,Pattern.CASE_INSENSITIVE|Pattern.MULTILINE|Pattern.DOTALL);
     }
 
 
