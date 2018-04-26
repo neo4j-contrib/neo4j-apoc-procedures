@@ -246,7 +246,9 @@ public class Util {
     	if (value == null) return null;
         if (value instanceof Number) return ((Number)value).longValue();
         try {
-        	return Long.parseLong(value.toString());
+            String s = value.toString();
+            if (s.contains(".")) return (long)Double.parseDouble(s);
+            return Long.parseLong(s);
         } catch (NumberFormatException e) {
         	return null;
         }
@@ -255,6 +257,8 @@ public class Util {
     	if (value == null) return null;
         if (value instanceof Number) return ((Number)value).intValue();
         try {
+            String s = value.toString();
+            if (s.contains(".")) return (int)Double.parseDouble(s);
         	return Integer.parseInt(value.toString());
         } catch (NumberFormatException e) {
         	return null;

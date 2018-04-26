@@ -2,6 +2,7 @@ package apoc.cypher;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import static apoc.util.Util.*;
 import apoc.util.Utils;
 import org.hamcrest.Matchers;
 import org.junit.*;
@@ -16,7 +17,6 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import java.io.File;
 import java.util.*;
 
-import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Collections.singletonMap;
@@ -88,6 +88,24 @@ public class CypherTest {
     public void testRunFirstColumn() throws Exception {
         testCall(db, "RETURN apoc.cypher.runFirstColumn('RETURN a + 7 AS b', {a: 3}, false) AS s",
                 r -> assertEquals(10L, (r.get("s"))));
+    }
+
+    @Test
+    public void testRunFirstColumnBugCompiled() throws Exception {
+        ResourceIterator<Node> it = db.execute("CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'}) RETURN m").columnAs("m");
+        Node movie = it.next();
+        it.close();
+        String query = "WITH {m} AS m MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10";
+        System.out.println(db.execute("EXPLAIN "+query).getExecutionPlanDescription().toString());
+        ResourceIterator<Node> rec = db.execute(query, map("m",movie)).columnAs("rec");
+        assertEquals(1, rec.stream().count());
+    }
+    @Test
+    public void testRunFirstColumnBugDirection() throws Exception {
+        db.execute("CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'})").close();
+        String query = "MATCH (m:Movie {title:'MovieA'}) RETURN apoc.cypher.runFirstColumn('WITH {m} AS m MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10', {m:m}, true) as rec";
+        testCall(db, query,
+                r -> assertEquals("MovieB", ((Node)((List)r.get("rec")).get(0)).getProperty("title")));
     }
 
     @Test

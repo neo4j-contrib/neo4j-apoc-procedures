@@ -1,6 +1,7 @@
 package apoc.util;
 
 import apoc.ApocConfiguration;
+import apoc.export.util.CountingInputStream;
 import apoc.export.util.CountingReader;
 import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
@@ -36,6 +37,28 @@ public class FileUtils {
         }
         return readFile(fileName);
     }
+    public static CountingInputStream inputStreamFor(String fileName) throws IOException {
+        checkReadAllowed(fileName);
+        if (fileName==null) return null;
+        fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
+        if (fileName.matches("^\\w+:/.+")) {
+        	if (isHdfs(fileName)) {
+        		return readHdfsStream(fileName);
+        	} else {
+        		return Util.openInputStream(fileName,null,null);
+        	}
+        }
+        return readFileStream(fileName);
+    }
+
+	private static CountingInputStream readHdfsStream(String fileName) {
+		try {
+	        StreamConnection streamConnection = HDFSUtils.readFile(fileName);
+			return new CountingInputStream(streamConnection.getInputStream(), streamConnection.getLength());
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	private static CountingReader readHdfs(String fileName) {
 		try {
@@ -51,6 +74,12 @@ public class FileUtils {
 		File file = new File(fileName);
         if (!file.exists() || !file.isFile() || !file.canRead()) throw new IOException("Cannot open file "+fileName+" for reading.");
         return new CountingReader(file);
+	}
+
+	private static CountingInputStream readFileStream(String fileName) throws IOException, FileNotFoundException {
+		File file = new File(fileName);
+        if (!file.exists() || !file.isFile() || !file.canRead()) throw new IOException("Cannot open file "+fileName+" for reading.");
+        return new CountingInputStream(file);
 	}
 
     public static String changeFileUrlIfImportDirectoryConstrained(String url) throws IOException {
