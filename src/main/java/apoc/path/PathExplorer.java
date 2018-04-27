@@ -3,14 +3,16 @@ package apoc.path;
 import apoc.algo.Cover;
 import apoc.result.GraphResult;
 import apoc.result.NodeResult;
-import org.neo4j.procedure.Description;
 import apoc.result.PathResult;
 import apoc.util.Util;
-import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.traversal.Evaluation;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.traversal.*;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
@@ -19,8 +21,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static org.neo4j.graphdb.traversal.Evaluation.*;
-
+import static apoc.path.PathExplorer.NodeFilter.*;
 
 public class PathExplorer {
 	public static final Uniqueness UNIQUENESS = Uniqueness.RELATIONSHIP_PATH;
@@ -39,7 +40,7 @@ public class PathExplorer {
 			                   , @Name("minLevel") long minLevel
 			                   , @Name("maxLevel") long maxLevel ) throws Exception {
 		List<Node> nodes = startToNodes(start);
-		return explorePathPrivate(nodes, pathFilter, labelFilter, minLevel, maxLevel, BFS, UNIQUENESS, false, -1, Collections.emptyList(), Collections.emptyList(), null, true).map( PathResult::new );
+		return explorePathPrivate(nodes, pathFilter, labelFilter, minLevel, maxLevel, BFS, UNIQUENESS, false, -1, null, null, true).map( PathResult::new );
 	}
 
 	//
@@ -142,13 +143,32 @@ public class PathExplorer {
 		boolean filterStartNode = Util.toBoolean(config.getOrDefault("filterStartNode", false));
 		long limit = Util.toLong(config.getOrDefault("limit", "-1"));
 		boolean optional = Util.toBoolean(config.getOrDefault("optional", false));
-		List<Node> endNodes = startToNodes(config.get("endNodes"));
-		List<Node> terminatorNodes = startToNodes(config.get("terminatorNodes"));
 		String sequence = (String) config.getOrDefault("sequence", null);
 		boolean beginSequenceAtStart = Util.toBoolean(config.getOrDefault("beginSequenceAtStart", true));
 
+		List<Node> endNodes = startToNodes(config.get("endNodes"));
+		List<Node> terminatorNodes = startToNodes(config.get("terminatorNodes"));
+		List<Node> whitelistNodes = startToNodes(config.get("whitelistNodes"));
+		List<Node> blacklistNodes = startToNodes(config.get("blacklistNodes"));
+		EnumMap<NodeFilter, List<Node>> nodeFilter = new EnumMap<>(NodeFilter.class);
 
-		Stream<Path> results = explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness), filterStartNode, limit, endNodes, terminatorNodes, sequence, beginSequenceAtStart);
+		if (endNodes != null && !endNodes.isEmpty()) {
+			nodeFilter.put(END_NODES, endNodes);
+		}
+
+		if (terminatorNodes != null && !terminatorNodes.isEmpty()) {
+			nodeFilter.put(TERMINATOR_NODES, terminatorNodes);
+		}
+
+		if (whitelistNodes != null && !whitelistNodes.isEmpty()) {
+			nodeFilter.put(WHITELIST_NODES, whitelistNodes);
+		}
+
+		if (blacklistNodes != null && !blacklistNodes.isEmpty()) {
+			nodeFilter.put(BLACKLIST_NODES, blacklistNodes);
+		}
+
+		Stream<Path> results = explorePathPrivate(nodes, relationshipFilter, labelFilter, minLevel, maxLevel, bfs, getUniqueness(uniqueness), filterStartNode, limit, nodeFilter, sequence, beginSequenceAtStart);
 
 		if (optional) {
 			return optionalStream(results);
@@ -166,12 +186,11 @@ public class PathExplorer {
 											Uniqueness uniqueness,
 											boolean filterStartNode,
 											long limit,
-											List<Node> endNodes,
-											List<Node> terminatorNodes,
+											EnumMap<NodeFilter, List<Node>> nodeFilter,
 											String sequence,
 											boolean beginSequenceAtStart) {
 
-		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs,filterStartNode, endNodes, terminatorNodes, sequence, beginSequenceAtStart);
+		Traverser traverser = traverse(db.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs,filterStartNode, nodeFilter, sequence, beginSequenceAtStart);
 
 		if (limit == -1) {
 			return traverser.stream();
@@ -208,8 +227,7 @@ public class PathExplorer {
 									 Uniqueness uniqueness,
 									 boolean bfs,
 									 boolean filterStartNode,
-									 List<Node> endNodes,
-									 List<Node> terminatorNodes,
+									 EnumMap<NodeFilter, List<Node>> nodeFilter,
 									 String sequence,
 									 boolean beginSequenceAtStart) {
 		TraversalDescription td = traversalDescription;
@@ -243,21 +261,36 @@ public class PathExplorer {
 		if (minLevel != -1) td = td.evaluator(Evaluators.fromDepth((int) minLevel));
 		if (maxLevel != -1) td = td.evaluator(Evaluators.toDepth((int) maxLevel));
 
-		Evaluator endNodeEvaluator = null;
-		Evaluator terminatorNodeEvaluator = null;
 
-		if (!endNodes.isEmpty()) {
-			Node[] nodes = endNodes.toArray(new Node[endNodes.size()]);
-			endNodeEvaluator = Evaluators.includeWhereEndNodeIs(nodes);
-		}
+		if (nodeFilter != null && !nodeFilter.isEmpty()) {
+			List<Node> endNodes = nodeFilter.getOrDefault(END_NODES, Collections.EMPTY_LIST);
+			List<Node> terminatorNodes = nodeFilter.getOrDefault(TERMINATOR_NODES, Collections.EMPTY_LIST);
+			List<Node> blacklistNodes = nodeFilter.getOrDefault(BLACKLIST_NODES, Collections.EMPTY_LIST);
+			List<Node> whitelistNodes;
 
-		if (!terminatorNodes.isEmpty()) {
-			Node[] nodes = terminatorNodes.toArray(new Node[terminatorNodes.size()]);
-			terminatorNodeEvaluator = Evaluators.pruneWhereEndNodeIs(nodes);
-		}
+			if (nodeFilter.containsKey(WHITELIST_NODES)) {
+				// need to add to new list since we may need to add to it later
+				// encounter "can't add to abstractList" error if we don't do this
+				whitelistNodes = new ArrayList<>(nodeFilter.get(WHITELIST_NODES));
+			} else {
+				whitelistNodes = Collections.EMPTY_LIST;
+			}
 
-		if (endNodeEvaluator != null || terminatorNodeEvaluator != null) {
-			td = td.evaluator(new EndAndTerminatorNodeEvaluator(endNodeEvaluator, terminatorNodeEvaluator));
+			if (!blacklistNodes.isEmpty()) {
+				td = td.evaluator(NodeEvaluators.blacklistNodeEvaluator(blacklistNodes));
+			}
+
+			Evaluator endAndTerminatorNodeEvaluator = NodeEvaluators.endAndTerminatorNodeEvaluator(endNodes, terminatorNodes);
+			if (endAndTerminatorNodeEvaluator != null) {
+				td = td.evaluator(endAndTerminatorNodeEvaluator);
+			}
+
+			if (!whitelistNodes.isEmpty()) {
+				// ensure endNodes and terminatorNodes are whitelisted
+				whitelistNodes.addAll(endNodes);
+				whitelistNodes.addAll(terminatorNodes);
+				td = td.evaluator(NodeEvaluators.whitelistNodeEvaluator(whitelistNodes));
+			}
 		}
 
 		td = td.uniqueness(uniqueness); // this is how Cypher works !! Uniqueness.RELATIONSHIP_PATH
@@ -265,94 +298,12 @@ public class PathExplorer {
 		return td.traverse(startNodes);
 	}
 
-	// when no commas present, acts as a pathwide label filter
-	public static class LabelSequenceEvaluator implements Evaluator {
-		private List<LabelMatcherGroup> sequenceMatchers;
-
-		private Evaluation whitelistAllowedEvaluation;
-		private boolean endNodesOnly;
-		private boolean filterStartNode;
-		private boolean beginSequenceAtStart;
-		private long minLevel = -1;
-
-		public LabelSequenceEvaluator(String labelSequence, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel) {
-			List<String> labelSequenceList;
-
-			// parse sequence
-			if (labelSequence != null && !labelSequence.isEmpty()) {
-				labelSequenceList = Arrays.asList(labelSequence.split(","));
-			} else {
-				labelSequenceList = Collections.emptyList();
-			}
-
-			initialize(labelSequenceList, filterStartNode, beginSequenceAtStart, minLevel);
-		}
-
-		public LabelSequenceEvaluator(List<String> labelSequenceList, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel) {
-			initialize(labelSequenceList, filterStartNode, beginSequenceAtStart, minLevel);
-		}
-
-		private void initialize(List<String> labelSequenceList, boolean filterStartNode, boolean beginSequenceAtStart, int minLevel) {
-			this.filterStartNode = filterStartNode;
-			this.beginSequenceAtStart = beginSequenceAtStart;
-			this.minLevel = minLevel;
-			sequenceMatchers = new ArrayList<>(labelSequenceList.size());
-
-			for (String labelFilterString : labelSequenceList) {
-				LabelMatcherGroup matcherGroup = new LabelMatcherGroup().addLabels(labelFilterString.trim());
-				sequenceMatchers.add(matcherGroup);
-				endNodesOnly = endNodesOnly || matcherGroup.isEndNodesOnly();
-			}
-
-			// if true for one matcher, need to set true for all matchers
-			if (endNodesOnly) {
-				for (LabelMatcherGroup group : sequenceMatchers) {
-					group.setEndNodesOnly(endNodesOnly);
-				}
-			}
-
-			whitelistAllowedEvaluation = endNodesOnly ? EXCLUDE_AND_CONTINUE : INCLUDE_AND_CONTINUE;
-		}
-
-		@Override
-		public Evaluation evaluate(Path path) {
-			int depth = path.length();
-			Node node = path.endNode();
-			boolean belowMinLevel = depth < minLevel;
-
-			// if start node shouldn't be filtered, exclude/include based on if using termination/endnode filter or not
-			// minLevel evaluator will separately enforce exclusion if we're below minLevel
-			if (depth == 0 && (!filterStartNode || !beginSequenceAtStart)) {
-				return whitelistAllowedEvaluation;
-			}
-
-			// the user may want the sequence to begin at the start node (default), or the sequence may only apply from the next node on
-			LabelMatcherGroup matcherGroup = sequenceMatchers.get((beginSequenceAtStart ? depth : depth - 1) % sequenceMatchers.size());
-
-			return matcherGroup.evaluate(node, belowMinLevel);
-		}
+	// keys to node filter map
+	enum NodeFilter {
+		WHITELIST_NODES,
+		BLACKLIST_NODES,
+		END_NODES,
+		TERMINATOR_NODES
 	}
 
-	// The evaluators from pruneWhereEndNodeIs and includeWhereEndNodeIs interfere with each other, this makes them play nice
-	public static class EndAndTerminatorNodeEvaluator implements Evaluator {
-		private Evaluator endNodeEvaluator;
-		private Evaluator terminatorNodeEvaluator;
-
-		public EndAndTerminatorNodeEvaluator(Evaluator endNodeEvaluator, Evaluator terminatorNodeEvaluator) {
-			this.endNodeEvaluator = endNodeEvaluator;
-			this.terminatorNodeEvaluator = terminatorNodeEvaluator;
-		}
-
-		@Override
-		public Evaluation evaluate(Path path) {
-			boolean includes = evalIncludes(endNodeEvaluator, path) || evalIncludes(terminatorNodeEvaluator, path);
-			boolean continues = terminatorNodeEvaluator == null || terminatorNodeEvaluator.evaluate(path).continues();
-
-			return Evaluation.of(includes, continues);
-		}
-
-		private boolean evalIncludes(Evaluator eval, Path path) {
-			return eval != null && eval.evaluate(path).includes();
-		}
-	}
 }

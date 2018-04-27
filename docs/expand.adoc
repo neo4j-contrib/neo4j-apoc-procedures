@@ -282,15 +282,21 @@ For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemo
 | NONE | No restriction (the user will have to manage it)
 |===
 
-.endNodes and terminatorNodes
+.Node filters
 
-As of the February 2018 APOC releases, if the end nodes of the expansion are known ahead of time (such as when testing reachability), then these nodes can be passed in as `endNodes` or `terminatorNodes`.
+While label filters use labels to allow whitelisting, blacklisting, and restrictions on which kind of nodes can end or terminate expansion,
+you can also filter based upon actual nodes.
 
-This restricts the returned paths (or nodes) to only these nodes (or nodes with the given ids, if an integer list is passed).
+Each of these config parameter accepts a list of nodes, or a list of node ids.
 
-For `endNodes`, expansion continues past end nodes.
-
-For `terminatorNodes`, expansion down a path stops when a terminator node is reached.
+[opts=header,cols="m,a,a"]
+|===
+| config parameter | description | added in
+| endNodes | Only these nodes can end returned paths, and expansion will continue past these nodes, if possible. | Winter 2018 APOC releases.
+| terminatorNodes | Only these nodes can end returned paths, and expansion won't continue past these nodes. | Winter 2018 APOC releases.
+| whitelistNodes | Only these nodes are allowed in the expansion (though endNodes and terminatorNodes will also be allowed, if present). | Spring 2018 APOC releases.
+| blacklistNodes | None of the paths returned will include these nodes. | Spring 2018 APOC releases.
+|===
 
 .General Examples
 
