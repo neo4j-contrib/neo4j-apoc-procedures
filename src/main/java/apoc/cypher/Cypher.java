@@ -2,12 +2,15 @@ package apoc.cypher;
 
 import apoc.Pools;
 import apoc.result.MapResult;
+import apoc.result.NodeResult;
 import apoc.util.FileUtils;
 import apoc.util.QueueBasedSpliterator;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.logging.Log;
@@ -433,5 +436,16 @@ public class Cypher {
     @Description("apoc.do.case([condition, query, condition, query, ...], elseQuery:'', params:{}) yield value - given a list of conditional / writing query pairs, executes the query associated with the first conditional evaluating to true (or the else query if none are true) with the given parameters")
     public Stream<MapResult> doWhenCase(@Name("conditionals") List<Object> conditionals, @Name(value="elseQuery", defaultValue = "") String elseQuery, @Name(value="params", defaultValue = "") Map<String, Object> params) {
         return whenCase(conditionals, elseQuery, params);
+    }
+
+    @Procedure(name = "apoc.cypher.runFirstColumnWrites", mode = Mode.WRITE)
+    @Description("apoc.cypher.runFirstColumnWrites(statement, params) - executes write statement with given parameters, yields first column only (nodes)")
+    public Stream<NodeResult> runFirstColumnWrites(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
+        if (params == null) params = Collections.emptyMap();
+        try (Result result = db.execute(withParamMapping(statement, params.keySet()), params)) {
+            String firstColumn = result.columns().get(0);
+            ResourceIterator<Node> resultColumn = result.columnAs(firstColumn);
+            return resultColumn.stream().map(NodeResult::new);
+        }
     }
 }
