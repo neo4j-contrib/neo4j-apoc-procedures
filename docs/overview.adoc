@@ -1156,19 +1156,21 @@ For huge graphs a traverser can hog all the memory in the JVM, causing OutOfMemo
 |===
 
 
-=== End nodes and terminator nodes
+== Node Filters
 
-As of the January 2018 APOC releases, you can optionally use `endNodes` and `terminatorNodes` params in the config param map when the end nodes of the expansion are known.
+While label filters use labels to allow whitelisting, blacklisting, and restrictions on which kind of nodes can end or terminate expansion,
+you can also filter based upon actual nodes.
 
-When `endNodes` are present, only these end nodes must be at the end of the expanded paths.
-Expansion continues beyond end nodes.
-This behavior is similar to the end node filter `>` in the label filters.
+Each of these config parameter accepts a list of nodes, or a list of node ids.
 
-Nodes given as `terminatorNodes` behave just like `endNodes` (they must be at the end of expanded paths), but stops traversal beyond the terminator nodes.
-This behavior is similar to the termination filter `/` in the label filters.
-
-`endNodes` and/or `terminatorNodes` do not conflict with each other (an end node will be returned even if not present in the terminator nodes, and vice versa),
-and they can freely be used along with the labelFilter, but a node can only be included by unanimous agreement from endNodes+terminatoNodes and the labelFilter.
+[opts=header,cols="m,a,a"]
+|===
+| config parameter | description | added in
+| endNodes | Only these nodes can end returned paths, and expansion will continue past these nodes, if possible. | Winter 2018 APOC releases.
+| terminatorNodes | Only these nodes can end returned paths, and expansion won't continue past these nodes. | Winter 2018 APOC releases.
+| whitelistNodes | Only these nodes are allowed in the expansion (though endNodes and terminatorNodes will also be allowed, if present). | Spring 2018 APOC releases.
+| blacklistNodes | None of the paths returned will include these nodes. | Spring 2018 APOC releases.
+|===
 
 == Parallel Node Search
 
