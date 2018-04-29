@@ -175,25 +175,6 @@ public class Util {
         }
     }
 
-    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseAPI db, Function<KernelTransaction, T> callable) {
-        try {
-            return pool.submit(() -> {
-                try (Transaction tx = db.beginTx()) {
-                    final KernelTransaction kernelTransaction = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class).getKernelTransactionBoundToThisThread(true);
-                    T result = callable.apply(kernelTransaction);
-                    tx.success();
-                    return result;
-                }
-            });
-        } catch (Exception e) {
-            throw new RuntimeException("Error executing in separate transaction", e);
-        }
-    }
-    /*public static <T> T withStatement(GraphDatabaseAPI db, BiFunction<Statement, ReadOperations, T> callable) {
-        try (Statement kernelTransaction = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class).get()) {
-            return callable.apply(kernelTransaction, kernelTransaction.readOperations());
-        }
-    }*/
     public static <T> T inTx(GraphDatabaseService db, Callable<T> callable) {
         try {
             return inTxFuture(Pools.DEFAULT, db, callable).get();

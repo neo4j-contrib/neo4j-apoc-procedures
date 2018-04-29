@@ -26,13 +26,17 @@ public class Cover {
     @Description("apoc.algo.cover(nodes) yield rel - returns all relationships between this set of nodes")
     public Stream<RelationshipResult> cover(@Name("nodes") Object nodes) {
         Set<Node> nodeSet = Util.nodeStream(db, nodes).collect(Collectors.toSet());
-        return nodeSet.parallelStream()
+        /*return nodeSet.parallelStream()
                 .flatMap(n ->
                         Util.inTx(db,() ->
                         StreamSupport.stream(n.getRelationships(Direction.OUTGOING)
                                 .spliterator(),false)
                                 .filter(r -> nodeSet.contains(r.getEndNode()))
-                                .map(RelationshipResult::new)));
+                                .map(RelationshipResult::new)));*/
+        // NB prallel approach doesn't work in 3.4 (see SubgraphTest.testSubgraphAllShouldContainExpectedNodesAndRels
+        // so falling back to single threaded
+        // TODO: consider using multithreading and maybe kernel API here
+        return coverNodes(nodeSet).map(RelationshipResult::new);
     }
 
     // non-parallelized utility method for use by other procedures

@@ -23,9 +23,6 @@ public class SubgraphTest {
 	
 	private static Long fullGraphCount;
 
-	public SubgraphTest() throws Exception {
-	}
-
 	@BeforeClass
 	public static void setUp() throws Exception {
 		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
