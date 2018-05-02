@@ -701,7 +701,7 @@ public class Coll {
     }
 
     @UserFunction("apoc.coll.sortMulti")
-    @Description("apoc.coll.sortMulti(coll, ['^name','age'],[limit],[skip]) - sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip")
+    @Description("apoc.coll.sortMulti(coll, ['^name','age'],[limit],[skip]) - sort list of maps by several sort fields (descending with ^ prefix) and optionally applies limit and skip")
     public List<Map<String,Object>> sortMulti(@Name("coll") java.util.List<Map<String,Object>> coll,
                  @Name(value="orderFields", defaultValue = "[]") java.util.List<String> orderFields,
                  @Name(value="limit", defaultValue = "-1") long limit,
@@ -711,8 +711,8 @@ public class Coll {
         if (orderFields != null && !orderFields.isEmpty()) {
 
             List<Pair<String, Boolean>> fields = orderFields.stream().map(v -> {
-                boolean asc = v.charAt(0) == '^';
-                return of(asc ? v.substring(1) : v, asc);
+                boolean desc = v.charAt(0) == '^';
+                return of(desc ? v.substring(1) : v, desc);
             }).collect(Collectors.toList());
 
             Comparator<Map<String, Comparable<Object>>> compare = (o1, o2) -> {
@@ -723,8 +723,8 @@ public class Coll {
                     Comparable<Object> v1 = o1.get(name);
                     Comparable<Object> v2 = o2.get(name);
                     if (v1 != v2) {
-                        int cmp = (v1 == null) ? -1 : (v2 == null) ? 1 : v1.compareTo(v2);
-                        a = (s.other()) ? cmp : -cmp;
+                        int cmp = (v1 == null) ? 1 : (v2 == null) ? -1 : v1.compareTo(v2);
+                        a = (s.other()) ? -cmp : cmp;
                     }
                 }
                 return a;
