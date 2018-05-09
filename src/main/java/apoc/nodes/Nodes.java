@@ -67,7 +67,7 @@ public class Nodes {
     public boolean hasRelationship(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types) {
         if (types == null || types.isEmpty()) return node.hasRelationship();
         long id = node.getId();
-        try ( NodeCursor nodeCursor = ktx.nodeCursor()) {
+        try ( NodeCursor nodeCursor = ktx.cursors().allocateNodeCursor()) {
 
             ktx.dataRead().singleNode(id, nodeCursor);
             nodeCursor.next();
@@ -303,7 +303,7 @@ public class Nodes {
     @UserFunction
     @Description("apoc.nodes.isDense(node) - returns true if it is a dense node")
     public boolean isDense(@Name("node") Node node) {
-        try (NodeCursor nodeCursor = ktx.nodeCursor()) {
+        try (NodeCursor nodeCursor = ktx.cursors().allocateNodeCursor()) {
             final long id = node.getId();
             ktx.dataRead().singleNode(id, nodeCursor);
             if (nodeCursor.next()) {

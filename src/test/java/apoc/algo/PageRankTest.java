@@ -4,6 +4,7 @@ import apoc.algo.pagerank.PageRankAlgoTest;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -176,6 +177,7 @@ public class PageRankTest
         it.close();
     }
     @Test
+    @Ignore("flaky")
     public void shouldGetPageRankWithCypherExpectedResultWithoutNodesParallel() throws IOException
     {
         db.execute( COMPANIES_QUERY_LABEL ).close();
