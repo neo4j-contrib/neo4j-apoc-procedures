@@ -121,7 +121,7 @@ public class VirtualRelationship implements Relationship {
     @Override
     public Map<String, Object> getProperties(String... strings) {
         Map<String, Object> res = new LinkedHashMap<>(props);
-        res.entrySet().retainAll(asList(strings));
+        res.keySet().retainAll(asList(strings));
         return res;
     }
 

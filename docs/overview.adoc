@@ -803,6 +803,12 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.node.relationship.exists(node, rel-direction-pattern) | returns true when the node has the relationships of the pattern
 | apoc.node.relationship.types(node, rel-direction-pattern) | returns a list of distinct relationship types
 | apoc.node.degree(node, rel-direction-pattern) | returns total degrees of the given relationships in the pattern, can use `'>'` or `'<'` for all outgoing or incoming relationships
+| apoc.node.id(node) | returns id for (virtual) nodes
+| apoc.node.labels(node) | returns labels for (virtual) nodes
+| apoc.rel.id(rel) | returns id for (virtual) relationships
+| apoc.rel.type(rel) | returns type for (virtual) relationships
+| apoc.any.properties(node/rel/map, [[keys]]) | returns properties for virtual and real, nodes, rels and maps, optionally restrict via keys
+| apoc.any.property(node/rel/map) | returns property for virtual and real, nodes, rels and maps
 | apoc.create.uuid() | returns a UUID string
 |===
 
