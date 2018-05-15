@@ -1,5 +1,6 @@
 package apoc.nodes;
 
+import apoc.create.Create;
 import apoc.util.TestUtil;
 import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -14,6 +15,9 @@ import java.util.Map;
 
 import static apoc.util.Util.map;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
 import static org.junit.Assert.*;
 import static org.neo4j.helpers.collection.Iterators.asSet;
 
@@ -27,7 +31,7 @@ public class NodesTest {
     @Before
     public void setUp() throws Exception {
         db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
-        TestUtil.registerProcedure(db,Nodes.class);
+        TestUtil.registerProcedure(db,Nodes.class, Create.class);
     }
 
     @After
@@ -175,4 +179,79 @@ public class NodesTest {
         });
 
     }
+
+    @Test
+    public void testId() {
+        assertTrue(db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.node.id(f) AS id").<Long>columnAs("id").next() >= 0);
+        assertTrue(db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.node.id(node) AS id").<Long>columnAs("id").next() < 0);
+
+        assertNull(db.execute("RETURN apoc.node.id(null) AS id").<Long>columnAs("id").next());
+    }
+    @Test
+    public void testRelId() {
+        assertTrue(db.execute("CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.rel.id(rel) AS id").<Long>columnAs("id").next() >= 0);
+        assertTrue(db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.rel.id(rel) AS id").<Long>columnAs("id").next() < 0);
+
+        assertNull(db.execute("RETURN apoc.rel.id(null) AS id").<Long>columnAs("id").next());
+    }
+    @Test
+    public void testLabels() {
+        assertEquals(singletonList("Foo"), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.node.labels(f) AS labels").columnAs("labels").next());
+        assertEquals(singletonList("Foo"), db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.node.labels(node) AS labels").columnAs("labels").next());
+        assertNull(db.execute("RETURN apoc.node.labels(null) AS labels").columnAs("labels").next());
+    }
+    @Test
+    public void testProperties() {
+        assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f) AS props").columnAs("props").next());
+        assertEquals(singletonMap("foo","bar"), db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.properties(node) AS props").columnAs("props").next());
+
+        assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.any.properties(rel) AS props").columnAs("props").next());
+        assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.properties(rel) AS props").columnAs("props").next());
+
+        assertNull(db.execute("RETURN apoc.any.properties(null) AS props").columnAs("props").next());
+    }
+    @Test
+    public void testSubProperties() {
+        assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f,['foo']) AS props").columnAs("props").next());
+        assertEquals(emptyMap(), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f,['bar']) AS props").columnAs("props").next());
+        assertEquals(null, db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(null,['foo']) AS props").columnAs("props").next());
+        assertEquals(singletonMap("foo","bar"), db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.properties(node,['foo']) AS props").columnAs("props").next());
+        assertEquals(emptyMap(), db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.properties(node,['bar']) AS props").columnAs("props").next());
+
+        assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.any.properties(rel,['foo']) AS props").columnAs("props").next());
+        assertEquals(emptyMap(), db.execute("CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.any.properties(rel,['bar']) AS props").columnAs("props").next());
+        assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.properties(rel,['foo']) AS props").columnAs("props").next());
+        assertEquals(emptyMap(), db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.properties(rel,['bar']) AS props").columnAs("props").next());
+
+        assertNull(db.execute("RETURN apoc.any.properties(null,['foo']) AS props").columnAs("props").next());
+    }
+    @Test
+    public void testProperty() {
+        assertEquals("bar", db.execute("RETURN apoc.any.property({foo:'bar'},'foo') AS props").columnAs("props").next());
+        assertEquals(null, db.execute("RETURN apoc.any.property({foo:'bar'},'bar') AS props").columnAs("props").next());
+
+        assertEquals("bar", db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.property(f,'foo') AS props").columnAs("props").next());
+        assertEquals(null, db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.property(f,'bar') AS props").columnAs("props").next());
+
+        assertEquals("bar", db.execute("CREATE (f)-[r:REL {foo:'bar'}]->(f) RETURN apoc.any.property(r,'foo') AS props").columnAs("props").next());
+        assertEquals(null, db.execute("CREATE (f)-[r:REL {foo:'bar'}]->(f) RETURN apoc.any.property(r,'bar') AS props").columnAs("props").next());
+
+        assertEquals("bar", db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.property(node,'foo') AS props").columnAs("props").next());
+        assertEquals(null, db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.property(node,'bar') AS props").columnAs("props").next());
+
+        assertEquals("bar", db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.property(rel,'foo') AS props").columnAs("props").next());
+        assertEquals(null, db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.property(rel,'bar') AS props").columnAs("props").next());
+
+        assertNull(db.execute("RETURN apoc.any.property(null,'foo') AS props").columnAs("props").next());
+        assertNull(db.execute("RETURN apoc.any.property(null,null) AS props").columnAs("props").next());
+    }
+    @Test
+    public void testRelType() {
+        assertEquals("REL", db.execute("CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.rel.type(rel) AS type").columnAs("type").next());
+
+        assertEquals("REL", db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.rel.type(rel) AS type").columnAs("type").next());
+
+        assertNull(db.execute("RETURN apoc.rel.type(null) AS type").columnAs("type").next());
+    }
+
 }

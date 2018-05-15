@@ -1,14 +1,12 @@
 package apoc.nodes;
 
+import apoc.*;
 import apoc.result.LongResult;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
 import org.neo4j.collection.primitive.PrimitiveIntIterator;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.api.KernelTransaction;
@@ -18,8 +16,10 @@ import org.neo4j.kernel.api.exceptions.EntityNotFoundException;
 import org.neo4j.kernel.impl.api.RelationshipVisitor;
 import org.neo4j.kernel.impl.api.store.RelationshipIterator;
 import org.neo4j.procedure.*;
+import org.neo4j.procedure.Description;
 import org.neo4j.storageengine.api.Token;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -266,6 +266,67 @@ public class Nodes {
 
     private <T> List<T> asList(Iterable<T> types) {
         return (types instanceof List) ? (List<T>) types : Iterables.asList(types);
+    }
+
+    @UserFunction("apoc.node.labels")
+    @Description("returns labels for (virtual) nodes")
+    public List<String> labels(@Name("node") Node node) {
+        if (node == null) return null;
+        Iterator<Label> labels = node.getLabels().iterator();
+        if (!labels.hasNext()) return Collections.emptyList();
+        Label first = labels.next();
+        if (!labels.hasNext()) return Collections.singletonList(first.name());
+        List<String> result = new ArrayList<>();
+        result.add(first.name());
+        labels.forEachRemaining(l -> result.add(l.name()));
+        return result;
+    }
+
+    @UserFunction("apoc.node.id")
+    @Description("returns id for (virtual) nodes")
+    public Long id(@Name("node") Node node) {
+        return (node == null) ? null : node.getId();
+    }
+
+    @UserFunction("apoc.rel.id")
+    @Description("returns id for (virtual) relationships")
+    public Long relId(@Name("rel") Relationship rel) {
+        return (rel == null) ? null : rel.getId();
+    }
+
+    @UserFunction("apoc.rel.type")
+    @Description("returns type for (virtual) relationships")
+    public String type(@Name("rel") Relationship rel) {
+        return (rel == null) ? null : rel.getType().name();
+    }
+
+    @UserFunction("apoc.any.properties")
+    @Description("returns properties for virtual and real, nodes, rels and maps")
+    public Map<String,Object> properties(@Name("thing") Object thing, @Name(value = "keys",defaultValue = "null") List<String> keys) {
+        if (thing == null) return null;
+        if (thing instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) thing;
+            if (keys != null) map.keySet().retainAll(keys);
+            return map;
+        }
+        if (thing instanceof PropertyContainer) {
+            if (keys == null) return ((PropertyContainer) thing).getAllProperties();
+            return ((PropertyContainer) thing).getProperties(keys.toArray(new String[keys.size()]));
+        }
+        return null;
+    }
+
+    @UserFunction("apoc.any.property")
+    @Description("returns property for virtual and real, nodes, rels and maps")
+    public Object property(@Name("thing") Object thing, @Name(value = "key") String key) {
+        if (thing == null || key == null) return null;
+        if (thing instanceof Map) {
+            return ((Map<String, Object>) thing).get(key);
+        }
+        if (thing instanceof PropertyContainer) {
+            return ((PropertyContainer) thing).getProperty(key,null);
+        }
+        return null;
     }
 
     @UserFunction("apoc.node.degree")
