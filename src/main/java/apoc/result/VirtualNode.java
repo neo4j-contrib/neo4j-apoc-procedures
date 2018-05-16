@@ -26,7 +26,7 @@ import static java.util.Arrays.asList;
  */
 public class VirtualNode implements Node {
     private static AtomicLong MIN_ID = new AtomicLong(-1);
-    private final List<Label> labels = new ArrayList<Label>();
+    private final List<Label> labels = new ArrayList<>();
     private final Map<String, Object> props = new HashMap<>();
     private final List<Relationship> rels = new ArrayList<>();
     private final GraphDatabaseService db;
@@ -130,7 +130,7 @@ public class VirtualNode implements Node {
     }
 
     @Override
-    public Relationship createRelationshipTo(Node node, RelationshipType relationshipType) {
+    public VirtualRelationship createRelationshipTo(Node node, RelationshipType relationshipType) {
         VirtualRelationship rel = new VirtualRelationship(this, node, relationshipType);
         rels.add(rel);
         return rel;
