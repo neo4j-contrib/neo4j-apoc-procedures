@@ -1,0 +1,178 @@
+= Load CSV and XLS
+
+== Load CSV Introduction
+
+Many existing applications and data integrations use CSV as the minimal denominator format.
+
+In Cypher it is supported by `LOAD CSV` and with the `neo4j-import` (`neo4j-admin import`) for bulk imports.
+
+Usually a CSV file is text with delimiters (most often comma, but also tab (TSV) and colon (DSV)) separating columns and newlines for rows.
+Fields are possibly quoted to handle stray quotes, newlines, and the use of the delimeter within a field.
+
+The existing `LOAD CSV` works ok for most uses, but there were a few features missing, that `apoc.load.csv` and `apoc.load.xls` add.
+
+* provide a line number
+* provide both a map and a list representation of each line
+* automatic data conversion (including split into arrays)
+* option to keep the original string formatted values
+* ignoring fields (makes it easier to assign a full line as properties)
+* headerless files
+* replacing certain values with null
+
+The apoc procedures also support reading compressed files.
+
+The data conversion is useful for setting properties directly, but for computation within Cypher it's problematic as Cypher doesn't know the type of map values so they default to `Any`.
+
+To use them correctly, you'll have to indicate their type to Cypher by using the built-in (e.g. `toInteger`) or apoc (e.g. `apoc.convert.toBoolean`) conversion functions on the value.
+
+For reading from files you'll have to enable the config option:
+
+----
+apoc.import.file.enabled=true
+----
+
+By default file paths are global, for paths relative to the `import` directory set:
+
+----
+apoc.import.file.use_neo4j_config=true
+----
+
+== Examples for apoc.load.csv
+
+.test.csv
+----
+name,age,beverage
+Selma,9,Soda
+Rana,12,Tea;Milk
+Selina,19,Cola
+----
+
+----
+CALL apoc.load.csv('/tmp/test.csv') yield lineNo, map, list
+RETURN *;
+----
+
+----
++---------------------------------------------------------------------------------------+
+| lineNo | list                       | map                                             |
++---------------------------------------------------------------------------------------+
+| 0      | ["Selma", "9", "Soda"]     | {name: "Selma", age: "9", beverage: "Soda"}     |
+| 1      | ["Rana", "12", "Tea;Milk"] | {name: "Rana", age: "12", beverage: "Tea;Milk"} |
+| 2      | ["Selina", "19", "Cola"]   | {name: "Selina", age: "19", beverage: "Cola"}   |
++---------------------------------------------------------------------------------------+
+----
+
+=== Configuration Options
+
+Besides the file you can pass in a config map:
+
+[opts="autowidth,header",cols="m,m,a"]
+|===
+| name | default | description
+| skip | none | skip result rows
+| limit | none | limit result rows
+| header | true | indicates if file has a header
+| sep | ',' | separator character or 'TAB'
+| arraySep | ';' | array separator
+| ignore | [] | which columns to ignore
+| nullValues | [] | which values to treat as null, e.g. `['na',false]`
+| mapping | {} | per field mapping, entry key is field name, .e.g `{years:{....}` see below
+|===
+
+.mapping config for each field in the `mapping` entry
+[opts="autowidth,header",cols="m,m,a"]
+|===
+| name | default | description
+| type | none | 'int', 'string' etc.
+| array | false | indicates if field is an array
+| arraySep | ';' | separator for array
+| name | none | rename field
+| ignore | false | ignore/remove this field
+| nullValues | [] | which values to treat as null, e.g. `['na',false]`
+|===
+
+
+----
+CALL apoc.load.csv('/tmp/test.csv',
+  {skip:1,limit:1,header:true,ignore:'name',
+   mapping:{age:{type:'int'},beverage:{array:true,arraySep:';',name:'drinks'}) yield lineNo, map, list
+RETURN *;
+----
+
+----
++---------------------------------------------------------------------------------------+
+| lineNo | list                       | map                                             |
++---------------------------------------------------------------------------------------+
+| 0      | ["Selma", "9", "Soda"]     | {name: "Selma", age: "9", beverage: "Soda"}     |
+| 1      | ["Rana", "12", "Tea;Milk"] | {name: "Rana", age: "12", beverage: "Tea;Milk"} |
+| 2      | ["Selina", "19", "Cola"]   | {name: "Selina", age: "19", beverage: "Cola"}   |
++---------------------------------------------------------------------------------------+
+----
+
+
+== Transaction Batching
+
+To handle large files, `USING PERIODIC COMMIT` can be prepended to `LOAD CSV`, you'll have to watch  out though for *Eager* operations which might break that behavior.
+
+In apoc you can combine any data source with `apoc.periodic.iterate` to achieve the same.
+
+[source,cypher]
+----
+CALL apoc.periodic.iterate('
+CALL apoc.load.csv({url}) yield map as row return row
+','
+CREATE (p:Person) SET p = row
+', {batchSize:10000, iterateList:true, parallel:true});
+----
+
+NOTE: Please note that the parallel operation only works well for non-conflicting updates otherwise you might run into deadlocks.
+
+To make these datastructures available to Cypher, you can use `apoc.load.xml`.
+It takes a file or http URL and parses the XML into a map datastructure.
+
+NOTE: in previous releases we've had `apoc.load.xmlSimple`. This is now deprecated and got superseeded by
+`apoc.load.xml(url, [xPath], [config], true)`.Simple XML Format
+
+See the following usage-examples for the procedures.
+
+== Loading Excel (XLS)
+
+=== Library Requirements
+
+For loading XLS we're using the Apache POI library, which works well with old and new Excel formats, but is quite large.
+That's why we decided not to include it into the apoc jar, but make it an optional dependency.
+
+Please download these jars and put them into your `plugins` directory:
+
+For XLS files:
+
+* http://repo1.maven.org/maven2/org/apache/poi/poi/3.17/poi-3.17.jar[poi-3.17.jar^]
+
+Additional for XLSX files:
+
+* http://repo1.maven.org/maven2/org/apache/poi/poi-ooxml/3.17/poi-ooxml-3.17.jar[poi-ooxml-3.17.jar^]
+* http://repo1.maven.org/maven2/org/apache/poi/poi-ooxml-schemas/3.17/poi-ooxml-schemas-3.17.jar[poi-ooxml-schemas-3.17.jar^]
+* http://repo1.maven.org/maven2/org/apache/xmlbeans/xmlbeans/2.6.0/xmlbeans-2.6.0.jar[xmlbeans-2.6.0.jar^]
+* http://repo1.maven.org/maven2/com/github/virtuald/curvesapi/1.04/curvesapi-1.04.jar[curvesapi-1.04.jar^]
+
+=== Usage
+
+The usage of `apoc.load.xls` is similar to apoc.load.csv with the main difference the ability to select a worksheet or a range from a sheet to load.
+
+You can either select the sheet by name like `'Kids'`, or offset like `'Results!B2:F3'`
+
+=== Examples for apoc.load.xls
+
+
+[soure,cypher]
+----
+CALL apoc.load.xls('file:///path/to/file.xls','Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})
+----
+
+image::img/load.xls.jpg[]
+
+[soure,cypher]
+----
+CALL apoc.load.xls('http://bit.ly/2nXgHA2','Kids')
+----
+
