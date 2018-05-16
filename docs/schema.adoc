@@ -49,7 +49,7 @@ CALL apoc.schema.nodes()
 
 you will receive this result:
 
-image::img/apoc.schema.nodes.png[]
+image::{img}/apoc.schema.nodes.png[]
 
 ===== List constraints for relationships
 
@@ -68,7 +68,7 @@ CALL apoc.schema.relationships()
 
 you will receive this result:
 
-image::img/apoc.schema.relationships.png[]
+image::{img}/apoc.schema.relationships.png[]
 
 ==== Check if an index or a constraint exists for a Label and property
 
@@ -79,7 +79,7 @@ RETURN apoc.schema.node.indexExists("Publication", ["name"])
 ```
 produces the following output:
 
-image::img/apoc.schema.node.indexExists.png[]
+image::{img}/apoc.schema.node.indexExists.png[]
 
 
 Given the previous constraint definitions, running this statement:
@@ -89,7 +89,7 @@ RETURN apoc.schema.node.constraintExists("Bar", ["foobar"])
 ```
 produces the following output:
 
-image::img/apoc.schema.node.constraintExists.png[]
+image::{img}/apoc.schema.node.constraintExists.png[]
 
 If you want to check if a constraint exists for a relationship you can run this statement:
 
@@ -99,4 +99,4 @@ RETURN apoc.schema.relationship.constraintExists('LIKED', ['day'])
 
 and you get the following result:
 
-image:img/apoc.schema.relationship.constraintExists.png[]
+image:{img}/apoc.schema.relationship.constraintExists.png[]

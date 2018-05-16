@@ -169,7 +169,7 @@ You can either select the sheet by name like `'Kids'`, or offset like `'Results!
 CALL apoc.load.xls('file:///path/to/file.xls','Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})
 ----
 
-image::img/load.xls.jpg[]
+image::{img}/load.xls.jpg[]
 
 [soure,cypher]
 ----
