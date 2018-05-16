@@ -89,7 +89,7 @@ public class LoadXls {
             if (right == DEFAULT) right = lastCellNum;
         }
     }
-    @Procedure
+    @Procedure("apoc.load.xls")
     @Description("apoc.load.xls('url',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,\n config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
     public Stream<XLSResult> xls(@Name("url") String url, @Name("selector") String selector, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         boolean failOnError = booleanValue(config, "failOnError", true);
