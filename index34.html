@@ -5,7 +5,7 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.6.1">
-<title>APOC User Guide 3.3.0.3</title>
+<title>APOC User Guide 3.4.0.1</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
@@ -427,7 +427,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
-<h1>APOC User Guide 3.3.0.3</h1>
+<h1>APOC User Guide 3.4.0.1</h1>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
@@ -909,14 +909,14 @@ See, this <a href="https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues
 <div class="title">Note</div>
 </td>
 <td class="content">
-Go here for documentation for APOC for Neo4j version <a href="index30.html">3.0.x</a> <a href="index31.html">3.1.x</a> <a href="index32.html">3.2.x</a> <a href="index34.html">3.4.x</a>
+Go here for documentation for APOC for Neo4j version <a href="index30.html">3.0.x</a> <a href="index31.html">3.1.x</a> <a href="index32.html">3.2.x</a> <a href="index33.html">3.3.x</a>
 </td>
 </tr>
 </table>
 </div>
 <div class="imageblock" style="float: right">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.gif" alt="apoc">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.gif" alt="apoc">
 </div>
 </div>
 <div class="paragraph">
@@ -956,14 +956,14 @@ Then click "Install" in the APOC box and you&#8217;re done.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/desktop-apoc.jpg" alt="desktop apoc">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/desktop-apoc.jpg" alt="desktop apoc">
 </div>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_download_latest_release"><a class="link" href="#_download_latest_release">Download latest release</a></h4>
 <div class="paragraph">
-<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.3" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.3</a>
+<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.1" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.1</a>
 to find the latest release and download the binary jar to place into your <code>$NEO4J_HOME/plugins</code> folder.</p>
 </div>
 </div>
@@ -985,6 +985,10 @@ The trailing <code>&lt;apoc&gt;</code> part of the version number will be increm
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc version</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">neo4j version</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.1" target="_blank" rel="noopener">3.4.0.1</a></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.4.0 (3.4.x)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.3" target="_blank" rel="noopener">3.3.0.3</a></p></td>
@@ -1073,9 +1077,9 @@ The trailing <code>&lt;apoc&gt;</code> part of the version number will be increm
 <div class="content">
 <pre class="highlight"><code class="language-bash" data-lang="bash">mkdir plugins
 pushd plugins
-wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.3.0.3/apoc-3.3.0.3-all.jar
+wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.4.0.1/apoc-3.4.0.1-all.jar
 popd
-docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.3.5</code></pre>
+docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.4.0</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1215,7 +1219,7 @@ And for YIELDing their results, you have to know the output column names and typ
 <div class="sectionbody">
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc-help-apoc.jpg" alt="apoc help apoc" width="600">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc-help-apoc.jpg" alt="apoc help apoc" width="600">
 </div>
 </div>
 <table class="tableblock frame-all grid-all spread">
@@ -3646,7 +3650,7 @@ public String format(@Name("time") long time,
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/dbms.functions.jpg" alt="dbms.functions">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/dbms.functions.jpg" alt="dbms.functions">
 </div>
 </div>
 </div>
@@ -3829,7 +3833,7 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 </table>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.index.nodes-with-score.jpg" alt="apoc.index.nodes with score" width="600">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.index.nodes-with-score.jpg" alt="apoc.index.nodes with score" width="600">
 </div>
 </div>
 </div>
@@ -6265,7 +6269,7 @@ RETURN item.title, item.owner, item.creation_date, keys(item)</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.load.json.so.png" alt="apoc.load.json.so">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.json.so.png" alt="apoc.load.json.so">
 </div>
 </div>
 <div class="listingblock">
@@ -6302,7 +6306,7 @@ MERGE (owner)-[:ASKED]-&gt;(question)</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.load.json-so-result.png" alt="apoc.load.json so result">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.json-so-result.png" alt="apoc.load.json so result">
 </div>
 </div>
 </div>
@@ -6398,7 +6402,7 @@ Those rows can then be used to update or create graph structures.</p>
 </table>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc-jdbc-northwind-load.jpg" alt="apoc jdbc northwind load" width="600">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc-jdbc-northwind-load.jpg" alt="apoc jdbc northwind load" width="600">
 </div>
 </div>
 <div class="paragraph">
@@ -6510,7 +6514,7 @@ RETURN row limit 1;</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc-load-jdbc.jpg" alt="apoc load jdbc" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc-load-jdbc.jpg" alt="apoc load jdbc" width="800">
 </div>
 </div>
 </div>
@@ -7318,7 +7322,7 @@ That&#8217;s why we decided not to include it into the apoc jar, but make it an 
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/load.xls.jpg" alt="load.xls">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/load.xls.jpg" alt="load.xls">
 </div>
 </div>
 <div class="listingblock">
@@ -7354,7 +7358,7 @@ That&#8217;s why we decided not to include it into the apoc jar, but make it an 
 </table>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc-gephi.gif" alt="apoc gephi" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc-gephi.gif" alt="apoc gephi" width="800">
 </div>
 </div>
 <div class="sect4">
@@ -7761,7 +7765,7 @@ RETURN value._route._leg._distance._value, keys(value), keys(value._route), keys
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.load.xmlSimple.ex1.png" alt="apoc.load.xmlSimple.ex1" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.xmlSimple.ex1.png" alt="apoc.load.xmlSimple.ex1" width="800">
 </div>
 </div>
 <div class="listingblock">
@@ -7775,7 +7779,7 @@ RETURN key, apoc.meta.type(value[key]);</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.load.xmlSimple.ex2.png" alt="apoc.load.xmlSimple.ex2" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.xmlSimple.ex2.png" alt="apoc.load.xmlSimple.ex2" width="800">
 </div>
 </div>
 </div>
@@ -7799,7 +7803,7 @@ RETURN id, pairs[0] as title, pairs[1] as price</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.load.xml.xpath.png" alt="apoc.load.xml.xpath" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.xml.xpath.png" alt="apoc.load.xml.xpath" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -7818,7 +7822,7 @@ RETURN author</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.load.xml.xpath2.png" alt="apoc.load.xml.xpath2" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.xml.xpath2.png" alt="apoc.load.xml.xpath2" width="800">
 </div>
 </div>
 </div>
@@ -8878,7 +8882,7 @@ RETURN *;</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.create.vRelationshipAndvNode.png" alt="apoc.create.vRelationshipAndvNode" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.create.vRelationshipAndvNode.png" alt="apoc.create.vRelationshipAndvNode" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -8886,7 +8890,7 @@ RETURN *;</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/vNodeId.png" alt="vNodeId" width="200">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/vNodeId.png" alt="vNodeId" width="200">
 </div>
 </div>
 <div class="listingblock">
@@ -8897,7 +8901,7 @@ RETURN *;</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.create.vPattern.png" alt="apoc.create.vPattern" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.create.vPattern.png" alt="apoc.create.vPattern" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -8910,7 +8914,7 @@ RETURN *;</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.create.vPatternLabels.png" alt="apoc.create.vPatternLabels" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.create.vPatternLabels.png" alt="apoc.create.vPatternLabels" width="800">
 </div>
 </div>
 <div class="listingblock">
@@ -8921,7 +8925,7 @@ RETURN *;</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.create.vPatternFull.png" alt="apoc.create.vPatternFull" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.create.vPatternFull.png" alt="apoc.create.vPatternFull" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -8945,7 +8949,7 @@ RETURN *;</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.create.vPatternFullTwo.png" alt="apoc.create.vPatternFullTwo" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.create.vPatternFullTwo.png" alt="apoc.create.vPatternFullTwo" width="800">
 </div>
 </div>
 </div>
@@ -9033,7 +9037,7 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.graph.png" alt="apoc.graph" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.graph.png" alt="apoc.graph" width="800">
 </div>
 </div>
 </div>
@@ -9068,7 +9072,7 @@ call apoc.group.nodes(['Person','Movie'],['century']);</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.nodes.group.jpg" alt="apoc.nodes.group">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.nodes.group.jpg" alt="apoc.nodes.group">
 </div>
 </div>
 <div class="admonitionblock note">
@@ -9278,7 +9282,7 @@ yield node, relationship return *</pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/grouping-country-all.jpg" alt="grouping country all">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/grouping-country-all.jpg" alt="grouping country all">
 </div>
 </div>
 <div class="listingblock">
@@ -9291,7 +9295,7 @@ yield node, relationship return *</pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/grouping-country-filter.jpg" alt="grouping country filter">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/grouping-country-filter.jpg" alt="grouping country filter">
 </div>
 </div>
 <div class="paragraph">
@@ -9415,7 +9419,7 @@ node.Country {
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.cloneNodes.dataset.png" alt="apoc.refactor.cloneNodes.dataset" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.cloneNodes.dataset.png" alt="apoc.refactor.cloneNodes.dataset" width="800">
 </div>
 </div>
 <div class="listingblock">
@@ -9429,7 +9433,7 @@ CALL apoc.refactor.cloneNodes([f,b]) yield input, output RETURN *</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.cloneNodes.png" alt="apoc.refactor.cloneNodes" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.cloneNodes.png" alt="apoc.refactor.cloneNodes" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9444,7 +9448,7 @@ CALL apoc.refactor.cloneNodes([f,b]) yield input, output RETURN *</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.cloneNodesWithRelationships.dataset.png" alt="apoc.refactor.cloneNodesWithRelationships.dataset" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.cloneNodesWithRelationships.dataset.png" alt="apoc.refactor.cloneNodesWithRelationships.dataset" width="800">
 </div>
 </div>
 <div class="listingblock">
@@ -9458,7 +9462,7 @@ CALL apoc.refactor.cloneNodesWithRelationships([k,t]) YIELD input, output RETURN
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.cloneNodesWithRelationships.png" alt="apoc.refactor.cloneNodesWithRelationships" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.cloneNodesWithRelationships.png" alt="apoc.refactor.cloneNodesWithRelationships" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9472,7 +9476,7 @@ CALL apoc.refactor.cloneNodesWithRelationships([k,t]) YIELD input, output RETURN
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.mergeNodes.dataset.png" alt="apoc.refactor.mergeNodes.dataset" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.mergeNodes.dataset.png" alt="apoc.refactor.mergeNodes.dataset" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9487,7 +9491,7 @@ YIELD node RETURN node</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.mergeNodes.png" alt="apoc.refactor.mergeNodes" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.mergeNodes.png" alt="apoc.refactor.mergeNodes" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9506,7 +9510,7 @@ RETURN *</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.to.dataset.png" alt="apoc.refactor.to.dataset" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.to.dataset.png" alt="apoc.refactor.to.dataset" width="800">
 </div>
 </div>
 <div class="listingblock">
@@ -9518,7 +9522,7 @@ MATCH ()-[r]-&gt;(), (p:Person)  CALL apoc.refactor.to(r, p) YIELD input, output
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.to.png" alt="apoc.refactor.to" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.to.png" alt="apoc.refactor.to" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9537,7 +9541,7 @@ RETURN *</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.from.dataset.png" alt="apoc.refactor.from.dataset" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.from.dataset.png" alt="apoc.refactor.from.dataset" width="800">
 </div>
 </div>
 <div class="listingblock">
@@ -9549,7 +9553,7 @@ MATCH ()-[r]-&gt;(), (p:Person)  CALL apoc.refactor.from(r, p) YIELD input, outp
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.from.png" alt="apoc.refactor.from" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.from.png" alt="apoc.refactor.from" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9566,7 +9570,7 @@ MATCH ()-[r]-&gt;(), (p:Person)  CALL apoc.refactor.from(r, p) YIELD input, outp
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.invert.dataset.png" alt="apoc.refactor.invert.dataset" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.invert.dataset.png" alt="apoc.refactor.invert.dataset" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9581,12 +9585,12 @@ CALL apoc.refactor.invert(r) yield input, output RETURN *</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.invert.call.png" alt="apoc.refactor.invert.call" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.invert.call.png" alt="apoc.refactor.invert.call" width="800">
 </div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.invert.png" alt="apoc.refactor.invert" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.invert.png" alt="apoc.refactor.invert" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9600,7 +9604,7 @@ CALL apoc.refactor.invert(r) yield input, output RETURN *</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.setType.dataset.png" alt="apoc.refactor.setType.dataset" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.setType.dataset.png" alt="apoc.refactor.setType.dataset" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9614,7 +9618,7 @@ CALL apoc.refactor.setType(rel, 'NEW-TYPE') YIELD input, output RETURN *</code><
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.setType.png" alt="apoc.refactor.setType" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.setType.png" alt="apoc.refactor.setType" width="800">
 </div>
 </div>
 <div class="listingblock">
@@ -9625,7 +9629,7 @@ CALL apoc.refactor.setType(rel, 'NEW-TYPE') YIELD input, output RETURN *</code><
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.extractNode.dataset.png" alt="apoc.refactor.extractNode.dataset" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.extractNode.dataset.png" alt="apoc.refactor.extractNode.dataset" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9640,7 +9644,7 @@ YIELD input, output RETURN *</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.extractNode.png" alt="apoc.refactor.extractNode" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.extractNode.png" alt="apoc.refactor.extractNode" width="800">
 </div>
 </div>
 <div class="listingblock">
@@ -9656,7 +9660,7 @@ YIELD input, output RETURN *</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.collapseNode.dataset.png" alt="apoc.refactor.collapseNode.dataset" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.collapseNode.dataset.png" alt="apoc.refactor.collapseNode.dataset" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9664,7 +9668,7 @@ YIELD input, output RETURN *</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.collapseNode.png" alt="apoc.refactor.collapseNode" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.collapseNode.png" alt="apoc.refactor.collapseNode" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9681,7 +9685,7 @@ YIELD input, output RETURN *</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.normalizeAsBoolean.dataset.png" alt="apoc.refactor.normalizeAsBoolean.dataset" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.normalizeAsBoolean.dataset.png" alt="apoc.refactor.normalizeAsBoolean.dataset" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9695,7 +9699,7 @@ The other properties that don&#8217;t match these possibilities will be set as <
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.normalizeAsBoolean.png" alt="apoc.refactor.normalizeAsBoolean" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.normalizeAsBoolean.png" alt="apoc.refactor.normalizeAsBoolean" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9717,7 +9721,7 @@ The other properties that don&#8217;t match these possibilities will be set as <
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.categorize.dataset.png" alt="apoc.refactor.categorize.dataset" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.categorize.dataset.png" alt="apoc.refactor.categorize.dataset" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9731,7 +9735,7 @@ The nodes <code>Person</code> will keep only the propertie <code>id</code>, and 
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.refactor.categorize.png" alt="apoc.refactor.categorize" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.categorize.png" alt="apoc.refactor.categorize" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9924,7 +9928,7 @@ CREATE (j)-[:SON_OF]-&gt;(d)</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.trigger.add.setAllConnectedNodes.dataset.png" alt="apoc.trigger.add.setAllConnectedNodes.dataset" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.trigger.add.setAllConnectedNodes.dataset.png" alt="apoc.trigger.add.setAllConnectedNodes.dataset" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9949,7 +9953,7 @@ SET d.surname = 'William'</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.trigger.add.setAllConnectedNodes.png" alt="apoc.trigger.add.setAllConnectedNodes" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.trigger.add.setAllConnectedNodes.png" alt="apoc.trigger.add.setAllConnectedNodes" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9972,7 +9976,7 @@ CREATE (c)-[:ACT_IN]-&gt;(m)</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.trigger.add.setLabels.png" alt="apoc.trigger.add.setLabels" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.trigger.add.setLabels.png" alt="apoc.trigger.add.setLabels" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -9993,7 +9997,7 @@ REMOVE k:Actor</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.trigger.add.setLabelsResult.png" alt="apoc.trigger.add.setLabelsResult" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.trigger.add.setLabelsResult.png" alt="apoc.trigger.add.setLabelsResult" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10019,7 +10023,7 @@ CREATE (m:Movie {title:'Matrix'})</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.trigger.add.create-rel-new-node.png" alt="apoc.trigger.add.create rel new node" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.trigger.add.create-rel-new-node.png" alt="apoc.trigger.add.create rel new node" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10028,7 +10032,7 @@ CREATE (m:Movie {title:'Matrix'})</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.trigger.pause.png" alt="apoc.trigger.pause" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.trigger.pause.png" alt="apoc.trigger.pause" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10037,7 +10041,7 @@ CREATE (m:Movie {title:'Matrix'})</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.trigger.resume.png" alt="apoc.trigger.resume" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.trigger.resume.png" alt="apoc.trigger.resume" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10163,7 +10167,7 @@ CREATE INDEX ON :Source(name)</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.schema.nodes.png" alt="apoc.schema.nodes">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.nodes.png" alt="apoc.schema.nodes">
 </div>
 </div>
 </div>
@@ -10191,7 +10195,7 @@ CREATE CONSTRAINT ON ()-[starred:STARRED]-() ASSERT exists(starred.month)</code>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.schema.relationships.png" alt="apoc.schema.relationships">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.relationships.png" alt="apoc.schema.relationships">
 </div>
 </div>
 </div>
@@ -10210,7 +10214,7 @@ CREATE CONSTRAINT ON ()-[starred:STARRED]-() ASSERT exists(starred.month)</code>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.schema.node.indexExists.png" alt="apoc.schema.node.indexExists">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.node.indexExists.png" alt="apoc.schema.node.indexExists">
 </div>
 </div>
 <div class="paragraph">
@@ -10226,7 +10230,7 @@ CREATE CONSTRAINT ON ()-[starred:STARRED]-() ASSERT exists(starred.month)</code>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.schema.node.constraintExists.png" alt="apoc.schema.node.constraintExists">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.node.constraintExists.png" alt="apoc.schema.node.constraintExists">
 </div>
 </div>
 <div class="paragraph">
@@ -10241,7 +10245,7 @@ CREATE CONSTRAINT ON ()-[starred:STARRED]-() ASSERT exists(starred.month)</code>
 <p>and you get the following result:</p>
 </div>
 <div class="paragraph">
-<p><span class="image"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.schema.relationship.constraintExists.png" alt="apoc.schema.relationship.constraintExists"></span></p>
+<p><span class="image"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.relationship.constraintExists.png" alt="apoc.schema.relationship.constraintExists"></span></p>
 </div>
 </div>
 </div>
@@ -10309,7 +10313,7 @@ RETURN n</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.atomic.add.png" alt="apoc.atomic.add" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.atomic.add.png" alt="apoc.atomic.add" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10341,7 +10345,7 @@ RETURN p</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.atomic.concat.png" alt="apoc.atomic.concat" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.atomic.concat.png" alt="apoc.atomic.concat" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10358,7 +10362,7 @@ RETURN p</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.atomic.insert.png" alt="apoc.atomic.insert" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.atomic.insert.png" alt="apoc.atomic.insert" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10373,7 +10377,7 @@ RETURN p</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.atomic.insert.result.png" alt="apoc.atomic.insert.result" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.atomic.insert.result.png" alt="apoc.atomic.insert.result" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10397,7 +10401,7 @@ RETURN p</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.atomic.remove.png" alt="apoc.atomic.remove" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.atomic.remove.png" alt="apoc.atomic.remove" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10423,7 +10427,7 @@ RETURN p</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.atomic.update.png" alt="apoc.atomic.update" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.atomic.update.png" alt="apoc.atomic.update" width="800">
 </div>
 </div>
 </div>
@@ -10614,7 +10618,7 @@ Is&#8217;s a map of values, the values that we don&#8217;t pass to the config, a
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.bolt.execute.nodemap.png" alt="apoc.bolt.execute.nodemap" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.execute.nodemap.png" alt="apoc.bolt.execute.nodemap" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10628,7 +10632,7 @@ Is&#8217;s a map of values, the values that we don&#8217;t pass to the config, a
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.bolt.load.virtualnode.png" alt="apoc.bolt.load.virtualnode" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.load.virtualnode.png" alt="apoc.bolt.load.virtualnode" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10642,7 +10646,7 @@ Is&#8217;s a map of values, the values that we don&#8217;t pass to the config, a
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.bolt.execute.createandstatistics.png" alt="apoc.bolt.execute.createandstatistics" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.execute.createandstatistics.png" alt="apoc.bolt.execute.createandstatistics" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10656,7 +10660,7 @@ Is&#8217;s a map of values, the values that we don&#8217;t pass to the config, a
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.bolt.execute.scalarmulti.png" alt="apoc.bolt.execute.scalarmulti" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.execute.scalarmulti.png" alt="apoc.bolt.execute.scalarmulti" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10670,7 +10674,7 @@ Is&#8217;s a map of values, the values that we don&#8217;t pass to the config, a
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.bolt.load.relmap.png" alt="apoc.bolt.load.relmap" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.load.relmap.png" alt="apoc.bolt.load.relmap" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10684,7 +10688,7 @@ Is&#8217;s a map of values, the values that we don&#8217;t pass to the config, a
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.bolt.load.returnvirtualpath.png" alt="apoc.bolt.load.returnvirtualpath" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.load.returnvirtualpath.png" alt="apoc.bolt.load.returnvirtualpath" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -10698,7 +10702,7 @@ Is&#8217;s a map of values, the values that we don&#8217;t pass to the config, a
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.bolt.execute.createwithparams.png" alt="apoc.bolt.execute.createwithparams" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.execute.createwithparams.png" alt="apoc.bolt.execute.createwithparams" width="800">
 </div>
 </div>
 </div>
@@ -10845,7 +10849,7 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 </table>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.index.nodes-with-score.jpg" alt="apoc.index.nodes with score" width="600">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.index.nodes-with-score.jpg" alt="apoc.index.nodes with score" width="600">
 </div>
 </div>
 <table class="tableblock frame-all grid-all spread">
@@ -10943,7 +10947,7 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 <h3 id="_meta_graph"><a class="link" href="#_meta_graph">Meta Graph</a></h3>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc.meta.graph.jpg" alt="apoc.meta.graph" width="600">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.meta.graph.jpg" alt="apoc.meta.graph" width="600">
 </div>
 </div>
 <div class="paragraph">
@@ -11508,7 +11512,7 @@ schema await</code></pre>
 <h3 id="_loading_data_from_rdbms"><a class="link" href="#_loading_data_from_rdbms">Loading Data from RDBMS</a></h3>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/apoc-jdbc-northwind-load.jpg" alt="apoc jdbc northwind load" width="600">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc-jdbc-northwind-load.jpg" alt="apoc jdbc northwind load" width="600">
 </div>
 </div>
 <table class="tableblock frame-all grid-all spread">
@@ -14041,7 +14045,7 @@ For the test we used a server with this characteristics:</p>
 If you use the LDBC SF1 graph, or another big one is better to change the <code>open files allowed</code> from the default 1024 at last to 40.000.</p>
 </div>
 <div class="paragraph">
-<p>Download <a href="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/script/performanceCypherTest.sh">performanceCypherTest.sh</a></p>
+<p>Download <a href="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/script/performanceCypherTest.sh">performanceCypherTest.sh</a></p>
 </div>
 </div>
 <div class="sect2">
@@ -14659,7 +14663,7 @@ sys     0m0.100s</pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/import_gephi.png" alt="import gephi" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/import_gephi.png" alt="import gephi" width="800">
 </div>
 </div>
 <div class="paragraph">
@@ -14674,7 +14678,7 @@ The export file has to convert into UTF-8.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/docs/img/import_yed.png" alt="import yed" width="800">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/import_yed.png" alt="import yed" width="800">
 </div>
 </div>
 </div>
@@ -14684,7 +14688,7 @@ The export file has to convert into UTF-8.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-05-16 17:41:34 MESZ
+Last updated 2018-05-16 17:34:15 MESZ
 </div>
 </div>
 </body>
