@@ -24,7 +24,7 @@ idea {
 }
 
 group = 'org.neo4j.procedure'
-version = '3.4.0.1-SNAPSHOT'
+version = '3.4.0.1'
 archivesBaseName = 'apoc'
 
 jar {
@@ -77,6 +77,8 @@ dependencies {
     testCompile "org.apache.poi:poi:3.17"
     compileOnly "org.apache.poi:poi-ooxml:3.17"
     testCompile "org.apache.poi:poi-ooxml:3.17"
+
+    testCompile 'net.sourceforge.jexcelapi:jxl:2.6.12'
 
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
     testCompile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
@@ -194,9 +196,9 @@ asciidoctor {
     sources { include 'index.adoc' }
     outputDir = file('build/docs')
     attributes  'apoc-version' : version,
-                'apoc-release' : "3.3.0.3",
+                'apoc-release' : "3.4.0.1",
                 'neo4j-version' : neo4jVersionEffective,
-                'branch' : "3.3"
+                'branch' : "3.4"
 }
 
 asciidoctor.doLast {
