@@ -37,7 +37,7 @@ description = """neo4j-apoc-procedures"""
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "3.3.4"
+    neo4jVersion = "3.3.5"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
 }
@@ -73,8 +73,12 @@ dependencies {
 
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
 
-    compile "org.apache.poi:poi:3.17"
-    compile "org.apache.poi:poi-ooxml:3.17"
+    compileOnly "org.apache.poi:poi:3.17"
+    compileOnly "org.apache.poi:poi-ooxml:3.17"
+    testCompile "org.apache.poi:poi:3.17"
+    testCompile "org.apache.poi:poi-ooxml:3.17"
+
+    testCompile 'net.sourceforge.jexcelapi:jxl:2.6.12'
 
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
     testCompile group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
