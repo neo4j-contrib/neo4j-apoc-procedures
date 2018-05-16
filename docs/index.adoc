@@ -9,13 +9,11 @@
 
 == Introduction
 
-NOTE: Go here for documentation for APOC for Neo4j version link:index30.html[3.0.x] link:index31.html[3.1.x] link:index32.html[3.2.x]
-
 === Notices
 
 include::../readme.adoc[tags=warnings,leveloffset=1]
 
-NOTE: Go here for documentation for APOC for Neo4j version link:index30.html[3.0.x] link:index31.html[3.1.x] link:index32.html[3.2.x]
+NOTE: Go here for documentation for APOC for Neo4j version link:index30.html[3.0.x] link:index31.html[3.1.x] link:index32.html[3.2.x] link:index34.html[3.4.x]
 
 include::../readme.adoc[tags=intro,leveloffset=1]
 
@@ -137,6 +135,7 @@ include::spatial.adoc[leveloffset=2]
 
 include::loadjson.adoc[leveloffset=2]
 include::loadjdbc.adoc[leveloffset=2]
+include::loadcsv.adoc[leveloffset=2]
 include::gephi.adoc[leveloffset=2]
 include::elasticsearch.adoc[leveloffset=2]
 include::loadxml.adoc[leveloffset=2]
@@ -166,6 +165,8 @@ $(document).ready(function() {
 include::create-virtual-nodes-rels.adoc[leveloffset=1]
 
 include::virtual-graph.adoc[leveloffset=1]
+
+include::grouping.adoc[leveloffset=1]
 
 == Graph Refactoring
 

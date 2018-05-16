@@ -69,7 +69,7 @@ http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board 
 APOC is easily installed with http://neo4j.com/download[Neo4j Desktop], after creating your database just go to the "Manage" screen and the "Plugins" tab.
 Then click "Install" in the APOC box and you're done.
 
-image::docs/img/desktop-apoc.jpg[]
+image::{img}/desktop-apoc.jpg[]
 
 === Download latest release
 
