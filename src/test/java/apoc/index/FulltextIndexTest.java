@@ -9,6 +9,7 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -168,6 +169,20 @@ public class FulltextIndexTest {
             assertTrue(index.existsForNodes(HIPSTER));
             assertEquals(JOE, index.forNodes(PERSON).query(NAME, "jo*").getSingle().getProperty(NAME));
             assertNull(index.forNodes(PERSON).query(AGE, "42").getSingle());
+            tx.success();
+        }
+    }
+
+    @Test
+    public void testAddNodeMapArray() throws Exception {
+        testCall(db, ("CREATE " + JOE_PATTERN + " WITH joe CALL apoc.index.addNodeMap(joe,{doc}) RETURN *"),
+                map("doc",map("name", "Joe","kids", Arrays.asList("Jane","Alice","Meg"), "ages",new int[]{8,10,12})),(row) -> { });
+        try (Transaction tx = db.beginTx()) {
+            assertTrue(index.existsForNodes("Person"));
+            assertTrue(index.existsForNodes("Hipster"));
+            assertEquals("Joe", index.forNodes("Person").query("kids", "Meg").getSingle().getProperty("name"));
+            assertEquals("Joe", index.forNodes("Person").query("ages", "10").getSingle().getProperty("name"));
+            assertNull(index.forNodes("Person").query("age", "42").getSingle());
             tx.success();
         }
     }

@@ -3,6 +3,7 @@ package apoc.index;
 import apoc.meta.Meta;
 import apoc.result.WeightedNodeResult;
 import apoc.result.WeightedRelationshipResult;
+import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
@@ -13,6 +14,7 @@ import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -229,9 +231,21 @@ public class FulltextIndex {
         index.remove(pc);
         document.forEach((key, value) -> {
             index.remove(pc, key);
-            index.add(pc, key, value);
+            index.add(pc, key, collectionToArray(value));
         });
     }
+
+
+    public static Object collectionToArray(Object value) {
+        if (value == null) return null;
+        if (!(value instanceof Collection)) return value;
+        Collection coll = (Collection) value;
+        if (coll.isEmpty()) return EMPTY_ARRAY;
+        return coll.toArray(new Object[coll.size()]);
+    }
+
+    final static Object[] EMPTY_ARRAY=new Object[0];
+
 
     // CALL apoc.index.removeNodeByName('name', joe)
     @Procedure(mode = Mode.WRITE)
