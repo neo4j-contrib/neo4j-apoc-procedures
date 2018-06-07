@@ -92,8 +92,13 @@ public class RelationshipSequenceExpander implements PathExpander {
             {
                 RelationshipType type = entry.first();
                 Direction dir = entry.other();
-                return ( ( dir == Direction.BOTH ) ? node.getRelationships( type ) :
-                        node.getRelationships( type, dir ) ).iterator();
+                if (type != null) {
+                    return ((dir == Direction.BOTH) ? node.getRelationships(type) :
+                            node.getRelationships(type, dir)).iterator();
+                } else {
+                    return ((dir == Direction.BOTH) ? node.getRelationships() :
+                            node.getRelationships(dir)).iterator();
+                }
             }
         });
     }
