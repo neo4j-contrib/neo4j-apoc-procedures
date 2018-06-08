@@ -150,6 +150,7 @@ For XLS files:
 
 Additional for XLSX files:
 
+* http://repo1.maven.org/maven2/org/apache/commons/commons-collections4/4.1/commons-collections4-4.1.jar[commons-collections4-4.1.jar^]
 * http://repo1.maven.org/maven2/org/apache/poi/poi-ooxml/3.17/poi-ooxml-3.17.jar[poi-ooxml-3.17.jar^]
 * http://repo1.maven.org/maven2/org/apache/poi/poi-ooxml-schemas/3.17/poi-ooxml-schemas-3.17.jar[poi-ooxml-schemas-3.17.jar^]
 * http://repo1.maven.org/maven2/org/apache/xmlbeans/xmlbeans/2.6.0/xmlbeans-2.6.0.jar[xmlbeans-2.6.0.jar^]
