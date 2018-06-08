@@ -14,6 +14,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import apoc.util.TestUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -323,6 +324,36 @@ public class ExpandPathTest {
 					assertEquals(1, maps.size());
 					Node node = (Node) maps.get(0).get("node");
 					assertEquals("Gene Hackman", node.getProperty("name"));
+				});
+	}
+
+	@Test
+	public void testRelationshipFilterWorksWithoutTypeOutgoing() {
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.subgraphNodes(k, {relationshipFilter:'>', labelFilter:'>Movie', uniqueness: 'NODE_GLOBAL'}) yield node " +
+						"return collect(node.title) as titles",
+				result -> {
+
+					List<String> expectedTitles = new ArrayList<>(Arrays.asList("Something's Gotta Give", "Johnny Mnemonic", "The Replacements", "The Devil's Advocate", "The Matrix Revolutions", "The Matrix Reloaded", "The Matrix"));
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(1, maps.size());
+					List<String> titles = (List<String>) maps.get(0).get("titles");
+					assertEquals(7, titles.size());
+					assertTrue(titles.containsAll(expectedTitles));
+				});
+	}
+
+	@Test
+	public void testRelationshipFilterWorksWithoutTypeIncoming() {
+		TestUtil.testResult(db,
+				"MATCH (k:Person {name:'Keanu Reeves'}) " +
+						"CALL apoc.path.subgraphNodes(k, {relationshipFilter:'<', labelFilter:'>BigBrother', uniqueness: 'NODE_GLOBAL'}) yield node " +
+						"return node",
+				result -> {
+
+					List<Map<String, Object>> maps = Iterators.asList(result);
+					assertEquals(1, maps.size());
 				});
 	}
 }

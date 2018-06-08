@@ -7,11 +7,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -103,6 +105,17 @@ public class SequenceTest {
             List<String> expectedNames = new ArrayList<>(Arrays.asList("Robert Zemeckis", "Mike Nichols", "Ron Howard", "Frank Darabont", "Tom Tykwer", "Andy Wachowski", "Lana Wachowski", "Tom Hanks", "John Patrick Stanley", "Nora Ephron", "Penny Marshall", "Rob Reiner"));
             List<String> names = (List<String>) row.get("names");
             assertEquals(12l, names.size());
+            assertTrue(names.containsAll(expectedNames));
+        });
+    }
+
+    @Test
+    public void testRelationshipFilterWorksWithoutTypeWithFullSequence() {
+        String query = "MATCH (t:Person {name: 'Tom Hanks'}) CALL apoc.path.expandConfig(t,{sequence:'>Person, >, Movie, <DIRECTED'}) yield path with distinct last(nodes(path)) as node return collect(node.name) as names";
+        TestUtil.testCall(db, query, (row) -> {
+            List<String> expectedNames = new ArrayList<>(Arrays.asList("Mike Nichols", "Robert Zemeckis", "Penny Marshall", "Ron Howard", "Frank Darabont", "Andy Wachowski", "Lana Wachowski", "Tom Tykwer", "Tom Hanks", "John Patrick Stanley", "Nora Ephron", "James Marshall", "Rob Reiner"));
+            List<String> names = (List<String>) row.get("names");
+            assertEquals(13l, names.size());
             assertTrue(names.containsAll(expectedNames));
         });
     }

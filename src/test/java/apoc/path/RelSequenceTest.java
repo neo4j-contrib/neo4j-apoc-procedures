@@ -7,11 +7,13 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -83,5 +85,21 @@ public class RelSequenceTest {
             assertEquals(12l, names.size());
             assertTrue(names.containsAll(expectedNames));
         });
+    }
+
+    @Test
+    public void testRelationshipFilterWorksWithoutTypeWithRelSequence() {
+        TestUtil.testResult(db,
+                "MATCH (k:Person {name:'Keanu Reeves'}) " +
+                        "CALL apoc.path.subgraphNodes(k, {relationshipFilter:'>,<', labelFilter:'/Person'}) yield node " +
+                        "return collect(node.name) as names",
+                result -> {
+                    List<String> expectedNames = new ArrayList<>(Arrays.asList("Nancy Meyers", "Jack Nicholson", "Diane Keaton", "Dina Meyer", "Ice-T", "Takeshi Kitano", "Robert Longo", "Jessica Thompson", "Angela Scope", "James Thompson", "Brooke Langton", "Gene Hackman", "Orlando Jones", "Howard Deutch", "Al Pacino", "Taylor Hackford", "Charlize Theron", "Lana Wachowski", "Joel Silver", "Hugo Weaving", "Andy Wachowski", "Carrie-Anne Moss", "Laurence Fishburne", "Emil Eifrem"));
+                    List<Map<String, Object>> maps = Iterators.asList(result);
+                    assertEquals(1, maps.size());
+                    List<String> names = (List<String>) maps.get(0).get("names");
+                    assertEquals(24, names.size());
+                    assertTrue(names.containsAll(expectedNames));
+                });
     }
 }

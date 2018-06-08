@@ -31,6 +31,8 @@ Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 | LIKES> | LIKES | OUTGOING
 | <FOLLOWS | FOLLOWS  | INCOMING
 | KNOWS  | KNOWS | BOTH
+| > | any type | OUTGOING
+| < | any type | INCOMING
 |===
 
 ==== Label Filter
