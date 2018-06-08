@@ -20,6 +20,7 @@ import java.util.*;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Collections.singletonMap;
+import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.*;
 
 /**
@@ -238,6 +239,26 @@ public class CypherTest {
                     assertEquals(-1L, row.get("row"));
                     assertEquals(3L, toLong(result.get("nodesDeleted")));
                     assertEquals(false, r.hasNext());
+                });
+    }
+    @Test
+    public void testRunFileWithParameters() throws Exception {
+        testResult(db, "CALL apoc.cypher.runFile('src/test/resources/parameterized.cypher', {statistics:false,parameters:{foo:123,bar:'baz'}})",
+                r -> {
+                    assertTrue("first row",r.hasNext());
+                    Map<String,Object> result = (Map<String,Object>)r.next().get("result");
+                    assertEquals(result.toString(), 1, result.size());
+                    assertThat( result, hasEntry("one", 123L));
+                    assertTrue("second row",r.hasNext());
+                    result = (Map<String,Object>)r.next().get("result");
+                    assertEquals(result.toString(), 1, result.size());
+                    assertThat(result, hasEntry("two", "baz"));
+                    assertTrue("third row",r.hasNext());
+                    result = (Map<String,Object>)r.next().get("result");
+                    assertEquals(result.toString(), 2, result.size());
+                    assertThat(result, hasEntry("foo", 123L));
+                    assertThat(result, hasEntry("bar", "baz"));
+                    assertFalse("fourth row",r.hasNext());
                 });
     }
 

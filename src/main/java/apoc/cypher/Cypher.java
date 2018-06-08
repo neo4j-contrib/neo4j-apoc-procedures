@@ -64,7 +64,7 @@ public class Cypher {
     }
 
     @Procedure(mode = WRITE)
-    @Description("apoc.cypher.runFile(file or url,[{statistics:true,timeout:10}]) - runs each statement in the file, all semicolon separated - currently no schema operations")
+    @Description("apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations")
     public Stream<RowResult> runFile(@Name("file") String fileName, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         return runFiles(singletonList(fileName),config);
     }
@@ -75,8 +75,10 @@ public class Cypher {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",10));
         List<RowResult> result = new ArrayList<>();
+        @SuppressWarnings( "unchecked" )
+        Map<String,Object> parameters = (Map<String,Object>)config.getOrDefault("parameters",Collections.emptyMap());
         for (String f : fileNames) {
-            List<RowResult> rowResults = runManyStatements(readerForFile(f), Collections.emptyMap(), false, addStatistics, timeout).collect(Collectors.toList());
+            List<RowResult> rowResults = runManyStatements(readerForFile(f), parameters, false, addStatistics, timeout).collect(Collectors.toList());
             result.addAll(rowResults);
         }
         return result.stream();
