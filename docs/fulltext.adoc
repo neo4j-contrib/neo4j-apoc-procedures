@@ -146,7 +146,7 @@ All https://neo4j.com/docs/java-reference/3.1/#indexing-create-advanced[standard
 | name | value | description
 | type | fulltext/exact | type of the index
 | to_lower_case | false/true | if terms should be converted to lower case before indexing
-| analyzer | classname | classname of lucene analyzer to be used for this index
+| analyzer | classnames | list of classname of lucene analyzer to be used for this index
 | similarity | classname | classname for lucene similarity to be used for this index
 | autoUpdate | true/false | if this index should be tracked for graph updates
 |===
@@ -252,3 +252,27 @@ Again we're search for "Johnny", expecting now two of them:
 CALL apoc.index.search("people", "Johnny") YIELD node, weight
 RETURN node.name, weight
 ----
+
+=== Fulltext Index and multilingual string
+By default standart configuration of fultext index use standart analyzer for extract token from text.
+For support fultext search on multilangual content we need to set additional configuration to parameter `<option>` in function `apoc.index.addAllNodes`.
+
+Bellow there is example of creating fulltext index with multilingual support
+[source,cypher]
+----
+CALL apoc.index.addAllNodes('locations',{
+  Person:  ["address"],
+  Address: ["address"]}, {analyzer:["EnglishAnalizer","RussianAnalizer","ThaiAnalyzer"]})
+----
+
+Now we can made correct search strings writed in English, Russian and Thai.
+
+[source,cypher]
+----
+CALL apoc.index.search("locations", "Москва")
+YIELD node AS addr
+MATCH (addr)<-[:HAS_ADDRESS]-(company:Company)
+RETURN company LIMIT 50
+----
+
+To view full list of Lucene analizer please see https://lucene.apache.org/core/7_3_0/analyzers-common/index.html[Lucene 7.3.0 analyzers-common API]
