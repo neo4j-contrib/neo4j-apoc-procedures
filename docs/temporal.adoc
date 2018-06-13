@@ -1,0 +1,31 @@
+= Temporal Functions
+
+These functions can be used to format temporal values using a valid `DateTimeFormatter` pattern.
+
+
+== Formatting Temporal Types
+
+You can pass through any temporal type (Date, Time, DateTime, LocalTime, LocalDateTime, Duration) along with a pattern.
+Please note that if the pattern is invalid for the value that you pass in (for example `HH` for hours on a Date value or `DD` for day on a Time value),
+an Exception will be thrown.
+
+[source,cypher]
+----
+apoc.temporal.format( date(), 'YYYY-MM-dd')
+apoc.temporal.format( datetime(), 'YYYY-MM-dd HH:mm:ss.SSSSZ')
+apoc.temporal.format( localtime(), 'HH:mm:ss.SSSS')
+apoc.temporal.format( localtime(), 'HH:mm:ss.SSSS')
+----
+
+https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html[View full pattern listing]
+
+
+== Formatting Durations
+
+When attempting to format a duration, the procedure will attempt to create a date (01/01/0000) and add the duration.  This allows you to provide a consistent format as above.
+
+
+[source,cypher]
+----
+apoc.temporal.format( duration.between( datetime.transaction(), datetime.realtime() ) , 'HH:mm:ss.SSSS')
+----
