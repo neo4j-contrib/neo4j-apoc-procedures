@@ -15,7 +15,6 @@ import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
-import org.neo4j.index.impl.lucene.explicit.LuceneDataSource;
 import org.neo4j.index.impl.lucene.explicit.LuceneIndexImplementation;
 import org.neo4j.index.lucene.QueryContext;
 import org.neo4j.index.lucene.ValueContext;

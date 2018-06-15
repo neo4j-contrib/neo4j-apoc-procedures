@@ -9,10 +9,6 @@ import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
-
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 

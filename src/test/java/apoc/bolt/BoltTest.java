@@ -4,12 +4,10 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilders;
-import org.neo4j.harness.junit.Neo4jRule;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Arrays;

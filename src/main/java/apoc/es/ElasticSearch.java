@@ -1,6 +1,5 @@
 package apoc.es;
 
-import org.apache.commons.lang3.StringUtils;
 import org.neo4j.procedure.Description;
 import apoc.load.LoadJson;
 import apoc.result.MapResult;

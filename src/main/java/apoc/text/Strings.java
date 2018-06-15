@@ -5,9 +5,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.procedure.Description;
-import apoc.result.StringResult;
 import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.UserFunction;
 
 import java.io.UnsupportedEncodingException;
@@ -21,7 +19,6 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.StringUtils;

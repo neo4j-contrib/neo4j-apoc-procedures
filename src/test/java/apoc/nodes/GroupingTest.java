@@ -5,7 +5,6 @@ import org.junit.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.List;
 import java.util.Map;
 
 import static apoc.util.TestUtil.testResult;

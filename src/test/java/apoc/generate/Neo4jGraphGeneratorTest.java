@@ -9,7 +9,6 @@ import apoc.generate.node.SocialNetworkNodeCreator;
 import apoc.generate.relationship.RelationshipCreator;
 import apoc.generate.relationship.SimpleGraphRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
-import apoc.get.Get;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -17,7 +16,6 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Arrays;

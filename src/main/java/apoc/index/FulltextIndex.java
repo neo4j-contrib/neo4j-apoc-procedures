@@ -3,7 +3,6 @@ package apoc.index;
 import apoc.meta.Meta;
 import apoc.result.WeightedNodeResult;
 import apoc.result.WeightedRelationshipResult;
-import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;

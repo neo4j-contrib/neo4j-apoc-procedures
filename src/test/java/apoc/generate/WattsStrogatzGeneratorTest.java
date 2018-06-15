@@ -8,15 +8,9 @@ import apoc.generate.relationship.SocialNetworkRelationshipCreator;
 import apoc.generate.relationship.WattsStrogatzRelationshipGenerator;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
 import org.neo4j.test.TestGraphDatabaseFactory;
-import org.neo4j.unsafe.batchinsert.BatchInserter;
-import org.neo4j.unsafe.batchinsert.BatchInserters;
-
-import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.helpers.collection.Iterables.count;

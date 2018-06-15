@@ -4,12 +4,7 @@ import java.util.*;
 import java.io.*;
 import java.util.stream.*;
 
-import com.jayway.jsonpath.JsonPath;
-import org.neo4j.procedure.Description;
-import apoc.result.ListResult;
 import apoc.result.MapResult;
-import apoc.result.ObjectResult;
-import apoc.result.StringResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;

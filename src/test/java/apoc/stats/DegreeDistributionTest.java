@@ -1,6 +1,5 @@
 package apoc.stats;
 
-import apoc.coll.Coll;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

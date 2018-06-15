@@ -10,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import apoc.util.MissingDependencyException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

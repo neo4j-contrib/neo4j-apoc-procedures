@@ -1,16 +1,11 @@
 package apoc.text;
 
 import org.neo4j.procedure.Description;
-import apoc.result.LongResult;
 import apoc.result.StringResult;
 import org.apache.commons.codec.EncoderException;
-import org.apache.commons.codec.language.Soundex;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.util.Iterator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 

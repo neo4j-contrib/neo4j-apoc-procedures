@@ -1,6 +1,5 @@
 package apoc.nodes;
 
-import apoc.*;
 import apoc.result.LongResult;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
@@ -12,7 +11,7 @@ import org.neo4j.internal.kernel.api.*;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.procedure.*;
 import org.neo4j.procedure.Description;
-import javax.annotation.Nonnull;
+
 import java.util.*;
 import java.util.stream.Stream;
 

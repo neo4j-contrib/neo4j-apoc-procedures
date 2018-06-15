@@ -1,6 +1,5 @@
 package apoc.export.graphml;
 
-import apoc.export.cypher.ExportCypher;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;

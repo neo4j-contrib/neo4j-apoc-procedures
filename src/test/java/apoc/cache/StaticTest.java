@@ -1,14 +1,9 @@
 package apoc.cache;
 
-import apoc.ApocConfiguration;
-import apoc.cypher.Cypher;
 import apoc.util.TestUtil;
 import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.test.TestGraphDatabaseFactory;
-
-import java.io.File;
 
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.*;

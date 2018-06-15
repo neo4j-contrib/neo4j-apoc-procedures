@@ -1,10 +1,6 @@
 package apoc.agg;
 
-import org.HdrHistogram.Histogram;
 import org.neo4j.procedure.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author mh

@@ -10,7 +10,6 @@ import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.index.IndexHits;
 import org.neo4j.helpers.collection.ArrayIterator;
 import org.neo4j.helpers.collection.PrefetchingIterator;
-import org.neo4j.index.impl.lucene.explicit.AbstractExplicitIndexHits;
 import org.neo4j.index.impl.lucene.explicit.EmptyIndexHits;
 import org.neo4j.kernel.api.impl.index.collector.DocValuesAccess;
 import org.neo4j.kernel.api.impl.schema.LuceneDocumentStructure;

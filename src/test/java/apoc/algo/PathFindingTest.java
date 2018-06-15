@@ -14,12 +14,10 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;

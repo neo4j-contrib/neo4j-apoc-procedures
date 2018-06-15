@@ -11,7 +11,6 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import java.util.*;
 
 import static org.junit.Assert.*;
-import static apoc.util.TestUtil.testCall;
 
 public class DistanceTest {
 

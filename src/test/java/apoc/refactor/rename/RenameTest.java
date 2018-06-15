@@ -1,7 +1,6 @@
 package apoc.refactor.rename;
 
 
-import apoc.result.VirtualNode;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import org.junit.After;

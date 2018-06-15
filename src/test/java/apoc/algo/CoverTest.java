@@ -1,6 +1,5 @@
 package apoc.algo;
 
-import apoc.es.ElasticSearch;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

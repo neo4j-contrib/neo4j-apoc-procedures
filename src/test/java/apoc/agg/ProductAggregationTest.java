@@ -8,7 +8,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static apoc.util.TestUtil.testCall;
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
 public class ProductAggregationTest {

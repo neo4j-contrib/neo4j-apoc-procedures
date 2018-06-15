@@ -1,6 +1,5 @@
 package apoc.export.util;
 
-import apoc.export.cypher.formatter.CypherFormatter;
 import apoc.export.cypher.formatter.CypherFormatterUtils;
 
 import static java.lang.String.format;

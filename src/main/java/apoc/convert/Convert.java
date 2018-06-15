@@ -7,8 +7,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,8 +24,6 @@ import org.neo4j.procedure.UserFunction;
 import apoc.coll.SetBackedList;
 import apoc.meta.Meta.Types;
 import apoc.util.Util;
-
-import static apoc.meta.Meta.Types.UNKNOWN;
 
 
 /**

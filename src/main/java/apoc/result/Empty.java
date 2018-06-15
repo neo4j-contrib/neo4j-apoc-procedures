@@ -1,7 +1,5 @@
 package apoc.result;
 
-import apoc.meta.Meta;
-
 import java.util.stream.Stream;
 
 /**

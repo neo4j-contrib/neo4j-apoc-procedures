@@ -1,7 +1,6 @@
 package apoc.util;
 
 import java.io.File;
-import java.util.regex.Pattern;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.HdfsConfiguration;

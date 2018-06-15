@@ -3,19 +3,15 @@ package apoc.path;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import apoc.util.Util;
 import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import apoc.util.TestUtil;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 public class LabelSequenceTest {
     private static GraphDatabaseService db;

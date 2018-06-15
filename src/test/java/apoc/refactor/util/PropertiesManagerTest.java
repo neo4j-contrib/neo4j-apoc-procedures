@@ -10,7 +10,6 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static apoc.util.TestUtil.testCall;

@@ -3,16 +3,12 @@ package apoc.temporal;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.test.TestGraphDatabaseFactory;
-
-import java.util.Map;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.harness.junit.Neo4jRule;
 
 import static org.junit.Assert.assertEquals;
 

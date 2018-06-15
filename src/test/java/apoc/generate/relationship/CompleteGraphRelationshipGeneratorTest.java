@@ -3,7 +3,6 @@ package apoc.generate.relationship;
 import apoc.generate.config.NumberOfNodesBasedConfig;
 import org.junit.Test;
 import org.neo4j.helpers.collection.Pair;
-import org.neo4j.logging.Log;
 
 import java.util.List;
 

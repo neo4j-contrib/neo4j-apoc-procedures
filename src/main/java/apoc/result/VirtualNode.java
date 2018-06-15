@@ -16,7 +16,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.collection.FilteringIterable;
 import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.helpers.collection.Iterators;
 
 import static java.util.Arrays.asList;
 

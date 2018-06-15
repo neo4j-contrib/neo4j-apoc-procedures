@@ -2,14 +2,10 @@ package apoc.atomic;
 
 import apoc.util.ArrayBackedList;
 import apoc.util.TestUtil;
-import apoc.util.Util;
 import org.junit.*;
-import org.neo4j.cypher.internal.frontend.v2_3.ast.functions.E;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.TransactionTemplate;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Arrays;

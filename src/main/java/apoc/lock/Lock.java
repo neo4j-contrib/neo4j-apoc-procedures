@@ -1,15 +1,9 @@
 package apoc.lock;
 
 import org.neo4j.procedure.*;
-import apoc.result.*;
 import org.neo4j.graphdb.*;
-import org.neo4j.kernel.api.KernelTransaction;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 public class Lock {
 

@@ -5,13 +5,10 @@ import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.api.Statement;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.Map;
 
 import static org.junit.Assert.*;

@@ -1,7 +1,5 @@
 package apoc.map;
 
-import apoc.result.MapResult;
-import apoc.result.ObjectResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.*;
@@ -9,7 +7,6 @@ import org.neo4j.procedure.*;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Maps {
 

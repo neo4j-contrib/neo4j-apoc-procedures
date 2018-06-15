@@ -11,7 +11,6 @@ import java.lang.reflect.Array;
 import java.util.*;
 
 import static java.util.Arrays.asList;
-import static java.util.Arrays.hashCode;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 

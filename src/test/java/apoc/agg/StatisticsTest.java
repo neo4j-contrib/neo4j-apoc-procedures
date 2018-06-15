@@ -12,7 +12,6 @@ import java.util.List;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.Util.map;
-import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
 public class StatisticsTest {

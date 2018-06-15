@@ -20,7 +20,6 @@ import static apoc.load.LoadCsvTest.assertRow;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 public class LoadHdfsTest {
 

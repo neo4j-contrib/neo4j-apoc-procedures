@@ -1,6 +1,5 @@
 package apoc.example;
 
-import apoc.coll.Coll;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
