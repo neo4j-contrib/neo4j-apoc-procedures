@@ -161,6 +161,12 @@ public class Date {
 	}
 
 	@UserFunction
+	@Description("apoc.date.fromISO8601('yyyy-MM-ddTHH:mm:ss.SSSZ') return number representation of time in EPOCH format")
+	public Long fromISO8601(final @Name("time") String time) {
+		return time == null ? null : Instant.parse(time).toEpochMilli();
+	}
+
+	@UserFunction
 	@Description("apoc.date.parse('2012-12-23','ms|s|m|h|d','yyyy-MM-dd') parse date string using the specified format into the specified time unit")
 	public Long parse(@Name("time") String time, @Name(value = "unit", defaultValue = "ms") String unit, @Name(value = "format",defaultValue = DEFAULT_FORMAT) String format, final @Name(value = "timezone", defaultValue = "") String timezone) {
 		Long value = parseOrThrow(time, getFormat(format, timezone));
