@@ -95,6 +95,21 @@ RETURN key, apoc.meta.type(value[key]);
 ----
 image::{img}/apoc.load.xmlSimple.ex2.png[width=800]
 
+
+
+=== HTTP Headers
+
+You can provide a map of HTTP headers to the config property.
+
+[source,cypher]
+----
+WITH { `X-API-KEY`: 'abc123' } as headers,
+WITH "https://myapi.com/api/v1/" AS url
+CALL apoc.load.xml(url, '', { headers: headers }) YIELD value
+UNWIND keys(value) AS key
+RETURN key, apoc.meta.type(value[key]);
+----
+
 == xPath
 
 It's possible to define a xPath (optional) to selecting nodes from the XML document.
