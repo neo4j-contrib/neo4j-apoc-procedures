@@ -311,6 +311,30 @@ public class DateTest {
 	}
 
 	@Test
+	public void testfieldAll() throws Exception {
+		long epoch = LocalDateTime.of(2015, 1, 2, 3, 4, 5)
+				.atZone(ZoneId.of("UTC"))
+				.toInstant()
+				.toEpochMilli();
+		testCall(db,
+				"RETURN apoc.date.field(" + epoch + ", 'year') AS years, apoc.date.field(" + epoch
+						+ ", 'month') AS months, apoc.date.field(" + epoch + ", 'd') AS days, apoc.date.field(" + epoch
+						+ ", 'w') AS weekdays, apoc.date.field(" + epoch + ", 'h') AS hours, apoc.date.field(" + epoch
+						+ ", 'm') AS minutes, apoc.date.field(" + epoch + ", 's') AS seconds, apoc.date.field(" + epoch
+						+ ", 'ms') AS millis",
+				row -> {
+					assertEquals(2015L, (long) row.get("years"));
+					assertEquals(1L, (long) row.get("months"));
+					assertEquals(2L, (long) row.get("days"));
+					assertEquals(5L, (long) row.get("weekdays"));
+					assertEquals(3L, (long) row.get("hours"));
+					assertEquals(4L, (long) row.get("minutes"));
+					assertEquals(5L, (long) row.get("seconds"));
+					assertEquals(0L, (long) row.get("millis"));
+				});
+	}
+
+	@Test
 	public void testfieldNullInput() throws Exception {
 		testCall(db,
 				"RETURN apoc.date.field(NULL) AS value",
