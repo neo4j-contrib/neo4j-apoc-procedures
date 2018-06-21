@@ -68,7 +68,10 @@ public class Xml {
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 
             FileUtils.checkReadAllowed(url);
-            Document doc = documentBuilder.parse(Util.openInputStream(url, Collections.emptyMap(), null));
+
+            Map<String, Object> headers = (HashMap) config.getOrDefault( "headers", Collections.emptyMap() );
+
+            Document doc = documentBuilder.parse(Util.openInputStream(url, headers, null));
             XPathFactory xPathFactory = XPathFactory.newInstance();
 
             XPath xPath = xPathFactory.newXPath();
