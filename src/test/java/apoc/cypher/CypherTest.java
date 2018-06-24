@@ -86,9 +86,15 @@ public class CypherTest {
     }
 
     @Test
-    public void testRunFirstColumn() throws Exception {
-        testCall(db, "RETURN apoc.cypher.runFirstColumn('RETURN a + 7 AS b', {a: 3}, false) AS s",
+    public void testRunFirstColumnSingle() throws Exception {
+        testCall(db, "RETURN apoc.cypher.runFirstColumnSingle('RETURN a + 7 AS b', {a: 3}) AS s",
                 r -> assertEquals(10L, (r.get("s"))));
+    }
+
+    @Test
+    public void testRunFirstColumnMany() throws Exception {
+        testCall(db, "RETURN apoc.cypher.runFirstColumnMany('UNWIND range(1,a) as id RETURN id', {a: 3}) AS s",
+                r -> assertEquals(Arrays.asList(1L,2L,3L), (r.get("s"))));
     }
 
     @Test
