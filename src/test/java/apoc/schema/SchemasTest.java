@@ -265,6 +265,10 @@ public class SchemasTest {
             assertEquals("Foo", r.get("label"));
             assertEquals("INDEX", r.get("type"));
             assertEquals("bar", ((List<String>) r.get("properties")).get(0));
+            assertEquals("NO FAILURE", r.get("failure"));
+            assertEquals(new Double(100), r.get("populationProgress"));
+            assertEquals(new Double(1), r.get("valuesSelectivity"));
+            assertEquals("Index( GENERAL, bar )", r.get("userDescription"));
 
             assertTrue(!result.hasNext());
         });
@@ -318,7 +322,7 @@ public class SchemasTest {
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             Map<String, Object> r = result.next();
 
-            assertEquals("CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE", r.get("name"));
+            assertEquals(":Bar(foo)", r.get("name"));
             assertEquals("Bar", r.get("label"));
             assertEquals("UNIQUENESS", r.get("type"));
             assertEquals("foo", ((List<String>) r.get("properties")).get(0));
@@ -334,15 +338,15 @@ public class SchemasTest {
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             Map<String, Object> r = result.next();
 
+            assertEquals("Bar", r.get("label"));
+            assertEquals("UNIQUENESS", r.get("type"));
+            assertEquals("bar", ((List<String>) r.get("properties")).get(0));
+
+            r = result.next();
             assertEquals("Foo", r.get("label"));
             assertEquals("INDEX", r.get("type"));
             assertEquals("foo", ((List<String>) r.get("properties")).get(0));
             assertEquals("ONLINE", r.get("status"));
-
-            r = result.next();
-            assertEquals("Bar", r.get("label"));
-            assertEquals("UNIQUENESS", r.get("type"));
-            assertEquals("bar", ((List<String>) r.get("properties")).get(0));
 
             assertTrue(!result.hasNext());
         });
