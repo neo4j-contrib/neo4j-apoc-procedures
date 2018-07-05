@@ -12,7 +12,11 @@ import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.internal.kernel.api.*;
 import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.api.SilentTokenNameLookup;
+import org.neo4j.kernel.api.Statement;
+import org.neo4j.kernel.api.exceptions.index.IndexNotFoundKernelException;
 import org.neo4j.procedure.*;
 
 import java.util.*;
@@ -39,7 +43,7 @@ public class Schemas {
 
     @Procedure(value = "apoc.schema.nodes", mode = Mode.SCHEMA)
     @Description("CALL apoc.schema.nodes() yield name, label, properties, status, type")
-    public Stream<IndexConstraintNodeInfo> nodes() {
+    public Stream<IndexConstraintNodeInfo> nodes() throws IndexNotFoundKernelException {
         return indexesAndConstraintsForNode();
     }
 
@@ -251,20 +255,27 @@ public class Schemas {
      *
      * @return
      */
-    private Stream<IndexConstraintNodeInfo> indexesAndConstraintsForNode() {
+    private Stream<IndexConstraintNodeInfo> indexesAndConstraintsForNode() throws IndexNotFoundKernelException {
         Schema schema = db.schema();
+        Stream<IndexConstraintNodeInfo> indexes = Stream.empty();
 
-        // Indexes
-        Stream<IndexConstraintNodeInfo> indexes = StreamSupport.stream(schema.getIndexes().spliterator(), false)
-                .filter(indexDefinition -> !indexDefinition.isConstraintIndex())
-                .map(indexDefinition -> this.nodeInfoFromIndexDefinition(indexDefinition, schema));
+        try ( Statement ignore = tx.acquireStatement() ) {
+            TokenRead tokenRead = tx.tokenRead();
+            TokenNameLookup tokens = new SilentTokenNameLookup(tokenRead);
 
-        // Constraints
-        Stream<IndexConstraintNodeInfo> constraints = StreamSupport.stream(schema.getConstraints().spliterator(), false)
-                .filter(constraintDefinition -> !constraintDefinition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE))
-                .map(this::nodeInfoFromConstraintDefinition);
+            SchemaRead schemaRead = tx.schemaRead();
+            Iterable<IndexReference> indexesIterator = () -> schemaRead.indexesGetAll();
+            indexes = StreamSupport.stream(indexesIterator.spliterator(), false)
+                   .map(indexReference -> {
+                        try {
+                            return this.nodeInfoFromIndexDefinition(indexReference, schemaRead, tokens);
+                        } catch (IndexNotFoundKernelException e) {
+                            throw new RuntimeException("",e);
+                        }
+                    });
+        }
 
-        return Stream.concat(indexes, constraints);
+        return indexes;
     }
 
     /**
@@ -283,36 +294,26 @@ public class Schemas {
     /**
      * Index info from IndexDefinition
      *
-     * @param indexDefinition
-     * @param schema
+     * @param indexReference
+     * @param schemaRead
      * @return
      */
-    private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexDefinition indexDefinition, Schema schema) {
-        String labelName = indexDefinition.getLabel().name();
-        List<String> properties = Iterables.asList(indexDefinition.getPropertyKeys());
-
+    private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexReference indexReference, SchemaRead schemaRead, TokenNameLookup tokens) throws IndexNotFoundKernelException {
+        String labelName =  tokens.labelGetName(indexReference.label());
+        List<String> properties = new ArrayList<>();
+        Arrays.stream(indexReference.properties()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
         return new IndexConstraintNodeInfo(
                 // Pretty print for index name
                 String.format(":%s(%s)", labelName, StringUtils.join(properties, ",")),
                 labelName,
                 properties,
-                schema.getIndexState(indexDefinition).name(),
-                "INDEX");
-    }
-
-    /**
-     * Constraint info from ConstraintDefinition for nodes
-     *
-     * @param constraintDefinition
-     * @return
-     */
-    private IndexConstraintNodeInfo nodeInfoFromConstraintDefinition(ConstraintDefinition constraintDefinition) {
-        return new IndexConstraintNodeInfo(
-                String.format("CONSTRAINT %s", constraintDefinition.toString()),
-                constraintDefinition.getLabel().name(),
-                Iterables.asList(constraintDefinition.getPropertyKeys()),
-                "",
-                constraintDefinition.getConstraintType().name()
+                schemaRead.indexGetState(indexReference).toString(),
+                !indexReference.isUnique()?"INDEX":"UNIQUENESS",
+                schemaRead.indexGetState(indexReference).equals(InternalIndexState.FAILED) ? schemaRead.indexGetFailure(indexReference) : "NO FAILURE",
+                schemaRead.indexGetPopulationProgress(indexReference).getCompleted()/schemaRead.indexGetPopulationProgress(indexReference).getTotal()*100,
+                schemaRead.indexSize(indexReference),
+                schemaRead.indexUniqueValuesSelectivity(indexReference),
+                indexReference.userDescription(tokens)
         );
     }
 
