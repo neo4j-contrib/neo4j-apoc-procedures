@@ -16,8 +16,8 @@ public class Pools {
     static final String CONFIG_JOBS_SCHEDULED_NUM_THREADS = "jobs.scheduled.num_threads";
     static final String CONFIG_JOBS_POOL_NUM_THREADS = "jobs.pool.num_threads";
 
-    private final static int DEFAULT_SCHEDULED_THREADS = Runtime.getRuntime().availableProcessors() / 4;
-    private final static int DEFAULT_POOL_THREADS = Runtime.getRuntime().availableProcessors() * 2;
+    public final static int DEFAULT_SCHEDULED_THREADS = Runtime.getRuntime().availableProcessors() / 4;
+    public final static int DEFAULT_POOL_THREADS = Runtime.getRuntime().availableProcessors() * 2;
 
     public final static ExecutorService SINGLE = createSinglePool();
     public final static ExecutorService DEFAULT = createDefaultPool();

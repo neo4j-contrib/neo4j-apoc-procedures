@@ -430,7 +430,7 @@ public class Util {
     }
 
     public static <T> List<T> take(Iterator<T> iterator, int batchsize) {
-        ArrayList<T> result = new ArrayList<>(batchsize);
+        List<T> result = new ArrayList<>(batchsize);
         while (iterator.hasNext() && batchsize-- > 0) {
             result.add(iterator.next());
         }
