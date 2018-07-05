@@ -6,7 +6,6 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.helpers.collection.Pair;
-import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
@@ -234,7 +233,7 @@ public class Periodic {
             log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
             try (Result result = db.execute(cypherIterate)) {
                 Stream<BatchAndTotalResult> oneResult =
-                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, false, false,0, result, params -> db.execute(cypherAction, params));
+                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, false, false,0, result, params -> db.execute(cypherAction, params), 50);
                 final Object loopParam = value;
                 allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
             }
@@ -254,6 +253,7 @@ public class Periodic {
             @Name("config") Map<String,Object> config) {
 
         long batchSize = Util.toLong(config.getOrDefault("batchSize", 10000));
+        int concurrency = Util.toInteger(config.getOrDefault("concurrency", 50));
         boolean parallel = Util.toBoolean(config.getOrDefault("parallel", false));
         boolean iterateList = Util.toBoolean(config.getOrDefault("iterateList", true));
         long retries = Util.toLong(config.getOrDefault("retries", 0)); // todo sleep/delay or push to end of batch to try again or immediate ?
@@ -263,7 +263,7 @@ public class Periodic {
             String innerStatement = prepared.first();
             iterateList=prepared.other();
             log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, parallel, iterateList, retries, result, (p) -> db.execute(innerStatement, merge(params, p)).close());
+            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, parallel, iterateList, retries, result, (p) -> db.execute(innerStatement, merge(params, p)).close(), concurrency);
         }
     }
 
@@ -306,14 +306,14 @@ public class Periodic {
 
         log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
         try (Result result = db.execute(cypherIterate)) {
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, p -> db.execute(cypherAction, p).close());
+            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, p -> db.execute(cypherAction, p).close(), 50);
         }
     }
 
     private Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, boolean parallel, boolean iterateList, long retries,
-                                                                                 Iterator<Map<String,Object>> iterator, Consumer<Map<String,Object>> consumer) {
+                                                                                 Iterator<Map<String, Object>> iterator, Consumer<Map<String, Object>> consumer, int concurrency) {
         ExecutorService pool = parallel ? Pools.DEFAULT : Pools.SINGLE;
-        List<Future<Long>> futures = new ArrayList<>(1000);
+        List<Future<Long>> futures = new ArrayList<>(concurrency);
         long batches = 0;
         long start = System.nanoTime();
         AtomicLong count = new AtomicLong();
@@ -333,9 +333,8 @@ public class Periodic {
                 task = () -> {
                     long c = count.addAndGet(currentBatchSize);
                     if (Util.transactionIsTerminated(terminationGuard)) return 0L;
-                    List<Map<String,Object>> batchLocal = batch;
                     try {
-                        Map<String, Object> params = Util.map("_count", c, "_batch", batchLocal);
+                        Map<String, Object> params = Util.map("_count", c, "_batch", batch);
                         retried.addAndGet(retry(consumer,params,0,retries));
                     } catch (Exception e) {
                         failedOps.addAndGet(batchsize);
@@ -350,9 +349,8 @@ public class Periodic {
                         p -> {
                             long c = count.incrementAndGet();
                             if (c % 1000 == 0 && Util.transactionIsTerminated(terminationGuard)) return 0;
-                            List<Map<String,Object>> batchLocal = batch;
                             try {
-                                Map<String, Object> params = merge(p, Util.map("_count", c, "_batch", batchLocal));
+                                Map<String, Object> params = merge(p, Util.map("_count", c, "_batch", batch));
                                 retried.addAndGet(retry(consumer,params,0,retries));
                             } catch (Exception e) {
                                 failedOps.incrementAndGet();
@@ -364,8 +362,8 @@ public class Periodic {
             }
             futures.add(Util.inTxFuture(pool, db, task));
             batches++;
-            if (futures.size() > 50) {
-                while (futures.stream().filter(Future::isDone).count()==0) { // none done yet, block for a bit
+            if (futures.size() > concurrency) {
+                while (futures.stream().noneMatch(Future::isDone)) { // none done yet, block for a bit
                     LockSupport.parkNanos(1000);
                 }
                 Iterator<Future<Long>> it = futures.iterator();
