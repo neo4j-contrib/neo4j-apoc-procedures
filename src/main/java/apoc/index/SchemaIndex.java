@@ -60,6 +60,7 @@ public class SchemaIndex {
     public KernelTransaction tx;
 
     @Procedure
+    @Deprecated
     @Description("apoc.index.relatedNodes([nodes],label,key,'<TYPE'/'TYPE>'/'TYPE',limit) yield node - schema range scan which keeps index order and adds limit and checks opposite node of relationship against the given set of nodes")
     public Stream<NodeResult> related(@Name("nodes") List<Node> nodes,
                                       @Name("label") String label, @Name("key") String key,
@@ -82,7 +83,8 @@ public class SchemaIndex {
     }
 
     @Procedure
-    @Description("apoc.index.orderedRange(label,key,min,max,sort-relevance,limit) yield node - schema range scan which keeps index order and adds limit, values can be null, boundaries are inclusive")
+    @Deprecated
+    @Description("just use a cypher query with a range predicate on an indexed field and wait for index backed order by in 3.5")
     public Stream<NodeResult> orderedRange(@Name("label") String label, @Name("key") String key, @Name("min") Object min, @Name("max") Object max, @Name("relevance") boolean relevance, @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
 
         return queryForRange(label, key, min, max, limit).map(NodeResult::new);
@@ -125,7 +127,8 @@ public class SchemaIndex {
     }
 
     @Procedure
-    @Description("apoc.index.orderedByText(label,key,operator,value,sort-relevance,limit) yield node - schema string search which keeps index order and adds limit, operator is 'STARTS WITH' or 'CONTAINS'")
+    @Deprecated
+    @Description("just use a cypher query with a range predicate on an indexed field and wait for index backed order by in 3.5")
     public Stream<NodeResult> orderedByText(@Name("label") String label, @Name("key") String key, @Name("operator") String operator, @Name("value") String value, @Name("relevance") boolean relevance, @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
         SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, limit, getSort(value,value,relevance));
         PrimitiveLongIterator it = queryForString(sortedIndexReader, operator, value);
@@ -163,16 +166,36 @@ public class SchemaIndex {
             IndexReader indexReader = stmt.getStoreStatement().getIndexReader(descriptor);
             if (indexReader instanceof FusionIndexBase) {
                 try {
-                    Field field = FusionIndexBase.class.getDeclaredField("instances");
-                    field.setAccessible(true);
-                    IndexReader[] instances = (IndexReader[])field.get(indexReader);
-                    return (SimpleIndexReader) (instances[4]); // from https://github.com/neo4j/neo4j/blob/c6ed903dd35f89865ee765d894b7e2138220fef0/community/kernel/src/main/java/org/neo4j/kernel/impl/index/schema/fusion/FusionIndexBase.java#L46
-                } catch (IllegalAccessException | NoSuchFieldException e) {
+                    Field selectorField = FusionIndexBase.class.getDeclaredField("instanceSelector");
+                    selectorField.setAccessible(true);
+                    Object instanceSelector = selectorField.get(indexReader);
+                    Field instancesField = getDeclaredField(instanceSelector, "instances");
+                    instancesField.setAccessible(true);
+                    IndexReader[] instances = (IndexReader[]) instancesField.get(instanceSelector);
+                    for (IndexReader instance : instances) {
+                        if (instance instanceof SimpleIndexReader) {
+                            return (SimpleIndexReader)instance;
+                        }
+                    }
+                    throw new IllegalStateException("No Lucene Index Reader found");
+                } catch (Exception e) {
                     throw new RuntimeException("Error accessing index reader",e);
                 }
             }
             return (SimpleIndexReader)indexReader;
         }
+    }
+
+    private Field getDeclaredField(Object instance, String name) throws NoSuchFieldException {
+        Class<?> type = instance.getClass();
+        do {
+            try {
+                return type.getDeclaredField(name);
+            } catch(NoSuchFieldException nsfe) {
+                type = type.getSuperclass();
+                if (type == null) throw nsfe;
+            }
+        } while (true);
     }
 
     @Procedure("apoc.schema.properties.distinct")
