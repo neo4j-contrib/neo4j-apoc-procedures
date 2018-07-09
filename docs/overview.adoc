@@ -654,10 +654,17 @@ CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (
 | call apoc.refactor.categorize(node, propertyKey, type, outgoing, label) | turn each unique propertyKey into a category node and connect to it
 |===
 
-On mergeRelationship with config properties you can choose from 3 different management:
+On mergeRelationship and mergeNodes with config properties you can choose from 3 different management:
  * "overwrite" : if there is the same property in more relationship, in the new one will have the last relationship's property value
  * "discard" : if there is the same property in more relationship, the new one will have the first relationship's property value
  * "combine" : if there is the same property in more relationship, the new one a value's array with all relationships' values
+
+On mergeNodes procedure there is also a config parameter to merge relationships of the merged nodes:
+ * "mergeRels: true/false" : give the possibility to merge relationships with same type and direction.
+
+If relationships have same start and end nodes will be merged into one, and properties managed by the properties config.
+If relationships have different start/end nodes (related to direction), relationships will be maintained and properties will be combine in all relationship.
+
 
 TODO:
 
