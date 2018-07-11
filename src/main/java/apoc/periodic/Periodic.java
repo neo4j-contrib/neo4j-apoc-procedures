@@ -158,9 +158,10 @@ public class Periodic {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.periodic.repeat('name',kernelTransaction,repeat-rate-in-seconds) submit a repeatedly-called background kernelTransaction")
-    public Stream<JobInfo> repeat(@Name("name") String name, @Name("kernelTransaction") String statement, @Name("rate") long rate) {
-        JobInfo info = schedule(name, () -> Iterators.count(db.execute(statement)),0,rate);
+    @Description("apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background kernelTransaction. Fourth parameter 'config' is optional.")
+    public Stream<JobInfo> repeat(@Name("name") String name, @Name("kernelTransaction") String statement, @Name("rate") long rate, @Name(value = "config", defaultValue = "{}") Map<String,Object> config ) {
+        Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
+        JobInfo info = schedule(name, () -> Iterators.count(db.execute(statement, params)),0,rate);
         return Stream.of(info);
     }
 
