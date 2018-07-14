@@ -11,6 +11,11 @@ Where the outputs are:
   * properties, (for Neo4j 3.1 and lower versions is a single element array) that are affected by the constraint
   * status, for index can be one of the following values: ONLINE, POPULATING and FAILED
   * type, always "INDEX" for indexes, constraint type for constraints
+  * failure, the failure description of a failed index
+  * populationProgress, the population progress of the index in percentage
+  * size, the size of the index
+  * valuesSelectivity, computes the selectivity of the unique values
+  * userDescription, a user friendly description of what this index indexes
 
 To retrieve the constraint information for all the relationship types in your database, you can use the following procedure:
 
