@@ -348,6 +348,21 @@ public class PeriodicTest {
         });
     }
 
+    @Test
+    public void testRepeatParams() {
+        db.execute(
+                "CALL apoc.periodic.repeat('repeat-params', 'MERGE (person:Person {name: {nameValue}})', 2, {params: {nameValue: 'John Doe'}} ) YIELD name RETURN name" );
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+
+        }
+
+        testCall(db,
+                "MATCH (p:Person {name: 'John Doe'}) RETURN p.name AS name",
+                row -> assertEquals( row.get( "name" ), "John Doe" )
+        );
+    }
 
     private long tryReadCount(int maxAttempts, String statement, long expected) throws InterruptedException {
         int attempts = 0;
