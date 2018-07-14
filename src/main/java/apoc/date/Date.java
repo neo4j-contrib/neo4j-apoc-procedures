@@ -142,6 +142,7 @@ public class Date {
 		case "m":  case "minute": case "minutes": return ChronoField.MINUTE_OF_HOUR;
 		case "h":  case "hour":   case "hours":   return ChronoField.HOUR_OF_DAY;
 		case "d":  case "day":    case "days":    return ChronoField.DAY_OF_MONTH;
+		case "w":  case "weekday": case "weekdays": return ChronoField.DAY_OF_WEEK; 
 		case "month":case "months": return ChronoField.MONTH_OF_YEAR;
 		case "year":case "years": return ChronoField.YEAR;
 		default: return ChronoField.YEAR;
