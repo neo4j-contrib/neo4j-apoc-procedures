@@ -135,7 +135,7 @@ public class DateTest {
 
 	@Test public void testFromISO8601() throws Exception {
 		testCall(db,
-				"RETURN apoc.date.fromISO8601(\"1970-01-01T00:00:00.000Z\") AS value",
+				"RETURN apoc.date.fromISO8601('1970-01-01T00:00:00.000Z') AS value",
 				row -> assertEquals(0L, row.get("value")));
 	}
 
