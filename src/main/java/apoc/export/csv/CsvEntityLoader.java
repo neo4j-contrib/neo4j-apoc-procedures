@@ -1,6 +1,8 @@
 package apoc.export.csv;
 
+import apoc.export.util.BatchTransaction;
 import apoc.export.util.CountingReader;
+import apoc.export.util.ProgressReporter;
 import apoc.load.LoadCsv;
 import apoc.util.FileUtils;
 import au.com.bytecode.opencsv.CSVReader;
@@ -9,7 +11,6 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.Transaction;
 
 import java.io.IOException;
 import java.util.AbstractMap;
@@ -24,20 +25,31 @@ import java.util.stream.Stream;
 
 public class CsvEntityLoader {
 
+    private final CsvLoaderConfig clc;
+    private final ProgressReporter reporter;
+
+    /**
+     * @param clc configuration object
+     * @param reporter
+     */
+    public CsvEntityLoader(CsvLoaderConfig clc, ProgressReporter reporter) {
+        this.clc = clc;
+        this.reporter = reporter;
+    }
+
     /**
      * Loads nodes from a CSV file with given labels to an online database, and fills the {@code idMapping},
-     * which will be used by the {@link #loadRelationships(String, String, CsvLoaderConfig, GraphDatabaseService, Map)}
+     * which will be used by the {@link #loadRelationships(String, String, GraphDatabaseService, Map)}
      * method.
      *
      * @param fileName URI of the CSV file representing the node
      * @param labels list of node labels to be applied to each node
-     * @param clc configuration object
      * @param db running database instance
      * @param idMapping to be filled with the mapping between the CSV ids and the DB's internal node ids
      * @throws IOException
      */
-    public static void loadNodes(final String fileName, final List<String> labels, final CsvLoaderConfig clc,
-                                 final GraphDatabaseService db, final Map<String, Map<String, Long>> idMapping) throws IOException {
+    public void loadNodes(final String fileName, final List<String> labels, final GraphDatabaseService db,
+                          final Map<String, Map<String, Long>> idMapping) throws IOException {
         final CountingReader reader = FileUtils.readerFor(fileName);
         final String header = readFirstLine(reader);
         reader.skip(clc.getSkipLines() - 1);
@@ -71,7 +83,7 @@ public class CsvEntityLoader {
 
         final String[] loadCsvCompatibleHeader = fields.stream().map(f -> f.getName()).toArray(String[]::new);
         int lineNo = 0;
-        try (Transaction tx = db.beginTx()) {
+        try (BatchTransaction tx = new BatchTransaction(db, clc.getBatchSize(), reporter)) {
             for (String[] line : csv.readAll()) {
                 lineNo++;
 
@@ -90,7 +102,9 @@ public class CsvEntityLoader {
                 for (String label : labels) {
                     node.addLabel(Label.label(label));
                 }
+
                 // add properties
+                int props = 0;
                 for (CsvHeaderField field : fields) {
                     final String name = field.getName();
                     Object value = result.map.get(name);
@@ -108,30 +122,31 @@ public class CsvEntityLoader {
                             idValue = Long.valueOf((String) value);
                         }
                         node.setProperty(field.getName(), idValue);
+                        props++;
                     } else {
-                        CsvPropertyConverter.addPropertiesToGraphEntity(node, field, value);
+                        boolean propertyAdded = CsvPropertyConverter.addPropertyToGraphEntity(node, field, value);
+                        props += propertyAdded ? 1 : 0;
                     }
                 }
+                reporter.update(1, 0, props++);
             }
-            tx.success();
         }
     }
 
     /**
      * Loads relationships from a CSV file with given relationship types to an online database,
      * using the {@code idMapping} created by the
-     * {@link #loadNodes(String, List, CsvLoaderConfig, GraphDatabaseService, Map)} method.
+     * {@link #loadNodes(String, List, GraphDatabaseService, Map)} method.
      *
      * @param fileName URI of the CSV file representing the relationship
      * @param type relationship type to be applied to each relationships
-     * @param clc configuration object
      * @param db running database instance
      * @param idMapping stores mapping between the CSV ids and the DB's internal node ids
      * @throws IOException
      */
-    public static void loadRelationships(
-            final String fileName, final String type, final CsvLoaderConfig clc,
-            final GraphDatabaseService db, final Map<String, Map<String, Long>> idMapping) throws IOException {
+    public void loadRelationships(
+            final String fileName, final String type, final GraphDatabaseService db,
+            final Map<String, Map<String, Long>> idMapping) throws IOException {
         final CountingReader reader = FileUtils.readerFor(fileName);
         final String header = readFirstLine(reader);
         final List<CsvHeaderField> fields = CsvHeaderFields.processHeader(header, clc.getDelimiter(), clc.getQuotationCharacter());
@@ -168,7 +183,7 @@ public class CsvEntityLoader {
         final String[] loadCsvCompatibleHeader = fields.stream().map(f -> f.getName()).toArray(String[]::new);
 
         int lineNo = 0;
-        try (Transaction tx = db.beginTx()) {
+        try (BatchTransaction tx = new BatchTransaction(db, clc.getBatchSize(), reporter)) {
             for (String[] line : csv.readAll()) {
                 lineNo++;
 
@@ -201,14 +216,15 @@ public class CsvEntityLoader {
                 final Relationship rel = source.createRelationshipTo(target, RelationshipType.withName(currentType));
 
                 // add properties
+                int props = 0;
                 for (CsvHeaderField field : edgePropertiesFields) {
                     final String name = field.getName();
                     Object value = result.map.get(name);
-                    CsvPropertyConverter.addPropertiesToGraphEntity(rel, field, value);
+                    boolean propertyAdded = CsvPropertyConverter.addPropertyToGraphEntity(rel, field, value);
+                    props += propertyAdded ? 1 : 0;
                 }
+                reporter.update(0, 1, props);
             }
-
-            tx.success();
         }
     }
 

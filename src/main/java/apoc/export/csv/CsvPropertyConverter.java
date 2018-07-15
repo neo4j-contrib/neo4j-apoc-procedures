@@ -6,9 +6,9 @@ import java.util.List;
 
 public class CsvPropertyConverter {
 
-    public static void addPropertiesToGraphEntity(Entity entity, CsvHeaderField field, Object value) {
+    public static boolean addPropertyToGraphEntity(Entity entity, CsvHeaderField field, Object value) {
         if (field.isIgnore()) {
-            return;
+            return false;
         }
         if (field.isArray()) {
             final Object[] prototype = getPrototypeFor(field.getType());
@@ -17,6 +17,7 @@ public class CsvPropertyConverter {
         } else {
             entity.setProperty(field.getName(), value);
         }
+        return true;
     }
 
     static Object[] getPrototypeFor(String type) {

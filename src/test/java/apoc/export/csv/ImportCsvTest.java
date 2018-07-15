@@ -341,7 +341,7 @@ public class ImportCsvTest {
                 map(
                         "nodeFile", "file:/ignore-nodes.csv",
                         "relFile", "file:/ignore-relationships.csv",
-                        "config", map("delimiter", '|')
+                        "config", map("delimiter", '|', "batchSize", 1)
                 ),
                 (r) -> {
                     assertEquals(2L, r.get("nodes"));
