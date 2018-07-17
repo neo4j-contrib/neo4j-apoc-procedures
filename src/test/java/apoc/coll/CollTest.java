@@ -263,6 +263,17 @@ public class CollTest {
                 "CREATE (n {name:'foo'}),(m {name:'bar'}) WITH n,m RETURN apoc.coll.sortNodes([n,m], 'name') AS nodes",
                 (row) -> {
                     List<Node> nodes = (List<Node>) row.get("nodes");
+                    assertEquals("foo", nodes.get(0).getProperty("name"));
+                    assertEquals("bar", nodes.get(1).getProperty("name"));
+                });
+    }
+
+    @Test
+    public void testSortNodesReverse() throws Exception {
+        testCall(db,
+                "CREATE (n {name:'foo'}),(m {name:'bar'}) WITH n,m RETURN apoc.coll.sortNodes([n,m], '^name') AS nodes",
+                (row) -> {
+                    List<Node> nodes = (List<Node>) row.get("nodes");
                     assertEquals("bar", nodes.get(0).getProperty("name"));
                     assertEquals("foo", nodes.get(1).getProperty("name"));
                 });
@@ -295,8 +306,8 @@ public class CollTest {
                 "RETURN apoc.coll.sortMaps([{name:'foo'},{name:'bar'}], 'name') as maps",
                 (row) -> {
                     List<Map> nodes = (List<Map>) row.get("maps");
-                    assertEquals("bar", nodes.get(0).get("name"));
-                    assertEquals("foo", nodes.get(1).get("name"));
+                    assertEquals("foo", nodes.get(0).get("name"));
+                    assertEquals("bar", nodes.get(1).get("name"));
                 });
     }
 
@@ -309,6 +320,36 @@ public class CollTest {
                     assertEquals(1, maps.size());
                     assertEquals("bar", maps.get(0).get("name"));
                     assertEquals(32L, maps.get(0).get("age")); // 2nd element
+                });
+    }
+
+    @Test
+    public void testSortMapsCount() throws Exception {
+
+        testCall(db,
+                "WITH ['a','b','c','c','c','b','a','d'] AS l RETURN apoc.coll.sortMaps(apoc.coll.frequencies(l),'count') as maps",
+                (row) -> {
+                    List<Map> maps = (List<Map>) row.get("maps");
+                    assertEquals(4, maps.size());
+                    assertEquals("c", maps.get(0).get("item"));
+                    assertEquals("a", maps.get(1).get("item"));
+                    assertEquals("b", maps.get(2).get("item"));
+                    assertEquals("d", maps.get(3).get("item"));
+                });
+    }
+
+    @Test
+    public void testSortMapsCountReverse() throws Exception {
+
+        testCall(db,
+                "WITH ['b','a','c','c','c','b','a','d'] AS l RETURN apoc.coll.sortMaps(apoc.coll.frequencies(l),'^count') as maps",
+                (row) -> {
+                    List<Map> maps = (List<Map>) row.get("maps");
+                    assertEquals(4, maps.size());
+                    assertEquals("d", maps.get(0).get("item"));
+                    assertEquals("b", maps.get(1).get("item"));
+                    assertEquals("a", maps.get(2).get("item"));
+                    assertEquals("c", maps.get(3).get("item"));
                 });
     }
 
@@ -705,3 +746,4 @@ public class CollTest {
                 });
     }
 }
+
