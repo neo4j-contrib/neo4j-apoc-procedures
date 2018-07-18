@@ -13,7 +13,11 @@ include::../build/generated-documentation/apoc.es.csv[]
 
 [source,cypher]
 ----
-call apoc.es.post("localhost","tweets","users","1",null,{name:"Chris"})
+call apoc.es.post("localhost","tweets","users",null,{name:"Chris"})
+----
+[source,cypher]
+----
+call apoc.es.put("localhost","tweets","users","1",null,{name:"Chris"})
 ----
 
 [source,cypher]
