@@ -184,6 +184,10 @@ public class Trigger {
         }
 
         private synchronized static Map<String, Object> updateTriggers(String name, Map<String, Object> value) {
+            if (properties == null ) {
+                throw new RuntimeException("Triggers have not been enabled." +
+                        " Set 'apoc.trigger.enabled=true' in your neo4j.conf file located in the $NEO4J_HOME/conf/ directory.");
+            }
             try (Transaction tx = properties.getGraphDatabase().beginTx()) {
                 triggers.clear();
                 String triggerProperty = (String) properties.getProperty(APOC_TRIGGER, "{}");
