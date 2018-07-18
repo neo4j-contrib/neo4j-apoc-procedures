@@ -9,6 +9,7 @@ import apoc.util.Util;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -167,13 +168,21 @@ public class ElasticSearch {
 
     @Procedure
     @Description("apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a POST operation on elastic search")
-    public Stream<MapResult> post(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload) {
-        return LoadJson.loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("method", "POST","content-type",contentType(payload)), toPayload(payload));
+    public Stream<MapResult> post(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("query") Object query, @Name(value = "payload", defaultValue = "{}") Map<String,Object> payload) {
+        if (payload == null)
+        {
+            payload = Collections.emptyMap();
+        }
+        return LoadJson.loadJsonStream(getQueryUrl(hostOrKey, index, type, null, query), map("method", "POST","content-type",contentType(payload)), toPayload(payload));
     }
 
     @Procedure
     @Description("apoc.es.put(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a PUT operation on elastic search")
-    public Stream<MapResult> put(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name("payload") Object payload) {
+    public Stream<MapResult> put(@Name("host") String hostOrKey, @Name("index") String index, @Name("type") String type, @Name("id") String id, @Name("query") Object query, @Name(value = "payload", defaultValue = "{}") Map<String,Object> payload) {
+        if (payload == null)
+        {
+            payload = Collections.emptyMap();
+        }
         return LoadJson.loadJsonStream(getQueryUrl(hostOrKey, index, type, id, query), map("method", "PUT","content-type",contentType(payload)), toPayload(payload));
     }
 }
