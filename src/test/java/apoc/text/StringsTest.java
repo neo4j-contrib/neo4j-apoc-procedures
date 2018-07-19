@@ -190,13 +190,43 @@ public class StringsTest {
     }
 
     @Test
-    public void testGetLevenshteinDistance() {
+    public void testLevenshteinDistance() {
         String text1 = "Levenshtein";
         String text2 = "Levenstein";
 
-        testCall(db, "RETURN apoc.text.distance({a}, {b}) as distance",
+        testCall(db, "RETURN apoc.text.distance({a}, {b}) AS distance",
             map("a", text1, "b", text2),
             row -> assertEquals(1L, row.get("distance")));
+    }
+
+    @Test
+    public void testLevenshteinSimilarity() {
+        String text1 = "Levenshtein";
+        String text2 = "Levenstein";
+
+        testCall(db, "RETURN apoc.text.levenshteinSimilarity({a}, {b}) AS similarity",
+                map("a", text1, "b", text2),
+                row -> assertEquals(0.9, (double)row.get("similarity"), 0.01));
+    }
+
+    @Test
+    public void testHammingDistance() {
+        String text1 = "Neo";
+        String text2 = "Leo";
+
+        testCall(db, "RETURN apoc.text.hammingDistance({a}, {b}) AS distance",
+                map("a", text1, "b", text2),
+                row -> assertEquals(1L, row.get("distance")));
+    }
+
+    @Test
+    public void testJaroWinklerDistance() {
+        String text1 = "Neo";
+        String text2 = "Leo";
+
+        testCall(db, "RETURN apoc.text.jaroWinklerDistance({a}, {b}) AS distance",
+                map("a", text1, "b", text2),
+                row -> assertEquals(0.77, (double)row.get("distance"), 0.01));
     }
 
     @Test

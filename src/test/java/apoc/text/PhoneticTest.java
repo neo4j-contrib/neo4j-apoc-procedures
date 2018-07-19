@@ -75,4 +75,32 @@ public class PhoneticTest {
                 assertThat(row.get("delta"), equalTo(4L))
         );
     }
+
+    @Test
+    public void shoudlComputeDoubleMetaphone() {
+        testCall(db, "CALL apoc.text.doubleMetaphone('Apoc')", (row) ->
+                assertThat(row.get("value"), equalTo("APK"))
+        );
+    }
+
+    @Test
+    public void shoudlComputeDoubleMetaphoneOfNull() {
+        testCall(db, "CALL apoc.text.doubleMetaphone(NULL)", (row) ->
+                assertThat(row.get("value"), equalTo(null))
+        );
+    }
+
+    @Test
+    public void shoudlComputeDoubleMetaphoneForTheEmptyString() {
+        testCall(db, "CALL apoc.text.doubleMetaphone('')", (row) ->
+                assertThat(row.get("value"), equalTo(null))
+        );
+    }
+
+    @Test
+    public void shouldComputeDoubleMetaphoneOfManyWords() {
+        testCall(db, "CALL apoc.text.doubleMetaphone('Hello, dear User!')", (row) ->
+                assertThat(row.get("value"), equalTo("HLTRASR"))
+        );
+    }
 }
