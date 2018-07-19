@@ -36,6 +36,7 @@ public class SpatialTest {
 
     public static class MockGeocode {
         public static Map<String, Map> geocodeResults = null;
+        public static Map<String, Map> inverseGeocodeResults = null;
 
         public MockGeocode() {
         }
@@ -54,6 +55,17 @@ public class SpatialTest {
                 return Stream.empty();
             }
         }
+
+        @Procedure("apoc.spatial.inverseGeocode")
+        public Stream<Geocode.GeoCodeResult> inverseGeocode(@Name("latitude") double latitude, @Name("longitude") double longitude, @Name(value = "maxResults",defaultValue = "100") long maxResults) {
+            String key = latitude+","+longitude;
+            if (inverseGeocodeResults != null && inverseGeocodeResults.containsKey(key)) {
+                Map data = inverseGeocodeResults.get(key);
+                return Stream.of(new Geocode.GeoCodeResult(latitude, longitude, String.valueOf(data.get("display_name")), data));
+            } else {
+                return Stream.empty();
+            }
+        }
     }
 
     @Before
@@ -67,6 +79,7 @@ public class SpatialTest {
             addEventData((Map) event);
         }
         MockGeocode.geocodeResults = (Map<String, Map>) tests.get("geocode");
+        MockGeocode.inverseGeocodeResults = (Map<String, Map>) tests.get("inverseGeocode");
     }
 
     private void addEventData(Map<String, Object> event) {
@@ -163,5 +176,15 @@ public class SpatialTest {
             }
             assertFalse("Expected " + expectedCount + " results, but there are more ", res.hasNext());
         });
+    }
+
+    @Test
+    public void testSimpleInverseGeocode() {
+        String query = "MATCH (a:Event) \n" +
+                "WHERE exists(a.lat) AND exists(a.lon) AND exists(a.name) \n" +
+                "CALL apoc.spatial.inverseGeocode(a.lat, a.lon) YIELD latitude, longitude\n" +
+                "RETURN a.name, latitude, \n" +
+                "longitude, a.description";
+        testCallCount(db, query, null, eventNodes.size());
     }
 }

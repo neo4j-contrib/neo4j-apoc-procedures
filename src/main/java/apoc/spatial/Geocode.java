@@ -33,7 +33,7 @@ public class Geocode {
     public Log log;
 
     interface GeocodeSupplier {
-        Stream<GeoCodeResult> geocode(String encodedAddress, long maxResults);
+        Stream<GeoCodeResult> geocode(String params, long maxResults);
     }
 
     private static class Throttler {
@@ -95,9 +95,9 @@ public class Geocode {
         }
 
         @SuppressWarnings("unchecked")
-        public Stream<GeoCodeResult> geocode(String address, long maxResults) {
+        public Stream<GeoCodeResult> geocode(String params, long maxResults) {
             throttler.waitForThrottle();
-            String url = urlTemplate.replace("PLACE", Util.encodeUrlComponent(address));
+            String url = urlTemplate.replace("PLACE", Util.encodeUrlComponent(params));
             Object value = JsonUtil.loadJson(url).findFirst().orElse(null);
             if (value instanceof List) {
                 return findResults((List<Map<String, Object>>) value, maxResults);
@@ -163,9 +163,9 @@ public class Geocode {
         private final Throttler throttler;
         private String baseUrl;
 
-        public GoogleSupplier(Map<String, Object> config, TerminationGuard terminationGuard) {
+        public GoogleSupplier(Map<String, Object> config, TerminationGuard terminationGuard, boolean inverseGeocoding) {
             this.throttler = new Throttler(terminationGuard, toLong(config.getOrDefault("google.throttle", Throttler.DEFAULT_THROTTLE)));
-            this.baseUrl = String.format("https://maps.googleapis.com/maps/api/geocode/json?%s&address=", credentials(config));
+            this.baseUrl = inverseGeocoding ? String.format("https://maps.googleapis.com/maps/api/geocode/json?%s&latlng=", credentials(config)) : String.format("https://maps.googleapis.com/maps/api/geocode/json?%s&address=", credentials(config));
         }
 
         private String credentials(Map<String, Object> config) {
@@ -179,12 +179,12 @@ public class Geocode {
         }
 
         @SuppressWarnings("unchecked")
-        public Stream<GeoCodeResult> geocode(String address, long maxResults) {
-            if (address.length() < 1) {
+        public Stream<GeoCodeResult> geocode(String params, long maxResults) {
+            if (params.length() < 1) {
                 return Stream.empty();
             }
             throttler.waitForThrottle();
-            Object value = JsonUtil.loadJson(baseUrl + Util.encodeUrlComponent(address)).findFirst().orElse(null);
+            Object value = JsonUtil.loadJson(baseUrl + Util.encodeUrlComponent(params)).findFirst().orElse(null);
             if (value instanceof Map) {
                 Map map = (Map) value;
                 if (map.get("status").equals("OVER_QUERY_LIMIT")) throw new IllegalStateException("QUOTA_EXCEEDED from geocode API: "+map.get("status")+" message: "+map.get("error_message"));
@@ -200,12 +200,12 @@ public class Geocode {
         }
     }
 
-    private GeocodeSupplier getSupplier() {
+    private GeocodeSupplier getSupplier(boolean inverseGeocoding) {
         Map<String, Object> activeConfig = ApocConfiguration.get(PREFIX);
         if (activeConfig.containsKey(GEOCODE_PROVIDER_KEY)) {
             String supplier = activeConfig.get(GEOCODE_PROVIDER_KEY).toString().toLowerCase();
             switch (supplier) {
-                case "google" : return new GoogleSupplier(activeConfig, terminationGuard);
+                case "google" : return new GoogleSupplier(activeConfig, terminationGuard, inverseGeocoding);
                 case "osm" : return new OSMSupplier(activeConfig,terminationGuard);
                 default: return new SupplierWithKey(activeConfig, terminationGuard, supplier);
             }
@@ -223,7 +223,18 @@ public class Geocode {
     @Description("apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from openstreetmap geocoding service")
     public Stream<GeoCodeResult> geocode(@Name("location") String address, @Name(value = "maxResults",defaultValue = "100") long maxResults, @Name(value = "quotaException",defaultValue = "false") boolean quotaException) {
         try {
-            return getSupplier().geocode(address, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults, 1), MAX_RESULTS));
+            return getSupplier(false).geocode(address, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults, 1), MAX_RESULTS));
+        } catch(IllegalStateException re) {
+            if (!quotaException && re.getMessage().startsWith("QUOTA_EXCEEDED")) return Stream.empty();
+            throw re;
+        }
+    }
+
+    @Procedure
+    @Description("apoc.spatial.inverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description - look up address from latitude and longitude from openstreetmap geocoding service")
+    public Stream<GeoCodeResult> inverseGeocode(@Name("latitude") double latitude, @Name("longitude") double longitude, @Name(value = "maxResults",defaultValue = "100") long maxResults, @Name(value = "quotaException",defaultValue = "false") boolean quotaException) {
+        try {
+            return getSupplier(true).geocode(latitude+","+longitude, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults, 1), MAX_RESULTS));
         } catch(IllegalStateException re) {
             if (!quotaException && re.getMessage().startsWith("QUOTA_EXCEEDED")) return Stream.empty();
             throw re;
@@ -246,3 +257,4 @@ public class Geocode {
         }
     }
 }
+

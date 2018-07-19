@@ -17,14 +17,24 @@ CALL apoc.spatial.geocodeOnce('21 rue Paul Bellamy 44000 NANTES FRANCE') YIELD l
 RETURN location.latitude, location.longitude // will return 47.2221667, -1.5566624
 ----
 
-There are two forms of the procedure:
+There are three forms of the procedure:
 
 * geocodeOnce(address) returns zero or one result
 * geocode(address,maxResults) returns zero, one or more up to maxResults
+* inverseGeocode(latitude,longitude,maxResults) returns zero, one or more up to maxResults
 
 This is because the backing geocoding service (OSM, Google, OpenCage or other) might return multiple
 results for the same query. GeocodeOnce() is designed to return the first, or highest
 ranking result.
+
+The third procedure _inverseGeocode_ will convert a location containing _latitude_ and _longitude_
+into a textual address.
+----
+CALL apoc.spatial.inverseGeocode(47.2221667,-1.5566625) YIELD location
+RETURN location.description; // will return 21, Rue Paul Bellamy, Talensac - Pont Morand,
+//Hauts-Pavés - Saint-Félix, Nantes, Loire-Atlantique, Pays de la Loire,
+//France métropolitaine, 44000, France
+----
 
 == Configuring Geocode
 
@@ -187,4 +197,3 @@ RETURN e.name AS event, e.datetime AS date,
 location.description AS description, distance
 ORDER BY distance
 ----
-
