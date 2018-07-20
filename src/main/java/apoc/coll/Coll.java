@@ -703,9 +703,9 @@ public class Coll {
     @UserFunction("apoc.coll.sortMulti")
     @Description("apoc.coll.sortMulti(coll, ['^name','age'],[limit],[skip]) - sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip")
     public List<Map<String,Object>> sortMulti(@Name("coll") java.util.List<Map<String,Object>> coll,
-                 @Name(value="orderFields", defaultValue = "[]") java.util.List<String> orderFields,
-                 @Name(value="limit", defaultValue = "-1") long limit,
-                 @Name(value="skip", defaultValue = "0") long skip) {
+                                              @Name(value="orderFields", defaultValue = "[]") java.util.List<String> orderFields,
+                                              @Name(value="limit", defaultValue = "-1") long limit,
+                                              @Name(value="skip", defaultValue = "0") long skip) {
         List<Map<String,Object>> result = new ArrayList<>(coll);
 
         if (orderFields != null && !orderFields.isEmpty()) {
@@ -767,5 +767,11 @@ public class Coll {
         }
 
         return combinations;
+    }
+
+    @UserFunction
+    @Description("apoc.coll.different(values) - returns true if values are different")
+    public boolean different(@Name("values") List<Object> values) {
+        return new HashSet(values).size() == values.size();
     }
 }
