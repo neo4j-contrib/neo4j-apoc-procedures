@@ -127,6 +127,7 @@ dependencies {
     compile group: 'com.github.javafaker', name: 'javafaker', version: '0.10'
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
+    compile group: 'org.apache.commons', name: 'commons-text', version: '1.2'
     jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
     jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
 

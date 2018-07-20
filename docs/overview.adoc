@@ -879,7 +879,11 @@ Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in 
 
 [cols="1m,5"]
 |===
-| apoc.text.distance(text1, text2) | compare the given strings with the StringUtils.distance(text1, text2) method
+| apoc.text.distance(text1, text2) | compare the given strings with the Levenshtein distance algorithm
+| apoc.text.levenshteinDistance(text1, text2) | compare the given strings with the Levenshtein distance algorithm
+| apoc.text.levenshteinSimilarity(text1, text2) | calculate the similarity (a value within 0 and 1) between two texts based on Levenshtein distance.
+| apoc.text.hammingDistance(text1, text2) | compare the given strings with the Hamming distance algorithm
+| apoc.text.jaroWinklerDistance(text1, text2) | compare the given strings with the Jaro-Winkler distance algorithm
 | apoc.text.sorensenDiceSimilarity(text1, text2) | compare the given strings with the Sørensen–Dice coefficient formula, assuming an English locale
 | apoc.text.sorensenDiceSimilarityWithLanguage(text1, text2, languageTag) | compare the given strings with the Sørensen–Dice coefficient formula, with the provided IETF language tag
 | apoc.text.fuzzyMatch(text1, text2) | check if 2 words can be matched in a fuzzy way. Depending on the length of the String it will allow more characters that needs to be edited to match the second String.
@@ -890,6 +894,7 @@ Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in 
 [cols="1m,5"]
 |===
 | apoc.text.phonetic(value) | Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
+| apoc.text.doubleMetaphone(value) | Compute the Double Metaphone phonetic encoding of all words of the text value which can be a single string or a list of strings
 | apoc.text.clean(text) | strip the given string of everything except alpha numeric characters and convert it to lower case.
 | apoc.text.compareCleaned(text1, text2) | compare the given strings stripped of everything except alpha numeric characters converted to lower case.
 |===
