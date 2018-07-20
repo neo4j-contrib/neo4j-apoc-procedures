@@ -1,6 +1,9 @@
 package apoc.text;
 
 import apoc.util.Util;
+import org.apache.commons.text.similarity.HammingDistance;
+import org.apache.commons.text.similarity.JaroWinklerDistance;
+import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Pair;
@@ -35,6 +38,10 @@ import static java.util.Arrays.asList;
  * @since 05.05.16
  */
 public class Strings {
+
+    private final static HammingDistance hammingDistance = new HammingDistance();
+    private final static JaroWinklerDistance jaroWinklerDistance = new JaroWinklerDistance();
+    private final static LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
 
     @UserFunction
     @Description("apoc.text.replace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.")
@@ -126,12 +133,51 @@ public class Strings {
     }
 
     @UserFunction
-    @Description("apoc.text.distance(text1, text2) - compare the given strings with the StringUtils.distance(text1, text2) method")
+    @Description("apoc.text.distance(text1, text2) - compare the given strings with the Levenshtein distance algorithm.")
     public Long distance(final @Name("text1") String text1, @Name("text2")final String text2) {
+        return levenshteinDistance(text1, text2);
+    }
+
+    @UserFunction
+    @Description("apoc.text.levenshteinDistance(text1, text2) - compare the given strings with the Levenshtein distance algorithm.")
+    public Long levenshteinDistance(final @Name("text1") String text1, @Name("text2")final String text2) {
         if (text1 == null || text2 == null) {
             return null;
         }
-        return (long) StringUtils.getLevenshteinDistance(text1, text2);
+        return (long)levenshteinDistance.apply(text1, text2);
+    }
+
+    @UserFunction
+    @Description( "apoc.text.levenshteinSimilarity(text1, text2) - calculate the similarity (a value within 0 and 1) between two texts." )
+    public Double levenshteinSimilarity(final @Name("text1") String text1, @Name("text2")final String text2) {
+        if ( text1 == null || text2 == null ) {
+            return null;
+        }
+
+        int longerLength = Math.max(text1.length(), text2.length());
+        if (longerLength == 0) {
+            return 1.0;
+        }
+        long editDistance = distance( text1, text2 );
+        return (longerLength - editDistance) / (double)longerLength;
+    }
+
+    @UserFunction
+    @Description( "apoc.text.hammingDistance(text1, text2) - compare the given strings with the Hamming distance algorithm." )
+    public Long hammingDistance(final @Name("text1") String text1, @Name("text2")final String text2) {
+        if (text1 == null || text2 == null) {
+            return null;
+        }
+        return (long)hammingDistance.apply(text1, text2) ;
+    }
+
+    @UserFunction
+    @Description( "apoc.text.jaroWinklerDistance(text1, text2) - compare the given strings with the Jaro-Winkler distance algorithm." )
+    public Double jaroWinklerDistance(final @Name("text1") String text1, @Name("text2")final String text2) {
+        if (text1 == null || text2 == null) {
+            return null;
+        }
+        return jaroWinklerDistance.apply(text1, text2);
     }
 
     @UserFunction
