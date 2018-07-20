@@ -688,4 +688,20 @@ public class CollTest {
                     assertEquals(result, row.get("value"));
                 });
     }
+
+    @Test
+    public void testVerifyAllValuesAreDifferent() throws Exception {
+        testCall(db, "RETURN apoc.coll.different([1, 2, 3]) as value",
+                (row) -> {
+                    assertEquals(true, row.get("value"));
+                });
+        testCall(db, "RETURN apoc.coll.different([1, 1, 1]) as value",
+                (row) -> {
+                    assertEquals(false, row.get("value"));
+                });
+        testCall(db, "RETURN apoc.coll.different([3, 3, 1]) as value",
+                (row) -> {
+                    assertEquals(false, row.get("value"));
+                });
+    }
 }

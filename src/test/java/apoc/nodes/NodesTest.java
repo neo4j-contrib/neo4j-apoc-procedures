@@ -104,8 +104,8 @@ public class NodesTest {
         int relCount = 20;
         for (int rel=0;rel<relCount;rel++) {
             db.execute("MATCH (st:StartThin),(et:EndThin),(ed:EndDense) " +
-                    " CREATE (st)-[:REL"+rel+"]->(et) " +
-                    " WITH * UNWIND RANGE(1,{count}) AS id CREATE (st)-[:REL"+rel+"]->(ed)",
+                            " CREATE (st)-[:REL"+rel+"]->(et) " +
+                            " WITH * UNWIND RANGE(1,{count}) AS id CREATE (st)-[:REL"+rel+"]->(ed)",
                     map("count",relCount-rel)).close();
         }
 
@@ -176,6 +176,30 @@ public class NodesTest {
         TestUtil.testCall(db, "MATCH (f:Foo),(b:Bar)  RETURN apoc.node.degree(f, '<') as in, apoc.node.degree(f, '>') as out", (r) -> {
             assertEquals(1l, r.get("in"));
             assertEquals(2l, r.get("out"));
+        });
+
+    }
+
+    @Test
+    public void testDegreeInOutDirectionOnly() {
+        db.execute("CREATE (a:Person{name:'test'}) CREATE (b:Person) CREATE (c:Person) CREATE (d:Person) CREATE (a)-[:Rel1]->(b) CREATE (a)-[:Rel1]->(c) CREATE (a)-[:Rel2]->(d) CREATE (a)-[:Rel1]->(b) CREATE (a)<-[:Rel2]-(b) CREATE (a)<-[:Rel2]-(c) CREATE (a)<-[:Rel2]-(d) CREATE (a)<-[:Rel1]-(d)").close();
+
+        TestUtil.testCall(db, "MATCH (a:Person{name:'test'})  RETURN apoc.node.degree.in(a) as in, apoc.node.degree.out(a) as out", (r) -> {
+            assertEquals(4l, r.get("in"));
+            assertEquals(4l, r.get("out"));
+        });
+
+    }
+
+    @Test
+    public void testDegreeInOutType() {
+        db.execute("CREATE (a:Person{name:'test'}) CREATE (b:Person) CREATE (c:Person) CREATE (d:Person) CREATE (a)-[:Rel1]->(b) CREATE (a)-[:Rel1]->(c) CREATE (a)-[:Rel2]->(d) CREATE (a)-[:Rel1]->(b) CREATE (a)<-[:Rel2]-(b) CREATE (a)<-[:Rel2]-(c) CREATE (a)<-[:Rel2]-(d) CREATE (a)<-[:Rel1]-(d)").close();
+
+        TestUtil.testCall(db, "MATCH (a:Person{name:'test'})  RETURN apoc.node.degree.in(a, 'Rel1') as in1, apoc.node.degree.out(a, 'Rel1') as out1, apoc.node.degree.in(a, 'Rel2') as in2, apoc.node.degree.out(a, 'Rel2') as out2", (r) -> {
+            assertEquals(1l, r.get("in1"));
+            assertEquals(3l, r.get("out1"));
+            assertEquals(3l, r.get("in2"));
+            assertEquals(1l, r.get("out2"));
         });
 
     }

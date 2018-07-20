@@ -60,7 +60,7 @@ public class Nodes {
         while (it.hasNext()) {
             final List<Node> batch = Util.take(it, (int)batchSize);
 //            count += Util.inTx(api,() -> batch.stream().peek( n -> {n.getRelationships().forEach(Relationship::delete);n.delete();}).count());
-             count += Util.inTx(db,() -> {db.execute("FOREACH (n in {nodes} | DETACH DELETE n)",map("nodes",batch)).close();return batch.size();});
+            count += Util.inTx(db,() -> {db.execute("FOREACH (n in {nodes} | DETACH DELETE n)",map("nodes",batch)).close();return batch.size();});
         }
         return Stream.of(new LongResult(count));
     }
@@ -339,6 +339,31 @@ public class Nodes {
         }
         return degree;
     }
+
+    @UserFunction("apoc.node.degree.in")
+    @Description("apoc.node.degree.in(node, relationshipName) - returns total number number of incoming relationships")
+    public long degreeIn(@Name("node") Node node, @Name(value = "types",defaultValue = "") String type) {
+
+        if (type==null || type.isEmpty()) {
+            return node.getDegree(Direction.INCOMING);
+        }
+
+        return node.getDegree(RelationshipType.withName(type), Direction.INCOMING);
+
+    }
+
+    @UserFunction("apoc.node.degree.out")
+    @Description("apoc.node.degree.out(node, relationshipName) - returns total number number of outgoing relationships")
+    public long degreeOut(@Name("node") Node node, @Name(value = "types",defaultValue = "") String type) {
+
+        if (type==null || type.isEmpty()) {
+            return node.getDegree(Direction.OUTGOING);
+        }
+
+        return node.getDegree(RelationshipType.withName(type), Direction.OUTGOING);
+
+    }
+
 
     @UserFunction("apoc.node.relationship.types")
     @Description("apoc.node.relationship.types(node, rel-direction-pattern) - returns a list of distinct relationship types")
