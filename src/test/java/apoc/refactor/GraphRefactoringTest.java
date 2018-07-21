@@ -475,4 +475,57 @@ public class GraphRefactoringTest {
                     assertEquals(Arrays.asList("1995", "2010", "2015").toArray(), new ArrayBackedList(rel.getProperty("year")).toArray());
                 });
     }
+
+    @Test
+    public void testMergeNodesAndMergeSameRelationship() {
+        db.execute("create (a1:ALabel {name:'a1'})-[:HAS_REL {p:'r1'}]->(b1:BLabel {name:'b1'})," +
+                "          (a2:ALabel {name:'a2'})-[:HAS_REL{p:'r2'}]->(b1)," +
+                "           (a3:ALabel {name:'a3'})<-[:HAS_REL{p:'r3'}]-(b1)," +
+                "           (a4:ALabel {name:'a4'})-[:HAS_REL{p:'r4'}]->(b4:BLabel {name:'b4'})");
+
+        testCall(db, "MATCH (a1:ALabel {name:'a1'}), (a2:ALabel {name:'a2'}), (a3:ALabel {name:'a3'}), (a4:ALabel {name:'a4'}) " +
+                        "     WITH head(collect([a1,a2,a3,a4])) as nodes CALL apoc.refactor.mergeNodes(nodes,{properties:'combine',mergeRels:true}) yield node return node",
+                row -> {
+                    assertTrue(row.get("node") != null);
+                    assertTrue(row.get("node") instanceof Node);
+                    Node resultingNode = (Node) row.get("node");
+                    assertEquals(1, resultingNode.getDegree(Direction.INCOMING));
+                    assertEquals(2,resultingNode.getDegree(Direction.OUTGOING));
+                }
+        );
+    }
+
+    @Test
+    public void testMergeNodesAndMergeSameRelationshipsAndNodes() {
+        db.execute("Create (n1:ALabel {name:'a1'})," +
+                "    (n2:ALabel {name:'a2'})," +
+                "    (n3:BLabel {p1:'a3'})," +
+                "     (n4:BLabel {p1:'a4'})," +
+                "     (n5:CLabel {p3:'a5'})," +
+                "     (n6:DLabel:Cat {p:'a6'})," +
+                "     (n1)-[:HAS_REL{p:'r1'}]->(n3)," +
+                "     (n2)-[:HAS_REL{p:'r2'}]->(n4)," +
+                "     (n1)-[:HAS_REL_A{p5:'r3'}]->(n5)," +
+                "     (n2)-[:HAS_REL_B{p6:'r4'}]->(n6)");
+
+        testCall(db, "MATCH (a1:ALabel{name:'a1'}), (a2:ALabel {name:'a2'})" +
+                        "     WITH head(collect([a1,a2])) as nodes CALL apoc.refactor.mergeNodes(nodes,{properties:'overwrite',mergeRels:true}) yield node MATCH (n)-[r:HAS_REL]->(c:BLabel{p1:'a3'}) MATCH (n1)-[r1:HAS_REL]->(c1:BLabel{p1:'a4'}) return node, n, r ,c,n1,r1,c1 ",
+                row -> {
+                    assertTrue(row.get("node") != null);
+                    assertTrue(row.get("node") instanceof Node);
+                    Node resultingNode = (Node) row.get("node");
+                    Node c = (Node) row.get("c");
+                    Relationship r = (Relationship) row.get("r");
+                    Relationship r1 = (Relationship)(row.get("r1"));
+                    assertEquals("a2", resultingNode.getProperty("name"));
+                    assertEquals(0, resultingNode.getDegree(Direction.INCOMING));
+                    assertEquals(4,resultingNode.getDegree(Direction.OUTGOING));
+                    assertEquals(1,c.getDegree(Direction.INCOMING));
+                    assertEquals(true, r.isType(RelationshipType.withName("HAS_REL")));
+                    assertEquals(Arrays.asList( "r1" , "r2").toArray(), new ArrayBackedList(r.getProperty("p")).toArray());
+                    assertEquals(true, r1.isType(RelationshipType.withName("HAS_REL")));
+                    assertEquals(Arrays.asList( "r2" , "r1").toArray(), new ArrayBackedList(r1.getProperty("p")).toArray());
+                }
+        );
+    }
 }
