@@ -31,7 +31,7 @@ public class LoadCsv {
     @Context
     public GraphDatabaseService db;
 
-    enum Results {
+    public enum Results {
         map, list, strings, stringMap
     }
 
@@ -81,7 +81,7 @@ public class LoadCsv {
         return result;
     }
 
-    static class Mapping {
+    public static class Mapping {
         public static final Mapping EMPTY = new Mapping("", Collections.emptyMap(), DEFAULT_ARRAY_SEP, false);
         final String name;
         final Collection<String> nullValues;
