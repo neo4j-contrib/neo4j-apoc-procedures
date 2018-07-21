@@ -36,3 +36,4 @@ Thumbs.db
 .cache-tests
 bin
 hadoop
+progress.csv
