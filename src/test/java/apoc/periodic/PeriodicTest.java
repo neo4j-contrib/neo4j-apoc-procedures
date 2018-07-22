@@ -30,6 +30,7 @@ public class PeriodicTest {
     public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, Periodic.class, Jdbc.class, EnterpriseBuiltInDbmsProcedures.class);
+        db.execute("call apoc.periodic.list() yield name call apoc.periodic.cancel(name) yield name as name2 return count(*)").close();
     }
 
     @After
@@ -41,6 +42,7 @@ public class PeriodicTest {
     public void testSubmitStatement() throws Exception {
         String callList = "CALL apoc.periodic.list()";
         // force pre-caching the queryplan
+System.out.println("call list" + db.execute(callList).resultAsString());
         assertFalse(db.execute(callList).hasNext());
 
         testCall(db, "CALL apoc.periodic.submit('foo','create (:Foo)')",
