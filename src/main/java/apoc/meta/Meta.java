@@ -170,10 +170,7 @@ public class Meta {
 
         Map<String,Object> result = new LinkedHashMap<>(properties.size());
         properties.forEach((key,value) -> {
-            Types type = Types.of(value);
-            String typeName = type == Types.UNKNOWN ? value.getClass().getSimpleName() : type.name();
-            if (value != null && value.getClass().isArray()) typeName +="[]";
-            result.put(key, typeName);
+            result.put(key, typeName(value));
         });
 
         return result;
@@ -182,9 +179,7 @@ public class Meta {
     @UserFunction
     @Description("apoc.meta.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
     public boolean isType(@Name("value") Object value, @Name("type") String type) {
-        String typeName = Types.of(value).name();
-        if (value != null && value.getClass().isArray()) typeName +="[]";
-        return type.equalsIgnoreCase(typeName);
+        return type.equalsIgnoreCase(typeName(value));
     }
 
 
@@ -293,8 +288,7 @@ public class Meta {
 
     private Map<String, Integer> relTypesInUse(TokenRead ops, Collection<String> relTypeNames) {
         Stream<String> types = (relTypeNames == null || relTypeNames.isEmpty()) ?
-                db.getAllRelationshipTypesInUse().stream().map(RelationshipType::name) :
-                relTypeNames.stream();
+                db.getAllRelationshipTypesInUse().stream().map(RelationshipType::name) : relTypeNames.stream();
         return types.collect(toMap(t -> t, ops::relationshipType));
     }
 
