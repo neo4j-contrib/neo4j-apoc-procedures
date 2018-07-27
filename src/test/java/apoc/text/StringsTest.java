@@ -368,7 +368,7 @@ public class StringsTest {
         testCall(db, "RETURN apoc.text.regexGroups(null,'<link (\\\\w+)>(\\\\w+)</link>') AS result", row -> { });
         testCall(db, "RETURN apoc.text.regexGroups('abc',null) AS result", row -> { });
     }
-    
+
     @Test
     public void testSlug() {
         testCall(db, "RETURN apoc.text.slug('a-b','-') AS value", row -> assertEquals("a-b", row.get("value")));
@@ -516,6 +516,56 @@ public class StringsTest {
         );
     }
 
+
+    @Test
+    public void testBase64EncodeWithUrl() {
+        String text = "http://neo4j.com/?test=test";
+
+        testCall(
+                db,
+                "RETURN apoc.text.base64Encode({text}) as value",
+                map("text", text),
+                row -> assertEquals("aHR0cDovL25lbzRqLmNvbS8/dGVzdD10ZXN0", row.get("value").toString())
+        );
+    }
+
+    @Test
+    public void testBase64DecodeWithUrl() {
+        String text = "aHR0cDovL25lbzRqLmNvbS8/dGVzdD10ZXN0";
+
+        testCall(
+                db,
+                "RETURN apoc.text.base64Decode({text}) as value",
+                map("text", text),
+                row -> assertEquals("http://neo4j.com/?test=test", row.get("value").toString())
+        );
+    }
+
+    @Test
+    public void testBase64EncodeUrl() {
+        String text = "http://neo4j.com/?test=test";
+
+        testCall(
+                db,
+                "RETURN apoc.text.base64UrlEncode({text}) as value",
+                map("text", text),
+                row -> assertEquals("aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0", row.get("value").toString())
+        );
+    }
+
+    @Test
+    public void testBase64DecodeUrl() {
+        String text = "aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0";
+
+        testCall(
+                db,
+                "RETURN apoc.text.base64UrlDecode({text}) as value",
+                map("text", text),
+                row -> assertEquals("http://neo4j.com/?test=test", row.get("value").toString())
+        );
+    }
+
+
     @Test
     public void testSorensenDiceSimilarity() {
         String text1 = "belly";
@@ -542,7 +592,7 @@ public class StringsTest {
 
     @Test
     public void testHexvalue() {
-        testCall(db,  "RETURN [x IN {values} | apoc.text.hexValue(x)] as value",  
+        testCall(db,  "RETURN [x IN {values} | apoc.text.hexValue(x)] as value",
                       map("values", Arrays.<Long>asList(null,0L,1L,255L,65534L,65536L,305419896L,2309737967L,4294967294L,187723572702975L)),
                       row -> assertEquals(Arrays.<String>asList(null,"0000","0001","00FF","FFFE","00010000","12345678","89ABCDEF","FFFFFFFE","0000AABBCCDDEEFF"), row.get("value")));
     }

@@ -446,6 +446,20 @@ public class Strings {
     }
 
     @UserFunction
+    @Description("apoc.text.base64UrlEncode(text) YIELD value - Encode a url with Base64")
+    public String base64UrlEncode(@Name("url") String url) {
+        byte[] encoded = Base64.getUrlEncoder().encode(url.getBytes());
+        return new String(encoded);
+    }
+
+    @UserFunction
+    @Description("apoc.text.base64UrlDecode(url) YIELD value - Decode Base64 encoded url")
+    public String base64UrlDecode(@Name("url") String url) {
+        byte[] decoded = Base64.getUrlDecoder().decode(url.getBytes());
+        return new String(decoded);
+    }
+
+    @UserFunction
     @Description("apoc.text.charAt(text, index) - the decimal value of the character at the given index")
     public Long charAt(@Name("text") String text, @Name("index") Long index) {
         if (index == null || text == null || text.isEmpty() || index < 0 || index >= text.length()) {
