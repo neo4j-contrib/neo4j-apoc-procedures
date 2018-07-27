@@ -57,7 +57,7 @@ public class LoadS3Test {
 
         testCall(db, "CALL apoc.load.json({url},'')",map("url", url),
                 (row) -> {
-                    assertEquals(map("foo",asList(1,2,3)), row.get("value"));
+                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
                 });
     }
 

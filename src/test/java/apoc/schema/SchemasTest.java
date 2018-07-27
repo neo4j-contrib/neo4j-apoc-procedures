@@ -268,7 +268,7 @@ public class SchemasTest {
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(new Double(100), r.get("populationProgress"));
             assertEquals(new Double(1), r.get("valuesSelectivity"));
-            assertEquals("Index( GENERAL, bar )", r.get("userDescription"));
+            assertEquals("Index( GENERAL, :Foo(bar) )", r.get("userDescription"));
 
             assertTrue(!result.hasNext());
         });
