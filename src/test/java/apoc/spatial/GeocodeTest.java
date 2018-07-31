@@ -61,6 +61,10 @@ public class GeocodeTest {
 
     @Test
     public void testGeocodeOpenCage() throws Exception {
+        // If the key is not defined the test won't fail
+        String provider = ApocConfiguration.get(Geocode.PREFIX).get(Geocode.GEOCODE_PROVIDER_KEY).toString().toLowerCase();
+        Assume.assumeTrue(!"<YOUR_API_KEY>".equals(ApocConfiguration.get(Geocode.PREFIX).get(provider + ".key").toString()));
+
         // We use testGeocode() instead of testGeocodeWithThrottling() because the slow test takes less time than the fast one
         // The overall execution is strictly tight to the remote service according to quota and request policies
         testGeocode("openCage",1000, false);
@@ -68,6 +72,10 @@ public class GeocodeTest {
 
     @Test
     public void testReverseGeocodeOpenCage() throws Exception {
+        // If the key is not defined the test won't fail
+        String provider = ApocConfiguration.get(Geocode.PREFIX).get(Geocode.GEOCODE_PROVIDER_KEY).toString().toLowerCase();
+        Assume.assumeTrue(!"<YOUR_API_KEY>".equals(ApocConfiguration.get(Geocode.PREFIX).get(provider + ".key").toString()));
+
         testGeocode("openCage",1000, true);
     }
 

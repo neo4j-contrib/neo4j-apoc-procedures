@@ -108,9 +108,12 @@ public class Geocode {
         }
 
         @SuppressWarnings("unchecked")
-        public Stream<GeoCodeResult> geocode(String params, long maxResults) {
+        public Stream<GeoCodeResult> geocode(String address, long maxResults) {
+            if (address.isEmpty()) {
+                return Stream.empty();
+            }
             throttler.waitForThrottle();
-            String url = urlTemplate.replace("PLACE", Util.encodeUrlComponent(params));
+            String url = urlTemplate.replace("PLACE", Util.encodeUrlComponent(address));
             Object value = JsonUtil.loadJson(url).findFirst().orElse(null);
             if (value instanceof List) {
                 return findResults((List<Map<String, Object>>) value, maxResults);
@@ -125,6 +128,9 @@ public class Geocode {
 
         @Override
         public Stream<GeoCodeResult> reverseGeocode(Double latitude, Double longitude) {
+            if (latitude == null || longitude == null) {
+                return Stream.empty();
+            }
             throttler.waitForThrottle();
             String url = urlTemplateReverse.replace("LAT", latitude.toString()).replace("LNG", longitude.toString());
             Object value = JsonUtil.loadJson(url).findFirst().orElse(null);
@@ -182,6 +188,9 @@ public class Geocode {
 
         @SuppressWarnings("unchecked")
         public Stream<GeoCodeResult> geocode(String address, long maxResults) {
+            if (address.isEmpty()) {
+                return Stream.empty();
+            }
             throttler.waitForThrottle();
             Object value = JsonUtil.loadJson(OSM_URL_GEOCODE + Util.encodeUrlComponent(address)).findFirst().orElse(null);
             if (value instanceof List) {
@@ -233,12 +242,12 @@ public class Geocode {
         }
 
         @SuppressWarnings("unchecked")
-        public Stream<GeoCodeResult> geocode(String params, long maxResults) {
-            if (params.length() < 1) {
+        public Stream<GeoCodeResult> geocode(String address, long maxResults) {
+            if (address.isEmpty()) {
                 return Stream.empty();
             }
             throttler.waitForThrottle();
-            Object value = JsonUtil.loadJson(String.format(GEOCODE_URL, credentials(this.configMap)) + Util.encodeUrlComponent(params)).findFirst().orElse(null);
+            Object value = JsonUtil.loadJson(String.format(GEOCODE_URL, credentials(this.configMap)) + Util.encodeUrlComponent(address)).findFirst().orElse(null);
             if (value instanceof Map) {
                 Map map = (Map) value;
                 if (map.get("status").equals("OVER_QUERY_LIMIT")) throw new IllegalStateException("QUOTA_EXCEEDED from geocode API: "+map.get("status")+" message: "+map.get("error_message"));

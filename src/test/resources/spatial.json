@@ -125,7 +125,7 @@
       "importance": 0.52
     }
   },
-  "inverseGeocode": {
+  "reverseGeocode": {
     "48.851181,2.3009296" : {
       "place_id": "71721231",
       "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://www.openstreetmap.org/copyright",
