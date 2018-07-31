@@ -1,11 +1,11 @@
 package apoc.spatial;
 
 import apoc.ApocConfiguration;
-import org.neo4j.procedure.*;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
+import org.neo4j.procedure.*;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -34,6 +34,7 @@ public class Geocode {
 
     interface GeocodeSupplier {
         Stream<GeoCodeResult> geocode(String params, long maxResults);
+        Stream<GeoCodeResult> reverseGeocode(Double latitude, Double longitude);
     }
 
     private static class Throttler {
@@ -75,6 +76,7 @@ public class Geocode {
         private Throttler throttler;
         private String configBase;
         private String urlTemplate;
+        private String urlTemplateReverse;
 
         public SupplierWithKey(Map<String, Object> config, TerminationGuard terminationGuard, String provider) {
             this.configBase = provider;
@@ -82,14 +84,25 @@ public class Geocode {
             if (!config.containsKey(configKey("url"))) {
                 throw new IllegalArgumentException("Missing 'url' for geocode provider: " + provider);
             }
+            if (!config.containsKey(configKey("reverse.url"))) {
+                throw new IllegalArgumentException("Missing 'reverse.url' for reverse-geocode provider: " + provider);
+            }
             urlTemplate = config.get(configKey("url")).toString();
             if (!urlTemplate.contains("PLACE")) throw new IllegalArgumentException("Missing 'PLACE' in url template: " + urlTemplate);
+
+            urlTemplateReverse = config.get(configKey("reverse.url")).toString();
+            if (!urlTemplateReverse.contains("LAT") || !urlTemplateReverse.contains("LNG")) throw new IllegalArgumentException("Missing 'LAT' or 'LNG' in url template: " + urlTemplateReverse);
 
             if (urlTemplate.contains("KEY") && !config.containsKey(configKey("key"))) {
                 throw new IllegalArgumentException("Missing 'key' for geocode provider: " + provider);
             }
+
+            if (urlTemplateReverse.contains("KEY") && !config.containsKey(configKey("key"))) {
+                throw new IllegalArgumentException("Missing 'key' for reverse-geocode provider: " + provider);
+            }
             String key = config.get(configKey("key")).toString();
             urlTemplate = urlTemplate.replace("KEY", key);
+            urlTemplateReverse = urlTemplateReverse.replace("KEY", key);
 
             this.throttler = new Throttler(terminationGuard, toLong(ApocConfiguration.get(configKey("throttle"), Throttler.DEFAULT_THROTTLE)));
         }
@@ -108,6 +121,22 @@ public class Geocode {
                 }
             }
             throw new RuntimeException("Can't parse geocoding results " + value);
+        }
+
+        @Override
+        public Stream<GeoCodeResult> reverseGeocode(Double latitude, Double longitude) {
+            throttler.waitForThrottle();
+            String url = urlTemplateReverse.replace("LAT", latitude.toString()).replace("LNG", longitude.toString());
+            Object value = JsonUtil.loadJson(url).findFirst().orElse(null);
+            if (value instanceof List) {
+                return findResults((List<Map<String, Object>>) value, 1);
+            } else if (value instanceof Map) {
+                Object results = ((Map) value).get("results");
+                if (results instanceof List) {
+                    return findResults((List<Map<String, Object>>) results, 1);
+                }
+            }
+            throw new RuntimeException("Can't parse reverse-geocoding results " + value);
         }
 
         @SuppressWarnings("unchecked")
@@ -140,7 +169,11 @@ public class Geocode {
     }
 
     private static class OSMSupplier implements GeocodeSupplier {
-        public static final String OSM_URL = "http://nominatim.openstreetmap.org/search.php?format=json&q=";
+        public static final String OSM_URL = "https://nominatim.openstreetmap.org";
+
+        private static final String OSM_URL_REVERSE_GEOCODE = OSM_URL + "/reverse?format=jsonv2&";
+        private static final String OSM_URL_GEOCODE = OSM_URL + "/search.php?format=json&q=";
+
         private Throttler throttler;
 
         public OSMSupplier(Map<String, Object> config, TerminationGuard terminationGuard) {
@@ -150,22 +183,43 @@ public class Geocode {
         @SuppressWarnings("unchecked")
         public Stream<GeoCodeResult> geocode(String address, long maxResults) {
             throttler.waitForThrottle();
-            Object value = JsonUtil.loadJson(OSM_URL + Util.encodeUrlComponent(address)).findFirst().orElse(null);
+            Object value = JsonUtil.loadJson(OSM_URL_GEOCODE + Util.encodeUrlComponent(address)).findFirst().orElse(null);
             if (value instanceof List) {
                 return ((List<Map<String, Object>>) value).stream().limit(maxResults).map(data ->
                         new GeoCodeResult(toDouble(data.get("lat")), toDouble(data.get("lon")), valueOf(data.get("display_name")), data));
             }
             throw new RuntimeException("Can't parse geocoding results " + value);
         }
+
+        @Override
+        public Stream<GeoCodeResult> reverseGeocode(Double latitude, Double longitude) {
+            if (latitude == null || longitude == null) {
+                return Stream.empty();
+            }
+            throttler.waitForThrottle();
+
+            Object value = JsonUtil.loadJson(OSM_URL_REVERSE_GEOCODE + String.format("lat=%s&lon=%s", latitude, longitude)).findFirst().orElse(null);
+            if (value instanceof Map) {
+                Map<String, Object> data = (Map<String, Object>) value;
+                return Stream.of(new GeoCodeResult(toDouble(data.get("lat")), toDouble(data.get("lon")), valueOf(data.get("display_name")), (Map<String,Object>)data.get("address")));
+            }
+            throw new RuntimeException("Can't parse reverse-geocoding results " + value);
+        }
     }
 
     class GoogleSupplier implements GeocodeSupplier {
         private final Throttler throttler;
-        private String baseUrl;
+        private Map<String, Object> configMap;
 
-        public GoogleSupplier(Map<String, Object> config, TerminationGuard terminationGuard, boolean inverseGeocoding) {
+        private static final String BASE_GOOGLE_API_URL = "https://maps.googleapis.com/maps/api/geocode/json";
+
+        private static final String REVERSE_GEOCODE_URL = BASE_GOOGLE_API_URL + "?%s&latlng=";
+        private static final String GEOCODE_URL = BASE_GOOGLE_API_URL + "?%s&address=";
+
+
+        public GoogleSupplier(Map<String, Object> config, TerminationGuard terminationGuard) {
             this.throttler = new Throttler(terminationGuard, toLong(config.getOrDefault("google.throttle", Throttler.DEFAULT_THROTTLE)));
-            this.baseUrl = inverseGeocoding ? String.format("https://maps.googleapis.com/maps/api/geocode/json?%s&latlng=", credentials(config)) : String.format("https://maps.googleapis.com/maps/api/geocode/json?%s&address=", credentials(config));
+            this.configMap = config;
         }
 
         private String credentials(Map<String, Object> config) {
@@ -184,7 +238,7 @@ public class Geocode {
                 return Stream.empty();
             }
             throttler.waitForThrottle();
-            Object value = JsonUtil.loadJson(baseUrl + Util.encodeUrlComponent(params)).findFirst().orElse(null);
+            Object value = JsonUtil.loadJson(String.format(GEOCODE_URL, credentials(this.configMap)) + Util.encodeUrlComponent(params)).findFirst().orElse(null);
             if (value instanceof Map) {
                 Map map = (Map) value;
                 if (map.get("status").equals("OVER_QUERY_LIMIT")) throw new IllegalStateException("QUOTA_EXCEEDED from geocode API: "+map.get("status")+" message: "+map.get("error_message"));
@@ -198,14 +252,35 @@ public class Geocode {
             }
             throw new RuntimeException("Can't parse geocoding results " + value);
         }
+
+        @Override
+        public Stream<GeoCodeResult> reverseGeocode(Double latitude, Double longitude) {
+            if (latitude == null || longitude == null) {
+                return Stream.empty();
+            }
+            throttler.waitForThrottle();
+            Object value = JsonUtil.loadJson(String.format(REVERSE_GEOCODE_URL, credentials(this.configMap)) + Util.encodeUrlComponent(latitude+","+longitude)).findFirst().orElse(null);
+            if (value instanceof Map) {
+                Map map = (Map) value;
+                if (map.get("status").equals("OVER_QUERY_LIMIT")) throw new IllegalStateException("QUOTA_EXCEEDED from geocode API: "+map.get("status")+" message: "+map.get("error_message"));
+                Object results = map.get("results");
+                if (results instanceof List) {
+                    return ((List<Map<String, Object>>) results).stream().limit(1).map(data -> {
+                        Map location = (Map) ((Map) data.get("geometry")).get("location");
+                        return new GeoCodeResult(toDouble(location.get("lat")), toDouble(location.get("lng")), valueOf(data.get("formatted_address")), data);
+                    });
+                }
+            }
+            throw new RuntimeException("Can't parse reverse-geocoding results " + value);
+        }
     }
 
-    private GeocodeSupplier getSupplier(boolean inverseGeocoding) {
+    private GeocodeSupplier getSupplier() {
         Map<String, Object> activeConfig = ApocConfiguration.get(PREFIX);
         if (activeConfig.containsKey(GEOCODE_PROVIDER_KEY)) {
             String supplier = activeConfig.get(GEOCODE_PROVIDER_KEY).toString().toLowerCase();
             switch (supplier) {
-                case "google" : return new GoogleSupplier(activeConfig, terminationGuard, inverseGeocoding);
+                case "google" : return new GoogleSupplier(activeConfig, terminationGuard);
                 case "osm" : return new OSMSupplier(activeConfig,terminationGuard);
                 default: return new SupplierWithKey(activeConfig, terminationGuard, supplier);
             }
@@ -214,16 +289,16 @@ public class Geocode {
     }
 
     @Procedure
-    @Description("apoc.spatial.geocodeOnce('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from openstreetmap geocoding service")
+    @Description("apoc.spatial.geocodeOnce('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)")
     public Stream<GeoCodeResult> geocodeOnce(@Name("location") String address) throws UnsupportedEncodingException {
         return geocode(address, 1L,false);
     }
 
     @Procedure
-    @Description("apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from openstreetmap geocoding service")
+    @Description("apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)")
     public Stream<GeoCodeResult> geocode(@Name("location") String address, @Name(value = "maxResults",defaultValue = "100") long maxResults, @Name(value = "quotaException",defaultValue = "false") boolean quotaException) {
         try {
-            return getSupplier(false).geocode(address, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults, 1), MAX_RESULTS));
+            return getSupplier().geocode(address, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults, 1), MAX_RESULTS));
         } catch(IllegalStateException re) {
             if (!quotaException && re.getMessage().startsWith("QUOTA_EXCEEDED")) return Stream.empty();
             throw re;
@@ -231,10 +306,10 @@ public class Geocode {
     }
 
     @Procedure
-    @Description("apoc.spatial.inverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description - look up address from latitude and longitude from openstreetmap geocoding service")
-    public Stream<GeoCodeResult> inverseGeocode(@Name("latitude") double latitude, @Name("longitude") double longitude, @Name(value = "maxResults",defaultValue = "100") long maxResults, @Name(value = "quotaException",defaultValue = "false") boolean quotaException) {
+    @Description("apoc.spatial.reverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description - look up address from latitude and longitude from a geocoding service (the default one is OpenStreetMap)")
+    public Stream<GeoCodeResult> reverseGeocode(@Name("latitude") double latitude, @Name("longitude") double longitude, @Name(value = "quotaException",defaultValue = "false") boolean quotaException) {
         try {
-            return getSupplier(true).geocode(latitude+","+longitude, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults, 1), MAX_RESULTS));
+            return getSupplier().reverseGeocode(latitude, longitude);
         } catch(IllegalStateException re) {
             if (!quotaException && re.getMessage().startsWith("QUOTA_EXCEEDED")) return Stream.empty();
             throw re;

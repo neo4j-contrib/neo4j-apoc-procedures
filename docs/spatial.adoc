@@ -2,7 +2,7 @@
 
 The spatial procedures are intended to enable geographic capabilities on your data.
 
-== geocode
+== Geocode
 
 The first procedure _geocode_ which will convert a textual address
 into a location containing _latitude_, _longitude_ and _description_. Despite being
@@ -19,18 +19,18 @@ RETURN location.latitude, location.longitude // will return 47.2221667, -1.55666
 
 There are three forms of the procedure:
 
-* geocodeOnce(address) returns zero or one result
-* geocode(address,maxResults) returns zero, one or more up to maxResults
-* inverseGeocode(latitude,longitude,maxResults) returns zero, one or more up to maxResults
+* geocodeOnce(address) returns zero or one result.
+* geocode(address,maxResults) returns zero, one or more up to maxResults.
+* reverseGeocode(latitude,longitude) returns zero or one result.
 
 This is because the backing geocoding service (OSM, Google, OpenCage or other) might return multiple
 results for the same query. GeocodeOnce() is designed to return the first, or highest
 ranking result.
 
-The third procedure _inverseGeocode_ will convert a location containing _latitude_ and _longitude_
+The third procedure _reverseGeocode_ will convert a location containing _latitude_ and _longitude_
 into a textual address.
 ----
-CALL apoc.spatial.inverseGeocode(47.2221667,-1.5566625) YIELD location
+CALL apoc.spatial.reverseGeocode(47.2221667,-1.5566625) YIELD location
 RETURN location.description; // will return 21, Rue Paul Bellamy, Talensac - Pont Morand,
 //Hauts-Pavés - Saint-Félix, Nantes, Loire-Atlantique, Pays de la Loire,
 //France métropolitaine, 44000, France
@@ -53,10 +53,17 @@ https://developers.google.com/maps/documentation/geocoding/get-api-key#key
 
 == Configuring Custom Geocode Provider
 
+*Geocode*
+
 For any provider that is not 'osm' or 'google' you get a configurable supplier that requires two
 additional settings, 'url' and 'key'. The 'url' must contain the two words 'PLACE' and 'KEY'.
 The 'KEY' will be replaced with the key you get from the provider when you register for the service.
 The 'PLACE' will be replaced with the address to geocode when the procedure is called.
+
+*Reverse Geocode*
+
+The 'url' must contain the three words 'LAT', 'LNG' and 'KEY'.
+The 'LAT' will be replaced with the latitude and 'LNG' will be replaced with the the longitude to reverse geocode when the procedure is called.
 
 For example, to get the service working with OpenCage, perform the following steps:
 
@@ -67,11 +74,14 @@ For example, to get the service working with OpenCage, perform the following ste
 apoc.spatial.geocode.provider=opencage
 apoc.spatial.geocode.opencage.key=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 apoc.spatial.geocode.opencage.url=http://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY
+apoc.spatial.geocode.opencage.reverse.url=http://api.opencagedata.com/geocode/v1/json?q=LAT+LNG&key=KEY
 ----
 
 * make sure that the 'XXXXXXX' part above is replaced with your actual key
 * Restart the Neo4j server and then test the geocode procedures to see that they work
 * If you are unsure if the provider is correctly configured try verify with:
+
+
 
 [source,cypher]
 ----

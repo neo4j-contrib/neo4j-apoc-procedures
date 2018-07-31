@@ -2,7 +2,6 @@ package apoc.spatial;
 
 import apoc.ApocConfiguration;
 import apoc.util.JsonUtil;
-import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
@@ -25,7 +24,11 @@ public class GeocodeTest {
     @Before
     public void setUp() throws Exception {
         assumeTravis();
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        // Impermanent Database creation with additional configuration
+        db = new TestGraphDatabaseFactory()
+                .newImpermanentDatabaseBuilder()
+                .loadPropertiesFromFile("src/test/resources/geoSpatial.conf")
+                .newGraphDatabase();
         registerProcedure(db, Geocode.class);
     }
 
@@ -38,31 +41,76 @@ public class GeocodeTest {
 
     @Test
     public void testGeocodeOSM() throws Exception {
-        testGeocodeWithThrottling("osm");
+        testGeocodeWithThrottling("osm", false);
+    }
+
+    @Test
+    public void testReverseGeocodeOSM() throws Exception {
+        testGeocodeWithThrottling("osm", true);
     }
 
     @Test
     public void testGeocodeGoogle() throws Exception {
-        testGeocodeWithThrottling("google");
+        testGeocodeWithThrottling("google", false);
     }
 
-    private void testGeocodeWithThrottling(String supplier) throws Exception {
-        long fast = testGeocode(supplier, 100);
-        long slow = testGeocode(supplier, 2000);
+    @Test
+    public void testReverseGeocodeGoogle() throws Exception {
+        testGeocodeWithThrottling("google", true);
+    }
+
+    @Test
+    public void testGeocodeOpenCage() throws Exception {
+        // We use testGeocode() instead of testGeocodeWithThrottling() because the slow test takes less time than the fast one
+        // The overall execution is strictly tight to the remote service according to quota and request policies
+        testGeocode("openCage",1000, false);
+    }
+
+    @Test
+    public void testReverseGeocodeOpenCage() throws Exception {
+        testGeocode("openCage",1000, true);
+    }
+
+    private void testGeocodeWithThrottling(String supplier, Boolean reverseGeocode) throws Exception {
+        long fast = testGeocode(supplier, 100, reverseGeocode);
+        long slow = testGeocode(supplier, 2000, reverseGeocode);
         assertTrue("Fast " + supplier + " took " + fast + "ms and slow took " + slow + "ms, but expected slow to be at least twice as long", (1.0 * slow / fast) > 1.2);
     }
 
-    private long testGeocode(String provider, long throttle) throws Exception {
+    private long testGeocode(String provider, long throttle, boolean reverseGeocode) throws Exception {
         setupSupplier(provider, throttle);
 //        testConfig(provider);
-        URL url = ClassLoader.getSystemResource("spatial.json");
+        URL url = Thread.currentThread().getContextClassLoader().getResource("spatial.json");
         Map tests = (Map) JsonUtil.OBJECT_MAPPER.readValue(url.openConnection().getInputStream(), Object.class);
         long start = System.currentTimeMillis();
-        for (Object address : (List) tests.get("addresses")) {
-            testGeocodeAddress((Map) address, provider);
+
+        if(reverseGeocode) {
+            for(Object address : (List) tests.get("events")) {
+                testReverseGeocodeAddress(((Map)address).get("lat"), ((Map)address).get("lon"));
+            }
+        } else {
+            for (Object address : (List) tests.get("addresses")) {
+                testGeocodeAddress((Map) address, provider);
+            }
         }
+
         return System.currentTimeMillis() - start;
     }
+
+    private void testReverseGeocodeAddress(Object latitude, Object longitude) {
+        try {
+            testResult(db,"CALL apoc.spatial.reverseGeocode({latitude},{longitude})",map("latitude", latitude, "longitude", longitude), (row)->{
+                row.forEachRemaining((r)->{
+                    assertNotNull(r.get("description"));
+                    assertNotNull(r.get("location"));
+                    assertNotNull(r.get("data"));
+                });
+            });
+        } catch(Exception e) {
+            Assume.assumeNoException("out of quota", e);
+        }
+    }
+
 
     private void setupSupplier(String name, long throttle) {
         ApocConfiguration.addToConfig(map(
@@ -72,7 +120,13 @@ public class GeocodeTest {
 
     private void testGeocodeAddress(Map map, String provider) {
         try {
-            TestUtil.testCall(db,"CALL apoc.spatial.geocode('FRANCE',1,true)",(row)->{ assertFalse(row.isEmpty());});
+            testResult(db,"CALL apoc.spatial.geocode('FRANCE',1,true)",(row)->{
+                row.forEachRemaining((r)->{
+                    assertNotNull(r.get("description"));
+                    assertNotNull(r.get("location"));
+                    assertNotNull(r.get("data"));
+                });
+            });
         } catch(Exception e) {
             Assume.assumeNoException("out of quota", e);
         }

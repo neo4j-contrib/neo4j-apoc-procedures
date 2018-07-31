@@ -676,7 +676,7 @@ TODO:
 [cols="1m,5"]
 |===
 | CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData | look up geographic location of location from openstreetmap geocoding service
-| CALL apoc.spatial.inverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description | look up address from latitude and longitude  from openstreetmap geocoding service
+| CALL apoc.spatial.reverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description | look up address from latitude and longitude  from openstreetmap geocoding service
 | CALL apoc.spatial.sortPathsByDistance(Collection<Path>) YIELD path, distance | sort a given collection of paths by geographic distance based on lat/long properties on the path nodes
 |===
 
