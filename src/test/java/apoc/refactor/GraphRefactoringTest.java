@@ -522,9 +522,9 @@ public class GraphRefactoringTest {
                     assertEquals(4,resultingNode.getDegree(Direction.OUTGOING));
                     assertEquals(1,c.getDegree(Direction.INCOMING));
                     assertEquals(true, r.isType(RelationshipType.withName("HAS_REL")));
-                    assertEquals(Arrays.asList( "r1" , "r2").toArray(), new ArrayBackedList(r.getProperty("p")).toArray());
+                    assertEquals("r1", r.getProperty("p"));
                     assertEquals(true, r1.isType(RelationshipType.withName("HAS_REL")));
-                    assertEquals(Arrays.asList( "r2" , "r1").toArray(), new ArrayBackedList(r1.getProperty("p")).toArray());
+                    assertEquals("r2", r1.getProperty("p"));
                 }
         );
     }

@@ -20,6 +20,7 @@ import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -256,23 +257,14 @@ public class Schemas {
      */
     private Stream<IndexConstraintNodeInfo> indexesAndConstraintsForNode() throws IndexNotFoundKernelException {
         Schema schema = db.schema();
-        Stream<IndexConstraintNodeInfo> indexes = Stream.empty();
-
         try ( Statement statement = tx.acquireStatement() ) {
             ReadOperations readOps = statement.readOperations();
             StatementTokenNameLookup tokens = new StatementTokenNameLookup(readOps);
             Iterable<IndexDescriptor> indexesIterator = readOps::indexesGetAll;
-            indexes = StreamSupport.stream(indexesIterator.spliterator(), false)
-                   .map(indexReference -> {
-                        try {
-                            return this.nodeInfoFromIndexDefinition(indexReference, readOps, tokens);
-                        } catch (IndexNotFoundKernelException e) {
-                            throw new RuntimeException("",e);
-                        }
-                    });
+            return StreamSupport.stream(indexesIterator.spliterator(), false)
+                    .map(indexReference -> this.nodeInfoFromIndexDefinition(indexReference, readOps, tokens))
+                    .sorted(Comparator.comparing(i -> i.label));
         }
-
-        return indexes;
     }
 
     /**
@@ -295,23 +287,33 @@ public class Schemas {
      * @param schemaRead
      * @return
      */
-    private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexDescriptor indexReference, ReadOperations schemaRead, TokenNameLookup tokens) throws IndexNotFoundKernelException {
+    private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexDescriptor indexReference, ReadOperations schemaRead, TokenNameLookup tokens) {
         String labelName =  tokens.labelGetName(indexReference.schema().getLabelId());
-        List<String> properties = new ArrayList<>();
-        Arrays.stream(indexReference.schema().getPropertyIds()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
-        return new IndexConstraintNodeInfo(
-                // Pretty print for index name
-                String.format(":%s(%s)", labelName, StringUtils.join(properties, ",")),
-                labelName,
-                properties,
-                schemaRead.indexGetState(indexReference).toString(),
-                indexReference.type() == IndexDescriptor.Type.UNIQUE ? "UNIQUENESS" : "INDEX",
-                schemaRead.indexGetState(indexReference).equals(InternalIndexState.FAILED) ? schemaRead.indexGetFailure(indexReference) : "NO FAILURE",
-                schemaRead.indexGetPopulationProgress(indexReference).getCompleted()/schemaRead.indexGetPopulationProgress(indexReference).getTotal()*100,
-                schemaRead.indexSize(indexReference),
-                schemaRead.indexUniqueValuesSelectivity(indexReference),
-                indexReference.userDescription(tokens)
-        );
+        List<String> properties = Arrays.stream(indexReference.schema().getPropertyIds()).mapToObj(tokens::propertyKeyGetName).collect(Collectors.toList());
+        try {
+            return new IndexConstraintNodeInfo(
+                    // Pretty print for index name
+                    String.format(":%s(%s)", labelName, StringUtils.join(properties, ",")),
+                    labelName,
+                    properties,
+                    schemaRead.indexGetState(indexReference).toString(),
+                    indexReference.type() == IndexDescriptor.Type.UNIQUE ? "UNIQUENESS" : "INDEX",
+                    schemaRead.indexGetState(indexReference).equals(InternalIndexState.FAILED) ? schemaRead.indexGetFailure(indexReference) : "NO FAILURE",
+                    schemaRead.indexGetPopulationProgress(indexReference).getCompleted()/schemaRead.indexGetPopulationProgress(indexReference).getTotal()*100,
+                    schemaRead.indexSize(indexReference),
+                    schemaRead.indexUniqueValuesSelectivity(indexReference),
+                    indexReference.userDescription(tokens)
+            );
+        } catch (IndexNotFoundKernelException e) {
+            return new IndexConstraintNodeInfo(
+                    // Pretty print for index name
+                    String.format(":%s(%s)", labelName, StringUtils.join(properties, ",")),
+                    labelName, properties, "NOT_FOUND",
+                    indexReference.type() == IndexDescriptor.Type.UNIQUE ? "UNIQUENESS" : "INDEX",
+                    "NOT_FOUND", 0, 0, 0,
+                    indexReference.userDescription(tokens)
+            );
+        }
     }
 
     /**
