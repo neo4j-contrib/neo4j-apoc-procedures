@@ -224,7 +224,7 @@ public class Strings {
         }
     }
 
-    private static Pattern cleanPattern = Pattern.compile("[^A-Za-z0-9]+");
+    private static Pattern cleanPattern = Pattern.compile("[^\\p{L}\\p{N}]+");
     private static Pattern specialCharPattern = Pattern.compile("\\p{IsM}+");
     private static String[][] UMLAUT_REPLACEMENTS = {
             { new String("Ä"), "Ae" },

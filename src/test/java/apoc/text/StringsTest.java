@@ -157,6 +157,18 @@ public class StringsTest {
                 row -> assertEquals(null, row.get("value")));
     }
 
+    @Test public void testCleanNonLatin() throws Exception {
+        testCall(db,
+                "RETURN apoc.text.clean('А .::Б В=Г Д-Е Ж%Ѕ Ꙁ И І К Л М Н О П+++Р С Т ОУ Ф Х Ѡ Ц Ч,.,.Ш Щ Ъ ЪІ Ь Ѣ Ꙗ Ѥ Ю Ѫ Ѭ Ѧ Ѩ Ѯ Ѱ Ѳ Ѵ Ҁ') AS value",
+                row -> assertEquals("абвгдежѕꙁиіклмнопрстоуфхѡцчшщъъіьѣꙗѥюѫѭѧѩѯѱѳѵҁ", row.get("value")));
+    }
+
+    @Test public void testCleanNonLatinChinese() throws Exception {
+        testCall(db,
+                "RETURN apoc.text.clean('桃 .::山= 區 %') AS value",
+                row -> assertEquals("桃山區", row.get("value")));
+    }
+
     @Test public void testCompareCleaned() throws Exception {
         String string1 = "&N[]eo 4 #J-(3.0)  ";
         String string2 = " neo4j-<30";
@@ -368,7 +380,7 @@ public class StringsTest {
         testCall(db, "RETURN apoc.text.regexGroups(null,'<link (\\\\w+)>(\\\\w+)</link>') AS result", row -> { });
         testCall(db, "RETURN apoc.text.regexGroups('abc',null) AS result", row -> { });
     }
-    
+
     @Test
     public void testSlug() {
         testCall(db, "RETURN apoc.text.slug('a-b','-') AS value", row -> assertEquals("a-b", row.get("value")));
