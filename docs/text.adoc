@@ -132,6 +132,51 @@ RETURN apoc.text.toUpperCase("foo$$bar")        // "FOO_BAR"
 RETURN apoc.text.toUpperCase("foo 22 bar")      // "FOO_22_BAR"
 
 
+== Base64
+
+Encode or decode a string in base64 or base64Url
+
+_EncodeBase64_
+
+[source,cypher]
+RETURN apoc.text.base64Encode("neo4j") as value
+
+result:
+
+[source,text]
+bmVvNGo=
+
+
+_DecodeBase64_
+
+[source,cypher]
+RETURN apoc.text.base64Decode("bmVvNGo=") as value
+
+result:
+
+[source,text]
+neo4j
+
+
+_EncodeBase64Url_
+
+[source,cypher]
+RETURN apoc.text.base64EncodeUrl("http://neo4j.com/?test=test") as value
+
+result:
+[source,text]
+aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0
+
+_DecodeBase64Url_
+
+[source,cypher]
+RETURN apoc.text.base64DecodeUrl("aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0") as value
+
+result:
+
+[source,text]
+http://neo4j.com/?test=test
+
 == Random String
 
 You can generate a random string to a specified length by calling `apoc.text.random` with a length parameter and optional string of valid characters.
