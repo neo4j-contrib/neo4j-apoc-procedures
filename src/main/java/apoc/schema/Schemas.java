@@ -257,25 +257,16 @@ public class Schemas {
      */
     private Stream<IndexConstraintNodeInfo> indexesAndConstraintsForNode() throws IndexNotFoundKernelException {
         Schema schema = db.schema();
-        Stream<IndexConstraintNodeInfo> indexes = Stream.empty();
-
         try ( Statement ignore = tx.acquireStatement() ) {
             TokenRead tokenRead = tx.tokenRead();
             TokenNameLookup tokens = new SilentTokenNameLookup(tokenRead);
 
             SchemaRead schemaRead = tx.schemaRead();
             Iterable<IndexReference> indexesIterator = () -> schemaRead.indexesGetAll();
-            indexes = StreamSupport.stream(indexesIterator.spliterator(), false)
-                   .map(indexReference -> {
-                        try {
-                            return this.nodeInfoFromIndexDefinition(indexReference, schemaRead, tokens);
-                        } catch (IndexNotFoundKernelException e) {
-                            throw new RuntimeException("",e);
-                        }
-                    });
+            return StreamSupport.stream(indexesIterator.spliterator(), false)
+                   .map(indexReference -> this.nodeInfoFromIndexDefinition(indexReference, schemaRead, tokens))
+                    .sorted(Comparator.comparing(i -> i.label));
         }
-
-        return indexes;
     }
 
     /**
@@ -298,23 +289,37 @@ public class Schemas {
      * @param schemaRead
      * @return
      */
-    private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexReference indexReference, SchemaRead schemaRead, TokenNameLookup tokens) throws IndexNotFoundKernelException {
+    private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexReference indexReference, SchemaRead schemaRead, TokenNameLookup tokens){
         String labelName =  tokens.labelGetName(indexReference.label());
         List<String> properties = new ArrayList<>();
         Arrays.stream(indexReference.properties()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
-        return new IndexConstraintNodeInfo(
-                // Pretty print for index name
-                String.format(":%s(%s)", labelName, StringUtils.join(properties, ",")),
-                labelName,
-                properties,
-                schemaRead.indexGetState(indexReference).toString(),
-                !indexReference.isUnique()?"INDEX":"UNIQUENESS",
-                schemaRead.indexGetState(indexReference).equals(InternalIndexState.FAILED) ? schemaRead.indexGetFailure(indexReference) : "NO FAILURE",
-                schemaRead.indexGetPopulationProgress(indexReference).getCompleted()/schemaRead.indexGetPopulationProgress(indexReference).getTotal()*100,
-                schemaRead.indexSize(indexReference),
-                schemaRead.indexUniqueValuesSelectivity(indexReference),
-                indexReference.userDescription(tokens)
-        );
+        try {
+            return new IndexConstraintNodeInfo(
+                    // Pretty print for index name
+                    String.format(":%s(%s)", labelName, StringUtils.join(properties, ",")),
+                    labelName,
+                    properties,
+                    schemaRead.indexGetState(indexReference).toString(),
+                    !indexReference.isUnique() ? "INDEX" : "UNIQUENESS",
+                    schemaRead.indexGetState(indexReference).equals(InternalIndexState.FAILED) ? schemaRead.indexGetFailure(indexReference) : "NO FAILURE",
+                    schemaRead.indexGetPopulationProgress(indexReference).getCompleted() / schemaRead.indexGetPopulationProgress(indexReference).getTotal() * 100,
+                    schemaRead.indexSize(indexReference),
+                    schemaRead.indexUniqueValuesSelectivity(indexReference),
+                    indexReference.userDescription(tokens)
+            );
+        } catch(IndexNotFoundKernelException e) {
+            return new IndexConstraintNodeInfo(
+                    // Pretty print for index name
+                    String.format(":%s(%s)", labelName, StringUtils.join(properties, ",")),
+                    labelName,
+                    properties,
+                    "NOT_FOUND",
+                    !indexReference.isUnique() ? "INDEX" : "UNIQUENESS",
+                    "NOT_FOUND",
+                    0,0,0,
+                    indexReference.userDescription(tokens)
+            );
+        }
     }
 
     /**
