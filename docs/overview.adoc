@@ -872,6 +872,10 @@ Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in 
 | apoc.text.byteCount(text,[charset]) | return size of text in bytes
 | apoc.text.bytes(text,[charset]) - return bytes of the text
 | apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end}) | tries it's best to convert the value to a cypher-property-string
+| apoc.text.base64Encode(text) - Encode a string with Base64
+| apoc.text.base64Decode(text) - Decode Base64 encoded string
+| apoc.text.base64UrlEncode(url) - Encode a url with Base64
+| apoc.text.base64UrlDecode(url) - Decode Base64 encoded url
 |===
 
 === Data Extraction
