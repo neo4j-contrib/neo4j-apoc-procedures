@@ -9,9 +9,6 @@
 
 == Introduction
 
-=== Notices
-
-include::../readme.adoc[tags=warnings,leveloffset=1]
 
 NOTE: Go here for documentation for APOC for Neo4j version link:index30.html[3.0.x] link:index31.html[3.1.x] link:index32.html[3.2.x] link:index34.html[3.4.x]
 
@@ -33,6 +30,10 @@ To generate the help output, apoc utilizes the built in `dbms.procedures()` and 
 |===
 include::../build/generated-documentation/documentation.csv[]
 |===
+
+=== Notices
+
+include::../readme.adoc[tags=warnings,leveloffset=1]
 
 
 // include::overview.adoc[tags=overview,leveloffset=1]
