@@ -43,7 +43,7 @@ public class StringCleanTest {
         return Arrays.asList(new Object[][]{
                 { "&N[]eo  4 #J-(3.0)  ", "neo4j30"},
                 { "German umlaut Ä Ö Ü ä ö ü ß ", "germanumlautaeoeueaeoeuess" },
-                { "French çÇéèêëïîôœàâæùûü", "frenchcceeeeiioaauuue"}
+                { "French çÇéèêëïîôœàâæùûü", "frenchcceeeeiioœaaæuuue"}
         });
     }
 
