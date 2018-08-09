@@ -5,7 +5,7 @@ import apoc.export.util.CountingReader;
 import apoc.export.util.ProgressReporter;
 import apoc.load.LoadCsv;
 import apoc.util.FileUtils;
-import au.com.bytecode.opencsv.CSVReader;
+import com.opencsv.CSVReader;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
