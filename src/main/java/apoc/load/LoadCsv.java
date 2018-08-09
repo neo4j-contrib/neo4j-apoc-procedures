@@ -1,10 +1,10 @@
 package apoc.load;
 
 import apoc.export.util.CountingReader;
-import apoc.util.FileUtils;
 import apoc.meta.Meta;
+import apoc.util.FileUtils;
 import apoc.util.Util;
-import au.com.bytecode.opencsv.CSVReader;
+import com.opencsv.CSVReader;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -12,7 +12,17 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
