@@ -313,6 +313,28 @@ public class CollTest {
     }
 
     @Test
+    public void sortMapsMultiShouldOrderByAscByDefault() throws Exception{
+        testCall(db,
+                "RETURN apoc.coll.sortMulti([{col1:3,col2:'c'},{col1:1,col2:'a'},{col1:4,col2:'d'},{col1:2,col2:'b'}], ['col1']) AS maps",
+                (row) -> {
+                    List<Map> maps = (List<Map>) row.get("maps");
+                    assertEquals(1L, maps.get(0).get("col1"));
+                    assertEquals(4L, maps.get(3).get("col1"));
+                });
+    }
+
+    @Test
+    public void sortMapsMultiShouldOrderByDescWhenUsingCircumflexAccent() throws Exception{
+        testCall(db,
+                "RETURN apoc.coll.sortMulti([{col1:3,col2:'c'},{col1:1,col2:'a'},{col1:4,col2:'d'},{col1:2,col2:'b'}], ['^col1']) AS maps",
+                (row) -> {
+                    List<Map> maps = (List<Map>) row.get("maps");
+                    assertEquals(4L, maps.get(0).get("col1"));
+                    assertEquals(1L, maps.get(3).get("col1"));
+                });
+    }
+
+    @Test
     public void testSetOperations() throws Exception {
         testCall(db, "RETURN apoc.coll.union([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L, 2L, 3L)), asSet((Iterable) r.get("value"))));
         testCall(db, "RETURN apoc.coll.intersection([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(2L)), asSet((Iterable) r.get("value"))));
