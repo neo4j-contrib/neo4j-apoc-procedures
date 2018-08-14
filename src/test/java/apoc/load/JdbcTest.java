@@ -3,11 +3,16 @@ package apoc.load;
 import apoc.ApocConfiguration;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.hamcrest.core.IsInstanceOf;
 import org.junit.*;
+import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import javax.print.AttributeException;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.sql.*;
 import java.time.Instant;
 import java.util.Calendar;
@@ -16,6 +21,7 @@ import java.util.Properties;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class JdbcTest {
 
@@ -78,6 +84,14 @@ public class JdbcTest {
         db.execute("CALL apoc.load.jdbc(''jdbc:derby:derbyDB'','PERSON2')").next();
         // todo count derby connections?
     }
+
+    @Test
+    public void testLoadJdbcWithSpecialChar()
+    {
+        String connStr = "jdbc:derby;database=db1;user=client0;password=1234#5$6#;encrypt=true;trustServerCertificate=false;loginTimeout=30;";
+        db.execute("CALL apoc.load.jdbc('" + connStr + "', 'PERSON')").next();
+    }
+
     @Test(expected = RuntimeException.class)
     public void testLoadJdbcProcessingError() throws Exception {
         db.execute("CALL apoc.load.jdbc(''jdbc:derby:derbyDB'','PERSON') YIELD row where row.name / 2 = 5 RETURN row").next();

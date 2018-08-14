@@ -18,6 +18,7 @@ import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
 import javax.security.auth.login.LoginContext;
 import java.io.InputStream;
+import java.net.IDN;
 import java.net.URI;
 import java.net.URL;
 import java.security.PrivilegedActionException;
@@ -43,13 +44,20 @@ public class Jdbc {
     public Log log;
 
     private static Connection getConnection(String jdbcUrl) throws Exception {
-        URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
-        String userInfo = uri.getUserInfo();
+        String userInfo = null;
+        try {
+            URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
+
+            userInfo = uri.getUserInfo();
+        } catch (Exception ex) {
+            // the jdb connection string is not url compatible.
+        }
         if (userInfo != null) {
             String[] user = userInfo.split(":");
-            String cleanUrl = jdbcUrl.substring(0,jdbcUrl.indexOf("://")+3)+jdbcUrl.substring(jdbcUrl.indexOf("@")+1);
+            String cleanUrl = jdbcUrl.substring(0, jdbcUrl.indexOf("://") + 3) + jdbcUrl.substring(jdbcUrl.indexOf("@") + 1);
             return DriverManager.getConnection(cleanUrl, user[0], user[1]);
         }
+
         return DriverManager.getConnection(jdbcUrl);
     }
 
