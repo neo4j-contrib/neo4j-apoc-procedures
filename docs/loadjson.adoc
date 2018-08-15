@@ -10,6 +10,10 @@ Cypher is pretty good at deconstructing nested documents with dot syntax, slices
 
 Sources with multiple JSON objects in a stream are also supported, like the https://dev.twitter.com/streaming/overview/processing[streaming Twitter format] or the Yelp Kaggle dataset.
 
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/M1P1IlQdb5M" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+
 == Json-Path
 
 Most of the `apoc.load.json` and `apoc.convert.*Json` procedures and functions now accept a json-path as last argument.

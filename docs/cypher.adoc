@@ -107,7 +107,7 @@ Sometimes queries require conditional execution logic that can't be adequately e
 
 APOC's conditional execution procedures simulate an if / else structure, where a supplied boolean condition determines which cypher query is executed.
 
-==== WHEN Procedures
+=== WHEN Procedures
 
 [cols="1m,5"]
 |===
@@ -138,7 +138,7 @@ WITH acc
 ...
 ----
 
-==== CASE Procedures
+=== CASE Procedures
 
 For more complex conditional logic, case procedures allow for a variable-length list of condition / query pairs, where the query following the first conditional evaluating to true is executed. An elseQuery block is executed if none of the conditionals are true.
 

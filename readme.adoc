@@ -21,11 +21,11 @@ They are implemented in Java and can be easily deployed into your Neo4j instance
 
 The APOC library consists of many (about 450) procedures and functions to help with many different tasks in areas like data integration, graph algorithms or data conversion.
 
-=== License
+== License
 
 Apache License 2.0
 
-=== "APOC" Name history
+== "APOC" Name history
 
 http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board of the Nebuchadnezzar in the Matrix movie. He was killed by Cypher.
 

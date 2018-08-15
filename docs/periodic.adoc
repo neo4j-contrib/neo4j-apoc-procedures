@@ -2,8 +2,6 @@
 
 == Introduction asynchronous transactional execution
 
-[NOTE]
-this document is work in progress
 
 Cypher is great for querying graphs and importing and updating graph structures.
 While during imports you can use `PERIODIC COMMIT` to control transaction sizes in memory, 
@@ -12,6 +10,10 @@ for other graph refactorings it's not that easy to commit transactions regularly
 Also sometimes you want to schedule execution of Cypher statements to run regularly in the background or asynchronously ("fire & forget").
 
 The `apoc.periodic.*` procedures provide such capabilities.
+
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/t1Nr5C5TAYs" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
 
 Many procedures run in the background or asynchronously. This setting overrides the default thread pool size (processors*2).
 
