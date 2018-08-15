@@ -42,7 +42,7 @@ You can use these helper functions to extract nodes by label or
 | apoc.trigger.propertiesByKey({assignedNodeProperties},'key') | function to filter propertyEntries by property-key, to be used within a trigger statement with {assignedNode/RelationshipProperties} and {removedNode/RelationshipProperties}. Returns [{old,[new],key,node,relationship}]
 |===
 
-=== Triggers Examples
+== Triggers Examples
 
 .Set properties connected to a node
 

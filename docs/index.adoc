@@ -12,7 +12,15 @@
 
 NOTE: Go here for documentation for APOC for Neo4j version link:index30.html[3.0.x] link:index31.html[3.1.x] link:index32.html[3.2.x] link:index34.html[3.4.x]
 
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/V1DTBjetIfk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+
 include::../readme.adoc[tags=intro,leveloffset=1]
+
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/b1Yr2nHNS4M" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
 
 include::../readme.adoc[tags=signature,leveloffset=1]
 
@@ -21,7 +29,6 @@ include::../readme.adoc[tags=signature,leveloffset=1]
 include::overview.adoc[tags=help,leveloffset=-1]
 
 To generate the help output, apoc utilizes the built in `dbms.procedures()` and `dbms.functions()` utilities.
-
 
 == Overview of APOC Procedures & Functions
 

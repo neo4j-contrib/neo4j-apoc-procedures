@@ -158,6 +158,9 @@ Returns a virtual graph that represents the labels and relationship-types availa
 | apoc.meta.types(node or relationship or map) | returns a a map of property-keys to their names
 |===
 
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/yEN6TCL8WGk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
 
 .isType example
 [source,cypher]
@@ -438,6 +441,10 @@ CALL apoc.couchbase.get(['localhost'], 'default', 'artist:vincent_van_gogh')
 // end::gephi[]
 
 == Creating Data
+
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/KsAb8QHClNg" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
 
 [cols="1m,5"]
 |===
@@ -724,6 +731,10 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 
 === Map Functions
 
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/_Qdhouvx-Qw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+
 [cols="1m,5"]
 |===
 | apoc.map.fromNodes(label, property) | creates map from nodes with this label grouped by property
@@ -745,6 +756,10 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 
 
 === Collection Functions
+
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/qgeEbI8gqe4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
 
 [cols="1m,5"]
 |===

@@ -21,7 +21,7 @@ CALL apoc.path.expand(startNode <id>|Node, relationshipFilter, labelFilter, minL
 CALL apoc.path.expand(startNode <id>|Node|list, 'TYPE|TYPE_OUT>|<TYPE_IN', '+YesLabel|-NoLabel|/TerminationLabel|>EndNodeLabel', minLevel, maxLevel ) yield path
 ----
 
-==== Relationship Filter
+=== Relationship Filter
 
 Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 
@@ -35,7 +35,7 @@ Syntax: `[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
 | < | any type | INCOMING
 |===
 
-==== Label Filter
+=== Label Filter
 
 Syntax: `[+-/>]LABEL1|LABEL2|*|...`
 
