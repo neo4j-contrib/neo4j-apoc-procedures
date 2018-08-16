@@ -44,18 +44,16 @@ public class Jdbc {
     public Log log;
 
     private static Connection getConnection(String jdbcUrl) throws Exception {
-        String userInfo = null;
-        try {
+        if (!jdbcUrl.contains("#")) {
             URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
 
-            userInfo = uri.getUserInfo();
-        } catch (Exception ex) {
-            // the jdb connection string is not url compatible.
-        }
-        if (userInfo != null) {
-            String[] user = userInfo.split(":");
-            String cleanUrl = jdbcUrl.substring(0, jdbcUrl.indexOf("://") + 3) + jdbcUrl.substring(jdbcUrl.indexOf("@") + 1);
-            return DriverManager.getConnection(cleanUrl, user[0], user[1]);
+            String userInfo = uri.getUserInfo();
+
+            if (userInfo != null) {
+                String[] user = userInfo.split(":");
+                String cleanUrl = jdbcUrl.substring(0, jdbcUrl.indexOf("://") + 3) + jdbcUrl.substring(jdbcUrl.indexOf("@") + 1);
+                return DriverManager.getConnection(cleanUrl, user[0], user[1]);
+            }
         }
 
         return DriverManager.getConnection(jdbcUrl);
