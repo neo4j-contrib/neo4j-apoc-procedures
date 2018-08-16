@@ -88,7 +88,7 @@ public class JdbcTest {
     @Test
     public void testLoadJdbcWithSpecialChar()
     {
-        String connStr = "jdbc:derby;database=db1;user=client0;password=1234#5$6#;encrypt=true;trustServerCertificate=false;loginTimeout=30;";
+        String connStr = "jdbc:derby:derbyDB;password=1234#5$6#;";
         db.execute("CALL apoc.load.jdbc('" + connStr + "', 'PERSON')").next();
     }
 
