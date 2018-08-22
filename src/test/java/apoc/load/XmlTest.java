@@ -179,7 +179,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlXpathBooKsFromGenre () {
-            testResult(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[genre=\"Computer\"]') yield value as result",
+        testResult(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[genre=\"Computer\"]') yield value as result",
                 (r) -> {
                     Map<String, Object> next = r.next();
                     Object result = next.get("result");
@@ -239,7 +239,7 @@ public class XmlTest {
     public void testLoadXmlWithImport() {
         testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5.xml', {createNextWordRelationships: true}) yield node",
                 row -> {
-                   assertNotNull(row.get("node"));
+                    assertNotNull(row.get("node"));
                 });
         testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
             final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));

@@ -1,0 +1,17 @@
++-----------------------------------------------------------------------------+
+| id      | author                 | title                                    |
++-----------------------------------------------------------------------------+
+| "bk101" | "Gambardella, Matthew" | "Arciniegas, Fabio"                      |
+| "bk102" | "Ralls, Kim"           | "Midnight Rain"                          |
+| "bk103" | "Corets, Eva"          | "Maeve Ascendant"                        |
+| "bk104" | "Corets, Eva"          | "Oberon's Legacy"                        |
+| "bk105" | "Corets, Eva"          | "The Sundered Grail"                     |
+| "bk106" | "Randall, Cynthia"     | "Lover Birds"                            |
+| "bk107" | "Thurman, Paula"       | "Splish Splash"                          |
+| "bk108" | "Knorr, Stefan"        | "Creepy Crawlies"                        |
+| "bk109" | "Kress, Peter"         | "Paradox Lost"                           |
+| "bk110" | "O'Brien, Tim"         | "Microsoft .NET: The Programming Bible"  |
+| "bk111" | "O'Brien, Tim"         | "MSXML3: A Comprehensive Guide"          |
+| "bk112" | "Galos, Mike"          | "Visual Studio 7: A Comprehensive Guide" |
++-----------------------------------------------------------------------------+
+12 rows
