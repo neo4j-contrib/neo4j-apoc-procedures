@@ -424,3 +424,37 @@ There are a number of blog posts / examples that details usage of apoc.load.jdbc
 * https://jesusbarrasa.wordpress.com/2016/09/30/quickgraph4-explore-your-browser-history-in-neo4j/[Explore your browser history in Neo4j]
 * https://blog.knoldus.com/2016/09/12/neo4j-with-scala-migrate-data-from-other-database-to-neo4j/[Neo4j With Scala : Migrate Data From Other Database to Neo4j]
 * https://neo4j.com/blog/apoc-database-integration-import-export-cypher/[APOC: Database Integration, Import and Export with Awesome Procedures On Cypher]
+
+
+== LOAD JDBC - UPDATE
+
+The jdbcUpdate is use for update relational database, from a SQL kernelTransaction with optional parameters
+
+[source,cypher]
+----
+CALL apoc.load.jdbcUpdate(jdbc-url,statement, params) YIELD  row;
+----
+
+With this set of data you can call the procedure in two different mode:
+
+[source,cypher]
+----
+MATCH (u:User)-[:BOUGHT]->(p:Product)<-[:BOUGHT]-(o:User)-[:BOUGHT]->(reco)
+WHERE u <> o AND NOT (u)-[:BOUGHT]->(reco)
+WITH u, reco, count(*) as score
+WHERE score > 1000
+----
+
+You can call the procedure with param:
+
+[source,cypher]
+----
+CALL apoc.load.jdbcUpdate('jdbc:mysql:....','INSERT INTO RECOMMENDATIONS values(?,?,?)',[user.id, reco.id, score]) YIELD row;
+----
+
+You can call the procedure without param:
+
+[source,cypher]
+----
+CALL apoc.load.jdbcUpdate('jdbc:mysql:....','INSERT INTO RECOMMENDATIONS values(user.id, reco.id, score)') YIELD row;
+----
