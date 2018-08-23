@@ -1,5 +1,20 @@
 = Schema Information
 
+To drop or create index or constraint, you can use the following procedure:
+
+[source,cypher]
+----
+CALL apoc.schema.assert({indexLabel:[[indexKeys]], ...}, {constraintLabel:[constraintKeys], ...}, dropExisting : true) yield label, key, keys, unique, action
+----
+
+Where the outputs are:
+
+  * label
+  * key
+  * keys, list of the key
+  * unique, if the index or constraint are unique
+  * action, can be the following values: DROPPED, CREATED
+
 To retrieve indexes and constraints information for all the node labels in your database, you can use the following procedure:
 
 [source,cypher]
@@ -36,7 +51,72 @@ Where the outputs are:
 
 N.B. Constraints for property existence on nodes and relationships are available only for the Enterprise Edition.
 
+To retrieve the index existence on node, you can use the following user function:
+
+[source,cypher]
+----
+RETURN apoc.schema.node.indexExists(labelName, propertyNames)
+
+----
+
+The output return the index existence on node is present or not
+
+To retrieve if the constraint exists on node, you can use the following user function:
+
+[source,cypher]
+----
+RETURN apoc.schema.node.constraintExists(labelName, propertyNames)
+----
+
+The output return the constraint existence on node.
+
+To retrieve if the constraint exists on relationship, you can use the following user function:
+
+[source,cypher]
+----
+RETURN apoc.schema.relationship.constraintExists(type, propertyNames)
+----
+
+The output return the constraint on the relationship is present or not
+
+
 == Examples
+
+=== List Schema assert
+
+When you:
+
+[source,cypher]
+----
+CALL apoc.schema.assert({Foo:['bar']},null)
+----
+
+you will receive this result:
+
+image::{img}/apoc.schema.assert.index.png[]
+
+When you:
+
+[source,cypher]
+----
+CALL apoc.schema.assert(null,{Foo:['bar']})
+----
+
+you will receive this result:
+
+image::{img}/apoc.schema.assert.constraint.png[]
+
+When you:
+
+[source,cypher]
+----
+CALL apoc.schema.assert(null,null)
+----
+
+you will receive this result:
+
+image::{img}/apoc.schema.assert.drop.png[]
+
 
 === List indexes and constraints for nodes
 
@@ -116,4 +196,4 @@ RETURN apoc.schema.relationship.constraintExists('LIKED', ['day'])
 
 and you get the following result:
 
-image:{img}/apoc.schema.relationship.constraintExists.png[]
+image::{img}/apoc.schema.relationship.constraintExists.png[]
