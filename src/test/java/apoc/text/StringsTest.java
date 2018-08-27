@@ -45,6 +45,39 @@ public class StringsTest {
     }
 
     @Test
+    public void testIndexOfSubstring() throws Exception {
+        String query = "WITH 'Hello World!' as text\n" +
+                "WITH text, length(text) as len, apoc.text.indexOf(text, 'World',3) as index\n" +
+                "RETURN substring(text, case index when -1 then len-1 else index end, len) as value;\n";
+        testCall(db, query, (row) -> assertEquals("World!",row.get("value")));
+    }
+
+    @Test
+    public void testIndexOf() throws Exception {
+        String text = "The quick brown fox.";
+        Object[][] data = {
+                {"Hello World!", "World",0,6L},
+                {text, " ",1,3L},
+                {text, " ",4,9L},
+                {text,"b",0,10L},
+                {text,"fox",5,16L},
+                {text,"bear",5,-1L},
+                {text,".",0,19L},
+                {text,".",21,-1L},
+                {text,"",0,0L},
+                {null, " ",0,null},
+                {text,null,0,-1L}
+        };
+
+        for (Object[] datum : data) {
+            testCall(db,
+                    "RETURN apoc.text.indexOf({text},{lookup},{offset}) AS value",
+                    map("text",datum[0],"lookup",datum[1],"offset",datum[2]),
+                    row -> assertEquals(datum[3], row.get("value")));
+        }
+    }
+
+    @Test
     public void testReplace() throws Exception {
         String text = "&N[]eo 4 #J-(3.0)  ";
         String regex = "[^a-zA-Z0-9]";
