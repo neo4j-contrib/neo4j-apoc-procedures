@@ -3,7 +3,6 @@ package apoc.index;
 import apoc.meta.Meta;
 import apoc.result.WeightedNodeResult;
 import apoc.result.WeightedRelationshipResult;
-import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexHits;
@@ -39,6 +38,13 @@ public class FulltextIndex {
     public Stream<WeightedNodeResult> nodes(@Name("label") String label, @Name("query") String query) throws Exception {
         if (!db.index().existsForNodes(label)) return Stream.empty();
         return toWeightedNodeResult(db.index().forNodes(label).query(query));
+    }
+
+    @UserFunction("apoc.index.nodes.count")
+    @Description("apoc.index.nodes.count('Label','prop:value*') YIELD value - lucene query on node index with the given label name")
+    public long nodesCount(@Name("label") String label, @Name("query") String query) throws Exception {
+        if (!db.index().existsForNodes(label)) return 0L;
+        return (long) db.index().forNodes(label).query(query).size();
     }
 
     public static class IndexInfo {
@@ -134,6 +140,13 @@ public class FulltextIndex {
         return toWeightedRelationshipResult(db.index().forRelationships(type).query(query,null,null));
     }
 
+    @UserFunction("apoc.index.relationships.count")
+    @Description("apoc.index.relationships.count('Type','prop:value*') YIELD value - lucene query on relationship index with the given type name")
+    public long relationshipsCount(@Name("type") String type, @Name("query") String query) throws Exception {
+        if (!db.index().existsForRelationships(type)) return 0L;
+        return (long) db.index().forRelationships(type).query(query, null, null).size();
+    }
+
     // CALL apoc.index.between(joe, 'KNOWS', null, 'since:2010-*')
     // CALL apoc.index.between(joe, 'CHECKIN', philz, 'on:2016-01-*')
     @Description("apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel - lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)")
@@ -143,11 +156,25 @@ public class FulltextIndex {
         return toWeightedRelationshipResult(db.index().forRelationships(type).query(query,from,to));
     }
 
+    @UserFunction("apoc.index.between.count")
+    @Description("apoc.index.between.count(node1,'TYPE',node2,'prop:value*') YIELD value - lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)")
+    public long betweenCount(@Name("from") Node from, @Name("type") String type, @Name("to") Node to, @Name("query") String query) throws Exception {
+        if (!db.index().existsForRelationships(type)) return 0L;
+        return (long) db.index().forRelationships(type).query(query,from,to).size();
+    }
+
     @Procedure(mode = Mode.READ)
     @Description("out(node,'TYPE','prop:value*') YIELD node - lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*")
     public Stream<WeightedNodeResult> out(@Name("from") Node from, @Name("type") String type, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
         return toWeightedRelationshipResult(db.index().forRelationships(type).query(query,from,null)).map((w) -> new WeightedNodeResult(w.rel.getEndNode(), w.weight));
+    }
+
+    @UserFunction("apoc.index.out.count")
+    @Description("apoc.index.out.count(node,'TYPE','prop:value*') YIELD value - lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns count-end-nodes*")
+    public long outCount(@Name("from") Node from, @Name("type") String type, @Name("query") String query) throws Exception {
+        if (!db.index().existsForRelationships(type)) return 0L;
+        return (long) db.index().forRelationships(type).query(query,from,null).size();
     }
 
     // CALL apoc.index.in(philz, 'CHECKIN', 'on:2010-*')
@@ -156,6 +183,13 @@ public class FulltextIndex {
     public Stream<WeightedNodeResult> in(@Name("to") Node to, @Name("type") String type, @Name("query") String query) throws Exception {
         if (!db.index().existsForRelationships(type)) return Stream.empty();
         return toWeightedRelationshipResult(db.index().forRelationships(type).query(query,null,to)).map((w) -> new WeightedNodeResult(w.rel.getStartNode(), w.weight));
+    }
+
+    @UserFunction("apoc.index.in.count")
+    @Description("apoc.index.in.count(node1,'TYPE',node2,'prop:value*') YIELD value - lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns count-start-nodes*")
+    public long inCount(@Name("to") Node to, @Name("type") String type, @Name("query") String query) throws Exception {
+        if (!db.index().existsForRelationships(type)) return 0L;
+        return (long) db.index().forRelationships(type).query(query,null,to).size();
     }
 
     // CALL apoc.index.addNode(joe, ['name','age','city'])
