@@ -45,6 +45,7 @@ RETURN apoc.text.regexGroups('abc <link xxx1>yyy1</link> def <link xxx2>yyy2</li
 ----
 
 
+== Split and Join
 
 .will split with the given regular expression return ['Hello', 'World']
 [source,cypher]
@@ -57,6 +58,8 @@ RETURN apoc.text.split('Hello   World', ' +')
 ----
 RETURN apoc.text.join(['Hello', 'World'], ' ')
 ----
+
+== Data Cleaning
 
 .will return 'helloworld'
 [source,cypher]
