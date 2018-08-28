@@ -173,6 +173,7 @@ RETURN m.col_1,m.col_2,m.col_3
 
     @Test
     public void testLoadCsvByUrl() throws Exception {
+
         URL url = new URL("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/src/test/resources/test.csv");
         testResult(db, "CALL apoc.load.csv({url},{results:['map','list','stringMap','strings']})", map("url", url.toString()),
                 (r) -> {
@@ -207,6 +208,94 @@ RETURN m.col_1,m.col_2,m.col_3
                     assertEquals(Collections.emptyList(), row.get("strings"));
                     assertEquals(Collections.emptyMap(), row.get("map"));
                     assertEquals(Collections.emptyMap(), row.get("stringMap"));
+                    assertEquals(false, r.hasNext());
+                });
+    }
+
+    @Test public void testLoadCsvZip() throws Exception {
+        URL url = ClassLoader.getSystemResource("testload.zip");
+        testResult(db, "CALL apoc.load.csv({url},{results:['map','list','stringMap','strings']})", map("url",url.toString()+"!csv/test.csv"), // 'file:test.csv'
+                (r) -> {
+                    assertRow(r,0L,"name","Selma","age","8");
+                    assertRow(r,1L,"name","Rana","age","11");
+                    assertRow(r,2L,"name","Selina","age","18");
+                    assertEquals(false, r.hasNext());
+                });
+    }
+
+    @Test public void testLoadCsvTar() throws Exception {
+        URL url = ClassLoader.getSystemResource("testload.tar");
+        testResult(db, "CALL apoc.load.csv({url},{results:['map','list','stringMap','strings']})", map("url",url.toString()+"!csv/test.csv"), // 'file:test.csv'
+                (r) -> {
+                    assertRow(r,0L,"name","Selma","age","8");
+                    assertRow(r,1L,"name","Rana","age","11");
+                    assertRow(r,2L,"name","Selina","age","18");
+                    assertEquals(false, r.hasNext());
+                });
+    }
+
+    @Test public void testLoadCsvTarGz() throws Exception {
+        URL url = ClassLoader.getSystemResource("testload.tar.gz");
+        testResult(db, "CALL apoc.load.csv({url},{results:['map','list','stringMap','strings']})", map("url",url.toString()+"!csv/test.csv"), // 'file:test.csv'
+                (r) -> {
+                    assertRow(r,0L,"name","Selma","age","8");
+                    assertRow(r,1L,"name","Rana","age","11");
+                    assertRow(r,2L,"name","Selina","age","18");
+                    assertEquals(false, r.hasNext());
+                });
+    }
+
+    @Test public void testLoadCsvTgz() throws Exception {
+        URL url = ClassLoader.getSystemResource("testload.tgz");
+        testResult(db, "CALL apoc.load.csv({url},{results:['map','list','stringMap','strings']})", map("url",url.toString()+"!csv/test.csv"), // 'file:test.csv'
+                (r) -> {
+                    assertRow(r,0L,"name","Selma","age","8");
+                    assertRow(r,1L,"name","Rana","age","11");
+                    assertRow(r,2L,"name","Selina","age","18");
+                    assertEquals(false, r.hasNext());
+                });
+    }
+
+    @Test public void testLoadCsvZipByUrl() throws Exception {
+        URL url = new URL("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.zip?raw=true");
+        testResult(db, "CALL apoc.load.csv({url},{results:['map','list','stringMap','strings']})", map("url",url.toString()+"!csv/test.csv"), // 'file:test.csv'
+                (r) -> {
+                    assertRow(r,0L,"name","Selma","age","8");
+                    assertRow(r,1L,"name","Rana","age","11");
+                    assertRow(r,2L,"name","Selina","age","18");
+                    assertEquals(false, r.hasNext());
+                });
+    }
+
+    @Test public void testLoadCsvTarByUrl() throws Exception {
+        URL url = new URL("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tar?raw=true");
+        testResult(db, "CALL apoc.load.csv({url},{results:['map','list','stringMap','strings']})", map("url",url.toString()+"!csv/test.csv"), // 'file:test.csv'
+                (r) -> {
+                    assertRow(r,0L,"name","Selma","age","8");
+                    assertRow(r,1L,"name","Rana","age","11");
+                    assertRow(r,2L,"name","Selina","age","18");
+                    assertEquals(false, r.hasNext());
+                });
+    }
+
+    @Test public void testLoadCsvTarGzByUrl() throws Exception {
+        URL url = new URL("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tar.gz?raw=true");
+        testResult(db, "CALL apoc.load.csv({url},{results:['map','list','stringMap','strings']})", map("url",url.toString()+"!csv/test.csv"), // 'file:test.csv'
+                (r) -> {
+                    assertRow(r,0L,"name","Selma","age","8");
+                    assertRow(r,1L,"name","Rana","age","11");
+                    assertRow(r,2L,"name","Selina","age","18");
+                    assertEquals(false, r.hasNext());
+                });
+    }
+
+    @Test public void testLoadCsvTgzByUrl() throws Exception {
+        URL url = new URL("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tgz?raw=true");
+        testResult(db, "CALL apoc.load.csv({url},{results:['map','list','stringMap','strings']})", map("url",url.toString()+"!csv/test.csv"), // 'file:test.csv'
+                (r) -> {
+                    assertRow(r,0L,"name","Selma","age","8");
+                    assertRow(r,1L,"name","Rana","age","11");
+                    assertRow(r,2L,"name","Selina","age","18");
                     assertEquals(false, r.hasNext());
                 });
     }

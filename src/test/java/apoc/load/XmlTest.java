@@ -262,4 +262,84 @@ public class XmlTest {
                 });
 
     }
+
+    @Test
+    public void testLoadXmlFromZip() {
+        testResult(db, "call apoc.load.xml('file:src/test/resources/testload.zip!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromTar() {
+        testResult(db, "call apoc.load.xml('file:src/test/resources/testload.tar!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromTarGz() {
+        testResult(db, "call apoc.load.xml('file:src/test/resources/testload.tar.gz!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromTgz() {
+        testResult(db, "call apoc.load.xml('file:src/test/resources/testload.tgz!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromZipByUrl() {
+        testResult(db, "call apoc.load.xml('https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.zip?raw=true!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromTarByUrl() {
+        testResult(db, "call apoc.load.xml('https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tar?raw=true!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromTarGzByUrl() {
+        testResult(db, "call apoc.load.xml('https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tar.gz?raw=true!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromTgzByUrl() {
+        testResult(db, "call apoc.load.xml('https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tgz?raw=true!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
 }
