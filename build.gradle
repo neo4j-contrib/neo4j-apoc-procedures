@@ -115,8 +115,8 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver:3.2.2'
     testCompile 'org.mongodb:mongodb-driver:3.2.2'
 
-    compileOnly 'com.couchbase.client:java-client:2.3.1'
-    testCompile 'com.couchbase.client:java-client:2.3.1'
+    compileOnly 'com.couchbase.client:java-client:2.5.9'
+    testCompile 'com.couchbase.client:java-client:2.5.9'
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compileOnly group: 'org.neo4j', name: 'neo4j-enterprise', version: neo4jVersionEffective

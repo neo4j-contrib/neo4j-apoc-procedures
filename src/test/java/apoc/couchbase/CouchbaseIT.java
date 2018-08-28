@@ -47,7 +47,7 @@ public class CouchbaseIT extends CouchbaseAbstractTest {
   public void testGetViaCall() throws Exception {
     try {
       //@eclipse-formatter:off
-      TestUtil.testCall(graphDB, "CALL apoc.couchbase.get(['localhost'], 'default', 'artist:vincent_van_gogh')", r -> {
+      TestUtil.testCall(graphDB, "CALL apoc.couchbase.get('" + HOST + "', '" + BUCKET_NAME + "', 'artist:vincent_van_gogh')", r -> {
         assertTrue(r.get("content") instanceof Map);
         Map<String, Object> content = (Map<String, Object>) r.get("content");
         assertTrue(content.get("notableWorks") instanceof List);
@@ -74,7 +74,7 @@ public class CouchbaseIT extends CouchbaseAbstractTest {
   public void testExistsViaCall() throws Exception {
     try {
       //@eclipse-formatter:off
-      TestUtil.testCall(graphDB, "CALL apoc.couchbase.exists(['localhost'], 'default', 'artist:vincent_van_gogh')", r -> {
+      TestUtil.testCall(graphDB, "CALL apoc.couchbase.exists('" + HOST + "', '" + BUCKET_NAME + "', 'artist:vincent_van_gogh')", r -> {
         assertTrue((boolean) r.get("value"));
       });
       //@eclipse-formatter:on
@@ -89,7 +89,7 @@ public class CouchbaseIT extends CouchbaseAbstractTest {
   public void testInsertViaCall() {
     try {
       //@eclipse-formatter:off
-      TestUtil.testCall(graphDB, "CALL apoc.couchbase.insert(['localhost'], 'default', 'testInsertViaCall', '" + jsonDocumentCreatedForThisTest.content().toString() + "')", r -> {
+      TestUtil.testCall(graphDB, "CALL apoc.couchbase.insert('" + HOST + "', '" + BUCKET_NAME + "', 'testInsertViaCall', '" + jsonDocumentCreatedForThisTest.content().toString() + "')", r -> {
         assertTrue(r.get("content") instanceof Map);
         Map<String, Object> content = (Map<String, Object>) r.get("content");
         assertTrue(content.get("notableWorks") instanceof List);
@@ -114,7 +114,7 @@ public class CouchbaseIT extends CouchbaseAbstractTest {
   public void testInsertWithAlreadyExistingIDViaCall() {
     expectedEx.expect(QueryExecutionException.class);
     //@eclipse-formatter:off
-    TestUtil.testCall(graphDB, "CALL apoc.couchbase.insert(['localhost'], 'default', 'artist:vincent_van_gogh', '" + jsonDocumentCreatedForThisTest.content().toString() + "')", r -> {});
+    TestUtil.testCall(graphDB, "CALL apoc.couchbase.insert('" + HOST + "', '" + BUCKET_NAME + "', 'artist:vincent_van_gogh', '" + jsonDocumentCreatedForThisTest.content().toString() + "')", r -> {});
     //@eclipse-formatter:on
   }
   
@@ -123,7 +123,7 @@ public class CouchbaseIT extends CouchbaseAbstractTest {
   public void testUpsertViaCall() {
     try {
       //@eclipse-formatter:off
-      TestUtil.testCall(graphDB, "CALL apoc.couchbase.upsert(['localhost'], 'default', 'testUpsertViaCall', '" + jsonDocumentCreatedForThisTest.content().toString() + "')", r -> {
+      TestUtil.testCall(graphDB, "CALL apoc.couchbase.upsert('" + HOST + "', '" + BUCKET_NAME + "', 'testUpsertViaCall', '" + jsonDocumentCreatedForThisTest.content().toString() + "')", r -> {
         assertTrue(r.get("content") instanceof Map);
         Map<String, Object> content = (Map<String, Object>) r.get("content");
         assertTrue(content.get("notableWorks") instanceof List);
@@ -149,7 +149,7 @@ public class CouchbaseIT extends CouchbaseAbstractTest {
     try {
       //@eclipse-formatter:off
       couchbaseBucket.insert(JsonDocument.create("testRemove", JsonObject.empty()));
-      TestUtil.testCall(graphDB, "CALL apoc.couchbase.remove(['localhost'], 'default', 'testRemove')", r -> {});
+      TestUtil.testCall(graphDB, "CALL apoc.couchbase.remove('" + HOST + "', '" + BUCKET_NAME + "', 'testRemove')", r -> {});
       assertFalse(couchbaseBucket.exists("testRemove"));
       //@eclipse-formatter:on
     } catch (Exception e) {
@@ -162,7 +162,7 @@ public class CouchbaseIT extends CouchbaseAbstractTest {
   public void testQueryViaCall() {
     try {
       //@eclipse-formatter:off
-      TestUtil.testCall(graphDB, "CALL apoc.couchbase.query(['localhost'], 'default', 'select * from default where lastName = \"Van Gogh\"')", r -> {
+      TestUtil.testCall(graphDB, "CALL apoc.couchbase.query('" + HOST + "', '" + BUCKET_NAME + "', 'select * from " + BUCKET_NAME + " where lastName = \"Van Gogh\"')", r -> {
         checkListResult(r);
       });
       //@eclipse-formatter:on
@@ -176,7 +176,7 @@ public class CouchbaseIT extends CouchbaseAbstractTest {
   public void testQueryWithPositionalParamsViaCall() {
     try {
       //@eclipse-formatter:off
-      TestUtil.testCall(graphDB, "CALL apoc.couchbase.posParamsQuery(['localhost'], 'default', 'select * from default where lastName = $1', ['Van Gogh'])", r -> {
+      TestUtil.testCall(graphDB, "CALL apoc.couchbase.posParamsQuery('" + HOST + "', '" + BUCKET_NAME + "', 'select * from " + BUCKET_NAME + " where lastName = $1', ['Van Gogh'])", r -> {
         checkListResult(r);
       });
       //@eclipse-formatter:on
@@ -190,7 +190,7 @@ public class CouchbaseIT extends CouchbaseAbstractTest {
   public void testQueryWithNamedParamsViaCall() {
     try {
       //@eclipse-formatter:off
-      TestUtil.testCall(graphDB, "CALL apoc.couchbase.namedParamsQuery(['localhost'], 'default', 'select * from default where lastName = $lastName', ['lastName'], ['Van Gogh'])", r -> {
+      TestUtil.testCall(graphDB, "CALL apoc.couchbase.namedParamsQuery('" + HOST + "', '" + BUCKET_NAME + "', 'select * from " + BUCKET_NAME + " where lastName = $lastName', ['lastName'], ['Van Gogh'])", r -> {
         checkListResult(r);
       });
       //@eclipse-formatter:on
