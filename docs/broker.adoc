@@ -1,0 +1,291 @@
+= Broker Integration
+
+== Broker Integration
+
+In general brokers are used to send and receive messages from queues. APOC has integrated three brokers, RabbitMQ, Amazons Simple Queue Service, and Kafka.
+The brokers' configurations are set up in the Neo4j.conf file and make use of two procedures `apoc.broker.send` and `apoc.broker.receive` to send and recieve messages.
+
+== Neo4j.conf Setup
+
+Broker APIs use producers (senders) and consumers (receivers) that must be set up for proper functionality. The brokers are configured through the Neo4j.conf file.
+
+Broker configuration lines always starts with `apoc.broker`. The next part of the configuration is the namespace, followed by the configuration parameters. Each broker being
+configured in the Neo4j.conf file requires at least two parameters: `apoc.broker.<namespace>.type` and `apoc.broker.<namespace>.enabled`.
+
+The parameter `apoc.broker.<namespace>.type` must be one of the following: `RABBITMQ`, `SQS`, `KAFKA`.
+
+The parameter `apoc.broker.<namespace>.enabled` must be one of the following: `true`, `false`.
+
+
+For example, a RabbitMQ broker would have:
+
+[source,cypher]
+----
+apoc.broker.rmq.type=RABBITMQ
+apoc.broker.rmq.enabled=true
+----
+
+The remaining configuration to set up the broker depends on the type of broker.
+
+There is no limit to how many broker connections you can set up at once. Multiple connections can be set up for each broker type.
+
+=== RabbitMQ
+
+The Neo4j.conf setup for RabbitMQ requires the following configurations to be set:
+
+* *host* - This is the host address of the RabbitMQ server.
+* *port* - This is the port of the RabbitMQ server.
+* *vhost* - This is the virtual host of the RabbitMQ server.
+* *username* - This is the username used to connected to the RabbitMQ server.
+* *password* - This is the password used to connected to the RabbitMQ server.
+
+Here is an example of a configuration to connect to a RabbitMQ running on localhost. Note the namespace of this broker connection is `rabbitmq`.
+
+[source]
+----
+apoc.broker.rabbitmq.type=RABBITMQ
+apoc.broker.rabbitmq.enabled=true
+apoc.broker.rabbitmq.host=localhost
+apoc.broker.rabbitmq.port=5672
+apoc.broker.rabbitmq.vhost=/
+apoc.broker.rabbitmq.username=guest
+apoc.broker.rabbitmq.password=guest
+----
+
+If one wanted to set up two RabbitMQ connections, say one associated with localhost and one associated with docker one would use two different namespaces. Here is an example:
+
+[source]
+----
+apoc.broker.rabbitmq-local.type=RABBITMQ
+apoc.broker.rabbitmq-local.enabled=true
+apoc.broker.rabbitmq-local.host=localhost
+apoc.broker.rabbitmq-local.port=5672
+apoc.broker.rabbitmq-local.vhost=/
+apoc.broker.rabbitmq-local.username=guest
+apoc.broker.rabbitmq-local.password=guest
+
+apoc.broker.rabbitmq-docker.type=RABBITMQ
+apoc.broker.rabbitmq-docker.enabled=true
+apoc.broker.rabbitmq-docker.host=192.168.99.100
+apoc.broker.rabbitmq-docker.port=5672
+apoc.broker.rabbitmq-docker.vhost=/
+apoc.broker.rabbitmq-docker.username=user
+apoc.broker.rabbitmq-docker.password=admin
+----
+
+This would create two RabbitMQ connections, one under the name `rabbitmq-local` and the other under the name `rabbitmq-docker`.
+
+
+Lastly, there is one optional configuration named `poll.records.max` which sets the default number of messages the RabbitMQ consumer will receive at a time. For RabbitMQ this value can be
+overridden by `apoc.broker.receive` procedure configuration. This is explained further on.
+
+
+=== SQS
+
+The Neo4j.conf setup for SQS requires the following configurations to be set:
+
+* *access.key.id* - This is the access key credential used to connect to AWS.
+* *secret.key.id* - This is the secret key credential used to connect to AWS.
+
+
+Here is an example of of a configuration to connect to SQS. Note the namespace of this broker connection is `sqs`.
+
+[source]
+----
+apoc.broker.sqs.type=SQS
+apoc.broker.sqs.enabled=true
+apoc.broker.sqs.access.key.id=ABCDEFGHIJKLMNOP
+apoc.broker.sqs.secret.key.id=a1i2i7zSTPxmF27+RzDPJCv33af5SB
+----
+
+Lastly, there is one optional configuration named `poll.records.max` which sets the default number of messages the SQS consumer can receive at a time.
+For SQS this value can be overridden by `apoc.broker.receive` procedure configuration. This is explained further on.
+
+=== Kafka
+
+The Neo4j.conf setup for Kafka requires the following configurations to be set:
+
+* *bootstrap.servers* - This Kafka host and port which the producer and consumer will connect to. The syntax should be `<host>:<port>`.
+* *group.id* - This is groupId the consumer will be associated with.
+
+
+Here is an example of of a configuration to connect to SQS. Note the namespace of this broker connection is `kafka`.
+
+[source]
+----
+apoc.broker.kafka.type=KAFKA
+apoc.broker.kafka.enabled=true
+apoc.broker.kafka.bootstrap.servers=localhost:9092
+apoc.broker.kafka.group.id=exampleGroup
+----
+
+Lastly, there is are two optional configurations:
+
+* *poll.records.max* - Sets the default number of messages the Kafka consumer will receive at a time. This configuration is *not* overridable for Kafka.
+* *client.id* - Used to set the clientId of the consumer.
+
+== Broker Procedures
+
+There are two broker procedures used to send and receive messages from the brokers setup in the Neo4j.conf file.
+
+[separator=¦,opts=header,cols="1,1m,5"]
+|===
+include::../build/generated-documentation/apoc.broker.csv[]
+|===
+
+
+The `apoc.broker.send` procedure sends a message (must be a map) to a broker connection (referenced by its namespace) with a configuration that is dependent on the type of broker connection.
+
+The `apoc.broker.receive` procedure receives a configured number of message from a broker connection (referenced by its namespace) with a configuration that is dependent on the type of broker connection.
+
+
+
+==== RabbitMQ
+
+====== Sending
+The configuration of sending a message to a RabbitMQ broker requires:
+
+* *queueName* - The RabbitMQ queue the message should travel to.
+* *exchangeName* - The RabbitMQ exchange the producer sends the message to.
+* *routingKey* - The RabbitMQ routing key used to route the message from the exchange to the queue.
+
+Example:
+[source, cypher]
+----
+CALL apoc.broker.send("rabbitmq", {message: "This is a test message", timestamp: timestamp()}, {queueName: "test.queue", exchangeName: "test.exchange", routingKey: "test.key"})
+YIELD connectionName, message, configuration
+RETURN connectionName, message, configuration
+----
+
+This example shows how to send a message with a timestamp to a RabbitMQ connection associated with the namespace `rabbitmq`. It sends the message to the exchange `text.exchange`
+which routes the message to the queue `test.queue` using the routing key `test.key`.
+
+====== Receiving
+The configuration of receiving a message from a RabbitMQ broker requires:
+
+* *queueName* - The RabbitMQ queue to message should travel to.
+
+
+Example:
+[source, cypher]
+----
+CALL apoc.broker.receive("rabbitmq", {queueName: "test.queue"}) YIELD connectionName, messageId, message
+RETURN connectionName, messageId, message
+----
+
+This example shows how to receive a message from RabbitMQ connection associated with the namespace `rabbitmq`.
+
+====== PollRecordsMax
+The optional configuration `pollRecordsMax` can be used to dynamically change how many messages are received at once. The default is `1` message per procedure call.
+By using this parameter one can guarante to get number of messages requested. If the queue has less messages than `pollRecordsMax` it returns all the messages. For convience
+setting the `pollRecordsMax` parameter to `0` gets all the messages in the queue.
+
+Example:
+[source, cypher]
+----
+CALL apoc.broker.receive("rabbitmq", {queueName: "test.queue", pollRecordsMax: "5"}) YIELD connectionName, messageId, message
+RETURN connectionName, messageId, message
+----
+This procedure will attempt to consume `5` RabbitMQ messages at once.
+
+==== SQS
+
+====== Sending
+
+The configuration of sending a message to a SQS broker requires:
+
+* *queueName* - The SQS queue the message should be sent to.
+* *region* - The AWS region where the queue exists.
+
+Example:
+[source, cypher]
+----
+CALL apoc.broker.send("sqs", {message: "This is a test message", timestamp: timestamp()}, {queueName: "test-queue", region: "us-west-2"})
+YIELD connectionName, message, configuration
+RETURN connectionName, message, configuration
+----
+
+This example shows how to send a message with a timestamp to a SQS connection associated with the namespace `sqs`. It sends the message to the SQS queue `test-queue` located in
+ the region `us-west-2`.
+
+====== Receiving
+The configuration of receiving a message from a SQS broker requires:
+
+* *queueName* - The SQS queue to message should be sent to.
+* *region* - The AWS region where the queue exists.
+
+
+Example:
+[source, cypher]
+----
+CALL apoc.broker.receive("sqs", {queueName: "test-queue", region: "us-west-2"})
+YIELD connectionName, messageId, message
+RETURN connectionName, messageId, message
+----
+
+This example shows how to receive a message from a SQS connection associated with the namespace `sqs`.
+
+====== PollRecordsMax
+The optional configuration `pollRecordsMax` can be used to dynamically change how many messages are received at once. The default is `1` message per procedure call.
+
+Using `pollRecordsMax` is finicky for SQS, which is due to SQS itself.
+
+When combined with SQS the procedure `apoc.broker.recieve` can _theoretically_ get a configurable number of messages by using the parameter `pollRecordsMax`, but it is not guaranteed.
+The SQS documentation notes certain related methods are unreliable if there are a low number of messages in the queue:
+
+ "If the number of messages in the queue is small (less than 1000), it is likely you will get fewer messages than you requested per ReceiveMessage call."
+
+Lastly, `pollRecordMax` *must* be have a value 1 to 10 when used with SQS.
+
+
+Example:
+[source, cypher]
+----
+CALL apoc.broker.receive("sqs", {queueName: "test.queue", pollRecordsMax: "5"}) YIELD connectionName, messageId, message
+RETURN connectionName, messageId, message
+----
+This procedure will attempt to consume `5` SQS messages at once.
+
+==== Kafka
+
+====== Sending
+
+The configuration of sending a message to a Kafka broker requires:
+
+* *topic* - The Kafka topic the message will be appended to.
+
+Example:
+[source, cypher]
+----
+CALL apoc.broker.send("kafka", {message: "This is a test message", timestamp: timestamp()}, {topic: "test-topic"})
+YIELD connectionName, message, configuration
+RETURN connectionName, message, configuration
+----
+
+This example shows how to send a message with a timestamp to a Kafka connection associated with the namespace `kafka`. It sends the message to the Kafka topic `test-topic`.
+
+The following optional configurations can also be supplied when sending a message to a Kafka connection:
+
+* *parition* - The partition to which the record should be sent.
+* *key* - The key that will be included in the record.
+
+====== Receiving
+The configuration of receiving a message from a Kafka broker requires:
+
+* *topic* - The Kafka topic the message will be retrieved from.
+
+
+Example:
+[source, cypher]
+----
+CALL apoc.broker.receive("kafka", {topic: "test-topic"})
+YIELD connectionName, messageId, message
+RETURN connectionName, messageId, message
+----
+
+This example shows how to receive a message from a Kafka connection associated with the namespace `Kafka`.
+
+====== PollRecordsMax
+PollRecordsMax does not work for Kafka in the same way it works for RabbitMQ and SQS. It must be statically set at initialization of the consumer, and thus it uses `poll.records.max` set in Neo4j.conf.
+It and cannot be controlled dynamically through `apoc.broker.receive`. But that statically set configuration lets `apoc.broker.receive` always get the correct number of messages from Kafka (or as many
+as it can if the topic does not have enough messages). If `poll.records.max` is not set in Neo4j.conf then the Kafka consumer retrieve as many messages as it can poll.

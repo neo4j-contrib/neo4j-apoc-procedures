@@ -134,6 +134,10 @@ dependencies {
     jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
     jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
 
+    compile group: 'com.rabbitmq', name: 'amqp-client', version: '5.3.0'
+    compile group: 'com.amazonaws', name: 'aws-java-sdk-sqs', version: '1.11.397'
+    compile group: 'org.apache.kafka', name: 'kafka-clients', version: '2.0.0'
+
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
     }
