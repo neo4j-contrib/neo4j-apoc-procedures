@@ -344,6 +344,15 @@ or
 Adding on config the parameter `failOnError:false` (by default `true`), in case of error the procedure don't fail but just return zero rows.
 // end::xml[]
 
+
+== Loading Data from Html Page
+
+[cols="3m,2"]
+|===
+|apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value | Load Html page and return the result as a Map
+|===
+
+
 == Interacting with Elastic Search
 
 // tag::elasticsearch[]

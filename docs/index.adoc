@@ -148,6 +148,7 @@ include::loadcsv.adoc[leveloffset=2]
 include::gephi.adoc[leveloffset=2]
 include::elasticsearch.adoc[leveloffset=2]
 include::loadxml.adoc[leveloffset=2]
+include::loadhtml.adoc[leveloffset=2]over
 
 == Graph Refactorings
 

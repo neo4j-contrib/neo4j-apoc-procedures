@@ -78,6 +78,8 @@ dependencies {
     compileOnly "org.apache.poi:poi-ooxml:3.17"
     testCompile "org.apache.poi:poi-ooxml:3.17"
 
+    compile 'org.jsoup:jsoup:1.11.3'
+
     testCompile 'net.sourceforge.jexcelapi:jxl:2.6.12'
 
     compileOnly group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.11.270'
