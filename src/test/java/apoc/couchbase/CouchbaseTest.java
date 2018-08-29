@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import apoc.util.MissingDependencyException;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -27,6 +28,11 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
     @BeforeClass
     public static void setUp() throws Exception {
         CouchbaseAbstractTest.setUp();
+        assumeTrue(couchbaseRunning);
+    }
+
+    @Before
+    public void assumeIsRunning() {
         assumeTrue(couchbaseRunning);
     }
 

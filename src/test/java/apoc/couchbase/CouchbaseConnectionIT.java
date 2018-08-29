@@ -3,10 +3,7 @@ package apoc.couchbase;
 import com.couchbase.client.java.auth.PasswordAuthenticator;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Arrays;
@@ -44,9 +41,13 @@ public class CouchbaseConnectionIT extends CouchbaseAbstractTest {
         }
     }
 
+    @Before
+    public void assumeIsRunning() {
+        assumeTrue(couchbaseRunning);
+    }
+
     @Test
     public void testGetCouchbaseServerVersion() {
-        assumeTrue(couchbaseRunning);
         PasswordAuthenticator passwordAuthenticator = new PasswordAuthenticator(USERNAME, PASSWORD);
         CouchbaseConnection connection = new CouchbaseConnection(Arrays.asList("couchbase://localhost"), passwordAuthenticator, BUCKET_NAME, null);
         Assert.assertEquals(COUCHBASE_SERVER_VERSION, connection.getMajorVersion());
@@ -54,7 +55,6 @@ public class CouchbaseConnectionIT extends CouchbaseAbstractTest {
 
     @Test
     public void testInsertAndRemoveDocument() {
-        assumeTrue(couchbaseRunning);
         PasswordAuthenticator passwordAuthenticator = new PasswordAuthenticator(USERNAME, PASSWORD);
         CouchbaseConnection connection = new CouchbaseConnection(Arrays.asList("couchbase://localhost"), passwordAuthenticator, BUCKET_NAME, null);
 
@@ -67,7 +67,6 @@ public class CouchbaseConnectionIT extends CouchbaseAbstractTest {
 
     @Test
     public void testGetDocument() {
-        assumeTrue(couchbaseRunning);
         PasswordAuthenticator passwordAuthenticator = new PasswordAuthenticator(USERNAME, PASSWORD);
         CouchbaseConnection connection = new CouchbaseConnection(Arrays.asList("couchbase://localhost"), passwordAuthenticator, BUCKET_NAME, null);
 

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -40,6 +41,11 @@ public class CouchbaseIT extends CouchbaseAbstractTest {
     if (graphDB != null) {
       graphDB.shutdown();
     }
+  }
+
+  @Before
+  public void assumeIsRunning() {
+    assumeTrue(couchbaseRunning);
   }
 
   @Test

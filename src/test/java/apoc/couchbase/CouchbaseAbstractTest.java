@@ -3,6 +3,7 @@ package apoc.couchbase;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import java.util.Iterator;
 import java.util.List;
@@ -111,7 +112,7 @@ public class CouchbaseAbstractTest {
         if (couchbaseBucket != null) {
             couchbaseBucket.remove(jsonDocumentCreatedForThisTest);
         }
-        if (couchbaseCluster != null) {
+        if (couchbaseCluster != null && couchbaseBucket != null) {
             couchbaseCluster.authenticate(USERNAME, PASSWORD).clusterManager().removeBucket(BUCKET_NAME);
             couchbaseCluster.disconnect();
         }
