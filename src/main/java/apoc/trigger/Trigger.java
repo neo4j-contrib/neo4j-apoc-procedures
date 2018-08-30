@@ -27,7 +27,6 @@ import static apoc.util.Util.map;
  * @since 20.09.16
  */
 public class Trigger {
-
     public static class TriggerInfo {
         public String name;
         public String query;
@@ -56,6 +55,23 @@ public class Trigger {
     }
 
     @Context public GraphDatabaseService db;
+
+    public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
+            " Set 'apoc.trigger.enabled=true' in your neo4j.conf file located in the $NEO4J_HOME/conf/ directory.";
+
+    public static boolean enabled = false;
+
+    public static void setEnabled(boolean enabled) {
+        Trigger.enabled = enabled;
+    }
+
+    public static boolean isEnabled() { return enabled; }
+
+    public void checkEnabled() {
+        if (!Trigger.isEnabled()) {
+            throw new RuntimeException(NOT_ENABLED_ERROR);
+        }
+    }
 
     @UserFunction
     @Description("function to filter labelEntries by label, to be used within a trigger kernelTransaction with {assignedLabels}, {removedLabels}, {assigned/removedNodeProperties}")
@@ -103,6 +119,8 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("add a trigger kernelTransaction under a name, in the kernelTransaction you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information. Takes in an optional configuration.")
     public Stream<TriggerInfo> add(@Name("name") String name, @Name("kernelTransaction") String statement, @Name(value = "selector"/*, defaultValue = "{}"*/)  Map<String,Object> selector, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
+        checkEnabled();
+
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
         Map<String, Object> removed = TriggerHandler.add(name, statement, selector, params);
         if (removed != null) {
@@ -116,6 +134,8 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("remove previously added trigger, returns trigger information")
     public Stream<TriggerInfo> remove(@Name("name")String name) {
+        checkEnabled();
+
         Map<String, Object> removed = TriggerHandler.remove(name);
         if (removed == null) {
             Stream.of(new TriggerInfo(name, null, null, false, false));
@@ -126,6 +146,8 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("list all installed triggers")
     public Stream<TriggerInfo> list() {
+        checkEnabled();
+
         return TriggerHandler.list().entrySet().stream()
                 .map( (e) -> new TriggerInfo(e.getKey(),(String)e.getValue().get("kernelTransaction"),(Map<String,Object>)e.getValue().get("selector"), (Map<String, Object>) e.getValue().get("params"),true, (Boolean) e.getValue().get("paused")));
     }
@@ -133,6 +155,8 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.trigger.pause(name) | it pauses the trigger")
     public Stream<TriggerInfo> pause(@Name("name")String name) {
+        checkEnabled();
+
         Map<String, Object> paused = TriggerHandler.paused(name);
 
         return Stream.of(new TriggerInfo(name,(String)paused.get("kernelTransaction"), (Map<String,Object>) paused.get("selector"), (Map<String,Object>) paused.get("params"),true, true));
@@ -141,6 +165,8 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.trigger.resume(name) | it resumes the paused trigger")
     public Stream<TriggerInfo> resume(@Name("name")String name) {
+        checkEnabled();
+
         Map<String, Object> resume = TriggerHandler.resume(name);
 
         return Stream.of(new TriggerInfo(name,(String)resume.get("kernelTransaction"), (Map<String,Object>) resume.get("selector"), (Map<String,Object>) resume.get("params"),true, false));
@@ -151,6 +177,7 @@ public class Trigger {
         static ConcurrentHashMap<String,Map<String,Object>> triggers = new ConcurrentHashMap(map("",map()));
         private static GraphProperties properties;
         private final Log log;
+
         public TriggerHandler(GraphDatabaseAPI api, Log log) {
             properties = api.getDependencyResolver().resolveDependency(EmbeddedProxySPI.class).newGraphPropertiesProxy();
 //            Pools.SCHEDULED.submit(() -> updateTriggers(null,null));
@@ -164,6 +191,7 @@ public class Trigger {
         public static Map<String, Object> add(String name, String statement, Map<String,Object> selector, Map<String,Object> params) {
             return updateTriggers(name, map("kernelTransaction", statement, "selector", selector, "params", params, "paused", false));
         }
+
         public synchronized static Map<String, Object> remove(String name) {
             return updateTriggers(name,null);
         }
@@ -182,8 +210,7 @@ public class Trigger {
 
         private synchronized static Map<String, Object> updateTriggers(String name, Map<String, Object> value) {
             if (properties == null ) {
-                throw new RuntimeException("Triggers have not been enabled." +
-                        " Set 'apoc.trigger.enabled=true' in your neo4j.conf file located in the $NEO4J_HOME/conf/ directory.");
+                throw new RuntimeException(NOT_ENABLED_ERROR);
             }
             try (Transaction tx = properties.getGraphDatabase().beginTx()) {
                 triggers.clear();
@@ -317,7 +344,12 @@ public class Trigger {
 
         public void start() {
             boolean enabled = Util.toBoolean(ApocConfiguration.get("trigger.enabled", null));
-            if (!enabled) return;
+            if (!enabled) {
+                Trigger.setEnabled(false);
+                return;
+            }
+
+            Trigger.setEnabled(true);
             triggerHandler = new Trigger.TriggerHandler(db,log);
             db.registerTransactionEventHandler(triggerHandler);
         }
