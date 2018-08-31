@@ -277,6 +277,7 @@ image::{img}/apoc-jdbc-northwind-load.jpg[width=600]
 | CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name}) | load from relational database, either a full table or a sql statement
 | CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18') | load from relational database, either a full table or a sql statement
 | CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') | register JDBC driver of source database
+| CALL apoc.load.jdbcUpdate(jdbc-url,statement, params) | update relational database from a SQL kernelTransaction with optional parameters
 |===
 
 To simplify the JDBC URL syntax and protect credentials, you can configure aliases in `conf/neo4j.conf`:
