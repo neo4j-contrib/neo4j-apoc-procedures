@@ -10,13 +10,21 @@ Cleaning will strip the string of all non-alphanumeric characters (including spa
 
 == String Search
 
-The `indexOf` function, provides the fist occurrence of the given lookup string within the text, or -1 if not found.
-It can optionally take an offset parameter.
+The `indexOf` function, provides the fist occurrence of the given `lookup` string within the `text`, or -1 if not found.
+It can optionally take `from` (inclusive) and `to` (exclusive) parameters.
 
-.returns `6`
 [source,cypher]
 ----
-RETURN apoc.text.indexOf('Hello World!', 'World')
+RETURN apoc.text.indexOf('Hello World!', 'World') // 6
+----
+
+The `indexesOf` function, provides all occurrences of the given lookup string within the text, or empty list if not found.
+It can optionally take `from` (inclusive) and `to` (exclusive) parameters.
+
+
+[source,cypher]
+----
+RETURN apoc.text.indexesOf('Hello World!', 'o',2,9) // [4,7]
 ----
 
 If you want to get a substring starting from your index match, you can use this
