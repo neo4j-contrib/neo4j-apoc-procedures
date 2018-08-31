@@ -27,7 +27,6 @@ import static apoc.util.Util.map;
  * @since 20.09.16
  */
 public class Trigger {
-
     public static class TriggerInfo {
         public String name;
         public String query;
@@ -151,40 +150,57 @@ public class Trigger {
         static ConcurrentHashMap<String,Map<String,Object>> triggers = new ConcurrentHashMap(map("",map()));
         private static GraphProperties properties;
         private final Log log;
+
+        public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
+                " Set 'apoc.trigger.enabled=true' in your neo4j.conf file located in the $NEO4J_HOME/conf/ directory.";
+
         public TriggerHandler(GraphDatabaseAPI api, Log log) {
             properties = api.getDependencyResolver().resolveDependency(EmbeddedProxySPI.class).newGraphPropertiesProxy();
 //            Pools.SCHEDULED.submit(() -> updateTriggers(null,null));
             this.log = log;
         }
 
+        public static void checkEnabled() {
+            if (properties == null) {
+                throw new RuntimeException(NOT_ENABLED_ERROR);
+            }
+        }
+
         public static Map<String, Object> add(String name, String statement, Map<String,Object> selector) {
+            checkEnabled();
+
             return add(name, statement, selector, Collections.emptyMap());
         }
 
         public static Map<String, Object> add(String name, String statement, Map<String,Object> selector, Map<String,Object> params) {
+            checkEnabled();
+
             return updateTriggers(name, map("kernelTransaction", statement, "selector", selector, "params", params, "paused", false));
         }
+
         public synchronized static Map<String, Object> remove(String name) {
             return updateTriggers(name,null);
         }
 
         public static Map<String, Object> paused(String name) {
+            checkEnabled();
+
             Map<String, Object> triggerToPause = triggers.get(name);
             updateTriggers(name, map("kernelTransaction", triggerToPause.get("kernelTransaction"), "selector", triggerToPause.get("selector"), "params", triggerToPause.get("params"), "paused", true));
             return triggers.get(name);
         }
 
         public static Map<String, Object> resume(String name) {
+            checkEnabled();
+
             Map<String, Object> triggerToResume = triggers.get(name);
             updateTriggers(name, map("kernelTransaction", triggerToResume.get("kernelTransaction"), "selector", triggerToResume.get("selector"), "params", triggerToResume.get("params"), "paused", false));
             return triggers.get(name);
         }
 
         private synchronized static Map<String, Object> updateTriggers(String name, Map<String, Object> value) {
-            if (properties == null ) {
-                throw new RuntimeException("Triggers have not been enabled." +
-                        " Set 'apoc.trigger.enabled=true' in your neo4j.conf file located in the $NEO4J_HOME/conf/ directory.");
-            }
+            checkEnabled();
+
             try (Transaction tx = properties.getGraphDatabase().beginTx()) {
                 triggers.clear();
                 String triggerProperty = (String) properties.getProperty(APOC_TRIGGER, "{}");
@@ -202,6 +218,8 @@ public class Trigger {
         }
 
         public static Map<String,Map<String,Object>> list() {
+            checkEnabled();
+
             updateTriggers(null,null);
             return triggers;
         }
@@ -317,7 +335,10 @@ public class Trigger {
 
         public void start() {
             boolean enabled = Util.toBoolean(ApocConfiguration.get("trigger.enabled", null));
-            if (!enabled) return;
+            if (!enabled) {
+                return;
+            }
+
             triggerHandler = new Trigger.TriggerHandler(db,log);
             db.registerTransactionEventHandler(triggerHandler);
         }
