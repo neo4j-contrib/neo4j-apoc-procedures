@@ -774,8 +774,8 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.pairsMin([1,2,3]) YIELD value | [1,2],[2,3]
 | apoc.coll.toSet([list]) | returns a unique list backed by a set
 | apoc.coll.sort(coll) | sort on Collections
-| apoc.coll.sortNodes([nodes], 'name') | sort nodes by property
-| apoc.coll.sortMaps([maps], 'key') | sort maps by map key
+| apoc.coll.sortNodes([nodes], 'name') | sort nodes by property, ascending sorting by adding ^ in front of the sorting field
+| apoc.coll.sortMaps([maps], 'key') | sort maps by map key, ascending sorting by adding ^ in front of the sorting field
 | apoc.coll.reverse(coll) | returns the reversed list
 | apoc.coll.contains(coll, value) | returns true if collection contains the value
 | apoc.coll.containsAll(coll, values) | optimized contains-all operation (using a HashSet) returns true or false
