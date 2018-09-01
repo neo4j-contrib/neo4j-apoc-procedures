@@ -99,6 +99,11 @@ image::{img}/apoc.index.nodes-with-score.jpg[width=600]
 | apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel, weight | lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)
 | apoc.index.out(node,'TYPE','prop:value*') YIELD node, weight | lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*
 | apoc.index.in(node,'TYPE','prop:value*') YIELD node, weight | lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*
+| apoc.index.nodes.count('Label','prop:value*') YIELD value | lucene query on node index with the given label name, *returns count-nodes*
+| apoc.index.relationships.count('TYPE','prop:value*') YIELD value | lucene query on relationship index with the given type name, *returns count-relationships*
+| apoc.index.between.count(node1,'TYPE',node2,'prop:value*') YIELD value | lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null), *returns count-relationships*
+| apoc.index.out.count(node,'TYPE','prop:value*') YIELD value | lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns count-end-nodes*
+| apoc.index.in.count(node,'TYPE','prop:value*') YIELD value | lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns count-start-nodes*
 |===
 
 === Index Management

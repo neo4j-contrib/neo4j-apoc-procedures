@@ -294,4 +294,101 @@ public class FulltextIndexTest {
             tx.success();
         }
     }
+
+    @Test
+    public void testNodesCount() throws Exception {
+        createData();
+        testCall(db,"RETURN apoc.index.nodes.count('Person', 'name:Jo*') AS value",
+                (row) -> {
+                    assertEquals(1L, row.get("value"));
+                });
+
+        testCall(db,"RETURN apoc.index.nodes.count('Person', 'name:Ma*') AS value",
+                (row) -> {
+                    assertEquals(0L, row.get("value"));
+                });
+    }
+
+    @Test
+    public void testAddNodeMapComplexCount() throws Exception {
+        db.execute("CREATE (company:Company {name:'Neo4j,Inc.'})\n" +
+                "CREATE (company)<-[:WORKS_AT {since:2013}]-(:Employee {name:'Mark'})\n" +
+                "CREATE (company)<-[:WORKS_AT {since:2014}]-(:Employee {name:'Martin'})\n").close();
+
+        db.execute("MATCH (company:Company)<-[worksAt:WORKS_AT]-(employee)\n" +
+                "WITH company, { name: company.name, employees:collect(employee.name),startDates:collect(worksAt.since)} AS data\n" +
+                "CALL apoc.index.addNodeMap(company, data) RETURN count(*)").close();
+
+        testCall(db, "RETURN apoc.index.nodes.count('Company','name:Ne* AND employees:Ma*') as value",(row) -> {
+            assertEquals(1L,row.get("value"));
+        });
+
+        testCall(db, "RETURN apoc.index.nodes.count('Company','employees:Ma*') as value",(row) -> {
+            assertEquals(1L,row.get("value"));
+        });
+
+        testCall(db, "RETURN apoc.index.nodes.count('Company','startDates:[2013 TO 2014]') as value",(row) -> {
+            assertEquals(1L,row.get("value"));
+        });
+
+        testCall(db, "RETURN apoc.index.nodes.count('Company','startDates:[2010 TO 2011]') as value",(row) -> {
+            assertEquals(0L,row.get("value"));
+        });
+    }
+
+    @Test
+    public void testRelationshipsCount() throws Exception {
+        createData();
+        testCall(db,"RETURN apoc.index.relationships.count('CHECKIN', 'on:2015-*') as value",
+                (row) -> {
+                    assertEquals(1L, row.get("value"));
+                });
+        testCall(db,"RETURN apoc.index.relationships.count('CHECKIN', 'on:2016-*') as value",
+                (row) -> {
+                    assertEquals(0L, row.get("value"));
+                });
+    }
+
+    @Test
+    public void testBetweenCount() throws Exception {
+        createData();
+        testCall(db,"MATCH "+JOE_PATTERN+ ","+PHILZ_PATTERN+" WITH joe,philz RETURN apoc.index.between.count(joe, 'CHECKIN', philz, 'on:2015-*') as value ",
+                (row) -> {
+                    assertEquals(1L, row.get("value"));
+                });
+
+        testCall(db,"MATCH "+JOE_PATTERN+ ","+PHILZ_PATTERN+" WITH joe,philz RETURN apoc.index.between.count(joe, 'CHECKIN', philz, 'on:2010-*') as value ",
+                (row) -> {
+                    assertEquals(0L, row.get("value"));
+                });
+    }
+
+    @Test
+    public void testOutCount() throws Exception {
+        createData();
+        testCall(db,"MATCH "+JOE_PATTERN+" WITH joe RETURN apoc.index.out.count(joe, 'CHECKIN','on:2015-*') as value",
+                (row) -> {
+                    assertEquals(1L, row.get("value"));
+                });
+
+        testCall(db,"MATCH "+JOE_PATTERN+" WITH joe RETURN apoc.index.out.count(joe, 'CHECKIN','on:2010-*') as value",
+                (row) -> {
+                    assertEquals(0L, row.get("value"));
+                });
+    }
+
+    @Test
+    public void testInCount() throws Exception {
+        createData();
+        testCall(db,"MATCH "+PHILZ_PATTERN+" WITH philz RETURN apoc.index.in.count(philz, 'CHECKIN','on:2015-*') as value",
+                (row) -> {
+                    assertEquals(1L, row.get("value"));
+                });
+
+        testCall(db,"MATCH "+PHILZ_PATTERN+" WITH philz RETURN apoc.index.in.count(philz, 'CHECKIN','on:2010-*') as value",
+                (row) -> {
+                    assertEquals(0L, row.get("value"));
+                });
+    }
+
 }
