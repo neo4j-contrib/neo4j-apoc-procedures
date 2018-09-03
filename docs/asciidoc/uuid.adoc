@@ -1,0 +1,110 @@
+== UUID
+
+There is the possibility to set uuid index property on nodes using APOC.
+
+Enable `apoc.uuid.enabled=true` in `$NEO4J_HOME/config/neo4j.conf` first.
+
+[cols="1m,5"]
+|===
+| CALL apoc.uuid.add(label, config) yield label, installed | add a uuid statement returns previous and new uuid information
+| CALL apoc.uuid.remove(label) yield label, installed | remove previously added uuid, returns uuid information
+| CALL apoc.uuid.removeAll() yield label, installed | removes all previously added uuids, returns uuid information
+| CALL apoc.uuid.list() yield label, installed | get all the uuid installed
+|===
+
+==== Config
+
+|===
+|config | default | description
+|addToAlreadyPresent | true | the uuid for existing node
+|===
+
+
+=== UUID Examples
+
+First create a Constraint for the Label and the Property, if you try to add a `uuid` an error occured.
+
+[source,cypher]
+----
+CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE
+----
+
+Add the `uuid`:
+
+[source,cypher]
+----
+CALL apoc.uuid.add('Person') YIELD label RETURN label
+----
+
+The result is:
+
+----
+╒════════╕
+│"label" │
+╞════════╡
+│"Person"│
+└────────┘
+----
+
+Now create the dataset:
+
+[source,cypher]
+----
+CREATE (d:Person {name:'Daniel'})
+CREATE (l:Company {name:'Neo4j'})
+CREATE (d)-[:WORK]->(l)
+----
+
+The result is Node Person have 2 property:
+
+image::{img}/apoc.uuid.result.png[width=800]
+
+Get all the uuid installed, call the procedure as:
+
+[source,cypher]
+----
+call apoc.uuid.list() yield label, installed return label, installed
+----
+
+The result is:
+----
+╒════════╤═══════════╕
+│"label" │"installed"│
+╞════════╪═══════════╡
+│"Person"│true       │
+└────────┴───────────┘
+----
+
+Remove the uuid installed call the procedure as:
+
+[source,cypher]
+----
+call apoc.uuid.remove('person') yield label return label
+----
+
+The result is:
+
+----
+╒════════╤═══════════╕
+│"label" │"installed"│
+╞════════╪═══════════╡
+│"Person"│false      │
+└────────┴───────────┘
+----
+
+You can also remove all the uuid installed call the procedure as:
+
+[source,cypher]
+----
+call apoc.uuid.removeAll() yield label return label
+----
+
+The result is:
+
+----
+╒════════╤═══════════╕
+│"label" │"installed"│
+╞════════╪═══════════╡
+│"Person"│false      │
+└────────┴───────────┘
+----
