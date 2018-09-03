@@ -639,7 +639,7 @@ Helper Functions
 | CALL apoc.periodic.schedule('name',statement,repeat-time-in-seconds) | submit a repeatedly-called background statement
 | CALL apoc.periodic.countdown('name',statement,delay-in-seconds) | submit a repeatedly-called background statement until it returns 0
 | CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total | iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g.
-| CALL apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,parallel:true,retries:3,iterateList:true}) YIELD batches, total | run the second statement for each item returned by the first statement. Returns number of batches and total processed rows
+| CALL apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:50,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows
 |===
 
 * there are also static methods `Jobs.submit`, and `Jobs.schedule` to be used from other procedures
