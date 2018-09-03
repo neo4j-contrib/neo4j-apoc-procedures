@@ -220,8 +220,7 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 
 // tag::export.csv[]
 
-`YIELD file, source, format, nodes, relationships, properties, time, rows`
-
+`YIELD file, source, format, nodes, relationships, properties, time, rows, data`
 [cols="1m,5"]
 |===
 | apoc.export.csv.query(query,file,config) | exports results from the Cypher statement as CSV to the provided file
@@ -229,6 +228,14 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 | apoc.export.csv.data(nodes,rels,file,config) | exports given nodes and relationships as CSV to the provided file
 | apoc.export.csv.graph(graph,file,config) | exports given graph object as CSV to the provided file
 |===
+
+If the file name is passed as `null` and the config `stream:true` the results are streamed back in the `data` column, e.g.
+
+[source,cypher]
+----
+CALL apoc.export.csv.all(null, {stream:true,batchSize:100}) YIELD data RETURN data
+----
+
 // end::export.csv[]
 
 === Export to Cypher Script

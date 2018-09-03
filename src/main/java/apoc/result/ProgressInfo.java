@@ -1,5 +1,7 @@
 package apoc.result;
 
+import java.io.StringWriter;
+
 /**
  * @author mh
  * @since 22.05.16
@@ -17,11 +19,26 @@ public class ProgressInfo {
     public long batchSize = -1;
     public long batches;
     public boolean done;
+    public String data;
 
     public ProgressInfo(String file, String source, String format) {
         this.file = file;
         this.source = source;
         this.format = format;
+    }
+
+    public ProgressInfo(ProgressInfo pi) {
+        this.file = pi.file;
+        this.source = pi.source;
+        this.format = pi.format;
+        this.nodes = pi.nodes;
+        this.relationships = pi.relationships;
+        this.properties = pi.properties;
+        this.time = pi.time;
+        this.rows = pi.rows;
+        this.batchSize = pi.batchSize;
+        this.batches = pi.batches;
+        this.done = pi.done;
     }
 
     @Override
@@ -47,5 +64,13 @@ public class ProgressInfo {
 
     public void nextRow() {
         this.rows++;
+    }
+
+    public ProgressInfo drain(StringWriter writer) {
+        if (writer != null) {
+            this.data = writer.toString();
+            writer.getBuffer().setLength(0);
+        }
+        return this;
     }
 }

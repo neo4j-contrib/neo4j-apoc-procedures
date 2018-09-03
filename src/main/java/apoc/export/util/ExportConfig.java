@@ -68,7 +68,7 @@ public class ExportConfig {
         this.format = ExportFormat.fromString((String) config.getOrDefault("format", "neo4j-shell"));
         this.cypherFormat = CypherFormat.fromString((String) config.getOrDefault("cypherFormat", "create"));
         this.config = config;
-        this.streamStatements = toBoolean(config.get("streamStatements"));
+        this.streamStatements = toBoolean(config.get("streamStatements")) || toBoolean(config.get("stream"));
     }
 
     public boolean getRelsInBetween() {

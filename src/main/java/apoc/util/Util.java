@@ -571,7 +571,7 @@ public class Util {
         try {
             db.check();
             return false;
-        } catch (TransactionGuardException | TransactionTerminatedException tge) {
+        } catch (TransactionGuardException | TransactionTerminatedException | NotInTransactionException tge) {
             return true;
         }
     }

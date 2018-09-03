@@ -162,4 +162,63 @@ public class ExportCsvTest {
         assertEquals("csv", r.get("format"));
         assertEquals(true, ((long) r.get("time")) >= 0);
     }
+
+    @Test public void testExportAllCsvStreaming() throws Exception {
+        String statement = "CALL apoc.export.csv.all(null,{stream:true,batchSize:2})";
+        // System.out.println(db.execute(statement).resultAsString());
+        StringBuilder sb=new StringBuilder();
+        TestUtil.testResult(db, statement, (res) -> {
+            Map<String, Object> r = res.next();
+            assertEquals(2L, r.get("batchSize"));
+            assertEquals(1L, r.get("batches"));
+            assertEquals(2L, r.get("nodes"));
+            assertEquals(2L, r.get("rows"));
+            assertEquals(0L, r.get("relationships"));
+            assertEquals(6L, r.get("properties"));
+            assertEquals(null, r.get("file"));
+            assertEquals("csv", r.get("format"));
+            assertEquals(true, ((long) r.get("time")) >= 0);
+            sb.append(r.get("data"));
+            r = res.next();
+            assertEquals(2L, r.get("batchSize"));
+            assertEquals(2L, r.get("batches"));
+            assertEquals(3L, r.get("nodes"));
+            assertEquals(4L, r.get("rows"));
+            assertEquals(1L, r.get("relationships"));
+            assertEquals(7L, r.get("properties"));
+            assertEquals(true, ((long) r.get("time")) >= 0);
+            sb.append(r.get("data"));
+        });
+        assertEquals(EXPECTED+"\n",sb.toString());
+    }
+
+    @Test public void testCypherCsvStreaming() throws Exception {
+        String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
+        StringBuilder sb = new StringBuilder();
+        TestUtil.testResult(db, "CALL apoc.export.csv.query({query},null,{stream:true,batchSize:2})", map("query",query),
+                (res) -> {
+                    Map<String, Object> r = res.next();
+                    assertEquals(2L, r.get("batchSize"));
+                    assertEquals(1L, r.get("batches"));
+                    assertEquals(0L, r.get("nodes"));
+                    assertEquals(2L, r.get("rows"));
+                    assertEquals(0L, r.get("relationships"));
+                    assertEquals(10L, r.get("properties"));
+                    assertEquals(null, r.get("file"));
+                    assertEquals("csv", r.get("format"));
+                    assertEquals(true, ((long) r.get("time")) >= 0);
+                    sb.append(r.get("data"));
+                    r = res.next();
+                    assertEquals(2L, r.get("batchSize"));
+                    assertEquals(2L, r.get("batches"));
+                    assertEquals(0L, r.get("nodes"));
+                    assertEquals(3L, r.get("rows"));
+                    assertEquals(0L, r.get("relationships"));
+                    assertEquals(15L, r.get("properties"));
+                    assertEquals(true, ((long) r.get("time")) >= 0);
+                    sb.append(r.get("data"));
+                });
+        assertEquals(EXPECTED_QUERY+"\n",sb.toString());
+    }
+
 }

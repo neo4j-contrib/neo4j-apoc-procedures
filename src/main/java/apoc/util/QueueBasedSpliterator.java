@@ -33,7 +33,7 @@ public class QueueBasedSpliterator<T> implements Spliterator<T> {
 
     @Override
     public boolean tryAdvance(Consumer<? super T> action) {
-        terminationGuard.check();
+        if (Util.transactionIsTerminated(terminationGuard)) return false;
         if (isEnd()) return false;
         action.accept(entry);
         entry = poll();
