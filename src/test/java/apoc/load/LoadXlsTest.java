@@ -1,11 +1,9 @@
 package apoc.load;
 
 import apoc.util.TestUtil;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
@@ -14,6 +12,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -22,6 +23,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 public class LoadXlsTest {
 
@@ -43,6 +45,26 @@ public class LoadXlsTest {
                     assertRow(r,0L,"String","Test","Boolean",true,"Integer",2L,"Float",1.5d,"Array",asList(1L,2L,3L));
                     assertEquals(false, r.hasNext());
                 });
+    }
+    @Test public void testLoadBrokenHeader() throws Exception {
+        URL url = ClassLoader.getSystemResource("brokenHeader.xls");
+        BiFunction<String,Boolean,Long> query = (sheet,header) -> db.execute("CALL apoc.load.xls({url},{sheet},{header:{header}}) yield map return count(*) as c", map("header",header,"sheet",sheet,"url", url.toString())).<Long>columnAs("c").next();
+        try {
+            query.apply("temp",true);
+            fail("Should fail with Header Error");
+        } catch(QueryExecutionException qee) {
+            assertEquals("Failed to invoke procedure `apoc.load.xls`: Caused by: java.lang.IllegalStateException: Header at position 4 doesn't have a value",
+                    qee.getMessage());
+        }
+        try {
+            query.apply("foo",false);
+            fail("Should fail with Sheet Error");
+        } catch(QueryExecutionException qee) {
+            assertEquals("Failed to invoke procedure `apoc.load.xls`: Caused by: java.lang.IllegalStateException: Sheet foo not found",
+                    qee.getMessage());
+        }
+
+        assertEquals(2L, (long)query.apply("temp",false));
     }
     @Test public void testLoadXlsMany() throws Exception {
         URL url = ClassLoader.getSystemResource("load_test.xlsx");
