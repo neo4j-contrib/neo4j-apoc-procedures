@@ -118,6 +118,8 @@ include::manual-indexes.adoc[leveloffset=2]
 
 include::fulltext.adoc[leveloffset=2]
 
+include::uuid.adoc[leveloffset=2]
+
 == Utility Functions
 
 include::phonetic.adoc[leveloffset=2]

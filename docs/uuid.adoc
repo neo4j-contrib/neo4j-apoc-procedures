@@ -1,0 +1,12 @@
+== UUID
+
+There is the possibility to set uuid index property on nodes using APOC.
+
+For doing this there are some configurations to set on `neo4j.conf`:
+
+[cols="1m,5"]
+|===
+| apoc.uuid.enabled  | true/false     | enable uuid creation
+| apoc.uuid.schedule | default 60s    | time in which statement is scheduled
+| apoc.uuid.labels   | list of labels (separated by comma) | labels node where will be created the uuid index
+|===

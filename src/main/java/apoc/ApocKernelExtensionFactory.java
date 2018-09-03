@@ -6,6 +6,7 @@ import apoc.trigger.Trigger;
 import apoc.ttl.TTLLifeCycle;
 import apoc.util.ApocUrlStreamHandlerFactory;
 import org.neo4j.kernel.AvailabilityGuard;
+import apoc.uuid.UUIDLifeCycle;
 import org.neo4j.kernel.extension.KernelExtensionFactory;
 import org.neo4j.kernel.impl.logging.LogService;
 import org.neo4j.kernel.impl.proc.Procedures;
@@ -59,6 +60,7 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
         private Trigger.LifeCycle triggerLifeCycle;
         private Log userLog;
         private TTLLifeCycle ttlLifeCycle;
+        private UUIDLifeCycle uuidLifeCycle;
 
         private IndexUpdateTransactionEventHandler.LifeCycle indexUpdateLifeCycle;
         private CypherProcedures.CustomProcedureStorage customProcedureStorage;
@@ -81,6 +83,9 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
             registerCustomProcedures();
             ttlLifeCycle = new TTLLifeCycle(Pools.NEO4J_SCHEDULER, db, log.getUserLog(TTLLifeCycle.class));
             ttlLifeCycle.start();
+
+            uuidLifeCycle = new UUIDLifeCycle(Pools.NEO4J_SCHEDULER, db, log.getUserLog(UUIDLifeCycle.class));
+            uuidLifeCycle.start();
 
             triggerLifeCycle = new Trigger.LifeCycle(db, log.getUserLog(Trigger.class));
             triggerLifeCycle.start();
@@ -115,6 +120,15 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
                 } catch(Exception e) {
                     userLog.warn("Error stopping index update service",e);
                 }
+
+            if (uuidLifeCycle !=null)
+                try {
+                    uuidLifeCycle.stop();
+                } catch(Exception e) {
+                    userLog.warn("Error stopping uuid service",e);
+                }
+
+
         }
 
     }
