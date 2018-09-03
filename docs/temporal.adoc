@@ -19,6 +19,16 @@ apoc.temporal.format( localtime(), 'HH:mm:ss.SSSS')
 
 https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html[View full pattern listing]
 
+You can also pass a ISO DATE TIME pattern, the list is available here
+https://www.elastic.co/guide/en/elasticsearch/reference/5.5/mapping-date-format.html#built-in-date-formats[ISO_DATE]
+
+For example:
+[source,cypher]
+----
+apoc.temporal.format( date( { year: 2018, month: 12, day: 10 } ), 'date' ) as output
+apoc.temporal.format( localdatetime( { year: 2018, month: 12, day: 10, hour: 12, minute: 34, second: 56, nanosecond: 123456789 } ), 'ISO_LOCAL_DATE_TIME' ) as output
+apoc.temporal.format( date( { year: 2018, month: 12, day: 10 } ), 'ISO_DATE' ) as output
+----
 
 == Formatting Durations
 
