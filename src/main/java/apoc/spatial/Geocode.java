@@ -155,7 +155,7 @@ public class Geocode {
                 }
                 String lat = findFirstEntry(location, LAT_KEYS);
                 String lng = findFirstEntry(location, LNG_KEYS);
-                return new GeoCodeResult(toDouble(lat), toDouble(lng), description, data, "");
+                return new GeoCodeResult(toDouble(lat), toDouble(lng), description, data);
             });
         }
 
@@ -195,7 +195,7 @@ public class Geocode {
             Object value = JsonUtil.loadJson(OSM_URL_GEOCODE + Util.encodeUrlComponent(address)).findFirst().orElse(null);
             if (value instanceof List) {
                 return ((List<Map<String, Object>>) value).stream().limit(maxResults).map(data ->
-                        new GeoCodeResult(toDouble(data.get("lat")), toDouble(data.get("lon")), valueOf(data.get("display_name")), data, ""));
+                        new GeoCodeResult(toDouble(data.get("lat")), toDouble(data.get("lon")), valueOf(data.get("display_name")), data));
             }
             throw new RuntimeException("Can't parse geocoding results " + value);
         }
@@ -210,7 +210,7 @@ public class Geocode {
             Object value = JsonUtil.loadJson(OSM_URL_REVERSE_GEOCODE + String.format("lat=%s&lon=%s", latitude, longitude)).findFirst().orElse(null);
             if (value instanceof Map) {
                 Map<String, Object> data = (Map<String, Object>) value;
-                return Stream.of(new GeoCodeResult(toDouble(data.get("lat")), toDouble(data.get("lon")), valueOf(data.get("display_name")), (Map<String,Object>)data.get("address"),""));
+                return Stream.of(new GeoCodeResult(toDouble(data.get("lat")), toDouble(data.get("lon")), valueOf(data.get("display_name")), (Map<String,Object>)data.get("address")));
             }
             throw new RuntimeException("Can't parse reverse-geocoding results " + value);
         }
@@ -255,7 +255,7 @@ public class Geocode {
                 if (results instanceof List) {
                     return ((List<Map<String, Object>>) results).stream().limit(maxResults).map(data -> {
                         Map location = (Map) ((Map) data.get("geometry")).get("location");
-                        return new GeoCodeResult(toDouble(location.get("lat")), toDouble(location.get("lng")), valueOf(data.get("formatted_address")), data, "");
+                        return new GeoCodeResult(toDouble(location.get("lat")), toDouble(location.get("lng")), valueOf(data.get("formatted_address")), data);
                     });
                 }
             }
@@ -276,7 +276,7 @@ public class Geocode {
                 if (results instanceof List) {
                     return ((List<Map<String, Object>>) results).stream().limit(1).map(data -> {
                         Map location = (Map) ((Map) data.get("geometry")).get("location");
-                        return new GeoCodeResult(toDouble(location.get("lat")), toDouble(location.get("lng")), valueOf(data.get("formatted_address")), data, "");
+                        return new GeoCodeResult(toDouble(location.get("lat")), toDouble(location.get("lng")), valueOf(data.get("formatted_address")), data);
                     });
                 }
             }
@@ -307,7 +307,7 @@ public class Geocode {
     @Description("apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)")
     public Stream<GeoCodeResult> geocode(@Name("location") String address, @Name(value = "maxResults",defaultValue = "100") long maxResults, @Name(value = "quotaException",defaultValue = "false") boolean quotaException) {
         if (address == null || address.isEmpty())
-            return GeoCodeResult.emptyAddressErrorMessage();
+            return Stream.empty();
         else {
             try {
                 return getSupplier().geocode(address, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults, 1), MAX_RESULTS));
@@ -335,19 +335,13 @@ public class Geocode {
         public final Double latitude;
         public final Double longitude;
         public final String description;
-        public final String error;
 
-        public GeoCodeResult(Double latitude, Double longitude, String description, Map<String, Object> data, String error) {
+        public GeoCodeResult(Double latitude, Double longitude, String description, Map<String, Object> data) {
             this.data = data;
             this.latitude = latitude;
             this.longitude = longitude;
             this.description = description;
             this.location = map("latitude", latitude, "longitude", longitude, "description", description);
-            this.error = error;
-        }
-
-        public static Stream<GeoCodeResult> emptyAddressErrorMessage(){
-            return Stream.of(new GeoCodeResult(null, null, "", null, "Parameter location can't be null or empty"));
         }
     }
 }

@@ -142,6 +142,7 @@ public class GeocodeTest {
             for (String field : new String[]{"address", "noresults"}) {
                 assertTrue("Expected " + field + " field", map.containsKey(field));
             }
+            System.out.println("map = " + map);
             testCallEmpty(db, "CALL apoc.spatial.geocode({url},0)", map("url", map.get("address").toString()));
         } else if (map.containsKey("count")) {
             if (((Map) map.get("count")).containsKey(provider)) {

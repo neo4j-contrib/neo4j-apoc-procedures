@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.net.URL;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.*;
+import static java.util.Collections.emptyMap;
 import static org.junit.Assert.*;
 
 public class SpatialTest {
@@ -46,11 +48,11 @@ public class SpatialTest {
         @Procedure("apoc.spatial.geocode")
         public Stream<Geocode.GeoCodeResult> geocode(@Name("location") String address, @Name("maxResults") long maxResults) {
             if (address == null || address.isEmpty())
-                return Geocode.GeoCodeResult.emptyAddressErrorMessage();
+                return Stream.empty();
             else {
                 if (geocodeResults != null && geocodeResults.containsKey(address)) {
                     Map data = geocodeResults.get(address);
-                    return Stream.of(new Geocode.GeoCodeResult(Util.toDouble(data.get("lat")), Util.toDouble(data.get("lon")), String.valueOf(data.get("display_name")), data, ""));
+                    return Stream.of(new Geocode.GeoCodeResult(Util.toDouble(data.get("lat")), Util.toDouble(data.get("lon")), String.valueOf(data.get("display_name")), data));
                 } else {
                     return Stream.empty();
                 }
@@ -62,7 +64,7 @@ public class SpatialTest {
             String key = latitude + "," + longitude;
             if (reverseGeocodeResults != null && reverseGeocodeResults.containsKey(key)) {
                 Map data = reverseGeocodeResults.get(key);
-                return Stream.of(new Geocode.GeoCodeResult(latitude, longitude, String.valueOf(data.get("display_name")), data, ""));
+                return Stream.of(new Geocode.GeoCodeResult(latitude, longitude, String.valueOf(data.get("display_name")), data));
             } else {
                 return Stream.empty();
             }
@@ -191,18 +193,11 @@ public class SpatialTest {
 
     @Test
     public void testNullAddressErrorGeocodeOnce(){
-        String query = "CALL apoc.spatial.geocodeOnce(null)";
-
-        testCall(db, query, result -> {
-            assertEquals("Parameter location can't be null or empty", result.get("error"));
-        });
+        testCallEmpty(db, "CALL apoc.spatial.geocodeOnce(null)", emptyMap());
     }
 
     @Test
     public void testNullAddressErrorGeocodeShouldFail(){
-        String query = "CALL apoc.spatial.geocode(null,1)";
-        testCall(db, query, result -> {
-            assertEquals("Parameter location can't be null or empty", result.get("error"));
-        });
+        testCallEmpty(db, "CALL apoc.spatial.geocode(null,1)", emptyMap());
     }
 }
