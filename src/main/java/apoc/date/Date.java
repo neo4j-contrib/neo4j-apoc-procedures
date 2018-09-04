@@ -97,18 +97,18 @@ public class Date {
 	@Description("apoc.date.field(12345,('ms|s|m|h|d|month|year'),('TZ')")
 	public Long field(final @Name("time") Long time,  @Name(value = "unit", defaultValue = "d") String unit, @Name(value = "timezone",defaultValue = "UTC") String timezone) {
 		return (time == null)
-			   ? null
-			   : (long) ZonedDateTime
-					   .ofInstant( Instant.ofEpochMilli( time ), ZoneId.of( timezone ) )
-					   .get( chronoField( unit ) );
+				? null
+				: (long) ZonedDateTime
+				.ofInstant( Instant.ofEpochMilli( time ), ZoneId.of( timezone ) )
+				.get( chronoField( unit ) );
 	}
 
 	@UserFunction
-    @Description( "apoc.date.currentTimestamp() - returns System.currentTimeMillis()" )
-    public long currentTimestamp()
-    {
-        return System.currentTimeMillis();
-    }
+	@Description( "apoc.date.currentTimestamp() - returns System.currentTimeMillis()" )
+	public long currentTimestamp()
+	{
+		return System.currentTimeMillis();
+	}
 
 	public static class FieldResult {
 		public final Map<String,Object> value = new LinkedHashMap<>();
@@ -132,21 +132,26 @@ public class Date {
 //			case "month":case "months": return TimeUnit.MONTHS;
 //			case "years":case "year": return TimeUnit.YEARS;
 		}
-		return TimeUnit.MILLISECONDS;
+
+		throw new IllegalArgumentException("The unit: "+ unit + " is not correct");
+
+		//return TimeUnit.MILLISECONDS;
 	}
 
 	private ChronoField chronoField(String unit) {
 		switch (unit.toLowerCase()) {
-		case "ms": case "milli":  case "millis": case "milliseconds": return ChronoField.MILLI_OF_SECOND;
-		case "s":  case "second": case "seconds": return ChronoField.SECOND_OF_MINUTE;
-		case "m":  case "minute": case "minutes": return ChronoField.MINUTE_OF_HOUR;
-		case "h":  case "hour":   case "hours":   return ChronoField.HOUR_OF_DAY;
-		case "d":  case "day":    case "days":    return ChronoField.DAY_OF_MONTH;
-		case "w":  case "weekday": case "weekdays": return ChronoField.DAY_OF_WEEK; 
-		case "month":case "months": return ChronoField.MONTH_OF_YEAR;
-		case "year":case "years": return ChronoField.YEAR;
-		default: return ChronoField.YEAR;
+			case "ms": case "milli":  case "millis": case "milliseconds": return ChronoField.MILLI_OF_SECOND;
+			case "s":  case "second": case "seconds": return ChronoField.SECOND_OF_MINUTE;
+			case "m":  case "minute": case "minutes": return ChronoField.MINUTE_OF_HOUR;
+			case "h":  case "hour":   case "hours":   return ChronoField.HOUR_OF_DAY;
+			case "d":  case "day":    case "days":    return ChronoField.DAY_OF_MONTH;
+			case "w":  case "weekday": case "weekdays": return ChronoField.DAY_OF_WEEK;
+			case "month":case "months": return ChronoField.MONTH_OF_YEAR;
+			case "year":case "years": return ChronoField.YEAR;
+//			default: return ChronoField.YEAR;
 		}
+
+		throw new IllegalArgumentException("The chrono: "+ unit + " is not correct");
 	}
 
 	@UserFunction
@@ -199,7 +204,12 @@ public class Date {
 
 	private static DateFormat getFormat(final String pattern, final String timezone) {
 		String actualPattern = getPattern(pattern);
-		SimpleDateFormat format = new SimpleDateFormat(actualPattern);
+		SimpleDateFormat format = null;
+		try {
+			format = new SimpleDateFormat(actualPattern);
+		} catch(Exception e){
+			throw new IllegalArgumentException("The pattern: "+pattern+" is not correct");
+		}
 		if (timezone != null && !"".equals(timezone)) {
 			format.setTimeZone(TimeZone.getTimeZone(timezone));
 		} else if (!(containsTimeZonePattern(actualPattern))) {
