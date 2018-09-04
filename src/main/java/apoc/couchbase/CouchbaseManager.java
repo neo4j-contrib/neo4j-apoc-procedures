@@ -5,9 +5,10 @@ import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.CouchbaseAsyncCluster;
 import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.auth.Authenticator;
 import com.couchbase.client.java.auth.PasswordAuthenticator;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
+
+import org.neo4j.helpers.collection.Pair;
 import org.parboiled.common.StringUtils;
 
 import java.net.URI;
@@ -81,12 +82,12 @@ public class CouchbaseManager {
     }
 
     /**
-     * Creates a {@link Tuple2} containing a {@link PasswordAuthenticator} and a {@link List} of (cluster) nodes from configuration properties
+     * Creates a {@link Pair} containing a {@link PasswordAuthenticator} and a {@link List} of (cluster) nodes from configuration properties
      *
      * @param configurationKey the configuration key in neo4j.conf that should be defined as apoc.couchbase.[configurationKey]
      * @return a tuple2, the connections objects that we need to establish a connection to a Couchbase Server
      */
-    protected static Tuple2<PasswordAuthenticator, List<String>> getConnectionObjectsFromConfigurationKey(String configurationKey) {
+    protected static Pair<PasswordAuthenticator, List<String>> getConnectionObjectsFromConfigurationKey(String configurationKey) {
         Map<String, Object> couchbaseConfig = ApocConfiguration.get(COUCHBASE_CONFIG_KEY + configurationKey);
 
         if (couchbaseConfig.isEmpty()) {
@@ -103,19 +104,19 @@ public class CouchbaseManager {
             throw new RuntimeException("Please check you 'apoc.couchbase." + configurationKey + "' configuration, url is missing");
         }
 
-        return Tuple.create(
+        return Pair.of(
                 new PasswordAuthenticator(username.toString(), password.toString()),
                 Arrays.asList(url.toString().split(","))
         );
     }
 
     /**
-     * Creates a {@link Tuple2} containing a {@link PasswordAuthenticator} and a {@link List} of (cluster) nodes from a URI
+     * Creates a {@link Pair} containing a {@link PasswordAuthenticator} and a {@link List} of (cluster) nodes from a URI
      *
      * @param host a URI representing the connection to a single instance, for example couchbase://username:password@hostname:port
      * @return a tuple2, the connections objects that we need to establish a connection to a Couchbase Server
      */
-    protected static Tuple2<PasswordAuthenticator, List<String>> getConnectionObjectsFromHost(URI host) {
+    protected static Pair<PasswordAuthenticator, List<String>> getConnectionObjectsFromHost(URI host) {
         List<String> nodes = Collections.emptyList();
         try {
             nodes = Arrays.asList(new URI(host.getScheme(),
@@ -126,21 +127,21 @@ public class CouchbaseManager {
         }
         String[] credentials = host.getUserInfo().split(":");
 
-        return Tuple.create(
+        return Pair.of(
                 new PasswordAuthenticator(credentials[0], credentials[1]),
                 nodes
         );
     }
 
     /**
-     * Creates a {@link Tuple2} containing a {@link PasswordAuthenticator} and a {@link List} of (cluster) nodes from configuration properties or a URI
+     * Creates a {@link Pair} containing a {@link PasswordAuthenticator} and a {@link List} of (cluster) nodes from configuration properties or a URI
      * This method verifies if the variable hostOrKey has "couchbase" as a scheme if not then it consider hostOrKey as a configuration key
      * If it's a URI then the credentials should be defined according to the URI specifications
      *
      * @param hostOrKey a configuration key (in the neo4j.conf file) or a URI
      * @return
      */
-    protected static Tuple2<PasswordAuthenticator, List<String>> getConnectionObjectsFromHostOrKey(String hostOrKey) {
+    protected static Pair<PasswordAuthenticator, List<String>> getConnectionObjectsFromHostOrKey(String hostOrKey) {
         // Check if hostOrKey is really a host, if it's a host, then we let only one host!!
         URI singleHostURI = checkAndGetURI(hostOrKey);
 
@@ -158,9 +159,9 @@ public class CouchbaseManager {
      * @return
      */
     public static CouchbaseConnection getConnection(String hostOrKey, String bucketName) {
-        Tuple2<PasswordAuthenticator, List<String>> connectionObjects = getConnectionObjectsFromHostOrKey(hostOrKey);
+        Pair<PasswordAuthenticator, List<String>> connectionObjects = getConnectionObjectsFromHostOrKey(hostOrKey);
 
         String[] bucketCredentials = bucketName.split(":");
-        return new CouchbaseConnection(connectionObjects.v2(), connectionObjects.v1(), bucketCredentials[0], bucketCredentials.length == 2 ? bucketCredentials[1] : null);
+        return new CouchbaseConnection(connectionObjects.other(), connectionObjects.first(), bucketCredentials[0], bucketCredentials.length == 2 ? bucketCredentials[1] : null);
     }
 }

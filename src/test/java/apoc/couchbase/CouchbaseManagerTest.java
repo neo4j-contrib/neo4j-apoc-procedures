@@ -6,6 +6,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.neo4j.helpers.collection.Pair;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Arrays;
@@ -54,20 +55,20 @@ public class CouchbaseManagerTest {
 
     @Test
     public void testCompleteURI() {
-        Tuple2<PasswordAuthenticator, List<String>> connectionObjectsFromHostOrKey = CouchbaseManager.getConnectionObjectsFromHostOrKey("couchbase://" + USERNAME + ":" + PASSWORD + "@localhost:11210");
+        Pair<PasswordAuthenticator, List<String>> connectionObjectsFromHostOrKey = CouchbaseManager.getConnectionObjectsFromHostOrKey("couchbase://" + USERNAME + ":" + PASSWORD + "@localhost:11210");
 
-        Assert.assertEquals(USERNAME, connectionObjectsFromHostOrKey.v1().username());
-        Assert.assertEquals(PASSWORD, connectionObjectsFromHostOrKey.v1().password());
-        Assert.assertEquals(Arrays.asList("couchbase://localhost:11210"), connectionObjectsFromHostOrKey.v2());
+        Assert.assertEquals(USERNAME, connectionObjectsFromHostOrKey.first().username());
+        Assert.assertEquals(PASSWORD, connectionObjectsFromHostOrKey.first().password());
+        Assert.assertEquals(Arrays.asList("couchbase://localhost:11210"), connectionObjectsFromHostOrKey.other());
     }
 
     @Test
     public void testCompleteURIButNoPort() {
-        Tuple2<PasswordAuthenticator, List<String>> connectionObjectsFromHostOrKey = CouchbaseManager.getConnectionObjectsFromHostOrKey("couchbase://" + USERNAME + ":" + PASSWORD + "@localhost");
+        Pair<PasswordAuthenticator, List<String>> connectionObjectsFromHostOrKey = CouchbaseManager.getConnectionObjectsFromHostOrKey("couchbase://" + USERNAME + ":" + PASSWORD + "@localhost");
 
-        Assert.assertEquals(USERNAME, connectionObjectsFromHostOrKey.v1().username());
-        Assert.assertEquals(PASSWORD, connectionObjectsFromHostOrKey.v1().password());
-        Assert.assertEquals(Arrays.asList("couchbase://localhost"), connectionObjectsFromHostOrKey.v2());
+        Assert.assertEquals(USERNAME, connectionObjectsFromHostOrKey.first().username());
+        Assert.assertEquals(PASSWORD, connectionObjectsFromHostOrKey.first().password());
+        Assert.assertEquals(Arrays.asList("couchbase://localhost"), connectionObjectsFromHostOrKey.other());
     }
 
     @Test
@@ -84,10 +85,10 @@ public class CouchbaseManagerTest {
     public void testIfSchemeIsNotDefineConsiderConfigurationKeyAndConfigurationExists() {
         String hostOrKey = COUCHBASE_CONFIG_KEY;
 
-        Tuple2<PasswordAuthenticator, List<String>> connectionObjectsFromHostOrKey = CouchbaseManager.getConnectionObjectsFromConfigurationKey(hostOrKey);
+        Pair<PasswordAuthenticator, List<String>> connectionObjectsFromHostOrKey = CouchbaseManager.getConnectionObjectsFromConfigurationKey(hostOrKey);
 
-        Assert.assertEquals(USERNAME, connectionObjectsFromHostOrKey.v1().username());
-        Assert.assertEquals(PASSWORD, connectionObjectsFromHostOrKey.v1().password());
-        Assert.assertEquals(Arrays.asList("localhost"), connectionObjectsFromHostOrKey.v2());
+        Assert.assertEquals(USERNAME, connectionObjectsFromHostOrKey.first().username());
+        Assert.assertEquals(PASSWORD, connectionObjectsFromHostOrKey.first().password());
+        Assert.assertEquals(Arrays.asList("localhost"), connectionObjectsFromHostOrKey.other());
     }
 }
