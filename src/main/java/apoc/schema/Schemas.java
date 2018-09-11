@@ -77,13 +77,10 @@ public class Schemas {
         Schema schema = db.schema();
 
         for (ConstraintDefinition definition : schema.getConstraints()) {
-            if (!definition.isConstraintType(ConstraintType.UNIQUENESS)) continue;
-
+            if (!(definition.isConstraintType(ConstraintType.UNIQUENESS) || definition.isConstraintType(ConstraintType.NODE_KEY))) continue;
             String label = definition.getLabel().name();
-            String key = Iterables.single(definition.getPropertyKeys());
-
-            AssertSchemaResult info = new AssertSchemaResult(label, key).unique();
-            if (!constraints.containsKey(label) || !constraints.get(label).remove(key)) {
+            AssertSchemaResult info = new AssertSchemaResult(label, Iterables.asList(definition.getPropertyKeys())).unique();
+            if (!constraints.containsKey(label) || !constraints.get(label).remove(info.key)) {
                 if (dropExisting) {
                     definition.drop();
                     info.dropped();
@@ -264,7 +261,7 @@ public class Schemas {
             SchemaRead schemaRead = tx.schemaRead();
             Iterable<IndexReference> indexesIterator = () -> schemaRead.indexesGetAll();
             return StreamSupport.stream(indexesIterator.spliterator(), false)
-                   .map(indexReference -> this.nodeInfoFromIndexDefinition(indexReference, schemaRead, tokens))
+                    .map(indexReference -> this.nodeInfoFromIndexDefinition(indexReference, schemaRead, tokens))
                     .sorted(Comparator.comparing(i -> i.label));
         }
     }
