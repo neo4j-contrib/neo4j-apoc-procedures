@@ -43,7 +43,7 @@ For example, if my XML file is the example https://msdn.microsoft.com/en-us/libr
 ...
 ----
 
-We have the file here, https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml[on GitHub].
+We have the file here, https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml[on GitHub].
 
 == Simple XML Format
 
@@ -59,7 +59,7 @@ Here is the example file from above loaded with `apoc.load.xmlSimple`
 
 [source,cypher]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml", '', {}, true)
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml", '', {}, true)
 ----
 
 [source,javascript]
@@ -152,7 +152,7 @@ And each element into their own little map with `_type`, attributes and `_childr
 
 [source,cypher]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml")
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml")
 ----
 
 [source,javascript]
@@ -173,7 +173,7 @@ You can access attributes per element directly.
 
 [source,cypher]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 RETURN book.id
 ----
@@ -196,7 +196,7 @@ You have to filter over the sub-elements  in the `_childrens` array in this case
 
 [source,cypher]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 RETURN book.id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
 ----
@@ -216,7 +216,7 @@ This is not too nice, we could also just have returned the values and then grabb
 
 [source,cypher]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | attr._text] as pairs
 RETURN id, pairs[0] as author, pairs[1] as title
@@ -239,7 +239,7 @@ So better is to turn them into a map with `apoc.map.fromPairs`
 
 [source,cypher]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
 CALL apoc.map.fromPairs(pairs) yield value
@@ -263,7 +263,7 @@ And now we can cleanly access the attributes from the map.
 
 [source,cypher]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
 CALL apoc.map.fromPairs(pairs) yield value
@@ -321,7 +321,7 @@ The nodes for the xml document are connected:
 [source,cypher]
 ----
 call
-apoc.xml.import("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml",{createNextWordRelationships:
+apoc.xml.import("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml",{createNextWordRelationships:
 true})
 yield node
 return node;
