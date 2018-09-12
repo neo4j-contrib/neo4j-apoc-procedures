@@ -1125,7 +1125,7 @@ RETURN name AS undocumented</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.periodic.iterate</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:50,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -1341,7 +1341,7 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.graph.fromCypher</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.graph.fromCypher('statement',{params},'name',{properties}) - creates a virtual graph object for later processing</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.graph.fromCypher('kernelTransaction',{params},'name',{properties}) - creates a virtual graph object for later processing</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -1496,7 +1496,7 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runTimeboxed</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) - abort statement after timeout ms if not finished</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) - abort kernelTransaction after timeout ms if not finished</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -1506,27 +1506,27 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFile</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each kernelTransaction in the file, all semicolon separated - currently no schema operations</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFiles</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10}])) - runs each statement in the files, all semicolon separated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each kernelTransaction in the files, all semicolon separated</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFile</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema kernelTransaction in the file, all semicolon separated</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFiles</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema statement in the files, all semicolon separated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema kernelTransaction in the files, all semicolon separated</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runMany</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runMany('cypher;\nstatements;',{params},[{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runMany('cypher;\nstatements;',{params},[{statistics:true,timeout:10}]) - runs each semicolon separated kernelTransaction and returns summary - currently no schema operations</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -1711,7 +1711,7 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.xls</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.xls('url',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.xls('url','selector',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
  config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}</p></td>
 </tr>
 <tr>
@@ -1733,17 +1733,17 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbc</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbc('key or url','table or statement') YIELD row - load from relational database, from a full table or a sql statement</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbc('key or url','table or kernelTransaction') YIELD row - load from relational database, from a full table or a sql kernelTransaction</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbcParams</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">deprecated - please use: apoc.load.jdbc('key or url','statement',[params]) YIELD row - load from relational database, from a sql statement with parameters</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">deprecated - please use: apoc.load.jdbc('key or url','kernelTransaction',[params]) YIELD row - load from relational database, from a sql kernelTransaction with parameters</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbcUpdate</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbcUpdate('key or url','statement',[params]) YIELD row - update relational database, from a SQL statement with optional parameters</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbcUpdate('key or url','kernelTransaction',[params]) YIELD row - update relational database, from a SQL kernelTransaction with optional parameters</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -1823,12 +1823,12 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.orderedRange</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.orderedRange(label,key,min,max,sort-relevance,limit) yield node - schema range scan which keeps index order and adds limit, values can be null, boundaries are inclusive</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">just use a cypher query with a range predicate on an indexed field and wait for index backed order by in 3.5</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.orderedByText</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.orderedByText(label,key,operator,value,sort-relevance,limit) yield node - schema string search which keeps index order and adds limit, operator is 'STARTS WITH' or 'CONTAINS'</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">just use a cypher query with a range predicate on an indexed field and wait for index backed order by in 3.5</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -2028,7 +2028,7 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.cypher.query</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.cypher.query(query,file,config) - exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.cypher.query(query,file,config) - exports nodes and relationships from the cypher kernelTransaction incl. indexes as cypher statements to the provided file</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -2078,7 +2078,7 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.cypherQuery</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.cypherQuery(query,file,config) - exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.cypherQuery(query,file,config) - exports nodes and relationships from the cypher kernelTransaction incl. indexes as cypher statements to the provided file</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -2103,7 +2103,7 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.graphml.query</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.graphml.query(query,file,config) - exports nodes and relationships from the cypher statement as graphml to the provided file</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.graphml.query(query,file,config) - exports nodes and relationships from the cypher kernelTransaction as graphml to the provided file</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -2363,17 +2363,27 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.query</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.query(nodes, bucket, statement) yield queryResult - executes a plain un-parameterized N1QL statement.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.query(nodes, bucket, kernelTransaction) yield queryResult - executes a plain un-parameterized N1QL kernelTransaction.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.posParamsQuery</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.posParamsQuery(nodes, bucket, statement, params) yield queryResult - executes a N1QL statement with positional parameters.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.posParamsQuery(nodes, bucket, kernelTransaction, params) yield queryResult - executes a N1QL kernelTransaction with positional parameters.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.namedParamsQuery</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.namedParamsQuery(nodes, bucket, statement, paramNames, paramValues) yield queryResult - executes a N1QL statement with named parameters.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.namedParamsQuery(nodes, bucket, kernelTransaction, paramNames, paramValues) yield queryResult - executes a N1QL kernelTransaction with named parameters.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.temporal.format</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.temporal.format(input, format) | Format a temporal value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.temporal.formatDuration</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.temporal.formatDuration(input, format) | Format a Duration</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
@@ -3047,6 +3057,41 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.nodes.count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.nodes.count('Label','prop:value*') YIELD value - lucene query on node index with the given label name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.relationships.count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.relationships.count('Type','prop:value*') YIELD value - lucene query on relationship index with the given type name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.between.count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.between.count(node1,'TYPE',node2,'prop:value*') YIELD value - lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.out.count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.out.count(node,'TYPE','prop:value*') YIELD value - lucene query on relationship index with the given type name for <strong>outgoing</strong> relationship of the given node, <strong>returns count-end-nodes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.in.count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.in.count(node1,'TYPE',node2,'prop:value*') YIELD value - lucene query on relationship index with the given type name for <strong>incoming</strong> relationship of the given node, <strong>returns count-start-nodes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.indexOf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.indexOf(text, lookup, from=0, to=-1==len) - find the first occurence of the lookup string in the text, from inclusive, to exclusive, -1 if not found, null if text is null.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.indexesOf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.indexesOf(text, lookup, from=0, to=-1==len) - finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.replace</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.replace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.</p></td>
 </tr>
@@ -3663,12 +3708,12 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.orderedRange</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.orderedRange(label,key,min,max,sort-relevance,limit) yield node - schema range scan which keeps index order and adds limit, values can be null, boundaries are inclusive</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">just use a cypher query with a range predicate on an indexed field and wait for index backed order by in 3.5</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.orderedByText</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.orderedByText(label,key,operator,value,sort-relevance,limit) yield node - schema string search which keeps index order and adds limit, operator is 'STARTS WITH' or 'CONTAINS'</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">just use a cypher query with a range predicate on an indexed field and wait for index backed order by in 3.5</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -3779,6 +3824,31 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.removeRelationshipByName</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.nodes.count</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.nodes.count('Label','prop:value*') YIELD value - lucene query on node index with the given label name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.relationships.count</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.relationships.count('Type','prop:value*') YIELD value - lucene query on relationship index with the given type name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.between.count</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.between.count(node1,'TYPE',node2,'prop:value*') YIELD value - lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.out.count</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.out.count(node,'TYPE','prop:value*') YIELD value - lucene query on relationship index with the given type name for <strong>outgoing</strong> relationship of the given node, <strong>returns count-end-nodes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.in.count</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.in.count(node1,'TYPE',node2,'prop:value*') YIELD value - lucene query on relationship index with the given type name for <strong>incoming</strong> relationship of the given node, <strong>returns count-start-nodes</strong></p></td>
 </tr>
 </tbody>
 </table>
@@ -6475,7 +6545,7 @@ Those rows can then be used to update or create graph structures.</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.load.xls</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.xls('url',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.xls('url','selector',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
  config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}</p></td>
 </tr>
 <tr>
@@ -8017,7 +8087,7 @@ in previous releases we&#8217;ve had <code>apoc.load.xmlSimple</code>. This is n
 </div>
 </div>
 <div class="paragraph">
-<p>We have the file here, <a href="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml">on GitHub</a>.</p>
+<p>We have the file here, <a href="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml">on GitHub</a>.</p>
 </div>
 </div>
 <div class="sect3">
@@ -8038,7 +8108,7 @@ If there is more than one element there will be a list of values.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml", '', {}, true)</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml", '', {}, true)</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -8111,7 +8181,7 @@ RETURN key, apoc.meta.type(value[key]);</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/src/test/resources/books.xml", '/catalog/book[genre=\"Computer\"]') yield value as book
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml", '/catalog/book[genre=\"Computer\"]') yield value as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['title','price'] | attr._text] as pairs
 RETURN id, pairs[0] as title, pairs[1] as price</code></pre>
 </div>
@@ -8130,7 +8200,7 @@ For example the <code>author</code> of the book with <code>id = bg102</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml('https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/src/test/resources/books.xml', '/catalog/book[@id="bk102"]/author') yield value as result
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml('https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml', '/catalog/book[@id="bk102"]/author') yield value as result
 WITH result._text as author
 RETURN author</code></pre>
 </div>
@@ -8152,7 +8222,7 @@ And each element into their own little map with <code>_type</code>, attributes a
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml")</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml")</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -8174,7 +8244,7 @@ And each element into their own little map with <code>_type</code>, attributes a
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 RETURN book.id</code></pre>
 </div>
@@ -8199,7 +8269,7 @@ RETURN book.id</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 RETURN book.id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs</code></pre>
 </div>
@@ -8222,7 +8292,7 @@ RETURN book.id, [attr IN book._children WHERE attr._type IN ['author','title'] |
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | attr._text] as pairs
 RETURN id, pairs[0] as author, pairs[1] as title</code></pre>
@@ -8250,7 +8320,7 @@ RETURN id, pairs[0] as author, pairs[1] as title</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
 CALL apoc.map.fromPairs(pairs) yield value
@@ -8276,7 +8346,7 @@ RETURN id, value</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
 CALL apoc.map.fromPairs(pairs) yield value
@@ -8397,7 +8467,7 @@ RETURN id, value.author, value.title</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">call
-apoc.xml.import("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml",{createNextWordRelationships:
+apoc.xml.import("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/xml/books.xml",{createNextWordRelationships:
 true})
 yield node
 return node;</code></pre>
@@ -8659,7 +8729,7 @@ RETURN node</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runTimeboxed</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) - abort statement after timeout ms if not finished</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) - abort kernelTransaction after timeout ms if not finished</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -8669,27 +8739,27 @@ RETURN node</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runFile</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each kernelTransaction in the file, all semicolon separated - currently no schema operations</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runFiles</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10}])) - runs each statement in the files, all semicolon separated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each kernelTransaction in the files, all semicolon separated</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runSchemaFile</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema kernelTransaction in the file, all semicolon separated</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runSchemaFiles</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema statement in the files, all semicolon separated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema kernelTransaction in the files, all semicolon separated</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runMany</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runMany('cypher;\nstatements;',{params},[{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runMany('cypher;\nstatements;',{params},[{statistics:true,timeout:10}]) - runs each semicolon separated kernelTransaction and returns summary - currently no schema operations</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -9204,7 +9274,7 @@ For example, define a counter with a numeric property:</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.periodic.iterate</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:50,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -15270,7 +15340,7 @@ The export file has to convert into UTF-8.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-08-16 00:52:30 MESZ
+Last updated 2018-09-12 11:16:54 MESZ
 </div>
 </div>
 </body>

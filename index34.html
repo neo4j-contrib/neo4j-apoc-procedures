@@ -571,6 +571,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_cassandra_example">Cassandra Example</a></li>
 <li><a href="#_support_for_hive_with_kerberos_auth">Support for Hive with Kerberos Auth</a></li>
 <li><a href="#_load_jdbc_resources">LOAD JDBC - Resources</a></li>
+<li><a href="#_load_jdbc_update">LOAD JDBC - UPDATE</a></li>
 </ul>
 </li>
 <li><a href="#_load_csv_and_xls">Load CSV and XLS</a>
@@ -1125,7 +1126,7 @@ RETURN name AS undocumented</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.periodic.iterate</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:50,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -1711,7 +1712,7 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.xls</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.xls('url',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.xls('url','selector',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
  config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}</p></td>
 </tr>
 <tr>
@@ -2219,11 +2220,6 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.warmup.run</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.warmup.run() - quickly loads all nodes and rels into memory by skipping one page at a time</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.warmup.run2</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.warmup.run2(loadProperties=false,loadDynamicProperties=false,loadIndexes=false) - quickly loads all nodes and rels into memory by skipping one page at a time</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -3062,6 +3058,41 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.nodes.count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.nodes.count('Label','prop:value*') YIELD value - lucene query on node index with the given label name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.relationships.count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.relationships.count('Type','prop:value*') YIELD value - lucene query on relationship index with the given type name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.between.count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.between.count(node1,'TYPE',node2,'prop:value*') YIELD value - lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.out.count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.out.count(node,'TYPE','prop:value*') YIELD value - lucene query on relationship index with the given type name for <strong>outgoing</strong> relationship of the given node, <strong>returns count-end-nodes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.in.count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.in.count(node1,'TYPE',node2,'prop:value*') YIELD value - lucene query on relationship index with the given type name for <strong>incoming</strong> relationship of the given node, <strong>returns count-start-nodes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.indexOf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.indexOf(text, lookup, from=0, to=-1==len) - find the first occurence of the lookup string in the text, from inclusive, to exclusive, -1 if not found, null if text is null.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.indexesOf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.indexesOf(text, lookup, from=0, to=-1==len) - finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.replace</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.replace(text, regex, replacement) - replace each substring of the given string that matches the given regular expression with the given replacement.</p></td>
 </tr>
@@ -3795,6 +3826,31 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.removeRelationshipByName</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.nodes.count</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.nodes.count('Label','prop:value*') YIELD value - lucene query on node index with the given label name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.relationships.count</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.relationships.count('Type','prop:value*') YIELD value - lucene query on relationship index with the given type name</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.between.count</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.between.count(node1,'TYPE',node2,'prop:value*') YIELD value - lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.out.count</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.out.count(node,'TYPE','prop:value*') YIELD value - lucene query on relationship index with the given type name for <strong>outgoing</strong> relationship of the given node, <strong>returns count-end-nodes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.in.count</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.in.count(node1,'TYPE',node2,'prop:value*') YIELD value - lucene query on relationship index with the given type name for <strong>incoming</strong> relationship of the given node, <strong>returns count-start-nodes</strong></p></td>
+</tr>
 </tbody>
 </table>
 <div class="imageblock">
@@ -4356,6 +4412,151 @@ RETURN node.name, weight</code></pre>
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.index.search("people", "Johnny") YIELD node, weight
 RETURN node.name, weight</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_fulltext_index_count"><a class="link" href="#_fulltext_index_count">Fulltext index count</a></h5>
+<div class="paragraph">
+<p>Accompanying UserFunctions that just return counts for nodes and relationships manual index</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">apoc.index.nodes.count('Label','prop:value*') YIELD value</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">apoc.index.relationships.count('TYPE','prop:value*') YIELD value</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">apoc.index.between.count(node1,'TYPE',node2,'prop:value*') YIELD value</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">apoc.index.out.count(node,'TYPE','prop:value*') YIELD value</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">apoc.index.in.count(node,'TYPE','prop:value*') YIELD value</code></pre>
+</div>
+</div>
+<div class="sect6">
+<h7 id="_some_example_with_the_userfunctions_describe_above"><a class="link" href="#_some_example_with_the_userfunctions_describe_above">Some example with the userFunctions describe above</a></h7>
+<div class="paragraph">
+<p>First we create this set of data:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (joe:Person:Hipster {name:'Joe',age:42})-[checkin:CHECKIN {on:'2015-12-01'}]-&gt;(philz:Place {name:'Philz'})
+MATCH (p:Person) CALL apoc.index.addNode(p, ["name"]) RETURN count(*)
+MATCH (p:Place) CALL apoc.index.addNode(p, ["name"]) RETURN count(*)
+MATCH (person:Person)-[check:CHECKIN]-&gt;(place:Place) CALL apoc.index.addRelationship(check, ["on"]) RETURN count(*)</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>We call the apoc.index.nodes.count function as follow:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">RETURN apoc.index.nodes.count('Person', 'name:Jo*') AS value</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.index.nodes.count.png" alt="apoc.index.nodes.count" width="600">
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>We call the apoc.index.relationships.count function as follow:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">RETURN apoc.index.relationships.count('CHECKIN', 'on:2015-*') as value</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.index.relationships.count.png" alt="apoc.index.relationships.count" width="600">
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>We call the apoc.index.between.count function as follow:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (joe:Person:Hipster {name:'Joe',age:42}),(philz:Place {name:'Philz'}) WITH joe,philz RETURN apoc.index.between.count(joe, 'CHECKIN', philz, 'on:2015-*') as value</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.index.between.count.png" alt="apoc.index.between.count" width="600">
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>We call the apoc.index.in.count function as follow:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (philz:Place {name:'Philz'}) WITH philz RETURN apoc.index.in.count(philz, 'CHECKIN','on:2015-*') as value</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.in.nodes.count.png" alt="apoc.in.nodes.count" width="600">
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>We call the apoc.index.out.count function as follow:</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (joe:Person:Hipster {name:'Joe',age:42}) WITH joe RETURN apoc.index.out.count(joe, 'CHECKIN','on:2015-*') as value</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.index.out.count.png" alt="apoc.index.out.count" width="600">
+</div>
 </div>
 </div>
 </div>
@@ -6490,7 +6691,7 @@ Those rows can then be used to update or create graph structures.</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.load.xls</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.xls('url',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.xls('url','selector',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
  config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}</p></td>
 </tr>
 <tr>
@@ -7057,6 +7258,44 @@ Put the JDBC driver into the <code>$NEO4J_HOME/plugins</code> directory and conf
 <p><a href="https://neo4j.com/blog/apoc-database-integration-import-export-cypher/">APOC: Database Integration, Import and Export with Awesome Procedures On Cypher</a></p>
 </li>
 </ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_load_jdbc_update"><a class="link" href="#_load_jdbc_update">LOAD JDBC - UPDATE</a></h4>
+<div class="paragraph">
+<p>The jdbcUpdate is use for update relational database, from a SQL kernelTransaction with optional parameters</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbcUpdate(jdbc-url,statement, params) YIELD  row;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>With this set of data you can call the procedure in two different mode:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (u:User)-[:BOUGHT]-&gt;(p:Product)&lt;-[:BOUGHT]-(o:User)-[:BOUGHT]-&gt;(reco)
+WHERE u &lt;&gt; o AND NOT (u)-[:BOUGHT]-&gt;(reco)
+WITH u, reco, count(*) as score
+WHERE score &gt; 1000</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can call the procedure with param:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbcUpdate('jdbc:mysql:....','INSERT INTO RECOMMENDATIONS values(?,?,?)',[user.id, reco.id, score]) YIELD row;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can call the procedure without param:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbcUpdate('jdbc:mysql:....','INSERT INTO RECOMMENDATIONS values(user.id, reco.id, score)') YIELD row;</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -8032,7 +8271,7 @@ in previous releases we&#8217;ve had <code>apoc.load.xmlSimple</code>. This is n
 </div>
 </div>
 <div class="paragraph">
-<p>We have the file here, <a href="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml">on GitHub</a>.</p>
+<p>We have the file here, <a href="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml">on GitHub</a>.</p>
 </div>
 </div>
 <div class="sect3">
@@ -8053,7 +8292,7 @@ If there is more than one element there will be a list of values.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml", '', {}, true)</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml", '', {}, true)</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -8126,7 +8365,7 @@ RETURN key, apoc.meta.type(value[key]);</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/src/test/resources/books.xml", '/catalog/book[genre=\"Computer\"]') yield value as book
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml", '/catalog/book[genre=\"Computer\"]') yield value as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['title','price'] | attr._text] as pairs
 RETURN id, pairs[0] as title, pairs[1] as price</code></pre>
 </div>
@@ -8145,7 +8384,7 @@ For example the <code>author</code> of the book with <code>id = bg102</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml('https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.1/src/test/resources/books.xml', '/catalog/book[@id="bk102"]/author') yield value as result
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml('https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml', '/catalog/book[@id="bk102"]/author') yield value as result
 WITH result._text as author
 RETURN author</code></pre>
 </div>
@@ -8167,7 +8406,7 @@ And each element into their own little map with <code>_type</code>, attributes a
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml")</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml")</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -8189,7 +8428,7 @@ And each element into their own little map with <code>_type</code>, attributes a
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 RETURN book.id</code></pre>
 </div>
@@ -8214,7 +8453,7 @@ RETURN book.id</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 RETURN book.id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs</code></pre>
 </div>
@@ -8237,7 +8476,7 @@ RETURN book.id, [attr IN book._children WHERE attr._type IN ['author','title'] |
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | attr._text] as pairs
 RETURN id, pairs[0] as author, pairs[1] as title</code></pre>
@@ -8265,7 +8504,7 @@ RETURN id, pairs[0] as author, pairs[1] as title</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
 CALL apoc.map.fromPairs(pairs) yield value
@@ -8291,7 +8530,7 @@ RETURN id, value</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml") yield value as catalog
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml") yield value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
 CALL apoc.map.fromPairs(pairs) yield value
@@ -8412,7 +8651,7 @@ RETURN id, value.author, value.title</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">call
-apoc.xml.import("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/books.xml",{createNextWordRelationships:
+apoc.xml.import("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml",{createNextWordRelationships:
 true})
 yield node
 return node;</code></pre>
@@ -9060,6 +9299,11 @@ The <strong>second</strong>, inner statement processes <strong>one</strong> elem
 <td class="tableblock halign-left valign-top"><p class="tableblock">{}</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">externally passed in map of params</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">concurrency</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">50</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">How many concurrent tasks are generate when using <code>parallel:true</code></p></td>
+</tr>
 </tbody>
 </table>
 <div class="admonitionblock note">
@@ -9219,7 +9463,7 @@ For example, define a counter with a numeric property:</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.periodic.iterate</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:50,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -10528,6 +10772,36 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 <div class="sect2">
 <h3 id="_schema_information"><a class="link" href="#_schema_information">Schema Information</a></h3>
 <div class="paragraph">
+<p>To drop or create index or constraint, you can use the following procedure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.schema.assert({indexLabel:[[indexKeys]], ...}, {constraintLabel:[constraintKeys], ...}, dropExisting : true) yield label, key, keys, unique, action</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Where the outputs are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>label</p>
+</li>
+<li>
+<p>key</p>
+</li>
+<li>
+<p>keys, list of the key</p>
+</li>
+<li>
+<p>unique, if the index or constraint are unique</p>
+</li>
+<li>
+<p>action, can be the following values: DROPPED, CREATED</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
 <p>To retrieve indexes and constraints information for all the node labels in your database, you can use the following procedure:</p>
 </div>
 <div class="listingblock">
@@ -10602,8 +10876,92 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 <div class="paragraph">
 <p>N.B. Constraints for property existence on nodes and relationships are available only for the Enterprise Edition.</p>
 </div>
+<div class="paragraph">
+<p>To retrieve the index existence on node, you can use the following user function:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">RETURN apoc.schema.node.indexExists(labelName, propertyNames)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The output return the index existence on node is present or not</p>
+</div>
+<div class="paragraph">
+<p>To retrieve if the constraint exists on node, you can use the following user function:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">RETURN apoc.schema.node.constraintExists(labelName, propertyNames)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The output return the constraint existence on node.</p>
+</div>
+<div class="paragraph">
+<p>To retrieve if the constraint exists on relationship, you can use the following user function:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">RETURN apoc.schema.relationship.constraintExists(type, propertyNames)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The output return the constraint on the relationship is present or not</p>
+</div>
 <div class="sect3">
 <h4 id="_examples_4"><a class="link" href="#_examples_4">Examples</a></h4>
+<div class="sect4">
+<h5 id="_list_schema_assert"><a class="link" href="#_list_schema_assert">List Schema assert</a></h5>
+<div class="paragraph">
+<p>When you:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.schema.assert({Foo:['bar']},null)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>you will receive this result:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.assert.index.png" alt="apoc.schema.assert.index">
+</div>
+</div>
+<div class="paragraph">
+<p>When you:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.schema.assert(null,{Foo:['bar']})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>you will receive this result:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.assert.constraint.png" alt="apoc.schema.assert.constraint">
+</div>
+</div>
+<div class="paragraph">
+<p>When you:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.schema.assert(null,null)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>you will receive this result:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.assert.drop.png" alt="apoc.schema.assert.drop">
+</div>
+</div>
+</div>
 <div class="sect4">
 <h5 id="_list_indexes_and_constraints_for_nodes"><a class="link" href="#_list_indexes_and_constraints_for_nodes">List indexes and constraints for nodes</a></h5>
 <div class="paragraph">
@@ -10708,8 +11066,10 @@ CREATE CONSTRAINT ON ()-[starred:STARRED]-() ASSERT exists(starred.month)</code>
 <div class="paragraph">
 <p>and you get the following result:</p>
 </div>
-<div class="paragraph">
-<p><span class="image"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.relationship.constraintExists.png" alt="apoc.schema.relationship.constraintExists"></span></p>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.relationship.constraintExists.png" alt="apoc.schema.relationship.constraintExists">
+</div>
 </div>
 </div>
 </div>
@@ -11347,6 +11707,26 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.in(node,'TYPE','prop:value*') YIELD node, weight</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">lucene query on relationship index with the given type name for <strong>incoming</strong> relationship of the given node, <strong>returns start-nodes</strong></p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.nodes.count('Label','prop:value*') YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">lucene query on node index with the given label name, <strong>returns count-nodes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.relationships.count('TYPE','prop:value*') YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">lucene query on relationship index with the given type name, <strong>returns count-relationships</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.between.count(node1,'TYPE',node2,'prop:value*') YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null), <strong>returns count-relationships</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.out.count(node,'TYPE','prop:value*') YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">lucene query on relationship index with the given type name for <strong>outgoing</strong> relationship of the given node, <strong>returns count-end-nodes</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.in.count(node,'TYPE','prop:value*') YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">lucene query on relationship index with the given type name for <strong>incoming</strong> relationship of the given node, <strong>returns count-start-nodes</strong></p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -11493,6 +11873,26 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.schema.assert({indexLabel:[indexKeys],&#8230;&#8203;},{constraintLabel:[constraintKeys],&#8230;&#8203;}, dropExisting : true) yield label, key, unique, action</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">drops all other existing indexes and constraints when <code>dropExisting</code> is <code>true</code> (default is <code>true</code>), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label.</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.schema.nodes() yield name, label, properties, status, type</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">get all indexes and constraints information for all the node labels in your database</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.schema.relationships() yield name, type, properties, status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">return all the constraint information for all the relationship types in your database</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.schema.node.indexExists(labelName, properties)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">return the indexes existence on node</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.schema.node.constraintExists(labelName, properties)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">return the constraints existence on node</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.schema.relationship.constraintExists(type, properties)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">return the constraints existence on relationship</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -11576,7 +11976,7 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 <div class="sect3">
 <h4 id="_export_to_csv"><a class="link" href="#_export_to_csv">Export to CSV</a></h4>
 <div class="paragraph">
-<p><code>YIELD file, source, format, nodes, relationships, properties, time, rows</code></p>
+<p><code>YIELD file, source, format, nodes, relationships, properties, time, rows, data</code></p>
 </div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
@@ -11602,6 +12002,14 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 </tr>
 </tbody>
 </table>
+<div class="paragraph">
+<p>If the file name is passed as <code>null</code> and the config <code>stream:true</code> the results are streamed back in the <code>data</code> column, e.g.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.export.csv.all(null, {stream:true,batchSize:100}) YIELD data RETURN data</code></pre>
+</div>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_export_to_cypher_script"><a class="link" href="#_export_to_cypher_script">Export to Cypher Script</a></h4>
@@ -11998,6 +12406,10 @@ schema await</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver')</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">register JDBC driver of source database</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.load.jdbcUpdate(jdbc-url,statement, params)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">update relational database from a SQL kernelTransaction with optional parameters</p></td>
 </tr>
 </tbody>
 </table>
@@ -12744,10 +13156,6 @@ CALL apoc.generate.simple([2,2,2,2], null, null)</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g.</p></td>
 </tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,parallel:true,retries:3,iterateList:true}) YIELD batches, total</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">run the second statement for each item returned by the first statement. Returns number of batches and total processed rows</p></td>
-</tr>
 </tbody>
 </table>
 <div class="ulist">
@@ -13114,11 +13522,11 @@ If relationships have different start/end nodes (related to direction), relation
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.sortNodes([nodes], 'name')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">sort nodes by property</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sort nodes by property, ascending sorting by adding ^ in front of the sorting field</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.sortMaps([maps], 'key')</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">sort maps by map key</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sort maps by map key, ascending sorting by adding ^ in front of the sorting field</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.reverse(coll)</code></p></td>
@@ -13405,6 +13813,14 @@ If relationships have different start/end nodes (related to direction), relation
 <col style="width: 83.3334%;">
 </colgroup>
 <tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.indexOf(text, lookup, offset=0, to=-1==len)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">find the first occurence of the lookup string in the text, from inclusive, to exclusive,, -1 if not found, null if text is null.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.indexesOf(text, lookup, from=0, to=-1==len)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.</p></td>
+</tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.replace(text, regex, replacement)</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">replace each substring of the given string that matches the given regular expression with the given replacement.</p></td>
@@ -15285,7 +15701,7 @@ The export file has to convert into UTF-8.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-08-16 00:28:51 MESZ
+Last updated 2018-09-01 15:35:51 MESZ
 </div>
 </div>
 </body>
