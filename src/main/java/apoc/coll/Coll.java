@@ -316,7 +316,7 @@ public class Coll {
 
     private Stream<List<Object>> partitionList(@Name("values") List list, @Name("batchSize") int batchSize) {
         int total = list.size();
-        int pages = (total / batchSize) + 1;
+        int pages = total % batchSize == 0 ? total/batchSize : total/batchSize + 1;
         return IntStream.range(0, pages).parallel().boxed()
                 .map(page -> {
                     int from = page * batchSize;
