@@ -4,6 +4,8 @@ import apoc.ApocConfiguration;
 import apoc.Pools;
 import apoc.export.util.CountingInputStream;
 import apoc.path.RelationshipTypeAndDirections;
+import apoc.result.MapResult;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
@@ -12,6 +14,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
+import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
@@ -23,6 +26,7 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Function;
 import java.util.stream.*;
 import java.util.zip.DeflaterInputStream;
@@ -30,6 +34,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static apoc.cypher.Cypher.POOL;
+import static apoc.cypher.Cypher.withParamMapping;
 import static java.lang.String.format;
 
 /**
@@ -699,5 +705,100 @@ public class Util {
         key = Optional.ofNullable(key).map(s -> s + "." + suffix).orElse(StringUtils.EMPTY);
         Object value = ApocConfiguration.get(loadType).get(key);
         return Optional.ofNullable(value).map(Object::toString);
+    }
+
+    public static Stream<MapResult> runWithRetry( GraphDatabaseService db, Log log, String statement, long retries, List<String> additionalRetryCodes, Map<String,Object> params )
+    {
+        String transactionFailureMessage = "";
+        Long timesTried = 0L;
+        do
+        {
+
+            FutureTask<Result> resultFuture = new FutureTask<>( () -> {
+                try ( Transaction tx = db.beginTx() )
+                {
+                    Result result = ((Function<Map<String,Object>, Result>) (Map<String,Object> p) -> db.execute(withParamMapping(statement, p.keySet()), p)).apply( params );
+                    tx.success();
+                    return result;
+                }
+
+            });
+
+            try
+            {
+                POOL.submit( resultFuture );
+
+                // Query has not finished yet, wait.
+                while ( !resultFuture.isDone() )
+                {
+                    LockSupport.parkNanos( 100 );
+                }
+
+                return resultFuture.get().stream().map( MapResult::new );
+            }
+            catch ( Exception e )
+            {
+                Throwable cause = e.getCause();
+
+                if ( cause instanceof QueryExecutionException )
+                {
+
+                    String statusCode = ((QueryExecutionException) cause).getStatusCode();
+                    if ( !isRetriableException( statusCode, additionalRetryCodes ) )
+                    {
+                        transactionFailureMessage = "Failed after " + timesTried + " out of " + retries + " retries. QueryExecutionException : " +
+                                ((QueryExecutionException) cause).getStatusCode();
+                        break;
+                    }
+                }
+                // Add catch for DeadlockDetectedException?
+
+                log.warn( "Retrying operation " + timesTried + " of " + retries );
+                Util.sleep( 100 );
+                timesTried++;
+            }
+            transactionFailureMessage = "Failed after " + timesTried + " of " + retries + " retries.";
+        }
+        while ( timesTried < retries );
+
+        throw new TransactionFailureException( transactionFailureMessage );
+    }
+
+    private interface RetriableStatusCodes extends Status
+    {
+        List<Status> RetriableStatusCodeList = Arrays.asList(
+                General.UnknownError,
+                Network.CommunicationError,
+                Procedure.ProcedureTimedOut,
+                Schema.ConstraintValidationFailed,
+                Schema.SchemaModifiedConcurrently,
+                Statement.ArithmeticError,
+                Statement.ConstraintVerificationFailed,
+                Transaction.ConstraintsChanged,
+                Transaction.DeadlockDetected,
+                Transaction.InstanceStateChanged,
+                Transaction.LockAcquisitionTimeout,
+                Transaction.LockSessionExpired,
+                Transaction.Outdated,
+                Transaction.TransactionCommitFailed,
+                Transaction.TransactionStartFailed,
+                Transaction.TransactionTimedOut
+        );
+    }
+
+    private static boolean isRetriableException( String statusCode, List<String> customRetriable )
+    {
+        Collection<String> retryOn = CollectionUtils.union( RetriableStatusCodes.RetriableStatusCodeList.stream().map( status -> status.code().serialize() ).collect(
+                Collectors.toList()), customRetriable);
+
+        for( String acceptableStatus : retryOn)
+        {
+
+            if (statusCode.equals( acceptableStatus ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

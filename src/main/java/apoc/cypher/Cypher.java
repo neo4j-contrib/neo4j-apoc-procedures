@@ -380,8 +380,15 @@ public class Cypher {
 
     @Procedure(mode = WRITE)
     @Description("apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with the given parameters")
-    public Stream<MapResult> doIt(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
+    public Stream<MapResult> doIt(@Name("cypher") String statement, @Name("params") Map<String, Object> params, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         if (params == null) params = Collections.emptyMap();
+
+        if (config.containsKey( "retries" ))
+        {
+            List<String> retryStatusCodes = (List<String>) config.getOrDefault( "retryStatusCodes", Collections.emptyList() );
+            return Util.runWithRetry( db, log, statement, (Long) config.get( "retries" ),retryStatusCodes, params);
+        }
+
         return db.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
     }
 
