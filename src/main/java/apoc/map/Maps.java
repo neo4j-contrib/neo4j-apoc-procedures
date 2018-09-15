@@ -160,7 +160,7 @@ public class Maps {
     }
 
     @UserFunction
-    @Description("apoc.map.clean(map,[skip,keys],[skip,values]) yield map removes the keys and values contained in those lists, good for data cleaning from CSV/JSON")
+    @Description("apoc.map.clean(map,[skip,keys],[skip,values]) yield map filters the keys and values contained in those lists, good for data cleaning from CSV/JSON")
     public Map<String,Object> clean(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
         HashSet<String> keySet = new HashSet<>(keys);
         HashSet<Object> valueSet = new HashSet<>(values);
