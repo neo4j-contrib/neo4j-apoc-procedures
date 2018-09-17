@@ -59,7 +59,7 @@ All boolean options default to **false**, i.e. they are disabled, unless mention
 | apoc.mongodb.<key>.uri=mongodb-url-with-credentials | store mongodb-urls under a key to be used by mongodb procedures
 | apoc.couchbase.<key>.uri=couchbase-url-with-credentials | store couchbase-urls under a key to be used by couchbase procedures
 | apoc.jobs.scheduled.num_threads=number-of-threads | Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size. You can configure the pool size using this configuration property
-| apoc.jobs.default.num_threads=number-of-threads | Number of threads in the default APOC thread pool used for background executions.
+| apoc.jobs.pool.num_threads=number-of-threads | Number of threads in the default APOC thread pool used for background executions.
 |===
 
 

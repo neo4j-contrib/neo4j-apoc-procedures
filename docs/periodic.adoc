@@ -17,7 +17,7 @@ The `apoc.periodic.*` procedures provide such capabilities.
 
 Many procedures run in the background or asynchronously. This setting overrides the default thread pool size (processors*2).
 
-`apoc.jobs.default.num_threads=10`
+`apoc.jobs.pool.num_threads=10`
 
 Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size (processors/4, at least 1). You can configure the pool size using the following configuration property:
 
