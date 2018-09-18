@@ -1,9 +1,11 @@
 package apoc;
 
+import apoc.custom.CypherProcedures;
 import apoc.index.IndexUpdateTransactionEventHandler;
 import apoc.trigger.Trigger;
 import apoc.ttl.TTLLifeCycle;
 import apoc.util.ApocUrlStreamHandlerFactory;
+import org.neo4j.kernel.AvailabilityGuard;
 import org.neo4j.kernel.extension.KernelExtensionFactory;
 import org.neo4j.kernel.impl.logging.LogService;
 import org.neo4j.kernel.impl.proc.Procedures;
@@ -34,6 +36,7 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
         JobScheduler scheduler();
         Procedures procedures();
         LogService log();
+        AvailabilityGuard availabilityGuard();
     }
 
     @Override
@@ -53,6 +56,7 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
         private TTLLifeCycle ttlLifeCycle;
 
         private IndexUpdateTransactionEventHandler.LifeCycle indexUpdateLifeCycle;
+        private CypherProcedures.CustomProcedureStorage customProcedureStorage;
 
         public ApocLifecycle(LogService log, GraphDatabaseAPI db, Dependencies dependencies) {
             this.log = log;
@@ -77,6 +81,9 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
             triggerLifeCycle.start();
             indexUpdateLifeCycle = new IndexUpdateTransactionEventHandler.LifeCycle(db, log.getUserLog(Procedures.class));
             indexUpdateLifeCycle.start();
+
+            customProcedureStorage = new CypherProcedures.CustomProcedureStorage(db, log.getUserLog(CypherProcedures.class));
+            dependencies.availabilityGuard().addListener(customProcedureStorage);
         }
 
         public void registerCustomProcedures() {
