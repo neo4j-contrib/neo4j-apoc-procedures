@@ -105,4 +105,92 @@ public class LoadJsonTest {
                     assertFalse(row.hasNext());
                 });
     }
+
+    @Test public void testLoadJsonZip() throws Exception {
+        URL url = ClassLoader.getSystemResource("testload.zip");
+        testCall(db, "CALL apoc.load.json({url})",map("url",url.toString()+"!person.json"),
+                (row) -> {
+                    Map<String,Object> r = (Map<String, Object>) row.get("value");
+                    assertEquals("Michael", r.get("name"));
+                    assertEquals(41, r.get("age"));
+                    assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
+                });
+    }
+
+    @Test public void testLoadJsonTar() throws Exception {
+        URL url = ClassLoader.getSystemResource("testload.tar");
+        testCall(db, "CALL apoc.load.json({url})",map("url",url.toString()+"!person.json"),
+                (row) -> {
+                    Map<String,Object> r = (Map<String, Object>) row.get("value");
+                    assertEquals("Michael", r.get("name"));
+                    assertEquals(41, r.get("age"));
+                    assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
+                });
+    }
+
+    @Test public void testLoadJsonTarGz() throws Exception {
+        URL url = ClassLoader.getSystemResource("testload.tar.gz");
+        testCall(db, "CALL apoc.load.json({url})",map("url",url.toString()+"!person.json"),
+                (row) -> {
+                    Map<String,Object> r = (Map<String, Object>) row.get("value");
+                    assertEquals("Michael", r.get("name"));
+                    assertEquals(41, r.get("age"));
+                    assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
+                });
+    }
+
+    @Test public void testLoadJsonTgz() throws Exception {
+        URL url = ClassLoader.getSystemResource("testload.tgz");
+        testCall(db, "CALL apoc.load.json({url})",map("url",url.toString()+"!person.json"),
+                (row) -> {
+                    Map<String,Object> r = (Map<String, Object>) row.get("value");
+                    assertEquals("Michael", r.get("name"));
+                    assertEquals(41, r.get("age"));
+                    assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
+                });
+    }
+
+    @Test public void testLoadJsonZipByUrl() throws Exception {
+        URL url = new URL("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.zip?raw=true");
+        testCall(db, "CALL apoc.load.json({url})",map("url",url.toString()+"!person.json"),
+                (row) -> {
+                    Map<String,Object> r = (Map<String, Object>) row.get("value");
+                    assertEquals("Michael", r.get("name"));
+                    assertEquals(41, r.get("age"));
+                    assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
+                });
+    }
+
+    @Test public void testLoadJsonTarByUrl() throws Exception {
+        URL url = new URL("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tar?raw=true");
+        testCall(db, "CALL apoc.load.json({url})",map("url",url.toString()+"!person.json"),
+                (row) -> {
+                    Map<String,Object> r = (Map<String, Object>) row.get("value");
+                    assertEquals("Michael", r.get("name"));
+                    assertEquals(41, r.get("age"));
+                    assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
+                });
+    }
+
+    @Test public void testLoadJsonTarGzByUrl() throws Exception {
+        URL url = new URL("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tar.gz?raw=true");
+        testCall(db, "CALL apoc.load.json({url})",map("url",url.toString()+"!person.json"),
+                (row) -> {
+                    Map<String,Object> r = (Map<String, Object>) row.get("value");
+                    assertEquals("Michael", r.get("name"));
+                    assertEquals(41, r.get("age"));
+                    assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
+                });
+    }
+
+    @Test public void testLoadJsonTgzByUrl() throws Exception {
+        URL url = new URL("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tgz?raw=true");
+        testCall(db, "CALL apoc.load.json({url})",map("url",url.toString()+"!person.json"),
+                (row) -> {
+                    Map<String,Object> r = (Map<String, Object>) row.get("value");
+                    assertEquals("Michael", r.get("name"));
+                    assertEquals(41, r.get("age"));
+                    assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
+                });
+    }
 }

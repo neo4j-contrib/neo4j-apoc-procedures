@@ -329,6 +329,20 @@ config contains any of: `{skip:1,limit:5,header:false,ignore:['aColumn'],arraySe
 nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false,nullValues:['n.A.']}}`
 |===
 
+.Load Single File From Compressed File (zip/tar/tar.gz/tgz)
+
+For load file from compressed file the url right sintax is:
+
+----
+apoc.load.csv("pathToFile!csv/fileName.csv")
+----
+
+----
+apoc.load.json("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tgz?raw=true!person.json");
+----
+
+You have to put the ! character before the filename.
+
 .Using S3 protocol
 
 For using S3 protocol you have to copy these jars into the plugins directory:
