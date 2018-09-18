@@ -132,11 +132,14 @@ h| Output Return Columns |
 
 // end::signature[]
 
+// tag::install[]
+
 == Manual Installation: Download latest release
 
 Go to http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/{apoc-release}
 to find the latest release and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
 
+// end::install[]
 
 == Manual Configuration
 
@@ -205,7 +208,9 @@ To know your current `apoc` version you can use the *Function* :
 RETURN apoc.version()
 ----
 
-=== Using APOC with Neo4j Docker image
+// tag::docker[]
+
+=== Using APOC with the Neo4j Docker image
 
 The https://hub.docker.com/_/neo4j/[Neo4j Docker image] allows to supply a volume for the `/plugins` folder. Download the APOC release fitting your Neo4j version to local folder `plugins` and provide it as a data volume:
 
@@ -231,6 +236,7 @@ docker run \
     neo4j
 ----
 
+// end::docker[]
 // tag::build[]
 
 === Build & install the current development branch from source

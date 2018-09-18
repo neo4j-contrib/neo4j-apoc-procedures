@@ -37,14 +37,18 @@ To generate the help output, apoc utilizes the built in `dbms.procedures()` and 
 include::../build/generated-documentation/documentation.csv[]
 |===
 
+include::functions.adoc[leveloffset=+1]
+
+include::../readme.adoc[tags=install,leveloffset=1]
+
 === Notices
 
 include::../readme.adoc[tags=warnings,leveloffset=1]
 
+include::../readme.adoc[tags=docker,leveloffset=1]
+
 
 // include::overview.adoc[tags=overview,leveloffset=1]
-
-include::functions.adoc[leveloffset=+1]
 
 == Text and Lookup Indexes
 
