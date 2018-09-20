@@ -5,7 +5,7 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.6.1">
-<title>APOC User Guide 3.4.0.2</title>
+<title>APOC User Guide 3.4.0.3</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
@@ -427,7 +427,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
-<h1>APOC User Guide 3.4.0.2</h1>
+<h1>APOC User Guide 3.4.0.3</h1>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
@@ -442,11 +442,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_help_and_usage">Help and Usage</a></li>
-<li><a href="#_overview_of_apoc_procedures_functions">Overview of APOC Procedures &amp; Functions</a>
+<li><a href="#_installation_in_neo4j_server_docker">Installation in Neo4j Server &amp; Docker</a>
 <ul class="sectlevel2">
-<li><a href="#_notices">Notices</a></li>
+<li><a href="#_manual_installation_download_latest_release">Manual Installation: Download latest release</a></li>
+<li><a href="#_using_apoc_with_the_neo4j_docker_image">Using APOC with the Neo4j Docker image</a></li>
 </ul>
 </li>
+<li><a href="#_overview_of_apoc_procedures_functions">Overview of APOC Procedures &amp; Functions</a></li>
 <li><a href="#_user_defined_functions">User Defined Functions</a></li>
 <li><a href="#_text_and_lookup_indexes">Text and Lookup Indexes</a>
 <ul class="sectlevel2">
@@ -737,6 +739,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_loading_data_from_rdbms">Loading Data from RDBMS</a></li>
 <li><a href="#_loading_data_from_web_apis_json_xml_csv">Loading Data from Web-APIs (JSON, XML, CSV)</a></li>
+<li><a href="#_loading_data_from_html_page">Loading Data from Html Page</a></li>
 <li><a href="#_interacting_with_elastic_search">Interacting with Elastic Search</a></li>
 <li><a href="#_interacting_with_mongodb">Interacting with MongoDB</a></li>
 <li><a href="#_interacting_with_couchbase">Interacting with Couchbase</a></li>
@@ -1068,6 +1071,88 @@ RETURN name AS undocumented</code></pre>
 </div>
 <div class="paragraph">
 <p>To generate the help output, apoc utilizes the built in <code>dbms.procedures()</code> and <code>dbms.functions()</code> utilities.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_installation_in_neo4j_server_docker"><a class="link" href="#_installation_in_neo4j_server_docker">Installation in Neo4j Server &amp; Docker</a></h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_manual_installation_download_latest_release"><a class="link" href="#_manual_installation_download_latest_release">Manual Installation: Download latest release</a></h3>
+<div class="paragraph">
+<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.3" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.3</a>
+to find the latest release and download the binary jar to place into your <code>$NEO4J_HOME/plugins</code> folder.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Neo4j 3.2 has increased security for procedures and functions (aka sandboxing).
+Procedures that use internal APIs have to be allowed in <code>$NEO4J_HOME/conf/neoj4.conf</code> with, e.g. <code>dbms.security.procedures.unrestricted=apoc.trigger.*,apoc.meta.*</code> for security reasons (or <code>apoc.*</code> for all).</p>
+</div>
+<div class="paragraph">
+<p>If you want to use this via docker, you need to amend <code>-e NEO4J_dbms_security_procedures_unrestricted=apoc.\\\*</code> to your <code>docker run &#8230;&#8203;</code> command. The three backslashes are necessary to prevent wildcard expansions.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>You can also whitelist procedures and functions in general to be loaded using: <code>dbms.security.procedures.whitelist=apoc.coll.*,apoc.load.*</code></p>
+</div>
+<div class="paragraph">
+<p>Neo4j 3.2 introduces user defined aggregation functions, we will use that feature in APOC in the future, e.g. for export, graph-algorithms and more, instead of passing in Cypher statements to procedures.</p>
+</div>
+<div class="paragraph">
+<p>Please note that about 70 procedures have been turned from procedures into user defined functions.
+This includes, <code>apoc.date.* apoc.number.*, apoc.coll.*, apoc.map.*</code> and some more packages.
+See, this <a href="https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/144" target="_blank" rel="noopener">issue</a> for a list.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_using_apoc_with_the_neo4j_docker_image"><a class="link" href="#_using_apoc_with_the_neo4j_docker_image">Using APOC with the Neo4j Docker image</a></h3>
+<div class="paragraph">
+<p>The <a href="https://hub.docker.com/_/neo4j/">Neo4j Docker image</a> allows to supply a volume for the <code>/plugins</code> folder. Download the APOC release fitting your Neo4j version to local folder <code>plugins</code> and provide it as a data volume:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">mkdir plugins
+pushd plugins
+wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.4.0.3/apoc-3.4.0.3-all.jar
+popd
+docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.4.7</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to pass custom apoc config to your Docker instance, you can use environment variables, like here:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>docker run \
+    -p 7474:7474 -p 7687:7687 \
+    -v $PWD/data:/data -v $PWD/plugins:/plugins \
+    --name neo4j-apoc \
+    -e NEO4J_apoc_export_file_enabled=true \
+    -e NEO4J_apoc_import_file_enabled=true \
+    -e NEO4J_apoc_import_file_use__neo4j__config=true \
+    neo4j</pre>
+</div>
+</div>
 </div>
 </div>
 </div>
@@ -1778,6 +1863,11 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.html</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value - Load Html page and return the result as a Map</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.generate.ba</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.generate.ba(noNodes, edgesPerNode, label, type) - generates a random graph according to the Barabasi-Albert model</p></td>
 </tr>
@@ -2128,6 +2218,16 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.custom.asProcedure</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.custom.asFunction</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.create.node</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.create.node(['Label'], {key:value,&#8230;&#8203;}) - create node with dynamic labels</p></td>
 </tr>
@@ -2219,7 +2319,7 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.warmup.run</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.warmup.run() - quickly loads all nodes and rels into memory by skipping one page at a time</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.warmup.run(loadProperties=false,loadDynamicProperties=false,loadIndexes=false) - quickly loads all nodes and rels into memory by skipping one page at a time</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -2324,57 +2424,57 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.get</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.get(nodes, bucket, documentId) yield id, expiry, cas, mutationToken, content - retrieves a couchbase json document by its unique ID.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.get(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content - retrieves a couchbase json document by its unique ID.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.exists</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.exists(nodes, bucket, documentId) yield value - check whether a couchbase json document with the given ID does exist.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.exists(hostOrKey, bucket, documentId) yield value - check whether a couchbase json document with the given ID does exist.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.insert</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.insert(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert a couchbase json document with its unique ID.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.insert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert a couchbase json document with its unique ID.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.upsert</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.upsert(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert or overwrite a couchbase json document with its unique ID.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.upsert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - insert or overwrite a couchbase json document with its unique ID.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.append</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.append(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - append a couchbase json document to an existing one.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.append(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - append a couchbase json document to an existing one.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.prepend</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.prepend(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - prepend a couchbase json document to an existing one.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.prepend(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - prepend a couchbase json document to an existing one.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.remove</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.remove(nodes, bucket, documentId) yield id, expiry, cas, mutationToken, content - remove the couchbase json document identified by its unique ID.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.remove(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content - remove the couchbase json document identified by its unique ID.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.replace</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.replace(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - replace the content of the couchbase json document identified by its unique ID.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.replace(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content - replace the content of the couchbase json document identified by its unique ID.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.query</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.query(nodes, bucket, kernelTransaction) yield queryResult - executes a plain un-parameterized N1QL kernelTransaction.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.query(hostOrKey, bucket, kernelTransaction) yield queryResult - executes a plain un-parameterized N1QL kernelTransaction.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.posParamsQuery</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.posParamsQuery(nodes, bucket, kernelTransaction, params) yield queryResult - executes a N1QL kernelTransaction with positional parameters.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.posParamsQuery(hostOrKey, bucket, kernelTransaction, params) yield queryResult - executes a N1QL kernelTransaction with positional parameters.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.namedParamsQuery</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.namedParamsQuery(nodes, bucket, kernelTransaction, paramNames, paramValues) yield queryResult - executes a N1QL kernelTransaction with named parameters.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.couchbase.namedParamsQuery(hostkOrKey, bucket, kernelTransaction, paramNames, paramValues) yield queryResult - executes a N1QL kernelTransaction with named parameters.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
@@ -3024,7 +3124,7 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.map.clean</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.map.clean(map,[skip,keys],[skip,values]) yield map removes the keys and values contained in those lists, good for data cleaning from CSV/JSON</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.map.clean(map,[skip,keys],[skip,values]) yield map filters the keys and values contained in those lists, good for data cleaning from CSV/JSON</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
@@ -3438,49 +3538,6 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 </tr>
 </tbody>
 </table>
-<div class="sect2">
-<h3 id="_notices"><a class="link" href="#_notices">Notices</a></h3>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Warning</div>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>Neo4j 3.2 has increased security for procedures and functions (aka sandboxing).
-Procedures that use internal APIs have to be allowed in <code>$NEO4J_HOME/conf/neoj4.conf</code> with, e.g. <code>dbms.security.procedures.unrestricted=apoc.trigger.*,apoc.meta.*</code> for security reasons (or <code>apoc.*</code> for all).</p>
-</div>
-<div class="paragraph">
-<p>If you want to use this via docker, you need to amend <code>-e NEO4J_dbms_security_procedures_unrestricted=apoc.\\\*</code> to your <code>docker run &#8230;&#8203;</code> command. The three backslashes are necessary to prevent wildcard expansions.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>You can also whitelist procedures and functions in general to be loaded using: <code>dbms.security.procedures.whitelist=apoc.coll.*,apoc.load.*</code></p>
-</div>
-<div class="paragraph">
-<p>Neo4j 3.2 introduces user defined aggregation functions, we will use that feature in APOC in the future, e.g. for export, graph-algorithms and more, instead of passing in Cypher statements to procedures.</p>
-</div>
-<div class="paragraph">
-<p>Please note that about 70 procedures have been turned from procedures into user defined functions.
-This includes, <code>apoc.date.* apoc.number.*, apoc.coll.*, apoc.map.*</code> and some more packages.
-See, this <a href="https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/144" target="_blank" rel="noopener">issue</a> for a list.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -8561,7 +8618,7 @@ RETURN id, value.author, value.title</code></pre>
 <h5 id="_usage_3"><a class="link" href="#_usage_3">usage</a></h5>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.import.xml(&lt;url&gt;, &lt;config&gt;?) YIELD node</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.xml.import(&lt;url&gt;, &lt;config&gt;?) YIELD node</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -8656,6 +8713,9 @@ true})
 yield node
 return node;</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>include::loadhtml.adoc[leveloffset=2]over</p>
 </div>
 </div>
 </div>
@@ -9241,7 +9301,7 @@ for other graph refactorings it&#8217;s not that easy to commit transactions reg
 <p>Many procedures run in the background or asynchronously. This setting overrides the default thread pool size (processors*2).</p>
 </div>
 <div class="paragraph">
-<p><code>apoc.jobs.default.num_threads=10</code></p>
+<p><code>apoc.jobs.pool.num_threads=10</code></p>
 </div>
 <div class="paragraph">
 <p>Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size (processors/4, at least 1). You can configure the pool size using the following configuration property:</p>
@@ -11595,7 +11655,7 @@ Is&#8217;s a map of values, the values that we don&#8217;t pass to the config, a
 <td class="tableblock halign-left valign-top"><p class="tableblock">Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size. You can configure the pool size using this configuration property</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.jobs.default.num_threads=number-of-threads</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.jobs.pool.num_threads=number-of-threads</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Number of threads in the default APOC thread pool used for background executions.</p></td>
 </tr>
 </tbody>
@@ -12474,6 +12534,23 @@ nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',i
 </tbody>
 </table>
 <div class="paragraph">
+<div class="title">Load Single File From Compressed File (zip/tar/tar.gz/tgz)</div>
+<p>For load file from compressed file the url right sintax is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.load.csv("pathToFile!csv/fileName.csv")</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.load.json("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tgz?raw=true!person.json");</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You have to put the ! character before the filename.</p>
+</div>
+<div class="paragraph">
 <div class="title">Using S3 protocol</div>
 <p>For using S3 protocol you have to copy these jars into the plugins directory:</p>
 </div>
@@ -12514,6 +12591,21 @@ or</p>
 <div class="title">failOnError</div>
 <p>Adding on config the parameter <code>failOnError:false</code> (by default <code>true</code>), in case of error the procedure don&#8217;t fail but just return zero rows.</p>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_loading_data_from_html_page"><a class="link" href="#_loading_data_from_html_page">Loading Data from Html Page</a></h3>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 60%;">
+<col style="width: 40%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Load Html page and return the result as a Map</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_interacting_with_elastic_search"><a class="link" href="#_interacting_with_elastic_search">Interacting with Elastic Search</a></h3>
@@ -12649,47 +12741,47 @@ cp lib/mongodb*.jar lib/bson*.jar $NEO4J_HOME/plugins/</pre>
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.get(nodes, bucket, documentId) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.get(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Retrieves a couchbase json document by its unique ID</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.exists(nodes, bucket, documentId) yield value</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.exists(hostOrKey, bucket, documentId) yield value</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Check whether a couchbase json document with the given ID does exist</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.insert(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.insert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Insert a couchbase json document with its unique ID</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.upsert(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.upsert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Insert or overwrite a couchbase json document with its unique ID</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.append(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.append(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Append a couchbase json document to an existing one</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.prepend(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.prepend(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Prepend a couchbase json document to an existing one</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.remove(nodes, bucket, documentId) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.remove(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Remove the couchbase json document identified by its unique ID</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.replace(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.replace(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Replace the content of the couchbase json document identified by its unique ID.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.query(nodes, bucket, statement) yield queryResult</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.query(hostOrKey, bucket, statement) yield queryResult</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Executes a plain un-parameterized N1QL statement.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.posParamsQuery(nodes, bucket, statement, params) yield queryResult</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.posParamsQuery(hostOrKey, bucket, statement, params) yield queryResult</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Executes a N1QL statement with positional parameters.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.namedParamsQuery(nodes, bucket, statement, paramNames, paramValues) yield queryResult</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.couchbase.namedParamsQuery(hostOrKey, bucket, statement, paramNames, paramValues) yield queryResult</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Executes a N1QL statement with named parameters.</p></td>
 </tr>
 </tbody>
@@ -12703,9 +12795,27 @@ cp lib/mongodb*.jar lib/bson*.jar $NEO4J_HOME/plugins/</pre>
 cp target/dependency/java-client-2.3.1.jar target/dependency/core-io-1.3.1.jar target/dependency/rxjava-1.1.5.jar $NEO4J_HOME/plugins/</pre>
 </div>
 </div>
+<div class="paragraph">
+<p>To interact with Couchbase you can define the host on which to connect to as the first parameter of the procedure</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.couchbase.get(['localhost'], 'default', 'artist:vincent_van_gogh')</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.couchbase.get('couchbase://Administrator:password@localhost', 'default', 'artist:vincent_van_gogh')</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Otherwise you can use configuration properties in the same way as MongoDB. For example, you can add the following properties to the neo4j.conf file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.couchbase.mykey.username=Administrator
+apoc.couchbase.mykey.password=password
+apoc.couchbase.mykey.uri=host1,host2,host3 // here you can define more than one hostname if you're using a cluster</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.couchbase.get('mykey', 'default', 'artist:vincent_van_gogh')</code></pre>
 </div>
 </div>
 </div>
@@ -15701,7 +15811,7 @@ The export file has to convert into UTF-8.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-09-01 15:35:51 MESZ
+Last updated 2018-09-20 06:28:44 EDT
 </div>
 </div>
 </body>
