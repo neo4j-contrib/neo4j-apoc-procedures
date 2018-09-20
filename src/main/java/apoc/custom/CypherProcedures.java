@@ -94,7 +94,8 @@ public class CypherProcedures {
             try {
                 Procedures procedures = api.getDependencyResolver().resolveDependency(Procedures.class);
                 ProcedureSignature signature = new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
-                        Mode.valueOf(mode.toUpperCase()), null, new String[0], null, null, false);
+                        Mode.valueOf(mode.toUpperCase()), null, new String[0], null, null, false, true
+                );
 
                 procedures.register(new CallableProcedure.BasicProcedure(signature) {
                     @Override
