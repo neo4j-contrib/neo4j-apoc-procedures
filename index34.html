@@ -644,6 +644,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_further_functions">Further Functions</a></li>
 </ul>
 </li>
+<li><a href="#_custom_cypher_based_procedures_and_functions">Custom, Cypher Based Procedures and Functions</a>
+<ul class="sectlevel3">
+<li><a href="#_custom_procedures_with_code_apoc_custom_asprocedure_code">Custom Procedures with <code>apoc.custom.asProcedure</code></a></li>
+<li><a href="#_custom_functions_with_code_apoc_custom_asfunction_code">Custom Functions with <code>apoc.custom.asFunction</code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_virtual">Virtual</a>
@@ -9552,6 +9558,210 @@ $(document).ready(function() {
 </script>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_custom_cypher_based_procedures_and_functions"><a class="link" href="#_custom_cypher_based_procedures_and_functions">Custom, Cypher Based Procedures and Functions</a></h3>
+<div class="paragraph">
+<p>I wanted for a long time to be able to register Cypher statements as proper procedures and functions, so that they become callable in a standalone way.</p>
+</div>
+<div class="paragraph">
+<p>You can achieve that with the <code>apoc.custom.asProcedure</code> and <code>apoc.custom.asFunction</code> procedure calls.
+Those register a given Cypher statement, prefixed with the <code>custom.*</code> namespace, overriding potentially existing ones, so you can redefine them as needed.</p>
+</div>
+<div class="paragraph">
+<p>Here is a simple example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>CALL apoc.custom.asProcedure('answer','RETURN 42 as answer')</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This registers the statement as procedure <code>custom.answer</code> that you then can call.
+As no information on parameter and return types is given, it just returns a stream of columns of maps called <code>row</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>CALL custom.answer YIELD row
+RETURN row.answer</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The same is possible as a function:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>CALL apoc.custom.asFunction('answer','RETURN 42')</pre>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_custom_procedures_with_code_apoc_custom_asprocedure_code"><a class="link" href="#_custom_procedures_with_code_apoc_custom_asprocedure_code">Custom Procedures with <code>apoc.custom.asProcedure</code></a></h4>
+<div class="paragraph">
+<p>Given statement will be registered as a procedure, the results will be turned into a stream of records.</p>
+</div>
+<table class="tableblock frame-all grid-all">
+<caption class="title">Table 5. Parameters</caption>
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">name</th>
+<th class="tableblock halign-left valign-top">default</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>none</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>dot-separated name, will be prefixed with <code>custom</code></p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>statement</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>none</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>cypher statement to run, can use $parameters</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>outputs</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>[["row","MAP"]]</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>List of pairs of name-type to be used as output columns, need to be in-order with the cypher statement, the default is a special case, that will collect all columns of the statement result into a map</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>inputs</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>[["params","MAP","{}"]]</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>Pairs or triples of name-type-default, to be used as input parameters. The default just takes an optional map, otherwise they will become proper paramters in order</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The type names are what you would expect and see in outputs of <code>dbms.procedures</code> or <code>apoc.help</code> just without the <code>?</code>.
+The default values are parsed as JSON.</p>
+</div>
+<div class="ulist">
+<div class="title">Type Names</div>
+<ul>
+<li>
+<p>FLOAT, DOUBLE, INT, INTEGER, NUMBER, LONG</p>
+</li>
+<li>
+<p>TEXT, STRING</p>
+</li>
+<li>
+<p>BOOL, BOOLEAN</p>
+</li>
+<li>
+<p>POINT, GEO, GEOCORDINATE</p>
+</li>
+<li>
+<p>DATE, DATETIME, LOCALDATETIME, TIME, LOCALTIME, DURATION</p>
+</li>
+<li>
+<p>NODE, REL, RELATIONSHIP, PATH</p>
+</li>
+<li>
+<p>MAP</p>
+</li>
+<li>
+<p>LIST TYPE, LIST OF TYPE</p>
+</li>
+<li>
+<p>ANY</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title">Example Neighbours of a node by name</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.custom.asProcdure('neighbours',
+  'MATCH (n:Person {name:$name})--&gt;(nb) RETURN neighbour',
+  [['neighbour','NODE']],[['name','STRING']]);
+
+call custom.neighbours('Joe') YIELD neighbour;</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_custom_functions_with_code_apoc_custom_asfunction_code"><a class="link" href="#_custom_functions_with_code_apoc_custom_asfunction_code">Custom Functions with <code>apoc.custom.asFunction</code></a></h4>
+<div class="paragraph">
+<p>Given statement will be registered as a statement, the results into a single value.
+If the given output type is a list, results will be collected into a list, otherwise the first row will be used.
+The statement needs to return a single column, otherwise an error is thrown.</p>
+</div>
+<table class="tableblock frame-all grid-all">
+<caption class="title">Table 6. Parameters</caption>
+<colgroup>
+<col>
+<col>
+<col>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">name</th>
+<th class="tableblock halign-left valign-top">default</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>name</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>none</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>dot-separated name, will be prefixed with <code>custom</code></p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>statement</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>none</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>cypher statement to run, can use $parameters</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>outputs</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>"LIST OF MAP"</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>Output type for single output, if the type is a list, then all rows will be collected, otherwise just the first row. Only single column results are allowed.
+If your single row result is a list you can force a single row by setting the last parameter to <code>true</code></p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>inputs</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>[["params","MAP","{}"]]</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>Pairs or triples of name-type-default, to be used as input parameters. The default just takes an optional map, otherwise they will become proper paramters in order</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>singleRow</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>false</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>If set to true, the statement is treated as single row even with the list result type, then your statement has to return a list.</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The type names are what you would expect and see in outputs of <code>dbms.procedures</code> or <code>apoc.help</code> just without the <code>?</code>.
+The default values are parsed as JSON.</p>
+</div>
+<div class="listingblock">
+<div class="title">Examples</div>
+<div class="content">
+<pre></pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -10636,7 +10846,7 @@ They return the list of eventually impacted constraints and indexes, the user sh
 <p>You can use these helper functions to extract nodes by label or</p>
 </div>
 <table class="tableblock frame-all grid-all spread">
-<caption class="title">Table 5. Helper Functions</caption>
+<caption class="title">Table 7. Helper Functions</caption>
 <colgroup>
 <col style="width: 16.6666%;">
 <col style="width: 83.3334%;">
@@ -11859,7 +12069,7 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 <p>Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.</p>
 </div>
 <table class="tableblock frame-all grid-all spread">
-<caption class="title">Table 6. Procedures</caption>
+<caption class="title">Table 8. Procedures</caption>
 <colgroup>
 <col style="width: 16.6666%;">
 <col style="width: 83.3334%;">
@@ -11892,7 +12102,7 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 </tbody>
 </table>
 <table class="tableblock frame-all grid-all spread">
-<caption class="title">Table 7. Functions</caption>
+<caption class="title">Table 9. Functions</caption>
 <colgroup>
 <col style="width: 16.6666%;">
 <col style="width: 83.3334%;">
@@ -11982,7 +12192,7 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 <div class="sect2">
 <h3 id="_from_tojson"><a class="link" href="#_from_tojson">from/toJson</a></h3>
 <table class="tableblock frame-all grid-all spread">
-<caption class="title">Table 8. Functions</caption>
+<caption class="title">Table 10. Functions</caption>
 <colgroup>
 <col style="width: 16.6666%;">
 <col style="width: 83.3334%;">
@@ -12369,7 +12579,7 @@ schema await</code></pre>
 </tbody>
 </table>
 <table class="tableblock frame-all grid-all spread">
-<caption class="title">Table 9. configuration options</caption>
+<caption class="title">Table 11. configuration options</caption>
 <colgroup>
 <col style="width: 33.3333%;">
 <col style="width: 33.3333%;">
@@ -14123,7 +14333,7 @@ If relationships have different start/end nodes (related to direction), relation
 </tbody>
 </table>
 <table class="tableblock frame-all grid-all spread">
-<caption class="title">Table 10. Procedure</caption>
+<caption class="title">Table 12. Procedure</caption>
 <colgroup>
 <col style="width: 16.6666%;">
 <col style="width: 83.3334%;">
@@ -15811,7 +16021,7 @@ The export file has to convert into UTF-8.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-09-20 06:28:44 EDT
+Last updated 2018-09-20 09:33:50 EDT
 </div>
 </div>
 </body>
