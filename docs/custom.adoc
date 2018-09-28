@@ -60,11 +60,11 @@ The default values are parsed as JSON.
 .Example Neighbours of a node by name
 [source,cypher]
 ----
-call apoc.custom.asProcdure('neighbours',
-  'MATCH (n:Person {name:$name})-->(nb) RETURN neighbour',
+CALL apoc.custom.asProcedure('neighbours',
+  'MATCH (n:Person {name:$name})-->(nb) RETURN nb as neighbour','read',
   [['neighbour','NODE']],[['name','STRING']]);
 
-call custom.neighbours('Joe') YIELD neighbour;
+CALL custom.neighbours('Keanu Reeves') YIELD neighbour;
 ----
 
 
