@@ -8,6 +8,8 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.Map;
+
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
@@ -171,6 +173,26 @@ public class TriggerTest {
             assertEquals(true, ((Node)row.get("f")).hasProperty("txId"));
             assertEquals(true, ((Node)row.get("f")).hasProperty("txTime"));
             assertEquals(true, ((Node)row.get("f")).hasProperty("name"));
+        });
+    }
+
+    @Test
+    public void testTriggerConfig() throws Exception {
+        final String CONFIG_STRING = "testing123";
+
+        db.execute("CALL apoc.trigger.add('test','RETURN 1',{phase: 'before'}, {testConfig: '" + CONFIG_STRING + "'})").close();
+        TestUtil.testCall(db, "CALL apoc.trigger.list", (row) -> {
+            assertEquals(CONFIG_STRING, ((Map<String,Object>) (row.get( "config" ))).get( "testConfig" ));
+        });
+    }
+
+    @Test
+    public void testTriggerParams() throws Exception {
+        db.execute("CALL apoc.trigger.add('test','UNWIND {createdNodes} AS n SET n.testProp = {testParam}',{phase: 'before'}, { params: {testParam: '1' }})").close();
+        db.execute("CREATE (f:Foo {name:'Michael'})").close();
+        TestUtil.testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
+            assertEquals(true, ((Node)row.get("f")).hasProperty("testProp"));
+            assertEquals("1", ((Node)row.get("f")).getProperty( "testProp"));
         });
     }
 
