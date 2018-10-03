@@ -40,12 +40,12 @@ public class CypherFunctions {
     }
 
     @UserFunction
-    @Description("apoc.cypher.runFirstColumnMany(statement, params, expectMultipleValues) - executes statement with given parameters, returns first column only collected into a list, params are available as identifiers")
+    @Description("apoc.cypher.runFirstColumnMany(statement, params) - executes statement with given parameters, returns first column only collected into a list, params are available as identifiers")
     public List<Object> runFirstColumnMany(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         return (List)runFirstColumn(statement, params, true);
     }
     @UserFunction
-    @Description("apoc.cypher.runFirstColumnSingle(statement, params, expectMultipleValues) - executes statement with given parameters, returns first element of the first column only, params are available as identifiers")
+    @Description("apoc.cypher.runFirstColumnSingle(statement, params) - executes statement with given parameters, returns first element of the first column only, params are available as identifiers")
     public Object runFirstColumnSingle(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         return runFirstColumn(statement, params, false);
     }
