@@ -34,7 +34,7 @@ public class NeighborsTest {
     @Test
     public void getNeighbors2Hops() {
         TestUtil.testCall(db, "MATCH (n:First) WITH n " +
-                        "CALL apoc.neighbors(n,'KNOWS>', 2) YIELD node AS neighbor " +
+                        "CALL apoc.neighbors.tohop(n,'KNOWS>', 2) YIELD node AS neighbor " +
                         "RETURN COLLECT(neighbor) AS neighbors",
                 (row) -> {
                     List<Node> neighbors = (List<Node>) row.get("neighbors");
@@ -45,7 +45,7 @@ public class NeighborsTest {
     @Test
     public void getNeighbors3Hops() {
         TestUtil.testCall(db, "MATCH (n:First) WITH n " +
-                        "CALL apoc.neighbors(n,'KNOWS>', 3) YIELD node AS neighbor " +
+                        "CALL apoc.neighbors.tohop(n,'KNOWS>', 3) YIELD node AS neighbor " +
                         "RETURN COLLECT(neighbor) AS neighbors",
                 (row) -> {
                     List<Node> neighbors = (List<Node>) row.get("neighbors");
@@ -56,7 +56,7 @@ public class NeighborsTest {
     @Test
     public void getNeighborsCount2Hops() {
         TestUtil.testCall(db, "MATCH (n:First) WITH n " +
-                        "CALL apoc.neighbors.count(n,'KNOWS>', 2) YIELD value AS number " +
+                        "CALL apoc.neighbors.tohop.count(n,'KNOWS>', 2) YIELD value AS number " +
                         "RETURN number",
                 (row) -> assertEquals(2L, row.get("number")));
     }
@@ -64,7 +64,7 @@ public class NeighborsTest {
     @Test
     public void getNeighborsCount3Hops() {
         TestUtil.testCall(db, "MATCH (n:First) WITH n " +
-                        "CALL apoc.neighbors.count(n,'KNOWS>', 3) YIELD value AS number " +
+                        "CALL apoc.neighbors.tohop.count(n,'KNOWS>', 3) YIELD value AS number " +
                         "RETURN number",
                 (row) -> assertEquals(3L, row.get("number")));
     }
@@ -94,7 +94,7 @@ public class NeighborsTest {
     @Test
     public void getNeighborsByHopCount2Hops() {
         TestUtil.testCall(db, "MATCH (n:First) WITH n " +
-                        "CALL apoc.neighbors.count.byhop(n,'KNOWS>', 2) YIELD value AS numbers " +
+                        "CALL apoc.neighbors.byhop.count(n,'KNOWS>', 2) YIELD value AS numbers " +
                         "RETURN numbers",
                 (row) -> {
                     List<Long> numbers = (List<Long>) row.get("numbers");
@@ -105,11 +105,49 @@ public class NeighborsTest {
     @Test
     public void getNeighborsByHopCount3Hops() {
         TestUtil.testCall(db, "MATCH (n:First) WITH n " +
-                        "CALL apoc.neighbors.count.byhop(n,'KNOWS>', 3) YIELD value AS numbers " +
+                        "CALL apoc.neighbors.byhop.count(n,'KNOWS>', 3) YIELD value AS numbers " +
                         "RETURN numbers",
                 (row) -> {
                     List<Long> numbers = (List<Long>) row.get("numbers");
                     assertEquals(3, numbers.size());
                 });
+    }
+
+    @Test
+    public void getNeighborsAt2Hops() {
+        TestUtil.testCall(db, "MATCH (n:First) WITH n " +
+                        "CALL apoc.neighbors.athop(n,'KNOWS>', 2) YIELD node AS neighbor " +
+                        "RETURN COLLECT(neighbor) AS neighbors",
+                (row) -> {
+                    List<Node> neighbors = (List<Node>) row.get("neighbors");
+                    assertEquals(1, neighbors.size());
+                });
+    }
+
+    @Test
+    public void getNeighborsAt3Hops() {
+        TestUtil.testCall(db, "MATCH (n:First) WITH n " +
+                        "CALL apoc.neighbors.athop(n,'KNOWS>', 3) YIELD node AS neighbor " +
+                        "RETURN COLLECT(neighbor) AS neighbors",
+                (row) -> {
+                    List<Node> neighbors = (List<Node>) row.get("neighbors");
+                    assertEquals(1, neighbors.size());
+                });
+    }
+
+    @Test
+    public void getNeighborsCountAt2Hops() {
+        TestUtil.testCall(db, "MATCH (n:First) WITH n " +
+                        "CALL apoc.neighbors.athop.count(n,'KNOWS>', 2) YIELD value AS number " +
+                        "RETURN number",
+                (row) -> assertEquals(1L, row.get("number")));
+    }
+
+    @Test
+    public void getNeighborsCountAt3Hops() {
+        TestUtil.testCall(db, "MATCH (n:First) WITH n " +
+                        "CALL apoc.neighbors.athop.count(n,'KNOWS>', 3) YIELD value AS number " +
+                        "RETURN number",
+                (row) -> assertEquals(1L, row.get("number")));
     }
 }

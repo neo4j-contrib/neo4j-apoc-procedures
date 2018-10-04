@@ -6,27 +6,14 @@ You can use '>' or '<' for all outgoing or incoming relationships, or specify th
 
 [cols="1m,5"]
 |===
-| apoc.neighbors(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern up to a certain distance
-| apoc.neighbors.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern up to a certain distance
+| apoc.neighbors.tohop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern up to a certain distance
+| apoc.neighbors.tohop.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern up to a certain distance
 | apoc.neighbors.byhop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern grouped by distance
-| apoc.neighbors.count.byhop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern grouped by distance
+| apoc.neighbors.byhop.count(node, rel-direction-pattern, distance) | returns the count distinct nodes of the given relationships in the pattern grouped by distance
+| apoc.neighbors.athop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern at a certain distance
+| apoc.neighbors.athop.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern at a certain distance
 |===
 
-
-[NOTE]
-====
-
-For graphs containing more than 2,147,483,647 nodes, use the _.large_ procedures:
-
-====
-
-[cols="1m,5"]
-|===
-| apoc.neighbors.large(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern up to a certain distance
-| apoc.neighbors.large.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern up to a certain distance
-| apoc.neighbors.large.byhop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern grouped by distance
-| apoc.neighbors.large.count.byhop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern grouped by distance
-|===
 
 
 
@@ -43,14 +30,14 @@ CREATE (a:First), (b:Neighbor), (c:Neighbor), (d:Neighbor),
 [source,cypher]
 ----
 MATCH (n:First) WITH n
-CALL apoc.neighbors(n,'KNOWS>', 3) YIELD node AS neighbor
+CALL apoc.neighbors.tohop(n,'KNOWS>', 3) YIELD node AS neighbor
 RETURN neighbor
 ----
 
 [source,cypher]
 ----
 MATCH (n:First) WITH n
-CALL apoc.neighbors.count(n,'KNOWS>', 3) YIELD value AS number
+CALL apoc.neighbors.tohop.count(n,'KNOWS>', 3) YIELD value AS number
 RETURN number
 ----
 
@@ -64,6 +51,20 @@ RETURN neighbors
 [source,cypher]
 ----
 MATCH (n:First) WITH n
-CALL apoc.neighbors.count.byhop(n,'KNOWS>', 3) YIELD value AS numbers
+CALL apoc.neighbors.byhop.count(n,'KNOWS>', 3) YIELD value AS numbers
+RETURN numbers
+----
+
+[source,cypher]
+----
+MATCH (n:First) WITH n
+CALL apoc.neighbors.athop(n,'KNOWS>', 3) YIELD nodes AS neighbors
+RETURN neighbors
+----
+
+[source,cypher]
+----
+MATCH (n:First) WITH n
+CALL apoc.neighbors.athop.count(n,'KNOWS>', 3) YIELD value AS numbers
 RETURN numbers
 ----

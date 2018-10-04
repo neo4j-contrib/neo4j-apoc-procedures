@@ -2,9 +2,12 @@ package apoc.neighbors;
 
 import apoc.result.*;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.procedure.*;
 import org.roaringbitmap.RoaringBitmap;
+import org.roaringbitmap.longlong.LongBitmapDataProvider;
+import org.roaringbitmap.longlong.Roaring64NavigableMap;
 
 import java.util.*;
 import java.util.stream.*;
@@ -16,24 +19,24 @@ public class Neighbors {
     @Context
     public GraphDatabaseService db;
 
-    @Procedure("apoc.neighbors")
-    @Description("apoc.neighbors(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern up to a certain distance, can use '>' or '<' for all outgoing or incoming relationships")
+    @Procedure("apoc.neighbors.tohop")
+    @Description("apoc.neighbors.tohop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern up to a certain distance, can use '>' or '<' for all outgoing or incoming relationships")
     public Stream<NodeResult> neighbors(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types, @Name(value="distance", defaultValue = "1") Long distance) {
         if (distance < 1) return Stream.empty();
         if (types==null || types.isEmpty()) return Stream.empty();
 
         // Initialize bitmaps for iteration
-        RoaringBitmap seen = new RoaringBitmap();
-        RoaringBitmap nextA = new RoaringBitmap();
-        RoaringBitmap nextB = new RoaringBitmap();
-        int nodeId = (int) node.getId();
-        seen.add(nodeId);
-        Iterator<Integer> iterator;
+        Roaring64NavigableMap seen = new Roaring64NavigableMap();
+        Roaring64NavigableMap nextA = new Roaring64NavigableMap();
+        Roaring64NavigableMap nextB = new Roaring64NavigableMap();
+        long nodeId = node.getId();
+        seen.addLong(nodeId);
+        Iterator<Long> iterator;
 
         // First Hop
         for (Pair<RelationshipType, Direction> pair : parse(types)) {
             for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
-                nextB.add((int) r.getOtherNodeId(node.getId()));
+                nextB.addLong(r.getOtherNodeId(nodeId));
             }
         }
 
@@ -45,10 +48,10 @@ public class Neighbors {
             iterator = nextB.iterator();
             while (iterator.hasNext()) {
                 nodeId = iterator.next();
-                node = db.getNodeById((long) nodeId);
+                node = db.getNodeById(nodeId);
                 for (Pair<RelationshipType, Direction> pair : parse(types)) {
                     for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
-                        nextA.add((int) r.getOtherNodeId((long) nodeId));
+                        nextA.add((r.getOtherNodeId(nodeId)));
                     }
                 }
             }
@@ -62,10 +65,10 @@ public class Neighbors {
                 iterator = nextA.iterator();
                 while (iterator.hasNext()) {
                     nodeId = iterator.next();
-                    node = db.getNodeById((long) nodeId);
+                    node = db.getNodeById(nodeId);
                     for (Pair<RelationshipType, Direction> pair : parse(types)) {
                         for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
-                            nextB.add((int) r.getOtherNodeId((long) nodeId));
+                            nextB.add(r.getOtherNodeId(nodeId));
                         }
                     }
                 }
@@ -77,29 +80,30 @@ public class Neighbors {
             seen.or(nextB);
         }
         // remove starting node
-        seen.remove((int)node.getId());
+        seen.removeLong(node.getId());
 
-        return StreamSupport.stream(seen.spliterator(), false).map(x -> new NodeResult(db.getNodeById(x)));
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(seen.iterator(), Spliterator.SORTED), false)
+                .map(x -> new NodeResult(db.getNodeById(x)));
     }
 
-    @Procedure("apoc.neighbors.count")
-    @Description("apoc.neighbors.count(node, rel-direction-pattern, distance) - returns distinct count of nodes of the given relationships in the pattern up to a certain distance, can use '>' or '<' for all outgoing or incoming relationships")
+    @Procedure("apoc.neighbors.tohop.count")
+    @Description("apoc.neighbors.tohop.count(node, rel-direction-pattern, distance) - returns distinct count of nodes of the given relationships in the pattern up to a certain distance, can use '>' or '<' for all outgoing or incoming relationships")
     public Stream<LongResult> neighborsCount(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types, @Name(value="distance", defaultValue = "1") Long distance) {
         if (distance < 1) return Stream.empty();
         if (types==null || types.isEmpty()) return Stream.empty();
 
         // Initialize bitmaps for iteration
-        RoaringBitmap seen = new RoaringBitmap();
-        RoaringBitmap nextA = new RoaringBitmap();
-        RoaringBitmap nextB = new RoaringBitmap();
-        int nodeId = (int) node.getId();
+        Roaring64NavigableMap seen = new Roaring64NavigableMap();
+        Roaring64NavigableMap nextA = new Roaring64NavigableMap();
+        Roaring64NavigableMap nextB = new Roaring64NavigableMap();
+        long nodeId = node.getId();
         seen.add(nodeId);
-        Iterator<Integer> iterator;
+        Iterator<Long> iterator;
 
         // First Hop
         for (Pair<RelationshipType, Direction> pair : parse(types)) {
             for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
-                nextB.add((int) r.getOtherNodeId(node.getId()));
+                nextB.add(r.getOtherNodeId(nodeId));
             }
         }
 
@@ -111,10 +115,10 @@ public class Neighbors {
             iterator = nextB.iterator();
             while (iterator.hasNext()) {
                 nodeId = iterator.next();
-                node = db.getNodeById((long) nodeId);
+                node = db.getNodeById(nodeId);
                 for (Pair<RelationshipType, Direction> pair : parse(types)) {
                     for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
-                        nextA.add((int) r.getOtherNodeId(nodeId));
+                        nextA.add(r.getOtherNodeId(nodeId));
                     }
                 }
             }
@@ -128,10 +132,10 @@ public class Neighbors {
                 iterator = nextA.iterator();
                 while (iterator.hasNext()) {
                     nodeId = iterator.next();
-                    node = db.getNodeById((long) nodeId);
+                    node = db.getNodeById(nodeId);
                     for (Pair<RelationshipType, Direction> pair : parse(types)) {
                         for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
-                            nextB.add((int) r.getOtherNodeId(nodeId));
+                            nextB.add(r.getOtherNodeId(nodeId));
                         }
                     }
                 }
@@ -143,9 +147,9 @@ public class Neighbors {
             seen.or(nextB);
         }
         // remove starting node
-        seen.remove((int)node.getId());
+        seen.removeLong(node.getId());
 
-        return Stream.of(new LongResult((long)seen.getCardinality()));
+        return Stream.of(new LongResult(seen.getLongCardinality()));
     }
 
     @Procedure("apoc.neighbors.byhop")
@@ -155,86 +159,169 @@ public class Neighbors {
         if (types==null || types.isEmpty()) return Stream.empty();
 
         // Initialize bitmaps for iteration
-        RoaringBitmap[] seen = new RoaringBitmap[distance.intValue()];
+        Roaring64NavigableMap[] seen = new Roaring64NavigableMap[distance.intValue()];
         for(int i = 0; i < distance; i++) {
-            seen[i] = new RoaringBitmap();
+            seen[i] = new Roaring64NavigableMap();
         }
-        int nodeId = (int) node.getId();
+        long nodeId = node.getId();
 
-        Iterator<Integer> iterator;
+        Iterator<Long> iterator;
 
         // First Hop
         for (Pair<RelationshipType, Direction> pair : parse(types)) {
             for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
-                seen[0].add((int) r.getOtherNodeId(node.getId()));
+                seen[0].add(r.getOtherNodeId(nodeId));
             }
         }
 
         for(int i = 1; i < distance; i++) {
             iterator = seen[i-1].iterator();
             while (iterator.hasNext()) {
-                node = db.getNodeById((long) iterator.next());
+                node = db.getNodeById(iterator.next());
                 for (Pair<RelationshipType, Direction> pair : parse(types)) {
                     for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
-                        seen[i].add((int) r.getEndNodeId());
+                        seen[i].add(r.getOtherNodeId(node.getId()));
                     }
                 }
             }
             for(int j = 0; j < i; j++){
                 seen[i].andNot(seen[j]);
-                seen[i].remove(nodeId);
+                seen[i].removeLong(nodeId);
             }
         }
 
         return Arrays.stream(seen).map(x -> new NodeListResult(
-                StreamSupport.stream(x.spliterator(), false)
+                StreamSupport.stream(Spliterators.spliteratorUnknownSize(x.iterator(), Spliterator.SORTED), false)
                         .map(y -> db.getNodeById((long) y))
                         .collect(Collectors.toList())));
     }
 
-    @Procedure("apoc.neighbors.count.byhop")
-    @Description("apoc.neighbors.count.byhop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern at each distance, can use '>' or '<' for all outgoing or incoming relationships")
-    public Stream<ListResult> neighborsCountByHop(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types, @Name(value="distance", defaultValue = "1") Long distance) {
+    @Procedure("apoc.neighbors.byhop.count")
+    @Description("apoc.neighbors.byhop.count(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern at each distance, can use '>' or '<' for all outgoing or incoming relationships")
+    public Stream<ListResult> neighborsByHopCount(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types, @Name(value="distance", defaultValue = "1") Long distance) {
         if (distance < 1) return Stream.empty();
         if (types==null || types.isEmpty()) return Stream.empty();
 
         // Initialize bitmaps for iteration
-        RoaringBitmap[] seen = new RoaringBitmap[distance.intValue()];
+        Roaring64NavigableMap[] seen = new Roaring64NavigableMap[distance.intValue()];
         for(int i = 0; i < distance; i++) {
-            seen[i] = new RoaringBitmap();
+            seen[i] = new Roaring64NavigableMap();
         }
-        int nodeId = (int) node.getId();
+        long nodeId = node.getId();
 
-        Iterator<Integer> iterator;
+        Iterator<Long> iterator;
 
         // First Hop
         for (Pair<RelationshipType, Direction> pair : parse(types)) {
             for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
-                seen[0].add((int) r.getOtherNodeId(node.getId()));
+                seen[0].add(r.getOtherNodeId(nodeId));
             }
         }
 
         for(int i = 1; i < distance; i++) {
             iterator = seen[i-1].iterator();
             while (iterator.hasNext()) {
-                node = db.getNodeById((long) iterator.next());
+                node = db.getNodeById(iterator.next());
                 for (Pair<RelationshipType, Direction> pair : parse(types)) {
                     for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
-                        seen[i].add((int) r.getEndNodeId());
+                        seen[i].add(r.getOtherNodeId(node.getId()));
                     }
                 }
             }
             for(int j = 0; j < i; j++){
                 seen[i].andNot(seen[j]);
-                seen[i].remove(nodeId);
+                seen[i].removeLong(nodeId);
             }
         }
 
-        ArrayList counts = new ArrayList<Integer>();
+        ArrayList counts = new ArrayList<Long>();
         for(int i = 0; i < distance; i++) {
-            counts.add(seen[i].getCardinality());
+            counts.add(seen[i].getLongCardinality());
         }
 
         return Stream.of(new ListResult(counts));
+    }
+
+    @Procedure("apoc.neighbors.athop")
+    @Description("apoc.neighbors.athop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern at a distance, can use '>' or '<' for all outgoing or incoming relationships")
+    public Stream<NodeResult> neighborsAtHop(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types, @Name(value="distance", defaultValue = "1") Long distance) {
+        if (distance < 1) return Stream.empty();
+        if (types==null || types.isEmpty()) return Stream.empty();
+
+        // Initialize bitmaps for iteration
+        Roaring64NavigableMap[] seen = new Roaring64NavigableMap[distance.intValue()];
+        for(int i = 0; i < distance; i++) {
+            seen[i] = new Roaring64NavigableMap();
+        }
+        long nodeId = node.getId();
+
+        Iterator<Long> iterator;
+
+        // First Hop
+        for (Pair<RelationshipType, Direction> pair : parse(types)) {
+            for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+                seen[0].add(r.getOtherNodeId(nodeId));
+            }
+        }
+
+        for(int i = 1; i < distance; i++) {
+            iterator = seen[i-1].iterator();
+            while (iterator.hasNext()) {
+                node = db.getNodeById(iterator.next());
+                for (Pair<RelationshipType, Direction> pair : parse(types)) {
+                    for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+                        seen[i].add(r.getOtherNodeId(node.getId()));
+                    }
+                }
+            }
+            for(int j = 0; j < i; j++){
+                seen[i].andNot(seen[j]);
+                seen[i].removeLong(nodeId);
+            }
+        }
+
+        return StreamSupport
+                .stream(Spliterators.spliteratorUnknownSize(seen[distance.intValue() - 1].iterator(), Spliterator.SORTED), false).map(y -> new NodeResult(db.getNodeById(y)));
+    }
+
+    @Procedure("apoc.neighbors.athop.count")
+    @Description("apoc.neighbors.athop.count(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern at a distance, can use '>' or '<' for all outgoing or incoming relationships")
+    public Stream<LongResult> neighborsAtHopCount(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types, @Name(value="distance", defaultValue = "1") Long distance) {
+        if (distance < 1) return Stream.empty();
+        if (types == null || types.isEmpty()) return Stream.empty();
+
+        // Initialize bitmaps for iteration
+        Roaring64NavigableMap[] seen = new Roaring64NavigableMap[distance.intValue()];
+        for (int i = 0; i < distance; i++) {
+            seen[i] = new Roaring64NavigableMap();
+        }
+        long nodeId = node.getId();
+
+        Iterator<Long> iterator;
+
+        // First Hop
+        for (Pair<RelationshipType, Direction> pair : parse(types)) {
+            for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+                seen[0].add(r.getOtherNodeId(nodeId));
+            }
+        }
+
+        for (int i = 1; i < distance; i++) {
+            iterator = seen[i - 1].iterator();
+            while (iterator.hasNext()) {
+                node = db.getNodeById(iterator.next());
+                for (Pair<RelationshipType, Direction> pair : parse(types)) {
+                    for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+                        seen[i].add(r.getOtherNodeId(node.getId()));
+                    }
+                }
+            }
+            for (int j = 0; j < i; j++) {
+                seen[i].andNot(seen[j]);
+                seen[i].removeLong(nodeId);
+            }
+        }
+
+        return Stream.of(new LongResult(seen[distance.intValue() - 1].getLongCardinality()));
     }
 }
