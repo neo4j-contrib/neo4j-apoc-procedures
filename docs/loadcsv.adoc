@@ -188,7 +188,7 @@ Jane
 
 [source,cypher]
 ----
-CALL apoc.import.csv([{filename: 'file:/persons.csv', labels: ['Person']}], [], {})
+CALL apoc.import.csv([{fileName: 'file:/persons.csv', labels: ['Person']}], [], {})
 ----
 
 === Loading nodes and relationships
@@ -211,8 +211,8 @@ Given the following CSV files and procedure call, the database loads two `Person
 [source,cypher]
 ----
 CALL apoc.import.csv(
-  [{filename: 'file:/persons.csv', labels: ['Person']}],
-  [{filename: 'file:/knows.csv', type: 'KNOWS'}],
+  [{fileName: 'file:/persons.csv', labels: ['Person']}],
+  [{fileName: 'file:/knows.csv', type: 'KNOWS'}],
   {delimiter: '|', arrayDelimiter: ',', stringIds: false}
 )
 ----
