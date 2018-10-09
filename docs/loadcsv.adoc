@@ -137,7 +137,7 @@ See the following usage-examples for the procedures.
 
 == Import CSV
 
-CSV files with headers that confirm the https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/[Neo4j import tool's header format] can be imported using the `apoc.import.csv` procedure. This procedure is intended for small- to medium-sized data sets. For bulk importing larger data sets, it is recommended to use the offline import tool.
+CSV files that comply with the https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/[Neo4j import tool's header format] can be imported using the `apoc.import.csv` procedure. This procedure is intended to load small- to medium-sized data sets in an online database. For importing larger data sets, it is recommended to perform a batch import using the (https://neo4j.com/docs/operations-manual/current/tools/import/[import tool], which loads data in bulk to an offline (initially empty) database.
 
 === Usage
 
