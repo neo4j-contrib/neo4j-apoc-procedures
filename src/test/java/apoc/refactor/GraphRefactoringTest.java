@@ -4,6 +4,7 @@ import apoc.util.ArrayBackedList;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterators;
@@ -87,6 +88,7 @@ public class GraphRefactoringTest {
     @Test
     public void testMergeNodesEagerIndex() throws Exception {
         db.execute("CREATE INDEX ON :Person(ID)").close();
+        db.execute("CALL db.awaitIndexes()").close();
         long id = db.execute("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ").<Long>columnAs("id").next();
         testCall(db, "MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) USING INDEX o:Person(ID) USING INDEX n:Person(ID) CALL apoc.refactor.mergeNodes([o,n]) yield node return node",
                       map("oldID", 1L, "newID",2L),
@@ -504,12 +506,14 @@ public class GraphRefactoringTest {
                 "     (n5:CLabel {p3:'a5'})," +
                 "     (n6:DLabel:Cat {p:'a6'})," +
                 "     (n1)-[:HAS_REL{p:'r1'}]->(n3)," +
+                "     (n2)-[:HAS_REL{p:'r2'}]->(n3)," +
+                "     (n1)-[:HAS_REL{p:'r1'}]->(n4)," +
                 "     (n2)-[:HAS_REL{p:'r2'}]->(n4)," +
                 "     (n1)-[:HAS_REL_A{p5:'r3'}]->(n5)," +
                 "     (n2)-[:HAS_REL_B{p6:'r4'}]->(n6)");
 
         testCall(db, "MATCH (a1:ALabel{name:'a1'}), (a2:ALabel {name:'a2'})" +
-                        "     WITH head(collect([a1,a2])) as nodes CALL apoc.refactor.mergeNodes(nodes,{properties:'overwrite',mergeRels:true}) yield node MATCH (n)-[r:HAS_REL]->(c:BLabel{p1:'a3'}) MATCH (n1)-[r1:HAS_REL]->(c1:BLabel{p1:'a4'}) return node, n, r ,c,n1,r1,c1 ",
+                        "     WITH [a1,a2] as nodes CALL apoc.refactor.mergeNodes(nodes,{properties:'overwrite',mergeRels:true}) yield node MATCH (n)-[r:HAS_REL]->(c:BLabel{p1:'a3'}) MATCH (n1)-[r1:HAS_REL]->(c1:BLabel{p1:'a4'}) return node, n, r ,c,n1,r1,c1 ",
                 row -> {
                     assertTrue(row.get("node") != null);
                     assertTrue(row.get("node") instanceof Node);
@@ -522,7 +526,7 @@ public class GraphRefactoringTest {
                     assertEquals(4,resultingNode.getDegree(Direction.OUTGOING));
                     assertEquals(1,c.getDegree(Direction.INCOMING));
                     assertEquals(true, r.isType(RelationshipType.withName("HAS_REL")));
-                    assertEquals(Arrays.asList( "r1" , "r2"), Arrays.asList((String[])r.getProperty("p")));
+                    assertEquals(Arrays.asList( "r2" , "r1"), Arrays.asList((String[])r.getProperty("p")));
                     assertEquals(true, r1.isType(RelationshipType.withName("HAS_REL")));
                     assertEquals(Arrays.asList("r2", "r1"), Arrays.asList((String[])r1.getProperty("p")));
                 }
