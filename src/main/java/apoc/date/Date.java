@@ -151,7 +151,7 @@ public class Date {
 //			default: return ChronoField.YEAR;
 		}
 
-		throw new IllegalArgumentException("The chrono: "+ unit + " is not correct");
+		throw new IllegalArgumentException("The unit: "+ unit + " is not correct");
 	}
 
 	@UserFunction
