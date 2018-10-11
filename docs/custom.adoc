@@ -25,6 +25,7 @@ The same is possible as a function:
 CALL apoc.custom.asFunction('answer','RETURN 42')
 ----
 
+NOTE: If you override procedures or functions you might need to call `call dbms.clearQueryCaches()` as lookups to internal id's are kept in compiled query plans.
 
 === Custom Procedures with `apoc.custom.asProcedure`
 

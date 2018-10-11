@@ -3,6 +3,7 @@ package apoc.custom;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -35,6 +36,28 @@ public class CypherProceduresTest {
     public void registerSimpleStatement() throws Exception {
         db.execute("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");
         TestUtil.testCall(db, "call custom.answer()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+    }
+
+    @Test
+    @Ignore
+    public void overrideSingleCallStatement() throws Exception {
+        db.execute("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");
+        TestUtil.testCall(db, "call custom.answer() yield row return row", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+        String clearCaches = db.execute("call dbms.clearQueryCaches()").resultAsString();
+        System.out.println(clearCaches);
+
+        db.execute("call apoc.custom.asProcedure('answer','RETURN 43 as answer')");
+        TestUtil.testCall(db, "call custom.answer() yield row return row", (row) -> assertEquals(43L, ((Map)row.get("row")).get("answer")));
+    }
+    @Test
+    @Ignore
+    public void overrideCypherCallStatement() throws Exception {
+        db.execute("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");
+        TestUtil.testCall(db, "with 1 as foo call custom.answer() yield row return row", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+        db.execute("call dbms.clearQueryCaches()").close();
+
+        db.execute("call apoc.custom.asProcedure('answer','RETURN 43 as answer')");
+        TestUtil.testCall(db, "with 1 as foo call custom.answer() yield row return row", (row) -> assertEquals(43L, ((Map)row.get("row")).get("answer")));
     }
 
     @Test
