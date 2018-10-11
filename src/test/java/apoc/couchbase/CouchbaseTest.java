@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 import apoc.util.MissingDependencyException;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.couchbase.client.java.document.JsonDocument;
@@ -23,6 +24,7 @@ import apoc.couchbase.document.CouchbaseJsonDocument;
 import apoc.couchbase.document.CouchbaseQueryResult;
 import apoc.result.BooleanResult;
 
+@Ignore
 public class CouchbaseTest extends CouchbaseAbstractTest {
 
     @BeforeClass

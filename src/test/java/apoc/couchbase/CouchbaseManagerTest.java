@@ -1,10 +1,7 @@
 package apoc.couchbase;
 
 import com.couchbase.client.java.auth.PasswordAuthenticator;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -15,6 +12,7 @@ import java.util.List;
 /**
  * Created by alberto.delazzari on 24/08/2018.
  */
+@Ignore
 public class CouchbaseManagerTest {
 
     @Rule

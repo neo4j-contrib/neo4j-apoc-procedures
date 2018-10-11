@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +35,8 @@ public class ClusterTest
     {
 
         cluster = clusterRule.startCluster();
-        for ( CoreClusterMember member : cluster.coreMembers() )
+        Collection<CoreClusterMember> members = cluster.coreMembers();
+        for ( CoreClusterMember member : members)
         {
             TestUtil.registerProcedure( member.database(), Cluster.class, ClusterOverviewProcedure.class );
         }

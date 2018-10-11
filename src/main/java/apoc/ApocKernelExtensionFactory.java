@@ -5,11 +5,12 @@ import apoc.index.IndexUpdateTransactionEventHandler;
 import apoc.trigger.Trigger;
 import apoc.ttl.TTLLifeCycle;
 import apoc.util.ApocUrlStreamHandlerFactory;
-import org.neo4j.kernel.AvailabilityGuard;
+import org.neo4j.kernel.availability.AvailabilityGuard;
+import org.neo4j.kernel.extension.ExtensionType;
 import org.neo4j.kernel.extension.KernelExtensionFactory;
-import org.neo4j.kernel.impl.logging.LogService;
 import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.impl.spi.KernelContext;
+import org.neo4j.logging.internal.LogService;
 import org.neo4j.scheduler.JobScheduler;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.Lifecycle;
@@ -28,7 +29,7 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
         URL.setURLStreamHandlerFactory(new ApocUrlStreamHandlerFactory());
     }
     public ApocKernelExtensionFactory() {
-        super("APOC");
+        super(ExtensionType.DATABASE, "APOC");
     }
 
     public interface Dependencies {

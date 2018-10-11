@@ -69,7 +69,7 @@ public class WarmupTest {
     public void testWarmupIndexes() throws Exception {
         TestUtil.testCall(db, "CALL apoc.warmup.run(true,true,true)", r -> {
             assertEquals(true, r.get("indexesLoaded"));
-            assertEquals(21L, r.get("indexPages"));
+            assertEquals(6L, r.get("indexPages"));
         });
     }
 }

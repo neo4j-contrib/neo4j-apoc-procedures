@@ -16,6 +16,7 @@ import com.couchbase.client.java.cluster.ClusterManager;
 import com.couchbase.client.java.cluster.DefaultBucketSettings;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
@@ -34,6 +35,7 @@ import com.couchbase.client.java.query.consistency.ScanConsistency;
 import apoc.couchbase.document.CouchbaseQueryResult;
 import apoc.util.TestUtil;
 
+@Ignore
 public class CouchbaseAbstractTest {
 
     @Rule

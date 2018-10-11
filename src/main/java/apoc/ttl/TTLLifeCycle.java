@@ -4,6 +4,8 @@ import apoc.ApocConfiguration;
 import apoc.util.Util;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
+import org.neo4j.scheduler.Group;
+import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -18,11 +20,11 @@ public class TTLLifeCycle {
 
     public static final int INITIAL_DELAY = 30;
     public static final int DEFAULT_SCHEDULE = 60;
-    public static JobScheduler.Group TTL_GROUP = new JobScheduler.Group("TTL");
+    public static Group TTL_GROUP = Group.INDEX_UPDATING;
     private final JobScheduler scheduler;
     private final GraphDatabaseAPI db;
-    private JobScheduler.JobHandle ttlIndexJobHandle;
-    private JobScheduler.JobHandle ttlJobHandle;
+    private JobHandle ttlIndexJobHandle;
+    private JobHandle ttlJobHandle;
     private Log log;
 
     public TTLLifeCycle(JobScheduler scheduler, GraphDatabaseAPI db, Log log) {

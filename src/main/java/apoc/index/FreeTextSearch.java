@@ -2,6 +2,7 @@ package apoc.index;
 
 import apoc.ApocKernelExtensionFactory;
 import apoc.Pools;
+import org.neo4j.scheduler.Group;
 import apoc.result.WeightedNodeResult;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
@@ -137,7 +138,7 @@ public class FreeTextSearch {
 
     private static final Map<String, String> CONFIG = LuceneIndexImplementation.FULLTEXT_CONFIG;
     static final String KEY = "search";
-    private static final JobScheduler.Group GROUP = new JobScheduler.Group(FreeTextSearch.class.getSimpleName());
+    private static final Group GROUP = Group.INDEX_POPULATION;
 
     private static Stream<WeightedNodeResult> result(IndexHits<Node> hits) {
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(new Iterator<WeightedNodeResult>() {

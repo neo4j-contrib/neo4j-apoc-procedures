@@ -4,10 +4,11 @@ import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.TokenRead;
-import org.neo4j.kernel.api.exceptions.index.IndexNotApplicableKernelException;
+import org.neo4j.internal.kernel.api.exceptions.schema.IndexNotApplicableKernelException;
+import org.neo4j.internal.kernel.api.exceptions.schema.IndexNotFoundKernelException;
 import org.neo4j.kernel.api.schema.SchemaDescriptorFactory;
-import org.neo4j.kernel.api.schema.index.SchemaIndexDescriptor;
 import org.neo4j.kernel.impl.index.schema.fusion.FusionIndexBase;
+import org.neo4j.kernel.impl.newapi.AllStoreHolder;
 import org.neo4j.kernel.impl.storageengine.impl.recordstorage.RecordStorageEngine;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Description;
@@ -26,7 +27,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Label;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.api.exceptions.index.IndexNotFoundKernelException;
 import org.neo4j.kernel.api.exceptions.schema.DuplicateSchemaRuleException;
 import org.neo4j.kernel.api.exceptions.schema.SchemaRuleNotFoundException;
 import org.neo4j.kernel.api.impl.schema.reader.SimpleIndexReader;
@@ -36,6 +36,7 @@ import org.neo4j.kernel.impl.api.KernelStatement;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.storageengine.api.schema.IndexDescriptor;
 import org.neo4j.storageengine.api.schema.IndexReader;
 
 import java.io.IOException;
@@ -154,16 +155,16 @@ public class SchemaIndex {
         return new SortedIndexReader(reader, limit, sort);
     }
 
-    private SimpleIndexReader getLuceneIndexReader(String label, String key) throws  IndexNotFoundKernelException {
+    private SimpleIndexReader getLuceneIndexReader(String label, String key) throws IndexNotFoundKernelException {
         try (KernelStatement stmt = (KernelStatement) tx.acquireStatement()) {
 
             TokenRead tokenRead = tx.tokenRead();
             LabelSchemaDescriptor labelSchemaDescriptor = SchemaDescriptorFactory.forLabel(tokenRead.nodeLabel(label), tokenRead.propertyKey(key));
             RecordStorageEngine recordStorageEngine = db.getDependencyResolver().resolveDependency(RecordStorageEngine.class);
 
-            SchemaIndexDescriptor descriptor = recordStorageEngine.storeReadLayer().indexGetForSchema(labelSchemaDescriptor);
+            IndexDescriptor descriptor = recordStorageEngine.newReader().indexGetForSchema(labelSchemaDescriptor);
 
-            IndexReader indexReader = stmt.getStoreStatement().getIndexReader(descriptor);
+            IndexReader indexReader = ((AllStoreHolder)tx.schemaRead()).indexReader(descriptor,false);
             if (indexReader instanceof FusionIndexBase) {
                 try {
                     Field selectorField = FusionIndexBase.class.getDeclaredField("instanceSelector");

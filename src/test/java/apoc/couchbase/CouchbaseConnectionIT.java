@@ -13,6 +13,7 @@ import static org.junit.Assume.assumeTrue;
 /**
  * Created by alberto.delazzari on 22/08/2018.
  */
+@Ignore
 public class CouchbaseConnectionIT extends CouchbaseAbstractTest {
 
     private static final String COUCHBASE_CONFIG_KEY = "demo";

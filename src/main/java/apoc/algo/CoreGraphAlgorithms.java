@@ -226,7 +226,8 @@ public class CoreGraphAlgorithms {
     }*/
 
     public int[] loadDegrees(String relName, Direction direction) {
-        return loadDegrees(ktx.tokenRead().relationshipType(relName), direction);
+        int relType = relName == null ? ANY_RELATIONSHIP_TYPE : ktx.tokenRead().relationshipType(relName);
+        return loadDegrees(relType, direction);
     }
 
     private int[] loadDegrees(int relType, Direction direction) {

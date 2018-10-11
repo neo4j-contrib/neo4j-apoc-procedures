@@ -12,7 +12,7 @@ import org.neo4j.graphdb.event.TransactionEventHandler;
 import org.neo4j.graphdb.index.Index;
 import org.neo4j.graphdb.index.IndexManager;
 import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.kernel.AvailabilityGuard;
+import org.neo4j.kernel.availability.AvailabilityGuard;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
@@ -317,9 +317,6 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
                             indexCommand.accept(null);
                         }
                     }
-                } catch (InterruptedException|AvailabilityGuard.UnavailableException e) {
-                    log.error(e.getMessage(), e);
-                    throw new RuntimeException(e);
                 } catch (Exception e) {
                     log.error(e.getMessage(), e);
                     throw new RuntimeException(e);

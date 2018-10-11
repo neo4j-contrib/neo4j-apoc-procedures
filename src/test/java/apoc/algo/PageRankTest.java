@@ -218,6 +218,7 @@ public class PageRankTest
     }
 
     @Test
+    @Ignore("Bug 3.5 org.neo4j.graphdb.QueryExecutionException: Expected RegularPlannerQuery(QueryGraph {},InterestingOrder(List(),List())")
     public void shouldHandleEmptyNodeSet()
     {
         db.execute( RANDOM_GRAPH ).close();

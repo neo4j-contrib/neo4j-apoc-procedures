@@ -8,10 +8,7 @@ import static org.junit.Assume.assumeTrue;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -21,6 +18,7 @@ import com.couchbase.client.java.document.json.JsonObject;
 
 import apoc.util.TestUtil;
 
+@Ignore
 public class CouchbaseIT extends CouchbaseAbstractTest {
 
   protected static GraphDatabaseService graphDB;

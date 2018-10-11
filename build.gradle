@@ -24,7 +24,7 @@ idea {
 }
 
 group = 'org.neo4j.procedure'
-version = '3.4.0.3'
+version = '3.5.0.0'
 archivesBaseName = 'apoc'
 
 jar {
@@ -37,7 +37,7 @@ description = """neo4j-apoc-procedures"""
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "3.4.7"
+    neo4jVersion = "3.5.0-beta01"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
 }
@@ -95,6 +95,8 @@ dependencies {
 
     testCompile group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-com', version: neo4jVersionEffective, classifier: "tests"
+    testCompile group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective // , classifier: "tests"
+
     testCompile group: 'org.neo4j', name: 'neo4j-causal-clustering', version: neo4jVersionEffective, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
@@ -200,16 +202,16 @@ asciidoctor {
     sources { include 'index.adoc' }
     outputDir = file('build/docs')
     attributes  'apoc-version' : version,
-                'apoc-release' : "3.4.0.3",
+                'apoc-release' : "3.5.0.0",
                 'neo4j-version' : neo4jVersionEffective,
-                'branch' : "3.4"
+                'branch' : "3.5"
 }
 
 asciidoctor.doLast {
     copy {
         from 'build/docs/html5/index.html'
         into "build/docs"
-        rename { String filename -> filename.replace("index","index34") }
+        rename { String filename -> filename.replace("index","index35") }
     }
 }
 assemble.dependsOn(asciidoctor)

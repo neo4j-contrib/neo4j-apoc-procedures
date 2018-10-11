@@ -13,10 +13,10 @@ import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.internal.kernel.api.*;
+import org.neo4j.internal.kernel.api.exceptions.schema.IndexNotFoundKernelException;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.SilentTokenNameLookup;
 import org.neo4j.kernel.api.Statement;
-import org.neo4j.kernel.api.exceptions.index.IndexNotFoundKernelException;
 import org.neo4j.procedure.*;
 
 import java.util.*;
@@ -290,7 +290,9 @@ public class Schemas {
      * @return
      */
     private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexReference indexReference, SchemaRead schemaRead, TokenNameLookup tokens){
-        String labelName =  tokens.labelGetName(indexReference.label());
+        int[] labelIds = indexReference.schema().getEntityTokenIds();
+        if (labelIds.length != 1) throw new IllegalStateException("Index with more than one label");
+        String labelName =  tokens.labelGetName(labelIds[0]);
         List<String> properties = new ArrayList<>();
         Arrays.stream(indexReference.properties()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
         try {
