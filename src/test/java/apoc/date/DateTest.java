@@ -188,6 +188,16 @@ public class DateTest {
 		testCall(db, "RETURN apoc.date.format(-1,'s') AS value", row -> {});
 	}
 
+	@Test public void testWrongUnitDoesThrowException() throws Exception {
+		expected.expect(instanceOf(RuntimeException.class));
+		testCall(db, "RETURN apoc.date.format(-1,'wrong') AS value", row -> {});
+	}
+
+	@Test public void testWrongPatternDoesThrowException() throws Exception {
+		expected.expect(instanceOf(RuntimeException.class));
+		testCall(db, "RETURN apoc.date.format(-1,'s','aaaa-bb-cc') AS value", row -> {});
+	}
+
 	@Test public void testOrderByDate() throws Exception {
 		SimpleDateFormat format = formatInUtcZone("yyyy-MM-dd HH:mm:ss");
 		try (Transaction tx = db.beginTx()) {
