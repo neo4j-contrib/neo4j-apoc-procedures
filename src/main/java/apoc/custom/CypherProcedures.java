@@ -8,12 +8,12 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
 import org.neo4j.internal.kernel.api.procs.*;
+import org.neo4j.kernel.AvailabilityGuard;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ResourceTracker;
 import org.neo4j.kernel.api.proc.CallableProcedure;
 import org.neo4j.kernel.api.proc.CallableUserFunction;
 import org.neo4j.kernel.api.proc.Key;
-import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.impl.core.EmbeddedProxySPI;
 import org.neo4j.kernel.impl.core.GraphProperties;
 import org.neo4j.kernel.impl.core.GraphPropertiesProxy;
@@ -112,7 +112,7 @@ public class CypherProcedures {
                 Procedures procedures = api.getDependencyResolver().resolveDependency(Procedures.class);
                 boolean admin = false; // TODO
                 ProcedureSignature signature = new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
-                        Mode.valueOf(mode.toUpperCase()), admin, null, new String[0], null, null, false, true
+                        Mode.valueOf(mode.toUpperCase()), null, new String[0], null, null, false, true
                 );
                 procedures.register(new CallableProcedure.BasicProcedure(signature) {
                     @Override
@@ -307,7 +307,7 @@ public class CypherProcedures {
         }
     }
 
-    public static class CustomProcedureStorage implements AvailabilityListener {
+    public static class CustomProcedureStorage implements AvailabilityGuard.AvailabilityListener {
         public static final String APOC_CUSTOM = "apoc.custom";
         private GraphProperties properties;
         private final GraphDatabaseAPI api;
