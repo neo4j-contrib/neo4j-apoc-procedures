@@ -25,7 +25,12 @@ import java.net.URL;
 public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKernelExtensionFactory.Dependencies>{
 
     static {
-        URL.setURLStreamHandlerFactory(new ApocUrlStreamHandlerFactory());
+        try {
+            URL.setURLStreamHandlerFactory(new ApocUrlStreamHandlerFactory());
+        } catch (Error e) {
+            System.err.println("APOC couln't set a URLStreamHandlerFactory since some other tool already did this (e.g. tomcat). This means you cannot use s3:// or hdfs:// style URLs in APOC. This is a known issue tracked at https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/778. Full stacktrace below: ");
+            e.printStackTrace();
+        }
     }
     public ApocKernelExtensionFactory() {
         super("APOC");
