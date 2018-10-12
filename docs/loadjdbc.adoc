@@ -86,7 +86,7 @@ describe products;
 .Load the JDBC driver
 [source,cypher]
 ----
-cypher CALL apoc.load.driver("com.mysql.jdbc.Driver");
+CALL apoc.load.driver("com.mysql.jdbc.Driver");
 ----
 
 .Count rows in products table
