@@ -79,7 +79,7 @@ public class CsvEntityLoader {
                 )
         );
 
-        final CSVReader csv = new CSVReader(reader, clc.getDelimiter());
+        final CSVReader csv = new CSVReader(reader, clc.getDelimiter(), clc.getQuotationCharacter());
 
         final String[] loadCsvCompatibleHeader = fields.stream().map(f -> f.getName()).toArray(String[]::new);
         int lineNo = 0;
