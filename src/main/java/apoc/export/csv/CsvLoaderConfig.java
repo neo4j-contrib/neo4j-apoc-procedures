@@ -71,12 +71,27 @@ public class CsvLoaderConfig {
         return new Builder();
     }
 
+    public static Character getCharacterOrString(Map<String, Object> config, String name) {
+        Object o = config.get(name);
+        if (o instanceof String) {
+            String s = (String) o;
+            if (s.length() != 1) {
+                throw new IllegalStateException(name + " must have a length of one.");
+            }
+            return s.charAt(0);
+        }
+        if (o instanceof Character) {
+            return (Character) o;
+        }
+        return null;
+    }
+
     public static CsvLoaderConfig from(Map<String, Object> config) {
         Builder builder = builder();
 
-        if (config.get(DELIMITER) != null) builder.delimiter((char) config.get(DELIMITER));
-        if (config.get(ARRAY_DELIMITER) != null) builder.arrayDelimiter((char) config.get(ARRAY_DELIMITER));
-        if (config.get(QUOTATION_CHARACTER) != null) builder.quotationCharacter((char) config.get(QUOTATION_CHARACTER));
+        if (config.get(DELIMITER) != null) builder.delimiter(getCharacterOrString(config, DELIMITER));
+        if (config.get(ARRAY_DELIMITER) != null) builder.arrayDelimiter(getCharacterOrString(config, ARRAY_DELIMITER));
+        if (config.get(QUOTATION_CHARACTER) != null) builder.quotationCharacter(getCharacterOrString(config, QUOTATION_CHARACTER));
         if (config.get(STRING_IDS) != null) builder.stringIds((boolean) config.get(STRING_IDS));
         if (config.get(SKIP_LINES) != null) builder.skipLines((int) config.get(SKIP_LINES));
         if (config.get(BATCH_SIZE) != null) builder.batchSize((int) config.get(BATCH_SIZE));
