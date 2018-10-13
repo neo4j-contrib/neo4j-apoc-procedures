@@ -86,14 +86,14 @@ describe products;
 .Load the JDBC driver
 [source,cypher]
 ----
-cypher CALL apoc.load.driver("com.mysql.jdbc.Driver");
+CALL apoc.load.driver("com.mysql.jdbc.Driver");
 ----
 
 .Count rows in products table
 [source,cypher]
 ----
 with "jdbc:mysql://localhost:3306/northwind?user=root" as url
-cypher CALL apoc.load.jdbc(url,"products") YIELD row
+CALL apoc.load.jdbc(url,"products") YIELD row
 RETURN count(*);
 ----
 
@@ -111,7 +111,7 @@ RETURN count(*);
 [source,cypher]
 ----
 with "jdbc:mysql://localhost:3306/northwind?user=root" as url
-cypher CALL apoc.load.jdbc(url,"products") YIELD row
+CALL apoc.load.jdbc(url,"products") YIELD row
 RETURN row limit 1;
 ----
 
@@ -133,7 +133,7 @@ image::{img}/apoc-load-jdbc.jpg[width=800]
 
 ----
 with "select firstname, lastname from employees where firstname like ? and lastname like ?" as sql
-cypher call apoc.load.jdbcParams("northwind", sql, ['F%', '%w']) yield row
+call apoc.load.jdbcParams("northwind", sql, ['F%', '%w']) yield row
 return row
 ----
 
