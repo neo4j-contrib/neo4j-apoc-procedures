@@ -65,6 +65,7 @@ public class Xml {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             documentBuilderFactory.setNamespaceAware(true);
             documentBuilderFactory.setIgnoringElementContentWhitespace(true);
+            documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 
             FileUtils.checkReadAllowed(url);
