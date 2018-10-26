@@ -1,12 +1,15 @@
 package apoc.load;
 
 import apoc.util.TestUtil;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
+import org.xml.sax.SAXParseException;
 
 import java.util.Collections;
 import java.util.List;
@@ -341,5 +344,18 @@ public class XmlTest {
             List<Object> ids = Iterators.asList(result.columnAs("id"));
             assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
         });
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testLoadXmlPreventXXEVulnerabilityThrowsQueryExecutionException() {
+        try {
+            testResult(db, "CALL apoc.load.xml('file:src/test/resources/xml/xxe.xml', '/catalog/book[genre=\"Computer\"]') yield value as result", (r) -> {});
+        } catch (QueryExecutionException e) {
+            // We want test that the cause of the exception is SAXParseException with the correct cause message
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof SAXParseException);
+            assertEquals("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true.", except.getMessage());
+            throw e;
+        }
     }
 }
