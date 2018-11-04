@@ -283,7 +283,7 @@ public class Util {
     public static CountingInputStream openInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
         StreamConnection sc;
         InputStream stream;
-        if (urlAddress.contains("!")) {
+        if (urlAddress.contains("!") && (urlAddress.contains(".zip") || urlAddress.contains(".tar") || urlAddress.contains(".tgz"))) {
             return getStreamCompressedFile(urlAddress, headers, payload);
         }
 
