@@ -9,6 +9,7 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
@@ -97,6 +98,18 @@ public class LoadJsonTest {
                     assertEquals(true, value.containsKey("nodes"));
                 });
     }
+
+    @Test public void testLoadJsonStackOverflow() throws Exception {
+        String url = "https://api.stackexchange.com/2.2/questions?pagesize=10&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf";
+        testCall(db, "CALL apoc.load.json({url})",map("url", url), // 'file:map.json' YIELD value RETURN value
+                (row) -> {
+                    Map<String, Object> value = (Map<String, Object>) row.get("value");
+                    assertFalse(value.isEmpty());
+                    List<Map<String, Object>> items = (List<Map<String, Object>>) value.get("items");
+                    assertEquals(10, items.size());
+                });
+    }
+
 
     @Test public void testLoadJsonNoFailOnError() throws Exception {
         String url = "file.json";
