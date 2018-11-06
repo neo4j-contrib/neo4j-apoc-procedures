@@ -4,9 +4,15 @@ import apoc.export.util.FormatUtils;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.spatial.Point;
 import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.values.storable.DateValue;
+import org.neo4j.values.storable.DurationValue;
+import org.neo4j.values.storable.Value;
+import org.neo4j.values.storable.Values;
 
 import java.lang.reflect.Array;
+import java.time.temporal.Temporal;
 import java.util.*;
 
 /**
@@ -16,9 +22,11 @@ import java.util.*;
  */
 public class CypherFormatterUtils {
 
-	public final static String UNIQUE_ID_LABEL = "UNIQUE IMPORT LABEL";
-	public final static String UNIQUE_ID_PROP = "UNIQUE IMPORT ID";
-	public final static String Q_UNIQUE_ID_LABEL = quote(UNIQUE_ID_LABEL);
+    public final static String UNIQUE_ID_LABEL = "UNIQUE IMPORT LABEL";
+    public final static String UNIQUE_ID_PROP = "UNIQUE IMPORT ID";
+    public final static String Q_UNIQUE_ID_LABEL = quote(UNIQUE_ID_LABEL);
+
+    public final static String FUNCTION_TEMPLATE = "%s('%s')";
 
     // ---- node id ----
 
@@ -167,7 +175,7 @@ public class CypherFormatterUtils {
         return (id != null && !"".equals(id) ? id + "." : "") + "`" + prop + "`" + (jsonStyle ? ":" : "=" ) + toString(value);
     }
 
-	// ---- to string ----
+    // ---- to string ----
 
     public static String quote(Iterable<String> ids) {
         StringBuilder builder = new StringBuilder();
@@ -190,23 +198,34 @@ public class CypherFormatterUtils {
     }
 
     public static String toString(Object value) {
-		if (value == null) return "null";
-		if (value instanceof String) return FormatUtils.formatString(value);
-		if (value instanceof Number) {
-			return FormatUtils.formatNumber((Number) value);
-		}
-		if (value instanceof Boolean) return value.toString();
-		if (value instanceof Iterator) {
-			return toString(((Iterator) value));
-		}
-		if (value instanceof Iterable) {
-			return toString(((Iterable) value).iterator());
-		}
-		if (value.getClass().isArray()) {
-			return arrayToString(value);
-		}
-		return value.toString();
-	}
+        if (value == null) return "null";
+        if (value instanceof String) return FormatUtils.formatString(value);
+        if (value instanceof Number) {
+            return FormatUtils.formatNumber((Number) value);
+        }
+        if (value instanceof Boolean) return value.toString();
+        if (value instanceof Iterator) {
+            return toString(((Iterator) value));
+        }
+        if (value instanceof Iterable) {
+            return toString(((Iterable) value).iterator());
+        }
+        if (value.getClass().isArray()) {
+            return arrayToString(value);
+        }
+        if (value instanceof Temporal){
+            Value val = Values.of(value);
+            return toStringFunction(val);
+        }
+        if (value instanceof DurationValue) {
+            return toStringFunction((DurationValue) value);
+        }
+        return value.toString();
+    }
+
+    private static String toStringFunction(Value value) {
+        return String.format(FUNCTION_TEMPLATE, value.getTypeName().toLowerCase(), value.toString());
+    }
 
     public static String toString(Iterator<?> iterator) {
         StringBuilder result = new StringBuilder();
@@ -219,12 +238,12 @@ public class CypherFormatterUtils {
     }
 
     public static String arrayToString(Object value) {
-		int length = Array.getLength(value);
-		StringBuilder result = new StringBuilder(10 * length);
-		for (int i = 0; i < length; i++) {
-			if (i > 0) result.append(", ");
-			result.append(toString(Array.get(value, i)));
-		}
-		return "[" + result.toString() + "]";
-	}
+        int length = Array.getLength(value);
+        StringBuilder result = new StringBuilder(10 * length);
+        for (int i = 0; i < length; i++) {
+            if (i > 0) result.append(", ");
+            result.append(toString(Array.get(value, i)));
+        }
+        return "[" + result.toString() + "]";
+    }
 }
