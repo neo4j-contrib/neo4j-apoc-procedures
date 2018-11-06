@@ -580,6 +580,36 @@ public class SchemasTest {
         }
     }
 
+    @Test
+    public void testDropConstraintExistsPropertyNode() throws Exception {
+        db.execute("CREATE CONSTRAINT ON (m:Movie) ASSERT exists(m.title)").close();
+        testCall(db, "CALL apoc.schema.assert({},{})", (r) -> {
+            assertEquals("Movie", r.get("label"));
+            assertEquals(expectedKeys("title"), r.get("keys"));
+            assertTrue("should be unique", (boolean) r.get("unique"));
+            assertEquals("DROPPED", r.get("action"));
+        });
+        try (Transaction tx = db.beginTx()) {
+            List<ConstraintDefinition> constraints = Iterables.asList(db.schema().getConstraints());
+            assertEquals(0, constraints.size());
+        }
+    }
+
+    @Test
+    public void testDropConstraintExistsPropertyRelationship() throws Exception {
+        db.execute("CREATE CONSTRAINT ON ()-[acted:Acted]->() ASSERT exists(acted.since)").close();
+        testCall(db, "CALL apoc.schema.assert({},{})", (r) -> {
+            assertEquals("Acted", r.get("label"));
+            assertEquals(expectedKeys("since"), r.get("keys"));
+            assertTrue("should be unique", (boolean) r.get("unique"));
+            assertEquals("DROPPED", r.get("action"));
+        });
+        try (Transaction tx = db.beginTx()) {
+            List<ConstraintDefinition> constraints = Iterables.asList(db.schema().getConstraints());
+            assertEquals(0, constraints.size());
+        }
+    }
+
     private List<String> expectedKeys(String... keys){
         return asList(keys);
     }
