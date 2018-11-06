@@ -1,5 +1,6 @@
 package apoc.coll;
 
+import apoc.convert.Json;
 import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -26,6 +27,7 @@ public class CollTest {
     @BeforeClass public static void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, Coll.class);
+        TestUtil.registerProcedure(db, Json.class);
     }
 
     @AfterClass public static void tearDown() {
@@ -357,11 +359,26 @@ public class CollTest {
     public void testSetOperations() throws Exception {
         testCall(db, "RETURN apoc.coll.union([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L, 2L, 3L)), asSet((Iterable) r.get("value"))));
         testCall(db, "RETURN apoc.coll.intersection([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(2L)), asSet((Iterable) r.get("value"))));
+        testCall(db, "RETURN apoc.coll.intersection([1,2],[2,3]) AS value", r -> assertEquals(asSet(asList(2L)), asSet((Iterable) r.get("value"))));
+        testCall(db, "RETURN apoc.coll.intersection([1.2,2.3],[2.3,3.4]) AS value", r -> assertEquals(asSet(asList(2.3D)), asSet((Iterable) r.get("value"))));
         testCall(db, "RETURN apoc.coll.disjunction([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L, 3L)), asSet((Iterable) r.get("value"))));
         testCall(db, "RETURN apoc.coll.subtract([1,2],[3,2]) AS value", r -> assertEquals(asSet(asList(1L)), asSet((Iterable) r.get("value"))));
         testCall(db, "RETURN apoc.coll.unionAll([1,2],[3,2]) AS value", r -> assertEquals(asList(1L, 2L, 3L, 2L), r.get("value")));
         testCall(db, "RETURN apoc.coll.removeAll([1,2],[3,2]) AS value", r -> assertEquals(asList(1L), r.get("value")));
+    }
 
+    @Test
+    public void testIntersectionWithJsonMap(){
+        testCall(db, "WITH apoc.convert.fromJsonMap('{\"numbers\":[1,2]}') as set1, [2,3] as set2\n" +
+                "WITH apoc.coll.intersection(set1.numbers, set2) as value\n" +
+                "RETURN value", r -> assertEquals(asSet(asList(2L)), asSet((Iterable) r.get("value"))));
+    }
+
+    @Test
+    public void testIntersectionWithJsonMapDouble(){
+        testCall(db, "WITH apoc.convert.fromJsonMap('{\"numbers\":[1.2,2.3]}') as set1, [2.3,3.4] as set2\n" +
+                "WITH apoc.coll.intersection(set1.numbers, set2) as value\n" +
+                "RETURN value", r -> assertEquals(asSet(asList(2.3D)), asSet((Iterable) r.get("value"))));
     }
 
     @Test
