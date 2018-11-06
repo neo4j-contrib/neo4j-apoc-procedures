@@ -100,6 +100,8 @@ public class Warmup {
                     } catch (IOException e) {
                         e.printStackTrace();
                         return new PageResult(fileName, index, -1L, pages, e.getMessage(), start);
+                    } finally {
+                        pageCache.reportEvents();
                     }
                 })).collect(Collectors.toMap(r -> r.file, r -> r));
 
