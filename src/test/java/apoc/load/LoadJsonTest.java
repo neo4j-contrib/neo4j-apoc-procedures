@@ -35,7 +35,7 @@ public class LoadJsonTest {
 		URL url = ClassLoader.getSystemResource("map.json");
 		testCall(db, "CALL apoc.load.json({url})",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
                 (row) -> {
-                    assertEquals(map("foo",asList(1,2,3)), row.get("value"));
+                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
                 });
     }
 
@@ -44,9 +44,9 @@ public class LoadJsonTest {
 		testResult(db, "CALL apoc.load.json({url})",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
                 (result) -> {
                     Map<String, Object> row = result.next();
-                    assertEquals(map("foo",asList(1,2,3)), row.get("value"));
+                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
                     row = result.next();
-                    assertEquals(map("bar",asList(4,5,6)), row.get("value"));
+                    assertEquals(map("bar",asList(4L,5L,6L)), row.get("value"));
                     assertFalse(result.hasNext());
                 });
     }
@@ -55,9 +55,9 @@ public class LoadJsonTest {
 		testResult(db, "CALL apoc.load.json({url},'$')",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
                 (result) -> {
                     Map<String, Object> row = result.next();
-                    assertEquals(map("foo",asList(1,2,3)), row.get("value"));
+                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
                     row = result.next();
-                    assertEquals(map("bar",asList(4,5,6)), row.get("value"));
+                    assertEquals(map("bar",asList(4L,5L,6L)), row.get("value"));
                     assertFalse(result.hasNext());
                 });
     }
@@ -65,28 +65,28 @@ public class LoadJsonTest {
 		URL url = ClassLoader.getSystemResource("map.json");
 		testCall(db, "CALL apoc.load.json({url},'$.foo')",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
                 (row) -> {
-                    assertEquals(map("result",asList(1,2,3)), row.get("value"));
+                    assertEquals(map("result",asList(1L,2L,3L)), row.get("value"));
                 });
     }
     @Test public void testLoadJsonPathRoot() throws Exception {
 		URL url = ClassLoader.getSystemResource("map.json");
 		testCall(db, "CALL apoc.load.json({url},'$')",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
                 (row) -> {
-                    assertEquals(map("foo",asList(1,2,3)), row.get("value"));
+                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
                 });
     }
     @Test public void testLoadJsonArrayPath() throws Exception {
 		URL url = ClassLoader.getSystemResource("map.json");
 		testCall(db, "CALL apoc.load.jsonArray({url},'$.foo')",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
                 (row) -> {
-                    assertEquals(asList(1,2,3), row.get("value"));
+                    assertEquals(asList(1L,2L,3L), row.get("value"));
                 });
     }
     @Test public void testLoadJsonArrayPathRoot() throws Exception {
 		URL url = ClassLoader.getSystemResource("map.json");
 		testCall(db, "CALL apoc.load.jsonArray({url},'$')",map("url",url.toString()), // 'file:map.json' YIELD value RETURN value
                 (row) -> {
-                    assertEquals(map("foo",asList(1,2,3)), row.get("value"));
+                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
                 });
     }
     @Test @Ignore public void testLoadJsonGraphCommons() throws Exception {
@@ -125,7 +125,7 @@ public class LoadJsonTest {
                 (row) -> {
                     Map<String,Object> r = (Map<String, Object>) row.get("value");
                     assertEquals("Michael", r.get("name"));
-                    assertEquals(41, r.get("age"));
+                    assertEquals(41L, r.get("age"));
                     assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
                 });
     }
@@ -136,7 +136,7 @@ public class LoadJsonTest {
                 (row) -> {
                     Map<String,Object> r = (Map<String, Object>) row.get("value");
                     assertEquals("Michael", r.get("name"));
-                    assertEquals(41, r.get("age"));
+                    assertEquals(41L, r.get("age"));
                     assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
                 });
     }
@@ -147,7 +147,7 @@ public class LoadJsonTest {
                 (row) -> {
                     Map<String,Object> r = (Map<String, Object>) row.get("value");
                     assertEquals("Michael", r.get("name"));
-                    assertEquals(41, r.get("age"));
+                    assertEquals(41L, r.get("age"));
                     assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
                 });
     }
@@ -158,7 +158,7 @@ public class LoadJsonTest {
                 (row) -> {
                     Map<String,Object> r = (Map<String, Object>) row.get("value");
                     assertEquals("Michael", r.get("name"));
-                    assertEquals(41, r.get("age"));
+                    assertEquals(41L, r.get("age"));
                     assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
                 });
     }
@@ -169,7 +169,7 @@ public class LoadJsonTest {
                 (row) -> {
                     Map<String,Object> r = (Map<String, Object>) row.get("value");
                     assertEquals("Michael", r.get("name"));
-                    assertEquals(41, r.get("age"));
+                    assertEquals(41L, r.get("age"));
                     assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
                 });
     }
@@ -180,7 +180,7 @@ public class LoadJsonTest {
                 (row) -> {
                     Map<String,Object> r = (Map<String, Object>) row.get("value");
                     assertEquals("Michael", r.get("name"));
-                    assertEquals(41, r.get("age"));
+                    assertEquals(41L, r.get("age"));
                     assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
                 });
     }
@@ -191,7 +191,7 @@ public class LoadJsonTest {
                 (row) -> {
                     Map<String,Object> r = (Map<String, Object>) row.get("value");
                     assertEquals("Michael", r.get("name"));
-                    assertEquals(41, r.get("age"));
+                    assertEquals(41L, r.get("age"));
                     assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
                 });
     }
@@ -202,7 +202,7 @@ public class LoadJsonTest {
                 (row) -> {
                     Map<String,Object> r = (Map<String, Object>) row.get("value");
                     assertEquals("Michael", r.get("name"));
-                    assertEquals(41, r.get("age"));
+                    assertEquals(41L, r.get("age"));
                     assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
                 });
     }
