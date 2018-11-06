@@ -79,8 +79,7 @@ public class Schemas {
         Schema schema = db.schema();
 
         for (ConstraintDefinition definition : schema.getConstraints()) {
-            if (!(definition.isConstraintType(ConstraintType.UNIQUENESS) || definition.isConstraintType(ConstraintType.NODE_KEY))) continue;
-            String label = definition.getLabel().name();
+            String label = definition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE) ? definition.getRelationshipType().name() : definition.getLabel().name();
             AssertSchemaResult info = new AssertSchemaResult(label, Iterables.asList(definition.getPropertyKeys())).unique();
             if (!constraints.containsKey(label) || !constraints.get(label).remove(info.key)) {
                 if (dropExisting) {
