@@ -660,6 +660,7 @@ Enable `apoc.trigger.enabled=true` in `$NEO4J_HOME/config/neo4j.conf` first.
 |===
 | CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed | add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information
 | CALL apoc.trigger.remove(name) yield name, statement, installed | remove previously added trigger, returns trigger information
+| CALL apoc.trigger.removeAll() yield name, statement, installed | removes all previously added triggers , returns trigger information
 | CALL apoc.trigger.list() yield name, statement, installed | update and list all installed triggers
 | CALL apoc.trigger.pause(name) | it pauses the trigger
 | CALL apoc.trigger.resume(name) | it resumes the paused trigger
