@@ -7,6 +7,7 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -27,10 +28,16 @@ public class ApocConfiguration {
 
     public static void initialize(GraphDatabaseAPI db) {
         Static.clear();
-        Map<String, String> params = db.getDependencyResolver().resolveDependency(Config.class).getRaw();
+        Config neo4jConfig = db.getDependencyResolver().resolveDependency(Config.class);
+        Map<String, String> params = neo4jConfig.getRaw();
         apocConfig.clear();
         apocConfig.putAll(Util.subMap(params, PREFIX));
-        PARAM_WHITELIST.forEach((k, v) -> apocConfig.put(v, params.get(k)) );
+        PARAM_WHITELIST.forEach((k, v) -> {
+            Optional<Object> configValue = neo4jConfig.getValue(k);
+            if (configValue.isPresent()) {
+                apocConfig.put(v, configValue.get().toString());
+            }
+        });
         config.clear();
         params.forEach((k, v) -> { if (!SKIP.matcher(k).find()) {config.put(k, v);} });
     }
