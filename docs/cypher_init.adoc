@@ -7,3 +7,5 @@ To use this feature use a config option:
 apoc.initializer.cypher=CALL apoc.cypher.runSchemaFile("file:///indexes.cypher")
 ----
 
+For running multiple statements you can also add suffixes to the config options, like `cypher.1`, `cypher.2`.
+The statements will then be executed in sort-order.
