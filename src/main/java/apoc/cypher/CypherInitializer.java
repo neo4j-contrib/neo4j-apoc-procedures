@@ -23,8 +23,8 @@ public class CypherInitializer implements AvailabilityGuard.AvailabilityListener
     public void available() {
         SortedMap<String, Object> initializers = new TreeMap<>(ApocConfiguration.get("initializer.cypher"));
         for (Object initializer: initializers.values()) {
+            String query = initializer.toString();
             try {
-                String query = initializer.toString();
                 db.execute(query);
                 userLog.info("successfully initialized: " + query);
             } catch (Exception e) {
