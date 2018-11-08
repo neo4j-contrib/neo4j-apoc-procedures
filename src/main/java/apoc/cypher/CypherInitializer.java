@@ -28,7 +28,7 @@ public class CypherInitializer implements AvailabilityGuard.AvailabilityListener
                 db.execute(query);
                 userLog.info("successfully initialized: " + query);
             } catch (Exception e) {
-                userLog.warn("upon initialization", e);
+                userLog.warn("error upon initialization, running: "+query, e);
             }
         }
     }
