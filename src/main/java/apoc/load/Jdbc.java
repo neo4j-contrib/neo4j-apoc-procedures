@@ -262,7 +262,7 @@ public class Jdbc {
         }
 
         private boolean handleEndOfResults() throws SQLException {
-            Boolean closed = ignore(rs::isClosed);
+            Boolean closed = isRsClosed();
             if (closed!=null && closed) {
                 return true;
             }
@@ -274,9 +274,17 @@ public class Jdbc {
         }
 
         private void closeRs() {
-            Boolean closed = ignore(rs::isClosed);
+            Boolean closed = isRsClosed();
             if (closed==null || !closed) {
                 closeIt(log, ignore(rs::getStatement), closeConnection ? ignore(()->rs.getStatement().getConnection()) : null);
+            }
+        }
+
+        private Boolean isRsClosed() {
+            try {
+                return ignore(rs::isClosed);
+            } catch(AbstractMethodError ame) {
+                return null;
             }
         }
 
