@@ -204,6 +204,10 @@ include::atomic.adoc[leveloffset=1]
 
 include::bolt.adoc[leveloffset=1]
 
+== Cypher init script
+
+include::cypher_init.adoc[leveloffset=1]
+
 == Appendix: Complete Overview
 
 include::overview.adoc[tags=overview,leveloffset=1]

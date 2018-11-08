@@ -1,6 +1,7 @@
 package apoc;
 
 import apoc.custom.CypherProcedures;
+import apoc.cypher.CypherInitializer;
 import apoc.index.IndexUpdateTransactionEventHandler;
 import apoc.trigger.Trigger;
 import apoc.ttl.TTLLifeCycle;
@@ -89,7 +90,9 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
             indexUpdateLifeCycle.start();
 
             customProcedureStorage = new CypherProcedures.CustomProcedureStorage(db, log.getUserLog(CypherProcedures.class));
-            dependencies.availabilityGuard().addListener(customProcedureStorage);
+            AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
+            availabilityGuard.addListener(customProcedureStorage);
+            availabilityGuard.addListener(new CypherInitializer(db, log.getUserLog(CypherInitializer.class)));
         }
 
         public void registerCustomProcedures() {
