@@ -674,6 +674,13 @@ public class Coll {
     }
 
     @UserFunction
+    @Description("apoc.coll.frequenciesAsMap(coll) - return a map of frequencies of the items in the collection, key `item`, value `count` (e.g., `{1:2, 2:1}`)")
+    public Map<String, Object> frequenciesAsMap(@Name("coll") List<Object> coll) {
+
+        return frequencies(coll).stream().collect(Collectors.toMap(t -> t.get("item").toString(), v-> v.get("count")));
+    }
+
+    @UserFunction
     @Description("apoc.coll.occurrences(coll, item) - returns the count of the given item in the collection")
     public long occurrences(@Name("coll") List<Object> coll, @Name("item") Object item) {
         if (coll == null || coll.isEmpty()) {
