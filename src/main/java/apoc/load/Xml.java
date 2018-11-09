@@ -221,7 +221,7 @@ public class Xml {
             }
         }
 
-        if (children.getLength() > 1) {
+        if (children.getLength() > 0) {
             if (!stack.isEmpty()) {
                 List<Object> nodeChildren = new ArrayList<>();
                 for (int i = 0; i < count; i++) {
