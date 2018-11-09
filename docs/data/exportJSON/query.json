@@ -1,0 +1,3 @@
+{"u.age":42,"u.name":"Adam","u.male":true,"u.kids":["Sam","Anna","Grace"],"labels(u)":["User"]}
+{"u.age":42,"u.name":"Jim","u.male":null,"u.kids":null,"labels(u)":["User"]}
+{"u.age":12,"u.name":null,"u.male":null,"u.kids":null,"labels(u)":["User"]}
