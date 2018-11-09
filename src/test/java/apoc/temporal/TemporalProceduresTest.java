@@ -65,9 +65,9 @@ public class TemporalProceduresTest
     public void shouldFormatTime() throws Throwable
     {
         try (Transaction tx = db.beginTx() ) {
-            Result res = db.execute("RETURN apoc.temporal.format( time( { hour: 12, minute: 34, second: 56, nanosecond: 123456789, timezone: 'Europe/London' } ), \"HH:mm:ss.SSSSZ\" ) as output");
+            Result res = db.execute("RETURN apoc.temporal.format( time( { hour: 12, minute: 34, second: 56, nanosecond: 123456789, timezone: 'GMT' } ), \"HH:mm:ss.SSSSZ\" ) as output");
 
-            assertEquals( "12:34:56.1234+0100" , res.next().get("output"));
+            assertEquals( "12:34:56.1234+0000" , res.next().get("output"));
         }
     }
 
