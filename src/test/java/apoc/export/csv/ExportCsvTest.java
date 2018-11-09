@@ -118,7 +118,7 @@ public class ExportCsvTest {
         String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
         TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},null)", map("file", output.getAbsolutePath(),"query",query),
                 (r) -> {
-                    assertEquals(true,r.get("source").toString().contains("kernelTransaction: cols(5)"));
+                    assertEquals(true,r.get("source").toString().contains("statement: cols(5)"));
                     assertEquals(output.getAbsolutePath(), r.get("file"));
                     assertEquals("csv", r.get("format"));
 
@@ -131,7 +131,7 @@ public class ExportCsvTest {
         String query = "MATCH (u:User) return u";
         TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},null)", map("file", output.getAbsolutePath(),"query",query),
                 (r) -> {
-                    assertEquals(true,r.get("source").toString().contains("kernelTransaction: cols(1)"));
+                    assertEquals(true,r.get("source").toString().contains("statement: cols(1)"));
                     assertEquals(output.getAbsolutePath(), r.get("file"));
                     assertEquals("csv", r.get("format"));
 
@@ -145,7 +145,7 @@ public class ExportCsvTest {
         String query = "MATCH (u:User) WHERE u.age > {age} return u";
         TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},{params:{age:10}})", map("file", output.getAbsolutePath(),"query",query),
                 (r) -> {
-                    assertEquals(true,r.get("source").toString().contains("kernelTransaction: cols(1)"));
+                    assertEquals(true,r.get("source").toString().contains("statement: cols(1)"));
                     assertEquals(output.getAbsolutePath(), r.get("file"));
                     assertEquals("csv", r.get("format"));
 

@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
@@ -88,8 +89,8 @@ public class GeocodeTest {
     private long testGeocode(String provider, long throttle, boolean reverseGeocode) throws Exception {
         setupSupplier(provider, throttle);
 //        testConfig(provider);
-        URL url = Thread.currentThread().getContextClassLoader().getResource("spatial.json");
-        Map tests = (Map) JsonUtil.OBJECT_MAPPER.readValue(url.openConnection().getInputStream(), Object.class);
+        InputStream is = getClass().getResourceAsStream("/spatial.json");
+        Map tests = JsonUtil.OBJECT_MAPPER.readValue(is, Map.class);
         long start = System.currentTimeMillis();
 
         if(reverseGeocode) {
@@ -151,7 +152,7 @@ public class GeocodeTest {
                 }
                 testCallCount(db, "CALL apoc.spatial.geocode({url},0)",
                         map("url", map.get("address").toString()),
-                        (int) ((Map) map.get("count")).get(provider));
+                        ((Number) ((Map) map.get("count")).get(provider)).intValue());
             }
         } else {
             for (String field : new String[]{"address", "latitude", "longitude"}) {
