@@ -8,6 +8,7 @@ import static org.junit.Assume.assumeTrue;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
@@ -82,7 +83,7 @@ public class CouchbaseAbstractTest {
             }
 
             ClusterManager clusterManager = couchbaseCluster.authenticate(USERNAME, PASSWORD).clusterManager();
-            COUCHBASE_SERVER_VERSION = clusterManager.info().getMinVersion().major();
+            COUCHBASE_SERVER_VERSION = clusterManager.info(1, TimeUnit.SECONDS).getMinVersion().major();
 
             // Create a bucket with no password!!
             clusterManager.insertBucket(DefaultBucketSettings.builder()

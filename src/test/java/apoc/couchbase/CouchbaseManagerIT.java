@@ -19,6 +19,7 @@ import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assume.assumeTrue;
@@ -58,7 +59,7 @@ public class CouchbaseManagerIT extends CouchbaseAbstractTest {
             }
 
             ClusterManager clusterManager = couchbaseCluster.authenticate(USERNAME, PASSWORD).clusterManager();
-            COUCHBASE_SERVER_VERSION = clusterManager.info().getMinVersion().major();
+            COUCHBASE_SERVER_VERSION = clusterManager.info(1, TimeUnit.SECONDS).getMinVersion().major();
 
             // Create a bucket with no password!!
             clusterManager.insertBucket(DefaultBucketSettings.builder()
@@ -114,13 +115,14 @@ public class CouchbaseManagerIT extends CouchbaseAbstractTest {
 
         if (couchbaseRunning) {
             String baseConfigKey = "apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + COUCHBASE_CONFIG_KEY + ".";
-
+/*
             new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
                     .setConfig(baseConfigKey + CouchbaseManager.URI_CONFIG_KEY, "localhost")
                     .setConfig(baseConfigKey + CouchbaseManager.USERNAME_CONFIG_KEY, USERNAME)
                     .setConfig(baseConfigKey + CouchbaseManager.PASSWORD_CONFIG_KEY, PASSWORD
                     )
                     .newGraphDatabase();
+*/
         }
     }
 

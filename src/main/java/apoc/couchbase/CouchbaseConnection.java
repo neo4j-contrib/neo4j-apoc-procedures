@@ -100,7 +100,7 @@ public class CouchbaseConnection implements AutoCloseable {
      * @return
      */
     protected int getMajorVersion() {
-        return this.cluster.authenticate(this.passwordAuthenticator).clusterManager().info().getMinVersion().major();
+        return this.cluster.authenticate(this.passwordAuthenticator).clusterManager().info(5,TimeUnit.SECONDS).getMinVersion().major();
     }
 
     /**

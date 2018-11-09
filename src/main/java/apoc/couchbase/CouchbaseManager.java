@@ -1,6 +1,8 @@
 package apoc.couchbase;
 
 import apoc.ApocConfiguration;
+import com.couchbase.client.core.retry.FailFastRetryStrategy;
+import com.couchbase.client.core.retry.RetryStrategy;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
 import com.couchbase.client.java.CouchbaseAsyncCluster;
@@ -27,7 +29,7 @@ import java.util.Map;
  */
 public class CouchbaseManager {
 
-    public static final DefaultCouchbaseEnvironment DEFAULT_COUCHBASE_ENVIRONMENT = DefaultCouchbaseEnvironment.create();
+    public static final DefaultCouchbaseEnvironment DEFAULT_COUCHBASE_ENVIRONMENT = DefaultCouchbaseEnvironment.builder().retryStrategy(FailFastRetryStrategy.INSTANCE).build();
 
     protected static final String COUCHBASE_CONFIG_KEY = "couchbase.";
 
