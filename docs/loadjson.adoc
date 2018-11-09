@@ -43,6 +43,22 @@ If used, this path is applied to the json and can be used to extract sub-documen
 
 There is also a direct `apoc.json.path(json,path)` function.
 
+To simplify the JSON URL syntax, you can configure aliases in `conf/neo4j.conf`:
+
+----
+apoc.json.myJson.url=https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf
+----
+
+----
+CALL apoc.load.json('https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf')
+
+becomes
+
+CALL apoc.load.json('myJson')
+----
+
+The 3rd value in the `apoc.json.<alias>.url=` effectively defines an alias to be used in  `apoc.load.json('<alias>',....`
+
 == Load JSON StackOverflow Example
 
 There have been articles before about http://neo4j.com/blog/cypher-load-json-from-url/[loading JSON from Web-APIs like StackOverflow].
