@@ -4,6 +4,7 @@ import apoc.ApocKernelExtensionFactory;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -100,6 +101,18 @@ public class IndexUpdateTransactionEventHandlerTest {
 
         // when & then
         testCallCount(db, "match (s:Submarine) remove s.periscope return s", null, 2);
+    }
+
+    @Ignore("this test is supposed to fail until 3.4.10 gets released, https://github.com/neo4j/neo4j/commit/7b8baa607cd63a70303437de7ebb1e254a9e42ff")
+    @Test
+    public void shouldDeletingNodeWork() {
+        testCallEmpty(db, "create (c:City{name:\"Made Up City\",url:\"/places/nowhere/made-up-city\"})", null);
+        testCallCount(db, "call apoc.index.addAllNodesExtended('search_index',{City:['name']},{autoUpdate:true})", null, 1);
+        indexUpdateTransactionEventHandler.forceTxRollover();
+
+        // do delete immediately followed by a read
+        db.execute("MATCH (c:City) DELETE c");
+        testCallCount(db, "call apoc.index.search('search_index', 'City.name:Made') yield node, weight return node, weight", null, 0);
     }
 
 }

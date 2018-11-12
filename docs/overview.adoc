@@ -59,7 +59,7 @@ All boolean options default to **false**, i.e. they are disabled, unless mention
 | apoc.mongodb.<key>.uri=mongodb-url-with-credentials | store mongodb-urls under a key to be used by mongodb procedures
 | apoc.couchbase.<key>.uri=couchbase-url-with-credentials | store couchbase-urls under a key to be used by couchbase procedures
 | apoc.jobs.scheduled.num_threads=number-of-threads | Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size. You can configure the pool size using this configuration property
-| apoc.jobs.default.num_threads=number-of-threads | Number of threads in the default APOC thread pool used for background executions.
+| apoc.jobs.pool.num_threads=number-of-threads | Number of threads in the default APOC thread pool used for background executions.
 |===
 
 
@@ -79,7 +79,7 @@ NOTE: Please note that there are (case-sensitive) http://neo4j.com/docs/develope
 | apoc.index.addNode(node,['prop1',...]) | add node to an index for each label it has
 | apoc.index.addNodeByLabel('Label',node,['prop1',...]) | add node to an index for the given label
 | apoc.index.addNodeByName('name',node,['prop1',...]) | add node to an index for the given name
-| apoc.index.addNodeMap(node,{key:value}) | add node to an index for each label it has with the given attributes which can also be computed
+| apoc.index.addNodeMap(node,{key:value}) | add node to an index for each label it has with the given attributes which can also be computed
 | apoc.index.addNodeMapByName(index, node,{key:value}) | add node to an index for each label it has with the given attributes which can also be computed
 | apoc.index.addRelationship(rel,['prop1',...]) | add relationship to an index for its type
 | apoc.index.addRelationshipByName('name',rel,['prop1',...]) | add relationship to an index for the given name
@@ -99,6 +99,11 @@ image::{img}/apoc.index.nodes-with-score.jpg[width=600]
 | apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel, weight | lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)
 | apoc.index.out(node,'TYPE','prop:value*') YIELD node, weight | lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*
 | apoc.index.in(node,'TYPE','prop:value*') YIELD node, weight | lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*
+| apoc.index.nodes.count('Label','prop:value*') YIELD value | lucene query on node index with the given label name, *returns count-nodes*
+| apoc.index.relationships.count('TYPE','prop:value*') YIELD value | lucene query on relationship index with the given type name, *returns count-relationships*
+| apoc.index.between.count(node1,'TYPE',node2,'prop:value*') YIELD value | lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null), *returns count-relationships*
+| apoc.index.out.count(node,'TYPE','prop:value*') YIELD value | lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns count-end-nodes*
+| apoc.index.in.count(node,'TYPE','prop:value*') YIELD value | lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns count-start-nodes*
 |===
 
 === Index Management
@@ -174,6 +179,11 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 [cols="1m,5"]
 |===
 | apoc.schema.assert({indexLabel:[indexKeys],...},{constraintLabel:[constraintKeys],...}, dropExisting : true) yield label, key, unique, action | drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label.
+| apoc.schema.nodes() yield name, label, properties, status, type | get all indexes and constraints information for all the node labels in your database
+| apoc.schema.relationships() yield name, type, properties, status | return all the constraint information for all the relationship types in your database
+| apoc.schema.node.indexExists(labelName, properties) | return the indexes existence on node
+| apoc.schema.node.constraintExists(labelName, properties) | return the constraints existence on node
+| apoc.schema.relationship.constraintExists(type, properties) | return the constraints existence on relationship
 |===
 
 
@@ -210,8 +220,7 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 
 // tag::export.csv[]
 
-`YIELD file, source, format, nodes, relationships, properties, time, rows`
-
+`YIELD file, source, format, nodes, relationships, properties, time, rows, data`
 [cols="1m,5"]
 |===
 | apoc.export.csv.query(query,file,config) | exports results from the Cypher statement as CSV to the provided file
@@ -219,7 +228,18 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 | apoc.export.csv.data(nodes,rels,file,config) | exports given nodes and relationships as CSV to the provided file
 | apoc.export.csv.graph(graph,file,config) | exports given graph object as CSV to the provided file
 |===
+
+If the file name is passed as `null` and the config `stream:true` the results are streamed back in the `data` column, e.g.
+
+[source,cypher]
+----
+CALL apoc.export.csv.all(null, {stream:true,batchSize:100}) YIELD data RETURN data
+----
+
 // end::export.csv[]
+
+=== Export to Json File
+ include::exportJson.adoc[leveloffset=1]
 
 === Export to Cypher Script
 
@@ -272,6 +292,7 @@ image::{img}/apoc-jdbc-northwind-load.jpg[width=600]
 | CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name}) | load from relational database, either a full table or a sql statement
 | CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18') | load from relational database, either a full table or a sql statement
 | CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') | register JDBC driver of source database
+| CALL apoc.load.jdbcUpdate(jdbc-url,statement, params) | update relational database from a SQL kernelTransaction with optional parameters
 |===
 
 To simplify the JDBC URL syntax and protect credentials, you can configure aliases in `conf/neo4j.conf`:
@@ -311,6 +332,20 @@ config contains any of: `{skip:1,limit:5,header:false,ignore:['aColumn'],arraySe
 nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false,nullValues:['n.A.']}}`
 |===
 
+.Load Single File From Compressed File (zip/tar/tar.gz/tgz)
+
+For load file from compressed file the url right sintax is:
+
+----
+apoc.load.csv("pathToFile!csv/fileName.csv")
+----
+
+----
+apoc.load.json("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tgz?raw=true!person.json");
+----
+
+You have to put the ! character before the filename.
+
 .Using S3 protocol
 
 For using S3 protocol you have to copy these jars into the plugins directory:
@@ -332,6 +367,15 @@ or
 
 Adding on config the parameter `failOnError:false` (by default `true`), in case of error the procedure don't fail but just return zero rows.
 // end::xml[]
+
+
+== Loading Data from Html Page
+
+[cols="3m,2"]
+|===
+|apoc.load.html('url',{name: jquery, name2: jquery}, config) YIELD value | Load Html page and return the result as a Map
+|===
+
 
 == Interacting with Elastic Search
 
@@ -403,17 +447,17 @@ CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDoc
 
 [cols="3m,2"]
 |===
-| CALL apoc.couchbase.get(nodes, bucket, documentId) yield id, expiry, cas, mutationToken, content | Retrieves a couchbase json document by its unique ID
-| CALL apoc.couchbase.exists(nodes, bucket, documentId) yield value | Check whether a couchbase json document with the given ID does exist
-| CALL apoc.couchbase.insert(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Insert a couchbase json document with its unique ID
-| CALL apoc.couchbase.upsert(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Insert or overwrite a couchbase json document with its unique ID
-| CALL apoc.couchbase.append(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Append a couchbase json document to an existing one
-| CALL apoc.couchbase.prepend(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Prepend a couchbase json document to an existing one
-| CALL apoc.couchbase.remove(nodes, bucket, documentId) yield id, expiry, cas, mutationToken, content | Remove the couchbase json document identified by its unique ID
-| CALL apoc.couchbase.replace(nodes, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Replace the content of the couchbase json document identified by its unique ID.
-| CALL apoc.couchbase.query(nodes, bucket, statement) yield queryResult | Executes a plain un-parameterized N1QL statement.
-| CALL apoc.couchbase.posParamsQuery(nodes, bucket, statement, params) yield queryResult | Executes a N1QL statement with positional parameters.
-| CALL apoc.couchbase.namedParamsQuery(nodes, bucket, statement, paramNames, paramValues) yield queryResult | Executes a N1QL statement with named parameters.
+| CALL apoc.couchbase.get(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content | Retrieves a couchbase json document by its unique ID
+| CALL apoc.couchbase.exists(hostOrKey, bucket, documentId) yield value | Check whether a couchbase json document with the given ID does exist
+| CALL apoc.couchbase.insert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Insert a couchbase json document with its unique ID
+| CALL apoc.couchbase.upsert(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Insert or overwrite a couchbase json document with its unique ID
+| CALL apoc.couchbase.append(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Append a couchbase json document to an existing one
+| CALL apoc.couchbase.prepend(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Prepend a couchbase json document to an existing one
+| CALL apoc.couchbase.remove(hostOrKey, bucket, documentId) yield id, expiry, cas, mutationToken, content | Remove the couchbase json document identified by its unique ID
+| CALL apoc.couchbase.replace(hostOrKey, bucket, documentId, jsonDocument) yield id, expiry, cas, mutationToken, content | Replace the content of the couchbase json document identified by its unique ID.
+| CALL apoc.couchbase.query(hostOrKey, bucket, statement) yield queryResult | Executes a plain un-parameterized N1QL statement.
+| CALL apoc.couchbase.posParamsQuery(hostOrKey, bucket, statement, params) yield queryResult | Executes a N1QL statement with positional parameters.
+| CALL apoc.couchbase.namedParamsQuery(hostOrKey, bucket, statement, paramNames, paramValues) yield queryResult | Executes a N1QL statement with named parameters.
 |===
 
 Copy these jars into the plugins directory:
@@ -423,9 +467,25 @@ mvn dependency:copy-dependencies
 cp target/dependency/java-client-2.3.1.jar target/dependency/core-io-1.3.1.jar target/dependency/rxjava-1.1.5.jar $NEO4J_HOME/plugins/
 ----
 
+To interact with Couchbase you can define the host on which to connect to as the first parameter of the procedure
+
 [source,cypher]
 ----
-CALL apoc.couchbase.get(['localhost'], 'default', 'artist:vincent_van_gogh')
+CALL apoc.couchbase.get('couchbase://Administrator:password@localhost', 'default', 'artist:vincent_van_gogh')
+----
+// end::couchbase[]
+
+Otherwise you can use configuration properties in the same way as MongoDB. For example, you can add the following properties to the neo4j.conf file:
+
+----
+apoc.couchbase.mykey.username=Administrator
+apoc.couchbase.mykey.password=password
+apoc.couchbase.mykey.uri=host1,host2,host3 // here you can define more than one hostname if you're using a cluster
+----
+
+[source,cypher]
+----
+CALL apoc.couchbase.get('mykey', 'default', 'artist:vincent_van_gogh')
 ----
 // end::couchbase[]
 
@@ -603,6 +663,7 @@ Enable `apoc.trigger.enabled=true` in `$NEO4J_HOME/config/neo4j.conf` first.
 |===
 | CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed | add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information
 | CALL apoc.trigger.remove(name) yield name, statement, installed | remove previously added trigger, returns trigger information
+| CALL apoc.trigger.removeAll() yield name, statement, installed | removes all previously added triggers , returns trigger information
 | CALL apoc.trigger.list() yield name, statement, installed | update and list all installed triggers
 | CALL apoc.trigger.pause(name) | it pauses the trigger
 | CALL apoc.trigger.resume(name) | it resumes the paused trigger
@@ -628,7 +689,7 @@ Helper Functions
 | CALL apoc.periodic.schedule('name',statement,repeat-time-in-seconds) | submit a repeatedly-called background statement
 | CALL apoc.periodic.countdown('name',statement,delay-in-seconds) | submit a repeatedly-called background statement until it returns 0
 | CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total | iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g.
-| CALL apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,parallel:true,retries:3,iterateList:true}) YIELD batches, total | run the second statement for each item returned by the first statement. Returns number of batches and total processed rows
+| CALL apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:50,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows
 |===
 
 * there are also static methods `Jobs.submit`, and `Jobs.schedule` to be used from other procedures
@@ -774,8 +835,8 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.pairsMin([1,2,3]) YIELD value | [1,2],[2,3]
 | apoc.coll.toSet([list]) | returns a unique list backed by a set
 | apoc.coll.sort(coll) | sort on Collections
-| apoc.coll.sortNodes([nodes], 'name') | sort nodes by property
-| apoc.coll.sortMaps([maps], 'key') | sort maps by map key
+| apoc.coll.sortNodes([nodes], 'name') | sort nodes by property, ascending sorting by adding ^ in front of the sorting field
+| apoc.coll.sortMaps([maps], 'key') | sort maps by map key, ascending sorting by adding ^ in front of the sorting field
 | apoc.coll.reverse(coll) | returns the reversed list
 | apoc.coll.contains(coll, value) | returns true if collection contains the value
 | apoc.coll.containsAll(coll, values) | optimized contains-all operation (using a HashSet) returns true or false
@@ -843,6 +904,18 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 
 Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in either direction, outgoing :MENTORS relationships, and incoming :REPORTS_TO relationships.
 
+=== Neighbor Functions
+
+[cols="1m,5"]
+|===
+| apoc.neighbors.tohop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern up to a certain distance
+| apoc.neighbors.tohop.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern up to a certain distance
+| apoc.neighbors.byhop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern grouped by distance
+| apoc.neighbors.byhop.count(node, rel-direction-pattern, distance) | returns the count distinct nodes of the given relationships in the pattern grouped by distance
+| apoc.neighbors.athop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern at a certain distance
+| apoc.neighbors.athop.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern at a certain distance
+|===
+
 
 === Math Functions
 
@@ -865,7 +938,8 @@ Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in 
 
 [cols="1m,5"]
 |===
-| apoc.text.indexOf(text, lookup, offset=0)| find the first occurence of the lookup string in the text, if offset is given then start from there, -1 if not found, null if text is null.
+| apoc.text.indexOf(text, lookup, offset=0, to=-1==len)| find the first occurence of the lookup string in the text, from inclusive, to exclusive,, -1 if not found, null if text is null.
+| apoc.text.indexesOf(text, lookup, from=0, to=-1==len)| finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.
 | apoc.text.replace(text, regex, replacement)| replace each substring of the given string that matches the given regular expression with the given replacement.
 | apoc.text.regexGroups(text, regex) | returns an array containing a nested array for each match. The inner array contains all match groups.
 | apoc.text.join(['text1','text2',...], delimiter) | join the given strings with the given delimiter.

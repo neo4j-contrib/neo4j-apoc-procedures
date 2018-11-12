@@ -17,6 +17,8 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 
 
@@ -71,9 +73,44 @@ public class StringsTest {
 
         for (Object[] datum : data) {
             testCall(db,
-                    "RETURN apoc.text.indexOf({text},{lookup},{offset}) AS value",
-                    map("text",datum[0],"lookup",datum[1],"offset",datum[2]),
+                    "RETURN apoc.text.indexOf({text},{lookup},{from}) AS value",
+                    map("text",datum[0],"lookup",datum[1],"from",datum[2]),
                     row -> assertEquals(datum[3], row.get("value")));
+        }
+    }
+    @Test
+    public void testIndexesOf() throws Exception {
+        String text = "The quick brown box.";
+        Object[][] data = {
+                {"Hello World!", "o",0,12L,new Object[]{4L,7L}},
+                {"Hello World!", "o",2,9L,new Object[]{4L,7L}},
+                {"Hello World!", "World",0,12L,new Object[]{6L}},
+                {text, " ",1,20L,new Object[]{3L,9L,15L}},
+                {text, " ",1,10L,new Object[]{3L,9L}},
+                {text, " ",4,20L,new Object[]{9L,15L}},
+                {text, " ",4,10L,new Object[]{9L}},
+                {text, " ",4,5L,new Object[]{}},
+                {text,"b",0,20L,new Object[]{10L,16L}},
+                {text,"b",0,11L,new Object[]{10L}},
+                {text,"box",5,20L,new Object[]{16L}},
+                {text,"bear",5,20L,new Object[]{}},
+                {text,".",0,20L,new Object[]{19L}},
+                {text,".",21,20L,new Object[]{}},
+                {text,"",0,20L,new Object[]{0L, 1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 12L, 13L, 14L, 15L, 16L, 17L, 18L, 19L}},
+                {text,"",10,20L,new Object[]{10L, 11L, 12L, 13L, 14L, 15L, 16L, 17L, 18L, 19L}},
+                {text,"",10,15L,new Object[]{10L, 11L, 12L, 13L, 14L}},
+                {null, " ",0,-1L,null},
+                {text,null,0,-1L,new Object[]{}}
+        };
+
+        for (Object[] datum : data) {
+            testCall(db,
+                    "RETURN apoc.text.indexesOf({text},{lookup},{from},{to}) AS value",
+                    map("text",datum[0],"lookup",datum[1],"from",datum[2],"to",datum[3]),
+                    row -> {
+                        List<Object> expected = datum[4] == null ? null : asList((Object[]) datum[4]);
+                        assertEquals(expected, row.get("value"));
+                    });
         }
     }
 
@@ -148,7 +185,7 @@ public class StringsTest {
         testCall(db,
                 "RETURN apoc.text.split({text}, {regex}) AS value",
                 map("text", "", "regex", ""),
-                row -> assertEquals(Collections.singletonList(""), row.get("value")));
+                row -> assertEquals(singletonList(""), row.get("value")));
     }
 
     @Test

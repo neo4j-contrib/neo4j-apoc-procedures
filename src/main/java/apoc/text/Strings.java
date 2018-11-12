@@ -44,11 +44,31 @@ public class Strings {
     private final static LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
 
     @UserFunction
-    @Description("apoc.text.indexOf(text, lookup, offset=0)| find the first occurence of the lookup string in the text, if offset is given then start from there, -1 if not found, null if text is null.")
-    public Long indexOf(final @Name("text") String text, final @Name("lookup") String lookup, final @Name(value = "offset",defaultValue="0") long offset) {
+    @Description("apoc.text.indexOf(text, lookup, from=0, to=-1==len) - find the first occurence of the lookup string in the text, from inclusive, to exclusive, -1 if not found, null if text is null.")
+    public Long indexOf(final @Name("text") String text, final @Name("lookup") String lookup, final @Name(value = "from",defaultValue="0") long from, @Name(value = "to",defaultValue="-1") long to) {
         if (text==null) return null;
         if (lookup == null) return -1L;
-        return (long)text.indexOf(lookup,(int)offset);
+        if (to == -1L || to > text.length()) return (long)text.indexOf(lookup,(int)from);
+        if (to <= from) return -1L;
+        return (long)text.substring(0,(int)to).indexOf(lookup,(int)from);
+    }
+
+    @UserFunction
+    @Description("apoc.text.indexesOf(text, lookup, from=0, to=-1==len) - finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.")
+    public List<Long> indexesOf(final @Name("text") String text, final @Name("lookup") String lookup, final @Name(value = "from", defaultValue = "0") long from, @Name(value = "to", defaultValue = "-1") long to) {
+        if (text == null) return null;
+        if (lookup == null) return Collections.emptyList();
+        if (to == -1L) to = text.length();
+        List<Long> result = new ArrayList<>();
+        int idx = (int) from - 1;
+        while (true) {
+            idx = text.indexOf(lookup, idx + 1);
+            if (idx == -1 || idx >= to) {
+                return result;
+            } else {
+                result.add((long) idx);
+            }
+        }
     }
 
     @UserFunction

@@ -22,6 +22,7 @@ public class ExportConfig {
     private String delim = DEFAULT_DELIM;
     private boolean quotes;
     private boolean useTypes = false;
+    private boolean writeNodeProperties = false;
     private boolean nodesOfRelationships;
     private ExportFormat format;
     private CypherFormat cypherFormat;
@@ -68,7 +69,8 @@ public class ExportConfig {
         this.format = ExportFormat.fromString((String) config.getOrDefault("format", "neo4j-shell"));
         this.cypherFormat = CypherFormat.fromString((String) config.getOrDefault("cypherFormat", "create"));
         this.config = config;
-        this.streamStatements = toBoolean(config.get("streamStatements"));
+        this.streamStatements = toBoolean(config.get("streamStatements")) || toBoolean(config.get("stream"));
+        this.writeNodeProperties = toBoolean(config.get("writeNodeProperties"));
     }
 
     public boolean getRelsInBetween() {
@@ -109,5 +111,9 @@ public class ExportConfig {
 
     public boolean streamStatements() {
         return streamStatements;
+    }
+
+    public boolean writeNodeProperties() {
+        return writeNodeProperties;
     }
 }

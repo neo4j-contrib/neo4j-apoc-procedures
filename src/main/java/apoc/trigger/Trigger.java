@@ -117,9 +117,32 @@ public class Trigger {
     public Stream<TriggerInfo> remove(@Name("name")String name) {
         Map<String, Object> removed = TriggerHandler.remove(name);
         if (removed == null) {
-            Stream.of(new TriggerInfo(name, null, null, false, false));
+            return Stream.of(new TriggerInfo(name, null, null, false, false));
         }
         return Stream.of(new TriggerInfo(name,(String)removed.get("kernelTransaction"), (Map<String, Object>) removed.get("selector"), (Map<String, Object>) removed.get("params"),false, false));
+    }
+
+    @Procedure(mode = Mode.WRITE)
+    @Description("removes all previously added trigger, returns trigger information")
+    public Stream<TriggerInfo> removeAll() {
+        Map<String, Object> removed = TriggerHandler.removeAll();
+        if (removed == null) {
+            return Stream.of(new TriggerInfo(null, null, null, false, false));
+        }
+        return removed.entrySet().stream().map(this::toTriggerInfo);
+    }
+
+    public TriggerInfo toTriggerInfo(Map.Entry<String, Object> e) {
+        String name = e.getKey();
+        if (e.getValue() instanceof Map) {
+            try {
+                Map<String, Object> value = (Map<String, Object>) e.getValue();
+                return new TriggerInfo(name, (String) value.get("kernelTransaction"), (Map<String, Object>) value.get("selector"), (Map<String, Object>) value.get("params"), false, false);
+            } catch(Exception ex) {
+                return new TriggerInfo(name, ex.getMessage(), null, false, false);
+            }
+        }
+        return new TriggerInfo(name, null, null, false, false);
     }
 
     @Procedure(mode = Mode.WRITE)
@@ -214,6 +237,17 @@ public class Trigger {
                 }
                 tx.success();
                 return previous;
+            }
+        }
+
+        public synchronized static Map<String, Object> removeAll() {
+            try (Transaction tx = properties.getGraphDatabase().beginTx()) {
+                triggers.clear();
+                String previous = (String) properties.removeProperty(APOC_TRIGGER);
+                tx.success();
+                return previous == null ? null : Util.fromJson(previous, Map.class);
+            } catch (Exception e) {
+                return null;
             }
         }
 

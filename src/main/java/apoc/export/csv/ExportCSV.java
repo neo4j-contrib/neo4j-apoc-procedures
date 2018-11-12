@@ -1,10 +1,13 @@
 package apoc.export.csv;
 
 import apoc.Description;
+import apoc.Pools;
+import apoc.export.cypher.ExportCypher;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
+import apoc.util.QueueBasedSpliterator;
 import apoc.util.Util;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
@@ -15,13 +18,19 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Future;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.util.FileUtils.checkWriteAllowed;
 import static apoc.util.FileUtils.getPrintWriter;
@@ -33,6 +42,9 @@ import static apoc.util.FileUtils.getPrintWriter;
 public class ExportCSV {
     @Context
     public GraphDatabaseService db;
+
+    @Context
+    public TerminationGuard terminationGuard;
 
     public ExportCSV(GraphDatabaseService db) {
         this.db = db;
@@ -79,13 +91,34 @@ public class ExportCSV {
     private Stream<ProgressInfo> exportCsv(@Name("file") String fileName, String source, Object data, Map<String,Object> config) throws Exception {
         checkWriteAllowed();
         ExportConfig c = new ExportConfig(config);
-        ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "csv"));
+        ProgressInfo progressInfo = new ProgressInfo(fileName, source, "csv");
+        progressInfo.batchSize = c.getBatchSize();
+        ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
         PrintWriter printWriter = getPrintWriter(fileName, null);
         CsvFormat exporter = new CsvFormat(db);
+        if (c.streamStatements()) {
+            Future<Boolean> future = null;
+            try {
+                StringWriter writer = new StringWriter(10_000);
+                final ArrayBlockingQueue<ProgressInfo> queue = new ArrayBlockingQueue<>(1000);
+                ProgressReporter reporterWithConsumer = reporter.withConsumer(
+                        (pi) -> queue.offer(pi == ProgressInfo.EMPTY ? ProgressInfo.EMPTY : new ProgressInfo(pi).drain(writer)));
+                future = Util.inTxFuture(Pools.DEFAULT, db, () -> { dump(data, c, reporterWithConsumer, writer, exporter); return true; });
+                QueueBasedSpliterator<ProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, ProgressInfo.EMPTY, terminationGuard);
+                return StreamSupport.stream(spliterator, false);
+            } finally {
+                Util.waitForFutures(Collections.singletonList(future));
+            }
+        } else {
+            dump(data, c, reporter, printWriter, exporter);
+            return reporter.stream();
+        }
+    }
+
+    private void dump(Object data, ExportConfig c, ProgressReporter reporter, Writer printWriter, CsvFormat exporter) throws Exception {
         if (data instanceof SubGraph)
             exporter.dump(((SubGraph)data),printWriter,reporter,c);
         if (data instanceof Result)
             exporter.dump(((Result)data),printWriter,reporter,c);
-        return reporter.stream();
     }
 }

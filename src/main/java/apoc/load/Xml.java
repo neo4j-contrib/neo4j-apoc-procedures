@@ -65,9 +65,11 @@ public class Xml {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
             documentBuilderFactory.setNamespaceAware(true);
             documentBuilderFactory.setIgnoringElementContentWhitespace(true);
+            documentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
 
             FileUtils.checkReadAllowed(url);
+            url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
 
             Map<String, Object> headers = (Map) config.getOrDefault( "headers", Collections.emptyMap() );
 
@@ -120,6 +122,7 @@ public class Xml {
 
     private XMLStreamReader getXMLStreamReaderFromUrl(String url) throws IOException, XMLStreamException {
         FileUtils.checkReadAllowed(url);
+        url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
         URLConnection urlConnection = new URL(url).openConnection();
         FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
         return FACTORY.createXMLStreamReader(urlConnection.getInputStream());

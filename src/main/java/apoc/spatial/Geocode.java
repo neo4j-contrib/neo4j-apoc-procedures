@@ -300,17 +300,21 @@ public class Geocode {
     @Procedure
     @Description("apoc.spatial.geocodeOnce('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)")
     public Stream<GeoCodeResult> geocodeOnce(@Name("location") String address) throws UnsupportedEncodingException {
-        return geocode(address, 1L,false);
+        return geocode(address, 1L, false);
     }
 
     @Procedure
     @Description("apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData - look up geographic location of address from a geocoding service (the default one is OpenStreetMap)")
     public Stream<GeoCodeResult> geocode(@Name("location") String address, @Name(value = "maxResults",defaultValue = "100") long maxResults, @Name(value = "quotaException",defaultValue = "false") boolean quotaException) {
-        try {
-            return getSupplier().geocode(address, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults, 1), MAX_RESULTS));
-        } catch(IllegalStateException re) {
-            if (!quotaException && re.getMessage().startsWith("QUOTA_EXCEEDED")) return Stream.empty();
-            throw re;
+        if (address == null || address.isEmpty())
+            return Stream.empty();
+        else {
+            try {
+                return getSupplier().geocode(address, maxResults == 0 ? MAX_RESULTS : Math.min(Math.max(maxResults, 1), MAX_RESULTS));
+            } catch (IllegalStateException re) {
+                if (!quotaException && re.getMessage().startsWith("QUOTA_EXCEEDED")) return Stream.empty();
+                throw re;
+            }
         }
     }
 
@@ -341,4 +345,3 @@ public class Geocode {
         }
     }
 }
-

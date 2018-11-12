@@ -50,6 +50,7 @@ public class CsvFormat implements Format {
             CSVWriter out = config.isQuotes() ? new CSVWriter(writer,config.getDelimChar(), ExportConfig.QUOTECHAR) : new CSVWriter(writer,config.getDelimChar());
             writeAll(graph, reporter, config, out);
             tx.success();
+            reporter.done();
             writer.close();
             return reporter.getTotal();
         }
@@ -68,11 +69,12 @@ public class CsvFormat implements Format {
                     data[col]= FormatUtils.toString(value);
                     reporter.update(value instanceof Node ? 1: 0,value instanceof Relationship ? 1: 0 , value instanceof PropertyContainer ? 0 : 1);
                 }
-                reporter.nextRow();
                 out.writeNext(data);
+                reporter.nextRow();
                 return true;
             });
             tx.success();
+            reporter.done();
             writer.close();
             return reporter.getTotal();
         }
@@ -96,8 +98,8 @@ public class CsvFormat implements Format {
         out.writeNext(header.toArray(new String[header.size()]));
         int cols = header.size();
 
-        writeNodes(graph, out, reporter, nodePropTypes, cols);
-        writeRels(graph, out, reporter, relPropTypes, cols, nodeHeader.size());
+        writeNodes(graph, out, reporter, nodePropTypes, cols, config.getBatchSize());
+        writeRels(graph, out, reporter, relPropTypes, cols, nodeHeader.size(), config.getBatchSize());
     }
     public void writeAll2(SubGraph graph, Reporter reporter, ExportConfig config, CSVWriter out) {
         writeNodes(graph, out, reporter,config);
@@ -122,17 +124,25 @@ public class CsvFormat implements Format {
         String[] header = nodeHeader.toArray(new String[nodeHeader.size()]);
         out.writeNext(header); // todo types
         int cols = header.length;
-        writeNodes(graph, out, reporter, nodePropTypes, cols);
+        writeNodes(graph, out, reporter, nodePropTypes, cols, config.getBatchSize());
     }
 
-    private void writeNodes(SubGraph graph, CSVWriter out, Reporter reporter, Map<String, Class> nodePropTypes, int cols) {
+    private void writeNodes(SubGraph graph, CSVWriter out, Reporter reporter, Map<String, Class> nodePropTypes, int cols, int batchSize) {
         String[] row=new String[cols];
+        int nodes = 0;
         for (Node node : graph.getNodes()) {
             row[0]=String.valueOf(node.getId());
             row[1]=getLabelsString(node);
             collectProps(nodePropTypes.keySet(), node, reporter, row, 2);
             out.writeNext(row);
-            reporter.update(1, 0, 0);
+            nodes++;
+            if (batchSize==-1 || nodes % batchSize == 0) {
+                reporter.update(nodes, 0, 0);
+                nodes = 0;
+            }
+        }
+        if (nodes>0) {
+            reporter.update(nodes, 0, 0);
         }
     }
 
@@ -155,18 +165,26 @@ public class CsvFormat implements Format {
         out.writeNext(header.toArray(new String[header.size()]));
         int cols = header.size();
         int offset = 0;
-        writeRels(graph, out, reporter, relPropTypes, cols, offset);
+        writeRels(graph, out, reporter, relPropTypes, cols, offset, config.getBatchSize());
     }
 
-    private void writeRels(SubGraph graph, CSVWriter out, Reporter reporter, Map<String, Class> relPropTypes, int cols, int offset) {
+    private void writeRels(SubGraph graph, CSVWriter out, Reporter reporter, Map<String, Class> relPropTypes, int cols, int offset, int batchSize) {
         String[] row=new String[cols];
+        int rels = 0;
         for (Relationship rel : graph.getRelationships()) {
             row[offset]=String.valueOf(rel.getStartNode().getId());
             row[offset+1]=String.valueOf(rel.getEndNode().getId());
             row[offset+2]=rel.getType().name();
             collectProps(relPropTypes.keySet(), rel, reporter, row, 3 + offset);
             out.writeNext(row);
-            reporter.update(0,1,0);
+            rels++;
+            if (batchSize==-1 || rels % batchSize == 0) {
+                reporter.update(0, 1, 0);
+                rels = 0;
+            }
+        }
+        if (rels > 0) {
+            reporter.update(0, rels, 0);
         }
     }
 }

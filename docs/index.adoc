@@ -29,6 +29,17 @@ include::overview.adoc[tags=help,leveloffset=-1]
 
 To generate the help output, apoc utilizes the built in `dbms.procedures()` and `dbms.functions()` utilities.
 
+== Installation in Neo4j Server & Docker
+
+include::../readme.adoc[tags=install,leveloffset=1]
+
+include::../readme.adoc[tags=warnings,leveloffset=0]
+
+include::../readme.adoc[tags=docker,leveloffset=0]
+
+
+// include::overview.adoc[tags=overview,leveloffset=1]
+
 == Overview of APOC Procedures & Functions
 
 [[table-all]]
@@ -36,13 +47,6 @@ To generate the help output, apoc utilizes the built in `dbms.procedures()` and 
 |===
 include::../build/generated-documentation/documentation.csv[]
 |===
-
-=== Notices
-
-include::../readme.adoc[tags=warnings,leveloffset=1]
-
-
-// include::overview.adoc[tags=overview,leveloffset=1]
 
 include::functions.adoc[leveloffset=+1]
 
@@ -148,6 +152,7 @@ include::loadcsv.adoc[leveloffset=2]
 include::gephi.adoc[leveloffset=2]
 include::elasticsearch.adoc[leveloffset=2]
 include::loadxml.adoc[leveloffset=2]
+include::loadhtml.adoc[leveloffset=2]over
 
 == Graph Refactorings
 
@@ -168,6 +173,8 @@ $(document).ready(function() {
 } );
 </script>
 ++++
+
+include::custom.adoc[leveloffset=1]
 
 == Virtual
 
@@ -196,6 +203,10 @@ include::atomic.adoc[leveloffset=1]
 == Bolt
 
 include::bolt.adoc[leveloffset=1]
+
+== Cypher init script
+
+include::cypher_init.adoc[leveloffset=1]
 
 == Appendix: Complete Overview
 

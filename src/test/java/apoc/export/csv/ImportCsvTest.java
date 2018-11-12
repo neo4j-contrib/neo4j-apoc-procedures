@@ -63,6 +63,15 @@ public class ImportCsvTest {
                             "2|1|b|6\n"),
                     new AbstractMap.SimpleEntry<>("label", ":ID|:LABEL|name:STRING\n" +
                             "1|Student;Employee|John\n"),
+                    new AbstractMap.SimpleEntry<>("knows", ":START_ID,:END_ID,since:INT\n" +
+                            "1,2,2016\n" +
+                            "10,11,2014\n" +
+                            "11,12,2013"),
+                    new AbstractMap.SimpleEntry<>("persons", ":ID,name:STRING,speaks:STRING[]\n" +
+                            "1,John,\"en,fr\"\n" +
+                            "2,Jane,\"en,de\""),
+                    new AbstractMap.SimpleEntry<>("quoted", "id:ID|:LABEL|name:STRING\n" +
+                            "'1'|'Student:Employee'|'John'\n"),
                     new AbstractMap.SimpleEntry<>("rel-on-ids-idspaces", ":START_ID(Person)|:END_ID(Person)|since:INT\n" +
                             "1|2|2016\n"),
                     new AbstractMap.SimpleEntry<>("rel-on-ids", "x:START_ID|:END_ID|since:INT\n" +
@@ -121,6 +130,28 @@ public class ImportCsvTest {
         final Result resultId = db.execute("MATCH (n:Person) RETURN n.id AS id ORDER BY id");
         Assert.assertEquals(1L, resultId.next().get("id"));
         Assert.assertEquals(2L, resultId.next().get("id"));
+    }
+
+    @Test
+    public void testCallAsString() {
+        TestUtil.testCall(
+                db,
+                "CALL apoc.import.csv(" +
+                        "[{fileName: 'file:/quoted.csv', labels: ['Person']}], " +
+                        "[], " +
+                        "{delimiter: '|', arrayDelimiter: ':', quotationCharacter: '\\'', stringIds: false})",
+                map(),
+                (r) -> {
+                    assertEquals(1L, r.get("nodes"));
+                    assertEquals(0L, r.get("relationships"));
+                }
+        );
+
+        final Result resultName = db.execute("MATCH (n:Person:Student:Employee) RETURN n.name AS name ORDER BY name");
+        Assert.assertEquals("John", resultName.next().get("name"));
+
+        final Result resultId = db.execute("MATCH (n:Person:Student:Employee) RETURN n.id AS id ORDER BY id");
+        Assert.assertEquals(1L, resultId.next().get("id"));
     }
 
     @Test
@@ -365,6 +396,23 @@ public class ImportCsvTest {
             );
         Assert.assertEquals("Jane 26 <6> John 25", result2.next().get("pair"));
         Assert.assertEquals("John 25 <3> Jane 26", result2.next().get("pair"));
+    }
+
+    @Test
+    public void testNoDuplicationsCreated() {
+        TestUtil.testCall(
+                db,
+                "CALL apoc.import.csv([{fileName: {nodeFile}, labels: ['Person']}], [{fileName: {relFile}, type: 'KNOWS'}], {config})",
+                map(
+                        "nodeFile", "file:/persons.csv",
+                        "relFile", "file:/knows.csv",
+                        "config", map("stringIds", false)
+                ),
+                (r) -> {
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(1L, r.get("relationships"));
+                }
+        );
     }
 
 }
