@@ -45,6 +45,13 @@ public class XmlTest {
             "[{_type=book, id=bk103, _children=[{_type=author, _text=Corets, Eva}, {_type=title, _text=Maeve Ascendant}, {_type=genre, _text=Fantasy}, {_type=price, _text=5.95}, {_type=publish_date, _text=2000-11-17}, {_type=description, _text=After the collapse of a nanotechnology " +
                     "society in England, the young survivors lay the " +
                     "foundation for a new society.}]}]";
+
+    public static final String XML_AS_SINGLE_LINE =
+            "{_type=table, _children=[{_type=tr, _children=[{_type=td, _children=[{_type=img, src=pix/logo-tl.gif}]}]}]}";
+
+    public static final String XML_AS_SINGLE_LINE_SIMPLE =
+            "{_type=table, _table=[{_type=tr, _tr=[{_type=td, _td=[{_type=img, src=pix/logo-tl.gif}]}]}]}";
+
     private GraphDatabaseService db;
 
     @Before
@@ -357,5 +364,23 @@ public class XmlTest {
             assertEquals("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true.", except.getMessage());
             throw e;
         }
+    }
+
+    @Test
+    public void testLoadXmlSingleLineSimple() throws Exception {
+        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml', '/', null, true)", //  YIELD value RETURN value
+                (row) -> {
+                    Object value = row.get("value");
+                    assertEquals(XML_AS_SINGLE_LINE_SIMPLE, value.toString());
+                });
+    }
+
+    @Test
+    public void testLoadXmlSingleLine() throws Exception {
+        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml')", //  YIELD value RETURN value
+                (row) -> {
+                    Object value = row.get("value");
+                    assertEquals(XML_AS_SINGLE_LINE, value.toString());
+                });
     }
 }
