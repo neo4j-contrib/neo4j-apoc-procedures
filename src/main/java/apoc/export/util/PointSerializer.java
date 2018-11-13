@@ -1,4 +1,4 @@
-package apoc.export.json;
+package apoc.export.util;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;

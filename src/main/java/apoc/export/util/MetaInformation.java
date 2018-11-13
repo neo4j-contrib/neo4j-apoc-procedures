@@ -5,10 +5,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static java.util.Arrays.asList;
 
@@ -61,7 +58,7 @@ public class MetaInformation {
     public static String getLabelsString(Node node) {
         if (!node.getLabels().iterator().hasNext()) return "";
         String delimiter = ":";
-        return ":" + FormatUtils.joinLabels(node, delimiter);
+        return delimiter + FormatUtils.joinLabels(node, delimiter);
     }
 
 }

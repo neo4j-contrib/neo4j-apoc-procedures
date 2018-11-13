@@ -5,21 +5,16 @@ import apoc.export.util.Format;
 import apoc.export.util.Reporter;
 import apoc.meta.Meta;
 import apoc.result.ProgressInfo;
+import apoc.util.JsonUtil;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.spatial.Point;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.time.temporal.TemporalAccessor;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,15 +22,6 @@ import java.util.function.Consumer;
 
 public class JsonFormat implements Format {
     private final GraphDatabaseService db;
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-
-    static {
-        SimpleModule module = new SimpleModule("Neo4jApocSerializer", new Version(1, 0, 0, ""));
-        module.addSerializer(Point.class, new PointSerializer());
-        module.addSerializer(TemporalAccessor.class, new TemporalSerializer());
-        OBJECT_MAPPER.registerModule(module);
-    }
 
     public JsonFormat(GraphDatabaseService db) {
         this.db = db;
@@ -88,7 +74,7 @@ public class JsonFormat implements Format {
     private JsonGenerator getJsonGenerator(Writer writer) throws IOException {
         JsonFactory jsonF = new JsonFactory();
         JsonGenerator jsonGenerator = jsonF.createGenerator(writer);
-        jsonGenerator.setCodec(OBJECT_MAPPER);
+        jsonGenerator.setCodec(JsonUtil.OBJECT_MAPPER);
         jsonGenerator.setPrettyPrinter(new MinimalPrettyPrinter("\n"));
         return jsonGenerator;
     }

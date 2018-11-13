@@ -17,6 +17,7 @@ import java.util.Scanner;
 
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -30,7 +31,7 @@ public class ExportGraphMLTest {
     public static final String GRAPH = "<graph id=\"G\" edgedefault=\"directed\">%n";
     public static final String HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>%n" +
             "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">%n";
-    public static final String DATA = "<node id=\"n0\" labels=\":Foo\"><data key=\"labels\">:Foo</data><data key=\"name\">foo</data></node>%n" +
+    public static final String DATA = "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"labels\">:Foo:Foo0:Foo2</data><data key=\"name\">foo</data></node>%n" +
             "<node id=\"n1\" labels=\":Bar\"><data key=\"labels\">:Bar</data><data key=\"name\">bar</data><data key=\"age\">42</data></node>%n" +
             "<node id=\"n2\" labels=\":Bar\"><data key=\"labels\">:Bar</data><data key=\"age\">12</data><data key=\"values\">[1,2,3]</data></node>%n" +
             "<edge id=\"e0\" source=\"n0\" target=\"n1\" label=\"KNOWS\"><data key=\"label\">KNOWS</data></edge>%n";
@@ -56,7 +57,7 @@ public class ExportGraphMLTest {
                 .setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, ExportGraphML.class, Graphs.class);
-        db.execute("CREATE (f:Foo {name:'foo'})-[:KNOWS]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12,values:[1,2,3]})").close();
+        db.execute("CREATE (f:Foo:Foo2:Foo0 {name:'foo'})-[:KNOWS]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12,values:[1,2,3]})").close();
     }
 
     @AfterClass
@@ -117,6 +118,6 @@ public class ExportGraphMLTest {
         else
             assertEquals("file", r.get("source"));
         assertEquals("graphml", r.get("format"));
-        assertEquals(true, ((long) r.get("time")) > 0);
+        assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
     }
 }

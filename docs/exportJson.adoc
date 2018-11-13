@@ -23,6 +23,10 @@ apoc.export.file.enabled=true
 | writeNodeProperties | true/false, if true export properties too.
 |===
 
+==== Note:
+
+The labels exported are ordered alphabetically.
+The output of `labels()` function is not sorted, use it in combination with `apoc.coll.sort()`.
 
 == Examples
 
