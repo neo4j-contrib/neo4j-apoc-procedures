@@ -8,6 +8,24 @@ The clean functionality can be useful for cleaning up slightly dirty text data w
 
 Cleaning will strip the string of all non-alphanumeric characters (including spaces) and convert it to lower case.
 
+== Formatting Text
+
+Format the string with the params given, and optional param language.
+
+.without language param ('en' default)
+
+[source,cypher]
+----
+RETURN apoc.text.format('ab%s %d %.1f %s%n',['cd',42,3.14,true]) AS value // abcd 42 3.1 true
+----
+
+.with language param
+
+[source,cypher]
+----
+RETURN apoc.text.format('ab%s %d %.1f %s%n',['cd',42,3.14,true],'it') AS value // abcd 42 3,1 true
+----
+
 == String Search
 
 The `indexOf` function, provides the fist occurrence of the given `lookup` string within the `text`, or -1 if not found.
