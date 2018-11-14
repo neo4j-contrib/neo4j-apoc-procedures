@@ -144,4 +144,13 @@ class MongoDBColl implements MongoDB.Coll {
         DeleteResult result = collection.deleteMany(new Document(query));
         return result.wasAcknowledged() ? result.getDeletedCount() : -result.getDeletedCount();
     }
+
+    @Override
+    public void safeClose() {
+        try{
+            this.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
