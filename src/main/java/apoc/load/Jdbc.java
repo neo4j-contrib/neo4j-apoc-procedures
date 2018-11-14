@@ -9,6 +9,7 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import scala.Console;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -20,6 +21,7 @@ import javax.security.auth.login.LoginContext;
 import java.io.InputStream;
 import java.net.IDN;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -43,17 +45,23 @@ public class Jdbc {
     @Context
     public Log log;
 
-    private static Connection getConnection(String jdbcUrl) throws Exception {
-        if (!jdbcUrl.contains("#")) {
+    private static Connection getConnection(Log log, String jdbcUrl) throws Exception {
+        String userInfo = null;
+
+        try {
             URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
+            userInfo = uri.getUserInfo();
+        } catch (URISyntaxException ex) {
+            // Jdbc allows special characters but the URI class doesn't
+            log.warn(
+                    String.format("WARNING: URISyntaxException raised parsing the jdbc url: %s \n Jdbc allows special characters but the URI class doesn't", jdbcUrl)
+            );
+        }
 
-            String userInfo = uri.getUserInfo();
-
-            if (userInfo != null) {
-                String[] user = userInfo.split(":");
-                String cleanUrl = jdbcUrl.substring(0, jdbcUrl.indexOf("://") + 3) + jdbcUrl.substring(jdbcUrl.indexOf("@") + 1);
-                return DriverManager.getConnection(cleanUrl, user[0], user[1]);
-            }
+        if (userInfo != null) {
+            String[] user = userInfo.split(":");
+            String cleanUrl = jdbcUrl.substring(0, jdbcUrl.indexOf("://") + 3) + jdbcUrl.substring(jdbcUrl.indexOf("@") + 1);
+            return DriverManager.getConnection(cleanUrl, user[0], user[1]);
         }
 
         return DriverManager.getConnection(jdbcUrl);
@@ -91,7 +99,7 @@ public class Jdbc {
         String url = urlOrKey.contains(":") ? urlOrKey : getJdbcUrl(urlOrKey);
         String query = tableOrSelect.indexOf(' ') == -1 ? "SELECT * FROM " + tableOrSelect : tableOrSelect;
         try {
-            Connection connection = getConnection(url);
+            Connection connection = getConnection(log, url);
             try {
                 PreparedStatement stmt = connection.prepareStatement(query);
                 try {
@@ -129,7 +137,7 @@ public class Jdbc {
     private Stream<RowResult> executeUpdate(String urlOrKey, String query, Object...params) {
         String url = urlOrKey.contains(":") ? urlOrKey : getJdbcUrl(urlOrKey);
         try {
-            Connection connection = getConnection(url);
+            Connection connection = getConnection(log, url);
             try {
             PreparedStatement stmt = connection.prepareStatement(query);
                 try {
