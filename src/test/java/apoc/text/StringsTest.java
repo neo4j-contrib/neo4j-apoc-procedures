@@ -428,6 +428,8 @@ public class StringsTest {
         testCall(db, "RETURN apoc.text.format(null,null) AS value", row -> assertEquals(null, row.get("value")));
         testCall(db, "RETURN apoc.text.format('ab',null) AS value", row -> assertEquals("ab", row.get("value")));
         testCall(db, "RETURN apoc.text.format('ab%s %d %.1f %s%n',['cd',42,3.14,true]) AS value", row -> assertEquals("abcd 42 3.1 true\n", row.get("value")));
+        testCall(db, "RETURN apoc.text.format('ab%s %d %.1f %s%n',['cd',42,3.14,true],'it') AS value", row -> assertEquals("abcd 42 3,1 true\n", row.get("value")));
+        testCall(db, "RETURN apoc.text.format('ab%s %d %.1f %s%n',['cd',42,3.14,true],'de') AS value", row -> assertEquals("abcd 42 3,1 true\n", row.get("value")));
     }
 
     @Test
