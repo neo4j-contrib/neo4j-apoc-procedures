@@ -4,14 +4,13 @@ import apoc.ApocConfiguration;
 import apoc.Pools;
 import apoc.export.util.CountingInputStream;
 import apoc.path.RelationshipTypeAndDirections;
+import org.apache.commons.io.IOUtils;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Node;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
-import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
@@ -30,6 +29,8 @@ import java.util.function.Function;
 import java.util.stream.*;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static java.lang.String.format;
 
@@ -281,32 +282,77 @@ public class Util {
 
     public static CountingInputStream openInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
         StreamConnection sc;
-        URL url = new URL(urlAddress);
-        String protocol = url.getProtocol();
-        if(FileUtils.S3_PROTOCOL.equalsIgnoreCase(protocol)) {
-            sc = FileUtils.openS3InputStream(url);
-        } else if(FileUtils.HDFS_PROTOCOL.equalsIgnoreCase(protocol)) {
-            sc = FileUtils.openHdfsInputStream(url);
-        } else {
-            sc = readHttpInputStream(urlAddress, headers, payload);
+        InputStream stream;
+        if (urlAddress.contains("!") && (urlAddress.contains(".zip") || urlAddress.contains(".tar") || urlAddress.contains(".tgz"))) {
+            return getStreamCompressedFile(urlAddress, headers, payload);
         }
 
-        String encoding = sc.getEncoding();
+        sc = getStreamConnection(urlAddress, headers, payload);
+        stream = getInputStream(sc, urlAddress);
+
+        return new CountingInputStream(stream, sc.getLength());
+    }
+
+    private static CountingInputStream getStreamCompressedFile(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
+        StreamConnection sc;
+        InputStream stream;
+        String[] tokens = urlAddress.split("!");
+        urlAddress = tokens[0];
+        String zipFileName;
+        if(tokens.length == 2) {
+            zipFileName = tokens[1];
+            sc = getStreamConnection(urlAddress, headers, payload);
+            stream = getFileStreamIntoCompressedFile(sc.getInputStream(), zipFileName);
+        }else
+            throw new IllegalArgumentException("filename can't be null or empty");
+
+        return new CountingInputStream(stream, sc.getLength());
+    }
+
+    private static StreamConnection getStreamConnection(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
+        URL url = new URL(urlAddress);
+        String protocol = url.getProtocol();
+        if (FileUtils.S3_PROTOCOL.equalsIgnoreCase(protocol)) {
+            return FileUtils.openS3InputStream(url);
+        } else if (FileUtils.HDFS_PROTOCOL.equalsIgnoreCase(protocol)) {
+            return FileUtils.openHdfsInputStream(url);
+        } else {
+            return readHttpInputStream(urlAddress, headers, payload);
+        }
+    }
+
+    private static InputStream getInputStream(StreamConnection sc, String urlAddress) throws IOException {
         InputStream stream = sc.getInputStream();
+        String encoding = sc.getEncoding();
+
         if ("gzip".equals(encoding) || urlAddress.endsWith(".gz")) {
-            stream = new GZIPInputStream(stream);
+             return new GZIPInputStream(stream);
         }
         if ("deflate".equals(encoding)) {
-            stream = new DeflaterInputStream(stream);
+            return new DeflaterInputStream(stream);
         }
-        return new CountingInputStream(stream, sc.getLength());
+
+        return stream;
+    }
+
+    private static InputStream getFileStreamIntoCompressedFile(InputStream is, String fileName) throws IOException {
+        try (ZipInputStream zip = new ZipInputStream(is)) {
+            ZipEntry zipEntry;
+
+            while ((zipEntry = zip.getNextEntry()) != null) {
+                if (!zipEntry.isDirectory() && zipEntry.getName().equals(fileName)) {
+                    return new ByteArrayInputStream(IOUtils.toByteArray(zip));
+                }
+            }
+        }
+
+        return null;
     }
 
     private static StreamConnection readHttpInputStream(String urlAddress, Map<String, Object> headers, String payload) throws IOException {
         URLConnection con = openUrlConnection(urlAddress, headers);
         writePayload(con, payload);
         String newUrl = handleRedirect(con, urlAddress);
-
         if (newUrl != null && !urlAddress.equals(newUrl)) {
             con.getInputStream().close();
             return readHttpInputStream(newUrl, headers, payload);
@@ -571,7 +617,7 @@ public class Util {
         try {
             db.check();
             return false;
-        } catch (TransactionGuardException | TransactionTerminatedException tge) {
+        } catch (TransactionGuardException | TransactionTerminatedException | NotInTransactionException tge) {
             return true;
         }
     }

@@ -24,7 +24,7 @@ idea {
 }
 
 group = 'org.neo4j.procedure'
-version = '3.4.0.2'
+version = '3.4.0.3'
 archivesBaseName = 'apoc'
 
 jar {
@@ -37,7 +37,7 @@ description = """neo4j-apoc-procedures"""
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "3.4.5"
+    neo4jVersion = "3.4.9"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
 }
@@ -68,7 +68,7 @@ dependencies {
     testCompile group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.2.0'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
-    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.4.4'
+    compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.6.3'
     compileOnly group: 'net.biville.florent', name: 'neo4j-sproc-compiler', version: '1.2'
 
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
@@ -77,6 +77,10 @@ dependencies {
     testCompile "org.apache.poi:poi:3.17"
     compileOnly "org.apache.poi:poi-ooxml:3.17"
     testCompile "org.apache.poi:poi-ooxml:3.17"
+
+    compile 'org.jsoup:jsoup:1.11.3'
+
+    compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
 
     testCompile 'net.sourceforge.jexcelapi:jxl:2.6.12'
 
@@ -115,8 +119,8 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver:3.2.2'
     testCompile 'org.mongodb:mongodb-driver:3.2.2'
 
-    compileOnly 'com.couchbase.client:java-client:2.3.1'
-    testCompile 'com.couchbase.client:java-client:2.3.1'
+    compileOnly 'com.couchbase.client:java-client:2.5.9'
+    testCompile 'com.couchbase.client:java-client:2.5.9'
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compileOnly group: 'org.neo4j', name: 'neo4j-enterprise', version: neo4jVersionEffective
@@ -198,7 +202,7 @@ asciidoctor {
     sources { include 'index.adoc' }
     outputDir = file('build/docs')
     attributes  'apoc-version' : version,
-                'apoc-release' : "3.4.0.2",
+                'apoc-release' : "3.4.0.3",
                 'neo4j-version' : neo4jVersionEffective,
                 'branch' : "3.4"
 }

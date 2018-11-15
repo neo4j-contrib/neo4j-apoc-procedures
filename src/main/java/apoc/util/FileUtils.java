@@ -29,11 +29,11 @@ public class FileUtils {
         if (fileName==null) return null;
         fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
         if (fileName.matches("^\\w+:/.+")) {
-        	if (isHdfs(fileName)) {
-        		return readHdfs(fileName);
-        	} else {
-        		return Util.openInputStream(fileName,null,null).asReader();
-        	}
+            if (isHdfs(fileName)) {
+                return readHdfs(fileName);
+            } else {
+                return Util.openInputStream(fileName,null,null).asReader();
+            }
         }
         return readFile(fileName);
     }
@@ -42,67 +42,70 @@ public class FileUtils {
         if (fileName==null) return null;
         fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
         if (fileName.matches("^\\w+:/.+")) {
-        	if (isHdfs(fileName)) {
-        		return readHdfsStream(fileName);
-        	} else {
-        		return Util.openInputStream(fileName,null,null);
-        	}
+            if (isHdfs(fileName)) {
+                return readHdfsStream(fileName);
+            } else {
+                return Util.openInputStream(fileName,null,null);
+            }
         }
         return readFileStream(fileName);
     }
 
-	private static CountingInputStream readHdfsStream(String fileName) {
-		try {
-	        StreamConnection streamConnection = HDFSUtils.readFile(fileName);
-			return new CountingInputStream(streamConnection.getInputStream(), streamConnection.getLength());
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
+    private static CountingInputStream readHdfsStream(String fileName) {
+        try {
+            StreamConnection streamConnection = HDFSUtils.readFile(fileName);
+            return new CountingInputStream(streamConnection.getInputStream(), streamConnection.getLength());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	private static CountingReader readHdfs(String fileName) {
-		try {
-	        StreamConnection streamConnection = HDFSUtils.readFile(fileName);
-			Reader reader = new BufferedReader(new InputStreamReader(streamConnection.getInputStream(), "UTF-8"));
-			return new CountingReader(reader, streamConnection.getLength());
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
+    private static CountingReader readHdfs(String fileName) {
+        try {
+            StreamConnection streamConnection = HDFSUtils.readFile(fileName);
+            Reader reader = new BufferedReader(new InputStreamReader(streamConnection.getInputStream(), "UTF-8"));
+            return new CountingReader(reader, streamConnection.getLength());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	private static CountingReader readFile(String fileName) throws IOException, FileNotFoundException {
-		File file = new File(fileName);
+    private static CountingReader readFile(String fileName) throws IOException, FileNotFoundException {
+        File file = new File(fileName);
         if (!file.exists() || !file.isFile() || !file.canRead()) throw new IOException("Cannot open file "+fileName+" for reading.");
         return new CountingReader(file);
-	}
+    }
 
-	private static CountingInputStream readFileStream(String fileName) throws IOException, FileNotFoundException {
-		File file = new File(fileName);
+    private static CountingInputStream readFileStream(String fileName) throws IOException, FileNotFoundException {
+        File file = new File(fileName);
         if (!file.exists() || !file.isFile() || !file.canRead()) throw new IOException("Cannot open file "+fileName+" for reading.");
         return new CountingInputStream(file);
-	}
+    }
 
     public static String changeFileUrlIfImportDirectoryConstrained(String url) throws IOException {
         if (isFile(url) && ApocConfiguration.isEnabled("import.file.use_neo4j_config")) {
             if (!ApocConfiguration.isEnabled("import.file.allow_read_from_filesystem"))
                 throw new RuntimeException("Import file "+url+" not enabled, please set dbms.security.allow_csv_import_from_file_urls=true in your neo4j.conf");
+
             String importDir = ApocConfiguration.get("import.file.directory", null);
+
+            URI uri = URI.create(url);
+            if(uri == null) throw new RuntimeException("Path not valid!");
+
             if (importDir != null && !importDir.isEmpty()) {
                 try {
-                    File dir = new File(importDir);
-                    if (!dir.exists() || !dir.isDirectory() || !dir.canRead()) throw new Exception();
-                    String fileAsUrl = null;
-                    try { fileAsUrl = new URI(url).getPath(); } catch (Exception e) { /*no protocol*/ }
-                    if ("".equals(fileAsUrl)){
-                        String newUrl = url.replace("file://", "file:///");
-                        fileAsUrl = new URI(newUrl).getPath();
-                        if ("".equals(fileAsUrl)) fileAsUrl=newUrl.replace("file://","");
-                    }
-                    File file = url.startsWith(importDir) ? new File(fileAsUrl) : new File(dir.getAbsolutePath(), fileAsUrl);
-                    if (!file.exists() || !file.isFile() || !file.canRead()) throw new Exception();
-                    return new URL("file","",file.getAbsolutePath()).toString();
+                    String relativeFilePath = !uri.getPath().isEmpty() ? uri.getPath() : uri.getHost();
+                    String absolutePath = url.startsWith(importDir) ? url : new File(importDir, relativeFilePath).getAbsolutePath();
+
+                    return new File(absolutePath).toURI().toString();
                 } catch (Exception e){
                     throw new IOException("Cannot open file "+url+" from directory "+importDir+" for reading.");
+                }
+            } else {
+                try {
+                    return new File(uri.getPath()).toURI().toString();
+                } catch (Exception e) {
+                    throw new IOException("Cannot open file "+url+" for reading.");
                 }
             }
         }
@@ -120,17 +123,17 @@ public class FileUtils {
     public static PrintWriter getPrintWriter(String fileName, Writer out) throws IOException {
         if (fileName == null) return null;
         Writer writer;
-        
+
         if (isHdfs(fileName)) {
-        	try {
-				writer = new OutputStreamWriter(HDFSUtils.writeFile(fileName));
-			} catch (Exception e) {
-				throw new RuntimeException(e);
-			}
+            try {
+                writer = new OutputStreamWriter(HDFSUtils.writeFile(fileName));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         } else {
-        	writer = fileName.equals("-") ? out : new BufferedWriter(new FileWriter(fileName));
+            writer = fileName.equals("-") ? out : new BufferedWriter(new FileWriter(fileName));
         }
-        
+
         return new PrintWriter(writer);
     }
 

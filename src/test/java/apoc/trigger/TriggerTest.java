@@ -8,7 +8,10 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.Map;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.neo4j.helpers.collection.MapUtil.map;
 
 /**
@@ -62,6 +65,55 @@ public class TriggerTest {
         db.execute("MATCH (f:Foo) DETACH DELETE f").close();
         TestUtil.testCall(db, "MATCH (c:Counter) RETURN c.count as count", (row) -> {
             assertEquals(1L, row.get("count"));
+        });
+    }
+
+    @Test
+    public void testRemoveTrigger() throws Exception {
+        assertEquals(1, Iterators.count(db.execute("CALL apoc.trigger.add('to-be-removed','RETURN 1',{}) YIELD name RETURN name")));
+        TestUtil.testCall(db, "CALL apoc.trigger.list()", (row) -> {
+            assertEquals("to-be-removed", row.get("name"));
+            assertEquals("RETURN 1", row.get("query"));
+            assertEquals(true, row.get("installed"));
+        });
+        TestUtil.testCall(db, "CALL apoc.trigger.remove('to-be-removed')", (row) -> {
+            assertEquals("to-be-removed", row.get("name"));
+            assertEquals("RETURN 1", row.get("query"));
+            assertEquals(false, row.get("installed"));
+        });
+        assertEquals(0, Iterators.count(db.execute("CALL apoc.trigger.list()")));
+        TestUtil.testCall(db, "CALL apoc.trigger.remove('to-be-removed')", (row) -> {
+            assertEquals("to-be-removed", row.get("name"));
+            assertEquals(null, row.get("query"));
+            assertEquals(false, row.get("installed"));
+        });
+    }
+    @Test
+    public void testRemoveAllTrigger() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.trigger.removeAll()", (row) -> {
+            assertEquals(null, row.get("name"));
+            assertEquals(null, row.get("query"));
+            assertEquals(false, row.get("installed"));
+        });
+        assertEquals(1, Iterators.count(db.execute("CALL apoc.trigger.add('to-be-removed-1','RETURN 1',{}) YIELD name RETURN name")));
+        assertEquals(1, Iterators.count(db.execute("CALL apoc.trigger.add('to-be-removed-2','RETURN 2',{}) YIELD name RETURN name")));
+        assertEquals(2, Iterators.count(db.execute("CALL apoc.trigger.list()")));
+        TestUtil.testResult(db, "CALL apoc.trigger.removeAll()", (res) -> {
+            Map<String, Object> row = res.next();
+            assertEquals("to-be-removed-1", row.get("name"));
+            assertEquals("RETURN 1", row.get("query"));
+            assertEquals(false, row.get("installed"));
+            row = res.next();
+            assertEquals("to-be-removed-2", row.get("name"));
+            assertEquals("RETURN 2", row.get("query"));
+            assertEquals(false, row.get("installed"));
+            assertFalse(res.hasNext());
+        });
+        assertEquals(0, Iterators.count(db.execute("CALL apoc.trigger.list()")));
+        TestUtil.testCall(db, "CALL apoc.trigger.removeAll()", (row) -> {
+            assertEquals(null, row.get("name"));
+            assertEquals(null, row.get("query"));
+            assertEquals(false, row.get("installed"));
         });
     }
 

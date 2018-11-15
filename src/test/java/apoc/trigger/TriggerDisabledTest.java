@@ -64,6 +64,10 @@ public class TriggerDisabledTest
         // We expect a RuntimeException to be thrown.
         catch ( RuntimeException e )
         {
+            // Give the user a specific message that hints at what setting they need to change to fix
+            // this problem.
+            String msg = e.getMessage();
+            assertTrue(msg.indexOf("apoc.trigger.enabled") >= 0);
         }
         // Any other exception causes the test to fail.
         catch ( Exception e )

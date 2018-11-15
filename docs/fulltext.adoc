@@ -252,3 +252,95 @@ Again we're search for "Johnny", expecting now two of them:
 CALL apoc.index.search("people", "Johnny") YIELD node, weight
 RETURN node.name, weight
 ----
+
+=== Fulltext index count
+
+Accompanying UserFunctions that just return counts for nodes and relationships manual index
+
+[source,cypher]
+----
+apoc.index.nodes.count('Label','prop:value*') YIELD value
+----
+[source,cypher]
+----
+apoc.index.relationships.count('TYPE','prop:value*') YIELD value
+----
+[source,cypher]
+----
+apoc.index.between.count(node1,'TYPE',node2,'prop:value*') YIELD value
+----
+[source,cypher]
+----
+apoc.index.out.count(node,'TYPE','prop:value*') YIELD value
+----
+[source,cypher]
+----
+apoc.index.in.count(node,'TYPE','prop:value*') YIELD value
+----
+
+===== Some example with the userFunctions describe above
+
+First we create this set of data:
+
+[source,cypher]
+----
+CREATE (joe:Person:Hipster {name:'Joe',age:42})-[checkin:CHECKIN {on:'2015-12-01'}]->(philz:Place {name:'Philz'})
+MATCH (p:Person) CALL apoc.index.addNode(p, ["name"]) RETURN count(*)
+MATCH (p:Place) CALL apoc.index.addNode(p, ["name"]) RETURN count(*)
+MATCH (person:Person)-[check:CHECKIN]->(place:Place) CALL apoc.index.addRelationship(check, ["on"]) RETURN count(*)
+----
+
+* We call the apoc.index.nodes.count function as follow:
+
+[source,cypher]
+----
+RETURN apoc.index.nodes.count('Person', 'name:Jo*') AS value
+----
+
+The result is:
+
+image::{img}/apoc.index.nodes.count.png[width=600]
+
+* We call the apoc.index.relationships.count function as follow:
+
+[source,cypher]
+----
+RETURN apoc.index.relationships.count('CHECKIN', 'on:2015-*') as value
+----
+
+The result is:
+
+image::{img}/apoc.index.relationships.count.png[width=600]
+
+* We call the apoc.index.between.count function as follow:
+
+[source,cypher]
+----
+MATCH (joe:Person:Hipster {name:'Joe',age:42}),(philz:Place {name:'Philz'}) WITH joe,philz RETURN apoc.index.between.count(joe, 'CHECKIN', philz, 'on:2015-*') as value
+----
+
+The result is:
+
+image::{img}/apoc.index.between.count.png[width=600]
+
+* We call the apoc.index.in.count function as follow:
+
+[source,cypher]
+----
+MATCH (philz:Place {name:'Philz'}) WITH philz RETURN apoc.index.in.count(philz, 'CHECKIN','on:2015-*') as value
+----
+
+The result is:
+
+image::{img}/apoc.in.nodes.count.png[width=600]
+
+* We call the apoc.index.out.count function as follow:
+
+[source,cypher]
+----
+MATCH (joe:Person:Hipster {name:'Joe',age:42}) WITH joe RETURN apoc.index.out.count(joe, 'CHECKIN','on:2015-*') as value
+----
+
+The result is:
+
+image::{img}/apoc.index.out.count.png[width=600]

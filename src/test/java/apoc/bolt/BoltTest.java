@@ -2,22 +2,28 @@ package apoc.bolt;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
+import org.neo4j.driver.internal.InternalIsoDuration;
+import org.neo4j.driver.internal.InternalPoint2D;
+import org.neo4j.driver.internal.InternalPoint3D;
 import org.neo4j.graphdb.*;
 import org.neo4j.harness.ServerControls;
 import org.neo4j.harness.TestServerBuilders;
 import org.neo4j.harness.junit.Neo4jRule;
 import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.values.storable.DurationValue;
 
+import java.time.*;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.*;
+import static org.neo4j.driver.v1.Values.isoDuration;
+import static org.neo4j.driver.v1.Values.point;
+import static org.neo4j.values.storable.CoordinateReferenceSystem.*;
+import static org.neo4j.values.storable.Values.pointValue;
 
 /**
  * @author AgileLARUS
@@ -27,16 +33,16 @@ public class BoltTest {
 
     protected static GraphDatabaseService db;
 
-    private static String setup = "CREATE (m:Person {name:'Michael',surname:'Jordan',age:54, state:true})\n" +
-            "    CREATE (q:Person {name:'Tom',surname:'Burton',age:23})\n" +
-            "    CREATE (p:Person {name:'John',surname:'William',age:22})\n" +
-            "    CREATE (q)-[:KNOWS{since:2016}]->(p)\n" +
-            "    CREATE (a:Person{name:'Tom', surname:'Loagan'})\n" +
-            "    CREATE (b:Person{name:'John', surname:'Green'})\n" +
+    private static String setup = "CREATE (m:Person {name:'Michael',surname:'Jordan',age:54, state:true, date:date('2018-10-30')})\n" +
+            "    CREATE (q:Person {name:'Tom',surname:'Burton',age:23, date:datetime('2018-10-30T12:50:35.556+0100')})\n" +
+            "    CREATE (p:Person {name:'John',surname:'William',age:22, date:localdatetime('20181030T19:32:24')})\n" +
+            "    CREATE (q)-[:KNOWS{since:2016, time:time('125035.556+0100')}]->(p)\n" +
+            "    CREATE (a:Person{name:'Tom', surname:'Loagan', duration:duration('P5M1DT12H')})\n" +
+            "    CREATE (b:Person{name:'John', surname:'Green', born:point({ x: 2.3, y: 4.5 })})\n" +
             "    CREATE (c:Person{name:'Jim', surname:'Brown'})\n" +
-            "    CREATE (d:Person{name:'Anne', surname:'Olsson'})\n" +
-            "    CREATE (a)-[:KNOWS{since:2010}]->(b)\n" +
-            "    CREATE (b)-[:KNOWS{since:2014}]->(c)\n" +
+            "    CREATE (d:Person{name:'Anne', surname:'Olsson', born:point({ x: 2.3, y: 4.5 , z: 1.2})})\n" +
+            "    CREATE (a)-[:KNOWS{since:localtime('12:50:35.556'), born:point({ longitude: 56.7, latitude: 12.78 })}]->(b)\n" +
+            "    CREATE (b)-[:KNOWS{since:time('125035.556+0100'), born:point({ longitude: 56.7, latitude: 12.78, height: 100 })}]->(c)\n" +
             "    CREATE (c)-[:KNOWS{since:2013}]->(d)";
 
     public static ServerControls server;
@@ -118,6 +124,7 @@ public class BoltTest {
                 Relationship rel = (Relationship) path.get(1);
                 assertEquals("KNOWS", rel.getType().name());
                 assertEquals(2016L, rel.getProperty("since"));
+                assertEquals(OffsetTime.parse("12:50:35.556+01:00"), rel.getProperty("time"));
             });
     }
 
@@ -129,6 +136,7 @@ public class BoltTest {
                 Relationship rel = (Relationship) row.get("r");
                 assertEquals("KNOWS", rel.getType().name());
                 assertEquals(2016L, rel.getProperty("since"));
+                assertEquals(OffsetTime.parse("12:50:35.556+01:00"), rel.getProperty("time"));
             });
     }
 
@@ -260,6 +268,7 @@ public class BoltTest {
                 assertEquals("KNOWS", rel.get("type"));
                 Map<String, Object> relProperties = (Map<String, Object>) rel.get("properties");
                 assertEquals(2016L, relProperties.get("since"));
+                assertEquals(OffsetTime.parse("12:50:35.556+01:00"), relProperties.get("time"));
             });
     }
 
@@ -275,6 +284,7 @@ public class BoltTest {
                 assertEquals("KNOWS", rel.get("type"));
                 Map<String, Object> properties = (Map<String, Object>) rel.get("properties");
                 assertEquals(2016L, properties.get("since"));
+                assertEquals(OffsetTime.parse("12:50:35.556+01:00"), properties.get("time"));
             });
     }
 
@@ -351,20 +361,25 @@ public class BoltTest {
                 assertEquals(true, start.hasLabel(Label.label("Person")));
                 assertEquals("Tom", start.getProperty("name"));
                 assertEquals("Loagan", start.getProperty("surname"));
+                assertEquals(isoDuration(5, 1, 43200, 0).asIsoDuration(), start.getProperty("duration"));
                 Relationship rel = (Relationship) path.get(1);
                 assertEquals("KNOWS", rel.getType().name());
-                assertEquals(2010L, rel.getProperty("since"));
+                assertEquals(LocalTime.parse("12:50:35.556"), rel.getProperty("since"));
+                assertEquals(point(4326, 56.7, 12.78).asPoint(), rel.getProperty("born"));
                 Node end = (Node) path.get(2);
                 assertEquals(true, end.hasLabel(Label.label("Person")));
                 assertEquals("John", end.getProperty("name"));
                 assertEquals("Green", end.getProperty("surname"));
+                assertEquals(point(7203, 2.3, 4.5).asPoint(), end.getProperty("born"));
                 start = (Node) path.get(3);
                 assertEquals(true, start.hasLabel(Label.label("Person")));
                 assertEquals("John", start.getProperty("name"));
                 assertEquals("Green", start.getProperty("surname"));
+                assertEquals(point(7203, 2.3, 4.5).asPoint(), end.getProperty("born"));
                 rel = (Relationship) path.get(4);
                 assertEquals("KNOWS", rel.getType().name());
-                assertEquals(2014L, rel.getProperty("since"));
+                assertEquals(OffsetTime.parse("12:50:35.556+01:00"), rel.getProperty("since"));
+                assertEquals(point(4979, 56.7, 12.78, 100.0).asPoint(), rel.getProperty("born"));
                 end = (Node) path.get(5);
                 assertEquals(true, end.hasLabel(Label.label("Person")));
                 assertEquals("Jim", end.getProperty("name"));
@@ -380,7 +395,9 @@ public class BoltTest {
                 assertEquals(true, end.hasLabel(Label.label("Person")));
                 assertEquals("Anne", end.getProperty("name"));
                 assertEquals("Olsson", end.getProperty("surname"));
+                assertEquals(point(9157,2.3, 4.5, 1.2).asPoint(), end.getProperty("born"));
             });
     }
+
 }
 

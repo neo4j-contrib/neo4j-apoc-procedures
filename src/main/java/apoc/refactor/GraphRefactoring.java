@@ -6,13 +6,16 @@ import apoc.refactor.util.RefactorConfig;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
+import org.apache.commons.lang3.tuple.Triple;
 import org.neo4j.graphdb.*;
+import org.neo4j.helpers.collection.Pair;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -115,8 +118,8 @@ public class GraphRefactoring {
      * Merges the nodes onto the first node.
      * The other nodes are deleted and their relationships moved onto that first node.
      */
-    @Procedure(mode = Mode.WRITE)
-    @Description("apoc.refactor.mergeNodes([node1,node2],[{properties:'override' or 'discard' or 'combine'}]) merge nodes onto first in list")
+    @Procedure(mode = Mode.WRITE,eager = true)
+    @Description("apoc.refactor.mergeNodes([node1,node2],[{properties:'overwrite' or 'discard' or 'combine'}]) merge nodes onto first in list")
     public Stream<NodeResult> mergeNodes(@Name("nodes") List<Node> nodes, @Name(value = "config", defaultValue = "") Map<String, Object> config) {
         if (nodes == null || nodes.isEmpty()) return Stream.empty();
         RefactorConfig conf = new RefactorConfig(config);
@@ -341,14 +344,13 @@ public class GraphRefactoring {
         try {
             Map<String, Object> properties = source.getAllProperties();
             copyRelationships(source, copyLabels(source, target), delete);
-            if (delete) source.delete();
             PropertiesManager.mergeProperties(properties, target, conf);
-
             if (conf.getMergeRelsAllowed()) {
                 Map<String, Object> map = Collections.singletonMap("properties", "combine");
                 mergeRelsWithSameTypeAndDirectionInMergeNodes(target, new RefactorConfig(map), Direction.OUTGOING);
                 mergeRelsWithSameTypeAndDirectionInMergeNodes(target, new RefactorConfig(map), Direction.INCOMING);
             }
+            if (delete) source.delete();
         } catch (NotFoundException e) {
             log.warn("skipping a node for merging: " + e.getCause().getMessage());
         }
@@ -408,22 +410,18 @@ public class GraphRefactoring {
 
     public void mergeRelsWithSameTypeAndDirectionInMergeNodes(Node node, RefactorConfig config, Direction dir) {
 
-        int i = 1;
-        for (Iterator<Relationship> it = node.getRelationships(dir).iterator(); it.hasNext(); ) {
-            Relationship relSource = it.next();
-            StreamSupport.stream(node.getRelationships(dir, relSource.getType()).spliterator(), false)
-                    .skip(i)
-                    .distinct()
-                    .forEach(relTarget -> {
-                        if (relSource.getStartNode().equals(relTarget.getStartNode()) && relSource.getEndNode().equals(relTarget.getEndNode()))
-                            mergeRels(relSource, relTarget, true, config);
-                        else {
-                            mergeRels(relSource, relTarget, false, config);
-                            mergeRels(relTarget, relSource, false, config);
+        for (RelationshipType  type : node.getRelationshipTypes()) {
+            StreamSupport.stream(node.getRelationships(dir,type).spliterator(), false)
+                    .collect(Collectors.groupingBy(rel -> Pair.of(rel.getStartNode(), rel.getEndNode())))
+                    .values().stream()
+                    .filter(list -> !list.isEmpty())
+                    .forEach(list -> {
+                        Relationship first = list.get(0);
+                        for (int i = 1; i < list.size(); i++) {
+                            mergeRels(list.get(i), first, true, config);
                         }
                     });
-            i++;
-        }
 
+        }
     }
 }

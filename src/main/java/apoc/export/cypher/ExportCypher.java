@@ -103,7 +103,7 @@ public class ExportCypher {
         if (c.streamStatements()) {
             Future<Boolean> future = null;
             try {
-                final ArrayBlockingQueue<DataProgressInfo> queue = new ArrayBlockingQueue<>(100);
+                final ArrayBlockingQueue<DataProgressInfo> queue = new ArrayBlockingQueue<>(1000);
                 ProgressReporter reporterWithConsumer = reporter.withConsumer(
                         (pi) -> queue.offer(pi == ProgressInfo.EMPTY ? DataProgressInfo.EMPTY : new DataProgressInfo(pi).enrich(cypherFileManager)));
                 future = Util.inTxFuture(Pools.DEFAULT, db, () -> { doExport(graph, c, onlySchema, reporterWithConsumer, cypherFileManager); return true; });

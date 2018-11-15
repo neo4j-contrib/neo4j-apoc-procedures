@@ -56,6 +56,10 @@ public class ProgressReporter implements Reporter {
         time = System.currentTimeMillis();
         progressInfo.update(nodes, relationships, properties);
         totalEntities += nodes + relationships;
+        acceptBatch();
+    }
+
+    public void acceptBatch() {
         if (batchSize != -1 && totalEntities / batchSize > lastBatch) {
             updateRunningBatch(progressInfo);
             if (consumer != null) {
@@ -78,6 +82,8 @@ public class ProgressReporter implements Reporter {
         progressInfo.done(start);
         if (consumer != null) {
             consumer.accept(progressInfo);
+        }
+        if (consumer != null) {
             consumer.accept(ProgressInfo.EMPTY);
         }
     }
@@ -102,5 +108,7 @@ public class ProgressReporter implements Reporter {
 
     public void nextRow() {
         this.progressInfo.nextRow();
+        this.totalEntities++;
+        acceptBatch();
     }
 }

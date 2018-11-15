@@ -14,7 +14,7 @@ import javax.print.AttributeException;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.sql.*;
-import java.time.Instant;
+import java.time.*;
 import java.util.Calendar;
 import java.util.Properties;
 
@@ -27,9 +27,11 @@ public class JdbcTest {
 
     private static GraphDatabaseService db;
 
-    private static java.sql.Date hireDate = new java.sql.Date( new Calendar.Builder().setDate( 2017, 04, 25 ).build().getTimeInMillis() );
+    private static java.sql.Date hireDate = new java.sql.Date( new Calendar.Builder().setDate(2017, 04, 25).build().getTimeInMillis() );
 
-    private static java.sql.Timestamp effectiveFromDate = java.sql.Timestamp.from( Instant.now() );
+    private static java.sql.Timestamp effectiveFromDate = java.sql.Timestamp.from(Instant.now());
+
+    private static java.sql.Time time = java.sql.Time.valueOf("15:37:00");
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -48,34 +50,62 @@ public class JdbcTest {
     @Test
     public void testLoadJdbc() throws Exception {
         testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON')",
-                (row) -> assertEquals( Util.map("NAME", "John", "HIRE_DATE", hireDate.getTime(),"EFFECTIVE_FROM_DATE",
-                        effectiveFromDate.getTime()), row.get("row")));
+                (row) -> assertEquals( Util.map("NAME", "John", "HIRE_DATE", hireDate.toLocalDate(), "EFFECTIVE_FROM_DATE",
+                        effectiveFromDate.toLocalDateTime(), "TEST_TIME", time.toLocalTime()), row.get("row")));
     }
 
     @Test
     public void testLoadJdbcSelect() throws Exception {
         testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON')",
-                (row) -> assertEquals( Util.map("NAME", "John", "HIRE_DATE", hireDate.getTime(),"EFFECTIVE_FROM_DATE",
-                        effectiveFromDate.getTime()), row.get("row")));
+                (row) -> assertEquals( Util.map("NAME", "John", "HIRE_DATE", hireDate.toLocalDate(),"EFFECTIVE_FROM_DATE",
+                        effectiveFromDate.toLocalDateTime(), "TEST_TIME", time.toLocalTime()), row.get("row")));
     }
     @Test
     public void testLoadJdbcSelectColumnNames() throws Exception {
         testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT NAME, HIRE_DATE AS DATE FROM PERSON')",
-                (row) -> assertEquals( Util.map("NAME", "John", "DATE", hireDate.getTime()), row.get("row")));
+                (row) -> assertEquals( Util.map("NAME", "John", "DATE", hireDate.toLocalDate()), row.get("row")));
     }
 
     @Test
     public void testLoadJdbcParams() throws Exception {
         testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'])", //  YIELD row RETURN row
-                (row) -> assertEquals( Util.map("NAME", "John", "HIRE_DATE", hireDate.getTime(),"EFFECTIVE_FROM_DATE",
-                        effectiveFromDate.getTime()), row.get("row")));
+                (row) -> assertEquals( Util.map("NAME", "John",
+                        "HIRE_DATE", hireDate.toLocalDate(),
+                        "EFFECTIVE_FROM_DATE", effectiveFromDate.toLocalDateTime(),
+                        "TEST_TIME", time.toLocalTime()), row.get("row")));
+    }
+
+    @Test
+    public void testLoadJdbcParamsWithConfigLocalDateTime() throws Exception {
+        testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'])",
+                (row) -> assertEquals( Util.map("NAME", "John", "HIRE_DATE", hireDate.toLocalDate(), "EFFECTIVE_FROM_DATE",
+                        effectiveFromDate.toLocalDateTime(), "TEST_TIME", time.toLocalTime()), row.get("row")));
+
+        ZoneId asiaTokio = ZoneId.of("Asia/Tokyo");
+        testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], {config})",
+                map("config", map("timezone", asiaTokio.toString())),
+                (row) -> {
+                    assertEquals( Util.map("NAME", "John",
+                            "HIRE_DATE", hireDate.toLocalDate(),
+                            "EFFECTIVE_FROM_DATE", effectiveFromDate.toInstant().atZone(asiaTokio).toOffsetDateTime(),
+                            "TEST_TIME", time.toLocalTime()), row.get("row"));
+
+                });
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testLoadJdbcParamsWithWrongTimezoneValue() throws Exception {
+        db.execute("CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], {timezone: {timezone}})",
+                map("timezone", "Italy/Pescara")).next();
     }
 
     @Test
     public void testLoadJdbcKey() throws Exception {
         testCall(db, "CALL apoc.load.jdbc('derby','PERSON')",
-                (row) -> assertEquals( Util.map("NAME", "John", "HIRE_DATE", hireDate.getTime(),"EFFECTIVE_FROM_DATE",
-                        effectiveFromDate.getTime()), row.get("row")));
+                (row) -> assertEquals( Util.map("NAME", "John",
+                        "HIRE_DATE", hireDate.toLocalDate(),
+                        "EFFECTIVE_FROM_DATE", effectiveFromDate.toLocalDateTime(),
+                        "TEST_TIME", time.toLocalTime()), row.get("row")));
 
     }
 
@@ -114,19 +144,22 @@ public class JdbcTest {
         Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
         Connection conn = DriverManager.getConnection("jdbc:derby:derbyDB;create=true", new Properties());
         try { conn.createStatement().execute("DROP TABLE PERSON"); } catch (SQLException se) {/*ignore*/}
-        conn.createStatement().execute("CREATE TABLE PERSON (NAME varchar(50), HIRE_DATE DATE, EFFECTIVE_FROM_DATE TIMESTAMP )");
-        PreparedStatement ps = conn.prepareStatement("INSERT INTO PERSON values(?,?,?)");
+        conn.createStatement().execute("CREATE TABLE PERSON (NAME varchar(50), HIRE_DATE DATE, EFFECTIVE_FROM_DATE TIMESTAMP, TEST_TIME TIME)");
+        PreparedStatement ps = conn.prepareStatement("INSERT INTO PERSON values(?,?,?,?)");
         ps.setString(1, "John");
         ps.setDate(2, hireDate);
         ps.setTimestamp(3, effectiveFromDate);
+        ps.setTime(4, time);
         int rows = ps.executeUpdate();
         assertEquals(1, rows);
-        ResultSet rs = conn.createStatement().executeQuery("SELECT NAME, HIRE_DATE, EFFECTIVE_FROM_DATE FROM PERSON");
+        ResultSet rs = conn.createStatement().executeQuery("SELECT NAME, HIRE_DATE, EFFECTIVE_FROM_DATE, TEST_TIME FROM PERSON");
         assertEquals(true, rs.next());
         assertEquals("John", rs.getString("NAME"));
-        assertEquals(hireDate.getTime(), rs.getDate("HIRE_DATE").getTime());
-        assertEquals(effectiveFromDate.getTime(), rs.getTimestamp("EFFECTIVE_FROM_DATE").getTime());
+        assertEquals(hireDate.toLocalDate(), rs.getDate("HIRE_DATE").toLocalDate());
+        assertEquals(effectiveFromDate, rs.getTimestamp("EFFECTIVE_FROM_DATE"));
+        assertEquals(time, rs.getTime("TEST_TIME"));
         assertEquals(false, rs.next());
         rs.close();
     }
+
 }

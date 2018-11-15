@@ -14,14 +14,16 @@
 | call apoc.refactor.categorize(node, propertyKey, type, outgoing, label) | turn each unique propertyKey into a category node and connect to it
 |===
 
+////
 TODO:
 
 * merge nodes by label + property
 * merge relationships
+////
 
-=== Graph Refactoring Examples
+== Graph Refactoring Examples
 
-.Clone nodes
+=== Clone nodes
 
 We create a dataset
 [source,cypher]
@@ -65,7 +67,7 @@ As result we have a copy of the nodes and relationships
 
 image::{img}/apoc.refactor.cloneNodesWithRelationships.png[width=800]
 
-.Merge nodes
+=== Merge nodes
 
 We create two nodes with different properties
 
@@ -89,7 +91,7 @@ image::{img}/apoc.refactor.mergeNodes.png[width=800]
 
 Thus we have one node with both properties `name` and `surname`
 
-.Redirect relationship to
+=== Redirect relationship to
 
 We start with two nodes related each other with a relationship. We create a new node which we will use to redirect the relationship like end node
 
@@ -113,7 +115,7 @@ image::{img}/apoc.refactor.to.png[width=800]
 
 Now the relationship is towards the new node `Person`
 
-.Redirect relationship from
+=== Redirect relationship from
 
 We start with two nodes related each other with a relationship. We create a new node which we will use to redirect the relationship like start node
 
@@ -137,7 +139,7 @@ image::{img}/apoc.refactor.from.png[width=800]
 
 Now the relationship starts from the new node `Person` from the old node `Bar`
 
-.Invert relationship
+=== Invert relationship
 
 We start with two nodes connected by a relationship
 
@@ -161,7 +163,7 @@ image::{img}/apoc.refactor.invert.call.png[width=800]
 
 image::{img}/apoc.refactor.invert.png[width=800]
 
-.Set type
+=== Set type
 
 With a simple relationship between two node
 
@@ -182,7 +184,7 @@ CALL apoc.refactor.setType(rel, 'NEW-TYPE') YIELD input, output RETURN *
 
 image::{img}/apoc.refactor.setType.png[width=800]
 
-.Extract node from relationships
+=== Extract node from relationships
 
 [source,cypher]
 ----
@@ -202,7 +204,7 @@ YIELD input, output RETURN *
 
 image::{img}/apoc.refactor.extractNode.png[width=800]
 
-.Collapse node to relationship
+=== Collapse node to relationship
 
 [source,cypher]
 ----
@@ -221,7 +223,7 @@ image::{img}/apoc.refactor.collapseNode.png[width=800]
 
 The property of the two relationship and the property of the node are joined in one relationship that has the  properties `a:1`, `b:2`, `name:Bar`
 
-.Normalize As Boolean
+=== Normalize As Boolean
 
 [source,cypher]
 ----
@@ -242,7 +244,7 @@ MATCH (n)  CALL apoc.refactor.normalizeAsBoolean(n,'prop',['Y','Yes'],['NO']) WI
 
 image::{img}/apoc.refactor.normalizeAsBoolean.png[width=800]
 
-.Categorize
+=== Categorize
 
 First of all we create some nodes as dataset
 

@@ -90,7 +90,7 @@ public class LoadXls {
         }
     }
     @Procedure("apoc.load.xls")
-    @Description("apoc.load.xls('url',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,\n config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
+    @Description("apoc.load.xls('url','selector',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,\n config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
     public Stream<XLSResult> xls(@Name("url") String url, @Name("selector") String selector, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         boolean failOnError = booleanValue(config, "failOnError", true);
         try (CountingInputStream stream = FileUtils.inputStreamFor(url)) {
@@ -108,6 +108,7 @@ public class LoadXls {
 
             Workbook workbook = WorkbookFactory.create(stream);
             Sheet sheet = workbook.getSheet(selection.sheet);
+            if (sheet==null) throw new IllegalStateException("Sheet "+selection.sheet+" not found");
             selection.updateVertical(sheet.getFirstRowNum(),sheet.getLastRowNum());
             Row firstRow = sheet.getRow(selection.top);
             selection.updateHorizontal(firstRow.getFirstCellNum(), firstRow.getLastCellNum());
@@ -190,6 +191,7 @@ public class LoadXls {
         String[] result = new String[selection.right - selection.left];
         for (int i = selection.left; i < selection.right; i++) {
             Cell cell = header.getCell(i);
+            if (cell == null) throw new IllegalStateException("Header at position "+i+" doesn't have a value");
             String value = cell.getStringCellValue();
             result[i- selection.left] = ignore.contains(value) || mapping.getOrDefault(value, Mapping.EMPTY).ignore ? null : value;
         }

@@ -1,9 +1,12 @@
 package apoc;
 
+import apoc.custom.CypherProcedures;
+import apoc.cypher.CypherInitializer;
 import apoc.index.IndexUpdateTransactionEventHandler;
 import apoc.trigger.Trigger;
 import apoc.ttl.TTLLifeCycle;
 import apoc.util.ApocUrlStreamHandlerFactory;
+import org.neo4j.kernel.AvailabilityGuard;
 import org.neo4j.kernel.extension.KernelExtensionFactory;
 import org.neo4j.kernel.impl.logging.LogService;
 import org.neo4j.kernel.impl.proc.Procedures;
@@ -23,7 +26,12 @@ import java.net.URL;
 public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKernelExtensionFactory.Dependencies>{
 
     static {
-        URL.setURLStreamHandlerFactory(new ApocUrlStreamHandlerFactory());
+        try {
+            URL.setURLStreamHandlerFactory(new ApocUrlStreamHandlerFactory());
+        } catch (Error e) {
+            System.err.println("APOC couln't set a URLStreamHandlerFactory since some other tool already did this (e.g. tomcat). This means you cannot use s3:// or hdfs:// style URLs in APOC. This is a known issue tracked at https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/778. Full stacktrace below: ");
+            e.printStackTrace();
+        }
     }
     public ApocKernelExtensionFactory() {
         super("APOC");
@@ -34,6 +42,7 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
         JobScheduler scheduler();
         Procedures procedures();
         LogService log();
+        AvailabilityGuard availabilityGuard();
     }
 
     @Override
@@ -53,6 +62,7 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
         private TTLLifeCycle ttlLifeCycle;
 
         private IndexUpdateTransactionEventHandler.LifeCycle indexUpdateLifeCycle;
+        private CypherProcedures.CustomProcedureStorage customProcedureStorage;
 
         public ApocLifecycle(LogService log, GraphDatabaseAPI db, Dependencies dependencies) {
             this.log = log;
@@ -77,6 +87,11 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
             triggerLifeCycle.start();
             indexUpdateLifeCycle = new IndexUpdateTransactionEventHandler.LifeCycle(db, log.getUserLog(Procedures.class));
             indexUpdateLifeCycle.start();
+
+            customProcedureStorage = new CypherProcedures.CustomProcedureStorage(db, log.getUserLog(CypherProcedures.class));
+            AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
+            availabilityGuard.addListener(customProcedureStorage);
+            availabilityGuard.addListener(new CypherInitializer(db, log.getUserLog(CypherInitializer.class)));
         }
 
         public void registerCustomProcedures() {

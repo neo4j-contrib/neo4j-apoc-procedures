@@ -137,7 +137,7 @@ See the following usage-examples for the procedures.
 
 == Import CSV
 
-CSV files with headers that confirm the [Neo4j import tool's header format](https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/) can be imported using the `apoc.import.csv` procedure. This procedure is intended for small- to medium-sized data sets. For bulk importing larger data sets, it is recommended to use the offline import tool.
+CSV files that comply with the https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/[Neo4j import tool's header format] can be imported using the `apoc.import.csv` procedure. This procedure is intended to load small- to medium-sized data sets in an online database. For importing larger data sets, it is recommended to perform a batch import using the (https://neo4j.com/docs/operations-manual/current/tools/import/[import tool], which loads data in bulk to an offline (initially empty) database.
 
 === Usage
 
@@ -188,7 +188,7 @@ Jane
 
 [source,cypher]
 ----
-CALL apoc.import.csv([{filename: 'file:/persons.csv', labels: ['Person']}], [], {})
+CALL apoc.import.csv([{fileName: 'file:/persons.csv', labels: ['Person']}], [], {})
 ----
 
 === Loading nodes and relationships
@@ -211,17 +211,17 @@ Given the following CSV files and procedure call, the database loads two `Person
 [source,cypher]
 ----
 CALL apoc.import.csv(
-  [{filename: 'file:/persons.csv', labels: ['Person']}],
-  [{filename: 'file:/knows.csv', type: 'KNOWS'}],
+  [{fileName: 'file:/persons.csv', labels: ['Person']}],
+  [{fileName: 'file:/knows.csv', type: 'KNOWS'}],
   {delimiter: '|', arrayDelimiter: ',', stringIds: false}
 )
 ----
 
 The loader supports advanced features of the import tool:
 
-* _ID spaces_ are supported, using the [import tool's syntax](https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-id-spaces).
-* Node labels can be specified with the [`:LABEL`](https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-header-format-nodes) field.
-* Relationship types can be specified with the [`:TYPE`](https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-header-format-rels) field.
+* _ID spaces_ are supported, using the link:https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-id-spaces[import tool's syntax].
+* Node labels can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-header-format-nodes[`:LABEL`] field.
+* Relationship types can be specified with the link:https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/#import-tool-header-format-rels[`:TYPE`] field.
 
 == Loading Excel (XLS)
 
@@ -253,14 +253,14 @@ You can either select the sheet by name like `'Kids'`, or offset like `'Results!
 === Examples for apoc.load.xls
 
 
-[soure,cypher]
+[source,cypher]
 ----
 CALL apoc.load.xls('file:///path/to/file.xls','Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})
 ----
 
 image::{img}/load.xls.jpg[]
 
-[soure,cypher]
+[source,cypher]
 ----
 CALL apoc.load.xls('http://bit.ly/2nXgHA2','Kids')
 ----

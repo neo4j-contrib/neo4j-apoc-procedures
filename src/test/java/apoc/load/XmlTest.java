@@ -1,12 +1,15 @@
 package apoc.load;
 
 import apoc.util.TestUtil;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
+import org.xml.sax.SAXParseException;
 
 import java.util.Collections;
 import java.util.List;
@@ -42,6 +45,13 @@ public class XmlTest {
             "[{_type=book, id=bk103, _children=[{_type=author, _text=Corets, Eva}, {_type=title, _text=Maeve Ascendant}, {_type=genre, _text=Fantasy}, {_type=price, _text=5.95}, {_type=publish_date, _text=2000-11-17}, {_type=description, _text=After the collapse of a nanotechnology " +
                     "society in England, the young survivors lay the " +
                     "foundation for a new society.}]}]";
+
+    public static final String XML_AS_SINGLE_LINE =
+            "{_type=table, _children=[{_type=tr, _children=[{_type=td, _children=[{_type=img, src=pix/logo-tl.gif}]}]}]}";
+
+    public static final String XML_AS_SINGLE_LINE_SIMPLE =
+            "{_type=table, _table=[{_type=tr, _tr=[{_type=td, _td=[{_type=img, src=pix/logo-tl.gif}]}]}]}";
+
     private GraphDatabaseService db;
 
     @Before
@@ -176,7 +186,7 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlXpathBooKsFromGenre () {
-            testResult(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[genre=\"Computer\"]') yield value as result",
+        testResult(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[genre=\"Computer\"]') yield value as result",
                 (r) -> {
                     Map<String, Object> next = r.next();
                     Object result = next.get("result");
@@ -236,7 +246,7 @@ public class XmlTest {
     public void testLoadXmlWithImport() {
         testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5.xml', {createNextWordRelationships: true}) yield node",
                 row -> {
-                   assertNotNull(row.get("node"));
+                    assertNotNull(row.get("node"));
                 });
         testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
             final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));
@@ -261,5 +271,116 @@ public class XmlTest {
                     assertEquals(1737l, r.get("len"));
                 });
 
+    }
+
+    @Test
+    public void testLoadXmlFromZip() {
+        testResult(db, "call apoc.load.xml('file:src/test/resources/testload.zip!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromTar() {
+        testResult(db, "call apoc.load.xml('file:src/test/resources/testload.tar!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromTarGz() {
+        testResult(db, "call apoc.load.xml('file:src/test/resources/testload.tar.gz!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromTgz() {
+        testResult(db, "call apoc.load.xml('file:src/test/resources/testload.tgz!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromZipByUrl() {
+        testResult(db, "call apoc.load.xml('https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.zip?raw=true!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromTarByUrl() {
+        testResult(db, "call apoc.load.xml('https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.tar?raw=true!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromTarGzByUrl() {
+        testResult(db, "call apoc.load.xml('https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.tar.gz?raw=true!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test
+    public void testLoadXmlFromTgzByUrl() {
+        testResult(db, "call apoc.load.xml('https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.tgz?raw=true!xml/books.xml') yield value as catalog\n" +
+                "UNWIND catalog._children as book\n" +
+                "RETURN book.id as id\n", result -> {
+            List<Object> ids = Iterators.asList(result.columnAs("id"));
+            assertTrue(IntStream.rangeClosed(1,12).allMatch(value -> ids.contains(String.format("bk1%02d",value))));
+        });
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testLoadXmlPreventXXEVulnerabilityThrowsQueryExecutionException() {
+        try {
+            testResult(db, "CALL apoc.load.xml('file:src/test/resources/xml/xxe.xml', '/catalog/book[genre=\"Computer\"]') yield value as result", (r) -> {});
+        } catch (QueryExecutionException e) {
+            // We want test that the cause of the exception is SAXParseException with the correct cause message
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof SAXParseException);
+            assertEquals("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true.", except.getMessage());
+            throw e;
+        }
+    }
+
+    @Test
+    public void testLoadXmlSingleLineSimple() throws Exception {
+        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml', '/', null, true)", //  YIELD value RETURN value
+                (row) -> {
+                    Object value = row.get("value");
+                    assertEquals(XML_AS_SINGLE_LINE_SIMPLE, value.toString());
+                });
+    }
+
+    @Test
+    public void testLoadXmlSingleLine() throws Exception {
+        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml')", //  YIELD value RETURN value
+                (row) -> {
+                    Object value = row.get("value");
+                    assertEquals(XML_AS_SINGLE_LINE, value.toString());
+                });
     }
 }

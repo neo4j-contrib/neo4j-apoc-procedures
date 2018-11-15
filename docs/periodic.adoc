@@ -2,8 +2,6 @@
 
 == Introduction asynchronous transactional execution
 
-[NOTE]
-this document is work in progress
 
 Cypher is great for querying graphs and importing and updating graph structures.
 While during imports you can use `PERIODIC COMMIT` to control transaction sizes in memory, 
@@ -13,9 +11,13 @@ Also sometimes you want to schedule execution of Cypher statements to run regula
 
 The `apoc.periodic.*` procedures provide such capabilities.
 
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/t1Nr5C5TAYs" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+
 Many procedures run in the background or asynchronously. This setting overrides the default thread pool size (processors*2).
 
-`apoc.jobs.default.num_threads=10`
+`apoc.jobs.pool.num_threads=10`
 
 Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size (processors/4, at least 1). You can configure the pool size using the following configuration property:
 
@@ -37,6 +39,7 @@ The results of the outer statement are passed into the inner statement as parame
 | retries | 0 | if the inner statement fails with an error, sleep 100ms and retry until retries-count is reached, param {_retry}
 | iterateList | false | the inner statement is only executed once but the whole batchSize list is passed in as parameter {_batch}
 | params | {} | externally passed in map of params
+| concurrency | 50 | How many concurrent tasks are generate when using `parallel:true`
 |===
 
 NOTE: We plan to make `iterateList:true` the default in upcoming releases, due to the automatic UNWINDing and providing of nested results as variables,

@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.net.URL;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,11 +22,9 @@ import org.neo4j.procedure.Procedure;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.testCallCount;
-import static apoc.util.TestUtil.testCallEmpty;
-import static apoc.util.TestUtil.testResult;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static apoc.util.TestUtil.*;
+import static java.util.Collections.emptyMap;
+import static org.junit.Assert.*;
 
 public class SpatialTest {
 
@@ -48,17 +47,21 @@ public class SpatialTest {
 
         @Procedure("apoc.spatial.geocode")
         public Stream<Geocode.GeoCodeResult> geocode(@Name("location") String address, @Name("maxResults") long maxResults) {
-            if (geocodeResults != null && geocodeResults.containsKey(address)) {
-                Map data = geocodeResults.get(address);
-                return Stream.of(new Geocode.GeoCodeResult(Util.toDouble(data.get("lat")), Util.toDouble(data.get("lon")), String.valueOf(data.get("display_name")), data));
-            } else {
+            if (address == null || address.isEmpty())
                 return Stream.empty();
+            else {
+                if (geocodeResults != null && geocodeResults.containsKey(address)) {
+                    Map data = geocodeResults.get(address);
+                    return Stream.of(new Geocode.GeoCodeResult(Util.toDouble(data.get("lat")), Util.toDouble(data.get("lon")), String.valueOf(data.get("display_name")), data));
+                } else {
+                    return Stream.empty();
+                }
             }
         }
 
         @Procedure("apoc.spatial.reverseGeocode")
-        public Stream<Geocode.GeoCodeResult> reverseGeocode(@Name("latitude") double latitude, @Name("longitude") double longitude, @Name(value = "maxResults",defaultValue = "100") long maxResults) {
-            String key = latitude+","+longitude;
+        public Stream<Geocode.GeoCodeResult> reverseGeocode(@Name("latitude") double latitude, @Name("longitude") double longitude, @Name(value = "maxResults", defaultValue = "100") long maxResults) {
+            String key = latitude + "," + longitude;
             if (reverseGeocodeResults != null && reverseGeocodeResults.containsKey(key)) {
                 Map data = reverseGeocodeResults.get(key);
                 return Stream.of(new Geocode.GeoCodeResult(latitude, longitude, String.valueOf(data.get("display_name")), data));
@@ -186,5 +189,15 @@ public class SpatialTest {
                 "RETURN a.name, latitude, \n" +
                 "longitude, a.description";
         testCallCount(db, query, null, eventNodes.size());
+    }
+
+    @Test
+    public void testNullAddressErrorGeocodeOnce(){
+        testCallEmpty(db, "CALL apoc.spatial.geocodeOnce(null)", emptyMap());
+    }
+
+    @Test
+    public void testNullAddressErrorGeocodeShouldFail(){
+        testCallEmpty(db, "CALL apoc.spatial.geocode(null,1)", emptyMap());
     }
 }

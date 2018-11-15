@@ -2,9 +2,7 @@ package apoc.load;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
@@ -15,12 +13,22 @@ import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 
 public class LoadS3Test {
 
     private GraphDatabaseService db;
     private MinioSetUp minio;
+
+    @BeforeClass
+    public static void init() {
+        // In test environment we skip the MD5 validation that can cause issues
+        System.setProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation", "true");
+    }
+
+    @AfterClass
+    public static void destroy() {
+        System.clearProperty("com.amazonaws.services.s3.disableGetObjectMD5Validation");
+    }
 
     @Before public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig("apoc.import.file.enabled","true").newGraphDatabase();
@@ -49,7 +57,7 @@ public class LoadS3Test {
 
         testCall(db, "CALL apoc.load.json({url},'')",map("url", url),
                 (row) -> {
-                    assertEquals(map("foo",asList(1,2,3)), row.get("value"));
+                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
                 });
     }
 
