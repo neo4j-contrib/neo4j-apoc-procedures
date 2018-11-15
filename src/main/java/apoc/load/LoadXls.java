@@ -4,14 +4,18 @@ import apoc.export.util.CountingInputStream;
 import apoc.meta.Meta;
 import apoc.util.FileUtils;
 import apoc.util.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.values.storable.LocalDateTimeValue;
 
 import java.io.IOException;
+import java.time.*;
+import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -20,7 +24,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.util.Util.cleanUrl;
+import static apoc.util.DateParseUtil.dateParse;
+import static apoc.util.Util.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
@@ -90,7 +95,7 @@ public class LoadXls {
         }
     }
     @Procedure("apoc.load.xls")
-    @Description("apoc.load.xls('url','selector',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,\n config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
+    @Description("apoc.load.xls('url','selector',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,\n config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false, dateFormat:'iso_date', dateParse:['dd-MM-yyyy']}}")
     public Stream<XLSResult> xls(@Name("url") String url, @Name("selector") String selector, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         boolean failOnError = booleanValue(config, "failOnError", true);
         try (CountingInputStream stream = FileUtils.inputStreamFor(url)) {
@@ -117,7 +122,6 @@ public class LoadXls {
             boolean checkIgnore = !ignore.isEmpty() || mappings.values().stream().anyMatch( m -> m.ignore);
             return StreamSupport.stream(new XLSSpliterator(sheet, selection, header, url, skip, limit, checkIgnore,mappings, nullValues), false);
         } catch (Exception e) {
-
             if(!failOnError)
                 return Stream.of(new  XLSResult(new String[0], new Object[0], 0, true, Collections.emptyMap(), emptyList()));
             else
@@ -143,6 +147,8 @@ public class LoadXls {
         final boolean array;
         final boolean ignore;
         final char arraySep;
+        final String dateFormat;
+        private final String[] dateParse;
         private final Pattern arrayPattern;
 
         public Mapping(String name, Map<String, Object> mapping, char arraySep, boolean ignore) {
@@ -153,7 +159,8 @@ public class LoadXls {
             this.arraySep = separator(mapping.getOrDefault("arraySep", arraySep).toString(),DEFAULT_ARRAY_SEP);
             this.type = Meta.Types.from(mapping.getOrDefault("type", "STRING").toString());
             this.arrayPattern = Pattern.compile(String.valueOf(this.arraySep), Pattern.LITERAL);
-
+            this.dateFormat = mapping.getOrDefault("dateFormat", StringUtils.EMPTY).toString();
+            this.dateParse = convertFormat(mapping.getOrDefault("dateParse", null));
         }
 
         public Object convert(Object value) {
@@ -172,17 +179,46 @@ public class LoadXls {
 
         private Object convertType(Object value) {
             if (nullValues.contains(value) || value == null) return null;
-//            if (!(value instanceof String)) return value;
-            switch (type) {
-                case STRING: return value.toString();
-                case INTEGER: return Util.toLong(value);
-                case FLOAT: return Util.toDouble(value);
-                case BOOLEAN: return Util.toBoolean(value);
-                case NULL: return null;
-                case LIST: return Arrays.stream(arrayPattern.split(value.toString())).map(this::convertType).collect(Collectors.toList());
-                default: return value;
+            switch (type) { // Destination Type
+                case STRING:
+                    if (value instanceof TemporalAccessor && !dateFormat.isEmpty()) {
+                        return dateFormat((TemporalAccessor) value, dateFormat);
+                    } else {
+                        return value.toString();
+                    }
+                case INTEGER:
+                    return Util.toLong(value);
+                case FLOAT:
+                    return Util.toDouble(value);
+                case BOOLEAN:
+                    return Util.toBoolean(value);
+                case NULL:
+                    return null;
+                case LIST:
+                    return Arrays.stream(arrayPattern.split(value.toString())).map(this::convertType).collect(Collectors.toList());
+                case DATE:
+                    return dateParse(value.toString(), LocalDate.class, dateParse);
+                case DATE_TIME:
+                    return dateParse(value.toString(), ZonedDateTime.class, dateParse);
+                case LOCAL_DATE_TIME:
+                    return dateParse(value.toString(), LocalDateTime.class, dateParse);
+                case LOCAL_TIME:
+                    return dateParse(value.toString(), LocalTime.class, dateParse);
+                case TIME:
+                    return dateParse(value.toString(), OffsetTime.class, dateParse);
+                case DURATION:
+                    return durationParse(value.toString());
+                default:
+                    return value;
             }
         }
+    }
+
+    private static String[] convertFormat(Object value) {
+        if (value == null) return null;
+        if (!(value instanceof List)) throw new RuntimeException("Only array of Strings are allowed!");
+        List<String> strings = (List<String>) value;
+        return strings.toArray(new String[strings.size()]);
     }
 
     private String[] getHeader(boolean hasHeader, Row header, Selection selection, List<String> ignore, Map<String, Mapping> mapping) throws IOException {
@@ -244,9 +280,9 @@ public class LoadXls {
 
     private static Object getValue(Cell cell, CellType type) {
         switch (type) {
-            case NUMERIC:
+            case NUMERIC: // In excel the date is NUMERIC Type
                 if (DateUtil.isCellDateFormatted(cell)) {
-                    return cell.getDateCellValue();
+                    return LocalDateTimeValue.localDateTime(cell.getDateCellValue().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
                 }
                 double value = cell.getNumericCellValue();
                 if (value == Math.floor(value)) return (long) value;

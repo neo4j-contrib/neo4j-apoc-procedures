@@ -37,10 +37,10 @@ public class TestUtil {
     public static void testCall(GraphDatabaseService db, String call,Map<String,Object> params, Consumer<Map<String, Object>> consumer) {
         testResult(db, call, params, (res) -> {
             try {
-                assertTrue(res.hasNext());
+                assertTrue("Should have an element",res.hasNext());
                 Map<String, Object> row = res.next();
                 consumer.accept(row);
-                assertFalse(res.hasNext());
+                assertFalse("Should not have a second element",res.hasNext());
             } catch(Throwable t) {
                 printFullStackTrace(t);
                 throw t;
