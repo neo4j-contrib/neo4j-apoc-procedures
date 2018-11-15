@@ -48,17 +48,15 @@ public class Jdbc {
 
     private static Connection getConnection(String jdbcUrl) throws Exception {
         String userInfo = null;
-
-        //try {
+        try {
             URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
             userInfo = uri.getUserInfo();
-        //}
-        /*catch (URISyntaxException ex) {
+        } catch (URISyntaxException ex) {
             // Jdbc allows special characters but the URI class doesn't
             Console.println(
                     String.format("WARNING: URISyntaxException raised parsing the jdbc url: %s \n Jdbc allows special characters but the URI class doesn't", jdbcUrl)
             );
-        }*/
+        }
 
         if (userInfo != null) {
             String[] user = userInfo.split(":");
