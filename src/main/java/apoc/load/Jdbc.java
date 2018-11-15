@@ -27,6 +27,7 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.sql.*;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -45,18 +46,19 @@ public class Jdbc {
     @Context
     public Log log;
 
-    private static Connection getConnection(Log log, String jdbcUrl) throws Exception {
+    private static Connection getConnection(String jdbcUrl) throws Exception {
         String userInfo = null;
 
-        try {
+        //try {
             URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
             userInfo = uri.getUserInfo();
-        } catch (URISyntaxException ex) {
+        //}
+        /*catch (URISyntaxException ex) {
             // Jdbc allows special characters but the URI class doesn't
-            log.warn(
+            Console.println(
                     String.format("WARNING: URISyntaxException raised parsing the jdbc url: %s \n Jdbc allows special characters but the URI class doesn't", jdbcUrl)
             );
-        }
+        }*/
 
         if (userInfo != null) {
             String[] user = userInfo.split(":");
@@ -99,7 +101,7 @@ public class Jdbc {
         String url = urlOrKey.contains(":") ? urlOrKey : getJdbcUrl(urlOrKey);
         String query = tableOrSelect.indexOf(' ') == -1 ? "SELECT * FROM " + tableOrSelect : tableOrSelect;
         try {
-            Connection connection = getConnection(log, url);
+            Connection connection = getConnection(url);
             try {
                 PreparedStatement stmt = connection.prepareStatement(query);
                 try {
@@ -137,7 +139,7 @@ public class Jdbc {
     private Stream<RowResult> executeUpdate(String urlOrKey, String query, Object...params) {
         String url = urlOrKey.contains(":") ? urlOrKey : getJdbcUrl(urlOrKey);
         try {
-            Connection connection = getConnection(log, url);
+            Connection connection = getConnection(url);
             try {
             PreparedStatement stmt = connection.prepareStatement(query);
                 try {
