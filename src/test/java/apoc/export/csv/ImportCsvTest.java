@@ -1,8 +1,12 @@
 package apoc.export.csv;
 
 import apoc.util.TestUtil;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -395,9 +399,8 @@ public class ImportCsvTest {
         Assert.assertEquals("John 25 <3> Jane 26", result2.next().get("pair"));
     }
 
-    @Test
-    @Ignore
-    public void testNoDuplicationsCreated() {
+    @Test(expected = QueryExecutionException.class)
+    public void testRelationshipEndNodesNotExist() {
         TestUtil.testCall(
                 db,
                 "CALL apoc.import.csv([{fileName: {nodeFile}, labels: ['Person']}], [{fileName: {relFile}, type: 'KNOWS'}], {config})",
@@ -406,10 +409,7 @@ public class ImportCsvTest {
                         "relFile", "file:/knows.csv",
                         "config", map("stringIds", false)
                 ),
-                (r) -> {
-                    assertEquals(2L, r.get("nodes"));
-                    assertEquals(1L, r.get("relationships"));
-                }
+                (r) -> {}
         );
     }
 
