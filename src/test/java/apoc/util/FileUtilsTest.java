@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 
 public class FileUtilsTest {
     private GraphDatabaseService db;
-    private static final File PATH = new File("target/test-data/impermanent-db");
+    private static final File PATH = new File("target/test-data");
 
     private static String TEST_FILE_RELATIVE = new File(PATH.getAbsolutePath() + "/import/test.csv").toURI().toString();
     private static String TEST_FILE_ABSOLUTE = new File(LoadRelativePathTest.class.getClassLoader().getResource("test.csv").getPath()).toURI().toString();
@@ -29,7 +29,7 @@ public class FileUtilsTest {
 
     @Before
     public void setUp() throws Exception {
-        GraphDatabaseBuilder builder = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder(PATH)
+        GraphDatabaseBuilder builder = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder(new File(PATH,"impermanent-db"))
                 .setConfig("dbms.security.allow_csv_import_from_file_urls", "true")
                 .setConfig("foo", "BAR")
                 .setConfig("apoc.import.file.use_neo4j_config", "true");
