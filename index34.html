@@ -5,7 +5,7 @@
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 1.5.6.1">
-<title>APOC User Guide 3.4.0.3</title>
+<title>APOC User Guide 3.4.0.4</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
@@ -427,7 +427,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article toc2 toc-left">
 <div id="header">
-<h1>APOC User Guide 3.4.0.3</h1>
+<h1>APOC User Guide 3.4.0.4</h1>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
@@ -716,6 +716,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_bolt_examples">Bolt Examples</a></li>
 </ul>
 </li>
+<li><a href="#_cypher_init_script">Cypher init script</a></li>
 <li><a href="#_appendix_complete_overview">Appendix: Complete Overview</a>
 <ul class="sectlevel2">
 <li><a href="#_configuration_options_2">Configuration Options</a></li>
@@ -733,6 +734,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_export_import">Export / Import</a>
 <ul class="sectlevel3">
 <li><a href="#_export_to_csv">Export to CSV</a></li>
+<li><a href="#_export_to_json_file">Export to Json File</a></li>
 <li><a href="#_export_to_cypher_script">Export to Cypher Script</a></li>
 <li><a href="#_roundtrip_example">Roundtrip Example</a></li>
 </ul>
@@ -772,6 +774,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_collection_functions">Collection Functions</a></li>
 <li><a href="#_lookup_and_manipulation_procedures">Lookup and Manipulation Procedures</a></li>
 <li><a href="#_node_functions">Node Functions</a></li>
+<li><a href="#_neighbor_functions">Neighbor Functions</a></li>
 <li><a href="#_math_functions">Math Functions</a></li>
 <li><a href="#_text_functions">Text Functions</a></li>
 <li><a href="#_data_extraction">Data Extraction</a></li>
@@ -781,7 +784,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_utilities">Utilities</a></li>
-<li><a href="#_config">Config</a></li>
+<li><a href="#_config_2">Config</a></li>
 <li><a href="#_time_to_live_ttl">Time to Live (TTL)</a></li>
 <li><a href="#_date_time_support">Date/time Support</a>
 <ul class="sectlevel3">
@@ -1086,7 +1089,7 @@ RETURN name AS undocumented</code></pre>
 <div class="sect2">
 <h3 id="_manual_installation_download_latest_release"><a class="link" href="#_manual_installation_download_latest_release">Manual Installation: Download latest release</a></h3>
 <div class="paragraph">
-<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.3" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.3</a>
+<p>Go to <a href="http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.4" class="bare">http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.4</a>
 to find the latest release and download the binary jar to place into your <code>$NEO4J_HOME/plugins</code> folder.</p>
 </div>
 <div class="admonitionblock warning">
@@ -1139,9 +1142,9 @@ See, this <a href="https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues
 <div class="content">
 <pre class="highlight"><code class="language-bash" data-lang="bash">mkdir plugins
 pushd plugins
-wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.4.0.3/apoc-3.4.0.3-all.jar
+wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.4.0.4/apoc-3.4.0.4-all.jar
 popd
-docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.4.7</code></pre>
+docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:3.4.10</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1263,6 +1266,11 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.trigger.remove</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.trigger.removeAll</p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
@@ -1598,27 +1606,27 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFile</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each kernelTransaction in the file, all semicolon separated - currently no schema operations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFiles</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each kernelTransaction in the files, all semicolon separated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each statement in the files, all semicolon separated</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFile</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema kernelTransaction in the file, all semicolon separated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFiles</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema kernelTransaction in the files, all semicolon separated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema statement in the files, all semicolon separated</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runMany</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runMany('cypher;\nstatements;',{params},[{statistics:true,timeout:10}]) - runs each semicolon separated kernelTransaction and returns summary - currently no schema operations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runMany('cypher;\nstatements;',{params},[{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -1825,17 +1833,17 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbc</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbc('key or url','table or kernelTransaction') YIELD row - load from relational database, from a full table or a sql kernelTransaction</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbc('key or url','table or statement', config) YIELD row - load from relational database, from a full table or a sql statement</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbcParams</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">deprecated - please use: apoc.load.jdbc('key or url','kernelTransaction',[params]) YIELD row - load from relational database, from a sql kernelTransaction with parameters</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">deprecated - please use: apoc.load.jdbc('key or url','',[params]) YIELD row - load from relational database, from a sql statement with parameters</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbcUpdate</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbcUpdate('key or url','kernelTransaction',[params]) YIELD row - update relational database, from a SQL kernelTransaction with optional parameters</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.load.jdbcUpdate('key or url','statement',[params]) YIELD row - update relational database, from a SQL statement with optional parameters</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -2125,12 +2133,32 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.cypher.query</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.cypher.query(query,file,config) - exports nodes and relationships from the cypher kernelTransaction incl. indexes as cypher statements to the provided file</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.cypher.query(query,file,config) - exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.cypher.schema</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.cypher.schema(file,config) - exports all schema indexes and constraints to cypher</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.json.all</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.json.data</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.json.graph</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.json.query</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -2380,7 +2408,7 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.refactor.mergeNodes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.refactor.mergeNodes([node1,node2],[{properties:'override' or 'discard' or 'combine'}]) merge nodes onto first in list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.refactor.mergeNodes([node1,node2],[{properties:'overwrite' or 'discard' or 'combine'}]) merge nodes onto first in list</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -2426,6 +2454,36 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.convert.toTree</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.convert.toTree([paths],[lowerCaseRels=true]) creates a stream of nested documents representing the at least one root of these paths</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.neighbors.tohop</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.neighbors.tohop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern up to a certain distance, can use '&gt;' or '&lt;' for all outgoing or incoming relationships</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.neighbors.tohop.count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.neighbors.tohop.count(node, rel-direction-pattern, distance) - returns distinct count of nodes of the given relationships in the pattern up to a certain distance, can use '&gt;' or '&lt;' for all outgoing or incoming relationships</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.neighbors.byhop</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.neighbors.byhop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern at each distance, can use '&gt;' or '&lt;' for all outgoing or incoming relationships</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.neighbors.byhop.count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.neighbors.byhop.count(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern at each distance, can use '&gt;' or '&lt;' for all outgoing or incoming relationships</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.neighbors.athop</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.neighbors.athop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern at a distance, can use '&gt;' or '&lt;' for all outgoing or incoming relationships</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.neighbors.athop.count</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.neighbors.athop.count(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern at a distance, can use '&gt;' or '&lt;' for all outgoing or incoming relationships</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -2720,12 +2778,12 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFirstColumnMany</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFirstColumnMany(statement, params, expectMultipleValues) - executes statement with given parameters, returns first column only collected into a list, params are available as identifiers</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFirstColumnMany(statement, params) - executes statement with given parameters, returns first column only collected into a list, params are available as identifiers</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFirstColumnSingle</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFirstColumnSingle(statement, params, expectMultipleValues) - executes statement with given parameters, returns first element of the first column only, params are available as identifiers</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFirstColumnSingle(statement, params) - executes statement with given parameters, returns first element of the first column only, params are available as identifiers</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
@@ -3019,6 +3077,11 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.coll.frequenciesAsMap</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.coll.frequenciesAsMap(coll) - return a map of frequencies of the items in the collection, key <code>item</code>, value <code>count</code> (e.g., <code>{1:2, 2:1}</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.coll.occurrences</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.coll.occurrences(coll, item) - returns the count of the given item in the collection</p></td>
 </tr>
@@ -3300,7 +3363,7 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.format</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.format(text,[params]) - sprintf format the string with the params given</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.format(text,[params],language) - sprintf format the string with the params given</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
@@ -4669,6 +4732,12 @@ RETURN apoc.data.domain(url) // will return 'www.example.com'</code></pre>
 </div>
 <div class="sect3">
 <h4 id="_timetolive_ttl_expire_nodes"><a class="link" href="#_timetolive_ttl_expire_nodes">TimeToLive (TTL) - Expire Nodes</a></h4>
+<div class="paragraph">
+<p>Some nodes are not meant to live forever.
+That&#8217;s why with APOC you can specify a time by when they are removed from the database, by utilizing a schema index and an additional label.
+A few convenience procedures help with that.</p>
+</div>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/e9aoQ9xOmoU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 <div class="paragraph">
 <p>Enable cleanup of expired nodes in <code>neo4j.conf</code> with <code>apoc.ttl.enabled=true</code></p>
 </div>
@@ -6599,6 +6668,26 @@ Cypher is pretty good at deconstructing nested documents with dot syntax, slices
 <div class="paragraph">
 <p>There is also a direct <code>apoc.json.path(json,path)</code> function.</p>
 </div>
+<div class="paragraph">
+<p>To simplify the JSON URL syntax, you can configure aliases in <code>conf/neo4j.conf</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>apoc.json.myJson.url=https://api.stackexchange.com/2.2/questions?pagesize=100&amp;order=desc&amp;sort=creation&amp;tagged=neo4j&amp;site=stackoverflow&amp;filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>CALL apoc.load.json('https://api.stackexchange.com/2.2/questions?pagesize=100&amp;order=desc&amp;sort=creation&amp;tagged=neo4j&amp;site=stackoverflow&amp;filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf')
+
+becomes
+
+CALL apoc.load.json('myJson')</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The 3rd value in the <code>apoc.json.&lt;alias&gt;.url=</code> effectively defines an alias to be used in  <code>apoc.load.json('&lt;alias&gt;',&#8230;&#8203;.</code></p>
+</div>
 </div>
 <div class="sect3">
 <h4 id="_load_json_stackoverflow_example"><a class="link" href="#_load_json_stackoverflow_example">Load JSON StackOverflow Example</a></h4>
@@ -6835,14 +6924,14 @@ CALL apoc.load.jdbc('myDB','PERSON')</pre>
 <div class="listingblock">
 <div class="title">Load the JDBC driver</div>
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">cypher CALL apoc.load.driver("com.mysql.jdbc.Driver");</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.driver("com.mysql.jdbc.Driver");</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Count rows in products table</div>
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">with "jdbc:mysql://localhost:3306/northwind?user=root" as url
-cypher CALL apoc.load.jdbc(url,"products") YIELD row
+CALL apoc.load.jdbc(url,"products") YIELD row
 RETURN count(*);</code></pre>
 </div>
 </div>
@@ -6861,7 +6950,7 @@ RETURN count(*);</code></pre>
 <div class="title">Return row from products table</div>
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">with "jdbc:mysql://localhost:3306/northwind?user=root" as url
-cypher CALL apoc.load.jdbc(url,"products") YIELD row
+CALL apoc.load.jdbc(url,"products") YIELD row
 RETURN row limit 1;</code></pre>
 </div>
 </div>
@@ -6887,7 +6976,7 @@ RETURN row limit 1;</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre>with "select firstname, lastname from employees where firstname like ? and lastname like ?" as sql
-cypher call apoc.load.jdbcParams("northwind", sql, ['F%', '%w']) yield row
+call apoc.load.jdbcParams("northwind", sql, ['F%', '%w']) yield row
 return row</pre>
 </div>
 </div>
@@ -7326,7 +7415,7 @@ Put the JDBC driver into the <code>$NEO4J_HOME/plugins</code> directory and conf
 <div class="sect3">
 <h4 id="_load_jdbc_update"><a class="link" href="#_load_jdbc_update">LOAD JDBC - UPDATE</a></h4>
 <div class="paragraph">
-<p>The jdbcUpdate is use for update relational database, from a SQL kernelTransaction with optional parameters</p>
+<p>The jdbcUpdate is use for update relational database, from a SQL statement with optional parameters</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -7358,6 +7447,52 @@ WHERE score &gt; 1000</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbcUpdate('jdbc:mysql:....','INSERT INTO RECOMMENDATIONS values(user.id, reco.id, score)') YIELD row;</code></pre>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_load_jdbc_format_date"><a class="link" href="#_load_jdbc_format_date">Load JDBC format date</a></h5>
+<div class="paragraph">
+<p>Starting from Neo4j 3.4 there is the support for <a href="https://neo4j.com/docs/developer-manual/current/cypher/syntax/temporal/">Temporal Values</a></p>
+</div>
+<div class="paragraph">
+<p>If the returning JdbcType, from the load operation, is TIMESTAMP or TIMESTAMP_WITH_TIMEZONE you could provide the configuration parameter <strong>timezone</strong> with type <a href="https://docs.oracle.com/javase/8/docs/api/java/time/ZoneId.html">java.time.ZoneId</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('key or url','table or statement', config) YIELD row</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_config"><a class="link" href="#_config">Config</a></h5>
+<div class="paragraph">
+<p>Config param is optional, the default value is an empty map.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 60%;">
+<col style="width: 40%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>timezone</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">default value: null</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="listingblock">
+<div class="title">with timezone</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], {timezone: "Asia/Tokyo"})</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>2018-10-31T01:32:25.012+09:00[Asia/Tokyo]</pre>
+</div>
 </div>
 </div>
 </div>
@@ -7668,7 +7803,7 @@ in previous releases we&#8217;ve had <code>apoc.load.xmlSimple</code>. This is n
 <div class="sect3">
 <h4 id="_import_csv"><a class="link" href="#_import_csv">Import CSV</a></h4>
 <div class="paragraph">
-<p>CSV files with headers that confirm the <a href="https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/">Neo4j import tool&#8217;s header format</a> can be imported using the <code>apoc.import.csv</code> procedure. This procedure is intended for small- to medium-sized data sets. For bulk importing larger data sets, it is recommended to use the offline import tool.</p>
+<p>CSV files that comply with the <a href="https://neo4j.com/docs/operations-manual/current/tools/import/file-header-format/">Neo4j import tool&#8217;s header format</a> can be imported using the <code>apoc.import.csv</code> procedure. This procedure is intended to load small- to medium-sized data sets in an online database. For importing larger data sets, it is recommended to perform a batch import using the (<a href="https://neo4j.com/docs/operations-manual/current/tools/import/">import tool</a>, which loads data in bulk to an offline (initially empty) database.</p>
 </div>
 <div class="sect4">
 <h5 id="_usage"><a class="link" href="#_usage">Usage</a></h5>
@@ -7820,7 +7955,7 @@ Jane</pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.import.csv([{filename: 'file:/persons.csv', labels: ['Person']}], [], {})</code></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.import.csv([{fileName: 'file:/persons.csv', labels: ['Person']}], [], {})</code></pre>
 </div>
 </div>
 </div>
@@ -7848,8 +7983,8 @@ Jane</pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.import.csv(
-  [{filename: 'file:/persons.csv', labels: ['Person']}],
-  [{filename: 'file:/knows.csv', type: 'KNOWS'}],
+  [{fileName: 'file:/persons.csv', labels: ['Person']}],
+  [{fileName: 'file:/knows.csv', type: 'KNOWS'}],
   {delimiter: '|', arrayDelimiter: ',', stringIds: false}
 )</code></pre>
 </div>
@@ -8989,27 +9124,27 @@ RETURN node</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runFile</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each kernelTransaction in the file, all semicolon separated - currently no schema operations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runFiles</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each kernelTransaction in the files, all semicolon separated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each statement in the files, all semicolon separated</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runSchemaFile</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema kernelTransaction in the file, all semicolon separated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runSchemaFiles</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema kernelTransaction in the files, all semicolon separated</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema statement in the files, all semicolon separated</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runMany</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runMany('cypher;\nstatements;',{params},[{statistics:true,timeout:10}]) - runs each semicolon separated kernelTransaction and returns summary - currently no schema operations</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runMany('cypher;\nstatements;',{params},[{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -9064,12 +9199,12 @@ RETURN node</code></pre>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runFirstColumnMany</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFirstColumnMany(statement, params, expectMultipleValues) - executes statement with given parameters, returns first column only collected into a list, params are available as identifiers</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFirstColumnMany(statement, params) - executes statement with given parameters, returns first column only collected into a list, params are available as identifiers</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.cypher.runFirstColumnSingle</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFirstColumnSingle(statement, params, expectMultipleValues) - executes statement with given parameters, returns first element of the first column only, params are available as identifiers</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.cypher.runFirstColumnSingle(statement, params) - executes statement with given parameters, returns first element of the first column only, params are available as identifiers</p></td>
 </tr>
 </tbody>
 </table>
@@ -9593,6 +9728,18 @@ RETURN row.answer</pre>
 <pre>CALL apoc.custom.asFunction('answer','RETURN 42')</pre>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If you override procedures or functions you might need to call <code>call dbms.clearQueryCaches()</code> as lookups to internal id&#8217;s are kept in compiled query plans.
+</td>
+</tr>
+</table>
+</div>
 <div class="sect3">
 <h4 id="_custom_procedures_with_code_apoc_custom_asprocedure_code"><a class="link" href="#_custom_procedures_with_code_apoc_custom_asprocedure_code">Custom Procedures with <code>apoc.custom.asProcedure</code></a></h4>
 <div class="paragraph">
@@ -9625,6 +9772,13 @@ RETURN row.answer</pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>none</code></p></td>
 <td class="tableblock halign-left valign-top"><div><div class="paragraph">
 <p>cypher statement to run, can use $parameters</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mode</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>read</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>execution mode of the procedure: read, write, or schema</p>
 </div></div></td>
 </tr>
 <tr>
@@ -9682,11 +9836,11 @@ The default values are parsed as JSON.</p>
 <div class="listingblock">
 <div class="title">Example Neighbours of a node by name</div>
 <div class="content">
-<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.custom.asProcdure('neighbours',
-  'MATCH (n:Person {name:$name})--&gt;(nb) RETURN neighbour',
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.custom.asProcedure('neighbours',
+  'MATCH (n:Person {name:$name})--&gt;(nb) RETURN nb as neighbour','read',
   [['neighbour','NODE']],[['name','STRING']]);
 
-call custom.neighbours('Joe') YIELD neighbour;</code></pre>
+CALL custom.neighbours('Keanu Reeves') YIELD neighbour;</code></pre>
 </div>
 </div>
 </div>
@@ -10761,6 +10915,10 @@ They return the list of eventually impacted constraints and indexes, the user sh
 <td class="tableblock halign-left valign-top"><p class="tableblock">remove previously added trigger, returns trigger information</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.removeAll() yield name, statement, installed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">removes all previously added triggers , returns trigger information</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.list() yield name, statement, installed</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">update and list all installed triggers</p></td>
 </tr>
@@ -11804,6 +11962,26 @@ Is&#8217;s a map of values, the values that we don&#8217;t pass to the config, a
 </div>
 </div>
 <div class="sect1">
+<h2 id="_cypher_init_script"><a class="link" href="#_cypher_init_script">Cypher init script</a></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Apoc optionally allows you to run a cypher command after database initialization is finished. This can e.g. be used to ensure indexes/constraints are created up front.</p>
+</div>
+<div class="paragraph">
+<p>To use this feature use a config option:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-config" data-lang="config">apoc.initializer.cypher=CALL apoc.cypher.runSchemaFile("file:///indexes.cypher")</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For running multiple statements you can also add suffixes to the config options, like <code>cypher.1</code>, <code>cypher.2</code>.
+The statements will then be executed in sort-order.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_appendix_complete_overview"><a class="link" href="#_appendix_complete_overview">Appendix: Complete Overview</a></h2>
 <div class="sectionbody">
 <div class="sect2">
@@ -11914,7 +12092,7 @@ Please note that there are (case-sensitive) <a href="http://neo4j.com/docs/devel
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addNodeMap(node,{key:value})</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"> add node to an index for each label it has with the given attributes which can also be computed</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add node to an index for each label it has with the given attributes which can also be computed</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.index.addNodeMapByName(index, node,{key:value})</code></p></td>
@@ -12278,6 +12456,14 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.export.csv.all(null, {stream:true,batchSize:100}) YIELD data RETURN data</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_export_to_json_file"><a class="link" href="#_export_to_json_file">Export to Json File</a></h4>
+<div class="literalblock">
+<div class="content">
+<pre>include::exportJson.adoc[leveloffset=1]</pre>
 </div>
 </div>
 </div>
@@ -13411,6 +13597,10 @@ CALL apoc.generate.simple([2,2,2,2], null, null)</code></pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock">remove previously added trigger, returns trigger information</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.removeAll() yield name, statement, installed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">removes all previously added triggers , returns trigger information</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.list() yield name, statement, installed</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">update and list all installed triggers</p></td>
 </tr>
@@ -13933,6 +14123,10 @@ If relationships have different start/end nodes (related to direction), relation
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns a list of frequencies of the items in the collection, keyed by <code>item</code> and <code>count</code> (e.g., <code>[{item: xyz, count:2}, {item:zyx, count:5}, {item:abc, count:1}]</code>)</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.frequenciesAsMap(coll)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">return a map of frequencies of the items in the collection, keyed by <code>item</code> and <code>count</code> (e.g., <code>{1: 2, 3: 2}</code>)</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.coll.sortMulti</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip</p></td>
 </tr>
@@ -14071,6 +14265,41 @@ If relationships have different start/end nodes (related to direction), relation
 </div>
 </div>
 <div class="sect3">
+<h4 id="_neighbor_functions"><a class="link" href="#_neighbor_functions">Neighbor Functions</a></h4>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.neighbors.tohop(node, rel-direction-pattern, distance)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns distinct nodes of the given relationships in the pattern up to a certain distance</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.neighbors.tohop.count(node, rel-direction-pattern, distance)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns the count of distinct nodes of the given relationships in the pattern up to a certain distance</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.neighbors.byhop(node, rel-direction-pattern, distance)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns distinct nodes of the given relationships in the pattern grouped by distance</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.neighbors.byhop.count(node, rel-direction-pattern, distance)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns the count distinct nodes of the given relationships in the pattern grouped by distance</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.neighbors.athop(node, rel-direction-pattern, distance)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns distinct nodes of the given relationships in the pattern at a certain distance</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.neighbors.athop.count(node, rel-direction-pattern, distance)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns the count of distinct nodes of the given relationships in the pattern at a certain distance</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
 <h4 id="_math_functions"><a class="link" href="#_math_functions">Math Functions</a></h4>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
@@ -14154,8 +14383,8 @@ If relationships have different start/end nodes (related to direction), relation
 <td class="tableblock halign-left valign-top"><p class="tableblock">join the given strings with the given delimiter.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.format(text,[params])</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">sprintf format the string with the params given</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.format(text,[params],language)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sprintf format the string with the params given, and optional param language (default value is 'en').</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.text.lpad(text,count,delim)</code></p></td>
@@ -14390,7 +14619,7 @@ If relationships have different start/end nodes (related to direction), relation
 </table>
 </div>
 <div class="sect2">
-<h3 id="_config"><a class="link" href="#_config">Config</a></h3>
+<h3 id="_config_2"><a class="link" href="#_config_2">Config</a></h3>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
 <col style="width: 16.6666%;">
@@ -16021,7 +16250,7 @@ The export file has to convert into UTF-8.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2018-09-20 09:33:50 EDT
+Last updated 2018-11-16 18:35:49 MEZ
 </div>
 </div>
 </body>
