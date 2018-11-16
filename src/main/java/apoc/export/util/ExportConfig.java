@@ -1,6 +1,7 @@
 package apoc.export.util;
 
 import apoc.export.cypher.formatter.CypherFormat;
+import apoc.util.Util;
 
 import java.util.Collections;
 import java.util.Map;
@@ -115,5 +116,9 @@ public class ExportConfig {
 
     public boolean writeNodeProperties() {
         return writeNodeProperties;
+    }
+
+    public long getTimeoutSeconds() {
+        return Util.toLong(config.getOrDefault("timeoutSeconds",100));
     }
 }

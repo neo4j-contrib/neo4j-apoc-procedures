@@ -2,7 +2,6 @@ package apoc.export.csv;
 
 import apoc.Description;
 import apoc.Pools;
-import apoc.export.cypher.ExportCypher;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
@@ -79,12 +78,12 @@ public class ExportCSV {
     }
 
     @Procedure
-    @Description("apoc.export.csv.query(query,file,{config,...,params:{params}}) - exports results from the cypher kernelTransaction as csv to the provided file")
+    @Description("apoc.export.csv.query(query,file,{config,...,params:{params}}) - exports results from the cypher statement as csv to the provided file")
     public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         Map<String,Object> params = config == null ? Collections.emptyMap() : (Map<String,Object>)config.getOrDefault("params", Collections.emptyMap());
         Result result = db.execute(query,params);
 
-        String source = String.format("kernelTransaction: cols(%d)", result.columns().size());
+        String source = String.format("statement: cols(%d)", result.columns().size());
         return exportCsv(fileName, source,result,config);
     }
 
@@ -97,18 +96,14 @@ public class ExportCSV {
         PrintWriter printWriter = getPrintWriter(fileName, null);
         CsvFormat exporter = new CsvFormat(db);
         if (c.streamStatements()) {
-            Future<Boolean> future = null;
-            try {
-                StringWriter writer = new StringWriter(10_000);
-                final ArrayBlockingQueue<ProgressInfo> queue = new ArrayBlockingQueue<>(1000);
-                ProgressReporter reporterWithConsumer = reporter.withConsumer(
-                        (pi) -> queue.offer(pi == ProgressInfo.EMPTY ? ProgressInfo.EMPTY : new ProgressInfo(pi).drain(writer)));
-                future = Util.inTxFuture(Pools.DEFAULT, db, () -> { dump(data, c, reporterWithConsumer, writer, exporter); return true; });
-                QueueBasedSpliterator<ProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, ProgressInfo.EMPTY, terminationGuard);
-                return StreamSupport.stream(spliterator, false);
-            } finally {
-                Util.waitForFutures(Collections.singletonList(future));
-            }
+            long timeout = c.getTimeoutSeconds();
+            StringWriter writer = new StringWriter(10_000);
+            final ArrayBlockingQueue<ProgressInfo> queue = new ArrayBlockingQueue<>(1000);
+            ProgressReporter reporterWithConsumer = reporter.withConsumer(
+                    (pi) -> Util.put(queue, pi == ProgressInfo.EMPTY ? ProgressInfo.EMPTY : new ProgressInfo(pi).drain(writer),timeout));
+            Util.inTxFuture(Pools.DEFAULT, db, () -> { dump(data, c, reporterWithConsumer, writer, exporter); return true; });
+            QueueBasedSpliterator<ProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, ProgressInfo.EMPTY, terminationGuard, timeout);
+            return StreamSupport.stream(spliterator, false);
         } else {
             dump(data, c, reporter, printWriter, exporter);
             return reporter.stream();

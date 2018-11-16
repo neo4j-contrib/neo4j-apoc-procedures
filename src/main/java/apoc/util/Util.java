@@ -20,10 +20,7 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.*;
@@ -684,6 +681,15 @@ public class Util {
             return (T)Class.forName(className).newInstance();
         } catch (IllegalAccessException | InstantiationException | ClassNotFoundException e) {
             return null;
+        }
+    }
+
+    public static <T> void put(BlockingQueue<T> queue, T item, long timeoutSeconds) {
+        try {
+            boolean success = queue.offer(item, timeoutSeconds, TimeUnit.SECONDS);
+            if (!success) throw new RuntimeException("Error queuing item before timeout of "+timeoutSeconds+" seconds");
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Queue offer interrupted before "+timeoutSeconds+" seconds",e);
         }
     }
 }
