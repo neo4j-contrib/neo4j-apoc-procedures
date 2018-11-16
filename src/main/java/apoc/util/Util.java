@@ -5,6 +5,7 @@ import apoc.Pools;
 import apoc.export.util.CountingInputStream;
 import apoc.path.RelationshipTypeAndDirections;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Node;
@@ -525,7 +526,7 @@ public class Util {
             if (source.getRef() != null) file += "#"+source.getRef();
             return new URL(source.getProtocol(),source.getHost(),source.getPort(),file).toString();
         } catch (MalformedURLException mfu) {
-            return "invalid URL";
+            return String.format("invalid URL (%s)", url);
         }
     }
 
@@ -687,9 +688,16 @@ public class Util {
     public static <T> void put(BlockingQueue<T> queue, T item, long timeoutSeconds) {
         try {
             boolean success = queue.offer(item, timeoutSeconds, TimeUnit.SECONDS);
-            if (!success) throw new RuntimeException("Error queuing item before timeout of "+timeoutSeconds+" seconds");
+            if (!success)
+                throw new RuntimeException("Error queuing item before timeout of " + timeoutSeconds + " seconds");
         } catch (InterruptedException e) {
-            throw new RuntimeException("Queue offer interrupted before "+timeoutSeconds+" seconds",e);
+            throw new RuntimeException("Queue offer interrupted before " + timeoutSeconds + " seconds", e);
         }
+    }
+
+    public static Optional<String> getLoadUrlByConfigFile(String loadType, String key, String suffix){
+        key = Optional.ofNullable(key).map(s -> s + "." + suffix).orElse(StringUtils.EMPTY);
+        Object value = ApocConfiguration.get(loadType).get(key);
+        return Optional.ofNullable(value).map(Object::toString);
     }
 }

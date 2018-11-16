@@ -59,6 +59,7 @@ public class JsonUtil {
     }
     public static Stream<Object> loadJson(String url, Map<String,Object> headers, String payload, String path, boolean failOnError) {
         try {
+            url = Util.getLoadUrlByConfigFile("json",url, "url").orElse(url);
             FileUtils.checkReadAllowed(url);
             url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
             InputStream input = Util.openInputStream(url, headers, payload);
@@ -71,7 +72,7 @@ public class JsonUtil {
             if(!failOnError)
                 return Stream.of();
             else
-                throw new RuntimeException("Can't read url " + u + " as json: "+e.getMessage(), e);
+                throw new RuntimeException("Can't read url or key " + u + " as json: "+e.getMessage());
         }
     }
 
