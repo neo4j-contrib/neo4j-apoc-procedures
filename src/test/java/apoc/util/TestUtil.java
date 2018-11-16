@@ -145,13 +145,17 @@ public class TestUtil {
     }
 
     public static GraphDatabaseBuilder apocGraphDatabaseBuilder() {
-        return new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*");
+        return new TestGraphDatabaseFactory()
+                .newImpermanentDatabaseBuilder()
+                .setConfig("dbms.backup.enabled","false")
+                .setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*");
     }
 
     public static GraphDatabaseBuilder apocEnterpriseGraphDatabaseBuilder() throws Exception {
         File storeDir = Paths.get(System.getProperty( "java.io.tmpdir").concat(File.pathSeparator).concat("neo4j-enterprise")).toFile();
         FileDeleteStrategy.FORCE.delete(storeDir);
         return new EnterpriseGraphDatabaseFactory().newEmbeddedDatabaseBuilder(storeDir)
+                .setConfig("dbms.backup.enabled","false")
                 .setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*");
     }
 

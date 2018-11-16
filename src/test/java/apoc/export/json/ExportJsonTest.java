@@ -1,8 +1,10 @@
 package apoc.export.json;
 
 import apoc.graph.Graphs;
+import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import net.minidev.json.JSONUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -332,6 +334,8 @@ public class ExportJsonTest {
 
         File expexted = new File(directoryExpected, filename);
 
-        assertEquals(new Scanner(expexted).useDelimiter("\\Z").next(), new Scanner(output).useDelimiter("\\Z").next());
+        String expectedText = new Scanner(expexted).useDelimiter("\\Z").next();
+        String actualText = new Scanner(output).useDelimiter("\\Z").next();
+        assertEquals(JsonUtil.parse(expectedText,null,Object.class), JsonUtil.parse(actualText,null,Object.class));
     }
 }
