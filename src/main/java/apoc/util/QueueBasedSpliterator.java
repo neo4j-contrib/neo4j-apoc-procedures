@@ -17,13 +17,13 @@ public class QueueBasedSpliterator<T> implements Spliterator<T> {
     private T tombstone;
     private T entry;
     private TerminationGuard terminationGuard;
-    private final int timeout;
+    private final long timeout;
 
     public QueueBasedSpliterator(BlockingQueue<T> queue, T tombstone, TerminationGuard terminationGuard) {
         this(queue, tombstone, terminationGuard, 10);
     }
 
-    public QueueBasedSpliterator(BlockingQueue<T> queue, T tombstone, TerminationGuard terminationGuard, int timeout) {
+    public QueueBasedSpliterator(BlockingQueue<T> queue, T tombstone, TerminationGuard terminationGuard, long timeout) {
         this.queue = queue;
         this.tombstone = tombstone;
         this.terminationGuard = terminationGuard;

@@ -64,13 +64,13 @@ public class Cypher {
     }
 
     @Procedure(mode = WRITE)
-    @Description("apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each kernelTransaction in the file, all semicolon separated - currently no schema operations")
+    @Description("apoc.cypher.runFile(file or url,[{statistics:true,timeout:10,parameters:{}}]) - runs each statement in the file, all semicolon separated - currently no schema operations")
     public Stream<RowResult> runFile(@Name("file") String fileName, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         return runFiles(singletonList(fileName),config);
     }
 
     @Procedure(mode = WRITE)
-    @Description("apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each kernelTransaction in the files, all semicolon separated")
+    @Description("apoc.cypher.runFiles([files or urls],[{statistics:true,timeout:10,parameters:{}}])) - runs each statement in the files, all semicolon separated")
     public Stream<RowResult> runFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",10));
@@ -85,13 +85,13 @@ public class Cypher {
     }
 
     @Procedure(mode=Mode.SCHEMA)
-    @Description("apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema kernelTransaction in the file, all semicolon separated")
+    @Description("apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated")
     public Stream<RowResult> runSchemaFile(@Name("file") String fileName, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         return runSchemaFiles(singletonList(fileName),config);
     }
 
     @Procedure(mode=Mode.SCHEMA)
-    @Description("apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema kernelTransaction in the files, all semicolon separated")
+    @Description("apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema statement in the files, all semicolon separated")
     public Stream<RowResult> runSchemaFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",10));
@@ -107,9 +107,9 @@ public class Cypher {
         BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100);
         Util.inThread(() -> {
             if (schemaOperation) {
-                runSchemaStatementsInTx(reader, queue, params, addStatistics);
+                runSchemaStatementsInTx(reader, queue, params, addStatistics,timeout);
             } else {
-                runDataStatementsInTx(reader, queue, params, addStatistics);
+                runDataStatementsInTx(reader, queue, params, addStatistics,timeout);
             }
             queue.put(RowResult.TOMBSTONE);
             return null;
@@ -117,7 +117,7 @@ public class Cypher {
         return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, timeout), false);
     }
 
-    private void runDataStatementsInTx(Reader reader, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics) {
+    private void runDataStatementsInTx(Reader reader, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout) {
         Scanner scanner = new Scanner(reader);
         scanner.useDelimiter(";\r?\n");
         while (scanner.hasNext()) {
@@ -125,26 +125,26 @@ public class Cypher {
             if (stmt.trim().isEmpty()) continue;
             if (!isSchemaOperation(stmt)) {
                 if (isPeriodicOperation(stmt))
-                    Util.inThread(() -> executeStatement(queue, stmt, params, addStatistics));
-                else Util.inTx(db, () -> executeStatement(queue, stmt, params, addStatistics));
+                    Util.inThread(() -> executeStatement(queue, stmt, params, addStatistics,timeout));
+                else Util.inTx(db, () -> executeStatement(queue, stmt, params, addStatistics,timeout));
             }
         }
     }
 
-    private void runSchemaStatementsInTx(Reader reader, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics) {
+    private void runSchemaStatementsInTx(Reader reader, BlockingQueue<RowResult> queue, Map<String, Object> params, boolean addStatistics, long timeout) {
         Scanner scanner = new Scanner(reader);
         scanner.useDelimiter(";\r?\n");
         while (scanner.hasNext()) {
             String stmt = removeShellControlCommands(scanner.next());
             if (stmt.trim().isEmpty()) continue;
             if (isSchemaOperation(stmt)) {
-                Util.inTx(db, () -> executeStatement(queue, stmt, params, addStatistics));
+                Util.inTx(db, () -> executeStatement(queue, stmt, params, addStatistics, timeout));
             }
         }
     }
 
     @Procedure(mode = WRITE)
-    @Description("apoc.cypher.runMany('cypher;\\nstatements;',{params},[{statistics:true,timeout:10}]) - runs each semicolon separated kernelTransaction and returns summary - currently no schema operations")
+    @Description("apoc.cypher.runMany('cypher;\\nstatements;',{params},[{statistics:true,timeout:10}]) - runs each semicolon separated statement and returns summary - currently no schema operations")
     public Stream<RowResult> runMany(@Name("cypher") String cypher, @Name("params") Map<String,Object> params, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
         int timeout = Util.toInteger(config.getOrDefault("timeout",1));
@@ -154,7 +154,7 @@ public class Cypher {
 
     private final static Pattern shellControl = Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
 
-    private Object executeStatement(BlockingQueue<RowResult> queue, String stmt, Map<String, Object> params, boolean addStatistics) throws InterruptedException {
+    private Object executeStatement(BlockingQueue<RowResult> queue, String stmt, Map<String, Object> params, boolean addStatistics, long timeout) throws InterruptedException {
         try (Result result = db.execute(stmt,params)) {
             long time = System.currentTimeMillis();
             int row = 0;
@@ -163,7 +163,7 @@ public class Cypher {
                 queue.put(new RowResult(row++, result.next()));
             }
             if (addStatistics) {
-                queue.offer(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)), 100, TimeUnit.MILLISECONDS);
+                queue.offer(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)), timeout,TimeUnit.SECONDS);
             }
             return row;
         }
@@ -257,7 +257,7 @@ public class Cypher {
                     Map map = new HashMap<>(params);
                     map.put(e.getKey(),as)
                 }));
-        return db.execute(kernelTransaction,params).stream().map(MapResult::new);
+        return db.execute(statement,params).stream().map(MapResult::new);
         */
     }
 
@@ -273,7 +273,7 @@ public class Cypher {
     }
     @Procedure
     @Description("apoc.cypher.mapParallel2(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _")
-    public Stream<MapResult> mapParallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data, @Name("partitions") long partitions) {
+    public Stream<MapResult> mapParallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data, @Name("partitions") long partitions,@Name(value = "timeout",defaultValue = "10") long timeout) {
         final String statement = withParamsAndIterator(fragment, params.keySet(), "_");
         db.execute("EXPLAIN " + statement).close();
         BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100000);
@@ -282,13 +282,13 @@ public class Cypher {
             long total = parallelPartitions
                 .map((List<Object> partition) -> {
                     try {
-                        return executeStatement(queue, statement, parallelParams(params, "_", partition),false);
+                        return executeStatement(queue, statement, parallelParams(params, "_", partition),false,timeout);
                     } catch (Exception e) {throw new RuntimeException(e);}}
                 ).count();
             queue.put(RowResult.TOMBSTONE);
             return total;
         });
-        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard),true).map((rowResult) -> new MapResult(rowResult.result));
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, timeout),true).map((rowResult) -> new MapResult(rowResult.result));
     }
 
     // todo proper Collector
