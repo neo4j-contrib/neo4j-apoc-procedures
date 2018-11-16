@@ -1,10 +1,10 @@
 package apoc.load;
 
+import apoc.ApocConfiguration;
 import apoc.load.util.LoadJdbcConfig;
 import apoc.result.RowResult;
-import apoc.ApocConfiguration;
 import apoc.util.MapUtil;
-import org.apache.commons.compress.utils.IOUtils;
+import apoc.util.Util;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -13,20 +13,11 @@ import org.neo4j.procedure.Procedure;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import javax.security.auth.Subject;
-import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.NameCallback;
-import javax.security.auth.callback.PasswordCallback;
-import javax.security.auth.login.LoginContext;
-import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.sql.*;
-import java.time.*;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
 import java.util.*;
-import java.util.Date;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -35,6 +26,9 @@ import java.util.stream.StreamSupport;
  * @since 26.02.16
  */
 public class Jdbc {
+
+    private static final String LOAD_TYPE = "jdbc";
+    private static final String KEY_NOT_FOUND_MESSAGE = "No apoc.jdbc.%s.url url specified";
 
     static {
         ApocConfiguration.get("jdbc").forEach((k, v) -> {
@@ -86,7 +80,7 @@ public class Jdbc {
 
     private Stream<RowResult> executeQuery(String urlOrKey, String tableOrSelect, Map<String, Object> config, Object... params) {
         LoadJdbcConfig loadJdbcConfig = new LoadJdbcConfig(config);
-        String url = urlOrKey.contains(":") ? urlOrKey : getJdbcUrl(urlOrKey);
+        String url = getUrlOrKey(urlOrKey);
         String query = tableOrSelect.indexOf(' ') == -1 ? "SELECT * FROM " + tableOrSelect : tableOrSelect;
         try {
             Connection connection = getConnection(url);
@@ -125,7 +119,7 @@ public class Jdbc {
     }
 
     private Stream<RowResult> executeUpdate(String urlOrKey, String query, Object...params) {
-        String url = urlOrKey.contains(":") ? urlOrKey : getJdbcUrl(urlOrKey);
+        String url = getUrlOrKey(urlOrKey);
         try {
             Connection connection = getConnection(url);
             try {
@@ -164,12 +158,6 @@ public class Jdbc {
                 // ignore
             }
         }
-    }
-
-    private static String getJdbcUrl(String key) {
-        Object value = ApocConfiguration.get("jdbc").get(key + ".url");
-        if (value == null) throw new RuntimeException("No apoc.jdbc."+key+".url jdbc url specified");
-        return value.toString();
     }
 
     private static class ResultSetIterator implements Iterator<Map<String, Object>> {
@@ -299,5 +287,9 @@ public class Jdbc {
             /*ignore*/
         }
         return null;
+    }
+
+    private String getUrlOrKey(String urlOrKey) {
+        return urlOrKey.contains(":") ? urlOrKey : Util.getLoadUrlByConfigFile(LOAD_TYPE, urlOrKey, "url").orElseThrow(() -> new RuntimeException(String.format(KEY_NOT_FOUND_MESSAGE, urlOrKey)));
     }
 }

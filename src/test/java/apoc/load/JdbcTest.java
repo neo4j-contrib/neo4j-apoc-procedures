@@ -3,8 +3,10 @@ package apoc.load;
 import apoc.ApocConfiguration;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
@@ -15,6 +17,8 @@ import java.util.Properties;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
 public class JdbcTest {
@@ -146,6 +150,19 @@ public class JdbcTest {
         assertEquals(time, rs.getTime("TEST_TIME"));
         assertEquals(false, rs.next());
         rs.close();
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testLoadJdbcWrongKey() throws Exception {
+        try {
+            testResult(db, "CALL apoc.load.jdbc('derbyy','PERSON')", (r) -> {});
+        } catch (QueryExecutionException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof RuntimeException);
+            assertEquals("No apoc.jdbc.derbyy.url url specified", except.getMessage());
+            throw e;
+        }
+
     }
 
 }
