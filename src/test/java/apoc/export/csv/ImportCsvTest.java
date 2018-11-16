@@ -1,10 +1,7 @@
 package apoc.export.csv;
 
 import apoc.util.TestUtil;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
@@ -399,6 +396,7 @@ public class ImportCsvTest {
     }
 
     @Test
+    @Ignore
     public void testNoDuplicationsCreated() {
         TestUtil.testCall(
                 db,
