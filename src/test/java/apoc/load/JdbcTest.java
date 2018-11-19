@@ -5,15 +5,14 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.*;
+import org.junit.rules.TestName;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.sql.*;
 import java.time.*;
 import java.util.Calendar;
-import java.util.Properties;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -23,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 
 public class JdbcTest {
 
-    private static GraphDatabaseService db;
+    private GraphDatabaseService db;
 
     private static java.sql.Date hireDate = new java.sql.Date( new Calendar.Builder().setDate(2017, 04, 25).build().getTimeInMillis() );
 
@@ -31,18 +30,44 @@ public class JdbcTest {
 
     private static java.sql.Time time = java.sql.Time.valueOf("15:37:00");
 
-    @BeforeClass
-    public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+    private Connection conn;
+
+    @Rule
+    public TestName testName = new TestName();
+
+    private static final String TEST_WITH_AUTHENTICATION = "WithAuthentication";
+
+    @Before
+    public void setUp() throws Exception {
+        db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
         ApocConfiguration.initialize((GraphDatabaseAPI)db);
         ApocConfiguration.addToConfig(map("jdbc.derby.url","jdbc:derby:derbyDB"));
         TestUtil.registerProcedure(db,Jdbc.class);
         createPersonTableAndData();
     }
 
-    @AfterClass
-    public static void tearDown() {
+    @After
+    public void tearDown() throws SQLException {
         db.shutdown();
+        conn.close();
+        try {
+            if (testName.getMethodName().endsWith(TEST_WITH_AUTHENTICATION)) {
+                DriverManager.getConnection("jdbc:derby:derbyDB;user=apoc;password=Ap0c!#Db;shutdown=true");
+            } else {
+                DriverManager.getConnection("jdbc:derby:derbyDB;shutdown=true");
+            }
+        } catch (SQLException e) {
+            // DerbyDB shutdown always raise a SQLException, see: http://db.apache.org/derby/docs/10.14/devguide/tdevdvlp20349.html
+            if (((e.getErrorCode() == 45000)
+                    && ("08006".equals(e.getSQLState())))) {
+                // Note that for single database shutdown, the expected
+                // SQL state is "08006", and the error code is 45000.
+            } else {
+                throw e;
+            }
+        }
+        System.clearProperty("derby.connection.requireAuthentication");
+        System.clearProperty("derby.user.apoc");
     }
 
     @Test
@@ -130,9 +155,78 @@ public class JdbcTest {
                 (row) -> assertEquals( Util.map("count", 1 ), row.get("row")));
     }
 
-    private static void createPersonTableAndData() throws ClassNotFoundException, SQLException {
-        Class.forName("org.apache.derby.jdbc.EmbeddedDriver");
-        Connection conn = DriverManager.getConnection("jdbc:derby:derbyDB;create=true", new Properties());
+    @Test
+    public void testLoadJdbcWithSpecialCharWithAuthentication() {
+        db.execute("CALL apoc.load.jdbc({url}, 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})", Util.map("url","jdbc:derby:derbyDB")).next();
+    }
+
+    @Test
+    public void testLoadJdbcUpdateParamsUrlWithSpecialCharWithAuthentication() throws Exception {
+        testCall(db, "CALL apoc.load.jdbcUpdate('jdbc:derby:derbyDB','UPDATE PERSON SET NAME = ? WHERE NAME = ?',['John','John'],{credentials:{user:'apoc',password:'Ap0c!#Db'}})",
+                (row) -> assertEquals( Util.map("count", 1 ), row.get("row")));
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testLoadJdbcUrlWithSpecialCharWithEmptyUserWithAuthentication() throws Exception {
+        try {
+            db.execute("CALL apoc.load.jdbc({url}, 'PERSON',[],{credentials:{user:'',password:'Ap0c!#Db'}})", Util.map("url","jdbc:derby:derbyDB")).next();
+        } catch (IllegalArgumentException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof IllegalArgumentException);
+            assertEquals("In config param credentials must be passed both user and password.", except.getMessage());
+            throw e;
+        }
+
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testLoadJdbcUrlWithSpecialCharWithoutUserWithAuthentication() throws Exception {
+        try {
+            db.execute("CALL apoc.load.jdbc({url}, 'PERSON',[],{credentials:{password:'Ap0c!#Db'}})", Util.map("url","jdbc:derby:derbyDB")).next();
+        } catch (IllegalArgumentException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof IllegalArgumentException);
+            assertEquals("In config param credentials must be passed both user and password.", except.getMessage());
+            throw e;
+        }
+
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testLoadJdbcUrlWithSpecialCharWithEmptyPasswordWithAuthentication() throws Exception {
+        try {
+            db.execute("CALL apoc.load.jdbc({url}, 'PERSON',[],{credentials:{user:'apoc',password:''}})", Util.map("url","jdbc:derby:derbyDB")).next();
+        } catch (IllegalArgumentException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof IllegalArgumentException);
+            assertEquals("In config param credentials must be passed both user and password.", except.getMessage());
+            throw e;
+        }
+
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testLoadJdbcUrlWithSpecialCharWithoutPasswordWithAuthentication() throws Exception {
+        try {
+            db.execute("CALL apoc.load.jdbc({url}, 'PERSON',[],{credentials:{user:'apoc'}})", Util.map("url","jdbc:derby:derbyDB")).next();
+        } catch (IllegalArgumentException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof IllegalArgumentException);
+            assertEquals("In config param credentials must be passed both user and password.", except.getMessage());
+            throw e;
+        }
+
+    }
+
+    private void createPersonTableAndData() throws ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException {
+        Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance(); // The JDBC specification does not recommend calling newInstance(), but adding a newInstance() call guarantees that Derby will be booted on any JVM. See: http://db.apache.org/derby/docs/10.14/devguide/tdevdvlp20349.html
+        if (testName.getMethodName().endsWith(TEST_WITH_AUTHENTICATION)) {
+            System.setProperty("derby.connection.requireAuthentication", "true");
+            System.setProperty("derby.user.apoc", "Ap0c!#Db");
+            conn = DriverManager.getConnection("jdbc:derby:derbyDB;user=apoc;password=Ap0c!#Db;create=true");
+        } else {
+            conn = DriverManager.getConnection("jdbc:derby:derbyDB;create=true");
+        }
         try { conn.createStatement().execute("DROP TABLE PERSON"); } catch (SQLException se) {/*ignore*/}
         conn.createStatement().execute("CREATE TABLE PERSON (NAME varchar(50), HIRE_DATE DATE, EFFECTIVE_FROM_DATE TIMESTAMP, TEST_TIME TIME)");
         PreparedStatement ps = conn.prepareStatement("INSERT INTO PERSON values(?,?,?,?)");
