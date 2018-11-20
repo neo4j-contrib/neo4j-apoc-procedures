@@ -16,9 +16,11 @@ import org.neo4j.internal.kernel.api.TokenRead;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.*;
+import org.neo4j.values.storable.DurationValue;
 
-import java.time.temporal.TemporalAccessor;
+import java.time.*;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.util.MapUtil.map;
@@ -40,29 +42,62 @@ public class Meta {
     public KernelTransaction kernelTx;
 
     public enum Types {
-        INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST;
+        INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,ANY,MAP,LIST,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION;
+
+        private String typeOfList = "ANY";
+
+        private static Map<Class<?>, Class<?>> primitivesMapping = new HashMap(){{
+            put(double.class, Double.class);
+            put(float.class, Float.class);
+            put(int.class, Integer.class);
+            put(long.class, Long.class);
+            put(short.class, Short.class);
+            put(boolean.class, Boolean.class);
+        }};
+
+        @Override
+        public String toString() {
+            switch (this){
+                case LIST:
+                    return "LIST OF " + typeOfList;
+                default:
+                    return super.toString();
+            }
+        }
 
         public static Types of(Object value) {
-            return of(value == null ? null : value.getClass());
+            Types type = of(value == null ? null : value.getClass());
+            if (type == Types.LIST && !value.getClass().isArray()) {
+                type.typeOfList = inferType((List<?>) value);
+            }
+            return type;
         }
 
         public static Types of(Class<?> type) {
             if (type==null) return NULL;
             if (type.isArray()) {
-                type = type.getComponentType();
+                Types innerType = Types.of(type.getComponentType());
+                Types returnType = LIST;
+                returnType.typeOfList = innerType.toString();
+                return returnType;
             }
-            if (Number.class.isAssignableFrom(type)) {
-                return double.class.isAssignableFrom(type) || Double.class.isAssignableFrom(type) ||
-                        Float.class.isAssignableFrom(type) || float.class.isAssignableFrom(type) ? FLOAT : INTEGER;
-            }
-            if (type == Boolean.class || type == boolean.class) return BOOLEAN;
-            if (String.class.isAssignableFrom(type)) return STRING;
-            if (Map.class.isAssignableFrom(type)) return MAP;
-            if (Node.class.isAssignableFrom(type)) return NODE;
-            if (Relationship.class.isAssignableFrom(type)) return RELATIONSHIP;
-            if (Path.class.isAssignableFrom(type)) return PATH;
-            if (Iterable.class.isAssignableFrom(type)) return LIST;
-            return UNKNOWN;
+            if (type.isPrimitive()) { type = primitivesMapping.getOrDefault(type, type); }
+            if (Number.class.isAssignableFrom(type)) { return Double.class.isAssignableFrom(type) || Float.class.isAssignableFrom(type) ? FLOAT : INTEGER; }
+            if (Boolean.class.isAssignableFrom(type)) { return BOOLEAN; }
+            if (String.class.isAssignableFrom(type)) { return STRING; }
+            if (Map.class.isAssignableFrom(type)) { return MAP; }
+            if (Node.class.isAssignableFrom(type)) { return NODE; }
+            if (Relationship.class.isAssignableFrom(type)) { return RELATIONSHIP; }
+            if (Path.class.isAssignableFrom(type)) { return PATH; }
+            if (Point.class.isAssignableFrom(type)){ return POINT; }
+            if (List.class.isAssignableFrom(type)) { return LIST; }
+            if (LocalDate.class.isAssignableFrom(type)) { return DATE; }
+            if (LocalTime.class.isAssignableFrom(type)) { return LOCAL_TIME; }
+            if (LocalDateTime.class.isAssignableFrom(type)) { return LOCAL_DATE_TIME; }
+            if (DurationValue.class.isAssignableFrom(type)) { return DURATION; }
+            if (OffsetTime.class.isAssignableFrom(type)) { return TIME; }
+            if (ZonedDateTime.class.isAssignableFrom(type)) { return DATE_TIME; }
+            return ANY;
         }
 
         public static Types from(String typeName) {
@@ -72,7 +107,13 @@ public class Meta {
             }
             return STRING;
         }
+
+        public static String inferType(List<?> list) {
+            Set<String> set = list.stream().map(e -> of(e).name()).collect(Collectors.toSet());
+            return set.size() != 1 ? "ANY" : set.iterator().next();
+        }
     }
+
     public static class MetaResult {
         public String label;
         public String property;
@@ -143,21 +184,40 @@ public class Meta {
 
     static final int SAMPLE = 100;
 
-
+    @Deprecated
     @UserFunction
     @Description("apoc.meta.type(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
     public String type(@Name("value") Object value) {
         return typeName(value);
     }
+    @Deprecated
     @UserFunction
     @Description("apoc.meta.typeName(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
     public String typeName(@Name("value") Object value) {
         Types type = Types.of(value);
-        String typeName = type == Types.UNKNOWN ? value.getClass().getSimpleName() : type.name();
 
-        if (value != null && value.getClass().isArray()) typeName +="[]";
+        String typeName;
+
+        // In order to keep the backwards compatibility
+        switch (type) {
+            case POINT: case DATE: case DATE_TIME: case LOCAL_TIME: case LOCAL_DATE_TIME: case TIME: case DURATION: case ANY:
+                typeName = value.getClass().getSimpleName();
+                break;
+            case LIST:
+                Class<?> clazz = value.getClass();
+                if (value != null && clazz.isArray()) {
+                    typeName = clazz.getComponentType().getSimpleName() + "[]";
+                    break;
+                }
+            default:
+                typeName = type.name();
+        }
+
         return typeName;
+
     }
+
+    @Deprecated
     @UserFunction
     @Description("apoc.meta.types(node-relationship-map)  - returns a map of keys to types")
     public Map<String,Object> types(@Name("properties") Object target) {
@@ -177,10 +237,50 @@ public class Meta {
         return result;
     }
 
+    @Deprecated
     @UserFunction
     @Description("apoc.meta.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST)")
     public boolean isType(@Name("value") Object value, @Name("type") String type) {
         return type.equalsIgnoreCase(typeName(value));
+    }
+
+    @UserFunction("apoc.meta.cypher.isType")
+    @Description("apoc.meta.cypher.isType(value,type) - returns a row if type name matches none if not (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION)")
+    public boolean isTypeCypher(@Name("value") Object value, @Name("type") String type) {
+        return type.equalsIgnoreCase(typeCypher(value));
+    }
+
+    @UserFunction("apoc.meta.cypher.type")
+    @Description("apoc.meta.cypher.type(value) - type name of a value (INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION)")
+    public String typeCypher(@Name("value") Object value) {
+        Types type = Types.of(value);
+
+        switch (type) {
+            case ANY: // TODO Check if it's necessary
+                return value.getClass().getSimpleName();
+            default:
+                return type.toString();
+        }
+    }
+
+
+    @UserFunction("apoc.meta.cypher.types")
+    @Description("apoc.meta.cypher.types(node-relationship-map)  - returns a map of keys to types")
+    public Map<String,Object> typesCypher(@Name("properties") Object target) {
+        Map<String,Object> properties = Collections.emptyMap();
+        if (target instanceof Node) properties = ((Node)target).getAllProperties();
+        if (target instanceof Relationship) properties = ((Relationship)target).getAllProperties();
+        if (target instanceof Map) {
+            //noinspection unchecked
+            properties = (Map<String, Object>) target;
+        }
+
+        Map<String,Object> result = new LinkedHashMap<>(properties.size());
+        properties.forEach((key,value) -> {
+            result.put(key, typeCypher(value));
+        });
+
+        return result;
     }
 
 
