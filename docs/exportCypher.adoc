@@ -50,6 +50,11 @@ call apoc.export.cypher.query(
 |===
 // end::export.cypher[]
 
+==== Note:
+
+The labels exported are ordered alphabetically.
+The output of `labels()` function is not sorted, use it in combination with `apoc.coll.sort()`.
+
 === Roundtrip Example
 
 You can use this roundtrip example e.g. on the `:play movies` movie graph.
