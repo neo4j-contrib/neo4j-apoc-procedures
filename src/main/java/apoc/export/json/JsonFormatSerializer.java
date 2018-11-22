@@ -74,8 +74,8 @@ public enum JsonFormatSerializer {
             if (node.getLabels().iterator().hasNext()) {
                 jsonGenerator.writeArrayFieldStart("labels");
 
-                List<String> stringList = getLabelsSorted(node);
-                for (String label : stringList) {
+                List<String> labels = getLabelsSorted(node);
+                for (String label : labels) {
                     jsonGenerator.writeString(label);
                 }
                 jsonGenerator.writeEndArray();
