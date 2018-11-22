@@ -71,9 +71,9 @@ public class ExportCypherTest {
             assertEquals(3L, r.get("rows"));
             assertEquals(0L, r.get("relationships"));
             assertEquals(5L, r.get("properties"));
-            assertNull(r.get("file"));
+            assertNull("Should get file",r.get("file"));
             assertEquals("cypher", r.get("format"));
-            assertTrue(((long) r.get("time")) >= 0);
+            assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
             sb.append(r.get("cypherStatements"));
             r = res.next();
             assertEquals(3L, r.get("batchSize"));
@@ -82,7 +82,7 @@ public class ExportCypherTest {
             assertEquals(4L, r.get("rows"));
             assertEquals(1L, r.get("relationships"));
             assertEquals(6L, r.get("properties"));
-            assertTrue(((long) r.get("time")) >= 0);
+            assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
             sb.append(r.get("cypherStatements"));
         });
         assertEquals(EXPECTED_NEO4J_SHELL.replace("LIMIT 20000", "LIMIT 3"), sb.toString());
@@ -211,7 +211,7 @@ public class ExportCypherTest {
         assertEquals(output == null ? null : output.getAbsolutePath(), r.get("file"));
         assertEquals(source + ": nodes(3), rels(1)", r.get("source"));
         assertEquals("cypher", r.get("format"));
-        assertTrue(((long) r.get("time")) >= 0);
+        assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
     }
 
     @Test
@@ -328,6 +328,17 @@ public class ExportCypherTest {
                 map("file", output.getAbsolutePath(), "query", query, "config", Util.map("format", "neo4j-shell")), (r) -> {
                 });
         assertEquals(EXPECTED_CYPHER_DURATION, readFile(output));
+    }
+
+    @Test
+    public void testExportWithAscendingLabels() throws FileNotFoundException {
+        db.execute("CREATE (f:User:User1:User0:User12 {name:'Alan'})").close();
+        File output = new File(directory, "ascendingLabels.cypher");
+        String query = "MATCH (f:User) WHERE f.name='Alan' RETURN f";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
+                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("format", "neo4j-shell")), (r) -> {
+                });
+        assertEquals(EXPECTED_CYPHER_LABELS_ASCENDEND, readFile(output));
     }
 
     static class ExportCypherResults {
@@ -469,6 +480,20 @@ public class ExportCypherTest {
                 "BEGIN%n" +
                 "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:20}), (n2:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:21}) CREATE (n1)-[r:`FRIEND_OF` {`duration`:duration('P5M1DT12H')}]->(n2);%n" +
                 "COMMIT%n" +
+                "BEGIN%n" +
+                "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
+                "COMMIT%n" +
+                "BEGIN%n" +
+                "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
+                "COMMIT%n");
+
+        static final String EXPECTED_CYPHER_LABELS_ASCENDEND = String.format("BEGIN%n" +
+                "CREATE (:`User`:`User0`:`User1`:`User12`:`UNIQUE IMPORT LABEL` {`name`:\"Alan\", `UNIQUE IMPORT ID`:20});%n" +
+                "COMMIT%n" +
+                "BEGIN%n" +
+                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;%n" +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n" +
                 "BEGIN%n" +
                 "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
                 "COMMIT%n" +

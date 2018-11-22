@@ -215,7 +215,6 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 
 == Export / Import
 
-
 === Export to CSV
 
 // tag::export.csv[]
@@ -230,6 +229,11 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 |===
 
 If the file name is passed as `null` and the config `stream:true` the results are streamed back in the `data` column, e.g.
+
+==== Note:
+
+The labels exported are ordered alphabetically.
+The output of `labels()` function is not sorted, use it in combination with `apoc.coll.sort()`.
 
 [source,cypher]
 ----
@@ -262,6 +266,11 @@ GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 | apoc.export.graphml.query(query,file,config) | exports nodes and relationships from the Cypher statement as graphml to the provided file
 |===
 // end::export.graphml[]
+
+==== Note:
+
+The labels exported are ordered alphabetically.
+The output of `labels()` function is not sorted, use it in combination with `apoc.coll.sort()`.
 
 .configuration options
 [options=header]
