@@ -39,15 +39,19 @@ public class Jdbc {
     @Context
     public Log log;
 
-    private static Connection getConnection(String jdbcUrl) throws Exception {
-        URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
-        String userInfo = uri.getUserInfo();
-        if (userInfo != null) {
-            String[] user = userInfo.split(":");
-            String cleanUrl = jdbcUrl.substring(0,jdbcUrl.indexOf("://")+3)+jdbcUrl.substring(jdbcUrl.indexOf("@")+1);
-            return DriverManager.getConnection(cleanUrl, user[0], user[1]);
+    private static Connection getConnection(String jdbcUrl, LoadJdbcConfig config) throws Exception {
+        if(config.hasCredentials()) {
+            return DriverManager.getConnection(jdbcUrl, config.getCredentials().getUser(), config.getCredentials().getPassword());
+        } else {
+            URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
+            String userInfo = uri.getUserInfo();
+            if (userInfo != null) {
+                String[] user = userInfo.split(":");
+                String cleanUrl = jdbcUrl.substring(0, jdbcUrl.indexOf("://") + 3) + jdbcUrl.substring(jdbcUrl.indexOf("@") + 1);
+                return DriverManager.getConnection(cleanUrl, user[0], user[1]);
+            }
+            return DriverManager.getConnection(jdbcUrl);
         }
-        return DriverManager.getConnection(jdbcUrl);
     }
 
     @Procedure
@@ -65,7 +69,7 @@ public class Jdbc {
     }
 
     @Procedure
-    @Description("apoc.load.jdbc('key or url','table or statement', config) YIELD row - load from relational database, from a full table or a sql statement")
+    @Description("apoc.load.jdbc('key or url','table or statement', params, config) YIELD row - load from relational database, from a full table or a sql statement")
     public Stream<RowResult> jdbc(@Name("jdbc") String urlOrKey, @Name("tableOrSql") String tableOrSelect, @Name
             (value = "params", defaultValue = "[]") List<Object> params, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         return executeQuery(urlOrKey, tableOrSelect, config, params.toArray(new Object[params.size()]));
@@ -83,7 +87,7 @@ public class Jdbc {
         String url = getUrlOrKey(urlOrKey);
         String query = tableOrSelect.indexOf(' ') == -1 ? "SELECT * FROM " + tableOrSelect : tableOrSelect;
         try {
-            Connection connection = getConnection(url);
+            Connection connection = getConnection(url,loadJdbcConfig);
             try {
                 PreparedStatement stmt = connection.prepareStatement(query);
                 try {
@@ -112,16 +116,17 @@ public class Jdbc {
     }
 
     @Procedure
-    @Description("apoc.load.jdbcUpdate('key or url','statement',[params]) YIELD row - update relational database, from a SQL statement with optional parameters")
-    public Stream<RowResult> jdbcUpdate(@Name("jdbc") String urlOrKey, @Name("query") String query, @Name(value = "params", defaultValue = "[]") List<Object> params) {
+    @Description("apoc.load.jdbcUpdate('key or url','statement',[params],config) YIELD row - update relational database, from a SQL statement with optional parameters")
+    public Stream<RowResult> jdbcUpdate(@Name("jdbc") String urlOrKey, @Name("query") String query, @Name(value = "params", defaultValue = "[]") List<Object> params,  @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         log.info( String.format( "Executing SQL update: %s", query ) );
-        return executeUpdate(urlOrKey, query, params.toArray(new Object[params.size()]));
+        return executeUpdate(urlOrKey, query, config, params.toArray(new Object[params.size()]));
     }
 
-    private Stream<RowResult> executeUpdate(String urlOrKey, String query, Object...params) {
+    private Stream<RowResult> executeUpdate(String urlOrKey, String query, Map<String, Object> config, Object...params) {
         String url = getUrlOrKey(urlOrKey);
+        LoadJdbcConfig jdbcConfig = new LoadJdbcConfig(config);
         try {
-            Connection connection = getConnection(url);
+            Connection connection = getConnection(url,jdbcConfig);
             try {
                 PreparedStatement stmt = connection.prepareStatement(query);
                 try {
