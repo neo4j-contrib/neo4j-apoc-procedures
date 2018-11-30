@@ -17,6 +17,7 @@ import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.util.Arrays;
 import java.util.Map;
@@ -32,18 +33,49 @@ import static org.junit.Assert.assertTrue;
  */
 public class ExportGraphMLTest {
 
-    public static final String KEY_TYPES = "<key id=\"values\" for=\"node\" attr.name=\"values\" attr.type=\"string\" attr.list=\"long\"/>%n" +
-            "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
-            "<key id=\"age\" for=\"node\" attr.name=\"age\" attr.type=\"long\"/>%n";
     public static final String KEY_TYPES_EMPTY = "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
-            "<key id=\"limit\" for=\"node\" attr.name=\"limit\" attr.type=\"long\"/>%n";
+            "<key id=\"limit\" for=\"node\" attr.name=\"limit\" attr.type=\"long\"/>%n" +
+            "<key id=\"label\" for=\"node\" attr.name=\"label\" attr.type=\"string\"/>%n";
     public static final String GRAPH = "<graph id=\"G\" edgedefault=\"directed\">%n";
     public static final String HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>%n" +
             "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">%n";
-    public static final String DATA = "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"labels\">:Foo:Foo0:Foo2</data><data key=\"name\">foo</data></node>%n" +
-            "<node id=\"n1\" labels=\":Bar\"><data key=\"labels\">:Bar</data><data key=\"name\">bar</data><data key=\"age\">42</data></node>%n" +
+    public static final String KEY_TYPES_FALSE = "<key id=\"born\" for=\"node\" attr.name=\"born\"/>%n" +
+            "<key id=\"values\" for=\"node\" attr.name=\"values\"/>%n" +
+            "<key id=\"name\" for=\"node\" attr.name=\"name\"/>%n" +
+            "<key id=\"label\" for=\"node\" attr.name=\"label\"/>%n"+
+            "<key id=\"place\" for=\"node\" attr.name=\"place\"/>%n" +
+            "<key id=\"age\" for=\"node\" attr.name=\"age\"/>%n" +
+            "<key id=\"label\" for=\"edge\" attr.name=\"label\"/>%n";
+    public static final String KEY_TYPES = "<key id=\"born\" for=\"node\" attr.name=\"born\" attr.type=\"string\"/>%n" +
+            "<key id=\"values\" for=\"node\" attr.name=\"values\" attr.type=\"string\" attr.list=\"long\"/>%n" +
+            "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
+            "<key id=\"label\" for=\"node\" attr.name=\"label\" attr.type=\"string\"/>%n"+
+            "<key id=\"place\" for=\"node\" attr.name=\"place\" attr.type=\"string\"/>%n" +
+            "<key id=\"age\" for=\"node\" attr.name=\"age\" attr.type=\"long\"/>%n" +
+            "<key id=\"label\" for=\"edge\" attr.name=\"label\" attr.type=\"string\"/>%n";
+    public static final String KEY_TYPES_PATH = "<key id=\"born\" for=\"node\" attr.name=\"born\" attr.type=\"string\"/>%n" +
+            "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
+            "<key id=\"label\" for=\"node\" attr.name=\"label\" attr.type=\"string\"/>%n"+
+            "<key id=\"place\" for=\"node\" attr.name=\"place\" attr.type=\"string\"/>%n" +
+            "<key id=\"TYPE\" for=\"node\" attr.name=\"TYPE\" attr.type=\"string\"/>%n" +
+            "<key id=\"age\" for=\"node\" attr.name=\"age\" attr.type=\"long\"/>%n" +
+            "<key id=\"label\" for=\"edge\" attr.name=\"label\" attr.type=\"string\"/>%n" +
+            "<key id=\"TYPE\" for=\"edge\" attr.name=\"TYPE\" attr.type=\"string\"/>%n";
+    public static final String KEY_TYPES_CAMEL_CASE = "<key id=\"firstName\" for=\"node\" attr.name=\"firstName\" attr.type=\"string\"/>%n" +
+            "<key id=\"ageNow\" for=\"node\" attr.name=\"ageNow\" attr.type=\"long\"/>%n" +
+            "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
+            "<key id=\"label\" for=\"node\" attr.name=\"label\" attr.type=\"string\"/>%n" +
+            "<key id=\"TYPE\" for=\"node\" attr.name=\"TYPE\" attr.type=\"string\"/>%n" +
+            "<key id=\"label\" for=\"edge\" attr.name=\"label\" attr.type=\"string\"/>%n" +
+            "<key id=\"TYPE\" for=\"edge\" attr.name=\"TYPE\" attr.type=\"string\"/>%n";
+    public static final String DATA = "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"labels\">:Foo:Foo0:Foo2</data><data key=\"place\">{\"crs\":\"wgs-84-3d\",\"latitude\":56.7,\"longitude\":12.78,\"height\":100.0}</data><data key=\"name\">foo</data><data key=\"born\">2018-10-10</data></node>%n" +
+            "<node id=\"n1\" labels=\":Bar\"><data key=\"labels\">:Bar</data><data key=\"age\">42</data><data key=\"name\">bar</data><data key=\"place\">{\"crs\":\"wgs-84\",\"latitude\":56.7,\"longitude\":12.78,\"height\":null}</data></node>%n" +
             "<node id=\"n2\" labels=\":Bar\"><data key=\"labels\">:Bar</data><data key=\"age\">12</data><data key=\"values\">[1,2,3]</data></node>%n" +
             "<edge id=\"e0\" source=\"n0\" target=\"n1\" label=\"KNOWS\"><data key=\"label\">KNOWS</data></edge>%n";
+    public static final String DATA_CAMEL_CASE =
+            "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"TYPE\">:Foo:Foo0:Foo2</data><data key=\"label\">foo</data><data key=\"firstName\">foo</data></node>%n" +
+            "<node id=\"n1\" labels=\":Bar\"><data key=\"TYPE\">:Bar</data><data key=\"label\">bar</data><data key=\"name\">bar</data><data key=\"ageNow\">42</data></node>%n" +
+            "<edge id=\"e0\" source=\"n0\" target=\"n1\" label=\"KNOWS\"><data key=\"label\">KNOWS</data><data key=\"TYPE\">KNOWS</data></edge>%n";
 
     public static final String DATA_NODE_EDGE = "<node id=\"n0\"> <data key=\"labels\">:FOO</data><data key=\"name\">foo</data> </node>%n" +
             "<node id=\"n1\"> <data key=\"labels\">:BAR</data><data key=\"name\">bar</data> <data key=\"kids\">[a,b,c]</data> </node>%n" +
@@ -54,10 +86,27 @@ public class ExportGraphMLTest {
 
     public static final String FOOTER = "</graph>%n" +
             "</graphml>";
-    private static final String EXPECTED = String.format(HEADER + GRAPH + DATA + FOOTER);
-    private static final String EXPECTED_TYPES = String.format(HEADER + KEY_TYPES +GRAPH + DATA + FOOTER);
+
+    public static final String DATA_PATH = "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"TYPE\">:Foo:Foo0:Foo2</data><data key=\"label\">foo</data><data key=\"place\">{\"crs\":\"wgs-84-3d\",\"latitude\":56.7,\"longitude\":12.78,\"height\":100.0}</data><data key=\"name\">foo</data><data key=\"born\">2018-10-10</data></node>%n" +
+            "<node id=\"n1\" labels=\":Bar\"><data key=\"TYPE\">:Bar</data><data key=\"label\">bar</data><data key=\"age\">42</data><data key=\"name\">bar</data><data key=\"place\">{\"crs\":\"wgs-84\",\"latitude\":56.7,\"longitude\":12.78,\"height\":null}</data></node>%n" +
+            "<edge id=\"e0\" source=\"n0\" target=\"n1\" label=\"KNOWS\"><data key=\"label\">KNOWS</data><data key=\"TYPE\">KNOWS</data></edge>%n";
+
+    public static final String DATA_PATH_CAPTION = "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"TYPE\">:Foo:Foo0:Foo2</data><data key=\"label\">foo</data><data key=\"place\">{\"crs\":\"wgs-84-3d\",\"latitude\":56.7,\"longitude\":12.78,\"height\":100.0}</data><data key=\"name\">foo</data><data key=\"born\">2018-10-10</data></node>%n" +
+            "<node id=\"n1\" labels=\":Bar\"><data key=\"TYPE\">:Bar</data><data key=\"label\">bar</data><data key=\"age\">42</data><data key=\"name\">bar</data><data key=\"place\">{\"crs\":\"wgs-84\",\"latitude\":56.7,\"longitude\":12.78,\"height\":null}</data></node>%n" +
+            "<edge id=\"e0\" source=\"n0\" target=\"n1\" label=\"KNOWS\"><data key=\"label\">KNOWS</data><data key=\"TYPE\">KNOWS</data></edge>%n";
+
+    public static final String DATA_PATH_CAPTION_DEFAULT = "<node id=\"n0\" labels=\":Foo:Foo0:Foo2\"><data key=\"TYPE\">:Foo:Foo0:Foo2</data><data key=\"label\">point({x: 56.7, y: 12.78, z: 100.0, crs: 'wgs-84-3d'})</data><data key=\"place\">{\"crs\":\"wgs-84-3d\",\"latitude\":56.7,\"longitude\":12.78,\"height\":100.0}</data><data key=\"name\">foo</data><data key=\"born\">2018-10-10</data></node>%n" +
+            "<node id=\"n1\" labels=\":Bar\"><data key=\"TYPE\">:Bar</data><data key=\"label\">42</data><data key=\"age\">42</data><data key=\"name\">bar</data><data key=\"place\">{\"crs\":\"wgs-84\",\"latitude\":56.7,\"longitude\":12.78,\"height\":null}</data></node>%n" +
+            "<edge id=\"e0\" source=\"n0\" target=\"n1\" label=\"KNOWS\"><data key=\"label\">KNOWS</data><data key=\"TYPE\">KNOWS</data></edge>%n";
+
+    private static final String EXPECTED_TYPES_PATH = String.format(HEADER + KEY_TYPES_PATH + GRAPH + DATA_PATH + FOOTER);
+    private static final String EXPECTED_TYPES_PATH_CAPTION = String.format(HEADER + KEY_TYPES_PATH + GRAPH + DATA_PATH_CAPTION + FOOTER);
+    private static final String EXPECTED_TYPES_PATH_WRONG_CAPTION = String.format(HEADER + KEY_TYPES_PATH + GRAPH + DATA_PATH_CAPTION_DEFAULT + FOOTER);
+    private static final String EXPECTED_TYPES = String.format(HEADER + KEY_TYPES + GRAPH + DATA + FOOTER);
+    private static final String EXPECTED_FALSE = String.format(HEADER + KEY_TYPES_FALSE + GRAPH + DATA + FOOTER);
     private static final String EXPECTED_READ_NODE_EDGE = String.format(HEADER + GRAPH + DATA_NODE_EDGE + FOOTER);
-    public static final String DATA_EMPTY = "<node id=\"n0\" labels=\":Test\"><data key=\"labels\">:Test</data><data key=\"name\"></data><data key=\"limit\">3</data></node>%n";
+    private static final String EXPECTED_TYPES_PATH_CAMEL_CASE = String.format(HEADER + KEY_TYPES_CAMEL_CASE + GRAPH + DATA_CAMEL_CASE + FOOTER);
+    private static final String DATA_EMPTY = "<node id=\"n0\" labels=\":Test\"><data key=\"labels\">:Test</data><data key=\"name\"></data><data key=\"limit\">3</data></node>%n";
     private static final String EXPECTED_TYPES_EMPTY = String.format(HEADER + KEY_TYPES_EMPTY + GRAPH + DATA_EMPTY + FOOTER);
 
     private static GraphDatabaseService db;
@@ -86,7 +135,7 @@ public class ExportGraphMLTest {
         }
         db = builder.newGraphDatabase();
         TestUtil.registerProcedure(db, ExportGraphML.class, Graphs.class);
-        db.execute("CREATE (f:Foo:Foo2:Foo0 {name:'foo'})-[:KNOWS]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12,values:[1,2,3]})").close();
+        db.execute("CREATE (f:Foo:Foo2:Foo0 {name:'foo', born:Date('2018-10-10'), place:point({ longitude: 56.7, latitude: 12.78, height: 100 })})-[:KNOWS]->(b:Bar {name:'bar',age:42, place:point({ longitude: 56.7, latitude: 12.78})}),(c:Bar {age:12,values:[1,2,3]})").close();
     }
 
     @After
@@ -102,7 +151,18 @@ public class ExportGraphMLTest {
         FileWriter fw = new FileWriter(output);
         fw.write(EXPECTED_TYPES); fw.close();
         TestUtil.testCall(db, "CALL apoc.import.graphml({file},{readLabels:true})", map("file", output.getAbsolutePath()),
-                (r) -> assertResults(output, r, "database"));
+                (r) -> {
+                    assertEquals(3L, r.get("nodes"));
+                    assertEquals(1L, r.get("relationships"));
+                    assertEquals(8L, r.get("properties"));
+                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    if (r.get("source").toString().contains(":"))
+                        assertEquals("statement" + ": nodes(2), rels(1)", r.get("source"));
+                    else
+                        assertEquals("file", r.get("source"));
+                    assertEquals("graphml", r.get("format"));
+                    assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
+                });
 
         TestUtil.testCall(db, "MATCH  (c:Bar {age: 12, values: [1,2,3]}) RETURN COUNT(c) AS c", null, (r) -> assertEquals(1L, r.get("c")));
     }
@@ -176,7 +236,7 @@ public class ExportGraphMLTest {
         File output = new File(directory, "all.graphml");
         TestUtil.testCall(db, "CALL apoc.export.graphml.all({file},null)", map("file", output.getAbsolutePath()),
                 (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED, new Scanner(output).useDelimiter("\\Z").next());
+        assertEquals(EXPECTED_FALSE, new Scanner(output).useDelimiter("\\Z").next());
     }
 
     @Test
@@ -187,7 +247,7 @@ public class ExportGraphMLTest {
                         "YIELD nodes, relationships, properties, file, source,format, time " +
                         "RETURN *", map("file", output.getAbsolutePath()),
                 (r) -> assertResults(output, r, "graph"));
-        assertEquals(EXPECTED, new Scanner(output).useDelimiter("\\Z").next());
+        assertEquals(EXPECTED_FALSE, new Scanner(output).useDelimiter("\\Z").next());
     }
     @Test
     public void testExportGraphGraphMLTypes() throws Exception {
@@ -251,13 +311,104 @@ public class ExportGraphMLTest {
         else
             assertEquals("file", r.get("source"));
         assertEquals("graphml", r.get("format"));
-        assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
+        assertTrue("Should get time greater than 0", ((long) r.get("time")) > 0);
+    }
+
+    public void testExportGraphGraphMLQueryGephi() throws Exception {
+        File output = new File(directory, "query.graphml");
+        TestUtil.testCall(db, "call apoc.export.graphml.query('MATCH p=()-[r]->() RETURN p limit 1000',{file},{useTypes:true, format: 'gephi'}) ", map("file", output.getAbsolutePath()),
+                (r) -> {
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(1L, r.get("relationships"));
+                    assertEquals(6L, r.get("properties"));
+                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    if (r.get("source").toString().contains(":"))
+                        assertEquals("statement" + ": nodes(2), rels(1)", r.get("source"));
+                    else
+                        assertEquals("file", r.get("source"));
+                    assertEquals("graphml", r.get("format"));
+                    assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
+                });
+        assertEquals(EXPECTED_TYPES_PATH, new Scanner(output).useDelimiter("\\Z").next());
+    }
+
+    @Test
+    public void testExportGraphGraphMLQueryGephiWithArrayCaption() throws Exception {
+        File output = new File(directory, "query.graphml");
+        TestUtil.testCall(db, "call apoc.export.graphml.query('MATCH p=()-[r]->() RETURN p limit 1000',{file},{useTypes:true, format: 'gephi', caption: ['bar','name','foo']}) ", map("file", output.getAbsolutePath()),
+                (r) -> {
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(1L, r.get("relationships"));
+                    assertEquals(6L, r.get("properties"));
+                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    if (r.get("source").toString().contains(":"))
+                        assertEquals("statement" + ": nodes(2), rels(1)", r.get("source"));
+                    else
+                        assertEquals("file", r.get("source"));
+                    assertEquals("graphml", r.get("format"));
+                    assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
+                });
+        assertEquals(EXPECTED_TYPES_PATH_CAPTION, new Scanner(output).useDelimiter("\\Z").next());
+    }
+
+    @Test
+    public void testExportGraphGraphMLQueryGephiWithArrayCaptionWrong() throws Exception {
+        File output = new File(directory, "query.graphml");
+        TestUtil.testCall(db, "call apoc.export.graphml.query('MATCH p=()-[r]->() RETURN p limit 1000',{file},{useTypes:true, format: 'gephi', caption: ['a','b','c']}) ", map("file", output.getAbsolutePath()),
+                (r) -> {
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(1L, r.get("relationships"));
+                    assertEquals(6L, r.get("properties"));
+                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    if (r.get("source").toString().contains(":"))
+                        assertEquals("statement" + ": nodes(2), rels(1)", r.get("source"));
+                    else
+                        assertEquals("file", r.get("source"));
+                    assertEquals("graphml", r.get("format"));
+                    assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
+                });
+        assertEquals(EXPECTED_TYPES_PATH_WRONG_CAPTION, new Scanner(output).useDelimiter("\\Z").next());
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testExportGraphGraphMLQueryGephiWithStringCaption() throws Exception {
+        File output = new File(directory, "query.graphml");
+        try {
+        TestUtil.testCall(db, "call apoc.export.graphml.query('MATCH p=()-[r]->() RETURN p limit 1000',{file},{useTypes:true, format: 'gephi', caption: 'name'}) ", map("file", output.getAbsolutePath()),
+                (r) -> {});
+        } catch (QueryExecutionException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            TestCase.assertTrue(except instanceof RuntimeException);
+            assertEquals("Only array of Strings are allowed!", except.getMessage());
+            throw e;
+        }
+    }
+
+    @Test
+    public void testExportGraphmlQueryWithStringCaptionCamelCase() throws FileNotFoundException {
+        db.execute("MATCH (n) detach delete (n)");
+        db.execute("CREATE (f:Foo:Foo2:Foo0 {firstName:'foo'})-[:KNOWS]->(b:Bar {name:'bar',ageNow:42}),(c:Bar {age:12,values:[1,2,3]})").close();
+        File output = new File(directory, "query.graphml");
+        TestUtil.testCall(db, "call apoc.export.graphml.query('MATCH p=()-[r]->() RETURN p limit 1000',{file},{useTypes:true, format: 'gephi'}) ", map("file", output.getAbsolutePath()),
+                (r) -> {
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(1L, r.get("relationships"));
+                    assertEquals(3L, r.get("properties"));
+                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    if (r.get("source").toString().contains(":"))
+                        assertEquals("statement" + ": nodes(2), rels(1)", r.get("source"));
+                    else
+                        assertEquals("file", r.get("source"));
+                    assertEquals("graphml", r.get("format"));
+                    assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
+                });
+        assertEquals(EXPECTED_TYPES_PATH_CAMEL_CASE, new Scanner(output).useDelimiter("\\Z").next());
     }
 
     private void assertResults(File output, Map<String, Object> r, final String source) {
         assertEquals(3L, r.get("nodes"));
         assertEquals(1L, r.get("relationships"));
-        assertEquals(5L, r.get("properties"));
+        assertEquals(8L, r.get("properties"));
         assertEquals(output.getAbsolutePath(), r.get("file"));
         if (r.get("source").toString().contains(":"))
             assertEquals(source + ": nodes(3), rels(1)", r.get("source"));

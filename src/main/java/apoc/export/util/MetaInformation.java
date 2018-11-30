@@ -1,12 +1,17 @@
 package apoc.export.util;
 
+import apoc.meta.Meta;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
+import static apoc.gephi.GephiFormatUtils.getCaption;
 import static java.util.Arrays.asList;
 
 /**
@@ -46,13 +51,18 @@ public class MetaInformation {
     public final static Set<String> GRAPHML_ALLOWED = new HashSet<>(asList("boolean", "int", "long", "float", "double", "string"));
 
     public static String typeFor(Class value, Set<String> allowed) {
-        if (value == void.class) return null;
-        if (value.isArray()) return typeFor(value.getComponentType(),allowed);
-        String name = value.getSimpleName().toLowerCase();
-        if (name.equals("integer")) name="int";
-        if (allowed==null || allowed.contains(name)) return name;
-        if (Number.class.isAssignableFrom(value)) return "int";
-        return null;
+        if (value == void.class) return null; // Is this necessary?
+        Meta.Types type = Meta.Types.of(value);
+        String name = (value.isArray() ? value.getComponentType() : value).getSimpleName().toLowerCase();
+        boolean isAllowed = allowed != null && allowed.contains(name);
+        switch (type) {
+            case NULL:
+                return null;
+            case INTEGER: case FLOAT:
+                return "integer".equals(name) || !isAllowed ? "int" : name;
+            default:
+                return isAllowed ? name : "string"; // We manage all other data types as strings
+        }
     }
 
     public static String getLabelsString(Node node) {
@@ -61,4 +71,7 @@ public class MetaInformation {
         return delimiter + FormatUtils.joinLabels(node, delimiter);
     }
 
+    public static String getLabelsStringGephi(ExportConfig config, Node node) {
+        return getCaption(node, config.getCaption());
+    }
 }

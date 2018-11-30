@@ -1,6 +1,5 @@
 package apoc.export.util;
 
-import apoc.export.cypher.formatter.CypherFormatter;
 import apoc.export.cypher.formatter.CypherFormatterUtils;
 
 import static java.lang.String.format;
@@ -18,7 +17,10 @@ public enum ExportFormat {
     CYPHER_SHELL("cypher-shell",
             format(":commit%n"), format(":begin%n"), "", "CALL db.awaitIndex('%s(%s)');%n"),
 
-    PLAIN_FORMAT("plain", "", "", "", "");
+    PLAIN_FORMAT("plain", "", "", "", ""),
+
+    GEPHI("gephi", "", "", "", "");
+
 
     private final String format;
 
