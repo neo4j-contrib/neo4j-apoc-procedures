@@ -55,6 +55,23 @@ export exportAllPlain="call apoc.export.cypher.all('$neo4j_home/import/exportAll
 echo $exportAllPlain
 time ./cypher-shell -a $url -u $user -p $password  "$exportAllPlain"
 
+#NEW METHOD
+
+#Neo4j Shell
+export exportAllNeo4jShellOptimized="call apoc.export.cypher.all('$neo4j_home/import/exportAllNeo4jShellOptimized.cypher',  {format:'neo4j-shell', useOptimizations: true})"
+echo $exportAllNeo4jShellOptimized
+time ./cypher-shell -a $url -u $user -p $password  "$exportAllNeo4jShellOptimized"
+
+#Cypher Shell
+export exportAllCypherShellOptimized="call apoc.export.cypher.all('$neo4j_home/import/exportAllCypherShellOptimized.cypher',  {format:'cypher-shell', useOptimizations: true})"
+echo $exportAllCypherShellOptimized
+time ./cypher-shell -a $url -u $user -p $password  "$exportAllCypherShellOptimized"
+
+#Plain
+export exportAllPlainOptimized="call apoc.export.cypher.all('$neo4j_home/import/exportAllPlainOptimized.cypher',  {format:'plain', useOptimizations: true})"
+echo $exportAllPlainOptimized
+time ./cypher-shell -a $url -u $user -p $password  "$exportAllPlainOptimized"
+
 #Many files
 export exportAllSeparateFiles="call apoc.export.cypher.all('$neo4j_home/import/exportAllDifferentFile.cypher',  {format:'plain', separateFiles:true})"
 echo $exportAllSeparateFiles
@@ -113,12 +130,25 @@ export outputFile="$neo4j_home/import/cypherShellOutput"
 echo $importCypherShell "<" $outputFile
 time ./cypher-shell -a $url -u $user -p $password < "$importCypherShell">"$outputFile"
 
+
+#import cypher-shell Optimized
+export importCypherShell="$neo4j_home/import/exportAllCypherShellOptimized.cypher"
+export outputFile="$neo4j_home/import/cypherShellOutput"
+echo $importCypherShell "<" $outputFile
+time ./cypher-shell -a $url -u $user -p $password < "$importCypherShell">"$outputFile"
+
 #Drop DB
 echo "drop db"
 time ./cypher-shell -a $url -u $user -p $password "$dropDb"
 
 #import neo4j-shell
 export importNeo4jShell="$neo4j_home/import/exportAllNeo4jShell.cypher"
+export outputFile="$neo4j_home/import/neo4jShellOutput"
+echo $importNeo4jShell "<" $outputFile
+time ./neo4j-shell -a $url -u $user -p $password '-file' "$importNeo4jShell">"$outputFile"
+
+#import neo4j-shell Optimized
+export importNeo4jShell="$neo4j_home/import/exportAllNeo4jShellOptimized.cypher"
 export outputFile="$neo4j_home/import/neo4jShellOutput"
 echo $importNeo4jShell "<" $outputFile
 time ./neo4j-shell -a $url -u $user -p $password '-file' "$importNeo4jShell">"$outputFile"

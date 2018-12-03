@@ -17,6 +17,8 @@ It is possible to choose between three export formats:
 * `cypher-shell`: for Cypher shell
 * `plain`: doesn't output begin / commit / await just plain Cypher
 
+You can also use the Optimizations like: `{useOptimizations: true}`. (default: false)
+
 To change the export format, you have to set it on the config params like `{format : "cypher-shell"}`.
 
 By default the format is `neo4j-shell`.
@@ -40,6 +42,7 @@ call apoc.export.cypher.query(
 "/tmp/friendships.cypher", 
 {format:'plain',cypherFormat:'updateStructure'})`
 ----
+
 
 // tag::export.cypher[]
 `YIELD file, source, format, nodes, relationships, properties, time`
@@ -134,6 +137,10 @@ CALL apoc.export.cypher.all(null,{streamStatements:true,batchSize:100}) YIELD cy
 
 .exportAll (neo4j-shell format)
 
+==== Old method:
+
+Without the optimizations
+
 [source,cypher]
 ----
 CALL apoc.export.cypher.all({fileName},{config})
@@ -175,4 +182,48 @@ CREATE INDEX ON :`Foo`(`name`);
 CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
 commit
 schema await
+----
+
+==== New method:
+
+With the optimizations
+
+[source,cypher]
+----
+CALL apoc.export.cypher.all({fileName},{config})
+----
+Result:
+[source,cypher]
+----
+BEGIN
+UNWIND [{`UNIQUE IMPORT ID`: 0, properties: {`born`:date('2018-10-31'), `name`:"foo"}}, {`UNIQUE IMPORT ID`: 4, properties: {`born`:date('2017-09-29'), `name`:"foo2"}}] as row
+MERGE (n:`Foo`:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.`UNIQUE IMPORT ID`}) SET n += row.properties;
+UNWIND [{`name`: "bar", properties: {`age`:42, `name`:"bar"}}, {`name`: "bar2", properties: {`age`:44, `name`:"bar2"}}] as row
+MERGE (n:`Bar`{`name`: row.`name`}) SET n += row.properties;
+UNWIND [{`UNIQUE IMPORT ID`: 2, properties: {`age`:12}}] as row
+MERGE (n:`Bar`:`Person`:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.`UNIQUE IMPORT ID`}) SET n += row.properties;
+UNWIND [{`UNIQUE IMPORT ID`: 6, properties: {`age`:99}}] as row
+MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.`UNIQUE IMPORT ID`}) SET n += row.properties;
+UNWIND [{`UNIQUE IMPORT ID`: 3, properties: {`age`:12}}] as row
+MERGE (n:`Bar`:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.`UNIQUE IMPORT ID`}) SET n += row.properties;
+COMMIT
+BEGIN
+CREATE INDEX ON :`Bar`(`first_name`,`last_name`);
+CREATE INDEX ON :`Foo`(`name`);
+CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
+CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
+COMMIT
+SCHEMA AWAIT
+BEGIN
+UNWIND [{start: {`UNIQUE IMPORT ID`: 0}, end: {`name`: "bar"}, properties: {`since`:2016}}, {start: {`UNIQUE IMPORT ID`: 4}, end: {`name`: "bar2"}, properties: {`since`:2015}}] as row
+MATCH (start:`Foo`:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start.`UNIQUE IMPORT ID`}), (end:`Bar`{`name`: row.end.`name`})
+MERGE (start)-[r:`KNOWS`]->(end) SET r += row.properties;
+COMMIT
+BEGIN
+MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
+COMMIT
+BEGIN
+DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
+COMMIT
+
 ----

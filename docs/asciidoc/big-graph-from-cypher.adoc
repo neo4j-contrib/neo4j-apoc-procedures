@@ -253,6 +253,7 @@ time ./cypher-shell -u yourUsername -p yourPassword
 
 With this command we import not more than 10/15 nodes per second.
 
+
 === Import cypher-shell
 
 [source,bash,subs=attributes]
@@ -306,4 +307,132 @@ Neo4j-shell
 real    98m54.617s
 user    21m5.140s
 sys     37m35.852s
+----
+
+=== New implementation of exportCypher
+
+For the new implementations and the test of the exportCypher we used this characteristics:
+
+* 2 cores
+
+* Intel(R) CPU I5-5200U @ 2.70GHz
+
+* 8 GB of RAM
+
+
+.Neo4j configuration
+
+* dbms.memory.heap.initial_size=1024m
+
+* dbms.memory.heap.max_size=2048m
+
+* dbms.memory.pagecache.size=1g
+
+.Graph info
+
+we use the Northwind Graph (:play northwind-graph)
+
+* total *nodes* -> 1035
+
+* total *relationships* -> 3139
+
+=== Different output formats
+
+We try the different output formats, changing the `config` parameter `format`.
+
+.plain
+
+[source,bash,subs=attributes]
+----
+time ./cypher-shell -u yourUsername -p yourPassword  
+"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'plain'})"
+----
+
+==== Results
+
+----
+real	0m1,740s
+user	0m1,907s
+sys	    0m0,141s
+----
+
+.cypher-shell
+
+[source,bash,subs=attributes]
+----
+time ./cypher-shell -u yourUsername -p yourPassword  
+"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'cypher-shell'})"
+----
+
+==== Results
+
+----
+real	0m1,634s
+user	0m1,851s
+sys	    0m0,139s
+----
+
+.neo4j-shell
+
+[source,bash,subs=attributes]
+----
+time ./cypher-shell -u yourUsername -p yourPassword  
+"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'neo4j-shell'})"
+----
+
+==== Results
+
+----
+real	0m2,095s
+user	0m1,908s
+sys	    0m0,108s
+----
+
+== Import from file
+
+=== runFile
+
+[source,bash,subs=attributes]
+----
+time ./cypher-shell -u yourUsername -p yourPassword
+"call apoc.cypher.runFile('yourPath/import/exportPlain.cypher')"
+----
+
+.Result
+----
+real	0m42,578s
+user	0m1,833s
+sys	    0m0,135s
+----
+
+=== Import cypher-shell
+
+[source,bash,subs=attributes]
+----
+time ./cypher-shell -u yourUsername -p yourPassword
+< 'yourPath/import/exportCypherShell.cypher'
+> 'yourPath/cypherShellOutput'
+----
+
+.Result
+----
+real	0m29,475s
+user	0m2,825s
+sys	    0m0,167s
+----
+
+=== Import neo4j-shell
+
+[source,bash,subs=attributes]
+----
+time ./neo4j-shell -u yourUsername -p yourPassword -file
+< 'yourPath/import/exportNeo4jShell.cypher'
+> 'yourPath/neo4jShellOutput'
+----
+
+.Result
+----
+real	0m54,581s
+user	0m7,472s
+sys	    0m1,896s
 ----

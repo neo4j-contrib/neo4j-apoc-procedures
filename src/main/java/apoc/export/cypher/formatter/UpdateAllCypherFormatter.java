@@ -22,4 +22,14 @@ public class UpdateAllCypherFormatter extends AbstractCypherFormatter implements
 	public String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties) {
         return super.mergeStatementForRelationship(CypherFormat.UPDATE_ALL, relationship, uniqueConstraints, indexedProperties);
 	}
+
+	@Override
+	public Map<String,Object> statementForSameNodes(Iterable<Node> node, Map<String, String> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames) {
+		return null;
+	}
+
+	@Override
+	public Map<String,Object> statementForSameRelationship(Iterable<Relationship> relationship, Map<String, String> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames) {
+		return null;
+	}
 }

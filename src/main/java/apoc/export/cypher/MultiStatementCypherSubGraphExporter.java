@@ -4,6 +4,8 @@ import apoc.export.cypher.formatter.CypherFormatterUtils;
 import apoc.export.util.*;
 import apoc.export.cypher.formatter.CypherFormatter;
 import apoc.util.Util;
+import org.apache.commons.lang.StringUtils;
+import org.jsoup.helper.StringUtil;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -62,10 +64,11 @@ public class MultiStatementCypherSubGraphExporter {
     public void export(ExportConfig config, Reporter reporter, ExportFileManager cypherFileManager) throws IOException {
 
         int batchSize = config.getBatchSize();
+        boolean useOptimizations = config.isUseOptimizations();
 
-        exportNodes(cypherFileManager.getPrintWriter("nodes"), reporter, batchSize);
+        exportNodes(cypherFileManager.getPrintWriter("nodes"), reporter, batchSize, useOptimizations);
         exportSchema(cypherFileManager.getPrintWriter("schema"));
-        exportRelationships(cypherFileManager.getPrintWriter("relationships"), reporter, batchSize);
+        exportRelationships(cypherFileManager.getPrintWriter("relationships"), reporter, batchSize, useOptimizations);
         exportCleanUp(cypherFileManager.getPrintWriter("cleanup"), batchSize);
         reporter.done();
     }
@@ -76,10 +79,14 @@ public class MultiStatementCypherSubGraphExporter {
 
     // ---- Nodes ----
 
-    private void exportNodes(PrintWriter out, Reporter reporter, int batchSize) {
+    private void exportNodes(PrintWriter out, Reporter reporter, int batchSize, boolean useOptimizations) {
         if (graph.getNodes().iterator().hasNext()) {
             begin(out);
-            appendNodes(out, batchSize, reporter);
+            if (useOptimizations) {
+                appendNodesOptimized(out, reporter);
+            } else {
+                appendNodes(out, batchSize, reporter);
+            }
             commit(out);
             out.flush();
         }
@@ -104,12 +111,26 @@ public class MultiStatementCypherSubGraphExporter {
         }
     }
 
+    private void appendNodesOptimized(PrintWriter out, Reporter reporter) {
+        artificialUniques += countArtificialUniques(graph.getNodes());
+        Map<String,Object> result = this.cypherFormat.statementForSameNodes(graph.getNodes(), uniqueConstraints, indexedProperties, indexNames);
+        String cypher = result.get("statement").toString();
+        if (Util.isNotNullOrEmpty(cypher)) {
+            out.println(cypher);
+            reporter.update(Iterables.count(graph.getNodes()), 0, (Long) result.get("properties"));
+        }
+    }
+
     // ---- Relationships ----
 
-    private void exportRelationships(PrintWriter out, Reporter reporter, int batchSize) {
+    private void exportRelationships(PrintWriter out, Reporter reporter, int batchSize, boolean  useOptimizations) {
         if (graph.getRelationships().iterator().hasNext()) {
             begin(out);
-            appendRelationships(out, batchSize, reporter);
+            if (useOptimizations) {
+                appendRelationshipOptimized(out, reporter);
+            } else {
+                appendRelationships(out, batchSize, reporter);
+            }
             commit(out);
             out.flush();
         }
@@ -130,6 +151,15 @@ public class MultiStatementCypherSubGraphExporter {
         if (cypher != null && !"".equals(cypher)) {
             out.println(cypher);
             reporter.update(0, 1, Iterables.count(rel.getPropertyKeys()));
+        }
+    }
+
+    private void appendRelationshipOptimized(PrintWriter out, Reporter reporter) {
+        Map<String,Object> result = this.cypherFormat.statementForSameRelationship(graph.getRelationships(), uniqueConstraints, indexedProperties, indexNames);
+        String cypher = result.get("statement").toString();
+        if (cypher != null && !"".equals(cypher)) {
+            out.println(cypher);
+            reporter.update(0, Iterables.count(graph.getRelationships()), (Long) result.get("properties"));
         }
     }
 
@@ -245,6 +275,19 @@ public class MultiStatementCypherSubGraphExporter {
 
     private long countArtificialUniques(Node node) {
         long artificialUniques = 0;
+        artificialUniques = getArtificialUniques(node, artificialUniques);
+        return artificialUniques;
+    }
+
+    private long countArtificialUniques(Iterable<Node> n) {
+        long artificialUniques = 0;
+        for (Node node : n) {
+            artificialUniques = getArtificialUniques(node, artificialUniques);
+        }
+        return artificialUniques;
+    }
+
+    private long getArtificialUniques(Node node, long artificialUniques) {
         Iterator<Label> labels = node.getLabels().iterator();
         boolean uniqueFound = false;
         while (labels.hasNext()) {

@@ -29,6 +29,16 @@ public class UpdateStructureCypherFormatter extends AbstractCypherFormatter impl
 	}
 
 	@Override
+	public Map<String,Object> statementForSameNodes(Iterable<Node> node, Map<String, String> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames) {
+		return null;
+	}
+
+	@Override
+	public Map<String,Object> statementForSameRelationship(Iterable<Relationship> relationship, Map<String, String> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames) {
+		return null;
+	}
+
+	@Override
 	public String statementForIndex(String label, Iterable<String> key) {
 		return "";
 	}
