@@ -122,7 +122,7 @@ dependencies {
     compileOnly group: 'org.neo4j', name: 'neo4j-enterprise', version: neo4jVersionEffective
     compileOnly group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
     testCompile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.0'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.7'
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
     compile group: 'com.github.javafaker', name: 'javafaker', version: '0.10'
 
