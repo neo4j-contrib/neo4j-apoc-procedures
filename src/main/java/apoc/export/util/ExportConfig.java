@@ -21,7 +21,7 @@ public class ExportConfig {
     private int batchSize = DEFAULT_BATCH_SIZE;
     private boolean silent = false;
     private String delim = DEFAULT_DELIM;
-    private boolean quotes;
+    private boolean quotes = true;
     private boolean useTypes = false;
     private boolean writeNodeProperties = false;
     private boolean nodesOfRelationships;
@@ -64,7 +64,6 @@ public class ExportConfig {
         this.silent = toBoolean(config.getOrDefault("silent",false));
         this.batchSize = ((Number)config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE)).intValue();
         this.delim = delim(config.getOrDefault("d", String.valueOf(DEFAULT_DELIM)).toString());
-        this.quotes = toBoolean(config.get("quotes"));
         this.useTypes = toBoolean(config.get("useTypes"));
         this.nodesOfRelationships = toBoolean(config.get("nodesOfRelationships"));
         this.format = ExportFormat.fromString((String) config.getOrDefault("format", "neo4j-shell"));
@@ -72,6 +71,10 @@ public class ExportConfig {
         this.config = config;
         this.streamStatements = toBoolean(config.get("streamStatements")) || toBoolean(config.get("stream"));
         this.writeNodeProperties = toBoolean(config.get("writeNodeProperties"));
+
+        if ( config.get("quotes") != null ) {
+            this.quotes = toBoolean(config.get("quotes"));
+        }
     }
 
     public boolean getRelsInBetween() {

@@ -47,7 +47,7 @@ public class CsvFormat implements Format {
     @Override
     public ProgressInfo dump(SubGraph graph, Writer writer, Reporter reporter, ExportConfig config) throws Exception {
         try (Transaction tx = db.beginTx()) {
-            CSVWriter out = config.isQuotes() ? new CSVWriter(writer,config.getDelimChar(), ExportConfig.QUOTECHAR) : new CSVWriter(writer,config.getDelimChar());
+            CSVWriter out = config.isQuotes() ? new CSVWriter(writer,config.getDelimChar(), ExportConfig.QUOTECHAR) : new CSVWriter(writer,config.getDelimChar(), '\0', '\0' );
             writeAll(graph, reporter, config, out);
             tx.success();
             reporter.done();
@@ -58,7 +58,7 @@ public class CsvFormat implements Format {
 
     public ProgressInfo dump(Result result, Writer writer, Reporter reporter, ExportConfig config) throws Exception {
         try (Transaction tx = db.beginTx()) {
-            CSVWriter out = new CSVWriter(writer, config.getDelimChar());
+            CSVWriter out = config.isQuotes() ? new CSVWriter(writer,config.getDelimChar(), ExportConfig.QUOTECHAR) : new CSVWriter(writer,config.getDelimChar(), '\0', '\0');
 
             String[] header = writeResultHeader(result, out);
 

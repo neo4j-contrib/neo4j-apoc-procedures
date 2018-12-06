@@ -7,6 +7,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.function.Consumer;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -17,6 +18,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
@@ -38,6 +40,10 @@ public class ExportCsvTest {
             "\"42\",\"foo\",\"true\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"[\"\"User1\"\",\"\"User\"\"]\"%n" +
             "\"42\",\"bar\",\"\",\"\",\"[\"\"User\"\"]\"%n" +
             "\"12\",\"\",\"\",\"\",\"[\"\"User\"\"]\"");
+    private static final String EXPECTED_QUERY_WITHOUT_QUOTES = String.format("u.age,u.name,u.male,u.kids,labels(u)%n" +
+            "42,foo,true,[\"a\",\"b\",\"c\"],[\"User1\",\"User\"]%n" +
+            "42,bar,,,[\"User\"]%n" +
+            "12,,,,[\"User\"]");
     private static final String EXPECTED = String.format("\"_id\",\"_labels\",\"name\",\"age\",\"male\",\"kids\",\"_start\",\"_end\",\"_type\"%n" +
             "\"0\",\":User:User1\",\"foo\",\"42\",\"true\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",,,%n" +
             "\"1\",\":User\",\"bar\",\"42\",\"\",\"\",,,%n" +
@@ -75,6 +81,14 @@ public class ExportCsvTest {
         File output = new File(directory, "all.csv");
         TestUtil.testCall(db, "CALL apoc.export.csv.all({file},null)", map("file", output.getAbsolutePath()),
                 (r) -> assertResults(output, r, "database"));
+        assertEquals(EXPECTED, new Scanner(output).useDelimiter("\\Z").next());
+    }
+
+    @Test
+    public void testExportAllCsvWitoutQuotes() throws Exception {
+        File output = new File(directory, "all.csv");
+        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quotes: true})", map("file", output.getAbsolutePath()),
+                          (r) -> assertResults(output, r, "database"));
         assertEquals(EXPECTED, new Scanner(output).useDelimiter("\\Z").next());
     }
 
@@ -125,6 +139,21 @@ public class ExportCsvTest {
                 });
         assertEquals(EXPECTED_QUERY, new Scanner(output).useDelimiter("\\Z").next());
     }
+
+    @Test
+    public void testExportQueryCsvWithoutQuotes() throws Exception {
+        File output = new File(directory, "query.csv");
+        String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
+        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},{quotes: false})", map("file", output.getAbsolutePath(),"query",query),
+                          (r) -> {
+                              assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(5)"));
+                              assertEquals(output.getAbsolutePath(), r.get("file"));
+                              assertEquals("csv", r.get("format"));
+
+                          });
+        assertEquals(EXPECTED_QUERY_WITHOUT_QUOTES, new Scanner(output).useDelimiter("\\Z").next());
+    }
+
     @Test
     public void testExportQueryNodesCsv() throws Exception {
         File output = new File(directory, "query_nodes.csv");
@@ -195,29 +224,44 @@ public class ExportCsvTest {
         String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
         StringBuilder sb = new StringBuilder();
         TestUtil.testResult(db, "CALL apoc.export.csv.query({query},null,{stream:true,batchSize:2})", map("query",query),
-                (res) -> {
-                    Map<String, Object> r = res.next();
-                    assertEquals(2L, r.get("batchSize"));
-                    assertEquals(1L, r.get("batches"));
-                    assertEquals(0L, r.get("nodes"));
-                    assertEquals(2L, r.get("rows"));
-                    assertEquals(0L, r.get("relationships"));
-                    assertEquals(10L, r.get("properties"));
-                    assertNull("Should get file",r.get("file"));
-                    assertEquals("csv", r.get("format"));
-                    assertTrue("Should get time greater than 0", ((long) r.get("time")) >= 0);
-                    sb.append(r.get("data"));
-                    r = res.next();
-                    assertEquals(2L, r.get("batchSize"));
-                    assertEquals(2L, r.get("batches"));
-                    assertEquals(0L, r.get("nodes"));
-                    assertEquals(3L, r.get("rows"));
-                    assertEquals(0L, r.get("relationships"));
-                    assertEquals(15L, r.get("properties"));
-                    assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
-                    sb.append(r.get("data"));
-                });
+                            getAndCheckStreamingMetadata(sb));
         assertEquals(EXPECTED_QUERY+"\n",sb.toString());
+    }
+
+    @Test public void testCypherCsvStreamingWithoutQuotes() throws Exception {
+        String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
+        StringBuilder sb = new StringBuilder();
+        TestUtil.testResult(db, "CALL apoc.export.csv.query({query},null,{quotes: false, stream:true,batchSize:2})", map("query",query),
+                            getAndCheckStreamingMetadata(sb));
+
+        assertEquals(EXPECTED_QUERY_WITHOUT_QUOTES+"\n",sb.toString());
+    }
+
+    private Consumer<Result> getAndCheckStreamingMetadata(StringBuilder sb)
+    {
+        return (res) -> {
+            Map<String, Object> r = res.next();
+            assertEquals(2L, r.get("batchSize"));
+            assertEquals(1L, r.get("batches"));
+            assertEquals(0L, r.get("nodes"));
+            assertEquals(2L, r.get("rows"));
+            assertEquals(0L, r.get("relationships"));
+            assertEquals(10L, r.get("properties"));
+            assertNull("Should get file", r.get("file"));
+            assertEquals("csv", r.get("format"));
+            assertTrue("Should get time greater than 0",
+                       ((long) r.get("time")) >= 0);
+            sb.append(r.get("data")); r = res.next();
+            assertEquals(2L, r.get("batchSize"));
+            assertEquals(2L, r.get("batches"));
+            assertEquals(0L, r.get("nodes"));
+            assertEquals(3L, r.get("rows"));
+            assertEquals(0L, r.get("relationships"));
+            assertEquals(15L, r.get("properties"));
+            assertTrue("Should get time greater than 0",
+                       ((long) r.get("time")) >= 0);
+            sb.append(r.get("data"));
+        };
     }
 
 }
