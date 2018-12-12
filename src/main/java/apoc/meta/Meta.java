@@ -109,7 +109,7 @@ public class Meta {
         }
 
         public static String inferType(List<?> list) {
-            Set<String> set = list.stream().map(e -> of(e).name()).collect(Collectors.toSet());
+            Set<String> set = list.stream().limit(10).map(e -> of(e).name()).collect(Collectors.toSet());
             return set.size() != 1 ? "ANY" : set.iterator().next();
         }
     }
