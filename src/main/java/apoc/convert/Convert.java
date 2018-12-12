@@ -1,17 +1,8 @@
 package apoc.convert;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import apoc.coll.SetBackedList;
+import apoc.meta.Meta.Types;
+import apoc.util.Util;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
@@ -23,11 +14,9 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
 
-import apoc.coll.SetBackedList;
-import apoc.meta.Meta.Types;
-import apoc.util.Util;
-
-import static apoc.meta.Meta.Types.UNKNOWN;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
