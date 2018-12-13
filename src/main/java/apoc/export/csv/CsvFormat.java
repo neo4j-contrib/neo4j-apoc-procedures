@@ -34,6 +34,7 @@ import static apoc.export.util.MetaInformation.getLabelsString;
  */
 public class CsvFormat implements Format {
     private final GraphDatabaseService db;
+    private boolean quoteIfNeeded = true;
 
     public CsvFormat(GraphDatabaseService db) {
         this.db = db;
@@ -47,7 +48,7 @@ public class CsvFormat implements Format {
     @Override
     public ProgressInfo dump(SubGraph graph, Writer writer, Reporter reporter, ExportConfig config) throws Exception {
         try (Transaction tx = db.beginTx()) {
-            CSVWriter out = config.isQuotes() ? new CSVWriter(writer,config.getDelimChar(), ExportConfig.QUOTECHAR) : new CSVWriter(writer,config.getDelimChar(), '\0', '\0' );
+            CSVWriter out = getCsvWriter(writer, config);
             writeAll(graph, reporter, config, out);
             tx.success();
             reporter.done();
@@ -56,9 +57,38 @@ public class CsvFormat implements Format {
         }
     }
 
+    private CSVWriter getCsvWriter(Writer writer, ExportConfig config)
+    {
+        CSVWriter out;
+        switch (config.isQuotes()) {
+            case "none":
+                out = new CSVWriter(writer,
+                                    config.getDelimChar(),
+                                    '\0',
+                                    '\0');
+                quoteIfNeeded = false;
+                break;
+            case "ifNeeded":
+                out = new CSVWriter(writer,
+                                    config.getDelimChar(),
+                                    '\0',
+                                    '\0');
+                quoteIfNeeded = true;
+                break;
+            case "always":
+            default:
+                out = new CSVWriter(writer,
+                                    config.getDelimChar(),
+                                    ExportConfig.QUOTECHAR);
+                quoteIfNeeded = false;
+                break;
+        }
+        return out;
+    }
+
     public ProgressInfo dump(Result result, Writer writer, Reporter reporter, ExportConfig config) throws Exception {
         try (Transaction tx = db.beginTx()) {
-            CSVWriter out = config.isQuotes() ? new CSVWriter(writer,config.getDelimChar(), ExportConfig.QUOTECHAR) : new CSVWriter(writer,config.getDelimChar(), '\0', '\0');
+            CSVWriter out = getCsvWriter(writer, config);
 
             String[] header = writeResultHeader(result, out);
 
@@ -67,6 +97,9 @@ public class CsvFormat implements Format {
                 for (int col = 0; col < header.length; col++) {
                     Object value = row.get(header[col]);
                     data[col]= FormatUtils.toString(value);
+                    if ( quoteIfNeeded && data[col].contains(config.getDelim())) {
+                        data[col] = ExportConfig.QUOTECHAR + data[col] + ExportConfig.QUOTECHAR;
+                    }
                     reporter.update(value instanceof Node ? 1: 0,value instanceof Relationship ? 1: 0 , value instanceof PropertyContainer ? 0 : 1);
                 }
                 out.writeNext(data);
