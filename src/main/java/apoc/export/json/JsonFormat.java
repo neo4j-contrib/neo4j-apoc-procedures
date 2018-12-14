@@ -147,7 +147,7 @@ public class JsonFormat implements Format {
                 } else {
                     jsonGenerator.writeStartArray();
                 }
-                List<Object> list = (List<Object>) value;
+                Object[] list = value.getClass().isArray() ? (Object[]) value : ((List<Object>) value).toArray();
                 for (Object elem : list) {
                     write(reporter, jsonGenerator, config, keyName, elem, false);
                 }
