@@ -16,12 +16,13 @@ public class ExportConfig {
     public static final char QUOTECHAR = '"';
     public static final int DEFAULT_BATCH_SIZE = 20000;
     public static final String DEFAULT_DELIM = ",";
+    public static final String DEFAULT_QUOTES_TYPE = "always";
     private final boolean streamStatements;
 
     private int batchSize = DEFAULT_BATCH_SIZE;
     private boolean silent = false;
     private String delim = DEFAULT_DELIM;
-    private boolean quotes;
+    private String quotes = "always";
     private boolean useTypes = false;
     private boolean writeNodeProperties = false;
     private boolean nodesOfRelationships;
@@ -45,7 +46,7 @@ public class ExportConfig {
         return delim;
     }
 
-    public boolean isQuotes() {
+    public String isQuotes() {
         return quotes;
     }
 
@@ -64,7 +65,6 @@ public class ExportConfig {
         this.silent = toBoolean(config.getOrDefault("silent",false));
         this.batchSize = ((Number)config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE)).intValue();
         this.delim = delim(config.getOrDefault("d", String.valueOf(DEFAULT_DELIM)).toString());
-        this.quotes = toBoolean(config.get("quotes"));
         this.useTypes = toBoolean(config.get("useTypes"));
         this.nodesOfRelationships = toBoolean(config.get("nodesOfRelationships"));
         this.format = ExportFormat.fromString((String) config.getOrDefault("format", "neo4j-shell"));
@@ -72,6 +72,20 @@ public class ExportConfig {
         this.config = config;
         this.streamStatements = toBoolean(config.get("streamStatements")) || toBoolean(config.get("stream"));
         this.writeNodeProperties = toBoolean(config.get("writeNodeProperties"));
+        exportQuotes(config);
+    }
+
+    private void exportQuotes(Map<String, Object> config)
+    {
+        try {
+            this.quotes = (String) config.getOrDefault("quotes",
+                                                       DEFAULT_QUOTES_TYPE);
+            if (quotes == null) {
+                quotes = DEFAULT_QUOTES_TYPE;
+            }
+        } catch (ClassCastException e) { // backward compatibility
+            this.quotes = toBoolean(config.get("quotes")) ? "always" : "none";
+        }
     }
 
     public boolean getRelsInBetween() {
