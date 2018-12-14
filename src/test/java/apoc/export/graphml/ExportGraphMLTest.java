@@ -1,12 +1,17 @@
 package apoc.export.graphml;
 
-import apoc.export.cypher.ExportCypher;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import junit.framework.TestCase;
+import org.apache.commons.lang.exception.ExceptionUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestName;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
@@ -48,20 +53,30 @@ public class ExportGraphMLTest {
         directory.mkdirs();
     }
 
-    @BeforeClass
-    public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory()
+    @Rule
+    public TestName testName = new TestName();
+
+    private static final String TEST_WITH_NO_IMPORT = "WithNoImportConfig";
+    private static final String TEST_WITH_NO_EXPORT = "WithNoExportConfig";
+
+    @Before
+    public void setUp() throws Exception {
+        GraphDatabaseBuilder builder  = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
-                .setConfig("apoc.export.file.enabled", "true")
-                .setConfig("apoc.import.file.enabled", "true")
-                .setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
-                .newGraphDatabase();
+                .setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath());
+        if (!testName.getMethodName().endsWith(TEST_WITH_NO_EXPORT)) {
+            builder.setConfig("apoc.export.file.enabled", "true");
+        }
+        if (!testName.getMethodName().endsWith(TEST_WITH_NO_IMPORT)) {
+            builder.setConfig("apoc.import.file.enabled", "true");
+        }
+        db = builder.newGraphDatabase();
         TestUtil.registerProcedure(db, ExportGraphML.class, Graphs.class);
         db.execute("CREATE (f:Foo:Foo2:Foo0 {name:'foo'})-[:KNOWS]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12,values:[1,2,3]})").close();
     }
 
-    @AfterClass
-    public static void tearDown() {
+    @After
+    public void tearDown() {
         db.shutdown();
     }
 
@@ -78,6 +93,18 @@ public class ExportGraphMLTest {
         TestUtil.testCall(db, "MATCH  (c:Bar {age: 12, values: [1,2,3]}) RETURN COUNT(c) AS c", null, (r) -> assertEquals(1L, r.get("c")));
     }
 
+    @Test(expected = QueryExecutionException.class)
+    public void testImportGraphMLWithNoImportConfig() throws Exception {
+        File output = new File(directory, "all.graphml");
+        try {
+            TestUtil.testCall(db, "CALL apoc.import.graphml({file},{readLabels:true})", map("file", output.getAbsolutePath()),(r) -> assertResults(output, r, "database"));
+        } catch (QueryExecutionException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            TestCase.assertTrue(except instanceof RuntimeException);
+            assertEquals("Import from files not enabled, please set apoc.import.file.enabled=true in your neo4j.conf", except.getMessage());
+            throw e;
+        }
+    }
 
     @Test
     public void testExportAllGraphML() throws Exception {
@@ -106,6 +133,19 @@ public class ExportGraphMLTest {
                         "RETURN *", map("file", output.getAbsolutePath()),
                 (r) -> assertResults(output, r, "graph"));
         assertEquals(EXPECTED_TYPES, new Scanner(output).useDelimiter("\\Z").next());
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testExportGraphGraphMLTypesWithNoExportConfig() throws Exception {
+        File output = new File(directory, "all.graphml");
+        try {
+            TestUtil.testCall(db, "CALL apoc.export.graphml.all({file},null)", map("file", output.getAbsolutePath()),(r) -> assertResults(output, r, "database"));
+        } catch (QueryExecutionException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            TestCase.assertTrue(except instanceof RuntimeException);
+            assertEquals("Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf", except.getMessage());
+            throw e;
+        }
     }
 
     private void assertResults(File output, Map<String, Object> r, final String source) {
