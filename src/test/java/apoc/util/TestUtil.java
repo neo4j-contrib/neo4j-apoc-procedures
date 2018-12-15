@@ -152,7 +152,7 @@ public class TestUtil {
     }
 
     public static GraphDatabaseBuilder apocEnterpriseGraphDatabaseBuilder() throws Exception {
-        File storeDir = Paths.get(System.getProperty( "java.io.tmpdir").concat(File.pathSeparator).concat("neo4j-enterprise")).toFile();
+        File storeDir = Paths.get(System.getProperty( "java.io.tmpdir").concat(File.separator).concat("neo4j-enterprise")).toFile();
         FileDeleteStrategy.FORCE.delete(storeDir);
         return new EnterpriseGraphDatabaseFactory().newEmbeddedDatabaseBuilder(storeDir)
                 .setConfig("dbms.backup.enabled","false")
