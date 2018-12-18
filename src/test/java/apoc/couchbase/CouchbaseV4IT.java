@@ -19,15 +19,14 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.couchbase.CouchbaseTestUtils.*;
+import static apoc.util.TestUtil.testCall;
+import static apoc.util.Util.map;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
-import static apoc.util.TestUtil.testCall;
-import static apoc.util.Util.map;
-
-public class CouchbaseIT  {
+public class CouchbaseV4IT {
 
     private static String HOST = null;
 
@@ -40,7 +39,7 @@ public class CouchbaseIT  {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.ignoreException(() -> {
-            couchbase = new CouchbaseContainer()
+            couchbase = new CouchbaseContainer("couchbase/server:4.6.5")
                     .withClusterAdmin(USERNAME, PASSWORD)
                     .withNewBucket(DefaultBucketSettings.builder()
                             .password(PASSWORD)
@@ -83,7 +82,7 @@ public class CouchbaseIT  {
     @SuppressWarnings("unchecked")
     public void testGetViaCall() {
         testCall(graphDB, "CALL apoc.couchbase.get({host}, {bucket}, 'artist:vincent_van_gogh')",
-                map("host", HOST, "bucket", BUCKET_NAME),
+                map("host", HOST, "bucket", BUCKET_NAME + ":" + PASSWORD),
                 r -> {
                     assertTrue(r.get("content") instanceof Map);
                     Map<String, Object> content = (Map<String, Object>) r.get("content");
@@ -100,7 +99,7 @@ public class CouchbaseIT  {
     @Test
     public void testExistsViaCall() {
         testCall(graphDB, "CALL apoc.couchbase.exists({host}, {bucket}, 'artist:vincent_van_gogh')",
-                map("host", HOST, "bucket", BUCKET_NAME),
+                map("host", HOST, "bucket", BUCKET_NAME + ":" + PASSWORD),
                 r -> assertTrue((boolean) r.get("value")));
     }
 
@@ -108,7 +107,7 @@ public class CouchbaseIT  {
     @SuppressWarnings("unchecked")
     public void testInsertViaCall() {
         testCall(graphDB, "CALL apoc.couchbase.insert({host}, {bucket}, 'testInsertViaCall', {data})",
-                map("host", HOST, "bucket", BUCKET_NAME, "data", VINCENT_VAN_GOGH.toString()),
+                map("host", HOST, "bucket", BUCKET_NAME + ":" + PASSWORD, "data", VINCENT_VAN_GOGH.toString()),
                 r -> {
                     assertTrue(r.get("content") instanceof Map);
                     Map<String, Object> content = (Map<String, Object>) r.get("content");
@@ -127,7 +126,7 @@ public class CouchbaseIT  {
     @Test(expected = QueryExecutionException.class)
     public void testInsertWithAlreadyExistingIDViaCall() {
         testCall(graphDB, "CALL apoc.couchbase.insert({host}, {bucket}, 'artist:vincent_van_gogh', {data})",
-                map("host", HOST, "bucket", BUCKET_NAME, "data", VINCENT_VAN_GOGH.toString()),
+                map("host", HOST, "bucket", BUCKET_NAME + ":" + PASSWORD, "data", VINCENT_VAN_GOGH.toString()),
                 r -> {});
     }
 
@@ -135,7 +134,7 @@ public class CouchbaseIT  {
     @SuppressWarnings("unchecked")
     public void testUpsertViaCall() {
         testCall(graphDB, "CALL apoc.couchbase.upsert({host}, {bucket}, 'testUpsertViaCall', {data})",
-                map("host", HOST, "bucket", BUCKET_NAME, "data", VINCENT_VAN_GOGH.toString()),
+                map("host", HOST, "bucket", BUCKET_NAME + ":" + PASSWORD, "data", VINCENT_VAN_GOGH.toString()),
                 r -> {
                     assertTrue(r.get("content") instanceof Map);
                     Map<String, Object> content = (Map<String, Object>) r.get("content");
@@ -155,28 +154,28 @@ public class CouchbaseIT  {
     public void testRemoveViaCall() {
         couchbaseBucket.insert(JsonDocument.create("testRemove", JsonObject.empty()));
         testCall(graphDB, "CALL apoc.couchbase.remove({host}, {bucket}, 'testRemove')",
-                map("host", HOST, "bucket", BUCKET_NAME),
+                map("host", HOST, "bucket", BUCKET_NAME + ":" + PASSWORD),
                 r -> assertFalse(couchbaseBucket.exists("testRemove")));
     }
 
     @Test
     public void testQueryViaCall() {
         testCall(graphDB, "CALL apoc.couchbase.query({host}, {bucket}, {query})",
-                map("host", HOST, "bucket", BUCKET_NAME, "query", "select * from " + BUCKET_NAME + " where lastName = \"Van Gogh\""),
+                map("host", HOST, "bucket", BUCKET_NAME + ":" + PASSWORD, "query", "select * from " + BUCKET_NAME + " where lastName = \"Van Gogh\""),
                 r -> checkListResult(r));
     }
 
     @Test
     public void testQueryWithPositionalParamsViaCall() {
         testCall(graphDB, "CALL apoc.couchbase.posParamsQuery({host}, {bucket}, {query}, ['Van Gogh'])",
-                map("host", HOST, "bucket", BUCKET_NAME, "query", "select * from " + BUCKET_NAME + " where lastName = $1"),
+                map("host", HOST, "bucket", BUCKET_NAME + ":" + PASSWORD, "query", "select * from " + BUCKET_NAME + " where lastName = $1"),
                 r -> checkListResult(r));
     }
 
     @Test
     public void testQueryWithNamedParamsViaCall() {
         testCall(graphDB, "CALL apoc.couchbase.namedParamsQuery({host}, {bucket}, {query}, ['lastName'], ['Van Gogh'])",
-                map("host", HOST, "bucket", BUCKET_NAME, "query", "select * from " + BUCKET_NAME + " where lastName = $lastName"),
+                map("host", HOST, "bucket", BUCKET_NAME + ":" + PASSWORD, "query", "select * from " + BUCKET_NAME + " where lastName = $lastName"),
                 r -> checkListResult(r));
     }
 }

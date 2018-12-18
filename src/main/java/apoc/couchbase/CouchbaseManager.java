@@ -1,25 +1,14 @@
 package apoc.couchbase;
 
 import apoc.ApocConfiguration;
-import com.couchbase.client.core.retry.FailFastRetryStrategy;
-import com.couchbase.client.core.retry.RetryStrategy;
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.CouchbaseAsyncCluster;
-import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.auth.PasswordAuthenticator;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
-
 import org.neo4j.helpers.collection.Pair;
 import org.parboiled.common.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Creates a {@link CouchbaseConnection} though that all of the operations
@@ -29,8 +18,6 @@ import java.util.stream.Stream;
  * @since 15.8.2016
  */
 public class CouchbaseManager {
-
-    public static final DefaultCouchbaseEnvironment DEFAULT_COUCHBASE_ENVIRONMENT = DefaultCouchbaseEnvironment.builder().retryStrategy(FailFastRetryStrategy.INSTANCE).build();
 
     protected static final String COUCHBASE_CONFIG_KEY = "couchbase.";
 
@@ -42,30 +29,22 @@ public class CouchbaseManager {
 
     protected static final String PORT_CONFIG_KEY = "port";
 
+    private static final Map<String, Object> DEFAULT_CONFIG;
+
+    static {
+        Map<String, Object> cfg = new HashMap<>();
+        cfg.put("connectTimeout", 5000L);
+        cfg.put("socketConnectTimeout", 1500);
+        cfg.put("kvTimeout", 2500);
+        cfg.put("ioPoolSize", 3);
+        cfg.put("computationPoolSize", 3);
+        DEFAULT_CONFIG = Collections.unmodifiableMap(cfg);
+
+    }
+
     protected CouchbaseManager() {
     }
 
-    /**
-     * Opens a connection to the Couchbase Server. Behind the scenes it first
-     * creates a new {@link Cluster} reference against the <code>nodes</code>
-     * passed in and secondly opens the {@link Bucket} with the provided
-     * <code>bucketName</code>.
-     *
-     * @param nodes      the list of nodes to use when connecting to the cluster reference;
-     *                   if null is passed then it will connect to a cluster listening on
-     *                   "localhost"
-     * @param bucketName the name of the bucket to open; if null is passed then it's used
-     *                   the "default" bucket name
-     * @return the opened {@link CouchbaseConnection}
-     * @see CouchbaseCluster#create(List)
-     */
-    @Deprecated
-    public static CouchbaseConnection getConnection(List<String> nodes, String bucketName) {
-        if (nodes == null) {
-            nodes = Arrays.asList(CouchbaseAsyncCluster.DEFAULT_HOST);
-        }
-        return new CouchbaseConnection(CouchbaseCluster.create(DEFAULT_COUCHBASE_ENVIRONMENT, nodes), bucketName);
-    }
 
     protected static URI checkAndGetURI(String hostOrKey) {
         URI uri = URI.create(hostOrKey);
@@ -154,18 +133,6 @@ public class CouchbaseManager {
         }
     }
 
-//    /**
-//     * @param hostOrKey
-//     * @param bucketName
-//     * @return
-//     */
-//    public static CouchbaseConnection getConnection(String hostOrKey, String bucketName) {
-//        Pair<PasswordAuthenticator, List<String>> connectionObjects = getConnectionObjectsFromHostOrKey(hostOrKey);
-//
-//        String[] bucketCredentials = bucketName.split(":");
-//        return new CouchbaseConnection(connectionObjects.other(), connectionObjects.first(), bucketCredentials[0], bucketCredentials.length == 2 ? bucketCredentials[1] : null, null);
-//    }
-
     /**
      * @param hostOrKey
      * @param bucketName
@@ -184,9 +151,13 @@ public class CouchbaseManager {
     private static DefaultCouchbaseEnvironment getEnv(String hostOrKey) {
         URI singleHostURI = checkAndGetURI(hostOrKey);
 
-        // No scheme defined so it's considered a configuration key
         DefaultCouchbaseEnvironment.Builder builder = DefaultCouchbaseEnvironment.builder();
-//        builder.retryStrategy(FailFastRetryStrategy.INSTANCE);
+
+        builder.connectTimeout(Long.parseLong(getConfig("connectTimeout")));
+        builder.socketConnectTimeout(Integer.parseInt(getConfig("socketConnectTimeout")));
+        builder.kvTimeout(Integer.parseInt(getConfig("kvTimeout")));
+        builder.ioPoolSize(Integer.parseInt(getConfig("ioPoolSize")));
+        builder.computationPoolSize(Integer.parseInt(getConfig("computationPoolSize")));
         if (singleHostURI == null || singleHostURI.getScheme() == null) {
             Map<String, Object> couchbaseConfig = getKeyMap(hostOrKey);
 
@@ -194,18 +165,16 @@ public class CouchbaseManager {
             if ((port = couchbaseConfig.get(PORT_CONFIG_KEY)) != null) {
                 builder.bootstrapHttpDirectPort(Integer.parseInt(port.toString()));
             }
-            return builder.build();
         } else {
             if (singleHostURI.getPort() != -1) {
                 builder.bootstrapHttpDirectPort(singleHostURI.getPort());
             }
-            return builder.build();
         }
+        return builder.build();
     }
 
     private static List<String> getNodes(String hostOrKey) {
         URI singleHostURI = checkAndGetURI(hostOrKey);
-        // No scheme defined so it's considered a configuration key
         Object url;
         if (singleHostURI == null || singleHostURI.getScheme() == null) {
             Map<String, Object> couchbaseConfig = getKeyMap(hostOrKey);
@@ -221,7 +190,6 @@ public class CouchbaseManager {
     private static PasswordAuthenticator getPasswordAuthenticator(String hostOrKey) {
         URI singleHostURI = checkAndGetURI(hostOrKey);
 
-        // No scheme defined so it's considered a configuration key
         if (singleHostURI == null || singleHostURI.getScheme() == null) {
             Map<String, Object> couchbaseConfig = getKeyMap(hostOrKey);
 
@@ -245,6 +213,10 @@ public class CouchbaseManager {
         }
 
         return couchbaseConfig;
+    }
+
+    public static String getConfig(String key) {
+        return ApocConfiguration.get(COUCHBASE_CONFIG_KEY + key, DEFAULT_CONFIG.get(key)).toString();
     }
 
 }

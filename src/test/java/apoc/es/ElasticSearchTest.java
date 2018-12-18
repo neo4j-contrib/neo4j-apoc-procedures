@@ -1,6 +1,5 @@
 package apoc.es;
 
-import apoc.periodic.Periodic;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -19,6 +18,7 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
 /**
@@ -27,8 +27,7 @@ import static org.junit.Assume.assumeTrue;
  */
 public class ElasticSearchTest {
 
-    @ClassRule
-    public static ElasticsearchContainer elastic = new ElasticsearchContainer();
+    public static ElasticsearchContainer elastic;
 
     private final static String ES_INDEX = "test-index";
 
@@ -50,19 +49,24 @@ public class ElasticSearchTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeTrue(elastic.isRunning());
+        TestUtil.ignoreException(() -> {
+            elastic = new ElasticsearchContainer();
+            elastic.start();
+        }, Exception.class);
+        assumeNotNull(elastic);
+        assumeTrue("Elastic Search must be running", elastic.isRunning());
         defaultParams.put("host", elastic.getHttpHostAddress());
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, ElasticSearch.class);
-        TestUtil.registerProcedure(db, Periodic.class);
         insertDocuments();
     }
 
     @AfterClass
     public static void tearDown() {
-        if (db!=null) {
+        if (elastic != null) {
+            elastic.stop();
             db.shutdown();
         }
     }
@@ -254,26 +258,6 @@ public class ElasticSearchTest {
     }
 
     /**
-     * We want to add a field to an existing document posting a request with a payload
-     * http://localhost:9200/test-index/test-type/0b727048-a6ca-44f4-906b-f0e86ed65c7e + payload: {"event":"Graph Connect 2017"}
-     */
-    @Test
-    public void testPostAddNewDocument() {
-        Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"event\":\"Graph Connect 2017\"}", UUID.randomUUID().toString());
-
-        TestUtil.testCall(db, "CALL apoc.es.put({host},{index},{type},{id},null,{payload}) yield value", params, r -> {
-            Object response = extractValueFromResponse(r, "$._shards.successful");
-            assertEquals(1, response);
-        });
-
-        // We try to get the document back
-        TestUtil.testCall(db, "CALL apoc.es.get({host},{index},{type},{id},null,null) yield value", params, r -> {
-            Object event = extractValueFromResponse(r, "$._source.event");
-            assertEquals("Graph Connect 2017", event);
-        });
-    }
-
-    /**
      * We create a document with a field tags that is a collection of a single element "awesome".
      * Then we update the same field with the collection ["beautiful"]
      * and we retrieve the document in order to verify the update.
@@ -282,14 +266,6 @@ public class ElasticSearchTest {
      */
     @Test
     public void testPostUpdateDocument() throws IOException{
-//        String id = UUID.randomUUID().toString();
-//        Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"tags\":[\"awesome\"]}", id);
-
-//        TestUtil.testCall(db, "CALL apoc.es.put({host},{index},{type},{id},'refresh=true',{payload}) yield value", params, r -> {
-//            Object created = extractValueFromResponse(r, "$.result");
-//            assertEquals("created", created);
-//        });
-
         Map<String, Object> doc = JsonUtil.OBJECT_MAPPER.readValue(DOCUMENT, Map.class);
         doc.put("tags", Arrays.asList("awesome"));
         Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId(JsonUtil.OBJECT_MAPPER.writeValueAsString(doc), ES_ID);
@@ -298,26 +274,6 @@ public class ElasticSearchTest {
             assertEquals("updated", updated);
         });
 
-        TestUtil.testCall(db, "CALL apoc.es.get({host},{index},{type},{id},null,null) yield value", params, r -> {
-            Object tag = extractValueFromResponse(r, "$._source.tags[0]");
-            assertEquals("awesome", tag);
-        });
-    }
-
-    /**
-     * We create a new document and retrieve it to check the its field
-     * http://localhost:9200/test-index/test-type/e360f95f-490c-4713-b343-db1c4a5d7dcf
-     */
-    @Test
-    public void testPutNewDocument() {
-        Map<String, Object> params = createDefaultProcedureParametersWithPayloadAndId("{\"tags\":[\"awesome\"]}", UUID.randomUUID().toString());
-
-        TestUtil.testCall(db, "CALL apoc.es.put({host},{index},{type},{id},null,{payload}) yield value", params, r -> {
-            Object created = extractValueFromResponse(r, "$.result");
-            assertEquals("created", created);
-        });
-
-        // We try to get the document back
         TestUtil.testCall(db, "CALL apoc.es.get({host},{index},{type},{id},null,null) yield value", params, r -> {
             Object tag = extractValueFromResponse(r, "$._source.tags[0]");
             assertEquals("awesome", tag);

@@ -3,15 +3,16 @@ package apoc.couchbase;
 import apoc.couchbase.document.CouchbaseJsonDocument;
 import apoc.couchbase.document.CouchbaseQueryResult;
 import apoc.result.BooleanResult;
+import apoc.util.TestUtil;
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.bucket.BucketType;
 import com.couchbase.client.java.cluster.DefaultBucketSettings;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.error.DocumentAlreadyExistsException;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import org.junit.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.test.TestGraphDatabaseFactory;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
 import java.util.Arrays;
@@ -19,32 +20,58 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static apoc.couchbase.CouchbaseTestUtils.*;
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
-import static apoc.couchbase.CouchbaseTestUtils.*;
-
+@Ignore // The same tests are covered from CouchbaseIT, for now we disable this in order to reduce the build time
 public class CouchbaseTest {
 
     private static String HOST = null;
 
     private static Bucket couchbaseBucket;
 
+    private static GraphDatabaseService graphDB;
+
     @ClassRule
-    public static CouchbaseContainer couchbase = new CouchbaseContainer()
-            .withClusterAdmin(USERNAME, PASSWORD)
-            .withNewBucket(DefaultBucketSettings.builder()
-                    .password(PASSWORD)
-                    .name(BUCKET_NAME)
-                    .type(BucketType.COUCHBASE)
-                    .build());
+    public static CouchbaseContainer couchbase;
 
     @BeforeClass
     public static void setUp() {
+        TestUtil.ignoreException(() -> {
+            couchbase = new CouchbaseContainer()
+                    .withClusterAdmin(USERNAME, PASSWORD)
+                    .withNewBucket(DefaultBucketSettings.builder()
+                            .password(PASSWORD)
+                            .name(BUCKET_NAME)
+                            .quota(100)
+                            .type(BucketType.COUCHBASE)
+                            .build());
+            couchbase.start();
+        }, Exception.class);
+        assumeNotNull(couchbase);
+        assumeTrue("couchbase must be running", couchbase.isRunning());
         boolean isFilled = fillDB(couchbase.getCouchbaseCluster());
         assumeTrue("should fill Couchbase with data", isFilled);
         HOST = getUrl(couchbase);
         couchbaseBucket = getCouchbaseBucket(couchbase);
+        graphDB = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
+                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY,
+                        CONNECTION_TIMEOUT_CONFIG_VALUE)
+                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY,
+                        SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
+                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY,
+                        KV_TIMEOUT_CONFIG_VALUE)
+                .newGraphDatabase();
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (couchbase != null) {
+            couchbase.stop();
+            graphDB.shutdown();
+        }
     }
 
     @Test
@@ -56,12 +83,6 @@ public class CouchbaseTest {
             Iterator<CouchbaseJsonDocument> iterator = stream.iterator();
             assertTrue(iterator.hasNext());
             CouchbaseJsonDocument couchbaseJsonDocument = iterator.next();
-//            checkDocumentMetadata(
-//                    couchbaseJsonDocument,
-//                    couchbaseJsonDocument.getId(),
-//                    couchbaseJsonDocument.getExpiry(),
-//                    couchbaseJsonDocument.getCas(),
-//                    couchbaseJsonDocument.getMutationToken());
             checkDocumentContent(
                     (String) couchbaseJsonDocument.getContent().get("firstName"),
                     (String) couchbaseJsonDocument.getContent().get("secondName"),

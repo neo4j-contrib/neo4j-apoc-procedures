@@ -10,6 +10,7 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.TestGraphDatabaseFactory;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
@@ -17,18 +18,17 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.utility.Base58;
 
 import java.time.Duration;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static apoc.util.MapUtil.map;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
 /**
@@ -39,14 +39,7 @@ public class MongoDBTest {
 
     private static int MONGO_DEFAULT_PORT = 27017;
 
-    @ClassRule
-    public static GenericContainer mongo = new GenericContainer("mongo:3")
-            .withNetworkAliases("mongo-" +Base58.randomString(6))
-            .withExposedPorts(MONGO_DEFAULT_PORT)
-            .waitingFor(new HttpWaitStrategy()
-                    .forPort(MONGO_DEFAULT_PORT)
-                    .forStatusCodeMatching(response -> response == HTTP_OK || response == HTTP_UNAUTHORIZED)
-                    .withStartupTimeout(Duration.ofMinutes(2)));
+    public static GenericContainer mongo;
 
     private static GraphDatabaseService db;
     private static MongoCollection<Document> collection;
@@ -63,7 +56,19 @@ public class MongoDBTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
-        assumeTrue(mongo.isRunning());
+        TestUtil.ignoreException(() -> {
+            mongo = new GenericContainer("mongo:3")
+                    .withNetworkAliases("mongo-" + Base58.randomString(6))
+                    .withExposedPorts(MONGO_DEFAULT_PORT)
+                    .waitingFor(new HttpWaitStrategy()
+                            .forPort(MONGO_DEFAULT_PORT)
+                            .forStatusCodeMatching(response -> response == HTTP_OK || response == HTTP_UNAUTHORIZED)
+                            .withStartupTimeout(Duration.ofMinutes(2)));
+            mongo.start();
+
+        }, Exception.class);
+        assumeNotNull(mongo);
+        assumeTrue("Mongo DB must be running", mongo.isRunning());
         MongoClient mongoClient = new MongoClient(mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
         HOST = String.format("mongodb://%s:%s", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
         params = map("host", HOST, "db", "test", "collection", "test");
@@ -76,6 +81,14 @@ public class MongoDBTest {
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, MongoDB.class);
         mongoClient.close();
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (mongo != null) {
+            mongo.stop();
+            db.shutdown();
+        }
     }
 
     @Before
@@ -121,7 +134,7 @@ public class MongoDBTest {
     }
 
     @Test
-    public void testGet() throws Exception {
+    public void testGet()  {
         TestUtil.testCall(db, "CALL apoc.mongodb.get({host},{db},{collection},null)", params, r -> {
             Map doc = (Map) r.get("value");
             assertNotNull(doc.get("_id"));
@@ -214,19 +227,24 @@ public class MongoDBTest {
         });
     }
 
-
     @Test
-    public void testIfCollectionCloseCorrectly() {
-        String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
-                .getUrl("mongodb", mongo.getContainerIpAddress());
-
-        IntStream.range(0, 10).forEach(i -> {
-            try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "test", false)) {
-                Map<String, Object> map = coll.first(Collections.emptyMap());
-                assertFalse("should not be empty", map.isEmpty());
-                throw new RuntimeException("Some kind of error that could happen at runtime");
-            } catch (Exception e) { /* simply ignore it */ }
-        });
+    public void testInsertFailsDupKey() {
+        // Three apoc.mongodb.insert each call gets the error: E11000 duplicate key error collection
+        TestUtil.ignoreException(() -> {
+            TestUtil.testResult(db, "CALL apoc.mongodb.insert({host},{db},'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", params, (r) -> {
+                assertFalse("should be empty", r.hasNext());
+            });
+        }, QueryExecutionException.class);
+        TestUtil.ignoreException(() -> {
+            TestUtil.testResult(db, "CALL apoc.mongodb.insert({host},{db},'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", params, (r) -> {
+                assertFalse("should be empty", r.hasNext());
+            });
+        }, QueryExecutionException.class);
+        TestUtil.ignoreException(() -> {
+            TestUtil.testResult(db, "CALL apoc.mongodb.insert({host},{db},'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", params, (r) -> {
+                assertFalse("should be empty", r.hasNext());
+            });
+        }, QueryExecutionException.class);
     }
 
     /**

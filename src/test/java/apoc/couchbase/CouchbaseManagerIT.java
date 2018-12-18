@@ -1,35 +1,22 @@
 package apoc.couchbase;
 
 import apoc.util.TestUtil;
-import com.couchbase.client.core.CouchbaseException;
 import com.couchbase.client.core.config.ConfigurationException;
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.bucket.BucketType;
-import com.couchbase.client.java.cluster.ClusterManager;
 import com.couchbase.client.java.cluster.DefaultBucketSettings;
-import com.couchbase.client.java.document.JsonDocument;
-import com.couchbase.client.java.document.json.JsonArray;
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.query.N1qlParams;
-import com.couchbase.client.java.query.N1qlQuery;
-import com.couchbase.client.java.query.N1qlQueryResult;
-import com.couchbase.client.java.query.consistency.ScanConsistency;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
-import static org.junit.Assume.assumeTrue;
-
 import static apoc.couchbase.CouchbaseTestUtils.*;
+import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * Created by alberto.delazzari on 23/08/2018.
  */
+@Ignore // The same tests are covered from CouchbaseIT, for now we disable this in order to reduce the build time
 public class CouchbaseManagerIT {
 
     @Rule
@@ -43,30 +30,52 @@ public class CouchbaseManagerIT {
 
     private static int COUCHBASE_SERVER_VERSION;
 
-    @ClassRule
-    public static CouchbaseContainer couchbase = new CouchbaseContainer()
-            .withClusterAdmin(USERNAME, PASSWORD)
-            .withNewBucket(DefaultBucketSettings.builder()
-                    .password(PASSWORD)
-                    .name(BUCKET_NAME)
-                    .type(BucketType.COUCHBASE)
-                    .build());
+    private static GraphDatabaseService graphDB;
+
+    public static CouchbaseContainer couchbase;
 
 
     @BeforeClass
-    public static void setUp() throws Exception {
+    public static void setUp() {
+        TestUtil.ignoreException(() -> {
+            couchbase = new CouchbaseContainer()
+                    .withClusterAdmin(USERNAME, PASSWORD)
+                    .withNewBucket(DefaultBucketSettings.builder()
+                            .password(PASSWORD)
+                            .name(BUCKET_NAME)
+                            .quota(100)
+                            .type(BucketType.COUCHBASE)
+                            .build());
+            couchbase.start();
+        }, Exception.class);
+        assumeNotNull(couchbase);
+        assumeTrue("couchbase must be running", couchbase.isRunning());
         boolean isFilled = fillDB(couchbase.getCouchbaseCluster());
         assumeTrue("should fill Couchbase with data", isFilled);
         COUCHBASE_SERVER_VERSION = getVersion(couchbase);
 
         String baseConfigKey = "apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + COUCHBASE_CONFIG_KEY + ".";
 
-        new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
+        graphDB = TestUtil.apocGraphDatabaseBuilder()
                 .setConfig(baseConfigKey + CouchbaseManager.URI_CONFIG_KEY, "localhost")
                 .setConfig(baseConfigKey + CouchbaseManager.USERNAME_CONFIG_KEY, USERNAME)
                 .setConfig(baseConfigKey + CouchbaseManager.PASSWORD_CONFIG_KEY, PASSWORD)
                 .setConfig(baseConfigKey + CouchbaseManager.PORT_CONFIG_KEY, couchbase.getMappedPort(8091).toString())
+                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY,
+                        CONNECTION_TIMEOUT_CONFIG_VALUE)
+                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY,
+                        SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
+                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY,
+                        KV_TIMEOUT_CONFIG_VALUE)
                 .newGraphDatabase();
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        if (couchbase != null) {
+            couchbase.stop();
+            graphDB.shutdown();
+        }
     }
 
     /**
@@ -74,8 +83,9 @@ public class CouchbaseManagerIT {
      */
     @Test
     public void testGetConnectionWithKey() {
-        CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(COUCHBASE_CONFIG_KEY, BUCKET_NAME);
-        Assert.assertTrue(couchbaseConnection.get("artist:vincent_van_gogh").content().containsKey("notableWorks"));
+        try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(COUCHBASE_CONFIG_KEY, BUCKET_NAME);) {
+            Assert.assertTrue(couchbaseConnection.get("artist:vincent_van_gogh").content().containsKey("notableWorks"));
+        }
     }
 
     /**
@@ -85,8 +95,9 @@ public class CouchbaseManagerIT {
     @Test
     public void testGetConnectionWithKeyAndBucketPassword() {
         assumeTrue(COUCHBASE_SERVER_VERSION == 4);
-        CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(COUCHBASE_CONFIG_KEY, BUCKET_NAME_WITH_PASSWORD + ":" + BUCKET_PASSWORD);
-        Assert.assertTrue(couchbaseConnection.get("artist:vincent_van_gogh").content().containsKey("notableWorks"));
+        try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection(COUCHBASE_CONFIG_KEY, BUCKET_NAME_WITH_PASSWORD + ":" + BUCKET_PASSWORD);) {
+            Assert.assertTrue(couchbaseConnection.get("artist:vincent_van_gogh").content().containsKey("notableWorks"));
+        }
     }
 
     /**
@@ -97,15 +108,17 @@ public class CouchbaseManagerIT {
     @Test
     public void testGetConnectionWithKeyAndBucketPasswordFailsWithNoPassword() {
         assumeTrue(COUCHBASE_SERVER_VERSION == 4);
-        exceptionRule.expect(ConfigurationException.class);
-        exceptionRule.expectMessage("Could not open bucket.");
-        CouchbaseManager.getConnection(COUCHBASE_CONFIG_KEY, BUCKET_NAME_WITH_PASSWORD /*Only bucket name and no bucket password*/);
+        try (CouchbaseConnection conn = CouchbaseManager.getConnection(COUCHBASE_CONFIG_KEY, BUCKET_NAME_WITH_PASSWORD /*Only bucket name and no bucket password*/);) {
+            exceptionRule.expect(ConfigurationException.class);
+            exceptionRule.expectMessage("Could not open bucket.");
+        }
     }
 
     @Test
     public void testGetConnectionWithHost() {
-        CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection("couchbase://" + USERNAME + ":" + PASSWORD
-                + "@localhost:" + couchbase.getMappedPort(8091), BUCKET_NAME);
-        Assert.assertTrue(couchbaseConnection.get("artist:vincent_van_gogh").content().containsKey("notableWorks"));
+        try (CouchbaseConnection couchbaseConnection = CouchbaseManager.getConnection("couchbase://" + USERNAME + ":" + PASSWORD
+                + "@localhost:" + couchbase.getMappedPort(8091), BUCKET_NAME);) {
+            Assert.assertTrue(couchbaseConnection.get("artist:vincent_van_gogh").content().containsKey("notableWorks"));
+        }
     }
 }

@@ -125,7 +125,7 @@ public class MongoDB {
     }
 
     @Procedure
-    @Description("apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) - inserts the given documents into the mongodb collection")
+    @Description("apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) - delete the given documents from the mongodb collection and returns the number of affected documents")
     public Stream<LongResult> delete(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query) {
         try (Coll coll = getMongoColl(hostOrKey, db, collection, false)) {
             return Stream.of(new LongResult(coll.delete(query))); // .onClose(coll::safeClose);
@@ -136,7 +136,7 @@ public class MongoDB {
     }
 
     @Procedure
-    @Description("apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) - inserts the given documents into the mongodb collection")
+    @Description("apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) - updates the given documents from the mongodb collection and returns the number of affected documents")
     public Stream<LongResult> update(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name("update") Map<String, Object> update) {
         try (Coll coll = getMongoColl(hostOrKey, db, collection, false)) {
             return Stream.of(new LongResult(coll.update(query, update))); // .onClose(coll::safeClose);
@@ -189,7 +189,7 @@ public class MongoDB {
             try {
                 this.close();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
 

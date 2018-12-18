@@ -23,6 +23,21 @@ import static org.junit.Assert.*;
 
 public class CouchbaseTestUtils {
 
+    public static final String CONNECTION_TIMEOUT_CONFIG_KEY = "connectTimeout";
+    public static final String CONNECTION_TIMEOUT_CONFIG_VALUE = "60000";
+
+    public static final String SOCKET_CONNECT_TIMEOUT_CONFIG_KEY = "socketConnectTimeout";
+    public static final String SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE = "10000";
+
+    public static final String KV_TIMEOUT_CONFIG_KEY = "kvTimeout";
+    public static final String KV_TIMEOUT_CONFIG_VALUE = "10000";
+
+    public static final String IO_POOL_SIZE_CONFIG_KEY = "ioPoolSize";
+    public static final String IO_POOL_SIZE_CONFIG_VALUE = "5";
+
+    public static final String COMPUTATION_POOL_SIZE_CONFIG_KEY = "computationPoolSize";
+    public static final String COMPUTATION_POOL_SIZE_CONFIG_VALUE = "5";
+
     public static final String BUCKET_NAME = "mybucket";
 
     public static final String USERNAME = "admin";
@@ -39,8 +54,9 @@ public class CouchbaseTestUtils {
 
     public static boolean fillDB(CouchbaseCluster cluster) {
         Bucket couchbaseBucket = cluster.openBucket(BUCKET_NAME);
-        couchbaseBucket.upsert(JsonDocument.create("artist:vincent_van_gogh", VINCENT_VAN_GOGH));
+        couchbaseBucket.insert(JsonDocument.create("artist:vincent_van_gogh", VINCENT_VAN_GOGH));
         N1qlQueryResult queryResult = couchbaseBucket.query(N1qlQuery.simple(String.format(QUERY, BUCKET_NAME), N1qlParams.build().consistency(ScanConsistency.REQUEST_PLUS)));
+        couchbaseBucket.close();
         return queryResult.info().resultCount() == 1;
     }
 
@@ -104,14 +120,27 @@ public class CouchbaseTestUtils {
         assertEquals(jsonDocumentCreatedForThisTest.mutationToken, mutationToken);
     }
 
-
-
     public static Bucket getCouchbaseBucket(CouchbaseContainer couchbase) {
-        return couchbase.getCouchbaseCluster().authenticate(USERNAME, PASSWORD).openBucket(BUCKET_NAME);
+        int version = getVersion(couchbase);
+        if (version == 4) {
+            return couchbase.getCouchbaseCluster().openBucket(BUCKET_NAME, PASSWORD);
+        } else {
+            return couchbase.getCouchbaseCluster().authenticate(USERNAME, PASSWORD).openBucket(BUCKET_NAME);
+        }
+
     }
 
     public static int getVersion(CouchbaseContainer couchbase) {
         return couchbase.getCouchbaseCluster().clusterManager(USERNAME, PASSWORD).info(1, TimeUnit.SECONDS).getMinVersion().major();
+    }
+
+    public static String getBucketName(CouchbaseContainer couchbase) {
+        int version = getVersion(couchbase);
+        if (version == 4) {
+            return BUCKET_NAME + ":" + PASSWORD;
+        } else {
+            return BUCKET_NAME;
+        }
     }
 
 }
