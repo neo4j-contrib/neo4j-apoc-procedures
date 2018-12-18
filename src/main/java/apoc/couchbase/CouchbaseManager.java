@@ -15,10 +15,11 @@ import org.parboiled.common.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Creates a {@link CouchbaseConnection} though that all of the operations
@@ -38,6 +39,8 @@ public class CouchbaseManager {
     protected static final String PASSWORD_CONFIG_KEY = "password";
 
     protected static final String URI_CONFIG_KEY = "uri";
+
+    protected static final String PORT_CONFIG_KEY = "port";
 
     protected CouchbaseManager() {
     }
@@ -90,11 +93,7 @@ public class CouchbaseManager {
      * @return a tuple2, the connections objects that we need to establish a connection to a Couchbase Server
      */
     protected static Pair<PasswordAuthenticator, List<String>> getConnectionObjectsFromConfigurationKey(String configurationKey) {
-        Map<String, Object> couchbaseConfig = ApocConfiguration.get(COUCHBASE_CONFIG_KEY + configurationKey);
-
-        if (couchbaseConfig.isEmpty()) {
-            throw new RuntimeException("Please check neo4j.conf file 'apoc.couchbase." + configurationKey + "' is missing");
-        }
+        Map<String, Object> couchbaseConfig = getKeyMap(configurationKey);
 
         Object username, password;
         if ((username = couchbaseConfig.get(USERNAME_CONFIG_KEY)) == null || (password = couchbaseConfig.get(PASSWORD_CONFIG_KEY)) == null) {
@@ -155,15 +154,97 @@ public class CouchbaseManager {
         }
     }
 
+//    /**
+//     * @param hostOrKey
+//     * @param bucketName
+//     * @return
+//     */
+//    public static CouchbaseConnection getConnection(String hostOrKey, String bucketName) {
+//        Pair<PasswordAuthenticator, List<String>> connectionObjects = getConnectionObjectsFromHostOrKey(hostOrKey);
+//
+//        String[] bucketCredentials = bucketName.split(":");
+//        return new CouchbaseConnection(connectionObjects.other(), connectionObjects.first(), bucketCredentials[0], bucketCredentials.length == 2 ? bucketCredentials[1] : null, null);
+//    }
+
     /**
      * @param hostOrKey
      * @param bucketName
      * @return
      */
     public static CouchbaseConnection getConnection(String hostOrKey, String bucketName) {
-        Pair<PasswordAuthenticator, List<String>> connectionObjects = getConnectionObjectsFromHostOrKey(hostOrKey);
+        PasswordAuthenticator passwordAuthenticator = getPasswordAuthenticator(hostOrKey);
+        List<String> nodes = getNodes(hostOrKey);
+        DefaultCouchbaseEnvironment env = getEnv(hostOrKey);
+
 
         String[] bucketCredentials = bucketName.split(":");
-        return new CouchbaseConnection(connectionObjects.other(), connectionObjects.first(), bucketCredentials[0], bucketCredentials.length == 2 ? bucketCredentials[1] : null);
+        return new CouchbaseConnection(nodes, passwordAuthenticator, bucketCredentials[0], bucketCredentials.length == 2 ? bucketCredentials[1] : null, env);
     }
+
+    private static DefaultCouchbaseEnvironment getEnv(String hostOrKey) {
+        URI singleHostURI = checkAndGetURI(hostOrKey);
+
+        // No scheme defined so it's considered a configuration key
+        DefaultCouchbaseEnvironment.Builder builder = DefaultCouchbaseEnvironment.builder();
+//        builder.retryStrategy(FailFastRetryStrategy.INSTANCE);
+        if (singleHostURI == null || singleHostURI.getScheme() == null) {
+            Map<String, Object> couchbaseConfig = getKeyMap(hostOrKey);
+
+            Object port;
+            if ((port = couchbaseConfig.get(PORT_CONFIG_KEY)) != null) {
+                builder.bootstrapHttpDirectPort(Integer.parseInt(port.toString()));
+            }
+            return builder.build();
+        } else {
+            if (singleHostURI.getPort() != -1) {
+                builder.bootstrapHttpDirectPort(singleHostURI.getPort());
+            }
+            return builder.build();
+        }
+    }
+
+    private static List<String> getNodes(String hostOrKey) {
+        URI singleHostURI = checkAndGetURI(hostOrKey);
+        // No scheme defined so it's considered a configuration key
+        Object url;
+        if (singleHostURI == null || singleHostURI.getScheme() == null) {
+            Map<String, Object> couchbaseConfig = getKeyMap(hostOrKey);
+            if ((url = couchbaseConfig.get(URI_CONFIG_KEY)) == null) {
+                throw new RuntimeException("Please check you 'apoc.couchbase." + hostOrKey + "' configuration, url is missing");
+            }
+        } else {
+            url = singleHostURI.getHost();
+        }
+        return Arrays.asList(url.toString().split(","));
+    }
+
+    private static PasswordAuthenticator getPasswordAuthenticator(String hostOrKey) {
+        URI singleHostURI = checkAndGetURI(hostOrKey);
+
+        // No scheme defined so it's considered a configuration key
+        if (singleHostURI == null || singleHostURI.getScheme() == null) {
+            Map<String, Object> couchbaseConfig = getKeyMap(hostOrKey);
+
+            Object username, password;
+            if ((username = couchbaseConfig.get(USERNAME_CONFIG_KEY)) == null || (password = couchbaseConfig.get(PASSWORD_CONFIG_KEY)) == null) {
+                throw new RuntimeException("Please check you 'apoc.couchbase." + hostOrKey + "' configuration, username and password are missing");
+            }
+
+            return new PasswordAuthenticator(username.toString(), password.toString());
+        } else {
+            String[] userInfo = singleHostURI.getUserInfo().split(":");
+            return new PasswordAuthenticator(userInfo[0], userInfo[1]);
+        }
+    }
+
+    private static Map<String, Object> getKeyMap(String hostOrKey) {
+        Map<String, Object> couchbaseConfig = ApocConfiguration.get(COUCHBASE_CONFIG_KEY + hostOrKey);
+
+        if (couchbaseConfig.isEmpty()) {
+            throw new RuntimeException("Please check neo4j.conf file 'apoc.couchbase." + hostOrKey + "' is missing");
+        }
+
+        return couchbaseConfig;
+    }
+
 }

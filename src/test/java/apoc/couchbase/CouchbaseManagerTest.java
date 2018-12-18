@@ -34,8 +34,7 @@ public class CouchbaseManagerTest {
         new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
                 .setConfig(baseConfigKey + CouchbaseManager.URI_CONFIG_KEY, "localhost")
                 .setConfig(baseConfigKey + CouchbaseManager.USERNAME_CONFIG_KEY, USERNAME)
-                .setConfig(baseConfigKey + CouchbaseManager.PASSWORD_CONFIG_KEY, PASSWORD
-                )
+                .setConfig(baseConfigKey + CouchbaseManager.PASSWORD_CONFIG_KEY, PASSWORD)
                 .newGraphDatabase();
     }
 

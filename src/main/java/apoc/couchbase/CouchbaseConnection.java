@@ -10,6 +10,7 @@ import com.couchbase.client.java.document.Document;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import com.couchbase.client.java.query.*;
 import org.parboiled.common.StringUtils;
 
@@ -59,9 +60,10 @@ public class CouchbaseConnection implements AutoCloseable {
      * @param authenticator
      * @param bucketName
      * @param bucketPassword
+     * @param env
      */
-    protected CouchbaseConnection(List<String> nodes, PasswordAuthenticator authenticator, String bucketName, String bucketPassword) {
-        this.cluster = CouchbaseCluster.create(CouchbaseManager.DEFAULT_COUCHBASE_ENVIRONMENT, nodes);
+    protected CouchbaseConnection(List<String> nodes, PasswordAuthenticator authenticator, String bucketName, String bucketPassword, DefaultCouchbaseEnvironment env) {
+        this.cluster = CouchbaseCluster.create(env, nodes);
         this.passwordAuthenticator = authenticator;
         int couchbaseServerVersion = getMajorVersion();
 
@@ -72,7 +74,7 @@ public class CouchbaseConnection implements AutoCloseable {
              * Even if the bucket has no password we cannot access it after calling the authenticate method
              */
             this.cluster.disconnect();
-            this.cluster = CouchbaseCluster.create(CouchbaseManager.DEFAULT_COUCHBASE_ENVIRONMENT, nodes);
+            this.cluster = CouchbaseCluster.create(env, nodes);
             if (StringUtils.isEmpty(bucketPassword)) {
                 this.bucket = cluster.openBucket(bucketName);
             } else {

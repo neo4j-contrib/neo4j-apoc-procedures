@@ -119,8 +119,11 @@ dependencies {
     compileOnly 'org.mongodb:mongodb-driver:3.2.2'
     testCompile 'org.mongodb:mongodb-driver:3.2.2'
 
-    compileOnly 'com.couchbase.client:java-client:2.5.9'
-    testCompile 'com.couchbase.client:java-client:2.5.9'
+    compileOnly group: 'com.couchbase.client', name: 'java-client', version: '2.7.2'
+    testCompile group: 'com.couchbase.client', name: 'java-client', version: '2.7.2'
+
+//    compileOnly 'com.couchbase.client:java-client:2.5.9'
+//    testCompile 'com.couchbase.client:java-client:2.5.9'
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compileOnly group: 'org.neo4j', name: 'neo4j-enterprise', version: neo4jVersionEffective
@@ -135,6 +138,11 @@ dependencies {
     compile group: 'org.apache.commons', name: 'commons-text', version: '1.2'
     jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
     jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
+
+    // Test Containers
+    testCompile group: 'org.testcontainers', name: 'testcontainers', version: '1.10.2'
+    testCompile group: 'org.testcontainers', name: 'elasticsearch', version: '1.10.2'
+    testCompile group: 'org.testcontainers', name: 'couchbase', version: '1.10.2'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
