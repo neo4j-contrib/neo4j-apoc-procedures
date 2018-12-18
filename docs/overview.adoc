@@ -589,6 +589,7 @@ It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],rel
 | apoc.graph.fromPaths([paths],'name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromDB('name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
+| apoc.agg.graph(element) as graph | aggregates graph elements to a "graph" map with unique sets of "nodes" and "relationships"
 |===
 
 == Generating Graphs
