@@ -111,9 +111,8 @@ class MongoDBColl implements MongoDB.Coll {
     }
 
     private Stream<Map<String, Object>> asStream(FindIterable<Document> result) {
-        MongoCursor<Document> iterator = result.iterator();
-        Spliterator<Map<String, Object>> spliterator = Spliterators.spliterator(iterator, -1, Spliterator.ORDERED);
-        return StreamSupport.stream(spliterator, false).map(doc -> this.documentToPackableMap(doc)).onClose(iterator::close);
+        Iterable<Document> it = () -> result.iterator();
+        return StreamSupport.stream(it.spliterator(), false).map(doc -> this.documentToPackableMap(doc)).onClose(result.iterator()::close);
     }
 
     @Override
@@ -145,12 +144,5 @@ class MongoDBColl implements MongoDB.Coll {
         return result.wasAcknowledged() ? result.getDeletedCount() : -result.getDeletedCount();
     }
 
-    @Override
-    public void safeClose() {
-        try{
-            this.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+
 }
