@@ -9,6 +9,7 @@ import org.neo4j.graphdb.*;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
@@ -181,6 +182,7 @@ public class XmlGraphMLReader {
         Map<String, Long> cache = new HashMap<>(1024*32);
         XMLInputFactory inputFactory = XMLInputFactory.newInstance();
         inputFactory.setProperty("javax.xml.stream.isCoalescing", true);
+        inputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
         XMLEventReader reader = inputFactory.createXMLEventReader(input);
         PropertyContainer last = null;
         Map<String, Key> nodeKeys = new HashMap<>();
@@ -227,6 +229,9 @@ public class XmlGraphMLReader {
                                 last.setProperty(key.name, value);
                                 if (reporter != null) reporter.update(0, 0, 1);
                             }
+                        } else if (next.getEventType() == XMLStreamConstants.END_ELEMENT) {
+                            last.setProperty(key.name, StringUtils.EMPTY);
+                            reporter.update(0, 0, 1);
                         }
                         continue;
                     }

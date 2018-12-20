@@ -5,6 +5,7 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -34,6 +35,8 @@ public class ExportGraphMLTest {
     public static final String KEY_TYPES = "<key id=\"values\" for=\"node\" attr.name=\"values\" attr.type=\"string\" attr.list=\"long\"/>%n" +
             "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
             "<key id=\"age\" for=\"node\" attr.name=\"age\" attr.type=\"long\"/>%n";
+    public static final String KEY_TYPES_EMPTY = "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
+            "<key id=\"limit\" for=\"node\" attr.name=\"limit\" attr.type=\"long\"/>%n";
     public static final String GRAPH = "<graph id=\"G\" edgedefault=\"directed\">%n";
     public static final String HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>%n" +
             "<graphml xmlns=\"http://graphml.graphdrawing.org/xmlns\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd\">%n";
@@ -54,6 +57,8 @@ public class ExportGraphMLTest {
     private static final String EXPECTED = String.format(HEADER + GRAPH + DATA + FOOTER);
     private static final String EXPECTED_TYPES = String.format(HEADER + KEY_TYPES +GRAPH + DATA + FOOTER);
     private static final String EXPECTED_READ_NODE_EDGE = String.format(HEADER + GRAPH + DATA_NODE_EDGE + FOOTER);
+    public static final String DATA_EMPTY = "<node id=\"n0\" labels=\":Test\"><data key=\"labels\">:Test</data><data key=\"name\"></data><data key=\"limit\">3</data></node>%n";
+    private static final String EXPECTED_TYPES_EMPTY = String.format(HEADER + KEY_TYPES_EMPTY + GRAPH + DATA_EMPTY + FOOTER);
 
     private static GraphDatabaseService db;
     private static File directory = new File("target/import");
@@ -199,13 +204,54 @@ public class ExportGraphMLTest {
     public void testExportGraphGraphMLTypesWithNoExportConfig() throws Exception {
         File output = new File(directory, "all.graphml");
         try {
-            TestUtil.testCall(db, "CALL apoc.export.graphml.all({file},null)", map("file", output.getAbsolutePath()),(r) -> assertResults(output, r, "database"));
+            TestUtil.testCall(db, "CALL apoc.export.graphml.all({file},null)", map("file", output.getAbsolutePath()), (r) -> assertResults(output, r, "database"));
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             TestCase.assertTrue(except instanceof RuntimeException);
             assertEquals("Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf", except.getMessage());
             throw e;
         }
+    }
+
+    @Test
+    public void testImportAndExport() throws Exception {
+        db.execute("MATCH (n) detach delete (n)");
+        File output = new File(directory, "graphEmpty.graphml");
+        db.execute("CREATE (n:Test {name : '', limit : 3}) RETURN n");
+        TestUtil.testCall(db, "call apoc.export.graphml.all({file},{storeNodeIds:true, readLabels:true, useTypes:true, defaultRelationshipType:'RELATED'})",
+                map("file", output.getAbsolutePath()),
+                (r) -> assertResultEmpty(output, r));
+        assertEquals(EXPECTED_TYPES_EMPTY, new Scanner(output).useDelimiter("\\Z").next());
+
+        db.execute("MATCH (n) DETACH DELETE n").close();
+
+        File input = new File(directory, "importEmpty.graphml");
+        FileWriter fw = new FileWriter(input);
+        fw.write(EXPECTED_TYPES_EMPTY); fw.close();
+        TestUtil.testCall(db, "CALL apoc.import.graphml({file},{readLabels:true})", map("file", input.getAbsolutePath()),
+                (r) -> assertResultEmpty(input, r));
+
+        TestUtil.testCall(db, "MATCH (n:Test) RETURN n.name as name, n.limit as limit", null, (r) -> {
+                assertEquals(StringUtils.EMPTY, r.get("name"));
+                assertEquals(3L, r.get("limit"));
+            }
+        );
+        db.execute("MATCH (n) detach delete (n)");
+        db.execute("CREATE (f:Foo:Foo2:Foo0 {name:'foo'})-[:KNOWS]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12,values:[1,2,3]})").close();
+
+    }
+
+    private void assertResultEmpty(File output, Map<String, Object> r) {
+        assertEquals(1L, r.get("nodes"));
+        assertEquals(0L, r.get("relationships"));
+        assertEquals(2L, r.get("properties"));
+        assertEquals(output.getAbsolutePath(), r.get("file"));
+        if (r.get("source").toString().contains(":"))
+            assertEquals("database: nodes(1), rels(0)", r.get("source"));
+        else
+            assertEquals("file", r.get("source"));
+        assertEquals("graphml", r.get("format"));
+        assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
     }
 
     private void assertResults(File output, Map<String, Object> r, final String source) {
