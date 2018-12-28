@@ -1,14 +1,8 @@
 package apoc.export.csv;
 
-import static apoc.util.MapUtil.map;
-import static org.junit.Assert.*;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.function.Consumer;
-
+import apoc.graph.Graphs;
+import apoc.util.HdfsTestUtils;
+import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -22,10 +16,14 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import apoc.graph.Graphs;
-import apoc.util.HdfsTestUtils;
-import apoc.util.TestUtil;
-import org.omg.SendingContext.RunTime;
+import java.io.File;
+import java.nio.file.Files;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.function.Consumer;
+
+import static apoc.util.MapUtil.map;
+import static org.junit.Assert.*;
 
 /**
  * @author mh
@@ -304,8 +302,8 @@ public class ExportCsvTest {
             assertEquals(2L, r.get("batchSize"));
             assertEquals(4L, r.get("batches"));
             assertEquals(6L, r.get("nodes"));
-            assertEquals(7L, r.get("rows"));
-            assertEquals(1L, r.get("relationships"));
+            assertEquals(8L, r.get("rows"));
+            assertEquals(2L, r.get("relationships"));
             assertEquals(12L, r.get("properties"));
             assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
             sb.append(r.get("data"));

@@ -225,7 +225,7 @@ public class CsvFormat implements Format {
             out.writeNext(row);
             rels++;
             if (batchSize==-1 || rels % batchSize == 0) {
-                reporter.update(0, 1, 0);
+                reporter.update(0, rels, 0);
                 rels = 0;
             }
         }
