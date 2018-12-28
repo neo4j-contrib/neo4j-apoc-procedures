@@ -3,21 +3,23 @@ package apoc.export.graphml;
 import apoc.export.util.BatchTransaction;
 import apoc.export.util.Reporter;
 import apoc.util.JsonUtil;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.*;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.Reader;
 import java.lang.reflect.Array;
-import java.util.function.Function;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Created by mh on 10.07.13.
@@ -180,6 +182,7 @@ public class XmlGraphMLReader {
         Map<String, Long> cache = new HashMap<>(1024*32);
         XMLInputFactory inputFactory = XMLInputFactory.newInstance();
         inputFactory.setProperty("javax.xml.stream.isCoalescing", true);
+        inputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
         XMLEventReader reader = inputFactory.createXMLEventReader(input);
         PropertyContainer last = null;
         Map<String, Key> nodeKeys = new HashMap<>();
@@ -226,6 +229,9 @@ public class XmlGraphMLReader {
                                 last.setProperty(key.name, value);
                                 if (reporter != null) reporter.update(0, 0, 1);
                             }
+                        } else if (next.getEventType() == XMLStreamConstants.END_ELEMENT) {
+                            last.setProperty(key.name, StringUtils.EMPTY);
+                            reporter.update(0, 0, 1);
                         }
                         continue;
                     }
@@ -252,17 +258,34 @@ public class XmlGraphMLReader {
                         String label = getAttribute(element, LABEL);
                         Node from = gdb.getNodeById(cache.get(source));
                         Node to = gdb.getNodeById(cache.get(target));
-                        RelationshipType type = label != null ? RelationshipType.withName(label) : defaultRelType;
-                        Relationship relationship = from.createRelationshipTo(to, type);
+
+                        RelationshipType relationshipType = label == null ? getRelationshipType(reader) : RelationshipType.withName(label);
+                        Relationship relationship = from.createRelationshipTo(to, relationshipType);
                         setDefaults(relKeys, relationship);
+                        last = relationship;
                         if (reporter != null) reporter.update(0, 1, 0);
                         count++;
-                        last = relationship;
                     }
                 }
             }
         }
         return count;
+    }
+
+    private RelationshipType getRelationshipType(XMLEventReader reader) throws XMLStreamException {
+        if (this.labels) {
+            XMLEvent peek = reader.peek();
+            if (peek.isCharacters() && !(peek.asCharacters().isWhiteSpace())) {
+                String value = peek.asCharacters().getData();
+                String el = ":";
+                String typeRel = value.contains(el) ? value.replace(el, StringUtils.EMPTY) : value;
+                return RelationshipType.withName(typeRel.trim());
+            } else {
+                reader.nextEvent();
+                return getRelationshipType(reader);
+            }
+        }
+        return defaultRelType;
     }
 
     private void addLabels(Node node, String labels) {

@@ -293,7 +293,7 @@ The output of `labels()` function is not sorted, use it in combination with `apo
 | batchSize | 20000 | define the batch size
 // | silent | false | if enabled write progress output
 | delim | "," | define the delimiter character (export csv)
-| quotes | | quote-character used for CSV
+| quotes | 'always' | quote-character used for CSV, possible values are: 'always', 'none', 'ifNeeded'
 | useTypes | false | add type on file header (export csv and graphml export)
 | format | "neo4j-shell" | In export to Cypher script define the export format. Possible values are: "cypher-shell","neo4j-shell" and "plain"
 | nodesOfRelationships | false | if enabled add relationship between nodes (export Cypher)
@@ -303,6 +303,11 @@ The output of `labels()` function is not sorted, use it in combination with `apo
 | separateFiles | false | export results in separated file by type (nodes, relationships..)
 | cypherFormat | create | In export to cypher script, define the cypher format (for example use `MERGE` instead of `CREATE`). Possible values are: "create", "updateAll", "addStructure", "updateStructure".
 |===
+
+Values for the `quotes` configuration:
+* `none`: the same behaviour of the current `false`
+* `always`:  the same behaviour of the current `true`
+* `ifNeeded`: it applies quotes only when it's necessary;
 
 == Loading Data from RDBMS
 
@@ -589,6 +594,7 @@ It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],rel
 | apoc.graph.fromPaths([paths],'name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromDB('name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
+| apoc.agg.graph(element) as graph | aggregates graph elements to a "graph" map with unique sets of "nodes" and "relationships"
 |===
 
 == Generating Graphs
