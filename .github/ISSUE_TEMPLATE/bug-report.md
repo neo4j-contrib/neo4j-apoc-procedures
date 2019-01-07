@@ -6,7 +6,7 @@ about: Create a report to help us improve
 
 ## Guidelines
 
-Please note that GitHub issues are only meant for bug reports/feature requests. If you have questions on how to use Streams, please ask on [StackOverflow](https://stackoverflow.com/questions/tagged/neo4j-apoc) instead of creating an issue here.
+Please note that GitHub issues are only meant for bug reports/feature requests. If you have questions on how to use APOC, please ask on [the Neo4j Discussion Forum](https://community.neo4j.com/c/neo4j-graph-platform/procedures-apoc) instead of creating an issue here.
 
 ## Expected Behavior (Mandatory)
 
