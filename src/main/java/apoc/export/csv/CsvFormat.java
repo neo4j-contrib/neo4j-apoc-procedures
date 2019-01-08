@@ -67,13 +67,15 @@ public class CsvFormat implements Format {
                                     '\0', // quote char
                                     '\0', // escape cahr
                                     CSVWriter.DEFAULT_LINE_END);
+                quoteIfNeeded = false;
                 break;
             case ExportConfig.IF_NEEDED_QUUOTES:
                 out = new CSVWriter(writer,
                                     config.getDelimChar(),
-                                    '\0', // quote char
+                                    ExportConfig.QUOTECHAR,
                                     '\0', // escape char
                                     CSVWriter.DEFAULT_LINE_END);
+                quoteIfNeeded = false;
                 break;
             case ExportConfig.ALWAYS_QUOTES:
             default:
@@ -82,9 +84,9 @@ public class CsvFormat implements Format {
                                     ExportConfig.QUOTECHAR,
                                     CSVWriter.DEFAULT_ESCAPE_CHARACTER,
                                     CSVWriter.DEFAULT_LINE_END);
+                quoteIfNeeded = true;
                 break;
         }
-        quoteIfNeeded = config.isQuotesNeeded();
         return out;
     }
 
@@ -98,11 +100,10 @@ public class CsvFormat implements Format {
             result.accept((row) -> {
                 for (int col = 0; col < header.length; col++) {
                     Object value = row.get(header[col]);
-                    String tmp = FormatUtils.toString(value);
-                    data[col] = quoteFieldIdNeeded(tmp, config.getDelim());
+                    data[col] = FormatUtils.toString(value);
                     reporter.update(value instanceof Node ? 1: 0,value instanceof Relationship ? 1: 0 , value instanceof PropertyContainer ? 0 : 1);
                 }
-                out.writeNext(data);
+                out.writeNext(data, quoteIfNeeded);
                 reporter.nextRow();
                 return true;
             });
@@ -113,23 +114,11 @@ public class CsvFormat implements Format {
         }
     }
 
-    private String quoteFieldIdNeeded(String tmp, String delimiter) {
-
-        if ( quoteIfNeeded && tmp != null && tmp.contains(delimiter)) {
-            return ExportConfig.QUOTECHAR +
-                    tmp +
-                    ExportConfig.QUOTECHAR;
-        }
-
-        return tmp;
-
-    }
-
     public String[] writeResultHeader(Result result, CSVWriter out) {
         List<String> columns = result.columns();
         int cols = columns.size();
         String[] header = columns.toArray(new String[cols]);
-        out.writeNext(header);
+        out.writeNext(header, quoteIfNeeded);
         return header;
     }
 
@@ -140,7 +129,7 @@ public class CsvFormat implements Format {
         List<String> nodeHeader = generateHeader(nodePropTypes, config.useTypes(), "_id:id", "_labels:label");
         List<String> relHeader = generateHeader(relPropTypes, config.useTypes(), "_start:id", "_end:id", "_type:label");
         List<String> header = new ArrayList<>(nodeHeader); header.addAll(relHeader);
-        out.writeNext(header.toArray(new String[header.size()]));
+        out.writeNext(header.toArray(new String[header.size()]), quoteIfNeeded);
         int cols = header.size();
 
         writeNodes(graph, out, reporter, nodePropTypes, cols, config.getBatchSize(), config.getDelim());
@@ -167,7 +156,7 @@ public class CsvFormat implements Format {
         Map<String,Class> nodePropTypes = collectPropTypesForNodes(graph);
         List<String> nodeHeader = generateHeader(nodePropTypes, config.useTypes(), "_id:id", "_labels:label");
         String[] header = nodeHeader.toArray(new String[nodeHeader.size()]);
-        out.writeNext(header); // todo types
+        out.writeNext(header, quoteIfNeeded); // todo types
         int cols = header.length;
         writeNodes(graph, out, reporter, nodePropTypes, cols, config.getBatchSize(), config.getDelim());
     }
@@ -179,7 +168,7 @@ public class CsvFormat implements Format {
             row[0]=String.valueOf(node.getId());
             row[1]=getLabelsString(node);
             collectProps(nodePropTypes.keySet(), node, reporter, row, 2, delimiter);
-            out.writeNext(row);
+            out.writeNext(row, quoteIfNeeded);
             nodes++;
             if (batchSize==-1 || nodes % batchSize == 0) {
                 reporter.update(nodes, 0, 0);
@@ -194,8 +183,7 @@ public class CsvFormat implements Format {
     private void collectProps(Collection<String> fields, PropertyContainer pc, Reporter reporter, String[] row, int offset, String delimiter) {
         for (String field : fields) {
             if (pc.hasProperty(field)) {
-                String tmp = FormatUtils.toString(pc.getProperty(field));
-                row[offset] = quoteFieldIdNeeded(tmp, delimiter);
+                row[offset] = FormatUtils.toString(pc.getProperty(field));
                 reporter.update(0,0,1);
             }
             else {
@@ -208,7 +196,7 @@ public class CsvFormat implements Format {
     private void writeRels(SubGraph graph, CSVWriter out, Reporter reporter, ExportConfig config) {
         Map<String,Class> relPropTypes = collectPropTypesForRelationships(graph);
         List<String> header = generateHeader(relPropTypes, config.useTypes(), "_start:id", "_end:id", "_type:label");
-        out.writeNext(header.toArray(new String[header.size()]));
+        out.writeNext(header.toArray(new String[header.size()]), quoteIfNeeded);
         int cols = header.size();
         int offset = 0;
         writeRels(graph, out, reporter, relPropTypes, cols, offset, config.getBatchSize(), config.getDelim());
@@ -222,7 +210,7 @@ public class CsvFormat implements Format {
             row[offset+1]=String.valueOf(rel.getEndNode().getId());
             row[offset+2]=rel.getType().name();
             collectProps(relPropTypes.keySet(), rel, reporter, row, 3 + offset, delimiter);
-            out.writeNext(row);
+            out.writeNext(row, quoteIfNeeded);
             rels++;
             if (batchSize==-1 || rels % batchSize == 0) {
                 reporter.update(0, rels, 0);

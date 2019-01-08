@@ -27,7 +27,6 @@ public class ExportConfig {
     private boolean silent = false;
     private String delim = DEFAULT_DELIM;
     private String quotes = DEFAULT_QUOTES;
-    private boolean quoteIfNeeded = false;
     private boolean useTypes = false;
     private boolean writeNodeProperties = false;
     private boolean nodesOfRelationships;
@@ -55,7 +54,6 @@ public class ExportConfig {
         return quotes;
     }
 
-    public boolean isQuotesNeeded() { return quoteIfNeeded; }
 
     public boolean useTypes() {
         return useTypes;
@@ -86,10 +84,6 @@ public class ExportConfig {
     {
         try {
             this.quotes = (String) config.getOrDefault("quotes", DEFAULT_QUOTES);
-
-            if ( this.quotes.equals(IF_NEEDED_QUUOTES) ) {
-                quoteIfNeeded = true;
-            }
 
             if ( !quotes.equals(ALWAYS_QUOTES) && !quotes.equals(NONE_QUOTES) && !quotes.equals(IF_NEEDED_QUUOTES) ) {
                 throw new RuntimeException("The string value of the field quote is not valid");

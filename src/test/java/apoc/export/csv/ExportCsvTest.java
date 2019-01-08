@@ -53,8 +53,8 @@ public class ExportCsvTest {
             "\"\",\"\",\"via Benni\",\"[\"\"Address\"\"]\"");
     private static final String EXPECTED_QUERY_QUOTES_NEEDED= String.format( "a.name,a.city,a.street,labels(a)%n" +
             "Andrea,Milano,\"Via Garibaldi, 7\",\"[\"Address1\",\"Address\"]\"%n" +
-            "Bar Sport,,,[\"Address\"]%n" +
-            ",,via Benni,[\"Address\"]");
+            "Bar Sport,,,\"[\"Address\"]\"%n" +
+            ",,via Benni,\"[\"Address\"]\"");
     private static final String EXPECTED = String.format("\"_id\",\"_labels\",\"name\",\"age\",\"male\",\"kids\",\"street\",\"city\",\"_start\",\"_end\",\"_type\"%n" +
             "\"0\",\":User:User1\",\"foo\",\"42\",\"true\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"\",\"\",,,%n" +
             "\"1\",\":User\",\"bar\",\"42\",\"\",\"\",\"\",\"\",,,%n" +
