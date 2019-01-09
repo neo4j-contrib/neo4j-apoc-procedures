@@ -11,9 +11,16 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import javax.security.auth.Subject;
+import javax.security.auth.callback.Callback;
+import javax.security.auth.callback.NameCallback;
+import javax.security.auth.callback.PasswordCallback;
+import javax.security.auth.login.LoginContext;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.sql.*;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
@@ -41,17 +48,38 @@ public class Jdbc {
 
     private static Connection getConnection(String jdbcUrl, LoadJdbcConfig config) throws Exception {
         if(config.hasCredentials()) {
-            return DriverManager.getConnection(jdbcUrl, config.getCredentials().getUser(), config.getCredentials().getPassword());
+            return createConnection(jdbcUrl, config.getCredentials().getUser(), config.getCredentials().getPassword());
         } else {
             URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
             String userInfo = uri.getUserInfo();
             if (userInfo != null) {
-                String[] user = userInfo.split(":");
                 String cleanUrl = jdbcUrl.substring(0, jdbcUrl.indexOf("://") + 3) + jdbcUrl.substring(jdbcUrl.indexOf("@") + 1);
-                return DriverManager.getConnection(cleanUrl, user[0], user[1]);
+                String[] user = userInfo.split(":");
+                return createConnection(cleanUrl, user[0], user[1]);
             }
             return DriverManager.getConnection(jdbcUrl);
         }
+    }
+
+    private static Connection createConnection(String jdbcUrl, String userName, String password) throws Exception {
+        if (jdbcUrl.contains(";auth=kerberos")) {
+            String client = System.getProperty("java.security.auth.login.config.client", "KerberosClient");
+            LoginContext lc = new LoginContext(client, callbacks -> {
+                for (Callback cb : callbacks) {
+                    if (cb instanceof NameCallback) ((NameCallback) cb).setName(userName);
+                    if (cb instanceof PasswordCallback) ((PasswordCallback) cb).setPassword(password.toCharArray());
+                }
+            });
+            lc.login();
+            Subject subject = lc.getSubject();
+            try {
+                return Subject.doAs(subject, (PrivilegedExceptionAction<Connection>) () -> DriverManager.getConnection(jdbcUrl, userName, password));
+            } catch (PrivilegedActionException pae) {
+                throw pae.getException();
+            }
+        } else {
+          return DriverManager.getConnection(jdbcUrl, userName, password);
+       }
     }
 
     @Procedure

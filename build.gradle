@@ -109,6 +109,7 @@ dependencies {
         exclude group: 'org.eclipse.jetty'
         exclude group: 'org.eclipse.jetty.aggregate'
         exclude group: 'com.sun.jersey'
+        exclude group: 'org.apache.hive', module: 'hive-service'
     }
     compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.5', withoutServers
     testCompile group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.5', withoutServers
@@ -130,6 +131,8 @@ dependencies {
     compile group: 'com.opencsv', name: 'opencsv', version: '4.2' 
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
     compile group: 'com.github.javafaker', name: 'javafaker', version: '0.10'
+
+    testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     compile group: 'org.apache.commons', name: 'commons-text', version: '1.2'
