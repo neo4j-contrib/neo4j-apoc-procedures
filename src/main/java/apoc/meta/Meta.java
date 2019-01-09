@@ -20,12 +20,12 @@ import org.neo4j.values.storable.DurationValue;
 
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.util.MapUtil.map;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toMap;
 import static org.neo4j.internal.kernel.api.Read.ANY_LABEL;
@@ -403,16 +403,18 @@ public class Meta {
     // todo ask index for distinct values if index size < 10 or so
     // todo put index sizes for indexed properties
     @Procedure
-    @Description("apoc.meta.data  - examines a subset of the graph to provide a tabular meta information")
-    public Stream<MetaResult> data() {
-        return collectMetaData().values().stream().flatMap(x -> x.values().stream());
+    @Description("apoc.meta.data({config})  - examines a subset of the graph to provide a tabular meta information")
+    public Stream<MetaResult> data(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        MetaConfig metaConfig = new MetaConfig(config);
+        return collectMetaData(metaConfig).values().stream().flatMap(x -> x.values().stream());
     }
 
     @Procedure
-    @Description("apoc.meta.schema  - examines a subset of the graph to provide a map-like meta information")
-    public Stream<MapResult> schema() {
+    @Description("apoc.meta.schema({config})  - examines a subset of the graph to provide a map-like meta information")
+    public Stream<MapResult> schema(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         MetaStats metaStats = collectStats();
-        Map<String, Map<String, MetaResult>> metaData = collectMetaData();
+        MetaConfig metaConfig = new MetaConfig(config);
+        Map<String, Map<String, MetaResult>> metaData = collectMetaData(metaConfig);
 
         Map<String, Object> relationships = collectRelationshipsMetaData(metaStats, metaData);
         Map<String, Object> nodes = collectNodesMetaData(metaStats, metaData, relationships);
@@ -421,7 +423,7 @@ public class Meta {
         return Stream.of(new MapResult(nodes));
     }
 
-    private Map<String, Map<String, MetaResult>> collectMetaData () {
+    private Map<String, Map<String, MetaResult>> collectMetaData (MetaConfig config) {
         Map<String,Map<String,MetaResult>> metaData = new LinkedHashMap<>(100);
         Schema schema = db.schema();
 
@@ -430,7 +432,7 @@ public class Meta {
             metaData.put(type.name(), new LinkedHashMap<>(10));
             relConstraints.put(type.name(),schema.getConstraints(type));
         }
-
+        Map<String, Long> countStore = getLabelCountStore();
         for (Label label : db.getAllLabelsInUse()) {
             Map<String,MetaResult> nodeMeta = new LinkedHashMap<>(50);
             String labelName = label.name();
@@ -442,17 +444,43 @@ public class Meta {
                     indexed.add(prop);
                 }
             }
+            long labelCount = countStore.get(labelName);
+            long sample = getSampleForLabelCount(labelCount, config.getSample());
             try (ResourceIterator<Node> nodes = db.findNodes(label)) {
-                int count = 0;
-                while (nodes.hasNext() && count++ < SAMPLE) {
+                int count = 1;
+                while (nodes.hasNext()) {
                     Node node = nodes.next();
-
-                    addRelationships(metaData,nodeMeta, labelName, node,relConstraints);
-                    addProperties(nodeMeta, labelName, constraints, indexed, node, node);
+                    if(count++ % sample == 0) {
+                        sample = getSampleForLabelCount(labelCount, config.getSample());
+                        addRelationships(metaData, nodeMeta, labelName, node, relConstraints);
+                        addProperties(nodeMeta, labelName, constraints, indexed, node, node);
+                    }
                 }
             }
         }
         return metaData;
+    }
+
+    private Map<String, Long> getLabelCountStore() {
+        List<String> labels = db.getAllLabelsInUse().stream().map(label -> label.name()).collect(Collectors.toList());
+        TokenRead tokenRead = kernelTx.tokenRead();
+        return labels
+                .stream()
+                .collect(Collectors.toMap(e -> e, e -> kernelTx.dataRead().countsForNodeWithoutTxState(tokenRead.nodeLabel(e))));
+    }
+
+    public long getSampleForLabelCount(long labelCount, long sample) {
+        if(sample != -1L) {
+            long skipCount = labelCount / sample;
+            long min = (long) Math.floor(skipCount - (skipCount * 0.1D));
+            long max = (long) Math.ceil(skipCount + (skipCount * 0.1D));
+            if (min >= max) {
+                return -1L;
+            }
+            return ThreadLocalRandom.current().nextLong(min, max);
+        } else {
+            return sample;
+        }
     }
 
     private Map<String, Object> collectNodesMetaData(MetaStats metaStats, Map<String, Map<String, MetaResult>> metaData, Map<String, Object> relationships) {
@@ -462,7 +490,6 @@ public class Meta {
             Map<String, MetaResult> entityData = metaData.get(entityName);
             Map<String, Object> entityProperties = new LinkedHashMap<>();
             Map<String, Object> entityRelationships = new LinkedHashMap<>();
-            Map<String, Object> incomingRelationships = new LinkedHashMap<>();
             List<String> labels = new LinkedList<>();
             boolean isNode = true;
             for (String entityDataKey : entityData.keySet()) {
@@ -720,11 +747,12 @@ public class Meta {
     }
     @Procedure
     @Description("apoc.meta.graph - examines the full graph to create the meta-graph")
-    public Stream<GraphResult> graph() {
-        return metaGraph(null, null, true);
+    public Stream<GraphResult> graph(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        MetaConfig metaConfig = new MetaConfig(config);
+        return metaGraph(null, null, true, metaConfig);
     }
 
-    private Stream<GraphResult> metaGraph(Collection<String> labelNames, Collection<String> relTypeNames, boolean removeMissing) {
+    private Stream<GraphResult> metaGraph(Collection<String> labelNames, Collection<String> relTypeNames, boolean removeMissing, MetaConfig metaConfig) {
         Read read = kernelTx.dataRead();
         TokenRead tokenRead = kernelTx.tokenRead();
 
@@ -759,12 +787,12 @@ public class Meta {
             });
         });
 
-        if (removeMissing) filterNonExistingRelationships(vRels);
+        if (removeMissing) filterNonExistingRelationships(vRels, metaConfig);
         GraphResult graphResult = new GraphResult(new ArrayList<>(vNodes.values()), new ArrayList<>(vRels.values()));
         return Stream.of(graphResult);
     }
 
-    private void filterNonExistingRelationships(Map<Pattern, Relationship> vRels) {
+    private void filterNonExistingRelationships(Map<Pattern, Relationship> vRels, MetaConfig metaConfig) {
         Set<Pattern> rels = vRels.keySet();
         Map<Pair<String,String>,Set<Pattern>> aggregated = new HashMap<>();
         for (Pattern rel : rels) {
@@ -774,33 +802,41 @@ public class Meta {
         aggregated.values().stream()
                 .filter( c -> c.size() > 1)
                 .flatMap(Collection::stream)
-                .filter( p -> !relationshipExists(p, vRels.get(p)))
+                .filter( p -> !relationshipExists(p, vRels.get(p), metaConfig))
                 .forEach(vRels::remove);
     }
 
-    private boolean relationshipExists(Pattern p, Relationship relationship) {
+    private boolean relationshipExists(Pattern p, Relationship relationship, MetaConfig metaConfig) {
         if (relationship==null) return false;
         double degreeFrom = (double)(long)relationship.getProperty("out")  / (long)relationship.getStartNode().getProperty("count");
         double degreeTo = (double)(long)relationship.getProperty("in")  / (long)relationship.getEndNode().getProperty("count");
 
         if (degreeFrom < degreeTo) {
-            if (relationshipExists(p.labelFrom(), p.labelTo(), p.relationshipType(), Direction.OUTGOING)) return true;
+            if (relationshipExists(p.labelFrom(), p.labelTo(), p.relationshipType(), Direction.OUTGOING, metaConfig)) return true;
         } else {
-            if (relationshipExists(p.labelTo(), p.labelFrom(), p.relationshipType(), Direction.INCOMING)) return true;
+            if (relationshipExists(p.labelTo(), p.labelFrom(), p.relationshipType(), Direction.INCOMING, metaConfig)) return true;
         }
         return false;
     }
 
-    private boolean relationshipExists(Label labelFromLabel, Label labelToLabel, RelationshipType relationshipType, Direction direction) {
-        int maxTotal = 300;
+    private boolean relationshipExists(Label labelFromLabel, Label labelToLabel, RelationshipType relationshipType, Direction direction, MetaConfig metaConfig) {
+        Map<String, Long> countStore = getLabelCountStore();
         try (ResourceIterator<Node> nodes = db.findNodes(labelFromLabel)) {
-            while (nodes.hasNext() && maxTotal > 0) {
-                Node node = nodes.next();
-                int maxRels = 30;
-                for (Relationship rel : node.getRelationships(direction, relationshipType)) {
-                    Node otherNode = direction == Direction.OUTGOING ? rel.getEndNode() : rel.getStartNode();
-                    if (otherNode.hasLabel(labelToLabel)) return true;
-                    if (maxRels-- == 0 || maxTotal-- == 0) break;
+            long count = 1L;
+            String labelName = labelFromLabel.name();
+            long labelCount = countStore.get(labelName);
+            long sample = getSampleForLabelCount(labelCount, metaConfig.getSample());
+            while (nodes.hasNext()) {
+                count++;
+                if(count % sample == 0) {
+                    sample = getSampleForLabelCount(labelCount, metaConfig.getSample());
+                    Node node = nodes.next();
+                    long maxRels = metaConfig.getMaxRels();
+                    for (Relationship rel : node.getRelationships(direction, relationshipType)) {
+                        Node otherNode = direction == Direction.OUTGOING ? rel.getEndNode() : rel.getStartNode();
+                        if (otherNode.hasLabel(labelToLabel)) return true;
+                        if (maxRels != -1 && maxRels-- == 0) break;
+                    }
                 }
             }
         }
@@ -815,18 +851,18 @@ public class Meta {
 
     @Procedure
     @Description("apoc.meta.graphSample() - examines the database statistics to build the meta graph, very fast, might report extra relationships")
-    public Stream<GraphResult> graphSample() {
-        return metaGraph(null, null, false);
+    public Stream<GraphResult> graphSample(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+        MetaConfig metaConfig = new MetaConfig(config);
+        return metaGraph(null, null, false, metaConfig);
     }
 
     @Procedure
     @Description("apoc.meta.subGraph({labels:[labels],rels:[rel-types], excludes:[labels,rel-types]}) - examines a sample sub graph to create the meta-graph")
     public Stream<GraphResult> subGraph(@Name("config") Map<String,Object> config ) {
-        Collection<String> includeLabels = (Collection<String>)config.getOrDefault("labels",emptyList());
-        Collection<String> includeRels = (Collection<String>)config.getOrDefault("rels",emptyList());
-        Set<String> excludes = new HashSet<>((Collection<String>)config.getOrDefault("excludes",emptyList()));
 
-        return filterResultStream(excludes, metaGraph(includeLabels, includeRels,true));
+        MetaConfig metaConfig = new MetaConfig(config);
+
+        return filterResultStream(metaConfig.getExcludes(), metaGraph(metaConfig.getIncludesLabels(), metaConfig.getIncludesRels(),true, metaConfig));
     }
 
     private Stream<GraphResult> filterResultStream(Set<String> excludes, Stream<GraphResult> graphResultStream) {

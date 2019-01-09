@@ -488,4 +488,168 @@ public class MetaTest {
 
         TestUtil.testCall(db, "MATCH (t:TEST) WITH t.duration as duration RETURN apoc.meta.cypher.type(duration) AS value", row -> assertEquals("DURATION", row.get("value")));
     }
+
+    @Test
+    public void testMetaDataWithSample() throws Exception {
+        db.execute("create index on :Person(name)").close();
+        db.execute("CREATE (:Person {name:'Tom'})").close();
+        db.execute("CREATE (:Person {name:'John', surname:'Brown'})").close();
+        db.execute("CREATE (:Person {name:'Nick'})").close();
+        db.execute("CREATE (:Person {name:'Daisy', surname:'Bob'})").close();
+        db.execute("CREATE (:Person {name:'Elizabeth'})").close();
+        db.execute("CREATE (:Person {name:'Jack', surname:'White'})").close();
+        db.execute("CREATE (:Person {name:'Joy'})").close();
+        db.execute("CREATE (:Person {name:'Sarah', surname:'Taylor'})").close();
+        db.execute("CREATE (:Person {name:'Jane'})").close();
+        db.execute("CREATE (:Person {name:'Jeff', surname:'Logan'})").close();
+        TestUtil.testResult(db, "CALL apoc.meta.data({sample:2})",
+                (r) -> {
+                    Map<String, Object>  personNameProperty = r.next();
+                    Map<String, Object>  personSurnameProperty = r.next();
+                    assertEquals("name", personNameProperty.get("property"));
+                    assertEquals("surname", personSurnameProperty.get("property"));
+                });
+    }
+
+
+
+    @Test
+    public void testMetaDataWithSampleNormalized() throws Exception {
+        db.execute("create index on :Person(name)").close();
+        db.execute("CREATE (:Person {name:'Tom'})").close();
+        db.execute("CREATE (:Person {name:'John'})").close();
+        db.execute("CREATE (:Person {name:'Nick'})").close();
+        db.execute("CREATE (:Person {name:'Daisy', surname:'Bob'})").close();
+        db.execute("CREATE (:Person {name:'Elizabeth'})").close();
+        db.execute("CREATE (:Person {name:'Jack'})").close();
+        db.execute("CREATE (:Person {name:'Joy'})").close();
+        db.execute("CREATE (:Person {name:'Sarah'})").close();
+        db.execute("CREATE (:Person {name:'Jane'})").close();
+        db.execute("CREATE (:Person {name:'Jeff', surname:'Logan'})").close();
+        db.execute("CREATE (:City {name:'Milano'})").close();
+        db.execute("CREATE (:City {name:'Roma'})").close();
+        db.execute("CREATE (:City {name:'Firenze'})").close();
+        db.execute("CREATE (:City {name:'Taormina', region:'Sicilia'})").close();
+        TestUtil.testResult(db, "CALL apoc.meta.data({sample:5})",
+                (r) -> {
+                    Map<String, Object>  personNameProperty = r.next();
+                    Map<String, Object>  personSurnameProperty = r.next();
+                    assertEquals("Person", personNameProperty.get("label"));
+                    assertEquals("name", personNameProperty.get("property"));
+                    assertEquals("Person", personSurnameProperty.get("label"));
+                    assertEquals("surname", personSurnameProperty.get("property"));
+
+                    Map<String, Object>  cityNameProperty = r.next();
+                    Map<String, Object>  cityRegionProperty = r.next();
+                    assertEquals("City", cityNameProperty.get("label"));
+                    assertEquals("name", cityNameProperty.get("property"));
+                    assertEquals("City", cityRegionProperty.get("label"));
+                    assertEquals("region", cityRegionProperty.get("property"));
+                });
+    }
+
+    @Test
+    public void testMetaDataWithSample5() throws Exception {
+        db.execute("create index on :Person(name)").close();
+        db.execute("CREATE (:Person {name:'John', surname:'Brown'})").close();
+        db.execute("CREATE (:Person {name:'Daisy', surname:'Bob'})").close();
+        db.execute("CREATE (:Person {name:'Nick'})").close();
+        db.execute("CREATE (:Person {name:'Jack', surname:'White'})").close();
+        db.execute("CREATE (:Person {name:'Elizabeth'})").close();
+        db.execute("CREATE (:Person {name:'Joy'})").close();
+        db.execute("CREATE (:Person {name:'Sarah', surname:'Taylor'})").close();
+        db.execute("CREATE (:Person {name:'Jane'})").close();
+        db.execute("CREATE (:Person {name:'Jeff', surname:'Logan'})").close();
+        db.execute("CREATE (:Person {name:'Tom'})").close();
+        TestUtil.testResult(db, "CALL apoc.meta.data({sample:5})",
+                (r) -> {
+                    Map<String, Object>  personNameProperty = r.next();
+                    assertEquals("name", personNameProperty.get("property"));
+                });
+    }
+
+    @Test
+    public void testSchemaWithSample() {
+        db.execute("create constraint on (p:Person) assert p.name is unique").close();
+        db.execute("CREATE (:Person {name:'Tom'})").close();
+        db.execute("CREATE (:Person {name:'John', surname:'Brown'})").close();
+        db.execute("CREATE (:Person {name:'Nick'})").close();
+        db.execute("CREATE (:Person {name:'Daisy', surname:'Bob'})").close();
+        db.execute("CREATE (:Person {name:'Elizabeth'})").close();
+        db.execute("CREATE (:Person {name:'Jack', surname:'White'})").close();
+        db.execute("CREATE (:Person {name:'Joy'})").close();
+        db.execute("CREATE (:Person {name:'Sarah', surname:'Taylor'})").close();
+        db.execute("CREATE (:Person {name:'Jane'})").close();
+        db.execute("CREATE (:Person {name:'Jeff', surname:'Logan'})").close();
+        testCall(db, "CALL apoc.meta.schema({sample:2})",
+                (row) -> {
+
+                    Map<String, Object> o = (Map<String, Object>) row.get("value");
+                    assertEquals(1, o.size());
+
+                    Map<String, Object>  person = (Map<String, Object>) o.get("Person");
+                    Map<String, Object>  personProperties = (Map<String, Object>) person.get("properties");
+                    Map<String, Object>  personNameProperty = (Map<String, Object>) personProperties.get("name");
+                    Map<String, Object>  personSurnameProperty = (Map<String, Object>) personProperties.get("surname");
+                    assertNotNull(person);
+                    assertEquals("node", person.get("type"));
+                    assertEquals(10L, person.get("count"));
+                    assertEquals("STRING", personNameProperty.get("type"));
+                    assertEquals(false, personSurnameProperty.get("unique"));
+                    assertEquals("STRING", personSurnameProperty.get("type"));
+                    assertEquals(2, personProperties.size());
+
+                });
+    }
+
+    @Test
+    public void testSchemaWithSample5() {
+        db.execute("create constraint on (p:Person) assert p.name is unique").close();
+        db.execute("CREATE (:Person {name:'Tom'})").close();
+        db.execute("CREATE (:Person {name:'John', surname:'Brown'})").close();
+        db.execute("CREATE (:Person {name:'Nick'})").close();
+        db.execute("CREATE (:Person {name:'Daisy', surname:'Bob'})").close();
+        db.execute("CREATE (:Person {name:'Elizabeth'})").close();
+        db.execute("CREATE (:Person {name:'Jack', surname:'White'})").close();
+        db.execute("CREATE (:Person {name:'Joy'})").close();
+        db.execute("CREATE (:Person {name:'Sarah', surname:'Taylor'})").close();
+        db.execute("CREATE (:Person {name:'Jane'})").close();
+        db.execute("CREATE (:Person {name:'Jeff', surname:'Logan'})").close();
+        testCall(db, "CALL apoc.meta.schema({sample:5})",
+                (row) -> {
+
+                    Map<String, Object> o = (Map<String, Object>) row.get("value");
+                    assertEquals(1, o.size());
+                    Map<String, Object>  person = (Map<String, Object>) o.get("Person");
+                    Map<String, Object>  personProperties = (Map<String, Object>) person.get("properties");
+                    Map<String, Object>  personNameProperty = (Map<String, Object>) personProperties.get("name");
+                    assertNotNull(person);
+                    assertEquals("node", person.get("type"));
+                    assertEquals(10L, person.get("count"));
+                    assertEquals("STRING", personNameProperty.get("type"));
+                    assertEquals(true, personNameProperty.get("unique"));
+                    assertEquals(1, personProperties.size());
+
+                });
+    }
+
+    @Test
+    public void testMetaGraphExtraRelsWithSample() throws Exception {
+        db.execute("CREATE (:S1 {name:'Tom'})").close();
+        db.execute("CREATE (:S2 {name:'John', surname:'Brown'})-[:KNOWS{since:2012}]->(:S7)").close();
+        db.execute("CREATE (:S1 {name:'Nick'})").close();
+        db.execute("CREATE (:S3 {name:'Daisy', surname:'Bob'})-[:KNOWS{since:2012}]->(:S7)").close();
+        db.execute("CREATE (:S1 {name:'Elizabeth'})").close();
+        db.execute("CREATE (:S4 {name:'Jack', surname:'White'})-[:KNOWS{since:2012}]->(:S7)").close();
+        db.execute("CREATE (:S1 {name:'Joy'})").close();
+        db.execute("CREATE (:S5 {name:'Sarah', surname:'Taylor'})-[:KNOWS{since:2012}]->(:S7)").close();
+        db.execute("CREATE (:S1 {name:'Jane'})").close();
+        db.execute("CREATE (:S6 {name:'Jeff', surname:'Logan'})-[:KNOWS{since:2012}]->(:S7)").close();
+
+        testCall(db, "call apoc.meta.graph({sample:2})",(row) -> {
+            List<Node> nodes = (List<Node>) row.get("nodes");
+            assertEquals(7,nodes.size());
+        });
+    }
+
 }
