@@ -189,7 +189,7 @@ public class ExportCsvTest {
     }
 
     @Test
-    public void testExportGraphCsvWithouQuotes() throws Exception {
+    public void testExportGraphCsvWithoutQuotes() throws Exception {
         File output = new File(directory, "graph.csv");
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
                         "CALL apoc.export.csv.graph(graph, {file},null) " +

@@ -34,7 +34,7 @@ import static apoc.export.util.MetaInformation.getLabelsString;
  */
 public class CsvFormat implements Format {
     private final GraphDatabaseService db;
-    private boolean quoteIfNeeded = false;
+    private boolean applyQuotesToAll = true;
 
     public CsvFormat(GraphDatabaseService db) {
         this.db = db;
@@ -65,9 +65,9 @@ public class CsvFormat implements Format {
                 out = new CSVWriter(writer,
                                     config.getDelimChar(),
                                     '\0', // quote char
-                                    '\0', // escape cahr
+                                    '\0', // escape char
                                     CSVWriter.DEFAULT_LINE_END);
-                quoteIfNeeded = false;
+                applyQuotesToAll = false;
                 break;
             case ExportConfig.IF_NEEDED_QUUOTES:
                 out = new CSVWriter(writer,
@@ -75,7 +75,7 @@ public class CsvFormat implements Format {
                                     ExportConfig.QUOTECHAR,
                                     '\0', // escape char
                                     CSVWriter.DEFAULT_LINE_END);
-                quoteIfNeeded = false;
+                applyQuotesToAll = false;
                 break;
             case ExportConfig.ALWAYS_QUOTES:
             default:
@@ -84,7 +84,7 @@ public class CsvFormat implements Format {
                                     ExportConfig.QUOTECHAR,
                                     CSVWriter.DEFAULT_ESCAPE_CHARACTER,
                                     CSVWriter.DEFAULT_LINE_END);
-                quoteIfNeeded = true;
+                applyQuotesToAll = true;
                 break;
         }
         return out;
@@ -103,7 +103,7 @@ public class CsvFormat implements Format {
                     data[col] = FormatUtils.toString(value);
                     reporter.update(value instanceof Node ? 1: 0,value instanceof Relationship ? 1: 0 , value instanceof PropertyContainer ? 0 : 1);
                 }
-                out.writeNext(data, quoteIfNeeded);
+                out.writeNext(data, applyQuotesToAll);
                 reporter.nextRow();
                 return true;
             });
@@ -118,7 +118,7 @@ public class CsvFormat implements Format {
         List<String> columns = result.columns();
         int cols = columns.size();
         String[] header = columns.toArray(new String[cols]);
-        out.writeNext(header, quoteIfNeeded);
+        out.writeNext(header, applyQuotesToAll);
         return header;
     }
 
@@ -129,7 +129,7 @@ public class CsvFormat implements Format {
         List<String> nodeHeader = generateHeader(nodePropTypes, config.useTypes(), "_id:id", "_labels:label");
         List<String> relHeader = generateHeader(relPropTypes, config.useTypes(), "_start:id", "_end:id", "_type:label");
         List<String> header = new ArrayList<>(nodeHeader); header.addAll(relHeader);
-        out.writeNext(header.toArray(new String[header.size()]), quoteIfNeeded);
+        out.writeNext(header.toArray(new String[header.size()]), applyQuotesToAll);
         int cols = header.size();
 
         writeNodes(graph, out, reporter, nodePropTypes, cols, config.getBatchSize(), config.getDelim());
@@ -156,7 +156,7 @@ public class CsvFormat implements Format {
         Map<String,Class> nodePropTypes = collectPropTypesForNodes(graph);
         List<String> nodeHeader = generateHeader(nodePropTypes, config.useTypes(), "_id:id", "_labels:label");
         String[] header = nodeHeader.toArray(new String[nodeHeader.size()]);
-        out.writeNext(header, quoteIfNeeded); // todo types
+        out.writeNext(header, applyQuotesToAll); // todo types
         int cols = header.length;
         writeNodes(graph, out, reporter, nodePropTypes, cols, config.getBatchSize(), config.getDelim());
     }
@@ -168,7 +168,7 @@ public class CsvFormat implements Format {
             row[0]=String.valueOf(node.getId());
             row[1]=getLabelsString(node);
             collectProps(nodePropTypes.keySet(), node, reporter, row, 2, delimiter);
-            out.writeNext(row, quoteIfNeeded);
+            out.writeNext(row, applyQuotesToAll);
             nodes++;
             if (batchSize==-1 || nodes % batchSize == 0) {
                 reporter.update(nodes, 0, 0);
@@ -196,7 +196,7 @@ public class CsvFormat implements Format {
     private void writeRels(SubGraph graph, CSVWriter out, Reporter reporter, ExportConfig config) {
         Map<String,Class> relPropTypes = collectPropTypesForRelationships(graph);
         List<String> header = generateHeader(relPropTypes, config.useTypes(), "_start:id", "_end:id", "_type:label");
-        out.writeNext(header.toArray(new String[header.size()]), quoteIfNeeded);
+        out.writeNext(header.toArray(new String[header.size()]), applyQuotesToAll);
         int cols = header.size();
         int offset = 0;
         writeRels(graph, out, reporter, relPropTypes, cols, offset, config.getBatchSize(), config.getDelim());
@@ -210,7 +210,8 @@ public class CsvFormat implements Format {
             row[offset+1]=String.valueOf(rel.getEndNode().getId());
             row[offset+2]=rel.getType().name();
             collectProps(relPropTypes.keySet(), rel, reporter, row, 3 + offset, delimiter);
-            out.writeNext(row, quoteIfNeeded);
+            out.writeNext(row,
+                          applyQuotesToAll);
             rels++;
             if (batchSize==-1 || rels % batchSize == 0) {
                 reporter.update(0, rels, 0);
