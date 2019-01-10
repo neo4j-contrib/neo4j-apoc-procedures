@@ -4,6 +4,7 @@ import apoc.util.FileUtils;
 import apoc.result.MapResult;
 import apoc.result.NodeResult;
 import apoc.util.Util;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static apoc.util.Util.cleanUrl;
@@ -382,23 +384,63 @@ public class Xml {
 
     private static class XmlImportConfig {
 
-        private boolean createNextWordRelationship = false;
+        private boolean connectCharacters;
+        private Pattern delimiter;
+        private Label label = Label.label("XmlCharacters");
+        private RelationshipType relType = RelationshipType.withName("NE");
 
-        public boolean isCreateNextWordRelationship() {
-            return createNextWordRelationship;
-        }
+        public XmlImportConfig(Map<String, Object> config) {
+            String _delimiter = (String) config.get("delimiter");
+            if (_delimiter != null) {
+                connectCharacters = true;
+            }
+            delimiter = Pattern.compile(_delimiter == null ? "\\s" : _delimiter);
 
-        public XmlImportConfig(Map<String,Object> config) {
-            Boolean _createNextWordRelationship = (Boolean) config.get("createNextWordRelationships");
-            if (_createNextWordRelationship!=null) {
-                createNextWordRelationship = _createNextWordRelationship;
+            String _label = (String) config.get("label");
+            if (_label != null) {
+                label = Label.label(_label);
+                connectCharacters = true;
+            }
+
+            String _relType = (String) config.get("relType");
+            if (_relType != null) {
+                relType = RelationshipType.withName(_relType);
+                connectCharacters = true;
+            }
+
+            Boolean _connectCharacters = (Boolean) config.get("connectCharacters");
+            connectCharacters = BooleanUtils.toBoolean(_connectCharacters);
+
+            // legacy mode
+            // TODO: remove this at some time in future
+            Boolean createNextWordRelationship = (Boolean) config.get("createNextWordRelationships");
+            if (createNextWordRelationship != null) {
+                //delimiter = Pattern.compile("\\s";
+                relType = RelationshipType.withName("NEXT_WORD");
+                label = Label.label("XmlWord");
+                connectCharacters = true;
             }
         }
 
+        public Pattern getDelimiter() {
+            return delimiter;
+        }
+
+        public Label getLabel() {
+            return label;
+        }
+
+        public RelationshipType getRelType() {
+            return relType;
+        }
+
+        public boolean isConnectCharacters() {
+            return connectCharacters;
+        }
     }
 
     @Procedure(mode = Mode.WRITE, value = "apoc.xml.import")
-    public Stream<NodeResult> importToGraph(@Name("url") String url, @Name(value="config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {
+    public Stream<NodeResult> importToGraph(@Name("url") String url, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {
         final XMLStreamReader xml = getXMLStreamReaderFromUrl(url);
 
         XmlImportConfig importConfig = new XmlImportConfig(config);
@@ -413,6 +455,7 @@ public class Xml {
         parents.push(new ParentAndChildPair(root));
         org.neo4j.graphdb.Node last = root;
         org.neo4j.graphdb.Node lastWord = root;
+        int currentCharacterIndex = 0;
 
         while (xml.hasNext()) {
             xml.next();
@@ -442,18 +485,18 @@ public class Xml {
                     break;
 
                 case XMLStreamConstants.CHARACTERS:
-                    String text = xml.getText().trim();
-                    String[] words = text.split("\\s");
-                    for (int i = 0; i < words.length; i++) {
-                        final String currentWord = words[i];
-                        if (!currentWord.isEmpty()) {
-                            org.neo4j.graphdb.Node word = db.createNode(Label.label("XmlWord"));
-                            word.setProperty("text", currentWord);
-                            last = connectWithParent(word, parents.peek(), last);
-                            if (importConfig.isCreateNextWordRelationship()) {
-                                lastWord.createRelationshipTo(word, RelationshipType.withName("NEXT_WORD"));
-                                lastWord = word;
-                            }
+                    List<String> words = parseTextIntoPartsAndDelimiters(xml.getText(), importConfig.getDelimiter());
+                    for (String currentWord : words) {
+                        org.neo4j.graphdb.Node word = db.createNode(importConfig.getLabel());
+                        word.setProperty("text", currentWord);
+                        word.setProperty("startIndex", currentCharacterIndex);
+                        currentCharacterIndex += currentWord.length();
+                        word.setProperty("endIndex", currentCharacterIndex - 1);
+
+                        last = connectWithParent(word, parents.peek(), last);
+                        if (importConfig.isConnectCharacters()) {
+                            lastWord.createRelationshipTo(word, importConfig.getRelType());
+                            lastWord = word;
                         }
                     }
                     break;
@@ -482,6 +525,23 @@ public class Xml {
             throw new IllegalStateException("non empty parents");
         }
         return Stream.of(new NodeResult(root));
+    }
+
+    List<String> parseTextIntoPartsAndDelimiters(String sourceString, Pattern delimiterPattern) {
+        String trimmed = sourceString.trim();
+        Scanner scanner = new Scanner(trimmed).useDelimiter(delimiterPattern);
+        List<String> strings = new ArrayList<>();
+        int previousEnd = 0;
+        while (scanner.hasNext()) {
+            String string = scanner.next();
+            if (previousEnd > 0) {
+                strings.add(trimmed.substring(previousEnd, scanner.match().start()));
+            }
+            previousEnd = scanner.match().end();
+
+            strings.add(string);
+        }
+        return strings;
     }
 
     private void setPropertyIfNotNull(org.neo4j.graphdb.Node root, String propertyKey, Object value) {
