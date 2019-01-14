@@ -53,7 +53,7 @@ The default value is 20000.
 [source,bash,subs=attributes]
 ----
 time ./cypher-shell -u yourUsername -p yourPassword
-"call apoc.export.cypher.all('yourPath/exportAll', {format:'neo4j-shell', batchSize: 10000})"
+"call apoc.export.cypher.all('yourPath/exportAll', {format:'neo4j-shell', batchSize: 10000, useOptimizations: {type: "none"}})"
 ----
 
 ==== Results
@@ -97,7 +97,7 @@ We try the different output formats, changing the `config` parameter `format`.
 [source,bash,subs=attributes]
 ----
 time ./cypher-shell -u yourUsername -p yourPassword  
-"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'neo4j-shell'})"
+"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'neo4j-shell', useOptimizations: {type: "none"}})"
 ----
 
 ==== Results
@@ -139,7 +139,7 @@ In the example below we name the exported file `exportAll.cypher` so our export 
 [source,bash,subs=attributes]
 ----
 time ./cypher-shell -u yourUsername -p yourPassword  
-"call apoc.export.cypher.all('yourPath/exportAll.cypher', {format:'neo4j-shell',separateFiles:true})"
+"call apoc.export.cypher.all('yourPath/exportAll.cypher', {format:'neo4j-shell',separateFiles:true, useOptimizations: {type: "none"}})"
 ----
 
 ==== Result
@@ -157,7 +157,7 @@ sys  0m0.084s
 ----
 time ./cypher-shell -u yourUsername -p yourPassword
 "call apoc.export.cypher.query('MATCH (n) OPTIONAL MATCH p = (n)-[r]-(m) RETURN n,r,m',
-'yourPath/exportQuery.cypher', {format:'neo4j-shell', batchSize: 10000})"
+'yourPath/exportQuery.cypher', {format:'neo4j-shell', batchSize: 10000, useOptimizations: {type: "none"}})"
 ----
 
 === Result
@@ -174,7 +174,7 @@ sys     0m0.068s
 ----
 time ./cypher-shell -u yourUsername -p yourPassword  "Match (n:Person)-[r:LIKES_COMMENT]->(c:Comment)
 with collect(n) as colN, collect(c) as colC, collect(r) as colR
-CALL apoc.export.cypher.data(colN+colC,colR, 'yourPath/exportData.cypher',{format:'plain'}) YIELD nodes, relationships
+CALL apoc.export.cypher.data(colN+colC,colR, 'yourPath/exportData.cypher',{format:'plain', useOptimizations: {type: "none"}}) YIELD nodes, relationships
 RETURN nodes, relationships"
 ----
 
@@ -190,7 +190,7 @@ sys     0m0.372s
 
 [source,bash,subs=attributes]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword "CALL apoc.graph.fromDB('test',{})
+time ./cypher-shell -u yourUsername -p yourPassword "CALL apoc.graph.fromDB('test',{useOptimizations: {type: "none"}})
 yield graph CALL apoc.export.cypher.graph(graph, 'yourPath/exportGraph.cypher',null)
 YIELD nodes, relationships
 RETURN nodes, relationships"
@@ -313,11 +313,11 @@ sys     37m35.852s
 
 For the new implementations and the test of the exportCypher we used this characteristics:
 
-* 2 cores
+* 6 cores
 
-* Intel(R) CPU I5-5200U @ 2.70GHz
+* Intel(R) CPU I7-8750H @ 2.2GHz
 
-* 8 GB of RAM
+* 16 GB of RAM
 
 
 .Neo4j configuration
@@ -330,7 +330,7 @@ For the new implementations and the test of the exportCypher we used this charac
 
 .Graph info
 
-we use the Northwind Graph (:play northwind-graph)
+we use the `MusicBrainz dataset`, you can download from this link: http://example-data.neo4j.org/3.0-datasets/musicbrainz.tgz?_ga=2.224357650.84486006.1547734927-1971869821.1541933587[musicBrainz dataset]
 
 * total *nodes* -> 1035
 
@@ -345,15 +345,30 @@ We try the different output formats, changing the `config` parameter `format`.
 [source,bash,subs=attributes]
 ----
 time ./cypher-shell -u yourUsername -p yourPassword  
-"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'plain'})"
+"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'plain', useOptimizations: {unwindBatch: true}})"
 ----
 
 ==== Results
 
+.With Optimizations
 ----
-real	0m1,740s
-user	0m1,907s
-sys	    0m0,141s
+real	0m1,838s
+user	0m1,251s
+sys	    0m0,136s
+----
+
+[source,bash,subs=attributes]
+----
+time ./cypher-shell -u yourUsername -p yourPassword  
+"call apoc.export.cypher.all('yourPath/exportData.cypher', {useOptimizations: {type: "none"}, format:'plain'})"
+----
+==== Results
+
+.Without Optimizations
+----
+real	0m1,539s
+user	0m1,304s
+sys	    0m0,170s
 ----
 
 .cypher-shell
@@ -361,15 +376,31 @@ sys	    0m0,141s
 [source,bash,subs=attributes]
 ----
 time ./cypher-shell -u yourUsername -p yourPassword  
-"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'cypher-shell'})"
+"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'cypher-shell', useOptimizations: {unwindBatch: true}})"
 ----
 
 ==== Results
-
+.With Optimizations
 ----
-real	0m1,634s
-user	0m1,851s
-sys	    0m0,139s
+real	0m1,351s
+user	0m1,214s
+sys	    0m0,137s
+----
+
+.cypher-shell
+
+[source,bash,subs=attributes]
+----
+time ./cypher-shell -u yourUsername -p yourPassword  
+"call apoc.export.cypher.all('yourPath/exportData.cypher', {useOptimizations: {useOptimizations: {type: "none"}}, format:'cypher-shell'})"
+----
+
+==== Results
+.Without Optimizations
+----
+real	0m1,259s
+user	0m1,222s
+sys	    0m0,137s
 ----
 
 .neo4j-shell
@@ -377,15 +408,32 @@ sys	    0m0,139s
 [source,bash,subs=attributes]
 ----
 time ./cypher-shell -u yourUsername -p yourPassword  
-"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'neo4j-shell'})"
+"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'neo4j-shell', useOptimizations: {unwindBatch: true}})"
+----
+
+==== Results
+.With Optimizations
+----
+real	0m1,297s
+user	0m1,227s
+sys	    0m0,133s
+----
+
+.neo4j-shell
+
+[source,bash,subs=attributes]
+----
+time ./cypher-shell -u yourUsername -p yourPassword  
+"call apoc.export.cypher.all('yourPath/exportData.cypher', {useOptimizations: {type: "none"}, format:'neo4j-shell'})"
 ----
 
 ==== Results
 
+.Without Optimizations
 ----
-real	0m2,095s
-user	0m1,908s
-sys	    0m0,108s
+real	0m1,232s
+user	0m1,236s
+sys	    0m0,133s
 ----
 
 == Import from file
@@ -398,11 +446,16 @@ time ./cypher-shell -u yourUsername -p yourPassword
 "call apoc.cypher.runFile('yourPath/import/exportPlain.cypher')"
 ----
 
-.Result
+.Result with optimizaions
 ----
-real	0m42,578s
-user	0m1,833s
-sys	    0m0,135s
+real	0m28,186s
+user	0m1,321s
+sys	    0m0,175s
+----
+
+.Result without optimizaions
+----
+it's import 1 nodes every 10 seconds
 ----
 
 === Import cypher-shell
@@ -414,11 +467,18 @@ time ./cypher-shell -u yourUsername -p yourPassword
 > 'yourPath/cypherShellOutput'
 ----
 
-.Result
+.Result with optimizaions
 ----
-real	0m29,475s
-user	0m2,825s
-sys	    0m0,167s
+real	0m17,820s
+user	0m1,909s
+sys	    0m0,222s
+----
+
+.Result without optimizaions
+----
+real	0m19,087s
+user	0m5,026s
+sys	    0m0,473s
 ----
 
 === Import neo4j-shell
@@ -430,9 +490,16 @@ time ./neo4j-shell -u yourUsername -p yourPassword -file
 > 'yourPath/neo4jShellOutput'
 ----
 
-.Result
+.Result with optimizaions
 ----
-real	0m54,581s
-user	0m7,472s
-sys	    0m1,896s
+real	0m41,546s
+user	0m10,124s
+sys	    0m5,423s
+----
+
+.Result without optimizaions
+----
+real	0m53,398s
+user	0m20,157s
+sys	    0m12,572s
 ----

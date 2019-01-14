@@ -17,7 +17,16 @@ It is possible to choose between three export formats:
 * `cypher-shell`: for Cypher shell
 * `plain`: doesn't output begin / commit / await just plain Cypher
 
-You can also use the Optimizations like: `{useOptimizations: true}`. (default: false)
+You can also use the Optimizations like: `useOptimizations: {config}`
+Config could have this params:
+
+* `batchSize`:  (default 100)
+* `type`: possible values ('NONE', 'UNWIND_BATCH') (default 'UNWIND_BATCH')
+
+With `NONE` it will export the file with `CREATE` statement;
+
+With 'UNWIND_BATCH` it will export the file by batching the entities with the `UNWIND` method as explained in this
+https://medium.com/neo4j/5-tips-tricks-for-fast-batched-updates-of-graph-structures-with-neo4j-and-cypher-73c7f693c8cc[article].
 
 To change the export format, you have to set it on the config params like `{format : "cypher-shell"}`.
 
@@ -196,6 +205,13 @@ Result:
 [source,cypher]
 ----
 BEGIN
+CREATE INDEX ON :`Bar`(`first_name`,`last_name`);
+CREATE INDEX ON :`Foo`(`name`);
+CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
+CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
+COMMIT
+SCHEMA AWAIT
+BEGIN
 UNWIND [{`UNIQUE IMPORT ID`: 0, properties: {`born`:date('2018-10-31'), `name`:"foo"}}, {`UNIQUE IMPORT ID`: 4, properties: {`born`:date('2017-09-29'), `name`:"foo2"}}] as row
 MERGE (n:`Foo`:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.`UNIQUE IMPORT ID`}) SET n += row.properties;
 UNWIND [{`name`: "bar", properties: {`age`:42, `name`:"bar"}}, {`name`: "bar2", properties: {`age`:44, `name`:"bar2"}}] as row
@@ -207,13 +223,6 @@ MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.`UNIQUE IMPORT ID`}) SET 
 UNWIND [{`UNIQUE IMPORT ID`: 3, properties: {`age`:12}}] as row
 MERGE (n:`Bar`:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.`UNIQUE IMPORT ID`}) SET n += row.properties;
 COMMIT
-BEGIN
-CREATE INDEX ON :`Bar`(`first_name`,`last_name`);
-CREATE INDEX ON :`Foo`(`name`);
-CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
-CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
-COMMIT
-SCHEMA AWAIT
 BEGIN
 UNWIND [{start: {`UNIQUE IMPORT ID`: 0}, end: {`name`: "bar"}, properties: {`since`:2016}}, {start: {`UNIQUE IMPORT ID`: 4}, end: {`name`: "bar2"}, properties: {`since`:2015}}] as row
 MATCH (start:`Foo`:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start.`UNIQUE IMPORT ID`}), (end:`Bar`{`name`: row.end.`name`})
