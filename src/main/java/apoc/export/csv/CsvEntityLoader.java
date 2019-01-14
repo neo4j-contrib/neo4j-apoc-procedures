@@ -92,10 +92,22 @@ public class CsvEntityLoader {
                         loadCsvCompatibleHeader, line, lineNo, false, mapping, Collections.emptyList(), results
                 );
 
-                // create node and add id to the mapping
+                final String nodeCsvId = result.map.get(idAttribute.get()).toString();
+
+                // if 'ignore duplicate nodes' is false, there is an id field and the mapping already has the current id,
+                // we either fail the loading process or skip it depending on the 'ignore duplicate nodes' setting
+                if (idField.isPresent() && idspaceIdMapping.containsKey(nodeCsvId)) {
+                    if (clc.getIgnoreDuplicateNodes()) {
+                        continue;
+                    } else {
+                        throw new IllegalStateException("Duplicate node with id " + nodeCsvId + " found/");
+                    }
+                }
+
+                // create node and add its id to the mapping
                 final Node node = db.createNode();
                 if (idField.isPresent()) {
-                    idspaceIdMapping.put(result.map.get(idAttribute.get()).toString(), node.getId());
+                    idspaceIdMapping.put(nodeCsvId, node.getId());
                 }
 
                 // add labels
