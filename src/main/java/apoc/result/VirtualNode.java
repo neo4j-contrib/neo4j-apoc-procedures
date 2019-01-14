@@ -136,6 +136,12 @@ public class VirtualNode implements Node {
         return rel;
     }
 
+    public VirtualRelationship createRelationshipFrom(Node start, RelationshipType relationshipType) {
+        VirtualRelationship rel = new VirtualRelationship(start, this, relationshipType);
+        rels.add(rel);
+        return rel;
+    }
+
     @Override
     public Iterable<RelationshipType> getRelationshipTypes() {
         return rels.stream().map(Relationship::getType).collect(Collectors.toList());

@@ -954,6 +954,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.node.degree.in(node, relationshipName) | returns total number of incoming relationship
 | apoc.node.degree.out(node, relationshipName) | returns total number of outgoing relationship
 | apoc.node.labels(node) | returns labels for (virtual) nodes
+| apoc.nodes.collapse([<node>], {config}) | returns the list of nodes merged into the first
 | apoc.rel.id(rel) | returns id for (virtual) relationships
 | apoc.rel.type(rel) | returns type for (virtual) relationships
 | apoc.any.properties(node/rel/map, [[keys]]) | returns properties for virtual and real, nodes, rels and maps, optionally restrict via keys

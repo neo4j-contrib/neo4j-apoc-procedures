@@ -6,18 +6,16 @@ import apoc.refactor.util.RefactorConfig;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
-import org.apache.commons.lang3.tuple.Triple;
 import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Pair;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+
+import static apoc.refactor.util.RefactorUtil.*;
 
 public class GraphRefactoring {
     @Context
@@ -360,13 +358,6 @@ public class GraphRefactoring {
         return target;
     }
 
-    private Relationship mergeRels(Relationship source, Relationship target, boolean delete, RefactorConfig conf) {
-        Map<String, Object> properties = source.getAllProperties();
-        if (delete) source.delete();
-        PropertiesManager.mergeProperties(properties, target, conf);
-        return target;
-    }
-
     private Node copyRelationships(Node source, Node target, boolean delete) {
         for (Relationship rel : source.getRelationships()) {
             copyRelationship(rel, source, target);
@@ -381,16 +372,6 @@ public class GraphRefactoring {
                 target.addLabel(label);
             }
         }
-        return target;
-    }
-
-    private <T extends PropertyContainer> T copyProperties(PropertyContainer source, T target) {
-        return copyProperties(source.getAllProperties(), target);
-    }
-
-    private <T extends PropertyContainer> T copyProperties(Map<String, Object> source, T target) {
-        for (Map.Entry<String, Object> prop : source.entrySet())
-            target.setProperty(prop.getKey(), prop.getValue());
         return target;
     }
 
@@ -410,21 +391,4 @@ public class GraphRefactoring {
         return copyProperties(rel, newrel);
     }
 
-
-    public void mergeRelsWithSameTypeAndDirectionInMergeNodes(Node node, RefactorConfig config, Direction dir) {
-
-        for (RelationshipType  type : node.getRelationshipTypes()) {
-            StreamSupport.stream(node.getRelationships(dir,type).spliterator(), false)
-                    .collect(Collectors.groupingBy(rel -> Pair.of(rel.getStartNode(), rel.getEndNode())))
-                    .values().stream()
-                    .filter(list -> !list.isEmpty())
-                    .forEach(list -> {
-                        Relationship first = list.get(0);
-                        for (int i = 1; i < list.size(); i++) {
-                            mergeRels(list.get(i), first, true, config);
-                        }
-                    });
-
-        }
-    }
 }

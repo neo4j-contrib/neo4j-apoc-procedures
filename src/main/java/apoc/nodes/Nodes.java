@@ -1,9 +1,9 @@
 package apoc.nodes;
 
-import apoc.*;
-import apoc.result.LongResult;
-import apoc.result.NodeResult;
-import apoc.result.RelationshipResult;
+import apoc.create.Create;
+import apoc.refactor.util.PropertiesManager;
+import apoc.refactor.util.RefactorConfig;
+import apoc.result.*;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
@@ -11,12 +11,15 @@ import org.neo4j.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.*;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.procedure.*;
-import org.neo4j.procedure.Description;
-import javax.annotation.Nonnull;
+
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.path.RelationshipTypeAndDirections.parse;
+import static apoc.refactor.util.PropertiesManager.mergePropertiesWithCount;
+import static apoc.refactor.util.RefactorUtil.copyProperties;
 import static apoc.util.Util.map;
 
 public class Nodes {
@@ -134,6 +137,94 @@ public class Nodes {
             if (!endDense) return connected(endNodeCursor, startId, typedDirections(tokenRead, pairs, false));
             return connectedDense(startNodeCursor, endNodeCursor, typedDirections(tokenRead, pairs, true));
         }
+    }
+
+    @Procedure
+    @Description("apoc.nodes.collapse([nodes...],[{properties:'overwrite' or 'discard' or 'combine'}]) yield from, rel, to merge nodes onto first in list")
+    public Stream<VirtualPathResult> collapse(@Name("nodes") List<Node> nodes, @Name(value = "config", defaultValue = "") Map<String, Object> config) {
+        if (nodes == null || nodes.isEmpty()) return Stream.empty();
+        if (nodes.size() == 1) return Stream.of(new VirtualPathResult(nodes.get(0), null, null));
+        Set<Node> nodeSet = new LinkedHashSet<>(nodes);
+        RefactorConfig conf = new RefactorConfig(config);
+        VirtualNode first = createVirtualNode(nodeSet, conf);
+        if (first.getRelationships().iterator().hasNext()) {
+            return StreamSupport.stream(first.getRelationships().spliterator(), false)
+                    .map(relationship -> new VirtualPathResult(relationship.getStartNode(), relationship, relationship.getEndNode()));
+        } else {
+            return Stream.of(new VirtualPathResult(first, null, null));
+        }
+    }
+
+    private VirtualNode createVirtualNode(Set<Node> nodes, RefactorConfig conf) {
+        Create create = new Create();
+        Node first = nodes.iterator().next();
+        List<String> labels = Util.labelStrings(first);
+        if (conf.isCollapsedLabel()) {
+            labels.add("Collapsed");
+        }
+        VirtualNode virtualNode = (VirtualNode) create.vNodeFunction(labels, first.getAllProperties());
+        createVirtualRelationships(nodes, virtualNode, first, conf);
+        nodes.stream().skip(1).forEach(node -> {
+            node.getLabels().forEach(label -> { // Set all Label
+                if (!virtualNode.hasLabel(label)) {
+                    virtualNode.addLabel(label);
+                }
+            });
+            mergePropertiesWithCount(node.getAllProperties(), virtualNode, conf); // Set all properties
+            createVirtualRelationships(nodes, virtualNode, node, conf);
+        });
+        if (conf.isCountMerge()) {
+            virtualNode.setProperty("countNodes", nodes.size()); // Count nodes merged
+        }
+        return virtualNode;
+    }
+
+    private void createVirtualRelationships(Set<Node> nodes, VirtualNode virtualNode, Node node, RefactorConfig refactorConfig) {
+        node.getRelationships().forEach(relationship -> {
+            Node startNode = relationship.getStartNode();
+            Node endNode = relationship.getEndNode();
+
+            if (nodes.contains(startNode) && nodes.contains(endNode)) {
+                if (refactorConfig.isSelfRel()) {
+                    createOrMergeVirtualRelationship(virtualNode, refactorConfig, relationship, virtualNode,  Direction.OUTGOING);
+                }
+            } else {
+                if (startNode.getId() == node.getId()) {
+                    createOrMergeVirtualRelationship(virtualNode, refactorConfig, relationship, endNode,  Direction.OUTGOING);
+                } else {
+                    createOrMergeVirtualRelationship(virtualNode, refactorConfig, relationship, startNode,  Direction.INCOMING);
+                }
+            }
+        });
+    }
+
+    private void createOrMergeVirtualRelationship(VirtualNode virtualNode, RefactorConfig refactorConfig, Relationship source, Node node, Direction direction) {
+        Iterable<Relationship> iterator = virtualNode.getRelationships(source.getType(), direction);
+        Optional<Relationship> first = StreamSupport.stream(iterator.spliterator(), false).filter(relationship -> relationship.getEndNode().equals(node)).findFirst();
+        VirtualRelationship virtualRelationship;
+        if (refactorConfig.isMergeVirtualRels() && first.isPresent()) {
+            mergeRelationship(source, first.get(), refactorConfig);
+        } else {
+            switch (direction) {
+                case OUTGOING:
+                    virtualRelationship = virtualNode.createRelationshipTo(node, source.getType());
+                    copyProperties(source, virtualRelationship);
+                    break;
+                case INCOMING:
+                    virtualRelationship = virtualNode.createRelationshipFrom(node, source.getType());
+                    copyProperties(source, virtualRelationship);
+                    break;
+                case BOTH:
+                    break;
+            }
+        }
+    }
+
+    private void mergeRelationship(Relationship source, Relationship target, RefactorConfig refactorConfig) {
+        if (refactorConfig.isCountMerge()) {
+            target.setProperty("countRels", (Integer) target.getProperty("countRels", 0) + 1); // Count relationships merged
+        }
+        PropertiesManager.mergePropertiesWithCount(source.getAllProperties(), target, refactorConfig);
     }
 
     /**

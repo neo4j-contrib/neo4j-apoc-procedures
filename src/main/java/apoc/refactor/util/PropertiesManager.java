@@ -15,24 +15,39 @@ public class PropertiesManager {
     private PropertiesManager() {
     }
 
-    public static void mergeProperties(Map<String, Object> properties, PropertyContainer target, RefactorConfig propertyManagementMode) {
+    public static void mergeProperties(Map<String, Object> properties, PropertyContainer target, RefactorConfig refactorConfig) {
         for (Map.Entry<String, Object> prop : properties.entrySet()) {
             String key = prop.getKey();
-            String mergeMode = propertyManagementMode.getMergeMode(key);
-            switch (mergeMode) {
-                case RefactorConfig.OVERWRITE:
-                case RefactorConfig.OVERRIDE:
-                    target.setProperty(key, prop.getValue());
-                    break;
-                case RefactorConfig.DISCARD:
-                    if (!target.hasProperty(key)) {
-                        target.setProperty(key, prop.getValue());
-                    }
-                    break;
-                case RefactorConfig.COMBINE:
-                    combineProperties(prop, target);
-                    break;
+            String mergeMode = refactorConfig.getMergeMode(key);
+            mergeProperty(target, refactorConfig, prop, key, mergeMode);
+        }
+    }
+
+    public static void mergePropertiesWithCount(Map<String, Object> properties, PropertyContainer target, RefactorConfig refactorConfig) {
+        for (Map.Entry<String, Object> prop : properties.entrySet()) {
+            String key = prop.getKey();
+            if (target.hasProperty(key) && refactorConfig.isCountProperties()) {
+                target.setProperty("countProperties", (Integer) target.getProperty("countProperties", 0) + 1);
             }
+            String mergeMode = refactorConfig.getMergeModeVirtual(key);
+            mergeProperty(target, refactorConfig, prop, key, mergeMode);
+        }
+    }
+
+    private static void mergeProperty(PropertyContainer target, RefactorConfig propertyManagementMode, Map.Entry<String, Object> prop, String key, String mergeMode) {
+        switch (mergeMode) {
+            case RefactorConfig.OVERWRITE:
+            case RefactorConfig.OVERRIDE:
+                target.setProperty(key, prop.getValue());
+                break;
+            case RefactorConfig.DISCARD:
+                if (!target.hasProperty(key)) {
+                    target.setProperty(key, prop.getValue());
+                }
+                break;
+            case RefactorConfig.COMBINE:
+                combineProperties(prop, target);
+                break;
         }
     }
 

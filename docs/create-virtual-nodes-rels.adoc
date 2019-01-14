@@ -91,3 +91,58 @@ RETURN *;
 ----
 
 image::{img}/apoc.create.vPatternFullTwo.png[width=800]
+
+== Nodes collapse
+
+[cols="1m,5"]
+|===
+| apoc.nodes.collapse([<node>], {config}) | returns the list of nodes merged into a VirtualNode
+|===
+
+==== Config:
+
+On `apoc.nodes.collapse` with config properties you can choose from 3 different behavior:
+
+ * "properties": "overwrite" : if there is the same property in more node, in the new one will have the last relationship's/node's property value
+ * "properties": "discard" : if there is the same property in more node, the new one will have the first relationship's/node's property value
+ * "properties": "combine" : if there is the same property in more node, the new one a value's array with all relationship's/node's values
+
+If properties parameter isn't set relationships properties are `discard`.
+
+ * "mergeVirtualRels: true/false" : give the possibility to merge relationships with same type and direction. (DEFAULT `true`)
+ * "selfRel: true/false" : give the possibility to create the self relationship. (DEFAULT `false`)
+ * "countMerge: true/false" : give the possibility count all the Nodes/Relationships merged. (DEFAULT `true`)
+ * "countProperties: true/false" : give the possibility count all the property of the Nodes/Relationships merged. (DEFAULT `true`)
+ * "collapsedLabel: true/false" : give the possibility to add the label `:Collapsed` to the virtualNode. (DEFAULT `false`)
+
+== Nodes collapse example
+
+With this dataset we have:
+
+image::{img}/apoc.nodes.collapse_1.png[width=600]
+
+call the apoc as:
+----
+MATCH (p:Person)-[:LIVES_IN]->(c:City)
+WITH c, collect(p) as subgraph
+CALL apoc.nodes.collapse(subgraph,{properties:'combine'}) yield from, rel, to
+return from, rel, to
+----
+we have this result:
+
+image::{img}/apoc.nodes.collapse_2.png[width=600]
+
+With this dataset we have:
+
+image::{img}/apoc.nodes.collapse_3.png[width=600]
+
+call the apoc as:
+----
+MATCH (p:Person)-[:LIVES_IN]->(c:City)
+WITH c, c + collect(p) as subgraph
+CALL apoc.nodes.collapse(subgraph) yield from, rel, to
+return from, rel, to
+----
+we have this result:
+
+image::{img}/apoc.nodes.collapse_4.png[width=600]

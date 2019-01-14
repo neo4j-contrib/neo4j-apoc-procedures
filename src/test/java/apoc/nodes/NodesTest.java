@@ -1,24 +1,24 @@
 package apoc.nodes;
 
 import apoc.create.Create;
+import apoc.result.VirtualNode;
+import apoc.result.VirtualRelationship;
 import apoc.util.TestUtil;
-import org.junit.*;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import apoc.util.Util;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.neo4j.graphdb.*;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static apoc.util.Util.map;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
+import static java.util.Collections.*;
 import static org.junit.Assert.*;
+import static org.neo4j.graphdb.Label.label;
 import static org.neo4j.helpers.collection.Iterators.asSet;
 
 /**
@@ -31,7 +31,7 @@ public class NodesTest {
     @Before
     public void setUp() throws Exception {
         db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
-        TestUtil.registerProcedure(db,Nodes.class, Create.class);
+        TestUtil.registerProcedure(db, Nodes.class, Create.class);
     }
 
     @After
@@ -237,7 +237,7 @@ public class NodesTest {
     public void testSubProperties() {
         assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f,['foo']) AS props").columnAs("props").next());
         assertEquals(emptyMap(), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f,['bar']) AS props").columnAs("props").next());
-        assertEquals(null, db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(null,['foo']) AS props").columnAs("props").next());
+        assertNull(db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(null,['foo']) AS props").columnAs("props").next());
         assertEquals(singletonMap("foo","bar"), db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.properties(node,['foo']) AS props").columnAs("props").next());
         assertEquals(emptyMap(), db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.properties(node,['bar']) AS props").columnAs("props").next());
 
@@ -251,19 +251,19 @@ public class NodesTest {
     @Test
     public void testProperty() {
         assertEquals("bar", db.execute("RETURN apoc.any.property({foo:'bar'},'foo') AS props").columnAs("props").next());
-        assertEquals(null, db.execute("RETURN apoc.any.property({foo:'bar'},'bar') AS props").columnAs("props").next());
+        assertNull(db.execute("RETURN apoc.any.property({foo:'bar'},'bar') AS props").columnAs("props").next());
 
         assertEquals("bar", db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.property(f,'foo') AS props").columnAs("props").next());
-        assertEquals(null, db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.property(f,'bar') AS props").columnAs("props").next());
+        assertNull(db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.property(f,'bar') AS props").columnAs("props").next());
 
         assertEquals("bar", db.execute("CREATE (f)-[r:REL {foo:'bar'}]->(f) RETURN apoc.any.property(r,'foo') AS props").columnAs("props").next());
-        assertEquals(null, db.execute("CREATE (f)-[r:REL {foo:'bar'}]->(f) RETURN apoc.any.property(r,'bar') AS props").columnAs("props").next());
+        assertNull(db.execute("CREATE (f)-[r:REL {foo:'bar'}]->(f) RETURN apoc.any.property(r,'bar') AS props").columnAs("props").next());
 
         assertEquals("bar", db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.property(node,'foo') AS props").columnAs("props").next());
-        assertEquals(null, db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.property(node,'bar') AS props").columnAs("props").next());
+        assertNull(db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.property(node,'bar') AS props").columnAs("props").next());
 
         assertEquals("bar", db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.property(rel,'foo') AS props").columnAs("props").next());
-        assertEquals(null, db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.property(rel,'bar') AS props").columnAs("props").next());
+        assertNull(db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.property(rel,'bar') AS props").columnAs("props").next());
 
         assertNull(db.execute("RETURN apoc.any.property(null,'foo') AS props").columnAs("props").next());
         assertNull(db.execute("RETURN apoc.any.property(null,null) AS props").columnAs("props").next());
@@ -275,6 +275,234 @@ public class NodesTest {
         assertEquals("REL", db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.rel.type(rel) AS type").columnAs("type").next());
 
         assertNull(db.execute("RETURN apoc.rel.type(null) AS type").columnAs("type").next());
+    }
+
+    @Test
+    public void testMergeSelfRelationship() {
+        db.execute("MATCH (n) detach delete (n)");
+        db.execute("CREATE (a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})");
+
+        List<Label> label = asList(label("ALabel"), label("BLabel"));
+
+        TestUtil.testResult(db,
+                "MATCH (p:ALabel)-[r:KNOWS]->(c:BLabel) WITH p,c " +
+                        "CALL apoc.nodes.collapse([p,c],{mergeVirtualRels:true, selfRel: true, countMerge: true}) yield from, rel, to " +
+                        "return from, rel, to", (r) -> {
+                    Map<String, Object> map = r.next();
+
+                    assertMerge(map,
+                            Util.map("name","b1", "countNodes", 2, "countProperties", 1), label, //FROM
+                            Util.map("countRels", 1), "KNOWS", //REL
+                            Util.map("name", "b1", "countNodes", 2, "countProperties", 1), label); //TO
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    @Test
+    public void testMergeSelfRelationshiInverted() {
+        db.execute("MATCH (n) detach delete (n)");
+        db.execute("CREATE (a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})");
+
+        List<Label> label = asList(label("BLabel"), label("ALabel"));
+
+        TestUtil.testResult(db,
+                "MATCH (p:ALabel)-[r:KNOWS]->(c:BLabel) WITH p,c " +
+                        "CALL apoc.nodes.collapse([c,p],{mergeVirtualRels:true, selfRel: true, countMerge: true}) yield from, rel, to " +
+                        "return from, rel, to", (r) -> {
+                    Map<String, Object> map = r.next();
+                    assertMerge(map,
+                            Util.map("name","a1", "countNodes", 2, "countProperties", 1), label, //FROM
+                            Util.map("countRels", 1), "KNOWS", //REL
+                            Util.map("name", "a1", "countNodes", 2, "countProperties", 1), label); //TO
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    @Test
+    public void testMergeNotSelfRelationship() {
+        db.execute("MATCH (n) detach delete (n)");
+        db.execute("CREATE (a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})");
+
+        List<Label> label = asList(label("ALabel"), label("BLabel"));
+
+        TestUtil.testResult(db,
+                "MATCH (p:ALabel)-[r:KNOWS]->(c:BLabel) WITH p,c " +
+                        "CALL apoc.nodes.collapse([p,c],{mergeVirtualRels:true, countMerge: true}) yield from, rel, to " +
+                        "return from, rel, to", (r) -> {
+                    Map<String, Object> map = r.next();
+
+                    assertEquals(Util.map("name","b1", "countNodes", 2, "countProperties", 1), ((VirtualNode)map.get("from")).getAllProperties());
+                    assertEquals(label, ((VirtualNode)map.get("from")).getLabels());
+                    assertNull(((VirtualRelationship) map.get("rel")));
+                    assertNull(((Node) map.get("to")));
+                    assertFalse(r.hasNext());
+                   
+                });
+    }
+
+    @Test
+    public void testMergeWithRelationshipDirection() {
+        db.execute("MATCH (n) detach delete (n)");
+        db.execute("CREATE " +
+                "(a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})," +
+                "(a1)<-[:KNOWS]-(b2:CLabel {name:'c1'})");
+
+        List<Label> label = asList(label("ALabel"), label("BLabel"));
+
+        TestUtil.testResult(db,
+                "MATCH (p:ALabel)-[r:KNOWS]->(c:BLabel) WITH p,c " +
+                        "CALL apoc.nodes.collapse([p,c],{mergeVirtualRels:true, selfRel: true}) yield from, rel, to " +
+                        "return from, rel, to", (r) -> {
+                    Map<String, Object> map = r.next();
+
+                    assertEquals(Util.map("name","c1"), ((Node)map.get("from")).getAllProperties());
+                    assertEquals(asList(label("CLabel")), ((Node)map.get("from")).getLabels());
+                    assertEquals(Collections.emptyMap(), ((VirtualRelationship)map.get("rel")).getAllProperties());
+                    assertEquals("KNOWS", ((VirtualRelationship)map.get("rel")).getType().name());
+                    assertEquals(Util.map("name", "b1", "countNodes", 2, "countProperties", 1), ((Node)map.get("to")).getAllProperties());
+                    assertEquals(label, ((Node)map.get("to")).getLabels());
+                    assertTrue(r.hasNext());
+                    map = r.next();
+                    assertEquals(Util.map("name","b1", "countNodes", 2, "countProperties", 1), ((VirtualNode)map.get("from")).getAllProperties());
+                    assertEquals(label, ((VirtualNode)map.get("from")).getLabels());
+                    assertEquals(Util.map("countRels", 1), ((VirtualRelationship)map.get("rel")).getAllProperties());
+                    assertEquals("KNOWS", ((VirtualRelationship)map.get("rel")).getType().name());
+                    assertEquals(Util.map("name", "b1", "countNodes", 2, "countProperties", 1), ((VirtualNode)map.get("to")).getAllProperties());
+                    assertEquals(label, ((VirtualNode)map.get("to")).getLabels());
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    @Test
+    public void testMergeRelationship() {
+        db.execute("MATCH (n) detach delete (n)");
+        db.execute("CREATE " +
+                "(a1:ALabel {name:'a1'})-[:HAS_REL]->(b1:BLabel {name:'b1'})," +
+                "(a2:ALabel {name:'a2'})-[:HAS_REL]->(b1)," +
+                "(a4:ALabel {name:'a4'})-[:HAS_REL]->(b4:BLabel {name:'b4'})");
+
+        List<Label> label = asList(label("ALabel"));
+
+        TestUtil.testResult(db,
+                "MATCH (p:ALabel{name:'a4'}), (p1:ALabel{name:'a2'}), (p2:ALabel{name:'a1'}) WITH p, p1, p2 " +
+                        "CALL apoc.nodes.collapse([p, p1, p2],{mergeVirtualRels:true}) yield from, rel, to " +
+                        "return from, rel, to", (r) -> {
+                    Map<String, Object> map = r.next();
+                    assertMerge(map,
+                            Util.map("name", "a1", "countNodes", 3, "countProperties", 2), label, //FROM
+                            Collections.emptyMap(), "HAS_REL", //REL
+                            Util.map("name", "b4"), asList(label("BLabel"))); //TO
+                    assertTrue(r.hasNext());
+                    map = r.next();
+                    assertMerge(map,
+                            Util.map("name", "a1", "countNodes", 3, "countProperties", 2), label, //FROM
+                            Util.map("countRels", 1), "HAS_REL", //REL
+                            Util.map("name", "b1"), asList(label("BLabel"))); //TO
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    @Test
+    public void testMergePersonEmployee() {
+        db.execute("MATCH (n) detach delete (n)");
+        db.execute("CREATE " +
+                "(:Person {name:'mike'})-[:LIVES_IN]->(:City{name:'rome'}), " +
+                "(:Employee{name:'mike'})-[:WORKS_FOR]->(:Company{name:'Larus'}), " +
+                "(:Person {name:'kate'})-[:LIVES_IN]->(:City{name:'london'}), " +
+                "(:Employee{name:'kate'})-[:WORKS_FOR]->(:Company{name:'Neo'})");
+
+        List<Label> label = asList(label("Collapsed"), label("Person"), label("Employee"));
+
+        TestUtil.testResult(db,
+                "MATCH (p:Person)-[r:LIVES_IN]->(c:City), (e:Employee)-[w:WORKS_FOR]->(m:Company) WITH p,r,c,e,w,m WHERE p.name = e.name " +
+                        "CALL apoc.nodes.collapse([p,e],{properties:'combine', mergeVirtualRels:true, countMerge: true, collapsedLabel: true}) yield from, rel, to " +
+                        "return from, rel, to", (r) -> {
+                    Map<String, Object> map = r.next();
+                    assertMerge(map,
+                            Util.map("name", "mike", "countNodes", 2, "countProperties", 1), label, //FROM
+                            Collections.emptyMap(), "LIVES_IN", //REL
+                            Util.map("name", "rome"), asList(label("City"))); //TO
+                    assertTrue(r.hasNext());
+                    map = r.next();
+                    assertMerge(map,
+                            Util.map("name", "mike", "countNodes", 2, "countProperties", 1), label, //FROM
+                            Collections.emptyMap(), "WORKS_FOR", //REL
+                            Util.map("name", "Larus"), asList(label("Company"))); //TO
+                    assertTrue(r.hasNext());
+                    map = r.next();
+                    assertMerge(map,
+                            Util.map("name", "kate","countNodes", 2, "countProperties", 1), label, //FROM
+                            Collections.emptyMap(), "LIVES_IN", //REL
+                            Util.map("name", "london"), asList(label("City"))); //TO
+                    assertTrue(r.hasNext());
+                    map = r.next();
+                    assertMerge(map,
+                            Util.map("name", "kate", "countNodes", 2, "countProperties", 1), label, //FROM
+                            Collections.emptyMap(), "WORKS_FOR", //REL
+                            Util.map("name", "Neo"), asList(label("Company"))); //TO
+                    assertFalse(r.hasNext());
+                });
+    }
+
+    @Test
+    public void testMergeVirtualNode() {
+        db.execute("CREATE \n" +
+                "(p:Person {name: 'John'})-[:LIVES_IN]->(c:City{name:'London'}),\n" +
+                "(p1:Person {name: 'Mike'})-[:LIVES_IN]->(c),\n" +
+                "(p2:Person {name: 'Kate'})-[:LIVES_IN]->(c),\n" +
+                "(p3:Person {name: 'Budd'})-[:LIVES_IN]->(c),\n" +
+                "(p4:Person {name: 'Alex'})-[:LIVES_IN]->(c),\n" +
+                "(p1)-[:KNOWS]->(p),\n" +
+                "(p2)-[:KNOWS]->(p1),\n" +
+                "(p2)-[:KNOWS]->(p3),\n" +
+                "(p4)-[:KNOWS]->(p3)\n").close();
+
+        List<Label> label = asList(label("City"), label("Person"));
+
+        TestUtil.testResult(db, "MATCH (p:Person)-[:LIVES_IN]->(c:City)\n" +
+                "WITH c, c + collect(p) as subgraph\n" +
+                "CALL apoc.nodes.collapse(subgraph,{mergeVirtualRels:true, countMerge: true}) yield from, rel, to return from, rel, to", null, result -> {
+            Map<String, Object> map = result.next();
+
+            assertEquals(Util.map("name","John", "countNodes", 6, "countProperties", 5), ((VirtualNode)map.get("from")).getAllProperties());
+            assertEquals(label, ((VirtualNode) map.get("from")).getLabels());
+            assertNull(((VirtualRelationship) map.get("rel")));
+            assertNull(((VirtualNode) map.get("to")));
+            assertFalse(result.hasNext());
+        });
+    }
+
+    @Test
+    public void testMergeVirtualNodeBOTH() {
+        db.execute("CREATE \n" +
+                "(p:Person {name: 'John'})-[:LIVES_IN]->(c:City{name:'London'})," +
+                "(c)-[:LIVES_IN]->(p)").close();
+
+        List<Label> label = asList(label("City"), label("Person"));
+
+        TestUtil.testResult(db, "MATCH (p:Person)-[:LIVES_IN]->(c:City)-[:LIVES_IN]->(b:Person)\n" +
+                "CALL apoc.nodes.collapse([c,p,b],{mergeVirtualRels:true, countMerge: true, selfRel: true}) yield from, rel, to return from, rel, to", null, result -> {
+            Map<String, Object> map = result.next();
+
+            assertMerge(map,
+                    Util.map("name", "John", "countNodes", 2, "countProperties", 1), label, //FROM
+                    Util.map("countRels", 3), "LIVES_IN", //REL
+                    Util.map("name", "John", "countNodes", 2, "countProperties", 1), label); //TO
+            assertFalse(result.hasNext());
+        });
+    }
+
+    private static void assertMerge(Map<String, Object> map,
+                                    Map<String, Object> fromProperties, List<Label> fromLabel,
+                                    Map<String, Object> relProperties, String relType,
+                                    Map<String, Object> toProperties, List<Label> toLabel
+    ) {
+        assertEquals(fromProperties, ((VirtualNode)map.get("from")).getAllProperties());
+        assertEquals(fromLabel, ((VirtualNode)map.get("from")).getLabels());
+        assertEquals(relProperties, ((VirtualRelationship)map.get("rel")).getAllProperties());
+        assertEquals(relType, ((VirtualRelationship)map.get("rel")).getType().name());
+        assertEquals(toProperties, ((Node)map.get("to")).getAllProperties());
+        assertEquals(toLabel, ((Node)map.get("to")).getLabels());
     }
 
 }
