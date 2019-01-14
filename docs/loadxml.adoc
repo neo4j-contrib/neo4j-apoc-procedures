@@ -341,6 +341,6 @@ yield node
 return node;
 
 call apoc.xml.import('https://seafile.rlp.net/f/6282a26504cc4f079ab9/?dl=1', {connectCharacters: true, charactersForTag:{lb:' '}, filterLeadingWhitespace: true}) yield node
-return node
+return node;
 
 ----
