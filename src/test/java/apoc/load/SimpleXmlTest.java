@@ -19,7 +19,7 @@ public class SimpleXmlTest {
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][] {
                 {"some text with spaces", Arrays.asList("some" ," ", "text", " ", "with", " ", "spaces")},
-                {" some text with spaces", Arrays.asList("some" ," ", "text", " ", "with", " ", "spaces")}
+                {" some text with spaces", Arrays.asList(" ", "some" ," ", "text", " ", "with", " ", "spaces")}
         });
     }
 

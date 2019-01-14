@@ -27,9 +27,11 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -110,7 +112,7 @@ public class Xml {
 
     private Stream<MapResult> xmlToMapResult(@Name("url") String url, boolean simpleMode) {
         try {
-            XMLStreamReader reader = getXMLStreamReaderFromUrl(url);
+            XMLStreamReader reader = getXMLStreamReaderFromUrl(url, new XmlImportConfig(Collections.EMPTY_MAP));
             final Deque<Map<String, Object>> stack = new LinkedList<>();
             do {
                 handleXmlEvent(stack, reader, simpleMode);
@@ -122,12 +124,17 @@ public class Xml {
         }
     }
 
-    private XMLStreamReader getXMLStreamReaderFromUrl(String url) throws IOException, XMLStreamException {
+    private XMLStreamReader getXMLStreamReaderFromUrl(String url, XmlImportConfig config) throws IOException, XMLStreamException {
         FileUtils.checkReadAllowed(url);
         url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
         URLConnection urlConnection = new URL(url).openConnection();
         FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
-        return FACTORY.createXMLStreamReader(urlConnection.getInputStream());
+        InputStream inputStream = urlConnection.getInputStream();
+
+        if (config.isFilterLeadingWhitespace()) {
+            inputStream = new SkipWhitespaceInputStream(inputStream);
+        }
+        return FACTORY.createXMLStreamReader(inputStream);
     }
 
 
@@ -389,8 +396,12 @@ public class Xml {
         private Label label = Label.label("XmlCharacters");
         private RelationshipType relType = RelationshipType.withName("NE");
         private Map<String, String> charactersForTag = new HashMap<>();
+        final private boolean filterLeadingWhitespace;
 
         public XmlImportConfig(Map<String, Object> config) {
+            connectCharacters = BooleanUtils.toBoolean((Boolean) config.get("connectCharacters"));
+            filterLeadingWhitespace = BooleanUtils.toBoolean((Boolean) config.get("filterLeadingWhitespace"));
+
             String _delimiter = (String) config.get("delimiter");
             if (_delimiter != null) {
                 connectCharacters = true;
@@ -409,8 +420,10 @@ public class Xml {
                 connectCharacters = true;
             }
 
-            Boolean _connectCharacters = (Boolean) config.get("connectCharacters");
-            connectCharacters = BooleanUtils.toBoolean(_connectCharacters);
+            Map<String,String> _charactersForTag = (Map<String, String>) config.get("charactersForTag");
+            if (_charactersForTag !=null) {
+                charactersForTag = _charactersForTag;
+            }
 
             // legacy mode
             // TODO: remove this at some time in future
@@ -420,11 +433,6 @@ public class Xml {
                 relType = RelationshipType.withName("NEXT_WORD");
                 label = Label.label("XmlWord");
                 connectCharacters = true;
-            }
-
-            Map<String,String> _charactersForTag = (Map<String, String>) config.get("charactersForTag");
-            if (_charactersForTag !=null) {
-                charactersForTag = _charactersForTag;
             }
         }
 
@@ -447,6 +455,11 @@ public class Xml {
         public Map<String, String> getCharactersForTag() {
             return charactersForTag;
         }
+
+        public boolean isFilterLeadingWhitespace() {
+            return filterLeadingWhitespace;
+        }
+
     }
 
     private static class ImportState {
@@ -507,10 +520,10 @@ public class Xml {
 
     @Procedure(mode = Mode.WRITE, value = "apoc.xml.import")
     public Stream<NodeResult> importToGraph(@Name("url") String url, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {
-        final XMLStreamReader xml = getXMLStreamReaderFromUrl(url);
-
         XmlImportConfig importConfig = new XmlImportConfig(config);
         //TODO: make labels, reltypes and magic properties configurable
+
+        final XMLStreamReader xml = getXMLStreamReaderFromUrl(url, importConfig);
 
         // stores parents and their most recent child
         org.neo4j.graphdb.Node root = db.createNode(Label.label("XmlDocument"));
@@ -601,20 +614,25 @@ public class Xml {
     }
 
     List<String> parseTextIntoPartsAndDelimiters(String sourceString, Pattern delimiterPattern) {
-        String trimmed = sourceString.trim();
-        Scanner scanner = new Scanner(trimmed).useDelimiter(delimiterPattern);
-        List<String> strings = new ArrayList<>();
-        int previousEnd = 0;
-        while (scanner.hasNext()) {
-            String string = scanner.next();
-            if (previousEnd > 0) {
-                strings.add(trimmed.substring(previousEnd, scanner.match().start()));
-            }
-            previousEnd = scanner.match().end();
+        Matcher matcher = delimiterPattern.matcher(sourceString);
+        ArrayList<String> result = new ArrayList<>();
 
-            strings.add(string);
+        int prevEndIndex = 0;
+        int length = sourceString.length();
+        while (matcher.find()) {
+            int start = matcher.start();
+            int end = matcher.end();
+            if (prevEndIndex != start) {
+                result.add(sourceString.substring(prevEndIndex, start));
+            }
+            result.add(sourceString.substring(start, end));
+            prevEndIndex = end;
         }
-        return strings;
+        if (prevEndIndex!=length) {
+            result.add(sourceString.substring(prevEndIndex, length));
+
+        }
+        return result;
     }
 
     private void setPropertyIfNotNull(org.neo4j.graphdb.Node root, String propertyKey, Object value) {
@@ -622,4 +640,5 @@ public class Xml {
             root.setProperty(propertyKey, value);
         }
     }
+
 }
