@@ -1,7 +1,10 @@
 package apoc.export.csv;
 
 import apoc.util.TestUtil;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
@@ -397,9 +400,10 @@ public class ImportCsvTest {
     }
 
     @Test(expected = QueryExecutionException.class)
-    public void testNoDuplicationsCreated() {
-
-        db.execute("CALL apoc.import.CSV([{fileName: {nodeFile}, labels: ['Person']}], [{fileName: {relFile}, type: 'KNOWS'}], {config})",
+    public void testNoDuplicateEndpointsCreated() {
+        // some of the endpoints of the edges in 'knows.csv' do not exist,
+        // hence this should throw an exception
+        db.execute("CALL apoc.import.csv([{fileName: {nodeFile}, labels: ['Person']}], [{fileName: {relFile}, type: 'KNOWS'}], {config})",
                 map("nodeFile", "file:/persons.csv",
                     "relFile", "file:/knows.csv",
                     "config", map("stringIds", false))).close();
