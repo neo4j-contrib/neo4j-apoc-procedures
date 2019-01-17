@@ -1,5 +1,6 @@
 package apoc.schema;
 
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -612,5 +613,132 @@ public class SchemasTest {
 
     private List<String> expectedKeys(String... keys){
         return asList(keys);
+    }
+
+
+    @Test
+    public void testIndexesOneLabel() {
+        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.execute("CREATE INDEX ON :Bar(foo)").close();
+        db.execute("CREATE INDEX ON :Person(name)").close();
+        db.execute("CREATE INDEX ON :Movie(title)").close();
+        try (Transaction tx = db.beginTx()) {
+            db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
+            tx.success();
+        }
+        testResult(db, "CALL apoc.schema.nodes({labels:['Foo']})", (result) -> {
+            // Get the index info
+            Map<String, Object> r = result.next();
+
+            assertEquals(":Foo(bar)", r.get("name"));
+            assertEquals("ONLINE", r.get("status"));
+            assertEquals("Foo", r.get("label"));
+            assertEquals("INDEX", r.get("type"));
+            assertEquals("bar", ((List<String>) r.get("properties")).get(0));
+            assertEquals("NO FAILURE", r.get("failure"));
+            assertEquals(new Double(100), r.get("populationProgress"));
+            assertEquals(new Double(1), r.get("valuesSelectivity"));
+            assertEquals("Index( GENERAL, :Foo(bar) )", r.get("userDescription"));
+
+            assertTrue(!result.hasNext());
+        });
+    }
+
+    @Test
+    public void testIndexesMoreLabels() {
+        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.execute("CREATE INDEX ON :Bar(foo)").close();
+        db.execute("CREATE INDEX ON :Person(name)").close();
+        db.execute("CREATE INDEX ON :Movie(title)").close();
+        try (Transaction tx = db.beginTx()) {
+            db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
+            tx.success();
+        }
+        testResult(db, "CALL apoc.schema.nodes({labels:['Foo', 'Person']})", (result) -> {
+            // Get the index info
+            Map<String, Object> r = result.next();
+
+            assertEquals(":Foo(bar)", r.get("name"));
+            assertEquals("ONLINE", r.get("status"));
+            assertEquals("Foo", r.get("label"));
+            assertEquals("INDEX", r.get("type"));
+            assertEquals("bar", ((List<String>) r.get("properties")).get(0));
+            assertEquals("NO FAILURE", r.get("failure"));
+            assertEquals(new Double(100), r.get("populationProgress"));
+            assertEquals(new Double(1), r.get("valuesSelectivity"));
+            assertEquals("Index( GENERAL, :Foo(bar) )", r.get("userDescription"));
+
+            r = result.next();
+
+            assertEquals(":Person(name)", r.get("name"));
+            assertEquals("ONLINE", r.get("status"));
+            assertEquals("Person", r.get("label"));
+            assertEquals("INDEX", r.get("type"));
+            assertEquals("name", ((List<String>) r.get("properties")).get(0));
+            assertEquals("NO FAILURE", r.get("failure"));
+            assertEquals(new Double(100), r.get("populationProgress"));
+            assertEquals(new Double(1), r.get("valuesSelectivity"));
+            assertEquals("Index( GENERAL, :Person(name) )", r.get("userDescription"));
+
+            assertTrue(!result.hasNext());
+        });
+    }
+
+    @Test
+    public void testSchemaRelationshipsExclude() {
+        ignoreException(() -> {
+            db.execute("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)").close();
+            testResult(db, "CALL apoc.schema.relationships({excludeRelationships:['LIKED']})", (result) -> {
+                assertTrue(!result.hasNext());
+            });
+
+        }, QueryExecutionException.class);
+    }
+
+    @Test
+    public void testSchemaNodesExclude() {
+        ignoreException(() -> {
+            db.execute("CREATE CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE").close();
+            testResult(db, "CALL apoc.schema.nodes({excludeLabels:['Book']})", (result) -> {
+                assertTrue(!result.hasNext());
+            });
+
+        }, QueryExecutionException.class);
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testIndexesLabelsAndExcludeLabelsValuatedShouldFail() {
+        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.execute("CREATE INDEX ON :Bar(foo)").close();
+        db.execute("CREATE INDEX ON :Person(name)").close();
+        db.execute("CREATE INDEX ON :Movie(title)").close();
+        try (Transaction tx = db.beginTx()) {
+            db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
+            tx.success();
+            testResult(db, "CALL apoc.schema.nodes({labels:['Foo', 'Person', 'Bar'], excludeLabels:['Bar']})", (result) -> {});
+        } catch (IllegalArgumentException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof IllegalArgumentException);
+            assertEquals("Parameters labels and excludelabels are both valuated. Please check parameters and valuate only one.", except.getMessage());
+            throw e;
+        }
+
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testConstraintsRelationshipsAndExcludeRelationshipsValuatedShouldFail() {
+        db.execute("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)").close();
+        db.execute("CREATE CONSTRAINT ON ()-[knows:SINCE]-() ASSERT exists(since.year)").close();
+        try (Transaction tx = db.beginTx()) {
+            db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
+            tx.success();
+            testResult(db, "CALL apoc.schema.relationships({relationships:['LIKED'], excludeRelationships:['SINCE']})", (result) -> {});
+        } catch (IllegalArgumentException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof IllegalArgumentException);
+            assertEquals("Parameters relationships and excluderelationships are both valuated. Please check parameters and valuate only one.", except.getMessage());
+            throw e;
+        }
+
     }
 }
