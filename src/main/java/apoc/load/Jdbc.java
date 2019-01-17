@@ -249,6 +249,7 @@ public class Jdbc {
         }
 
         private Object convert(Object value, int sqlType) {
+            if (value == null) return null;
             if (value instanceof UUID || value instanceof BigInteger || value instanceof BigDecimal) {
                 return value.toString();
             }
