@@ -14,6 +14,7 @@ public class CsvLoaderConfig {
     public static final String STRING_IDS = "stringIds";
     public static final String SKIP_LINES = "skipLines";
     public static final String BATCH_SIZE = "batchSize";
+    public static final String IGNORE_DUPLICATE_NODES = "ignoreDuplicateNodes";
 
     public static char DELIMITER_DEFAULT = ',';
     public static char ARRAY_DELIMITER_DEFAULT = ';';
@@ -21,6 +22,7 @@ public class CsvLoaderConfig {
     public static boolean STRING_IDS_DEFAULT = true;
     public static int SKIP_LINES_DEFAULT = 1;
     public static int BATCH_SIZE_DEFAULT = 2000;
+    public static boolean IGNORE_DUPLICATE_NODES_DEFAULT = false;
 
     private final char delimiter;
     private final char arrayDelimiter;
@@ -28,6 +30,7 @@ public class CsvLoaderConfig {
     private final boolean stringIds;
     private final int skipLines;
     private final int batchSize;
+    private final boolean ignoreDuplicateNodes;
 
     private CsvLoaderConfig(Builder builder) {
         this.delimiter = builder.delimiter;
@@ -36,6 +39,7 @@ public class CsvLoaderConfig {
         this.stringIds = builder.stringIds;
         this.skipLines = builder.skipLines;
         this.batchSize = builder.batchSize;
+        this.ignoreDuplicateNodes = builder.ignoreDuplicateNodes;
     }
 
     public char getDelimiter() {
@@ -61,6 +65,8 @@ public class CsvLoaderConfig {
     public int getBatchSize() {
         return batchSize;
     }
+
+    public boolean getIgnoreDuplicateNodes() { return ignoreDuplicateNodes; }
 
     /**
      * Creates builder to build {@link CsvLoaderConfig}.
@@ -95,6 +101,7 @@ public class CsvLoaderConfig {
         if (config.get(STRING_IDS) != null) builder.stringIds((boolean) config.get(STRING_IDS));
         if (config.get(SKIP_LINES) != null) builder.skipLines((int) config.get(SKIP_LINES));
         if (config.get(BATCH_SIZE) != null) builder.batchSize((int) config.get(BATCH_SIZE));
+        if (config.get(IGNORE_DUPLICATE_NODES) != null) builder.ignoreDuplicateNodes((boolean) config.get(IGNORE_DUPLICATE_NODES));
 
         return builder.build();
     }
@@ -109,6 +116,7 @@ public class CsvLoaderConfig {
         private boolean stringIds = STRING_IDS_DEFAULT;
         private int skipLines = SKIP_LINES_DEFAULT;
         private int batchSize = BATCH_SIZE_DEFAULT;
+        private boolean ignoreDuplicateNodes = IGNORE_DUPLICATE_NODES_DEFAULT;
 
         private Builder() {
         }
@@ -140,6 +148,11 @@ public class CsvLoaderConfig {
 
         public Builder batchSize(int batchSize) {
             this.batchSize = batchSize;
+            return this;
+        }
+
+        public Builder ignoreDuplicateNodes(boolean ignoreDuplicateNodes) {
+            this.ignoreDuplicateNodes = ignoreDuplicateNodes;
             return this;
         }
 
