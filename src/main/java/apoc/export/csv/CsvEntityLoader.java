@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.Arrays;
 
 public class CsvEntityLoader {
 
@@ -100,7 +101,8 @@ public class CsvEntityLoader {
                     if (clc.getIgnoreDuplicateNodes()) {
                         continue;
                     } else {
-                        throw new IllegalStateException("Duplicate node with id " + nodeCsvId + " found/");
+                        throw new IllegalStateException("Duplicate node with id " + nodeCsvId + " found on line "+lineNo+"\n"
+                                                        +Arrays.toString(line));
                     }
                 }
 
