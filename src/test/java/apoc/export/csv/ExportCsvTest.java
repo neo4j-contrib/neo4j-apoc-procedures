@@ -1,14 +1,8 @@
 package apoc.export.csv;
 
-import static apoc.util.MapUtil.map;
-import static org.junit.Assert.*;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.function.Consumer;
-
+import apoc.graph.Graphs;
+import apoc.util.HdfsTestUtils;
+import apoc.util.TestUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -22,9 +16,14 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import apoc.graph.Graphs;
-import apoc.util.HdfsTestUtils;
-import apoc.util.TestUtil;
+import java.io.File;
+import java.nio.file.Files;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.function.Consumer;
+
+import static apoc.util.MapUtil.map;
+import static org.junit.Assert.*;
 
 /**
  * @author mh
@@ -54,8 +53,8 @@ public class ExportCsvTest {
             "\"\",\"\",\"via Benni\",\"[\"\"Address\"\"]\"");
     private static final String EXPECTED_QUERY_QUOTES_NEEDED= String.format( "a.name,a.city,a.street,labels(a)%n" +
             "Andrea,Milano,\"Via Garibaldi, 7\",\"[\"Address1\",\"Address\"]\"%n" +
-            "Bar Sport,,,[\"Address\"]%n" +
-            ",,via Benni,[\"Address\"]");
+            "Bar Sport,,,\"[\"Address\"]\"%n" +
+            ",,via Benni,\"[\"Address\"]\"");
     private static final String EXPECTED = String.format("\"_id\",\"_labels\",\"name\",\"age\",\"male\",\"kids\",\"street\",\"city\",\"_start\",\"_end\",\"_type\"%n" +
             "\"0\",\":User:User1\",\"foo\",\"42\",\"true\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"\",\"\",,,%n" +
             "\"1\",\":User\",\"bar\",\"42\",\"\",\"\",\"\",\"\",,,%n" +
@@ -65,6 +64,24 @@ public class ExportCsvTest {
             "\"22\",\":Address\",\"\",\"\",\"\",\"\",\"via Benni\",\"\",,,%n" +
             ",,,,,,,,\"0\",\"1\",\"KNOWS\"%n" +
             ",,,,,,,,\"20\",\"21\",\"NEXT_DELIVERY\"");
+    private static final String EXPECTED_NONE_QUOTES = String.format("_id,_labels,name,age,male,kids,street,city,_start,_end,_type%n" +
+            "0,:User:User1,foo,42,true,[\"a\",\"b\",\"c\"],,,,,%n" +
+            "1,:User,bar,42,,,,,,,%n" +
+            "2,:User,,12,,,,,,,%n" +
+            "20,:Address:Address1,Andrea,,,,Via Garibaldi, 7,Milano,,,%n" +
+            "21,:Address,Bar Sport,,,,,,,,%n" +
+            "22,:Address,,,,,via Benni,,,,%n" +
+            ",,,,,,,,0,1,KNOWS%n" +
+            ",,,,,,,,20,21,NEXT_DELIVERY");
+    private static final String EXPECTED_NEEDED_QUOTES = String.format("_id,_labels,name,age,male,kids,street,city,_start,_end,_type%n" +
+            "0,:User:User1,foo,42,true,\"[\"a\",\"b\",\"c\"]\",,,,,%n" +
+            "1,:User,bar,42,,,,,,,%n" +
+            "2,:User,,12,,,,,,,%n" +
+            "20,:Address:Address1,Andrea,,,,\"Via Garibaldi, 7\",Milano,,,%n" +
+            "21,:Address,Bar Sport,,,,,,,,%n" +
+            "22,:Address,,,,,via Benni,,,,%n" +
+            ",,,,,,,,0,1,KNOWS%n" +
+            ",,,,,,,,20,21,NEXT_DELIVERY");
 
     private static GraphDatabaseService db;
     private static File directory = new File("target/import");
@@ -94,6 +111,18 @@ public class ExportCsvTest {
     }
 
     @Test
+    public void testExportInvalidQuoteValue() throws Exception {
+        try {
+            File output = new File(directory, "all.csv");
+            TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quote: 'Invalid'}, null)", map("file", output.getAbsolutePath()),
+                    (r) -> assertResults(output, r, "database"));
+            fail();
+        } catch (RuntimeException e) {
+            assertTrue(true);
+        }
+    }
+
+    @Test
     public void testExportAllCsv() throws Exception {
         File output = new File(directory, "all.csv");
         TestUtil.testCall(db, "CALL apoc.export.csv.all({file},null)", map("file", output.getAbsolutePath()),
@@ -107,6 +136,22 @@ public class ExportCsvTest {
         TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quotes: true})", map("file", output.getAbsolutePath()),
                           (r) -> assertResults(output, r, "database"));
         assertEquals(EXPECTED, new Scanner(output).useDelimiter("\\Z").next());
+    }
+
+    @Test
+    public void testExportAllCsvWithoutQuotes() throws Exception {
+        File output = new File(directory, "all.csv");
+        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quotes: 'none'})", map("file", output.getAbsolutePath()),
+                (r) -> assertResults(output, r, "database"));
+        assertEquals(EXPECTED_NONE_QUOTES, new Scanner(output).useDelimiter("\\Z").next());
+    }
+
+    @Test
+    public void testExportAllCsvNeededQuotes() throws Exception {
+        File output = new File(directory, "all.csv");
+        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quotes: 'ifNeeded'})", map("file", output.getAbsolutePath()),
+                (r) -> assertResults(output, r, "database"));
+        assertEquals(EXPECTED_NEEDED_QUOTES, new Scanner(output).useDelimiter("\\Z").next());
     }
 
     @Test
@@ -134,6 +179,17 @@ public class ExportCsvTest {
 
     @Test
     public void testExportGraphCsv() throws Exception {
+        File output = new File(directory, "graph.csv");
+        TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
+                        "CALL apoc.export.csv.graph(graph, {file},{quotes: 'none'}) " +
+                        "YIELD nodes, relationships, properties, file, source,format, time " +
+                        "RETURN *", map("file", output.getAbsolutePath()),
+                (r) -> assertResults(output, r, "graph"));
+        assertEquals(EXPECTED_NONE_QUOTES, new Scanner(output).useDelimiter("\\Z").next());
+    }
+
+    @Test
+    public void testExportGraphCsvWithoutQuotes() throws Exception {
         File output = new File(directory, "graph.csv");
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
                         "CALL apoc.export.csv.graph(graph, {file},null) " +
@@ -246,8 +302,8 @@ public class ExportCsvTest {
             assertEquals(2L, r.get("batchSize"));
             assertEquals(4L, r.get("batches"));
             assertEquals(6L, r.get("nodes"));
-            assertEquals(7L, r.get("rows"));
-            assertEquals(1L, r.get("relationships"));
+            assertEquals(8L, r.get("rows"));
+            assertEquals(2L, r.get("relationships"));
             assertEquals(12L, r.get("properties"));
             assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
             sb.append(r.get("data"));
