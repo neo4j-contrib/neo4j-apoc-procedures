@@ -20,6 +20,9 @@ import javax.lang.model.SourceVersion;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.*;
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,6 +33,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
 
 /**
@@ -699,5 +703,17 @@ public class Util {
         key = Optional.ofNullable(key).map(s -> s + "." + suffix).orElse(StringUtils.EMPTY);
         Object value = ApocConfiguration.get(loadType).get(key);
         return Optional.ofNullable(value).map(Object::toString);
+    }
+
+    public static String dateFormat(TemporalAccessor value, String format){
+        return getFormat(format).format(value);
+    }
+
+    public static Duration durationParse(String value) {
+        return Duration.parse(value);
+    }
+
+    public static DateTimeFormatter getFormat(String format) {
+        return getOrCreate(format);
     }
 }
