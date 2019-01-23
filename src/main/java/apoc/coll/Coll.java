@@ -828,4 +828,22 @@ public class Coll {
 		if (values == null) return false;
         return new HashSet(values).size() == values.size();
     }
+
+
+
+    @UserFunction
+    @Description("apoc.coll.dropDuplicateNeighbors(list) - remove duplicate consecutive objects in a list")
+    public List<Object> dropDuplicateNeighbors(@Name("list") List<Object> list){
+        List<Object> newList = new ArrayList<>();
+
+        Object last = null;
+        for (Object element : list) {
+            if (!element.equals(last)) {
+                newList.add(element);
+                last = element;
+            }
+        }
+
+        return newList;
+    }
 }
