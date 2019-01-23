@@ -5,11 +5,9 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
+import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Collection;
@@ -35,8 +33,6 @@ import static org.junit.Assert.assertTrue;
  * @author mh
  * @since 23.05.16
  */
-@Ignore
-// the access to the internal lucene backed index readers is not easily possible anymore, kinda giving up on this, waiting for index backed order by in 3.5
 public class SchemaIndexTest {
 
     private static GraphDatabaseService db;
@@ -51,7 +47,7 @@ public class SchemaIndexTest {
     public static void setUp() throws Exception {
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
-                .setConfig(GraphDatabaseSettings.default_schema_provider, GraphDatabaseSettings.SchemaIndex.NATIVE20.providerName())  // TODO: switch to NATIVE20 - the default in 3.4
+                //.setConfig(GraphDatabaseSettings.default_schema_provider, GraphDatabaseSettings.SchemaIndex.NATIVE20.providerName())  // TODO: switch to NATIVE20 - the default in 3.4
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, SchemaIndex.class);
         db.execute("CREATE (city:City {name:'London'}) WITH city UNWIND range("+firstPerson+","+lastPerson+") as id CREATE (:Person {name:'name'+id, id:id, age:id % 100, address:id+'Main St.'})-[:LIVES_IN]->(city)").close();
@@ -67,8 +63,11 @@ public class SchemaIndexTest {
         personIds = IntStream.range(firstPerson, lastPerson+1).mapToObj(Long::new).collect(Collectors.toList());
         personNames = IntStream.range(firstPerson, lastPerson+1).mapToObj(Integer::toString).map(i -> "name"+i).sorted().collect(Collectors.toList());
         personAddresses = IntStream.range(firstPerson, lastPerson+1).mapToObj(Integer::toString).map(i -> i+"Main St.").sorted().collect(Collectors.toList());
-        personAges = IntStream.range(firstPerson, lastPerson+1).map(i -> i % 100).sorted().mapToObj(Long::new).collect(Collectors.toList());
-
+        personAges = IntStream.range(firstPerson, lastPerson+1)
+                .map(i -> i % 100)
+                .sorted()
+                .distinct()
+                .mapToObj(Long::new).collect(Collectors.toList());
         try (Transaction tx=db.beginTx()) {
             db.schema().awaitIndexesOnline(2,TimeUnit.SECONDS);
             tx.success();
@@ -224,10 +223,9 @@ public class SchemaIndexTest {
                 map("label",label,"key",""),
                 (result) -> {
                     assertDistinctCountProperties("Person", "address", personAddresses, () -> 1L, result);
+                    assertDistinctCountProperties("Person", "age", personAges, () -> 2L, result);
+                    assertDistinctCountProperties("Person", "id", personIds, () -> 1L, result);
                     assertDistinctCountProperties("Person", "name", personNames, () -> 1L, result);
-                    //todo: update when number terms are supported
-                    //assertDistinctCountProperties("Person", "id", personIds, () -> 1L, result);
-                    //assertDistinctCountProperties("Person", "age", personAges, () -> 1L, result);
                     assertFalse(result.hasNext());
                 });
     }
@@ -241,10 +239,9 @@ public class SchemaIndexTest {
                     assertEquals(map("label","Foo","key","bar","value","four","count",2L),result.next());
                     assertEquals(map("label","Foo","key","bar","value","three","count",1L),result.next());
                     assertDistinctCountProperties("Person", "address", personAddresses, () -> 1L, result);
+                    assertDistinctCountProperties("Person", "age", personAges, () -> 2L, result);
+                    assertDistinctCountProperties("Person", "id", personIds, () -> 1L, result);
                     assertDistinctCountProperties("Person", "name", personNames, () -> 1L, result);
-                    //todo: update when number terms are supported
-                    //assertDistinctCountProperties("Person", "id", personIds, () -> 1L, result);
-                    //assertDistinctCountProperties("Person", "age", personAges, () -> 1L, result);
                     assertFalse(result.hasNext());
                 });
     }
