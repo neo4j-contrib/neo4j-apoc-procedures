@@ -1,41 +1,77 @@
 package apoc.couchbase;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
+import apoc.couchbase.document.CouchbaseJsonDocument;
+import apoc.couchbase.document.CouchbaseQueryResult;
+import apoc.result.BooleanResult;
+import apoc.util.TestUtil;
+import com.couchbase.client.java.Bucket;
+import com.couchbase.client.java.bucket.BucketType;
+import com.couchbase.client.java.cluster.DefaultBucketSettings;
+import com.couchbase.client.java.document.JsonDocument;
+import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.error.DocumentAlreadyExistsException;
+import org.junit.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.test.TestGraphDatabaseFactory;
+import org.testcontainers.couchbase.CouchbaseContainer;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import apoc.util.MissingDependencyException;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
+import static apoc.couchbase.CouchbaseTestUtils.*;
+import static org.junit.Assert.*;
+import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
-import com.couchbase.client.java.document.JsonDocument;
-import com.couchbase.client.java.document.json.JsonObject;
-import com.couchbase.client.java.error.DocumentAlreadyExistsException;
+@Ignore // The same tests are covered from CouchbaseIT, for now we disable this in order to reduce the build time
+public class CouchbaseTest {
 
-import apoc.couchbase.document.CouchbaseJsonDocument;
-import apoc.couchbase.document.CouchbaseQueryResult;
-import apoc.result.BooleanResult;
+    private static String HOST = null;
 
-@Ignore
-public class CouchbaseTest extends CouchbaseAbstractTest {
+    private static Bucket couchbaseBucket;
+
+    private static GraphDatabaseService graphDB;
+
+    @ClassRule
+    public static CouchbaseContainer couchbase;
 
     @BeforeClass
-    public static void setUp() throws Exception {
-        CouchbaseAbstractTest.setUp();
-        assumeTrue(couchbaseRunning);
+    public static void setUp() {
+        TestUtil.ignoreException(() -> {
+            couchbase = new CouchbaseContainer()
+                    .withClusterAdmin(USERNAME, PASSWORD)
+                    .withNewBucket(DefaultBucketSettings.builder()
+                            .password(PASSWORD)
+                            .name(BUCKET_NAME)
+                            .quota(100)
+                            .type(BucketType.COUCHBASE)
+                            .build());
+            couchbase.start();
+        }, Exception.class);
+        assumeNotNull(couchbase);
+        assumeTrue("couchbase must be running", couchbase.isRunning());
+        boolean isFilled = fillDB(couchbase.getCouchbaseCluster());
+        assumeTrue("should fill Couchbase with data", isFilled);
+        HOST = getUrl(couchbase);
+        couchbaseBucket = getCouchbaseBucket(couchbase);
+        graphDB = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
+                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY,
+                        CONNECTION_TIMEOUT_CONFIG_VALUE)
+                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY,
+                        SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
+                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY,
+                        KV_TIMEOUT_CONFIG_VALUE)
+                .newGraphDatabase();
     }
 
-    @Before
-    public void assumeIsRunning() {
-        assumeTrue(couchbaseRunning);
+    @AfterClass
+    public static void tearDown() {
+        if (couchbase != null) {
+            couchbase.stop();
+            graphDB.shutdown();
+        }
     }
 
     @Test
@@ -47,11 +83,6 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
             Iterator<CouchbaseJsonDocument> iterator = stream.iterator();
             assertTrue(iterator.hasNext());
             CouchbaseJsonDocument couchbaseJsonDocument = iterator.next();
-            checkDocumentMetadata(
-                    couchbaseJsonDocument.getId(),
-                    couchbaseJsonDocument.getExpiry(),
-                    couchbaseJsonDocument.getCas(),
-                    couchbaseJsonDocument.getMutationToken());
             checkDocumentContent(
                     (String) couchbaseJsonDocument.getContent().get("firstName"),
                     (String) couchbaseJsonDocument.getContent().get("secondName"),
@@ -87,7 +118,7 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
     public void testInsert() {
         try {
             //@eclipse-formatter:off
-            Stream<CouchbaseJsonDocument> stream = new Couchbase().insert(HOST, BUCKET_NAME, "testInsert", jsonDocumentCreatedForThisTest.content().toString());
+            Stream<CouchbaseJsonDocument> stream = new Couchbase().insert(HOST, BUCKET_NAME, "testInsert", VINCENT_VAN_GOGH.toString());
             Iterator<CouchbaseJsonDocument> iterator = stream.iterator();
             assertTrue(iterator.hasNext());
             CouchbaseJsonDocument couchbaseJsonDocument = iterator.next();
@@ -107,9 +138,8 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
         }
     }
 
-    @Test
+    @Test(expected = DocumentAlreadyExistsException.class)
     public void testInsertWithAlreadyExistingID() {
-        expectedEx.expect(DocumentAlreadyExistsException.class);
         //@eclipse-formatter:off
         new Couchbase().insert(HOST, BUCKET_NAME, "artist:vincent_van_gogh", JsonObject.empty().toString());
         //@eclipse-formatter:on
@@ -120,7 +150,7 @@ public class CouchbaseTest extends CouchbaseAbstractTest {
     public void testUpsert() {
         try {
             //@eclipse-formatter:off
-            Stream<CouchbaseJsonDocument> stream = new Couchbase().upsert(HOST, BUCKET_NAME, "testUpsert", jsonDocumentCreatedForThisTest.content().toString());
+            Stream<CouchbaseJsonDocument> stream = new Couchbase().upsert(HOST, BUCKET_NAME, "testUpsert", VINCENT_VAN_GOGH.toString());
             Iterator<CouchbaseJsonDocument> iterator = stream.iterator();
             assertTrue(iterator.hasNext());
             CouchbaseJsonDocument couchbaseJsonDocument = iterator.next();

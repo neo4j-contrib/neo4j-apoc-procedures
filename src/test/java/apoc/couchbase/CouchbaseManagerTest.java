@@ -3,11 +3,14 @@ package apoc.couchbase;
 import com.couchbase.client.java.auth.PasswordAuthenticator;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.Arrays;
 import java.util.List;
+
+import static apoc.couchbase.CouchbaseTestUtils.*;
 
 /**
  * Created by alberto.delazzari on 24/08/2018.
@@ -24,17 +27,27 @@ public class CouchbaseManagerTest {
 
     private static final String COUCHBASE_CONFIG_KEY = "demo";
 
+    private static GraphDatabaseService graphDB;
+
     @BeforeClass
-    public static void setUp() throws Exception {
-
+    public static void setUp() {
         String baseConfigKey = "apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + COUCHBASE_CONFIG_KEY + ".";
-
-        new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
+        graphDB = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
                 .setConfig(baseConfigKey + CouchbaseManager.URI_CONFIG_KEY, "localhost")
                 .setConfig(baseConfigKey + CouchbaseManager.USERNAME_CONFIG_KEY, USERNAME)
-                .setConfig(baseConfigKey + CouchbaseManager.PASSWORD_CONFIG_KEY, PASSWORD
-                )
+                .setConfig(baseConfigKey + CouchbaseManager.PASSWORD_CONFIG_KEY, PASSWORD)
+                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY,
+                        CONNECTION_TIMEOUT_CONFIG_VALUE)
+                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY,
+                        SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
+                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY,
+                        KV_TIMEOUT_CONFIG_VALUE)
                 .newGraphDatabase();
+    }
+
+    @AfterClass
+    public static void tearDown() {
+        graphDB.shutdown();
     }
 
     @Test
@@ -88,5 +101,10 @@ public class CouchbaseManagerTest {
         Assert.assertEquals(USERNAME, connectionObjectsFromHostOrKey.first().username());
         Assert.assertEquals(PASSWORD, connectionObjectsFromHostOrKey.first().password());
         Assert.assertEquals(Arrays.asList("localhost"), connectionObjectsFromHostOrKey.other());
+    }
+
+    @Test
+    public void testConfig() {
+        Assert.assertEquals(CONNECTION_TIMEOUT_CONFIG_VALUE, CouchbaseManager.getConfig(CONNECTION_TIMEOUT_CONFIG_KEY));
     }
 }

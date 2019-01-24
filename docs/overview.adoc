@@ -452,8 +452,8 @@ Adding on config the parameter `failOnError:false` (by default `true`), in case 
 | CALL apoc.mongodb.first(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true\|false]) yield value | perform a first operation on mongodb collection
 | CALL apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,[compatibleValues=true\|false],skip-or-null) yield value | perform a find,project,sort operation on mongodb collection
 | CALL apoc.mongodb.insert(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
-| CALL apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
-| CALL apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
+| CALL apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) yield value | deletes the given documents from the mongodb collection and returns the number of affected documents
+| CALL apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) yield value | updates the given documents from the mongodb collection and returns the number of affected documents
 |===
 
 If your documents have date fields or any other type that can be automatically converted by Neo4j, you need to set *compatibleValues* to true. These values will be converted according to Jackson databind default mapping.
@@ -528,12 +528,24 @@ Otherwise you can use configuration properties in the same way as MongoDB. For e
 apoc.couchbase.mykey.username=Administrator
 apoc.couchbase.mykey.password=password
 apoc.couchbase.mykey.uri=host1,host2,host3 // here you can define more than one hostname if you're using a cluster
+apoc.couchbase.mykey.port=8091 // the bootstrapHttpDirectPort (optional)
 ----
 
 [source,cypher]
 ----
 CALL apoc.couchbase.get('mykey', 'default', 'artist:vincent_van_gogh')
 ----
+
+You can also define some CouchbaseEnvironment parameters in the neo4j.conf:
+----
+apoc.couchbase.connectTimeout=<default=5000>
+apoc.couchbase.socketConnectTimeout=<default=1500>
+apoc.couchbase.kvTimeout=<default=2500>
+apoc.couchbase.ioPoolSize=<default=3>
+apoc.couchbase.computationPoolSize=<default=3>
+----
+In order to get an in-depth description of these configuration params please refer to the https://docs.couchbase.com/java-sdk/2.7/client-settings.html[Official Couchbase Documentation]
+
 // end::couchbase[]
 
 == Streaming Data to Gephi
