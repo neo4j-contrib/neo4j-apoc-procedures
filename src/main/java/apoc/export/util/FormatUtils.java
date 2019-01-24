@@ -1,7 +1,10 @@
 package apoc.export.util;
 
+import apoc.util.JsonUtil;
 import apoc.util.Util;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.spatial.Point;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -73,7 +76,18 @@ public class FormatUtils {
         if (value instanceof Number) {
             return formatNumber((Number)value);
         }
+        if (value instanceof Point) {
+            return formatPoint((Point) value);
+        }
         return value.toString();
+    }
+
+    public static String formatPoint(Point value) {
+        try {
+            return JsonUtil.OBJECT_MAPPER.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static List<String> getLabelsSorted(Node node) {
