@@ -1,16 +1,18 @@
 package apoc.convert;
 
-import java.util.*;
-import java.io.*;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.*;
-
-import org.neo4j.procedure.Description;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.procedure.*;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Json {
 
@@ -69,17 +71,20 @@ public class Json {
     }
 
     @Procedure("apoc.convert.toTree")
-    @Description("apoc.convert.toTree([paths],[lowerCaseRels=true]) creates a stream of nested documents representing the at least one root of these paths")
+    @Description("apoc.convert.toTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the at least one root of these paths")
     // todo optinally provide root node
-    public Stream<MapResult> toTree(@Name("paths") List<Path> paths, @Name(value = "lowerCaseRels",defaultValue = "true") boolean lowerCaseRels) {
+    public Stream<MapResult> toTree(@Name("paths") List<Path> paths, @Name(value = "lowerCaseRels",defaultValue = "true") boolean lowerCaseRels, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (paths.isEmpty()) return Stream.of(new MapResult(Collections.emptyMap()));
+        ConvertConfig conf = new ConvertConfig(config);
+        Map<String, List<String>> nodes = conf.getNodes();
+        Map<String, List<String>> rels = conf.getRels();
 
         Map<Long, Map<String, Object>> maps = new HashMap<>(paths.size() * 100);
         for (Path path : paths) {
             Iterator<PropertyContainer> it = path.iterator();
             while (it.hasNext()) {
                 Node n = (Node) it.next();
-                Map<String, Object> nMap = maps.computeIfAbsent(n.getId(), (id) -> toMap(n));
+                Map<String, Object> nMap = maps.computeIfAbsent(n.getId(), (id) -> toMap(n, nodes));
                 if (it.hasNext()) {
                     Relationship r = (Relationship) it.next();
                     Node m = r.getOtherNode(n);
@@ -92,8 +97,8 @@ public class Json {
                             .filter(elem -> elem.get("_id").equals(m.getId()))
                             .findFirst();
                     if (!optMap.isPresent()) {
-                        Map<String, Object> mMap = toMap(m);
-                        mMap = addRelProperties(mMap, typeName, r);
+                        Map<String, Object> mMap = toMap(m, nodes);
+                        mMap = addRelProperties(mMap, typeName, r, rels);
                         maps.put(m.getId(), mMap);
                         list.add(maps.get(m.getId()));
                     }
@@ -136,20 +141,34 @@ public class Json {
         }
     }
 
-    private Map<String, Object> addRelProperties(Map<String, Object> mMap, String typeName, Relationship r) {
+    private Map<String, Object> addRelProperties(Map<String, Object> mMap, String typeName, Relationship r, Map<String, List<String>> relFilters) {
         Map<String, Object> rProps = r.getAllProperties();
         if (rProps.isEmpty()) return mMap;
         String prefix = typeName + ".";
+        if (relFilters.containsKey(typeName)) {
+            rProps = filterProperties(rProps, relFilters.get(typeName));
+        }
         rProps.forEach((k, v) -> mMap.put(prefix + k, v));
         return mMap;
     }
 
-    private Map<String, Object> toMap(Node n) {
+    private Map<String, Object> toMap(Node n, Map<String, List<String>> nodeFilters) {
         Map<String, Object> props = n.getAllProperties();
         Map<String, Object> result = new LinkedHashMap<>(props.size() + 2);
+        String type = Util.labelString(n);
         result.put("_id", n.getId());
-        result.put("_type", Util.labelString(n));
+        result.put("_type", type);
+        if (nodeFilters.containsKey(type)){ //Check if list contains LABEL
+            props = filterProperties(props, nodeFilters.get(type));
+        }
         result.putAll(props);
         return result;
     }
+
+    private Map<String, Object> filterProperties(Map<String, Object> props, List<String> filters) {
+        boolean isExclude = filters.get(0).startsWith("-");
+
+        return props.entrySet().stream().filter(e -> isExclude ? !filters.contains("-" + e.getKey()) : filters.contains(e.getKey())).collect(Collectors.toMap(k -> k.getKey(), v -> v.getValue()));
+    }
+
 }
