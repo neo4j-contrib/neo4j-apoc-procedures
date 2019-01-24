@@ -278,7 +278,27 @@ GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 | apoc.export.graphml.graph(graph,file,config) | exports given graph object as graphml to the provided file
 | apoc.export.graphml.query(query,file,config) | exports nodes and relationships from the Cypher statement as graphml to the provided file
 |===
+
+All `Point` or `Temporal` data types are exported formatted as a String
+
+e.g:
+[cols="1m,2"]
+|===
+|Point 3d | {"crs":"wgs-84-3d","latitude":56.7,"longitude":12.78,"height":100.0}
+|Point 2d | {"crs":"wgs-84-3d","latitude":56.7,"longitude":12.78,"height":null}
+|Date | 2018-10-10
+|LocalDateTime | 2018-10-10T00:00
+|===
 // end::export.graphml[]
+
+.configuration options
+[options=header]
+|===
+| param | default | description
+| format | | In export to Graphml script define the export format. Possible value is: "gephi"
+| caption | | It's an array of string (i.e. ['name','title']) that define an ordered set of properties eligible as value for the `Label` value, if no match is found the there is a fallback to the node label, if the node label is missing the then the ID is used
+| useTypes | false | Write the attribute type information to the graphml output
+|===
 
 ==== Note:
 

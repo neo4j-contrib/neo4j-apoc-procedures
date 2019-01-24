@@ -1,9 +1,6 @@
 package apoc.export.graphml;
 
-import apoc.export.util.ExportConfig;
-import apoc.export.util.FormatUtils;
-import apoc.export.util.MetaInformation;
-import apoc.export.util.Reporter;
+import apoc.export.util.*;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
@@ -12,13 +9,11 @@ import org.neo4j.graphdb.Relationship;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
-import java.io.IOException;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 
-import static apoc.export.util.MetaInformation.getLabelsString;
-import static apoc.export.util.MetaInformation.updateKeyTypes;
+import static apoc.export.util.MetaInformation.*;
 
 /**
  * @author mh
@@ -30,33 +25,45 @@ public class XmlGraphMLWriter {
         XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
         XMLStreamWriter xmlWriter = xmlOutputFactory.createXMLStreamWriter(writer);
         writeHeader(xmlWriter);
-        if (config.useTypes()) writeKeyTypes(xmlWriter, graph);
+        writeKey(xmlWriter, graph, config);
         writeGraph(xmlWriter);
         for (Node node : graph.getNodes()) {
-            int props = writeNode(xmlWriter, node);
+            int props = writeNode(xmlWriter, node, config);
             reporter.update(1, 0, props);
         }
         for (Relationship rel : graph.getRelationships()) {
-            int props = writeRelationship(xmlWriter, rel);
+            int props = writeRelationship(xmlWriter, rel, config);
             reporter.update(0, 1, props);
         }
         writeFooter(xmlWriter);
     }
 
-    private void writeKeyTypes(XMLStreamWriter writer, SubGraph ops) throws Exception {
+    private void writeKey(XMLStreamWriter writer, SubGraph ops, ExportConfig config) throws Exception {
         Map<String, Class> keyTypes = new HashMap<>();
         for (Node node : ops.getNodes()) {
+            if (node.getLabels().iterator().hasNext()) {
+                keyTypes.put("label", String.class);
+            }
             updateKeyTypes(keyTypes, node);
         }
-        writeKeyTypes(writer, keyTypes, "node");
+        boolean useTypes = config.useTypes();
+        ExportFormat format = config.getFormat();
+        if (format == ExportFormat.GEPHI) {
+            keyTypes.put("TYPE", String.class);
+        }
+        writeKey(writer, keyTypes, "node", useTypes);
         keyTypes.clear();
         for (Relationship rel : ops.getRelationships()) {
+            keyTypes.put("label", String.class);
             updateKeyTypes(keyTypes, rel);
         }
-        writeKeyTypes(writer, keyTypes, "edge");
+        if (format == ExportFormat.GEPHI) {
+            keyTypes.put("TYPE", String.class);
+        }
+        writeKey(writer, keyTypes, "edge", useTypes);
     }
 
-    private void writeKeyTypes(XMLStreamWriter writer, Map<String, Class> keyTypes, String forType) throws IOException, XMLStreamException {
+    private void writeKey(XMLStreamWriter writer, Map<String, Class> keyTypes, String forType, boolean useTypes) throws XMLStreamException {
         for (Map.Entry<String, Class> entry : keyTypes.entrySet()) {
             Class typeClass = entry.getValue();
             String type = MetaInformation.typeFor(typeClass, MetaInformation.GRAPHML_ALLOWED);
@@ -65,21 +72,23 @@ public class XmlGraphMLWriter {
             writer.writeAttribute("id", entry.getKey());
             writer.writeAttribute("for", forType);
             writer.writeAttribute("attr.name", entry.getKey());
-            if (typeClass.isArray()) {
-                writer.writeAttribute("attr.type", "string");
-                writer.writeAttribute("attr.list",type);
-            } else {
-                writer.writeAttribute("attr.type", type);
+            if (useTypes) {
+                if (typeClass.isArray()) {
+                    writer.writeAttribute("attr.type", "string");
+                    writer.writeAttribute("attr.list", type);
+                } else {
+                    writer.writeAttribute("attr.type", type);
+                }
             }
             newLine(writer);
         }
     }
 
-    private int writeNode(XMLStreamWriter writer, Node node) throws IOException, XMLStreamException {
+    private int writeNode(XMLStreamWriter writer, Node node, ExportConfig config) throws XMLStreamException {
         writer.writeStartElement("node");
         writer.writeAttribute("id", id(node));
         writeLabels(writer, node);
-        writeLabelsAsData(writer, node);
+        writeLabelsAsData(writer, node, config);
         int props = writeProps(writer, node);
         endElement(writer);
         return props;
@@ -89,24 +98,33 @@ public class XmlGraphMLWriter {
         return "n" + node.getId();
     }
 
-    private void writeLabels(XMLStreamWriter writer, Node node) throws IOException, XMLStreamException {
+    private void writeLabels(XMLStreamWriter writer, Node node) throws XMLStreamException {
         String labelsString = getLabelsString(node);
         if (!labelsString.isEmpty()) writer.writeAttribute("labels", labelsString);
     }
 
-    private void writeLabelsAsData(XMLStreamWriter writer, Node node) throws IOException, XMLStreamException {
+    private void writeLabelsAsData(XMLStreamWriter writer, Node node, ExportConfig config) throws XMLStreamException {
         String labelsString = getLabelsString(node);
         if (labelsString.isEmpty()) return;
-        writeData(writer, "labels", labelsString);
+        String delimiter = ":";
+        if (config.getFormat() == ExportFormat.GEPHI) {
+            writeData(writer, "TYPE", delimiter + FormatUtils.joinLabels(node, delimiter));
+            writeData(writer, "label", getLabelsStringGephi(config, node));
+        } else {
+            writeData(writer, "labels", labelsString);
+        }
     }
 
-    private int writeRelationship(XMLStreamWriter writer, Relationship rel) throws IOException, XMLStreamException {
+    private int writeRelationship(XMLStreamWriter writer, Relationship rel, ExportConfig config) throws XMLStreamException {
         writer.writeStartElement("edge");
         writer.writeAttribute("id", id(rel));
         writer.writeAttribute("source", id(rel.getStartNode()));
         writer.writeAttribute("target", id(rel.getEndNode()));
         writer.writeAttribute("label", rel.getType().name());
         writeData(writer, "label", rel.getType().name());
+        if (config.getFormat() == ExportFormat.GEPHI) {
+            writeData(writer, "TYPE", rel.getType().name());
+        }
         int props = writeProps(writer, rel);
         endElement(writer);
         return props;
@@ -121,7 +139,7 @@ public class XmlGraphMLWriter {
         newLine(writer);
     }
 
-    private int writeProps(XMLStreamWriter writer, PropertyContainer node) throws IOException, XMLStreamException {
+    private int writeProps(XMLStreamWriter writer, PropertyContainer node) throws XMLStreamException {
         int count = 0;
         for (String prop : node.getPropertyKeys()) {
             Object value = node.getProperty(prop);
@@ -131,7 +149,7 @@ public class XmlGraphMLWriter {
         return count;
     }
 
-    private void writeData(XMLStreamWriter writer, String prop, Object value) throws IOException, XMLStreamException {
+    private void writeData(XMLStreamWriter writer, String prop, Object value) throws XMLStreamException {
         writer.writeStartElement("data");
         writer.writeAttribute("key", prop);
         if (value != null) {
@@ -140,13 +158,13 @@ public class XmlGraphMLWriter {
         writer.writeEndElement();
     }
 
-    private void writeFooter(XMLStreamWriter writer) throws IOException, XMLStreamException {
+    private void writeFooter(XMLStreamWriter writer) throws XMLStreamException {
         endElement(writer);
         endElement(writer);
         writer.writeEndDocument();
     }
 
-    private void writeHeader(XMLStreamWriter writer) throws IOException, XMLStreamException {
+    private void writeHeader(XMLStreamWriter writer) throws XMLStreamException {
         writer.writeStartDocument("UTF-8", "1.0");
         newLine(writer);
         writer.writeStartElement("graphml"); // todo properties
