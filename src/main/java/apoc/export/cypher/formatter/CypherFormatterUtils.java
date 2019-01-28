@@ -29,7 +29,7 @@ public class CypherFormatterUtils {
 
     // ---- node id ----
 
-    public static  String formatNodeLookup(String id, Node node, Map<String, String> uniqueConstraints, Set<String> indexNames) {
+    public static  String formatNodeLookup(String id, Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexNames) {
         StringBuilder result = new StringBuilder(100);
         result.append("(");
         result.append(id);
@@ -51,17 +51,19 @@ public class CypherFormatterUtils {
         return result.toString();
     }
 
-    private static Map<String, Object> getNodeIdProperties(Node node, Map<String, String> uniqueConstraints) {
+    private static Map<String, Object> getNodeIdProperties(Node node, Map<String, Set<String>> uniqueConstraints) {
         Map<String, Object> nodeIdProperties = new LinkedHashMap<>();
         boolean uniqueLabelFound = false;
         List<String> list = getLabelsSorted(node);
 
         for (String labelName : list) {
-            String prop = uniqueConstraints.get(labelName);
-            if (prop != null && node.hasProperty(prop)) {
-                uniqueLabelFound = true;
-                nodeIdProperties.put(prop, node.getProperty(prop));
+            uniqueLabelFound = isUniqueLabelFound(node, uniqueConstraints, labelName);
+            if (!uniqueLabelFound) {
+                continue;
             }
+            uniqueConstraints.get(labelName).forEach(prop -> {
+                nodeIdProperties.put(prop, node.getProperty(prop));
+            });
         }
         if (!uniqueLabelFound) {
             nodeIdProperties.put(UNIQUE_ID_PROP, node.getId());
@@ -71,15 +73,13 @@ public class CypherFormatterUtils {
 
     // ---- labels ----
 
-    public static String formatAllLabels(Node node, Map<String, String> uniqueConstraints, Set<String> indexNames) {
+    public static String formatAllLabels(Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexNames) {
         StringBuilder result = new StringBuilder(100);
         boolean uniqueLabelFound = false;
         List<String> list = getLabelsSorted(node);
 
         for (String labelName : list) {
-            String prop = uniqueConstraints.get(labelName);
-            if (prop != null && node.hasProperty(prop))
-                uniqueLabelFound = true;
+            uniqueLabelFound = isUniqueLabelFound(node, uniqueConstraints, labelName);
             if (indexNames != null && indexNames.contains(labelName))
                 result.insert(0, label(labelName));
             else
@@ -91,13 +91,12 @@ public class CypherFormatterUtils {
         return result.toString();
     }
 
-    public static String formatNotUniqueLabels(String id, Node node, Map<String, String> uniqueConstraints) {
+    public static String formatNotUniqueLabels(String id, Node node, Map<String, Set<String>> uniqueConstraints) {
         StringBuilder result = new StringBuilder(100);
         List<String> list = getLabelsSorted(node);
 
         for (String labelName : list) {
-            String prop = uniqueConstraints.get(labelName);
-            if (!node.hasProperty(prop)) {
+            if (!isUniqueLabelFound(node, uniqueConstraints, labelName)) {
                 result.append(", ");
                 result.append(id);
                 result.append(label(labelName));
@@ -106,21 +105,23 @@ public class CypherFormatterUtils {
         return result.length() > 0 ? result.substring(2) : "";
     }
 
-    private static String getNodeIdLabels(Node node, Map<String, String> uniqueConstraints, Set<String> indexNames) {
+    private static String getNodeIdLabels(Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexNames) {
         StringBuilder result = new StringBuilder(100);
         boolean uniqueLabelFound = false;
         List<String> list = getLabelsSorted(node);
 
         for (String labelName : list) {
-            String prop = uniqueConstraints.get(labelName);
-            if (prop != null && node.hasProperty(prop)) {
-                uniqueLabelFound = true;
-                if (indexNames != null && indexNames.contains(labelName)) {
-                    result.insert(0, label(labelName));
-                }
-                else
-                    result.append(label(labelName));
+            uniqueLabelFound = isUniqueLabelFound(node, uniqueConstraints, labelName);
+
+            if (!uniqueLabelFound) {
+                continue;
             }
+
+            if (indexNames != null && indexNames.contains(labelName)) {
+                result.insert(0, label(labelName));
+            }
+            else
+                result.append(label(labelName));
         }
         if (!uniqueLabelFound) {
             result.append(label(UNIQUE_ID_LABEL));
@@ -128,9 +129,18 @@ public class CypherFormatterUtils {
         return result.toString();
     }
 
+    public static boolean isUniqueLabelFound(Node node, Map<String, Set<String>> uniqueConstraints, String labelName) {
+        if (uniqueConstraints.containsKey(labelName)) {
+            Set<String> nodeUniqueConstraint = uniqueConstraints.get(labelName);
+            return nodeUniqueConstraint.stream().allMatch(node::hasProperty);
+        } else {
+            return false;
+        }
+    }
+
     // ---- properties ----
 
-    public static String formatNodeProperties(String id, Node node, Map<String, String> uniqueConstraints, Set<String> indexNames, boolean jsonStyle) {
+    public static String formatNodeProperties(String id, Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexNames, boolean jsonStyle) {
         StringBuilder result = formatProperties(id, node.getAllProperties(), jsonStyle);
         if (getNodeIdLabels(node, uniqueConstraints, indexNames).endsWith(label(UNIQUE_ID_LABEL))) {
             result.append(", ");
@@ -144,7 +154,7 @@ public class CypherFormatterUtils {
         return result.length() > 0 ? result.substring(2) : "";
     }
 
-    public static String formatNotUniqueProperties(String id, Node node, Map<String, String> uniqueConstraints, Set<String> indexedProperties, boolean jsonStyle) {
+    public static String formatNotUniqueProperties(String id, Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, boolean jsonStyle) {
         Map<String, Object> properties = new LinkedHashMap<>();
         List<String> keys = Iterables.asList(node.getPropertyKeys());
         Collections.sort(keys);

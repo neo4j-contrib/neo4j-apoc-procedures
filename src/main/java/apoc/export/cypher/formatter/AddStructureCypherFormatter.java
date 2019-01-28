@@ -14,12 +14,12 @@ import java.util.Set;
 public class AddStructureCypherFormatter extends AbstractCypherFormatter implements CypherFormatter {
 
 	@Override
-	public String statementForNode(Node node, Map<String, String> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames) {
+	public String statementForNode(Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames) {
 		return super.mergeStatementForNode(CypherFormat.ADD_STRUCTURE, node, uniqueConstraints, indexedProperties, indexNames);
 	}
 
 	@Override
-	public String statementForRelationship(Relationship relationship,  Map<String, String> uniqueConstraints, Set<String> indexedProperties) {
+	public String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties) {
 		return new CreateCypherFormatter().statementForRelationship(relationship, uniqueConstraints, indexedProperties);
 	}
 
@@ -34,7 +34,7 @@ public class AddStructureCypherFormatter extends AbstractCypherFormatter impleme
 	}
 
 	@Override
-	public String statementForConstraint(String label, String key) {
+	public String statementForConstraint(String label, Iterable<String> keys) {
 		return "";
 	}
 }
