@@ -20,8 +20,11 @@ public class RefactorConfig {
 
 	private Object mergeRelsAllowed;
 
+	private boolean hasProperties;
+
 	public RefactorConfig(Map<String,Object> config) {
 		Object value = config.get("properties");
+		hasProperties = value != null;
 		if (value instanceof String) {
 			this.propertiesManagement = Collections.singletonMap(MATCH_ALL, value.toString());
 		} else if (value instanceof Map) {
@@ -44,5 +47,11 @@ public class RefactorConfig {
 	public boolean getMergeRelsAllowed(){
 		return mergeRelsAllowed == null ? false : (boolean) mergeRelsAllowed;
 	}
+
+	public boolean hasProperties() {
+		return hasProperties;
+	}
+
+
 
 }
