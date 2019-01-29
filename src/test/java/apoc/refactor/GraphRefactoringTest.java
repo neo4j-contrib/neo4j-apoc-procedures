@@ -479,7 +479,7 @@ public class GraphRefactoringTest {
     }
 
     @Test
-    public void testMergeNodesAndMergeSameRelationship() {
+    public void testMergeNodesAndMergeSameRelationshipWithPropertiesConfig() {
         db.execute("create (a1:ALabel {name:'a1'})-[:HAS_REL {p:'r1'}]->(b1:BLabel {name:'b1'})," +
                 "          (a2:ALabel {name:'a2'})-[:HAS_REL{p:'r2'}]->(b1)," +
                 "           (a3:ALabel {name:'a3'})<-[:HAS_REL{p:'r3'}]-(b1)," +
@@ -526,10 +526,46 @@ public class GraphRefactoringTest {
                     assertEquals(4,resultingNode.getDegree(Direction.OUTGOING));
                     assertEquals(1,c.getDegree(Direction.INCOMING));
                     assertEquals(true, r.isType(RelationshipType.withName("HAS_REL")));
+                    assertEquals("r1", r.getProperty("p"));
+                    assertEquals(true, r1.isType(RelationshipType.withName("HAS_REL")));
+                    assertEquals("r1", r1.getProperty("p"));
+                }
+        );
+    }
+
+    @Test
+    public void testMergeNodesAndMergeSameRelationshipsAndNodesWithoutPropertiesConfig() {
+        db.execute("Create (n1:ALabel {name:'a1'})," +
+                "    (n2:ALabel {name:'a2'})," +
+                "    (n3:BLabel {p1:'a3'})," +
+                "     (n4:BLabel {p1:'a4'})," +
+                "     (n5:CLabel {p3:'a5'})," +
+                "     (n6:DLabel:Cat {p:'a6'})," +
+                "     (n1)-[:HAS_REL{p:'r1'}]->(n3)," +
+                "     (n2)-[:HAS_REL{p:'r2'}]->(n3)," +
+                "     (n1)-[:HAS_REL{p:'r1'}]->(n4)," +
+                "     (n2)-[:HAS_REL{p:'r2'}]->(n4)," +
+                "     (n1)-[:HAS_REL_A{p5:'r3'}]->(n5)," +
+                "     (n2)-[:HAS_REL_B{p6:'r4'}]->(n6)");
+
+        testCall(db, "MATCH (a1:ALabel{name:'a1'}), (a2:ALabel {name:'a2'})" +
+                        "     WITH [a1,a2] as nodes CALL apoc.refactor.mergeNodes(nodes,{mergeRels:true}) yield node MATCH (n)-[r:HAS_REL]->(c:BLabel{p1:'a3'}) MATCH (n1)-[r1:HAS_REL]->(c1:BLabel{p1:'a4'}) return node, n, r ,c,n1,r1,c1 ",
+                row -> {
+                    assertTrue(row.get("node") != null);
+                    assertTrue(row.get("node") instanceof Node);
+                    Node resultingNode = (Node) row.get("node");
+                    Node c = (Node) row.get("c");
+                    Relationship r = (Relationship) row.get("r");
+                    Relationship r1 = (Relationship)(row.get("r1"));
+                    assertEquals(0, resultingNode.getDegree(Direction.INCOMING));
+                    assertEquals(4,resultingNode.getDegree(Direction.OUTGOING));
+                    assertEquals(1,c.getDegree(Direction.INCOMING));
+                    assertEquals(true, r.isType(RelationshipType.withName("HAS_REL")));
                     assertEquals(Arrays.asList( "r2" , "r1"), Arrays.asList((String[])r.getProperty("p")));
                     assertEquals(true, r1.isType(RelationshipType.withName("HAS_REL")));
-                    assertEquals(Arrays.asList("r2", "r1"), Arrays.asList((String[])r1.getProperty("p")));
+                    assertEquals(Arrays.asList( "r2" , "r1"), Arrays.asList((String[])r1.getProperty("p")));
                 }
         );
     }
 }
+
