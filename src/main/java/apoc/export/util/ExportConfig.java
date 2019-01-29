@@ -1,7 +1,6 @@
 package apoc.export.util;
 
 import apoc.export.cypher.formatter.CypherFormat;
-import apoc.gephi.Gephi;
 import apoc.util.Util;
 
 import java.util.*;
@@ -26,6 +25,7 @@ public class ExportConfig {
 
     private int batchSize = DEFAULT_BATCH_SIZE;
     private boolean silent = false;
+    private boolean neo4jImport = false;
     private String delim = DEFAULT_DELIM;
     private String quotes = DEFAULT_QUOTES;
     private boolean useTypes = false;
@@ -35,6 +35,7 @@ public class ExportConfig {
     private ExportFormat format;
     private CypherFormat cypherFormat;
     private final Map<String, Object> config;
+    private boolean separateHeader;
 
     public int getBatchSize() {
         return batchSize;
@@ -42,6 +43,10 @@ public class ExportConfig {
 
     public boolean isSilent() {
         return silent;
+    }
+
+    public boolean isNeo4jImport() {
+        return neo4jImport;
     }
 
     public char getDelimChar() {
@@ -71,10 +76,12 @@ public class ExportConfig {
         config = config != null ? config : Collections.emptyMap();
         this.silent = toBoolean(config.getOrDefault("silent",false));
         this.batchSize = ((Number)config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE)).intValue();
-        this.delim = delim(config.getOrDefault("d", String.valueOf(DEFAULT_DELIM)).toString());
+        this.delim = delim(config.getOrDefault("delim", String.valueOf(DEFAULT_DELIM)).toString());
         this.useTypes = toBoolean(config.get("useTypes"));
         this.caption = convertCaption(config.getOrDefault("caption", asList("name", "title", "label", "id")));
         this.nodesOfRelationships = toBoolean(config.get("nodesOfRelationships"));
+        this.neo4jImport = toBoolean(config.get("neo4jImport"));
+        this.separateHeader = toBoolean(config.get("separateHeader"));
         this.format = ExportFormat.fromString((String) config.getOrDefault("format", "neo4j-shell"));
         this.cypherFormat = CypherFormat.fromString((String) config.getOrDefault("cypherFormat", "create"));
         this.config = config;
@@ -150,5 +157,9 @@ public class ExportConfig {
 
     public long getTimeoutSeconds() {
         return Util.toLong(config.getOrDefault("timeoutSeconds",100));
+    }
+
+    public boolean isSeparateHeader() {
+        return this.separateHeader;
     }
 }
