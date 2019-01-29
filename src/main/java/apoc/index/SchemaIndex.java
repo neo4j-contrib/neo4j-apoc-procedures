@@ -2,6 +2,7 @@ package apoc.index;
 
 import apoc.result.ListResult;
 import apoc.util.MapUtil;
+import apoc.util.QueueBasedSpliterator;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.IndexDefinition;
@@ -11,7 +12,7 @@ import org.neo4j.internal.kernel.api.exceptions.KernelException;
 import org.neo4j.kernel.api.schema.SchemaDescriptorFactory;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 import apoc.result.NodeResult;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
@@ -21,9 +22,6 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.schema.LabelSchemaDescriptor;
 import org.neo4j.kernel.impl.api.KernelStatement;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 import org.neo4j.values.storable.NoValue;
 import org.neo4j.values.storable.Value;
 
@@ -50,6 +48,9 @@ public class SchemaIndex {
 
     @Context
     public KernelTransaction tx;
+
+    @Context
+    public TerminationGuard terminationGuard;
 
     @Procedure
     @Deprecated
@@ -145,9 +146,7 @@ public class SchemaIndex {
                 .collect(new QueuePoisoningCollector(queue, POISON))
         ).start();
 
-        return StreamSupport.stream(
-                Spliterators.spliteratorUnknownSize(new BlockingQueuePoisonIterator<>(queue, POISON), Spliterator.NONNULL),false
-        );
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, POISON, terminationGuard, Long.MAX_VALUE),false);
     }
 
     private Object scanIndexDefinitionForKeys(IndexDefinition indexDefinition, @Name(value = "key", defaultValue = "") String keyName, ThreadToStatementContextBridge ctx, BlockingQueue<PropertyValueCount> queue) {
