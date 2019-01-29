@@ -1,47 +1,34 @@
 package apoc.index;
 
+import apoc.result.ListResult;
+import apoc.util.MapUtil;
+import apoc.util.QueueBasedSpliterator;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.helpers.collection.Pair;
-import org.neo4j.internal.kernel.api.TokenRead;
-import org.neo4j.internal.kernel.api.exceptions.schema.IndexNotApplicableKernelException;
-import org.neo4j.internal.kernel.api.exceptions.schema.IndexNotFoundKernelException;
+import org.neo4j.internal.kernel.api.*;
+import org.neo4j.internal.kernel.api.exceptions.KernelException;
 import org.neo4j.kernel.api.schema.SchemaDescriptorFactory;
-import org.neo4j.kernel.impl.index.schema.fusion.FusionIndexBase;
-import org.neo4j.kernel.impl.newapi.AllStoreHolder;
-import org.neo4j.kernel.impl.storageengine.impl.recordstorage.RecordStorageEngine;
+import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.procedure.Description;
-import apoc.result.ListResult;
+import org.neo4j.procedure.*;
 import apoc.result.NodeResult;
-import apoc.util.Util;
-import org.apache.lucene.index.Fields;
-import org.apache.lucene.index.MultiFields;
-import org.apache.lucene.index.Terms;
-import org.apache.lucene.index.TermsEnum;
-import org.apache.lucene.search.Sort;
-import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Label;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.api.exceptions.schema.DuplicateSchemaRuleException;
-import org.neo4j.kernel.api.exceptions.schema.SchemaRuleNotFoundException;
-import org.neo4j.kernel.api.impl.schema.reader.SimpleIndexReader;
-import org.neo4j.kernel.api.impl.schema.reader.SortedIndexReader;
 import org.neo4j.kernel.api.schema.LabelSchemaDescriptor;
 import org.neo4j.kernel.impl.api.KernelStatement;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
-import org.neo4j.storageengine.api.schema.IndexDescriptor;
-import org.neo4j.storageengine.api.schema.IndexReader;
+import org.neo4j.values.storable.NoValue;
+import org.neo4j.values.storable.Value;
 
-import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -54,11 +41,16 @@ import static apoc.path.RelationshipTypeAndDirections.parse;
  */
 public class SchemaIndex {
 
+    private static final PropertyValueCount POISON = new PropertyValueCount("poison", "poison", "poison", -1);
+
     @Context
     public GraphDatabaseAPI db;
 
     @Context
     public KernelTransaction tx;
+
+    @Context
+    public TerminationGuard terminationGuard;
 
     @Procedure
     @Deprecated
@@ -66,7 +58,7 @@ public class SchemaIndex {
     public Stream<NodeResult> related(@Name("nodes") List<Node> nodes,
                                       @Name("label") String label, @Name("key") String key,
                                       @Name("relationship") String relationship,
-                                      @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException, DuplicateSchemaRuleException, IndexNotApplicableKernelException {
+                                      @Name("limit") long limit) {
         Set<Node> nodeSet = new HashSet<>(nodes);
         Pair<RelationshipType, Direction> relTypeDirection = parse(relationship).get(0);
         RelationshipType type = relTypeDirection.first();
@@ -85,10 +77,27 @@ public class SchemaIndex {
 
     @Procedure
     @Deprecated
-    @Description("just use a cypher query with a range predicate on an indexed field and wait for index backed order by in 3.5")
-    public Stream<NodeResult> orderedRange(@Name("label") String label, @Name("key") String key, @Name("min") Object min, @Name("max") Object max, @Name("relevance") boolean relevance, @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
-
-        return queryForRange(label, key, min, max, limit).map(NodeResult::new);
+    @Description("deprecated, just there for compatibility. Use plain cypher instead")
+    public Stream<NodeResult> orderedRange(@Name("label") String label, @Name("key") String key, @Name("min") Object min, @Name("max") Object max, @Name("relevance") boolean relevance, @Name("limit") long limit)  {
+        Map<String, Object> params = MapUtil.map("min", min, "max", max, "limit", limit);
+        List<Object> formatValues = new ArrayList<>();
+        formatValues.add(label);
+        String query = "MATCH (n:`%s`) WHERE ";
+        if (min!=null) {
+            query += "n.`%s` >= $min ";
+            formatValues.add(key);
+        }
+        if (max!=null) {
+            if (min!=null) {
+                query+= "AND ";
+            }
+            query += "n.`%s` <= $max ";
+            formatValues.add(key);
+        }
+        // we need order by id(n) to be consistent with previous versions (lucene based)
+        query += "RETURN n ORDER by id(n) LIMIT $limit";
+        Result result = db.execute(String.format(query, formatValues.toArray()), params);
+        return result.columnAs("n").stream().map(o -> new NodeResult((Node)o));
     }
 
     public Stream<Node> queryForRange(@Name("label") String label, @Name("key") String key, @Name("min") Object min, @Name("max") Object max, @Name("limit") long limit) {
@@ -106,176 +115,138 @@ public class SchemaIndex {
         return it.stream().onClose(it::close);
     }
 
-    public Sort getSort(Object min, Object max, boolean relevance) {
-        return Sort.RELEVANCE;
-/*
-        return relevance ? Sort.RELEVANCE :
-                    (min instanceof Number || max instanceof  Number) ? new Sort(new SortedNumericSortField("number", SortField.Type.DOUBLE)) :
-                            (min instanceof String || max instanceof String) ? new Sort(new SortedNumericSortField("string", SortField.Type.STRING)) :
-                            (min instanceof Boolean || max instanceof Boolean) ? new Sort(new SortedNumericSortField("bool", SortField.Type.STRING)) :
-                            Sort.INDEXORDER;
-*/
-    }
-
-    private PrimitiveLongIterator queryForRange(SortedIndexReader sortedIndexReader, Object min, Object max) {
-        if ((min == null || min instanceof Number) && (max == null || max instanceof Number)) {
-            return sortedIndexReader.rangeSeekByNumberInclusive((Number) min, (Number) max);
-        }
-
-        String minValue = min == null ? null : min.toString();
-        String maxValue = max == null ? null : max.toString();
-        return sortedIndexReader.rangeSeekByString(minValue, true, maxValue, true);
-    }
-
     @Procedure
     @Deprecated
     @Description("just use a cypher query with a range predicate on an indexed field and wait for index backed order by in 3.5")
-    public Stream<NodeResult> orderedByText(@Name("label") String label, @Name("key") String key, @Name("operator") String operator, @Name("value") String value, @Name("relevance") boolean relevance, @Name("limit") long limit) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, DuplicateSchemaRuleException {
-        SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, limit, getSort(value,value,relevance));
-        PrimitiveLongIterator it = queryForString(sortedIndexReader, operator, value);
-        return Util.toLongStream(it).mapToObj(id -> new NodeResult(db.getNodeById(id)));
-    }
-
-    private PrimitiveLongIterator queryForString(SortedIndexReader sortedIndexReader, String operator, String value) {
-        switch (operator.trim().toUpperCase()) {
-            case "CONTAINS":
-                return sortedIndexReader.containsString(value);
-            case "STARTS WITH":
-                return sortedIndexReader.rangeSeekByPrefix(value);
-            case "ENDS WITH" :
-                return sortedIndexReader.containsString('*'+value);
-            default:
-                throw new IllegalArgumentException("Unknown Operator " + operator);
-        }
-    }
-
-    private SortedIndexReader getSortedIndexReader(String label, String key, long limit, Sort sort) throws  IndexNotFoundKernelException {
-        // todo PartitionedIndexReader
-        SimpleIndexReader reader = getLuceneIndexReader(label, key);
-        return new SortedIndexReader(reader, limit, sort);
-    }
-
-    private SimpleIndexReader getLuceneIndexReader(String label, String key) throws IndexNotFoundKernelException {
-        try (KernelStatement stmt = (KernelStatement) tx.acquireStatement()) {
-
-            TokenRead tokenRead = tx.tokenRead();
-            LabelSchemaDescriptor labelSchemaDescriptor = SchemaDescriptorFactory.forLabel(tokenRead.nodeLabel(label), tokenRead.propertyKey(key));
-            RecordStorageEngine recordStorageEngine = db.getDependencyResolver().resolveDependency(RecordStorageEngine.class);
-
-            IndexDescriptor descriptor = recordStorageEngine.newReader().indexGetForSchema(labelSchemaDescriptor);
-
-            IndexReader indexReader = ((AllStoreHolder)tx.schemaRead()).indexReader(descriptor,false);
-            if (indexReader instanceof FusionIndexBase) {
-                try {
-                    Field selectorField = FusionIndexBase.class.getDeclaredField("instanceSelector");
-                    selectorField.setAccessible(true);
-                    Object instanceSelector = selectorField.get(indexReader);
-                    Field instancesField = getDeclaredField(instanceSelector, "instances");
-                    instancesField.setAccessible(true);
-                    IndexReader[] instances = (IndexReader[]) instancesField.get(instanceSelector);
-                    for (IndexReader instance : instances) {
-                        if (instance instanceof SimpleIndexReader) {
-                            return (SimpleIndexReader)instance;
-                        }
-                    }
-                    throw new IllegalStateException("No Lucene Index Reader found");
-                } catch (Exception e) {
-                    throw new RuntimeException("Error accessing index reader",e);
-                }
-            }
-            return (SimpleIndexReader)indexReader;
-        }
-    }
-
-    private Field getDeclaredField(Object instance, String name) throws NoSuchFieldException {
-        Class<?> type = instance.getClass();
-        do {
-            try {
-                return type.getDeclaredField(name);
-            } catch(NoSuchFieldException nsfe) {
-                type = type.getSuperclass();
-                if (type == null) throw nsfe;
-            }
-        } while (true);
+    public Stream<NodeResult> orderedByText(@Name("label") String label, @Name("key") String key, @Name("operator") String operator, @Name("value") String value, @Name("relevance") boolean relevance, @Name("limit") long limit)  {
+        Map<String, Object> params = MapUtil.map("value", value, "limit", limit);
+        Result result = db.execute(String.format("MATCH (n:`%s`) WHERE n.`%s` %s $value RETURN n ORDER by id(n) LIMIT $limit", label, key, operator), params); // we need order by id(n) to be consistent with previous versions (lucene based)
+        return result.columnAs("n").stream().map(o -> new NodeResult((Node)o));
     }
 
     @Procedure("apoc.schema.properties.distinct")
     @Description("apoc.schema.properties.distinct(label, key) - quickly returns all distinct values for a given key")
-    public Stream<ListResult> distinct(@Name("label") String label, @Name("key")  String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException, DuplicateSchemaRuleException {
-        List<Object> values = distinctTerms(label, key);
+    public Stream<ListResult> distinct(@Name("label") String label, @Name("key")  String key) {
+        List<Object> values = distinctCount(label, key).map(propertyValueCount -> propertyValueCount.value).collect(Collectors.toList());
         return Stream.of(new ListResult(values));
-    }
-
-    private List<Object> distinctTerms(@Name("label") String label, @Name("key") String key) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException, DuplicateSchemaRuleException {
-        SimpleIndexReader reader = getLuceneIndexReader(label,key);
-        SortedIndexReader sortedIndexReader = new SortedIndexReader(reader, 0, Sort.INDEXORDER);
-        Set<Object> values = new LinkedHashSet<>(100);
-        TermsEnum termsEnum;
-
-        Fields fields = MultiFields.getFields(sortedIndexReader.getIndexSearcher().getIndexReader());
-
-        Terms terms = fields.terms("string");
-        if (terms != null) {
-            termsEnum = terms.iterator();
-            while ((termsEnum.next()) != null) {
-                values.add(termsEnum.term().utf8ToString());
-            }
-        }
-        return new ArrayList<>(values);
     }
 
     @Procedure("apoc.schema.properties.distinctCount")
     @Description("apoc.schema.properties.distinctCount([label], [key]) YIELD label, key, value, count - quickly returns all distinct values and counts for a given key")
-    public Stream<PropertyValueCount> distinctCount(@Name(value = "label", defaultValue = "") String labelName, @Name(value = "key", defaultValue = "") String keyName) throws SchemaRuleNotFoundException, IndexNotFoundKernelException, IOException {
-        Iterable<IndexDefinition> labels = (labelName.isEmpty()) ? db.schema().getIndexes() : db.schema().getIndexes(Label.label(labelName));
-        return StreamSupport.stream(labels.spliterator(), false).filter(i -> keyName.isEmpty() || isKeyIndexed(i, keyName)).flatMap(
-                index -> {
-                    Iterable<String> keys = keyName.isEmpty() ? index.getPropertyKeys() : Collections.singletonList(keyName);
-                    return StreamSupport.stream(keys.spliterator(), false).flatMap(key -> {
-                        String label = index.getLabel().name();
-                        return distinctTermsCount(label, key).
-                                entrySet().stream().map(e -> new PropertyValueCount(label, key, e.getKey(), e.getValue()));
-                    });
-                }
-        );
+    public Stream<PropertyValueCount> distinctCount(@Name(value = "label", defaultValue = "") String labelName, @Name(value = "key", defaultValue = "") String keyName) {
+
+        ThreadToStatementContextBridge ctx = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class, DependencyResolver.SelectionStrategy.FIRST);
+        BlockingQueue<PropertyValueCount> queue = new LinkedBlockingDeque<>(100);
+        Iterable<IndexDefinition> indexDefinitions = (labelName.isEmpty()) ? db.schema().getIndexes() : db.schema().getIndexes(Label.label(labelName));
+
+        new Thread(() ->
+                StreamSupport.stream(indexDefinitions.spliterator(), true)
+                .filter(indexDefinition -> isIndexCoveringProperty(indexDefinition, keyName))
+                .map(indexDefinition -> scanIndexDefinitionForKeys(indexDefinition, keyName, ctx, queue))
+                .collect(new QueuePoisoningCollector(queue, POISON))
+        ).start();
+
+        return StreamSupport.stream(new QueueBasedSpliterator<>(queue, POISON, terminationGuard, Long.MAX_VALUE),false);
     }
 
-    private boolean isKeyIndexed(@Name("index") IndexDefinition index, @Name("key") String key) {
-        return StreamSupport.stream(index.getPropertyKeys().spliterator(), false).anyMatch(k -> k.equals(key));
-    }
+    private Object scanIndexDefinitionForKeys(IndexDefinition indexDefinition, @Name(value = "key", defaultValue = "") String keyName, ThreadToStatementContextBridge ctx, BlockingQueue<PropertyValueCount> queue) {
+        try (Transaction threadTx = db.beginTx()) {
+            KernelTransaction ktx = ctx.getKernelTransactionBoundToThisThread(true);
+            Iterable<String> keys = keyName.isEmpty() ? indexDefinition.getPropertyKeys() : Collections.singletonList(keyName);
+            for (String key : keys) {
+                try (KernelStatement ignored = (KernelStatement) ktx.acquireStatement()) {
+                    SchemaRead schemaRead = ktx.schemaRead();
+                    TokenRead tokenRead = ktx.tokenRead();
+                    Read read = ktx.dataRead();
+                    CursorFactory cursors = ktx.cursors();
 
-    private Map<String, Integer> distinctTermsCount(@Name("label") String label, @Name("key") String key) {
-        try {
-            SortedIndexReader sortedIndexReader = getSortedIndexReader(label, key, 0, Sort.INDEXORDER);
-
-            Fields fields = MultiFields.getFields(sortedIndexReader.getIndexSearcher().getIndexReader());
-
-            Map<String, Integer> values = new HashMap<>();
-            TermsEnum termsEnum;
-            Terms terms = fields.terms("string");
-            if (terms != null) {
-                termsEnum = terms.iterator();
-                while ((termsEnum.next()) != null) {
-                    values.put(termsEnum.term().utf8ToString(), termsEnum.docFreq());
+                    int[] propertyKeyIds = StreamSupport.stream(indexDefinition.getPropertyKeys().spliterator(), false)
+                            .mapToInt(name -> tokenRead.propertyKey(name))
+                            .toArray();
+                    LabelSchemaDescriptor schema = SchemaDescriptorFactory.forLabel(tokenRead.nodeLabel(indexDefinition.getLabel().name()), propertyKeyIds);
+                    IndexReference indexReference = schemaRead.index(schema);
+                    scanIndex(queue, indexDefinition, key, read, cursors, indexReference);
                 }
             }
-            return values;
-        } catch (Exception e) {
-            throw new RuntimeException("Error collecting distinct terms of label: " + label + " and key: " + key, e);
+            threadTx.success();
+            return null;
         }
+    }
+
+    private void scanIndex(BlockingQueue<PropertyValueCount> queue, IndexDefinition indexDefinition, String key, Read read, CursorFactory cursors, IndexReference indexReference) {
+        try (NodeValueIndexCursor cursor = cursors.allocateNodeValueIndexCursor()) {
+            // we need to using IndexOrder.NONE here to prevent an exception
+            // however the index guarantees to be scanned in order unless
+            // there are writes done in the same tx beforehand - which we don't do.
+            read.nodeIndexScan(indexReference, cursor, IndexOrder.NONE, true);
+            Value previousValue = NoValue.NO_VALUE;
+            long count = 0;
+            while (cursor.next()) {
+                for (int i = 0; i < cursor.numberOfProperties(); i++) {
+                    int k = cursor.propertyKey(i);
+                    Value v = cursor.propertyValue(i);
+                    if (v.equals(previousValue)) {
+                        count++;
+                    } else {
+                        if (!previousValue.equals(NoValue.NO_VALUE)) {
+                            putIntoQueue(queue, indexDefinition, key, previousValue, count);
+                        }
+                        previousValue = v;
+                        count = 1;
+                    }
+                }
+            }
+            putIntoQueue(queue, indexDefinition, key, previousValue, count);
+        } catch (KernelException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void putIntoQueue(BlockingQueue<PropertyValueCount> queue, IndexDefinition indexDefinition, String key, Value value, long count) {
+        try {
+            queue.put(new PropertyValueCount(indexDefinition.getLabel().name(), key, value.asObject(), count));
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean isIndexCoveringProperty(IndexDefinition indexDefinition, String properttyKeyName) {
+        try (Transaction threadTx = db.beginTx()) {
+            threadTx.success();
+            return properttyKeyName.isEmpty() || contains(indexDefinition.getPropertyKeys(), properttyKeyName);
+        }
+    }
+
+    private boolean contains(Iterable<String> list, String search) {
+        for (String element: list) {
+            if (element.equals(search)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static class PropertyValueCount {
         public String label;
         public String key;
-        public String value;
+        public Object value;
         public long count;
 
-        public PropertyValueCount(String label, String key, String value, long count) {
+        public PropertyValueCount(String label, String key, Object value, long count) {
             this.label = label;
             this.key = key;
             this.value = value;
             this.count = count;
+        }
+
+        @Override
+        public String toString() {
+            return "PropertyValueCount{" +
+                    "label='" + label + '\'' +
+                    ", key='" + key + '\'' +
+                    ", value='" + value + '\'' +
+                    ", count=" + count +
+                    '}';
         }
     }
 }
