@@ -1,11 +1,15 @@
 package apoc.load;
 
+import apoc.ApocConfiguration;
 import apoc.util.TestUtil;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.net.URL;
@@ -16,6 +20,7 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
@@ -23,7 +28,12 @@ public class LoadJsonTest {
 
     private GraphDatabaseService db;
 	@Before public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig("apoc.import.file.enabled","true").newGraphDatabase();
+        URL url = ClassLoader.getSystemResource("map.json");
+        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
+                .setConfig("apoc.import.file.enabled","true")
+                .setConfig("apoc.json.zip.url","https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.zip?raw=true!person.json")
+                .setConfig("apoc.json.simpleJson.url", url.toString())
+                .newGraphDatabase();
         TestUtil.registerProcedure(db, LoadJson.class);
     }
 
@@ -205,5 +215,36 @@ public class LoadJsonTest {
                     assertEquals(41L, r.get("age"));
                     assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
                 });
+    }
+
+    @Test public void testLoadJsonZipByUrlInConfigFile() throws Exception {
+        testCall(db, "CALL apoc.load.json({key})",map("key","zip"),
+                (row) -> {
+                    Map<String,Object> r = (Map<String, Object>) row.get("value");
+                    assertEquals("Michael", r.get("name"));
+                    assertEquals(41L, r.get("age"));
+                    assertEquals(asList("Selina", "Rana", "Selma"), r.get("children"));
+                });
+    }
+
+    @Test public void testLoadJsonByUrlInConfigFile() throws Exception {
+
+        testCall(db, "CALL apoc.load.json({key})",map("key","simpleJson"), // 'file:map.json' YIELD value RETURN value
+                (row) -> {
+                    assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
+                });
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testLoadJsonByUrlInConfigFileWrongKey() throws Exception {
+
+        try {
+            testResult(db, "CALL apoc.load.json({key})",map("key","foo"), (r) -> {});
+        } catch (QueryExecutionException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof RuntimeException);
+            assertEquals("Can't read url or key invalid URL (foo) as json: no protocol: foo", except.getMessage());
+            throw e;
+        }
     }
 }

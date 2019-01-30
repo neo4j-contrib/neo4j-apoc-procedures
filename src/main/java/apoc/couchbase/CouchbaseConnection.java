@@ -2,14 +2,13 @@ package apoc.couchbase;
 
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.CouchbaseAsyncCluster;
 import com.couchbase.client.java.CouchbaseCluster;
-import com.couchbase.client.java.auth.Authenticator;
 import com.couchbase.client.java.auth.PasswordAuthenticator;
 import com.couchbase.client.java.document.Document;
 import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
+import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.query.*;
 import org.parboiled.common.StringUtils;
 
@@ -37,31 +36,18 @@ public class CouchbaseConnection implements AutoCloseable {
     private Bucket bucket;
     private PasswordAuthenticator passwordAuthenticator;
 
-    /**
-     * Opens a {@link Bucket} identified by its name with an empty password and
-     * with the default connect timeout.
-     *
-     * @param cluster    the cluster reference
-     * @param bucketName the name of the bucket to open; if null is passed then it's used
-     *                   the "default" bucket name
-     */
-    protected CouchbaseConnection(Cluster cluster, String bucketName) {
-        this.cluster = cluster;
-        // This doesn't exist in Couchbase 5.x
-        if (bucketName == null) {
-            bucketName = CouchbaseAsyncCluster.DEFAULT_BUCKET;
-        }
-        this.bucket = cluster.openBucket(bucketName);
-    }
+    private CouchbaseEnvironment env;
 
     /**
      * @param nodes
      * @param authenticator
      * @param bucketName
      * @param bucketPassword
+     * @param env
      */
-    protected CouchbaseConnection(List<String> nodes, PasswordAuthenticator authenticator, String bucketName, String bucketPassword) {
-        this.cluster = CouchbaseCluster.create(CouchbaseManager.DEFAULT_COUCHBASE_ENVIRONMENT, nodes);
+    protected CouchbaseConnection(List<String> nodes, PasswordAuthenticator authenticator, String bucketName, String bucketPassword, CouchbaseEnvironment env) {
+        this.env = env;
+        this.cluster = CouchbaseCluster.create(env, nodes);
         this.passwordAuthenticator = authenticator;
         int couchbaseServerVersion = getMajorVersion();
 
@@ -72,7 +58,7 @@ public class CouchbaseConnection implements AutoCloseable {
              * Even if the bucket has no password we cannot access it after calling the authenticate method
              */
             this.cluster.disconnect();
-            this.cluster = CouchbaseCluster.create(CouchbaseManager.DEFAULT_COUCHBASE_ENVIRONMENT, nodes);
+            this.cluster = CouchbaseCluster.create(env, nodes);
             if (StringUtils.isEmpty(bucketPassword)) {
                 this.bucket = cluster.openBucket(bucketName);
             } else {
@@ -110,7 +96,11 @@ public class CouchbaseConnection implements AutoCloseable {
      */
     @Override
     public void close() {
+//        if (!this.bucket.isClosed()) {
+//            this.bucket.close();
+//        }
         this.cluster.disconnect();
+        this.env.shutdown();
     }
 
     /**

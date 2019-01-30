@@ -77,7 +77,7 @@ public class LoadRelativePathTest {
     @Test public void testLoadRelativePathJson() {
         String url = "file:/map.json";
         testCall(db, "CALL apoc.load.json({url})",map("url",url), // 'file:map.json' YIELD value RETURN value
-                (row) -> assertEquals(map("foo",asList(1,2,3)), row.get("value")));
+                (row) -> assertEquals(map("foo",asList(1L,2L,3L)), row.get("value")));
     }
 
     //XML

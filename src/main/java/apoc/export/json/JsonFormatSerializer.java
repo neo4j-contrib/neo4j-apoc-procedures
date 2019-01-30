@@ -7,7 +7,10 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
+
+import static apoc.export.util.FormatUtils.getLabelsSorted;
 
 public enum JsonFormatSerializer {
 
@@ -67,11 +70,13 @@ public enum JsonFormatSerializer {
 
         private void writeNodeDetails(JsonGenerator jsonGenerator, Node node, boolean withNodeProperties) throws IOException {
             jsonGenerator.writeStringField("id", String.valueOf(node.getId()));
-            Iterable<Label> labels = node.getLabels();
-            if (labels.iterator().hasNext()) {
+
+            if (node.getLabels().iterator().hasNext()) {
                 jsonGenerator.writeArrayFieldStart("labels");
-                for (Label label : labels) {
-                    jsonGenerator.writeString(label.toString());
+
+                List<String> labels = getLabelsSorted(node);
+                for (String label : labels) {
+                    jsonGenerator.writeString(label);
                 }
                 jsonGenerator.writeEndArray();
             }

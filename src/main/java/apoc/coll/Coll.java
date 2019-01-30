@@ -37,6 +37,8 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.zip([list1],[list2])")
     public List<List<Object>> zip(@Name("list1") List<Object> list1, @Name("list2") List<Object> list2) {
+		if (list1 == null || list2 == null) return null;
+		if (list1.isEmpty() || list2.isEmpty()) return Collections.emptyList();
         List<List<Object>> result = new ArrayList<>(list1.size());
         ListIterator it = list2.listIterator();
         for (Object o1 : list1) {
@@ -48,17 +50,22 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.pairs([1,2,3]) returns [1,2],[2,3],[3,null] ")
     public List<List<Object>> pairs(@Name("list") List<Object> list) {
+		if (list == null) return null;
+		if (list.isEmpty()) return Collections.emptyList();
         return zip(list,list.subList(1,list.size()));
     }
     @UserFunction
     @Description("apoc.coll.pairsMin([1,2,3]) returns [1,2],[2,3]")
     public List<List<Object>> pairsMin(@Name("list") List<Object> list) {
+		if (list == null) return null;
+		if (list.isEmpty()) return Collections.emptyList();
         return zip(list.subList(0,list.size()-1),list.subList(1,list.size()));
     }
 
     @UserFunction
     @Description("apoc.coll.sum([0.5,1,2.3])")
-    public double sum(@Name("numbers") List<Number> list) {
+    public Double sum(@Name("numbers") List<Number> list) {
+		if (list == null || list.isEmpty()) return null;
         double sum = 0;
         for (Number number : list) {
             sum += number.doubleValue();
@@ -68,7 +75,8 @@ public class Coll {
 
     @UserFunction
     @Description("apoc.coll.avg([0.5,1,2.3])")
-    public double avg(@Name("numbers") List<Number> list) {
+    public Double avg(@Name("numbers") List<Number> list) {
+		if (list == null || list.isEmpty()) return null;
         double avg = 0;
         for (Number number : list) {
             avg += number.doubleValue();
@@ -78,12 +86,14 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.min([0.5,1,2.3])")
     public Object min(@Name("values") List<Object> list) {
+		if (list == null || list.isEmpty()) return null;
         return Collections.min((List)list, Coll::compareAsDoubles);
     }
 
     @UserFunction
     @Description("apoc.coll.max([0.5,1,2.3])")
     public Object max(@Name("values") List<Object> list) {
+		if (list == null || list.isEmpty()) return null;
         return Collections.max((List)list, Coll::compareAsDoubles);
     }
 
@@ -295,12 +305,14 @@ public class Coll {
     @Procedure
     @Description("apoc.coll.partition(list,batchSize)")
     public Stream<ListResult> partition(@Name("values") List<Object> list, @Name("batchSize") long batchSize) {
+	    if (list==null || list.isEmpty()) return Stream.empty();
         return partitionList(list, (int) batchSize).map(ListResult::new);
     }
 
     @Procedure
     @Description("apoc.coll.split(list,value) | splits collection on given values rows of lists, value itself will not be part of resulting lists")
     public Stream<ListResult> split(@Name("values") List<Object> list, @Name("value") Object value) {
+	    if (list==null || list.isEmpty()) return Stream.empty();
         List<Object> l = new ArrayList<>(list);
         List<List<Object>> result = new ArrayList<>(10);
         int idx = l.indexOf(value);
@@ -327,6 +339,7 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.contains(coll, value) optimized contains operation (using a HashSet) (returns single row or not)")
     public boolean contains(@Name("coll") List<Object> coll, @Name("value") Object value) {
+        if (coll == null || coll.isEmpty()) return false;
         return  new HashSet<>(coll).contains(value);
 //        int batchSize = 250;
 //        boolean result = (coll.size() < batchSize) ? coll.contains(value) : partitionList(coll, batchSize).parallel().anyMatch(list -> list.contains(value));
@@ -382,18 +395,21 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.indexOf(coll, value) | position of value in the list")
     public long indexOf(@Name("coll") List<Object> coll, @Name("value") Object value) {
+        if (coll == null || coll.isEmpty()) return -1;
         return  new ArrayList<>(coll).indexOf(value);
     }
 
     @UserFunction
     @Description("apoc.coll.containsAll(coll, values) optimized contains-all operation (using a HashSet) (returns single row or not)")
     public boolean containsAll(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
+        if (coll == null || coll.isEmpty()) return false;
         return new HashSet<>(coll).containsAll(values);
     }
 
     @UserFunction
     @Description("apoc.coll.containsSorted(coll, value) optimized contains on a sorted list operation (Collections.binarySearch) (returns single row or not)")
     public boolean containsSorted(@Name("coll") List<Object> coll, @Name("value") Object value) {
+        if (coll == null || coll.isEmpty()) return false;
         int batchSize = 5000-1; // Collections.binarySearchThreshold
         List list = (coll instanceof RandomAccess || coll.size() < batchSize) ? coll : new ArrayList(coll);
         return Collections.binarySearch(list, value) >= 0;
@@ -404,6 +420,7 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.containsAllSorted(coll, value) optimized contains-all on a sorted list operation (Collections.binarySearch) (returns single row or not)")
     public boolean containsAllSorted(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
+        if (coll == null || values == null) return false;
         int batchSize = 5000-1; // Collections.binarySearchThreshold
         List list = (coll instanceof RandomAccess || coll.size() < batchSize) ? coll : new ArrayList(coll);
         for (Object value : values) {
@@ -417,12 +434,14 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.toSet([list]) returns a unique list backed by a set")
     public List<Object> toSet(@Name("values") List<Object> list) {
+	    if (list == null) return null;
         return new SetBackedList(new LinkedHashSet(list));
     }
 
     @UserFunction
     @Description("apoc.coll.sumLongs([1,3,3])")
-    public long sumLongs(@Name("numbers") List<Number> list) {
+    public Long sumLongs(@Name("numbers") List<Number> list) {
+        if (list == null) return null;
         long sum = 0;
         for (Number number : list) {
             sum += number.longValue();
@@ -433,6 +452,7 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.sort(coll) sort on Collections")
     public List<Object> sort(@Name("coll") List<Object> coll) {
+	    if (coll == null || coll.isEmpty()) return Collections.emptyList();
         List sorted = new ArrayList<>(coll);
         Collections.sort((List<? extends Comparable>) sorted);
         return sorted;
@@ -441,6 +461,7 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.sortNodes([nodes], 'name') sort nodes by property")
     public List<Node> sortNodes(@Name("coll") List<Node> coll, @Name("prop") String prop) {
+	    if (coll == null || coll.isEmpty()) return Collections.emptyList();
         List<Node> sorted = new ArrayList<>(coll);
         int reverseOrder = reverseOrder(prop);
         String cleanedProp = cleanProperty(prop);
@@ -451,6 +472,7 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.sortMaps([maps], 'name') - sort maps by property")
     public List<Map<String,Object>> sortMaps(@Name("coll") List<Map<String,Object>> coll, @Name("prop") String prop) {
+	    if (coll == null || coll.isEmpty()) return Collections.emptyList();
         List<Map<String,Object>> sorted = new ArrayList<>(coll);
         int reverseOrder = reverseOrder(prop);
         String cleanedProp = cleanProperty(prop);
@@ -484,6 +506,8 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.union(first, second) - creates the distinct union of the 2 lists")
     public List<Object> union(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+		if (first == null) return second;
+		if (second == null) return first;
         Set<Object> set = new HashSet<>(first);
         set.addAll(second);
         return new SetBackedList(set);
@@ -491,21 +515,24 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.subtract(first, second) - returns unique set of first list with all elements of second list removed")
     public List<Object> subtract(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+		if (first == null) return null;
         Set<Object> set = new HashSet<>(first);
-        set.removeAll(second);
+        if (second!=null) set.removeAll(second);
         return new SetBackedList(set);
     }
     @UserFunction
     @Description("apoc.coll.removeAll(first, second) - returns first list with all elements of second list removed")
     public List<Object> removeAll(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+		if (first == null) return null;
         List<Object> list = new ArrayList<>(first);
-        list.removeAll(second);
+        if (second!=null) list.removeAll(second);
         return list;
     }
 
     @UserFunction
     @Description("apoc.coll.intersection(first, second) - returns the unique intersection of the two lists")
     public List<Object> intersection(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+        if (first == null || second == null) return Collections.emptyList();
         Set<Object> set = new HashSet<>(first);
         set.retainAll(second);
         return new SetBackedList(set);
@@ -514,6 +541,8 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.disjunction(first, second) - returns the disjunct set of the two lists")
     public List<Object> disjunction(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+        if (first == null) return second;
+        if (second == null) return first;
         Set<Object> intersection = new HashSet<>(first);
         intersection.retainAll(second);
         Set<Object> set = new HashSet<>(first);
@@ -524,6 +553,8 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.unionAll(first, second) - creates the full union with duplicates of the two lists")
     public List<Object> unionAll(@Name("first") List<Object> first, @Name("second") List<Object> second) {
+        if (first == null) return second;
+        if (second == null) return first;
         List<Object> list = new ArrayList<>(first);
         list.addAll(second);
         return list;
@@ -674,6 +705,13 @@ public class Coll {
     }
 
     @UserFunction
+    @Description("apoc.coll.frequenciesAsMap(coll) - return a map of frequencies of the items in the collection, key `item`, value `count` (e.g., `{1:2, 2:1}`)")
+    public Map<String, Object> frequenciesAsMap(@Name("coll") List<Object> coll) {
+	    if (coll == null) return Collections.emptyMap();
+        return frequencies(coll).stream().collect(Collectors.toMap(t -> t.get("item").toString(), v-> v.get("count")));
+    }
+
+    @UserFunction
     @Description("apoc.coll.occurrences(coll, item) - returns the count of the given item in the collection")
     public long occurrences(@Name("coll") List<Object> coll, @Name("item") Object item) {
         if (coll == null || coll.isEmpty()) {
@@ -695,9 +733,11 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.flatten(coll) - flattens nested list")
     public List<Object> flatten(@Name("coll") List<List<Object>> coll) {
+	    if (coll == null) return Collections.emptyList();
         return coll.stream().flatMap(Collection::stream).collect(Collectors.toList());
     }
 
+    @Deprecated
     @UserFunction
     @Description("apoc.coll.reverse(coll) - returns reversed list")
     public List<Object> reverse(@Name("coll") List<Object> coll) {
@@ -785,6 +825,7 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.different(values) - returns true if values are different")
     public boolean different(@Name("values") List<Object> values) {
+		if (values == null) return false;
         return new HashSet(values).size() == values.size();
     }
 }

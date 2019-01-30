@@ -1,19 +1,24 @@
 package apoc.util;
 
+import apoc.export.util.PointSerializer;
+import apoc.export.util.TemporalSerializer;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
+import org.neo4j.graphdb.spatial.Point;
 import org.neo4j.procedure.Name;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.temporal.Temporal;
 import java.util.Map;
 import java.util.Spliterators;
 import java.util.stream.Stream;
@@ -36,6 +41,10 @@ public class JsonUtil {
         OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true);
         OBJECT_MAPPER.configure(JsonParser.Feature.ALLOW_NON_NUMERIC_NUMBERS, true);
         OBJECT_MAPPER.enable(DeserializationFeature.USE_LONG_FOR_INTS);
+        SimpleModule module = new SimpleModule("Neo4jApocSerializer");
+        module.addSerializer(Point.class, new PointSerializer());
+        module.addSerializer(Temporal.class, new TemporalSerializer());
+        OBJECT_MAPPER.registerModule(module);
         JSON_PATH_CONFIG = Configuration.builder()
                 .options(Option.DEFAULT_PATH_LEAF_TO_NULL, Option.SUPPRESS_EXCEPTIONS)
                 .jsonProvider(new JacksonJsonProvider(OBJECT_MAPPER))
@@ -59,6 +68,7 @@ public class JsonUtil {
     }
     public static Stream<Object> loadJson(String url, Map<String,Object> headers, String payload, String path, boolean failOnError) {
         try {
+            url = Util.getLoadUrlByConfigFile("json",url, "url").orElse(url);
             FileUtils.checkReadAllowed(url);
             url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
             InputStream input = Util.openInputStream(url, headers, payload);
@@ -71,7 +81,7 @@ public class JsonUtil {
             if(!failOnError)
                 return Stream.of();
             else
-                throw new RuntimeException("Can't read url " + u + " as json: "+e.getMessage(), e);
+                throw new RuntimeException("Can't read url or key " + u + " as json: "+e.getMessage());
         }
     }
 

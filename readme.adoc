@@ -1,8 +1,8 @@
 :readme:
 :branch: 3.4
 :docs: https://neo4j-contrib.github.io/neo4j-apoc-procedures/index33.html
-:apoc-release: 3.4.0.3
-:neo4j-version: 3.4.7
+:apoc-release: 3.4.0.4
+:neo4j-version: 3.4.10
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/img
 
 = Awesome Procedures for Neo4j {branch}.x
@@ -42,7 +42,7 @@ image::{img}/desktop-apoc.jpg[]
 
 == Feedback
 
-Please provide feedback and report bugs as link:./issues[GitHub issues] or join the http://neo4j.com/slack[neo4j-users Slack^] and ask on the #apoc channel.
+Please provide feedback and report bugs as https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues[GitHub issues] or join the http://neo4j.com/slack[neo4j-users Slack^] and ask on the #apoc channel.
 You might also ask on http://stackoverflow.com/questions/tagged/neo4j+apoc[StackOverflow^], please tag your question there with `neo4j` and `apoc`.
 
 // tag::calling-procedures[]
@@ -174,29 +174,20 @@ Since APOC relies in some places on Neo4j's internal APIs you need to use the ri
 APOC uses a consistent versioning scheme: `<neo4j-version>.<apoc>` version. 
 The trailing `<apoc>` part of the version number will be incremented with every apoc release.
 
-[options=headers]
+[opts=header]
 |===
 |apoc version | neo4j version
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.3[3.4.0.3^] | 3.4.7 (3.4.x)
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.2[3.4.0.2^] | 3.4.5
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.1[3.4.0.1^] | 3.4.0
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.1[3.5.0.1^] | 3.5.0 (3.5.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.4[3.4.0.4^] | 3.4.10 (3.4.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.4[3.3.0.4^] | 3.3.6 (3.3.x)
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.3[3.3.0.3^] | 3.3.5
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.2[3.3.0.2^] | 3.3.3
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.1[3.3.0.1^] | 3.3.0
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.3.6[3.2.3.6^] | 3.2.9 (3.2.x)
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.3.5[3.2.3.5^] | 3.2.3
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.4[3.2.0.4^] | 3.2.2
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.0.3[3.2.0.3^] | 3.2.0
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.3.9[3.1.3.9^] | 3.1.7 (3.1.x)
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.3.8[3.1.3.8^] | 3.1.5
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.3.7[3.1.3.7^] | 3.1.4
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.2.5[3.1.2.5^] | 3.1.2
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.0.4[3.1.0.4^] | 3.1.0-3.1.1
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.0.8.6[3.0.8.6^] | 3.0.5-3.0.9 (3.0.x)
-|3.0.4.3 | 3.0.4
-|1.1.0 | 3.0.0 - 3.0.3
-|1.0.0 | 3.0.0 - 3.0.3
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.0[3.5.0.0^] | 3.5.0-beta01
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.2[3.4.0.2^] | 3.4.5
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.3[3.3.0.3^] | 3.3.5
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.3.5[3.2.3.5^] | 3.2.3
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.1.3.8[3.1.3.8^] | 3.1.5
 |===
 
 // end::version-matrix[]

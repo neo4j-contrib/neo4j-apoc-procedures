@@ -303,11 +303,11 @@ public class Strings {
     }
 
     @UserFunction
-    @Description("apoc.text.format(text,[params]) - sprintf format the string with the params given")
-    public String format(@Name("text") String text, @Name("params") List<Object> params) {
+    @Description("apoc.text.format(text,[params],language) - sprintf format the string with the params given")
+    public String format(@Name("text") String text, @Name("params") List<Object> params, @Name(value = "language",defaultValue = "en") String lang) {
         if (text == null) return null;
         if (params == null) return text;
-        return String.format(Locale.ENGLISH,text, params.toArray());
+        return String.format(new Locale(lang),text, params.toArray());
     }
 
     @UserFunction

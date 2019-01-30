@@ -15,6 +15,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
 import java.net.Socket;
+import java.net.URL;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,10 +38,10 @@ public class TestUtil {
     public static void testCall(GraphDatabaseService db, String call,Map<String,Object> params, Consumer<Map<String, Object>> consumer) {
         testResult(db, call, params, (res) -> {
             try {
-                assertTrue(res.hasNext());
+                assertTrue("Should have an element",res.hasNext());
                 Map<String, Object> row = res.next();
                 consumer.accept(row);
-                assertFalse(res.hasNext());
+                assertFalse("Should not have a second element",res.hasNext());
             } catch(Throwable t) {
                 printFullStackTrace(t);
                 throw t;
@@ -145,13 +146,17 @@ public class TestUtil {
     }
 
     public static GraphDatabaseBuilder apocGraphDatabaseBuilder() {
-        return new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*");
+        return new TestGraphDatabaseFactory()
+                .newImpermanentDatabaseBuilder()
+                .setConfig("dbms.backup.enabled","false")
+                .setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*");
     }
 
     public static GraphDatabaseBuilder apocEnterpriseGraphDatabaseBuilder() throws Exception {
-        File storeDir = Paths.get(System.getProperty( "java.io.tmpdir").concat(File.pathSeparator).concat("neo4j-enterprise")).toFile();
+        File storeDir = Paths.get(System.getProperty( "java.io.tmpdir").concat(File.separator).concat("neo4j-enterprise")).toFile();
         FileDeleteStrategy.FORCE.delete(storeDir);
         return new EnterpriseGraphDatabaseFactory().newEmbeddedDatabaseBuilder(storeDir)
+                .setConfig("dbms.backup.enabled","false")
                 .setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*");
     }
 
@@ -162,5 +167,9 @@ public class TestUtil {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static URL getUrlFileName(String filename) {
+        return Thread.currentThread().getContextClassLoader().getResource(filename);
     }
 }

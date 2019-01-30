@@ -29,7 +29,7 @@ This config option also works for `apoc.refactor.mergeRelationships([rels],{conf
 |===
 
 For mergeNodes you can Merge relationships with same type and direction, you can spacify this with property mergeRels.
-Relationships properties are combined.
+Relationships properties are managed with the same nodes' method, if properties parameter isn't set relationships properties are combined.
 
 .example1 - Relationships with same start and end nodes
 

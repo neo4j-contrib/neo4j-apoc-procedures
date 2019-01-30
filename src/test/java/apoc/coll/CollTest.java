@@ -620,6 +620,45 @@ public class CollTest {
     }
 
     @Test
+    public void testFrequenciesAsMapAsMap() throws Exception {
+        testCall(db, "RETURN apoc.coll.frequenciesAsMap([]) as value",
+                (row) -> assertEquals(Collections.emptyMap(), row.get("value")));
+        testCall(db, "RETURN apoc.coll.frequenciesAsMap(null) as value",
+                (row) -> assertEquals(Collections.emptyMap(), row.get("value")));
+        testCall(db, "RETURN apoc.coll.frequenciesAsMap([1,1]) as value",
+                (row) -> {
+                    Map<String, Object> maps= (Map<String, Object>) row.get("value");
+                    assertEquals(1, maps.size());
+                    assertEquals(2L, maps.get("1"));
+                });
+        testCall(db, "RETURN apoc.coll.frequenciesAsMap([1,2,1]) as value",
+                (row) -> {
+                    Map<String, Object> maps= (Map<String, Object>) row.get("value");
+                    assertEquals(2, maps.size());
+                    assertEquals(2L, maps.get("1"));
+                    assertEquals(1L, maps.get("2"));
+                });
+        testCall(db, "RETURN apoc.coll.frequenciesAsMap([1,2,1,3,2,5,2,3,1,2]) as value",
+                (row) -> {
+                    Map<String, Object> maps= (Map<String, Object>) row.get("value");
+                    assertEquals(4, maps.size());
+                    assertEquals(3L, maps.get("1"));
+                    assertEquals(4L, maps.get("2"));
+                    assertEquals(2L, maps.get("3"));
+                    assertEquals(1L, maps.get("5"));
+                });
+        testCall(db, "WITH ['a','b','c','c','c','b','a','d'] AS l RETURN apoc.coll.frequenciesAsMap(l) as value",
+                (row) -> {
+                    Map<String, Object> maps= (Map<String, Object>) row.get("value");
+                    assertEquals(4, maps.size());
+                    assertEquals(2L, maps.get("a"));
+                    assertEquals(2L, maps.get("b"));
+                    assertEquals(3L, maps.get("c"));
+                    assertEquals(1L, maps.get("d"));
+                });
+    }
+
+    @Test
     public void testOccurrencesOnNullAndEmptyList() throws Exception {
         testCall(db, "RETURN apoc.coll.occurrences([], 5) as value",
                 (row) -> assertEquals(0l, row.get("value")));

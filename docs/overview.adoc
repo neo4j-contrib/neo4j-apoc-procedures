@@ -158,10 +158,24 @@ Returns a virtual graph that represents the labels and relationship-types availa
 .Functions
 [cols="1m,5"]
 |===
-| apoc.meta.type(value) | type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,UNKNOWN,MAP,LIST`)
+| apoc.meta.cypher.type(value) | type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST OF <TYPE>,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION`)
+| apoc.meta.cypher.isType(value,type) | returns a row if type name matches none if not
+| apoc.meta.cypher.types(node or relationship or map) | returns a a map of property-keys to their names
+|===
+
+In the case of `LIST` you may have many results, depending on the content. In the event that all contents are of the same type, will you have the `LIST OF <TYPE>`, otherwise if the type is different, will you get `LIST OF ANY`
+
+If no type was found, the function return name of the class.
+
+.Functions Deprecated
+[cols="1m,5"]
+|===
+| apoc.meta.type(value) | type name of a value (`INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,MAP,LIST`)
 | apoc.meta.isType(value,type) | returns a row if type name matches none if not
 | apoc.meta.types(node or relationship or map) | returns a a map of property-keys to their names
 |===
+
+If no type was found, the function return name of the class.
 
 ++++
 <iframe width="560" height="315" src="https://www.youtube.com/embed/yEN6TCL8WGk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -179,9 +193,8 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 [cols="1m,5"]
 |===
 | apoc.schema.assert({indexLabel:[indexKeys],...},{constraintLabel:[constraintKeys],...}, dropExisting : true) yield label, key, unique, action | drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label.
-| apoc.schema.nodes() yield name, label, properties, status, type | get all indexes and constraints information for all the node labels in your database
-| apoc.schema.relationships() yield name, type, properties, status | return all the constraint information for all the relationship types in your database
-| apoc.schema.node.indexExists(labelName, properties) | return the indexes existence on node
+| apoc.schema.nodes([config]) yield name, label, properties, status, type | get all indexes and constraints information for all the node labels in your database, in optional config param could be define a set of labels to include or exclude
+| apoc.schema.relationships([config]) yield name, type, properties, status | return all the constraint information for all the relationship types in your database, in optional config param could be define a set of types to include or exclude
 | apoc.schema.node.constraintExists(labelName, properties) | return the constraints existence on node
 | apoc.schema.relationship.constraintExists(type, properties) | return the constraints existence on relationship
 |===
@@ -215,7 +228,6 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 
 == Export / Import
 
-
 === Export to CSV
 
 // tag::export.csv[]
@@ -230,6 +242,11 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 |===
 
 If the file name is passed as `null` and the config `stream:true` the results are streamed back in the `data` column, e.g.
+
+==== Note:
+
+The labels exported are ordered alphabetically.
+The output of `labels()` function is not sorted, use it in combination with `apoc.coll.sort()`.
 
 [source,cypher]
 ----
@@ -261,7 +278,32 @@ GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 | apoc.export.graphml.graph(graph,file,config) | exports given graph object as graphml to the provided file
 | apoc.export.graphml.query(query,file,config) | exports nodes and relationships from the Cypher statement as graphml to the provided file
 |===
+
+All `Point` or `Temporal` data types are exported formatted as a String
+
+e.g:
+[cols="1m,2"]
+|===
+|Point 3d | {"crs":"wgs-84-3d","latitude":56.7,"longitude":12.78,"height":100.0}
+|Point 2d | {"crs":"wgs-84-3d","latitude":56.7,"longitude":12.78,"height":null}
+|Date | 2018-10-10
+|LocalDateTime | 2018-10-10T00:00
+|===
 // end::export.graphml[]
+
+.configuration options
+[options=header]
+|===
+| param | default | description
+| format | | In export to Graphml script define the export format. Possible value is: "gephi"
+| caption | | It's an array of string (i.e. ['name','title']) that define an ordered set of properties eligible as value for the `Label` value, if no match is found the there is a fallback to the node label, if the node label is missing the then the ID is used
+| useTypes | false | Write the attribute type information to the graphml output
+|===
+
+==== Note:
+
+The labels exported are ordered alphabetically.
+The output of `labels()` function is not sorted, use it in combination with `apoc.coll.sort()`.
 
 .configuration options
 [options=header]
@@ -270,7 +312,7 @@ GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 | batchSize | 20000 | define the batch size
 // | silent | false | if enabled write progress output
 | delim | "," | define the delimiter character (export csv)
-| quotes | | quote-character used for CSV
+| quotes | 'always' | quote-character used for CSV, possible values are: 'always', 'none', 'ifNeeded'
 | useTypes | false | add type on file header (export csv and graphml export)
 | format | "neo4j-shell" | In export to Cypher script define the export format. Possible values are: "cypher-shell","neo4j-shell" and "plain"
 | nodesOfRelationships | false | if enabled add relationship between nodes (export Cypher)
@@ -280,6 +322,11 @@ GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 | separateFiles | false | export results in separated file by type (nodes, relationships..)
 | cypherFormat | create | In export to cypher script, define the cypher format (for example use `MERGE` instead of `CREATE`). Possible values are: "create", "updateAll", "addStructure", "updateStructure".
 |===
+
+Values for the `quotes` configuration:
+* `none`: the same behaviour of the current `false`
+* `always`:  the same behaviour of the current `true`
+* `ifNeeded`: it applies quotes only when it's necessary;
 
 == Loading Data from RDBMS
 
@@ -405,8 +452,8 @@ Adding on config the parameter `failOnError:false` (by default `true`), in case 
 | CALL apoc.mongodb.first(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true\|false]) yield value | perform a first operation on mongodb collection
 | CALL apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,[compatibleValues=true\|false],skip-or-null) yield value | perform a find,project,sort operation on mongodb collection
 | CALL apoc.mongodb.insert(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
-| CALL apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
-| CALL apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
+| CALL apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) yield value | deletes the given documents from the mongodb collection and returns the number of affected documents
+| CALL apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) yield value | updates the given documents from the mongodb collection and returns the number of affected documents
 |===
 
 If your documents have date fields or any other type that can be automatically converted by Neo4j, you need to set *compatibleValues* to true. These values will be converted according to Jackson databind default mapping.
@@ -481,12 +528,24 @@ Otherwise you can use configuration properties in the same way as MongoDB. For e
 apoc.couchbase.mykey.username=Administrator
 apoc.couchbase.mykey.password=password
 apoc.couchbase.mykey.uri=host1,host2,host3 // here you can define more than one hostname if you're using a cluster
+apoc.couchbase.mykey.port=8091 // the bootstrapHttpDirectPort (optional)
 ----
 
 [source,cypher]
 ----
 CALL apoc.couchbase.get('mykey', 'default', 'artist:vincent_van_gogh')
 ----
+
+You can also define some CouchbaseEnvironment parameters in the neo4j.conf:
+----
+apoc.couchbase.connectTimeout=<default=5000>
+apoc.couchbase.socketConnectTimeout=<default=1500>
+apoc.couchbase.kvTimeout=<default=2500>
+apoc.couchbase.ioPoolSize=<default=3>
+apoc.couchbase.computationPoolSize=<default=3>
+----
+In order to get an in-depth description of these configuration params please refer to the https://docs.couchbase.com/java-sdk/2.7/client-settings.html[Official Couchbase Documentation]
+
 // end::couchbase[]
 
 == Streaming Data to Gephi
@@ -566,6 +625,7 @@ It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],rel
 | apoc.graph.fromPaths([paths],'name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromDB('name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
+| apoc.agg.graph(element) as graph | aggregates graph elements to a "graph" map with unique sets of "nodes" and "relationships"
 |===
 
 == Generating Graphs
@@ -858,6 +918,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.duplicatesWithCount(coll) | returns a list of duplicate items in the collection and their count, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)
 | apoc.coll.occurrences(coll, item) | returns the count of the given item in the collection
 | apoc.coll.frequencies(coll) | returns a list of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}, {item:abc, count:1}]`)
+| apoc.coll.frequenciesAsMap(coll) | return a map of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `{1: 2, 3: 2}`)
 | apoc.coll.sortMulti | sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip
 | apoc.coll.flatten | flattens a nested list
 | apoc.coll.combinations(coll, minSelect, maxSelect:minSelect) | Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive
@@ -943,7 +1004,7 @@ Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in 
 | apoc.text.replace(text, regex, replacement)| replace each substring of the given string that matches the given regular expression with the given replacement.
 | apoc.text.regexGroups(text, regex) | returns an array containing a nested array for each match. The inner array contains all match groups.
 | apoc.text.join(['text1','text2',...], delimiter) | join the given strings with the given delimiter.
-| apoc.text.format(text,[params]) | sprintf format the string with the params given
+| apoc.text.format(text,[params],language) | sprintf format the string with the params given, and optional param language (default value is 'en').
 | apoc.text.lpad(text,count,delim) | left pad the string to the given width
 | apoc.text.rpad(text,count,delim) | right pad the string to the given width
 | apoc.text.random(length, [valid]) | returns a random string to the specified length

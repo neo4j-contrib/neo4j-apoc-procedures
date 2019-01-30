@@ -1,24 +1,14 @@
 package apoc.couchbase;
 
 import apoc.ApocConfiguration;
-import com.couchbase.client.core.retry.FailFastRetryStrategy;
-import com.couchbase.client.core.retry.RetryStrategy;
-import com.couchbase.client.java.Bucket;
-import com.couchbase.client.java.Cluster;
-import com.couchbase.client.java.CouchbaseAsyncCluster;
-import com.couchbase.client.java.CouchbaseCluster;
 import com.couchbase.client.java.auth.PasswordAuthenticator;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
-
 import org.neo4j.helpers.collection.Pair;
 import org.parboiled.common.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Creates a {@link CouchbaseConnection} though that all of the operations
@@ -29,8 +19,6 @@ import java.util.Map;
  */
 public class CouchbaseManager {
 
-    public static final DefaultCouchbaseEnvironment DEFAULT_COUCHBASE_ENVIRONMENT = DefaultCouchbaseEnvironment.builder().retryStrategy(FailFastRetryStrategy.INSTANCE).build();
-
     protected static final String COUCHBASE_CONFIG_KEY = "couchbase.";
 
     protected static final String USERNAME_CONFIG_KEY = "username";
@@ -39,30 +27,24 @@ public class CouchbaseManager {
 
     protected static final String URI_CONFIG_KEY = "uri";
 
+    protected static final String PORT_CONFIG_KEY = "port";
+
+    private static final Map<String, Object> DEFAULT_CONFIG;
+
+    static {
+        Map<String, Object> cfg = new HashMap<>();
+        cfg.put("connectTimeout", 5000L);
+        cfg.put("socketConnectTimeout", 1500);
+        cfg.put("kvTimeout", 2500);
+        cfg.put("ioPoolSize", 3);
+        cfg.put("computationPoolSize", 3);
+        DEFAULT_CONFIG = Collections.unmodifiableMap(cfg);
+
+    }
+
     protected CouchbaseManager() {
     }
 
-    /**
-     * Opens a connection to the Couchbase Server. Behind the scenes it first
-     * creates a new {@link Cluster} reference against the <code>nodes</code>
-     * passed in and secondly opens the {@link Bucket} with the provided
-     * <code>bucketName</code>.
-     *
-     * @param nodes      the list of nodes to use when connecting to the cluster reference;
-     *                   if null is passed then it will connect to a cluster listening on
-     *                   "localhost"
-     * @param bucketName the name of the bucket to open; if null is passed then it's used
-     *                   the "default" bucket name
-     * @return the opened {@link CouchbaseConnection}
-     * @see CouchbaseCluster#create(List)
-     */
-    @Deprecated
-    public static CouchbaseConnection getConnection(List<String> nodes, String bucketName) {
-        if (nodes == null) {
-            nodes = Arrays.asList(CouchbaseAsyncCluster.DEFAULT_HOST);
-        }
-        return new CouchbaseConnection(CouchbaseCluster.create(DEFAULT_COUCHBASE_ENVIRONMENT, nodes), bucketName);
-    }
 
     protected static URI checkAndGetURI(String hostOrKey) {
         URI uri = URI.create(hostOrKey);
@@ -90,11 +72,7 @@ public class CouchbaseManager {
      * @return a tuple2, the connections objects that we need to establish a connection to a Couchbase Server
      */
     protected static Pair<PasswordAuthenticator, List<String>> getConnectionObjectsFromConfigurationKey(String configurationKey) {
-        Map<String, Object> couchbaseConfig = ApocConfiguration.get(COUCHBASE_CONFIG_KEY + configurationKey);
-
-        if (couchbaseConfig.isEmpty()) {
-            throw new RuntimeException("Please check neo4j.conf file 'apoc.couchbase." + configurationKey + "' is missing");
-        }
+        Map<String, Object> couchbaseConfig = getKeyMap(configurationKey);
 
         Object username, password;
         if ((username = couchbaseConfig.get(USERNAME_CONFIG_KEY)) == null || (password = couchbaseConfig.get(PASSWORD_CONFIG_KEY)) == null) {
@@ -161,9 +139,84 @@ public class CouchbaseManager {
      * @return
      */
     public static CouchbaseConnection getConnection(String hostOrKey, String bucketName) {
-        Pair<PasswordAuthenticator, List<String>> connectionObjects = getConnectionObjectsFromHostOrKey(hostOrKey);
+        PasswordAuthenticator passwordAuthenticator = getPasswordAuthenticator(hostOrKey);
+        List<String> nodes = getNodes(hostOrKey);
+        DefaultCouchbaseEnvironment env = getEnv(hostOrKey);
+
 
         String[] bucketCredentials = bucketName.split(":");
-        return new CouchbaseConnection(connectionObjects.other(), connectionObjects.first(), bucketCredentials[0], bucketCredentials.length == 2 ? bucketCredentials[1] : null);
+        return new CouchbaseConnection(nodes, passwordAuthenticator, bucketCredentials[0], bucketCredentials.length == 2 ? bucketCredentials[1] : null, env);
     }
+
+    private static DefaultCouchbaseEnvironment getEnv(String hostOrKey) {
+        URI singleHostURI = checkAndGetURI(hostOrKey);
+
+        DefaultCouchbaseEnvironment.Builder builder = DefaultCouchbaseEnvironment.builder();
+
+        builder.connectTimeout(Long.parseLong(getConfig("connectTimeout")));
+        builder.socketConnectTimeout(Integer.parseInt(getConfig("socketConnectTimeout")));
+        builder.kvTimeout(Integer.parseInt(getConfig("kvTimeout")));
+        builder.ioPoolSize(Integer.parseInt(getConfig("ioPoolSize")));
+        builder.computationPoolSize(Integer.parseInt(getConfig("computationPoolSize")));
+        if (singleHostURI == null || singleHostURI.getScheme() == null) {
+            Map<String, Object> couchbaseConfig = getKeyMap(hostOrKey);
+
+            Object port;
+            if ((port = couchbaseConfig.get(PORT_CONFIG_KEY)) != null) {
+                builder.bootstrapHttpDirectPort(Integer.parseInt(port.toString()));
+            }
+        } else {
+            if (singleHostURI.getPort() != -1) {
+                builder.bootstrapHttpDirectPort(singleHostURI.getPort());
+            }
+        }
+        return builder.build();
+    }
+
+    private static List<String> getNodes(String hostOrKey) {
+        URI singleHostURI = checkAndGetURI(hostOrKey);
+        Object url;
+        if (singleHostURI == null || singleHostURI.getScheme() == null) {
+            Map<String, Object> couchbaseConfig = getKeyMap(hostOrKey);
+            if ((url = couchbaseConfig.get(URI_CONFIG_KEY)) == null) {
+                throw new RuntimeException("Please check you 'apoc.couchbase." + hostOrKey + "' configuration, url is missing");
+            }
+        } else {
+            url = singleHostURI.getHost();
+        }
+        return Arrays.asList(url.toString().split(","));
+    }
+
+    private static PasswordAuthenticator getPasswordAuthenticator(String hostOrKey) {
+        URI singleHostURI = checkAndGetURI(hostOrKey);
+
+        if (singleHostURI == null || singleHostURI.getScheme() == null) {
+            Map<String, Object> couchbaseConfig = getKeyMap(hostOrKey);
+
+            Object username, password;
+            if ((username = couchbaseConfig.get(USERNAME_CONFIG_KEY)) == null || (password = couchbaseConfig.get(PASSWORD_CONFIG_KEY)) == null) {
+                throw new RuntimeException("Please check you 'apoc.couchbase." + hostOrKey + "' configuration, username and password are missing");
+            }
+
+            return new PasswordAuthenticator(username.toString(), password.toString());
+        } else {
+            String[] userInfo = singleHostURI.getUserInfo().split(":");
+            return new PasswordAuthenticator(userInfo[0], userInfo[1]);
+        }
+    }
+
+    private static Map<String, Object> getKeyMap(String hostOrKey) {
+        Map<String, Object> couchbaseConfig = ApocConfiguration.get(COUCHBASE_CONFIG_KEY + hostOrKey);
+
+        if (couchbaseConfig.isEmpty()) {
+            throw new RuntimeException("Please check neo4j.conf file 'apoc.couchbase." + hostOrKey + "' is missing");
+        }
+
+        return couchbaseConfig;
+    }
+
+    public static String getConfig(String key) {
+        return ApocConfiguration.get(COUCHBASE_CONFIG_KEY + key, DEFAULT_CONFIG.get(key)).toString();
+    }
+
 }

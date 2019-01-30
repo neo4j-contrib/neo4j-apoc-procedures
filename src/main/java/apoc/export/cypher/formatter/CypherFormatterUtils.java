@@ -1,12 +1,9 @@
 package apoc.export.cypher.formatter;
 
 import apoc.export.util.FormatUtils;
-import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.spatial.Point;
 import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.values.storable.DateValue;
 import org.neo4j.values.storable.DurationValue;
 import org.neo4j.values.storable.Value;
 import org.neo4j.values.storable.Values;
@@ -14,6 +11,8 @@ import org.neo4j.values.storable.Values;
 import java.lang.reflect.Array;
 import java.time.temporal.Temporal;
 import java.util.*;
+
+import static apoc.export.util.FormatUtils.getLabelsSorted;
 
 /**
  * @author AgileLARUS
@@ -55,8 +54,10 @@ public class CypherFormatterUtils {
     private static Map<String, Object> getNodeIdProperties(Node node, Map<String, String> uniqueConstraints) {
         Map<String, Object> nodeIdProperties = new LinkedHashMap<>();
         boolean uniqueLabelFound = false;
-        for (Label label : node.getLabels()) {
-            String prop = uniqueConstraints.get(label.name());
+        List<String> list = getLabelsSorted(node);
+
+        for (String labelName : list) {
+            String prop = uniqueConstraints.get(labelName);
             if (prop != null && node.hasProperty(prop)) {
                 uniqueLabelFound = true;
                 nodeIdProperties.put(prop, node.getProperty(prop));
@@ -73,8 +74,9 @@ public class CypherFormatterUtils {
     public static String formatAllLabels(Node node, Map<String, String> uniqueConstraints, Set<String> indexNames) {
         StringBuilder result = new StringBuilder(100);
         boolean uniqueLabelFound = false;
-        for (Label label : node.getLabels()) {
-            String labelName = label.name();
+        List<String> list = getLabelsSorted(node);
+
+        for (String labelName : list) {
             String prop = uniqueConstraints.get(labelName);
             if (prop != null && node.hasProperty(prop))
                 uniqueLabelFound = true;
@@ -91,12 +93,14 @@ public class CypherFormatterUtils {
 
     public static String formatNotUniqueLabels(String id, Node node, Map<String, String> uniqueConstraints) {
         StringBuilder result = new StringBuilder(100);
-        for (Label label : node.getLabels()) {
-            String prop = uniqueConstraints.get(label.name());
+        List<String> list = getLabelsSorted(node);
+
+        for (String labelName : list) {
+            String prop = uniqueConstraints.get(labelName);
             if (!node.hasProperty(prop)) {
                 result.append(", ");
                 result.append(id);
-                result.append(label(label.name()));
+                result.append(label(labelName));
             }
         }
         return result.length() > 0 ? result.substring(2) : "";
@@ -105,8 +109,9 @@ public class CypherFormatterUtils {
     private static String getNodeIdLabels(Node node, Map<String, String> uniqueConstraints, Set<String> indexNames) {
         StringBuilder result = new StringBuilder(100);
         boolean uniqueLabelFound = false;
-        for (Label label : node.getLabels()) {
-            String labelName = label.name();
+        List<String> list = getLabelsSorted(node);
+
+        for (String labelName : list) {
             String prop = uniqueConstraints.get(labelName);
             if (prop != null && node.hasProperty(prop)) {
                 uniqueLabelFound = true;

@@ -5,6 +5,7 @@ import apoc.Pools;
 import apoc.export.util.CountingInputStream;
 import apoc.path.RelationshipTypeAndDirections;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Node;
@@ -19,11 +20,11 @@ import javax.lang.model.SourceVersion;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.*;
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.*;
@@ -32,6 +33,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
 
 /**
@@ -528,7 +530,7 @@ public class Util {
             if (source.getRef() != null) file += "#"+source.getRef();
             return new URL(source.getProtocol(),source.getHost(),source.getPort(),file).toString();
         } catch (MalformedURLException mfu) {
-            return "invalid URL";
+            return String.format("invalid URL (%s)", url);
         }
     }
 
@@ -685,5 +687,33 @@ public class Util {
         } catch (IllegalAccessException | InstantiationException | ClassNotFoundException e) {
             return null;
         }
+    }
+
+    public static <T> void put(BlockingQueue<T> queue, T item, long timeoutSeconds) {
+        try {
+            boolean success = queue.offer(item, timeoutSeconds, TimeUnit.SECONDS);
+            if (!success)
+                throw new RuntimeException("Error queuing item before timeout of " + timeoutSeconds + " seconds");
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Queue offer interrupted before " + timeoutSeconds + " seconds", e);
+        }
+    }
+
+    public static Optional<String> getLoadUrlByConfigFile(String loadType, String key, String suffix){
+        key = Optional.ofNullable(key).map(s -> s + "." + suffix).orElse(StringUtils.EMPTY);
+        Object value = ApocConfiguration.get(loadType).get(key);
+        return Optional.ofNullable(value).map(Object::toString);
+    }
+
+    public static String dateFormat(TemporalAccessor value, String format){
+        return getFormat(format).format(value);
+    }
+
+    public static Duration durationParse(String value) {
+        return Duration.parse(value);
+    }
+
+    public static DateTimeFormatter getFormat(String format) {
+        return getOrCreate(format);
     }
 }

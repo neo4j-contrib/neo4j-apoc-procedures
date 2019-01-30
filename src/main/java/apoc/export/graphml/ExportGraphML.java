@@ -1,10 +1,10 @@
 package apoc.export.graphml;
 
 import apoc.export.util.ExportConfig;
-import apoc.util.FileUtils;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
+import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.neo4j.cypher.export.CypherResultSubGraph;
 import org.neo4j.cypher.export.DatabaseSubGraph;
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static apoc.util.FileUtils.checkWriteAllowed;
 import static apoc.util.FileUtils.getPrintWriter;
 
 /**
@@ -79,18 +80,18 @@ public class ExportGraphML {
     }
 
     @Procedure
-    @Description("apoc.export.graphml.query(query,file,config) - exports nodes and relationships from the cypher kernelTransaction as graphml to the provided file")
+    @Description("apoc.export.graphml.query(query,file,config) - exports nodes and relationships from the cypher statement as graphml to the provided file")
     public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         ExportConfig c = new ExportConfig(config);
         Result result = db.execute(query);
         SubGraph graph = CypherResultSubGraph.from(result, db, c.getRelsInBetween());
-        String source = String.format("kernelTransaction: nodes(%d), rels(%d)",
+        String source = String.format("statement: nodes(%d), rels(%d)",
                 Iterables.count(graph.getNodes()), Iterables.count(graph.getRelationships()));
         return exportGraphML(fileName, source, graph, c);
     }
 
     private Stream<ProgressInfo> exportGraphML(@Name("file") String fileName, String source, SubGraph graph, ExportConfig config) throws Exception, XMLStreamException {
-        FileUtils.checkReadAllowed(fileName);
+        if (fileName != null) checkWriteAllowed();
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "graphml"));
         PrintWriter printWriter = getPrintWriter(fileName, null);
         XmlGraphMLWriter exporter = new XmlGraphMLWriter();

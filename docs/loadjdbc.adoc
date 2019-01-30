@@ -377,6 +377,20 @@ CALL apoc.load.jdbc('my-hive','SELECT * PRODUCTS');
 To use other JDBC drivers use these download links and JDBC URL.
 Put the JDBC driver into the `$NEO4J_HOME/plugins` directory and configure the JDBC-URL in `$NEO4J_HOME/conf/neo4j.conf` with `apoc.jdbc.<alias>.url=<jdbc-url>`
 
+Credentials can be passed in two ways:
+
+* into url
+
+----
+CALL apoc.load.jdbc('jdbc:derby:derbyDB;user=apoc;password=Ap0c!#Db;create=true', 'PERSON')
+----
+
+* by config parameter.
+
+----
+CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})
+----
+
 [options="header",cols="a,3m,a"]
 |===
 |Database | JDBC-URL | Driver Source
@@ -432,7 +446,7 @@ The jdbcUpdate is use for update relational database, from a SQL statement with 
 
 [source,cypher]
 ----
-CALL apoc.load.jdbcUpdate(jdbc-url,statement, params) YIELD  row;
+CALL apoc.load.jdbcUpdate(jdbc-url,statement, params, config) YIELD  row;
 ----
 
 With this set of data you can call the procedure in two different mode:
@@ -477,6 +491,7 @@ Config param is optional, the default value is an empty map.
 [cols="3m,2"]
 |===
 |timezone| default value: null
+|credentials| default value: {}
 |===
 
 Example:
@@ -489,4 +504,15 @@ CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',[
 
 ----
 2018-10-31T01:32:25.012+09:00[Asia/Tokyo]
+----
+
+
+.with credentials
+[source,cypher]
+----
+CALL apoc.load.jdbcUpdate('jdbc:derby:derbyDB','UPDATE PERSON SET NAME = ? WHERE NAME = ?',['John','John'],{credentials:{user:'apoc',password:'Ap0c!#Db'}})
+----
+
+----
+CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})
 ----

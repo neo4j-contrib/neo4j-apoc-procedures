@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -55,6 +56,9 @@ public class ImportCsvTest {
                     new AbstractMap.SimpleEntry<>("id", "id:ID|name:STRING\n" +
                             "1|John\n" +
                             "2|Jane\n"),
+                    new AbstractMap.SimpleEntry<>("id-with-duplicates", "id:ID|name:STRING\n" +
+                            "1|John\n" +
+                            "1|Jane\n"),
                     new AbstractMap.SimpleEntry<>("ignore-nodes", ":ID|firstname:STRING|lastname:IGNORE|age:INT\n" +
                             "1|John|Doe|25\n" +
                             "2|Jane|Doe|26\n"),
@@ -398,21 +402,46 @@ public class ImportCsvTest {
         Assert.assertEquals("John 25 <3> Jane 26", result2.next().get("pair"));
     }
 
+    @Test(expected = QueryExecutionException.class)
+    public void testNoDuplicateEndpointsCreated() {
+        // some of the endpoints of the edges in 'knows.csv' do not exist,
+        // hence this should throw an exception
+        db.execute("CALL apoc.import.csv([{fileName: {nodeFile}, labels: ['Person']}], [{fileName: {relFile}, type: 'KNOWS'}], {config})",
+                map("nodeFile", "file:/persons.csv",
+                    "relFile", "file:/knows.csv",
+                    "config", map("stringIds", false))).close();
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testIgnoreDuplicateNodes() {
+        db.execute(
+                "CALL apoc.import.csv([{fileName: {file}, labels: ['Person']}], [], {config})",
+                map(
+                        "file", "file:/id-with-duplicates.csv",
+                        "config", map("delimiter", '|', "stringIds", false, "ignoreDuplicateNodes", false)
+                )).close();
+    }
+
     @Test
-    public void testNoDuplicationsCreated() {
+    public void testLoadDuplicateNodes() {
         TestUtil.testCall(
                 db,
-                "CALL apoc.import.csv([{fileName: {nodeFile}, labels: ['Person']}], [{fileName: {relFile}, type: 'KNOWS'}], {config})",
+                "CALL apoc.import.csv([{fileName: {file}, labels: ['Person']}], [], {config})",
                 map(
-                        "nodeFile", "file:/persons.csv",
-                        "relFile", "file:/knows.csv",
-                        "config", map("stringIds", false)
+                        "file", "file:/id-with-duplicates.csv",
+                        "config", map("delimiter", '|', "stringIds", false, "ignoreDuplicateNodes", true)
                 ),
                 (r) -> {
-                    assertEquals(2L, r.get("nodes"));
-                    assertEquals(1L, r.get("relationships"));
+                    assertEquals(1L, r.get("nodes"));
+                    assertEquals(0L, r.get("relationships"));
                 }
         );
+
+        final Result resultName = db.execute("MATCH (n:Person) RETURN n.name AS name ORDER BY name");
+        Assert.assertEquals("John", resultName.next().get("name"));
+
+        final Result resultId = db.execute("MATCH (n:Person) RETURN n.id AS id ORDER BY id");
+        Assert.assertEquals(1L, resultId.next().get("id"));
     }
 
 }

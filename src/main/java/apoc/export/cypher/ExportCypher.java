@@ -20,7 +20,9 @@ import org.neo4j.procedure.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -72,13 +74,13 @@ public class ExportCypher {
     }
 
     @Procedure
-    @Description("apoc.export.cypher.query(query,file,config) - exports nodes and relationships from the cypher kernelTransaction incl. indexes as cypher statements to the provided file")
+    @Description("apoc.export.cypher.query(query,file,config) - exports nodes and relationships from the cypher statement incl. indexes as cypher statements to the provided file")
     public Stream<DataProgressInfo> query(@Name("query") String query, @Name(value = "file",defaultValue = "") String fileName, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) throws IOException {
         if (Util.isNullOrEmpty(fileName)) fileName=null;
         ExportConfig c = new ExportConfig(config);
         Result result = db.execute(query);
         SubGraph graph = CypherResultSubGraph.from(result, db, c.getRelsInBetween());
-        String source = String.format("kernelTransaction: nodes(%d), rels(%d)",
+        String source = String.format("statement: nodes(%d), rels(%d)",
                 Iterables.count(graph.getNodes()), Iterables.count(graph.getRelationships()));
         return exportCypher(fileName, source, graph, c, false);
     }
@@ -101,17 +103,13 @@ public class ExportCypher {
         FileManagerFactory.ExportCypherFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, separatedFiles, c.streamStatements());
 
         if (c.streamStatements()) {
-            Future<Boolean> future = null;
-            try {
-                final ArrayBlockingQueue<DataProgressInfo> queue = new ArrayBlockingQueue<>(1000);
-                ProgressReporter reporterWithConsumer = reporter.withConsumer(
-                        (pi) -> queue.offer(pi == ProgressInfo.EMPTY ? DataProgressInfo.EMPTY : new DataProgressInfo(pi).enrich(cypherFileManager)));
-                future = Util.inTxFuture(Pools.DEFAULT, db, () -> { doExport(graph, c, onlySchema, reporterWithConsumer, cypherFileManager); return true; });
-                QueueBasedSpliterator<DataProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, DataProgressInfo.EMPTY, terminationGuard);
-                return StreamSupport.stream(spliterator, false);
-            } finally {
-                Util.waitForFutures(Collections.singletonList(future));
-            }
+            long timeout = c.getTimeoutSeconds();
+            final BlockingQueue<DataProgressInfo> queue = new ArrayBlockingQueue<>(1000);
+            ProgressReporter reporterWithConsumer = reporter.withConsumer(
+                    (pi) -> Util.put(queue,pi == ProgressInfo.EMPTY ? DataProgressInfo.EMPTY : new DataProgressInfo(pi).enrich(cypherFileManager),timeout));
+            Util.inTxFuture(Pools.DEFAULT, db, () -> { doExport(graph, c, onlySchema, reporterWithConsumer, cypherFileManager); return true; });
+            QueueBasedSpliterator<DataProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, DataProgressInfo.EMPTY, terminationGuard, timeout);
+            return StreamSupport.stream(spliterator, false);
         } else {
             doExport(graph, c, onlySchema, reporter, cypherFileManager);
             return reporter.stream().map(DataProgressInfo::new).map((dpi) -> dpi.enrich(cypherFileManager));

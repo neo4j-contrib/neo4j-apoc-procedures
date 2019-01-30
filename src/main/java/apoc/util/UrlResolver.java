@@ -29,11 +29,11 @@ public class UrlResolver {
     }
 
     public String getConfiguredUrl(String prefix, String key) {
-        String base = prefix + "." + key + (key == null || key.isEmpty() ? "" : ".");
-        String url = ApocConfiguration.get(base + "url", null);
-        if (url != null) return url;
-        String host = ApocConfiguration.get(base + "host", null);
-        return resolveHost(host);
+        String url = Util.getLoadUrlByConfigFile(prefix, key, "url")
+                .orElse(Util.getLoadUrlByConfigFile(prefix, key, "host")
+                        .map(this::resolveHost)
+                        .orElse(null));
+        return url;
     }
 
     public String resolveHost(String host) {

@@ -1,12 +1,17 @@
 package apoc.export.util;
 
+import apoc.util.JsonUtil;
 import apoc.util.Util;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.spatial.Point;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.Util.labelStrings;
@@ -39,7 +44,7 @@ public class FormatUtils {
     }
 
     public static String joinLabels(Node node, String delimiter) {
-        return StreamSupport.stream(node.getLabels().spliterator(),false).map(Label::name).sorted().collect(Collectors.joining(delimiter));
+        return getLabelsAsStream(node).collect(Collectors.joining(delimiter));
     }
 
     public static Map<String,Object> toMap(PropertyContainer pc) {
@@ -71,6 +76,25 @@ public class FormatUtils {
         if (value instanceof Number) {
             return formatNumber((Number)value);
         }
+        if (value instanceof Point) {
+            return formatPoint((Point) value);
+        }
         return value.toString();
+    }
+
+    public static String formatPoint(Point value) {
+        try {
+            return JsonUtil.OBJECT_MAPPER.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static List<String> getLabelsSorted(Node node) {
+        return getLabelsAsStream(node).collect(Collectors.toList());
+    }
+
+    private static Stream<String> getLabelsAsStream(Node node) {
+        return StreamSupport.stream(node.getLabels().spliterator(),false).map(Label::name).sorted();
     }
 }
