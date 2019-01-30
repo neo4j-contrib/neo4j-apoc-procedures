@@ -16,6 +16,8 @@ import java.util.regex.Pattern;
  */
 public class ApocConfiguration {
     public static final String PREFIX = "apoc.";
+    public static Map<String, String> allConfig = new HashMap<>(10);
+
     private static final Pattern SKIP = Pattern.compile("(ur[il]|pass|cred)",Pattern.CASE_INSENSITIVE);
     private static Map<String, Object> apocConfig = new HashMap<>(10);
     private static Map<String, Object> config = new HashMap<>(32);
@@ -30,6 +32,7 @@ public class ApocConfiguration {
         Static.clear();
         Config neo4jConfig = db.getDependencyResolver().resolveDependency(Config.class);
         Map<String, String> params = neo4jConfig.getRaw();
+        allConfig = params;
         apocConfig.clear();
         apocConfig.putAll(Util.subMap(params, PREFIX));
         PARAM_WHITELIST.forEach((k, v) -> {
