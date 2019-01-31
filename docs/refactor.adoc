@@ -14,7 +14,7 @@ You can specify the merge behavior for properties globally and/or individually.
 MATCH (p:Person)
 WITH p ORDER BY p.created DESC // newest one first
 WITH p.email, collect(p) as nodes
-CALL apoc.refactor.mergeNodes(nodes, {properties: {name:'discard', age:'override', kids:'combine', `addr.*`, 'override',`.*`: 'discard'}}) YIELD node
+CALL apoc.refactor.mergeNodes(nodes, {properties: {name:'discard', age:'overwrite', kids:'combine', `addr.*`, 'overwrite',`.*`: 'discard'}}) YIELD node
 RETURN node
 ---
 
@@ -24,7 +24,7 @@ This config option also works for `apoc.refactor.mergeRelationships([rels],{conf
 |===
 | type | operations
 | discard | the first nodes' property will remain if already set, otherwise the first property in list will be written
-| override | last property in list wins
+| overwrite / override | last property in list wins
 | combine | if there is only one property in list, it will be set / kept as single property otherwise create an array, tries to coerce values
 |===
 

@@ -783,7 +783,7 @@ CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (
 |===
 
 On mergeRelationship and mergeNodes with config properties you can choose from 3 different management:
- * "overwrite" : if there is the same property in more relationship, in the new one will have the last relationship's property value
+ * "overwrite" or "override": if there is the same property in more relationship, in the new one will have the last relationship's property value
  * "discard" : if there is the same property in more relationship, the new one will have the first relationship's property value
  * "combine" : if there is the same property in more relationship, the new one a value's array with all relationships' values
 
