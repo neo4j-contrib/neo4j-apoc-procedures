@@ -2,14 +2,11 @@ package apoc.convert;
 
 import java.util.*;
 import java.io.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.*;
 
-import com.jayway.jsonpath.JsonPath;
 import org.neo4j.procedure.Description;
-import apoc.result.ListResult;
 import apoc.result.MapResult;
-import apoc.result.ObjectResult;
-import apoc.result.StringResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
@@ -82,20 +79,24 @@ public class Json {
             Iterator<PropertyContainer> it = path.iterator();
             while (it.hasNext()) {
                 Node n = (Node) it.next();
-                    Map<String, Object> nMap = maps.computeIfAbsent(n.getId(), (id) -> toMap(n));
+                Map<String, Object> nMap = maps.computeIfAbsent(n.getId(), (id) -> toMap(n));
                 if (it.hasNext()) {
                     Relationship r = (Relationship) it.next();
                     Node m = r.getOtherNode(n);
-                    Map<String, Object> mMap = maps.computeIfAbsent(m.getId(), (id) -> toMap(m));
-                    String typeName = r.getType().name();
-                    if (lowerCaseRels) typeName = typeName.toLowerCase();
-                    mMap = addRelProperties(mMap, typeName, r);
+                    String typeName = lowerCaseRels ? r.getType().name().toLowerCase() : r.getType().name();
                     // todo take direction into account and create collection into outgoing direction ??
                     // parent-[:HAS_CHILD]->(child) vs. (parent)<-[:PARENT_OF]-(child)
                     if (!nMap.containsKey(typeName)) nMap.put(typeName, new ArrayList<>(16));
-                    List list = (List) nMap.get(typeName);
-                    if (!list.contains(mMap))
-                        list.add(mMap); // todo performance, use set instead and convert to map at the end?
+                    List<Map<String, Object>> list = (List) nMap.get(typeName);
+                    Optional<Map<String, Object>> optMap = list.stream()
+                            .filter(elem -> elem.get("_id").equals(m.getId()))
+                            .findFirst();
+                    if (!optMap.isPresent()) {
+                        Map<String, Object> mMap = toMap(m);
+                        mMap = addRelProperties(mMap, typeName, r);
+                        maps.put(m.getId(), mMap);
+                        list.add(maps.get(m.getId()));
+                    }
                 }
             }
         }
