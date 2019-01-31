@@ -13,6 +13,7 @@ public class RefactorConfig {
 	public static final String COMBINE = "combine";
 	public static final String DISCARD = "discard";
 	public static final String OVERWRITE = "overwrite";
+	public static final String OVERRIDE = "override";
 
 	private static String MATCH_ALL = ".*";
 
