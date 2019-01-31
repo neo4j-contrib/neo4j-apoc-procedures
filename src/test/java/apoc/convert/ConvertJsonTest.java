@@ -147,4 +147,94 @@ public class ConvertJsonTest {
         testCall(db, "WITH {b:8, d:3, a:2, E: 12, C:9} as map RETURN apoc.convert.toSortedJsonMap(map) as value",
                 (row) -> assertEquals("{\"a\":2,\"b\":8,\"C\":9,\"d\":3,\"E\":12}", row.get("value")) );
     }
+
+    @Test
+    public void testToTreeParentNodes () {
+	    String createDatabase = "CREATE (b:Bib {id: '57523a6f-fda9-4a61-c4f6-08d47cdcf0cd', langId: 2})-[:HAS]->(c:Comm {id: 'a34fd608-1751-0b5d-cb38-6991297fa9c9', langId: 2}), \n" +
+                "(b)-[:HAS]->(c1:Comm {id: 'a34fd608-262b-678a-cb38-6991297fa9c8', langId: 2}),\n" +
+                "(u:User {id: 'facebook|680594762097202'})-[:Flag {Created: '2018-11-21T11:22:01', FlagType: 4}]->(c1),\n" +
+                "(u)-[:Flag {Created: '2018-11-21T11:22:04', FlagType: 5}]->(c),\n" +
+                "(u1:User {id: 'google-oauth2|106707535753175966005'})-[:Flag {Created: '2018-11-21T11:20:34', FlagType: 2}]->(c),\n" +
+                "(u1)-[:Flag {Created: '2018-11-21T11:20:31', FlagType: 1}]->(c1)";
+        db.execute(createDatabase).close();
+
+        String call = "MATCH (parent:Bib {id: '57523a6f-fda9-4a61-c4f6-08d47cdcf0cd'})\n" +
+                "WITH parent\n" +
+                "OPTIONAL MATCH childFlagPath=(parent)-[:HAS]->(:Comm)<-[:Flag]-(:User)\n" +
+                "WITH COLLECT(childFlagPath) AS cfp\n" +
+                "CALL apoc.convert.toTree(cfp) yield value\n" +
+                "RETURN value";
+
+        testCall(db, call,
+                (row) -> {
+                    Map root = (Map) row.get("value");
+
+                    assertEquals("Bib", root.get("_type"));
+                    assertEquals(0L, root.get("_id"));
+                    assertEquals("57523a6f-fda9-4a61-c4f6-08d47cdcf0cd", root.get("id"));
+                    assertEquals(2L, root.get("langId"));
+
+                    List<Map> has = (List<Map>) root.get("has"); //HAS REL
+                    assertEquals(2,has.size());
+
+                    Map hasPart = has.get(0);
+
+                    assertEquals("Comm", hasPart.get("_type"));
+                    assertEquals(2L, hasPart.get("_id"));
+                    assertEquals("a34fd608-262b-678a-cb38-6991297fa9c8", hasPart.get("id"));
+                    assertEquals(2L, hasPart.get("langId"));
+                    List<Map> subParts = (List<Map>)hasPart.get("flag");
+                    assertEquals(2,subParts.size());
+                    Map<String, Object> mapFlag = subParts.get(0);
+
+                    /*USER*/
+
+                    assertEquals("User", mapFlag.get("_type"));
+                    assertEquals("2018-11-21T11:20:31",  mapFlag.get("flag.Created"));
+                    assertEquals(4L,  mapFlag.get("_id"));
+                    assertEquals("google-oauth2|106707535753175966005",  mapFlag.get("id"));
+                    assertEquals(1L,  mapFlag.get("flag.FlagType"));
+
+                    mapFlag = subParts.get(1);
+
+                    assertEquals("User", mapFlag.get("_type"));
+                    assertEquals("2018-11-21T11:22:01",  mapFlag.get("flag.Created"));
+                    assertEquals(3L,  mapFlag.get("_id"));
+                    assertEquals("facebook|680594762097202",  mapFlag.get("id"));
+                    assertEquals(4L,  mapFlag.get("flag.FlagType"));
+
+                    /*USER*/
+
+
+                    hasPart = has.get(1);
+
+                    assertEquals("Comm", hasPart.get("_type"));
+                    assertEquals(1L, hasPart.get("_id"));
+                    assertEquals("a34fd608-1751-0b5d-cb38-6991297fa9c9", hasPart.get("id"));
+                    assertEquals(2L, hasPart.get("langId"));
+                    subParts = (List<Map>)hasPart.get("flag");
+                    assertEquals(2,subParts.size());
+                    mapFlag = subParts.get(0);
+
+                    /*USER*/
+
+                    assertEquals("User", mapFlag.get("_type"));
+                    assertEquals("2018-11-21T11:20:34",  mapFlag.get("flag.Created"));
+                    assertEquals(4L,  mapFlag.get("_id"));
+                    assertEquals("google-oauth2|106707535753175966005",  mapFlag.get("id"));
+                    assertEquals(2L,  mapFlag.get("flag.FlagType"));
+
+                    mapFlag = subParts.get(1);
+
+                    assertEquals("User", mapFlag.get("_type"));
+                    assertEquals("2018-11-21T11:22:04",  mapFlag.get("flag.Created"));
+                    assertEquals(3L,  mapFlag.get("_id"));
+                    assertEquals("facebook|680594762097202",  mapFlag.get("id"));
+                    assertEquals(5L,  mapFlag.get("flag.FlagType"));
+
+                    /*USER*/
+
+                });
+
+    }
 }

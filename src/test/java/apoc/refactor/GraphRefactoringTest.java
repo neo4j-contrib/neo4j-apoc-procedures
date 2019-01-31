@@ -567,5 +567,38 @@ public class GraphRefactoringTest {
                 }
         );
     }
+
+    @Test
+    public void testMergeRelsOverridePropertiesEagerAggregation() throws Exception {
+        long id = db.execute("Create (d:Person {name:'Daniele'})\n" + "Create (p:Country {name:'USA'})\n" + "Create (d)-[:TRAVELS_TO {year:1995, reason:\"work\"}]->(p)\n"
+                + "Create (d)-[:GOES_TO {year:2010}]->(p)\n" + "Create (d)-[:FLIGHTS_TO {company:\"Air America\"}]->(p) RETURN id(p) as id ").<Long>columnAs("id").next();
+        testCall(db, "MATCH (d:Person {name:'Daniele'})\n" + "MATCH (p:Country {name:'USA'})\n" + "MATCH (d)-[r:TRAVELS_TO]->(p)\n" + "MATCH (d)-[h:GOES_TO]->(p)\n"
+                        + "MATCH (d)-[l:FLIGHTS_TO]->(p)\n" + "call apoc.refactor.mergeRelationships([r,h,l],{properties:\"override\"}) yield rel\n MATCH (d)-[u]->(p) " + "return p,d,u,u.to as to, count(u) as totRel",
+                (r) -> {
+                    Node node = (Node) r.get("p");
+                    Long totRel = (Long) r.get("totRel");
+                    Relationship rel = (Relationship) r.get("u");
+                    assertEquals(id, node.getId());
+                    assertEquals(true, node.hasLabel(Label.label("Country")));
+                    assertEquals("USA", node.getProperty("name"));
+                    assertEquals(new Long(1),totRel);
+                    assertEquals(true, rel.isType(RelationshipType.withName("TRAVELS_TO")));
+                    assertEquals("work", rel.getProperty("reason"));
+                    assertEquals(2010L, rel.getProperty("year"));
+                });
+    }
+
+    @Test
+    public void testMergeNodesOverridePropertiesEagerAggregation() throws Exception {
+        long id = db.execute("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ").<Long>columnAs("id").next();
+        testCall(db, "MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) WITH head(collect([o,n])) as nodes CALL apoc.refactor.mergeNodes(nodes, {properties:\"override\"}) yield node return node",
+                map("oldID", 1L, "newID",2L),
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    assertEquals(id, node.getId());
+                    assertEquals(true, node.hasLabel(Label.label("Person")));
+                    assertEquals(2L, node.getProperty("ID"));
+                });
+    }
 }
 

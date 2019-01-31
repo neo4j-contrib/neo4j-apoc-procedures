@@ -21,6 +21,7 @@ public class PropertiesManager {
             String mergeMode = propertyManagementMode.getMergeMode(key);
             switch (mergeMode) {
                 case RefactorConfig.OVERWRITE:
+                case RefactorConfig.OVERRIDE:
                     target.setProperty(key, prop.getValue());
                     break;
                 case RefactorConfig.DISCARD:
