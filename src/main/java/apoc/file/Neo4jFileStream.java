@@ -6,6 +6,8 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -15,7 +17,7 @@ import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 public class Neo4jFileStream {
-    public class FileEntry {
+    public class FileEntry implements Comparable<FileEntry> {
         public long lineNo;
         public String line;
         public String path;
@@ -25,11 +27,23 @@ public class Neo4jFileStream {
             this.line = data;
             this.path = path;
         }
+
+        public int compareTo(FileEntry o) {
+            if (this.lineNo < o.lineNo) {
+                return -1;
+            } else if(this.lineNo > o.lineNo) {
+                return 1;
+            }
+
+            return 0;
+        }
     }
 
     @Procedure
-    @Description( "apoc.file.stream(path) - retrieve system or log file contents" )
-    public Stream<FileEntry> stream(@Name("path") String path) {
+    @Description( "apoc.file.stream(path, config) - retrieve system or log file contents" )
+    public Stream<FileEntry> stream(
+            @Name("path") String path,
+            @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
         String neo4jHome = ApocConfiguration.allConfig.get("unsupported.dbms.directories.neo4j_home");
         // String logDir = ApocConfiguration.allConfig.get("dbms.directories.logs");
 
@@ -63,7 +77,14 @@ public class Neo4jFileStream {
             final AtomicLong lineNumber = new AtomicLong(0);
             final String p = canonicalPath;
 
-            return stream.map(line -> new FileEntry(lineNumber.getAndIncrement(), line, p));
+            Stream<FileEntry> entries = stream.map(line -> new FileEntry(lineNumber.getAndIncrement(), line, p));
+
+            // Useful for tailing logfiles.
+            if(config.containsKey("last")) {
+                return entries.sorted(Collections.reverseOrder()).limit(new Double(config.get("last").toString()).longValue());
+            }
+
+            return entries;
         } catch(FileNotFoundException exc) {
             throw new RuntimeException(exc);
         } catch(IOException exc) {
