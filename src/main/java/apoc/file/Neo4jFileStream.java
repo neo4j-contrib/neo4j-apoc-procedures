@@ -47,13 +47,8 @@ public class Neo4jFileStream {
         String neo4jHome = ApocConfiguration.allConfig.get("unsupported.dbms.directories.neo4j_home");
         // String logDir = ApocConfiguration.allConfig.get("dbms.directories.logs");
 
-        // For security reasons, this procedure should only work with paths relative to neo4j's home.
-        // Users may not for example use this to read /etc/password on the system.
-        if (path.contains("." + File.separator)) {
-            throw new RuntimeException("This procedure does not allow the use of relative paths");
-        }
-
-        String fullPath = neo4jHome + File.separator + path;
+        // Prepend neo4jHome if it's a relative path, and use the user's path otherwise.
+        String fullPath = path.startsWith(File.separator) ? path : (neo4jHome + File.separator + path);
         String canonicalPath = null;
         File f = new File(fullPath);
 

@@ -6,7 +6,6 @@ import apoc.util.FileUtils;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
@@ -41,33 +40,6 @@ public class Metrics {
         }
     }
 
-    public class Neo4jMetricConfiguration {
-        public String metricType;
-        public Object enabled;
-
-        public Neo4jMetricConfiguration(String metricType, Object enabled) {
-            this.metricType = metricType;
-            this.enabled = enabled;
-        }
-    }
-
-    // TODO: Do we want this?  It only returns what's in the conf file, not the effective configuration.
-    // So if you don't set metrics.enabled=true, it **is** true, but the value comes back as null.
-//    @Procedure
-//    @Description("apoc.metrics.configuration() - get configured metric types")
-//    public Stream<Neo4jMetricConfiguration> configuration() {
-//        ArrayList<Neo4jMetricConfiguration> l = new ArrayList<Neo4jMetricConfiguration>();
-//
-//        l.add(new Neo4jMetricConfiguration("all", ApocConfiguration.allConfig.get("metrics.enabled")));
-//        l.add(new Neo4jMetricConfiguration("neo4j", ApocConfiguration.allConfig.get("metrics.neo4j.enabled")));
-//        l.add(new Neo4jMetricConfiguration("tx", ApocConfiguration.allConfig.get("metrics.neo4j.tx.enabled")));
-//        l.add(new Neo4jMetricConfiguration("pagecache", ApocConfiguration.allConfig.get("metrics.neo4j.pagecache.enabled")));
-//        l.add(new Neo4jMetricConfiguration("counts", ApocConfiguration.allConfig.get("metrics.neo4j.counts.enabled")));
-//        l.add(new Neo4jMetricConfiguration("network", ApocConfiguration.allConfig.get("metrics.neo4j.network.enabled")));
-//
-//        return l.stream();
-//    }
-
     @Procedure
     @Description("apoc.metrics.list() - get a list of available metrics")
     public Stream<Neo4jMetric> list() {
@@ -76,9 +48,6 @@ public class Metrics {
         File metricsDir = new File(metricsSetting == null ?
                 ApocConfiguration.allConfig.get("unsupported.dbms.directories.neo4j_home") + File.separator + "metrics"
                 : metricsSetting.toString());
-
-        System.out.println("Metrics setting " + metricsSetting);
-        System.out.println("Derived file" + metricsDir);
 
         if (!metricsDir.exists() || !metricsDir.isDirectory()) {
             return Stream.empty();
