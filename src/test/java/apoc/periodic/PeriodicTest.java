@@ -67,7 +67,12 @@ System.out.println("call list" + db.execute(callList).resultAsString());
 
     @Test
     public void testTerminateCommit() throws Exception {
-        testTerminatePeriodicQuery("CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (:Foo {id: id})', {})");
+        testTerminatePeriodicQuery("CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (:Foo {id: id}) limit 1000', {})");
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testPeriodicCommitWithoutLimitShouldFail() {
+        db.execute("CALL apoc.periodic.commit('return 0')");
     }
 
     @Test
