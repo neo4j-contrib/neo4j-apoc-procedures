@@ -1,11 +1,9 @@
 package apoc.util;
 
-import org.apache.commons.io.FileDeleteStrategy;
 import org.hamcrest.Matcher;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.factory.EnterpriseGraphDatabaseFactory;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
@@ -13,9 +11,7 @@ import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.io.File;
 import java.net.Socket;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -147,14 +143,6 @@ public class TestUtil {
     public static GraphDatabaseBuilder apocGraphDatabaseBuilder() {
         return new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
-                .setConfig("dbms.backup.enabled","false")
-                .setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*");
-    }
-
-    public static GraphDatabaseBuilder apocEnterpriseGraphDatabaseBuilder() throws Exception {
-        File storeDir = Paths.get(System.getProperty( "java.io.tmpdir").concat(File.pathSeparator).concat("neo4j-enterprise")).toFile();
-        FileDeleteStrategy.FORCE.delete(storeDir);
-        return new EnterpriseGraphDatabaseFactory().newEmbeddedDatabaseBuilder(storeDir)
                 .setConfig("dbms.backup.enabled","false")
                 .setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*");
     }

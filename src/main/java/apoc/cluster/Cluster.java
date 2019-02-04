@@ -45,6 +45,7 @@ public class Cluster
     }};
 
     @Procedure
+    @Deprecated
     @Description( "apoc.cluster.graph - visually displays the servers participating in the Causal Cluster, their " +
             "roles, and which server in the cluster you are connected to." )
     public Stream<GraphResult> graph()
