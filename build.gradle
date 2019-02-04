@@ -1,14 +1,14 @@
 plugins {
     id 'java'
     id 'idea'
-    id 'com.github.johnrengelman.shadow' version '2.0.1'
-    id "org.asciidoctor.convert" version "1.5.3"
+    id 'com.github.johnrengelman.shadow' version '4.0.2'
+    id "org.asciidoctor.convert" version "1.5.9.2"
     id "com.bmuschko.nexus" version "2.3.1"
-    id "me.champeau.gradle.jmh" version "0.4.4"
-    id "io.codearte.nexus-staging" version "0.9.0"
+    id "me.champeau.gradle.jmh" version "0.4.8"
+    id "io.codearte.nexus-staging" version "0.20.0"
 }
 asciidoctorj {
-    version = '1.5.6'
+    version = '1.6.1'
 }
 apply plugin: 'io.codearte.nexus-staging'
 
@@ -24,7 +24,7 @@ idea {
 }
 
 group = 'org.neo4j.procedure'
-version = '3.5.0.1'
+version = '3.5.0.2-SNAPSHOT'
 archivesBaseName = 'apoc'
 
 jar {
@@ -37,23 +37,9 @@ description = """neo4j-apoc-procedures"""
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "3.5.0"
+    neo4jVersion = "3.5.2"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
-}
-
-repositories {
-    maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
-    mavenCentral()
-    maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
-    maven {
-        url "https://neo4j.bintray.com/enterprise/"
-        credentials {
-            username = 'neo4j-enterprise'
-            password = project.getProperty("neo4jEnterpriseRepoPassword")
-        }
-    }
-    flatDir { dirs 'lib' }
 }
 
 compileJava {
@@ -100,13 +86,9 @@ dependencies {
     testCompile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.2.22.v20170606'
     testCompile group: 'org.apache.derby', name: 'derby', version: '10.12.1.1'
 
-    testCompile group: 'com.neo4j', name: 'neo4j-enterprise', version: neo4jVersionEffective
-
     testCompile group: 'org.neo4j', name: 'neo4j-common', version: neo4jVersionEffective, classifier: "tests"
-    testCompile group: 'com.neo4j', name: 'neo4j-com', version: neo4jVersionEffective, classifier: "tests"
     testCompile group: 'org.neo4j.community', name: 'it-test-support', version: neo4jVersionEffective // , classifier: "tests"
 
-    testCompile group: 'com.neo4j', name: 'neo4j-causal-clustering', version: neo4jVersionEffective, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
     testCompile group: 'org.neo4j', name: 'neo4j-io', version: neo4jVersionEffective, classifier: "tests"
 
@@ -132,7 +114,6 @@ dependencies {
     testCompile 'com.couchbase.client:java-client:2.5.9'
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
-    compileOnly group: 'com.neo4j', name: 'neo4j-enterprise', version: neo4jVersionEffective
     compileOnly group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
     testCompile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.7'

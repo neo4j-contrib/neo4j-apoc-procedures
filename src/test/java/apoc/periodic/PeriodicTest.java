@@ -9,7 +9,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.kernel.enterprise.builtinprocs.EnterpriseBuiltInDbmsProcedures;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.sql.SQLException;
@@ -30,7 +29,7 @@ public class PeriodicTest {
     @Before
     public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure(db, Periodic.class, Jdbc.class, EnterpriseBuiltInDbmsProcedures.class);
+        TestUtil.registerProcedure(db, Periodic.class, Jdbc.class);
         db.execute("call apoc.periodic.list() yield name call apoc.periodic.cancel(name) yield name as name2 return count(*)").close();
     }
 
