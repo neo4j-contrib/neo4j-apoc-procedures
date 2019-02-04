@@ -32,6 +32,8 @@ public class Periodic {
     @Context public Log log;
 
     final static Map<JobInfo,Future> list = new ConcurrentHashMap<>();
+
+    final static Pattern LIMIT_PATTERN = Pattern.compile("\\slimit\\s", Pattern.CASE_INSENSITIVE);
     static {
         Runnable runnable = () -> {
             for (Iterator<Map.Entry<JobInfo, Future>> it = list.entrySet().iterator(); it.hasNext(); ) {
@@ -55,7 +57,7 @@ public class Periodic {
         long total = 0, executions = 0, updates = 0;
         long start = nanoTime();
 
-        if (!StringUtils.containsIgnoreCase(statement, "limit")) {
+        if (!LIMIT_PATTERN.matcher(statement).find()) {
             throw new IllegalArgumentException("the statement sent to apoc.periodic.commit must contain a `limit`");
         }
 
