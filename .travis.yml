@@ -10,7 +10,7 @@ install: echo "skip 'gradle assemble' step"
 
 env:
   global:
-    - GRADLE_OPTS="-Xms256m -Dorg.gradle.daemon=false"
+    - GRADLE_OPTS="-Dorg.gradle.daemon=false"
 
 before_script:
   - sleep 10
