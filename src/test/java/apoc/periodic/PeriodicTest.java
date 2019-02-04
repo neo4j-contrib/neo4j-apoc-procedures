@@ -5,10 +5,13 @@ import apoc.util.MapUtil;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterators;
+import org.neo4j.kernel.api.exceptions.Status;
+import org.neo4j.kernel.impl.api.KernelTransactions;
+import org.neo4j.kernel.impl.core.EmbeddedProxySPI;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.sql.SQLException;
@@ -19,10 +22,11 @@ import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
+import static org.neo4j.graphdb.DependencyResolver.SelectionStrategy.FIRST;
 
 public class PeriodicTest {
 
-    public static final long RUNDONW_COUNT = 1000;
+    public static final long RUNDOWN_COUNT = 1000;
     public static final int BATCH_SIZE = 399;
     private GraphDatabaseService db;
 
@@ -68,19 +72,19 @@ System.out.println("call list" + db.execute(callList).resultAsString());
 
     @Test
     public void testRunDown() throws Exception {
-        db.execute("UNWIND range(1,{count}) AS id CREATE (n:Person {id:id})", MapUtil.map("count", RUNDONW_COUNT)).close();
+        db.execute("UNWIND range(1,{count}) AS id CREATE (n:Person {id:id})", MapUtil.map("count", RUNDOWN_COUNT)).close();
 
         String query = "MATCH (p:Person) WHERE NOT p:Processed WITH p LIMIT {limit} SET p:Processed RETURN count(*)";
 
         testCall(db, "CALL apoc.periodic.commit({query},{params})", MapUtil.map("query", query, "params", MapUtil.map("limit", BATCH_SIZE)), r -> {
-            assertEquals((long) Math.ceil((double) RUNDONW_COUNT / BATCH_SIZE), r.get("executions"));
-            assertEquals(RUNDONW_COUNT, r.get("updates"));
+            assertEquals((long) Math.ceil((double) RUNDOWN_COUNT / BATCH_SIZE), r.get("executions"));
+            assertEquals(RUNDOWN_COUNT, r.get("updates"));
         });
 
         ResourceIterator<Long> it = db.execute("MATCH (p:Processed) RETURN COUNT(*) AS c").<Long>columnAs("c");
         long count = it.next();
         it.close();
-        assertEquals(RUNDONW_COUNT, count);
+        assertEquals(RUNDOWN_COUNT, count);
 
     }
 
@@ -126,17 +130,35 @@ System.out.println("call list" + db.execute(callList).resultAsString());
             "with * where query contains ('apoc.' + 'periodic')\n" +
             "call dbms.killQuery(queryId) yield queryId as killedId\n" +
             "return killedId";
+
+
     public void killPeriodicQueryAsync() {
         new Thread(() -> {
             int retries = 10;
             try {
-                while (retries-- > 0 && !db.execute(KILL_PERIODIC_QUERY).hasNext()) {
+                while (retries-- > 0 && !terminateQuery("apoc.periodic")) {
                     Thread.sleep(10);
                 }
             } catch (InterruptedException e) {
                 // ignore
             }
         }).start();
+    }
+
+    boolean terminateQuery(String pattern) {
+        DependencyResolver dependencyResolver = ((GraphDatabaseAPI) db).getDependencyResolver();
+        EmbeddedProxySPI nodeManager = dependencyResolver.resolveDependency( EmbeddedProxySPI.class, FIRST );
+        KernelTransactions kernelTransactions = dependencyResolver.resolveDependency(KernelTransactions.class, FIRST);
+
+        long numberOfKilledTransactions = kernelTransactions.activeTransactions().stream()
+                .filter(kernelTransactionHandle ->
+                    kernelTransactionHandle.executingQueries().anyMatch(
+                            executingQuery -> executingQuery.queryText().contains(pattern)
+                    )
+                )
+                .map(kernelTransactionHandle -> kernelTransactionHandle.markForTermination(Status.Transaction.Terminated))
+                .count();
+        return numberOfKilledTransactions > 0;
     }
 
     @Test
@@ -174,13 +196,11 @@ System.out.println("call list" + db.execute(callList).resultAsString());
     }
 
     @Test
-    @Ignore("Bug 3.5")
     public void testTerminateIterate() throws Exception {
         testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:1,parallel:true})");
         testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:true})");
         testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:false})");
     }
-
 
     @Test
     public void testIteratePrefixGiven() throws Exception {
