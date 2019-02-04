@@ -2,6 +2,7 @@ package apoc.periodic;
 
 import apoc.Pools;
 import apoc.util.Util;
+import org.apache.commons.lang.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterators;
@@ -31,6 +32,8 @@ public class Periodic {
     @Context public Log log;
 
     final static Map<JobInfo,Future> list = new ConcurrentHashMap<>();
+
+    final static Pattern LIMIT_PATTERN = Pattern.compile("\\slimit\\s", Pattern.CASE_INSENSITIVE);
     static {
         Runnable runnable = () -> {
             for (Iterator<Map.Entry<JobInfo, Future>> it = list.entrySet().iterator(); it.hasNext(); ) {
@@ -49,10 +52,14 @@ public class Periodic {
 
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.commit(statement,params) - runs the given statement in separate transactions until it returns 0")
-    public Stream<RundownResult> commit(@Name("statement") String statement, @Name("params") Map<String,Object> parameters) throws ExecutionException, InterruptedException {
+    public Stream<RundownResult> commit(@Name("statement") String statement, @Name(value = "params", defaultValue = "") Map<String,Object> parameters) throws ExecutionException, InterruptedException {
         Map<String,Object> params = parameters == null ? Collections.emptyMap() : parameters;
         long total = 0, executions = 0, updates = 0;
         long start = nanoTime();
+
+        if (!LIMIT_PATTERN.matcher(statement).find()) {
+            throw new IllegalArgumentException("the statement sent to apoc.periodic.commit must contain a `limit`");
+        }
 
         AtomicInteger batches = new AtomicInteger();
         AtomicInteger failedCommits = new AtomicInteger();

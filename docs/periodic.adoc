@@ -84,6 +84,8 @@ The stream of other data can also come from another source, like a different dat
 Especially for graph processing it is useful to run a query repeatedly in separate transactions until it doesn't process and generates any results anymore.
 So you can iterate in batches over elements that don't fulfill a condition and update them so that they do afterwards.
 
+NOTE: as a safety net your statement used inside `apoc.periodic.commit` *must* contain a `LIMIT` clause.
+
 The query is executed repatedly in separate transactions until it returns 0.
 
 [source,cypher]
