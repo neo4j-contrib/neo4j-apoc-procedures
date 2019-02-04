@@ -30,8 +30,7 @@ public class ApocKernelExtensionFactory extends KernelExtensionFactory<ApocKerne
         try {
             URL.setURLStreamHandlerFactory(new ApocUrlStreamHandlerFactory());
         } catch (Error e) {
-            System.err.println("APOC couln't set a URLStreamHandlerFactory since some other tool already did this (e.g. tomcat). This means you cannot use s3:// or hdfs:// style URLs in APOC. This is a known issue tracked at https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/778. Full stacktrace below: ");
-            e.printStackTrace();
+            System.err.println("APOC couln't set a URLStreamHandlerFactory since some other tool already did this (e.g. tomcat). This means you cannot use s3:// or hdfs:// style URLs in APOC. This is caused by a limitation of the JVM which we cannot fix. ");
         }
     }
     public ApocKernelExtensionFactory() {
