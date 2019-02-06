@@ -243,16 +243,15 @@ public class XmlTest {
     }
 
     @Test
-    public void testLoadXmlWithImport() {
-        testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5.xml', {createNextWordRelationships: true}) yield node",
-                row -> {
-                    assertNotNull(row.get("node"));
-                });
+    public void testLoadXmlWithNextWordRels() {
+        testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5.xml', " +
+                        "{createNextWordRelationships: true, filterLeadingWhitespace: true}) yield node",
+                row -> assertNotNull(row.get("node")));
         testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
             final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));
             assertEquals(2l, (long)resultMap.get("XmlProcessingInstruction"));
             assertEquals(1l, (long)resultMap.get("XmlDocument"));
-            assertEquals(1737l, (long)resultMap.get("XmlWord"));
+            assertEquals(3263l, (long)resultMap.get("XmlWord"));
             assertEquals(454l, (long)resultMap.get("XmlTag"));
         });
 
@@ -268,9 +267,37 @@ public class XmlTest {
         testResult(db, "match p=(:XmlDocument)-[:NEXT_WORD*]->(e:XmlWord) where not (e)-[:NEXT_WORD]->() return length(p) as len",
                 result -> {
                     Map<String, Object> r = Iterators.single(result);
-                    assertEquals(1737l, r.get("len"));
+                    assertEquals(3263l, r.get("len"));
                 });
+    }
 
+    @Test
+    public void testLoadXmlWithNextEntityRels() {
+        testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5.xml', " +
+                        "{connectCharacters: true, filterLeadingWhitespace: true}) yield node",
+                row -> assertNotNull(row.get("node")));
+        testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
+            final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));
+            assertEquals(2l, (long)resultMap.get("XmlProcessingInstruction"));
+            assertEquals(1l, (long)resultMap.get("XmlDocument"));
+            assertEquals(3263l, (long)resultMap.get("XmlCharacters"));
+            assertEquals(454l, (long)resultMap.get("XmlTag"));
+        });
+
+        // no node more than one NEXT/NEXT_SIBLING
+        testCallEmpty(db, "match (n) where size( (n)-[:NEXT]->() ) > 1 return n", null);
+        testCallEmpty(db, "match (n) where size( (n)-[:NEXT_SIBLING]->() ) > 1 return n", null);
+
+        // no node more than one IS_FIRST_CHILD / IS_LAST_CHILD
+        testCallEmpty(db, "match (n) where size( (n)<-[:FIRST_CHILD_OF]-() ) > 1 return n", null);
+        testCallEmpty(db, "match (n) where size( (n)<-[:LAST_CHILD_OF]-() ) > 1 return n", null);
+
+        // NEXT_WORD relationship do connect all word nodes
+        testResult(db, "match p=(:XmlDocument)-[:NE*]->(e:XmlCharacters) where not (e)-[:NE]->() return length(p) as len",
+                result -> {
+                    Map<String, Object> r = Iterators.single(result);
+                    assertEquals(3263l, r.get("len"));
+                });
     }
 
     @Test
