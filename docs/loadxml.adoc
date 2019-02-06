@@ -289,7 +289,7 @@ In case you don't want to transform your xml (like you do with `apoc.load.xml/ap
 
 [source,cypher]
 ----
-CALL apoc.xml.import(<url>, <config>?) YIELD node
+CALL apoc.xml.import(<url>, <config-map>?) YIELD node
 ----
 
 The procedure will return a node representing the xml document containing nodes/rels underneath mapping to the xml structure. The following mapping rules are applied:
@@ -316,6 +316,20 @@ The nodes for the xml document are connected:
 | :NEXT_WORD | only produced if config map has `createNextWordRelationships:true`. Connects words in xml to a text flow.
 |===
 
+The following options are available for the `config` map:
+
+[options="header"]
+|===
+| config option | default value | description
+| connectCharacters | false | if `true` the xml text elements are child nodes of their tags, interconnected by relationships of type `relType` (see below)
+| filterLeadingWhitespace | false |  if `true` leading whitespace is skipped for each line
+| delimiter | `\s` (regex whitespace) | if given, split text elements with the delimiter into separate nodes
+| label | XmlCharacter | label to use for text element representation
+| relType | `NE` | relationship type to be used for connecting the text elements into one linked list
+| charactersForTag | {} | map of tagname -> string. For the given tag names an additional text element is added containing the value as `text` property. Useful e.g. for `<lb/>` tags in TEI-XML to be represented as `<lb> </lb>`.
+|===
+
+
 === example
 
 [source,cypher,subs=attributes]
@@ -325,4 +339,8 @@ apoc.xml.import("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-proc
 true})
 yield node
 return node;
+
+call apoc.xml.import('https://seafile.rlp.net/f/6282a26504cc4f079ab9/?dl=1', {connectCharacters: true, charactersForTag:{lb:' '}, filterLeadingWhitespace: true}) yield node
+return node;
+
 ----

@@ -4,6 +4,7 @@ import apoc.util.FileUtils;
 import apoc.result.MapResult;
 import apoc.result.NodeResult;
 import apoc.util.Util;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -26,9 +27,12 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static apoc.util.Util.cleanUrl;
@@ -108,7 +112,7 @@ public class Xml {
 
     private Stream<MapResult> xmlToMapResult(@Name("url") String url, boolean simpleMode) {
         try {
-            XMLStreamReader reader = getXMLStreamReaderFromUrl(url);
+            XMLStreamReader reader = getXMLStreamReaderFromUrl(url, new XmlImportConfig(Collections.EMPTY_MAP));
             final Deque<Map<String, Object>> stack = new LinkedList<>();
             do {
                 handleXmlEvent(stack, reader, simpleMode);
@@ -120,12 +124,17 @@ public class Xml {
         }
     }
 
-    private XMLStreamReader getXMLStreamReaderFromUrl(String url) throws IOException, XMLStreamException {
+    private XMLStreamReader getXMLStreamReaderFromUrl(String url, XmlImportConfig config) throws IOException, XMLStreamException {
         FileUtils.checkReadAllowed(url);
         url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
         URLConnection urlConnection = new URL(url).openConnection();
         FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);
-        return FACTORY.createXMLStreamReader(urlConnection.getInputStream());
+        InputStream inputStream = urlConnection.getInputStream();
+
+        if (config.isFilterLeadingWhitespace()) {
+            inputStream = new SkipWhitespaceInputStream(inputStream);
+        }
+        return FACTORY.createXMLStreamReader(inputStream);
     }
 
 
@@ -382,37 +391,148 @@ public class Xml {
 
     private static class XmlImportConfig {
 
-        private boolean createNextWordRelationship = false;
+        private boolean connectCharacters;
+        private Pattern delimiter;
+        private Label label = Label.label("XmlCharacters");
+        private RelationshipType relType = RelationshipType.withName("NE");
+        private Map<String, String> charactersForTag = new HashMap<>();
+        final private boolean filterLeadingWhitespace;
 
-        public boolean isCreateNextWordRelationship() {
-            return createNextWordRelationship;
+        public XmlImportConfig(Map<String, Object> config) {
+            connectCharacters = BooleanUtils.toBoolean((Boolean) config.get("connectCharacters"));
+            filterLeadingWhitespace = BooleanUtils.toBoolean((Boolean) config.get("filterLeadingWhitespace"));
+
+            String _delimiter = (String) config.get("delimiter");
+            if (_delimiter != null) {
+                connectCharacters = true;
+            }
+            delimiter = Pattern.compile(_delimiter == null ? "\\s" : _delimiter);
+
+            String _label = (String) config.get("label");
+            if (_label != null) {
+                label = Label.label(_label);
+                connectCharacters = true;
+            }
+
+            String _relType = (String) config.get("relType");
+            if (_relType != null) {
+                relType = RelationshipType.withName(_relType);
+                connectCharacters = true;
+            }
+
+            Map<String,String> _charactersForTag = (Map<String, String>) config.get("charactersForTag");
+            if (_charactersForTag !=null) {
+                charactersForTag = _charactersForTag;
+            }
+
+            // legacy mode
+            // TODO: remove this at some time in future
+            Boolean createNextWordRelationship = (Boolean) config.get("createNextWordRelationships");
+            if (createNextWordRelationship != null) {
+                //delimiter = Pattern.compile("\\s";
+                relType = RelationshipType.withName("NEXT_WORD");
+                label = Label.label("XmlWord");
+                connectCharacters = true;
+            }
         }
 
-        public XmlImportConfig(Map<String,Object> config) {
-            Boolean _createNextWordRelationship = (Boolean) config.get("createNextWordRelationships");
-            if (_createNextWordRelationship!=null) {
-                createNextWordRelationship = _createNextWordRelationship;
-            }
+        public Pattern getDelimiter() {
+            return delimiter;
+        }
+
+        public Label getLabel() {
+            return label;
+        }
+
+        public RelationshipType getRelType() {
+            return relType;
+        }
+
+        public boolean isConnectCharacters() {
+            return connectCharacters;
+        }
+
+        public Map<String, String> getCharactersForTag() {
+            return charactersForTag;
+        }
+
+        public boolean isFilterLeadingWhitespace() {
+            return filterLeadingWhitespace;
         }
 
     }
 
-    @Procedure(mode = Mode.WRITE, value = "apoc.xml.import")
-    public Stream<NodeResult> importToGraph(@Name("url") String url, @Name(value="config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {
-        final XMLStreamReader xml = getXMLStreamReaderFromUrl(url);
+    private static class ImportState {
+        private final Deque<ParentAndChildPair> parents = new ArrayDeque<>();
+        private org.neo4j.graphdb.Node last;
+        private org.neo4j.graphdb.Node lastWord;
+        private int currentCharacterIndex = 0;
 
+        public ImportState(org.neo4j.graphdb.Node initialNode) {
+            this.last = initialNode;
+            this.lastWord = initialNode;
+        }
+
+        public void push(ParentAndChildPair parentAndChildPair) {
+            parents.push(parentAndChildPair);
+        }
+
+        public org.neo4j.graphdb.Node getLastWord() {
+            return lastWord;
+        }
+
+        public void setLastWord(org.neo4j.graphdb.Node lastWord) {
+            this.lastWord = lastWord;
+        }
+
+        public int getCurrentCharacterIndex() {
+            return currentCharacterIndex;
+        }
+
+        public ParentAndChildPair pop() {
+            return parents.pop();
+        }
+
+        public boolean isEmpty() {
+            return parents.isEmpty();
+        }
+
+        public void updateLast(org.neo4j.graphdb.Node thisNode) {
+            ParentAndChildPair parentAndChildPair = parents.peek();
+            final org.neo4j.graphdb.Node parent = parentAndChildPair.getParent();
+            final org.neo4j.graphdb.Node previousChild = parentAndChildPair.getPreviousChild();
+
+            last.createRelationshipTo(thisNode, RelationshipType.withName("NEXT"));
+            thisNode.createRelationshipTo(parent, RelationshipType.withName("IS_CHILD_OF"));
+            if (previousChild ==null) {
+                thisNode.createRelationshipTo(parent, RelationshipType.withName("FIRST_CHILD_OF"));
+            } else {
+                previousChild.createRelationshipTo(thisNode, RelationshipType.withName("NEXT_SIBLING"));
+            }
+            parentAndChildPair.setPreviousChild(thisNode);
+            last = thisNode;
+        }
+
+        public void addCurrentCharacterIndex(int length) {
+            currentCharacterIndex += length;
+        }
+    }
+
+    @Procedure(mode = Mode.WRITE, value = "apoc.xml.import")
+    public Stream<NodeResult> importToGraph(@Name("url") String url, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IOException, XMLStreamException {
         XmlImportConfig importConfig = new XmlImportConfig(config);
         //TODO: make labels, reltypes and magic properties configurable
 
+        final XMLStreamReader xml = getXMLStreamReaderFromUrl(url, importConfig);
+
         // stores parents and their most recent child
-        Deque<ParentAndChildPair> parents = new ArrayDeque<>();
         org.neo4j.graphdb.Node root = db.createNode(Label.label("XmlDocument"));
         setPropertyIfNotNull(root, "_xmlVersion", xml.getVersion());
         setPropertyIfNotNull(root, "_xmlEncoding", xml.getEncoding());
         root.setProperty("url", url);
-        parents.push(new ParentAndChildPair(root));
-        org.neo4j.graphdb.Node last = root;
-        org.neo4j.graphdb.Node lastWord = root;
+
+        ImportState state = new ImportState(root);
+        state.push(new ParentAndChildPair(root));
 
         while (xml.hasNext()) {
             xml.next();
@@ -426,7 +546,7 @@ public class Xml {
                     org.neo4j.graphdb.Node pi = db.createNode(Label.label("XmlProcessingInstruction"));
                     pi.setProperty("_piData", xml.getPIData());
                     pi.setProperty("_piTarget", xml.getPITarget());
-                    last = connectWithParent(pi, parents.peek(), last);
+                    state.updateLast(pi);
                     break;
 
                 case XMLStreamConstants.START_ELEMENT:
@@ -437,36 +557,31 @@ public class Xml {
                         tag.setProperty(xml.getAttributeLocalName(i), xml.getAttributeValue(i));
                     }
 
-                    last = connectWithParent(tag, parents.peek(), last);
-                    parents.push(new ParentAndChildPair(tag));
+                    state.updateLast(tag);
+                    state.push(new ParentAndChildPair(tag));
                     break;
 
                 case XMLStreamConstants.CHARACTERS:
-                    String text = xml.getText().trim();
-                    String[] words = text.split("\\s");
-                    for (int i = 0; i < words.length; i++) {
-                        final String currentWord = words[i];
-                        if (!currentWord.isEmpty()) {
-                            org.neo4j.graphdb.Node word = db.createNode(Label.label("XmlWord"));
-                            word.setProperty("text", currentWord);
-                            last = connectWithParent(word, parents.peek(), last);
-                            if (importConfig.isCreateNextWordRelationship()) {
-                                lastWord.createRelationshipTo(word, RelationshipType.withName("NEXT_WORD"));
-                                lastWord = word;
-                            }
-                        }
+                    List<String> words = parseTextIntoPartsAndDelimiters(xml.getText(), importConfig.getDelimiter());
+                    for (String currentWord : words) {
+                        createCharactersNode(currentWord, state, importConfig);
                     }
                     break;
 
                 case XMLStreamConstants.END_ELEMENT:
-                    ParentAndChildPair parent = parents.pop();
+
+                    String charactersForTag = importConfig.getCharactersForTag().get(xml.getName().getLocalPart());
+                    if (charactersForTag!=null) {
+                        createCharactersNode(charactersForTag, state, importConfig);
+                    }
+                    ParentAndChildPair parent = state.pop();
                     if (parent.getPreviousChild()!=null) {
                         parent.getPreviousChild().createRelationshipTo(parent.getParent(), RelationshipType.withName("LAST_CHILD_OF"));
                     }
                     break;
 
                 case XMLStreamConstants.END_DOCUMENT:
-                    parents.pop();
+                    state.pop();
                     break;
 
                 case XMLStreamConstants.COMMENT:
@@ -478,10 +593,46 @@ public class Xml {
             }
 
         }
-        if (!parents.isEmpty()) {
-            throw new IllegalStateException("non empty parents");
+        if (!state.isEmpty()) {
+            throw new IllegalStateException("non empty parents, this indicates a bug");
         }
         return Stream.of(new NodeResult(root));
+    }
+
+    private void createCharactersNode(String currentWord, ImportState state, XmlImportConfig importConfig) {
+        org.neo4j.graphdb.Node word = db.createNode(importConfig.getLabel());
+        word.setProperty("text", currentWord);
+        word.setProperty("startIndex", state.getCurrentCharacterIndex());
+        state.addCurrentCharacterIndex(currentWord.length());
+        word.setProperty("endIndex", state.getCurrentCharacterIndex() - 1);
+
+        state.updateLast(word);
+        if (importConfig.isConnectCharacters()) {
+            state.getLastWord().createRelationshipTo(word, importConfig.getRelType());
+            state.setLastWord(word);
+        }
+    }
+
+    List<String> parseTextIntoPartsAndDelimiters(String sourceString, Pattern delimiterPattern) {
+        Matcher matcher = delimiterPattern.matcher(sourceString);
+        ArrayList<String> result = new ArrayList<>();
+
+        int prevEndIndex = 0;
+        int length = sourceString.length();
+        while (matcher.find()) {
+            int start = matcher.start();
+            int end = matcher.end();
+            if (prevEndIndex != start) {
+                result.add(sourceString.substring(prevEndIndex, start));
+            }
+            result.add(sourceString.substring(start, end));
+            prevEndIndex = end;
+        }
+        if (prevEndIndex!=length) {
+            result.add(sourceString.substring(prevEndIndex, length));
+
+        }
+        return result;
     }
 
     private void setPropertyIfNotNull(org.neo4j.graphdb.Node root, String propertyKey, Object value) {
@@ -490,19 +641,4 @@ public class Xml {
         }
     }
 
-    private org.neo4j.graphdb.Node connectWithParent(org.neo4j.graphdb.Node thisNode, ParentAndChildPair parentAndChildPair, org.neo4j.graphdb.Node last) {
-        final org.neo4j.graphdb.Node parent = parentAndChildPair.getParent();
-        final org.neo4j.graphdb.Node previousChild = parentAndChildPair.getPreviousChild();
-
-        last.createRelationshipTo(thisNode, RelationshipType.withName("NEXT"));
-        thisNode.createRelationshipTo(parent, RelationshipType.withName("IS_CHILD_OF"));
-        if (previousChild ==null) {
-            thisNode.createRelationshipTo(parent, RelationshipType.withName("FIRST_CHILD_OF"));
-        } else {
-            previousChild.createRelationshipTo(thisNode, RelationshipType.withName("NEXT_SIBLING"));
-        }
-        parentAndChildPair.setPreviousChild(thisNode);
-        last = thisNode;
-        return last;
-    }
 }
