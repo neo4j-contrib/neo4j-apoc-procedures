@@ -7,16 +7,21 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.*;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 import java.sql.*;
 import java.time.*;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static java.util.Collections.emptyList;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
@@ -132,7 +137,6 @@ public class JdbcTest {
                         "EFFECTIVE_FROM_DATE", effectiveFromDate.toLocalDateTime(),
                         "TEST_TIME", time.toLocalTime(),
                         "NULL_DATE", null), row.get("row")));
-
     }
 
     @Test(expected = RuntimeException.class)
