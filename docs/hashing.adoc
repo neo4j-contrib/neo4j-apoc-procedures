@@ -1,0 +1,19 @@
+= Hashing
+
+The following functions do calculate hashsums over nodes, relationship or the entire graph. It takes into account all
+properties, node labels and relationship types.
+
+The hashsum of a graph first calculates the hashsums for each node. This hashsum list is ordered and for each node the
+hashsum for all relationships and their endnode are added. This approach provides independence of internal ids.
+
+Optionally you can supply a list of `propertyKeys` that should be ignored on all nodes. This is, e.g. useful if you store
+`created=timestamp()` properties that should be ignored.
+
+[opts=header,cols="m,a"]
+|===
+| function name | description
+| `apoc.hashing.fingerprintNodeOrRel(node_or_rel, <list_of_props_to_ignore>)` | calculates a md5 hashsum over the given node or relationship.
+| `apoc.hashing.graph(<list_of_props_to_ignore>)` | calculates a md5 hashsum over the full graph.
+|===
+
+
