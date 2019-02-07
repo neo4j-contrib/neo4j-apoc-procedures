@@ -6,7 +6,6 @@ import apoc.refactor.util.RefactorConfig;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
-import org.apache.commons.lang3.tuple.Triple;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.logging.Log;
@@ -112,6 +111,91 @@ public class GraphRefactoring {
     @Description("apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) clone nodes with their labels, properties and relationships")
     public Stream<NodeRefactorResult> cloneNodesWithRelationships(@Name("nodes") List<Node> nodes) {
         return doCloneNodes(nodes, true, Collections.emptyList());
+    }
+
+    /**
+     * this procedure clones a subgraph defined by a list of nodes and relationships. The resulting clone is a disconnected subgraph,
+     * with no relationships connecting with the original nodes, nor with any other node outside the subgraph clone.
+     * This can be overridden by supplying a list of node pairings to reanchor relationships in the subgraph clone to other nodes in the graph.
+     * This is useful when instead of cloning a certain node or set of nodes, you want to instead reanchor relationships in the resulting clone
+     * such that they point to some different existing node in the graph.
+     *
+     * For example, this could be used to clone a branch from a tree structure (with none of the new relationships going
+     * to the original nodes) and to reanchor any relationships from an old root node (which will not be cloned) to a different existing root node.
+     *
+     */
+    @Procedure(mode = Mode.WRITE)
+    @Deprecated
+    @Description("apoc.refactor.cloneSubgraph([node1,node2,...], [rel1,rel2,...], [reanchorNodePairs = [] ], [skipProperties = [] ]) YIELD input, output, error | " +
+            "clone nodes with their labels and properties (optionally skipping specific properties), and clone the given relationships (will exist between cloned nodes only or be reanchored according to reanchor node pairings)")
+    public Stream<NodeRefactorResult> cloneSubgraph(@Name("nodes") List<Node> nodes,
+                                                    @Name("rels") List<Relationship> rels,
+                                                    @Name(value = "reanchors", defaultValue = "[]") List<List<Node>> reanchors,
+                                                    @Name(value = "skipProperties", defaultValue = "[]") List<String> skipProperties) {
+        Map<Node, Node> copyMap = new LinkedHashMap<>(nodes.size());
+        Map<Node, Node> reanchorMap = reanchors.isEmpty() ? Collections.emptyMap() : new LinkedHashMap<>(reanchors.size());
+        List<NodeRefactorResult> resultStream = new ArrayList<>();
+        if (nodes == null) return Stream.empty();
+
+        // populate reanchor map
+        for (List<Node> pairing : reanchors) {
+            if (pairing == null) continue;
+
+            if (pairing.size() != 2) {
+                throw new IllegalArgumentException("\'reanchors\' must be a list of node pairs");
+            }
+
+            Node from = pairing.get(0);
+            Node to = pairing.get(1);
+
+            if (from == null || to == null) {
+                throw new IllegalArgumentException("\'reanchors\' must be a list of node pairs");
+            }
+
+            reanchorMap.put(from, to);
+        }
+
+        // clone nodes and populate copy map
+        for (Node node : nodes) {
+            if (node == null || reanchorMap.containsKey(node)) continue;
+            // nodes being reanchored from will NOT be cloned
+
+            NodeRefactorResult result = new NodeRefactorResult(node.getId());
+            try {
+                Node copy = copyLabels(node, db.createNode());
+
+                Map<String, Object> properties = node.getAllProperties();
+                if (skipProperties != null && !skipProperties.isEmpty()) {
+                    for (String skip : skipProperties) properties.remove(skip);
+                }
+                copy = copyProperties(properties, copy);
+
+                resultStream.add(result.withOther(copy));
+                copyMap.put(node, copy);
+            } catch (Exception e) {
+                resultStream.add(result.withError(e));
+            }
+        }
+
+        // clone relationships, will be between cloned nodes and/or reanchors
+        for (Relationship rel : rels) {
+            if (rel == null) continue;
+
+            Node oldStart = rel.getStartNode();
+            Node newStart = reanchorMap.get(oldStart);
+            newStart = newStart != null ? newStart : copyMap.get(oldStart);
+
+            Node oldEnd = rel.getEndNode();
+            Node newEnd = reanchorMap.get(oldEnd);
+            newEnd = newEnd != null ? newEnd : copyMap.get(oldEnd);
+
+            if (newStart != null && newEnd != null) {
+                Relationship newrel = newStart.createRelationshipTo(newEnd, rel.getType());
+                copyProperties(rel, newrel);
+            }
+        }
+
+        return resultStream.stream();
     }
 
     /**
