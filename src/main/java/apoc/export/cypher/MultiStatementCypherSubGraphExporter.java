@@ -1,16 +1,13 @@
 package apoc.export.cypher;
 
-<<<<<<< HEAD
-import apoc.export.cypher.formatter.CypherFormatterUtils;
-import apoc.export.util.*;
-=======
->>>>>>> fixes #998_bis - Add a mode to export.cypher that batches updates
 import apoc.export.cypher.formatter.CypherFormatter;
+import apoc.export.cypher.formatter.CypherFormatterUtils;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.ExportFormat;
 import apoc.export.util.Reporter;
 import apoc.util.Util;
 import org.neo4j.cypher.export.SubGraph;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -44,12 +41,14 @@ public class MultiStatementCypherSubGraphExporter {
     private ExportFormat exportFormat;
     private CypherFormatter cypherFormat;
     private ExportConfig exportConfig;
+    private GraphDatabaseService db;
 
-    public MultiStatementCypherSubGraphExporter(SubGraph graph, ExportConfig config) {
+    public MultiStatementCypherSubGraphExporter(SubGraph graph, ExportConfig config, GraphDatabaseService db) {
         this.graph = graph;
         this.exportFormat = config.getFormat();
         this.exportConfig = config;
         this.cypherFormat = config.getCypherFormat().getFormatter();
+        this.db = db;
         gatherUniqueConstraints();
     }
 
@@ -82,8 +81,10 @@ public class MultiStatementCypherSubGraphExporter {
             default:
                 artificialUniques += countArtificialUniques(graph.getNodes());
                 exportSchema(cypherFileManager.getPrintWriter("schema"));
-                exportNodesUnwindBatch(cypherFileManager.getPrintWriter("nodes"), reporter);
-                exportRelationshipsUnwindBatch(cypherFileManager.getPrintWriter("relationships"), reporter);
+                PrintWriter nodeWrite = cypherFileManager.getPrintWriter("nodes");
+                exportNodesUnwindBatch(nodeWrite, reporter);
+                PrintWriter relWrite = cypherFileManager.getPrintWriter("relationships");
+                exportRelationshipsUnwindBatch(relWrite, reporter);
         }
         exportCleanUp(cypherFileManager.getPrintWriter("cleanup"), batchSize);
         reporter.done();
@@ -106,7 +107,7 @@ public class MultiStatementCypherSubGraphExporter {
 
     private void exportNodesUnwindBatch(PrintWriter out, Reporter reporter) {
         if (graph.getNodes().iterator().hasNext()) {
-            appendNodesUnwindBatch(out, reporter);
+            this.cypherFormat.statementForNodes(graph.getNodes(), uniqueConstraints, exportConfig, out, reporter, db);
             out.flush();
         }
     }
@@ -130,10 +131,6 @@ public class MultiStatementCypherSubGraphExporter {
         }
     }
 
-    private void appendNodesUnwindBatch(PrintWriter out, Reporter reporter) {
-        this.cypherFormat.statementForSameNodes(graph.getNodes(), uniqueConstraints, indexedProperties, indexNames, exportConfig, out, reporter);
-    }
-
     // ---- Relationships ----
 
     private void exportRelationships(PrintWriter out, Reporter reporter, int batchSize) {
@@ -147,7 +144,7 @@ public class MultiStatementCypherSubGraphExporter {
 
     private void exportRelationshipsUnwindBatch(PrintWriter out, Reporter reporter) {
         if (graph.getRelationships().iterator().hasNext()) {
-            appendRelationshipOptimized(out, reporter);
+            this.cypherFormat.statementForRelationships(graph.getRelationships(), uniqueConstraints, exportConfig, out, reporter, db);
             out.flush();
         }
     }
@@ -168,10 +165,6 @@ public class MultiStatementCypherSubGraphExporter {
             out.println(cypher);
             reporter.update(0, 1, Iterables.count(rel.getPropertyKeys()));
         }
-    }
-
-    private void appendRelationshipOptimized(PrintWriter out, Reporter reporter) {
-        this.cypherFormat.statementForSameRelationship(graph.getRelationships(), uniqueConstraints, indexedProperties, indexNames, exportConfig, out, reporter);
     }
 
     // ---- Schema ----
@@ -274,12 +267,13 @@ public class MultiStatementCypherSubGraphExporter {
     private void gatherUniqueConstraints() {
         for (IndexDefinition indexDefinition : graph.getIndexes()) {
             String label = indexDefinition.getLabel().name();
-            //String prop = Iterables.first(indexDefinition.getPropertyKeys());
-            Set<String> props = StreamSupport.stream(indexDefinition.getPropertyKeys().spliterator(), false).collect(Collectors.toSet());
+            Set<String> props = StreamSupport
+                    .stream(indexDefinition.getPropertyKeys().spliterator(), false)
+                    .collect(Collectors.toSet());
             indexNames.add(label);
             indexedProperties.addAll(props);
-            if (indexDefinition.isConstraintIndex()) {
-                if (!uniqueConstraints.containsKey(label)) uniqueConstraints.put(label, props);
+            if (indexDefinition.isConstraintIndex()) { // we use the constraint that have few properties
+                uniqueConstraints.compute(label, (k, v) ->  v == null || v.size() > props.size() ? props : v);
             }
         }
     }

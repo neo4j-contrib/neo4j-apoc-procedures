@@ -1,6 +1,8 @@
 
 == Import and Export to Cypher
 
+=== Create Statements
+
 Refers to the issue https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/439/[#439] we documented some performance tests of export and import of a big graph into Cypher format file.
 For the test we used a server with this characteristics:
 
@@ -29,7 +31,7 @@ They have not be noticed significative difference with 4 GB of heap memory.
 
 Download here https://dl.dropboxusercontent.com/u/14493611/ldbc_sf001_p006.tgz/[LDBC SF1]
 
-== Script to execute all the tests
+=== Script to execute all the tests
 
 We created a script that execute all the tests explained below, you can run it like in this example:
 
@@ -43,9 +45,9 @@ If you use the LDBC SF1 graph, or another big one is better to change the `open 
 
 Download link:{script}/performanceCypherTest.sh[performanceCypherTest.sh]
 
-== Export all
+==== Export all
 
-=== Batch size
+===== Batch size
 
 With the use of the config param `batchSize` we done some tests with different batch size.
 The default value is 20000.
@@ -56,7 +58,7 @@ time ./cypher-shell -u yourUsername -p yourPassword
 "call apoc.export.cypher.all('yourPath/exportAll', {format:'neo4j-shell', batchSize: 10000, useOptimizations: {type: "none"}})"
 ----
 
-==== Results
+===== Results
 
 .Default 20.000
 
@@ -90,7 +92,7 @@ user    0m0.928s
 sys     0m0.088s
 ----
 
-=== Different output formats
+==== Different output formats
 
 We try the different output formats, changing the `config` parameter `format`.
 
@@ -100,7 +102,7 @@ time ./cypher-shell -u yourUsername -p yourPassword  
 "call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'neo4j-shell', useOptimizations: {type: "none"}})"
 ----
 
-==== Results
+===== Results
 
 .neo4j-shell
 
@@ -309,197 +311,178 @@ user    21m5.140s
 sys     37m35.852s
 ----
 
-=== New implementation of exportCypher
+=== UNWIND Batch Statements
 
-For the new implementations and the test of the exportCypher we used this characteristics:
+This mode use the optimizations explained in this https://medium.com/neo4j/5-tips-tricks-for-fast-batched-updates-of-graph-structures-with-neo4j-and-cypher-73c7f693c8cc[article]
+and leverages the `UNWIND` mode in order to speed-up the import process.
 
-* 6 cores
+This mode group:
 
-* Intel(R) CPU I7-8750H @ 2.2GHz
+* nodes by the same labels
+* relationship by the same type and the same labels for start/end nodes in order to provide the `UNWIND` operation
 
-* 16 GB of RAM
+[source,cypher]
+----
+UNWIND [
+    {_id: 0, properties: {born:date('2018-10-31'), name:"foo"}},
+    {_id: 1, properties: {born:date('2017-09-29'), name:"foo2"}}
+] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id})
+    SET n += row.properties SET n:Foo;
+----
+
+[source,cypher]
+----
+UNWIND [{start: {_id: 0}, end: {name: "bar"}, properties: {since:2016}}] as row
+MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})
+MATCH (end:Bar{name: row.end.name})
+CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;
+----
+
+==== UNWIND Batch Params
+
+In case of you choose CYPHER-SHELL as format you can also choose the UNWIND_BATCH_PARAMS optimization that enables the following
+so the generated file looks like the following
+[source,cypher]
+----
+:param rows => [{_id: 0, properties: {born:date('2018-10-31'), name:"foo"}}, {_id: 1, properties: {born:date('2017-09-29'), name:"foo2"}}]
+:begin
+UNWIND $rows AS row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;
+:commit
+:param rows => [{_id: 2, properties: {born:date('2016-03-12'), name:"foo3"}}]
+:begin
+UNWIND $rows AS row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;
+:commit
+:param rows => [{_id: 4, properties: {age:12}}, {_id: 5, properties: {age:12}}]
+:begin
+UNWIND $rows AS row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;
+:commit
+:param rows => [{name: "bar", properties: {age:42}}, {name: "bar2", properties: {age:44}}]
+:begin
+UNWIND $rows AS row
+CREATE (n:Bar{name: row.name}) SET n += row.properties;
+:commit
+----
+
+
+=== Environment
+
+* CPU 2,2 GHz Intel Core i7
+
+* 32 GB of RAM
 
 
 .Neo4j configuration
 
-* dbms.memory.heap.initial_size=1024m
+* dbms.memory.heap.initial_size=8192m
 
-* dbms.memory.heap.max_size=2048m
+* dbms.memory.heap.max_size=8192m
 
 * dbms.memory.pagecache.size=1g
 
 .Graph info
 
-we use the `MusicBrainz dataset`, you can download from this link: http://example-data.neo4j.org/3.0-datasets/musicbrainz.tgz?_ga=2.224357650.84486006.1547734927-1971869821.1541933587[musicBrainz dataset]
+* total *nodes* 4.713.605
 
-* total *nodes* -> 1035
+* total *relationships* 4.549.134
 
-* total *relationships* -> 3139
+You can download the dataset from https://github.com/albertodelazzari/datatasets/blob/master/README.md[here]
 
-=== Different output formats
+=== Performance Comparision
 
-We try the different output formats, changing the `config` parameter `format`.
-
-.plain
+==== Create statements export ("Old"):
 
 [source,bash,subs=attributes]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword  
-"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'plain', useOptimizations: {unwindBatch: true}})"
+time ./bin/cypher-shell -u neo4j -p andrea "call apoc.export.cypher.all('import/exportDataCypherShellOld.cypher',{format:'cypher-shell', useOptimizations: {type: 'none'}, batchSize:100})"
 ----
 
-==== Results
+.Results
+[source,bash,subs=attributes]
+----
+real	1m9.180s
+user	0m1.351s
+sys	    0m0.209s
+----
 
-.With Optimizations
-----
-real	0m1,838s
-user	0m1,251s
-sys	    0m0,136s
-----
+==== UNWIND Batch export ("New"):
 
 [source,bash,subs=attributes]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword  
-"call apoc.export.cypher.all('yourPath/exportData.cypher', {useOptimizations: {type: "none"}, format:'plain'})"
-----
-==== Results
-
-.Without Optimizations
-----
-real	0m1,539s
-user	0m1,304s
-sys	    0m0,170s
+time ./bin/cypher-shell -u neo4j -p andrea "call apoc.export.cypher.all('import/exportDataCypherShell.cypher',{format:'cypher-shell', useOptimizations: {type: 'unwind_batch', unwindBatchSize: 20}, batchSize:100})"
 ----
 
-.cypher-shell
+.Results
+[source,bash,subs=attributes]
+----
+real	1m9.103s
+user	0m1.348s
+sys	    0m0.204s
+----
+
+==== UNWIND Batch export with Cypher-Shell params ("New"):
+
+In case of the Cypher-Shell with params the batchSize is not considered because the data gets committed every UNWIND operation
 
 [source,bash,subs=attributes]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword  
-"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'cypher-shell', useOptimizations: {unwindBatch: true}})"
+time ./bin/cypher-shell -u neo4j -p andrea "call apoc.export.cypher.all('import/exportDataCypherShellParams.cypher',{format:'cypher-shell', useOptimizations: {type: 'unwind_batch_params', unwindBatchSize:100}})"
 ----
 
-==== Results
-.With Optimizations
+.Results
+[source,bash,subs=attributes]
 ----
-real	0m1,351s
-user	0m1,214s
-sys	    0m0,137s
+real	1m2.391s
+user	0m1.272s
+sys	    0m0.173s
 ----
 
-.cypher-shell
+But let's see the import process:
+
+==== Create statements import ("Old"):
 
 [source,bash,subs=attributes]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword  
-"call apoc.export.cypher.all('yourPath/exportData.cypher', {useOptimizations: {useOptimizations: {type: "none"}}, format:'cypher-shell'})"
+time ./bin/cypher-shell -u neo4j -p andrea < 'import/exportDataCypherShellOld.cypher' > 'import/output.exportDataCypherShellOld.log'
 ----
 
-==== Results
-.Without Optimizations
+.Results
+[source,bash,subs=attributes]
 ----
-real	0m1,259s
-user	0m1,222s
-sys	    0m0,137s
+real	252m33.279s
+user	13m53.566s
+sys	    6m3.110s
 ----
 
-.neo4j-shell
+==== UNWIND Batch import ("New"):
 
 [source,bash,subs=attributes]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword  
-"call apoc.export.cypher.all('yourPath/exportData.cypher', {format:'neo4j-shell', useOptimizations: {unwindBatch: true}})"
+time ./bin/cypher-shell -u neo4j -p andrea < 'import/exportDataCypherShell.cypher' > 'import/output.exportDataCypherShell.log'
 ----
 
-==== Results
-.With Optimizations
+.Results
+[source,bash,subs=attributes]
 ----
-real	0m1,297s
-user	0m1,227s
-sys	    0m0,133s
+real	114m38.406s
+user	2m56.627s
+sys	    0m56.695s
 ----
 
-.neo4j-shell
+==== UNWIND Batch import with Cypher-Shell params ("New"):
 
 [source,bash,subs=attributes]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword  
-"call apoc.export.cypher.all('yourPath/exportData.cypher', {useOptimizations: {type: "none"}, format:'neo4j-shell'})"
+time ./bin/cypher-shell -u neo4j -p andrea < 'import/exportDataCypherShellParams.cypher' > 'import/output.exportDataCypherShellParams.log'
 ----
 
-==== Results
-
-.Without Optimizations
-----
-real	0m1,232s
-user	0m1,236s
-sys	    0m0,133s
-----
-
-== Import from file
-
-=== runFile
-
+.Results
 [source,bash,subs=attributes]
 ----
-time ./cypher-shell -u yourUsername -p yourPassword
-"call apoc.cypher.runFile('yourPath/import/exportPlain.cypher')"
-----
-
-.Result with optimizaions
-----
-real	0m28,186s
-user	0m1,321s
-sys	    0m0,175s
-----
-
-.Result without optimizaions
-----
-it's import 1 nodes every 10 seconds
-----
-
-=== Import cypher-shell
-
-[source,bash,subs=attributes]
-----
-time ./cypher-shell -u yourUsername -p yourPassword
-< 'yourPath/import/exportCypherShell.cypher'
-> 'yourPath/cypherShellOutput'
-----
-
-.Result with optimizaions
-----
-real	0m17,820s
-user	0m1,909s
-sys	    0m0,222s
-----
-
-.Result without optimizaions
-----
-real	0m19,087s
-user	0m5,026s
-sys	    0m0,473s
-----
-
-=== Import neo4j-shell
-
-[source,bash,subs=attributes]
-----
-time ./neo4j-shell -u yourUsername -p yourPassword -file
-< 'yourPath/import/exportNeo4jShell.cypher'
-> 'yourPath/neo4jShellOutput'
-----
-
-.Result with optimizaions
-----
-real	0m41,546s
-user	0m10,124s
-sys	    0m5,423s
-----
-
-.Result without optimizaions
-----
-real	0m53,398s
-user	0m20,157s
-sys	    0m12,572s
+real	157m32.906s
+user	4m5.758s
+sys	    0m55.485s
 ----

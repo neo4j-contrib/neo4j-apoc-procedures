@@ -20,8 +20,8 @@ It is possible to choose between three export formats:
 You can also use the Optimizations like: `useOptimizations: {config}`
 Config could have this params:
 
-* `batchSize`:  (default 100)
-* `type`: possible values ('NONE', 'UNWIND_BATCH') (default 'UNWIND_BATCH')
+* `unwindBatchSize`:  (default 100)
+* `type`: possible values ('NONE', 'UNWIND_BATCH', 'UNWIND_BATCH_PARAMS') (default 'UNWIND_BATCH')
 
 With `NONE` it will export the file with `CREATE` statement;
 
@@ -158,18 +158,18 @@ Result:
 [source,cypher]
 ----
 begin
-CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:"foo", `UNIQUE IMPORT ID`:0});
-CREATE (:`Bar` {`name`:"bar", `age`:42});
-CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});
+CREATE (:Foo:`UNIQUE IMPORT LABEL` {name:"foo", `UNIQUE IMPORT ID`:0});
+CREATE (:Bar {name:"bar", age:42});
+CREATE (:Bar:`UNIQUE IMPORT LABEL` {age:12, `UNIQUE IMPORT ID`:2});
 commit
 begin
-CREATE INDEX ON :`Foo`(`name`);
-CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
+CREATE INDEX ON :Foo(name);
+CREATE CONSTRAINT ON (node:Bar) ASSERT node.name IS UNIQUE;
 CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
 commit
 schema await
 begin
-MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:"bar"}) CREATE (n1)-[:`KNOWS`]->(n2);
+MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:Bar{name:"bar"}) CREATE (n1)-[:KNOWS]->(n2);
 commit
 begin
 MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
@@ -187,8 +187,8 @@ Result:
 [source,cypher]
 ----
 begin
-CREATE INDEX ON :`Foo`(`name`);
-CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
+CREATE INDEX ON :Foo(name);
+CREATE CONSTRAINT ON (node:Bar) ASSERT node.name IS UNIQUE;
 commit
 schema await
 ----
@@ -205,34 +205,34 @@ Result:
 [source,cypher]
 ----
 BEGIN
-CREATE INDEX ON :`Bar`(`first_name`,`last_name`);
-CREATE INDEX ON :`Foo`(`name`);
-CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
+CREATE INDEX ON :Bar(first_name,last_name);
+CREATE INDEX ON :Foo(name);
+CREATE CONSTRAINT ON (node:Bar) ASSERT node.name IS UNIQUE;
 CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
 COMMIT
 SCHEMA AWAIT
 BEGIN
-UNWIND [{`UNIQUE IMPORT ID`: 0, properties: {`born`:date('2018-10-31'), `name`:"foo"}}, {`UNIQUE IMPORT ID`: 4, properties: {`born`:date('2017-09-29'), `name`:"foo2"}}] as row
-MERGE (n:`Foo`:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.`UNIQUE IMPORT ID`}) SET n += row.properties;
-UNWIND [{`name`: "bar", properties: {`age`:42, `name`:"bar"}}, {`name`: "bar2", properties: {`age`:44, `name`:"bar2"}}] as row
-MERGE (n:`Bar`{`name`: row.`name`}) SET n += row.properties;
-UNWIND [{`UNIQUE IMPORT ID`: 2, properties: {`age`:12}}] as row
-MERGE (n:`Bar`:`Person`:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.`UNIQUE IMPORT ID`}) SET n += row.properties;
-UNWIND [{`UNIQUE IMPORT ID`: 6, properties: {`age`:99}}] as row
-MERGE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.`UNIQUE IMPORT ID`}) SET n += row.properties;
-UNWIND [{`UNIQUE IMPORT ID`: 3, properties: {`age`:12}}] as row
-MERGE (n:`Bar`:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.`UNIQUE IMPORT ID`}) SET n += row.properties;
+UNWIND [{_id:3, properties:{age:12}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;
+UNWIND [{_id:2, properties:{age:12}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar:Person;
+UNWIND [{_id:0, properties:{born:date('2018-10-31'), name:"foo"}}, {_id:4, properties:{born:date('2017-09-29'), name:"foo2"}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;
+UNWIND [{name:"bar", properties:{age:42}}, {name:"bar2", properties:{age:44}}] as row
+CREATE (n:Bar{name: row.name}) SET n += row.properties;
+UNWIND [{_id:6, properties:{age:99}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties;
 COMMIT
 BEGIN
-UNWIND [{start: {`UNIQUE IMPORT ID`: 0}, end: {`name`: "bar"}, properties: {`since`:2016}}, {start: {`UNIQUE IMPORT ID`: 4}, end: {`name`: "bar2"}, properties: {`since`:2015}}] as row
-MATCH (start:`Foo`:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start.`UNIQUE IMPORT ID`}), (end:`Bar`{`name`: row.end.`name`})
-MERGE (start)-[r:`KNOWS`]->(end) SET r += row.properties;
+UNWIND [{start: {_id:0}, end: {name:"bar"}, properties:{since:2016}}, {start: {_id:4}, end: {name:"bar2"}, properties:{since:2015}}] as row
+MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})
+MATCH (end:Bar{name: row.end.name})
+CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;
 COMMIT
 BEGIN
 MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
 COMMIT
 BEGIN
-DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
+DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
 COMMIT
-
 ----

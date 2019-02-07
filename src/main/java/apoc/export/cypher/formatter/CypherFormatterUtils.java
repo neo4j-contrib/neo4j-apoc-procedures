@@ -1,6 +1,7 @@
 package apoc.export.cypher.formatter;
 
 import apoc.export.util.FormatUtils;
+import apoc.util.Util;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
@@ -186,8 +187,8 @@ public class CypherFormatterUtils {
         return result;
     }
 
-    private static String formatPropertyName(String id, String prop, Object value, boolean jsonStyle) {
-        return (id != null && !"".equals(id) ? id + "." : "") + "`" + prop + "`" + (jsonStyle ? ":" : "=" ) + toString(value);
+    public static String formatPropertyName(String id, String prop, Object value, boolean jsonStyle) {
+        return (id != null && !"".equals(id) ? id + "." : "") + quote(prop) + (jsonStyle ? ":" : "=" ) + toString(value);
     }
 
     // ---- to string ----
@@ -204,8 +205,12 @@ public class CypherFormatterUtils {
         return builder.toString();
     }
 
+    @Deprecated
+    /**
+     * use {@link Util#quote()}
+     */
     public static String quote(String id) {
-        return "`" + id + "`";
+        return Util.quote(id);
     }
 
     public static String label(String id) {
