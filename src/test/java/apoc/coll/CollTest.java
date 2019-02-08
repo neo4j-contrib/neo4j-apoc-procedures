@@ -2,12 +2,14 @@ package apoc.coll;
 
 import apoc.convert.Json;
 import apoc.util.TestUtil;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.*;
@@ -17,6 +19,7 @@ import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.*;
 import static org.neo4j.helpers.collection.Iterables.asSet;
 
@@ -801,5 +804,42 @@ public class CollTest {
                     assertEquals(false, row.get("value"));
                 });
     }
+
+    @Test
+    public void testDropNeighboursNodes() throws Exception {
+        db.execute("CREATE (n:Person {name:'Foo'}) " +
+                "CREATE (b:Person {name:'Bar'}) " +
+                "CREATE (n)-[:KNOWS]->(n)-[:LIVES_WITH]->(n)").close();
+        testResult(db, "MATCH p=(n)-[:KNOWS]->(m)-[:LIVES_WITH]->(h) RETURN apoc.coll.dropDuplicateNeighbors(nodes(p)) as value",
+                (row) -> {
+                    assertEquals(true, row.hasNext());
+                    assertEquals(1, row.next().size());
+                });
+    }
+
+    @Test
+    public void testDropNeighboursNumbers() throws Exception {
+        testResult(db, "WITH [1,2,3,4,4,5,6,6,4,7] AS values RETURN apoc.coll.dropDuplicateNeighbors(values) as value",
+                (row) -> {
+                    assertEquals(asList(1L,2L,3L,4L,5L,6L,4L,7L), row.next().get("value"));
+                });
+    }
+
+    @Test
+    public void testDropNeighboursStrings() throws Exception {
+        testResult(db, "WITH ['a','a','hello','hello','hello','foo','bar','apoc','apoc!','hello'] AS values RETURN apoc.coll.dropDuplicateNeighbors(values) as value",
+                (row) -> {
+                    assertEquals(asList("a","hello","foo","bar","apoc","apoc!","hello"), row.next().get("value"));
+                });
+    }
+
+    @Test
+    public void testDropNeighboursDifferentTypes() throws Exception {
+        testResult(db, "WITH ['a','a',1,1,'hello','foo','bar','apoc','apoc!',1] AS values RETURN apoc.coll.dropDuplicateNeighbors(values) as value",
+                (row) -> {
+                    assertEquals(asList("a",1L,"hello","foo","bar","apoc","apoc!",1L), row.next().get("value"));
+                });
+    }
+
 }
 
