@@ -28,8 +28,7 @@ public class ExtractURL {
             if(u.getScheme()== null) {
                 return null;
             }
-            StringBuffer file = new StringBuffer();
-            file.append(u.getPath());
+            StringBuilder file = new StringBuilder(u.getPath());
             if(u.getQuery() != null){
                 file.append("?").append(u.getQuery());
             }
