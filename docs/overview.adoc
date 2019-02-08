@@ -933,6 +933,7 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.coll.insertAll(coll, index, values) | insert values at index
 | apoc.coll.remove(coll, index, [length=1]) | remove range of values from index to length
 | apoc.coll.different(values) | returns true if value are different
+| apoc.coll.dropDuplicateNeighbors(coll) | drop duplicate neighbors on collection (nodes, rels, numbers, strings ...)
 |===
 
 === Lookup and Manipulation Procedures
