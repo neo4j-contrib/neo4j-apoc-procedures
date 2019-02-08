@@ -834,11 +834,12 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.dropDuplicateNeighbors(list) - remove duplicate consecutive objects in a list")
     public List<Object> dropDuplicateNeighbors(@Name("list") List<Object> list){
-        List<Object> newList = new ArrayList<>();
+        if (list == null) return null;
+	List<Object> newList = new ArrayList<>(list.size());
 
         Object last = null;
         for (Object element : list) {
-            if (!element.equals(last)) {
+            if (element == null && last != null || element != null && !element.equals(last)) {
                 newList.add(element);
                 last = element;
             }
