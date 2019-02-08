@@ -49,7 +49,47 @@ It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],rel
 | apoc.graph.fromPaths([paths],'name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromDB('name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.inverseToTree({json},writeToGraph) | create a virtual or write to graph from a Json
 |===
+
+The procedure `apoc.graph.inverseToTree` the JSON must be formatted as follow:
+
+* Every JSON must have an `id` and a `type` (name of Label)
+* writeToGraph (true/false) by default it create a VirtualGraph and not create the node.
+
+[source, json]
+----
+{
+	"id": 1,
+	"type": "artist",
+	"name": "Genesis",
+	"members": ["Tony Banks", "Mike Rutherford", "Phil Collins"],
+	"years": [1967, 1998, 1999, 2000, 2006]
+}
+----
+
+In that case it create a `Node`
+
+The name of the `Relationship` is the name of the value `type` of the child `Node`.
+
+To create a Relationship:
+
+[source, json]
+----
+{
+	"id": 1,
+	"type": "artist",
+	"name": "Genesis",
+	"albums": [{
+		"type": "album",
+		"id": 1,
+		"producer": "Jonathan King",
+		"title": "From Genesis to Revelation"
+	}]
+}
+----
+
+In that case it will create a `Node` and a `Relationship`
 
 === Virtual Graph Examples
 
@@ -98,3 +138,14 @@ CALL apoc.graph.fromCypher('MATCH (n)-[r]->(m) RETURN *',null,'test',{answer:42}
 As a result we have a virtual graph object for later processing
 
 image::{img}/apoc.graph.png[width=800]
+
+.Virtual graph from JSON
+
+[source,cypher]
+----
+CALL apoc.graph.inverseToTree("{'id': 1,'type': 'artist','name':'Genesis','members': ['Tony Banks','Mike Rutherford','Phil Collins'],'years': [1967, 1998, 1999, 2000, 2006],'albums': [{'type': 'album','id': 1,'producer': 'Jonathan King','title': 'From Genesis to Revelation'}]}", false) yield graph return graph
+----
+
+As a result we have a virtual graph with two nodes and one relationship:
+
+image::{img}/apoc.graph.inverseToTree_1[width=800]

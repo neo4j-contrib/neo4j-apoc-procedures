@@ -1,16 +1,15 @@
 package apoc.graph;
 
-import org.neo4j.procedure.Description;
 import apoc.cypher.Cypher;
+import apoc.graph.inverse.builder.DocumentGrapherRecursive;
 import apoc.result.VirtualGraph;
+import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -109,5 +108,16 @@ public class Graphs {
 
         });
         return Stream.of(new VirtualGraph(name,nodes,rels,props));
+    }
+
+    @Description("apoc.graph.inverseToTree({json},writeToGraph) - creates a graph from a json")
+    @Procedure(mode = Mode.WRITE)
+    public Stream<VirtualGraph> inverseToTree(@Name("json") String json, @Name(value = "write", defaultValue = "false") boolean writeToGraph) {
+        DocumentGrapherRecursive documentGrapher = new DocumentGrapherRecursive(db, writeToGraph);
+        List<Node> node = documentGrapher.upsertDocument(Util.fromJson(json, Map.class));
+        List<Relationship> rels = new ArrayList<>();
+        node.stream().filter(n -> n.hasRelationship()).forEach(n -> n.getRelationships().forEach(rels::add));
+
+        return Stream.of(new VirtualGraph("Graph",node,rels,Collections.EMPTY_MAP));
     }
 }
