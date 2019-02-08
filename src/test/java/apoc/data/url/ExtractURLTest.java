@@ -48,6 +48,12 @@ public class ExtractURLTest {
                 "file","/neo4j-contrib/neo4j-apoc-procedures/commit/31cf4b60236ef5e08f7b231ed03f3d8ace511fd2",
                 "anchor","diff-a084b794bc0759e7a6b77810e01874f2", "query", null
             ));
+
+        // non standard protocol
+        testCases.put("neo4j://graphapps/neo4j-browser?cmd=play&arg=cypher", map(
+                "protocol","neo4j", "user", null, "host","graphapps", "port",null, "path","/neo4j-browser", "file","/neo4j-browser?cmd=play&arg=cypher", "query","cmd=play&arg=cypher", "anchor",null)
+        );
+
     }
 
     @AfterClass
