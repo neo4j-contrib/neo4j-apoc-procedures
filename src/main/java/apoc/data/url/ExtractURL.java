@@ -4,8 +4,8 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 import static apoc.util.Util.map;
@@ -22,10 +22,18 @@ public class ExtractURL {
     public Map<String, Object> parse(final @Name("url") String value) {
         if (value == null) return null;
         try {
-            URL u = new URL(value);
+            URI u = new URI(value);
             Long port = u.getPort() == -1 ? null : (long) u.getPort();
-            return map("protocol", u.getProtocol(), "user", u.getUserInfo(), "host", u.getHost(), "port", port, "path", u.getPath(),"file", u.getFile(), "query", u.getQuery(), "anchor", u.getRef());
-        } catch (MalformedURLException exc) {
+            // if the scheme is not present, it's a bad URL
+            if(u.getScheme()== null) {
+                return null;
+            }
+            StringBuilder file = new StringBuilder(u.getPath());
+            if(u.getQuery() != null){
+                file.append("?").append(u.getQuery());
+            }
+            return map("protocol", u.getScheme(), "user", u.getUserInfo(), "host", u.getHost(), "port", port, "path", u.getPath(),"file", file.toString(), "query", u.getQuery(), "anchor", u.getFragment());
+        } catch (URISyntaxException exc) {
             return null;
         }
     }
