@@ -1,6 +1,7 @@
 package apoc.hashing;
 
 import org.neo4j.graphdb.*;
+import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -21,18 +22,32 @@ public class Fingerprinting {
     @Context
     public GraphDatabaseService db;
 
+    @Context
+    public Log log;
+
     @UserFunction
     @Description("calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.")
-    public String fingerprintNodeOrRel(@Name("node_relation") Object thing, @Name(value = "propertyExcludes", defaultValue = "") List<String> excludedPropertyKeys) {
+    public String fingerprint(@Name("some object") Object thing, @Name(value = "propertyExcludes", defaultValue = "") List<String> excludedPropertyKeys) {
+        return withMessageDigest(md -> fingerprint(md, thing, excludedPropertyKeys));
+    }
 
+    private void fingerprint(MessageDigest md, Object thing, List<String> excludedPropertyKeys) {
         if (thing instanceof Node) {
-            return fingerprintNode((Node) thing, excludedPropertyKeys);
+            fingerprintNode(md, (Node) thing, excludedPropertyKeys);
         } else if (thing instanceof Relationship) {
-                return fingerprintRelationship((Relationship) thing, excludedPropertyKeys);
+            fingerprintRelationship(md, (Relationship) thing, excludedPropertyKeys);
+        } else if (thing instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) thing;
+            map.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey, String::compareTo)).forEach(entry -> {
+                md.update(entry.getKey().getBytes());
+                md.update(fingerprint(entry.getValue(), excludedPropertyKeys).getBytes());
+            });
+        } else if (thing instanceof List) {
+            List list = (List) thing;
+            list.stream().forEach(o -> fingerprint(md, o, excludedPropertyKeys));
         } else {
-            throw new UnsupportedOperationException("cannot fingerprint a " + thing.getClass());
+            md.update(convertValueToString(thing).getBytes());
         }
-
     }
 
     @UserFunction
@@ -43,8 +58,10 @@ public class Fingerprinting {
             // step 1: load all nodes, calc their hash and map them to id
             Map<Long, String> idToNodeHash = db.getAllNodes().stream().collect(Collectors.toMap(
                     Node::getId,
-                    node -> fingerprintNode(node, excludedPropertyKeys),
-                    (aLong, aLong2) -> { throw new RuntimeException(); },
+                    node -> fingerprint(node, excludedPropertyKeys),
+                    (aLong, aLong2) -> {
+                        throw new RuntimeException();
+                    },
                     () -> new TreeMap<>()
             ));
 
@@ -52,19 +69,21 @@ public class Fingerprinting {
             Map<String, Long> nodeHashToId = idToNodeHash.entrySet().stream().collect(Collectors.toMap(
                     Map.Entry::getValue,
                     Map.Entry::getKey,
-                    (o, o2) -> { throw new RuntimeException(); },
+                    (o, o2) -> {
+                        throw new RuntimeException();
+                    },
                     () -> new TreeMap<>()
             ));
 
             // step 3: iterate nodes in order of their hash (we cannot rely on internal ids)
-            nodeHashToId.entrySet().stream().forEach(entry ->{
+            nodeHashToId.entrySet().stream().forEach(entry -> {
                 messageDigest.update(entry.getKey().getBytes());
 
                 Node node = db.getNodeById(entry.getValue());
                 List<EndNodeRelationshipHashTuple> endNodeRelationshipHashTuples = StreamSupport.stream(node.getRelationships(Direction.OUTGOING).spliterator(), false)
                         .map(relationship -> {
                             String endNodeHash = idToNodeHash.get(relationship.getEndNodeId());
-                            String relationshipHash = fingerprintRelationship(relationship, excludedPropertyKeys);
+                            String relationshipHash = fingerprint(relationship, excludedPropertyKeys);
                             return new EndNodeRelationshipHashTuple(endNodeHash, relationshipHash);
                         }).collect(Collectors.toList());
 
@@ -124,36 +143,27 @@ public class Fingerprinting {
         }
     }
 
-    private String fingerprintNode(Node node, List<String> excludedPropertyKeys) {
-        String s = withMessageDigest(md -> {
-            StreamSupport.stream(node.getLabels().spliterator(), false)
-                    .map(Label::name)
-                    .sorted()
-                    .map(String::getBytes)
-                    .forEach(md::update);
-            addPropertiesToDigest(node, excludedPropertyKeys, md);
-        });
-//        System.out.println("md " + s + " for node " + node.getLabels() + " " + node.getAllProperties());
-        return s;
+    private void fingerprintNode(MessageDigest md, Node node, List<String> excludedPropertyKeys) {
+        StreamSupport.stream(node.getLabels().spliterator(), false)
+                .map(Label::name)
+                .sorted()
+                .map(String::getBytes)
+                .forEach(md::update);
+        addPropertiesToDigest(md, node, excludedPropertyKeys);
     }
 
-    private String fingerprintRelationship(Relationship rel, List<String> excludedPropertyKeys) {
-        String s = withMessageDigest(md -> {
-            md.update(rel.getType().name().getBytes());
-            addPropertiesToDigest(rel, excludedPropertyKeys, md);
-        });
-//        System.out.println("md " + s + " for rel " + rel.getType() + " " + rel.getAllProperties());
-        return s;
-
+    private void fingerprintRelationship(MessageDigest md, Relationship rel, List<String> excludedPropertyKeys) {
+        md.update(rel.getType().name().getBytes());
+        addPropertiesToDigest(md, rel, excludedPropertyKeys);
     }
 
-    private void addPropertiesToDigest(PropertyContainer propertyContainer, List<String> excludedPropertyKeys, MessageDigest md) {
+    private void addPropertiesToDigest(MessageDigest md, PropertyContainer propertyContainer, List<String> excludedPropertyKeys) {
         propertyContainer.getAllProperties().entrySet().stream()
                 .filter(e -> !excludedPropertyKeys.contains(e.getKey()))
                 .sorted(Map.Entry.comparingByKey())
                 .forEachOrdered(entry -> {
-                    md.update(entry.getKey().getBytes());
-                    md.update(convertValueToString(entry.getValue()).getBytes());
+                    fingerprint(md, entry.getKey(), excludedPropertyKeys);
+                    fingerprint(md, entry.getValue(), excludedPropertyKeys);
                 });
     }
 
