@@ -31,14 +31,17 @@ public class Fingerprinting {
         return withMessageDigest(md -> fingerprint(md, thing, excludedPropertyKeys));
     }
 
-    private void fingerprint(MessageDigest md, Object thing, List<String> excludedPropertyKeys) {
+    private void fingerprint(DiagnosingMessageDigestDecorator md, Object thing, List<String> excludedPropertyKeys) {
         if (thing instanceof Node) {
             fingerprintNode(md, (Node) thing, excludedPropertyKeys);
         } else if (thing instanceof Relationship) {
             fingerprintRelationship(md, (Relationship) thing, excludedPropertyKeys);
         } else if (thing instanceof Map) {
             Map<String, Object> map = (Map<String, Object>) thing;
-            map.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey, String::compareTo)).forEach(entry -> {
+            map.entrySet().stream()
+                    .filter(e -> !excludedPropertyKeys.contains(e.getKey()))
+                    .sorted(Map.Entry.comparingByKey())
+                    .forEachOrdered(entry -> {
                 md.update(entry.getKey().getBytes());
                 md.update(fingerprint(entry.getValue(), excludedPropertyKeys).getBytes());
             });
@@ -143,34 +146,25 @@ public class Fingerprinting {
         }
     }
 
-    private void fingerprintNode(MessageDigest md, Node node, List<String> excludedPropertyKeys) {
+    private void fingerprintNode(DiagnosingMessageDigestDecorator md, Node node, List<String> excludedPropertyKeys) {
         StreamSupport.stream(node.getLabels().spliterator(), false)
                 .map(Label::name)
                 .sorted()
                 .map(String::getBytes)
                 .forEach(md::update);
-        addPropertiesToDigest(md, node, excludedPropertyKeys);
+        fingerprint(md, node.getAllProperties(), excludedPropertyKeys);
     }
 
-    private void fingerprintRelationship(MessageDigest md, Relationship rel, List<String> excludedPropertyKeys) {
+    private void fingerprintRelationship(DiagnosingMessageDigestDecorator md, Relationship rel, List<String> excludedPropertyKeys) {
         md.update(rel.getType().name().getBytes());
-        addPropertiesToDigest(md, rel, excludedPropertyKeys);
+        fingerprint(md, rel.getAllProperties(), excludedPropertyKeys);
     }
 
-    private void addPropertiesToDigest(MessageDigest md, PropertyContainer propertyContainer, List<String> excludedPropertyKeys) {
-        propertyContainer.getAllProperties().entrySet().stream()
-                .filter(e -> !excludedPropertyKeys.contains(e.getKey()))
-                .sorted(Map.Entry.comparingByKey())
-                .forEachOrdered(entry -> {
-                    fingerprint(md, entry.getKey(), excludedPropertyKeys);
-                    fingerprint(md, entry.getValue(), excludedPropertyKeys);
-                });
-    }
-
-    private String withMessageDigest(Consumer<MessageDigest> consumer) {
+    private String withMessageDigest(Consumer<DiagnosingMessageDigestDecorator> consumer) {
         try {
             MessageDigest md = MessageDigest.getInstance(DIGEST_ALGORITHM);
-            consumer.accept(md);
+            DiagnosingMessageDigestDecorator dmd = new DiagnosingMessageDigestDecorator(md);
+            consumer.accept(dmd);
             return DatatypeConverter.printHexBinary(md.digest());
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
@@ -205,4 +199,21 @@ public class Fingerprinting {
         return sb.toString();
     }
 
+    /**
+     * if debug log level is enabled, send all updates to the message digest to the log as well for diagnosis
+     */
+    private class DiagnosingMessageDigestDecorator {
+        private final MessageDigest delegate;
+
+        public DiagnosingMessageDigestDecorator(MessageDigest delegate) {
+            this.delegate = delegate;
+        }
+
+        public void update(byte[] value) {
+            if (log.isDebugEnabled()) {
+                log.debug("adding to message digest {}", new String(value));
+            }
+            delegate.update(value);
+        }
+    }
 }
