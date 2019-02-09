@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
  */
 public class ApocConfiguration {
     public static final String PREFIX = "apoc.";
-    public static Map<String, String> allConfig = new HashMap<>(10);
 
     private static final Pattern SKIP = Pattern.compile("(ur[il]|pass|cred)",Pattern.CASE_INSENSITIVE);
     private static Map<String, Object> apocConfig = new HashMap<>(10);
@@ -26,13 +25,15 @@ public class ApocConfiguration {
     static {
         PARAM_WHITELIST.put("dbms.directories.import", "import.file.directory");
         PARAM_WHITELIST.put("dbms.security.allow_csv_import_from_file_urls", "import.file.allow_read_from_filesystem");
+        PARAM_WHITELIST.put("unsupported.dbms.directories.neo4j_home", "unsupported.dbms.directories.neo4j_home");
+        PARAM_WHITELIST.put("dbms.directories.logs", "dbms.directories.logs");
+        PARAM_WHITELIST.put("dbms.directories.metrics", "dbms.directories.metrics");
     }
 
     public static void initialize(GraphDatabaseAPI db) {
         Static.clear();
         Config neo4jConfig = db.getDependencyResolver().resolveDependency(Config.class);
         Map<String, String> params = neo4jConfig.getRaw();
-        allConfig = params;
         apocConfig.clear();
         apocConfig.putAll(Util.subMap(params, PREFIX));
         PARAM_WHITELIST.forEach((k, v) -> {
