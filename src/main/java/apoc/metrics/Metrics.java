@@ -1,6 +1,5 @@
 package apoc.metrics;
 
-import apoc.ApocConfiguration;
 import apoc.load.LoadCsv;
 import apoc.util.FileUtils;
 import org.neo4j.procedure.Description;
@@ -19,12 +18,12 @@ public class Metrics {
      * Value is abstracted to double; in reality some are int, some are float, some are double.
      */
     public static class Neo4jMetricEntry {
-        public final long t;
+        public final long timestamp;
         public final double value;
         public final String metric;
 
         public Neo4jMetricEntry(long t, double value, String metric) {
-            this.t = t;
+            this.timestamp = t;
             this.value = value;
             this.metric = metric;
         }
@@ -40,21 +39,10 @@ public class Metrics {
         }
     }
 
-    @Procedure
+    @Procedure(mode=Mode.DBMS)
     @Description("apoc.metrics.list() - get a list of available metrics")
     public Stream<Neo4jMetric> list() {
-        Object metricsSetting = ApocConfiguration.get("dbms.directories.metrics", "");
-
-        File metricsDir = (
-                (metricsSetting == null) ?
-                        new File(ApocConfiguration.get("unsupported.dbms.directories.neo4j_home", ""), "metrics") :
-                        new File(metricsSetting.toString()));
-
-        if (!metricsDir.exists() || !metricsDir.isDirectory() || !metricsDir.canRead()) {
-            return Stream.empty();
-        }
-
-        FileUtils.checkReadAllowed(metricsDir.toURI().toString());
+        File metricsDir = FileUtils.getMetricsDirectory();
 
         final FilenameFilter filter = (dir, name) -> name.toLowerCase().endsWith(".csv");
         return Arrays.asList(metricsDir.listFiles(filter))
@@ -84,24 +72,24 @@ public class Metrics {
         config.putIfAbsent("sep", ",");
         config.putIfAbsent("header", true);
 
-        String neo4jHome = ApocConfiguration.get("unsupported.dbms.directories.neo4j_home", "");
-        String url = new File(neo4jHome + File.separator + "metrics", metricName + ".csv")
-                .toURI().toString();
+        File metricsDir = FileUtils.getMetricsDirectory();
 
-        FileUtils.checkReadAllowed(url);
+        if (metricsDir == null) {
+            throw new RuntimeException("Metrics directory either does not exist or is not readable.  " +
+                    "To use this procedure please ensure CSV metrics are configured " +
+                    "https://neo4j.com/docs/operations-manual/current/monitoring/metrics/expose/#metrics-csv");
+        }
+
+        String url = new File(metricsDir, metricName + ".csv").toURI().toString();
 
         return new LoadCsv().csv(url, config).map(entry -> {
-            long t = 0;
-            double v = 0.0;
-
             try {
-                t = Long.parseLong(entry.map.get("t").toString());
-                v = Double.parseDouble(entry.map.get("value").toString());
+                long t = Long.parseLong(entry.map.get("t").toString());
+                double v = Double.valueOf(entry.map.get("value").toString());
+                return new Neo4jMetricEntry(t, v, metricName);
             } catch (NumberFormatException exc) {
                 return null;
             }
-
-            return new Neo4jMetricEntry(t, v, metricName);
         }).filter(p -> p != null);
     }
 }

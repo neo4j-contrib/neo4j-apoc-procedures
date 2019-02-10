@@ -28,6 +28,7 @@ public class ApocConfiguration {
         PARAM_WHITELIST.put("unsupported.dbms.directories.neo4j_home", "unsupported.dbms.directories.neo4j_home");
         PARAM_WHITELIST.put("dbms.directories.logs", "dbms.directories.logs");
         PARAM_WHITELIST.put("dbms.directories.metrics", "dbms.directories.metrics");
+        PARAM_WHITELIST.put("dbms.directories.logs", "dbms.directories.logs");
     }
 
     public static void initialize(GraphDatabaseAPI db) {

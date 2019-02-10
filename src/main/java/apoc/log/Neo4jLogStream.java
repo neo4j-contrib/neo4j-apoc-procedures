@@ -1,4 +1,4 @@
-package apoc.file;
+package apoc.log;
 
 import apoc.ApocConfiguration;
 import apoc.util.FileUtils;
@@ -9,13 +9,12 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
-public class Neo4jFileStream {
+public class Neo4jLogStream {
     @Context
     public Log log;
 
@@ -35,33 +34,33 @@ public class Neo4jFileStream {
         }
     }
 
-    public boolean canonicalPathInNeo4jHome(File f) throws IOException {
-        String canonicalPath = f.getCanonicalPath();
-        String neo4jHome = ApocConfiguration.get("unsupported.dbms.directories.neo4j_home", null);
-
-        return canonicalPath.contains(neo4jHome);
-    }
-
     @Procedure(mode=Mode.DBMS)
-    @Description( "apoc.file.stream(path, { last: n }) - retrieve system or log file contents, optionally return only the last n lines" )
+    @Description( "apoc.log.stream('neo4j.log', { last: n }) - retrieve log file contents, optionally return only the last n lines" )
     public Stream<FileEntry> stream(
-            @Name("path") String path,
+            @Name("path") String logName,
             @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
-        String neo4jHome = ApocConfiguration.get("unsupported.dbms.directories.neo4j_home", null);
 
-        // Prepend neo4jHome if it's a relative path, and use the user's path otherwise.
-        File f = path.startsWith(File.separator) ? new File(path) : new File(neo4jHome, path);
+        File logDir = FileUtils.getLogDirectory();
 
-        try {
-            if (!canonicalPathInNeo4jHome(f)) {
-                log.warn("Warning: user attempting to access file outside of neo4jHome " + f.getCanonicalPath());
-            }
-        } catch (IOException ioe) {
-            throw new RuntimeException("Unable to resolve basic file canonical path", ioe);
+        if (logDir == null) {
+            throw new RuntimeException("Neo4j configured dbms.directories.logs points to a directory that " +
+                    "does not exist or is not readable.  Please ensure this configuration is correct.");
         }
 
-        // Throws error if APOC is not configured to permit local file reads.
-        FileUtils.checkReadAllowed(f.toURI().toString());
+        // Prepend neo4jHome if it's a relative path, and use the user's path otherwise.
+        File f = new File(logDir, logName);
+
+        try {
+            // This is just here as an added safety check; this proc is limited to the logs directory but it would
+            // still be possible to get cute and create symlinks from the logs directory elsewhere.
+            if (!FileUtils.canonicalPathInNeo4jHome(f)) {
+                throw new RuntimeException("The path you are trying to access has a canonical path outside of the logs " +
+                        "directory, and this procedure is only permitted to access files in the log directory.  This may " +
+                        "occur if the path in question is a symlink or other link.");
+            }
+        } catch (IOException ioe) {
+            throw new RuntimeException("Unable to resolve basic log file canonical path", ioe);
+        }
 
         try {
             Stream<String> stream = Files.lines(Paths.get(f.toURI()));
