@@ -30,7 +30,7 @@ public class Neo4jLogStream {
         }
 
         public int compareTo(FileEntry o) {
-            return new Long(this.lineNo).compareTo(o.lineNo);
+            return Long.compare(this.lineNo,o.lineNo);
         }
     }
 
