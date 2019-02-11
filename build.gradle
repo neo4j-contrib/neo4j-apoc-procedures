@@ -125,6 +125,11 @@ dependencies {
     compileOnly group: 'org.ow2.asm', name: 'asm', version: '5.0.2'
     compile group: 'com.github.javafaker', name: 'javafaker', version: '0.10'
 
+    // schemacrawler
+    compile group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'
+    testCompile group: 'us.fatehi', name: 'schemacrawler-mysql', version: '15.04.01'
+
+
     testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
@@ -140,6 +145,9 @@ dependencies {
     testCompile group: 'org.gradle', name: 'gradle-tooling-api', version: '4.3'
     testCompile group: 'org.testcontainers', name: 'elasticsearch', version: '1.10.6'
     testCompile group: 'org.testcontainers', name: 'couchbase', version: '1.10.6'
+
+    testCompile group: 'org.testcontainers', name: 'mysql', version: '1.10.2'
+
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
