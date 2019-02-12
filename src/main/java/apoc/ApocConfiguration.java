@@ -1,6 +1,7 @@
 package apoc;
 
 import apoc.cache.Static;
+import apoc.metrics.Metrics;
 import apoc.util.Util;
 import org.neo4j.kernel.configuration.Config;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -23,12 +24,12 @@ public class ApocConfiguration {
     private static final Map<String, String> PARAM_WHITELIST = new HashMap<>(2);
 
     static {
-        PARAM_WHITELIST.put("dbms.directories.import", "import.file.directory");
         PARAM_WHITELIST.put("dbms.security.allow_csv_import_from_file_urls", "import.file.allow_read_from_filesystem");
-        PARAM_WHITELIST.put("unsupported.dbms.directories.neo4j_home", "unsupported.dbms.directories.neo4j_home");
-        PARAM_WHITELIST.put("dbms.directories.logs", "dbms.directories.logs");
-        PARAM_WHITELIST.put("dbms.directories.metrics", "dbms.directories.metrics");
-        PARAM_WHITELIST.put("dbms.directories.logs", "dbms.directories.logs");
+
+        // Contains list of all dbms.directories.* settings supported by Neo4j.
+        for(String directorySetting : Metrics.neo4jDirectoryConfigurationSettingNames) {
+            PARAM_WHITELIST.put(directorySetting, directorySetting);
+        }
     }
 
     public static void initialize(GraphDatabaseAPI db) {

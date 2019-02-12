@@ -1,11 +1,11 @@
 package apoc.metrics;
 
+import apoc.ApocConfiguration;
 import apoc.load.LoadCsv;
 import apoc.util.FileUtils;
-import org.neo4j.procedure.Description;
-import org.neo4j.procedure.Mode;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
+import org.neo4j.logging.Log;
+import org.neo4j.procedure.*;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Arrays;
@@ -13,6 +13,9 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public class Metrics {
+    @Context
+    public Log log;
+
     /**
      * DAO for a single line in a metrics/*.csv file.
      * Value is abstracted to double; in reality some are int, some are float, some are double.
@@ -92,6 +95,57 @@ public class Metrics {
         }
     }
 
+    /** Simple DAO that pairs a config setting name with a File path that it refers to */
+    public static class StoragePair {
+        public final String setting;
+        public final File dir;
+        public StoragePair(String setting, File dir) {
+            this.setting = setting;
+            this.dir = dir;
+        }
+
+        /** Produce a StoragePair from a directory setting name, such as "dbms.directories.logs" */
+        public static StoragePair fromDirectorySetting(String dir) {
+            if (dir == null) return null;
+
+            String configLocation = ApocConfiguration.get(dir, null);
+            if (configLocation == null) return null;
+
+            File f = new File(configLocation);
+            return new StoragePair(dir, f);
+        }
+    }
+
+    /**
+     * DAO that gets streamed to the user with apoc.metric.storage()
+     * Note that we divulge the storage directory setting, not the internal path.
+     * It isn't a secret that neo4j has a dbms.directories.logs, but user doesn't need
+     * to know where that is on a physical hard disk.
+     */
+    public static class StorageMetric {
+        public final String setting;
+        public final long freeSpaceBytes;
+        public final long totalSpaceBytes;
+        public final long usableSpaceBytes;
+        public final double pctFree;
+
+        public StorageMetric(String setting, long freeSpaceBytes, long totalSpaceBytes, long usableSpaceBytes) {
+            this.setting = setting;
+            this.freeSpaceBytes = freeSpaceBytes;
+            this.totalSpaceBytes = totalSpaceBytes;
+            this.usableSpaceBytes = usableSpaceBytes;
+            this.pctFree = (double)freeSpaceBytes / (double)totalSpaceBytes;
+        }
+
+        /** Produce a StorageMetric object from a pair */
+        public static StorageMetric fromStoragePair(StoragePair storagePair) {
+            long freeSpace = storagePair.dir.getFreeSpace();
+            long usableSpace = storagePair.dir.getUsableSpace();
+            long totalSpace = storagePair.dir.getTotalSpace();
+            return new StorageMetric(storagePair.setting, freeSpace, totalSpace, usableSpace);
+        }
+    }
+
     @Procedure(mode=Mode.DBMS)
     @Description("apoc.metrics.list() - get a list of available metrics")
     public Stream<Neo4jMetric> list() {
@@ -123,6 +177,50 @@ public class Metrics {
 
         String url = new File(metricsDir, metricName + ".csv").toURI().toString();
         return new LoadCsv().csv(url, config);
+    }
+
+    @Procedure(mode=Mode.DBMS)
+    @Description("apoc.metrics.storage(directorySetting) - retrieve storage metrics about the devices Neo4j uses for data storage. " +
+            "directorySetting may be any valid neo4j directory setting name, such as 'dbms.directories.data'.  If null is provided " +
+            "as a directorySetting, you will get back all available directory settings.  For a list of available directory settings, " +
+            "see the Neo4j operations manual reference on configuration settings.   Directory settings are **not** paths, they are " +
+            "a neo4j.conf setting key name")
+    public Stream<StorageMetric> storage(@Name("directorySetting") String directorySetting) {
+        // Permit case-insensitive checks.
+        String input = directorySetting == null ? null : directorySetting.toLowerCase();
+
+        boolean validSetting = (
+            input == null ||
+            Arrays.stream(neo4jDirectoryConfigurationSettingNames).anyMatch(input::equals)
+        );
+
+        if (!validSetting) {
+            String validOptions = String.join(", ", neo4jDirectoryConfigurationSettingNames);
+            throw new RuntimeException("Invalid directory setting specified.  Valid options are one of: " +
+                    validOptions);
+        }
+
+        return Stream.of(neo4jDirectoryConfigurationSettingNames)
+                .filter(dirSetting -> {
+                    // If user specified a particular one, immediately cut list to just that one.
+                    if (directorySetting != null) {
+                        return directorySetting.equals(dirSetting);
+                    }
+
+                    return true;
+                })
+                .map(StoragePair::fromDirectorySetting)
+                .filter(sp -> {
+                    if (sp == null) { return false; }
+
+                    if (!sp.dir.exists() || !sp.dir.isDirectory() || !sp.dir.canRead()) {
+                        log.warn("System directory " + sp.setting + " => " + sp.dir + " does not exist or is not readable.");
+                        return false;
+                    }
+
+                    return true;
+                })
+                .map(StorageMetric::fromStoragePair);
     }
 
     @Procedure(mode=Mode.DBMS)
@@ -204,4 +302,24 @@ public class Metrics {
     private final long longFrom(LoadCsv.CSVResult r, String column) {
         return Long.parseLong(r.map.get(column).toString());
     }
+
+
+    // This is the list of dbms.directories.* valid configuration items for neo4j.
+    // https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/
+    // Usually these reside under the same root but because they're separately configurable, in the worst case
+    // every one is on a different device.
+    //
+    // More likely, they'll be largely similar metrics.
+    public static final String [] neo4jDirectoryConfigurationSettingNames = new String [] {
+            "dbms.directories.certificates",
+            "dbms.directories.data",
+            "dbms.directories.import",
+            "dbms.directories.lib",
+            "dbms.directories.logs",
+            "dbms.directories.metrics",
+            "dbms.directories.plugins",
+            "dbms.directories.run",
+            "dbms.directories.tx_log",
+            "unsupported.dbms.directories.neo4j_home"
+    };
 }
