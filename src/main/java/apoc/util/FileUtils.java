@@ -188,11 +188,9 @@ public class FileUtils {
         String neo4jHome = ApocConfiguration.get("unsupported.dbms.directories.neo4j_home", "");
         String logDir = ApocConfiguration.get("dbms.directories.logs", "");
 
-        File logs = (!"".equals(logDir) ?
-                new File(logDir) :
-                new File(neo4jHome, "logs"));
+        File logs = logDir.isEmpty() ? new File(neo4jHome, "logs") : new File(logDir);
 
-        if (logs.exists() && logs.canRead()) {
+        if (logs.exists() && logs.canRead() && logs.isDirectory()) {
             return logs;
         }
 
@@ -204,18 +202,16 @@ public class FileUtils {
      * aren't enabled, or aren't readable.
      */
     public static File getMetricsDirectory() {
-        Object metricsSetting = ApocConfiguration.get("dbms.directories.metrics", "");
+        String neo4jHome = ApocConfiguration.get("unsupported.dbms.directories.neo4j_home", "");
+        String metricsSetting = ApocConfiguration.get("dbms.directories.metrics", "");
 
-        File metricsDir = (
-                (metricsSetting == null) ?
-                        new File(ApocConfiguration.get("unsupported.dbms.directories.neo4j_home", ""), "metrics") :
-                        new File(metricsSetting.toString()));
+        File metricsDir = metricsSetting.isEmpty() ? new File(neo4jHome, "metrics") : new File(metricsSetting);
 
-        if (!metricsDir.exists() || !metricsDir.isDirectory() || !metricsDir.canRead()) {
-            return null;
+        if (metricsDir.exists() && metricsDir.canRead() && metricsDir.isDirectory() ) {
+            return metricsDir;
         }
 
-        return metricsDir;
+        return null;
     }
 
     /**
