@@ -180,4 +180,51 @@ public class FileUtils {
         Matcher matcher = HDFS_PATTERN.matcher(fileName);
         return matcher.find();
     }
+
+    /**
+     * @returns a File pointing to Neo4j's log directory, if it exists and is readable, null otherwise.
+     */
+    public static File getLogDirectory() {
+        String neo4jHome = ApocConfiguration.get("unsupported.dbms.directories.neo4j_home", "");
+        String logDir = ApocConfiguration.get("dbms.directories.logs", "");
+
+        File logs = logDir.isEmpty() ? new File(neo4jHome, "logs") : new File(logDir);
+
+        if (logs.exists() && logs.canRead() && logs.isDirectory()) {
+            return logs;
+        }
+
+        return null;
+    }
+
+    /**
+     * @return a File representing the metrics directory that is listable and readable, or null if metrics don't exist,
+     * aren't enabled, or aren't readable.
+     */
+    public static File getMetricsDirectory() {
+        String neo4jHome = ApocConfiguration.get("unsupported.dbms.directories.neo4j_home", "");
+        String metricsSetting = ApocConfiguration.get("dbms.directories.metrics", "");
+
+        File metricsDir = metricsSetting.isEmpty() ? new File(neo4jHome, "metrics") : new File(metricsSetting);
+
+        if (metricsDir.exists() && metricsDir.canRead() && metricsDir.isDirectory() ) {
+            return metricsDir;
+        }
+
+        return null;
+    }
+
+    /**
+     * Given a file, determine whether it resides in neo4j's home directory or not.  This method takes into account
+     * the possibility of symlinks / hardlinks.
+     * @param f the file to check
+     * @return true if the file's actual storage is in the neo4j home directory, false otherwise.
+     * @throws IOException if the canonical path cannot be determined.
+     */
+    public static boolean canonicalPathInNeo4jHome(File f) throws IOException {
+        String canonicalPath = f.getCanonicalPath();
+        String neo4jHome = ApocConfiguration.get("unsupported.dbms.directories.neo4j_home", null);
+
+        return canonicalPath.contains(neo4jHome);
+    }
 }
