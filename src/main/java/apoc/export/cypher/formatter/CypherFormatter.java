@@ -13,13 +13,13 @@ import java.util.Set;
  */
 public interface CypherFormatter {
 
-	String statementForNode(Node node, Map<String, String> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames);
+	String statementForNode(Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames);
 
-	String statementForRelationship(Relationship relationship,  Map<String, String> uniqueConstraints, Set<String> indexedProperties);
+	String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties);
 
 	String statementForIndex(String label, Iterable<String> keys);
 
-	String statementForConstraint(String label, String key);
+	String statementForConstraint(String label, Iterable<String> keys);
 
 	String statementForCleanUp(int batchSize);
 }
