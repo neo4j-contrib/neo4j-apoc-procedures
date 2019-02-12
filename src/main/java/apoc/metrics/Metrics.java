@@ -9,6 +9,7 @@ import org.neo4j.procedure.*;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -127,14 +128,14 @@ public class Metrics {
         public final long freeSpaceBytes;
         public final long totalSpaceBytes;
         public final long usableSpaceBytes;
-        public final double pctFree;
+        public final double percentFree;
 
         public StorageMetric(String setting, long freeSpaceBytes, long totalSpaceBytes, long usableSpaceBytes) {
             this.setting = setting;
             this.freeSpaceBytes = freeSpaceBytes;
             this.totalSpaceBytes = totalSpaceBytes;
             this.usableSpaceBytes = usableSpaceBytes;
-            this.pctFree = (double)freeSpaceBytes / (double)totalSpaceBytes;
+            this.percentFree = (totalSpaceBytes <= 0) ? 0.0 : ((double)freeSpaceBytes / (double)totalSpaceBytes);
         }
 
         /** Produce a StorageMetric object from a pair */
@@ -191,34 +192,28 @@ public class Metrics {
 
         boolean validSetting = (
             input == null ||
-            Arrays.stream(neo4jDirectoryConfigurationSettingNames).anyMatch(input::equals)
+            NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.stream().anyMatch(input::equals)
         );
 
         if (!validSetting) {
-            String validOptions = String.join(", ", neo4jDirectoryConfigurationSettingNames);
+            String validOptions = String.join(", ", NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES);
             throw new RuntimeException("Invalid directory setting specified.  Valid options are one of: " +
                     validOptions);
         }
 
-        return Stream.of(neo4jDirectoryConfigurationSettingNames)
-                .filter(dirSetting -> {
-                    // If user specified a particular one, immediately cut list to just that one.
-                    if (directorySetting != null) {
-                        return directorySetting.equals(dirSetting);
-                    }
-
-                    return true;
-                })
+        return NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.stream()
+                // If user specified a particular one, immediately cut list to just that one.
+                .filter(dirSetting -> (input == null || input.equals(dirSetting)))
                 .map(StoragePair::fromDirectorySetting)
                 .filter(sp -> {
                     if (sp == null) { return false; }
 
-                    if (!sp.dir.exists() || !sp.dir.isDirectory() || !sp.dir.canRead()) {
-                        log.warn("System directory " + sp.setting + " => " + sp.dir + " does not exist or is not readable.");
-                        return false;
+                    if (sp.dir.exists() && sp.dir.isDirectory() && sp.dir.canRead()) {
+                        return true;
                     }
 
-                    return true;
+                    log.warn("System directory " + sp.setting + " => " + sp.dir + " does not exist or is not readable.");
+                    return false;
                 })
                 .map(StorageMetric::fromStoragePair);
     }
@@ -310,7 +305,7 @@ public class Metrics {
     // every one is on a different device.
     //
     // More likely, they'll be largely similar metrics.
-    public static final String [] neo4jDirectoryConfigurationSettingNames = new String [] {
+    public static final List<String> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = Arrays.asList(new String [] {
             "dbms.directories.certificates",
             "dbms.directories.data",
             "dbms.directories.import",
@@ -321,5 +316,5 @@ public class Metrics {
             "dbms.directories.run",
             "dbms.directories.tx_log",
             "unsupported.dbms.directories.neo4j_home"
-    };
+    });
 }

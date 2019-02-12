@@ -27,7 +27,7 @@ public class ApocConfiguration {
         PARAM_WHITELIST.put("dbms.security.allow_csv_import_from_file_urls", "import.file.allow_read_from_filesystem");
 
         // Contains list of all dbms.directories.* settings supported by Neo4j.
-        for(String directorySetting : Metrics.neo4jDirectoryConfigurationSettingNames) {
+        for(String directorySetting : Metrics.NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES) {
             PARAM_WHITELIST.put(directorySetting, directorySetting);
         }
     }
