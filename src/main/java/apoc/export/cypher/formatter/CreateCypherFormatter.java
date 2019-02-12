@@ -14,7 +14,7 @@ import java.util.Set;
 public class CreateCypherFormatter extends AbstractCypherFormatter implements CypherFormatter {
 
 	@Override
-    public String statementForNode(Node node, Map<String, String> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames) {
+    public String statementForNode(Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties, Set<String> indexNames) {
 		StringBuilder result = new StringBuilder(100);
 		result.append("CREATE (");
 		String labels = CypherFormatterUtils.formatAllLabels(node, uniqueConstraints, indexNames);
@@ -31,7 +31,7 @@ public class CreateCypherFormatter extends AbstractCypherFormatter implements Cy
 	}
 
 	@Override
-    public String statementForRelationship(Relationship relationship,  Map<String, String> uniqueConstraints, Set<String> indexedProperties) {
+    public String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties) {
 		StringBuilder result = new StringBuilder(100);
 		result.append("MATCH ");
 		result.append(CypherFormatterUtils.formatNodeLookup("n1", relationship.getStartNode(), uniqueConstraints, indexedProperties));
