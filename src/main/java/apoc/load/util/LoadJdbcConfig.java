@@ -36,7 +36,7 @@ public class LoadJdbcConfig {
         return this.credentials;
     }
 
-    private Credentials createCredentials(Map<String,String> credentials) {
+    public static Credentials createCredentials(Map<String,String> credentials) {
         if (!credentials.getOrDefault("user", StringUtils.EMPTY).equals(StringUtils.EMPTY) && !credentials.getOrDefault("password", StringUtils.EMPTY).equals(StringUtils.EMPTY)) {
             return new Credentials(credentials.get("user"), credentials.get("password"));
         } else {
@@ -44,7 +44,7 @@ public class LoadJdbcConfig {
         }
     }
 
-    public class Credentials {
+    public static class Credentials {
         private String user;
 
         private String password;

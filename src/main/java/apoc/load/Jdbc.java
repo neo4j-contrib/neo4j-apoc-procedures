@@ -4,23 +4,15 @@ import apoc.ApocConfiguration;
 import apoc.load.util.LoadJdbcConfig;
 import apoc.result.RowResult;
 import apoc.util.MapUtil;
-import apoc.util.Util;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import javax.security.auth.Subject;
-import javax.security.auth.callback.Callback;
-import javax.security.auth.callback.NameCallback;
-import javax.security.auth.callback.PasswordCallback;
-import javax.security.auth.login.LoginContext;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.URI;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.sql.*;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
@@ -28,14 +20,14 @@ import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.load.util.JdbcUtil.getConnection;
+import static apoc.load.util.JdbcUtil.getUrlOrKey;
+
 /**
  * @author mh
  * @since 26.02.16
  */
 public class Jdbc {
-
-    private static final String LOAD_TYPE = "jdbc";
-    private static final String KEY_NOT_FOUND_MESSAGE = "No apoc.jdbc.%s.url url specified";
 
     static {
         ApocConfiguration.get("jdbc").forEach((k, v) -> {
@@ -46,41 +38,8 @@ public class Jdbc {
     @Context
     public Log log;
 
-    private static Connection getConnection(String jdbcUrl, LoadJdbcConfig config) throws Exception {
-        if(config.hasCredentials()) {
-            return createConnection(jdbcUrl, config.getCredentials().getUser(), config.getCredentials().getPassword());
-        } else {
-            URI uri = new URI(jdbcUrl.substring("jdbc:".length()));
-            String userInfo = uri.getUserInfo();
-            if (userInfo != null) {
-                String cleanUrl = jdbcUrl.substring(0, jdbcUrl.indexOf("://") + 3) + jdbcUrl.substring(jdbcUrl.indexOf("@") + 1);
-                String[] user = userInfo.split(":");
-                return createConnection(cleanUrl, user[0], user[1]);
-            }
-            return DriverManager.getConnection(jdbcUrl);
-        }
-    }
-
-    private static Connection createConnection(String jdbcUrl, String userName, String password) throws Exception {
-        if (jdbcUrl.contains(";auth=kerberos")) {
-            String client = System.getProperty("java.security.auth.login.config.client", "KerberosClient");
-            LoginContext lc = new LoginContext(client, callbacks -> {
-                for (Callback cb : callbacks) {
-                    if (cb instanceof NameCallback) ((NameCallback) cb).setName(userName);
-                    if (cb instanceof PasswordCallback) ((PasswordCallback) cb).setPassword(password.toCharArray());
-                }
-            });
-            lc.login();
-            Subject subject = lc.getSubject();
-            try {
-                return Subject.doAs(subject, (PrivilegedExceptionAction<Connection>) () -> DriverManager.getConnection(jdbcUrl, userName, password));
-            } catch (PrivilegedActionException pae) {
-                throw pae.getException();
-            }
-        } else {
-          return DriverManager.getConnection(jdbcUrl, userName, password);
-       }
-    }
+    @Context
+    public GraphDatabaseService db;
 
     @Procedure
     @Description("apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') register JDBC driver of source database")
@@ -321,9 +280,5 @@ public class Jdbc {
             /*ignore*/
         }
         return null;
-    }
-
-    private String getUrlOrKey(String urlOrKey) {
-        return urlOrKey.contains(":") ? urlOrKey : Util.getLoadUrlByConfigFile(LOAD_TYPE, urlOrKey, "url").orElseThrow(() -> new RuntimeException(String.format(KEY_NOT_FOUND_MESSAGE, urlOrKey)));
     }
 }
