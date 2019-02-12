@@ -163,8 +163,7 @@ public class MultiStatementCypherSubGraphExporter {
             String label = index.getLabel().name();
             Iterable<String> props = index.getPropertyKeys();
             if (index.isConstraintIndex()) {
-                String cypher;
-                cypher = this.cypherFormat.statementForConstraint(label, props);
+                String cypher = this.cypherFormat.statementForConstraint(label, props);
                 if (cypher != null && !"".equals(cypher)) {
                     result.add(cypher);
                 }
