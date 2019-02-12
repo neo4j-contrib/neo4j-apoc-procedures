@@ -190,10 +190,7 @@ public class Metrics {
         // Permit case-insensitive checks.
         String input = directorySetting == null ? null : directorySetting.toLowerCase();
 
-        boolean validSetting = (
-            input == null ||
-            NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.stream().anyMatch(input::equals)
-        );
+        boolean validSetting = input == null || NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.contains(input);
 
         if (!validSetting) {
             String validOptions = String.join(", ", NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES);
@@ -305,7 +302,7 @@ public class Metrics {
     // every one is on a different device.
     //
     // More likely, they'll be largely similar metrics.
-    public static final List<String> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = Arrays.asList(new String [] {
+    public static final List<String> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = Arrays.asList(
             "dbms.directories.certificates",
             "dbms.directories.data",
             "dbms.directories.import",
@@ -316,5 +313,5 @@ public class Metrics {
             "dbms.directories.run",
             "dbms.directories.tx_log",
             "unsupported.dbms.directories.neo4j_home"
-    });
+    );
 }
