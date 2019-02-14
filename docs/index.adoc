@@ -133,6 +133,8 @@ include::exact.adoc[leveloffset=2]
 
 include::diff.adoc[leveloffset=2]
 
+include::hashing.adoc[leveloffset=2]
+
 == Graph Algorithms
 
 include::algo.adoc[leveloffset=2]
