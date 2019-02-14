@@ -55,7 +55,7 @@ public class Util {
     public static Label[] labels(Object labelNames) {
         if (labelNames==null) return NO_LABELS;
         if (labelNames instanceof List) {
-            Set names = new HashSet((List) labelNames); // Removing duplicates
+            Set names = new LinkedHashSet((List) labelNames); // Removing duplicates
             Label[] labels = new Label[names.size()];
             int i = 0;
             for (Object l : names) {
