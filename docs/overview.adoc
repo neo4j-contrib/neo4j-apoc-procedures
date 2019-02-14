@@ -462,12 +462,14 @@ CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDoc
 
 Copy these jars into the plugins directory:
 
+(Tested with CB Enterprise 5.5.3, note that CB 6 is not yet supported)
+
 ----
 mvn dependency:copy-dependencies
-cp target/dependency/java-client-2.3.1.jar target/dependency/core-io-1.3.1.jar target/dependency/rxjava-1.1.5.jar $NEO4J_HOME/plugins/
+cp target/dependency/java-client-2.5.9.jar target/dependency/core-io-1.5.2.jar target/dependency/rxjava-1.3.8.jar $NEO4J_HOME/plugins/
 ----
 
-To interact with Couchbase you can define the host on which to connect to as the first parameter of the procedure
+To interact with Couchbase you can define the host on which to connect to as the first parameter of the procedure (with bucket as second parameter, document_id as third parameter):
 
 [source,cypher]
 ----
