@@ -165,11 +165,7 @@ public class Nodes {
         VirtualNode virtualNode = (VirtualNode) create.vNodeFunction(labels, first.getAllProperties());
         createVirtualRelationships(nodes, virtualNode, first, conf);
         nodes.stream().skip(1).forEach(node -> {
-            node.getLabels().forEach(label -> { // Set all Label
-                if (!virtualNode.hasLabel(label)) {
-                    virtualNode.addLabel(label);
-                }
-            });
+            virtualNode.addLabels(node.getLabels());
             mergePropertiesWithCount(node.getAllProperties(), virtualNode, conf); // Set all properties
             createVirtualRelationships(nodes, virtualNode, node, conf);
         });
@@ -199,24 +195,15 @@ public class Nodes {
     }
 
     private void createOrMergeVirtualRelationship(VirtualNode virtualNode, RefactorConfig refactorConfig, Relationship source, Node node, Direction direction) {
-        Iterable<Relationship> iterator = virtualNode.getRelationships(source.getType(), direction);
-        Optional<Relationship> first = StreamSupport.stream(iterator.spliterator(), false).filter(relationship -> relationship.getEndNode().equals(node)).findFirst();
-        VirtualRelationship virtualRelationship;
+        Iterable<Relationship> rels = virtualNode.getRelationships(source.getType(), direction);
+        Optional<Relationship> first = StreamSupport.stream(rels.spliterator(), false).filter(relationship -> relationship.getOtherNode(virtualNode).equals(node)).findFirst();
         if (refactorConfig.isMergeVirtualRels() && first.isPresent()) {
             mergeRelationship(source, first.get(), refactorConfig);
         } else {
-            switch (direction) {
-                case OUTGOING:
-                    virtualRelationship = virtualNode.createRelationshipTo(node, source.getType());
-                    copyProperties(source, virtualRelationship);
-                    break;
-                case INCOMING:
-                    virtualRelationship = virtualNode.createRelationshipFrom(node, source.getType());
-                    copyProperties(source, virtualRelationship);
-                    break;
-                case BOTH:
-                    break;
-            }
+            if (direction==OUTGOING)
+               copyProperties(source, virtualNode.createRelationshipTo(node, source.getType()));
+            if (direction==INCOMING) 
+               copyProperties(source, virtualNode.createRelationshipFrom(node, source.getType()));
         }
     }
 
