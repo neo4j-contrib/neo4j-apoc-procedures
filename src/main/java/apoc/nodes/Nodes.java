@@ -165,7 +165,7 @@ public class Nodes {
         createVirtualRelationships(nodes, virtualNode, first, conf);
         nodes.stream().skip(1).forEach(node -> {
             virtualNode.addLabels(node.getLabels());
-            mergeProperties(node.getAllProperties(), virtualNode, conf);
+            PropertiesManager.mergeProperties(node.getAllProperties(), virtualNode, conf);
             createVirtualRelationships(nodes, virtualNode, node, conf);
         });
         if (conf.isCountMerge()) {
@@ -199,9 +199,9 @@ public class Nodes {
         if (refactorConfig.isMergeVirtualRels() && first.isPresent()) {
             mergeRelationship(source, first.get(), refactorConfig);
         } else {
-            if (direction==OUTGOING)
+            if (direction==Direction.OUTGOING)
                copyProperties(source, virtualNode.createRelationshipTo(node, source.getType()));
-            if (direction==INCOMING) 
+            if (direction==Direction.INCOMING) 
                copyProperties(source, virtualNode.createRelationshipFrom(node, source.getType()));
         }
     }
