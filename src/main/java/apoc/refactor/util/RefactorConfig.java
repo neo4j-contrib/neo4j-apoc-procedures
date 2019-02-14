@@ -25,7 +25,6 @@ public class RefactorConfig {
 	private boolean mergeVirtualRels;
 	private boolean selfRel;
 	private boolean countMerge;
-	private boolean countProperties;
 	private boolean hasProperties;
 	private boolean collapsedLabel;
 
@@ -42,7 +41,6 @@ public class RefactorConfig {
 		this.mergeVirtualRels = toBoolean(config.getOrDefault("mergeRelsVirtual", true));
 		this.selfRel = toBoolean(config.get("selfRel"));
 		this.countMerge = toBoolean(config.getOrDefault("countMerge", true));
-		this.countProperties = toBoolean(config.getOrDefault("countProperties", true));
 		this.collapsedLabel = toBoolean(config.get("collapsedLabel"));
 	}
 
@@ -80,10 +78,6 @@ public class RefactorConfig {
 
 	public boolean isCollapsedLabel() {
 		return collapsedLabel;
-	}
-
-	public boolean isCountProperties() {
-		return countProperties;
 	}
 
 	public boolean isMergeVirtualRels() {
