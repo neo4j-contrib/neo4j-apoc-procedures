@@ -23,17 +23,6 @@ public class PropertiesManager {
         }
     }
 
-    public static void mergePropertiesWithCount(Map<String, Object> properties, PropertyContainer target, RefactorConfig refactorConfig) {
-        for (Map.Entry<String, Object> prop : properties.entrySet()) {
-            String key = prop.getKey();
-            if (target.hasProperty(key) && refactorConfig.isCountProperties()) {
-                target.setProperty("countProperties", (Integer) target.getProperty("countProperties", 0) + 1);
-            }
-            String mergeMode = refactorConfig.getMergeModeVirtual(key);
-            mergeProperty(target, refactorConfig, prop, key, mergeMode);
-        }
-    }
-
     private static void mergeProperty(PropertyContainer target, RefactorConfig propertyManagementMode, Map.Entry<String, Object> prop, String key, String mergeMode) {
         switch (mergeMode) {
             case RefactorConfig.OVERWRITE:
