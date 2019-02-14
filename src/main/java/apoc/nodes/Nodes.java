@@ -18,7 +18,6 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.path.RelationshipTypeAndDirections.parse;
-import static apoc.refactor.util.PropertiesManager.mergePropertiesWithCount;
 import static apoc.refactor.util.RefactorUtil.copyProperties;
 import static apoc.util.Util.map;
 
@@ -166,11 +165,11 @@ public class Nodes {
         createVirtualRelationships(nodes, virtualNode, first, conf);
         nodes.stream().skip(1).forEach(node -> {
             virtualNode.addLabels(node.getLabels());
-            mergePropertiesWithCount(node.getAllProperties(), virtualNode, conf); // Set all properties
+            mergeProperties(node.getAllProperties(), virtualNode, conf);
             createVirtualRelationships(nodes, virtualNode, node, conf);
         });
         if (conf.isCountMerge()) {
-            virtualNode.setProperty("countNodes", nodes.size()); // Count nodes merged
+            virtualNode.setProperty("count", nodes.size());
         }
         return virtualNode;
     }
@@ -209,9 +208,9 @@ public class Nodes {
 
     private void mergeRelationship(Relationship source, Relationship target, RefactorConfig refactorConfig) {
         if (refactorConfig.isCountMerge()) {
-            target.setProperty("countRels", (Integer) target.getProperty("countRels", 0) + 1); // Count relationships merged
+            target.setProperty("count", (Integer) target.getProperty("count", 0) + 1);
         }
-        PropertiesManager.mergePropertiesWithCount(source.getAllProperties(), target, refactorConfig);
+        PropertiesManager.mergeProperties(source.getAllProperties(), target, refactorConfig);
     }
 
     /**
