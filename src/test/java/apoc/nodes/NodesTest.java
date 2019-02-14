@@ -280,7 +280,7 @@ public class NodesTest {
         db.execute("MATCH (n) detach delete (n)");
         db.execute("CREATE (a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})");
 
-        List<Label> label = asList(label("ALabel"), label("BLabel"));
+        Set<Label> label = asSet(label("ALabel"), label("BLabel"));
 
         TestUtil.testResult(db,
                 "MATCH (p:ALabel)-[r:KNOWS]->(c:BLabel) WITH p,c " +
@@ -301,7 +301,7 @@ public class NodesTest {
         db.execute("MATCH (n) detach delete (n)");
         db.execute("CREATE (a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})");
 
-        List<Label> label = asList(label("BLabel"), label("ALabel"));
+        Set<Label> label = asSet(label("BLabel"), label("ALabel"));
 
         TestUtil.testResult(db,
                 "MATCH (p:ALabel)-[r:KNOWS]->(c:BLabel) WITH p,c " +
@@ -321,7 +321,7 @@ public class NodesTest {
         db.execute("MATCH (n) detach delete (n)");
         db.execute("CREATE (a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})");
 
-        List<Label> label = asList(label("ALabel"), label("BLabel"));
+        Set<Label> label = asSet(label("ALabel"), label("BLabel"));
 
         TestUtil.testResult(db,
                 "MATCH (p:ALabel)-[r:KNOWS]->(c:BLabel) WITH p,c " +
@@ -345,7 +345,7 @@ public class NodesTest {
                 "(a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})," +
                 "(a1)<-[:KNOWS]-(b2:CLabel {name:'c1'})");
 
-        List<Label> label = asList(label("ALabel"), label("BLabel"));
+        Set<Label> label = asSet(label("ALabel"), label("BLabel"));
 
         TestUtil.testResult(db,
                 "MATCH (p:ALabel)-[r:KNOWS]->(c:BLabel) WITH p,c " +
@@ -379,7 +379,7 @@ public class NodesTest {
                 "(a2:ALabel {name:'a2'})-[:HAS_REL]->(b1)," +
                 "(a4:ALabel {name:'a4'})-[:HAS_REL]->(b4:BLabel {name:'b4'})");
 
-        List<Label> label = asList(label("ALabel"));
+        Set<Label> label = asSet(label("ALabel"));
 
         TestUtil.testResult(db,
                 "MATCH (p:ALabel{name:'a4'}), (p1:ALabel{name:'a2'}), (p2:ALabel{name:'a1'}) WITH p, p1, p2 " +
@@ -455,7 +455,7 @@ public class NodesTest {
                 "(p2)-[:KNOWS]->(p3),\n" +
                 "(p4)-[:KNOWS]->(p3)\n").close();
 
-        List<Label> label = asList(label("City"), label("Person"));
+        Set<Label> label = asSet(label("City"), label("Person"));
 
         TestUtil.testResult(db, "MATCH (p:Person)-[:LIVES_IN]->(c:City)\n" +
                 "WITH c, c + collect(p) as subgraph\n" +
@@ -476,7 +476,7 @@ public class NodesTest {
                 "(p:Person {name: 'John'})-[:LIVES_IN]->(c:City{name:'London'})," +
                 "(c)-[:LIVES_IN]->(p)").close();
 
-        List<Label> label = asList(label("City"), label("Person"));
+        Set<Label> label = asSet(label("City"), label("Person"));
 
         TestUtil.testResult(db, "MATCH (p:Person)-[:LIVES_IN]->(c:City)-[:LIVES_IN]->(b:Person)\n" +
                 "CALL apoc.nodes.collapse([c,p,b],{mergeVirtualRels:true, countMerge: true, selfRel: true}) yield from, rel, to return from, rel, to", null, result -> {
