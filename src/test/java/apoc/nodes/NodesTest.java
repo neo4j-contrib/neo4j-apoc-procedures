@@ -411,7 +411,7 @@ public class NodesTest {
                 "(:Person {name:'kate'})-[:LIVES_IN]->(:City{name:'london'}), " +
                 "(:Employee{name:'kate'})-[:WORKS_FOR]->(:Company{name:'Neo'})");
 
-        List<Label> label = asList(label("Collapsed"), label("Person"), label("Employee"));
+        Set<Label> label = asSet(label("Collapsed"), label("Person"), label("Employee"));
 
         TestUtil.testResult(db,
                 "MATCH (p:Person)-[r:LIVES_IN]->(c:City), (e:Employee)-[w:WORKS_FOR]->(m:Company) WITH p,r,c,e,w,m WHERE p.name = e.name " +
@@ -421,25 +421,25 @@ public class NodesTest {
                     assertMerge(map,
                             Util.map("name", "mike", "count", 2), label, //FROM
                             Collections.emptyMap(), "LIVES_IN", //REL
-                            Util.map("name", "rome"), asList(label("City"))); //TO
+                            Util.map("name", "rome"), asSet(label("City"))); //TO
                     assertTrue(r.hasNext());
                     map = r.next();
                     assertMerge(map,
                             Util.map("name", "mike", "count", 2), label, //FROM
                             Collections.emptyMap(), "WORKS_FOR", //REL
-                            Util.map("name", "Larus"), asList(label("Company"))); //TO
+                            Util.map("name", "Larus"), asSet(label("Company"))); //TO
                     assertTrue(r.hasNext());
                     map = r.next();
                     assertMerge(map,
                             Util.map("name", "kate","count", 2), label, //FROM
                             Collections.emptyMap(), "LIVES_IN", //REL
-                            Util.map("name", "london"), asList(label("City"))); //TO
+                            Util.map("name", "london"), asSet(label("City"))); //TO
                     assertTrue(r.hasNext());
                     map = r.next();
                     assertMerge(map,
                             Util.map("name", "kate", "count", 2), label, //FROM
                             Collections.emptyMap(), "WORKS_FOR", //REL
-                            Util.map("name", "Neo"), asList(label("Company"))); //TO
+                            Util.map("name", "Neo"), asSet(label("Company"))); //TO
                     assertFalse(r.hasNext());
                 });
     }
@@ -493,16 +493,16 @@ public class NodesTest {
     }
 
     private static void assertMerge(Map<String, Object> map,
-                                    Map<String, Object> fromProperties, List<Label> fromLabel,
+                                    Map<String, Object> fromProperties, Set<Label> fromLabel,
                                     Map<String, Object> relProperties, String relType,
-                                    Map<String, Object> toProperties, List<Label> toLabel
+                                    Map<String, Object> toProperties, Set<Label> toLabel
     ) {
         assertEquals(fromProperties, ((VirtualNode)map.get("from")).getAllProperties());
-        assertEquals(fromLabel, ((VirtualNode)map.get("from")).getLabels());
+        assertEquals(fromLabel, asSet(((VirtualNode)map.get("from")).getLabels()));
         assertEquals(relProperties, ((VirtualRelationship)map.get("rel")).getAllProperties());
         assertEquals(relType, ((VirtualRelationship)map.get("rel")).getType().name());
         assertEquals(toProperties, ((Node)map.get("to")).getAllProperties());
-        assertEquals(toLabel, ((Node)map.get("to")).getLabels());
+        assertEquals(toLabel, asSet(((Node)map.get("to")).getLabels()));
     }
 
 }
