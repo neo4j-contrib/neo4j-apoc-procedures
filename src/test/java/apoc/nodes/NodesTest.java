@@ -10,9 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static apoc.util.Util.map;
 import static java.util.Arrays.asList;
