@@ -291,9 +291,9 @@ public class NodesTest {
                     Map<String, Object> map = r.next();
 
                     assertMerge(map,
-                            Util.map("name","b1", "countNodes", 2, "countProperties", 1), label, //FROM
-                            Util.map("countRels", 1), "KNOWS", //REL
-                            Util.map("name", "b1", "countNodes", 2, "countProperties", 1), label); //TO
+                            Util.map("name","b1", "count", 2), label, //FROM
+                            Util.map("count", 1), "KNOWS", //REL
+                            Util.map("name", "b1", "count", 2), label); //TO
                     assertFalse(r.hasNext());
                 });
     }
@@ -311,9 +311,9 @@ public class NodesTest {
                         "return from, rel, to", (r) -> {
                     Map<String, Object> map = r.next();
                     assertMerge(map,
-                            Util.map("name","a1", "countNodes", 2, "countProperties", 1), label, //FROM
-                            Util.map("countRels", 1), "KNOWS", //REL
-                            Util.map("name", "a1", "countNodes", 2, "countProperties", 1), label); //TO
+                            Util.map("name","a1", "count", 2), label, //FROM
+                            Util.map("count", 1), "KNOWS", //REL
+                            Util.map("name", "a1", "count", 2), label); //TO
                     assertFalse(r.hasNext());
                 });
     }
@@ -331,7 +331,7 @@ public class NodesTest {
                         "return from, rel, to", (r) -> {
                     Map<String, Object> map = r.next();
 
-                    assertEquals(Util.map("name","b1", "countNodes", 2, "countProperties", 1), ((VirtualNode)map.get("from")).getAllProperties());
+                    assertEquals(Util.map("name","b1", "count", 2), ((VirtualNode)map.get("from")).getAllProperties());
                     assertEquals(label, ((VirtualNode)map.get("from")).getLabels());
                     assertNull(((VirtualRelationship) map.get("rel")));
                     assertNull(((Node) map.get("to")));
@@ -359,15 +359,15 @@ public class NodesTest {
                     assertEquals(asList(label("CLabel")), ((Node)map.get("from")).getLabels());
                     assertEquals(Collections.emptyMap(), ((VirtualRelationship)map.get("rel")).getAllProperties());
                     assertEquals("KNOWS", ((VirtualRelationship)map.get("rel")).getType().name());
-                    assertEquals(Util.map("name", "b1", "countNodes", 2, "countProperties", 1), ((Node)map.get("to")).getAllProperties());
+                    assertEquals(Util.map("name", "b1", "count", 2), ((Node)map.get("to")).getAllProperties());
                     assertEquals(label, ((Node)map.get("to")).getLabels());
                     assertTrue(r.hasNext());
                     map = r.next();
-                    assertEquals(Util.map("name","b1", "countNodes", 2, "countProperties", 1), ((VirtualNode)map.get("from")).getAllProperties());
+                    assertEquals(Util.map("name","b1", "count", 2), ((VirtualNode)map.get("from")).getAllProperties());
                     assertEquals(label, ((VirtualNode)map.get("from")).getLabels());
-                    assertEquals(Util.map("countRels", 1), ((VirtualRelationship)map.get("rel")).getAllProperties());
+                    assertEquals(Util.map("count", 1), ((VirtualRelationship)map.get("rel")).getAllProperties());
                     assertEquals("KNOWS", ((VirtualRelationship)map.get("rel")).getType().name());
-                    assertEquals(Util.map("name", "b1", "countNodes", 2, "countProperties", 1), ((VirtualNode)map.get("to")).getAllProperties());
+                    assertEquals(Util.map("name", "b1", "count", 2), ((VirtualNode)map.get("to")).getAllProperties());
                     assertEquals(label, ((VirtualNode)map.get("to")).getLabels());
                     assertFalse(r.hasNext());
                 });
@@ -389,14 +389,14 @@ public class NodesTest {
                         "return from, rel, to", (r) -> {
                     Map<String, Object> map = r.next();
                     assertMerge(map,
-                            Util.map("name", "a1", "countNodes", 3, "countProperties", 2), label, //FROM
+                            Util.map("name", "a1", "count", 3), label, //FROM
                             Collections.emptyMap(), "HAS_REL", //REL
                             Util.map("name", "b4"), asList(label("BLabel"))); //TO
                     assertTrue(r.hasNext());
                     map = r.next();
                     assertMerge(map,
-                            Util.map("name", "a1", "countNodes", 3, "countProperties", 2), label, //FROM
-                            Util.map("countRels", 1), "HAS_REL", //REL
+                            Util.map("name", "a1", "count", 3), label, //FROM
+                            Util.map("count", 1), "HAS_REL", //REL
                             Util.map("name", "b1"), asList(label("BLabel"))); //TO
                     assertFalse(r.hasNext());
                 });
@@ -419,25 +419,25 @@ public class NodesTest {
                         "return from, rel, to", (r) -> {
                     Map<String, Object> map = r.next();
                     assertMerge(map,
-                            Util.map("name", "mike", "countNodes", 2, "countProperties", 1), label, //FROM
+                            Util.map("name", "mike", "count", 2), label, //FROM
                             Collections.emptyMap(), "LIVES_IN", //REL
                             Util.map("name", "rome"), asList(label("City"))); //TO
                     assertTrue(r.hasNext());
                     map = r.next();
                     assertMerge(map,
-                            Util.map("name", "mike", "countNodes", 2, "countProperties", 1), label, //FROM
+                            Util.map("name", "mike", "count", 2), label, //FROM
                             Collections.emptyMap(), "WORKS_FOR", //REL
                             Util.map("name", "Larus"), asList(label("Company"))); //TO
                     assertTrue(r.hasNext());
                     map = r.next();
                     assertMerge(map,
-                            Util.map("name", "kate","countNodes", 2, "countProperties", 1), label, //FROM
+                            Util.map("name", "kate","count", 2), label, //FROM
                             Collections.emptyMap(), "LIVES_IN", //REL
                             Util.map("name", "london"), asList(label("City"))); //TO
                     assertTrue(r.hasNext());
                     map = r.next();
                     assertMerge(map,
-                            Util.map("name", "kate", "countNodes", 2, "countProperties", 1), label, //FROM
+                            Util.map("name", "kate", "count", 2), label, //FROM
                             Collections.emptyMap(), "WORKS_FOR", //REL
                             Util.map("name", "Neo"), asList(label("Company"))); //TO
                     assertFalse(r.hasNext());
@@ -464,7 +464,7 @@ public class NodesTest {
                 "CALL apoc.nodes.collapse(subgraph,{mergeVirtualRels:true, countMerge: true}) yield from, rel, to return from, rel, to", null, result -> {
             Map<String, Object> map = result.next();
 
-            assertEquals(Util.map("name","John", "countNodes", 6, "countProperties", 5), ((VirtualNode)map.get("from")).getAllProperties());
+            assertEquals(Util.map("name","John", "count", 6), ((VirtualNode)map.get("from")).getAllProperties());
             assertEquals(label, ((VirtualNode) map.get("from")).getLabels());
             assertNull(((VirtualRelationship) map.get("rel")));
             assertNull(((VirtualNode) map.get("to")));
@@ -485,9 +485,9 @@ public class NodesTest {
             Map<String, Object> map = result.next();
 
             assertMerge(map,
-                    Util.map("name", "John", "countNodes", 2, "countProperties", 1), label, //FROM
-                    Util.map("countRels", 3), "LIVES_IN", //REL
-                    Util.map("name", "John", "countNodes", 2, "countProperties", 1), label); //TO
+                    Util.map("name", "John", "count", 2), label, //FROM
+                    Util.map("count", 3), "LIVES_IN", //REL
+                    Util.map("name", "John", "count", 2), label); //TO
             assertFalse(result.hasNext());
         });
     }
