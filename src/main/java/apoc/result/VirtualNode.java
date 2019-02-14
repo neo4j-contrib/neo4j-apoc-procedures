@@ -176,7 +176,7 @@ public class VirtualNode implements Node {
 
     @Override
     public void removeLabel(Label label) {
-        labels.remove(label.name();
+        labels.remove(label.name());
     }
 
     @Override
