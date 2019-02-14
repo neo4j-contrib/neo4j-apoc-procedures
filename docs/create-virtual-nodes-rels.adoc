@@ -121,14 +121,17 @@ With this dataset we have:
 
 image::{img}/apoc.nodes.collapse_1.png[width=600]
 
-call the apoc as:
+If we want to collapse the people living in the city to a single node, we pass them to the procedure.
+
+[source,cypher]
 ----
 MATCH (p:Person)-[:LIVES_IN]->(c:City)
 WITH c, collect(p) as subgraph
 CALL apoc.nodes.collapse(subgraph,{properties:'combine'}) yield from, rel, to
 return from, rel, to
 ----
-we have this result:
+
+And get this result:
 
 image::{img}/apoc.nodes.collapse_2.png[width=600]
 
@@ -136,13 +139,16 @@ With this dataset we have:
 
 image::{img}/apoc.nodes.collapse_3.png[width=600]
 
-call the apoc as:
+If we also want to collapse them onto the city itself, we add the city node _first_ to the collection.
+
+[source,cypher]
 ----
 MATCH (p:Person)-[:LIVES_IN]->(c:City)
 WITH c, c + collect(p) as subgraph
 CALL apoc.nodes.collapse(subgraph) yield from, rel, to
 return from, rel, to
 ----
-we have this result:
+
+And get this result:
 
 image::{img}/apoc.nodes.collapse_4.png[width=600]
