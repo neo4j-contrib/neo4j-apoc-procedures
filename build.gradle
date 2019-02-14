@@ -126,6 +126,13 @@ dependencies {
     jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
     jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
 
+    // Test Containers
+    testCompile group: 'org.testcontainers', name: 'testcontainers', version: '1.10.6'
+    
+    testCompile group: 'org.testcontainers', name: 'neo4j', version: '1.10.6'
+
+    compile group: 'org.gradle', name: 'gradle-tooling-api', version: '4.3'
+
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
     }
