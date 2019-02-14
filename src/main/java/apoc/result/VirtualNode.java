@@ -31,14 +31,14 @@ public class VirtualNode implements Node {
     public VirtualNode(Label[] labels, Map<String, Object> props, GraphDatabaseService db) {
         this.id = MIN_ID.getAndDecrement();
         this.db = db;
-        this.labels.addAll(asList(labels));
+        addLabels(asList(labels));
         this.props.putAll(props);
     }
 
     public VirtualNode(long nodeId, Label[] labels, Map<String, Object> props, GraphDatabaseService db) {
         this.id = nodeId;
         this.db = db;
-        this.labels.addAll(asList(labels));
+        addLabels(asList(labels));
         this.props.putAll(props);
     }
 
