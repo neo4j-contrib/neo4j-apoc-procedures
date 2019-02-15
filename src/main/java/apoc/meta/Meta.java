@@ -451,7 +451,6 @@ public class Meta {
                 while (nodes.hasNext()) {
                     Node node = nodes.next();
                     if(count++ % sample == 0) {
-                        sample = getSampleForLabelCount(labelCount, config.getSample());
                         addRelationships(metaData, nodeMeta, labelName, node, relConstraints);
                         addProperties(nodeMeta, labelName, constraints, indexed, node, node);
                     }
@@ -829,7 +828,6 @@ public class Meta {
             while (nodes.hasNext()) {
                 count++;
                 if(count % sample == 0) {
-                    sample = getSampleForLabelCount(labelCount, metaConfig.getSample());
                     Node node = nodes.next();
                     long maxRels = metaConfig.getMaxRels();
                     for (Relationship rel : node.getRelationships(direction, relationshipType)) {
