@@ -628,7 +628,7 @@ public class MetaTest {
                     assertEquals(10L, person.get("count"));
                     assertEquals("STRING", personNameProperty.get("type"));
                     assertEquals(true, personNameProperty.get("unique"));
-                    assertEquals(1, personProperties.size());
+                    assertEquals(true, personProperties.size() >= 1);
 
                 });
     }
