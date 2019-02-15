@@ -8,6 +8,7 @@
       <title>Chapter&nbsp;14.&nbsp;Virtual Nodes &amp; Relationships (Graph Projections) - APOC User Guide 3.4</title>
       <link rel="stylesheet" type="text/css" href="../docbook.css"></link>
       <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
@@ -129,6 +130,108 @@
                      </tr>
                   </tbody>
                </table>
+            </div>
+         </section>
+         <section class="section" id="_nodes_collapse">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a class="anchor" href="#_nodes_collapse"></a>14.3.&nbsp;Nodes collapse
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <div class="informaltable">
+               <div class="table" id="d0e16979">
+                  <table class="informaltable" border="1">
+                     <colgroup>
+                        <col class="col_1"></col>
+                        <col class="col_2"></col>
+                     </colgroup>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.nodes.collapse([&lt;node&gt;], {config})</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>returns the list of nodes merged into a VirtualNode</p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <section class="section" id="_config_3">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a class="anchor" href="#_config_3"></a>14.3.1.&nbsp;Config:
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p>On <code class="literal">apoc.nodes.collapse</code> with config properties you can choose from 3 different behavior:
+               </p>
+               <div class="itemizedlist">
+                  <ul class="itemizedlist" style="list-style-type: disc; ">
+                     <li class="listitem">"properties": "overwrite" : if there is the same property in more node, in the new one will have the last relationship&#8217;s/node&#8217;s
+                        property value
+                     </li>
+                     <li class="listitem">"properties": "discard" : if there is the same property in more node, the new one will have the first relationship&#8217;s/node&#8217;s
+                        property value
+                     </li>
+                     <li class="listitem">"properties": "combine" : if there is the same property in more node, the new one a value&#8217;s array with all relationship&#8217;s/node&#8217;s
+                        values
+                     </li>
+                  </ul>
+               </div>
+               <p>If properties parameter isn&#8217;t set relationships properties are <code class="literal">discard</code>.
+               </p>
+               <div class="itemizedlist">
+                  <ul class="itemizedlist" style="list-style-type: disc; ">
+                     <li class="listitem">"mergeVirtualRels: true/false" : give the possibility to merge relationships with same type and direction. (DEFAULT <code class="literal">true</code>)
+                     </li>
+                     <li class="listitem">"selfRel: true/false" : give the possibility to create the self relationship. (DEFAULT <code class="literal">false</code>)
+                     </li>
+                     <li class="listitem">"countMerge: true/false" : give the possibility count all the Nodes/Relationships merged. (DEFAULT <code class="literal">true</code>)
+                     </li>
+                     <li class="listitem">"collapsedLabel: true/false" : give the possibility to add the label <code class="literal">:Collapsed</code> to the virtualNode. (DEFAULT <code class="literal">false</code>)
+                     </li>
+                  </ul>
+               </div>
+            </section>
+         </section>
+         <section class="section" id="_nodes_collapse_example">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a class="anchor" href="#_nodes_collapse_example"></a>14.4.&nbsp;Nodes collapse example
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <p>With this dataset we have:</p>
+            <div class="informalfigure">
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.nodes.collapse_1.png" width="600" alt="apoc.nodes.collapse 1"></img></div>
+            </div>
+            <p>If we want to collapse the people living in the city to a single node, we pass them to the procedure.</p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (p:Person)-[:LIVES_IN]-&gt;(c:City)
+WITH c, collect(p) as subgraph
+CALL apoc.nodes.collapse(subgraph,{properties:'combine'}) yield from, rel, to
+return from, rel, to</code></pre><p>And get this result:</p>
+            <div class="informalfigure">
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.nodes.collapse_2.png" width="600" alt="apoc.nodes.collapse 2"></img></div>
+            </div>
+            <p>With this dataset we have:</p>
+            <div class="informalfigure">
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.nodes.collapse_3.png" width="600" alt="apoc.nodes.collapse 3"></img></div>
+            </div>
+            <p>If we also want to collapse them onto the city itself, we add the city node <span class="emphasis"><em>first</em></span> to the collection.
+            </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (p:Person)-[:LIVES_IN]-&gt;(c:City)
+WITH c, c + collect(p) as subgraph
+CALL apoc.nodes.collapse(subgraph) yield from, rel, to
+return from, rel, to</code></pre><p>And get this result:</p>
+            <div class="informalfigure">
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.nodes.collapse_4.png" width="600" alt="apoc.nodes.collapse 4"></img></div>
             </div>
          </section>
       </section>

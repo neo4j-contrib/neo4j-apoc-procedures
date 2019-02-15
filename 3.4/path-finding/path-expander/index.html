@@ -8,6 +8,7 @@
       <title>12.1.&nbsp;Path Expander - Chapter&nbsp;12.&nbsp;Path Finding</title>
       <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
       <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
@@ -65,7 +66,7 @@
             end nodes for the expansion. The procedure will return a list of Paths in a variable name called "path".
          </p>
          <div class="informaltable">
-            <div class="table" id="d0e13416">
+            <div class="table" id="d0e13849">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -86,7 +87,7 @@
          </div>
          <p>Variations allow more configurable expansions, and expansions for more specific use cases:</p>
          <div class="informaltable">
-            <div class="table" id="d0e13431">
+            <div class="table" id="d0e13864">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -148,7 +149,7 @@
             </div>
             <p>Syntax: <code class="literal">[&lt;]RELATIONSHIP_TYPE1[&gt;]|[&lt;]RELATIONSHIP_TYPE2[&gt;]|&#8230;&#8203;</code></p>
             <div class="informaltable">
-               <div class="table" id="d0e13475">
+               <div class="table" id="d0e13908">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -234,7 +235,7 @@
             </div>
             <p>Syntax: <code class="literal">[+-/&gt;]LABEL1|LABEL2|*|&#8230;&#8203;</code></p>
             <div class="informaltable">
-               <div class="table" id="d0e13556">
+               <div class="table" id="d0e13989">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -300,7 +301,7 @@
             </p>
             <p>With the APOC releases in January 2018, some behavior has changed in the label filters:</p>
             <div class="informaltable">
-               <div class="table" id="d0e13623">
+               <div class="table" id="d0e14056">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -378,7 +379,7 @@
             <p>If using sequences of both relationships and labels, use the <code class="literal">sequence</code> parameter.
             </p>
             <div class="informaltable">
-               <div class="table" id="d0e13704">
+               <div class="table" id="d0e14137">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -476,7 +477,7 @@
                <p>If set to <code class="literal">false</code>, this changes the expected values for <code class="literal">labelFilter</code>, <code class="literal">relationshipFilter</code>, and <code class="literal">sequence</code> as noted below:
                </p>
                <div class="informaltable">
-                  <div class="table" id="d0e13834">
+                  <div class="table" id="d0e14267">
                      <table class="informaltable" border="1">
                         <colgroup>
                            <col class="col_1"></col>
@@ -571,7 +572,7 @@
             <p><code class="literal">subgraphNodes()</code>, <code class="literal">subgraphAll()</code>, and <code class="literal">spanningTree()</code> all use 'NODE_GLOBAL' uniqueness.
             </p>
             <div class="informaltable">
-               <div class="table" id="d0e13960">
+               <div class="table" id="d0e14393">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -683,7 +684,7 @@
             </p>
             <p>Each of these config parameter accepts a list of nodes, or a list of node ids.</p>
             <div class="informaltable">
-               <div class="table" id="d0e14050">
+               <div class="table" id="d0e14483">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -792,7 +793,7 @@ CALL apoc.path.expand(startNode &lt;id&gt;|Node|list, 'TYPE|TYPE_OUT&gt;|&lt;TYP
             </div>
             <p>Syntax: <code class="literal">[&lt;]RELATIONSHIP_TYPE1[&gt;]|[&lt;]RELATIONSHIP_TYPE2[&gt;]|&#8230;&#8203;</code></p>
             <div class="informaltable">
-               <div class="table" id="d0e14145">
+               <div class="table" id="d0e14578">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -878,7 +879,7 @@ CALL apoc.path.expand(startNode &lt;id&gt;|Node|list, 'TYPE|TYPE_OUT&gt;|&lt;TYP
             </div>
             <p>Syntax: <code class="literal">[+-/&gt;]LABEL1|LABEL2|*|&#8230;&#8203;</code></p>
             <div class="informaltable">
-               <div class="table" id="d0e14226">
+               <div class="table" id="d0e14659">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -944,7 +945,7 @@ CALL apoc.path.expand(startNode &lt;id&gt;|Node|list, 'TYPE|TYPE_OUT&gt;|&lt;TYP
             </p>
             <p>With the APOC releases in January 2018, some behavior has changed in the label filters:</p>
             <div class="informaltable">
-               <div class="table" id="d0e14293">
+               <div class="table" id="d0e14726">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -1089,7 +1090,7 @@ return path</code></pre><p>The one returned path only matches up to 'Gene Hackma
             <p>If using sequences of both relationships and labels, use the <code class="literal">sequence</code> parameter.
             </p>
             <div class="informaltable">
-               <div class="table" id="d0e14491">
+               <div class="table" id="d0e14924">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -1187,7 +1188,7 @@ return path</code></pre><p>The one returned path only matches up to 'Gene Hackma
                <p>If set to <code class="literal">false</code>, this changes the expected values for <code class="literal">labelFilter</code>, <code class="literal">relationshipFilter</code>, and <code class="literal">sequence</code> as noted below:
                </p>
                <div class="informaltable">
-                  <div class="table" id="d0e14621">
+                  <div class="table" id="d0e15054">
                      <table class="informaltable" border="1">
                         <colgroup>
                            <col class="col_1"></col>
@@ -1311,7 +1312,7 @@ return path</code></pre><p>The one returned path only matches up to 'Gene Hackma
             <p><code class="literal">filterStartNode</code> defaults for all path expander procedures:
             </p>
             <div class="informaltable">
-               <div class="table" id="d0e14767">
+               <div class="table" id="d0e15200">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -1383,7 +1384,7 @@ return path</code></pre><p>The one returned path only matches up to 'Gene Hackma
             <p><code class="literal">subgraphNodes()</code>, <code class="literal">subgraphAll()</code>, and <code class="literal">spanningTree()</code> all use 'NODE_GLOBAL' uniqueness.
             </p>
             <div class="informaltable">
-               <div class="table" id="d0e14864">
+               <div class="table" id="d0e15297">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -1495,7 +1496,7 @@ return path</code></pre><p>The one returned path only matches up to 'Gene Hackma
             </p>
             <p>Each of these config parameter accepts a list of nodes, or a list of node ids.</p>
             <div class="informaltable">
-               <div class="table" id="d0e14954">
+               <div class="table" id="d0e15387">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>

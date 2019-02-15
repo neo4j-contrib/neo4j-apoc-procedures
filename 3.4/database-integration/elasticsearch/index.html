@@ -5,17 +5,18 @@
    <head>
       <meta charset="utf-8"></meta>
       <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
-      <title>8.2.&nbsp;ElasticSearch Integration - Chapter&nbsp;8.&nbsp;Database Integration</title>
+      <title>8.3.&nbsp;ElasticSearch Integration - Chapter&nbsp;8.&nbsp;Database Integration</title>
       <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
       <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
       <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
       <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
-      <link rel="prev" href="../mongodb/" title="8.3.&nbsp;Interacting with MongoDB"></link>
-      <link rel="next" href="../couchbase/" title="8.4.&nbsp;Interacting with Couchbase"></link>
+      <link rel="prev" href="../mongodb/" title="8.4.&nbsp;Interacting with MongoDB"></link>
+      <link rel="next" href="../couchbase/" title="8.5.&nbsp;Interacting with Couchbase"></link>
       <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
         $(document).ready(function() {
           CodeMirror.colorize();
@@ -47,14 +48,14 @@
             <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
          </ul>
          <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../mongodb/"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Interacting with MongoDB</a></span><span class="nav-current">
-               <p class="nav-title hidden">8.2.&nbsp;ElasticSearch Integration</p></span><span class="nav-next"><a accesskey="n" href="../couchbase/">Interacting with Couchbase<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+               <p class="nav-title hidden">8.3.&nbsp;ElasticSearch Integration</p></span><span class="nav-next"><a accesskey="n" href="../couchbase/">Interacting with Couchbase<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
       </header>
       <div id="search-results" class="hidden"></div>
       <section class="section" id="elasticsearch">
          <div class="titlepage">
             <div>
                <div>
-                  <h2 class="title" style="clear: both"><a class="anchor" href="#elasticsearch"></a>8.2.&nbsp;ElasticSearch Integration
+                  <h2 class="title" style="clear: both"><a class="anchor" href="#elasticsearch"></a>8.3.&nbsp;ElasticSearch Integration
                   </h2>
                </div>
             </div>
@@ -63,13 +64,13 @@
             <div class="titlepage">
                <div>
                   <div>
-                     <h3 class="title"><a class="anchor" href="#_interacting_with_elastic_search"></a>8.2.1.&nbsp;Interacting with Elastic Search
+                     <h3 class="title"><a class="anchor" href="#_interacting_with_elastic_search"></a>8.3.1.&nbsp;Interacting with Elastic Search
                      </h3>
                   </div>
                </div>
             </div>
             <div class="informaltable">
-               <div class="table" id="d0e8873">
+               <div class="table" id="d0e9256">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -137,7 +138,7 @@
                </div>
             </div>
             <div class="informaltable">
-               <div class="table" id="d0e8934">
+               <div class="table" id="d0e9317">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -242,11 +243,11 @@
                </div>
             </div>
          </section>
-         <section class="section" id="_example_3">
+         <section class="section" id="_example_4">
             <div class="titlepage">
                <div>
                   <div>
-                     <h3 class="title"><a class="anchor" href="#_example_3"></a>8.2.2.&nbsp;Example
+                     <h3 class="title"><a class="anchor" href="#_example_4"></a>8.3.2.&nbsp;Example
                      </h3>
                   </div>
                </div>
@@ -257,7 +258,7 @@
                <div class="titlepage">
                   <div>
                      <div>
-                        <h4 class="title"><a class="anchor" href="#_pagination"></a>8.2.2.1.&nbsp;Pagination
+                        <h4 class="title"><a class="anchor" href="#_pagination"></a>8.3.2.1.&nbsp;Pagination
                         </h4>
                      </div>
                   </div>
@@ -305,7 +306,7 @@ MERGE (doc)-[:IS_FROM]-&gt;(company) return scrollId, doc, company</code></pre><
             <div class="titlepage">
                <div>
                   <div>
-                     <h3 class="title"><a class="anchor" href="#_general_structure_and_parameters"></a>8.2.3.&nbsp;General Structure and Parameters
+                     <h3 class="title"><a class="anchor" href="#_general_structure_and_parameters"></a>8.3.3.&nbsp;General Structure and Parameters
                      </h3>
                   </div>
                </div>
@@ -315,7 +316,7 @@ MERGE (doc)-[:IS_FROM]-&gt;(company) return scrollId, doc, company</code></pre><
                <div class="titlepage">
                   <div>
                      <div>
-                        <h4 class="title"><a class="anchor" href="#_host_or_port_parameter"></a>8.2.3.1.&nbsp;host or port parameter
+                        <h4 class="title"><a class="anchor" href="#_host_or_port_parameter"></a>8.3.3.1.&nbsp;host or port parameter
                         </h4>
                      </div>
                   </div>
@@ -337,7 +338,7 @@ MERGE (doc)-[:IS_FROM]-&gt;(company) return scrollId, doc, company</code></pre><
                <div class="titlepage">
                   <div>
                      <div>
-                        <h4 class="title"><a class="anchor" href="#_index_parameter"></a>8.2.3.2.&nbsp;index parameter
+                        <h4 class="title"><a class="anchor" href="#_index_parameter"></a>8.3.3.2.&nbsp;index parameter
                         </h4>
                      </div>
                   </div>
@@ -348,7 +349,7 @@ MERGE (doc)-[:IS_FROM]-&gt;(company) return scrollId, doc, company</code></pre><
                <div class="titlepage">
                   <div>
                      <div>
-                        <h4 class="title"><a class="anchor" href="#_type_parameter"></a>8.2.3.3.&nbsp;type parameter
+                        <h4 class="title"><a class="anchor" href="#_type_parameter"></a>8.3.3.3.&nbsp;type parameter
                         </h4>
                      </div>
                   </div>
@@ -359,7 +360,7 @@ MERGE (doc)-[:IS_FROM]-&gt;(company) return scrollId, doc, company</code></pre><
                <div class="titlepage">
                   <div>
                      <div>
-                        <h4 class="title"><a class="anchor" href="#_id_parameter"></a>8.2.3.4.&nbsp;id parameter
+                        <h4 class="title"><a class="anchor" href="#_id_parameter"></a>8.3.3.4.&nbsp;id parameter
                         </h4>
                      </div>
                   </div>
@@ -370,7 +371,7 @@ MERGE (doc)-[:IS_FROM]-&gt;(company) return scrollId, doc, company</code></pre><
                <div class="titlepage">
                   <div>
                      <div>
-                        <h4 class="title"><a class="anchor" href="#_query_parameter"></a>8.2.3.5.&nbsp;query parameter
+                        <h4 class="title"><a class="anchor" href="#_query_parameter"></a>8.3.3.5.&nbsp;query parameter
                         </h4>
                      </div>
                   </div>
@@ -381,7 +382,7 @@ MERGE (doc)-[:IS_FROM]-&gt;(company) return scrollId, doc, company</code></pre><
                <div class="titlepage">
                   <div>
                      <div>
-                        <h4 class="title"><a class="anchor" href="#_payload_parameter"></a>8.2.3.6.&nbsp;payload parameter
+                        <h4 class="title"><a class="anchor" href="#_payload_parameter"></a>8.3.3.6.&nbsp;payload parameter
                         </h4>
                      </div>
                   </div>
@@ -393,7 +394,7 @@ MERGE (doc)-[:IS_FROM]-&gt;(company) return scrollId, doc, company</code></pre><
                <div class="titlepage">
                   <div>
                      <div>
-                        <h4 class="title"><a class="anchor" href="#_results"></a>8.2.3.7.&nbsp;Results
+                        <h4 class="title"><a class="anchor" href="#_results"></a>8.3.3.7.&nbsp;Results
                         </h4>
                      </div>
                   </div>

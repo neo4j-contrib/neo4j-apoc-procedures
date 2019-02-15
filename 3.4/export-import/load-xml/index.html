@@ -8,6 +8,7 @@
       <title>7.6.&nbsp;Load XML - Chapter&nbsp;7.&nbsp;Export / Import</title>
       <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
       <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
@@ -383,11 +384,11 @@ RETURN id, value.author, value.title</code></pre><pre class="screen highlight"><
                         </h4>
                      </div>
                   </div>
-               </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.xml.import(&lt;url&gt;, &lt;config&gt;?) YIELD node</code></pre><p>The procedure will return a node representing the xml document containing nodes/rels underneath mapping to the xml structure.
+               </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.xml.import(&lt;url&gt;, &lt;config-map&gt;?) YIELD node</code></pre><p>The procedure will return a node representing the xml document containing nodes/rels underneath mapping to the xml structure.
                   The following mapping rules are applied:
                </p>
                <div class="informaltable">
-                  <div class="table" id="d0e7039">
+                  <div class="table" id="d0e7162">
                      <table class="informaltable" border="1">
                         <colgroup>
                            <col class="col_1"></col>
@@ -463,7 +464,7 @@ RETURN id, value.author, value.title</code></pre><pre class="screen highlight"><
                </div>
                <p>The nodes for the xml document are connected:</p>
                <div class="informaltable">
-                  <div class="table" id="d0e7105">
+                  <div class="table" id="d0e7228">
                      <table class="informaltable" border="1">
                         <colgroup>
                            <col class="col_1"></col>
@@ -521,6 +522,98 @@ RETURN id, value.author, value.title</code></pre><pre class="screen highlight"><
                      </table>
                   </div>
                </div>
+               <p>The following options are available for the <code class="literal">config</code> map:
+               </p>
+               <div class="informaltable">
+                  <div class="table" id="d0e7282">
+                     <table class="informaltable" border="1">
+                        <colgroup>
+                           <col class="col_1"></col>
+                           <col class="col_2"></col>
+                           <col class="col_3"></col>
+                        </colgroup>
+                        <thead>
+                           <tr>
+                              <th style="text-align: left; vertical-align: top; ">config option</th>
+                              <th style="text-align: left; vertical-align: top; ">default value</th>
+                              <th style="text-align: left; vertical-align: top; ">description</th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           <tr>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>connectCharacters</p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>false</p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>if <code class="literal">true</code> the xml text elements are child nodes of their tags, interconnected by relationships of type <code class="literal">relType</code> (see below)
+                                 </p>
+                              </td>
+                           </tr>
+                           <tr>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>filterLeadingWhitespace</p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>false</p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>if <code class="literal">true</code> leading whitespace is skipped for each line
+                                 </p>
+                              </td>
+                           </tr>
+                           <tr>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>delimiter</p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p><code class="literal">\s</code> (regex whitespace)
+                                 </p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>if given, split text elements with the delimiter into separate nodes</p>
+                              </td>
+                           </tr>
+                           <tr>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>label</p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>XmlCharacter</p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>label to use for text element representation</p>
+                              </td>
+                           </tr>
+                           <tr>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>relType</p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p><code class="literal">NE</code></p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>relationship type to be used for connecting the text elements into one linked list</p>
+                              </td>
+                           </tr>
+                           <tr>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>charactersForTag</p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>{}</p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>map of tagname &#8594; string. For the given tag names an additional text element is added containing the value as <code class="literal">text</code> property. Useful e.g. for <code class="literal">&lt;lb/&gt;</code> tags in TEI-XML to be represented as <code class="literal">&lt;lb&gt; &lt;/lb&gt;</code>.
+                                 </p>
+                              </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
             </section>
             <section class="section" id="_example">
                <div class="titlepage">
@@ -534,6 +627,9 @@ RETURN id, value.author, value.title</code></pre><pre class="screen highlight"><
 apoc.xml.import("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml",{createNextWordRelationships:
 true})
 yield node
+return node;
+
+call apoc.xml.import('https://seafile.rlp.net/f/6282a26504cc4f079ab9/?dl=1', {connectCharacters: true, charactersForTag:{lb:' '}, filterLeadingWhitespace: true}) yield node
 return node;</code></pre></section>
          </section>
          <section class="section" id="_config">
@@ -547,7 +643,7 @@ return node;</code></pre></section>
             </div>
             <p>Config param is optional, the default value is an empty map.</p>
             <div class="informaltable">
-               <div class="table" id="d0e7195">
+               <div class="table" id="d0e7418">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>

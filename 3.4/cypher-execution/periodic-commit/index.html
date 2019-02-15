@@ -8,6 +8,7 @@
       <title>13.4.&nbsp;apoc.periodic.commit - Chapter&nbsp;13.&nbsp;Cypher Execution</title>
       <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
       <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
@@ -63,6 +64,19 @@
             generates any results anymore.
             So you can iterate in batches over elements that don&#8217;t fulfill a condition and update them so that they do afterwards.
          </p>
+         <div class="admonitionblock note">
+            <table>
+               <tbody>
+                  <tr>
+                     <td class="icon"><i class="fa icon-note" title="note"></i></td>
+                     <td class="content">
+                        <p>as a safety net your statement used inside <code class="literal">apoc.periodic.commit</code> <span class="strong"><strong>must</strong></span> contain a <code class="literal">LIMIT</code> clause.
+                        </p>
+                     </td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
          <p>The query is executed repatedly in separate transactions until it returns 0.</p><pre class="programlisting highlight"><code data-lang="cypher">call apoc.periodic.commit("
 match (user:User) WHERE exists( user.city )
 with user limit {limit}

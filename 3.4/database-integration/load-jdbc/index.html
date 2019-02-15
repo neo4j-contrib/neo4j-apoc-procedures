@@ -8,6 +8,7 @@
       <title>8.1.&nbsp;Load JDBC - Chapter&nbsp;8.&nbsp;Database Integration</title>
       <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
       <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
@@ -15,7 +16,7 @@
       <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
       <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
       <link rel="prev" href="../" title="Chapter&nbsp;8.&nbsp;Database Integration"></link>
-      <link rel="next" href="../mongodb/" title="8.3.&nbsp;Interacting with MongoDB"></link>
+      <link rel="next" href="../database-modeling/" title="8.2.&nbsp;Database Modeling"></link>
       <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
         $(document).ready(function() {
           CodeMirror.colorize();
@@ -47,7 +48,7 @@
             <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
          </ul>
          <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Database Integration</a></span><span class="nav-current">
-               <p class="nav-title hidden">8.1.&nbsp;Load JDBC</p></span><span class="nav-next"><a accesskey="n" href="../mongodb/">Interacting with MongoDB<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+               <p class="nav-title hidden">8.1.&nbsp;Load JDBC</p></span><span class="nav-next"><a accesskey="n" href="../database-modeling/">Database Modeling<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
       </header>
       <div id="search-results" class="hidden"></div>
       <section class="section" id="load-jdbc">
@@ -75,7 +76,7 @@
                Those rows can then be used to update or create graph structures.
             </p>
             <div class="informaltable">
-               <div class="table" id="d0e8307">
+               <div class="table" id="d0e8533">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -416,7 +417,7 @@ RETURN row.name, row.price;</code></pre><p>You can also set it in your <code cla
                   <li class="listitem">by config parameter.</li>
                </ul>
             </div><pre class="screen highlight"><code>CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})</code></pre><div class="informaltable">
-               <div class="table" id="d0e8641">
+               <div class="table" id="d0e8867">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -581,7 +582,7 @@ WHERE score &gt; 1000</code></pre><p>You can call the procedure with param:</p><
                </div>
                <p>Config param is optional, the default value is an empty map.</p>
                <div class="informaltable">
-                  <div class="table" id="d0e8824">
+                  <div class="table" id="d0e9050">
                      <table class="informaltable" border="1">
                         <colgroup>
                            <col class="col_1"></col>

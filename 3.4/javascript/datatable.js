@@ -5,5 +5,5 @@
 </script>
 */
 $(document).ready(function() {
-    $('#table-all table').DataTable();
+    $('#table-all table').DataTable({"aLengthMenu": [[20,40, 80, -1], [20,40, 80, "All"]],"pageLength": 20});
 } );

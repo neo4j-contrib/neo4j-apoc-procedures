@@ -8,13 +8,14 @@
       <title>Chapter&nbsp;10.&nbsp;Utility Functions - APOC User Guide 3.4</title>
       <link rel="stylesheet" type="text/css" href="../docbook.css"></link>
       <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
       <link rel="stylesheet" type="text/css" href="../css/chunked-base.css"></link>
       <link rel="stylesheet" type="text/css" href="../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../javascript/datatable.js" type="text/javascript"></script><script src="../javascript/colorize.js" type="text/javascript"></script><script src="../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../javascript/mp-nav.js" type="text/javascript"></script><script src="../javascript/versionswitcher.js" type="text/javascript"></script><script src="../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
-      <link rel="prev" href="../database-integration/load-ldap/" title="8.6.&nbsp;Load LDAP"></link>
+      <link rel="prev" href="../database-integration/load-ldap/" title="8.7.&nbsp;Load LDAP"></link>
       <link rel="next" href="conversion-functions/" title="10.1.&nbsp;Conversion Functions"></link>
       <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
         $(document).ready(function() {
@@ -72,19 +73,19 @@
                <li class="listitem"><a class="xref" href="number-conversions/" title="10.13.&nbsp;Number Format Conversions">Section&nbsp;10.13, &#8220;Number Format Conversions&#8221;</a></li>
                <li class="listitem"><a class="xref" href="exact-math-functions/" title="10.14.&nbsp;Exact Math">Section&nbsp;10.14, &#8220;Exact Math&#8221;</a></li>
                <li class="listitem"><a class="xref" href="phonetic-functions/" title="10.9.&nbsp;Phonetic Text Functions">Section&nbsp;10.9, &#8220;Phonetic Text Functions&#8221;</a></li>
-               <li class="listitem"><a class="xref" href="node-difference/" title="10.14.2.&nbsp;Diff">Section&nbsp;10.14.2, &#8220;Diff&#8221;</a></li>
+               <li class="listitem"><a class="xref" href="node-difference/" title="10.15.1.&nbsp;Diff">Section&nbsp;10.15.1, &#8220;Diff&#8221;</a></li>
                <li class="listitem"><a class="xref" href="spatial/" title="10.6.&nbsp;Spatial">Section&nbsp;10.6, &#8220;Spatial&#8221;</a></li>
                <li class="listitem"><a class="xref" href="static-values/" title="10.7.&nbsp;Static Value Storage">Section&nbsp;10.7, &#8220;Static Value Storage&#8221;</a></li>
                <li class="listitem"><a class="xref" href="utility-functions/" title="10.8.&nbsp;Utilities">Section&nbsp;10.8, &#8220;Utilities&#8221;</a></li>
-               <li class="listitem"><a class="xref" href="bitwise-operations/" title="10.15.&nbsp;Bitwise operations">Section&nbsp;10.15, &#8220;Bitwise operations&#8221;</a></li>
-               <li class="listitem"><a class="xref" href="atomic-updates/" title="10.16.&nbsp;Atomic">Section&nbsp;10.16, &#8220;Atomic&#8221;</a></li>
+               <li class="listitem"><a class="xref" href="bitwise-operations/" title="10.16.&nbsp;Bitwise operations">Section&nbsp;10.16, &#8220;Bitwise operations&#8221;</a></li>
+               <li class="listitem"><a class="xref" href="atomic-updates/" title="10.17.&nbsp;Atomic">Section&nbsp;10.17, &#8220;Atomic&#8221;</a></li>
             </ul>
          </div>
          <section class="section" id="_atomic_examples">
             <div class="titlepage">
                <div>
                   <div>
-                     <h2 class="title" style="clear: both"><a class="anchor" href="#_atomic_examples"></a>10.17.&nbsp;Atomic Examples
+                     <h2 class="title" style="clear: both"><a class="anchor" href="#_atomic_examples"></a>10.18.&nbsp;Atomic Examples
                      </h2>
                   </div>
                </div>

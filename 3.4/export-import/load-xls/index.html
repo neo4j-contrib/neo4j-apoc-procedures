@@ -8,6 +8,7 @@
       <title>7.5.&nbsp;Loading Excel (XLS) - Chapter&nbsp;7.&nbsp;Export / Import</title>
       <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
       <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
@@ -106,7 +107,7 @@
             <p>The <code class="literal">{config}</code> parameter is a map
             </p>
             <div class="informaltable">
-               <div class="table" id="d0e6636">
+               <div class="table" id="d0e6759">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -187,17 +188,17 @@
                </div>
             </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.xls('file:///path/to/file.xls','Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})</code></pre><div class="informalfigure">
                <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.xls.png" alt="apoc.load.xls"></img></div>
-            </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.xls('http://bit.ly/2nXgHA2','Kids')</code></pre><p>Some examples with type/dateFormat and dateParse:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.xls('test_date.xlsx','sheet',{mapping:{Date:{type:'String'}}})</code></pre><div class="figure" id="d0e6761">
+            </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.xls('http://bit.ly/2nXgHA2','Kids')</code></pre><p>Some examples with type/dateFormat and dateParse:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.xls('test_date.xlsx','sheet',{mapping:{Date:{type:'String'}}})</code></pre><div class="figure" id="d0e6884">
                <div class="figure-title">Figure&nbsp;7.1.&nbsp;results</div>
                <div class="figure-contents">
                   <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.xls_1.png" alt="apoc.load.xls 1"></img></div>
                </div>
-            </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.xls('test_date.xlsx','sheet',{mapping:{Date:{type:'String',dateFormat:'iso_date'}}})</code></pre><div class="figure" id="d0e6772">
+            </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.xls('test_date.xlsx','sheet',{mapping:{Date:{type:'String',dateFormat:'iso_date'}}})</code></pre><div class="figure" id="d0e6895">
                <div class="figure-title">Figure&nbsp;7.2.&nbsp;results</div>
                <div class="figure-contents">
                   <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.xls_2.png" alt="apoc.load.xls 2"></img></div>
                </div>
-            </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.xls('test_date.xlsx','sheet',{mapping:{Date:{type:'String',dateParse:["wrongPath", "dd-MM-yyyy", "dd/MM/yyyy", "yyyy/MM/dd", "yyyy/dd/MM", "yyyy-dd-MM'T'hh:mm:ss"]}}})</code></pre><div class="figure" id="d0e6783">
+            </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.xls('test_date.xlsx','sheet',{mapping:{Date:{type:'String',dateParse:["wrongPath", "dd-MM-yyyy", "dd/MM/yyyy", "yyyy/MM/dd", "yyyy/dd/MM", "yyyy-dd-MM'T'hh:mm:ss"]}}})</code></pre><div class="figure" id="d0e6906">
                <div class="figure-title">Figure&nbsp;7.3.&nbsp;results</div>
                <div class="figure-contents">
                   <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.xls_3.png" alt="apoc.load.xls 3"></img></div>

@@ -8,6 +8,7 @@
       <title>Chapter&nbsp;4.&nbsp;Overview of APOC Procedures &amp; Functions - APOC User Guide 3.4</title>
       <link rel="stylesheet" type="text/css" href="../docbook.css"></link>
       <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
@@ -74,6 +75,59 @@
                      </tr>
                   </thead>
                   <tbody>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.metrics.list</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.metrics.list() - get a list of available metrics</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.metrics.storage</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.metrics.storage(directorySetting) - retrieve storage metrics about the devices Neo4j uses for data storage. directorySetting
+                              may be any valid neo4j directory setting name, such as 'dbms.directories.data'.  If null is provided as a directorySetting,
+                              you will get back all available directory settings.  For a list of available directory settings, see the Neo4j operations
+                              manual reference on configuration settings.   Directory settings are <span class="strong"><strong>not</strong></span> paths, they are a neo4j.conf setting key name
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.metrics.get</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.metrics.get(metricName, {}) - retrieve a system metric by its metric name. Additional configuration options may be passed
+                              matching the options available for apoc.load.csv.
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.metrics.getClusterTimerMetric</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.metrics.getClusterTimerMetric(metricName, {}) - retrieve a system metric by its metric name. This procedure is only intended
+                              for neo4j.causal_clustering.core.message_processing_timer.* metrics. Additional configuration options may be passed matching
+                              the options available for apoc.load.csv.
+                           </p>
+                        </td>
+                     </tr>
                      <tr>
                         <td style="text-align: left; vertical-align: top; ">
                            <p>procedure</p>
@@ -477,6 +531,19 @@
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these ids</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.nodes.collapse</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.nodes.collapse([nodes&#8230;&#8203;],[{properties:'overwrite' or 'discard' or 'combine'}]) yield from, rel, to merge nodes onto first
+                              in list
+                           </p>
                         </td>
                      </tr>
                      <tr>
@@ -942,7 +1009,7 @@
                            <p>apoc.meta.data</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.meta.data  - examines a subset of the graph to provide a tabular meta information</p>
+                           <p>apoc.meta.data({config})  - examines a subset of the graph to provide a tabular meta information</p>
                         </td>
                      </tr>
                      <tr>
@@ -953,7 +1020,7 @@
                            <p>apoc.meta.schema</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.meta.schema  - examines a subset of the graph to provide a map-like meta information</p>
+                           <p>apoc.meta.schema({config})  - examines a subset of the graph to provide a map-like meta information</p>
                         </td>
                      </tr>
                      <tr>
@@ -1721,6 +1788,19 @@
                            <p>procedure</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.model.jdbc</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.model.jdbc('key or url', {schema:'&lt;schema&gt;', write: &lt;true/false&gt;, filters: { tables:[], views: [], columns: []}) YIELD
+                              nodes, relationships - load schema from relational database
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.generate.ba</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
@@ -2095,6 +2175,17 @@
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.log.stream</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.log.stream('neo4j.log', { last: n }) - retrieve log file contents, optionally return only the last n lines</p>
                         </td>
                      </tr>
                      <tr>
@@ -2920,6 +3011,41 @@
                            <p>procedure</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.refactor.cloneSubgraphFromPaths</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.refactor.cloneSubgraphFromPaths([path1, path2, &#8230;&#8203;], {standinNodes:[], skipProperties:[]}) YIELD input, output, error
+                              | from the subgraph formed from the given paths, clone nodes with their labels and properties (optionally skipping any properties
+                              in the skipProperties list via the config map), and clone the relationships (will exist between cloned nodes only). Relationships
+                              can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node
+                              in the original subgraph (first of the pair), an existing node (second of the pair) can act as a standin for it within the
+                              cloned subgraph. Cloned relationships will be redirected to the standin.
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.refactor.cloneSubgraph</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.refactor.cloneSubgraph([node1,node2,&#8230;&#8203;], [rel1,rel2,&#8230;&#8203;]:[], {standinNodes:[], skipProperties:[]}) YIELD input, output,
+                              error | clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the
+                              config map), and clone the given relationships (will exist between cloned nodes only). If no relationships are provided, all
+                              relationships between the given nodes will be cloned. Relationships can be optionally redirected according to standinNodes
+                              node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), an existing
+                              node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected
+                              to the standin.
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.refactor.mergeNodes</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
@@ -3026,8 +3152,8 @@
                            <p>apoc.convert.toTree</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.convert.toTree([paths],[lowerCaseRels=true]) creates a stream of nested documents representing the at least one root
-                              of these paths
+                           <p>apoc.convert.toTree([paths],[lowerCaseRels=true], [config]) creates a stream of nested documents representing the at least
+                              one root of these paths
                            </p>
                         </td>
                      </tr>
@@ -3837,6 +3963,32 @@
                            <p>function</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.hashing.fingerprint</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities
+                              do share the same hash.
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.hashing.fingerprintGraph</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>calculate a checksum (md5) over a the full graph. Be aware that this function does use in-memomry datastructures depending
+                              on the size of your graph.
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.math.round</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
@@ -4495,7 +4647,7 @@
                            <p>apoc.coll.flatten</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.coll.flatten(coll) - flattens nested list</p>
+                           <p>apoc.coll.flatten(coll, [recursive]) - flattens list (nested if recursive is true)</p>
                         </td>
                      </tr>
                      <tr>
@@ -4544,6 +4696,17 @@
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.coll.different(values) - returns true if values are different</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.coll.dropDuplicateNeighbors</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.coll.dropDuplicateNeighbors(list) - remove duplicate consecutive objects in a list</p>
                         </td>
                      </tr>
                      <tr>

@@ -8,6 +8,7 @@
       <title>15.1.&nbsp;Clone nodes - Chapter&nbsp;15.&nbsp;Graph Refactoring</title>
       <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
       <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
@@ -15,7 +16,7 @@
       <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
       <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
       <link rel="prev" href="../" title="Chapter&nbsp;15.&nbsp;Graph Refactoring"></link>
-      <link rel="next" href="../merge-nodes/" title="15.2.&nbsp;Merge Nodes"></link>
+      <link rel="next" href="../clone-subgraph/" title="15.2.&nbsp;Clone subgraph"></link>
       <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
         $(document).ready(function() {
           CodeMirror.colorize();
@@ -47,7 +48,7 @@
             <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
          </ul>
          <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Graph Refactoring</a></span><span class="nav-current">
-               <p class="nav-title hidden">15.1.&nbsp;Clone nodes</p></span><span class="nav-next"><a accesskey="n" href="../merge-nodes/">Merge Nodes<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+               <p class="nav-title hidden">15.1.&nbsp;Clone nodes</p></span><span class="nav-next"><a accesskey="n" href="../clone-subgraph/">Clone subgraph<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
       </header>
       <div id="search-results" class="hidden"></div>
       <section class="section" id="clone-nodes">

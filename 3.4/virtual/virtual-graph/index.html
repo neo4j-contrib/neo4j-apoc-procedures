@@ -5,9 +5,10 @@
    <head>
       <meta charset="utf-8"></meta>
       <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
-      <title>14.3.&nbsp;Virtual Graph - Chapter&nbsp;14.&nbsp;Virtual Nodes &amp; Relationships (Graph Projections)</title>
+      <title>14.5.&nbsp;Virtual Graph - Chapter&nbsp;14.&nbsp;Virtual Nodes &amp; Relationships (Graph Projections)</title>
       <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
       <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
@@ -15,7 +16,7 @@
       <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
       <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
       <link rel="prev" href="../virtual-nodes-rels/" title="14.2.&nbsp;Virtual Nodes/Rels"></link>
-      <link rel="next" href="../graph-grouping/" title="14.4.&nbsp;Graph Grouping"></link>
+      <link rel="next" href="../graph-grouping/" title="14.6.&nbsp;Graph Grouping"></link>
       <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
         $(document).ready(function() {
           CodeMirror.colorize();
@@ -47,14 +48,14 @@
             <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
          </ul>
          <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../virtual-nodes-rels/"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Virtual Nodes/Rels</a></span><span class="nav-current">
-               <p class="nav-title hidden">14.3.&nbsp;Virtual Graph</p></span><span class="nav-next"><a accesskey="n" href="../graph-grouping/">Graph Grouping<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+               <p class="nav-title hidden">14.5.&nbsp;Virtual Graph</p></span><span class="nav-next"><a accesskey="n" href="../graph-grouping/">Graph Grouping<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
       </header>
       <div id="search-results" class="hidden"></div>
       <section class="section" id="virtual-graph">
          <div class="titlepage">
             <div>
                <div>
-                  <h2 class="title" style="clear: both"><a class="anchor" href="#virtual-graph"></a>14.3.&nbsp;Virtual Graph
+                  <h2 class="title" style="clear: both"><a class="anchor" href="#virtual-graph"></a>14.5.&nbsp;Virtual Graph
                   </h2>
                </div>
             </div>
@@ -62,7 +63,7 @@
          <p>Create a graph object (map) from information that&#8217;s passed in.
             It&#8217;s basic structure is: <code class="literal">{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}</code></p>
          <div class="informaltable">
-            <div class="table" id="d0e16538">
+            <div class="table" id="d0e17100">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -134,7 +135,7 @@
          <p>Create a graph object (map) from information that&#8217;s passed in.
             It&#8217;s basic structure is: <code class="literal">{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}</code></p>
          <div class="informaltable">
-            <div class="table" id="d0e16603">
+            <div class="table" id="d0e17165">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -199,7 +200,7 @@
             <div class="titlepage">
                <div>
                   <div>
-                     <h3 class="title"><a class="anchor" href="#_virtual_graph_examples"></a>14.3.1.&nbsp;Virtual Graph Examples
+                     <h3 class="title"><a class="anchor" href="#_virtual_graph_examples"></a>14.5.1.&nbsp;Virtual Graph Examples
                      </h3>
                   </div>
                </div>

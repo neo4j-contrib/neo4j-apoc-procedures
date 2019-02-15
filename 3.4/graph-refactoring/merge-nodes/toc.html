@@ -39,11 +39,12 @@
          </li>
          <li><span class="chapter"><a href="../../database-integration/">8. Database Integration</a></span><ul>
                <li><span class="section"><a href="../../database-integration/load-jdbc/">8.1. Load JDBC</a></span></li>
-               <li><span class="section"><a href="../../database-integration/elasticsearch/">8.2. ElasticSearch Integration</a></span></li>
-               <li><span class="section"><a href="../../database-integration/mongodb/">8.3. Interacting with MongoDB</a></span></li>
-               <li><span class="section"><a href="../../database-integration/couchbase/">8.4. Interacting with Couchbase</a></span></li>
-               <li><span class="section"><a href="../../database-integration/bolt-neo4j/">8.5. Bolt</a></span></li>
-               <li><span class="section"><a href="../../database-integration/load-ldap/">8.6. Load LDAP</a></span></li>
+               <li><span class="section"><a href="../../database-integration/database-modeling/">8.2. Database Modeling</a></span></li>
+               <li><span class="section"><a href="../../database-integration/elasticsearch/">8.3. ElasticSearch Integration</a></span></li>
+               <li><span class="section"><a href="../../database-integration/mongodb/">8.4. Interacting with MongoDB</a></span></li>
+               <li><span class="section"><a href="../../database-integration/couchbase/">8.5. Interacting with Couchbase</a></span></li>
+               <li><span class="section"><a href="../../database-integration/bolt-neo4j/">8.6. Bolt</a></span></li>
+               <li><span class="section"><a href="../../database-integration/load-ldap/">8.7. Load LDAP</a></span></li>
             </ul>
          </li>
          <li><span class="chapter"><a href="../../schema/">9. Schema Information and Operations</a></span><ul>
@@ -65,9 +66,10 @@
                <li><span class="section"><a href="../../utilities/temporal-conversions/">10.12. Temporal Functions</a></span></li>
                <li><span class="section"><a href="../../utilities/number-conversions/">10.13. Number Format Conversions</a></span></li>
                <li><span class="section"><a href="../../utilities/exact-math-functions/">10.14. Exact Math</a></span></li>
-               <li><span class="section"><a href="../../utilities/bitwise-operations/">10.15. Bitwise operations</a></span></li>
-               <li><span class="section"><a href="../../utilities/atomic-updates/">10.16. Atomic</a></span></li>
-               <li><span class="section"><a href="../../utilities/#_atomic_examples">10.17. Atomic Examples</a></span></li>
+               <li><span class="section"><a href="../../utilities/fingerprinting/">10.15. Fingerprinting</a></span></li>
+               <li><span class="section"><a href="../../utilities/bitwise-operations/">10.16. Bitwise operations</a></span></li>
+               <li><span class="section"><a href="../../utilities/atomic-updates/">10.17. Atomic</a></span></li>
+               <li><span class="section"><a href="../../utilities/#_atomic_examples">10.18. Atomic Examples</a></span></li>
             </ul>
          </li>
          <li><span class="chapter"><a href="../../nodes-relationships/">11. Node, Relationship and Path Functions and Procedures</a></span><ul>
@@ -99,22 +101,25 @@
          <li><span class="chapter"><a href="../../virtual/">14. Virtual Nodes &amp; Relationships (Graph Projections)</a></span><ul>
                <li><span class="section"><a href="../../virtual/#_use_cases">14.1. Use Cases</a></span></li>
                <li><span class="section"><a href="../../virtual/virtual-nodes-rels/">14.2. Virtual Nodes/Rels</a></span></li>
-               <li><span class="section"><a href="../../virtual/virtual-graph/">14.3. Virtual Graph</a></span></li>
-               <li><span class="section"><a href="../../virtual/graph-grouping/">14.4. Graph Grouping</a></span></li>
+               <li><span class="section"><a href="../../virtual/#_nodes_collapse">14.3. Nodes collapse</a></span></li>
+               <li><span class="section"><a href="../../virtual/#_nodes_collapse_example">14.4. Nodes collapse example</a></span></li>
+               <li><span class="section"><a href="../../virtual/virtual-graph/">14.5. Virtual Graph</a></span></li>
+               <li><span class="section"><a href="../../virtual/graph-grouping/">14.6. Graph Grouping</a></span></li>
             </ul>
          </li>
          <li><span class="chapter"><a href="../">15. Graph Refactoring</a></span><ul>
                <li><span class="section"><a href="../clone-nodes/">15.1. Clone nodes</a></span></li>
-               <li><span class="section"><a href="">15.2. Merge Nodes</a></span></li>
-               <li><span class="section"><a href="../redirect-relationship/">15.3. Redirect relationships</a></span></li>
-               <li><span class="section"><a href="../invert-relationship/">15.4. Invert relationship</a></span></li>
-               <li><span class="section"><a href="../set-relationship-type/">15.5. Set Relationship Tsype</a></span></li>
-               <li><span class="section"><a href="../extract-node-from-relationship/">15.6. Extract node from relationships</a></span></li>
-               <li><span class="section"><a href="../collapse-node-to-relationship/">15.7. Collapse node to relationship</a></span></li>
-               <li><span class="section"><a href="../#_normalize_as_boolean">15.8. Normalize As Boolean</a></span></li>
-               <li><span class="section"><a href="../categorize/">15.9. Categorize</a></span></li>
-               <li><span class="section"><a href="../#_using_cypher_and_apoc_to_move_a_property_value_to_a_label">15.10. Using Cypher and APOC to move a property value to a label</a></span></li>
-               <li><span class="section"><a href="../rename-label-type-property/">15.11. Rename</a></span></li>
+               <li><span class="section"><a href="../clone-subgraph/">15.2. Clone subgraph</a></span></li>
+               <li><span class="section"><a href="">15.3. Merge Nodes</a></span></li>
+               <li><span class="section"><a href="../redirect-relationship/">15.4. Redirect relationships</a></span></li>
+               <li><span class="section"><a href="../invert-relationship/">15.5. Invert relationship</a></span></li>
+               <li><span class="section"><a href="../set-relationship-type/">15.6. Set Relationship Tsype</a></span></li>
+               <li><span class="section"><a href="../extract-node-from-relationship/">15.7. Extract node from relationships</a></span></li>
+               <li><span class="section"><a href="../collapse-node-to-relationship/">15.8. Collapse node to relationship</a></span></li>
+               <li><span class="section"><a href="../#_normalize_as_boolean">15.9. Normalize As Boolean</a></span></li>
+               <li><span class="section"><a href="../categorize/">15.10. Categorize</a></span></li>
+               <li><span class="section"><a href="../#_using_cypher_and_apoc_to_move_a_property_value_to_a_label">15.11. Using Cypher and APOC to move a property value to a label</a></span></li>
+               <li><span class="section"><a href="../rename-label-type-property/">15.12. Rename</a></span></li>
             </ul>
          </li>
          <li><span class="chapter"><a href="../../indexes/">16. Deprecated: Text and Lookup Indexes</a></span><ul>
