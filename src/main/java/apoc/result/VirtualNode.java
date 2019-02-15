@@ -1,10 +1,6 @@
 package apoc.result;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -26,7 +22,7 @@ import static java.util.Arrays.asList;
  */
 public class VirtualNode implements Node {
     private static AtomicLong MIN_ID = new AtomicLong(-1);
-    private final List<Label> labels = new ArrayList<>();
+    private final Set<String> labels = new LinkedHashSet<>();
     private final Map<String, Object> props = new HashMap<>();
     private final List<Relationship> rels = new ArrayList<>();
     private final GraphDatabaseService db;
@@ -35,14 +31,14 @@ public class VirtualNode implements Node {
     public VirtualNode(Label[] labels, Map<String, Object> props, GraphDatabaseService db) {
         this.id = MIN_ID.getAndDecrement();
         this.db = db;
-        this.labels.addAll(asList(labels));
+        addLabels(asList(labels));
         this.props.putAll(props);
     }
 
     public VirtualNode(long nodeId, Label[] labels, Map<String, Object> props, GraphDatabaseService db) {
         this.id = nodeId;
         this.db = db;
-        this.labels.addAll(asList(labels));
+        addLabels(asList(labels));
         this.props.putAll(props);
     }
 
@@ -136,6 +132,12 @@ public class VirtualNode implements Node {
         return rel;
     }
 
+    public VirtualRelationship createRelationshipFrom(Node start, RelationshipType relationshipType) {
+        VirtualRelationship rel = new VirtualRelationship(start, this, relationshipType);
+        rels.add(rel);
+        return rel;
+    }
+
     @Override
     public Iterable<RelationshipType> getRelationshipTypes() {
         return rels.stream().map(Relationship::getType).collect(Collectors.toList());
@@ -163,28 +165,28 @@ public class VirtualNode implements Node {
 
     @Override
     public void addLabel(Label label) {
-        labels.add(label);
+        labels.add(label.name());
+    }
+
+    public void addLabels(Iterable<Label> labels) {
+        for (Label label: labels) {
+            addLabel(label);
+        }
     }
 
     @Override
     public void removeLabel(Label label) {
-        for (Iterator<Label> iterator = labels.iterator(); iterator.hasNext(); ) {
-            Label next = iterator.next();
-            if (next.name().equals(label.name())) iterator.remove();
-        }
+        labels.remove(label.name());
     }
 
     @Override
     public boolean hasLabel(Label label) {
-        for (Label l : labels) {
-            if (l.name().equals(label.name())) return true;
-        }
-        return false;
+        return labels.contains(label.name());
     }
 
     @Override
     public Iterable<Label> getLabels() {
-        return labels;
+        return labels.stream().map(Label::label).collect(Collectors.toList());
     }
 
     @Override

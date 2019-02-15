@@ -3,6 +3,8 @@ package apoc.refactor.util;
 import java.util.Collections;
 import java.util.Map;
 
+import static apoc.util.Util.toBoolean;
+
 /**
  * @author AgileLARUS
  *
@@ -19,9 +21,12 @@ public class RefactorConfig {
 
 	private Map<String,String> propertiesManagement = Collections.singletonMap(MATCH_ALL, OVERWRITE);
 
-	private Object mergeRelsAllowed;
-
+	private boolean mergeRelsAllowed;
+	private boolean mergeVirtualRels;
+	private boolean selfRel;
+	private boolean countMerge;
 	private boolean hasProperties;
+	private boolean collapsedLabel;
 
 	public RefactorConfig(Map<String,Object> config) {
 		Object value = config.get("properties");
@@ -32,7 +37,11 @@ public class RefactorConfig {
 			this.propertiesManagement = (Map<String,String>)value;
 		}
 
-		this.mergeRelsAllowed = config.get("mergeRels");
+		this.mergeRelsAllowed = toBoolean(config.get("mergeRels"));
+		this.mergeVirtualRels = toBoolean(config.getOrDefault("mergeRelsVirtual", true));
+		this.selfRel = toBoolean(config.get("selfRel"));
+		this.countMerge = toBoolean(config.getOrDefault("countMerge", true));
+		this.collapsedLabel = toBoolean(config.get("collapsedLabel"));
 	}
 
 	public String getMergeMode(String name){
@@ -45,14 +54,33 @@ public class RefactorConfig {
 
 	}
 
-	public boolean getMergeRelsAllowed(){
-		return mergeRelsAllowed == null ? false : (boolean) mergeRelsAllowed;
+	public String getMergeModeVirtual(String name){
+		for (String key : propertiesManagement.keySet()) {
+			if (!key.equals(MATCH_ALL) && name.matches(key)) {
+				return propertiesManagement.get(key);
+			}
+		}
+		return propertiesManagement.getOrDefault(name,propertiesManagement.getOrDefault(MATCH_ALL, DISCARD));
+
 	}
+
+	public boolean getMergeRelsAllowed(){
+		return mergeRelsAllowed;
+	}
+
+	public boolean isSelfRel(){ return selfRel; }
 
 	public boolean hasProperties() {
 		return hasProperties;
 	}
 
+	public boolean isCountMerge() { return this.countMerge;	}
 
+	public boolean isCollapsedLabel() {
+		return collapsedLabel;
+	}
 
+	public boolean isMergeVirtualRels() {
+		return mergeVirtualRels;
+	}
 }
