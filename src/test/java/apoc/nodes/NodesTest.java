@@ -389,13 +389,13 @@ public class NodesTest {
                     assertMerge(map,
                             Util.map("name", "a1", "count", 3), label, //FROM
                             Collections.emptyMap(), "HAS_REL", //REL
-                            Util.map("name", "b4"), asList(label("BLabel"))); //TO
+                            Util.map("name", "b4"), asSet(label("BLabel"))); //TO
                     assertTrue(r.hasNext());
                     map = r.next();
                     assertMerge(map,
                             Util.map("name", "a1", "count", 3), label, //FROM
                             Util.map("count", 1), "HAS_REL", //REL
-                            Util.map("name", "b1"), asList(label("BLabel"))); //TO
+                            Util.map("name", "b1"), asSet(label("BLabel"))); //TO
                     assertFalse(r.hasNext());
                 });
     }
