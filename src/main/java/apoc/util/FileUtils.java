@@ -87,7 +87,7 @@ public class FileUtils {
             if (!ApocConfiguration.isEnabled("import.file.allow_read_from_filesystem"))
                 throw new RuntimeException("Import file "+url+" not enabled, please set dbms.security.allow_csv_import_from_file_urls=true in your neo4j.conf");
 
-            String importDir = ApocConfiguration.get("import.file.directory", null);
+            String importDir = ApocConfiguration.get("dbms.directories.import", null);
 
             URI uri = URI.create(url);
             if(uri == null) throw new RuntimeException("Path not valid!");
