@@ -2,8 +2,6 @@ package apoc.refactor;
 
 import apoc.Pools;
 import apoc.algo.Cover;
-import apoc.algo.algorithms.AlgoUtils;
-import apoc.algo.algorithms.Algorithm;
 import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
 import apoc.result.NodeResult;
@@ -16,6 +14,7 @@ import org.neo4j.procedure.*;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.refactor.util.RefactorUtil.*;
@@ -137,7 +136,7 @@ public class GraphRefactoring {
         if (paths == null || paths.isEmpty()) return Stream.empty();
 
         Set<Node> nodes = new HashSet<>();
-        Set<Relationship> rels = new HashSet();
+        Set<Relationship> rels = new HashSet<>();
 
         for (Path path : paths) {
             for (Relationship rel : path.relationships()) {
@@ -149,8 +148,8 @@ public class GraphRefactoring {
             }
         }
 
-        List<Node> nodesList = nodes.stream().collect(Collectors.toList());
-        List<Relationship> relsList = rels.stream().collect(Collectors.toList());
+        List<Node> nodesList = new ArrayList<>(nodes);
+        List<Relationship> relsList = new ArrayList<>(rels);
 
         return cloneSubgraph(nodesList, relsList, config);
     }
