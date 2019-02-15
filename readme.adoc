@@ -21,11 +21,11 @@ They are implemented in Java and can be easily deployed into your Neo4j instance
 
 The APOC library consists of many (about 450) procedures and functions to help with many different tasks in areas like data integration, graph algorithms or data conversion.
 
-== License
+=== License
 
 Apache License 2.0
 
-== "APOC" Name history
+=== "APOC" Name history
 
 http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board of the Nebuchadnezzar in the Matrix movie. He was killed by Cypher.
 
@@ -38,7 +38,7 @@ http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board 
 APOC is easily installed with http://neo4j.com/download[Neo4j Desktop], after creating your database just go to the "Manage" screen and the "Plugins" tab.
 Then click "Install" in the APOC box and you're done.
 
-image::{img}/desktop-apoc.jpg[]
+image::{img}/desktop-apoc.jpg[width=800]
 
 == Feedback
 
@@ -136,8 +136,13 @@ h| Output Return Columns |
 
 == Manual Installation: Download latest release
 
-Go to http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/{apoc-release}
-to find the latest release and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
+Since APOC relies in some places on Neo4j's internal APIs you need to use the *matching APOC version* for your Neo4j installaton.
+Make sure that the *first two version numbers match between Neo4j and APOC*.
+
+Go to to http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/{apoc-release}[the latest release] for *Neo4j version {branch}*
+ and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
+
+You can find http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/[all releases here].
 
 // end::install[]
 
@@ -147,21 +152,12 @@ to find the latest release and download the binary jar to place into your `$NEO4
 
 [WARNING]
 ====
-Neo4j 3.2 has increased security for procedures and functions (aka sandboxing).
-Procedures that use internal APIs have to be allowed in `$NEO4J_HOME/conf/neoj4.conf` with, e.g. `+dbms.security.procedures.unrestricted=apoc.trigger.*,apoc.meta.*+` for security reasons (or `+apoc.*+` for all).
+Procedures that use internal APIs have to be allowed in `$NEO4J_HOME/conf/neo4j.conf` with, e.g. `+dbms.security.procedures.unrestricted=apoc.*+` for security reasons.
 
-If you want to use this via docker, you need to amend `+-e NEO4J_dbms_security_procedures_unrestricted=apoc.\\\*+` to your `docker run ...` command. The three backslashes are necessary to prevent wildcard expansions.
-====
+If you want to use this via docker, you need to amend `+-e NEO4J_dbms_security_procedures_unrestricted=apoc.\\\*+` to your `docker run ...` command. 
+The three backslashes are necessary to prevent wildcard expansions.
 
-[NOTE]
-====
-You can also whitelist procedures and functions in general to be loaded using: `+dbms.security.procedures.whitelist=apoc.coll.*,apoc.load.*+`
-
-Neo4j 3.2 introduces user defined aggregation functions, we will use that feature in APOC in the future, e.g. for export, graph-algorithms and more, instead of passing in Cypher statements to procedures.
-
-Please note that about 70 procedures have been turned from procedures into user defined functions.
-This includes, `+apoc.date.* apoc.number.*, apoc.coll.*, apoc.map.*+` and some more packages.
-See, this https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/144[issue^] for a list.
+You _can_ also whitelist procedures and functions in general to be loaded using: `+dbms.security.procedures.whitelist=apoc.coll.*,apoc.load.*+`
 ====
 
 // end::warnings[]
@@ -193,18 +189,19 @@ The trailing `<apoc>` part of the version number will be incremented with every 
 // end::version-matrix[]
 === Get APOC Version
 
-To know your current `apoc` version you can use the *Function* :
+To know your current `apoc` version you can use the *function* :
 
 [source,cypher]
 ----
-RETURN apoc.version()
+RETURN apoc.version();
 ----
 
 // tag::docker[]
 
 === Using APOC with the Neo4j Docker image
 
-The https://hub.docker.com/_/neo4j/[Neo4j Docker image] allows to supply a volume for the `/plugins` folder. Download the APOC release fitting your Neo4j version to local folder `plugins` and provide it as a data volume:
+The https://hub.docker.com/_/neo4j/[Neo4j Docker image] allows to supply a volume for the `/plugins` folder. 
+Download the APOC release matching your Neo4j version to local folder `plugins` and provide it as a data volume:
 
 [source,bash,subs=attributes]
 ----
@@ -212,7 +209,7 @@ mkdir plugins
 pushd plugins
 wget https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/{apoc-release}/apoc-{apoc-release}-all.jar
 popd
-docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:{neo4j-version}
+docker run --rm -e NEO4J_AUTH=none -p 7474:7474 -v $PWD/plugins:/plugins -p 7687:7687 neo4j:{branch}
 ----
 
 If you want to pass custom apoc config to your Docker instance, you can use environment variables, like here:
@@ -228,6 +225,11 @@ docker run \
     neo4j
 ----
 
+====
+If you want to allow APOC's procedures that use internal APIs, you need to amend `+-e NEO4J_dbms_security_procedures_unrestricted=apoc.\\\*+` to your `docker run ...` command. 
+The three backslashes are necessary to prevent wildcard expansions.
+====
+
 // end::docker[]
 // tag::build[]
 
@@ -235,8 +237,9 @@ docker run \
 
 ----
 git clone http://github.com/neo4j-contrib/neo4j-apoc-procedures
+cd neo4j-apoc-procedures
 ./gradlew shadow
-cp build/libs/apoc-<version>-SNAPSHOT-all.jar $NEO4J_HOME/plugins/
+cp build/libs/apoc-<version>-all.jar $NEO4J_HOME/plugins/
 $NEO4J_HOME/bin/neo4j restart
 ----
 

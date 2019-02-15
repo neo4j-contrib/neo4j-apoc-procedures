@@ -1,0 +1,178 @@
+[[export-cypher]]
+== Export to Cypher Script
+
+Make sure to set the config options in your `neo4j.conf`
+
+.neo4j.conf
+----
+apoc.export.file.enabled=true
+apoc.import.file.enabled=true
+----
+
+Data is exported as Cypher statements to the given file.
+
+It is possible to choose between three export formats:
+
+* `neo4j-shell`: for Neo4j Shell and partly `apoc.cypher.runFile`
+* `cypher-shell`: for Cypher shell
+* `plain`: doesn't output begin / commit / await just plain Cypher
+
+To change the export format, you have to set it on the config params like `{format : "cypher-shell"}`.
+
+By default the format is `neo4j-shell`.
+
+If you want to export to separate files, e.g. to later use the `apoc.cypher.runFiles/runSchemaFiles` procedures, you can add `separateFiles:true`.
+
+It is possible to choose between four cypher update operation types:
+To change the cypher update operation, you have to set it on the config params like `{cypherFormat: "updateAll"}`
+
+* `create`: all CREATE
+* `updateAll`: MERGE instead of CREATE
+* `addStructure`: MATCH for nodes + MERGE for rels
+* `updateStructure`: MERGE + MATCH for nodes and rels
+
+Format and cypherFormat can be used both in the same query giving you complete control over the exact export format:
+
+[source,cypher]
+----
+call apoc.export.cypher.query(
+"MATCH (p1:Person)-[r:KNOWS]->(p2:Person) RETURN p1,r,p2",
+"/tmp/friendships.cypher", 
+{format:'plain',cypherFormat:'updateStructure'})`
+----
+
+// tag::export.cypher[]
+`YIELD file, source, format, nodes, relationships, properties, time`
+[cols="1m,5"]
+|===
+| apoc.export.cypher.all(file,config) | exports whole database incl. indexes as Cypher statements to the provided file
+| apoc.export.cypher.data(nodes,rels,file,config) | exports given nodes and relationships incl. indexes as Cypher statements to the provided file
+| apoc.export.cypher.graph(graph,file,config) | exports given graph object incl. indexes as Cypher statements to the provided file
+| apoc.export.cypher.query(query,file,config) | exports nodes and relationships from the Cypher statement incl. indexes as Cypher statements to the provided file
+| apoc.export.cypher.schema(file,config) | exports all schema indexes and constraints to cypher
+|===
+// end::export.cypher[]
+
+[NOTE]
+The labels exported are ordered alphabetically.
+The output of `labels()` function is not sorted, use it in combination with `apoc.coll.sort()`.
+
+=== Roundtrip Example
+
+You can use this roundtrip example e.g. on the `:play movies` movie graph.
+
+Make sure to set the config options in your `neo4j.conf`
+
+.neo4j.conf
+----
+apoc.export.file.enabled=true
+apoc.import.file.enabled=true
+----
+
+Export the data in plain format and multiple files:
+
+[source,cypher]
+----
+call apoc.export.cypher.query("match (n)-[r]->(n2) return * limit 100",
+ "/tmp/mysubset.cypher",
+ {format:'plain',separateFiles:true});
+----
+
+This should result in 4 files in your directory.
+
+[source,shell]
+----
+ls -1 /tmp/mysubset.*
+/tmp/mysubset.cleanup.cypher
+/tmp/mysubset.nodes.cypher
+/tmp/mysubset.relationships.cypher
+/tmp/mysubset.schema.cypher
+----
+
+Import the data in 4 steps, first the schema, then nodes and relationships, then cleanup.
+
+---
+call apoc.cypher.runSchemaFile('/tmp/mysubset.schema.cypher');
+call apoc.cypher.runFiles(['/tmp/mysubset.nodes.cypher','/tmp/mysubset.relationships.cypher']);
+
+// remove temporary node properties
+call apoc.cypher.runFile('/tmp/mysubset.cleanup.cypher');
+// drop import specific constraint
+call apoc.cypher.runSchemaFile('/tmp/mysubset.cleanup.cypher');
+---
+
+The `run*` procedures have some optional config:
+
+* `{statistics:true/false}` to output a row of update-stats per statement, default is true
+* `{timeout:1 or 10}` for how long the stream waits for new data, default is 10
+
+=== Stream back Exported Cypher Script as columns
+
+If you leave off the file-name as `null` the export will instead be streamed back.
+
+In general there will be a `cypherStatements` column with the script.
+
+If you use multi-file-splitting as configuration parameter, there will be extra columns with content for
+
+* nodeStatements
+* relationshipStatements
+* cleanupStatements
+* schemaStatements
+
+If you also specify the `streamStatements:true` then each batch (by `batchSize` which defaults to 10k) of statements will be returned as a row.
+So you can use your client to reconstruct the cypher script.
+
+.Simple Example for Streaming
+[source,cypher]
+----
+echo "
+CALL apoc.export.cypher.all(null,{streamStatements:true,batchSize:100}) YIELD cypherStatements RETURN cypherStatements;
+" | ./bin/cypher-shell --non-interactive --format plain
+----
+
+=== Examples
+
+.exportAll (neo4j-shell format)
+
+[source,cypher]
+----
+CALL apoc.export.cypher.all({fileName},{config})
+----
+Result:
+[source,cypher]
+----
+begin
+CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:"foo", `UNIQUE IMPORT ID`:0});
+CREATE (:`Bar` {`name`:"bar", `age`:42});
+CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});
+commit
+begin
+CREATE INDEX ON :`Foo`(`name`);
+CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
+CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
+commit
+schema await
+begin
+MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:"bar"}) CREATE (n1)-[:`KNOWS`]->(n2);
+commit
+begin
+MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
+commit
+begin
+DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
+commit
+----
+.exportSchema (neo4j-shell format)
+[source,cypher]
+----
+CALL apoc.export.cypher.schema({fileName},{config})
+----
+Result:
+[source,cypher]
+----
+begin
+CREATE INDEX ON :`Foo`(`name`);
+CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
+commit
+schema await
+----

@@ -1,0 +1,12 @@
+[[jmh]]
+= Usage of JMH in apoc
+
+The APOC library uses http://openjdk.java.net/projects/code-tools/jmh/[JMH] for micro benchmarking. You'll find the
+source code for the benchmarks in
+src/jmh/main. We use the https://github.com/melix/jmh-gradle-plugin[Gradle JMH plugin] to configure JMH and run the
+benchmarks.
+
+NOTE: JMH is *not* run during a regular build.
+
+To run JMH benchmarks, type `./gradlew jmh`
+

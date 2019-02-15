@@ -1,0 +1,25 @@
+[[database-integration]]
+== Database Integration
+
+* <<load-jdbc>>
+* <<database-modeling>>
+* <<elasticsearch>>
+* <<mongodb>>
+* <<couchbase>>
+* <<bolt-neo4j>>
+* <<load-ldap>>
+
+include::loadjdbc.adoc[leveloffset=+2]
+
+include::modelling.adoc[leveloffset=+1]
+
+include::elasticsearch.adoc[leveloffset=+2]
+
+include::mongodb.adoc[leveloffset=+2]
+
+include::couchbase.adoc[leveloffset=+2]
+
+include::bolt.adoc[leveloffset=+2]
+
+include::loadldap.adoc[leveloffset=+2]
+
