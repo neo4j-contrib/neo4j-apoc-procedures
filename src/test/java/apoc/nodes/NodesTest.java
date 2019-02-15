@@ -18,6 +18,7 @@ import static java.util.Collections.*;
 import static org.junit.Assert.*;
 import static org.neo4j.graphdb.Label.label;
 import static org.neo4j.helpers.collection.Iterators.asSet;
+import org.neo4j.helpers.collection.Iterables;
 
 /**
  * @author mh
@@ -71,7 +72,7 @@ public class NodesTest {
     @Test
     public void types() throws Exception {
         db.execute("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(f) CREATE (f)-[:X]->(f)").close();
-        TestUtil.testCall(db, "MATCH (n:Foo) RETURN apoc.node.relationship.types(n) AS value", (r) -> assertEquals(asSet("X","Y"), asSet(((List)r.get("value")).iterator())));
+        TestUtil.testCall(db, "MATCH (n:Foo) RETURN apoc.node.relationship.types(n) AS value", (r) -> assertEquals(asSet("X","Y"), asSet(((List)r.get("value")).toArray())));
         TestUtil.testCall(db, "MATCH (n:Foo) RETURN apoc.node.relationship.types(n,'X') AS value", (r) -> assertEquals(asList("X"), r.get("value")));
         TestUtil.testCall(db, "MATCH (n:Foo) RETURN apoc.node.relationship.types(n,'X|Z') AS value", (r) -> assertEquals(asList("X"), r.get("value")));
         TestUtil.testCall(db, "MATCH (n:Bar) RETURN apoc.node.relationship.types(n) AS value", (r) -> assertEquals(Collections.emptyList(), r.get("value")));
@@ -297,7 +298,7 @@ public class NodesTest {
     }
 
     @Test
-    public void testMergeSelfRelationshiInverted() {
+    public void testMergeSelfRelationshipInverted() {
         db.execute("MATCH (n) detach delete (n)");
         db.execute("CREATE (a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})");
 
@@ -330,7 +331,7 @@ public class NodesTest {
                     Map<String, Object> map = r.next();
 
                     assertEquals(Util.map("name","b1", "count", 2), ((VirtualNode)map.get("from")).getAllProperties());
-                    assertEquals(label, ((VirtualNode)map.get("from")).getLabels());
+                    assertEquals(label, labelSet((VirtualNode)map.get("from")));
                     assertNull(((VirtualRelationship) map.get("rel")));
                     assertNull(((Node) map.get("to")));
                     assertFalse(r.hasNext());
@@ -358,15 +359,15 @@ public class NodesTest {
                     assertEquals(Collections.emptyMap(), ((VirtualRelationship)map.get("rel")).getAllProperties());
                     assertEquals("KNOWS", ((VirtualRelationship)map.get("rel")).getType().name());
                     assertEquals(Util.map("name", "b1", "count", 2), ((Node)map.get("to")).getAllProperties());
-                    assertEquals(label, ((Node)map.get("to")).getLabels());
+                    assertEquals(label, labelSet((Node)map.get("to")));
                     assertTrue(r.hasNext());
                     map = r.next();
                     assertEquals(Util.map("name","b1", "count", 2), ((VirtualNode)map.get("from")).getAllProperties());
-                    assertEquals(label, ((VirtualNode)map.get("from")).getLabels());
+                    assertEquals(label, labelSet((VirtualNode)map.get("from")));
                     assertEquals(Util.map("count", 1), ((VirtualRelationship)map.get("rel")).getAllProperties());
                     assertEquals("KNOWS", ((VirtualRelationship)map.get("rel")).getType().name());
                     assertEquals(Util.map("name", "b1", "count", 2), ((VirtualNode)map.get("to")).getAllProperties());
-                    assertEquals(label, ((VirtualNode)map.get("to")).getLabels());
+                    assertEquals(label, labelSet((VirtualNode)map.get("to")));
                     assertFalse(r.hasNext());
                 });
     }
@@ -463,7 +464,7 @@ public class NodesTest {
             Map<String, Object> map = result.next();
 
             assertEquals(Util.map("name","John", "count", 6), ((VirtualNode)map.get("from")).getAllProperties());
-            assertEquals(label, ((VirtualNode) map.get("from")).getLabels());
+            assertEquals(label, labelSet((VirtualNode) map.get("from")));
             assertNull(((VirtualRelationship) map.get("rel")));
             assertNull(((VirtualNode) map.get("to")));
             assertFalse(result.hasNext());
@@ -496,11 +497,14 @@ public class NodesTest {
                                     Map<String, Object> toProperties, Set<Label> toLabel
     ) {
         assertEquals(fromProperties, ((VirtualNode)map.get("from")).getAllProperties());
-        assertEquals(fromLabel, asSet(((VirtualNode)map.get("from")).getLabels()));
+        assertEquals(fromLabel, labelSet((VirtualNode)map.get("from")));
         assertEquals(relProperties, ((VirtualRelationship)map.get("rel")).getAllProperties());
         assertEquals(relType, ((VirtualRelationship)map.get("rel")).getType().name());
         assertEquals(toProperties, ((Node)map.get("to")).getAllProperties());
-        assertEquals(toLabel, asSet(((Node)map.get("to")).getLabels()));
+        assertEquals(toLabel, labelSet((Node)map.get("to")));
     }
 
+    private static Set<Label> labelSet(Node node) {
+	   return Iterables.asSet(node.getLabels());
+    }
 }
