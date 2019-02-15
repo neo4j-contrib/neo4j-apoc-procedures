@@ -1,6 +1,9 @@
 package apoc.refactor;
 
 import apoc.Pools;
+import apoc.algo.Cover;
+import apoc.algo.algorithms.AlgoUtils;
+import apoc.algo.algorithms.Algorithm;
 import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
 import apoc.result.NodeResult;
@@ -125,7 +128,6 @@ public class GraphRefactoring {
      *
      */
     @Procedure(mode = Mode.WRITE)
-    @Deprecated
     @Description("apoc.refactor.cloneSubgraphFromPaths([path1, path2, ...], {standinNodes:[], skipProperties:[]}) YIELD input, output, error | " +
             "from the subgraph formed from the given paths, clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map), and clone the given relationships (will exist between cloned nodes only). " +
             "Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), " +
@@ -166,16 +168,21 @@ public class GraphRefactoring {
      *
      */
     @Procedure(mode = Mode.WRITE)
-    @Deprecated
-    @Description("apoc.refactor.cloneSubgraph([node1,node2,...], [rel1,rel2,...], {standinNodes:[], skipProperties:[]}) YIELD input, output, error | " +
+    @Description("apoc.refactor.cloneSubgraph([node1,node2,...], [rel1,rel2,...]:[], {standinNodes:[], skipProperties:[]}) YIELD input, output, error | " +
             "clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map), and clone the given relationships (will exist between cloned nodes only). " +
+            "If no relationships are provided, all relationships between the given nodes will be cloned. " +
             "Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), " +
             "an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.")
     public Stream<NodeRefactorResult> cloneSubgraph(@Name("nodes") List<Node> nodes,
-                                                    @Name("rels") List<Relationship> rels,
+                                                    @Name(value="rels", defaultValue = "[]") List<Relationship> rels,
                                                     @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
 
-        if (nodes == null) return Stream.empty();
+        if (nodes == null || nodes.isEmpty()) return Stream.empty();
+
+        // empty or missing rels list means get all rels between nodes
+        if (rels == null || rels.isEmpty()) {
+            rels = Cover.coverNodes(nodes).collect(Collectors.toList());
+        }
 
         Map<Node, Node> copyMap = new HashMap<>(nodes.size());
         List<NodeRefactorResult> resultStream = new ArrayList<>();

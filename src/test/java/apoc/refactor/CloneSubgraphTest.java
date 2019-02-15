@@ -61,31 +61,67 @@ public class CloneSubgraphTest {
     }
 
     @Test
-    public void testCloneSubgraph_From_RootA_Without_Rels_Should_Only_Clone_Nodes()  {
-
+    public void testCloneSubgraph_From_RootA_With_Empty_Rels_Should_Clone_All_Relationships_Between_Nodes()  {
         TestUtil.testCall(db,
-                "MATCH (root:Root{name:'A'})-[*]-(node) " +
-                        "WITH collect(DISTINCT node) as nodes " +
+                "MATCH (rootA:Root{name:'A'})" +
+                        "CALL apoc.path.subgraphAll(rootA, {}) YIELD nodes, relationships " +
+                        "WITH nodes[1..] as nodes, relationships, [rel in relationships | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as relNames " +
                         "CALL apoc.refactor.cloneSubgraph(nodes, []) YIELD input, output, error " +
-                        "WITH collect(output) as clones, collect(output.name) as cloneNames " +
-                        "RETURN cloneNames, size(cloneNames) as cloneCount, none(clone in clones WHERE (clone)--()) as noRelationshipsOnClones, " +
-                        " single(clone in clones WHERE clone.name = 'node5' AND clone:Oddball) as oddballNode5Exists, " +
-                        " size([clone in clones WHERE clone:Node]) as nodesWithNodeLabel",
+                        "WITH relNames, collect(output) as clones, collect(output.name) as cloneNames " +
+                        "CALL apoc.algo.cover(clones) YIELD rel " +
+                        "WITH relNames, cloneNames, [rel in collect(rel) | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as cloneRelNames " + // was seeing odd incorrect behavior with yielded relTypesCount from apoc.meta.stats()
+                        "WITH cloneNames, cloneRelNames, apoc.coll.containsAll(relNames, cloneRelNames) as clonedRelsVerified " +
+                        "RETURN cloneNames, cloneRelNames, clonedRelsVerified",
                 (row) -> {
                     assertThat((List<String>) row.get("cloneNames"), containsInAnyOrder("node1", "node2", "node3", "node4", "node5", "node8", "node9", "node10", "node6", "node7"));
-                    assertThat(row.get("cloneCount"), is(10L));
-                    assertThat(row.get("noRelationshipsOnClones"), is(true));
-                    assertThat(row.get("oddballNode5Exists"), is(true));
-                    assertThat(row.get("nodesWithNodeLabel"), is(10L));
+                    assertThat((List<String>) row.get("cloneRelNames"), containsInAnyOrder("node1 LINK node5", "node1 LINK node2", "node2 LINK node3", "node3 LINK node4", "node5 LINK node6", "node7 LINK node6", "node5 LINK node8", "node5 LINK node9", "node9 DIFFERENT_LINK node10"));
+                    assertThat(row.get("clonedRelsVerified"), is(true));
                 }
         );
 
         TestUtil.testCall(db,
-                "MATCH (node:Node) " +
-                        "WHERE 0 < node.id < 15 " +
-                        "RETURN count(node) as nodesWithId",
+                "CALL apoc.meta.stats() YIELD nodeCount, relCount, labels, relTypes as relTypesMap " +
+                        "CALL db.relationshipTypes() YIELD relationshipType " +
+                        "WITH nodeCount, relCount, labels, collect([relationshipType, relTypesMap['()-[:' + relationshipType + ']->()']]) as relationshipTypesColl " +
+                        "RETURN nodeCount, relCount, labels, apoc.map.fromPairs(relationshipTypesColl) as relTypesCount ",
                 (row) -> {
-                    assertThat(row.get("nodesWithId"), is(22L)); // 12 original nodes + 10 clones
+                    assertThat(row.get("nodeCount"), is(24L)); // original was 14, 10 nodes cloned
+                    assertThat(row.get("relCount"), is(20L)); // original was 11, 9 relationships cloned
+                    assertThat(row.get("labels"), equalTo(map("Root", 2L, "Oddball", 2L, "Node", 22L)));
+                    assertThat(row.get("relTypesCount"), equalTo(map("LINK", 18L, "DIFFERENT_LINK", 2L)));
+                }
+        );
+    }
+
+    @Test
+    public void testCloneSubgraph_From_RootA_Without_Rels_Should_Clone_All_Relationships_Between_Nodes()  {
+        TestUtil.testCall(db,
+                "MATCH (rootA:Root{name:'A'})" +
+                        "CALL apoc.path.subgraphAll(rootA, {}) YIELD nodes, relationships " +
+                        "WITH nodes[1..] as nodes, relationships, [rel in relationships | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as relNames " +
+                        "CALL apoc.refactor.cloneSubgraph(nodes) YIELD input, output, error " +
+                        "WITH relNames, collect(output) as clones, collect(output.name) as cloneNames " +
+                        "CALL apoc.algo.cover(clones) YIELD rel " +
+                        "WITH relNames, cloneNames, [rel in collect(rel) | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as cloneRelNames " + // was seeing odd incorrect behavior with yielded relTypesCount from apoc.meta.stats()
+                        "WITH cloneNames, cloneRelNames, apoc.coll.containsAll(relNames, cloneRelNames) as clonedRelsVerified " +
+                        "RETURN cloneNames, cloneRelNames, clonedRelsVerified",
+                (row) -> {
+                    assertThat((List<String>) row.get("cloneNames"), containsInAnyOrder("node1", "node2", "node3", "node4", "node5", "node8", "node9", "node10", "node6", "node7"));
+                    assertThat((List<String>) row.get("cloneRelNames"), containsInAnyOrder("node1 LINK node5", "node1 LINK node2", "node2 LINK node3", "node3 LINK node4", "node5 LINK node6", "node7 LINK node6", "node5 LINK node8", "node5 LINK node9", "node9 DIFFERENT_LINK node10"));
+                    assertThat(row.get("clonedRelsVerified"), is(true));
+                }
+        );
+
+        TestUtil.testCall(db,
+                "CALL apoc.meta.stats() YIELD nodeCount, relCount, labels, relTypes as relTypesMap " +
+                        "CALL db.relationshipTypes() YIELD relationshipType " +
+                        "WITH nodeCount, relCount, labels, collect([relationshipType, relTypesMap['()-[:' + relationshipType + ']->()']]) as relationshipTypesColl " +
+                        "RETURN nodeCount, relCount, labels, apoc.map.fromPairs(relationshipTypesColl) as relTypesCount ",
+                (row) -> {
+                    assertThat(row.get("nodeCount"), is(24L)); // original was 14, 10 nodes cloned
+                    assertThat(row.get("relCount"), is(20L)); // original was 11, 9 relationships cloned
+                    assertThat(row.get("labels"), equalTo(map("Root", 2L, "Oddball", 2L, "Node", 22L)));
+                    assertThat(row.get("relTypesCount"), equalTo(map("LINK", 18L, "DIFFERENT_LINK", 2L)));
                 }
         );
     }
