@@ -1,0 +1,214 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta charset="utf-8"></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+      <title>Chapter&nbsp;1.&nbsp;Introduction - APOC User Guide 3.4</title>
+      <link rel="stylesheet" type="text/css" href="docbook.css"></link>
+      <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="css/chunked-base.css"></link>
+      <link rel="stylesheet" type="text/css" href="css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="javascript/datatable.js" type="text/javascript"></script><script src="javascript/colorize.js" type="text/javascript"></script><script src="javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="javascript/mp-nav.js" type="text/javascript"></script><script src="javascript/versionswitcher.js" type="text/javascript"></script><script src="javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
+      <link rel="next" href="help/" title="Chapter&nbsp;2.&nbsp;Built in Help"></link>
+      <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png" alt="Neo4j Logo"></img></a>')
+          );
+          var $sidebar = $('<div id="sidebar-wrapper"></div>');
+          $.get('toc.html', function (d){
+            $(d).appendTo($sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          $sidebar.insertAfter($('header').first());
+        });
+        </script></head>
+   <body>
+      <header>
+         <div class="searchbox">
+            <form id="search-form" class="search" name="search-form" role="search"><input id="search-form-input" name="q" title="search" type="search" lang="en" placeholder="Search Neo4j docs..." aria-label="Search Neo4j documentation" max-length="128" required="required"></input><input id="search-form-button" type="submit" value="Search"></input></form>
+         </div>
+         <ul class="documentation-library">
+            <li><a href="https://neo4j.com/docs/operations-manual/current">Operations Manual</a></li>
+            <li><a href="https://neo4j.com/docs/developer-manual/current/">Developer Manual</a></li>
+            <li><a href="https://neo4j.com/docs/ogm-manual/current/">OGM Manual</a></li>
+            <li><a href="https://neo4j.com/docs/graph-algorithms/current/">Graph Algorithms</a></li>
+            <li><a href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.4/">APOC</a></li>
+            <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
+         </ul>
+         <nav id="header-nav"><span class="nav-previous"></span><span class="nav-current">
+               <p class="nav-title hidden">Chapter&nbsp;1.&nbsp;Introduction</p></span><span class="nav-next"><a accesskey="n" href="help/">Built in Help<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+      </header>
+      <div id="search-results" class="hidden"></div>
+      <section class="chapter" id="introduction">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h1 class="title">Chapter&nbsp;1.&nbsp;Introduction</h1>
+               </div>
+            </div>
+         </div>
+         <div class="admonitionblock note">
+            <table>
+               <tbody>
+                  <tr>
+                     <td class="icon"><i class="fa icon-note" title="note"></i></td>
+                     <td class="content">
+                        <p>Go here for documentation for APOC for Neo4j version <a class="link" href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/index30.html" target="_top">3.0.x</a> <a class="link" href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/index31.html" target="_top">3.1.x</a> <a class="link" href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/index32.html" target="_top">3.2.x</a> <a class="link" href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/index33.html" target="_top">3.3.x</a> <a class="link" href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.4" target="_top">3.4.x</a> <a class="link" href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.5" target="_top">3.5.x</a></p>
+                     </td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+         <section class="section" id="_documentation_overview">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a class="anchor" href="#_documentation_overview"></a>1.1.&nbsp;Documentation Overview
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <div class="itemizedlist">
+               <div class="itemizedlist-title">Main Sections</div>
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem"><a class="xref" href="overview/" title="Chapter&nbsp;4.&nbsp;Overview of APOC Procedures &amp; Functions">Chapter&nbsp;4, <em>Overview of APOC Procedures &amp; Functions</em></a></li>
+                  <li class="listitem"><a class="xref" href="export-import/" title="Chapter&nbsp;7.&nbsp;Export / Import">Chapter&nbsp;7, <em>Export / Import</em></a></li>
+                  <li class="listitem"><a class="xref" href="database-integration/" title="Chapter&nbsp;8.&nbsp;Database Integration">Chapter&nbsp;8, <em>Database Integration</em></a></li>
+                  <li class="listitem"><a class="xref" href="schema/" title="Chapter&nbsp;9.&nbsp;Schema Information and Operations">Chapter&nbsp;9, <em>Schema Information and Operations</em></a></li>
+                  <li class="listitem"><a class="xref" href="utilities/" title="Chapter&nbsp;10.&nbsp;Utility Functions">Chapter&nbsp;10, <em>Utility Functions</em></a></li>
+                  <li class="listitem"><a class="xref" href="cypher-execution/" title="Chapter&nbsp;13.&nbsp;Cypher Execution">Chapter&nbsp;13, <em>Cypher Execution</em></a></li>
+                  <li class="listitem"><a class="xref" href="nodes-relationships/" title="Chapter&nbsp;11.&nbsp;Node, Relationship and Path Functions and Procedures">Chapter&nbsp;11, <em>Node, Relationship and Path Functions and Procedures</em></a></li>
+                  <li class="listitem"><a class="xref" href="path-finding/" title="Chapter&nbsp;12.&nbsp;Path Finding">Chapter&nbsp;12, <em>Path Finding</em></a></li>
+                  <li class="listitem"><a class="xref" href="virtual/" title="Chapter&nbsp;14.&nbsp;Virtual Nodes &amp; Relationships (Graph Projections)">Chapter&nbsp;14, <em>Virtual Nodes &amp; Relationships (Graph Projections)</em></a></li>
+               </ul>
+            </div>
+            <div class="orderedlist">
+               <div class="orderedlist-title">Most Frequently Used</div>
+               <ol class="orderedlist" type="1">
+                  <li class="listitem"><a class="xref" href="export-import/load-json/" title="7.2.&nbsp;Load JSON">Section&nbsp;7.2, &#8220;Load JSON&#8221;</a></li>
+                  <li class="listitem"><a class="xref" href="database-integration/load-jdbc/" title="8.1.&nbsp;Load JDBC">Section&nbsp;8.1, &#8220;Load JDBC&#8221;</a></li>
+                  <li class="listitem"><a class="xref" href="cypher-execution/commit-batching/" title="13.3.&nbsp;apoc.periodic.iterate">Section&nbsp;13.3, &#8220;apoc.periodic.iterate&#8221;</a></li>
+                  <li class="listitem"><a class="xref" href="utilities/datetime-conversions/" title="10.11.&nbsp;Date and Time Conversions">Section&nbsp;10.11, &#8220;Date and Time Conversions&#8221;</a></li>
+                  <li class="listitem"><a class="xref" href="utilities/map-functions/" title="10.2.&nbsp;Map Functions">Section&nbsp;10.2, &#8220;Map Functions&#8221;</a></li>
+                  <li class="listitem"><a class="xref" href="virtual/virtual-nodes-rels/" title="14.2.&nbsp;Virtual Nodes/Rels">Section&nbsp;14.2, &#8220;Virtual Nodes/Rels&#8221;</a></li>
+               </ol>
+            </div>
+            <div class="informalfigure">
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.gif" alt="apoc"></img></div>
+            </div>
+            <p>Neo4j 3.x introduced the concept of user-defined procedures and functions.
+               Those are custom implementations of certain functionality, that can&#8217;t be (easily) expressed in Cypher itself.
+               They are implemented in Java and can be easily deployed into your Neo4j instance, and then be called from Cypher directly.
+            </p>
+            <p>The APOC library consists of many (about 450) procedures and functions to help with many different tasks in areas like data
+               integration, graph algorithms or data conversion.
+            </p>
+            <section class="section" id="_license">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a class="anchor" href="#_license"></a>1.1.1.&nbsp;License
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p>Apache License 2.0</p>
+            </section>
+            <section class="section" id="_apoc_name_history">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a class="anchor" href="#_apoc_name_history"></a>1.1.2.&nbsp;"APOC" Name history
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p><a class="link" href="http://matrix.wikia.com/wiki/Apoc" target="_top">Apoc</a> was the technician and driver on board of the Nebuchadnezzar in the Matrix movie. He was killed by Cypher.
+               </p>
+               <p><span class="strong"><strong>APOC</strong></span> was also the first bundled <a class="link" href="http://neo4j.com/blog/convenient-package-neo4j-apoc-0-1-released/" target="_top">A Package Of Component</a> for Neo4j in 2009.
+               </p>
+               <p><span class="strong"><strong>APOC</strong></span> also stands for "Awesome Procedures On Cypher"
+               </p>
+            </section>
+         </section>
+         <section class="section" id="_installation_with_neo4j_desktop">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a class="anchor" href="#_installation_with_neo4j_desktop"></a>1.2.&nbsp;Installation: With Neo4j Desktop
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <p>APOC is easily installed with <a class="link" href="http://neo4j.com/download" target="_top">Neo4j Desktop</a>, after creating your database just go to the "Manage" screen and the "Plugins" tab.
+               Then click "Install" in the APOC box and you&#8217;re done.
+            </p>
+            <div class="informalfigure">
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/desktop-apoc.jpg" width="800" alt="desktop apoc"></img></div>
+            </div>
+         </section>
+         <section class="section" id="_feedback">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a class="anchor" href="#_feedback"></a>1.3.&nbsp;Feedback
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <p>Please provide feedback and report bugs as <a class="link" href="https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues" target="_top">GitHub issues</a> or join the <a class="link" href="http://neo4j.com/slack" target="_top">neo4j-users Slack</a> and ask on the #apoc channel.
+               You might also ask on <a class="link" href="http://stackoverflow.com/questions/tagged/neo4j+apoc" target="_top">StackOverflow</a>, please tag your question there with <code class="literal">neo4j</code> and <code class="literal">apoc</code>.
+            </p>
+         </section>
+         <section class="section" id="_calling_procedures_functions_within_cypher">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a class="anchor" href="#_calling_procedures_functions_within_cypher"></a>1.4.&nbsp;Calling Procedures &amp; Functions within Cypher
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <p>User defined <span class="strong"><strong>Functions</strong></span> can be used in <span class="strong"><strong>any</strong></span> expression or predicate, just like built-in functions.
+            </p>
+            <p><span class="strong"><strong>Procedures</strong></span> can be called stand-alone with <code class="literal">CALL procedure.name();</code></p>
+            <p>But you can also integrate them into your Cypher statements which makes them so much more powerful.</p>
+            <p><span class="formalpara-title">Load JSON example.&nbsp;</span>
+               
+            </p><pre class="programlisting highlight"><code data-lang="cypher">WITH 'https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/person.json' AS url
+
+CALL apoc.load.json(url) YIELD value as person
+
+MERGE (p:Person {name:person.name})
+   ON CREATE SET p.age = person.age, p.children = size(person.children)</code></pre><p>
+               
+            </p>
+         </section>
+      </section>
+      <footer><script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          //Allow Linker
+          ga('create', 'UA-1192232-34','auto', {'allowLinker': true});
+          ga('send', 'pageview');
+          // Load the plugin.
+          ga('require', 'linker');
+          // Define which domains to autoLink.
+          ga('linker:autoLink', ['neo4j.org','neo4j.com','neotechnology.com','graphdatabases.com','graphconnect.com']);
+        </script><script type="text/javascript">
+          document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
+        </script><script>Munchkin.init('773-GON-065');</script></footer>
+   </body>
+</html>

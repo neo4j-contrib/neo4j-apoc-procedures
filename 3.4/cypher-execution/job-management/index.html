@@ -1,0 +1,191 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta charset="utf-8"></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+      <title>13.2.&nbsp;Job management and periodic execution - Chapter&nbsp;13.&nbsp;Cypher Execution</title>
+      <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
+      <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
+      <link rel="prev" href="../conditionals/" title="13.1.4.1.&nbsp;Conditional Cypher Execution"></link>
+      <link rel="next" href="../commit-batching/" title="13.3.&nbsp;apoc.periodic.iterate"></link>
+      <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png" alt="Neo4j Logo"></img></a>')
+          );
+          var $sidebar = $('<div id="sidebar-wrapper"></div>');
+          $.get('toc.html', function (d){
+            $(d).appendTo($sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          $sidebar.insertAfter($('header').first());
+        });
+        </script></head>
+   <body>
+      <header>
+         <div class="searchbox">
+            <form id="search-form" class="search" name="search-form" role="search"><input id="search-form-input" name="q" title="search" type="search" lang="en" placeholder="Search Neo4j docs..." aria-label="Search Neo4j documentation" max-length="128" required="required"></input><input id="search-form-button" type="submit" value="Search"></input></form>
+         </div>
+         <ul class="documentation-library">
+            <li><a href="https://neo4j.com/docs/operations-manual/current">Operations Manual</a></li>
+            <li><a href="https://neo4j.com/docs/developer-manual/current/">Developer Manual</a></li>
+            <li><a href="https://neo4j.com/docs/ogm-manual/current/">OGM Manual</a></li>
+            <li><a href="https://neo4j.com/docs/graph-algorithms/current/">Graph Algorithms</a></li>
+            <li><a href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.4/">APOC</a></li>
+            <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
+         </ul>
+         <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../conditionals/"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Conditional Cypher Execution</a></span><span class="nav-current">
+               <p class="nav-title hidden">13.2.&nbsp;Job management and periodic execution</p></span><span class="nav-next"><a accesskey="n" href="../commit-batching/">apoc.periodic.iterate<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+      </header>
+      <div id="search-results" class="hidden"></div>
+      <section class="section" id="job-management">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title" style="clear: both"><a class="anchor" href="#job-management"></a>13.2.&nbsp;Job management and periodic execution
+                  </h2>
+               </div>
+            </div>
+         </div>
+         <section class="section" id="_introduction_asynchronous_transactional_execution">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_introduction_asynchronous_transactional_execution"></a>13.2.1.&nbsp;Introduction asynchronous transactional execution
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>Cypher is great for querying graphs and importing and updating graph structures.
+               While during imports you can use <code class="literal">PERIODIC COMMIT</code> to control transaction sizes in memory,
+               for other graph refactorings it&#8217;s not that easy to commit transactions regularly to free memory for new update state.
+            </p>
+            <p>Also sometimes you want to schedule execution of Cypher statements to run regularly in the background or asynchronously ("fire
+               &amp; forget").
+            </p>
+            <p>This can also be useful in cloud environments that limit the runtime of statements (e.g. to 2 or 5 minutes) by scheduling
+               execution in the background.
+            </p>
+            <p>The <code class="literal">apoc.periodic.*</code> procedures provide such capabilities.
+            </p>
+         </section>
+         <section class="section" id="_overview_job_management">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_overview_job_management"></a>13.2.2.&nbsp;Overview Job Management
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <div class="informaltable">
+               <div class="table" id="d0e15724">
+                  <table class="informaltable" border="1">
+                     <colgroup>
+                        <col class="col_1"></col>
+                        <col class="col_2"></col>
+                     </colgroup>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.periodic.commit(statement, params)</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>repeats an batch update statement until it returns 0, this procedure is blocking</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.periodic.list()</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>list all jobs</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.periodic.submit('name',statement)</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>submit a one-off background statement</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.periodic.schedule('name',statement,repeat-time-in-seconds)</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>submit a repeatedly-called background statement</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.periodic.countdown('name',statement,delay-in-seconds)</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>submit a repeatedly-called background statement until it returns 0</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding
+                                 the number of batches and the number of total processed rows. E.g.
+                              </p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem">there are also static methods <code class="literal">Jobs.submit</code>, and <code class="literal">Jobs.schedule</code> to be used from other procedures
+                  </li>
+                  <li class="listitem">jobs list is checked / cleared every 10s for finished jobs</li>
+               </ul>
+            </div>
+            <p><span class="formalpara-title">copies over the <code class="literal">name</code> property of each person to <code class="literal">lastname</code>.&nbsp;</span>
+               
+            </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (p) where id(p)={id_p} SET p.lastname =p.name', 20000)</code></pre><p>
+               
+            </p>
+            <p>Many procedures run in the background or asynchronously. This setting overrides the default thread pool size (processors*2).</p>
+            <p><code class="literal">apoc.jobs.pool.num_threads=10</code></p>
+            <p>Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size (processors/4,
+               at least 1). You can configure the pool size using the following configuration property:
+            </p>
+            <p><code class="literal">apoc.jobs.scheduled.num_threads=10</code></p>
+         </section>
+      </section>
+      <footer><script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          //Allow Linker
+          ga('create', 'UA-1192232-34','auto', {'allowLinker': true});
+          ga('send', 'pageview');
+          // Load the plugin.
+          ga('require', 'linker');
+          // Define which domains to autoLink.
+          ga('linker:autoLink', ['neo4j.org','neo4j.com','neotechnology.com','graphdatabases.com','graphconnect.com']);
+        </script><script type="text/javascript">
+          document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
+        </script><script>Munchkin.init('773-GON-065');</script></footer>
+   </body>
+</html>

@@ -1,0 +1,337 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta charset="utf-8"></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+      <title>10.6.&nbsp;Spatial - Chapter&nbsp;10.&nbsp;Utility Functions</title>
+      <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
+      <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
+      <link rel="prev" href="../node-difference/" title="10.14.2.&nbsp;Diff"></link>
+      <link rel="next" href="../static-values/" title="10.7.&nbsp;Static Value Storage"></link>
+      <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png" alt="Neo4j Logo"></img></a>')
+          );
+          var $sidebar = $('<div id="sidebar-wrapper"></div>');
+          $.get('toc.html', function (d){
+            $(d).appendTo($sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          $sidebar.insertAfter($('header').first());
+        });
+        </script></head>
+   <body>
+      <header>
+         <div class="searchbox">
+            <form id="search-form" class="search" name="search-form" role="search"><input id="search-form-input" name="q" title="search" type="search" lang="en" placeholder="Search Neo4j docs..." aria-label="Search Neo4j documentation" max-length="128" required="required"></input><input id="search-form-button" type="submit" value="Search"></input></form>
+         </div>
+         <ul class="documentation-library">
+            <li><a href="https://neo4j.com/docs/operations-manual/current">Operations Manual</a></li>
+            <li><a href="https://neo4j.com/docs/developer-manual/current/">Developer Manual</a></li>
+            <li><a href="https://neo4j.com/docs/ogm-manual/current/">OGM Manual</a></li>
+            <li><a href="https://neo4j.com/docs/graph-algorithms/current/">Graph Algorithms</a></li>
+            <li><a href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.4/">APOC</a></li>
+            <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
+         </ul>
+         <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../node-difference/"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Diff</a></span><span class="nav-current">
+               <p class="nav-title hidden">10.6.&nbsp;Spatial</p></span><span class="nav-next"><a accesskey="n" href="../static-values/">Static Value Storage<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+      </header>
+      <div id="search-results" class="hidden"></div>
+      <section class="section" id="spatial">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title" style="clear: both"><a class="anchor" href="#spatial"></a>10.6.&nbsp;Spatial
+                  </h2>
+               </div>
+            </div>
+         </div>
+         <div class="informaltable">
+            <div class="table" id="d0e11564">
+               <table class="informaltable" border="1">
+                  <colgroup>
+                     <col class="col_1"></col>
+                     <col class="col_2"></col>
+                  </colgroup>
+                  <tbody>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>look up geographic location of location from a geocoding service (the default one is OpenStreetMap)</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">CALL apoc.spatial.reverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>look up address from latitude and longitude from a geocoding service (the default one is OpenStreetMap)</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">CALL apoc.spatial.sortPathsByDistance(Collection&lt;Path&gt;) YIELD path, distance</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>sort a given collection of paths by geographic distance based on lat/long properties on the path nodes</p>
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+         </div>
+         <section class="section" id="_spatial_functions">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_spatial_functions"></a>10.6.1.&nbsp;Spatial Functions
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>The spatial procedures are intended to enable geographic capabilities on your data.</p>
+            <section class="section" id="_geocode">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_geocode"></a>10.6.1.1.&nbsp;Geocode
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>The first procedure <span class="emphasis"><em>geocode</em></span> which will convert a textual address
+                  into a location containing <span class="emphasis"><em>latitude</em></span>, <span class="emphasis"><em>longitude</em></span> and <span class="emphasis"><em>description</em></span>. Despite being
+                  only a single function, together with the built-in functions <span class="emphasis"><em>point</em></span> and <span class="emphasis"><em>distance</em></span>
+                  we can achieve quite powerful results.
+               </p>
+               <p>First, how can we use the procedure:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.spatial.geocodeOnce('21 rue Paul Bellamy 44000 NANTES FRANCE') YIELD location
+RETURN location.latitude, location.longitude // will return 47.2221667, -1.5566624</code></pre><p>There are three forms of the procedure:</p>
+               <div class="itemizedlist">
+                  <ul class="itemizedlist" style="list-style-type: disc; ">
+                     <li class="listitem">geocodeOnce(address) returns zero or one result.</li>
+                     <li class="listitem">geocode(address,maxResults) returns zero, one or more up to maxResults.</li>
+                     <li class="listitem">reverseGeocode(latitude,longitude) returns zero or one result.</li>
+                  </ul>
+               </div>
+               <p>This is because the backing geocoding service (OSM, Google, OpenCage or other) might return multiple
+                  results for the same query. GeocodeOnce() is designed to return the first, or highest
+                  ranking result.
+               </p>
+               <p>The third procedure <span class="emphasis"><em>reverseGeocode</em></span> will convert a location containing <span class="emphasis"><em>latitude</em></span> and <span class="emphasis"><em>longitude</em></span>
+                  into a textual address.
+               </p><pre class="screen highlight"><code>CALL apoc.spatial.reverseGeocode(47.2221667,-1.5566625) YIELD location
+RETURN location.description; // will return 21, Rue Paul Bellamy, Talensac - Pont Morand,
+//Hauts-Pav&eacute;s - Saint-F&eacute;lix, Nantes, Loire-Atlantique, Pays de la Loire,
+//France m&eacute;tropolitaine, 44000, France</code></pre></section>
+            <section class="section" id="_configuring_geocode">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_configuring_geocode"></a>10.6.1.2.&nbsp;Configuring Geocode
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>There are a few options that can be set in the neo4j.conf file to control the service:</p>
+               <div class="itemizedlist">
+                  <ul class="itemizedlist" style="list-style-type: disc; ">
+                     <li class="listitem">apoc.spatial.geocode.provider=osm (osm, google, opencage, etc.)</li>
+                     <li class="listitem">apoc.spatial.geocode.osm.throttle=5000 (ms to delay between queries to not overload OSM servers)</li>
+                     <li class="listitem">apoc.spatial.geocode.google.throttle=1 (ms to delay between queries to not overload Google servers)</li>
+                     <li class="listitem">apoc.spatial.geocode.google.key=xxxx (API key for google geocode access)</li>
+                     <li class="listitem">apoc.spatial.geocode.google.client=xxxx (client code for google geocode access)</li>
+                     <li class="listitem">apoc.spatial.geocode.google.signature=xxxx (client signature for google geocode access)</li>
+                  </ul>
+               </div>
+               <p>For google, you should use either a key or a combination of client and signature. Read more
+                  about this on the google page for geocode access at
+                  <a class="link" href="https://developers.google.com/maps/documentation/geocoding/get-api-key#key" target="_top">https://developers.google.com/maps/documentation/geocoding/get-api-key#key</a></p>
+            </section>
+            <section class="section" id="_configuring_custom_geocode_provider">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_configuring_custom_geocode_provider"></a>10.6.1.3.&nbsp;Configuring Custom Geocode Provider
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p><span class="strong"><strong>Geocode</strong></span></p>
+               <p>For any provider that is not 'osm' or 'google' you get a configurable supplier that requires two
+                  additional settings, 'url' and 'key'. The 'url' must contain the two words 'PLACE' and 'KEY'.
+                  The 'KEY' will be replaced with the key you get from the provider when you register for the service.
+                  The 'PLACE' will be replaced with the address to geocode when the procedure is called.
+               </p>
+               <p><span class="strong"><strong>Reverse Geocode</strong></span></p>
+               <p>The 'url' must contain the three words 'LAT', 'LNG' and 'KEY'.
+                  The 'LAT' will be replaced with the latitude and 'LNG' will be replaced with the the longitude to reverse geocode when the
+                  procedure is called.
+               </p>
+               <p>For example, to get the service working with OpenCage, perform the following steps:</p>
+               <div class="itemizedlist">
+                  <ul class="itemizedlist" style="list-style-type: disc; ">
+                     <li class="listitem">Register your own application key at <a class="link" href="https://geocoder.opencagedata.com/" target="_top">https://geocoder.opencagedata.com/</a></li>
+                     <li class="listitem">Once you have a key, add the following three lines to neo4j.conf</li>
+                  </ul>
+               </div><pre class="screen highlight"><code>apoc.spatial.geocode.provider=opencage
+apoc.spatial.geocode.opencage.key=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+apoc.spatial.geocode.opencage.url=http://api.opencagedata.com/geocode/v1/json?q=PLACE&amp;key=KEY
+apoc.spatial.geocode.opencage.reverse.url=http://api.opencagedata.com/geocode/v1/json?q=LAT+LNG&amp;key=KEY</code></pre><div class="itemizedlist">
+                  <ul class="itemizedlist" style="list-style-type: disc; ">
+                     <li class="listitem">make sure that the 'XXXXXXX' part above is replaced with your actual key</li>
+                     <li class="listitem">Restart the Neo4j server and then test the geocode procedures to see that they work</li>
+                     <li class="listitem">If you are unsure if the provider is correctly configured try verify with:</li>
+                  </ul>
+               </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.spatial.showConfig()</code></pre></section>
+            <section class="section" id="_using_geocode_within_a_bigger_cypher_query">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_using_geocode_within_a_bigger_cypher_query"></a>10.6.1.4.&nbsp;Using Geocode within a bigger Cypher query
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>A more complex, or useful, example which geocodes addresses found in properties of nodes:</p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (a:Place)
+WHERE exists(a.address)
+CALL apoc.spatial.geocodeOnce(a.address) YIELD location
+RETURN location.latitude AS latitude, location.longitude AS longitude, location.description AS description</code></pre></section>
+            <section class="section" id="_calculating_distance_between_locations">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_calculating_distance_between_locations"></a>10.6.1.5.&nbsp;Calculating distance between locations
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>If we wish to calculate the distance between addresses, we need to use the point() function to convert
+                  latitude and longitude to Cyper Point types, and then use the distance() function to calculate the distance:
+               </p><pre class="programlisting highlight"><code data-lang="cypher">WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
+MATCH (a:Place)
+WHERE exists(a.address)
+CALL apoc.spatial.geocodeOnce(a.address) YIELD location
+WITH location, distance(point(location), eiffel) AS distance
+WHERE distance &lt; 5000
+RETURN location.description AS description, distance
+ORDER BY distance
+LIMIT 100</code></pre><section class="section" id="_sortpathsbydistance">
+                  <div class="titlepage">
+                     <div>
+                        <div>
+                           <h5 class="title"><a class="anchor" href="#_sortpathsbydistance"></a>sortPathsByDistance
+                           </h5>
+                        </div>
+                     </div>
+                  </div>
+                  <p>The second procedure enables you to sort a given collection of paths by the sum of their distance based on lat/long properties
+                     on the nodes.
+                  </p>
+                  <p>Sample data :</p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (bruges:City {name:"bruges", latitude: 51.2605829, longitude: 3.0817189})
+CREATE (brussels:City {name:"brussels", latitude: 50.854954, longitude: 4.3051786})
+CREATE (paris:City {name:"paris", latitude: 48.8588376, longitude: 2.2773455})
+CREATE (dresden:City {name:"dresden", latitude: 51.0767496, longitude: 13.6321595})
+MERGE (bruges)-[:NEXT]-&gt;(brussels)
+MERGE (brussels)-[:NEXT]-&gt;(dresden)
+MERGE (brussels)-[:NEXT]-&gt;(paris)
+MERGE (bruges)-[:NEXT]-&gt;(paris)
+MERGE (paris)-[:NEXT]-&gt;(dresden)</code></pre><p>Finding paths and sort them by distance</p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (a:City {name:'bruges'}), (b:City {name:'dresden'})
+MATCH p=(a)-[*]-&gt;(b)
+WITH collect(p) as paths
+CALL apoc.spatial.sortPathsByDistance(paths) YIELD path, distance
+RETURN path, distance</code></pre></section>
+            </section>
+            <section class="section" id="_graph_refactoring">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_graph_refactoring"></a>10.6.1.6.&nbsp;Graph Refactoring
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>In order not to have to repeatedly geocode the same thing in multiple queries, especially
+                  if the database will be used by many people, it might be a good idea to persist the results
+                  in the database so that subsequent calls can use the saved results.
+               </p>
+               <p>Geocode and persist the result</p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (a:Place)
+WHERE exists(a.address) AND NOT exists(a.latitude)
+WITH a LIMIT 1000
+CALL apoc.spatial.geocodeOnce(a.address) YIELD location
+SET a.latitude = location.latitude
+SET a.longitude = location.longitude</code></pre><p>Note that the above command only geocodes the first 1000 &#8216;Place&#8217; nodes that have not already been geocoded.
+                  This query can be run multiple times until all places are geocoded. Why would we want to do this?
+                  Two good reasons:
+               </p>
+               <div class="itemizedlist">
+                  <ul class="itemizedlist" style="list-style-type: disc; ">
+                     <li class="listitem">The geocoding service is a public service that can throttle or blacklist sites that hit the service too heavily, so controlling
+                        how much we do is useful.
+                     </li>
+                     <li class="listitem">The transaction is updating the database, and it is wise not to update the database with too many things in the same transaction,
+                        to avoid using up too much memory. This trick will keep the memory usage very low.
+                     </li>
+                  </ul>
+               </div>
+               <p>Now make use of the results in distance queries</p><pre class="programlisting highlight"><code data-lang="cypher">WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
+MATCH (a:Place)
+WHERE exists(a.latitude) AND exists(a.longitude)
+WITH a, distance(point(a), eiffel) AS distance
+WHERE distance &lt; 5000
+RETURN a.name, distance
+ORDER BY distance
+LIMIT 100</code></pre></section>
+            <section class="section" id="_combined_space_and_time_search">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_combined_space_and_time_search"></a>10.6.1.7.&nbsp;Combined Space and Time search
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>Combining spatial and date-time functions can allow for more complex queries:</p><pre class="programlisting highlight"><code data-lang="cypher">WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel
+MATCH (e:Event)
+WHERE exists(e.address) AND exists(e.datetime)
+CALL apoc.spatial.geocodeOnce(e.address) YIELD location
+WITH e, location,
+distance(point(location), eiffel) AS distance,
+            (apoc.date.parse('2016-06-01 00:00:00','h') - apoc.date.parse(e.datetime,'h'))/24.0 AS days_before_due
+WHERE distance &lt; 5000 AND days_before_due &lt; 14 AND apoc.date.parse(e.datetime,'h') &lt; apoc.date.parse('2016-06-01 00:00:00','h')
+RETURN e.name AS event, e.datetime AS date,
+location.description AS description, distance
+ORDER BY distance</code></pre></section>
+         </section>
+      </section>
+      <footer><script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          //Allow Linker
+          ga('create', 'UA-1192232-34','auto', {'allowLinker': true});
+          ga('send', 'pageview');
+          // Load the plugin.
+          ga('require', 'linker');
+          // Define which domains to autoLink.
+          ga('linker:autoLink', ['neo4j.org','neo4j.com','neotechnology.com','graphdatabases.com','graphconnect.com']);
+        </script><script type="text/javascript">
+          document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
+        </script><script>Munchkin.init('773-GON-065');</script></footer>
+   </body>
+</html>

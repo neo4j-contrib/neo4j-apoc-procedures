@@ -1,0 +1,152 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta charset="utf-8"></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+      <title>7.6.11.&nbsp;Streaming Data to Gephi - 7.6.&nbsp;Load XML</title>
+      <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
+      <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
+      <link rel="prev" href="../load-html/" title="7.6.8.&nbsp;Load HTML"></link>
+      <link rel="next" href="../graphml/" title="7.10.&nbsp;GraphML Import / Export"></link>
+      <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png" alt="Neo4j Logo"></img></a>')
+          );
+          var $sidebar = $('<div id="sidebar-wrapper"></div>');
+          $.get('toc.html', function (d){
+            $(d).appendTo($sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          $sidebar.insertAfter($('header').first());
+        });
+        </script></head>
+   <body>
+      <header>
+         <div class="searchbox">
+            <form id="search-form" class="search" name="search-form" role="search"><input id="search-form-input" name="q" title="search" type="search" lang="en" placeholder="Search Neo4j docs..." aria-label="Search Neo4j documentation" max-length="128" required="required"></input><input id="search-form-button" type="submit" value="Search"></input></form>
+         </div>
+         <ul class="documentation-library">
+            <li><a href="https://neo4j.com/docs/operations-manual/current">Operations Manual</a></li>
+            <li><a href="https://neo4j.com/docs/developer-manual/current/">Developer Manual</a></li>
+            <li><a href="https://neo4j.com/docs/ogm-manual/current/">OGM Manual</a></li>
+            <li><a href="https://neo4j.com/docs/graph-algorithms/current/">Graph Algorithms</a></li>
+            <li><a href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.4/">APOC</a></li>
+            <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
+         </ul>
+         <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../load-html/"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Load HTML</a></span><span class="nav-current">
+               <p class="nav-title hidden">7.6.11.&nbsp;Streaming Data to Gephi</p></span><span class="nav-next"><a accesskey="n" href="../graphml/">GraphML Import / Export<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+      </header>
+      <div id="search-results" class="hidden"></div>
+      <section class="section" id="gephi">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h3 class="title"><a class="anchor" href="#gephi"></a>7.6.11.&nbsp;Streaming Data to Gephi
+                  </h3>
+               </div>
+            </div>
+         </div>
+         <div class="informaltable">
+            <div class="table" id="d0e7260">
+               <table class="informaltable" border="1">
+                  <colgroup>
+                     <col class="col_1"></col>
+                     <col class="col_2"></col>
+                  </colgroup>
+                  <tbody>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.gephi.add(url-or-key, workspace, data, weightproperty, ['exportproperty'])</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>streams provided data to Gephi</p>
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+         </div>
+         <div class="informaltable">
+            <div class="table" id="d0e7273">
+               <table class="informaltable" border="1">
+                  <colgroup>
+                     <col class="col_1"></col>
+                     <col class="col_2"></col>
+                     <col class="col_3"></col>
+                  </colgroup>
+                  <thead>
+                     <tr>
+                        <th style="text-align: left; vertical-align: top; ">type</th>
+                        <th style="text-align: left; vertical-align: top; ">qualified name</th>
+                        <th style="text-align: left; vertical-align: top; ">description</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.gephi.add</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.gephi.add(url-or-key, workspace, data, weightproperty, ['exportproperty']) | streams passed in data to Gephi</p>
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+         </div>
+         <div class="informalfigure">
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc-gephi.gif" width="800" alt="apoc gephi"></img></div>
+         </div>
+         <section class="section" id="_notes">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h4 class="title"><a class="anchor" href="#_notes"></a>7.6.11.1.&nbsp;Notes
+                     </h4>
+                  </div>
+               </div>
+            </div>
+            <p>Gephi has a <a class="link" href="https://marketplace.gephi.org/plugin/graph-streaming/" target="_top">streaming plugin</a>, that can provide and accept <a class="link" href="https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master" target="_top">JSON-graph-data</a> in a streaming fashion.
+            </p>
+            <p>Make sure to install the plugin firsrt and activate it for your workspace (there is a new "Streaming"-tab besides "Layout"),
+               right-click "Master"&#8594;"start" to start the server.
+            </p>
+            <p>You can provide your workspace name (you might want to rename it before you start thes streaming), otherwise it defaults to
+               <code class="literal">workspace0</code></p>
+            <p>The default Gephi-URL is <a class="link" href="http://localhost:8080" target="_top">http://localhost:8080</a>, resulting in <code class="literal"><a class="link" href="http://localhost:8080/workspace0?operation=updateGraph" target="_top">http://localhost:8080/workspace0?operation=updateGraph</a></code></p>
+            <p>You can also configure it in <code class="literal">conf/neo4j.conf</code> via  <code class="literal">apoc.gephi.url=url</code> or <code class="literal">apoc.gephi.&lt;key&gt;.url=url</code></p>
+         </section>
+      </section>
+      <footer><script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          //Allow Linker
+          ga('create', 'UA-1192232-34','auto', {'allowLinker': true});
+          ga('send', 'pageview');
+          // Load the plugin.
+          ga('require', 'linker');
+          // Define which domains to autoLink.
+          ga('linker:autoLink', ['neo4j.org','neo4j.com','neotechnology.com','graphdatabases.com','graphconnect.com']);
+        </script><script type="text/javascript">
+          document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
+        </script><script>Munchkin.init('773-GON-065');</script></footer>
+   </body>
+</html>

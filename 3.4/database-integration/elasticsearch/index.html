@@ -1,0 +1,421 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta charset="utf-8"></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+      <title>8.2.&nbsp;ElasticSearch Integration - Chapter&nbsp;8.&nbsp;Database Integration</title>
+      <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
+      <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
+      <link rel="prev" href="../mongodb/" title="8.3.&nbsp;Interacting with MongoDB"></link>
+      <link rel="next" href="../couchbase/" title="8.4.&nbsp;Interacting with Couchbase"></link>
+      <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png" alt="Neo4j Logo"></img></a>')
+          );
+          var $sidebar = $('<div id="sidebar-wrapper"></div>');
+          $.get('toc.html', function (d){
+            $(d).appendTo($sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          $sidebar.insertAfter($('header').first());
+        });
+        </script></head>
+   <body>
+      <header>
+         <div class="searchbox">
+            <form id="search-form" class="search" name="search-form" role="search"><input id="search-form-input" name="q" title="search" type="search" lang="en" placeholder="Search Neo4j docs..." aria-label="Search Neo4j documentation" max-length="128" required="required"></input><input id="search-form-button" type="submit" value="Search"></input></form>
+         </div>
+         <ul class="documentation-library">
+            <li><a href="https://neo4j.com/docs/operations-manual/current">Operations Manual</a></li>
+            <li><a href="https://neo4j.com/docs/developer-manual/current/">Developer Manual</a></li>
+            <li><a href="https://neo4j.com/docs/ogm-manual/current/">OGM Manual</a></li>
+            <li><a href="https://neo4j.com/docs/graph-algorithms/current/">Graph Algorithms</a></li>
+            <li><a href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.4/">APOC</a></li>
+            <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
+         </ul>
+         <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../mongodb/"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Interacting with MongoDB</a></span><span class="nav-current">
+               <p class="nav-title hidden">8.2.&nbsp;ElasticSearch Integration</p></span><span class="nav-next"><a accesskey="n" href="../couchbase/">Interacting with Couchbase<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+      </header>
+      <div id="search-results" class="hidden"></div>
+      <section class="section" id="elasticsearch">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title" style="clear: both"><a class="anchor" href="#elasticsearch"></a>8.2.&nbsp;ElasticSearch Integration
+                  </h2>
+               </div>
+            </div>
+         </div>
+         <section class="section" id="_interacting_with_elastic_search">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_interacting_with_elastic_search"></a>8.2.1.&nbsp;Interacting with Elastic Search
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <div class="informaltable">
+               <div class="table" id="d0e8873">
+                  <table class="informaltable" border="1">
+                     <colgroup>
+                        <col class="col_1"></col>
+                        <col class="col_2"></col>
+                     </colgroup>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.stats(host-url-Key)</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>elastic search statistics</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>perform a GET operation</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>perform a SEARCH operation</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.getRaw(host-or-port,path,payload-or-null) yield value</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>perform a raw GET operation</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.postRaw(host-or-port,path,payload-or-null) yield value</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>perform a raw POST operation</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>perform a POST operation</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.put(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>perform a PUT operation</p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <div class="informaltable">
+               <div class="table" id="d0e8934">
+                  <table class="informaltable" border="1">
+                     <colgroup>
+                        <col class="col_1"></col>
+                        <col class="col_2"></col>
+                        <col class="col_3"></col>
+                     </colgroup>
+                     <thead>
+                        <tr>
+                           <th style="text-align: left; vertical-align: top; ">type</th>
+                           <th style="text-align: left; vertical-align: top; ">qualified name</th>
+                           <th style="text-align: left; vertical-align: top; ">description</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>procedure</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.stats</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>apoc.es.stats(host-url-Key) - elastic search statistics</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>procedure</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.get</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>apoc.es.get(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a GET
+                                 operation on elastic search
+                              </p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>procedure</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.query</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>apoc.es.query(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a SEARCH operation
+                                 on elastic search
+                              </p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>procedure</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.getRaw</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>apoc.es.getRaw(host-or-port,path,payload-or-null) yield value - perform a raw GET operation on elastic search</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>procedure</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.postRaw</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>apoc.es.postRaw(host-or-port,path,payload-or-null) yield value - perform a raw POST operation on elastic search</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>procedure</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.post</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>apoc.es.post(host-or-port,index-or-null,type-or-null,query-or-null,payload-or-null) yield value - perform a POST operation
+                                 on elastic search
+                              </p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>procedure</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.es.put</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>apoc.es.put(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value - perform a PUT
+                                 operation on elastic search
+                              </p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+         </section>
+         <section class="section" id="_example_3">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_example_3"></a>8.2.2.&nbsp;Example
+                     </h3>
+                  </div>
+               </div>
+            </div><pre class="programlisting highlight"><code data-lang="cypher">call apoc.es.post("localhost","tweets","users",null,{name:"Chris"})</code></pre><pre class="programlisting highlight"><code data-lang="cypher">call apoc.es.put("localhost","tweets","users","1",null,{name:"Chris"})</code></pre><pre class="programlisting highlight"><code data-lang="cypher">call apoc.es.get("localhost","tweets","users","1",null,null)</code></pre><pre class="programlisting highlight"><code data-lang="cypher">call apoc.es.stats("localhost")</code></pre><div class="informalfigure">
+               <div class="mediaobject"><img src="http://i.imgur.com/qHAj9ma.png" width="500" alt="qHAj9ma"></img></div>
+            </div>
+            <section class="section" id="_pagination">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_pagination"></a>8.2.2.1.&nbsp;Pagination
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>To use the pagination feature of Elasticsearch you have to follow these steps:</p>
+               <div class="orderedlist">
+                  <ol class="orderedlist" type="1">
+                     <li class="listitem">Call <span class="strong"><strong>apoc.es.query</strong></span> to get the first chunk of data and obtain also the scroll_id (in order to enable the pagination).
+                     </li>
+                     <li class="listitem">Do your merge/create etc. operations with the first N hits</li>
+                     <li class="listitem">Use the <span class="strong"><strong>range(start,end,step)</strong></span> function to repeat a second call to get all the other chunks until the end. For example, if you have 1000 documents and you
+                        want to retrieve 10 documents for each request, you cand do <span class="strong"><strong>range(11,1000,10)</strong></span>. You start from 11 because the first 10 documents are already processed. If you don&#8217;t know the exact upper bound (the total
+                        size of your documents) you can set a number that is bigger than the real total size.
+                     </li>
+                     <li class="listitem">The second call to repeat is <span class="strong"><strong>apoc.es.get</strong></span>. Remember to set the <span class="strong"><strong>scroll_id</strong></span> as a parameter.
+                     </li>
+                     <li class="listitem">Then process the result of each chunk of data as the first one.</li>
+                  </ol>
+               </div>
+               <p>Here an example:</p><pre class="programlisting highlight"><code data-lang="cypher">// It's important to create an index to improve performance
+CREATE INDEX ON :Document(id)
+// First query: get first chunk of data + the scroll_id for pagination
+CALL apoc.es.query('localhost','test-index','test-type','name:Neo4j&amp;size=1&amp;scroll=5m',null) yield value with value._scroll_id as scrollId, value.hits.hits as hits
+// Do something with hits
+UNWIND hits as hit
+// Here we simply create a document and a relation to a company
+MERGE (doc:Document {id: hit._id, description: hit._source.description, name: hit._source.name})
+MERGE (company:Company {name: hit._source.company})
+MERGE (doc)-[:IS_FROM]-&gt;(company)
+// Then call for the other docs and use the scrollId value from previous query
+// Use a range to count our chunk of data (i.e. i want to get chunks from 2 to 10)
+WITH range(2,10,1) as list, scrollId
+UNWIND list as count
+CALL apoc.es.get("localhost","_search","scroll",null,{scroll:"5m",scroll_id:scrollId},null) yield value with value._scoll_id as scrollId, value.hits.hits as nextHits
+// Again, do something with hits
+UNWIND nextHits as hit
+MERGE (doc:Document {id: hit._id, description: hit._source.description, name: hit._source.name})
+MERGE (company:Company {name: hit._source.company})
+MERGE (doc)-[:IS_FROM]-&gt;(company) return scrollId, doc, company</code></pre><p>This example was tested on a Mac Book Pro with 16GB of RAM. Loading 20000 documents from ES to Neo4j (100 documents for each
+                  request) took 1 minute.
+               </p>
+            </section>
+         </section>
+         <section class="section" id="_general_structure_and_parameters">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_general_structure_and_parameters"></a>8.2.3.&nbsp;General Structure and Parameters
+                     </h3>
+                  </div>
+               </div>
+            </div><pre class="programlisting highlight"><code data-lang="cypher">call apoc.es.post(host-or-port,index-or-null,type-or-null,id-or-null,query-or-null,payload-or-null) yield value
+
+// GET/PUT/POST url/index/type/id?query -d payload</code></pre><section class="section" id="_host_or_port_parameter">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_host_or_port_parameter"></a>8.2.3.1.&nbsp;host or port parameter
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>The parameter can be a direct host or url, or an entry to be lookup up in neo4j.conf</p>
+               <div class="itemizedlist">
+                  <ul class="itemizedlist" style="list-style-type: disc; ">
+                     <li class="listitem">host</li>
+                     <li class="listitem">host:port</li>
+                     <li class="listitem"><a class="link" href="http://host:port" target="_top">http://host:port</a></li>
+                     <li class="listitem">lookup via key to apoc.es.&lt;key&gt;.url</li>
+                     <li class="listitem">lookup via key apoc.es.&lt;key&gt;.host</li>
+                     <li class="listitem">lookup apoc.es.url</li>
+                     <li class="listitem">lookup apoc.es.host</li>
+                  </ul>
+               </div>
+            </section>
+            <section class="section" id="_index_parameter">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_index_parameter"></a>8.2.3.2.&nbsp;index parameter
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>Main ES index, will be sent directly, if null then "_all" multiple indexes can be separated by comma in the string.</p>
+            </section>
+            <section class="section" id="_type_parameter">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_type_parameter"></a>8.2.3.3.&nbsp;type parameter
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>Document type, will be sent directly, if null then "_all" multiple types can be separated by comma in the string.</p>
+            </section>
+            <section class="section" id="_id_parameter">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_id_parameter"></a>8.2.3.4.&nbsp;id parameter
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>Document id, will be left off when null.</p>
+            </section>
+            <section class="section" id="_query_parameter">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_query_parameter"></a>8.2.3.5.&nbsp;query parameter
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>Query can be a map which is turned into a query string, a direct string or null then it is left off.</p>
+            </section>
+            <section class="section" id="_payload_parameter">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_payload_parameter"></a>8.2.3.6.&nbsp;payload parameter
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>Payload can be a <span class="strong"><strong>map</strong></span> which will be turned into a json payload or a string which will be sent directly or null.
+               </p>
+            </section>
+            <section class="section" id="_results">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_results"></a>8.2.3.7.&nbsp;Results
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>Results are stream of map in value.</p>
+            </section>
+         </section>
+      </section>
+      <footer><script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          //Allow Linker
+          ga('create', 'UA-1192232-34','auto', {'allowLinker': true});
+          ga('send', 'pageview');
+          // Load the plugin.
+          ga('require', 'linker');
+          // Define which domains to autoLink.
+          ga('linker:autoLink', ['neo4j.org','neo4j.com','neotechnology.com','graphdatabases.com','graphconnect.com']);
+        </script><script type="text/javascript">
+          document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
+        </script><script>Munchkin.init('773-GON-065');</script></footer>
+   </body>
+</html>

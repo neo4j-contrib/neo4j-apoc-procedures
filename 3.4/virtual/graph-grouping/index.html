@@ -1,0 +1,336 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta charset="utf-8"></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+      <title>14.4.&nbsp;Graph Grouping - Chapter&nbsp;14.&nbsp;Virtual Nodes &amp; Relationships (Graph Projections)</title>
+      <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
+      <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
+      <link rel="prev" href="../virtual-graph/" title="14.3.&nbsp;Virtual Graph"></link>
+      <link rel="next" href="../../graph-refactoring/" title="Chapter&nbsp;15.&nbsp;Graph Refactoring"></link>
+      <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png" alt="Neo4j Logo"></img></a>')
+          );
+          var $sidebar = $('<div id="sidebar-wrapper"></div>');
+          $.get('toc.html', function (d){
+            $(d).appendTo($sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          $sidebar.insertAfter($('header').first());
+        });
+        </script></head>
+   <body>
+      <header>
+         <div class="searchbox">
+            <form id="search-form" class="search" name="search-form" role="search"><input id="search-form-input" name="q" title="search" type="search" lang="en" placeholder="Search Neo4j docs..." aria-label="Search Neo4j documentation" max-length="128" required="required"></input><input id="search-form-button" type="submit" value="Search"></input></form>
+         </div>
+         <ul class="documentation-library">
+            <li><a href="https://neo4j.com/docs/operations-manual/current">Operations Manual</a></li>
+            <li><a href="https://neo4j.com/docs/developer-manual/current/">Developer Manual</a></li>
+            <li><a href="https://neo4j.com/docs/ogm-manual/current/">OGM Manual</a></li>
+            <li><a href="https://neo4j.com/docs/graph-algorithms/current/">Graph Algorithms</a></li>
+            <li><a href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.4/">APOC</a></li>
+            <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
+         </ul>
+         <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../virtual-graph/"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Virtual Graph</a></span><span class="nav-current">
+               <p class="nav-title hidden">14.4.&nbsp;Graph Grouping</p></span><span class="nav-next"><a accesskey="n" href="../../graph-refactoring/">Graph Refactoring<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+      </header>
+      <div id="search-results" class="hidden"></div>
+      <section class="section" id="graph-grouping">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title" style="clear: both"><a class="anchor" href="#graph-grouping"></a>14.4.&nbsp;Graph Grouping
+                  </h2>
+               </div>
+            </div>
+         </div>
+         <p>Large graphs are often hard to understand or visualize.</p>
+         <p>Tabular results can be aggregated for overviews, e.g. in charts with sums, counts etc.</p>
+         <p>Grouping nodes by property values into virtual nodes helps to do the same with graph visualizations.</p>
+         <p>When doing that, relationships between those groups are aggregated too, so you only see the summary information.</p>
+         <p>This functionality is inspired by the work of <a class="link" href="https://twitter.com/kc1s" target="_top">Martin Junghanns</a> in the <a class="link" href="https://github.com/dbs-leipzig/gradoop_demo#graph-grouping" target="_top">Grouping Demo</a> for the Gradoop Graph Processing system.
+         </p>
+         <p>Basically you can use any <code class="literal">(entity)&lt;--&gt;(entity)</code> graph for the grouping, support for graph projections is on the roadmap.
+         </p>
+         <p><span class="formalpara-title">Example on movie graph.&nbsp;</span>
+            
+         </p><pre class="programlisting highlight"><code data-lang="cypher">match (n) set n.century = toInteger(coalesce(n.born,n.relased)/100) * 100;
+
+call apoc.nodes.group(['Person','Movie'],['century']);</code></pre><p>
+            
+         </p>
+         <div class="informalfigure">
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.nodes.group.jpg" alt="apoc.nodes.group"></img></div>
+         </div>
+         <div class="admonitionblock note">
+            <table>
+               <tbody>
+                  <tr>
+                     <td class="icon"><i class="fa icon-note" title="note"></i></td>
+                     <td class="content">
+                        <p><span class="emphasis"><em>Sometimes</em></span> an UI has an issue with the return values of the grouping (list of nodes and list of relationships), then it might help to
+                           run:
+                        </p><pre class="programlisting highlight"><code data-lang="cypher">call apoc.nodes.group(['Person','Movie'],['century']) yield nodes, relationships
+UNWIND nodes as node
+UNWIND relationships as rel
+RETURN node, rel;</code></pre></td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+         <section class="section" id="_usage_4">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_usage_4"></a>14.4.1.&nbsp;Usage
+                     </h3>
+                  </div>
+               </div>
+            </div><pre class="programlisting highlight"><code data-lang="cypher">call apoc.nodes.group(labels,properties, [grouping], [config])</code></pre><p>The only required parameters are a <span class="emphasis"><em>label-list</em></span> (can also be <code class="literal">['*']</code>) and a <span class="emphasis"><em>list of property names</em></span> to group by (both for rels/nodes).
+            </p>
+            <p>Optionally you can also provide grouping operators by field and a number of configuration options.</p>
+         </section>
+         <section class="section" id="_grouping_operators">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_grouping_operators"></a>14.4.2.&nbsp;Grouping Operators
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>For grouping operators, you provide a map of operations per field in this form: <code class="literal">{fieldName: [operators]}</code></p>
+            <p>One map for nodes and one for relationships: <code class="literal">[{nodeOperators},{relOperators}]</code></p>
+            <p>Possible operators:</p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem"><code class="literal">count_*</code></li>
+                  <li class="listitem"><code class="literal">count</code></li>
+                  <li class="listitem"><code class="literal">sum</code></li>
+                  <li class="listitem"><code class="literal">min/max</code></li>
+                  <li class="listitem"><code class="literal">avg</code></li>
+                  <li class="listitem"><code class="literal">collect</code></li>
+               </ul>
+            </div>
+            <p>The default is: <code class="literal">[{*:count},{*:count}]</code> which just counts nodes and relationships.
+            </p>
+         </section>
+         <section class="section" id="_configuration">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_configuration"></a>14.4.3.&nbsp;Configuration
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>In the config there are more options:</p>
+            <div class="informaltable">
+               <div class="table" id="d0e16824">
+                  <table class="informaltable" border="1">
+                     <colgroup>
+                        <col class="col_1"></col>
+                        <col class="col_2"></col>
+                        <col class="col_3"></col>
+                     </colgroup>
+                     <thead>
+                        <tr>
+                           <th style="text-align: left; vertical-align: top; ">option</th>
+                           <th style="text-align: left; vertical-align: top; ">default</th>
+                           <th style="text-align: left; vertical-align: top; ">description</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">selfRels</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">true</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>show self-relationships in resulting graph</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">orphans</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">true</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>show orphan nodes in resulting graph</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">limitNodes</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">-1</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>limit to maximum of nodes</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">limitRels</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">-1</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>limit to maximum of rels</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">relsPerNode</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">&nbsp;-1</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>limit number of relationships per node</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">filter</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">null</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>a min/max filter by property value, e.g. <code class="literal">{User.count_*.min:2}</code> see below
+                              </p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <p>The <code class="literal">filter</code> config option is a map of <code class="literal">{Label/TYPE.operator_property.min/max: number}</code> where the <code class="literal">Label/TYPE.</code> prefix is optional.
+            </p>
+            <p>So you can e.g. filter only for people with a min-age in the grouping of 21: <code class="literal">Person.min_age.min: 21</code>
+               or having at most 10 <code class="literal">KNOWS</code> relationships in common: <code class="literal">KNOWS.count_*.max:10</code>.
+            </p>
+         </section>
+         <section class="section" id="_example_4">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_example_4"></a>14.4.4.&nbsp;Example
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p><span class="formalpara-title">Graph Setup.&nbsp;</span>
+               
+            </p><pre class="programlisting highlight"><code data-lang="cypher">CREATE
+ (alice:Person {name:'Alice', gender:'female', age:32, kids:1}),
+ (bob:Person   {name:'Bob',   gender:'male',   age:42, kids:3}),
+ (eve:Person   {name:'Eve',   gender:'female', age:28, kids:2}),
+ (graphs:Forum {name:'Graphs',    members:23}),
+ (dbs:Forum    {name:'Databases', members:42}),
+ (alice)-[:KNOWS {since:2017}]-&gt;(bob),
+ (eve)-[:KNOWS   {since:2018}]-&gt;(bob),
+ (alice)-[:MEMBER_OF]-&gt;(graphs),
+ (alice)-[:MEMBER_OF]-&gt;(dbs),
+ (bob)-[:MEMBER_OF]-&gt;(dbs),
+ (eve)-[:MEMBER_OF]-&gt;(graphs)</code></pre><p>
+               
+            </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.nodes.group(['*'],['gender'],
+  [{`*`:'count', age:'min'}, {`*`:'count'} ])</code></pre><div class="variablelist">
+               <dl class="variablelist">
+                  <dt><span class="term">image</span></dt>
+                  <dd></dd>
+               </dl>
+            </div><pre class="screen highlight"><code>CALL apoc.nodes.group(
+        ['Person'],['gender'],
+        [{`*`:'count', kids:'sum', age:['min', 'max', 'avg'], gender:'collect'},
+         {`*`:'count', since:['min', 'max']}]);</code></pre><p>Larger Example</p>
+            <p><span class="formalpara-title">Setup.&nbsp;</span>
+               
+            </p><pre class="screen highlight"><code>with ["US","DE","UK","FR","CA","BR","SE"] as tld
+unwind range(1,1000) as id
+create (u:User {id:id, age : id % 100, female: rand() &lt; 0.5, name: "Name "+id, country:tld[toInteger(rand()*size(tld))]})
+with collect(u) as users
+unwind users as u
+unwind range(1,10) as r
+with u, users[toInteger(rand()*size(users))] as u2
+where u &lt;&gt; u2
+merge (u)-[:KNOWS]-(u2);</code></pre><p>
+               
+            </p><pre class="screen highlight"><code>call apoc.nodes.group(['*'], ['country'])
+yield node, relationship return *</code></pre><div class="informalfigure">
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/grouping-country-all.jpg" alt="grouping country all"></img></div>
+            </div><pre class="screen highlight"><code>call apoc.nodes.group(['*'], ['country'], null,
+    {selfRels:false, orphans:false,
+     filter:{`User.count_*.min`:130,`KNOWS.count_*.max`:200}})
+yield node, relationship return *</code></pre><div class="informalfigure">
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/grouping-country-filter.jpg" alt="grouping country filter"></img></div>
+            </div>
+            <p>To visualize this result in Neo4j Browser it&#8217;s useful to have a custom Graph Style Sheet (GRASS) that renders the grouped
+               properties with some of the aggregations.
+            </p><pre class="programlisting highlight"><code data-lang="css">node {
+  diameter: 50px;
+  color: #A5ABB6;
+  border-color: #9AA1AC;
+  border-width: 2px;
+  text-color-internal: #FFFFFF;
+  font-size: 10px;
+}
+
+relationship {
+  color: #A5ABB6;
+  shaft-width: 3px;
+  font-size: 8px;
+  padding: 3px;
+  text-color-external: #000000;
+  text-color-internal: #FFFFFF;
+  caption: '{count_*}';
+}
+
+node.Country {
+  color: #68BDF6;
+  diameter: 80px;
+  border-color: #5CA8DB;
+  text-color-internal: #FFFFFF;
+  caption: '{country} ({count_*})';
+}</code></pre></section>
+      </section>
+      <footer><script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          //Allow Linker
+          ga('create', 'UA-1192232-34','auto', {'allowLinker': true});
+          ga('send', 'pageview');
+          // Load the plugin.
+          ga('require', 'linker');
+          // Define which domains to autoLink.
+          ga('linker:autoLink', ['neo4j.org','neo4j.com','neotechnology.com','graphdatabases.com','graphconnect.com']);
+        </script><script type="text/javascript">
+          document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
+        </script><script>Munchkin.init('773-GON-065');</script></footer>
+   </body>
+</html>
