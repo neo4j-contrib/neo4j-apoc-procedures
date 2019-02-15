@@ -1,6 +1,7 @@
 package apoc.nodes;
 
 import apoc.create.Create;
+import apoc.path.RelationshipTypeAndDirections;
 import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
 import apoc.result.*;
@@ -21,6 +22,7 @@ import static apoc.path.RelationshipTypeAndDirections.format;
 import static apoc.path.RelationshipTypeAndDirections.parse;
 import static apoc.refactor.util.RefactorUtil.copyProperties;
 import static apoc.util.Util.map;
+import static java.util.stream.Collectors.*;
 
 public class Nodes {
 
@@ -71,37 +73,21 @@ public class Nodes {
     @Description("apoc.node.relationship.exists(node, rel-direction-pattern) - returns true when the node has the relationships of the pattern")
     public boolean hasRelationship(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types) {
         if (types == null || types.isEmpty()) return node.hasRelationship();
-        long id = node.getId();
-        try ( NodeCursor nodeCursor = ktx.cursors().allocateNodeCursor()) {
-
-            ktx.dataRead().singleNode(id, nodeCursor);
-            nodeCursor.next();
-            TokenRead tokenRead = ktx.tokenRead();
-
-            for (Pair<RelationshipType, Direction> pair : parse(types)) {
-                int typeId = tokenRead.relationshipType(pair.first().name());
-                Direction direction = pair.other();
-
-                int count;
-                switch (direction) {
-                    case INCOMING:
-                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countIncoming(nodeCursor, ktx.cursors(), typeId);
-                        break;
-                    case OUTGOING:
-                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countOutgoing(nodeCursor, ktx.cursors(), typeId);
-                        break;
-                    case BOTH:
-                        count = org.neo4j.internal.kernel.api.helpers.Nodes.countAll(nodeCursor, ktx.cursors(), typeId);
-                        break;
-                    default:
-                        throw new UnsupportedOperationException("invalid direction " + direction);
-                }
-                if (count > 0) {
-                    return true;
-                }
-            }
+        for (Pair<RelationshipType, Direction> pair : parse(types)) {
+            if (node.hasRelationship(pair.first(), pair.other())) return true;
         }
         return false;
+    }
+
+    @UserFunction("apoc.node.relationships.exist")
+    @Description("apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map of relationship-pattenr -> true/false for each pair")
+    public Map<String,Boolean> hasRelationships(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types) {
+        if (types == null || types.isEmpty()) return Collections.emptyMap();
+        Map<String,Boolean> result = new HashMap<>();
+        for (Pair<RelationshipType, Direction> pair : parse(types)) {
+            result.put(format(pair),node.hasRelationship(pair.first(), pair.other()));
+        }
+        return result;
     }
 
     @UserFunction("apoc.nodes.connected")
@@ -466,18 +452,48 @@ public class Nodes {
         return result;
     }
 
-    @UserFunction("apoc.node.relationships.exist")
-    @Description("apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map with rel-pattern, boolean for the given relationship patterns")
-    public Map<String,Boolean> relationshipExists(@Name("node") Node node, @Name(value = "types",defaultValue = "") String types) {
-        if (node==null) return null;
-        List<String> relTypes = Iterables.asList(Iterables.map(RelationshipType::name, node.getRelationshipTypes()));
-        Map<String,Boolean> result =  new HashMap<>();
-        for (Pair<RelationshipType, Direction> p : parse(types)) {
-            String name = p.first().name();
-            boolean hasRelationship = relTypes.contains(name) && node.hasRelationship(p.first(), p.other());
-            result.put(format(p), hasRelationship);
+    @UserFunction("apoc.nodes.relationship.types")
+    @Description("apoc.nodes.relationship.types(node, rel-direction-pattern) - returns a list of distinct relationship types")
+    public List<List<String>> nodesRelationshipTypes(@Name("nodes") List<Node> nodes, @Name(value = "types",defaultValue = "") String types) {
+        if (nodes == null) return null;
+        if (nodes.isEmpty()) return Collections.emptyList();
+        List<Pair<RelationshipType, Direction>> parsedTypes = parse(types);
+        List<List<String>> allResults = new ArrayList<>(nodes.size());
+
+        for (Node node : nodes) {
+            List<String> relTypes = Iterables.asList(Iterables.map(RelationshipType::name, node.getRelationshipTypes()));
+            if (types == null || types.isEmpty()) allResults.add(relTypes);
+            else {
+                List<String> result = new ArrayList<>(relTypes.size());
+                for (Pair<RelationshipType, Direction> p : parsedTypes) {
+                    String name = p.first().name();
+                    if (relTypes.contains(name) && node.hasRelationship(p.first(), p.other())) {
+                        result.add(name);
+                    }
+                }
+                allResults.add(result);
+            }
         }
-        return result;
+        return allResults;
+    }
+
+    @UserFunction("apoc.node.relationships.degrees")
+    @Description("apoc.node.relationships.degrees(node, rel-direction-pattern) - returns a map with rel-pattern, boolean for the given relationship patterns")
+    public Map<String,Long> relationshipsDegrees(@Name("node") Node node, @Name(value = "types",defaultValue = "") String types) {
+        if (node==null) return null;
+        return getDegreees(node, parse(types));
+    }
+    @UserFunction("apoc.nodes.relationships.degrees")
+    @Description("apoc.nodes.relationships.degrees(node, rel-direction-pattern) - returns a map with rel-pattern, boolean for the given relationship patterns")
+    public List<Map<String,Long>> nodesRelationshipsDegrees(@Name("nodes") List<Node> nodes, @Name(value = "types",defaultValue = "") String types) {
+        if (nodes == null) return null;
+        if (nodes.isEmpty()) return Collections.emptyList();
+        List<Pair<RelationshipType, Direction>> parsedTypes = parse(types);
+        return nodes.stream().map(n -> getDegreees(n, parsedTypes)).collect(Collectors.toList());
+    }
+
+    public Map<String, Long> getDegreees(Node node, List<Pair<RelationshipType, Direction>> parsedTypes) {
+        return parsedTypes.stream().collect(toMap(RelationshipTypeAndDirections::format, (p) -> (long)node.getDegree(p.first(),p.other())));
     }
 
     @UserFunction
