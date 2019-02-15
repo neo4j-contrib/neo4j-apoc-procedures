@@ -1,0 +1,137 @@
+.listingblock pre, .literalblock pre, .listingblock pre[class="highlight"], .listingblock pre[class^="highlight "], .listingblock pre.CodeRay, .listingblock pre.prettyprint {
+    background: #f9f9f9;
+    border: 1px solid #dddddd;;
+}
+
+#header, #content, #footnotes {
+    max-width: 940px;
+}
+
+html, body {
+    font-size: 16px;
+}
+
+#content ul.nav-tabs li {
+    background: none;
+    padding-left: 0;
+}
+
+.admonitionblock > table td.content {
+    color: inherit;
+    font-size: 1em;
+}
+
+.quoteblock.abstract blockquote {
+    padding: 8px;
+    background: none;
+    border: 1px solid #666666;
+    border-radius: 4px;
+}
+
+.comment {
+    background: #fff3b8;
+}
+
+pre {
+    line-height: 1;
+}
+
+pre code {
+    font-size: .85em;
+    line-height: 1;
+    word-wrap: normal;
+    overflow-wrap: normal;
+    white-space: pre;
+}
+
+.tabbed-example .content > div:last-child,
+.tabbed-example .content > div:last-child p,
+.tabbed-example .content > div:last-child .highlight:last-child {
+    margin-bottom: 0px;
+}
+
+html, body, p, ul, ol, dl {
+    font-family: "Open Sans", "DejaVu Sans", sans-serif;
+}
+
+#header > h1:first-child, h1, h2, h3, h4, h5, h6, #toctitle {
+    font-family: "Open Sans", "DejaVu Sans", sans-serif;
+    color: #3d5360;
+    font-weight: 300;
+}
+
+#toctitle, h3, h4, h5, h6 {
+    font-weight: normal;
+    color: #000000;
+}
+
+h1 {
+    font-size: 42px;
+}
+
+h2 {
+    font-size: 34px;
+}
+
+h3 {
+    font-size: 28px;
+}
+
+h4 {
+    font-size: 22px;
+}
+
+h5 {
+    font-size: 20px;
+}
+
+h6 {
+    font-size: 18px;
+}
+
+.h4, .h5, .h6, h4, h5, h6 {
+    margin-top: 1.2em;
+    margin-bottom: 0.6em;
+}
+
+#content ul {
+    list-style: outside disc;
+    margin-left: 1em;
+}
+
+#content ul li {
+    position: relative;
+    left: 1em;
+    padding-right: 1em;
+    background: none;
+}
+
+div.admonitionblock td.content > div.title,
+div.exampleblock > div.title {
+    color: #000000;
+    font-size: 20px;
+}
+
+div.exampleblock > div.title {
+    font-size: 18px;
+}
+
+a:hover, a:focus, a:hover:visited {
+    color: #5dade2;
+}
+a:hover {
+    cursor: pointer;
+    text-decoration: none;
+}
+a {
+    font-weight: 400;
+    color: #428bca;
+    text-decoration: none;
+    line-height: inherit;
+}
+
+/* No italics in TOC */
+
+#toc ul.sectlevel0 > li > a {
+    font-style: normal;
+}

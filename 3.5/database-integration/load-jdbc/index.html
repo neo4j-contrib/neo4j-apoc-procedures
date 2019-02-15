@@ -1,0 +1,640 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta charset="utf-8"></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+      <title>8.1.&nbsp;Load JDBC - Chapter&nbsp;8.&nbsp;Database Integration</title>
+      <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
+      <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
+      <link rel="prev" href="../" title="Chapter&nbsp;8.&nbsp;Database Integration"></link>
+      <link rel="next" href="../database-modeling/" title="8.2.&nbsp;Database Modeling"></link>
+      <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png" alt="Neo4j Logo"></img></a>')
+          );
+          var $sidebar = $('<div id="sidebar-wrapper"></div>');
+          $.get('toc.html', function (d){
+            $(d).appendTo($sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          $sidebar.insertAfter($('header').first());
+        });
+        </script></head>
+   <body>
+      <header>
+         <div class="searchbox">
+            <form id="search-form" class="search" name="search-form" role="search"><input id="search-form-input" name="q" title="search" type="search" lang="en" placeholder="Search Neo4j docs..." aria-label="Search Neo4j documentation" max-length="128" required="required"></input><input id="search-form-button" type="submit" value="Search"></input></form>
+         </div>
+         <ul class="documentation-library">
+            <li><a href="https://neo4j.com/docs/operations-manual/current">Operations Manual</a></li>
+            <li><a href="https://neo4j.com/docs/developer-manual/current/">Developer Manual</a></li>
+            <li><a href="https://neo4j.com/docs/ogm-manual/current/">OGM Manual</a></li>
+            <li><a href="https://neo4j.com/docs/graph-algorithms/current/">Graph Algorithms</a></li>
+            <li><a href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.5/">APOC</a></li>
+            <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
+         </ul>
+         <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Database Integration</a></span><span class="nav-current">
+               <p class="nav-title hidden">8.1.&nbsp;Load JDBC</p></span><span class="nav-next"><a accesskey="n" href="../database-modeling/">Database Modeling<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+      </header>
+      <div id="search-results" class="hidden"></div>
+      <section class="section" id="load-jdbc">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title" style="clear: both"><a class="anchor" href="#load-jdbc"></a>8.1.&nbsp;Load JDBC
+                  </h2>
+               </div>
+            </div>
+         </div>
+         <section class="section" id="_overview_database_integration">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_overview_database_integration"></a>8.1.1.&nbsp;Overview: Database Integration
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>Data Integration is an important topic.
+               Reading data from relational databases to create and augment data models is a very helpful exercise.
+            </p>
+            <p>With <code class="literal">apoc.load.jdbc</code> you can access any database that provides a JDBC driver, and execute queries whose results are turned into streams of rows.
+               Those rows can then be used to update or create graph structures.
+            </p>
+            <div class="informaltable">
+               <div class="table" id="d0e8503">
+                  <table class="informaltable" border="1">
+                     <colgroup>
+                        <col class="col_1"></col>
+                        <col class="col_2"></col>
+                        <col class="col_3"></col>
+                     </colgroup>
+                     <thead>
+                        <tr>
+                           <th style="text-align: left; vertical-align: top; ">type</th>
+                           <th style="text-align: left; vertical-align: top; ">qualified name</th>
+                           <th style="text-align: left; vertical-align: top; ">description</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>procedure</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.load.xls</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>apoc.load.xls('url','selector',{config}) YIELD lineNo, list, map - load XLS fom URL as stream of row values,
+                                  config contains any of: {skip:1,limit:5,header:false,ignore:['tmp'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false,
+                                 dateFormat:'iso_date', dateParse:['dd-MM-yyyy']}}
+                              </p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>procedure</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.load.csv</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>apoc.load.csv('url',{config}) YIELD lineNo, list, map - load CSV fom URL as stream of values,</p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <div class="informalfigure">
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc-jdbc-northwind-load.jpg" width="600" alt="apoc jdbc northwind load"></img></div>
+            </div>
+            <p>To simplify the JDBC URL syntax and protect credentials, you can configure aliases in <code class="literal">conf/neo4j.conf</code>:
+            </p><pre class="screen highlight"><code>apoc.jdbc.myDB.url=jdbc:derby:derbyDB</code></pre><pre class="screen highlight"><code>CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON')
+
+becomes
+
+CALL apoc.load.jdbc('myDB','PERSON')</code></pre><p>The 3rd value in the <code class="literal">apoc.jdbc.&lt;alias&gt;.url=</code> effectively defines an alias to be used in  <code class="literal">apoc.load.jdbc('&lt;alias&gt;',&#8230;&#8203;.</code></p>
+         </section>
+         <section class="section" id="_mysql_example">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_mysql_example"></a>8.1.2.&nbsp;MySQL Example
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>Northwind is a common example set for relational databases, which is also covered in our import guides, e.g. <span style="color: red">&lt;a&gt;:play northwind graph&lt;/a&gt;</span> in the Neo4j browser.
+            </p>
+            <section class="section" id="_mysql_northwind_data">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_mysql_northwind_data"></a>8.1.2.1.&nbsp;MySQL Northwind Data
+                        </h4>
+                     </div>
+                  </div>
+               </div><pre class="screen highlight"><code>select count(*) from products;
++----------+
+| count(*) |
++----------+
+|       77 |
++----------+
+1 row in set (0,00 sec)</code></pre><pre class="screen highlight"><code>describe products;
++-----------------+---------------+------+-----+---------+----------------+
+| Field           | Type          | Null | Key | Default | Extra          |
++-----------------+---------------+------+-----+---------+----------------+
+| ProductID       | int(11)       | NO   | PRI | NULL    | auto_increment |
+| ProductName     | varchar(40)   | NO   | MUL | NULL    |                |
+| SupplierID      | int(11)       | YES  | MUL | NULL    |                |
+| CategoryID      | int(11)       | YES  | MUL | NULL    |                |
+| QuantityPerUnit | varchar(20)   | YES  |     | NULL    |                |
+| UnitPrice       | decimal(10,4) | YES  |     | 0.0000  |                |
+| UnitsInStock    | smallint(2)   | YES  |     | 0       |                |
+| UnitsOnOrder    | smallint(2)   | YES  |     | 0       |                |
+| ReorderLevel    | smallint(2)   | YES  |     | 0       |                |
+| Discontinued    | bit(1)        | NO   |     | b'0'    |                |
++-----------------+---------------+------+-----+---------+----------------+
+10 rows in set (0,00 sec)</code></pre></section>
+         </section>
+         <section class="section" id="_load_jdbc_examples">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_load_jdbc_examples"></a>8.1.3.&nbsp;Load JDBC Examples
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p><span class="formalpara-title">Load the JDBC driver.&nbsp;</span>
+               
+            </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.driver("com.mysql.jdbc.Driver");</code></pre><p>
+               
+            </p>
+            <p><span class="formalpara-title">Count rows in products table.&nbsp;</span>
+               
+            </p><pre class="programlisting highlight"><code data-lang="cypher">with "jdbc:mysql://localhost:3306/northwind?user=root" as url
+CALL apoc.load.jdbc(url,"products") YIELD row
+RETURN count(*);</code></pre><p>
+               
+            </p><pre class="screen highlight"><code>+----------+
+| count(*) |
++----------+
+| 77       |
++----------+
+1 row
+23 ms</code></pre><p><span class="formalpara-title">Return row from products table.&nbsp;</span>
+               
+            </p><pre class="programlisting highlight"><code data-lang="cypher">with "jdbc:mysql://localhost:3306/northwind?user=root" as url
+CALL apoc.load.jdbc(url,"products") YIELD row
+RETURN row limit 1;</code></pre><p>
+               
+            </p><pre class="screen highlight"><code>+--------------------------------------------------------------------------------+
+| row                                                                            |
++--------------------------------------------------------------------------------+
+| {UnitPrice -&gt; 18.0000, UnitsOnOrder -&gt; 0, CategoryID -&gt; 1, UnitsInStock -&gt; 39} |
++--------------------------------------------------------------------------------+
+1 row
+10 ms</code></pre><div class="informalfigure">
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc-load-jdbc.jpg" width="800" alt="apoc load jdbc"></img></div>
+            </div>
+         </section>
+         <section class="section" id="_load_jdbc_with_params_examples">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_load_jdbc_with_params_examples"></a>8.1.4.&nbsp;Load JDBC with params Examples
+                     </h3>
+                  </div>
+               </div>
+            </div><pre class="screen highlight"><code>with "select firstname, lastname from employees where firstname like ? and lastname like ?" as sql
+call apoc.load.jdbcParams("northwind", sql, ['F%', '%w']) yield row
+return row</code></pre><p>JDBC pretends positional "?" for parameters, so the third apoc parameter has to be an array with values coherent with that
+               positions.
+               In case of 2 parameters, firstname and lastname ['firstname-position','lastname-position']
+            </p>
+         </section>
+         <section class="section" id="_load_data_in_transactional_batches">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_load_data_in_transactional_batches"></a>8.1.5.&nbsp;Load data in transactional batches
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>You can load data from jdbc and create/update the graph using the query results in batches (and in parallel).</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.periodic.iterate('
+call apoc.load.jdbc("jdbc:mysql://localhost:3306/northwind?user=root","company")',
+'CREATE (p:Person) SET p += value', {batchSize:10000, parallel:true})
+RETURN batches, total</code></pre></section>
+         <section class="section" id="_cassandra_example">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_cassandra_example"></a>8.1.6.&nbsp;Cassandra Example
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>Setup Song database as initial dataset</p><pre class="screen highlight"><code>curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/playlist.cql
+curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/artists.csv
+curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/songs.csv
+$CASSANDRA_HOME/bin/cassandra
+$CASSANDRA_HOME/bin/cqlsh -f playlist.cql</code></pre><p>Download the <a class="link" href="https://github.com/adejanovski/cassandra-jdbc-wrapper#installing" target="_top">Cassandra JDBC Wrapper</a>, and put it into your <code class="literal">$NEO4J_HOME/plugins</code> directory.
+               Add this config option to <code class="literal">$NEO4J_HOME/conf/neo4j.conf</code> to make it easier to interact with the cassandra instance.
+            </p>
+            <p><span class="formalpara-title">Add to conf/neo4j.conf.&nbsp;</span>
+               
+            </p><pre class="screen highlight"><code>apoc.jdbc.cassandra_songs.url=jdbc:cassandra://localhost:9042/playlist</code></pre><p>
+               
+            </p>
+            <p>Restart the server.</p>
+            <p>Now you can inspect the data in Cassandra with.</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+RETURN count(*);</code></pre><pre class="screen highlight"><code>&#9554;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9557;
+&#9474;count(*)&#9474;
+&#9566;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9569;
+&#9474;3605    &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</code></pre><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+RETURN row LIMIT 5;</code></pre><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+RETURN row.first_letter, row.artist LIMIT 5;</code></pre><pre class="screen highlight"><code>&#9554;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9572;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9557;
+&#9474;row.first_letter&#9474;row.artist                     &#9474;
+&#9566;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9578;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9569;
+&#9474;C               &#9474;C.W. Stoneking                 &#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;C               &#9474;CH2K                           &#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;C               &#9474;CHARLIE HUNTER WITH LEON PARKER&#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;C               &#9474;Calvin Harris                  &#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;C               &#9474;Caman&eacute;                         &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</code></pre><p>Let&#8217;s create some graph data, we have a look at the track_by_artist table, which contains about 60k records.</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row RETURN count(*);</code></pre><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
+RETURN row LIMIT 5;</code></pre><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
+RETURN row.track_id, row.track_length_in_seconds, row.track, row.music_file, row.genre, row.artist, row.starred LIMIT 2;</code></pre><pre class="screen highlight"><code>&#9554;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9572;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9572;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9572;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9572;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9572;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9572;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9557;
+&#9474;row.track_id                        &#9474;length&#9474;row.track       &#9474;row.music_file    &#9474;row.genre&#9474;row.artist                  &#9474;row.starred&#9474;
+&#9566;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9578;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9578;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9578;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9578;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9578;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9578;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9569;
+&#9474;c0693b1e-0eaa-4e81-b23f-b083db303842&#9474;219   &#9474;1913 Massacre   &#9474;TRYKHMD128F934154C&#9474;folk     &#9474;Woody Guthrie &amp; Jack Elliott&#9474;false      &#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;7d114937-0bc7-41c7-8e0c-94b5654ac77f&#9474;178   &#9474;Alabammy Bound  &#9474;TRMQLPV128F934152B&#9474;folk     &#9474;Woody Guthrie &amp; Jack Elliott&#9474;false      &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</code></pre><p>Let&#8217;s create some indexes and constraints, note that other indexes and constraints will be dropped by this.</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.assert(
+  {Track:['title','length']},
+  {Artist:['name'],Track:['id'],Genre:['name']});</code></pre><pre class="screen highlight"><code>&#9554;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9572;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9572;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9572;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9557;
+&#9474;label       &#9474;key    &#9474;unique&#9474;action &#9474;
+&#9566;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9578;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9578;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9578;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9552;&#9569;
+&#9474;Track       &#9474;title  &#9474;false &#9474;CREATED&#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;Track       &#9474;length &#9474;false &#9474;CREATED&#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;Artist      &#9474;name   &#9474;true  &#9474;CREATED&#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;Genre       &#9474;name   &#9474;true  &#9474;CREATED&#9474;
+&#9500;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9532;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9508;
+&#9474;Track       &#9474;id     &#9474;true  &#9474;CREATED&#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9524;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;</code></pre><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
+MERGE (a:Artist {name:row.artist})
+MERGE (g:Genre {name:row.genre})
+CREATE (t:Track {id:toString(row.track_id), title:row.track, length:row.track_length_in_seconds})
+CREATE (a)-[:PERFORMED]-&gt;(t)
+CREATE (t)-[:GENRE]-&gt;(g);</code></pre><pre class="screen highlight"><code>Added 63213 labels, created 63213 nodes, set 182413 properties, created 119200 relationships, statement executed in 40076 ms.</code></pre></section>
+         <section class="section" id="_support_for_hive_with_kerberos_auth">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_support_for_hive_with_kerberos_auth"></a>8.1.7.&nbsp;Support for Hive with Kerberos Auth
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>Support for Hive especially with Kerberos is more involved.</p>
+            <p>First of all the required configuration is more detailed, make sure to get this information:</p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem">kerberos user / password</li>
+                  <li class="listitem">kerberos realm / kdc</li>
+                  <li class="listitem">hive hostname + port (10000)</li>
+               </ul>
+            </div>
+            <p>Create this <code class="literal">login.conf</code> file at a known location:
+            </p>
+            <p><span class="formalpara-title">login.conf.&nbsp;</span>
+               
+            </p><pre class="screen highlight"><code>KerberosClient {
+  com.sun.security.auth.module.Krb5LoginModule required
+  debug=true debugNative=true;
+};</code></pre><p>
+               
+            </p>
+            <p>Add these options to your <code class="literal">conf/neo4j.conf</code></p>
+            <p><span class="formalpara-title">neo4j.conf.&nbsp;</span>
+               
+            </p><pre class="screen highlight"><code>dbms.jvm.additional=-Djava.security.auth.login.config=/path/to/login.conf
+dbms.jvm.additional=-Djava.security.auth.login.config.client=KerberosClient
+dbms.jvm.additional=-Djava.security.krb5.realm=KRB.REALM.COM
+dbms.jvm.additional=-Djava.security.krb5.kdc=krb-kdc.host.com</code></pre><p>
+               
+            </p>
+            <p>Unlike other JDBC drivers, Hive comes with a bunch of dependencies, you can download these from the Hadoop providers</p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem"><a class="link" href="https://www.cloudera.com/downloads/connectors/hive/jdbc/2-5-20.html" target="_top">Cloudera Hive Drivers</a></li>
+                  <li class="listitem"><a class="link" href="https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.3/bk_data-access/content/hive-jdbc-odbc-drivers.html" target="_top">Hortonworks Hive Drivers</a></li>
+                  <li class="listitem"><a class="link" href="https://cwiki.apache.org/confluence/display/Hive/HiveServer2+Clients#HiveServer2Clients-JDBC" target="_top">Apache Hive Driver</a></li>
+               </ul>
+            </div>
+            <p>or grab them from <a class="link" href="https://search.maven.org" target="_top">maven central</a>.
+            </p>
+            <p>The versions might vary, use what comes with your Hive driver.</p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem">hadoop-common-2.7.3.2.6.1.0-129.jar</li>
+                  <li class="listitem">hive-exec-1.2.1000.2.6.1.0-129.jar</li>
+                  <li class="listitem">hive-jdbc-1.2.1000.2.6.1.0-129.jar</li>
+                  <li class="listitem">hive-metastore-1.2.1000.2.6.1.0-129.jar</li>
+                  <li class="listitem">hive-service-1.2.1000.2.6.1.0-129.jar</li>
+                  <li class="listitem">httpclient-4.4.jar</li>
+                  <li class="listitem">httpcore-4.4.jar</li>
+                  <li class="listitem">libfb303-0.9.2.jar</li>
+                  <li class="listitem">libthrift-0.9.3.jar</li>
+               </ul>
+            </div>
+            <p>Now you can use a JDBC URL like this from APOC.</p>
+            <div class="admonitionblock note">
+               <table>
+                  <tbody>
+                     <tr>
+                        <td class="icon"><i class="fa icon-note" title="note"></i></td>
+                        <td class="content">
+                           <p>This has no newlines, it&#8217;s just wrapped because it is too long.</p>
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+            <p><code class="literal">jdbc:hive2://username%40krb-realm:password@hive-hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject</code></p>
+            <p>And then call:</p><pre class="programlisting highlight"><code data-lang="cypher">WITH 'jdbc:hive2://username%40krb-realm:password@hive-hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject' AS url
+CALL apoc.load.jdbc(url,'PRODUCTS') YIELD row
+RETURN row.name, row.price;</code></pre><p>You can also set it in your <code class="literal">conf/neo4j.conf</code> as a key:
+            </p>
+            <p><span class="formalpara-title">neo4j.conf.&nbsp;</span>
+               
+            </p><pre class="screen highlight"><code>apoc.jdbc.my-hive.url=jdbc:hive2://username%40krb-realm:password@hive-hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject</code></pre><p>
+               
+            </p>
+            <p>And then use the more compact call:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbc('my-hive','SELECT * PRODUCTS');</code></pre></section>
+         <section class="section" id="_load_jdbc_resources">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_load_jdbc_resources"></a>8.1.8.&nbsp;LOAD JDBC - Resources
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>To use other JDBC drivers use these download links and JDBC URL.
+               Put the JDBC driver into the <code class="literal">$NEO4J_HOME/plugins</code> directory and configure the JDBC-URL in <code class="literal">$NEO4J_HOME/conf/neo4j.conf</code> with <code class="literal">apoc.jdbc.&lt;alias&gt;.url=&lt;jdbc-url&gt;</code></p>
+            <p>Credentials can be passed in two ways:</p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem">into url</li>
+               </ul>
+            </div><pre class="screen highlight"><code>CALL apoc.load.jdbc('jdbc:derby:derbyDB;user=apoc;password=Ap0c!#Db;create=true', 'PERSON')</code></pre><div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem">by config parameter.</li>
+               </ul>
+            </div><pre class="screen highlight"><code>CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})</code></pre><div class="informaltable">
+               <div class="table" id="d0e8837">
+                  <table class="informaltable" border="1">
+                     <colgroup>
+                        <col class="col_1"></col>
+                        <col class="col_2"></col>
+                        <col class="col_3"></col>
+                     </colgroup>
+                     <thead>
+                        <tr>
+                           <th style="text-align: left; vertical-align: top; ">Database</th>
+                           <th style="text-align: left; vertical-align: top; ">JDBC-URL</th>
+                           <th style="text-align: left; vertical-align: top; ">&nbsp;Driver Source</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>MySQL</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">jdbc:mysql://&lt;hostname&gt;:&lt;port/3306&gt;/&lt;database&gt;?user=&lt;user&gt;&amp;password=&lt;pass&gt;</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><a class="link" href="http://dev.mysql.com/downloads/connector/j/" target="_top">MySQL Driver</a></p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>Postgres</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">jdbc:postgresql://&lt;hostname&gt;/&lt;database&gt;?user=&lt;user&gt;&amp;password=&lt;pass&gt;</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><a class="link" href="https://jdbc.postgresql.org/download.html" target="_top">PostgresSQL JDBC Driver</a></p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>Oracle</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">jdbc:oracle:thin:&lt;user&gt;/&lt;pass&gt;@&lt;host&gt;:&lt;port&gt;/&lt;service_name&gt;</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><a class="link" href="http://www.oracle.com/technetwork/database/features/jdbc/index.html" target="_top">Oracle JDBC Driver</a></p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>MS SQLServer</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">jdbc:sqlserver://;servername=&lt;servername&gt;;databaseName=&lt;database&gt;;user=&lt;user&gt;;password=&lt;pass&gt;</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><a class="link" href="https://www.microsoft.com/en-us/download/details.aspx?id=11774" target="_top">SQLServer Driver</a></p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>IBM DB2</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">jdbc:db2://&lt;host&gt;:&lt;port/5021&gt;/&lt;database&gt;:user=&lt;user&gt;;password=&lt;pass&gt;;</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><a class="link" href="http://www-01.ibm.com/support/docview.wss?uid=swg21363866" target="_top">DB2 Driver</a></p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>Derby</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">jdbc:derby:derbyDB</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>Included in JDK6-8</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>Cassandra</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">jdbc:cassandra://&lt;host&gt;:&lt;port/9042&gt;/&lt;database&gt;</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><a class="link" href="https://github.com/adejanovski/cassandra-jdbc-wrapper#installing" target="_top">Cassandra JDBC Wrapper</a></p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>SAP Hana</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">jdbc:sap://&lt;host&gt;:&lt;port/39015&gt;/?user=&lt;user&gt;&amp;password=&lt;pass&gt;</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><a class="link" href="https://www.sap.com/developer/topics/sap-hana-express.html" target="_top">SAP Hana ngdbc Driver</a></p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>Apache Hive (w/ Kerberos)</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">jdbc:hive2://username%40krb-realm:password@hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><a class="link" href="https://cwiki.apache.org/confluence/display/Hive/HiveServer2+Clients#HiveServer2Clients-JDBC" target="_top">Apache Hive Driver</a> <a class="link" href="https://www.cloudera.com/downloads/connectors/hive/jdbc/2-5-20.html" target="_top">(Cloudera)</a> <a class="link" href="https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.3/bk_data-access/content/hive-jdbc-odbc-drivers.html" target="_top">(Hortonworks)</a>
+                                  There are several jars (hadoop-common-xxx.jar hive-exec-xxx.jar hive-jdbc-xxx.jar hive-metastore-xxx.jar hive-service-xxx.jar
+                                 httpclient-4.4.jar httpcore-4.4.jar libfb303-0.9.2.jar libthrift-0.9.3.jar)
+                              </p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <p>There are a number of blog posts / examples that details usage of apoc.load.jdbc</p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem"><a class="link" href="https://jesusbarrasa.wordpress.com/2016/09/30/quickgraph4-explore-your-browser-history-in-neo4j/" target="_top">Explore your browser history in Neo4j</a></li>
+                  <li class="listitem"><a class="link" href="https://blog.knoldus.com/2016/09/12/neo4j-with-scala-migrate-data-from-other-database-to-neo4j/" target="_top">Neo4j With Scala : Migrate Data From Other Database to Neo4j</a></li>
+                  <li class="listitem"><a class="link" href="https://neo4j.com/blog/apoc-database-integration-import-export-cypher/" target="_top">APOC: Database Integration, Import and Export with Awesome Procedures On Cypher</a></li>
+               </ul>
+            </div>
+         </section>
+         <section class="section" id="_load_jdbc_update">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_load_jdbc_update"></a>8.1.9.&nbsp;LOAD JDBC - UPDATE
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>The jdbcUpdate is use for update relational database, from a SQL statement with optional parameters</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbcUpdate(jdbc-url,statement, params, config) YIELD  row;</code></pre><p>With this set of data you can call the procedure in two different mode:</p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (u:User)-[:BOUGHT]-&gt;(p:Product)&lt;-[:BOUGHT]-(o:User)-[:BOUGHT]-&gt;(reco)
+WHERE u &lt;&gt; o AND NOT (u)-[:BOUGHT]-&gt;(reco)
+WITH u, reco, count(*) as score
+WHERE score &gt; 1000</code></pre><p>You can call the procedure with param:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbcUpdate('jdbc:mysql:....','INSERT INTO RECOMMENDATIONS values(?,?,?)',[user.id, reco.id, score]) YIELD row;</code></pre><p>You can call the procedure without param:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbcUpdate('jdbc:mysql:....','INSERT INTO RECOMMENDATIONS values(user.id, reco.id, score)') YIELD row;</code></pre><section class="section" id="_load_jdbc_format_date">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_load_jdbc_format_date"></a>8.1.9.1.&nbsp;Load JDBC format date
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>Starting from Neo4j 3.4 there is the support for <a class="link" href="https://neo4j.com/docs/developer-manual/current/cypher/syntax/temporal/" target="_top">Temporal Values</a></p>
+               <p>If the returning JdbcType, from the load operation, is TIMESTAMP or TIMESTAMP_WITH_TIMEZONE you could provide the configuration
+                  parameter <span class="strong"><strong>timezone</strong></span> with type <a class="link" href="https://docs.oracle.com/javase/8/docs/api/java/time/ZoneId.html" target="_top">java.time.ZoneId</a></p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbc('key or url','table or statement', config) YIELD row</code></pre></section>
+            <section class="section" id="_config_2">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_config_2"></a>8.1.9.2.&nbsp;Config
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p>Config param is optional, the default value is an empty map.</p>
+               <div class="informaltable">
+                  <div class="table" id="d0e9020">
+                     <table class="informaltable" border="1">
+                        <colgroup>
+                           <col class="col_1"></col>
+                           <col class="col_2"></col>
+                        </colgroup>
+                        <tbody>
+                           <tr>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p><code class="literal">timezone</code></p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>default value: null</p>
+                              </td>
+                           </tr>
+                           <tr>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p><code class="literal">credentials</code></p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>default value: {}</p>
+                              </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+               <p>Example:</p>
+               <p><span class="formalpara-title">with timezone.&nbsp;</span>
+                  
+               </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], {timezone: "Asia/Tokyo"})</code></pre><p>
+                  
+               </p><pre class="screen highlight"><code>2018-10-31T01:32:25.012+09:00[Asia/Tokyo]</code></pre><p><span class="formalpara-title">with credentials.&nbsp;</span>
+                  
+               </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.jdbcUpdate('jdbc:derby:derbyDB','UPDATE PERSON SET NAME = ? WHERE NAME = ?',['John','John'],{credentials:{user:'apoc',password:'Ap0c!#Db'}})</code></pre><p>
+                  
+               </p><pre class="screen highlight"><code>CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})</code></pre></section>
+         </section>
+      </section>
+      <footer><script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          //Allow Linker
+          ga('create', 'UA-1192232-34','auto', {'allowLinker': true});
+          ga('send', 'pageview');
+          // Load the plugin.
+          ga('require', 'linker');
+          // Define which domains to autoLink.
+          ga('linker:autoLink', ['neo4j.org','neo4j.com','neotechnology.com','graphdatabases.com','graphconnect.com']);
+        </script><script type="text/javascript">
+          document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
+        </script><script>Munchkin.init('773-GON-065');</script></footer>
+   </body>
+</html>

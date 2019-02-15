@@ -1,0 +1,286 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta charset="utf-8"></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+      <title>Chapter&nbsp;16.&nbsp;Deprecated: Text and Lookup Indexes - APOC User Guide 3.5</title>
+      <link rel="stylesheet" type="text/css" href="../docbook.css"></link>
+      <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="../css/chunked-base.css"></link>
+      <link rel="stylesheet" type="text/css" href="../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../javascript/datatable.js" type="text/javascript"></script><script src="../javascript/colorize.js" type="text/javascript"></script><script src="../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../javascript/mp-nav.js" type="text/javascript"></script><script src="../javascript/versionswitcher.js" type="text/javascript"></script><script src="../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
+      <link rel="next" href="schema-index-operations/" title="16.1.&nbsp;Schema Index Procedures"></link>
+      <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png" alt="Neo4j Logo"></img></a>')
+          );
+          var $sidebar = $('<div id="sidebar-wrapper"></div>');
+          $.get('toc.html', function (d){
+            $(d).appendTo($sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          $sidebar.insertAfter($('header').first());
+        });
+        </script></head>
+   <body>
+      <header>
+         <div class="searchbox">
+            <form id="search-form" class="search" name="search-form" role="search"><input id="search-form-input" name="q" title="search" type="search" lang="en" placeholder="Search Neo4j docs..." aria-label="Search Neo4j documentation" max-length="128" required="required"></input><input id="search-form-button" type="submit" value="Search"></input></form>
+         </div>
+         <ul class="documentation-library">
+            <li><a href="https://neo4j.com/docs/operations-manual/current">Operations Manual</a></li>
+            <li><a href="https://neo4j.com/docs/developer-manual/current/">Developer Manual</a></li>
+            <li><a href="https://neo4j.com/docs/ogm-manual/current/">OGM Manual</a></li>
+            <li><a href="https://neo4j.com/docs/graph-algorithms/current/">Graph Algorithms</a></li>
+            <li><a href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.5/">APOC</a></li>
+            <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
+         </ul>
+         <nav id="header-nav"><span class="nav-previous"></span><span class="nav-current">
+               <p class="nav-title hidden">Chapter&nbsp;16.&nbsp;Deprecated: Text and Lookup Indexes</p></span><span class="nav-next"><a accesskey="n" href="schema-index-operations/">Schema Index Procedures<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+      </header>
+      <div id="search-results" class="hidden"></div>
+      <section class="chapter" id="indexes">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h1 class="title">Chapter&nbsp;16.&nbsp;Deprecated: Text and Lookup Indexes</h1>
+               </div>
+            </div>
+         </div>
+         <div class="admonitionblock warning">
+            <table>
+               <tbody>
+                  <tr>
+                     <td class="icon"><i class="fa icon-warning" title="warning"></i></td>
+                     <td class="content">
+                        <p>These Index procedures are deprecated and will be removed from APOC soon.
+                           From version 3.5 Neo4j provides built-in, case-insensitive, configurable fulltext indices.
+                        </p>
+                     </td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+         <section class="section" id="_manual_index_examples">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a class="anchor" href="#_manual_index_examples"></a>16.3.&nbsp;Manual Index Examples
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <section class="section" id="_data_used">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a class="anchor" href="#_data_used"></a>16.3.1.&nbsp;Data Used
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p>The below examples use <a class="link" href="https://github.com/nicolewhite/neo4j-flights" target="_top">flight data</a>.
+               </p>
+               <p>Here is a sample subset of the data that can be load to try the procedures:</p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (slc:Airport {abbr:'SLC', id:14869, name:'SALT LAKE CITY INTERNATIONAL'})
+CREATE (oak:Airport {abbr:'OAK', id:13796, name:'METROPOLITAN OAKLAND INTERNATIONAL'})
+CREATE (bur:Airport {abbr:'BUR', id:10800, name:'BOB HOPE'})
+CREATE (f2:Flight {flight_num:6147, day:2, month:1, weekday:6, year:2016})
+CREATE (f9:Flight {flight_num:6147, day:9, month:1, weekday:6, year:2016})
+CREATE (f16:Flight {flight_num:6147, day:16, month:1, weekday:6, year:2016})
+CREATE (f23:Flight {flight_num:6147, day:23, month:1, weekday:6, year:2016})
+CREATE (f30:Flight {flight_num:6147, day:30, month:1, weekday:6, year:2016})
+CREATE (f2)-[:DESTINATION {arr_delay:-13, taxi_time:9}]-&gt;(oak)
+CREATE (f9)-[:DESTINATION {arr_delay:-8, taxi_time:4}]-&gt;(bur)
+CREATE (f16)-[:DESTINATION {arr_delay:-30, taxi_time:4}]-&gt;(slc)
+CREATE (f23)-[:DESTINATION {arr_delay:-21, taxi_time:3}]-&gt;(slc)
+CREATE (f30)-[:DESTINATION]-&gt;(slc)</code></pre></section>
+            <section class="section" id="_using_manual_index_on_node_properties">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a class="anchor" href="#_using_manual_index_on_node_properties"></a>16.3.2.&nbsp;Using Manual Index on Node Properties
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p>In order to create manual index on a node property, you call <code class="literal">apoc.index.addNode</code> with the node, providing the properties to be indexed.
+               </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (a:Airport)
+CALL apoc.index.addNode(a,['name'])
+RETURN count(*)</code></pre><p>The statement will create the node index with the <span class="strong"><strong>same name as the Label name(s) of the node</strong></span> in this case <code class="literal">Airport</code> and add the node by their properties to the index.
+               </p>
+               <p>Once this has been added check if the node index exists using <code class="literal">apoc.index.list</code>.
+               </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.index.list()</code></pre><p>Usually <code class="literal">apoc.index.addNode</code> would be used as part of node-creation, e.g. during LOAD CSV.
+                  There is also <code class="literal">apoc.index.addNodes</code> for adding a list of multiple nodes at once.
+               </p>
+               <p>Once the node index is created we can start using it.</p>
+               <p>Here are some examples:</p>
+               <p>The <code class="literal">apoc.index.nodes</code> finds nodes in a manual index using the given lucene query.
+               </p>
+               <div class="admonitionblock note">
+                  <table>
+                     <tbody>
+                        <tr>
+                           <td class="icon"><i class="fa icon-note" title="note"></i></td>
+                           <td class="content">
+                              <p>That makes only sense if you combine multiple properties in one lookup or use case insensitive or fuzzy matching full-text
+                                 queries.
+                                 In all other cases the built in schema indexes should be used.
+                              </p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.index.nodes('Airport','name:inter*') YIELD node AS airport, weight
+RETURN airport.name, weight
+LIMIT 10</code></pre><div class="admonitionblock note">
+                  <table>
+                     <tbody>
+                        <tr>
+                           <td class="icon"><i class="fa icon-note" title="note"></i></td>
+                           <td class="content">
+                              <p>Apoc index queries not only return nodes and relationships but also a weight, which is the score returned from the underlying
+                                 Lucene index.
+                                 The results are also sorted by that score.
+                                 That&#8217;s especially helpful for partial and fuzzy text searches.
+                              </p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+               <p>To remove the node index <code class="literal">Airport</code> created, use:
+               </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.index.remove('Airport')</code></pre><section class="section" id="_add_document_to_index">
+                  <div class="titlepage">
+                     <div>
+                        <div>
+                           <h4 class="title"><a class="anchor" href="#_add_document_to_index"></a>16.3.2.1.&nbsp;Add "document" to index
+                           </h4>
+                        </div>
+                     </div>
+                  </div>
+                  <p>Instead of the key-value pairs of a node or relationship properties, you can also compute a map containing information and
+                     add that to the index.
+                     So you could find a node or relationship by information from it&#8217;s neighbours or relationships.
+                  </p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (company:Company {name:'Neo4j,Inc.'})
+CREATE (company)&lt;-[:WORKS_AT {since:2013}]-(:Employee {name:'Mark'})
+CREATE (company)&lt;-[:WORKS_AT {since:2014}]-(:Employee {name:'Martin'})</code></pre><pre class="programlisting highlight"><code data-lang="cypher">MATCH (company:Company)&lt;-[worksAt:WORKS_AT]-(employee)
+WITH company, { name: company.name, employees:collect(employee.name),startDates:collect(worksAt.since)} as data
+CALL apoc.index.addNodeMap(company, data)
+RETURN count(*)</code></pre><p>These could be example searches that all return the same result node.</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.index.nodes('Company','name:Ne* AND employees:Ma*')</code></pre><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.index.nodes('Company','employees:Ma*')</code></pre><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.index.nodes('Company','startDates:[2013 TO 2014]')</code></pre></section>
+            </section>
+            <section class="section" id="_using_manual_index_on_relationship_properties">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a class="anchor" href="#_using_manual_index_on_relationship_properties"></a>16.3.3.&nbsp;Using Manual Index on Relationship Properties
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p>The procedure <code class="literal">apoc.index.addRelationship</code> is used to create a manual index on relationship properties.
+               </p>
+               <p>As there are no schema indexes for relationships, these manual indexes can be quite useful.</p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (:Flight)-[r:DESTINATION]-&gt;(:Airport)
+CALL apoc.index.addRelationship(r,['taxi_time'])
+RETURN count(*)</code></pre><p>The statement will create the relationship index with the <span class="strong"><strong>same name as relationship-type</strong></span>, in this case <code class="literal">DESTINATION</code> and add the relationship by its properties to the index.
+               </p>
+               <p>Using <code class="literal">apoc.index.relationships</code>, we can find the relationship of type <code class="literal">DESTINATION</code> with the property <code class="literal">taxi_time</code> of 11 minutes.
+                  We can chose to also return the start and end-node.
+               </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.index.relationships('DESTINATION','taxi_time:11') YIELD rel, start AS flight, end AS airport
+RETURN flight_num.flight_num, airport.name;</code></pre><div class="admonitionblock note">
+                  <table>
+                     <tbody>
+                        <tr>
+                           <td class="icon"><i class="fa icon-note" title="note"></i></td>
+                           <td class="content">
+                              <p>Manual relationship indexed do not only store the relationship by its properties but also the start- and end-node.</p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+               <p>That&#8217;s why we can use that information to subselect relationships not only by property but also by those nodes, which is quite
+                  powerful.
+               </p>
+               <p>With <code class="literal">apoc.index.in</code> we can pin the node with incoming relationships (end-node) to get the start nodes for all the <code class="literal">DESTINATION</code> relationships.
+                  For instance to find all flights arriving in 'SALT LAKE CITY INTERNATIONAL' with a taxi_time of 7 minutes we&#8217;d use:
+               </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (a:Airport {name:'SALT LAKE CITY INTERNATIONAL'})
+CALL apoc.index.in(a,'DESTINATION','taxi_time:7') YIELD node AS flight
+RETURN flight</code></pre><p>The opposite is <code class="literal">apoc.index.out</code>, which takes and binds end-nodes and returns start-nodes of relationships.
+               </p>
+               <p>Really useful to quickly find a subset of relationships between nodes with many relationships (tens of thousands to millions)
+                  is <code class="literal">apoc.index.between</code>.
+                  Here you bind both the start and end-node and provide (or not) properties of the relationships.
+               </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (f:Flight {flight_num:6147})
+MATCH (a:Airport {name:'SALT LAKE CITY INTERNATIONAL'})
+CALL apoc.index.between(f,'DESTINATION',a,'taxi_time:7') YIELD rel, weight
+RETURN *</code></pre><p>To remove the relationship index <code class="literal">DESTINATION</code> that was created, use.
+               </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.index.remove('DESTINATION')</code></pre></section>
+            <section class="section" id="_schema_index_queries">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a class="anchor" href="#_schema_index_queries"></a>16.3.4.&nbsp;Schema Index Queries
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p>Schema Index lookups that keep order and can apply limits</p>
+               <div class="informaltable">
+                  <div class="table" id="d0e18920">
+                     <table class="informaltable" border="1">
+                        <colgroup>
+                           <col class="col_1"></col>
+                           <col class="col_2"></col>
+                        </colgroup>
+                        <tbody>
+                           <tr>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p><code class="literal">apoc.index.orderedRange(label,key,min,max,sort-relevance,limit) yield node</code></p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>schema range scan which keeps index order and adds limit, values can be null, boundaries are inclusive</p>
+                              </td>
+                           </tr>
+                           <tr>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p><code class="literal">apoc.index.orderedByText(label,key,operator,value,sort-relevance,limit) yield node</code></p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>schema string search which keeps index order and adds limit, operator is 'STARTS WITH' or 'CONTAINS'</p>
+                              </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+            </section>
+         </section>
+      </section>
+      <footer><script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          //Allow Linker
+          ga('create', 'UA-1192232-34','auto', {'allowLinker': true});
+          ga('send', 'pageview');
+          // Load the plugin.
+          ga('require', 'linker');
+          // Define which domains to autoLink.
+          ga('linker:autoLink', ['neo4j.org','neo4j.com','neotechnology.com','graphdatabases.com','graphconnect.com']);
+        </script><script type="text/javascript">
+          document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
+        </script><script>Munchkin.init('773-GON-065');</script></footer>
+   </body>
+</html>

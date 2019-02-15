@@ -1,0 +1,213 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta charset="utf-8"></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+      <title>13.1.4.&nbsp;Run Cypher Script Files - 13.1.&nbsp;Running Cypher fragments</title>
+      <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
+      <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
+      <link rel="prev" href="../cypher-timeboxed/" title="13.1.2.&nbsp;Running a cypher statement timeboxed"></link>
+      <link rel="next" href="../conditionals/" title="13.1.4.1.&nbsp;Conditional Cypher Execution"></link>
+      <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png" alt="Neo4j Logo"></img></a>')
+          );
+          var $sidebar = $('<div id="sidebar-wrapper"></div>');
+          $.get('toc.html', function (d){
+            $(d).appendTo($sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          $sidebar.insertAfter($('header').first());
+        });
+        </script></head>
+   <body>
+      <header>
+         <div class="searchbox">
+            <form id="search-form" class="search" name="search-form" role="search"><input id="search-form-input" name="q" title="search" type="search" lang="en" placeholder="Search Neo4j docs..." aria-label="Search Neo4j documentation" max-length="128" required="required"></input><input id="search-form-button" type="submit" value="Search"></input></form>
+         </div>
+         <ul class="documentation-library">
+            <li><a href="https://neo4j.com/docs/operations-manual/current">Operations Manual</a></li>
+            <li><a href="https://neo4j.com/docs/developer-manual/current/">Developer Manual</a></li>
+            <li><a href="https://neo4j.com/docs/ogm-manual/current/">OGM Manual</a></li>
+            <li><a href="https://neo4j.com/docs/graph-algorithms/current/">Graph Algorithms</a></li>
+            <li><a href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.5/">APOC</a></li>
+            <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
+         </ul>
+         <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../cypher-timeboxed/"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Running a cypher statement timeboxed</a></span><span class="nav-current">
+               <p class="nav-title hidden">13.1.4.&nbsp;Run Cypher Script Files</p></span><span class="nav-next"><a accesskey="n" href="../conditionals/">Conditional Cypher Execution<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+      </header>
+      <div id="search-results" class="hidden"></div>
+      <section class="section" id="run-cypher-scripts">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h3 class="title"><a class="anchor" href="#run-cypher-scripts"></a>13.1.4.&nbsp;Run Cypher Script Files
+                  </h3>
+               </div>
+            </div>
+         </div>
+         <p>Runs each statement in the file / each file, all semicolon separated</p>
+         <p>You can use them with files that are usually run by cypher-shell or neo4j-shell, e.g. generated by <code class="literal">apoc.export.cypher.*</code>
+            They automatically skip <code class="literal">:begin/:commit/:rollback</code> operations as they are executed in a single transaction per file.
+         </p>
+         <p>Data Operations only:</p>
+         <div class="itemizedlist">
+            <ul class="itemizedlist" style="list-style-type: disc; ">
+               <li class="listitem"><code class="literal">apoc.cypher.runFile(file or url,[{config}])</code></li>
+               <li class="listitem"><code class="literal">apoc.cypher.runFiles([files or urls],[{config})])</code></li>
+            </ul>
+         </div>
+         <p>Schema Operations only:</p>
+         <div class="itemizedlist">
+            <ul class="itemizedlist" style="list-style-type: disc; ">
+               <li class="listitem"><code class="literal">apoc.cypher.runSchemaFile(file or url,[{config}])</code></li>
+               <li class="listitem"><code class="literal">apoc.cypher.runSchemaFiles([files or urls],[{config})])</code></li>
+            </ul>
+         </div>
+         <p>The <code class="literal">apoc.cypher.run*File(s)</code> procedures have some optional configuration:
+         </p>
+         <div class="itemizedlist">
+            <ul class="itemizedlist" style="list-style-type: disc; ">
+               <li class="listitem"><code class="literal">{statistics:true/false}</code> to output a row of update-stats per statement, default is true
+               </li>
+               <li class="listitem"><code class="literal">{timeout:1 or 10}</code> for how long the stream waits for new data, default is 10
+               </li>
+            </ul>
+         </div>
+         <section class="section" id="_when_procedures">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h4 class="title"><a class="anchor" href="#_when_procedures"></a>13.1.4.2.&nbsp;WHEN Procedures
+                     </h4>
+                  </div>
+               </div>
+            </div>
+            <div class="informaltable">
+               <div class="table" id="d0e16042">
+                  <table class="informaltable" border="1">
+                     <colgroup>
+                        <col class="col_1"></col>
+                        <col class="col_2"></col>
+                     </colgroup>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.when(condition, ifQuery, elseQuery:'', params:{}) yield value</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>based on the condition, executes read-only ifQuery or elseQuery with the given parameters</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.do.when(condition, ifQuery, elseQuery:'', params:{}) yield value</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>based on the condition, executes writing ifQuery or elseQuery with the given parameters</p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <p>For example, if we wanted to match to neighbor nodes one and two traversals away from a start node, and return the smaller
+               set (either those one hop away, or those that are two hops away), we might use:
+            </p><pre class="programlisting highlight"><code data-lang="cypher"> MATCH (start:Node)-[:REL]-&gt;(a)-[:REL]-&gt;(b)
+ WITH collect(distinct a) as aNodes, collect(distinct b) as bNodes
+ CALL apoc.when(size(aNodes) &lt;= size(bNodes), 'RETURN aNodes as resultNodes', 'RETURN bNodes as resultNodes', {aNodes:aNodes, bNodes:bNodes}) YIELD value
+ RETURN value.resultNodes as resultNodes</code></pre><p>Or, if we wanted to conditionally set or create graph elements if we deem some account to be suspicious, but still want to
+               continue other query operations in either case, we could use <code class="literal">apoc.do.when</code>:
+            </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (acc:Account)
+OPTIONAL MATCH (acc)-[r:ACCESSED_BY]-&gt;(suspect:User)
+WHERE suspect.id in {suspiciousUsersIdList}
+CALL apoc.do.when(r IS NOT NULL, 'SET acc:Suspicious', '', {acc:acc}) YIELD value
+// ignore value and continue
+WITH acc
+...</code></pre></section>
+         <section class="section" id="_case_procedures">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h4 class="title"><a class="anchor" href="#_case_procedures"></a>13.1.4.3.&nbsp;CASE Procedures
+                     </h4>
+                  </div>
+               </div>
+            </div>
+            <p>For more complex conditional logic, case procedures allow for a variable-length list of condition / query pairs, where the
+               query following the first conditional evaluating to true is executed. An elseQuery block is executed if none of the conditionals
+               are true.
+            </p>
+            <div class="informaltable">
+               <div class="table" id="d0e16079">
+                  <table class="informaltable" border="1">
+                     <colgroup>
+                        <col class="col_1"></col>
+                        <col class="col_2"></col>
+                     </colgroup>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.case([condition, query, condition, query, &#8230;&#8203;], elseQuery:'', params:{}) yield value</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>given a list of conditional / read-only query pairs, executes the query associated with the first conditional evaluating to
+                                 true (or the else query if none are true) with the given parameters
+                              </p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.do.case([condition, query, condition, query, &#8230;&#8203;], elseQuery:'', params:{}) yield value</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>given a list of conditional / writing query pairs, executes the query associated with the first conditional evaluating to
+                                 true (or the else query if none are true) with the given parameters
+                              </p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <p>If we wanted to MATCH to selection nodes in a column, we could use entirely different MATCHES depending on query parameters,
+               or based on data already in the graph:
+            </p><pre class="programlisting highlight"><code data-lang="cypher"> MATCH (me:User{id:{myId}})
+ CALL apoc.case(
+  [{selection} = 'friends', "RETURN [(me)-[:FRIENDS]-(friend) | friend] as selection",
+   {selection} = 'coworkers', "RETURN [(me)-[:WORKS_AT*2]-(coworker) | coworker] as selection",
+   {selection} = 'all', "RETURN apoc.coll.union([(me)-[:FRIENDS]-(friend) | friend], [(me)-[:WORKS_AT*2]-(coworker) | coworker]) as selection"],
+   'RETURN [] as selection', {me:me}) YIELD value
+ RETURN value.selection as selection</code></pre></section>
+      </section>
+      <footer><script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          //Allow Linker
+          ga('create', 'UA-1192232-34','auto', {'allowLinker': true});
+          ga('send', 'pageview');
+          // Load the plugin.
+          ga('require', 'linker');
+          // Define which domains to autoLink.
+          ga('linker:autoLink', ['neo4j.org','neo4j.com','neotechnology.com','graphdatabases.com','graphconnect.com']);
+        </script><script type="text/javascript">
+          document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
+        </script><script>Munchkin.init('773-GON-065');</script></footer>
+   </body>
+</html>

@@ -1,0 +1,284 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta charset="utf-8"></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+      <title>16.1.&nbsp;Schema Index Procedures - Chapter&nbsp;16.&nbsp;Deprecated: Text and Lookup Indexes</title>
+      <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
+      <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
+      <link rel="prev" href="../" title="Chapter&nbsp;16.&nbsp;Deprecated: Text and Lookup Indexes"></link>
+      <link rel="next" href="../manual-indexes/" title="16.2.&nbsp;Manual Indexes"></link>
+      <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png" alt="Neo4j Logo"></img></a>')
+          );
+          var $sidebar = $('<div id="sidebar-wrapper"></div>');
+          $.get('toc.html', function (d){
+            $(d).appendTo($sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          $sidebar.insertAfter($('header').first());
+        });
+        </script></head>
+   <body>
+      <header>
+         <div class="searchbox">
+            <form id="search-form" class="search" name="search-form" role="search"><input id="search-form-input" name="q" title="search" type="search" lang="en" placeholder="Search Neo4j docs..." aria-label="Search Neo4j documentation" max-length="128" required="required"></input><input id="search-form-button" type="submit" value="Search"></input></form>
+         </div>
+         <ul class="documentation-library">
+            <li><a href="https://neo4j.com/docs/operations-manual/current">Operations Manual</a></li>
+            <li><a href="https://neo4j.com/docs/developer-manual/current/">Developer Manual</a></li>
+            <li><a href="https://neo4j.com/docs/ogm-manual/current/">OGM Manual</a></li>
+            <li><a href="https://neo4j.com/docs/graph-algorithms/current/">Graph Algorithms</a></li>
+            <li><a href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.5/">APOC</a></li>
+            <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
+         </ul>
+         <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Deprecated: Text and Lookup Indexes</a></span><span class="nav-current">
+               <p class="nav-title hidden">16.1.&nbsp;Schema Index Procedures</p></span><span class="nav-next"><a accesskey="n" href="../manual-indexes/">Manual Indexes<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+      </header>
+      <div id="search-results" class="hidden"></div>
+      <section class="section" id="schema-index-operations">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title" style="clear: both"><a class="anchor" href="#schema-index-operations"></a>16.1.&nbsp;Schema Index Procedures
+                  </h2>
+               </div>
+            </div>
+         </div>
+         <div class="informaltable">
+            <div class="table" id="d0e18176">
+               <table class="informaltable" border="1">
+                  <colgroup>
+                     <col class="col_1"></col>
+                     <col class="col_2"></col>
+                  </colgroup>
+                  <tbody>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.schema.assert({indexLabel:[indexKeys],&#8230;&#8203;},{constraintLabel:[constraintKeys],&#8230;&#8203;}, dropExisting : true) yield label, key,
+                                 unique, action</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>drops all other existing indexes and constraints when <code class="literal">dropExisting</code> is <code class="literal">true</code> (default is <code class="literal">true</code>), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is
+                              considered one constraint/label.
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.schema.nodes([config]) yield name, label, properties, status, type</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>get all indexes and constraints information for all the node labels in your database, in optional config param could be define
+                              a set of labels to include or exclude
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.schema.relationships([config]) yield name, type, properties, status</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>return all the constraint information for all the relationship types in your database, in optional config param could be define
+                              a set of types to include or exclude
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.schema.node.constraintExists(labelName, properties)</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>return the constraints existence on node</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.schema.relationship.constraintExists(type, properties)</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>return the constraints existence on relationship</p>
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+         </div>
+         <section class="section" id="_schema_information">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_schema_information"></a>16.1.1.&nbsp;Schema Information
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>To drop or create index or constraint, you can use the following procedure:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.assert({indexLabel:[[indexKeys]], ...}, {constraintLabel:[constraintKeys], ...}, dropExisting : true) yield label, key, keys, unique, action</code></pre><p>Where the outputs are:</p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem">label</li>
+                  <li class="listitem">key</li>
+                  <li class="listitem">keys, list of the key</li>
+                  <li class="listitem">unique, if the index or constraint are unique</li>
+                  <li class="listitem">action, can be the following values: DROPPED, CREATED</li>
+               </ul>
+            </div>
+            <p>To retrieve indexes and constraints information for all the node labels in your database, you can use the following procedure:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.nodes() yield name, label, properties, status, type</code></pre><p>Where the outputs are:</p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem">name of the index/constraint,</li>
+                  <li class="listitem">label</li>
+                  <li class="listitem">properties, (for Neo4j 3.1 and lower versions is a single element array) that are affected by the constraint</li>
+                  <li class="listitem">status, for index can be one of the following values: ONLINE, POPULATING and FAILED</li>
+                  <li class="listitem">type, always "INDEX" for indexes, constraint type for constraints</li>
+                  <li class="listitem">failure, the failure description of a failed index</li>
+                  <li class="listitem">populationProgress, the population progress of the index in percentage</li>
+                  <li class="listitem">size, the size of the index</li>
+                  <li class="listitem">valuesSelectivity, computes the selectivity of the unique values</li>
+                  <li class="listitem">userDescription, a user friendly description of what this index indexes</li>
+               </ul>
+            </div>
+            <p>To retrieve the constraint information for all the relationship types in your database, you can use the following procedure:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.relationships() yield name, type, properties, status</code></pre><p>Where the outputs are:</p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem">name of the constraint</li>
+                  <li class="listitem">type of the relationship</li>
+                  <li class="listitem">properties, (for Neo4j 3.1 and lower versions is a single element array) that are affected by the constraint</li>
+                  <li class="listitem">status</li>
+               </ul>
+            </div>
+            <p>Config optional param is a map and its possible values are:</p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem">labels : list of labels to retrieve index/constraint information</li>
+                  <li class="listitem">excludeLabels: list of labels to exclude from retrieve index/constraint information</li>
+                  <li class="listitem">relationships: list of relationships type to retrieve constraint information</li>
+                  <li class="listitem">excludeRelationships: list of relationships' type to exclude from retrieve constraint information</li>
+               </ul>
+            </div>
+            <p><span class="strong"><strong>Exclude has more power than include, so if excludeLabels and labels are both valued, procedure considers excludeLabels only,
+                     the same for relationships.</strong></span></p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.nodes({labels:['Book']}) yield name, label, properties, status, type</code></pre><p>N.B. Constraints for property existence on nodes and relationships are available only for the Enterprise Edition.</p>
+            <p>To retrieve the index existence on node, you can use the following user function:</p><pre class="programlisting highlight"><code data-lang="cypher">RETURN apoc.schema.node.indexExists(labelName, propertyNames)</code></pre><p>The output return the index existence on node is present or not</p>
+            <p>To retrieve if the constraint exists on node, you can use the following user function:</p><pre class="programlisting highlight"><code data-lang="cypher">RETURN apoc.schema.node.constraintExists(labelName, propertyNames)</code></pre><p>The output return the constraint existence on node.</p>
+            <p>To retrieve if the constraint exists on relationship, you can use the following user function:</p><pre class="programlisting highlight"><code data-lang="cypher">RETURN apoc.schema.relationship.constraintExists(type, propertyNames)</code></pre><p>The output return the constraint on the relationship is present or not</p>
+            <section class="section" id="_examples_7">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_examples_7"></a>16.1.1.1.&nbsp;Examples
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <section class="section" id="_list_schema_assert">
+                  <div class="titlepage">
+                     <div>
+                        <div>
+                           <h5 class="title"><a class="anchor" href="#_list_schema_assert"></a>List Schema assert
+                           </h5>
+                        </div>
+                     </div>
+                  </div>
+                  <p>When you:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.assert({Foo:['bar']},null)</code></pre><p>you will receive this result:</p>
+                  <div class="informalfigure">
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.assert.index.png" alt="apoc.schema.assert.index"></img></div>
+                  </div>
+                  <p>When you:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.assert(null,{Foo:['bar']})</code></pre><p>you will receive this result:</p>
+                  <div class="informalfigure">
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.assert.constraint.png" alt="apoc.schema.assert.constraint"></img></div>
+                  </div>
+                  <p>When you:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.assert(null,null)</code></pre><p>you will receive this result:</p>
+                  <div class="informalfigure">
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.assert.drop.png" alt="apoc.schema.assert.drop"></img></div>
+                  </div>
+               </section>
+               <section class="section" id="_list_indexes_and_constraints_for_nodes">
+                  <div class="titlepage">
+                     <div>
+                        <div>
+                           <h5 class="title"><a class="anchor" href="#_list_indexes_and_constraints_for_nodes"></a>List indexes and constraints for nodes
+                           </h5>
+                        </div>
+                     </div>
+                  </div>
+                  <p>Given the following cypher statements:</p><pre class="programlisting highlight"><code data-lang="cypher">CREATE CONSTRAINT ON (bar:Bar) ASSERT exists(bar.foobar)
+CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE
+CREATE INDEX ON :Person(name)
+CREATE INDEX ON :Publication(name)
+CREATE INDEX ON :Source(name)</code></pre><p>When you</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.nodes()</code></pre><p>you will receive this result:</p>
+                  <div class="informalfigure">
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.nodes.png" alt="apoc.schema.nodes"></img></div>
+                  </div>
+               </section>
+               <section class="section" id="_list_constraints_for_relationships">
+                  <div class="titlepage">
+                     <div>
+                        <div>
+                           <h5 class="title"><a class="anchor" href="#_list_constraints_for_relationships"></a>List constraints for relationships
+                           </h5>
+                        </div>
+                     </div>
+                  </div>
+                  <p>Given the following cypher statements:</p><pre class="programlisting highlight"><code data-lang="cypher">CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)
+CREATE CONSTRAINT ON ()-[starred:STARRED]-() ASSERT exists(starred.month)</code></pre><p>When you</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.relationships()</code></pre><p>you will receive this result:</p>
+                  <div class="informalfigure">
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.relationships.png" alt="apoc.schema.relationships"></img></div>
+                  </div>
+               </section>
+               <section class="section" id="_check_if_an_index_or_a_constraint_exists_for_a_label_and_property">
+                  <div class="titlepage">
+                     <div>
+                        <div>
+                           <h5 class="title"><a class="anchor" href="#_check_if_an_index_or_a_constraint_exists_for_a_label_and_property"></a>Check if an index or a constraint exists for a Label and property
+                           </h5>
+                        </div>
+                     </div>
+                  </div>
+                  <p>Given the previous index definitions, running this statement:</p><pre class="programlisting highlight"><code data-lang="cypher">RETURN apoc.schema.node.indexExists("Publication", ["name"])</code></pre><p>produces the following output:</p>
+                  <div class="informalfigure">
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.node.indexExists.png" alt="apoc.schema.node.indexExists"></img></div>
+                  </div>
+                  <p>Given the previous constraint definitions, running this statement:</p><pre class="programlisting highlight"><code data-lang="cypher">RETURN apoc.schema.node.constraintExists("Bar", ["foobar"])</code></pre><p>produces the following output:</p>
+                  <div class="informalfigure">
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.node.constraintExists.png" alt="apoc.schema.node.constraintExists"></img></div>
+                  </div>
+                  <p>If you want to check if a constraint exists for a relationship you can run this statement:</p><pre class="programlisting highlight"><code data-lang="cypher">RETURN apoc.schema.relationship.constraintExists('LIKED', ['day'])</code></pre><p>and you get the following result:</p>
+                  <div class="informalfigure">
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.relationship.constraintExists.png" alt="apoc.schema.relationship.constraintExists"></img></div>
+                  </div>
+               </section>
+            </section>
+         </section>
+      </section>
+      <footer><script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          //Allow Linker
+          ga('create', 'UA-1192232-34','auto', {'allowLinker': true});
+          ga('send', 'pageview');
+          // Load the plugin.
+          ga('require', 'linker');
+          // Define which domains to autoLink.
+          ga('linker:autoLink', ['neo4j.org','neo4j.com','neotechnology.com','graphdatabases.com','graphconnect.com']);
+        </script><script type="text/javascript">
+          document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
+        </script><script>Munchkin.init('773-GON-065');</script></footer>
+   </body>
+</html>

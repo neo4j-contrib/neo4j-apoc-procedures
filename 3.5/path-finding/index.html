@@ -1,0 +1,180 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta charset="utf-8"></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+      <title>Chapter&nbsp;12.&nbsp;Path Finding - APOC User Guide 3.5</title>
+      <link rel="stylesheet" type="text/css" href="../docbook.css"></link>
+      <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="../css/chunked-base.css"></link>
+      <link rel="stylesheet" type="text/css" href="../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../javascript/datatable.js" type="text/javascript"></script><script src="../javascript/colorize.js" type="text/javascript"></script><script src="../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../javascript/mp-nav.js" type="text/javascript"></script><script src="../javascript/versionswitcher.js" type="text/javascript"></script><script src="../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
+      <link rel="prev" href="../nodes-relationships/parallel-node-search/" title="11.7.&nbsp;Parallel Node Search"></link>
+      <link rel="next" href="path-expander/" title="12.1.&nbsp;Path Expander"></link>
+      <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png" alt="Neo4j Logo"></img></a>')
+          );
+          var $sidebar = $('<div id="sidebar-wrapper"></div>');
+          $.get('toc.html', function (d){
+            $(d).appendTo($sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          $sidebar.insertAfter($('header').first());
+        });
+        </script></head>
+   <body>
+      <header>
+         <div class="searchbox">
+            <form id="search-form" class="search" name="search-form" role="search"><input id="search-form-input" name="q" title="search" type="search" lang="en" placeholder="Search Neo4j docs..." aria-label="Search Neo4j documentation" max-length="128" required="required"></input><input id="search-form-button" type="submit" value="Search"></input></form>
+         </div>
+         <ul class="documentation-library">
+            <li><a href="https://neo4j.com/docs/operations-manual/current">Operations Manual</a></li>
+            <li><a href="https://neo4j.com/docs/developer-manual/current/">Developer Manual</a></li>
+            <li><a href="https://neo4j.com/docs/ogm-manual/current/">OGM Manual</a></li>
+            <li><a href="https://neo4j.com/docs/graph-algorithms/current/">Graph Algorithms</a></li>
+            <li><a href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.5/">APOC</a></li>
+            <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
+         </ul>
+         <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../nodes-relationships/parallel-node-search/"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Parallel Node Search</a></span><span class="nav-current">
+               <p class="nav-title hidden">Chapter&nbsp;12.&nbsp;Path Finding</p></span><span class="nav-next"><a accesskey="n" href="path-expander/">Path Expander<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+      </header>
+      <div id="search-results" class="hidden"></div>
+      <section class="chapter" id="path-finding">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h1 class="title">Chapter&nbsp;12.&nbsp;Path Finding</h1>
+               </div>
+            </div>
+         </div>
+         <p>APOC exposes some built in path-finding functions that Neo4j brings along.</p>
+         <div class="informaltable">
+            <div class="table" id="d0e13743">
+               <table class="informaltable" border="1">
+                  <colgroup>
+                     <col class="col_1"></col>
+                     <col class="col_2"></col>
+                  </colgroup>
+                  <tbody>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.algo.dijkstra(startNode, endNode, 'KNOWS|&lt;WORKS_WITH|IS_MANAGER_OF&gt;', 'distance') YIELD path, weight</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>run dijkstra with relationship property name as cost function</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS|&lt;WORKS_WITH|IS_MANAGER_OF&gt;',  'distance', 10) YIELD path, weight</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>run dijkstra with relationship property name as cost function and a default weight if the property does not exist</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.algo.aStar(startNode, endNode, 'KNOWS|&lt;WORKS_WITH|IS_MANAGER_OF&gt;', 'distance','lat','lon')  YIELD path, weight</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>run A* with relationship property name as cost function</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.algo.aStar(startNode, endNode, 'KNOWS|&lt;WORKS_WITH|IS_MANAGER_OF&gt;', {weight:'dist',default:10, x:'lon',y:'lat'}) YIELD
+                                 path, weight</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>run A* with relationship property name as cost function</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS|&lt;WORKS_WITH|IS_MANAGER_OF&gt;', 5) YIELD path,  weight</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>run allSimplePaths with relationships given and maxNodes</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.stats.degrees(relTypesDirections) yield type, direction, total, min, max, mean, p50, p75, p90, p95, p99, p999</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>compute degree distribution in parallel</p>
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+         </div>
+         <p>Example: find the weighted shortest path based on relationship property <code class="literal">d</code> from <code class="literal">A</code> to <code class="literal">B</code> following just <code class="literal">:ROAD</code> relationships
+         </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'})
+CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as weight
+RETURN path, weight</code></pre><section class="section" id="_expand_to_a_subgraph_and_return_all_nodes_and_relationships_within_the_subgraph">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a class="anchor" href="#_expand_to_a_subgraph_and_return_all_nodes_and_relationships_within_the_subgraph"></a>12.2.&nbsp;Expand to a subgraph and return all nodes and relationships within the subgraph
+                     </h2>
+                  </div>
+               </div>
+            </div><pre class="screen highlight"><code>apoc.path.subgraphAll(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1}) yield nodes, relationships</code></pre><p>Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
+               Returns the collection of nodes in the subgraph, and the collection of relationships between all subgraph nodes.
+            </p>
+            <p>Accepts the same <code class="literal">config</code> values as in <code class="literal">expandConfig()</code>, though <code class="literal">uniqueness</code> and <code class="literal">minLevel</code> are not configurable.
+            </p>
+            <p>The <code class="literal">optional</code> config value isn&#8217;t needed, as empty lists are yielded if there are no results, so rows are never eliminated.
+            </p>
+            <p><span class="formalpara-title">Example.&nbsp;</span>Expand to local subgraph (and all its relationships) within 4 traversals:
+            </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.subgraphAll(user, {maxLevel:4}) YIELD nodes, relationships
+RETURN nodes, relationships;</code></pre></section>
+         <section class="section" id="_expand_a_spanning_tree">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a class="anchor" href="#_expand_a_spanning_tree"></a>12.3.&nbsp;Expand a spanning tree
+                     </h2>
+                  </div>
+               </div>
+            </div><pre class="screen highlight"><code>apoc.path.spanningTree(startNode &lt;id&gt;Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1, optional:false}) yield path</code></pre><p>Expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters.
+               The paths returned collectively form a spanning tree.
+            </p>
+            <p>Accepts the same <code class="literal">config</code> values as in <code class="literal">expandConfig()</code>, though <code class="literal">uniqueness</code> and <code class="literal">minLevel</code> are not configurable.
+            </p>
+            <p><span class="formalpara-title">Example.&nbsp;</span>Expand a spanning tree of all contiguous :User nodes:
+            </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.spanningTree(user, {labelFilter:'+User'}) YIELD path
+RETURN path;</code></pre></section>
+      </section>
+      <footer><script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          //Allow Linker
+          ga('create', 'UA-1192232-34','auto', {'allowLinker': true});
+          ga('send', 'pageview');
+          // Load the plugin.
+          ga('require', 'linker');
+          // Define which domains to autoLink.
+          ga('linker:autoLink', ['neo4j.org','neo4j.com','neotechnology.com','graphdatabases.com','graphconnect.com']);
+        </script><script type="text/javascript">
+          document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
+        </script><script>Munchkin.init('773-GON-065');</script></footer>
+   </body>
+</html>
