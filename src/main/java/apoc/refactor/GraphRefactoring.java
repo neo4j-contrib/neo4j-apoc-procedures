@@ -1,6 +1,9 @@
 package apoc.refactor;
 
 import apoc.Pools;
+import apoc.algo.Cover;
+import apoc.algo.algorithms.AlgoUtils;
+import apoc.algo.algorithms.Algorithm;
 import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
 import apoc.result.NodeResult;
@@ -110,6 +113,144 @@ public class GraphRefactoring {
     @Description("apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) clone nodes with their labels, properties and relationships")
     public Stream<NodeRefactorResult> cloneNodesWithRelationships(@Name("nodes") List<Node> nodes) {
         return doCloneNodes(nodes, true, Collections.emptyList());
+    }
+
+    /**
+     * this procedure clones a subgraph defined by a list of nodes and relationships. The resulting clone is a disconnected subgraph,
+     * with no relationships connecting with the original nodes, nor with any other node outside the subgraph clone.
+     * This can be overridden by supplying a list of node pairings in the `standinNodes` config property, so any relationships that went to the old node, when cloned, will instead be redirected to the standin node.
+     * This is useful when instead of cloning a certain node or set of nodes, you want to instead redirect relationships in the resulting clone
+     * such that they point to some existing node in the graph.
+     *
+     * For example, this could be used to clone a branch from a tree structure (with none of the new relationships going
+     * to the original nodes) and to redirect any relationships from an old root node (which will not be cloned) to a different existing root node, which acts as the standin.
+     *
+     */
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.refactor.cloneSubgraphFromPaths([path1, path2, ...], {standinNodes:[], skipProperties:[]}) YIELD input, output, error | " +
+            "from the subgraph formed from the given paths, clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map), and clone the relationships (will exist between cloned nodes only). " +
+            "Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), " +
+            "an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.")
+    public Stream<NodeRefactorResult> cloneSubgraphFromPaths(@Name("paths") List<Path> paths,
+                                                    @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
+
+        if (paths == null || paths.isEmpty()) return Stream.empty();
+
+        Set<Node> nodes = new HashSet<>();
+        Set<Relationship> rels = new HashSet();
+
+        for (Path path : paths) {
+            for (Relationship rel : path.relationships()) {
+                rels.add(rel);
+            }
+
+            for (Node node : path.nodes()) {
+                nodes.add(node);
+            }
+        }
+
+        List<Node> nodesList = nodes.stream().collect(Collectors.toList());
+        List<Relationship> relsList = rels.stream().collect(Collectors.toList());
+
+        return cloneSubgraph(nodesList, relsList, config);
+    }
+
+    /**
+     * this procedure clones a subgraph defined by a list of nodes and relationships. The resulting clone is a disconnected subgraph,
+     * with no relationships connecting with the original nodes, nor with any other node outside the subgraph clone.
+     * This can be overridden by supplying a list of node pairings in the `standinNodes` config property, so any relationships that went to the old node, when cloned, will instead be redirected to the standin node.
+     * This is useful when instead of cloning a certain node or set of nodes, you want to instead redirect relationships in the resulting clone
+     * such that they point to some existing node in the graph.
+     *
+     * For example, this could be used to clone a branch from a tree structure (with none of the new relationships going
+     * to the original nodes) and to redirect any relationships from an old root node (which will not be cloned) to a different existing root node, which acts as the standin.
+     *
+     */
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.refactor.cloneSubgraph([node1,node2,...], [rel1,rel2,...]:[], {standinNodes:[], skipProperties:[]}) YIELD input, output, error | " +
+            "clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map), and clone the given relationships (will exist between cloned nodes only). " +
+            "If no relationships are provided, all relationships between the given nodes will be cloned. " +
+            "Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), " +
+            "an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.")
+    public Stream<NodeRefactorResult> cloneSubgraph(@Name("nodes") List<Node> nodes,
+                                                    @Name(value="rels", defaultValue = "[]") List<Relationship> rels,
+                                                    @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
+
+        if (nodes == null || nodes.isEmpty()) return Stream.empty();
+
+        // empty or missing rels list means get all rels between nodes
+        if (rels == null || rels.isEmpty()) {
+            rels = Cover.coverNodes(nodes).collect(Collectors.toList());
+        }
+
+        Map<Node, Node> copyMap = new HashMap<>(nodes.size());
+        List<NodeRefactorResult> resultStream = new ArrayList<>();
+
+        Map<Node, Node> standinMap = generateStandinMap((List<List<Node>>) config.getOrDefault("standinNodes", Collections.emptyList()));
+        List<String> skipProperties = (List<String>) config.getOrDefault("skipProperties", Collections.emptyList());
+
+        // clone nodes and populate copy map
+        for (Node node : nodes) {
+            if (node == null || standinMap.containsKey(node)) continue;
+            // standinNodes will NOT be cloned
+
+            NodeRefactorResult result = new NodeRefactorResult(node.getId());
+            try {
+                Node copy = copyLabels(node, db.createNode());
+
+                Map<String, Object> properties = node.getAllProperties();
+                if (skipProperties != null && !skipProperties.isEmpty()) {
+                    for (String skip : skipProperties) properties.remove(skip);
+                }
+                copy = copyProperties(properties, copy);
+
+                resultStream.add(result.withOther(copy));
+                copyMap.put(node, copy);
+            } catch (Exception e) {
+                resultStream.add(result.withError(e));
+            }
+        }
+
+        // clone relationships, will be between cloned nodes and/or standins
+        for (Relationship rel : rels) {
+            if (rel == null) continue;
+
+            Node oldStart = rel.getStartNode();
+            Node newStart = standinMap.getOrDefault(oldStart, copyMap.get(oldStart));
+
+            Node oldEnd = rel.getEndNode();
+            Node newEnd = standinMap.getOrDefault(oldEnd, copyMap.get(oldEnd));
+
+            if (newStart != null && newEnd != null) {
+                Relationship newrel = newStart.createRelationshipTo(newEnd, rel.getType());
+                copyProperties(rel, newrel);
+            }
+        }
+
+        return resultStream.stream();
+    }
+
+    private Map<Node, Node> generateStandinMap(List<List<Node>> standins) {
+        Map<Node, Node> standinMap = standins.isEmpty() ? Collections.emptyMap() : new HashMap<>(standins.size());
+
+        for (List<Node> pairing : standins) {
+            if (pairing == null) continue;
+
+            if (pairing.size() != 2) {
+                throw new IllegalArgumentException("\'standinNodes\' must be a list of node pairs");
+            }
+
+            Node from = pairing.get(0);
+            Node to = pairing.get(1);
+
+            if (from == null || to == null) {
+                throw new IllegalArgumentException("\'standinNodes\' must be a list of node pairs");
+            }
+
+            standinMap.put(from, to);
+        }
+
+        return standinMap;
     }
 
     /**
