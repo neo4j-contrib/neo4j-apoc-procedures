@@ -1,13 +1,10 @@
 package apoc.schema;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.ConstraintType;
@@ -20,7 +17,8 @@ import java.util.concurrent.TimeUnit;
 
 import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -292,26 +290,7 @@ public class SchemasTest {
         });
     }
 
-    @Test
-    public void testIndexOnMultipleProperties() {
-        ignoreException(() -> {
-            db.execute("CREATE INDEX ON :Foo(bar, foo)").close();
-            db.execute("CALL db.awaitIndex(':Foo(bar, foo)')").close();
-            testResult(db, "CALL apoc.schema.nodes()", (result) -> {
-                // Get the index info
-                Map<String, Object> r = result.next();
 
-                assertEquals(":Foo(bar,foo)", r.get("name"));
-                assertEquals("ONLINE", r.get("status"));
-                assertEquals("Foo", r.get("label"));
-                assertEquals("INDEX", r.get("type"));
-                assertTrue(((List<String>) r.get("properties")).contains("bar"));
-                assertTrue(((List<String>) r.get("properties")).contains("foo"));
-
-                assertTrue(!result.hasNext());
-            });
-        }, QueryExecutionException.class);
-    }
 
     @Test
     public void testUniquenessConstraintOnNode() {
@@ -347,51 +326,6 @@ public class SchemasTest {
 
             assertTrue(!result.hasNext());
         });
-    }
-
-    @Test
-    public void testPropertyExistenceConstraintOnNode() {
-        ignoreException(() -> {
-            db.execute("CREATE CONSTRAINT ON (bar:Bar) ASSERT exists(bar.foobar)").close();
-            testResult(db, "CALL apoc.schema.nodes()", (result) -> {
-                Map<String, Object> r = result.next();
-
-                assertEquals("Bar", r.get("label"));
-                assertEquals("NODE_PROPERTY_EXISTENCE", r.get("type"));
-                assertEquals(asList("foobar"), r.get("properties"));
-
-                assertTrue(!result.hasNext());
-            });
-        }, QueryExecutionException.class);
-    }
-
-    @Test
-    public void testConstraintExistsOnRelationship() {
-        ignoreException(() -> {
-            db.execute("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)").close();
-
-            testResult(db, "RETURN apoc.schema.relationship.constraintExists('LIKED', ['day'])", (result) -> {
-                Map<String, Object> r = result.next();
-                assertEquals(true, r.entrySet().iterator().next().getValue());
-            });
-
-        }, QueryExecutionException.class);
-    }
-
-    @Test
-    public void testSchemaRelationships() {
-        ignoreException(() -> {
-            db.execute("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)").close();
-            testResult(db, "CALL apoc.schema.relationships()", (result) -> {
-                Map<String, Object> r = result.next();
-                assertEquals("CONSTRAINT ON ()-[liked:LIKED]-() ASSERT exists(liked.day)", r.get("name"));
-                assertEquals("RELATIONSHIP_PROPERTY_EXISTENCE", r.get("type"));
-                assertEquals(asList("day"), r.get("properties"));
-                assertEquals(StringUtils.EMPTY, r.get("status"));
-                assertFalse(result.hasNext());
-            });
-
-        }, QueryExecutionException.class);
     }
 
     @Test
@@ -507,77 +441,6 @@ public class SchemasTest {
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
             assertEquals(1, indexes.size());
-        }
-    }
-
-    @Test
-    @Ignore("NODE KEY is enterprise only")
-    public void testDropNodeKeyConstraintAndCreateNodeKeyConstraintWhenUsingDropExisting() throws Exception {
-        db.execute("CREATE CONSTRAINT ON (f:Foo) ASSERT (f.bar,f.foo) IS NODE KEY").close();
-        testResult(db, "CALL apoc.schema.assert(null,{Foo:[['bar','foo']]})", (result) -> {
-            Map<String, Object> r = result.next();
-            assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("bar","foo"), r.get("keys"));
-            assertEquals(true, r.get("unique"));
-            assertEquals("DROPPED", r.get("action"));
-
-            r = result.next();
-            assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("bar", "foo"), r.get("keys"));
-            assertEquals(true, r.get("unique"));
-            assertEquals("CREATED", r.get("action"));
-        });
-        try (Transaction tx = db.beginTx()) {
-            List<ConstraintDefinition> constraints = Iterables.asList(db.schema().getConstraints());
-            assertEquals(1, constraints.size());
-        }
-    }
-
-    @Test
-    @Ignore("NODE KEY is enterprise only")
-    public void testDropSchemaWithNodeKeyConstraintWhenUsingDropExisting() throws Exception {
-        db.execute("CREATE CONSTRAINT ON (f:Foo) ASSERT (f.foo, f.bar) IS NODE KEY").close();
-        testCall(db, "CALL apoc.schema.assert(null,null)", (r) -> {
-            assertEquals("Foo", r.get("label"));
-            assertEquals(expectedKeys("foo", "bar"), r.get("keys"));
-            assertEquals(true, r.get("unique"));
-            assertEquals("DROPPED", r.get("action"));
-        });
-        try (Transaction tx = db.beginTx()) {
-            List<ConstraintDefinition> constraints = Iterables.asList(db.schema().getConstraints());
-            assertEquals(0, constraints.size());
-        }
-    }
-
-    @Test
-    @Ignore("property exist constraints are enterprise only")
-    public void testDropConstraintExistsPropertyNode() throws Exception {
-        db.execute("CREATE CONSTRAINT ON (m:Movie) ASSERT exists(m.title)").close();
-        testCall(db, "CALL apoc.schema.assert({},{})", (r) -> {
-            assertEquals("Movie", r.get("label"));
-            assertEquals(expectedKeys("title"), r.get("keys"));
-            assertTrue("should be unique", (boolean) r.get("unique"));
-            assertEquals("DROPPED", r.get("action"));
-        });
-        try (Transaction tx = db.beginTx()) {
-            List<ConstraintDefinition> constraints = Iterables.asList(db.schema().getConstraints());
-            assertEquals(0, constraints.size());
-        }
-    }
-
-    @Test
-    @Ignore("property exist constraints are enterprise only")
-    public void testDropConstraintExistsPropertyRelationship() throws Exception {
-        db.execute("CREATE CONSTRAINT ON ()-[acted:Acted]->() ASSERT exists(acted.since)").close();
-        testCall(db, "CALL apoc.schema.assert({},{})", (r) -> {
-            assertEquals("Acted", r.get("label"));
-            assertEquals(expectedKeys("since"), r.get("keys"));
-            assertTrue("should be unique", (boolean) r.get("unique"));
-            assertEquals("DROPPED", r.get("action"));
-        });
-        try (Transaction tx = db.beginTx()) {
-            List<ConstraintDefinition> constraints = Iterables.asList(db.schema().getConstraints());
-            assertEquals(0, constraints.size());
         }
     }
 

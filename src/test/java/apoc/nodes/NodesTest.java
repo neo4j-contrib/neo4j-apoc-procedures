@@ -2,22 +2,18 @@ package apoc.nodes;
 
 import apoc.create.Create;
 import apoc.util.TestUtil;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static apoc.util.Util.map;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
+import static java.util.Collections.*;
 import static org.junit.Assert.*;
 import static org.neo4j.helpers.collection.Iterators.asSet;
 
@@ -204,7 +200,6 @@ public class NodesTest {
     }
 
     @Test
-    @Ignore("Bug 3.5 org.neo4j.graphdb.NotFoundException: No column named 'xxx' was found. Found: (\"xxx\")")
     public void testId() {
         assertTrue(db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.node.id(f) AS id").<Long>columnAs("id").next() >= 0);
         assertTrue(db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.node.id(node) AS id").<Long>columnAs("id").next() < 0);
@@ -212,7 +207,6 @@ public class NodesTest {
         assertNull(db.execute("RETURN apoc.node.id(null) AS id").<Long>columnAs("id").next());
     }
     @Test
-    @Ignore("Bug 3.5 org.neo4j.graphdb.NotFoundException: No column named 'xxx' was found. Found: (\"xxx\")")
     public void testRelId() {
         assertTrue(db.execute("CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.rel.id(rel) AS id").<Long>columnAs("id").next() >= 0);
         assertTrue(db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.rel.id(rel) AS id").<Long>columnAs("id").next() < 0);
@@ -220,14 +214,13 @@ public class NodesTest {
         assertNull(db.execute("RETURN apoc.rel.id(null) AS id").<Long>columnAs("id").next());
     }
     @Test
-    @Ignore("Bug 3.5 org.neo4j.graphdb.NotFoundException: No column named 'xxx' was found. Found: (\"xxx\")")
     public void testLabels() {
         assertEquals(singletonList("Foo"), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.node.labels(f) AS labels").columnAs("labels").next());
         assertEquals(singletonList("Foo"), db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.node.labels(node) AS labels").columnAs("labels").next());
         assertNull(db.execute("RETURN apoc.node.labels(null) AS labels").columnAs("labels").next());
     }
+
     @Test
-    @Ignore("Bug 3.5 org.neo4j.graphdb.NotFoundException: No column named 'xxx' was found. Found: (\"xxx\")")
     public void testProperties() {
         assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f) AS props").columnAs("props").next());
         assertEquals(singletonMap("foo","bar"), db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.properties(node) AS props").columnAs("props").next());
@@ -237,8 +230,8 @@ public class NodesTest {
 
         assertNull(db.execute("RETURN apoc.any.properties(null) AS props").columnAs("props").next());
     }
+
     @Test
-    @Ignore("Bug 3.5 org.neo4j.graphdb.NotFoundException: No column named 'xxx' was found. Found: (\"xxx\")")
     public void testSubProperties() {
         assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f,['foo']) AS props").columnAs("props").next());
         assertEquals(emptyMap(), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f,['bar']) AS props").columnAs("props").next());
@@ -253,8 +246,8 @@ public class NodesTest {
 
         assertNull(db.execute("RETURN apoc.any.properties(null,['foo']) AS props").columnAs("props").next());
     }
+
     @Test
-    @Ignore("Bug 3.5 org.neo4j.graphdb.NotFoundException: No column named 'xxx' was found. Found: (\"xxx\")")
     public void testProperty() {
         assertEquals("bar", db.execute("RETURN apoc.any.property({foo:'bar'},'foo') AS props").columnAs("props").next());
         assertEquals(null, db.execute("RETURN apoc.any.property({foo:'bar'},'bar') AS props").columnAs("props").next());
@@ -274,8 +267,8 @@ public class NodesTest {
         assertNull(db.execute("RETURN apoc.any.property(null,'foo') AS props").columnAs("props").next());
         assertNull(db.execute("RETURN apoc.any.property(null,null) AS props").columnAs("props").next());
     }
+
     @Test
-    @Ignore("Bug 3.5 org.neo4j.graphdb.NotFoundException: No column named 'xxx' was found. Found: (\"xxx\")")
     public void testRelType() {
         assertEquals("REL", db.execute("CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.rel.type(rel) AS type").columnAs("type").next());
 
