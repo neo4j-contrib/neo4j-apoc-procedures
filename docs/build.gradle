@@ -25,7 +25,7 @@ buildscript {
 
 plugins {
     id 'base'
-    id 'org.neo4j.doc.build.saxon' version '1.0-alpha01'
+    id 'org.neo4j.doc.build.saxon' version '1.0-alpha02'
     id 'org.neo4j.doc.build.docbook' version '1.0-alpha03'
 }
 
