@@ -1,0 +1,112 @@
+= APOC User Guide {apoc-release}
+:toc: left
+:experimental:
+:sectid:
+:sectlinks:
+:toclevels: 2
+:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/img
+//{imagesdir}
+:script: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/script
+
+[[introduction]]
+== Introduction
+
+NOTE: Go here for documentation for APOC for Neo4j version link:index30.html[3.0.x] link:index31.html[3.1.x] link:index32.html[3.2.x] link:index33.html[3.3.x] link:index34.html[3.4.x] link:index35.html[3.5.x]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/V1DTBjetIfk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+include::../../readme.adoc[tags=intro,leveloffset=1]
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/b1Yr2nHNS4M" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+include::../../readme.adoc[tags=signature,leveloffset=1]
+
+include::help.adoc[]
+
+To generate the help output, apoc utilizes the built in `dbms.procedures()` and `dbms.functions()` utilities.
+
+[[installation]]
+== Installation in Neo4j Server & Docker
+
+include::../../readme.adoc[tags=install,leveloffset=1]
+
+include::../../readme.adoc[tags=warnings,leveloffset=0]
+
+include::../../readme.adoc[tags=docker,leveloffset=0]
+
+[[overview]]
+== Overview of APOC Procedures & Functions
+
+[[table-all]]
+[separator=¦,opts=header]
+|===
+include::../../build/generated-documentation/documentation.csv[]
+|===
+
+include::config.adoc[]
+
+include::functions.adoc[leveloffset=+1]
+
+
+include::_export_import.adoc[]
+
+== Schema
+
+include::schema.adoc[leveloffset=2]
+
+include::_utilities.adoc[]
+
+include::_nodes_relationships.adoc[]
+
+include::_cypher_execution.adoc[]
+
+include::_virtual.adoc[]
+
+
+include::_indexes.adoc[]
+
+include::_algorithms.adoc[]
+
+== Spatial
+
+include::spatial.adoc[leveloffset=2]
+
+include::_database_integration.adoc[]
+
+== Graph Refactorings
+
+include::refactor.adoc[leveloffset=2]
+
+
+== Graph Refactoring
+
+include::graph-refactor.adoc[leveloffset=1]
+
+////
+== Performance Tests
+
+include::big-graph-from-cypher.adoc[leveloffset=1]
+
+include::graphml-tests.adoc[leveloffset=1]
+////
+
+ifdef::backend-html5[]
+++++
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('#table-all').DataTable();
+} );
+</script>
+++++
+endif::[]

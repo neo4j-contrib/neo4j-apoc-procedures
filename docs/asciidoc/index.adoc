@@ -1,0 +1,187 @@
+= APOC User Guide {apoc-release}
+:toc: left
+:experimental:
+:sectid:
+:sectlinks:
+:toclevels: 2
+:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/img
+//{imagesdir}
+:script: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/script
+:gh-docs: https://neo4j-contrib.github.io/neo4j-apoc-procedures
+
+[[introduction]]
+== Introduction
+
+NOTE: Go here for documentation for APOC for Neo4j version link:{gh-docs}/index30.html[3.0.x] link:{gh-docs}/index31.html[3.1.x] link:{gh-docs}/index32.html[3.2.x] link:{gh-docs}/index33.html[3.3.x] link:{gh-docs}/3.4[3.4.x] link:{gh-docs}/3.5[3.5.x]
+
+=== Documentation Overview
+
+.Main Sections
+* <<overview>>
+* <<export-import>>
+* <<database-integration>>
+* <<schema>>
+* <<utilities>>
+* <<cypher-execution>>
+* <<nodes-relationships>>
+* <<path-finding>>
+* <<virtual>>
+
+.Most Frequently Used
+1. <<load-json>>
+2. <<load-jdbc>>
+2. <<commit-batching>>
+3. <<datetime-conversions>>
+4. <<map-functions>>
+5. <<virtual-nodes-rels>>
+
+////
+* <<help>>
+* <<installation>>
+* <<overview>>
+* <<config>>
+////
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/V1DTBjetIfk" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+include::../../readme.adoc[tags=intro,leveloffset=1]
+
+include::help.adoc[]
+
+To generate the help output, apoc utilizes the built in `dbms.procedures()` and `dbms.functions()` utilities.
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/b1Yr2nHNS4M" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+include::../../readme.adoc[tags=signature,leveloffset=1]
+
+[[installation]]
+== Installation in Neo4j Server & Docker
+
+include::../../readme.adoc[tags=install,leveloffset=1]
+
+include::../../readme.adoc[tags=warnings,leveloffset=0]
+
+include::../../readme.adoc[tags=docker,leveloffset=0]
+
+[[overview]]
+== Overview of APOC Procedures & Functions
+
+[[table-all]]
+[separator=¦,opts=header]
+|===
+include::../../build/generated-documentation/documentation.csv[]
+|===
+
+include::config.adoc[]
+
+include::functions.adoc[leveloffset=+1]
+
+
+include::_export_import.adoc[]
+
+include::_database_integration.adoc[]
+
+include::_schema.adoc[]
+
+include::_utilities.adoc[]
+
+////
+<<utilities>>
+
+<<conversion-functions>> | <<map-functions>> | <<collection-list-functions>>
+
+<<text-functions>> | <<math-functions>>
+
+<<data-extraction-functions>> | <<datetime-conversions>> | <<temporal-conversions>>
+
+<<number-conversions>>
+
+<<exact-math-functions>>
+
+<<phonetic-functions>>
+<<node-difference>>
+
+<<spatial>>
+<<static-values>>
+<<utility-functions>>
+<<bitwise-operations>>
+<<atomic-updates>>
+////
+
+include::_nodes_relationships.adoc[]
+
+////
+<<nodes-relationships>>
+<<path-functions>>
+<<node-lookup>>
+<<node-functions>>
+<<data-creation>>
+<<locking>>
+<<graph-generators>>
+<<parallel-node-search>>
+////
+
+include::_path_finding.adoc[]
+
+include::_cypher_execution.adoc[]
+
+include::_virtual.adoc[]
+
+////
+[[virtual]]
+[[virtual-nodes-rels]]
+[[virtual-graph]]
+[[graph-grouping]]
+////
+
+include::graph-refactor.adoc[]
+////
+[[clone-nodes]]
+[[merge-nodes]]
+[[redirect-relationship]]
+[[invert-relationship]]
+[[set-relationship-type]]
+[[extract-node-from-relationship]]
+[[collapse-node-to-relationship]]
+[[categorize]]
+[[rename-label-type-property]]
+////
+
+include::_indexes.adoc[]
+
+////
+
+[[indexes]]
+[[schema-index-operations]]
+[[manual-indexes]]
+[[fulltext-index]]
+
+////
+
+include::_algorithms.adoc[]
+
+////
+[[algorithms]]
+[[similarity]]
+[[community-detection]]
+[[pagerank]]
+[[centrality]]
+////
+
+////
+== Performance Tests
+
+include::big-graph-from-cypher.adoc[leveloffset=1]
+
+include::graphml-tests.adoc[leveloffset=1]
+
+include::jmh.adoc[leveloffset=1]
+////

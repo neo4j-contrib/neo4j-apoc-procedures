@@ -1,0 +1,100 @@
+[[virtual-graph]]
+== Virtual Graph
+
+////
+Virtual Nodes and Relationships don't exist in the graph, they are only returned to the UI/user for representing a graph projection.
+They can be visualized or processed otherwise.
+Please note that they have negative id's.
+
+[cols="1m,5"]
+|===
+| CALL apoc.create.vNode(['Label'], {key:value,...}) YIELD node | returns a virtual node
+| apoc.create.vNode(['Label'], {key:value,...}) | returns a virtual node
+| CALL apoc.create.vNodes(['Label'], [{key:value,...}]) | returns virtual nodes
+| CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) YIELD rel | returns a virtual relationship
+| apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) | returns a virtual relationship
+| CALL apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) | returns a virtual pattern
+| CALL apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) | returns a virtual pattern
+| CALL apoc.nodes.group([labels],[properties],[{node-aggregation},{rel-aggregation]) yield nodes, relationships | Group all nodes and their relationships by given keys, create virtual nodes and relationships for the summary information, you can provide an aggregations map for nodes and rels [{kids:'sum',age:['min','max','avg'],gender:'collect'},{`*`,'count'}]
+|===
+
+// * TODO `CALL apoc.create.vGraph([nodes, {_labels:[],... prop:value,...}], [rels,{_from:keyValueFrom,_to:{_label:,_key:,_value:value}, _type:'KNOWS', prop:value,...}],['pk1','Label2:pk2'])
+
+== Virtual Graph
+////
+
+Create a graph object (map) from information that's passed in.
+It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}`
+
+[cols="1m,5"]
+|===
+| apoc.graph.from(data,'name',{properties}) yield graph | creates a virtual graph object for later processing it tries its best to extract the graph information from the data you pass in
+| apoc.graph.fromData([nodes],[relationships],'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromPaths(path,'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromPaths([paths],'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromDB('name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
+| apoc.agg.graph(element) as graph | aggregates graph elements to a "graph" map with unique sets of "nodes" and "relationships"
+|===
+
+
+Create a graph object (map) from information that's passed in.
+It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}`
+
+[cols="1m,5"]
+|===
+| apoc.graph.from(data,'name',{properties}) yield graph | creates a virtual graph object for later processing it tries its best to extract the graph information from the data you pass in
+| apoc.graph.fromData([nodes],[relationships],'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromPaths(path,'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromPaths([paths],'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromDB('name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
+|===
+
+=== Virtual Graph Examples
+
+We create a dataset for our examples
+
+[source,cypher]
+----
+CREATE (a:Actor {name:'Tom Hanks'})-[r:ACTED_IN {roles:'Forrest'}]->(m:Movie {title:'Forrest Gump'}) RETURN *
+----
+
+.Virtual graph from data
+
+[source,cypher]
+----
+MATCH (n)-[r]->(m) CALL apoc.graph.fromData([n,m],[r],'test',{answer:42}) YIELD graph RETURN *
+----
+
+.Virtual graph from path
+
+[source,cypher]
+----
+MATCH path = (n)-[r]->(m) CALL apoc.graph.fromPath(path,'test',{answer:42}) YIELD graph RETURN *
+----
+
+.Virtual graph from paths
+
+[source,cypher]
+----
+MATCH path = (n)-[r]->(m) CALL apoc.graph.fromPaths([path],'test',{answer:42}) YIELD graph RETURN *
+----
+
+.Virtual graph from DB
+
+[source,cypher]
+----
+CALL apoc.graph.fromDB('test',{answer:42}) YIELD graph RETURN *
+----
+
+.Virtual graph from Cypher
+
+[source,cypher]
+----
+CALL apoc.graph.fromCypher('MATCH (n)-[r]->(m) RETURN *',null,'test',{answer:42}) YIELD graph RETURN *
+----
+
+As a result we have a virtual graph object for later processing
+
+image::{img}/apoc.graph.png[width=800]

@@ -1,0 +1,8 @@
+[[help]]
+== Built in Help
+
+image::{img}/apoc-help-apoc.jpg[width=600]
+
+If you use `call apoc.help('keyword')` it lists all procedures and functions that have the keyword in their name.
+
+With an empty keyword it lists all APOC procedures and functions, their signature and description.

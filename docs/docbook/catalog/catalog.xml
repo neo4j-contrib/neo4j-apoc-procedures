@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+
+  <rewriteURI
+    uriStartString="http://docbook.sourceforge.net/release/xsl/current/"
+    rewritePrefix="classpath:docbook/"
+  />
+
+</catalog>
+<!-- vim: set sw=2 ts=2: -->
