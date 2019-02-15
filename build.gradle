@@ -131,7 +131,8 @@ dependencies {
     
     testCompile group: 'org.testcontainers', name: 'neo4j', version: '1.10.6'
 
-    compile group: 'org.gradle', name: 'gradle-tooling-api', version: '4.3'
+    compileOnly group: 'org.gradle', name: 'gradle-tooling-api', version: '4.3'
+    testCompile group: 'org.gradle', name: 'gradle-tooling-api', version: '4.3'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
