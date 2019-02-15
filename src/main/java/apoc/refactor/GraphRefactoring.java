@@ -136,7 +136,7 @@ public class GraphRefactoring {
         if (paths == null || paths.isEmpty()) return Stream.empty();
 
         Set<Node> nodes = new HashSet<>();
-        Set<Relationship> rels = new HashSet();
+        Set<Relationship> rels = new HashSet<>();
 
         for (Path path : paths) {
             for (Relationship rel : path.relationships()) {
