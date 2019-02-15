@@ -44,7 +44,7 @@ public class TestUtil {
         });
     }
 
-    private static void printFullStackTrace(Throwable e) {
+    public static void printFullStackTrace(Throwable e) {
         String padding = "";
         while (e != null) {
             if (e.getCause() == null) {
