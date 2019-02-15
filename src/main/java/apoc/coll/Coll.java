@@ -15,6 +15,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.lang.reflect.Array;
 
 import static java.util.Arrays.asList;
 import static org.neo4j.helpers.collection.Pair.*;
@@ -731,10 +732,36 @@ public class Coll {
 
 
     @UserFunction
-    @Description("apoc.coll.flatten(coll) - flattens nested list")
-    public List<Object> flatten(@Name("coll") List<List<Object>> coll) {
-	    if (coll == null) return Collections.emptyList();
-        return coll.stream().flatMap(Collection::stream).collect(Collectors.toList());
+    @Description("apoc.coll.flatten(coll, [recursive]) - flattens list (nested if recursive is true)")
+    public List<Object> flatten(@Name("coll") List<Object> coll,  @Name(value="recursive", defaultValue = "false") boolean recursive) {
+        if (coll == null) return Collections.emptyList();
+        if (recursive) return flattenRecursive(coll, 0); // flatten everything
+        return flattenRecursive(coll, 0, 2); // flatten one level of lists in the input list if not recursive
+    }
+
+    private static List<Object> flattenRecursive(Object aObject, int aDepth, int aStopDepth) {
+        List<Object> vResult = new ArrayList<Object>();
+
+        if (aDepth == aStopDepth) { // always for a future arbitrary stopping point
+            vResult.add(aObject);
+        } else {
+            if (aObject.getClass().isArray()) {
+                for (int i = 0; i < Array.getLength(aObject); i++) {
+                    vResult.addAll(flattenRecursive(Array.get(aObject, i), aDepth + 1, aStopDepth));
+                }
+            } else if (aObject instanceof List) {
+                for (Object vElement : (List<?>) aObject) {
+                    vResult.addAll(flattenRecursive(vElement, aDepth + 1, aStopDepth));
+                }
+            } else {
+                vResult.add(aObject);
+            }
+        }
+        return vResult;
+    }
+
+    private static List<Object> flattenRecursive(Object aObject, int aDepth) {
+        return flattenRecursive(aObject, aDepth, -1); // we only stop when all lists are flattened
     }
 
     @Deprecated
