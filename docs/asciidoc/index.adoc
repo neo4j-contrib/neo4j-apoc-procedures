@@ -4,7 +4,7 @@
 :sectid:
 :sectlinks:
 :toclevels: 2
-:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/img
+:img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/images
 //{imagesdir}
 :script: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/script
 :gh-docs: https://neo4j-contrib.github.io/neo4j-apoc-procedures
