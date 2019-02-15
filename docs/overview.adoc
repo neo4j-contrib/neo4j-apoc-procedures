@@ -219,12 +219,20 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType
 | apoc.convert.toSortedJsonMap(node\|map, ignoreCase:true ) | returns a JSON map with keys sorted alphabetically, with optional case sensitivity
 | apoc.convert.fromJsonList('[1,2,3]') | converts json list to Cypher list
 | apoc.convert.fromJsonMap( '{"a":42,"b":"foo","c":[1,2,3]}') | converts json map to Cypher map
-| apoc.convert.toTree([paths],[lowerCaseRels=true]) | creates a stream of nested documents representing the at least one root of these paths
+| apoc.convert.toTree([paths],[lowerCaseRels=true], {config}) | creates a stream of nested documents representing the at least one root of these paths
 | apoc.convert.getJsonProperty(node,key) | converts serialized JSON in property back to original object
 | apoc.convert.getJsonPropertyMap(node,key) | converts serialized JSON in property back to map
 | CALL apoc.convert.toTree([paths]) yield value | creates a stream of nested documents representing the at least one root of these paths
 | CALL apoc.convert.setJsonProperty(node,key,complexValue) | sets value serialized to JSON as property with the given name on the node
 |===
+
+For `apoc.convert.toTree` config can set as follow:
+
+* nodes: map of list<String>, a key is the name of the label, value is a list of properties that can be included or excluded. e.g `nodes:{LABEL:<[prop1, prop2]/[-prop1, -prop2]>}`
+* rels: map of list<String>, a key is the name of the type, value is a list of properties that can be included or excluded. e.g `rels:{TYPE:<[prop1, prop2]/[-prop1, -prop2]>}`
+
+`nodes` and `rels` accept only include or exlude properties
+
 
 == Export / Import
 

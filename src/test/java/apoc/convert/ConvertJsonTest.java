@@ -1,22 +1,24 @@
 package apoc.convert;
 
 import apoc.util.TestUtil;
+import junit.framework.TestCase;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ConvertJsonTest {
 
@@ -235,6 +237,172 @@ public class ConvertJsonTest {
                     /*USER*/
 
                 });
+    }
 
+    @Test
+    public void testToTreeLeafNodesWithConfigInclude() {
+        statementForConfig(db);
+        String call = "MATCH p=(n:Category)-[:subcategory*]->(m)\n" +
+                "WHERE NOT (m)-[:subcategory]->() AND NOT ()-[:subcategory]->(n)\n" +
+                "WITH COLLECT(p) AS ps\n" +
+                "CALL apoc.convert.toTree(ps, true, {nodes: {Category: ['name']}, rels: {subcategory:['id']}}) yield value\n" +
+                "RETURN value;";
+        testCall(db, call,
+                (row) -> {
+                    Map root = (Map) row.get("value");
+                    assertEquals("Category", root.get("_type"));
+                    assertEquals("PC", root.get("name"));
+                    assertNull(root.get("surname"));
+                    List<Map> parts = (List<Map>) root.get("subcategory");
+                    assertEquals(1,parts.size());
+                    Map pcParts = parts.get(0);
+                    assertEquals("Category", pcParts.get("_type"));
+                    assertEquals("Parts", pcParts.get("name"));
+                    assertEquals(1L, pcParts.get("subcategory.id"));
+                    assertNull(pcParts.get("subcategory.subCat"));
+                    List<Map> subParts = (List<Map>)pcParts.get("subcategory");
+                    Map cpu = subParts.get(0);
+                    assertEquals("Category", pcParts.get("_type"));
+                    assertEquals("CPU", cpu.get("name"));
+                    assertEquals(2L, cpu.get("subcategory.id"));
+                    assertNull(cpu.get("subcategory.subCat"));
+                });
+    }
+
+    @Test
+    public void testToTreeLeafNodesWithConfigExclude() {
+        statementForConfig(db);
+        String call = "MATCH p=(n:Category)-[:subcategory*]->(m)\n" +
+                "WHERE NOT (m)-[:subcategory]->() AND NOT ()-[:subcategory]->(n)\n" +
+                "WITH COLLECT(p) AS ps\n" +
+                "CALL apoc.convert.toTree(ps, true,{nodes: {Category: ['-name']}, rels: {subcategory:['-id']}}) yield value\n" +
+                "RETURN value;";
+        testCall(db, call,
+                (row) -> {
+                    Map root = (Map) row.get("value");
+                    assertEquals("Category", root.get("_type"));
+                    assertFalse("Should not contain key `name`",root.containsKey("name"));
+                    assertEquals("computer",root.get("surname"));
+                    List<Map> parts = (List<Map>) root.get("subcategory");
+                    assertEquals(1,parts.size());
+                    Map pcParts = parts.get(0);
+                    assertEquals("Category", pcParts.get("_type"));
+                    assertFalse("Should not contain key `name`",pcParts.containsKey("name"));
+                    assertFalse("Should not contain key `subcategory.id`",pcParts.containsKey("subcategory.id"));
+                    assertEquals("gen", pcParts.get("subcategory.subCat"));
+                    List<Map> subParts = (List<Map>)pcParts.get("subcategory");
+                    Map cpu = subParts.get(0);
+                    assertEquals("Category", pcParts.get("_type"));
+                    assertFalse("Should not contain key `name`",cpu.containsKey("name"));
+                    assertFalse("Should not contain key `subcategory.id`",cpu.containsKey("subcategory.id"));
+                    assertEquals("ex",cpu.get("subcategory.subCat"));
+                });
+    }
+
+    @Test
+    public void testToTreeLeafNodesWithConfigExcludeInclude() {
+        statementForConfig(db);
+        String call = "MATCH p=(n:Category)-[:subcategory*]->(m)\n" +
+                "WHERE NOT (m)-[:subcategory]->() AND NOT ()-[:subcategory]->(n)\n" +
+                "WITH COLLECT(p) AS ps\n" +
+                "CALL apoc.convert.toTree(ps, true, {nodes: {Category: ['name']}, rels: {subcategory:['-id']}}) yield value\n" +
+                "RETURN value;";
+        testCall(db, call,
+                (row) -> {
+                    Map root = (Map) row.get("value");
+                    assertEquals("Category", root.get("_type"));
+                    assertEquals("PC",root.get("name"));
+                    assertFalse("Should not contain key `surname`",root.containsKey("surname"));
+                    List<Map> parts = (List<Map>) root.get("subcategory");
+                    assertEquals(1,parts.size());
+                    Map pcParts = parts.get(0);
+                    assertEquals("Category", pcParts.get("_type"));
+                    assertEquals("Parts", pcParts.get("name"));
+                    assertFalse("Should not contain key `subcategory.id`",pcParts.containsKey("subcategory.id"));
+                    assertEquals("gen", pcParts.get("subcategory.subCat"));
+                    List<Map> subParts = (List<Map>)pcParts.get("subcategory");
+                    Map cpu = subParts.get(0);
+                    assertEquals("Category", pcParts.get("_type"));
+                    assertEquals("CPU", cpu.get("name"));
+                    assertFalse("Should not contain key `subcategory.id`",cpu.containsKey("subcategory.id"));
+                    assertEquals("ex",cpu.get("subcategory.subCat"));
+                });
+    }
+
+    @Test
+    public void testToTreeLeafNodesWithConfigOnlyInclude() {
+        statementForConfig(db);
+        String call = "MATCH p=(n:Category)-[:subcategory*]->(m)\n" +
+                "WHERE NOT (m)-[:subcategory]->() AND NOT ()-[:subcategory]->(n)\n" +
+                "WITH COLLECT(p) AS ps\n" +
+                "CALL apoc.convert.toTree(ps, true, {nodes: {Category: ['name', 'surname']}}) yield value\n" +
+                "RETURN value;";
+        testCall(db, call,
+                (row) -> {
+                    Map root = (Map) row.get("value");
+                    assertEquals("Category", root.get("_type"));
+                    assertEquals("PC",root.get("name"));
+                    assertEquals("computer",root.get("surname"));
+                    List<Map> parts = (List<Map>) root.get("subcategory");
+                    assertEquals(1,parts.size());
+                    Map pcParts = parts.get(0);
+                    assertEquals("Category", pcParts.get("_type"));
+                    assertEquals("Parts", pcParts.get("name"));
+                    assertEquals(1L, pcParts.get("subcategory.id"));
+                    assertEquals("gen", pcParts.get("subcategory.subCat"));
+                    List<Map> subParts = (List<Map>)pcParts.get("subcategory");
+                    Map cpu = subParts.get(0);
+                    assertEquals("Category", pcParts.get("_type"));
+                    assertEquals("CPU", cpu.get("name"));
+                    assertEquals(2L, cpu.get("subcategory.id"));
+                    assertEquals("ex",cpu.get("subcategory.subCat"));
+                });
+    }
+
+    @Test
+    public void testToTreeLeafNodesWithConfigErrorInclude() {
+        statementForConfig(db);
+        String call = "MATCH p=(n:Category)-[:subcategory*]->(m)\n" +
+                "WHERE NOT (m)-[:subcategory]->() AND NOT ()-[:subcategory]->(n)\n" +
+                "WITH COLLECT(p) AS ps\n" +
+                "CALL apoc.convert.toTree(ps, true, {nodes: {Category: ['-name','name']}, rels: {subcategory:['-id']}}) yield value\n" +
+                "RETURN value;";
+        try {
+            testResult(db, call, (row) -> { });
+        } catch (QueryExecutionException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            TestCase.assertTrue(except instanceof RuntimeException);
+            assertEquals("Only include or exclude attribute are possible!", except.getMessage());
+            throw e;
+        }
+
+    }
+
+    @Test
+    public void testToTreeLeafNodesWithConfigErrorExclude() {
+        statementForConfig(db);
+        String call = "MATCH p=(n:Category)-[:subcategory*]->(m)\n" +
+                "WHERE NOT (m)-[:subcategory]->() AND NOT ()-[:subcategory]->(n)\n" +
+                "WITH COLLECT(p) AS ps\n" +
+                "CALL apoc.convert.toTree(ps, true, {nodes: {Category: ['-name']}, rels: {subcategory:['-id','name']}}) yield value\n" +
+                "RETURN value;";
+        try {
+            testResult(db, call, (row) -> { });
+        } catch (QueryExecutionException e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            TestCase.assertTrue(except instanceof RuntimeException);
+            assertEquals("Only include or exclude attribute are possible!", except.getMessage());
+            throw e;
+        }
+
+    }
+
+    private static void statementForConfig(GraphDatabaseService db) {
+        String createStatement = "CREATE\n" +
+                "  (c1:Category {name: 'PC', surname: 'computer'}),\n" +
+                "    (c1)-[:subcategory {id:1, subCat: 'gen'}]->(c2:Category {name: 'Parts'}),\n" +
+                "      (c2)-[:subcategory {id:2, subCat: 'ex'}]->(c3:Category {name: 'CPU'})";
+
+        db.execute(createStatement).close();
     }
 }
