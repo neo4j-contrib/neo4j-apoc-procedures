@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 public class ModelTest {
 
@@ -25,8 +27,24 @@ public class ModelTest {
     @Rule
     public TestName testName = new TestName();
 
-    @ClassRule
-    public static JdbcDatabaseContainer mysql = new MySQLContainer().withInitScript("init_mysql.sql");
+    public static JdbcDatabaseContainer mysql;
+
+    @BeforeClass
+    public static void setUpContainer() {
+        TestUtil.ignoreException(() -> {
+            mysql = new MySQLContainer().withInitScript("init_mysql.sql");
+            mysql.start();
+        },Exception.class);
+        assumeNotNull("MySQL container has to exist",mysql);
+        assumeTrue("MySQL must be running", mysql.isRunning());
+    }
+
+    @AfterClass
+    public static void tearDownContainer() {
+        if (mysql != null) {
+            mysql.stop();
+        }
+    }
 
     @Before
     public void setUp() throws Exception {
