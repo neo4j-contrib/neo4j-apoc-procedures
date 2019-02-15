@@ -22,6 +22,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 public class CloneSubgraphTest {
+    private static final String STANDIN_SYNTAX_EXCEPTION_MSG = "\'standinNodes\' must be a list of node pairs";
     private GraphDatabaseService db;
 
     @Rule
@@ -32,7 +33,7 @@ public class CloneSubgraphTest {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, GraphRefactoring.class, Coll.class, PathExplorer.class, Cover.class, Meta.class, Maps.class); // helpful for matching to subgraphs
 
-        // tree structure, testing clone of branches and reanchorings
+        // tree structure, testing clone of branches and standins
         db.execute("CREATE (rA:Root{name:'A'}), \n" +
                 "(rB:Root{name:'B'}),\n" +
                 "(n1:Node{name:'node1', id:1}),\n" +
@@ -123,12 +124,12 @@ public class CloneSubgraphTest {
     }
 
     @Test
-    public void testCloneSubgraph_Reanchoring_From_RootA_Should_Have_RootB()  {
+    public void testCloneSubgraph_With_Standins_For_RootA_Should_Have_RootB()  {
         TestUtil.testCall(db,
                 "MATCH (rootA:Root{name:'A'}), (rootB:Root{name:'B'}) " +
                         "CALL apoc.path.subgraphAll(rootA, {}) YIELD nodes, relationships " +
                         "WITH rootA, rootB, nodes, relationships, [rel in relationships | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as relNames " +
-                        "CALL apoc.refactor.cloneSubgraph(nodes, relationships, [[rootA, rootB]]) YIELD input, output, error " +
+                        "CALL apoc.refactor.cloneSubgraph(nodes, relationships, {standinNodes:[[rootA, rootB]]}) YIELD input, output, error " +
                         "WITH relNames, collect(output) as clones, collect(output.name) as cloneNames " +
                         "CALL apoc.algo.cover(clones) YIELD rel " +
                         "WITH relNames, cloneNames, [rel in collect(rel) | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as cloneRelNames " +
@@ -165,12 +166,12 @@ public class CloneSubgraphTest {
     }
 
     @Test
-    public void testCloneSubgraph_Reanchoring_From_Node1_Should_Have_RootB()  {
+    public void testCloneSubgraph_With_Standins_For_Node1_Should_Have_RootB()  {
         TestUtil.testCall(db,
                 "MATCH (rootA:Root{name:'A'})--(node1), (rootB:Root{name:'B'}) " +
                         "CALL apoc.path.subgraphAll(node1, {blacklistNodes:[rootA]}) YIELD nodes, relationships " +
                         "WITH node1, rootB, nodes, relationships, [rel in relationships | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as relNames " +
-                        "CALL apoc.refactor.cloneSubgraph(nodes, relationships, [[node1, rootB]]) YIELD input, output, error " +
+                        "CALL apoc.refactor.cloneSubgraph(nodes, relationships, {standinNodes:[[node1, rootB]]}) YIELD input, output, error " +
                         "WITH relNames, collect(output) as clones, collect(output.name) as cloneNames " +
                         "CALL apoc.algo.cover(clones) YIELD rel " +
                         "WITH relNames, cloneNames, [rel in collect(rel) | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as cloneRelNames " +
@@ -207,12 +208,12 @@ public class CloneSubgraphTest {
     }
 
     @Test
-    public void testCloneSubgraph_Reanchoringing_From_RootA_With_Skipped_Properties_Should_Not_Include_Skipped_Properties()  {
+    public void testCloneSubgraph_With_Standins_For_RootA_With_Skipped_Properties_Should_Not_Include_Skipped_Properties()  {
         TestUtil.testCall(db,
                 "MATCH (rootA:Root{name:'A'}), (rootB:Root{name:'B'}) " +
                         "CALL apoc.path.subgraphAll(rootA, {}) YIELD nodes, relationships " +
                         "WITH rootA, rootB, nodes, relationships, [rel in relationships | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as relNames " +
-                        "CALL apoc.refactor.cloneSubgraph(nodes, relationships, [[rootA, rootB]], ['id']) YIELD input, output, error " +
+                        "CALL apoc.refactor.cloneSubgraph(nodes, relationships, {standinNodes:[[rootA, rootB]], skipProperties:['id']}) YIELD input, output, error " +
                         "WITH relNames, collect(output) as clones, collect(output.name) as cloneNames " +
                         "CALL apoc.algo.cover(clones) YIELD rel " +
                         "WITH relNames, cloneNames, [rel in collect(rel) | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as cloneRelNames " +
@@ -258,12 +259,12 @@ public class CloneSubgraphTest {
     }
 
     @Test
-    public void testCloneSubgraph_Reanchoring_From_RootA_And_Oddball_Should_Have_RootB_And_Use_Node_12_In_Place_Of_Oddball()  {
+    public void testCloneSubgraph_With_Standins_For_RootA_And_Oddball_Should_Have_RootB_And_Use_Node_12_In_Place_Of_Oddball()  {
         TestUtil.testCall(db,
                 "MATCH (rootA:Root{name:'A'}), (rootB:Root{name:'B'}), (node12:Node{name:'node12'}), (oddball:Oddball) " +
                         "CALL apoc.path.subgraphAll(rootA, {}) YIELD nodes, relationships " +
                         "WITH rootA, rootB, node12, oddball, nodes, relationships, [rel in relationships | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as relNames " +
-                        "CALL apoc.refactor.cloneSubgraph(nodes, relationships, [[rootA, rootB], [oddball, node12]]) YIELD input, output, error " +
+                        "CALL apoc.refactor.cloneSubgraph(nodes, relationships, {standinNodes:[[rootA, rootB], [oddball, node12]]}) YIELD input, output, error " +
                         "WITH relNames, collect(output) as clones, collect(output.name) as cloneNames " +
                         "CALL apoc.algo.cover(clones) YIELD rel " +
                         "WITH relNames, cloneNames, [rel in collect(rel) | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as cloneRelNames " +
@@ -311,12 +312,12 @@ public class CloneSubgraphTest {
     }
 
     @Test
-    public void testCloneSubgraph_With_Rels_Not_Between_Provided_Nodes_Or_Reanchors_Should_Be_Ignored()  {
+    public void testCloneSubgraph_With_Rels_Not_Between_Provided_Nodes_Or_Standins_Should_Be_Ignored()  {
         TestUtil.testCall(db,
                 "MATCH (rootA:Root{name:'A'}), (rootB:Root{name:'B'}) " +
                         "CALL apoc.path.subgraphAll(rootA, {relationshipFilter:'LINK>'}) YIELD nodes " +
                         "WITH rootA, rootB, nodes, [(:Node{name:'node7'})-[r]->() | r] + [(:Node{name:'node9'})-[r:DIFFERENT_LINK]->() | r] as relationships " + // just an opposite-direction :LINK and the :DIFFERENT_LINK rels
-                        "CALL apoc.refactor.cloneSubgraph(nodes, relationships, [[rootA, rootB]]) YIELD input, output, error " +
+                        "CALL apoc.refactor.cloneSubgraph(nodes, relationships, {standinNodes:[[rootA, rootB]]}) YIELD input, output, error " +
                         "RETURN collect(output.name) as cloneNames",
                 (row) -> {
                     assertThat((List<String>) row.get("cloneNames"), containsInAnyOrder("node1", "node2", "node3", "node4", "node5", "node8", "node9", "node6"));
@@ -347,12 +348,12 @@ public class CloneSubgraphTest {
     }
 
     @Test
-    public void testCloneSubgraph_With_No_Nodes_But_With_Rels_And_Reanchors_Should_Do_Nothing()  {
+    public void testCloneSubgraph_With_No_Nodes_But_With_Rels_And_Standins_Should_Do_Nothing()  {
         TestUtil.testCallEmpty(db,
                 "MATCH (rootA:Root{name:'A'}), (rootB:Root{name:'B'}) " +
                         "CALL apoc.path.subgraphAll(rootA, {}) YIELD relationships " +
                         "WITH rootA, rootB, relationships, [rel in relationships | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as relNames " +
-                        "CALL apoc.refactor.cloneSubgraph([], relationships, [[rootA, rootB]]) YIELD input, output, error " +
+                        "CALL apoc.refactor.cloneSubgraph([], relationships, {standinNodes:[[rootA, rootB]]}) YIELD input, output, error " +
                         "WITH relNames, collect(output) as clones, collect(output.name) as cloneNames " +
                         "CALL apoc.algo.cover(clones) YIELD rel " +
                         "WITH relNames, cloneNames, [rel in collect(rel) | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as cloneRelNames " +
@@ -362,13 +363,13 @@ public class CloneSubgraphTest {
     }
 
     @Test
-    public void testCloneSubgraph_With_A_1_Element_Reanchor_Pair_Should_Throw_Exception()  {
-        exceptionGrabber.expectMessage("\'reanchors\' must be a list of node pairs");
+    public void testCloneSubgraph_With_A_1_Element_Standin_Pair_Should_Throw_Exception()  {
+        exceptionGrabber.expectMessage(STANDIN_SYNTAX_EXCEPTION_MSG);
 
         TestUtil.testCall(db,
                 "MATCH (root:Root{name:'A'})-[*]-(node) " +
                         "WITH root, collect(DISTINCT node) as nodes " +
-                        "CALL apoc.refactor.cloneSubgraph(nodes, [], [[root]]) YIELD input, output, error " +
+                        "CALL apoc.refactor.cloneSubgraph(nodes, [], {standinNodes:[[root]]}) YIELD input, output, error " +
                         "WITH collect(output) as clones, collect(output.name) as cloneNames " +
                         "RETURN cloneNames, size(cloneNames) as cloneCount, none(clone in clones WHERE (clone)--()) as noRelationshipsOnClones, " +
                         " single(clone in clones WHERE clone.name = 'node5' AND clone:Oddball) as oddballNode5Exists, " +
@@ -384,13 +385,13 @@ public class CloneSubgraphTest {
     }
 
     @Test
-    public void testCloneSubgraph_With_A_3_Element_Reanchor_Pair_Should_Throw_Exception()  {
-        exceptionGrabber.expectMessage("\'reanchors\' must be a list of node pairs");
+    public void testCloneSubgraph_With_A_3_Element_Standin_Pair_Should_Throw_Exception()  {
+        exceptionGrabber.expectMessage(STANDIN_SYNTAX_EXCEPTION_MSG);
 
         TestUtil.testCall(db,
                 "MATCH (root:Root{name:'A'})-[*]-(node) " +
                         "WITH root, collect(DISTINCT node) as nodes " +
-                        "CALL apoc.refactor.cloneSubgraph(nodes, [], [[root, root, root]]) YIELD input, output, error " +
+                        "CALL apoc.refactor.cloneSubgraph(nodes, [], {standinNodes:[[root, root, root]]}) YIELD input, output, error " +
                         "WITH collect(output) as clones, collect(output.name) as cloneNames " +
                         "RETURN cloneNames, size(cloneNames) as cloneCount, none(clone in clones WHERE (clone)--()) as noRelationshipsOnClones, " +
                         " single(clone in clones WHERE clone.name = 'node5' AND clone:Oddball) as oddballNode5Exists, " +
@@ -406,13 +407,13 @@ public class CloneSubgraphTest {
     }
 
     @Test
-    public void testCloneSubgraph_With_A_Null_Element_In_Reanchor_Pair_Should_Throw_Exception()  {
-        exceptionGrabber.expectMessage("\'reanchors\' must be a list of node pairs");
+    public void testCloneSubgraph_With_A_Null_Element_In_Standin_Pair_Should_Throw_Exception()  {
+        exceptionGrabber.expectMessage(STANDIN_SYNTAX_EXCEPTION_MSG);
 
         TestUtil.testCall(db,
                 "MATCH (root:Root{name:'A'})-[*]-(node) " +
                         "WITH root, collect(DISTINCT node) as nodes " +
-                        "CALL apoc.refactor.cloneSubgraph(nodes, [], [[root, null]]) YIELD input, output, error " +
+                        "CALL apoc.refactor.cloneSubgraph(nodes, [], {standinNodes:[[root, null]]}) YIELD input, output, error " +
                         "WITH collect(output) as clones, collect(output.name) as cloneNames " +
                         "RETURN cloneNames, size(cloneNames) as cloneCount, none(clone in clones WHERE (clone)--()) as noRelationshipsOnClones, " +
                         " single(clone in clones WHERE clone.name = 'node5' AND clone:Oddball) as oddballNode5Exists, " +
@@ -424,5 +425,52 @@ public class CloneSubgraphTest {
                     assertThat(row.get("oddballNode5Exists"), is(true));
                     assertThat(row.get("nodesWithNodeLabel"), is(10L));
                 }
-        );    }
+        );
+    }
+
+
+
+    @Test
+    public void testCloneSubgraphFromPaths_With_Standins_For_RootA_Should_Have_RootB()  {
+        TestUtil.testCall(db,
+                "MATCH (rootA:Root{name:'A'}), (rootB:Root{name:'B'}) " +
+                        "CALL apoc.path.spanningTree(rootA, {relationshipFilter:'LINK>'}) YIELD path " +
+                        "WITH rootA, rootB, collect(path) as paths " +
+                        "WITH rootA, rootB, paths, apoc.coll.toSet(apoc.coll.flatten([path in paths | relationships(path)])) as rels " +
+                        "WITH rootA, rootB, paths, [rel in rels | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as relNames " +
+                        "CALL apoc.refactor.cloneSubgraphFromPaths(paths, {standinNodes:[[rootA, rootB]]}) YIELD input, output, error " +
+                        "WITH relNames, collect(output) as clones, collect(output.name) as cloneNames " +
+                        "CALL apoc.algo.cover(clones) YIELD rel " +
+                        "WITH relNames, cloneNames, [rel in collect(rel) | startNode(rel).name + ' ' + type(rel) + ' ' + endNode(rel).name] as cloneRelNames " +
+                        "WITH cloneNames, cloneRelNames, apoc.coll.containsAll(relNames, cloneRelNames) as clonedRelsVerified " +
+                        "RETURN cloneNames, cloneRelNames, clonedRelsVerified",
+                (row) -> {
+                    assertThat((List<String>) row.get("cloneNames"), containsInAnyOrder("node1", "node2", "node3", "node4", "node5", "node8", "node9", "node6"));
+                    assertThat((List<String>) row.get("cloneRelNames"), containsInAnyOrder("node1 LINK node5", "node1 LINK node2", "node2 LINK node3", "node3 LINK node4", "node5 LINK node6", "node5 LINK node8", "node5 LINK node9"));
+                    assertThat(row.get("clonedRelsVerified"), is(true));
+                }
+        );
+
+        TestUtil.testCall(db,
+                "MATCH (:Root{name:'B'})-[:LINK]->(node:Node) " +
+                        "RETURN collect(node.name) as bLinkedNodeNames",
+                (row) -> {
+                    assertThat((List<String>) row.get("bLinkedNodeNames"), containsInAnyOrder("node1", "node11"));
+                    assertThat(((List<String>) row.get("bLinkedNodeNames")).size(), is(2));
+                }
+        );
+
+        TestUtil.testCall(db,
+                "CALL apoc.meta.stats() YIELD nodeCount, relCount, labels, relTypes as relTypesMap " +
+                        "CALL db.relationshipTypes() YIELD relationshipType " +
+                        "WITH nodeCount, relCount, labels, collect([relationshipType, relTypesMap['()-[:' + relationshipType + ']->()']]) as relationshipTypesColl " +
+                        "RETURN nodeCount, relCount, labels, apoc.map.fromPairs(relationshipTypesColl) as relTypesCount ",
+                (row) -> {
+                    assertThat(row.get("nodeCount"), is(22L)); // original was 14, 10 nodes cloned
+                    assertThat(row.get("relCount"), is(19L)); // original was 11, 8 relationships cloned
+                    assertThat(row.get("labels"), equalTo(map("Root", 2L, "Oddball", 2L, "Node", 20L)));
+                    assertThat(row.get("relTypesCount"), equalTo(map("LINK", 18L, "DIFFERENT_LINK", 1L)));
+                }
+        );
+    }
 }
