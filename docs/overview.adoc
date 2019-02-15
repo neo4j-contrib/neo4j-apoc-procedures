@@ -150,8 +150,8 @@ Returns a virtual graph that represents the labels and relationship-types availa
 | CALL apoc.meta.graphSample() | examines the database statistics to build the meta graph, very fast, might report extra relationships
 | CALL apoc.meta.graph | examines the database statistics to create the meta-graph, post filters extra relationships by sampling
 | CALL apoc.meta.subGraph({labels:[labels],rels:[rel-types],excludes:[label,rel-type,...]}) | examines a sample sub graph to create the meta-graph
-| CALL apoc.meta.data({sample:<number>}) | examines a subset of the graph to provide a tabular meta information, with sample config the dataset is sampled by the provided number
-| CALL apoc.meta.schema({sample:<number>}) | examines a subset of the graph to provide a map-like meta information, with sample config the dataset is sampled by the provided number
+| CALL apoc.meta.data([{sample:1000,maxRels:100}]) | examines a subset of the graph to provide a tabular meta information, with sample config the dataset is sampled by the provided number  (default 1000 nodes per label, -1 for all)
+| CALL apoc.meta.schema([{sample:1000>,maxRels:100}]) | examines a subset of the graph to provide a map-like meta information, with sample config the dataset is sampled by the provided number (default 1000 nodes per label, -1 for all)
 | CALL apoc.meta.stats  yield labelCount, relTypeCount, propertyKeyCount, nodeCount, relCount, labels, relTypes, stats | returns the information stored in the transactional database statistics
 |===
 
