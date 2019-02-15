@@ -3,10 +3,7 @@ package apoc.export.cypher;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
@@ -21,7 +18,6 @@ import java.util.Scanner;
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
 import static apoc.export.util.ExportFormat.*;
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.apocEnterpriseGraphDatabaseBuilder;
 import static org.junit.Assert.*;
 
 /**
@@ -47,8 +43,10 @@ public class ExportCypherTest {
     public void setUp() throws Exception {
 
         if(testName.getMethodName().endsWith(TEST_WITH_ENTERPRISE_DB)) {
+            /*
             db =  apocEnterpriseGraphDatabaseBuilder().setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
                     .setConfig("apoc.export.file.enabled", "true").newGraphDatabase();
+            */
             TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
             db.execute("CREATE CONSTRAINT ON (t:Person) ASSERT (t.name, t.surname) IS NODE KEY;").close();
             db.execute("CREATE (a:Person {name: 'John', surname: 'Snow'}) " +
@@ -364,6 +362,7 @@ public class ExportCypherTest {
     }
 
     @Test
+    @Ignore("TODO testcontainer")
     public void testExportWithCompoundConstraintCypherShellWithEnterpriseDB() throws Exception {
         File output = new File(directory, "testCypherShellWithCompoundConstraint.cypher");
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{config});\n",
@@ -373,6 +372,7 @@ public class ExportCypherTest {
     }
 
     @Test
+    @Ignore("TODO testcontainer")
     public void testExportWithCompoundConstraintPlainWithEnterpriseDB() throws Exception {
         File output = new File(directory, "testPlainFormatWithCompoundConstraint.cypher");
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{config});\n",
@@ -382,6 +382,7 @@ public class ExportCypherTest {
     }
 
     @Test
+    @Ignore("TODO testcontainer")
     public void testExportWithCompoundConstraintNeo4jShellWithEnterpriseDB() throws Exception {
         File output = new File(directory, "testNeo4jShellWithCompoundConstraint.cypher");
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{config});\n",
