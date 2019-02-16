@@ -154,6 +154,7 @@ dependencies {
 
     testCompile group: 'org.testcontainers', name: 'mysql', version: '1.10.2'
 
+    testCompile group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
