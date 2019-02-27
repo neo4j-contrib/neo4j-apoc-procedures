@@ -1,6 +1,5 @@
 package apoc.log;
 
-import apoc.ApocConfiguration;
 import apoc.util.FileUtils;
 import org.neo4j.procedure.*;
 import org.neo4j.logging.Log;
@@ -51,9 +50,8 @@ public class Neo4jLogStream {
         File f = new File(logDir, logName);
 
         try {
-            // This is just here as an added safety check; this proc is limited to the logs directory but it would
-            // still be possible to get cute and create symlinks from the logs directory elsewhere.
-            if (!FileUtils.canonicalPathInNeo4jHome(f)) {
+            String canonicalPath = f.getCanonicalPath();
+            if (!canonicalPath.contains(logDir.getAbsolutePath())) {
                 throw new RuntimeException("The path you are trying to access has a canonical path outside of the logs " +
                         "directory, and this procedure is only permitted to access files in the log directory.  This may " +
                         "occur if the path in question is a symlink or other link.");
