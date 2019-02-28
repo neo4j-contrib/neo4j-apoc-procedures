@@ -1,11 +1,10 @@
 package apoc.util;
 
-import org.apache.commons.io.FileDeleteStrategy;
+import com.google.common.io.Files;
 import org.hamcrest.Matcher;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.factory.EnterpriseGraphDatabaseFactory;
 import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
@@ -14,9 +13,10 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
-import java.nio.file.Paths;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -49,7 +49,7 @@ public class TestUtil {
         });
     }
 
-    private static void printFullStackTrace(Throwable e) {
+    public static void printFullStackTrace(Throwable e) {
         String padding = "";
         while (e != null) {
             if (e.getCause() == null) {
@@ -156,14 +156,6 @@ public class TestUtil {
                 .setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*");
     }
 
-    public static GraphDatabaseBuilder apocEnterpriseGraphDatabaseBuilder() throws Exception {
-        File storeDir = Paths.get(System.getProperty( "java.io.tmpdir").concat(File.separator).concat("neo4j-enterprise")).toFile();
-        FileDeleteStrategy.FORCE.delete(storeDir);
-        return new EnterpriseGraphDatabaseFactory().newEmbeddedDatabaseBuilder(storeDir)
-                .setConfig("dbms.backup.enabled","false")
-                .setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*");
-    }
-
     public static boolean serverListening(String host, int port)
     {
         try (Socket s = new Socket(host, port)){
@@ -175,5 +167,17 @@ public class TestUtil {
 
     public static URL getUrlFileName(String filename) {
         return Thread.currentThread().getContextClassLoader().getResource(filename);
+    }
+
+    public static String readFileToString(File file) {
+        return readFileToString(file, Charset.forName("UTF-8"));
+    }
+
+    public static String readFileToString(File file, Charset charset) {
+        try {
+            return Files.toString(file, charset);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
