@@ -152,7 +152,11 @@ dependencies {
     testCompile group: 'org.testcontainers', name: 'elasticsearch', version: '1.10.6'
     testCompile group: 'org.testcontainers', name: 'couchbase', version: '1.10.6'
 
-    testCompile group: 'org.testcontainers', name: 'mysql', version: '1.10.2'
+    testCompile group: 'org.testcontainers', name: 'mysql', version: '1.10.6'
+    testCompile group: 'org.testcontainers', name: 'postgresql', version: '1.10.6'
+    testCompile group: 'org.testcontainers', name: 'cassandra', version: '1.10.6'
+    testCompile group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
+    testCompile group: 'com.codahale.metrics', name: 'metrics-core', version: '3.0.2'
 
     testCompile group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
 

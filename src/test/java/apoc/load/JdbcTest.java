@@ -4,6 +4,7 @@ import apoc.ApocConfiguration;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.joda.time.DateTime;
 import org.junit.*;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -11,6 +12,9 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.testcontainers.containers.JdbcDatabaseContainer;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.*;
 import java.time.*;
@@ -24,6 +28,8 @@ import static apoc.util.TestUtil.testResult;
 import static java.util.Collections.emptyList;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeNotNull;
+import static org.junit.Assume.assumeTrue;
 
 public class JdbcTest {
 
@@ -37,6 +43,8 @@ public class JdbcTest {
 
     private Connection conn;
 
+    public static JdbcDatabaseContainer postgress;
+
     @Rule
     public TestName testName = new TestName();
 
@@ -46,7 +54,16 @@ public class JdbcTest {
     public void setUp() throws Exception {
         db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
         ApocConfiguration.initialize((GraphDatabaseAPI)db);
-        ApocConfiguration.addToConfig(map("jdbc.derby.url","jdbc:derby:derbyDB"));
+        if (testName.getMethodName().endsWith("Postgress")) {
+            TestUtil.ignoreException(() -> {
+                postgress = new PostgreSQLContainer().withInitScript("init_postgress.sql");
+                postgress.start();
+            },Exception.class);
+            assumeNotNull("Postgress container has to exist", postgress);
+            assumeTrue("Postgress must be running", postgress.isRunning());
+        } else {
+            ApocConfiguration.addToConfig(map("jdbc.derby.url","jdbc:derby:derbyDB"));
+        }
         TestUtil.registerProcedure(db,Jdbc.class);
         createPersonTableAndData();
     }
@@ -73,6 +90,47 @@ public class JdbcTest {
         }
         System.clearProperty("derby.connection.requireAuthentication");
         System.clearProperty("derby.user.apoc");
+
+        if (postgress != null) {
+            postgress.stop();
+        }
+    }
+
+    @Test
+    public void testLoadJdbcPostgress() throws Exception {
+        testCall(db, "CALL apoc.load.jdbc({url},'PERSON')", Util.map("url", postgress.getJdbcUrl(),
+                "config", Util.map("schema", "test",
+                        "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
+                (row) -> assertEquals( Util.map("name", "John", "hire_date", hireDate.toLocalDate(), "effective_from_date",
+                        LocalDateTime.parse("2016-06-22T19:10:25"), "test_time", time.toLocalTime(), "null_date", null), row.get("row")));
+    }
+
+    @Test
+    public void testLoadJdbSelectPostgress() throws Exception {
+        testCall(db, "CALL apoc.load.jdbc({url},'SELECT * FROM PERSON')", Util.map("url", postgress.getJdbcUrl(),
+                "config", Util.map("schema", "test",
+                        "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
+                (row) -> assertEquals( Util.map("name", "John", "hire_date", hireDate.toLocalDate(), "effective_from_date",
+                        LocalDateTime.parse("2016-06-22T19:10:25"), "test_time", time.toLocalTime(), "null_date", null), row.get("row")));
+    }
+
+    @Test
+    public void testLoadJdbcUpdatePostgress() throws Exception {
+        testCall(db, "CALL apoc.load.jdbcUpdate({url},'UPDATE PERSON SET NAME = \\\'John\\\' WHERE NAME = \\\'John\\\'')",
+                Util.map("url", postgress.getJdbcUrl(),
+                        "config", Util.map("schema", "test",
+                                "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
+                (row) -> assertEquals( Util.map("count", 1 ), row.get("row")));
+    }
+
+    @Test
+    public void testLoadJdbcParamsPostgress() throws Exception {
+        testCall(db, "CALL apoc.load.jdbc({url},'SELECT * FROM PERSON WHERE NAME = ?',['John'])", //  YIELD row RETURN row
+                Util.map("url", postgress.getJdbcUrl(),
+                        "config", Util.map("schema", "test",
+                                "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
+                (row) -> assertEquals( Util.map("name", "John", "hire_date", hireDate.toLocalDate(), "effective_from_date",
+                        LocalDateTime.parse("2016-06-22T19:10:25"), "test_time", time.toLocalTime(), "null_date", null), row.get("row")));
     }
 
     @Test
