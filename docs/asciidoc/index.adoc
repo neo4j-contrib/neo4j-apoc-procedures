@@ -155,6 +155,8 @@ include::graph-refactor.adoc[]
 [[rename-label-type-property]]
 ////
 
+include::_operational.adoc[]
+
 include::_indexes.adoc[]
 
 ////
