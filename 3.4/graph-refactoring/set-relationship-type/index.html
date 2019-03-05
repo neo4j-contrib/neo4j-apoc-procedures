@@ -61,11 +61,11 @@
             </div>
          </div>
          <p>With a simple relationship between two node</p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (f:Foo)-[rel:FOOBAR]-&gt;(b:Bar)</code></pre><div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.setType.dataset.png" width="800" alt="apoc.refactor.setType.dataset"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.setType.dataset.png" width="800" alt="apoc.refactor.setType.dataset"></img></div>
          </div>
          <p>We can change the relationship type from <code class="literal">FOOBAR</code> to <code class="literal">NEW-TYPE</code></p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (f:Foo)-[rel:FOOBAR]-&gt;(b:Bar) with rel
 CALL apoc.refactor.setType(rel, 'NEW-TYPE') YIELD input, output RETURN *</code></pre><div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.setType.png" width="800" alt="apoc.refactor.setType"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.setType.png" width="800" alt="apoc.refactor.setType"></img></div>
          </div>
       </section>
       <footer><script type="text/javascript">

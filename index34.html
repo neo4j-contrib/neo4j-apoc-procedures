@@ -145,6 +145,16 @@
 <li><a href="#rename-label-type-property">Rename</a></li>
 </ul>
 </li>
+<li><a href="#operational">Operational</a>
+<ul class="sectlevel3">
+<li><a href="#_time_to_live_ttl_expire_nodes">Time To Live (TTL) - Expire Nodes</a></li>
+<li><a href="#triggers">Triggers</a></li>
+<li><a href="#init-script">Cypher init script</a></li>
+<li><a href="#neo4j-config">Config</a></li>
+<li><a href="#warmup">Warmup</a></li>
+<li><a href="#monitoring">Monitoring</a></li>
+</ul>
+</li>
 <li><a href="#indexes">Deprecated: Text and Lookup Indexes</a>
 <ul class="sectlevel2">
 <li><a href="#schema-index-operations">Schema Index Procedures</a></li>
@@ -285,8 +295,7 @@ Then click "Install" in the APOC box and you&#8217;re done.</p>
 <div class="sect2">
 <h3 id="_feedback"><a class="link" href="#_feedback">Feedback</a></h3>
 <div class="paragraph">
-<p>Please provide feedback and report bugs as <a href="https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues">GitHub issues</a> or join the <a href="http://neo4j.com/slack" target="_blank" rel="noopener">neo4j-users Slack</a> and ask on the #apoc channel.
-You might also ask on <a href="http://stackoverflow.com/questions/tagged/neo4j+apoc" target="_blank" rel="noopener">StackOverflow</a>, please tag your question there with <code>neo4j</code> and <code>apoc</code>.</p>
+<p>Please provide feedback and report bugs as <a href="https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues">GitHub issues</a> or join the <a href="https://community.neo4j.com/c/neo4j-graph-platform/procedures-apoc" target="_blank" rel="noopener">Neo4j Community Forum and ask in the APOC &amp; Procedures category</a>.</p>
 </div>
 </div>
 <div class="sect2">
@@ -14103,6 +14112,481 @@ They return the list of eventually impacted constraints and indexes, the user sh
 </div>
 </div>
 <div class="sect1">
+<h2 id="operational"><a class="link" href="#operational">Operational</a></h2>
+<div class="sectionbody">
+<div class="sect3">
+<h4 id="_time_to_live_ttl_expire_nodes"><a class="link" href="#_time_to_live_ttl_expire_nodes">Time To Live (TTL) - Expire Nodes</a></h4>
+<div class="paragraph">
+<p>Some nodes are not meant to live forever.
+That&#8217;s why with APOC you can specify a time by when they are removed from the database, by utilizing a schema index and an additional label.
+A few convenience procedures help with that.</p>
+</div>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/e9aoQ9xOmoU" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<div class="paragraph">
+<p>Enable TTL with setting in <code>neo4j.conf</code> : <code>apoc.ttl.enabled=true</code></p>
+</div>
+<div class="paragraph">
+<p>There are some convenience procedures to expire nodes.</p>
+</div>
+<div class="paragraph">
+<p>You can also do it yourself by running</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">SET n:TTL
+SET n.ttl = timestamp() + 3600</code></pre>
+</div>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.date.expire.in(node,time,'time-unit')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expire node in given time-delta by setting :TTL label and <code>ttl</code> property</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.date.expire(node,time,'time-unit')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">expire node at given time by setting :TTL label and <code>ttl</code> property</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Optionally set <code>apoc.ttl.schedule=5</code> as repeat frequency.</p>
+</div>
+<div class="sect4">
+<h5 id="_process"><a class="link" href="#_process">Process</a></h5>
+<div class="paragraph">
+<p>30s after startup an index is created:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE INDEX ON :TTL(ttl)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>At startup a statement is scheduled to run every 60s (or configure in <code>neo4j.conf</code> -  <code>apoc.ttl.schedule=120</code>)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (t:TTL) where t.ttl &lt; timestamp() WITH t LIMIT 1000 DETACH DELETE t</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>ttl</code> property holds the <strong>time when the node is expired in milliseconds since epoch</strong>.</p>
+</div>
+<div class="paragraph">
+<p>You can expire your nodes by setting the :TTL label and the ttl property:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (n:Foo) WHERE n.bar SET n:TTL, n.ttl = timestamp() + 10000;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There is also a procedure that does the same:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.date.expire(node,time,'time-unit');
+CALL apoc.date.expire(n,100,'s');</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="triggers"><a class="link" href="#triggers">Triggers</a></h3>
+<div class="sect3">
+<h4 id="_triggers"><a class="link" href="#_triggers">Triggers</a></h4>
+<div class="paragraph">
+<p>In a trigger you register Cypher statements that are called when data in Neo4j is changed (created, updated, deleted).
+You can run them before or after commit.</p>
+</div>
+<div class="paragraph">
+<p>Enable <code>apoc.trigger.enabled=true</code> in <code>$NEO4J_HOME/config/neo4j.conf</code> first.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.remove(name) yield name, statement, installed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">remove previously added trigger, returns trigger information</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.removeAll() yield name, statement, installed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">removes all previously added triggers , returns trigger information</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.list() yield name, statement, installed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">update and list all installed triggers</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.pause(name)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">it pauses the trigger</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.trigger.resume(name)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">it resumes the paused trigger</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The transaction data from Neo4j is turned into appropriate data structures to be consumed as parameters to your statement.</p>
+</div>
+<div class="paragraph">
+<p>The parameters available are:</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Statement</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">transactionId</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns the id of the transaction</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">commitTime</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">return the date of the transaction in milliseconds</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">createdNodes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a node is created our trigger fires (list of nodes)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">createdRelationships</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a relationship is created our trigger fires (list of relationships)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">deletedNodes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a node is delated our trigger fires (list of nodes)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">deletedRelationships</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a relationship is delated our trigger fires (list of relationships)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">removedLabels</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a label is removed our trigger fires (map of label to list of nodes)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">removedNodeProperties</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a properties of node is removed our trigger fires (map of key to list of map of key,old,node)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">removedRelationshipProperties</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a properties of relationship is removed our trigger fires (map of key to list of map of key,old,relationship)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">assignedLabels</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when a labes is assigned our trigger fires  (map of label to list of nodes)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">assignedNodeProperties</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when node property is assigned our trigger fires (map of key to list of map of key,old,new,node)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">assignedRelationshipProperties</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when relationship property is assigned our trigger fires (map of key to list of map of key,old,new,relationship)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>You can use these helper functions to extract nodes or relationships by label/relationship-type or updated property key.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<caption class="title">Table 14. Helper Functions</caption>
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.trigger.nodesByLabel({assignedLabels/assignedNodeProperties},'Label')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function to filter labelEntries by label, to be used within a trigger statement with {assignedLabels} and {removedLabels} {phase:'before/after/rollback'} returns previous and new trigger information</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.trigger.propertiesByKey({assignedNodeProperties},'key')</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function to filter propertyEntries by property-key, to be used within a trigger statement with {assignedNode/RelationshipProperties} and {removedNode/RelationshipProperties}. Returns [{old,[new],key,node,relationship}]</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect4">
+<h5 id="_triggers_examples"><a class="link" href="#_triggers_examples">Triggers Examples</a></h5>
+<div class="paragraph">
+<div class="title">Set properties connected to a node</div>
+<p>We could add a trigger that when is added a specific property on a node, that property is added to all the nodes connected to this node</p>
+</div>
+<div class="paragraph">
+<p>Dataset</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (d:Person {name:'Daniel'})
+CREATE (l:Person {name:'Mary'})
+CREATE (t:Person {name:'Tom'})
+CREATE (j:Person {name:'John'})
+CREATE (m:Person {name:'Michael'})
+CREATE (a:Person {name:'Anne'})
+CREATE (l)-[:DAUGHTER_OF]-&gt;(d)
+CREATE (t)-[:SON_OF]-&gt;(d)
+CREATE (t)-[:BROTHER]-&gt;(j)
+CREATE (a)-[:WIFE_OF]-&gt;(d)
+CREATE (d)-[:SON_OF]-&gt;(m)
+CREATE (j)-[:SON_OF]-&gt;(d)</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.add.setAllConnectedNodes.dataset.png" alt="apoc.trigger.add.setAllConnectedNodes.dataset" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>Now we add the trigger using <code>apoc.trigger.propertiesByKey</code> on the <code>surname</code> property</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.trigger.add('setAllConnectedNodes','UNWIND apoc.trigger.propertiesByKey({assignedNodeProperties},"surname") as prop
+WITH prop.node as n
+MATCH(n)-[]-(a)
+SET a.surname = n.surname', {phase:'after'});</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>So when we add the <code>surname</code> property on a node, it&#8217;s added to all the nodes connected (in this case one level deep)</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH (d:Person {name:'Daniel'})
+SET d.surname = 'William'</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.add.setAllConnectedNodes.png" alt="apoc.trigger.add.setAllConnectedNodes" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>surname</code> property is add/change on all related nodes</p>
+</div>
+<div class="paragraph">
+<div class="title">Update labels</div>
+<p>Dataset</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (k:Actor {name:'Keanu Reeves'})
+CREATE (l:Actor {name:'Laurence Fishburne'})
+CREATE (c:Actor {name:'Carrie-Anne Moss'})
+CREATE (m:Movie {title:'Matrix'})
+CREATE (k)-[:ACT_IN]-&gt;(m)
+CREATE (l)-[:ACT_IN]-&gt;(m)
+CREATE (c)-[:ACT_IN]-&gt;(m)</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.add.setLabels.png" alt="apoc.trigger.add.setLabels" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>We add a trigger using <code>apoc.trigger.nodesByLabel</code> that when the label <code>Actor</code> of a node is removed, update all labels <code>Actor</code> with <code>Person</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.trigger.add('updateLabels',"UNWIND apoc.trigger.nodesByLabel({removedLabels},'Actor') AS node
+MATCH (n:Actor)
+REMOVE n:Actor SET n:Person SET node:Person", {phase:'before'})</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">MATCH(k:Actor {name:'Keanu Reeves'})
+REMOVE k:Actor</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.add.setLabelsResult.png" alt="apoc.trigger.add.setLabelsResult" width="800">
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Create relationship on a new node</div>
+<p>We can add a trigger that connect every new node with label <code>Actor</code> and as  <code>name</code> property a specific value</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.trigger.add('create-rel-new-node',"UNWIND {createdNodes} AS n
+MATCH (m:Movie {title:'Matrix'})
+WHERE n:Actor AND n.name IN ['Keanu Reeves','Laurence Fishburne','Carrie-Anne Moss']
+CREATE (n)-[:ACT_IN]-&gt;(m)", {phase:'before'})</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (k:Actor {name:'Keanu Reeves'})
+CREATE (l:Actor {name:'Laurence Fishburne'})
+CREATE (c:Actor {name:'Carrie-Anne Moss'})
+CREATE (a:Actor {name:'Tom Hanks'})
+CREATE (m:Movie {title:'Matrix'})</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.add.create-rel-new-node.png" alt="apoc.trigger.add.create rel new node" width="800">
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Pause trigger</div>
+<p>We have the possibility to pause a trigger without remove it, if we will need it in the future</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.pause.png" alt="apoc.trigger.pause" width="800">
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Resume paused trigger</div>
+<p>When you need again of a trigger paused</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.resume.png" alt="apoc.trigger.resume" width="800">
+</div>
+</div>
+<div class="paragraph">
+<div class="title">Enforcing property type</div>
+<p>For this example, we would like that all the <code>reference</code> node properties are of type <code>STRING</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.trigger.add("forceStringType",
+"UNWIND apoc.trigger.propertiesByKey({assignedNodeProperties}, 'reference') AS prop
+CALL apoc.util.validate(apoc.meta.type(prop) &lt;&gt; 'STRING', 'expected string property type, got %s', [apoc.meta.type(prop)]) RETURN null", {phase:'before'})</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE (a:Node) SET a.reference = 1
+
+Neo.ClientError.Transaction.TransactionHookFailed</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Other examples</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.trigger.add('timestamp','UNWIND {createdNodes} AS n SET n.ts = timestamp()');
+CALL apoc.trigger.add('lowercase','UNWIND {createdNodes} AS n SET n.id = toLower(n.name)');
+CALL apoc.trigger.add('txInfo',   'UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}', {phase:'after'});
+CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN {deletedRelationships} WHERE type(r) = "X"])')
+CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n.id = toLower(n.name)')</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="init-script"><a class="link" href="#init-script">Cypher init script</a></h3>
+<div class="paragraph">
+<p>Apoc optionally allows you to run a cypher command after database initialization is finished. This can e.g. be used to ensure indexes/constraints are created up front.</p>
+</div>
+<div class="paragraph">
+<p>To use this feature use a config option:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-config" data-lang="config">apoc.initializer.cypher=CALL apoc.cypher.runSchemaFile("file:///indexes.cypher")</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For running multiple statements you can also add suffixes to the config options, like <code>cypher.1</code>, <code>cypher.2</code>.
+The statements will then be executed in sort-order.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="neo4j-config"><a class="link" href="#neo4j-config">Config</a></h3>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.config.list</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Lists the Neo4j configuration as key,value table</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.config.map</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Lists the Neo4j configuration as map</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="warmup"><a class="link" href="#warmup">Warmup</a></h3>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.warmup.run([loadProperties],[loadDynamicProperties],[loadIndexes])</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Quickly warm up the page-caches by touching pages in paralle optionally load property-records, dynamic-properties, indexes</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="monitoring"><a class="link" href="#monitoring">Monitoring</a></h3>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.monitor.ids</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">node and relationships-ids in total and in use</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.monitor.kernel</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">store information such as kernel version, start time, read-only, database-name, store-log-version etc.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.monitor.store</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">store size information for the different types of stores</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.monitor.tx</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">number of transactions total,opened,committed,concurrent,rolled-back,last-tx-id</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.monitor.locks(minWaitTime long)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">db locking information such as avertedDeadLocks, lockCount, contendedLockCount and contendedLocks etc. (enterprise)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="indexes"><a class="link" href="#indexes">Deprecated: Text and Lookup Indexes</a></h2>
 <div class="sectionbody">
 <div class="admonitionblock warning">
@@ -15701,7 +16185,7 @@ $(document).ready(function() {
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-02-17 14:09:28 MEZ
+Last updated 2019-03-05 18:11:10 MEZ
 </div>
 </div>
 </body>

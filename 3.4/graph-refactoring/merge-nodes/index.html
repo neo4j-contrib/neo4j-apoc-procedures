@@ -72,7 +72,7 @@ RETURN node
 ---</code></pre><p>This config option also works for <code class="literal">apoc.refactor.mergeRelationships([rels],{config})</code>.
          </p>
          <div class="informaltable">
-            <div class="table" id="d0e17793">
+            <div class="table" id="d0e17784">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -132,14 +132,14 @@ RETURN node
 (n1)-[:DRIVE{since:2017}]-&gt;(n5),
 (n2)-[:HAS{since:2013}]-&gt;(n6)
 return *;</code></pre><div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.mergeNodes.createDataSetFirstExample.png" alt="apoc.refactor.mergeNodes.createDataSetFirstExample"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.mergeNodes.createDataSetFirstExample.png" alt="apoc.refactor.mergeNodes.createDataSetFirstExample"></img></div>
          </div>
          <p>Next step is calling the apoc to merge nodes :Person</p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (a1:Person{name:'John'}), (a2:Person {name:'Tom'})
 WITH head(collect([a1,a2])) as nodes
 CALL apoc.refactor.mergeNodes(nodes,{properties:"combine", mergeRels:true}) yield node
 MATCH (n)-[r:WORKS_FOR]-&gt;(c) return *</code></pre><p>and the result is:</p>
          <div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.mergeNodes.resultFirstExample.png" alt="apoc.refactor.mergeNodes.resultFirstExample"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.mergeNodes.resultFirstExample.png" alt="apoc.refactor.mergeNodes.resultFirstExample"></img></div>
          </div>
          <p>In this case we have relationships with same start and end nodes so relationships are merged into one and properties are combined.</p>
          <p>Relationships with different start or end nodes</p><pre class="programlisting highlight"><code data-lang="cypher">Create (n1:Person {name:'Tom'}),
@@ -157,17 +157,17 @@ MATCH (n)-[r:WORKS_FOR]-&gt;(c) return *</code></pre><p>and the result is:</p>
 (n1)-[:DRIVE{since:2017}]-&gt;(n5),
 (n2)-[:HAS{since:2013}]-&gt;(n6)
 return *;</code></pre><div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.mergeNodes.createDataSetSecondExample.png" alt="apoc.refactor.mergeNodes.createDataSetSecondExample"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.mergeNodes.createDataSetSecondExample.png" alt="apoc.refactor.mergeNodes.createDataSetSecondExample"></img></div>
          </div>
          <p>Next step is calling the apoc to merge nodes :Person</p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (a1:Person{name:'John'}), (a2:Person {name:'Tom'})
 WITH head(collect([a1,a2])) as nodes
 CALL apoc.refactor.mergeNodes(nodes,{properties:"combine", mergeRels:true}) yield node
 MATCH (n)-[r:WORKS_FOR]-&gt;(c) return n.name,r.since,c.name;</code></pre><p>and the result is:</p>
          <div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.mergeNodes.resultSecondExample.png" alt="apoc.refactor.mergeNodes.resultSecondExample"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.mergeNodes.resultSecondExample.png" alt="apoc.refactor.mergeNodes.resultSecondExample"></img></div>
          </div>
          <div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.mergeNodes.resultSecondExampleData.png" alt="apoc.refactor.mergeNodes.resultSecondExampleData"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.mergeNodes.resultSecondExampleData.png" alt="apoc.refactor.mergeNodes.resultSecondExampleData"></img></div>
          </div>
          <p>In this case we have relationships with different end nodes so all relationships are maintained and properties are combined
             into all relationships.

@@ -142,7 +142,7 @@
                </div>
             </div>
             <div class="informaltable">
-               <div class="table" id="d0e16979">
+               <div class="table" id="d0e16970">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -212,18 +212,18 @@
             </div>
             <p>With this dataset we have:</p>
             <div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.nodes.collapse_1.png" width="600" alt="apoc.nodes.collapse 1"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.nodes.collapse_1.png" width="600" alt="apoc.nodes.collapse 1"></img></div>
             </div>
             <p>If we want to collapse the people living in the city to a single node, we pass them to the procedure.</p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (p:Person)-[:LIVES_IN]-&gt;(c:City)
 WITH c, collect(p) as subgraph
 CALL apoc.nodes.collapse(subgraph,{properties:'combine'}) yield from, rel, to
 return from, rel, to</code></pre><p>And get this result:</p>
             <div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.nodes.collapse_2.png" width="600" alt="apoc.nodes.collapse 2"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.nodes.collapse_2.png" width="600" alt="apoc.nodes.collapse 2"></img></div>
             </div>
             <p>With this dataset we have:</p>
             <div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.nodes.collapse_3.png" width="600" alt="apoc.nodes.collapse 3"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.nodes.collapse_3.png" width="600" alt="apoc.nodes.collapse 3"></img></div>
             </div>
             <p>If we also want to collapse them onto the city itself, we add the city node <span class="emphasis"><em>first</em></span> to the collection.
             </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (p:Person)-[:LIVES_IN]-&gt;(c:City)
@@ -231,7 +231,7 @@ WITH c, c + collect(p) as subgraph
 CALL apoc.nodes.collapse(subgraph) yield from, rel, to
 return from, rel, to</code></pre><p>And get this result:</p>
             <div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.nodes.collapse_4.png" width="600" alt="apoc.nodes.collapse 4"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.nodes.collapse_4.png" width="600" alt="apoc.nodes.collapse 4"></img></div>
             </div>
          </section>
       </section>

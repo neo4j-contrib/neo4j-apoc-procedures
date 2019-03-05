@@ -163,7 +163,7 @@ RETURN value._route._leg._distance._value, keys(value), keys(value._route), keys
                   
                </p>
                <div class="informalfigure">
-                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.xmlSimple.ex1.png" width="800" alt="apoc.load.xmlSimple.ex1"></img></div>
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.load.xmlSimple.ex1.png" width="800" alt="apoc.load.xmlSimple.ex1"></img></div>
                </div>
                <p><span class="formalpara-title">Example 2.&nbsp;</span>
                   
@@ -174,7 +174,7 @@ RETURN key, apoc.meta.type(value[key]);</code></pre><p>
                   
                </p>
                <div class="informalfigure">
-                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.xmlSimple.ex2.png" width="800" alt="apoc.load.xmlSimple.ex2"></img></div>
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.load.xmlSimple.ex2.png" width="800" alt="apoc.load.xmlSimple.ex2"></img></div>
                </div>
             </section>
             <section class="section" id="_http_headers">
@@ -215,7 +215,7 @@ RETURN key, apoc.meta.type(value[key]);</code></pre></section>
                </p><pre class="programlisting highlight"><code data-lang="cypher">call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml", '/catalog/book[genre=\"Computer\"]') yield value as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['title','price'] | attr._text] as pairs
 RETURN id, pairs[0] as title, pairs[1] as price</code></pre><div class="informalfigure">
-                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.xml.xpath.png" width="800" alt="apoc.load.xml.xpath"></img></div>
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.load.xml.xpath.png" width="800" alt="apoc.load.xml.xpath"></img></div>
                </div>
                <p>In this case we return only <code class="literal">id</code>, <code class="literal">title</code> and <code class="literal">prize</code> but we can return any other elements
                </p>
@@ -223,7 +223,7 @@ RETURN id, pairs[0] as title, pairs[1] as price</code></pre><div class="informal
                   For example the <code class="literal">author</code> of the book with <code class="literal">id = bg102</code></p><pre class="programlisting highlight"><code data-lang="cypher">call apoc.load.xml('https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/src/test/resources/xml/books.xml', '/catalog/book[@id="bk102"]/author') yield value as result
 WITH result._text as author
 RETURN author</code></pre><div class="informalfigure">
-                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.xml.xpath2.png" width="800" alt="apoc.load.xml.xpath2"></img></div>
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.load.xml.xpath2.png" width="800" alt="apoc.load.xml.xpath2"></img></div>
                </div>
             </section>
          </section>
@@ -388,7 +388,7 @@ RETURN id, value.author, value.title</code></pre><pre class="screen highlight"><
                   The following mapping rules are applied:
                </p>
                <div class="informaltable">
-                  <div class="table" id="d0e7162">
+                  <div class="table" id="d0e7153">
                      <table class="informaltable" border="1">
                         <colgroup>
                            <col class="col_1"></col>
@@ -464,7 +464,7 @@ RETURN id, value.author, value.title</code></pre><pre class="screen highlight"><
                </div>
                <p>The nodes for the xml document are connected:</p>
                <div class="informaltable">
-                  <div class="table" id="d0e7228">
+                  <div class="table" id="d0e7219">
                      <table class="informaltable" border="1">
                         <colgroup>
                            <col class="col_1"></col>
@@ -525,7 +525,7 @@ RETURN id, value.author, value.title</code></pre><pre class="screen highlight"><
                <p>The following options are available for the <code class="literal">config</code> map:
                </p>
                <div class="informaltable">
-                  <div class="table" id="d0e7282">
+                  <div class="table" id="d0e7273">
                      <table class="informaltable" border="1">
                         <colgroup>
                            <col class="col_1"></col>
@@ -643,7 +643,7 @@ return node;</code></pre></section>
             </div>
             <p>Config param is optional, the default value is an empty map.</p>
             <div class="informaltable">
-               <div class="table" id="d0e7418">
+               <div class="table" id="d0e7409">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -691,13 +691,13 @@ return node;</code></pre></section>
                   </div>
                </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.html("https://en.wikipedia.org/",{metadata:"meta", h2:"h2"})</code></pre><p>You will get this result:</p>
                <div class="informalfigure">
-                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.htmlall.png" width="800" alt="apoc.load.htmlall"></img></div>
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.load.htmlall.png" width="800" alt="apoc.load.htmlall"></img></div>
                </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.html("https://en.wikipedia.org/",{links:"link"})</code></pre><p>You will get this result:</p>
                <div class="informalfigure">
-                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.htmllinks.png" width="800" alt="apoc.load.htmllinks"></img></div>
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.load.htmllinks.png" width="800" alt="apoc.load.htmllinks"></img></div>
                </div><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.load.html("https://en.wikipedia.org/",{metadata:"meta", h2:"h2"}, {charset: "UTF-8})</code></pre><p>You will get this result:</p>
                <div class="informalfigure">
-                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.load.htmlconfig.png" width="800" alt="apoc.load.htmlconfig"></img></div>
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.load.htmlconfig.png" width="800" alt="apoc.load.htmlconfig"></img></div>
                </div>
             </section>
          </section>

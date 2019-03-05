@@ -76,7 +76,7 @@
                Those rows can then be used to update or create graph structures.
             </p>
             <div class="informaltable">
-               <div class="table" id="d0e8533">
+               <div class="table" id="d0e8524">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -121,7 +121,7 @@
                </div>
             </div>
             <div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc-jdbc-northwind-load.jpg" width="600" alt="apoc jdbc northwind load"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc-jdbc-northwind-load.jpg" width="600" alt="apoc jdbc northwind load"></img></div>
             </div>
             <p>To simplify the JDBC URL syntax and protect credentials, you can configure aliases in <code class="literal">conf/neo4j.conf</code>:
             </p><pre class="screen highlight"><code>apoc.jdbc.myDB.url=jdbc:derby:derbyDB</code></pre><pre class="screen highlight"><code>CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON')
@@ -211,7 +211,7 @@ RETURN row limit 1;</code></pre><p>
 +--------------------------------------------------------------------------------+
 1 row
 10 ms</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc-load-jdbc.jpg" width="800" alt="apoc load jdbc"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc-load-jdbc.jpg" width="800" alt="apoc load jdbc"></img></div>
             </div>
          </section>
          <section class="section" id="_load_jdbc_with_params_examples">
@@ -417,7 +417,7 @@ RETURN row.name, row.price;</code></pre><p>You can also set it in your <code cla
                   <li class="listitem">by config parameter.</li>
                </ul>
             </div><pre class="screen highlight"><code>CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})</code></pre><div class="informaltable">
-               <div class="table" id="d0e8867">
+               <div class="table" id="d0e8858">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -582,7 +582,7 @@ WHERE score &gt; 1000</code></pre><p>You can call the procedure with param:</p><
                </div>
                <p>Config param is optional, the default value is an empty map.</p>
                <div class="informaltable">
-                  <div class="table" id="d0e9050">
+                  <div class="table" id="d0e9041">
                      <table class="informaltable" border="1">
                         <colgroup>
                            <col class="col_1"></col>

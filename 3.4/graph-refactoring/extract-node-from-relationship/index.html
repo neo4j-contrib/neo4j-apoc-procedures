@@ -60,12 +60,12 @@
                </div>
             </div>
          </div><pre class="programlisting highlight"><code data-lang="cypher">CREATE (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar)</code></pre><div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.extractNode.dataset.png" width="800" alt="apoc.refactor.extractNode.dataset"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.extractNode.dataset.png" width="800" alt="apoc.refactor.extractNode.dataset"></img></div>
          </div>
          <p>We pass the ID of the relationship as parameter to extract a node</p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar) WITH id(rel) as id
 CALL apoc.refactor.extractNode(id,['FooBar'],'FOO','BAR')
 YIELD input, output RETURN *</code></pre><div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.extractNode.png" width="800" alt="apoc.refactor.extractNode"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.extractNode.png" width="800" alt="apoc.refactor.extractNode"></img></div>
          </div>
       </section>
       <footer><script type="text/javascript">

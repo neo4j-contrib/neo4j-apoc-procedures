@@ -1,0 +1,392 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml">
+   <head>
+      <meta charset="utf-8"></meta>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+      <title>16.2.&nbsp;Triggers - Chapter&nbsp;16.&nbsp;Operational</title>
+      <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
+      <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.1.0/css/font-awesome.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans:400,300,400italic,600,300italic"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
+      <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
+      <link rel="next" href="../init-script/" title="16.3.&nbsp;Cypher init script"></link>
+      <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://neo4j.com/wp-content/themes/neo4jweb/assets/images/neo4j-logo-2015.png" alt="Neo4j Logo"></img></a>')
+          );
+          var $sidebar = $('<div id="sidebar-wrapper"></div>');
+          $.get('toc.html', function (d){
+            $(d).appendTo($sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          $sidebar.insertAfter($('header').first());
+        });
+        </script></head>
+   <body>
+      <header>
+         <div class="searchbox">
+            <form id="search-form" class="search" name="search-form" role="search"><input id="search-form-input" name="q" title="search" type="search" lang="en" placeholder="Search Neo4j docs..." aria-label="Search Neo4j documentation" max-length="128" required="required"></input><input id="search-form-button" type="submit" value="Search"></input></form>
+         </div>
+         <ul class="documentation-library">
+            <li><a href="https://neo4j.com/docs/operations-manual/current">Operations Manual</a></li>
+            <li><a href="https://neo4j.com/docs/developer-manual/current/">Developer Manual</a></li>
+            <li><a href="https://neo4j.com/docs/ogm-manual/current/">OGM Manual</a></li>
+            <li><a href="https://neo4j.com/docs/graph-algorithms/current/">Graph Algorithms</a></li>
+            <li><a href="https://neo4j-contrib.github.io/neo4j-apoc-procedures/3.4/">APOC</a></li>
+            <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
+         </ul>
+         <nav id="header-nav"><span class="nav-previous"></span><span class="nav-current">
+               <p class="nav-title hidden">16.2.&nbsp;Triggers</p></span><span class="nav-next"><a accesskey="n" href="../init-script/">Cypher init script<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+      </header>
+      <div id="search-results" class="hidden"></div>
+      <section class="section" id="triggers">
+         <div class="titlepage">
+            <div>
+               <div>
+                  <h2 class="title" style="clear: both"><a class="anchor" href="#triggers"></a>16.2.&nbsp;Triggers
+                  </h2>
+               </div>
+            </div>
+         </div>
+         <section class="section" id="_triggers">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_triggers"></a>16.2.1.&nbsp;Triggers
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>In a trigger you register Cypher statements that are called when data in Neo4j is changed (created, updated, deleted).
+               You can run them before or after commit.
+            </p>
+            <p>Enable <code class="literal">apoc.trigger.enabled=true</code> in <code class="literal">$NEO4J_HOME/config/neo4j.conf</code> first.
+            </p>
+            <div class="informaltable">
+               <div class="table" id="d0e18290">
+                  <table class="informaltable" border="1">
+                     <colgroup>
+                        <col class="col_1"></col>
+                        <col class="col_2"></col>
+                     </colgroup>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.trigger.add(name, statement, selector) yield name, statement, installed</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>add a trigger statement under a name, in the statement you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'}
+                                 returns previous and new trigger information
+                              </p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.trigger.remove(name) yield name, statement, installed</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>remove previously added trigger, returns trigger information</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.trigger.removeAll() yield name, statement, installed</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>removes all previously added triggers , returns trigger information</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.trigger.list() yield name, statement, installed</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>update and list all installed triggers</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.trigger.pause(name)</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>it pauses the trigger</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">CALL apoc.trigger.resume(name)</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>it resumes the paused trigger</p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <p>The transaction data from Neo4j is turned into appropriate data structures to be consumed as parameters to your statement.</p>
+            <p>The parameters available are:</p>
+            <div class="informaltable">
+               <div class="table" id="d0e18347">
+                  <table class="informaltable" border="1">
+                     <colgroup>
+                        <col class="col_1"></col>
+                        <col class="col_2"></col>
+                     </colgroup>
+                     <thead>
+                        <tr>
+                           <th style="text-align: left; vertical-align: top; ">Statement</th>
+                           <th style="text-align: left; vertical-align: top; ">Description</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>transactionId</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>returns the id of the transaction</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>commitTime</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>return the date of the transaction in milliseconds</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>createdNodes</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>when a node is created our trigger fires (list of nodes)</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>createdRelationships</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>when a relationship is created our trigger fires (list of relationships)</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>deletedNodes</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>when a node is delated our trigger fires (list of nodes)</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>deletedRelationships</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>when a relationship is delated our trigger fires (list of relationships)</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>removedLabels</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>when a label is removed our trigger fires (map of label to list of nodes)</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>removedNodeProperties</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>when a properties of node is removed our trigger fires (map of key to list of map of key,old,node)</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>removedRelationshipProperties</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>when a properties of relationship is removed our trigger fires (map of key to list of map of key,old,relationship)</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>assignedLabels</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>when a labes is assigned our trigger fires  (map of label to list of nodes)</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>assignedNodeProperties</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>when node property is assigned our trigger fires (map of key to list of map of key,old,new,node)</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>assignedRelationshipProperties</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>when relationship property is assigned our trigger fires (map of key to list of map of key,old,new,relationship)</p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+            <p>You can use these helper functions to extract nodes or relationships by label/relationship-type or updated property key.</p>
+            <div class="table" id="d0e18444">
+               <table class="table" summary="Helper Functions" border="1">
+                  <caption class="table-title">Table&nbsp;16.1.&nbsp;Helper Functions</caption>
+                  <colgroup>
+                     <col class="col_1"></col>
+                     <col class="col_2"></col>
+                  </colgroup>
+                  <tbody>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.trigger.nodesByLabel({assignedLabels/assignedNodeProperties},'Label')</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function to filter labelEntries by label, to be used within a trigger statement with {assignedLabels} and {removedLabels}
+                              {phase:'before/after/rollback'} returns previous and new trigger information
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.trigger.propertiesByKey({assignedNodeProperties},'key')</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function to filter propertyEntries by property-key, to be used within a trigger statement with {assignedNode/RelationshipProperties}
+                              and {removedNode/RelationshipProperties}. Returns [{old,[new],key,node,relationship}]
+                           </p>
+                        </td>
+                     </tr>
+                  </tbody>
+               </table>
+            </div>
+            <section class="section" id="_triggers_examples">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h4 class="title"><a class="anchor" href="#_triggers_examples"></a>16.2.1.1.&nbsp;Triggers Examples
+                        </h4>
+                     </div>
+                  </div>
+               </div>
+               <p><span class="formalpara-title">Set properties connected to a node.&nbsp;</span>We could add a trigger that when is added a specific property on a node, that property is added to all the nodes connected
+                  to this node
+               </p>
+               <p>Dataset</p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (d:Person {name:'Daniel'})
+CREATE (l:Person {name:'Mary'})
+CREATE (t:Person {name:'Tom'})
+CREATE (j:Person {name:'John'})
+CREATE (m:Person {name:'Michael'})
+CREATE (a:Person {name:'Anne'})
+CREATE (l)-[:DAUGHTER_OF]-&gt;(d)
+CREATE (t)-[:SON_OF]-&gt;(d)
+CREATE (t)-[:BROTHER]-&gt;(j)
+CREATE (a)-[:WIFE_OF]-&gt;(d)
+CREATE (d)-[:SON_OF]-&gt;(m)
+CREATE (j)-[:SON_OF]-&gt;(d)</code></pre><div class="informalfigure">
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.add.setAllConnectedNodes.dataset.png" width="800" alt="apoc.trigger.add.setAllConnectedNodes.dataset"></img></div>
+               </div>
+               <p>Now we add the trigger using <code class="literal">apoc.trigger.propertiesByKey</code> on the <code class="literal">surname</code> property
+               </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.trigger.add('setAllConnectedNodes','UNWIND apoc.trigger.propertiesByKey({assignedNodeProperties},"surname") as prop
+WITH prop.node as n
+MATCH(n)-[]-(a)
+SET a.surname = n.surname', {phase:'after'});</code></pre><p>So when we add the <code class="literal">surname</code> property on a node, it&#8217;s added to all the nodes connected (in this case one level deep)
+               </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (d:Person {name:'Daniel'})
+SET d.surname = 'William'</code></pre><div class="informalfigure">
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.add.setAllConnectedNodes.png" width="800" alt="apoc.trigger.add.setAllConnectedNodes"></img></div>
+               </div>
+               <p>The <code class="literal">surname</code> property is add/change on all related nodes
+               </p>
+               <p><span class="formalpara-title">Update labels.&nbsp;</span>Dataset
+               </p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (k:Actor {name:'Keanu Reeves'})
+CREATE (l:Actor {name:'Laurence Fishburne'})
+CREATE (c:Actor {name:'Carrie-Anne Moss'})
+CREATE (m:Movie {title:'Matrix'})
+CREATE (k)-[:ACT_IN]-&gt;(m)
+CREATE (l)-[:ACT_IN]-&gt;(m)
+CREATE (c)-[:ACT_IN]-&gt;(m)</code></pre><div class="informalfigure">
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.add.setLabels.png" width="800" alt="apoc.trigger.add.setLabels"></img></div>
+               </div>
+               <p>We add a trigger using <code class="literal">apoc.trigger.nodesByLabel</code> that when the label <code class="literal">Actor</code> of a node is removed, update all labels <code class="literal">Actor</code> with <code class="literal">Person</code></p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.trigger.add('updateLabels',"UNWIND apoc.trigger.nodesByLabel({removedLabels},'Actor') AS node
+MATCH (n:Actor)
+REMOVE n:Actor SET n:Person SET node:Person", {phase:'before'})</code></pre><pre class="programlisting highlight"><code data-lang="cypher">MATCH(k:Actor {name:'Keanu Reeves'})
+REMOVE k:Actor</code></pre><div class="informalfigure">
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.add.setLabelsResult.png" width="800" alt="apoc.trigger.add.setLabelsResult"></img></div>
+               </div>
+               <p><span class="formalpara-title">Create relationship on a new node.&nbsp;</span>We can add a trigger that connect every new node with label <code class="literal">Actor</code> and as  <code class="literal">name</code> property a specific value
+               </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.trigger.add('create-rel-new-node',"UNWIND {createdNodes} AS n
+MATCH (m:Movie {title:'Matrix'})
+WHERE n:Actor AND n.name IN ['Keanu Reeves','Laurence Fishburne','Carrie-Anne Moss']
+CREATE (n)-[:ACT_IN]-&gt;(m)", {phase:'before'})</code></pre><pre class="programlisting highlight"><code data-lang="cypher">CREATE (k:Actor {name:'Keanu Reeves'})
+CREATE (l:Actor {name:'Laurence Fishburne'})
+CREATE (c:Actor {name:'Carrie-Anne Moss'})
+CREATE (a:Actor {name:'Tom Hanks'})
+CREATE (m:Movie {title:'Matrix'})</code></pre><div class="informalfigure">
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.add.create-rel-new-node.png" width="800" alt="apoc.trigger.add.create rel new node"></img></div>
+               </div>
+               <p><span class="formalpara-title">Pause trigger.&nbsp;</span>We have the possibility to pause a trigger without remove it, if we will need it in the future
+               </p>
+               <div class="informalfigure">
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.pause.png" width="800" alt="apoc.trigger.pause"></img></div>
+               </div>
+               <p><span class="formalpara-title">Resume paused trigger.&nbsp;</span>When you need again of a trigger paused
+               </p>
+               <div class="informalfigure">
+                  <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.trigger.resume.png" width="800" alt="apoc.trigger.resume"></img></div>
+               </div>
+               <p><span class="formalpara-title">Enforcing property type.&nbsp;</span>For this example, we would like that all the <code class="literal">reference</code> node properties are of type <code class="literal">STRING</code></p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.trigger.add("forceStringType",
+"UNWIND apoc.trigger.propertiesByKey({assignedNodeProperties}, 'reference') AS prop
+CALL apoc.util.validate(apoc.meta.type(prop) &lt;&gt; 'STRING', 'expected string property type, got %s', [apoc.meta.type(prop)]) RETURN null", {phase:'before'})</code></pre><pre class="programlisting highlight"><code data-lang="cypher">CREATE (a:Node) SET a.reference = 1
+
+Neo.ClientError.Transaction.TransactionHookFailed</code></pre><p><span class="formalpara-title">Other examples.&nbsp;</span>
+                  
+               </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.trigger.add('timestamp','UNWIND {createdNodes} AS n SET n.ts = timestamp()');
+CALL apoc.trigger.add('lowercase','UNWIND {createdNodes} AS n SET n.id = toLower(n.name)');
+CALL apoc.trigger.add('txInfo',   'UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}', {phase:'after'});
+CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size([r IN {deletedRelationships} WHERE type(r) = "X"])')
+CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n.id = toLower(n.name)')</code></pre><p>
+                  
+               </p>
+            </section>
+         </section>
+      </section>
+      <footer><script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+          //Allow Linker
+          ga('create', 'UA-1192232-34','auto', {'allowLinker': true});
+          ga('send', 'pageview');
+          // Load the plugin.
+          ga('require', 'linker');
+          // Define which domains to autoLink.
+          ga('linker:autoLink', ['neo4j.org','neo4j.com','neotechnology.com','graphdatabases.com','graphconnect.com']);
+        </script><script type="text/javascript">
+          document.write(unescape("%3Cscript src='//munchkin.marketo.net/munchkin.js' type='text/javascript'%3E%3C/script%3E"));
+        </script><script>Munchkin.init('773-GON-065');</script></footer>
+   </body>
+</html>

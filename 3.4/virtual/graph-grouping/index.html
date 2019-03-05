@@ -76,7 +76,7 @@ call apoc.nodes.group(['Person','Movie'],['century']);</code></pre><p>
             
          </p>
          <div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.nodes.group.jpg" alt="apoc.nodes.group"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.nodes.group.jpg" alt="apoc.nodes.group"></img></div>
          </div>
          <div class="admonitionblock note">
             <table>
@@ -142,7 +142,7 @@ RETURN node, rel;</code></pre></td>
             </div>
             <p>In the config there are more options:</p>
             <div class="informaltable">
-               <div class="table" id="d0e17386">
+               <div class="table" id="d0e17377">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -282,12 +282,12 @@ merge (u)-[:KNOWS]-(u2);</code></pre><p>
                
             </p><pre class="screen highlight"><code>call apoc.nodes.group(['*'], ['country'])
 yield node, relationship return *</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/grouping-country-all.jpg" alt="grouping country all"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/grouping-country-all.jpg" alt="grouping country all"></img></div>
             </div><pre class="screen highlight"><code>call apoc.nodes.group(['*'], ['country'], null,
     {selfRels:false, orphans:false,
      filter:{`User.count_*.min`:130,`KNOWS.count_*.max`:200}})
 yield node, relationship return *</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/grouping-country-filter.jpg" alt="grouping country filter"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/grouping-country-filter.jpg" alt="grouping country filter"></img></div>
             </div>
             <p>To visualize this result in Neo4j Browser it&#8217;s useful to have a custom Graph Style Sheet (GRASS) that renders the grouped
                properties with some of the aggregations.

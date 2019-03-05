@@ -5,7 +5,7 @@
    <head>
       <meta charset="utf-8"></meta>
       <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
-      <title>16.1.&nbsp;Schema Index Procedures - Chapter&nbsp;16.&nbsp;Deprecated: Text and Lookup Indexes</title>
+      <title>17.1.&nbsp;Schema Index Procedures - Chapter&nbsp;17.&nbsp;Deprecated: Text and Lookup Indexes</title>
       <link rel="stylesheet" type="text/css" href="../../docbook.css"></link>
       <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"></link>
       <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.13/css/jquery.dataTables.min.css"></link>
@@ -15,8 +15,8 @@
       <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/theme/neo.min.css"></link>
       <link rel="stylesheet" type="text/css" href="../../css/chunked-base.css"></link>
       <link rel="stylesheet" type="text/css" href="../../css/extra.css"></link><script src="//code.jquery.com/jquery-1.12.4.js" type="text/javascript"></script><script src="//cdn.datatables.net/1.10.13/js/jquery.dataTables.min.js" type="text/javascript"></script><script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/codemirror.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/addon/runmode/runmode.min.js" type="text/javascript"></script><script src="//cdnjs.cloudflare.com/ajax/libs/codemirror/5.11.0/mode/cypher/cypher.min.js" type="text/javascript"></script><script src="../../javascript/datatable.js" type="text/javascript"></script><script src="../../javascript/colorize.js" type="text/javascript"></script><script src="../../javascript/tabs-for-chunked.js" type="text/javascript"></script><script src="../../javascript/mp-nav.js" type="text/javascript"></script><script src="../../javascript/versionswitcher.js" type="text/javascript"></script><script src="../../javascript/version.js" type="text/javascript"></script><script src="//s3-eu-west-1.amazonaws.com/alpha.neohq.net/docs/new-manual/assets/search.js" type="text/javascript"></script><meta name="generator" content="DocBook XSL Stylesheets V1.79.1"></meta>
-      <link rel="prev" href="../" title="Chapter&nbsp;16.&nbsp;Deprecated: Text and Lookup Indexes"></link>
-      <link rel="next" href="../manual-indexes/" title="16.2.&nbsp;Manual Indexes"></link>
+      <link rel="prev" href="../" title="Chapter&nbsp;17.&nbsp;Deprecated: Text and Lookup Indexes"></link>
+      <link rel="next" href="../manual-indexes/" title="17.2.&nbsp;Manual Indexes"></link>
       <link rel="shortcut icon" href="https://neo4j.com/wp-content/themes/neo4jweb/favicon.ico"></link><script>
         $(document).ready(function() {
           CodeMirror.colorize();
@@ -48,20 +48,20 @@
             <li><a href="https://neo4j.com/docs/java-reference/current/">Java Reference</a></li>
          </ul>
          <nav id="header-nav"><span class="nav-previous"><a accesskey="p" href="../"><span class="fa fa-long-arrow-left" aria-hidden="true"></span>Deprecated: Text and Lookup Indexes</a></span><span class="nav-current">
-               <p class="nav-title hidden">16.1.&nbsp;Schema Index Procedures</p></span><span class="nav-next"><a accesskey="n" href="../manual-indexes/">Manual Indexes<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
+               <p class="nav-title hidden">17.1.&nbsp;Schema Index Procedures</p></span><span class="nav-next"><a accesskey="n" href="../manual-indexes/">Manual Indexes<span class="fa fa-long-arrow-right" aria-hidden="true"></span></a></span></nav>
       </header>
       <div id="search-results" class="hidden"></div>
       <section class="section" id="schema-index-operations">
          <div class="titlepage">
             <div>
                <div>
-                  <h2 class="title" style="clear: both"><a class="anchor" href="#schema-index-operations"></a>16.1.&nbsp;Schema Index Procedures
+                  <h2 class="title" style="clear: both"><a class="anchor" href="#schema-index-operations"></a>17.1.&nbsp;Schema Index Procedures
                   </h2>
                </div>
             </div>
          </div>
          <div class="informaltable">
-            <div class="table" id="d0e18206">
+            <div class="table" id="d0e18735">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -123,7 +123,7 @@
             <div class="titlepage">
                <div>
                   <div>
-                     <h3 class="title"><a class="anchor" href="#_schema_information"></a>16.1.1.&nbsp;Schema Information
+                     <h3 class="title"><a class="anchor" href="#_schema_information"></a>17.1.1.&nbsp;Schema Information
                      </h3>
                   </div>
                </div>
@@ -180,7 +180,7 @@
                <div class="titlepage">
                   <div>
                      <div>
-                        <h4 class="title"><a class="anchor" href="#_examples_7"></a>16.1.1.1.&nbsp;Examples
+                        <h4 class="title"><a class="anchor" href="#_examples_7"></a>17.1.1.1.&nbsp;Examples
                         </h4>
                      </div>
                   </div>
@@ -196,15 +196,15 @@
                   </div>
                   <p>When you:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.assert({Foo:['bar']},null)</code></pre><p>you will receive this result:</p>
                   <div class="informalfigure">
-                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.assert.index.png" alt="apoc.schema.assert.index"></img></div>
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.assert.index.png" alt="apoc.schema.assert.index"></img></div>
                   </div>
                   <p>When you:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.assert(null,{Foo:['bar']})</code></pre><p>you will receive this result:</p>
                   <div class="informalfigure">
-                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.assert.constraint.png" alt="apoc.schema.assert.constraint"></img></div>
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.assert.constraint.png" alt="apoc.schema.assert.constraint"></img></div>
                   </div>
                   <p>When you:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.assert(null,null)</code></pre><p>you will receive this result:</p>
                   <div class="informalfigure">
-                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.assert.drop.png" alt="apoc.schema.assert.drop"></img></div>
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.assert.drop.png" alt="apoc.schema.assert.drop"></img></div>
                   </div>
                </section>
                <section class="section" id="_list_indexes_and_constraints_for_nodes">
@@ -222,7 +222,7 @@ CREATE INDEX ON :Person(name)
 CREATE INDEX ON :Publication(name)
 CREATE INDEX ON :Source(name)</code></pre><p>When you</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.nodes()</code></pre><p>you will receive this result:</p>
                   <div class="informalfigure">
-                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.nodes.png" alt="apoc.schema.nodes"></img></div>
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.nodes.png" alt="apoc.schema.nodes"></img></div>
                   </div>
                </section>
                <section class="section" id="_list_constraints_for_relationships">
@@ -237,7 +237,7 @@ CREATE INDEX ON :Source(name)</code></pre><p>When you</p><pre class="programlist
                   <p>Given the following cypher statements:</p><pre class="programlisting highlight"><code data-lang="cypher">CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)
 CREATE CONSTRAINT ON ()-[starred:STARRED]-() ASSERT exists(starred.month)</code></pre><p>When you</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.schema.relationships()</code></pre><p>you will receive this result:</p>
                   <div class="informalfigure">
-                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.relationships.png" alt="apoc.schema.relationships"></img></div>
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.relationships.png" alt="apoc.schema.relationships"></img></div>
                   </div>
                </section>
                <section class="section" id="_check_if_an_index_or_a_constraint_exists_for_a_label_and_property">
@@ -251,15 +251,15 @@ CREATE CONSTRAINT ON ()-[starred:STARRED]-() ASSERT exists(starred.month)</code>
                   </div>
                   <p>Given the previous index definitions, running this statement:</p><pre class="programlisting highlight"><code data-lang="cypher">RETURN apoc.schema.node.indexExists("Publication", ["name"])</code></pre><p>produces the following output:</p>
                   <div class="informalfigure">
-                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.node.indexExists.png" alt="apoc.schema.node.indexExists"></img></div>
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.node.indexExists.png" alt="apoc.schema.node.indexExists"></img></div>
                   </div>
                   <p>Given the previous constraint definitions, running this statement:</p><pre class="programlisting highlight"><code data-lang="cypher">RETURN apoc.schema.node.constraintExists("Bar", ["foobar"])</code></pre><p>produces the following output:</p>
                   <div class="informalfigure">
-                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.node.constraintExists.png" alt="apoc.schema.node.constraintExists"></img></div>
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.node.constraintExists.png" alt="apoc.schema.node.constraintExists"></img></div>
                   </div>
                   <p>If you want to check if a constraint exists for a relationship you can run this statement:</p><pre class="programlisting highlight"><code data-lang="cypher">RETURN apoc.schema.relationship.constraintExists('LIKED', ['day'])</code></pre><p>and you get the following result:</p>
                   <div class="informalfigure">
-                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.schema.relationship.constraintExists.png" alt="apoc.schema.relationship.constraintExists"></img></div>
+                     <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.schema.relationship.constraintExists.png" alt="apoc.schema.relationship.constraintExists"></img></div>
                   </div>
                </section>
             </section>

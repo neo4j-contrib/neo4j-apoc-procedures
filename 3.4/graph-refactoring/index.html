@@ -60,7 +60,7 @@
             </div>
          </div>
          <div class="informaltable">
-            <div class="table" id="d0e17552">
+            <div class="table" id="d0e17543">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -220,12 +220,12 @@
                </div>
             </div><pre class="programlisting highlight"><code data-lang="cypher">CREATE (:Person {prop: 'Y', name:'A'}),(:Person {prop: 'Yes', name:'B'}),(:Person {prop: 'NO', name:'C'}),(:Person {prop: 'X', name:'D'})</code></pre><p>As a resul we have four nodes with different properties <code class="literal">prop</code> like <code class="literal">Y</code>, <code class="literal">Yes</code>, <code class="literal">NO</code>, <code class="literal">X</code></p>
             <div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.normalizeAsBoolean.dataset.png" width="800" alt="apoc.refactor.normalizeAsBoolean.dataset"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.normalizeAsBoolean.dataset.png" width="800" alt="apoc.refactor.normalizeAsBoolean.dataset"></img></div>
             </div>
             <p>Now we want to transform some properties into a boolean, <code class="literal">Y</code>, <code class="literal">Yes</code> into true and the properties <code class="literal">NO</code> into false.
                The other properties that don&#8217;t match these possibilities will be set as <code class="literal">null</code>.
             </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (n)  CALL apoc.refactor.normalizeAsBoolean(n,'prop',['Y','Yes'],['NO']) WITH n ORDER BY n.id RETURN n.prop AS prop</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.normalizeAsBoolean.png" width="800" alt="apoc.refactor.normalizeAsBoolean"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.normalizeAsBoolean.png" width="800" alt="apoc.refactor.normalizeAsBoolean"></img></div>
             </div>
          </section>
          <section class="section" id="_using_cypher_and_apoc_to_move_a_property_value_to_a_label">

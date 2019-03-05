@@ -63,11 +63,11 @@
 CALL apoc.refactor.collapseNode(id,'FOOBAR')
 YIELD input, output RETURN *</code></pre><p>Before we have this situation</p>
          <div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.collapseNode.dataset.png" width="800" alt="apoc.refactor.collapseNode.dataset"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.collapseNode.dataset.png" width="800" alt="apoc.refactor.collapseNode.dataset"></img></div>
          </div>
          <p>And the result are</p>
          <div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.collapseNode.png" width="800" alt="apoc.refactor.collapseNode"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.collapseNode.png" width="800" alt="apoc.refactor.collapseNode"></img></div>
          </div>
          <p>The property of the two relationship and the property of the node are joined in one relationship that has the  properties
             <code class="literal">a:1</code>, <code class="literal">b:2</code>, <code class="literal">name:Bar</code></p>

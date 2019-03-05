@@ -94,7 +94,7 @@
             </p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (p:Person {name:'Tom',age: 40})</code></pre><p>We can add 10 to the property <code class="literal">age</code></p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (n:Person {name:'Tom'})
 CALL apoc.atomic.add(n,'age',10,5) YIELD oldValue, newValue
 RETURN n</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.atomic.add.png" width="800" alt="apoc.atomic.add"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.atomic.add.png" width="800" alt="apoc.atomic.add"></img></div>
             </div>
             <p><span class="formalpara-title">subtract.&nbsp;</span>From the previous example we can go back to <code class="literal">age</code>: 40
             </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (n:Person {name:'Tom'})
@@ -103,25 +103,25 @@ RETURN n</code></pre><p><span class="formalpara-title">concat.&nbsp;</span>Datas
             </p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (p:Person {name:'Will',age: 35})</code></pre><pre class="programlisting highlight"><code data-lang="cypher">MATCH (p:Person {name:'Will',age: 35})
 CALL apoc.atomic.concat(p,"name",'iam',5) YIELD newValue
 RETURN p</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.atomic.concat.png" width="800" alt="apoc.atomic.concat"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.atomic.concat.png" width="800" alt="apoc.atomic.concat"></img></div>
             </div>
             <p><span class="formalpara-title">insert.&nbsp;</span>Dataset
             </p>
             <p>we add a propery <code class="literal">children</code> that is an array
             </p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (p:Person {name:'Tom', children: ['Anne','Sam','Paul']})</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.atomic.insert.png" width="800" alt="apoc.atomic.insert"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.atomic.insert.png" width="800" alt="apoc.atomic.insert"></img></div>
             </div>
             <p>Now we add <code class="literal">Mary</code> to propery children at the position 2
             </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (p:Person {name:'Tom'})
 CALL apoc.atomic.insert(p,'children',2,'Mary',5) YIELD newValue
 RETURN p</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.atomic.insert.result.png" width="800" alt="apoc.atomic.insert.result"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.atomic.insert.result.png" width="800" alt="apoc.atomic.insert.result"></img></div>
             </div>
             <p><span class="formalpara-title">remove.&nbsp;</span>Dataset
             </p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (p:Person {name:'Tom', cars: ['Class A','X3','Focus']})</code></pre><p>Now we remove the element <code class="literal">X3</code> which is at the position 1 from the array <code class="literal">cars</code></p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (p:Person {name:'Tom'})
 CALL apoc.atomic.remove(p,'cars',1,5) YIELD newValue
 RETURN p</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.atomic.remove.png" width="800" alt="apoc.atomic.remove"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.atomic.remove.png" width="800" alt="apoc.atomic.remove"></img></div>
             </div>
             <p><span class="formalpara-title">update.&nbsp;</span>Dataset
             </p><pre class="screen highlight"><code>CREATE (p:Person {name:'Tom', salary1:1800, salary2:1500})</code></pre><p>We want to update <code class="literal">salary1</code> with the result of an expression.
@@ -130,7 +130,7 @@ RETURN p</code></pre><div class="informalfigure">
             </p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (p:Person {name:'Tom'})
 CALL apoc.atomic.update(p,'salary1','n.salary1*3 + n.salary2',5) YIELD newValue
 RETURN p</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.atomic.update.png" width="800" alt="apoc.atomic.update"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.atomic.update.png" width="800" alt="apoc.atomic.update"></img></div>
             </div>
          </section>
       </section>

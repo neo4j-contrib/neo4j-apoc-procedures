@@ -74,11 +74,11 @@
             </p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar)
 CREATE (p:Person {name:'Antony'})
 RETURN *</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.to.dataset.png" width="800" alt="apoc.refactor.to.dataset"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.to.dataset.png" width="800" alt="apoc.refactor.to.dataset"></img></div>
             </div><pre class="programlisting highlight"><code data-lang="cypher">MATCH (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar) with id(rel) as id
 MATCH (p:Person {name:'Antony'}) with p as p
 MATCH ()-[r]-&gt;(), (p:Person)  CALL apoc.refactor.to(r, p) YIELD input, output RETURN *</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.to.png" width="800" alt="apoc.refactor.to"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.to.png" width="800" alt="apoc.refactor.to"></img></div>
             </div>
             <p>Now the relationship is towards the new node <code class="literal">Person</code></p>
          </section>
@@ -96,11 +96,11 @@ MATCH ()-[r]-&gt;(), (p:Person)  CALL apoc.refactor.to(r, p) YIELD input, output
             </p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar)
 CREATE (p:Person {name:'Antony'})
 RETURN *</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.from.dataset.png" width="800" alt="apoc.refactor.from.dataset"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.from.dataset.png" width="800" alt="apoc.refactor.from.dataset"></img></div>
             </div><pre class="programlisting highlight"><code data-lang="cypher">MATCH (f:Foo)-[rel:FOOBAR {a:1}]-&gt;(b:Bar) with id(rel) as id
 MATCH (p:Person {name:'Antony'}) with p as p
 MATCH ()-[r]-&gt;(), (p:Person)  CALL apoc.refactor.from(r, p) YIELD input, output RETURN *</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.from.png" width="800" alt="apoc.refactor.from"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.from.png" width="800" alt="apoc.refactor.from"></img></div>
             </div>
             <p>Now the relationship starts from the new node <code class="literal">Person</code> from the old node <code class="literal">Bar</code></p>
          </section>

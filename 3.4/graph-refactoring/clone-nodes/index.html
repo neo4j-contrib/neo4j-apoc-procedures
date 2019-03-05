@@ -62,19 +62,19 @@
          </div>
          <p>We create a dataset</p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (f:Foo{name:'Foo'}),(b:Bar{name:'Bar'})</code></pre><p>As result we have two nodes</p>
          <div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.cloneNodes.dataset.png" width="800" alt="apoc.refactor.cloneNodes.dataset"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.cloneNodes.dataset.png" width="800" alt="apoc.refactor.cloneNodes.dataset"></img></div>
          </div><pre class="programlisting highlight"><code data-lang="cypher">MATCH (f:Foo{name:'Foo'}),(b:Bar{name:'Bar'}) WITH f,b
 CALL apoc.refactor.cloneNodes([f,b]) yield input, output RETURN *</code></pre><p>As result we have the two nodes that we have created before and their clones</p>
          <div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.cloneNodes.png" width="800" alt="apoc.refactor.cloneNodes"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.cloneNodes.png" width="800" alt="apoc.refactor.cloneNodes"></img></div>
          </div>
          <p><span class="formalpara-title">Clone nodes with relationship.&nbsp;</span>We create a dataset of two different nodes of type <code class="literal">Actor</code> connected with other two different node of type <code class="literal">Movie</code></p><pre class="programlisting highlight"><code data-lang="cypher">CREATE (k:Actor {name:'Keanu Reeves'})-[:ACTED_IN {role:'Neo'}]-&gt;(m:Movie {title:'The Matrix'}),
 	   (t:Actor {name:'Tom Hanks'})-[:ACTED_IN {role:'Forrest'}]-&gt;(f:Movie {title:'Forrest Gump'}) RETURN *</code></pre><div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.cloneNodesWithRelationships.dataset.png" width="800" alt="apoc.refactor.cloneNodesWithRelationships.dataset"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.cloneNodesWithRelationships.dataset.png" width="800" alt="apoc.refactor.cloneNodesWithRelationships.dataset"></img></div>
          </div><pre class="programlisting highlight"><code data-lang="cypher">MATCH (k:Actor {name:'Keanu Reeves'}), (t:Actor {name:'Tom Hanks'})
 CALL apoc.refactor.cloneNodesWithRelationships([k,t]) YIELD input, output RETURN *</code></pre><p>As result we have a copy of the nodes and relationships</p>
          <div class="informalfigure">
-            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.refactor.cloneNodesWithRelationships.png" width="800" alt="apoc.refactor.cloneNodesWithRelationships"></img></div>
+            <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.refactor.cloneNodesWithRelationships.png" width="800" alt="apoc.refactor.cloneNodesWithRelationships"></img></div>
          </div>
       </section>
       <footer><script type="text/javascript">

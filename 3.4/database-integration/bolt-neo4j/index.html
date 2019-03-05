@@ -62,7 +62,7 @@
          </div>
          <p>Bolt procedures allows to accessing other databases via bolt protocol.</p>
          <div class="informaltable">
-            <div class="table" id="d0e9764">
+            <div class="table" id="d0e9755">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -153,7 +153,7 @@ apoc.bolt.production.url=bolt://password:test@localhost:7688</code></pre><p>
                Is&#8217;s a map of values, the values that we don&#8217;t pass to the config, are set to the default value.
             </p><pre class="programlisting highlight"><code data-lang="cypher">{logging='INFO', encryption=true, logLeakedSessions:true, maxIdleConnectionPoolSize:10, idleTimeBeforeConnectionTest:-1, trustStrategy:'TRUST_ALL_CERTIFICATES',
  routingFailureLimit: 1, routingRetryDelayMillis:5000, connectionTimeoutMillis:5000, maxRetryTimeMs:30000 }</code></pre><div class="informaltable">
-               <div class="table" id="d0e9868">
+               <div class="table" id="d0e9859">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -295,31 +295,31 @@ apoc.bolt.production.url=bolt://password:test@localhost:7688</code></pre><p>
             </div>
             <p><span class="strong"><strong>Return node in map format</strong></span></p><pre class="programlisting highlight"><code data-lang="cypher">call apoc.bolt.execute("bolt://user:password@localhost:7687",
 "match(p:Person {name:{name}}) return p", {name:'Michael'})</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.execute.nodemap.PNG" width="800" alt="apoc.bolt.execute.nodemap"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.bolt.execute.nodemap.PNG" width="800" alt="apoc.bolt.execute.nodemap"></img></div>
             </div>
             <p><span class="strong"><strong>Return node in virtual Node format</strong></span></p><pre class="programlisting highlight"><code data-lang="cypher">call apoc.bolt.load("bolt://user:password@localhost:7687",
 "match(p:Person {name:{name}}) return p", {name:'Michael'}, {virtual:true})</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.load.virtualnode.PNG" width="800" alt="apoc.bolt.load.virtualnode"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.bolt.load.virtualnode.PNG" width="800" alt="apoc.bolt.load.virtualnode"></img></div>
             </div>
             <p><span class="strong"><strong>Create node and return statistic</strong></span></p><pre class="programlisting highlight"><code data-lang="cypher">call apoc.bolt.execute("bolt://user:password@localhost:7687",
 "create(n:Node {name:{name}})", {name:'Node1'}, {statistics:true})</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.execute.createandstatistics.PNG" width="800" alt="apoc.bolt.execute.createandstatistics"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.bolt.execute.createandstatistics.PNG" width="800" alt="apoc.bolt.execute.createandstatistics"></img></div>
             </div>
             <p><span class="strong"><strong>Return more scalar values</strong></span></p><pre class="programlisting highlight"><code data-lang="cypher">call apoc.bolt.execute("bolt://user:password@localhost:7687",
 "match (n:Person {name:{name}}) return n.age as age, n.name as name, n.surname as surname", {name:'Michael'})</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.execute.scalarmulti.PNG" width="800" alt="apoc.bolt.execute.scalarmulti"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.bolt.execute.scalarmulti.PNG" width="800" alt="apoc.bolt.execute.scalarmulti"></img></div>
             </div>
             <p><span class="strong"><strong>Return relationship in a map format</strong></span></p><pre class="programlisting highlight"><code data-lang="cypher">call apoc.bolt.load("bolt://user:password@localhost:7687",
 "MATCH (n:Person{name:{name}})-[r:KNOWS]-&gt;(p) return r as rel", {name:'Anne'})</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.load.relmap.PNG" width="800" alt="apoc.bolt.load.relmap"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.bolt.load.relmap.PNG" width="800" alt="apoc.bolt.load.relmap"></img></div>
             </div>
             <p><span class="strong"><strong>Return virtual path</strong></span></p><pre class="programlisting highlight"><code data-lang="cypher">call apoc.bolt.load("bolt://user:password@localhost:7687",
 "START n=node({idNode}) MATCH path= (n)-[r:REL_TYPE*..3]-&gt;(o) return path", {idNode:200}, {virtual:true})</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.load.returnvirtualpath.PNG" width="800" alt="apoc.bolt.load.returnvirtualpath"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.bolt.load.returnvirtualpath.PNG" width="800" alt="apoc.bolt.load.returnvirtualpath"></img></div>
             </div>
             <p><span class="strong"><strong>Create a Node with params in input</strong></span></p><pre class="programlisting highlight"><code data-lang="cypher">call apoc.bolt.execute("bolt://user:password@localhost:7687",
 "CREATE (n:Car{brand:{brand},model:{model},year:{year}}) return n", {brand:'Ferrari',model:'California',year:2016})</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.bolt.execute.createwithparams.PNG" width="800" alt="apoc.bolt.execute.createwithparams"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.bolt.execute.createwithparams.PNG" width="800" alt="apoc.bolt.execute.createwithparams"></img></div>
             </div>
          </section>
       </section>

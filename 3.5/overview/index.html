@@ -949,6 +949,39 @@
                            <p>procedure</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.algo.betweenness</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>CALL apoc.algo.betweenness(['TYPE',&#8230;&#8203;],nodes,BOTH) YIELD node, score - calculate betweenness centrality for given nodes</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.algo.betweennessCypher</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>CALL apoc.algo.betweennessCypher(node_cypher,rel_cypher,write) - calculates betweeness  centrality based on cypher input</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.algo.closeness</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>CALL apoc.algo.closeness(['TYPE',&#8230;&#8203;],nodes, INCOMING) YIELD node, score - calculate closeness centrality for given nodes</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.algo.community</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
@@ -1876,7 +1909,7 @@
                            <p>apoc.index.orderedRange</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>deprecated, just there for compatibility. Use plain cypher instead</p>
+                           <p>just use a cypher query with a range predicate on an indexed field and wait for index backed order by in 3.5</p>
                         </td>
                      </tr>
                      <tr>

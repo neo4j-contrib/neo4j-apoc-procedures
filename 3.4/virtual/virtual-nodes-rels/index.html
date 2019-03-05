@@ -74,7 +74,7 @@
                </div>
             </div>
             <div class="informaltable">
-               <div class="table" id="d0e16801">
+               <div class="table" id="d0e16792">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -176,7 +176,7 @@ CALL apoc.create.vNode([l],{name:l}) yield node as a
 CALL apoc.create.vNode([l2],{name:l2}) yield node as b
 CALL apoc.create.vRelationship(a,rel_type,{count:count},b) yield rel
 RETURN *;</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.create.vRelationshipAndvNode.png" width="800" alt="apoc.create.vRelationshipAndvNode"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.create.vRelationshipAndvNode.png" width="800" alt="apoc.create.vRelationshipAndvNode"></img></div>
             </div>
             <div class="admonitionblock note">
                <table>
@@ -191,7 +191,7 @@ RETURN *;</code></pre><div class="informalfigure">
                </table>
             </div>
             <div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/vNodeId.png" width="200" alt="vNodeId"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/vNodeId.png" width="200" alt="vNodeId"></img></div>
             </div>
             <p><span class="formalpara-title">Virtual pattern <code class="literal">vPattern</code>.&nbsp;</span>
                
@@ -199,10 +199,10 @@ RETURN *;</code></pre><div class="informalfigure">
                
             </p>
             <div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.create.vPattern.png" width="800" alt="apoc.create.vPattern"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.create.vPattern.png" width="800" alt="apoc.create.vPattern"></img></div>
             </div>
             <p>We can add more labels, just adding them on <code class="literal">_labels</code></p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.create.vPattern({_labels:['Person', 'Woman'],name:'Mary'},'KNOWS',{since:2012},{_labels:['Person', 'Man'],name:'Michael'})</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.create.vPatternLabels.png" width="800" alt="apoc.create.vPatternLabels"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.create.vPatternLabels.png" width="800" alt="apoc.create.vPatternLabels"></img></div>
             </div>
             <p><span class="formalpara-title">Virtual pattern full <code class="literal">vPatternFull</code>.&nbsp;</span>
                
@@ -210,13 +210,13 @@ RETURN *;</code></pre><div class="informalfigure">
                
             </p>
             <div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.create.vPatternFull.png" width="800" alt="apoc.create.vPatternFull"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.create.vPatternFull.png" width="800" alt="apoc.create.vPatternFull"></img></div>
             </div>
             <p>We can create a virtual pattern from an existing one</p><pre class="programlisting highlight"><code data-lang="cypher">CREATE(a:Person {name:'Daniel'})-[r:KNOWS]-&gt;(b:Person {name:'John'})</code></pre><p>From this dataset we can create a virtual pattern</p><pre class="programlisting highlight"><code data-lang="cypher">MATCH (a)-[r]-&gt;(b)
 WITH head(labels(a)) AS labelA, head(labels(b)) AS labelB, type(r) AS rel_type, a.name AS aName, b.name AS bName
 CALL apoc.create.vPatternFull([labelA],{name: aName},rel_type,{since:2009},[labelB],{name: bName}) yield from, rel, to
 RETURN *;</code></pre><div class="informalfigure">
-               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/img/apoc.create.vPatternFullTwo.png" width="800" alt="apoc.create.vPatternFullTwo"></img></div>
+               <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.create.vPatternFullTwo.png" width="800" alt="apoc.create.vPatternFullTwo"></img></div>
             </div>
          </section>
       </section>
