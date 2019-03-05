@@ -1,8 +1,11 @@
 package apoc.graph;
 
 import apoc.cypher.Cypher;
-import apoc.graph.inverse.builder.DocumentGrapherRecursive;
+import apoc.graph.document.builder.DocumentToGraph;
+import apoc.graph.util.GraphsConfig;
+import apoc.result.RowResult;
 import apoc.result.VirtualGraph;
+import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -12,6 +15,7 @@ import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.procedure.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 /**
@@ -110,14 +114,40 @@ public class Graphs {
         return Stream.of(new VirtualGraph(name,nodes,rels,props));
     }
 
-    @Description("apoc.graph.inverseToTree({json},writeToGraph) - creates a graph from a json")
+    @Description("apoc.graph.fromDocument({json}, {config}) yield graph - transform JSON documents into graph structures")
     @Procedure(mode = Mode.WRITE)
-    public Stream<VirtualGraph> inverseToTree(@Name("json") String json, @Name(value = "write", defaultValue = "false") boolean writeToGraph) {
-        DocumentGrapherRecursive documentGrapher = new DocumentGrapherRecursive(db, writeToGraph);
-        List<Node> node = documentGrapher.upsertDocument(Util.fromJson(json, Map.class));
-        List<Relationship> rels = new ArrayList<>();
-        node.stream().filter(n -> n.hasRelationship()).forEach(n -> n.getRelationships().forEach(rels::add));
+    public Stream<VirtualGraph> fromDocument(@Name("json") Object document, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) throws Exception {
+        Collection<Map> coll = getDocumentCollection(document);
+        DocumentToGraph documentToGraph = new DocumentToGraph(db, new GraphsConfig(config));
+        return Stream.of(documentToGraph.create(coll));
+    }
 
-        return Stream.of(new VirtualGraph("Graph",node,rels,Collections.EMPTY_MAP));
+    public Collection<Map> getDocumentCollection(@Name("json") Object document) {
+        Collection<Map> coll;
+        if (document instanceof String) {
+            document  = JsonUtil.parse((String) document, null, Object.class);
+        }
+        if (document instanceof Collection) {
+            coll = (Collection) document;
+        } else {
+            coll = Collections.singleton((Map) document);
+        }
+        return coll;
+    }
+
+    @Description("apoc.graph.validateDocument({json}, {config}) yield row - validates the json, return the result of the validation")
+    @Procedure(mode = Mode.READ)
+    public Stream<RowResult> validateDocument(@Name("json") Object document, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) throws Exception {
+        DocumentToGraph documentToGraph = new DocumentToGraph(db, new GraphsConfig(config));
+        AtomicLong index = new AtomicLong(-1);
+        return getDocumentCollection(document).stream()
+                .map(elem -> {
+                    try {
+                        documentToGraph.validate(elem);
+                        return new RowResult(Util.map("index", index.incrementAndGet(), "message", "Valid"));
+                    } catch (Exception e) {
+                        return new RowResult(Util.map("index", index.incrementAndGet(), "message", e.getMessage()));
+                    }
+                });
     }
 }

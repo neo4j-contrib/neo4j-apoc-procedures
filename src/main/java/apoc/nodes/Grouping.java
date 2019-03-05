@@ -232,7 +232,7 @@ public class Grouping {
     }
 
     public List<Relationship> getRelationships(Node n, Map<String, Number> filter, int relsPerNode) {
-        List<Relationship> rels = fixAggregates(Iterables.asList(n.getRelationships()));
+        List<Relationship> rels = fixAggregates(Iterables.asList(n.getRelationships(Direction.OUTGOING)));
         if (filter != null) rels.removeIf(r -> !filter(r.getType().name(),r.getAllProperties(),filter));
         if (relsPerNode > -1) rels = rels.subList(0, Math.min(relsPerNode, rels.size()));
         return rels;

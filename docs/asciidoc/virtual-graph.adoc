@@ -49,30 +49,58 @@ It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],rel
 | apoc.graph.fromPaths([paths],'name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromDB('name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
-| apoc.graph.inverseToTree({json},writeToGraph) | create a virtual or write to graph from a Json
+| apoc.graph.fromDocument({json},{config}) | transform JSON documents into graph structures
+| apoc.graph.validateDocument({json},{config}) | validate the JSON and returns informations about required fields violations
 |===
 
-The procedure `apoc.graph.inverseToTree` the JSON must be formatted as follow:
+=== `apoc.graph.fromDocument`
 
-* Every JSON must have an `id` and a `type` (name of Label)
-* writeToGraph (true/false) by default it create a VirtualGraph and not create the node.
+The procedure `apoc.graph.fromDocument` transforms a JSON into a graph structure. It takes two arguments:
+
+* *json*, _type Object_: the JSON that must be transformed. Every JSON must have an `id` and a `type` (name of Label), configurable via the config params
+* *config*, _type Map_: the configuration params
+
+The config is composed by the following parameters:
+
+* *write*, _type boolean_: persist the graph otherwise return a Virtual Graph, default *false*
+* *labelField*, _type String_: the field name that became the label of the node, default *type*
+* *idField*, _type String_: the document field name that will become the id field of the created nodes (used for node resolution when you create relationships between nodes), default *id*
+
 
 [source, json]
 ----
 {
-	"id": 1,
-	"type": "artist",
-	"name": "Genesis",
-	"members": ["Tony Banks", "Mike Rutherford", "Phil Collins"],
-	"years": [1967, 1998, 1999, 2000, 2006]
+    "id": 1,
+    "type": "artist",
+    "name": "Genesis",
+    "members": ["Tony Banks", "Mike Rutherford", "Phil Collins"],
+    "years": [1967, 1998, 1999, 2000, 2006]
 }
 ----
+In this case it create one `Node` with labels *Artist*
 
-In that case it create a `Node`
+It also accepts list of documents:
 
-The name of the `Relationship` is the name of the value `type` of the child `Node`.
+[source, json]
+----
+[{
+    "id": 1,
+    "type": "artist",
+    "name": "Genesis",
+    "members": ["Tony Banks", "Mike Rutherford", "Phil Collins"],
+    "years": [1967, 1998, 1999, 2000, 2006]
+}, {
+    "id": 2,
+    "type": "artist",
+    "name": "Daft Punk",
+    "members": ["Guy-Manuel de Homem-Christo", "Thomas Bangalter."],
+    "years": [1987, 1993, 1999, 2004, 2008, 2011]
+}]
+----
+In this case it create 2 `Node` with labels *Artist*
 
-To create a Relationship:
+
+JSON Tree to graph:
 
 [source, json]
 ----
@@ -89,7 +117,7 @@ To create a Relationship:
 }
 ----
 
-In that case it will create a `Node` and a `Relationship`
+In this case it will create 2 `Node`, one *Artist* and one *Album* connected to each other by the *ALBUMS* `Relationship`
 
 === Virtual Graph Examples
 
@@ -143,9 +171,9 @@ image::{img}/apoc.graph.png[width=800]
 
 [source,cypher]
 ----
-CALL apoc.graph.inverseToTree("{'id': 1,'type': 'artist','name':'Genesis','members': ['Tony Banks','Mike Rutherford','Phil Collins'],'years': [1967, 1998, 1999, 2000, 2006],'albums': [{'type': 'album','id': 1,'producer': 'Jonathan King','title': 'From Genesis to Revelation'}]}", false) yield graph return graph
+CALL apoc.graph.fromDocument("{'id': 1,'type': 'artist','name':'Genesis','members': ['Tony Banks','Mike Rutherford','Phil Collins'],'years': [1967, 1998, 1999, 2000, 2006],'albums': [{'type': 'album','id': 1,'producer': 'Jonathan King','title': 'From Genesis to Revelation'}]}", false) yield graph return graph
 ----
 
 As a result we have a virtual graph with two nodes and one relationship:
 
-image::{img}/apoc.graph.inverseToTree_1[width=800]
+image::{img}/apoc.graph.fromDocument_1[width=800]
