@@ -3,8 +3,9 @@ package apoc.export.cypher;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.*;
-import org.junit.rules.TestName;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -34,37 +35,15 @@ public class ExportCypherTest {
         directory.mkdirs();
     }
 
-    @Rule
-    public TestName testName = new TestName();
-
-    private static final String TEST_WITH_ENTERPRISE_DB = "WithEnterpriseDB";
-
     @Before
     public void setUp() throws Exception {
-
-        if(testName.getMethodName().endsWith(TEST_WITH_ENTERPRISE_DB)) {
-            /*
-            db =  apocEnterpriseGraphDatabaseBuilder().setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
-                    .setConfig("apoc.export.file.enabled", "true").newGraphDatabase();
-            */
-            TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
-            db.execute("CREATE CONSTRAINT ON (t:Person) ASSERT (t.name, t.surname) IS NODE KEY;").close();
-            db.execute("CREATE (a:Person {name: 'John', surname: 'Snow'}) " +
-                    "CREATE (b:Person {name: 'Matt', surname: 'Jackson'}) " +
-                    "CREATE (c:Person {name: 'Jenny', surname: 'White'}) " +
-                    "CREATE (d:Person {name: 'Susan', surname: 'Brown'}) " +
-                    "CREATE (e:Person {name: 'Tom', surname: 'Taylor'})" +
-                    "CREATE (a)-[:KNOWS]->(b);").close();
-        } else {
-            db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
-                    .setConfig("apoc.export.file.enabled", "true").newGraphDatabase();
-            TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
-            db.execute("CREATE INDEX ON :Foo(name)").close();
-            db.execute("CREATE INDEX ON :Bar(first_name, last_name)").close();
-            db.execute("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE").close();
-            db.execute("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12})").close();
-        }
-
+        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
+                .setConfig("apoc.export.file.enabled", "true").newGraphDatabase();
+        TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
+        db.execute("CREATE INDEX ON :Foo(name)").close();
+        db.execute("CREATE INDEX ON :Bar(first_name, last_name)").close();
+        db.execute("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE").close();
+        db.execute("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12})").close();
     }
 
     @After
@@ -359,36 +338,6 @@ public class ExportCypherTest {
                 map("file", output.getAbsolutePath(), "query", query, "config", Util.map("format", "neo4j-shell")), (r) -> {
                 });
         assertEquals(EXPECTED_CYPHER_LABELS_ASCENDEND, readFile(output));
-    }
-
-    @Test
-    @Ignore("TODO testcontainer")
-    public void testExportWithCompoundConstraintCypherShellWithEnterpriseDB() throws Exception {
-        File output = new File(directory, "testCypherShellWithCompoundConstraint.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{config});\n",
-                map("file", output.getAbsolutePath(), "config", Util.map("format", "cypher-shell")), (r) -> {
-                });
-        assertEquals(EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT, readFile(output));
-    }
-
-    @Test
-    @Ignore("TODO testcontainer")
-    public void testExportWithCompoundConstraintPlainWithEnterpriseDB() throws Exception {
-        File output = new File(directory, "testPlainFormatWithCompoundConstraint.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{config});\n",
-                map("file", output.getAbsolutePath(), "config", Util.map("format", "plain")), (r) -> {
-                });
-        assertEquals(EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT, readFile(output));
-    }
-
-    @Test
-    @Ignore("TODO testcontainer")
-    public void testExportWithCompoundConstraintNeo4jShellWithEnterpriseDB() throws Exception {
-        File output = new File(directory, "testNeo4jShellWithCompoundConstraint.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{config});\n",
-                map("file", output.getAbsolutePath(), "config", Util.map("format", "neo4j-shell")), (r) -> {
-                });
-        assertEquals(EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT, readFile(output));
     }
 
     static class ExportCypherResults {

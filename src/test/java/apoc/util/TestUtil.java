@@ -1,5 +1,6 @@
 package apoc.util;
 
+import com.google.common.io.Files;
 import org.hamcrest.Matcher;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
@@ -11,9 +12,11 @@ import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
-import java.nio.file.Paths;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
@@ -139,7 +142,11 @@ public class TestUtil {
     }
 
     public static void assumeTravis() {
-        assumeFalse("we're running on travis, so skipping","true".equals(System.getenv("TRAVIS")));
+        assumeFalse("we're running on travis, so skipping", isTravis());
+    }
+
+    public static boolean isTravis() {
+        return "true".equals(System.getenv("TRAVIS"));
     }
 
     public static GraphDatabaseBuilder apocGraphDatabaseBuilder() {
@@ -160,5 +167,17 @@ public class TestUtil {
 
     public static URL getUrlFileName(String filename) {
         return Thread.currentThread().getContextClassLoader().getResource(filename);
+    }
+
+    public static String readFileToString(File file) {
+        return readFileToString(file, Charset.forName("UTF-8"));
+    }
+
+    public static String readFileToString(File file, Charset charset) {
+        try {
+            return Files.toString(file, charset);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
