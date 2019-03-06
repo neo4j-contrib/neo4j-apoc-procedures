@@ -148,5 +148,3 @@ call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limi
 ////
 
 include::fulltext.adoc[leveloffset=2]
-
-include::uuid.adoc[leveloffset=2]

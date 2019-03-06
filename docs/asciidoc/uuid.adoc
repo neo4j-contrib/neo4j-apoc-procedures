@@ -1,22 +1,27 @@
 == UUID
 
-There is the possibility to set uuid index property on nodes using APOC.
+These procedures manage the UUID Handler Lifecycle.
+The UUID handler is a transaction event handler that automatically adds the UUID property to a provided label and for the provided property name.
+Please check the following documentation to an in-depth description.
 
 Enable `apoc.uuid.enabled=true` in `$NEO4J_HOME/config/neo4j.conf` first.
 
 [cols="1m,5"]
 |===
-| CALL apoc.uuid.add(label, config) yield label, installed | add a uuid statement returns previous and new uuid information
-| CALL apoc.uuid.remove(label) yield label, installed | remove previously added uuid, returns uuid information
-| CALL apoc.uuid.removeAll() yield label, installed | removes all previously added uuids, returns uuid information
-| CALL apoc.uuid.list() yield label, installed | get all the uuid installed
+|*procedure* | *description*
+| CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult | it will add the uuid transaction handler
+for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one
+| CALL apoc.uuid.remove(label) yield label, installed, properties | remove previously added uuid handler and returns uuid information. All the existing uuid properties are left as-is
+| CALL apoc.uuid.removeAll() yield label, installed, properties | removes all previously added uuid handlers and returns uuids information. All the existing uuid properties are left as-is
+| CALL apoc.uuid.list() yield label, installed, properties | provides a list of all the uuid handlers installed with the related configuration
 |===
 
 ==== Config
 
 |===
-|config | default | description
-|addToAlreadyPresent | true | the uuid for existing node
+|*config* | *type* | *description*
+|addToExistingNodes | Boolean (default: true) | when installed, for the label provided, adds the UUID to the nodes already existing in your graph
+|uuidProperty | String (default: uuid) | the name of the UUID field
 |===
 
 
@@ -33,26 +38,17 @@ Add the `uuid`:
 
 [source,cypher]
 ----
-CALL apoc.uuid.add('Person') YIELD label RETURN label
+CALL apoc.uuid.install('Person') YIELD label RETURN label
 ----
 
 The result is:
 
 ----
-╒════════╕
-│"label" │
-╞════════╡
-│"Person"│
-└────────┘
-----
-
-Now create the dataset:
-
-[source,cypher]
-----
-CREATE (d:Person {name:'Daniel'})
-CREATE (l:Company {name:'Neo4j'})
-CREATE (d)-[:WORK]->(l)
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| label    | installed | properties                                               | batchComputationResult                                                                                                                         |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| "Person" | true      | {uuidProperty -> "uuid", addToExistingNodes -> true} | {wasTerminated -> false, count -> 10, batches -> 1, successes -> 1, failedOps -> 0, timeTaken -> 0, operationErrors -> {}, failedBatches -> 0} |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 ----
 
 The result is Node Person have 2 property:
@@ -68,28 +64,30 @@ call apoc.uuid.list() yield label, installed return label, installed
 
 The result is:
 ----
-╒════════╤═══════════╕
-│"label" │"installed"│
-╞════════╪═══════════╡
-│"Person"│true       │
-└────────┴───────────┘
++---------------------------------------------------------------------------------+
+| label    | installed | properties                                               |
++---------------------------------------------------------------------------------+
+| "Person" | true      | {uuidProperty -> "uuid", addToExistingNodes -> true} |
++---------------------------------------------------------------------------------+
 ----
 
 Remove the uuid installed call the procedure as:
 
 [source,cypher]
 ----
-call apoc.uuid.remove('person') yield label return label
+call apoc.uuid.remove('Person') yield label return label
 ----
 
 The result is:
 
 ----
-╒════════╤═══════════╕
-│"label" │"installed"│
-╞════════╪═══════════╡
-│"Person"│false      │
-└────────┴───────────┘
++---------------------------------------------------------------------------------+
+| label    | installed | properties                                               |
++---------------------------------------------------------------------------------+
+| "Person" | false     | {uuidProperty -> "uuid", addToExistingNodes -> true} |
++---------------------------------------------------------------------------------+
+1 row
+
 ----
 
 You can also remove all the uuid installed call the procedure as:
@@ -102,9 +100,9 @@ call apoc.uuid.removeAll() yield label return label
 The result is:
 
 ----
-╒════════╤═══════════╕
-│"label" │"installed"│
-╞════════╪═══════════╡
-│"Person"│false      │
-└────────┴───────────┘
++---------------------------------------------------------------------------------+
+| label    | installed | properties                                               |
++---------------------------------------------------------------------------------+
+| "Person" | false     | {uuidProperty -> "uuid", addToExistingNodes -> true} |
++---------------------------------------------------------------------------------+
 ----
