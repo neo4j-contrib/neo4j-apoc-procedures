@@ -4,6 +4,7 @@ import apoc.util.FileUtils;
 import org.neo4j.procedure.*;
 import org.neo4j.logging.Log;
 
+import java.nio.file.NoSuchFileException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -13,6 +14,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
+/**
+ * @author moxious
+ * @since 27.02.19
+ */
 public class Neo4jLogStream {
     @Context
     public Log log;
@@ -73,7 +78,11 @@ public class Neo4jLogStream {
             }
 
             return entries;
-        } catch(IOException exc) {
+        } catch(NoSuchFileException nsf) {
+            // This special case we want to throw a custom message and not let this error propagate, because the
+            // trace exposes the full path we were checking.
+            throw new RuntimeException("No log file exists by that name");
+        } catch (IOException exc) {
             throw new RuntimeException(exc);
         }
     }

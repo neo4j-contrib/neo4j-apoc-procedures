@@ -3,17 +3,22 @@ package apoc.metrics;
 import apoc.ApocConfiguration;
 import apoc.load.LoadCsv;
 import apoc.util.FileUtils;
+import apoc.util.Util;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+/**
+ * @author moxious
+ * @since 27.02.19
+ */
 public class Metrics {
     @Context
     public Log log;
@@ -124,32 +129,36 @@ public class Metrics {
                     "https://neo4j.com/docs/operations-manual/current/monitoring/metrics/expose/#metrics-csv");
         }
 
-
         /**
          * Neo4j CSV metrics have an issue where sometimes in the middle of the CSV file you'll find an extra
          * header row.  We want to discard those.
          */
         Predicate duplicatedHeaderRows = new Predicate <LoadCsv.CSVResult> () {
             public boolean test(LoadCsv.CSVResult o) {
+                if (o == null) return false;
+
                 Map<String,Object> map = o.map;
 
                 // Most commonly CSV has a timestamp "t" field, if its value = "t"
                 // Then it's a repeated header.  This is just a shortcut for the most common
-                // case to avoid checking entire map every time.
-                if (map.containsKey("t") && "t".equals(map.get("t").toString())) {
+                // case to avoid checking entire map every time.  If the value of the "t" field
+                // is null, it's also a repeated header or bad row.  We're specifying type mappings
+                // from the CSV string t -> long.  So if the actual value is "t" this will turn into
+                // a null long.
+                Object t = map.get("t");
+                if (map.containsKey("t") && ("t".equals(t.toString()) || t == null)) {
                     return false;
                 } else {
-                    Set<String> keys = map.keySet();
-                    for (String key : keys) {
-                        Object val = map.get(key);
-                        // If any key (the column header) **does not** match the value in the map,
-                        // then it's actual data and not a header row.
-                        if (val == null || !key.equals(val.toString())) {
+                    for(Object value : map.values()) {
+                        if (value != null && value instanceof Number) {
+                            // Any value which is a number got type converted, and is not a header.
                             return true;
                         }
                     }
                 }
 
+                // Final case: no number data.  Likely all null values, as headers failed type mapping to
+                // numbers.
                 return false;
             }
         };
@@ -157,7 +166,7 @@ public class Metrics {
         String url = new File(metricsDir, metricName + ".csv").toURI().toString();
         return new LoadCsv().csv(url, config)
                 .filter(csvResult -> duplicatedHeaderRows.test(csvResult))
-                .map(csvResult -> new GenericMetric(metricName, longFrom(csvResult, "t"), csvResult.map));
+                .map(csvResult -> new GenericMetric(metricName, Util.toLong(csvResult.map.get("t")), csvResult.map));
     }
 
     @Procedure(mode=Mode.DBMS)
@@ -208,12 +217,47 @@ public class Metrics {
     public Stream<GenericMetric> get(
             @Name("metricName") String metricName,
             @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
-        return loadCsvForMetric(metricName, config);
+
+        Map<String,Object> csvConfig = config;
+
+        if(csvConfig == null) {
+            csvConfig = new HashMap<String,Object>();
+        }
+
+        // Add default mappings for metrics only if user hasn't overridden them.
+        if (!csvConfig.containsKey("mapping")) {
+            csvConfig.put("mapping", METRIC_TYPE_MAPPINGS);
+        }
+
+        return loadCsvForMetric(metricName, csvConfig);
     }
 
-    private final long longFrom(LoadCsv.CSVResult r, String column) {
-        Object o = r.map.get(column);
-        if (o == null) return 0L;
-        return Long.parseLong(o.toString());
+    public static final Map<String,Object> METRIC_TYPE_MAPPINGS = new HashMap<String,Object>();
+    static {
+        final Map<String,String> typeFloat = new HashMap<String,String>();
+        typeFloat.put("type", "float");  // "float" ends up as a double in Meta.java
+
+        final Map<String,String> typeLong = new HashMap<String,String>();
+        typeLong.put("type", "long");
+
+        // These are the various fields that are possible in metrics.
+        // None of the files contain all of them.  But LoadCSV
+        // doesn't mind if you specify mappings for fields that don't exist.
+        METRIC_TYPE_MAPPINGS.put("t", typeLong);
+        METRIC_TYPE_MAPPINGS.put("count", typeLong);
+        METRIC_TYPE_MAPPINGS.put("value", typeFloat);
+        METRIC_TYPE_MAPPINGS.put("max", typeFloat);
+        METRIC_TYPE_MAPPINGS.put("mean", typeFloat);
+        METRIC_TYPE_MAPPINGS.put("min", typeFloat);
+        METRIC_TYPE_MAPPINGS.put("mean_rate", typeFloat);
+        METRIC_TYPE_MAPPINGS.put("m1_rate", typeFloat);
+        METRIC_TYPE_MAPPINGS.put("m5_rate", typeFloat);
+        METRIC_TYPE_MAPPINGS.put("m15_rate", typeFloat);
+        METRIC_TYPE_MAPPINGS.put("p50", typeFloat);
+        METRIC_TYPE_MAPPINGS.put("p75", typeFloat);
+        METRIC_TYPE_MAPPINGS.put("p95", typeFloat);
+        METRIC_TYPE_MAPPINGS.put("p98", typeFloat);
+        METRIC_TYPE_MAPPINGS.put("p99", typeFloat);
+        METRIC_TYPE_MAPPINGS.put("p999", typeFloat);
     }
 }
