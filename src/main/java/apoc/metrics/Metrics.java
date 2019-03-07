@@ -116,6 +116,39 @@ public class Metrics {
                 });
     }
 
+    /**
+     * Neo4j CSV metrics have an issue where sometimes in the middle of the CSV file you'll find an extra
+     * header row.  We want to discard those.
+     */
+    private static final Predicate<LoadCsv.CSVResult> duplicatedHeaderRows = new Predicate <LoadCsv.CSVResult> () {
+        public boolean test(LoadCsv.CSVResult o) {
+            if (o == null) return false;
+
+            Map<String,Object> map = o.map;
+
+            // Most commonly CSV has a timestamp "t" field, if its value = "t"
+            // Then it's a repeated header.  This is just a shortcut for the most common
+            // case to avoid checking entire map every time.  If the value of the "t" field
+            // is null, it's also a repeated header or bad row.  We're specifying type mappings
+            // from the CSV string t -> long.  So if the actual value is "t" this will turn into
+            // a null long.
+            if ("t".equals(map.get("t"))) {
+                return false;
+            } else {
+                for(Object value : map.values()) {
+                    if (value instanceof Number) {
+                        // Any value which is a number got type converted, and is not a header.
+                        return true;
+                    }
+                }
+            }
+
+            // Final case: no number data.  Likely all null values, as headers failed type mapping to
+            // numbers.
+            return false;
+        }
+    };
+
     public Stream<GenericMetric> loadCsvForMetric(String metricName, Map<String,Object> config) {
         // These config parameters are generally true of Neo4j metrics.
         config.put("sep", ",");
@@ -129,43 +162,9 @@ public class Metrics {
                     "https://neo4j.com/docs/operations-manual/current/monitoring/metrics/expose/#metrics-csv");
         }
 
-        /**
-         * Neo4j CSV metrics have an issue where sometimes in the middle of the CSV file you'll find an extra
-         * header row.  We want to discard those.
-         */
-        Predicate duplicatedHeaderRows = new Predicate <LoadCsv.CSVResult> () {
-            public boolean test(LoadCsv.CSVResult o) {
-                if (o == null) return false;
-
-                Map<String,Object> map = o.map;
-
-                // Most commonly CSV has a timestamp "t" field, if its value = "t"
-                // Then it's a repeated header.  This is just a shortcut for the most common
-                // case to avoid checking entire map every time.  If the value of the "t" field
-                // is null, it's also a repeated header or bad row.  We're specifying type mappings
-                // from the CSV string t -> long.  So if the actual value is "t" this will turn into
-                // a null long.
-                Object t = map.get("t");
-                if (map.containsKey("t") && ("t".equals(t.toString()) || t == null)) {
-                    return false;
-                } else {
-                    for(Object value : map.values()) {
-                        if (value != null && value instanceof Number) {
-                            // Any value which is a number got type converted, and is not a header.
-                            return true;
-                        }
-                    }
-                }
-
-                // Final case: no number data.  Likely all null values, as headers failed type mapping to
-                // numbers.
-                return false;
-            }
-        };
-
         String url = new File(metricsDir, metricName + ".csv").toURI().toString();
         return new LoadCsv().csv(url, config)
-                .filter(csvResult -> duplicatedHeaderRows.test(csvResult))
+                .filter(Metrics.duplicatedHeaderRows)
                 .map(csvResult -> new GenericMetric(metricName, Util.toLong(csvResult.map.get("t")), csvResult.map));
     }
 
