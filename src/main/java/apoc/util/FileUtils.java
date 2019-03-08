@@ -3,12 +3,15 @@ package apoc.util;
 import apoc.ApocConfiguration;
 import apoc.export.util.CountingInputStream;
 import apoc.export.util.CountingReader;
+import apoc.metrics.Metrics;
 import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
 
 import java.io.*;
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -215,16 +218,43 @@ public class FileUtils {
     }
 
     /**
-     * Given a file, determine whether it resides in neo4j's home directory or not.  This method takes into account
-     * the possibility of symlinks / hardlinks.
+     * Given a file, determine whether it resides in neo4j controlled directory or not.  This method takes into account
+     * the possibility of symlinks / hardlinks.  Keep in mind Neo4j does not have one root home, but its configured
+     * directories may be spread all over the filesystem, so there's no parent.
      * @param f the file to check
-     * @return true if the file's actual storage is in the neo4j home directory, false otherwise.
+     * @return true if the file's actual storage is in the neo4j home directory, false otherwise.  If f is a symlink
+     * that resides in a neo4j directory that points somewhere outside, returns false.
      * @throws IOException if the canonical path cannot be determined.
      */
-    public static boolean canonicalPathInNeo4jHome(File f) throws IOException {
+    public static boolean inNeo4jOwnedDirectory(File f) throws IOException {
         String canonicalPath = f.getCanonicalPath();
-        String neo4jHome = ApocConfiguration.get("unsupported.dbms.directories.neo4j_home", null);
 
-        return canonicalPath.contains(neo4jHome);
+        for(String dirSetting : NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES) {
+            String actualDir = ApocConfiguration.get(dirSetting, null);
+            if (canonicalPath.contains(actualDir)) {
+                return true;
+            }
+        }
+
+        return false;
     }
+
+    // This is the list of dbms.directories.* valid configuration items for neo4j.
+    // https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/
+    // Usually these reside under the same root but because they're separately configurable, in the worst case
+    // every one is on a different device.
+    //
+    // More likely, they'll be largely similar metrics.
+    public static final List<String> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = Arrays.asList(
+            "dbms.directories.certificates",
+            "dbms.directories.data",
+            "dbms.directories.import",
+            "dbms.directories.lib",
+            "dbms.directories.logs",
+            "dbms.directories.metrics",
+            "dbms.directories.plugins",
+            "dbms.directories.run",
+            "dbms.directories.tx_log",
+            "unsupported.dbms.directories.neo4j_home"
+    );
 }

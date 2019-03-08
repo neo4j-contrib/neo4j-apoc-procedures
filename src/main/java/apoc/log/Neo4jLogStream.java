@@ -1,10 +1,10 @@
 package apoc.log;
 
-import apoc.ApocConfiguration;
 import apoc.util.FileUtils;
 import org.neo4j.procedure.*;
 import org.neo4j.logging.Log;
 
+import java.nio.file.NoSuchFileException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -14,6 +14,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
+/**
+ * @author moxious
+ * @since 27.02.19
+ */
 public class Neo4jLogStream {
     @Context
     public Log log;
@@ -51,9 +55,8 @@ public class Neo4jLogStream {
         File f = new File(logDir, logName);
 
         try {
-            // This is just here as an added safety check; this proc is limited to the logs directory but it would
-            // still be possible to get cute and create symlinks from the logs directory elsewhere.
-            if (!FileUtils.canonicalPathInNeo4jHome(f)) {
+            String canonicalPath = f.getCanonicalPath();
+            if (!canonicalPath.startsWith(logDir.getAbsolutePath())) {
                 throw new RuntimeException("The path you are trying to access has a canonical path outside of the logs " +
                         "directory, and this procedure is only permitted to access files in the log directory.  This may " +
                         "occur if the path in question is a symlink or other link.");
@@ -75,7 +78,11 @@ public class Neo4jLogStream {
             }
 
             return entries;
-        } catch(IOException exc) {
+        } catch(NoSuchFileException nsf) {
+            // This special case we want to throw a custom message and not let this error propagate, because the
+            // trace exposes the full path we were checking.
+            throw new RuntimeException("No log file exists by that name");
+        } catch (IOException exc) {
             throw new RuntimeException(exc);
         }
     }
