@@ -101,6 +101,9 @@ public class Meta {
         }
 
         public static Types from(String typeName) {
+            if (typeName == null) {
+                return STRING;
+            }
             typeName = typeName.toUpperCase();
             for (Types type : values()) {
                 if (type.name().startsWith(typeName)) return type;

@@ -111,6 +111,12 @@ public class LoadCsv {
             this.type = Meta.Types.from(mapping.getOrDefault("type", "STRING").toString());
             this.arrayPattern = Pattern.compile(String.valueOf(this.arraySep), Pattern.LITERAL);
 
+            if (this.type == null) {
+                // Call this out to the user explicitly because deep inside of LoadCSV and others you will get
+                // NPEs that are hard to spot if this is allowed to go through.
+                throw new RuntimeException("In specified mapping, there is no type by the name " +
+                        mapping.getOrDefault("type", "STRING").toString());
+            }
         }
 
         public Object convert(String value) {
