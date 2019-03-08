@@ -1,6 +1,7 @@
 package apoc.export.json;
 
 import apoc.Description;
+import apoc.export.cypher.ExportFileManager;
 import apoc.export.cypher.FileManagerFactory;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.NodesAndRelsSubGraph;
@@ -77,7 +78,7 @@ public class ExportJson {
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "json"));
         JsonFormat exporter = new JsonFormat(db);
 
-        FileManagerFactory.ExportCypherFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, false, c.streamStatements());
+        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, false, c.streamStatements());
 
         try (PrintWriter printWriter = cypherFileManager.getPrintWriter("json")) {
             if (data instanceof SubGraph)

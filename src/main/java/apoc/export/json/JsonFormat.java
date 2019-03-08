@@ -1,6 +1,6 @@
 package apoc.export.json;
 
-import apoc.export.cypher.FileManagerFactory;
+import apoc.export.cypher.ExportFileManager;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.Format;
 import apoc.export.util.Reporter;
@@ -44,7 +44,7 @@ public class JsonFormat implements Format {
     }
 
     @Override
-    public ProgressInfo dump(SubGraph graph, FileManagerFactory.ExportCypherFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
+    public ProgressInfo dump(SubGraph graph, ExportFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
         Consumer<JsonGenerator> consumer = (jsonGenerator) -> {
             try {
                 writeNodes(graph.getNodes(), reporter, jsonGenerator, config);

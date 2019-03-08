@@ -475,7 +475,7 @@ public class ExportCsvTest {
 
         File dir = new File(directory, "query_nodes.csv");
 
-        TestUtil.testCall(db, "CALL apoc.export.csv.all({directory},{neo4jImport: true, separateHeader: true, delim: ';'})",
+        TestUtil.testCall(db, "CALL apoc.export.csv.all({directory},{bulkImport: true, separateHeader: true, delim: ';'})",
                 map("directory", dir.getAbsolutePath()), r -> {
                     assertEquals(20000L, r.get("batchSize"));
                     assertEquals(1L, r.get("batches"));
@@ -528,7 +528,7 @@ public class ExportCsvTest {
                 "(p:Product {categoryID: 1, discontinued: false, productID: 1, productName: 'Chai', quantityPerUnit: '10 boxes x 20 bags', reorderLevel: 10, supplierID: 1, unitPrice: 18.0, unitsInStock: 39, unitsOnOrder: 0}), \n" +
                 "(a:Test {date: date('2018-10-30'), localDateTime: localdatetime('20181030T19:32:24'), dateTime: datetime('2018-10-30T12:50:35.556+0100'), localtime: localtime('12:50:35.556'), duration: duration('P5M1DT12H'), time: time('125035.556+0100'), born_2D: point({ x: 2.3, y: 4.5 }), born_3D:point({ longitude: 56.7, latitude: 12.78, height: 100 })})";
         db.execute(movieDb).close();
-        TestUtil.testCall(db, "CALL apoc.export.csv.all({directory},{neo4jImport: true})",
+        TestUtil.testCall(db, "CALL apoc.export.csv.all({directory},{bulkImport: true})",
                 map("directory", dir.getAbsolutePath()), r -> {
                     assertEquals(20000L, r.get("batchSize"));
                     assertEquals(1L, r.get("batches"));
@@ -554,7 +554,7 @@ public class ExportCsvTest {
     public void testExportGraphNeo4jAdminCsv() throws Exception {
         File output = new File(directory, "graph.csv");
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                        "CALL apoc.export.csv.graph(graph, {file},{neo4jImport: true, delim: ';'}) " +
+                        "CALL apoc.export.csv.graph(graph, {file},{bulkImport: true, delim: ';'}) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
                         "RETURN *", map("file", output.getAbsolutePath()),
                 (r) -> assertResults(output, r, "graph"));
@@ -582,7 +582,15 @@ public class ExportCsvTest {
     public void testCypherExportCsvForAdminNeo4jImportException() throws Exception {
         File dir = new File(directory, "query_nodes.csv");
         try {
-            TestUtil.testCall(db, "CALL apoc.export.csv.query('MATCH (n) return (n)',{directory},{neo4jImport: true})", Util.map("directory", dir.getAbsolutePath()), (r) -> {});
+            TestUtil.testCall(db, "CALL apoc.export.csv.query('MATCH (n) return (n)',{directory},{bulkImport: true})", Util.map("directory", dir.getAbsolutePath()), (r) -> {});
+        } catch (Exception e) {
+            Throwable except = ExceptionUtils.getRootCause(e);
+            assertTrue(except instanceof RuntimeException);
+            assertEquals("You can use the `bulkImport` only with apoc.export.all and apoc.export.csv.graph", except.getMessage());
+            throw e;
+        }
+        try {
+            TestUtil.testCall(db, "CALL apoc.export.csv.data('MATCH (n) return (n)',{directory},{bulkImport: true})", Util.map("directory", dir.getAbsolutePath()), (r) -> {});
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
@@ -590,15 +598,7 @@ public class ExportCsvTest {
             throw e;
         }
         try {
-            TestUtil.testCall(db, "CALL apoc.export.csv.data('MATCH (n) return (n)',{directory},{neo4jImport: true})", Util.map("directory", dir.getAbsolutePath()), (r) -> {});
-        } catch (Exception e) {
-            Throwable except = ExceptionUtils.getRootCause(e);
-            assertTrue(except instanceof RuntimeException);
-            assertEquals("Only apoc.export.all can have the `neo4jAdmin` config", except.getMessage());
-            throw e;
-        }
-        try {
-            TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph CALL apoc.export.csv.graph(graph,{directory},{neo4jImport: true})", Util.map("directory", dir.getAbsolutePath()), (r) -> {});
+            TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph CALL apoc.export.csv.graph(graph,{directory},{bulkImport: true})", Util.map("directory", dir.getAbsolutePath()), (r) -> {});
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);

@@ -1,6 +1,6 @@
 package apoc.export.csv;
 
-import apoc.export.cypher.FileManagerFactory;
+import apoc.export.cypher.ExportFileManager;
 import apoc.export.util.*;
 import apoc.result.ProgressInfo;
 import com.opencsv.CSVWriter;
@@ -15,8 +15,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static apoc.export.util.BulkImportUtil.formatHeader;
 import static apoc.export.util.MetaInformation.*;
-import static apoc.export.util.Neo4jAdminImportUtil.formatHeader;
 import static apoc.util.Util.joinLabels;
 
 /**
@@ -37,10 +37,10 @@ public class CsvFormat implements Format {
     }
 
     @Override
-    public ProgressInfo dump(SubGraph graph, FileManagerFactory.ExportCypherFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
+    public ProgressInfo dump(SubGraph graph, ExportFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
         try (Transaction tx = db.beginTx()) {
-            if (config.isNeo4jImport()) {
-                writeAllNeo4jAdmin(graph, reporter, config, writer);
+            if (config.isBulkImport()) {
+                writeAllBulkImport(graph, reporter, config, writer);
             } else {
                 try (PrintWriter printWriter = writer.getPrintWriter("csv")) {
                     CSVWriter out = getCsvWriter(printWriter, config);
@@ -86,7 +86,7 @@ public class CsvFormat implements Format {
         return out;
     }
 
-    public ProgressInfo dump(Result result, FileManagerFactory.ExportCypherFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
+    public ProgressInfo dump(Result result, ExportFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
         try (Transaction tx = db.beginTx(); PrintWriter printWriter = writer.getPrintWriter("csv");) {
             CSVWriter out = getCsvWriter(printWriter, config);
             String[] header = writeResultHeader(result, out);
@@ -130,16 +130,16 @@ public class CsvFormat implements Format {
         writeRels(graph, out, reporter, relPropTypes, cols, nodeHeader.size(), config.getBatchSize(), config.getDelim());
     }
 
-    private void writeAllNeo4jAdmin(SubGraph graph, Reporter reporter, ExportConfig config, FileManagerFactory.ExportCypherFileManager writer) {
+    private void writeAllBulkImport(SubGraph graph, Reporter reporter, ExportConfig config, ExportFileManager writer) {
         Map<Iterable<Label>, List<Node>> objectNodes = StreamSupport.stream(graph.getNodes().spliterator(), false)
                 .collect(Collectors.groupingBy(Node::getLabels));
         Map<RelationshipType, List<Relationship>> objectRels = StreamSupport.stream(graph.getRelationships().spliterator(), false)
                 .collect(Collectors.groupingBy(Relationship::getType));
-        writeNodesNeo4jAdmin(reporter, config, writer, objectNodes);
-        writeRelsNeo4jAdmin(reporter, config, writer, objectRels);
+        writeNodesBulkImport(reporter, config, writer, objectNodes);
+        writeRelsBulkImport(reporter, config, writer, objectRels);
     }
 
-    private void writeNodesNeo4jAdmin(Reporter reporter, ExportConfig config, FileManagerFactory.ExportCypherFileManager writer, Map<Iterable<Label>, List<Node>> objectNode) {
+    private void writeNodesBulkImport(Reporter reporter, ExportConfig config, ExportFileManager writer, Map<Iterable<Label>, List<Node>> objectNode) {
         objectNode.entrySet().forEach(entrySet -> {
             Set<String> headerNode = generateHeaderNode(entrySet);
 
@@ -149,7 +149,7 @@ public class CsvFormat implements Format {
                         reporter.update(1, 0, n.getAllProperties().size());
                         return headerNode.stream().map(s -> {
                             if (s.equals(":LABEL")) {
-                                return joinLabels(entrySet.getKey(), ";");
+                                return joinLabels(entrySet.getKey(), config.getArrayDelim());
                             }
                             String prop = s.split(":")[0];
                             return prop.equals("id") ? String.valueOf(n.getId()) : cleanPoint(FormatUtils.toString(n.getProperty(prop, "")));
@@ -162,7 +162,7 @@ public class CsvFormat implements Format {
         });
     }
 
-    private void writeRelsNeo4jAdmin(Reporter reporter, ExportConfig config, FileManagerFactory.ExportCypherFileManager writer, Map<RelationshipType, List<Relationship>> objectRel) {
+    private void writeRelsBulkImport(Reporter reporter, ExportConfig config, ExportFileManager writer, Map<RelationshipType, List<Relationship>> objectRel) {
         objectRel.entrySet().forEach(entrySet -> {
             Set<String> headerRel = generateHeaderRelationship(entrySet);
 
@@ -217,18 +217,18 @@ public class CsvFormat implements Format {
         return headerNode;
     }
 
-    private void writeRow(ExportConfig config, FileManagerFactory.ExportCypherFileManager writer, Set<String> headerNode, List<List<String>> rows, String name) {
+    private void writeRow(ExportConfig config, ExportFileManager writer, Set<String> headerNode, List<List<String>> rows, String name) {
         try (PrintWriter pw = writer.getPrintWriter(name);
              CSVWriter csvWriter = getCsvWriter(pw, config)) {
             if (config.isSeparateHeader()) {
                 try (PrintWriter pwHeader = writer.getPrintWriter("header." + name)) {
                     CSVWriter csvWriterHeader = getCsvWriter(pwHeader, config);
-                    csvWriterHeader.writeNext(headerNode.toArray(new String[0]), false);
+                    csvWriterHeader.writeNext(headerNode.toArray(new String[headerNode.size()]), false);
                 }
             } else {
-                csvWriter.writeNext(headerNode.toArray(new String[0]), false);
+                csvWriter.writeNext(headerNode.toArray(new String[headerNode.size()]), false);
             }
-            rows.forEach(row -> csvWriter.writeNext(row.toArray(new String[0]), false));
+            rows.forEach(row -> csvWriter.writeNext(row.toArray(new String[row.size()]), false));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -309,8 +309,7 @@ public class CsvFormat implements Format {
             row[offset+1]=String.valueOf(rel.getEndNode().getId());
             row[offset+2]=rel.getType().name();
             collectProps(relPropTypes.keySet(), rel, reporter, row, 3 + offset, delimiter);
-            out.writeNext(row,
-                          applyQuotesToAll);
+            out.writeNext(row, applyQuotesToAll);
             rels++;
             if (batchSize==-1 || rels % batchSize == 0) {
                 reporter.update(0, rels, 0);
