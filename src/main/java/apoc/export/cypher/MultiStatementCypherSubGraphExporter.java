@@ -59,7 +59,7 @@ public class MultiStatementCypherSubGraphExporter {
      * @param reporter
      * @param cypherFileManager
      */
-    public void export(ExportConfig config, Reporter reporter, FileManagerFactory.ExportCypherFileManager cypherFileManager) throws IOException {
+    public void export(ExportConfig config, Reporter reporter, ExportFileManager cypherFileManager) throws IOException {
 
         int batchSize = config.getBatchSize();
 
@@ -70,7 +70,7 @@ public class MultiStatementCypherSubGraphExporter {
         reporter.done();
     }
 
-    public void exportOnlySchema(FileManagerFactory.ExportCypherFileManager cypherFileManager) throws IOException {
+    public void exportOnlySchema(ExportFileManager cypherFileManager) throws IOException {
         exportSchema(cypherFileManager.getPrintWriter("schema"));
     }
 
