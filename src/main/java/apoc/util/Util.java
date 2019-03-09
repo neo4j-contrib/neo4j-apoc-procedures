@@ -47,7 +47,10 @@ public class Util {
     public static final String COMPILED = "interpreted"; // todo handle enterprise properly
 
     public static String labelString(Node n) {
-        return StreamSupport.stream(n.getLabels().spliterator(),false).map(Label::name).sorted().collect(Collectors.joining(":"));
+        return joinLabels(n.getLabels(), ":");
+    }
+    public static String joinLabels(Iterable<Label> labels, String s) {
+        return StreamSupport.stream(labels.spliterator(), false).map(Label::name).collect(Collectors.joining(s));
     }
     public static List<String> labelStrings(Node n) {
         return StreamSupport.stream(n.getLabels().spliterator(),false).map(Label::name).sorted().collect(Collectors.toList());
