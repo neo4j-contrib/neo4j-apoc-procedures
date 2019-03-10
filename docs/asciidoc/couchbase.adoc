@@ -51,17 +51,17 @@ CALL apoc.couchbase.get('mykey', 'default', 'artist:vincent_van_gogh')
 ----
 
 
-To query the Couchbase Full Text Search API, use the N1QL CURL() function with apoc.couchbase.namedParamsQuery to form a curl request with properly nested strings. Here we are assuming you have an FTS index called 'my_fts_index' with source highlighting and the CURL() url is whitelisted in CB:
+To query the Couchbase Full Text Search API, you can use apoc.load.jsonParams() to post a query to the FTS endpoint. Note the backticks on the header map. This assumes an FTS index called 'my_fts_index' with source highlighting and that the CURL() url is whitelisted in CB:
 
 [source,cypher]
 ----
 WITH
-'SELECT result.hits[*].id, result.hits[*].fragments, result.hits[*].score \n
-FROM CURL("http://Administrator:password@localhost:8094/api/index/my_fts_index/query", \n
-{"header":"Content-Type: application/json", "request":"POST", "data": $param}) result' AS statement,
-'{"explain":false, "fields":["*"], "highlight":{}, "query":{"query":"my-full-text-search-term"}}' AS param
-CALL apoc.couchbase.namedParamsQuery('mykey', 'bucket', statement, ['param'],[param]) YIELD queryResult AS rows
-RETURN rows
+'http://Administrator:password@localhost:8094/api/index/my_fts_index/query' AS url,
+{`Content-Type`: "application/json"} AS header,
+'{"explain":false, "fields":["*"], "highlight":{}, "query":{"query":"my-fulltext-search-term"}}' AS query
+CALL apoc.load.jsonParams(url,header,query) YIELD value
+UNWIND value.hits AS hit
+RETURN hit.id, hit.fragments, hit.score
 ----
 // end::couchbase[]
 
