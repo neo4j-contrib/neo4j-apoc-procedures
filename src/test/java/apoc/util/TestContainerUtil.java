@@ -4,10 +4,7 @@ import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.Neo4jContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
 import java.nio.file.Paths;
@@ -26,22 +23,22 @@ public class TestContainerUtil {
 
     private static File baseDir = Paths.get(".").toFile();
 
-    private static final Logger logger = LoggerFactory.getLogger(Neo4jContainer.class);
 
-    public static Neo4jContainer createEnterpriseDB(boolean withLogging) {
+
+    public static Neo4jContainerExtension createEnterpriseDB(boolean withLogging) {
         // We build the project, the artifact will be placed into ./build/libs
         executeGradleTasks("clean", "shadow");
         // We define the container with external volumes
-        Neo4jContainer neo4jContainer = (Neo4jContainer) new Neo4jContainer()
-                .withAdminPassword(null)
+        Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension()
+                .withPlugins(MountableFile.forHostPath("./target/tests/gradle-build/libs")) // map the apoc's artifact dir as the Neo4j's plugin dir
+                .withoutAuthentication()
                 .withEnv("NEO4J_apoc_export_file_enabled", "true")
                 .withEnv("NEO4J_dbms_security_procedures_unrestricted", "apoc.*")
-                .withEnv("NEO4J_wrapper_java_additional","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -Xdebug-Xnoagent-Djava.compiler=NONE-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005")
-                .withFileSystemBind("./target/tests/gradle-build/libs", "/plugins") // map the apoc's artifact dir as the Neo4j's plugin dir
+//                .withEnv("NEO4J_wrapper_java_additional","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -Xdebug-Xnoagent-Djava.compiler=NONE-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005")
                 .withFileSystemBind("./target/import", "/import") // map the "target/import" dir as the Neo4j's import dir
                 .withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes");
         if (withLogging) {
-            neo4jContainer.withLogConsumer(new Slf4jLogConsumer(logger));
+            neo4jContainer.withLogging();
         }
         neo4jContainer.setDockerImageName("neo4j:3.5.3-enterprise");
         return neo4jContainer;
