@@ -40,7 +40,11 @@ public class FormatUtils {
     }
 
     public static String formatString(Object value) {
-        return "\"" + String.valueOf(value).replaceAll("\\\\", "\\\\\\\\").replaceAll("\n","\\\\n").replaceAll("\t","\\\\t").replaceAll("\"","\\\\\"") + "\"";
+        return "\"" + String.valueOf(value).replaceAll("\\\\", "\\\\\\\\")
+                .replaceAll("\n","\\\\n")
+                .replaceAll("\r","\\\\r")
+                .replaceAll("\t","\\\\t")
+                .replaceAll("\"","\\\\\"") + "\"";
     }
 
     public static String joinLabels(Node node, String delimiter) {

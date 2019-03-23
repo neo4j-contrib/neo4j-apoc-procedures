@@ -18,9 +18,7 @@ import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.procedure.*;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Stream;
@@ -117,7 +115,7 @@ public class ExportCypher {
     }
 
     private void doExport(SubGraph graph, ExportConfig c, boolean onlySchema, ProgressReporter reporter, ExportFileManager cypherFileManager) throws IOException {
-        MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph, c);
+        MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph, c, db);
 
         if (onlySchema)
             exporter.exportOnlySchema(cypherFileManager);
