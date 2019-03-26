@@ -49,7 +49,79 @@ It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],rel
 | apoc.graph.fromPaths([paths],'name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromDB('name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
+| apoc.graph.fromDocument({json},{config}) | transform JSON documents into graph structures
+| apoc.graph.validateDocument({json},{config}) | validate the JSON and returns informations about required fields violations
 |===
+
+=== `apoc.graph.fromDocument`
+
+The procedure `apoc.graph.fromDocument` transforms a JSON into a graph structure. It takes two arguments:
+
+* *json*, _type Object_: the JSON that must be transformed. Every entry must have an `id` and a `type` (name of Label), configurable via the config params. +
+The value can be a String, or Cypher Map or List of Maps.
+* *config*, _type Map_: the configuration params
+
+Currently spatial and datetime properties are not handled yet. 
+More advanced configuration for mapping the document is coming in future versions.
+
+The config is composed by the following parameters:
+
+* *write*, _type boolean_: persist the graph otherwise return a Virtual Graph, default *false*
+* *labelField*, _type String_: the field name that became the label of the node, default *type*
+* *idField*, _type String_: the document field name that will become the id field of the created nodes (used for node resolution when you create relationships between nodes), default *id*
+
+
+[source, json]
+----
+{
+    "id": 1,
+    "type": "artist",
+    "name": "Genesis",
+    "members": ["Tony Banks", "Mike Rutherford", "Phil Collins"],
+    "years": [1967, 1998, 1999, 2000, 2006]
+}
+----
+In this case it create one `Node` with labels *Artist*
+
+It also accepts list of documents:
+
+[source, json]
+----
+[{
+    "id": 1,
+    "type": "artist",
+    "name": "Genesis",
+    "members": ["Tony Banks", "Mike Rutherford", "Phil Collins"],
+    "years": [1967, 1998, 1999, 2000, 2006]
+}, {
+    "id": 2,
+    "type": "artist",
+    "name": "Daft Punk",
+    "members": ["Guy-Manuel de Homem-Christo", "Thomas Bangalter."],
+    "years": [1987, 1993, 1999, 2004, 2008, 2011]
+}]
+----
+In this case it create 2 `Node` with labels *Artist*
+
+
+JSON Tree to graph:
+
+[source, json]
+----
+{
+	"id": 1,
+	"type": "artist",
+	"name": "Genesis",
+	"albums": [{
+		"type": "album",
+		"id": 1,
+		"producer": "Jonathan King",
+		"title": "From Genesis to Revelation"
+	}]
+}
+----
+
+In this case it will create 2 `Node`, one *Artist* and one *Album* connected to each other by the *ALBUMS* `Relationship`
 
 === Virtual Graph Examples
 
@@ -98,3 +170,14 @@ CALL apoc.graph.fromCypher('MATCH (n)-[r]->(m) RETURN *',null,'test',{answer:42}
 As a result we have a virtual graph object for later processing
 
 image::{img}/apoc.graph.png[width=800]
+
+.Virtual graph from JSON
+
+[source,cypher]
+----
+CALL apoc.graph.fromDocument("{'id': 1,'type': 'artist','name':'Genesis','members': ['Tony Banks','Mike Rutherford','Phil Collins'],'years': [1967, 1998, 1999, 2000, 2006],'albums': [{'type': 'album','id': 1,'producer': 'Jonathan King','title': 'From Genesis to Revelation'}]}", false) yield graph return graph
+----
+
+As a result we have a virtual graph with two nodes and one relationship:
+
+image::{img}/apoc.graph.fromDocument_1[width=800]

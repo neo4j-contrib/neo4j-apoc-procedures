@@ -1,18 +1,21 @@
 package apoc.graph;
 
-import org.neo4j.procedure.Description;
 import apoc.cypher.Cypher;
+import apoc.graph.document.builder.DocumentToGraph;
+import apoc.graph.util.GraphsConfig;
+import apoc.result.RowResult;
 import apoc.result.VirtualGraph;
+import apoc.util.JsonUtil;
+import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 /**
@@ -109,5 +112,42 @@ public class Graphs {
 
         });
         return Stream.of(new VirtualGraph(name,nodes,rels,props));
+    }
+
+    @Description("apoc.graph.fromDocument({json}, {config}) yield graph - transform JSON documents into graph structures")
+    @Procedure(mode = Mode.WRITE)
+    public Stream<VirtualGraph> fromDocument(@Name("json") Object document, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) throws Exception {
+        Collection<Map> coll = getDocumentCollection(document);
+        DocumentToGraph documentToGraph = new DocumentToGraph(db, new GraphsConfig(config));
+        return Stream.of(documentToGraph.create(coll));
+    }
+
+    public Collection<Map> getDocumentCollection(@Name("json") Object document) {
+        Collection<Map> coll;
+        if (document instanceof String) {
+            document  = JsonUtil.parse((String) document, null, Object.class);
+        }
+        if (document instanceof Collection) {
+            coll = (Collection) document;
+        } else {
+            coll = Collections.singleton((Map) document);
+        }
+        return coll;
+    }
+
+    @Description("apoc.graph.validateDocument({json}, {config}) yield row - validates the json, return the result of the validation")
+    @Procedure(mode = Mode.READ)
+    public Stream<RowResult> validateDocument(@Name("json") Object document, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) throws Exception {
+        DocumentToGraph documentToGraph = new DocumentToGraph(db, new GraphsConfig(config));
+        AtomicLong index = new AtomicLong(-1);
+        return getDocumentCollection(document).stream()
+                .map(elem -> {
+                    try {
+                        documentToGraph.validate(elem);
+                        return new RowResult(Util.map("index", index.incrementAndGet(), "message", "Valid"));
+                    } catch (Exception e) {
+                        return new RowResult(Util.map("index", index.incrementAndGet(), "message", e.getMessage()));
+                    }
+                });
     }
 }
