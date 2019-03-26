@@ -57,8 +57,12 @@ It's basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],rel
 
 The procedure `apoc.graph.fromDocument` transforms a JSON into a graph structure. It takes two arguments:
 
-* *json*, _type Object_: the JSON that must be transformed. Every JSON must have an `id` and a `type` (name of Label), configurable via the config params
+* *json*, _type Object_: the JSON that must be transformed. Every entry must have an `id` and a `type` (name of Label), configurable via the config params. +
+The value can be a String, or Cypher Map or List of Maps.
 * *config*, _type Map_: the configuration params
+
+Currently spatial and datetime properties are not handled yet. 
+More advanced configuration for mapping the document is coming in future versions.
 
 The config is composed by the following parameters:
 
