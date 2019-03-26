@@ -595,6 +595,10 @@ public class Util {
         return SourceVersion.isIdentifier(var) ? var : '`' + var + '`';
     }
 
+    public static String sanitizeAndQuote(String var) {
+        return quote(var.replaceAll("`", ""));
+    }
+
     public static String param(String var) {
         return (var.charAt(0) == '$' || var.charAt(0) == '{') ? var : '{'+quote(var)+'}';
     }
