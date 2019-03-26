@@ -5,18 +5,25 @@ import apoc.util.JsonUtil;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.InputStream;
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.*;
-import static org.junit.Assert.*;
+import static apoc.util.TestUtil.assumeTravis;
+import static apoc.util.TestUtil.registerProcedure;
+import static apoc.util.TestUtil.testCallCount;
+import static apoc.util.TestUtil.testCallEmpty;
+import static apoc.util.TestUtil.testResult;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class GeocodeTest {
 
@@ -50,6 +57,7 @@ public class GeocodeTest {
         testGeocodeWithThrottling("osm", true);
     }
 
+    @Ignore
     @Test
     public void testGeocodeGoogle() throws Exception {
         testGeocodeWithThrottling("google", false);

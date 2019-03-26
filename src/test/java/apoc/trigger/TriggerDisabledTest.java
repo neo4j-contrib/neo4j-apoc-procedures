@@ -3,8 +3,8 @@ package apoc.trigger;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
@@ -45,6 +45,7 @@ public class TriggerDisabledTest
         }
     }
 
+    @Ignore
     @Test
     public void testTriggerDisabledList() throws Exception
     {
