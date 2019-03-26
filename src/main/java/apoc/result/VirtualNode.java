@@ -1,18 +1,12 @@
 package apoc.result;
 
+import org.neo4j.graphdb.*;
+import org.neo4j.helpers.collection.FilteringIterable;
+import org.neo4j.helpers.collection.Iterables;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
-
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.helpers.collection.FilteringIterable;
-import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.helpers.collection.Iterators;
 
 import static java.util.Arrays.asList;
 
@@ -129,12 +123,24 @@ public class VirtualNode implements Node {
     public VirtualRelationship createRelationshipTo(Node node, RelationshipType relationshipType) {
         VirtualRelationship rel = new VirtualRelationship(this, node, relationshipType);
         rels.add(rel);
+        if (node instanceof VirtualNode) { // register the inverse relationship into the target virtual node only if it is not a self relationship
+            VirtualNode target = (VirtualNode) node;
+            if (!target.rels.contains(rel)) {
+                target.rels.add(rel);
+            }
+        }
         return rel;
     }
 
     public VirtualRelationship createRelationshipFrom(Node start, RelationshipType relationshipType) {
         VirtualRelationship rel = new VirtualRelationship(start, this, relationshipType);
         rels.add(rel);
+        if (start instanceof VirtualNode) { // register the inverse relationship into the start virtual node only if it is not a self relationship
+            VirtualNode startVirtual = (VirtualNode) start;
+            if (!startVirtual.rels.contains(rel)) {
+                startVirtual.rels.add(rel);
+            }
+        }
         return rel;
     }
 
