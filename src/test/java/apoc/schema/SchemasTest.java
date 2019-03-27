@@ -31,7 +31,7 @@ public class SchemasTest {
 
     @Before
     public void setUp() throws Exception {
-        db = apocEnterpriseGraphDatabaseBuilder().newGraphDatabase();
+        db = apocGraphDatabaseBuilder().newGraphDatabase();
         //db = apocGraphDatabaseBuilder().newGraphDatabase();
         registerProcedure(db, Schemas.class);
     }
