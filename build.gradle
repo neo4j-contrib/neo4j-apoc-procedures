@@ -40,6 +40,7 @@ ext {
     neo4jVersion = "3.5.3"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
+    testContainersVersion = '1.11.0'
 }
 
 configurations {
@@ -143,18 +144,19 @@ dependencies {
     jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
     jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
 
-    // Test Containers
-    testCompile group: 'org.testcontainers', name: 'testcontainers', version: '1.10.6'    
-    testCompile group: 'org.testcontainers', name: 'neo4j', version: '1.10.6'
-
-    compileOnly group: 'org.gradle', name: 'gradle-tooling-api', version: '4.3'
     testCompile group: 'org.gradle', name: 'gradle-tooling-api', version: '4.3'
-    testCompile group: 'org.testcontainers', name: 'elasticsearch', version: '1.10.6'
-    testCompile group: 'org.testcontainers', name: 'couchbase', version: '1.10.6'
-
-    testCompile group: 'org.testcontainers', name: 'mysql', version: '1.10.2'
 
     testCompile group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
+    testCompile group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
+
+    // Test Containers
+    testCompile group: 'org.testcontainers', name: 'testcontainers', version: testContainersVersion
+    testCompile group: 'org.testcontainers', name: 'neo4j', version: testContainersVersion
+    testCompile group: 'org.testcontainers', name: 'elasticsearch', version: testContainersVersion
+    testCompile group: 'org.testcontainers', name: 'couchbase', version: testContainersVersion
+    testCompile group: 'org.testcontainers', name: 'mysql', version: testContainersVersion
+    testCompile group: 'org.testcontainers', name: 'postgresql', version: testContainersVersion
+    testCompile group: 'org.testcontainers', name: 'cassandra', version: testContainersVersion
 
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'

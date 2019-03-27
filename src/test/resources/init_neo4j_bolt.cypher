@@ -1,0 +1,11 @@
+CREATE (m:Person {name:'Michael',surname:'Jordan',age:54, state:true, date:date('2018-10-30')})
+CREATE (q:Person {name:'Tom',surname:'Burton',age:23, date:datetime('2018-10-30T12:50:35.556+0100')})
+CREATE (p:Person {name:'John',surname:'William',age:22, date:localdatetime('20181030T19:32:24')})
+CREATE (q)-[:KNOWS{since:2016, time:time('125035.556+0100')}]->(p)
+CREATE (a:Person{name:'Tom', surname:'Loagan', duration:duration('P5M1DT12H')})
+CREATE (b:Person{name:'John', surname:'Green', born:point({ x: 2.3, y: 4.5 })})
+CREATE (c:Person{name:'Jim', surname:'Brown'})
+CREATE (d:Person{name:'Anne', surname:'Olsson', born:point({ x: 2.3, y: 4.5 , z: 1.2})})
+CREATE (a)-[:KNOWS{since:localtime('12:50:35.556'), born:point({ longitude: 56.7, latitude: 12.78 })}]->(b)
+CREATE (b)-[:KNOWS{since:time('125035.556+0100'), born:point({ longitude: 56.7, latitude: 12.78, height: 100 })}]->(c)
+CREATE (c)-[:KNOWS{since:2013}]->(d);
