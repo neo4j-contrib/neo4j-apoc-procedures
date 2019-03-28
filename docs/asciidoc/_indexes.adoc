@@ -16,7 +16,7 @@
 include::schema-index.adoc[leveloffset=4]
 
 [[manual-indexes]]
-=== Manual Indexes
+=== Deprecated: Manual Indexes
 
 [WARNING]
 These Index procedures in the namespaces `apoc.index.*` are deprecated and will be removed from APOC soon.
