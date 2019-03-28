@@ -316,7 +316,7 @@ public class GraphRefactoring {
     /**
      * Redirects a relationships to a new target node.
      */
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.WRITE,eager = true)
     @Description("apoc.refactor.to(rel, endNode) redirect relationship to use new end-node")
     public Stream<RelationshipRefactorResult> to(@Name("relationship") Relationship rel, @Name("newNode") Node newNode) {
         if (rel == null || newNode == null) return Stream.empty();
@@ -331,7 +331,7 @@ public class GraphRefactoring {
         }
     }
 
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.WRITE,eager = true)
     @Description("apoc.refactor.invert(rel) inverts relationship direction")
     public Stream<RelationshipRefactorResult> invert(@Name("relationship") Relationship rel) {
         if (rel == null) return Stream.empty();
@@ -349,7 +349,7 @@ public class GraphRefactoring {
     /**
      * Redirects a relationships to a new target node.
      */
-    @Procedure(mode = Mode.WRITE)
+    @Procedure(mode = Mode.WRITE, eager = true)
     @Description("apoc.refactor.from(rel, startNode) redirect relationship to use new start-node")
     public Stream<RelationshipRefactorResult> from(@Name("relationship") Relationship rel, @Name("newNode") Node newNode) {
         if (rel == null || newNode == null) return Stream.empty();
