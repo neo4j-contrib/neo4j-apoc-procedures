@@ -25,7 +25,7 @@ public class Lock {
                 tx.acquireWriteLock(node);
             }
             for (Relationship rel : rels) {
-                tx.acquireReadLock(rel);
+                tx.acquireWriteLock(rel);
             }
             tx.success();
         }
