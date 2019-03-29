@@ -726,4 +726,15 @@ public class Util {
     public static DateTimeFormatter getFormat(String format) {
         return getOrCreate(format);
     }
+
+    public static char parseCharFromConfig(Map<String, Object> config, String key, char defaultValue) {
+        String separator = (String) config.getOrDefault(key, "");
+        if (separator == null || separator.isEmpty()) {
+            return defaultValue;
+        }
+        if ("TAB".equals(separator)) {
+            return '\t';
+        }
+        return separator.charAt(0);
+    }
 }
