@@ -4,6 +4,7 @@ import apoc.export.util.BatchTransaction;
 import apoc.export.util.CountingReader;
 import apoc.export.util.ProgressReporter;
 import apoc.load.LoadCsv;
+import apoc.load.util.LoadCsvConfig;
 import apoc.util.FileUtils;
 import com.opencsv.CSVReader;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -88,7 +89,7 @@ public class CsvEntityLoader {
             for (String[] line : csv.readAll()) {
                 lineNo++;
 
-                final EnumSet<LoadCsv.Results> results = EnumSet.of(LoadCsv.Results.map);
+                final EnumSet<LoadCsvConfig.Results> results = EnumSet.of(LoadCsvConfig.Results.map);
                 final LoadCsv.CSVResult result = new LoadCsv.CSVResult(
                         loadCsvCompatibleHeader, line, lineNo, false, mapping, Collections.emptyList(), results
                 );
@@ -201,7 +202,7 @@ public class CsvEntityLoader {
             for (String[] line : csv.readAll()) {
                 lineNo++;
 
-                final EnumSet<LoadCsv.Results> results = EnumSet.of(LoadCsv.Results.map);
+                final EnumSet<LoadCsvConfig.Results> results = EnumSet.of(LoadCsvConfig.Results.map);
                 final LoadCsv.CSVResult result = new LoadCsv.CSVResult(
                         loadCsvCompatibleHeader, line, lineNo, false, mapping, Collections.emptyList(), results
                 );

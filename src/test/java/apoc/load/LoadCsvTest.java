@@ -3,11 +3,14 @@ package apoc.load;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.TestGraphDatabaseFactory;
+import org.testcontainers.containers.GenericContainer;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -18,12 +21,13 @@ import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.getUrlFileName;
 import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 public class LoadCsvTest {
 
     private GraphDatabaseService db;
+
+    private GenericContainer httpServer;
 
     @Before public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig("apoc.import.file.enabled","true").newGraphDatabase();
@@ -306,5 +310,31 @@ RETURN m.col_1,m.col_2,m.col_3
                     assertRow(r,2L,"name","Selina","age","18");
                     assertEquals(false, r.hasNext());
                 });
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testLoadRedirectWithProtocolChange() {
+        TestUtil.ignoreException(() -> {
+            httpServer = new GenericContainer("alpine")
+                    .withCommand("/bin/sh", "-c", "while true; do { echo -e 'HTTP/1.1 301 Moved Permanently\\r\\nLocation: file:/etc/passwd'; echo ; } | nc -l -p 8000; done")
+                    .withExposedPorts(8000);
+            httpServer.start();
+        }, Exception.class);
+        Assume.assumeNotNull(httpServer);
+        try {
+            testResult(db, "CALL apoc.load.csv({url})", map("url", "http://localhost:" + httpServer.getMappedPort(8000)),
+                    (r) -> {});
+        } catch (QueryExecutionException e) {
+            assertTrue(e.getMessage().contains("The redirect URI has a different protocol: file:/etc/passwd"));
+            throw e;
+        }
+        httpServer.stop();
+    }
+
+    @Test public void testWithEmptyQuoteChar() throws Exception {
+        Assume.assumeFalse("skip this on travis it downloads 7.3 MB of data", TestUtil.isTravis());
+        URL url = new URL("https://www.fhwa.dot.gov/bridge/nbi/2010/delimited/AL10.txt");
+        testResult(db, "CALL apoc.load.csv({url}, {quoteChar: '\0'})", map("url",url.toString()),
+                (r) -> assertEquals(16018L, r.stream().count()));
     }
 }

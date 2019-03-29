@@ -267,8 +267,18 @@ public class Util {
         return con;
     }
 
-    public static boolean isRedirect(int code) {
-        return code >= 300 && code < 400;
+    public static boolean isRedirect(HttpURLConnection con) throws IOException {
+        int code = con.getResponseCode();
+        boolean isRedirectCode = code >= 300 && code < 400;
+        if (isRedirectCode) {
+            URL location = new URL(con.getHeaderField("Location"));
+            String oldProtocol = con.getURL().getProtocol();
+            String protocol = location.getProtocol();
+            if (!protocol.equals(oldProtocol) && !protocol.startsWith(oldProtocol)) { // we allow http -> https redirect and similar
+                throw new RuntimeException("The redirect URI has a different protocol: " + location.toString());
+            }
+        }
+        return isRedirectCode;
     }
 
     private static void writePayload(URLConnection con, String payload) throws IOException {
@@ -281,7 +291,7 @@ public class Util {
 
     private static String handleRedirect(URLConnection con, String url) throws IOException {
        if (!(con instanceof HttpURLConnection)) return url;
-       if (!isRedirect(((HttpURLConnection)con).getResponseCode())) return url;
+       if (!isRedirect(((HttpURLConnection)con))) return url;
        return con.getHeaderField("Location");
     }
 
@@ -722,5 +732,16 @@ public class Util {
 
     public static DateTimeFormatter getFormat(String format) {
         return getOrCreate(format);
+    }
+
+    public static char parseCharFromConfig(Map<String, Object> config, String key, char defaultValue) {
+        String separator = (String) config.getOrDefault(key, "");
+        if (separator == null || separator.isEmpty()) {
+            return defaultValue;
+        }
+        if ("TAB".equals(separator)) {
+            return '\t';
+        }
+        return separator.charAt(0);
     }
 }
