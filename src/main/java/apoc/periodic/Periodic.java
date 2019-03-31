@@ -349,7 +349,7 @@ public class Periodic {
                     } catch (Exception e) {
                         failedOps.addAndGet(batchsize);
                         if (failedParams >= 0) {
-                            failedParamsMap.put(Long.toString(finalBatches), batch.subList(0, Math.min(failedParams+1, batch.size())));
+                            failedParamsMap.put(Long.toString(finalBatches), new ArrayList<Map<String,Object>>>(batch.subList(0, Math.min(failedParams+1, batch.size()))));
                         }
                         recordError(operationErrors, e);
                     }
@@ -369,7 +369,7 @@ public class Periodic {
                             } catch (Exception e) {
                                 failedOps.incrementAndGet();
                                 if (failedParams >= 0) {
-                                    failedParamsMap.put(Long.toString(finalBatches), batch.subList(0, Math.min(failedParams+1, batch.size())));
+                                    failedParamsMap.put(Long.toString(finalBatches), new ArrayList<Map<String,Object>>>(batch.subList(0, Math.min(failedParams+1, batch.size()))));
                                 }
                                 recordError(operationErrors, e);
                             }
