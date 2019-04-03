@@ -2,7 +2,6 @@ package apoc.cypher;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import static apoc.util.Util.*;
 import apoc.util.Utils;
 import org.hamcrest.Matchers;
 import org.junit.*;
@@ -15,10 +14,14 @@ import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static apoc.util.Util.map;
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.*;
@@ -39,6 +42,7 @@ public class CypherTest {
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
                 .setConfig("apoc.import.file.enabled", "true")
+                .setConfig("apoc.import.file.use_neo4j_config", "false")
                 .setConfig(GraphDatabaseSettings.load_csv_file_url_root,new File("src/test/resources").getAbsolutePath())
                 .newGraphDatabase();
         TestUtil.registerProcedure(db, Cypher.class);
