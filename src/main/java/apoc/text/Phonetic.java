@@ -8,10 +8,12 @@ import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.language.Soundex;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.UserFunction;
 
 import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -22,6 +24,7 @@ public class Phonetic {
     private static final DoubleMetaphone DOUBLE_METAPHONE = new DoubleMetaphone();
 
     @Procedure
+    @Deprecated
     @Description("apoc.text.phonetic(value) yield value - Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings")
     public Stream<StringResult> phonetic(final @Name("value") Object value) {
         Stream<Object> stream = value instanceof Iterable ? StreamSupport.stream(((Iterable) value).spliterator(), false) : Stream.of(value);
@@ -29,6 +32,12 @@ public class Phonetic {
         return stream.map(str -> str == null ? StringResult.EMPTY :
                 new StringResult(Stream.of(str.toString().split("\\W+"))
                 .map(US_ENGLISH::soundex).reduce("", (a, s)->a+s)));
+    }
+    @UserFunction
+    @Description("apoc.text.phonetic(text) yield value - Compute the US_ENGLISH phonetic soundex encoding of all words of the text")
+    public String phonetic(final @Name("value") String value) {
+        if (value == null) return null;
+        return Stream.of(value.split("\\W+")).map(US_ENGLISH::soundex).collect(Collectors.joining(""));
     }
 
     @Procedure
@@ -42,14 +51,26 @@ public class Phonetic {
     }
 
     @Procedure
+    @Deprecated
     @Description("apoc.text.doubleMetaphone(value) yield value - Compute the Double Metaphone phonetic encoding of all words of the text value which can be a single string or a list of strings")
     public Stream<StringResult> doubleMetaphone(final @Name("value") Object value)
     {
         Stream<Object> stream = value instanceof Iterable ? StreamSupport.stream(((Iterable) value).spliterator(), false) : Stream.of(value);
 
-        return stream.map(str -> (str == null || str.toString().isEmpty()) ? StringResult.EMPTY :
-                                 new StringResult(Stream.of(str.toString().trim().split("\\W+"))
-                                         .map(DOUBLE_METAPHONE::doubleMetaphone).reduce("", (a, s) -> a + s)));
+        return stream.map(str ->
+                (str == null) ? StringResult.EMPTY :
+                str.toString().trim().isEmpty() ?
+                        new StringResult("") :
+                        new StringResult(Stream.of(str.toString().trim().split("\\W+")).map(DOUBLE_METAPHONE::doubleMetaphone).collect(Collectors.joining(""))
+                                 ));
+    }
+
+    @UserFunction
+    @Description("apoc.text.doubleMetaphone(value) yield value - Compute the Double Metaphone phonetic encoding of all words of the text value")
+    public String doubleMetaphone(final @Name("value") String value)
+    {
+        if (value == null || value.trim().isEmpty()) return value;
+        return Stream.of(value.split("\\W+")).map(DOUBLE_METAPHONE::doubleMetaphone).collect(Collectors.joining(""));
     }
 
     public static class PhoneticResult {
