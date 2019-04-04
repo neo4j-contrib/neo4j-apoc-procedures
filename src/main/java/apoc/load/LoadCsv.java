@@ -53,7 +53,7 @@ public class LoadCsv {
             String[] header = getHeader(csv, config);
             boolean checkIgnore = !config.getIgnore().isEmpty() || config.getMappings().values().stream().anyMatch( m -> m.ignore);
             return StreamSupport.stream(new CSVSpliterator(csv, header, url, config.getSkip(), config.getLimit(),
-                    checkIgnore, config.getMappings(), config.getNullValues(), config.getResults()), false);
+                    checkIgnore, config.getMappings(), config.getNullValues(), config.getResults(), config.getIgnoreErrors()), false);
         } catch (IOException e) {
 
             if(!config.isFailOnError())
@@ -205,9 +205,10 @@ public class LoadCsv {
         private final Map<String, Mapping> mapping;
         private final List<String> nullValues;
         private final EnumSet<Results> results;
+        private final boolean ignoreErrors;
         long lineNo;
 
-        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results) throws IOException {
+        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results, boolean ignoreErrors) throws IOException {
             super(Long.MAX_VALUE, Spliterator.ORDERED);
             this.csv = csv;
             this.header = header;
@@ -216,6 +217,7 @@ public class LoadCsv {
             this.mapping = mapping;
             this.nullValues = nullValues;
             this.results = results;
+            this.ignoreErrors = ignoreErrors;
             this.limit = skip + limit;
             lineNo = skip;
             while (skip-- > 0) {
@@ -228,7 +230,8 @@ public class LoadCsv {
             try {
                 String[] row = csv.readNext();
                 if (row != null && lineNo < limit) {
-                    action.accept(new CSVResult(header, row, lineNo++, ignore,mapping, nullValues,results));
+                    action.accept(new CSVResult(header, row, lineNo, ignore,mapping, nullValues,results));
+                    lineNo++;
                     return true;
                 }
                 return false;

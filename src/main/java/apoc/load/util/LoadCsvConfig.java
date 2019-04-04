@@ -1,6 +1,7 @@
 package apoc.load.util;
 
 import apoc.load.LoadCsv;
+import apoc.util.Util;
 
 import java.util.*;
 
@@ -14,6 +15,7 @@ public class LoadCsvConfig {
     public static final char DEFAULT_SEP = ',';
     public static final char DEFAULT_QUOTE_CHAR = '"';
 
+    private final boolean ignoreErrors;
     private char separator;
     private char arraySep;
     private char quoteChar;
@@ -38,6 +40,7 @@ public class LoadCsvConfig {
         if (config == null) {
             config = Collections.emptyMap();
         }
+        ignoreErrors = Util.toBoolean(config.getOrDefault("ignoreErrors", false));
         separator = parseCharFromConfig(config, "sep", DEFAULT_SEP);
         arraySep = parseCharFromConfig(config, "arraySep", DEFAULT_ARRAY_SEP);
         quoteChar = parseCharFromConfig(config,"quoteChar", DEFAULT_QUOTE_CHAR);
@@ -114,5 +117,9 @@ public class LoadCsvConfig {
 
     public char getQuoteChar() {
         return quoteChar;
+    }
+
+    public boolean getIgnoreErrors() {
+        return ignoreErrors;
     }
 }
