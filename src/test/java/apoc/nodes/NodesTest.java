@@ -78,6 +78,7 @@ public class NodesTest {
         TestUtil.testCall(db, "MATCH (n:Bar) RETURN apoc.node.relationship.types(n) AS value", (r) -> assertEquals(Collections.emptyList(), r.get("value")));
         TestUtil.testCall(db, "RETURN apoc.node.relationship.types(null) AS value", (r) -> assertEquals(null, r.get("value")));
     }
+
     @Test
     public void hasRelationhip() throws Exception {
         db.execute("CREATE (:Foo)-[:Y]->(:Bar),(n:FooBar) WITH n UNWIND range(1,100) as _ CREATE (n)-[:X]->(n)").close();
@@ -95,6 +96,25 @@ public class NodesTest {
         TestUtil.testCall(db,"MATCH (n:FooBar) RETURN apoc.node.relationship.exists(n,'X>') AS value", (r)-> assertEquals(true,r.get("value")));
         TestUtil.testCall(db,"MATCH (n:FooBar) RETURN apoc.node.relationship.exists(n,'<X') AS value", (r)-> assertEquals(true,r.get("value")));
         TestUtil.testCall(db,"MATCH (n:FooBar) RETURN apoc.node.relationship.exists(n,'Y') AS value", (r)-> assertEquals(false,r.get("value")));
+    }
+    @Test
+
+    public void hasRelationhips() throws Exception {
+        db.execute("CREATE (:Foo)-[:Y]->(:Bar),(n:FooBar) WITH n UNWIND range(1,100) as _ CREATE (n)-[:X]->(n)").close();
+        TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.node.relationships.exist(n,'Y') AS value",(r)-> assertEquals(map("Y",true),r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.node.relationships.exist(n,'Y>') AS value", (r)-> assertEquals(map("Y>",true),r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.node.relationships.exist(n,'<Y') AS value", (r)-> assertEquals(map("<Y",false),r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.node.relationships.exist(n,'X') AS value", (r)-> assertEquals(map("X",false),r.get("value")));
+
+        TestUtil.testCall(db,"MATCH (n:Bar) RETURN apoc.node.relationships.exist(n,'Y') AS value",(r)-> assertEquals(map("Y",true),r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:Bar) RETURN apoc.node.relationships.exist(n,'Y>') AS value", (r)-> assertEquals(map("Y>",false),r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:Bar) RETURN apoc.node.relationships.exist(n,'<Y') AS value", (r)-> assertEquals(map("<Y",true),r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:Bar) RETURN apoc.node.relationships.exist(n,'X') AS value", (r)-> assertEquals(map("X",false),r.get("value")));
+
+        TestUtil.testCall(db,"MATCH (n:FooBar) RETURN apoc.node.relationships.exist(n,'X') AS value",(r)-> assertEquals(map("X",true    ),r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:FooBar) RETURN apoc.node.relationships.exist(n,'X>') AS value", (r)-> assertEquals(map("X>",true),r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:FooBar) RETURN apoc.node.relationships.exist(n,'<X') AS value", (r)-> assertEquals(map("<X",true),r.get("value")));
+        TestUtil.testCall(db,"MATCH (n:FooBar) RETURN apoc.node.relationships.exist(n,'Y') AS value", (r)-> assertEquals(map("Y",false),r.get("value")));
     }
 
     @Test
