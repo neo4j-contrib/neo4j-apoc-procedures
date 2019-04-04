@@ -47,14 +47,13 @@ public class LoadCsv {
                     .withCSVParser(new CSVParserBuilder()
                             .withQuoteChar(config.getQuoteChar())
                             .withSeparator(config.getSeparator())
-                            .withIgnoreQuotations( config.isIgnoreQuotations() )
                             .build())
                     .build();
 
             String[] header = getHeader(csv, config);
             boolean checkIgnore = !config.getIgnore().isEmpty() || config.getMappings().values().stream().anyMatch( m -> m.ignore);
             return StreamSupport.stream(new CSVSpliterator(csv, header, url, config.getSkip(), config.getLimit(),
-                    checkIgnore, config.getMappings(), config.getNullValues(), config.getResults(),!config.isFailOnError()), false);
+                    checkIgnore, config.getMappings(), config.getNullValues(), config.getResults(), config.getIgnoreErrors()), false);
         } catch (IOException e) {
 
             if(!config.isFailOnError())

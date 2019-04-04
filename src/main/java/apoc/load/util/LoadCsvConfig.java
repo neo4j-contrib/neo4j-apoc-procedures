@@ -1,6 +1,7 @@
 package apoc.load.util;
 
 import apoc.load.LoadCsv;
+import apoc.util.Util;
 
 import java.util.*;
 
@@ -14,6 +15,7 @@ public class LoadCsvConfig {
     public static final char DEFAULT_SEP = ',';
     public static final char DEFAULT_QUOTE_CHAR = '"';
 
+    private final boolean ignoreErrors;
     private char separator;
     private char arraySep;
     private char quoteChar;
@@ -22,7 +24,6 @@ public class LoadCsvConfig {
     private long limit;
 
     private boolean failOnError;
-    private boolean ignoreQuotations;
 
     private EnumSet<Results> results;
 
@@ -39,6 +40,7 @@ public class LoadCsvConfig {
         if (config == null) {
             config = Collections.emptyMap();
         }
+        ignoreErrors = Util.toBoolean(config.getOrDefault("ignoreErrors", false));
         separator = parseCharFromConfig(config, "sep", DEFAULT_SEP);
         arraySep = parseCharFromConfig(config, "arraySep", DEFAULT_ARRAY_SEP);
         quoteChar = parseCharFromConfig(config,"quoteChar", DEFAULT_QUOTE_CHAR);
@@ -46,7 +48,6 @@ public class LoadCsvConfig {
         hasHeader = (boolean) config.getOrDefault("header", true);
         limit = (long) config.getOrDefault("limit", Long.MAX_VALUE);
         failOnError = (boolean) config.getOrDefault("failOnError", true);
-        ignoreQuotations = (boolean) config.getOrDefault("ignoreQuotations", false);
 
         results = EnumSet.noneOf(Results.class);
         List<String> resultList = (List<String>) config.getOrDefault("results", asList("map","list"));
@@ -118,7 +119,7 @@ public class LoadCsvConfig {
         return quoteChar;
     }
 
-    public boolean isIgnoreQuotations() {
-        return ignoreQuotations;
+    public boolean getIgnoreErrors() {
+        return ignoreErrors;
     }
 }
