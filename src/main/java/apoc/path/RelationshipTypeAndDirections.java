@@ -17,6 +17,20 @@ public abstract class RelationshipTypeAndDirections {
 
 	public static final char BACKTICK = '`';
 
+    public static String format(Pair<RelationshipType, Direction> typeAndDirection) {
+        String type = typeAndDirection.first().name();
+        switch (typeAndDirection.other()) {
+            case OUTGOING:
+                return type + ">";
+            case INCOMING:
+                return "<" + type;
+            case BOTH:
+                return type;
+            default:
+                return type;
+        }
+    }
+
 	public static List<Pair<RelationshipType, Direction>> parse(String pathFilter) {
 		List<Pair<RelationshipType, Direction>> relsAndDirs = new ArrayList<>();
 		if (pathFilter == null) {

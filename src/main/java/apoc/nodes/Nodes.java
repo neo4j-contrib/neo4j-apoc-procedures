@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.path.RelationshipTypeAndDirections.format;
 import static apoc.path.RelationshipTypeAndDirections.parse;
 import static apoc.refactor.util.RefactorUtil.copyProperties;
 import static apoc.util.Util.map;
@@ -461,6 +462,20 @@ public class Nodes {
             if (relTypes.contains(name) && node.hasRelationship(p.first(),p.other())) {
                 result.add(name);
             }
+        }
+        return result;
+    }
+
+    @UserFunction("apoc.node.relationships.exist")
+    @Description("apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map with rel-pattern, boolean for the given relationship patterns")
+    public Map<String,Boolean> relationshipExists(@Name("node") Node node, @Name(value = "types",defaultValue = "") String types) {
+        if (node==null) return null;
+        List<String> relTypes = Iterables.asList(Iterables.map(RelationshipType::name, node.getRelationshipTypes()));
+        Map<String,Boolean> result =  new HashMap<>();
+        for (Pair<RelationshipType, Direction> p : parse(types)) {
+            String name = p.first().name();
+            boolean hasRelationship = relTypes.contains(name) && node.hasRelationship(p.first(), p.other());
+            result.put(format(p), hasRelationship);
         }
         return result;
     }
