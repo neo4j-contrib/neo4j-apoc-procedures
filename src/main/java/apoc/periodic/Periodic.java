@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,6 +27,9 @@ import static java.util.Collections.singletonMap;
 
 public class Periodic {
 
+    public static final Pattern RUNTIME_PATTERN = Pattern.compile("\\bruntime\\s*=", Pattern.CASE_INSENSITIVE);
+    public static final Pattern CYPHER_PREFIX_PATTERN = Pattern.compile("\\bcypher\\b", Pattern.CASE_INSENSITIVE);
+    public static final String CYPHER_RUNTIME_SLOTTED = "cypher runtime=slotted ";
     @Context public GraphDatabaseService db;
     @Context public TerminationGuard terminationGuard;
 
@@ -266,13 +270,21 @@ public class Periodic {
         boolean iterateList = Util.toBoolean(config.getOrDefault("iterateList", true));
         long retries = Util.toLong(config.getOrDefault("retries", 0)); // todo sleep/delay or push to end of batch to try again or immediate ?
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
-        try (Result result = db.execute(cypherIterate,params)) {
+        try (Result result = db.execute(slottedRuntime(cypherIterate),params)) {
             Pair<String,Boolean> prepared = prepareInnerStatement(cypherAction, iterateList, result.columns(), "_batch");
             String innerStatement = prepared.first();
             iterateList=prepared.other();
             log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
             return iterateAndExecuteBatchedInSeparateThread((int)batchSize, parallel, iterateList, retries, result, (p) -> db.execute(innerStatement, merge(params, p)).close(), concurrency);
         }
+    }
+
+    static String slottedRuntime(String cypherIterate) {
+        if (RUNTIME_PATTERN.matcher(cypherIterate).find()) {
+            return cypherIterate;
+        }
+        Matcher matcher = CYPHER_PREFIX_PATTERN.matcher(cypherIterate.substring(0, 15));
+        return matcher.find() ? CYPHER_PREFIX_PATTERN.matcher(cypherIterate).replaceFirst(CYPHER_RUNTIME_SLOTTED) : CYPHER_RUNTIME_SLOTTED + cypherIterate;
     }
 
     public long retry(Consumer<Map<String, Object>> executor, Map<String, Object> params, long retry, long maxRetries) {

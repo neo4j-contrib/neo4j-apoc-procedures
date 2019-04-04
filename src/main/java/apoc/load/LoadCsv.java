@@ -52,6 +52,7 @@ public class LoadCsv {
         try {
             CountingReader reader = FileUtils.readerFor(url);
 
+            boolean ignoreErrors = booleanValue(config, "ignoreErrors", false);
             char separator = separator(config, "sep", DEFAULT_SEP);
             char arraySep = separator(config, "arraySep", DEFAULT_ARRAY_SEP);
             long skip = longValue(config, "skip", 0L);
@@ -71,7 +72,7 @@ public class LoadCsv {
             CSVReader csv = new CSVReader(reader, separator);
             String[] header = getHeader(hasHeader, csv, ignore, mappings);
             boolean checkIgnore = !ignore.isEmpty() || mappings.values().stream().anyMatch( m -> m.ignore);
-            return StreamSupport.stream(new CSVSpliterator(csv, header, url, skip, limit, checkIgnore,mappings, nullValues,results), false);
+            return StreamSupport.stream(new CSVSpliterator(csv, header, url, skip, limit, checkIgnore,mappings, nullValues,results,ignoreErrors), false);
         } catch (IOException e) {
 
             if(!failOnError)
@@ -256,9 +257,10 @@ public class LoadCsv {
         private final Map<String, Mapping> mapping;
         private final List<String> nullValues;
         private final EnumSet<Results> results;
+        private final boolean ignoreErrors;
         long lineNo;
 
-        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results) throws IOException {
+        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results, boolean ignoreErrors) throws IOException {
             super(Long.MAX_VALUE, Spliterator.ORDERED);
             this.csv = csv;
             this.header = header;
@@ -267,6 +269,7 @@ public class LoadCsv {
             this.mapping = mapping;
             this.nullValues = nullValues;
             this.results = results;
+            this.ignoreErrors = ignoreErrors;
             this.limit = skip + limit;
             lineNo = skip;
             while (skip-- > 0) {
@@ -279,7 +282,8 @@ public class LoadCsv {
             try {
                 String[] row = csv.readNext();
                 if (row != null && lineNo < limit) {
-                    action.accept(new CSVResult(header, row, lineNo++, ignore,mapping, nullValues,results));
+                    action.accept(new CSVResult(header, row, lineNo, ignore,mapping, nullValues,results));
+                    lineNo++;
                     return true;
                 }
                 return false;
