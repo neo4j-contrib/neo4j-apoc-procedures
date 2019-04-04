@@ -31,11 +31,17 @@ public class PhoneticTest {
         testCall(db, "CALL apoc.text.phonetic('HellodearUser!')", (row) ->
             assertThat(row.get("value"), equalTo("H436"))
         );
+        testCall(db, "RETURN apoc.text.phonetic('HellodearUser!') as value", (row) ->
+            assertThat(row.get("value"), equalTo("H436"))
+        );
     }
 
     @Test
     public void shouldComputeSimpleSoundexEncodingOfNull() {
-        testCall(db, "CALL apoc.text.phonetic(NULL)", (row) ->
+        testCall(db, "CALL apoc.text.phonetic(null)", (row) ->
+                assertThat(row.get("value"), equalTo(null))
+        );
+        testCall(db, "RETURN apoc.text.phonetic(null) as value", (row) ->
                 assertThat(row.get("value"), equalTo(null))
         );
     }
@@ -45,11 +51,17 @@ public class PhoneticTest {
         testCall(db, "CALL apoc.text.phonetic('')", (row) ->
                 assertThat(row.get("value"), equalTo(""))
         );
+        testCall(db, "RETURN apoc.text.phonetic('') as value", (row) ->
+                assertThat(row.get("value"), equalTo(""))
+        );
     }
 
     @Test
     public void shouldComputeSoundexEncodingOfManyWords() {
         testCall(db, "CALL apoc.text.phonetic('Hello, dear User!')", (row) ->
+                assertThat(row.get("value"), equalTo("H400D600U260"))
+        );
+        testCall(db, "RETURN apoc.text.phonetic('Hello, dear User!') as value", (row) ->
                 assertThat(row.get("value"), equalTo("H400D600U260"))
         );
     }
@@ -60,12 +72,8 @@ public class PhoneticTest {
         testCall(db, "CALL apoc.text.phonetic('  ,Hello,  dear User 5!')", (row) ->
                 assertThat(row.get("value"), equalTo("H400D600U260"))
         );
-    }
-
-    @Test
-    public void shouldComputeWordSoundexEncodingOfNull() {
-        testCall(db, "CALL apoc.text.phonetic(NULL)", (row) ->
-                assertThat(row.get("value"), equalTo(null))
+        testCall(db, "RETURN apoc.text.phonetic('  ,Hello,  dear User 5!') as value", (row) ->
+                assertThat(row.get("value"), equalTo("H400D600U260"))
         );
     }
 
@@ -81,6 +89,9 @@ public class PhoneticTest {
         testCall(db, "CALL apoc.text.doubleMetaphone('Apoc')", (row) ->
                 assertThat(row.get("value"), equalTo("APK"))
         );
+        testCall(db, "RETURN apoc.text.doubleMetaphone('Apoc') as value", (row) ->
+                assertThat(row.get("value"), equalTo("APK"))
+        );
     }
 
     @Test
@@ -88,18 +99,27 @@ public class PhoneticTest {
         testCall(db, "CALL apoc.text.doubleMetaphone(NULL)", (row) ->
                 assertThat(row.get("value"), equalTo(null))
         );
+        testCall(db, "RETURN apoc.text.doubleMetaphone(NULL) as value", (row) ->
+                assertThat(row.get("value"), equalTo(null))
+        );
     }
 
     @Test
     public void shoudlComputeDoubleMetaphoneForTheEmptyString() {
         testCall(db, "CALL apoc.text.doubleMetaphone('')", (row) ->
-                assertThat(row.get("value"), equalTo(null))
+                assertThat(row.get("value"), equalTo(""))
+        );
+        testCall(db, "RETURN apoc.text.doubleMetaphone('') as value", (row) ->
+                assertThat(row.get("value"), equalTo(""))
         );
     }
 
     @Test
     public void shouldComputeDoubleMetaphoneOfManyWords() {
         testCall(db, "CALL apoc.text.doubleMetaphone('Hello, dear User!')", (row) ->
+                assertThat(row.get("value"), equalTo("HLTRASR"))
+        );
+        testCall(db, "RETURN apoc.text.doubleMetaphone('Hello, dear User!') as value    ", (row) ->
                 assertThat(row.get("value"), equalTo("HLTRASR"))
         );
     }
