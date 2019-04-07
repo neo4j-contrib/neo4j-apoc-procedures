@@ -173,6 +173,8 @@ include::spatial.adoc[leveloffset=+3]
 | apoc.static.set(name, value) | stores value under key for server livetime storage, returns previously stored or configured value
 |===
 
+NOTE: `apoc.static.get` and `apoc.static.getAll` have been migrated to be functions, the procedures have been deprecated.
+
 [[utility-functions]]
 === Utilities
 

@@ -1,15 +1,12 @@
 package apoc.cache;
 
 import apoc.ApocConfiguration;
-import org.neo4j.procedure.Description;
+import org.neo4j.procedure.*;
 import apoc.result.KeyValueResult;
 import apoc.result.MapResult;
 import apoc.result.ObjectResult;
 import apoc.util.Util;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,15 +24,29 @@ public class Static {
     private static Map<String,Object> storage = new HashMap<>();
 
     @Procedure("apoc.static.get")
+    @Deprecated
     @Description("apoc.static.get(name) - returns statically stored value from config (apoc.static.<key>) or server lifetime storage")
-    public Stream<ObjectResult> get(@Name("key") String key) {
+    public Stream<ObjectResult> getProcedure(@Name("key") String key) {
         return Stream.of(new ObjectResult(storage.getOrDefault(key, fromConfig(key))));
     }
 
+    @UserFunction("apoc.static.get")
+    @Description("apoc.static.get(name) - returns statically stored value from config (apoc.static.<key>) or server lifetime storage")
+    public Object get(@Name("key") String key) {
+        return storage.getOrDefault(key, fromConfig(key));
+    }
+
+    @Deprecated
     @Procedure("apoc.static.getAll")
     @Description("apoc.static.getAll(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage")
-    public Stream<MapResult> getAll(@Name("prefix") String prefix) {
+    public Stream<MapResult> getAllProc(@Name("prefix") String prefix) {
         return Stream.of(new MapResult(getFromConfigAndStorage(prefix)));
+    }
+
+    @UserFunction("apoc.static.getAll")
+    @Description("apoc.static.getAll(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage")
+    public Map<String,Object> getAll(@Name("prefix") String prefix) {
+        return getFromConfigAndStorage(prefix);
     }
 
     private HashMap<String, Object> getFromConfigAndStorage(@Name("prefix") String prefix) {
