@@ -25,6 +25,7 @@ public class StaticTest {
     public  void setUp() throws Exception {
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
+                .setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*")
                 .setConfig("apoc.static.test",VALUE)
                 .setConfig("apoc.static.all.test",VALUE)
                 .newGraphDatabase();
@@ -39,9 +40,12 @@ public class StaticTest {
     @Test
     public void testGetAllFromConfig() throws Exception {
         TestUtil.testCall(db, "call apoc.static.getAll('all')", r -> assertEquals(map("test",VALUE),r.get("value")));
+        TestUtil.testCall(db, "return apoc.static.getAll('all') as value", r -> assertEquals(map("test",VALUE),r.get("value")));
         TestUtil.testCall(db, "call apoc.static.set('all.test2',42)", r -> assertEquals(null,r.get("value")));
         TestUtil.testCall(db, "call apoc.static.getAll('all')", r -> assertEquals(map("test",VALUE,"test2",42L),r.get("value")));
+        TestUtil.testCall(db, "return apoc.static.getAll('all') as value", r -> assertEquals(map("test",VALUE,"test2",42L),r.get("value")));
         TestUtil.testCall(db, "call apoc.static.getAll('')", r -> assertEquals(map("test",VALUE,"all.test",VALUE,"all.test2",42L),r.get("value")));
+        TestUtil.testCall(db, "return apoc.static.getAll('') as value", r -> assertEquals(map("test",VALUE,"all.test",VALUE,"all.test2",42L),r.get("value")));
     }
     @Test
     public void testListFromConfig() throws Exception {
@@ -62,10 +66,13 @@ public class StaticTest {
     @Test
     public void testOverrideConfig() throws Exception {
         TestUtil.testCall(db, "call apoc.static.get('test')", r -> assertEquals(VALUE,r.get("value")));
+        TestUtil.testCall(db, "return apoc.static.get('test') as value", r -> assertEquals(VALUE,r.get("value")));
         TestUtil.testCall(db, "call apoc.static.set('test',42)", r -> assertEquals(VALUE,r.get("value")));
         TestUtil.testCall(db, "call apoc.static.get('test')", r -> assertEquals(42L,r.get("value")));
+        TestUtil.testCall(db, "return apoc.static.get('test') as value", r -> assertEquals(42L,r.get("value")));
         TestUtil.testCall(db, "call apoc.static.set('test',null)", r -> assertEquals(42L,r.get("value")));
         TestUtil.testCall(db, "call apoc.static.get('test')", r -> assertEquals(VALUE,r.get("value")));
+        TestUtil.testCall(db, "return apoc.static.get('test') as value", r -> assertEquals(VALUE,r.get("value")));
     }
 
     @Test
