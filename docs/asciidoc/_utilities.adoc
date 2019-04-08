@@ -24,6 +24,7 @@ Cypher brings along some basic functions for math, text, collections and maps.
 * <<utility-functions>>
 * <<bitwise-operations>>
 * <<atomic-updates>>
+* <<log>>
 
 [[conversion-functions]]
 === Conversion Functions
@@ -223,3 +224,8 @@ examples
 === Atomic
 
 include::atomic.adoc[leveloffset=1]
+=== Log
+
+include::log.adoc[leveloffset=1]
+
+

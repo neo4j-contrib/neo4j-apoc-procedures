@@ -1,0 +1,44 @@
+[[log]]
+=== Log Procedures
+
+APOC provide a set of store procedures in order to add log functionality:
+
+* `apoc.log.info`: logs info message
+* `apoc.log.error`: logs error message
+* `apoc.log.warn`: logs warn message
+* `apoc.log.debug`: logs debug message
+
+Every log procedure has the following signature:
+
+`apoc.log.<name>(message, params)`
+
+Available configuration:
+
+[opts=header,cols="m,m,a"]
+|===
+| property | type | description
+| `apoc.user.log.type` | enum[none, safe, raw] (default value `safe`) | type of logging:
+
+ * `node`: disable the procedures
+ * `safe`: replace all `.` and whitespace (space and tab) with underscore and lowercase all characters
+ * `raw`: left the messages as-is
+
+| `apoc.user.log.window.ops` | int (default value `10`) | num of logs permitted in a time-window, exceeded this quota every log message will be skip
+| `apoc.user.log.window.time` | long (default value `10000`) | the length (in milliseconds) of the time-window (default 10 seconds)
+|===
+
+Example:
+
+The following call (with the default configuration):
+
+[source,cypher]
+----
+call apoc.log.info('Hello %s', ['World'])
+----
+
+produces the following output into the log:
+
+[source,cypher]
+----
+hello_world
+----
