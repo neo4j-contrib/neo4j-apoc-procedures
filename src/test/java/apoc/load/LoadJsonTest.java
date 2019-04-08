@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.ApocConfiguration;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.After;
@@ -9,7 +8,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.net.URL;
@@ -31,6 +29,7 @@ public class LoadJsonTest {
         URL url = ClassLoader.getSystemResource("map.json");
         db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
                 .setConfig("apoc.import.file.enabled","true")
+                .setConfig("apoc.import.file.use_neo4j_config", "false")
                 .setConfig("apoc.json.zip.url","https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.zip?raw=true!person.json")
                 .setConfig("apoc.json.simpleJson.url", url.toString())
                 .newGraphDatabase();

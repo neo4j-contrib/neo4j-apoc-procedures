@@ -8,8 +8,9 @@ Supported protocols are `file`, `http`, `https`, `s3`, `hdfs` with redirect allo
 In case no protocol is passed, this procedure set will try to check whether the url is actually a file.
 
 [NOTE]
-If 'apoc.import.file.use_neo4j_config' is enabled, the procedures check whether file system access is allowed and possibly constrained to a specific directory by
+As `apoc.import.file.use_neo4j_config` is enabled, the procedures check whether file system access is allowed and possibly constrained to a specific directory by
 reading the two configuration parameters `dbms.security.allow_csv_import_from_file_urls` and `dbms.directories.import` respectively.
+If you want to remove these constraints please set `apoc.import.file.use_neo4j_config=false`
 
 [cols="1m,5"]
 |===

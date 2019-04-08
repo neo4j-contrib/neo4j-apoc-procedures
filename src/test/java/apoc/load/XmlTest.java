@@ -17,13 +17,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static apoc.util.TestUtil.testCall;
-import static apoc.util.TestUtil.testCallEmpty;
-import static apoc.util.TestUtil.testResult;
-import static apoc.util.Util.map;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static apoc.util.TestUtil.*;
+import static org.junit.Assert.*;
 
 public class XmlTest {
 
@@ -56,7 +51,10 @@ public class XmlTest {
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig("apoc.import.file.enabled", "true").newGraphDatabase();
+        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
+                .setConfig("apoc.import.file.use_neo4j_config", "false")
+                .setConfig("apoc.import.file.enabled", "true")
+                .newGraphDatabase();
         TestUtil.registerProcedure(db, Xml.class);
     }
 
