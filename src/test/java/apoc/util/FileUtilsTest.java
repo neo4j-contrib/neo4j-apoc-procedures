@@ -31,8 +31,7 @@ public class FileUtilsTest {
     public void setUp() throws Exception {
         GraphDatabaseBuilder builder = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder(PATH)
                 .setConfig("dbms.security.allow_csv_import_from_file_urls", "true")
-                .setConfig("foo", "BAR")
-                .setConfig("apoc.import.file.use_neo4j_config", "true");
+                .setConfig("foo", "BAR");
         if (testName.getMethodName().endsWith(TEST_WITH_DIRECTORY_IMPORT)) {
             builder.setConfig("dbms.directories.import", "import");
         }

@@ -128,6 +128,7 @@ public class ExportGraphMLTest {
     public void setUp() throws Exception {
         GraphDatabaseBuilder builder  = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
+                .setConfig("apoc.import.file.use_neo4j_config", "false")
                 .setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath());
         if (!testName.getMethodName().endsWith(TEST_WITH_NO_EXPORT)) {
             builder.setConfig("apoc.export.file.enabled", "true");

@@ -31,7 +31,10 @@ public class LoadS3Test {
     }
 
     @Before public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig("apoc.import.file.enabled","true").newGraphDatabase();
+        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
+                .setConfig("apoc.import.file.use_neo4j_config", "false")
+                .setConfig("apoc.import.file.enabled","true")
+                .newGraphDatabase();
         TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class, Xml.class);
         minio = new MinioSetUp("dddbucketddd");
     }
