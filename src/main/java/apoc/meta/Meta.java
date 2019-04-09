@@ -479,7 +479,8 @@ public class Meta {
             if (min >= max) {
                 return -1L;
             }
-            return ThreadLocalRandom.current().nextLong(min, max);
+            long randomValue = ThreadLocalRandom.current().nextLong(min, max);
+            return randomValue == 0L ? -1L : randomValue; // it can't return zero as it's used in % ops
         } else {
             return sample;
         }
