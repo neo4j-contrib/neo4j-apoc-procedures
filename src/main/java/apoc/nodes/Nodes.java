@@ -299,37 +299,24 @@ public class Nodes {
         }
     }
 
-    @Procedure(value = "apoc.remove.nodes.withlabels", mode = Mode.WRITE)
-    @Description("apoc.remove.nodes.withlabels(['Person','Movie'],-1) | Will remove all the nodes having one of the given labels, via DETACH DELETE. Use a negative limit for no limit in deletion. Same limit used for each label.")
-    public Stream<MapResult> removeNodesWithLabels(@Name("labels") List<String> labels, @Name("limit") Long limit) {
-        StringBuilder query = new StringBuilder();
+    @Procedure(mode = Mode.WRITE)
+    @Description("apoc.nodes.removewithlabels(['Person','Movie'],1000) | Will remove all the nodes having one of the given labels, via DETACH DELETE using apoc.periodic.iterate. Same limit used for each label. Default is 100. ")
+    public Stream<MapResult> removewithlabels(@Name("labels") List<String> labels, @Name(value = "limit",defaultValue="100")  Long limit) {
+        if (limit <= 0)
+            throw new RuntimeException("limit must be a positive integer");
 
         Map<String,Object> results = new HashMap<String, Object>();
         HashMap<String, Object> parameters = new HashMap<>();
 
         for( String label: labels) {
-            if(label != null && !label.trim().equals("")) {
-                query.setLength(0);
-                query.append("MATCH (n:");
-                query.append(label);
-                query.append(")");
-                if (limit > 0) {
-                    query.append(" WITH n LIMIT ");
-                    query.append(limit);
-                }
-                query.append(" DETACH DELETE n RETURN");
-                query.append(" \"");
-                query.append(label);
-                query.append("\"");
-                query.append(" AS label, count(n) AS deletedNodes");
-                Result r = db.execute(query.toString(), parameters);
-                results.put(label, r.getQueryStatistics().getNodesDeleted());
+            if(label.trim().length()>0) {
+                String query = String.format("call apoc.periodic.iterate( 'MATCH (n:`%s`) RETURN n',  'DETACH DELETE n', {batchsize:%d,iterateList:true, parallel:true}  )", label, limit);
+                db.execute(query, parameters);
             }
         }
         MapResult mapResult = new MapResult(results);
         return Stream.of(mapResult);
     }
-
 
 
     private boolean isDense(ReadOperations ops, Node n) {
