@@ -1,6 +1,9 @@
 package apoc.nodes;
 
-import apoc.result.*;
+import apoc.*;
+import apoc.result.LongResult;
+import apoc.result.NodeResult;
+import apoc.result.RelationshipResult;
 import apoc.util.Util;
 import org.neo4j.collection.primitive.PrimitiveIntIterator;
 import org.neo4j.graphdb.*;
