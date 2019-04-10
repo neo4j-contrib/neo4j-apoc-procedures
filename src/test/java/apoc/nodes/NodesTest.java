@@ -1,6 +1,7 @@
 package apoc.nodes;
 
 import apoc.periodic.Periodic;
+import apoc.create.Create;
 import apoc.util.TestUtil;
 import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
