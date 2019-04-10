@@ -17,6 +17,7 @@ import org.neo4j.kernel.impl.api.RelationshipVisitor;
 import org.neo4j.kernel.impl.api.store.RelationshipIterator;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
+import org.neo4j.procedure.Description;
 import org.neo4j.storageengine.api.Token;
 
 import java.util.*;
@@ -24,6 +25,7 @@ import java.util.stream.Stream;
 
 import static apoc.path.RelationshipTypeAndDirections.parse;
 import static apoc.util.Util.map;
+import apoc.result.MapResult;
 
 public class Nodes {
 
