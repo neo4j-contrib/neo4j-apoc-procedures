@@ -76,14 +76,15 @@ public class ExportXls {
 
     private Stream<ProgressInfo> exportXls(@Name("file") String fileName, String source, Object data, Map<String,Object> configMap) throws Exception {
         checkWriteAllowed();
-        try (Transaction tx = db.beginTx()) {
+        try (Transaction tx = db.beginTx();
+             OutputStream out = getOutputStream(fileName, null);
+             SXSSFWorkbook wb = new SXSSFWorkbook(100)) {
+
             XlsExportConfig config = new XlsExportConfig(configMap);
             ProgressInfo progressInfo = new ProgressInfo(fileName, source, "xls");
             progressInfo.batchSize = config.getBatchSize();
             ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
 
-            SXSSFWorkbook wb = new SXSSFWorkbook(100);
-            OutputStream out = getOutputStream(fileName, null);
             Map<Class, CellStyle> styles = buildCellStyles(config, wb);
 
             if (data instanceof SubGraph) {
@@ -97,7 +98,6 @@ public class ExportXls {
             }
 
             wb.write(out);
-            out.close();
             wb.dispose();
             reporter.done();
             tx.success();

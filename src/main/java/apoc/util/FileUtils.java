@@ -140,7 +140,7 @@ public class FileUtils {
         } else {
             outputStream = fileName.equals("-") ? out : new FileOutputStream(fileName);
         }
-        return outputStream;
+        return new BufferedOutputStream(outputStream);
     }
 
     public static void checkReadAllowed(String url) {
