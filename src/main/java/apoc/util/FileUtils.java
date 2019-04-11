@@ -3,9 +3,9 @@ package apoc.util;
 import apoc.ApocConfiguration;
 import apoc.export.util.CountingInputStream;
 import apoc.export.util.CountingReader;
-import apoc.metrics.Metrics;
 import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
+import org.apache.commons.io.output.WriterOutputStream;
 
 import java.io.*;
 import java.net.URI;
@@ -124,20 +124,23 @@ public class FileUtils {
     }
 
     public static PrintWriter getPrintWriter(String fileName, Writer out) throws IOException {
-        if (fileName == null) return null;
-        Writer writer;
+        OutputStream outputStream = getOutputStream(fileName, new WriterOutputStream(out));
+        return outputStream == null ? null : new PrintWriter(outputStream);
+    }
 
+    public static OutputStream getOutputStream(String fileName, OutputStream out) throws IOException {
+        if (fileName == null) return null;
+        OutputStream outputStream;
         if (isHdfs(fileName)) {
             try {
-                writer = new OutputStreamWriter(HDFSUtils.writeFile(fileName));
+                outputStream = HDFSUtils.writeFile(fileName);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         } else {
-            writer = fileName.equals("-") ? out : new BufferedWriter(new FileWriter(fileName));
+            outputStream = fileName.equals("-") ? out : new FileOutputStream(fileName);
         }
-
-        return new PrintWriter(writer);
+        return new BufferedOutputStream(outputStream);
     }
 
     public static void checkReadAllowed(String url) {
