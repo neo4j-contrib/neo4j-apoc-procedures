@@ -318,7 +318,7 @@ System.out.println("call list" + db.execute(callList).resultAsString());
             assertEquals(100L, row.get("total"));
             assertEquals(100L, row.get("failedOperations"));
             assertEquals(0L, row.get("committedOperations"));
-            List<Map<String,Object>> failedParams = (List<Map<String, Object>>) row.get("failedParams");
+            Map<String,Object> failedParams = (Map<String, Object>) row.get("failedParams");
             assertTrue(failedParams.isEmpty());
         });
 
