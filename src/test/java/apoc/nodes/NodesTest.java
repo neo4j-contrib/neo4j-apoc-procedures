@@ -1,6 +1,5 @@
 package apoc.nodes;
 
-import apoc.periodic.Periodic;
 import apoc.create.Create;
 import apoc.util.TestUtil;
 import org.junit.*;
@@ -15,6 +14,7 @@ import static apoc.util.Util.map;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 import static org.neo4j.helpers.collection.Iterators.asSet;
+import apoc.periodic.Periodic;
 
 /**
  * @author mh
@@ -26,7 +26,7 @@ public class NodesTest {
     @Before
     public void setUp() throws Exception {
         db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
-        TestUtil.registerProcedure(db,Nodes.class);
+        TestUtil.registerProcedure(db,Nodes.class, Create.class);
         TestUtil.registerProcedure(db, Periodic.class);
     }
 
