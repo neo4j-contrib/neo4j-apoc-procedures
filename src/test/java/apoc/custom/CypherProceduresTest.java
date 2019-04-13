@@ -6,6 +6,8 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.logging.NullLog;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.List;
@@ -126,5 +128,35 @@ public class CypherProceduresTest {
         db.execute("call apoc.custom.asFunction('answer','RETURN [$int,$float,$string,$map,$`list int`,$bool,$date,$datetime,$point] as data','list of any'," +
                 "[['int','int'],['float','float'],['string','string'],['map','map'],['list int','list int'],['bool','bool'],['date','date'],['datetime','datetime'],['point','point']], true)");
         TestUtil.testCall(db, "return custom.answer(42,3.14,'foo',{a:1},[1],true,date(),datetime(),point({x:1,y:2})) as data", (row) -> assertEquals(9, ((List)row.get("data")).size()));
+    }
+
+    @Test
+    public void shouldRegisterSimpleStatementWithDescription() throws Exception {
+        // given
+        CypherProcedures.CustomProcedureStorage storage = new CypherProcedures.CustomProcedureStorage((GraphDatabaseAPI) db, NullLog.getInstance());
+        storage.available();
+        db.execute("call apoc.custom.asProcedure('answer','RETURN 42 as answer', 'read', null, null, 'Answer to the Ultimate Question of Life, the Universe, and Everything')");
+
+        // when
+        TestUtil.testCall(db, "call custom.answer()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+
+        // then
+        Map<String, Map<String, Object>> procedures = storage.list().get(CypherProcedures.PROCEDURES);
+        assertEquals("Answer to the Ultimate Question of Life, the Universe, and Everything", procedures.get("answer").get("description"));
+    }
+
+    @Test
+    public void shouldRegisterSimpleStatementFunctionDescription() throws Exception {
+        // given
+        CypherProcedures.CustomProcedureStorage storage = new CypherProcedures.CustomProcedureStorage((GraphDatabaseAPI) db, NullLog.getInstance());
+        storage.available();
+        db.execute("call apoc.custom.asFunction('answer','RETURN 42 as answer', '', null, false, 'Answer to the Ultimate Question of Life, the Universe, and Everything')");
+
+        // when
+        TestUtil.testCall(db, "return custom.answer() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+
+        // then
+        Map<String, Map<String, Object>> functions = storage.list().get(CypherProcedures.FUNCTIONS);
+        assertEquals("Answer to the Ultimate Question of Life, the Universe, and Everything", functions.get("answer").get("description"));
     }
 }
