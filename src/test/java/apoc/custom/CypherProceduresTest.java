@@ -13,7 +13,10 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static apoc.custom.CypherProcedures.FUNCTION;
+import static apoc.custom.CypherProcedures.PROCEDURE;
+import static java.util.Arrays.asList;
+import static org.junit.Assert.*;
 
 /**
  * @author mh
@@ -141,8 +144,8 @@ public class CypherProceduresTest {
         TestUtil.testCall(db, "call custom.answer()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
 
         // then
-        Map<String, Map<String, Object>> procedures = storage.list().get(CypherProcedures.PROCEDURES);
-        assertEquals("Answer to the Ultimate Question of Life, the Universe, and Everything", procedures.get("answer").get("description"));
+        CypherProcedures.CustomProcedureInfo procedureInfo = storage.list().get(0);
+        assertEquals("Answer to the Ultimate Question of Life, the Universe, and Everything", procedureInfo.description);
     }
 
     @Test
@@ -156,7 +159,53 @@ public class CypherProceduresTest {
         TestUtil.testCall(db, "return custom.answer() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
 
         // then
-        Map<String, Map<String, Object>> functions = storage.list().get(CypherProcedures.FUNCTIONS);
-        assertEquals("Answer to the Ultimate Question of Life, the Universe, and Everything", functions.get("answer").get("description"));
+        CypherProcedures.CustomProcedureInfo procedureInfo = storage.list().get(0);
+        assertEquals("Answer to the Ultimate Question of Life, the Universe, and Everything", procedureInfo.description);
+    }
+
+    @Test
+    public void shouldListAllProceduresAndFunctions() throws Exception {
+        // given
+        db.execute("call apoc.custom.asProcedure('answer','RETURN $input as answer','read',[['answer','number']],[['input','int','42']], 'Procedure that answer to the Ultimate Question of Life, the Universe, and Everything')");
+        db.execute("call apoc.custom.asFunction('answer','RETURN $input as answer','long', [['input','number']], false)");
+        // System.out.println(db.execute("call apoc.custom.list").resultAsString());
+
+        // when
+        TestUtil.testResult(db, "call apoc.custom.list", (row) -> {
+            // then
+            assertTrue(row.hasNext());
+            while (row.hasNext()){
+                Map<String, Object> value = row.next();
+                assertTrue(value.containsKey("type"));
+                assertTrue(FUNCTION.equals(value.get("type")) || PROCEDURE.equals(value.get("type")));
+
+                if(PROCEDURE.equals(value.get("type"))){
+                    assertEquals("answer", value.get("name"));
+                    assertEquals(asList(asList("answer", "number")), value.get("outputs"));
+                    assertEquals(asList(asList("input", "int", "42")), value.get("inputs"));
+                    assertEquals("Procedure that answer to the Ultimate Question of Life, the Universe, and Everything", value.get("description").toString());
+                    assertNull(value.get("forceSingle"));
+                    assertEquals("read", value.get("mode"));
+                }
+
+                if(FUNCTION.equals(value.get("type"))){
+                    assertEquals("answer", value.get("name"));
+                    assertEquals("long", value.get("outputs"));
+                    assertEquals(asList(asList("input", "number")), value.get("inputs"));
+                    assertNull(value.get("description"));
+                    assertFalse((Boolean) value.get("forceSingle"));
+                    assertNull(value.get("mode"));
+                }
+            }
+        });
+    }
+
+    @Test
+    public void shouldProvideAnEmptyList() throws Exception {
+        // when
+        TestUtil.testResult(db, "call apoc.custom.list", (row) ->
+            // then
+            assertFalse(row.hasNext())
+        );
     }
 }
