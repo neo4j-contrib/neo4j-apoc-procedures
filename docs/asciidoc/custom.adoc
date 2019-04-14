@@ -98,7 +98,23 @@ The type names are what you would expect and see in outputs of `dbms.procedures`
 The default values are parsed as JSON.
 
 
-.Examples
+=== List of registered procedures/function with `apoc.custom.list`
+
+The procedure `apoc.custom.list` provide a list of all registered procedures/function via
+`apoc.custom.asProcedure` and `apoc.custom.asFunction`
+
+Given the this call:
+
+[source,cypher]
+----
+CALL apoc.custom.list
 ----
 
-----
+The the output will look like the following table:
+
+[%autowidth,opts=header]
+|===
+| type | name | description | mode | statement | inputs | outputs | forceSingle
+| "function"  | "answer" | <null> | <null> | "RETURN $input as answer" | [["input","number"]] | "long" | false
+| "procedure" | "answer" | "Procedure that answer to the Ultimate Question of Life, the Universe, and Everything" | "read" | "RETURN $input as answer" | [["input","int","42"]] | [["answer","number"]] | <null>
+|===
