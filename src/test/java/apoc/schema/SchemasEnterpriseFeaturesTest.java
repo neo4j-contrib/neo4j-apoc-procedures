@@ -1,12 +1,13 @@
 package apoc.schema;
 
+import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.driver.v1.*;
-import org.testcontainers.containers.Neo4jContainer;
+import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.v1.Session;
 
 import java.util.List;
 import java.util.Map;
@@ -22,26 +23,25 @@ import static org.junit.Assume.assumeNotNull;
  */
 public class SchemasEnterpriseFeaturesTest {
 
-    private static Neo4jContainer neo4jContainer;
+    private static Neo4jContainerExtension neo4jContainer;
     private static Session session;
-    private static Driver driver;
 
     @BeforeClass
     public static void beforeAll() {
+        executeGradleTasks("clean", "shadow");
         TestUtil.ignoreException(() -> {
-            neo4jContainer = createEnterpriseDB(true);
+            // We build the project, the artifact will be placed into ./build/libs
+            neo4jContainer = createEnterpriseDB(!TestUtil.isTravis());
             neo4jContainer.start();
         }, Exception.class);
         assumeNotNull(neo4jContainer);
-        driver = GraphDatabase.driver(neo4jContainer.getBoltUrl(), AuthTokens.none());
-        session = driver.session();
+        session = neo4jContainer.getSession();
     }
 
     @AfterClass
     public static void afterAll() {
         if (neo4jContainer != null) {
             session.close();
-            driver.close();
             neo4jContainer.close();
         }
         cleanBuild();
