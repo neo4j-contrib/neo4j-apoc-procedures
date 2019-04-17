@@ -94,8 +94,8 @@ public class GraphsTest {
                 stringObjectMap -> {
                     Map<String, Object> map = stringObjectMap.next();
                     assertEquals("Graph", ((Map) map.get("graph")).get("name"));
-                    Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
-                    Set<Relationship> relationships = (Set<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Collection<Relationship> relationships = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
                     assertEquals(2, nodes.size());
                     assertEquals(1, relationships.size());
                     Iterator<Node> nodeIterator = nodes.iterator();
@@ -128,8 +128,8 @@ public class GraphsTest {
         TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(artistGenesisMapExt)), result -> {
             Map<String, Object> map = result.next();
             assertEquals("Graph", ((Map) map.get("graph")).get("name"));
-            Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
-            Set<Relationship> relationships = (Set<Relationship>) ((Map) map.get("graph")).get("relationships");
+            Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+            Collection<Relationship> relationships = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
             assertEquals(2, nodes.size());
             assertEquals(1, relationships.size());
             Iterator<Node> nodeIterator = nodes.iterator();
@@ -175,8 +175,8 @@ public class GraphsTest {
                 result -> {
                     Map<String, Object> map = result.next();
                     assertEquals("Graph", ((Map) map.get("graph")).get("name"));
-                    Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
-                    Set<Relationship> relationships = (Set<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Collection<Relationship> relationships = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
                     assertEquals(4, nodes.size());
                     assertEquals(2, relationships.size());
                     Iterator<Node> nodeIterator = nodes.iterator();
@@ -233,8 +233,8 @@ public class GraphsTest {
                 result -> {
                     Map<String, Object> map = result.next();
                     assertEquals("Graph", ((Map) map.get("graph")).get("name"));
-                    Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
-                    Set<Relationship> relationships = (Set<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Collection<Relationship> relationships = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
                     assertEquals(4, nodes.size());
                     assertEquals(2, relationships.size());
                     Iterator<Node> nodeIterator = nodes.iterator();
@@ -281,8 +281,8 @@ public class GraphsTest {
                 stringObjectMap -> {
                     Map<String, Object> map = stringObjectMap.next();
                     assertEquals("Graph", ((Map) map.get("graph")).get("name"));
-                    Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
-                    Set<Relationship> relationships = (Set<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Collection<Relationship> relationships = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
                     assertEquals(2, nodes.size());
                     assertEquals(1, relationships.size());
                     Iterator<Node> nodeIterator = nodes.iterator();
@@ -315,8 +315,8 @@ public class GraphsTest {
                 stringObjectMap -> {
                     Map<String, Object> map = stringObjectMap.next();
                     assertEquals("Graph", ((Map) map.get("graph")).get("name"));
-                    Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
-                    Set<Relationship> relationships = (Set<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Collection<Relationship> relationships = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
                     assertEquals(2, nodes.size());
                     assertEquals(1, relationships.size());
                     Iterator<Node> nodeIterator = nodes.iterator();
@@ -349,8 +349,8 @@ public class GraphsTest {
                 stringObjectMap -> {
                     Map<String, Object> map = stringObjectMap.next();
                     assertEquals("Graph", ((Map) map.get("graph")).get("name"));
-                    Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
-                    Set<Relationship> relationships = (Set<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Collection<Relationship> relationships = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
                     assertEquals(2, nodes.size());
                     assertEquals(1, relationships.size());
                     Iterator<Node> nodeIterator = nodes.iterator();
@@ -423,8 +423,8 @@ public class GraphsTest {
         TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(list)), result -> {
                     Map<String, Object> map = result.next();
-                    Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
-                    Set<Relationship> relationships = (Set<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Collection<Relationship> relationships = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
                     assertEquals(3, nodes.size());
                     assertEquals(2, relationships.size());
                     Iterator<Node> nodeIterator = nodes.iterator();
@@ -485,8 +485,8 @@ public class GraphsTest {
                 Util.map("json", jamesExt),
                 result -> {
                     Map<String, Object> map = result.next();
-                    Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
-                    Set<Relationship> relationships = (Set<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Collection<Relationship> relationships = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
                     assertEquals(3, nodes.size());
                     assertEquals(2, relationships.size());
                     Iterator<Node> nodeIterator = nodes.iterator();
@@ -562,7 +562,7 @@ public class GraphsTest {
         TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)), result -> {
             Map<String, Object> map = result.next();
             assertEquals("Graph", ((Map) map.get("graph")).get("name"));
-            Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
+            Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
             assertEquals(1, nodes.size());
             Node node = nodes.iterator().next();
             assertEquals(asList(label("Artist")), node.getLabels());
@@ -578,7 +578,7 @@ public class GraphsTest {
         TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph", Util.map("json", genesisMap), result -> {
             Map<String, Object> map = result.next();
             assertEquals("Graph", ((Map) map.get("graph")).get("name"));
-            Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
+            Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
             assertEquals(1, nodes.size());
             Node node = nodes.iterator().next();
             assertEquals(asList(label("Artist")), node.getLabels());
@@ -595,7 +595,7 @@ public class GraphsTest {
         TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph", Util.map("json", Arrays.asList(genesisMap, daftPunkMap)), result -> {
             Map<String, Object> map = result.next();
             assertEquals("Graph", ((Map) map.get("graph")).get("name"));
-            Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
+            Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
             assertEquals(2, nodes.size());
             Iterator<Node> nodeIterator = nodes.iterator();
             Node node = nodeIterator.next();
@@ -625,8 +625,8 @@ public class GraphsTest {
                 result -> {
                     Map<String, Object> map = result.next();
                     assertEquals("Graph", ((Map) map.get("graph")).get("name"));
-                    Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
-                    Set<Relationship> relationships = (Set<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Collection<Relationship> relationships = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
                     assertEquals(3, nodes.size());
                     assertEquals(2, relationships.size());
                     Iterator<Node> nodeIterator = nodes.iterator();
@@ -663,7 +663,7 @@ public class GraphsTest {
                 result -> {
                     Map<String, Object> map = result.next();
                     assertEquals("Graph", ((Map) map.get("graph")).get("name"));
-                    Set<Node> nodes = (Set<Node>) ((Map) map.get("graph")).get("nodes");
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
                     Iterator<Node> nodeIterator = nodes.iterator();
                     Node artist = nodeIterator.next();
                     assertEquals(asList(label("Artist")), artist.getLabels());
