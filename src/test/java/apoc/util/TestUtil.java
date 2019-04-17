@@ -142,7 +142,11 @@ public class TestUtil {
     }
 
     public static void assumeTravis() {
-        assumeFalse("we're running on travis, so skipping","true".equals(System.getenv("TRAVIS")));
+        assumeFalse("we're running on travis, so skipping", isTravis());
+    }
+
+    public static boolean isTravis() {
+        return "true".equals(System.getenv("TRAVIS"));
     }
 
     public static GraphDatabaseBuilder apocGraphDatabaseBuilder() {

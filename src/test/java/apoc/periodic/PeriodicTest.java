@@ -80,7 +80,7 @@ System.out.println("call list" + db.execute(callList).resultAsString());
     }
     @Test
     public void testTerminateCommit() throws Exception {
-        testTerminatePeriodicQuery("CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (:Foo {id: id}) limit 1000', {})");
+        testTerminatePeriodicQuery("CALL apoc.periodic.commit('UNWIND range(0,10000) as id WITH id LIMIT 10000 CREATE (:Foo {id: id})', {})");
     }
 
     @Test(expected = QueryExecutionException.class)
@@ -149,12 +149,12 @@ System.out.println("call list" + db.execute(callList).resultAsString());
             "return killedId";
     public void killPeriodicQueryAsync() {
         new Thread(() -> {
-            int retries = 10;
+            int retries = 100;
             try {
                 while (retries-- > 0 && !db.execute(KILL_PERIODIC_QUERY).hasNext()) {
-                    Thread.sleep(10);
+                    Thread.sleep(1);
                 }
-            } catch (InterruptedException e) {
+            } catch (InterruptedException| DatabaseShutdownException e) {
                 // ignore
             }
         }).start();
