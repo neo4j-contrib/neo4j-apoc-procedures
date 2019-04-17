@@ -63,7 +63,7 @@
          <p>GraphML is used by other tools, like Gephi and CytoScape to read graph data.</p>
          <p><code class="literal">YIELD file, source, format, nodes, relationships, properties, time</code></p>
          <div class="informaltable">
-            <div class="table" id="d0e8186">
+            <div class="table" id="d0e8366">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -118,7 +118,7 @@
          </p>
          <p>e.g:</p>
          <div class="informaltable">
-            <div class="table" id="d0e8241">
+            <div class="table" id="d0e8421">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -161,7 +161,7 @@
                </table>
             </div>
          </div>
-         <div class="table" id="d0e8278">
+         <div class="table" id="d0e8458">
             <table class="table" summary="configuration options" border="1">
                <caption class="table-title">Table&nbsp;7.4.&nbsp;configuration options</caption>
                <colgroup>
@@ -222,7 +222,7 @@
             <p>The labels exported are ordered alphabetically.
                The output of <code class="literal">labels()</code> function is not sorted, use it in combination with <code class="literal">apoc.coll.sort()</code>.
             </p>
-            <div class="table" id="d0e8334">
+            <div class="table" id="d0e8514">
                <table class="table" summary="configuration options" border="1">
                   <caption class="table-title">Table&nbsp;7.5.&nbsp;configuration options</caption>
                   <colgroup>
@@ -258,6 +258,17 @@
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
                            <p>define the delimiter character (export csv)</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>arrayDelim</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>";"</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>define the delimiter character for arrays (used in the bulk import)</p>
                         </td>
                      </tr>
                      <tr>
@@ -360,6 +371,28 @@
                            </p>
                         </td>
                      </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>bulkImport</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>true</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>In export it creates files for Neo4j Admin import</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>separateHeader</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>false</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>In export it creates two file one for header and one for data</p>
+                        </td>
+                     </tr>
                   </tbody>
                </table>
             </div>
@@ -368,6 +401,17 @@
                * <code class="literal">always</code>:  the same behaviour of the current <code class="literal">true</code>
                * <code class="literal">ifNeeded</code>: it applies quotes only when it&#8217;s necessary;
             </p>
+            <p>When the config <code class="literal">bulkImport</code> is enable it create a list of file that can be used for Neo4j Bulk Import.
+            </p>
+            <p><span class="strong"><strong>This config can be used only with <code class="literal">apoc.export.csv.all</code> and <code class="literal">apoc.export.csv.graph</code></strong></span></p>
+            <p>All file create are named as follow:</p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem">Nodes file are construct with the name of the input file append with <code class="literal">.nodes.[LABEL_NAME].csv</code></li>
+                  <li class="listitem">Rel file are construct with the name of the input file append with <code class="literal">.relationships.[TYPE_NAME].csv</code></li>
+               </ul>
+            </div>
+            <p>If Node or Relationship have more than one Label/Type it will create one file for Label/Type.</p>
          </section>
       </section>
       <footer><script type="text/javascript">

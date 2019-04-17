@@ -60,10 +60,10 @@
             </div>
          </div>
          <p>Set these config options in <code class="literal">$NEO4J_HOME/neo4j.conf</code></p>
-         <p>All boolean options default to <span class="strong"><strong>false</strong></span>, i.e. they are disabled, unless mentioned otherwise.
+         <p>All boolean options have default value set to <span class="strong"><strong>false</strong></span>. This means that they are <span class="strong"><strong>disabled</strong></span>, unless mentioned otherwise.
          </p>
          <div class="informaltable">
-            <div class="table" id="d0e5393">
+            <div class="table" id="d0e5504">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -88,23 +88,26 @@
                      </tr>
                      <tr>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p><code class="literal">apoc.ttl.schedule=5</code></p>
+                           <p><code class="literal">apoc.ttl.schedule=5 (default <code class="literal">60</code>)</code></p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>Set frequency in seconds to run ttl background task (default 60)</p>
-                        </td>
-                     </tr>
-                     <tr>
-                        <td style="text-align: left; vertical-align: top; ">
-                           <p><code class="literal">apoc.import.file.use_neo4j_config=true</code></p>
-                        </td>
-                        <td style="text-align: left; vertical-align: top; ">
-                           <p>Enable reading properties: <code class="literal">dbms.directories.import</code>,<code class="literal">dbms.security.allow_csv_import_from_file_urls</code></p>
+                           <p>Set frequency in seconds to run ttl background task</p>
                         </td>
                      </tr>
                      <tr>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p><code class="literal">apoc.import.file.enabled=true</code></p>
+                           <p><code class="literal">apoc.import.file.use_neo4j_config=true/false (default <code class="literal">true</code>)</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>the procedures check whether file system access is
+                              allowed and possibly constrained to a specific directory by reading the two configuration parameters
+                              <code class="literal">dbms.security.allow_csv_import_from_file_urls</code> and <code class="literal">dbms.directories.import</code> respectively
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.import.file.enabled=false/true</code></p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
                            <p>Enable reading local files from disk</p>
@@ -112,7 +115,7 @@
                      </tr>
                      <tr>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p><code class="literal">apoc.export.file.enabled=true</code></p>
+                           <p><code class="literal">apoc.export.file.enabled=false/true</code></p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
                            <p>Enable writing local files to disk</p>
@@ -147,7 +150,9 @@
                            <p><code class="literal">apoc.couchbase.&lt;key&gt;.uri=couchbase-url-with-credentials</code></p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>store couchbase-urls under a key to be used by couchbase procedures</p>
+                           <p>store couchbase-urls under a key to be used by couchbase
+                              procedures
+                           </p>
                         </td>
                      </tr>
                      <tr>
@@ -155,8 +160,8 @@
                            <p><code class="literal">apoc.jobs.scheduled.num_threads=number-of-threads</code></p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size. You can configure
-                              the pool size using this configuration property
+                           <p>Many periodic procedures rely on a scheduled executor that has
+                              a pool of threads with a default fixed size. You can configure the pool size using this configuration property
                            </p>
                         </td>
                      </tr>
@@ -165,7 +170,9 @@
                            <p><code class="literal">apoc.jobs.pool.num_threads=number-of-threads</code></p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>Number of threads in the default APOC thread pool used for background executions.</p>
+                           <p>Number of threads in the default APOC thread pool used for background
+                              executions.
+                           </p>
                         </td>
                      </tr>
                   </tbody>

@@ -63,7 +63,7 @@
          <p>Create a graph object (map) from information that&#8217;s passed in.
             It&#8217;s basic structure is: <code class="literal">{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}</code></p>
          <div class="informaltable">
-            <div class="table" id="d0e17091">
+            <div class="table" id="d0e17601">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -135,7 +135,7 @@
          <p>Create a graph object (map) from information that&#8217;s passed in.
             It&#8217;s basic structure is: <code class="literal">{name:"Name",properties:{properties},nodes:[nodes],relationships:[relationships]}</code></p>
          <div class="informaltable">
-            <div class="table" id="d0e17156">
+            <div class="table" id="d0e17666">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -192,15 +192,93 @@
                            <p>creates a virtual graph object for later processing</p>
                         </td>
                      </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.graph.fromDocument({json},{config})</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>transform JSON documents into graph structures</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.graph.validateDocument({json},{config})</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>validate the JSON and returns informations about required fields violations</p>
+                        </td>
+                     </tr>
                   </tbody>
                </table>
             </div>
          </div>
+         <section class="section" id="_literal_apoc_graph_fromdocument_literal">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_literal_apoc_graph_fromdocument_literal"></a>14.5.1.&nbsp;<code class="literal">apoc.graph.fromDocument</code></h3>
+                  </div>
+               </div>
+            </div>
+            <p>The procedure <code class="literal">apoc.graph.fromDocument</code> transforms a JSON into a graph structure. It takes two arguments:
+            </p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem"><span class="strong"><strong>json</strong></span>, <span class="emphasis"><em>type Object</em></span>: the JSON that must be transformed. Every entry must have an <code class="literal">id</code> and a <code class="literal">type</code> (name of Label), configurable via the config params.
+                     The value can be a String, or Cypher Map or List of Maps.
+                  </li>
+                  <li class="listitem"><span class="strong"><strong>config</strong></span>, <span class="emphasis"><em>type Map</em></span>: the configuration params
+                  </li>
+               </ul>
+            </div>
+            <p>Currently spatial and datetime properties are not handled yet.
+               More advanced configuration for mapping the document is coming in future versions.
+            </p>
+            <p>The config is composed by the following parameters:</p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem"><span class="strong"><strong>write</strong></span>, <span class="emphasis"><em>type boolean</em></span>: persist the graph otherwise return a Virtual Graph, default <span class="strong"><strong>false</strong></span></li>
+                  <li class="listitem"><span class="strong"><strong>labelField</strong></span>, <span class="emphasis"><em>type String</em></span>: the field name that became the label of the node, default <span class="strong"><strong>type</strong></span></li>
+                  <li class="listitem"><span class="strong"><strong>idField</strong></span>, <span class="emphasis"><em>type String</em></span>: the document field name that will become the id field of the created nodes (used for node resolution when you create relationships
+                     between nodes), default <span class="strong"><strong>id</strong></span></li>
+               </ul>
+            </div><pre class="programlisting highlight"><code data-lang="json">{
+    "id": 1,
+    "type": "artist",
+    "name": "Genesis",
+    "members": ["Tony Banks", "Mike Rutherford", "Phil Collins"],
+    "years": [1967, 1998, 1999, 2000, 2006]
+}</code></pre><p>In this case it create one <code class="literal">Node</code> with labels <span class="strong"><strong>Artist</strong></span></p>
+            <p>It also accepts list of documents:</p><pre class="programlisting highlight"><code data-lang="json">[{
+    "id": 1,
+    "type": "artist",
+    "name": "Genesis",
+    "members": ["Tony Banks", "Mike Rutherford", "Phil Collins"],
+    "years": [1967, 1998, 1999, 2000, 2006]
+}, {
+    "id": 2,
+    "type": "artist",
+    "name": "Daft Punk",
+    "members": ["Guy-Manuel de Homem-Christo", "Thomas Bangalter."],
+    "years": [1987, 1993, 1999, 2004, 2008, 2011]
+}]</code></pre><p>In this case it create 2 <code class="literal">Node</code> with labels <span class="strong"><strong>Artist</strong></span></p>
+            <p>JSON Tree to graph:</p><pre class="programlisting highlight"><code data-lang="json">{
+	"id": 1,
+	"type": "artist",
+	"name": "Genesis",
+	"albums": [{
+		"type": "album",
+		"id": 1,
+		"producer": "Jonathan King",
+		"title": "From Genesis to Revelation"
+	}]
+}</code></pre><p>In this case it will create 2 <code class="literal">Node</code>, one <span class="strong"><strong>Artist</strong></span> and one <span class="strong"><strong>Album</strong></span> connected to each other by the <span class="strong"><strong>ALBUMS</strong></span> <code class="literal">Relationship</code></p>
+         </section>
          <section class="section" id="_virtual_graph_examples">
             <div class="titlepage">
                <div>
                   <div>
-                     <h3 class="title"><a class="anchor" href="#_virtual_graph_examples"></a>14.5.1.&nbsp;Virtual Graph Examples
+                     <h3 class="title"><a class="anchor" href="#_virtual_graph_examples"></a>14.5.2.&nbsp;Virtual Graph Examples
                      </h3>
                   </div>
                </div>
@@ -233,6 +311,15 @@
             <p>As a result we have a virtual graph object for later processing</p>
             <div class="informalfigure">
                <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.graph.png" width="800" alt="apoc.graph"></img></div>
+            </div>
+            <p><span class="formalpara-title">Virtual graph from JSON.&nbsp;</span>
+               
+            </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.graph.fromDocument("{'id': 1,'type': 'artist','name':'Genesis','members': ['Tony Banks','Mike Rutherford','Phil Collins'],'years': [1967, 1998, 1999, 2000, 2006],'albums': [{'type': 'album','id': 1,'producer': 'Jonathan King','title': 'From Genesis to Revelation'}]}", false) yield graph return graph</code></pre><p>
+               
+            </p>
+            <p>As a result we have a virtual graph with two nodes and one relationship:</p>
+            <div class="informalfigure">
+               <div class="mediaobject"></div>
             </div>
          </section>
       </section>

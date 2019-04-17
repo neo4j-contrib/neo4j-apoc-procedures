@@ -77,17 +77,16 @@
                      <tr>
                         <td class="icon"><i class="fa icon-note" title="note"></i></td>
                         <td class="content">
-                           <p>If 'apoc.import.file.use_neo4j_config' is enabled, the procedures check whether file system access is allowed and possibly
-                              constrained to a specific directory by
+                           <p>As <code class="literal">apoc.import.file.use_neo4j_config</code> is enabled, the procedures check whether file system access is allowed and possibly constrained to a specific directory by
                               reading the two configuration parameters <code class="literal">dbms.security.allow_csv_import_from_file_urls</code> and <code class="literal">dbms.directories.import</code> respectively.
-                           </p>
+                              If you want to remove these constraints please set <code class="literal">apoc.import.file.use_neo4j_config=false</code></p>
                         </td>
                      </tr>
                   </tbody>
                </table>
             </div>
             <div class="informaltable">
-               <div class="table" id="d0e5693">
+               <div class="table" id="d0e5816">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -158,7 +157,7 @@
             </div>
             <p><code class="literal">YIELD file, source, format, nodes, relationships, properties, time, rows, data</code></p>
             <div class="informaltable">
-               <div class="table" id="d0e7670">
+               <div class="table" id="d0e7805">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -233,7 +232,7 @@
             </p>
             <p><code class="literal">YIELD file, source, format, nodes, relationships, properties, time, rows</code></p>
             <div class="informaltable">
-               <div class="table" id="d0e7749">
+               <div class="table" id="d0e7884">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -276,7 +275,7 @@
                   </table>
                </div>
             </div>
-            <div class="table" id="d0e7786">
+            <div class="table" id="d0e7921">
                <table class="table" summary="Config" border="1">
                   <caption class="table-title">Table&nbsp;7.3.&nbsp;Config</caption>
                   <colgroup>
@@ -406,6 +405,22 @@ apoc.import.file.enabled=true</code></pre><p>
                   </li>
                </ul>
             </div>
+            <p>You can also use the Optimizations like: <code class="literal">useOptimizations: {config}</code>
+               Config could have this params:
+            </p>
+            <div class="itemizedlist">
+               <ul class="itemizedlist" style="list-style-type: disc; ">
+                  <li class="listitem"><code class="literal">unwindBatchSize</code>:  (default 100)
+                  </li>
+                  <li class="listitem"><code class="literal">type</code>: possible values ('NONE', 'UNWIND_BATCH', 'UNWIND_BATCH_PARAMS') (default 'UNWIND_BATCH')
+                  </li>
+               </ul>
+            </div>
+            <p>With <code class="literal">NONE</code> it will export the file with <code class="literal">CREATE</code> statement;
+            </p>
+            <p>With 'UNWIND_BATCH` it will export the file by batching the entities with the <code class="literal">UNWIND</code> method as explained in this
+               <a class="link" href="https://medium.com/neo4j/5-tips-tricks-for-fast-batched-updates-of-graph-structures-with-neo4j-and-cypher-73c7f693c8cc" target="_top">article</a>.
+            </p>
             <p>To change the export format, you have to set it on the config params like <code class="literal">{format : "cypher-shell"}</code>.
             </p>
             <p>By default the format is <code class="literal">neo4j-shell</code>.
@@ -431,7 +446,7 @@ apoc.import.file.enabled=true</code></pre><p>
 "/tmp/friendships.cypher",
 {format:'plain',cypherFormat:'updateStructure'})`</code></pre><p><code class="literal">YIELD file, source, format, nodes, relationships, properties, time</code></p>
             <div class="informaltable">
-               <div class="table" id="d0e8001">
+               <div class="table" id="d0e8168">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -582,24 +597,29 @@ CALL apoc.export.cypher.all(null,{streamStatements:true,batchSize:100}) YIELD cy
                      </div>
                   </div>
                </div>
-               <p><span class="formalpara-title">exportAll (neo4j-shell format).&nbsp;</span>
-                  
-               </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.export.cypher.all({fileName},{config})</code></pre><p>
-                  
-               </p>
-               <p>Result:</p><pre class="programlisting highlight"><code data-lang="cypher">begin
-CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:"foo", `UNIQUE IMPORT ID`:0});
-CREATE (:`Bar` {`name`:"bar", `age`:42});
-CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});
+               <section class="section" id="_old_method">
+                  <div class="titlepage">
+                     <div>
+                        <div>
+                           <h4 class="title"><a class="anchor" href="#_old_method"></a>7.9.3.1.&nbsp;Old method:
+                           </h4>
+                        </div>
+                     </div>
+                  </div>
+                  <p><span class="formalpara-title">exportAll (neo4j-shell format).&nbsp;</span>Without the optimizations
+                  </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.export.cypher.all({fileName},{config})</code></pre><p>Result:</p><pre class="programlisting highlight"><code data-lang="cypher">begin
+CREATE (:Foo:`UNIQUE IMPORT LABEL` {name:"foo", `UNIQUE IMPORT ID`:0});
+CREATE (:Bar {name:"bar", age:42});
+CREATE (:Bar:`UNIQUE IMPORT LABEL` {age:12, `UNIQUE IMPORT ID`:2});
 commit
 begin
-CREATE INDEX ON :`Foo`(`name`);
-CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
+CREATE INDEX ON :Foo(name);
+CREATE CONSTRAINT ON (node:Bar) ASSERT node.name IS UNIQUE;
 CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
 commit
 schema await
 begin
-MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:"bar"}) CREATE (n1)-[:`KNOWS`]-&gt;(n2);
+MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:Bar{name:"bar"}) CREATE (n1)-[:KNOWS]-&gt;(n2);
 commit
 begin
 MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
@@ -607,15 +627,56 @@ commit
 begin
 DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
 commit</code></pre><p><span class="formalpara-title">exportSchema (neo4j-shell format).&nbsp;</span>
-                  
-               </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.export.cypher.schema({fileName},{config})</code></pre><p>
-                  
-               </p>
-               <p>Result:</p><pre class="programlisting highlight"><code data-lang="cypher">begin
-CREATE INDEX ON :`Foo`(`name`);
-CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
+                     
+                  </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.export.cypher.schema({fileName},{config})</code></pre><p>
+                     
+                  </p>
+                  <p>Result:</p><pre class="programlisting highlight"><code data-lang="cypher">begin
+CREATE INDEX ON :Foo(name);
+CREATE CONSTRAINT ON (node:Bar) ASSERT node.name IS UNIQUE;
 commit
 schema await</code></pre></section>
+               <section class="section" id="_new_method">
+                  <div class="titlepage">
+                     <div>
+                        <div>
+                           <h4 class="title"><a class="anchor" href="#_new_method"></a>7.9.3.2.&nbsp;New method:
+                           </h4>
+                        </div>
+                     </div>
+                  </div>
+                  <p>With the optimizations</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.export.cypher.all({fileName},{config})</code></pre><p>Result:</p><pre class="programlisting highlight"><code data-lang="cypher">BEGIN
+CREATE INDEX ON :Bar(first_name,last_name);
+CREATE INDEX ON :Foo(name);
+CREATE CONSTRAINT ON (node:Bar) ASSERT node.name IS UNIQUE;
+CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
+COMMIT
+SCHEMA AWAIT
+BEGIN
+UNWIND [{_id:3, properties:{age:12}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;
+UNWIND [{_id:2, properties:{age:12}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar:Person;
+UNWIND [{_id:0, properties:{born:date('2018-10-31'), name:"foo"}}, {_id:4, properties:{born:date('2017-09-29'), name:"foo2"}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;
+UNWIND [{name:"bar", properties:{age:42}}, {name:"bar2", properties:{age:44}}] as row
+CREATE (n:Bar{name: row.name}) SET n += row.properties;
+UNWIND [{_id:6, properties:{age:99}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties;
+COMMIT
+BEGIN
+UNWIND [{start: {_id:0}, end: {name:"bar"}, properties:{since:2016}}, {start: {_id:4}, end: {name:"bar2"}, properties:{since:2015}}] as row
+MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})
+MATCH (end:Bar{name: row.end.name})
+CREATE (start)-[r:KNOWS]-&gt;(end) SET r += row.properties;
+COMMIT
+BEGIN
+MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
+COMMIT
+BEGIN
+DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+COMMIT</code></pre></section>
+            </section>
          </section>
       </section>
       <footer><script type="text/javascript">

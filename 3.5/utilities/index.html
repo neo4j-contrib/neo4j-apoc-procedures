@@ -79,6 +79,7 @@
                <li class="listitem"><a class="xref" href="utility-functions/" title="10.8.&nbsp;Utilities">Section&nbsp;10.8, &#8220;Utilities&#8221;</a></li>
                <li class="listitem"><a class="xref" href="bitwise-operations/" title="10.16.&nbsp;Bitwise operations">Section&nbsp;10.16, &#8220;Bitwise operations&#8221;</a></li>
                <li class="listitem"><a class="xref" href="atomic-updates/" title="10.17.&nbsp;Atomic">Section&nbsp;10.17, &#8220;Atomic&#8221;</a></li>
+               <li class="listitem"><a class="xref" href="#log" title="10.19.1.&nbsp;Log Procedures">Section&nbsp;10.19.1, &#8220;Log Procedures&#8221;</a></li>
             </ul>
          </div>
          <section class="section" id="_atomic_examples">
@@ -132,6 +133,107 @@ CALL apoc.atomic.update(p,'salary1','n.salary1*3 + n.salary2',5) YIELD newValue
 RETURN p</code></pre><div class="informalfigure">
                <div class="mediaobject"><img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.atomic.update.png" width="800" alt="apoc.atomic.update"></img></div>
             </div>
+         </section>
+         <section class="section" id="_log">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h2 class="title" style="clear: both"><a class="anchor" href="#_log"></a>10.19.&nbsp;Log
+                     </h2>
+                  </div>
+               </div>
+            </div>
+            <section class="section" id="log">
+               <div class="titlepage">
+                  <div>
+                     <div>
+                        <h3 class="title"><a class="anchor" href="#log"></a>10.19.1.&nbsp;Log Procedures
+                        </h3>
+                     </div>
+                  </div>
+               </div>
+               <p>APOC provide a set of store procedures in order to add log functionality:</p>
+               <div class="itemizedlist">
+                  <ul class="itemizedlist" style="list-style-type: disc; ">
+                     <li class="listitem"><code class="literal">apoc.log.info</code>: logs info message
+                     </li>
+                     <li class="listitem"><code class="literal">apoc.log.error</code>: logs error message
+                     </li>
+                     <li class="listitem"><code class="literal">apoc.log.warn</code>: logs warn message
+                     </li>
+                     <li class="listitem"><code class="literal">apoc.log.debug</code>: logs debug message
+                     </li>
+                  </ul>
+               </div>
+               <p>Every log procedure has the following signature:</p>
+               <p><code class="literal">apoc.log.&lt;name&gt;(message, params)</code></p>
+               <p>Available configuration:</p>
+               <div class="informaltable">
+                  <div class="table" id="d0e13514">
+                     <table class="informaltable" border="1">
+                        <colgroup>
+                           <col class="col_1"></col>
+                           <col class="col_2"></col>
+                           <col class="col_3"></col>
+                        </colgroup>
+                        <thead>
+                           <tr>
+                              <th style="text-align: left; vertical-align: top; ">property</th>
+                              <th style="text-align: left; vertical-align: top; ">type</th>
+                              <th style="text-align: left; vertical-align: top; ">description</th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           <tr>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p><code class="literal"><code class="literal">apoc.user.log.type</code></code></p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p><code class="literal">enum[none, safe, raw] (default value <code class="literal">safe</code>)</code></p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>type of logging:</p>
+                                 
+                                 <div class="itemizedlist">
+                                    <ul style="list-style-type: disc; " class="itemizedlist">
+                                       <li class="listitem"><code class="literal">node</code>: disable the procedures
+                                       </li>
+                                       <li class="listitem"><code class="literal">safe</code>: replace all <code class="literal">.</code> and whitespace (space and tab) with underscore and lowercase all characters
+                                       </li>
+                                       <li class="listitem"><code class="literal">raw</code>: left the messages as-is
+                                       </li>
+                                    </ul>
+                                 </div>
+                              </td>
+                           </tr>
+                           <tr>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p><code class="literal"><code class="literal">apoc.user.log.window.ops</code></code></p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p><code class="literal">int (default value <code class="literal">10</code>)</code></p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>num of logs permitted in a time-window, exceeded this quota every log message will be skip</p>
+                              </td>
+                           </tr>
+                           <tr>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p><code class="literal"><code class="literal">apoc.user.log.window.time</code></code></p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p><code class="literal">long (default value <code class="literal">10000</code>)</code></p>
+                              </td>
+                              <td style="text-align: left; vertical-align: top; ">
+                                 <p>the length (in milliseconds) of the time-window (default 10 seconds)</p>
+                              </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+               <p>Example:</p>
+               <p>The following call (with the default configuration):</p><pre class="programlisting highlight"><code data-lang="cypher">call apoc.log.info('Hello %s', ['World'])</code></pre><p>produces the following output into the log:</p><pre class="programlisting highlight"><code data-lang="cypher">hello_world</code></pre></section>
          </section>
       </section>
       <footer><script type="text/javascript">

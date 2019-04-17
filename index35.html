@@ -88,6 +88,7 @@
 <li><a href="#bitwise-operations">Bitwise operations</a></li>
 <li><a href="#atomic-updates">Atomic</a></li>
 <li><a href="#_atomic_examples">Atomic Examples</a></li>
+<li><a href="#_log">Log</a></li>
 </ul>
 </li>
 <li><a href="#nodes-relationships">Node, Relationship and Path Functions and Procedures</a>
@@ -155,10 +156,10 @@
 <li><a href="#monitoring">Monitoring</a></li>
 </ul>
 </li>
-<li><a href="#indexes">Deprecated: Text and Lookup Indexes</a>
+<li><a href="#indexes">Text and Lookup Indexes</a>
 <ul class="sectlevel2">
 <li><a href="#schema-index-operations">Schema Index Procedures</a></li>
-<li><a href="#manual-indexes">Manual Indexes</a></li>
+<li><a href="#manual-indexes">Deprecated: Manual Indexes</a></li>
 <li><a href="#_manual_index_examples">Manual Index Examples</a></li>
 <li><a href="#fulltext-index">Deprecated: Full Text Search</a></li>
 </ul>
@@ -532,11 +533,6 @@ The three backslashes are necessary to prevent wildcard expansions.</p>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.metrics.getClusterTimerMetric</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.metrics.getClusterTimerMetric(metricName, {}) - retrieve a system metric by its metric name. This procedure is only intended for neo4j.causal_clustering.core.message_processing_timer.* metrics. Additional configuration options may be passed matching the options available for apoc.load.csv.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.periodic.list</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.periodic.list - list all jobs</p></td>
 </tr>
@@ -803,6 +799,16 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.graph.fromDocument</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.graph.fromDocument({json}, {config}) yield graph - transform JSON documents into graph structures</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.graph.validateDocument</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.graph.validateDocument({json}, {config}) yield row - validates the json, return the result of the validation</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.lock.all</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.lock.all([nodes],[relationships]) acquires a write lock on the given nodes and relationships</p></td>
 </tr>
@@ -890,21 +896,6 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.algo.pageRankWithCypher</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.algo.pageRankWithCypher({iterations,node_cypher,rel_cypher,write,property,numCpu}) - calculates page rank based on cypher input</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.algo.betweenness</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.algo.betweenness(['TYPE',&#8230;&#8203;],nodes,BOTH) YIELD node, score - calculate betweenness centrality for given nodes</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.algo.betweennessCypher</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.algo.betweennessCypher(node_cypher,rel_cypher,write) - calculates betweeness  centrality based on cypher input</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.algo.closeness</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CALL apoc.algo.closeness(['TYPE',&#8230;&#8203;],nodes, INCOMING) YIELD node, score - calculate closeness centrality for given nodes</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -1291,7 +1282,7 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.index.orderedRange</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">just use a cypher query with a range predicate on an indexed field and wait for index backed order by in 3.5</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">deprecated, just there for compatibility. Use plain cypher instead</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -1485,6 +1476,26 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.xls.all</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.xls.data</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.xls.graph</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.xls.query</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.cypher.all</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.export.cypher.all(file,config) - exports whole database incl. indexes as cypher statements to the provided file</p></td>
 </tr>
@@ -1621,12 +1632,17 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.custom.asProcedure</p></td>
-<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.custom.asProcedure(name, statement, mode, outputs, inputs, description) - register a custom cypher procedure</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.custom.asFunction</p></td>
-<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description) - register a custom cypher function</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.custom.list</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.custom.list() - provide a list of custom procedures/function registered</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -1717,6 +1733,26 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.create.uuids</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.create.uuids(count) yield uuid - creates 'count' UUIDs</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.uuid.install</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.uuid.remove</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.uuid.removeAll</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.uuid.list</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">procedure</p></td>
@@ -1940,6 +1976,16 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.static.get</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.static.get(name) - returns statically stored value from config (apoc.static.&lt;key&gt;) or server lifetime storage</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.static.getAll</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.static.getAll(prefix) - returns statically stored values from config (apoc.static.&lt;prefix&gt;.*) or server lifetime storage</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.util.sha1</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list</p></td>
 </tr>
@@ -2022,6 +2068,11 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.node.relationship.types</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.node.relationship.types(node, rel-direction-pattern) - returns a list of distinct relationship types</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.node.relationships.exist</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map with rel-pattern, boolean for the given relationship patterns</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
@@ -2660,6 +2711,16 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.phonetic</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.phonetic(text) yield value - Compute the US_ENGLISH phonetic soundex encoding of all words of the text</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.doubleMetaphone</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.doubleMetaphone(value) yield value - Compute the Double Metaphone phonetic encoding of all words of the text value</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">function</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.indexOf</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">apoc.text.indexOf(text, lookup, from=0, to=-1==len) - find the first occurence of the lookup string in the text, from inclusive, to exclusive, -1 if not found, null if text is null.</p></td>
 </tr>
@@ -3024,7 +3085,7 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <p>Set these config options in <code>$NEO4J_HOME/neo4j.conf</code></p>
 </div>
 <div class="paragraph">
-<p>All boolean options default to <strong>false</strong>, i.e. they are disabled, unless mentioned otherwise.</p>
+<p>All boolean options have default value set to <strong>false</strong>. This means that they are <strong>disabled</strong>, unless mentioned otherwise.</p>
 </div>
 <table class="tableblock frame-all grid-all spread">
 <colgroup>
@@ -3041,19 +3102,21 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 <td class="tableblock halign-left valign-top"><p class="tableblock">Enable time to live background task</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.ttl.schedule=5</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Set frequency in seconds to run ttl background task (default 60)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.ttl.schedule=5 (default <code>60</code>)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Set frequency in seconds to run ttl background task</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.import.file.use_neo4j_config=true</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Enable reading properties: <code>dbms.directories.import</code>,<code>dbms.security.allow_csv_import_from_file_urls</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.import.file.use_neo4j_config=true/false (default <code>true</code>)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">the procedures check whether file system access is
+allowed and possibly constrained to a specific directory by reading the two configuration parameters
+<code>dbms.security.allow_csv_import_from_file_urls</code> and <code>dbms.directories.import</code> respectively</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.import.file.enabled=true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.import.file.enabled=false/true</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Enable reading local files from disk</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.file.enabled=true</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.export.file.enabled=false/true</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Enable writing local files to disk</p></td>
 </tr>
 <tr>
@@ -3070,15 +3133,18 @@ apoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLoc
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.couchbase.&lt;key&gt;.uri=couchbase-url-with-credentials</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">store couchbase-urls under a key to be used by couchbase procedures</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">store couchbase-urls under a key to be used by couchbase
+procedures</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.jobs.scheduled.num_threads=number-of-threads</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size. You can configure the pool size using this configuration property</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Many periodic procedures rely on a scheduled executor that has
+a pool of threads with a default fixed size. You can configure the pool size using this configuration property</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.jobs.pool.num_threads=number-of-threads</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Number of threads in the default APOC thread pool used for background executions.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Number of threads in the default APOC thread pool used for background
+executions.</p></td>
 </tr>
 </tbody>
 </table>
@@ -3271,8 +3337,9 @@ public String format(@Name("time") long time,
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-If 'apoc.import.file.use_neo4j_config' is enabled, the procedures check whether file system access is allowed and possibly constrained to a specific directory by
+As <code>apoc.import.file.use_neo4j_config</code> is enabled, the procedures check whether file system access is allowed and possibly constrained to a specific directory by
 reading the two configuration parameters <code>dbms.security.allow_csv_import_from_file_urls</code> and <code>dbms.directories.import</code> respectively.
+If you want to remove these constraints please set <code>apoc.import.file.use_neo4j_config=false</code>
 </td>
 </tr>
 </table>
@@ -3323,7 +3390,7 @@ Most of them provide the data as JSON.</p>
 Cypher is pretty good at deconstructing nested documents with dot syntax, slices, <code>UNWIND</code> etc. so it is easy to turn nested data into graphs.</p>
 </div>
 <div class="paragraph">
-<p>Sources with multiple JSON objects in a stream are also supported, like the <a href="https://dev.twitter.com/streaming/overview/processing">streaming Twitter format</a> or the Yelp Kaggle dataset.</p>
+<p>Sources with multiple JSON objects (JSONL,JSON Lines) in a stream are also supported, like the <a href="https://dev.twitter.com/streaming/overview/processing">streaming Twitter format</a> or the Yelp Kaggle dataset.</p>
 </div>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/M1P1IlQdb5M" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 </div>
@@ -3700,6 +3767,13 @@ RETURN *;</pre>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>','</code></p></td>
 <td class="tableblock halign-left valign-top"><div><div class="paragraph">
 <p>separator character or 'TAB'</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>quoteChar</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>'"'</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>the char to use for quoted elements</p>
 </div></div></td>
 </tr>
 <tr>
@@ -5319,6 +5393,27 @@ apoc.import.file.enabled=true</pre>
 </ul>
 </div>
 <div class="paragraph">
+<p>You can also use the Optimizations like: <code>useOptimizations: {config}</code>
+Config could have this params:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>unwindBatchSize</code>:  (default 100)</p>
+</li>
+<li>
+<p><code>type</code>: possible values ('NONE', 'UNWIND_BATCH', 'UNWIND_BATCH_PARAMS') (default 'UNWIND_BATCH')</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>With <code>NONE</code> it will export the file with <code>CREATE</code> statement;</p>
+</div>
+<div class="paragraph">
+<p>With 'UNWIND_BATCH` it will export the file by batching the entities with the <code>UNWIND</code> method as explained in this
+<a href="https://medium.com/neo4j/5-tips-tricks-for-fast-batched-updates-of-graph-structures-with-neo4j-and-cypher-73c7f693c8cc">article</a>.</p>
+</div>
+<div class="paragraph">
 <p>To change the export format, you have to set it on the config params like <code>{format : "cypher-shell"}</code>.</p>
 </div>
 <div class="paragraph">
@@ -5508,8 +5603,13 @@ CALL apoc.export.cypher.all(null,{streamStatements:true,batchSize:100}) YIELD cy
 </div>
 <div class="sect3">
 <h4 id="_examples_3"><a class="link" href="#_examples_3">Examples</a></h4>
-<div class="listingblock">
+<div class="sect4">
+<h5 id="_old_method"><a class="link" href="#_old_method">Old method:</a></h5>
+<div class="paragraph">
 <div class="title">exportAll (neo4j-shell format)</div>
+<p>Without the optimizations</p>
+</div>
+<div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.export.cypher.all({fileName},{config})</code></pre>
 </div>
@@ -5520,18 +5620,18 @@ CALL apoc.export.cypher.all(null,{streamStatements:true,batchSize:100}) YIELD cy
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">begin
-CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:"foo", `UNIQUE IMPORT ID`:0});
-CREATE (:`Bar` {`name`:"bar", `age`:42});
-CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});
+CREATE (:Foo:`UNIQUE IMPORT LABEL` {name:"foo", `UNIQUE IMPORT ID`:0});
+CREATE (:Bar {name:"bar", age:42});
+CREATE (:Bar:`UNIQUE IMPORT LABEL` {age:12, `UNIQUE IMPORT ID`:2});
 commit
 begin
-CREATE INDEX ON :`Foo`(`name`);
-CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
+CREATE INDEX ON :Foo(name);
+CREATE CONSTRAINT ON (node:Bar) ASSERT node.name IS UNIQUE;
 CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
 commit
 schema await
 begin
-MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:"bar"}) CREATE (n1)-[:`KNOWS`]-&gt;(n2);
+MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:Bar{name:"bar"}) CREATE (n1)-[:KNOWS]-&gt;(n2);
 commit
 begin
 MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
@@ -5553,10 +5653,60 @@ commit</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">begin
-CREATE INDEX ON :`Foo`(`name`);
-CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
+CREATE INDEX ON :Foo(name);
+CREATE CONSTRAINT ON (node:Bar) ASSERT node.name IS UNIQUE;
 commit
 schema await</code></pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_new_method"><a class="link" href="#_new_method">New method:</a></h5>
+<div class="paragraph">
+<p>With the optimizations</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.export.cypher.all({fileName},{config})</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Result:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">BEGIN
+CREATE INDEX ON :Bar(first_name,last_name);
+CREATE INDEX ON :Foo(name);
+CREATE CONSTRAINT ON (node:Bar) ASSERT node.name IS UNIQUE;
+CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
+COMMIT
+SCHEMA AWAIT
+BEGIN
+UNWIND [{_id:3, properties:{age:12}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;
+UNWIND [{_id:2, properties:{age:12}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar:Person;
+UNWIND [{_id:0, properties:{born:date('2018-10-31'), name:"foo"}}, {_id:4, properties:{born:date('2017-09-29'), name:"foo2"}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;
+UNWIND [{name:"bar", properties:{age:42}}, {name:"bar2", properties:{age:44}}] as row
+CREATE (n:Bar{name: row.name}) SET n += row.properties;
+UNWIND [{_id:6, properties:{age:99}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties;
+COMMIT
+BEGIN
+UNWIND [{start: {_id:0}, end: {name:"bar"}, properties:{since:2016}}, {start: {_id:4}, end: {name:"bar2"}, properties:{since:2015}}] as row
+MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})
+MATCH (end:Bar{name: row.end.name})
+CREATE (start)-[r:KNOWS]-&gt;(end) SET r += row.properties;
+COMMIT
+BEGIN
+MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
+COMMIT
+BEGIN
+DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+COMMIT</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -5691,6 +5841,11 @@ The output of <code>labels()</code> function is not sorted, use it in combinatio
 <td class="tableblock halign-left valign-top"><p class="tableblock">define the delimiter character (export csv)</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">arrayDelim</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">";"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">define the delimiter character for arrays (used in the bulk import)</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">quotes</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">'always'</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">quote-character used for CSV, possible values are: 'always', 'none', 'ifNeeded'</p></td>
@@ -5735,6 +5890,16 @@ The output of <code>labels()</code> function is not sorted, use it in combinatio
 <td class="tableblock halign-left valign-top"><p class="tableblock">create</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">In export to cypher script, define the cypher format (for example use <code>MERGE</code> instead of <code>CREATE</code>). Possible values are: "create", "updateAll", "addStructure", "updateStructure".</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">bulkImport</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">true</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">In export it creates files for Neo4j Admin import</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">separateHeader</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">In export it creates two file one for header and one for data</p></td>
+</tr>
 </tbody>
 </table>
 <div class="paragraph">
@@ -5742,6 +5907,28 @@ The output of <code>labels()</code> function is not sorted, use it in combinatio
 * <code>none</code>: the same behaviour of the current <code>false</code>
 * <code>always</code>:  the same behaviour of the current <code>true</code>
 * <code>ifNeeded</code>: it applies quotes only when it&#8217;s necessary;</p>
+</div>
+<div class="paragraph">
+<p>When the config <code>bulkImport</code> is enable it create a list of file that can be used for Neo4j Bulk Import.</p>
+</div>
+<div class="paragraph">
+<p><strong>This config can be used only with <code>apoc.export.csv.all</code> and <code>apoc.export.csv.graph</code></strong></p>
+</div>
+<div class="paragraph">
+<p>All file create are named as follow:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Nodes file are construct with the name of the input file append with <code>.nodes.[LABEL_NAME].csv</code></p>
+</li>
+<li>
+<p>Rel file are construct with the name of the input file append with <code>.relationships.[TYPE_NAME].csv</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If Node or Relationship have more than one Label/Type it will create one file for Label/Type.</p>
 </div>
 </div>
 </div>
@@ -7782,6 +7969,9 @@ RETURN apoc.meta.isType(n.age,"INTEGER") as ageType</code></pre>
 <li>
 <p><a href="#atomic-updates">Atomic</a></p>
 </li>
+<li>
+<p><a href="#log">Log Procedures</a></p>
+</li>
 </ul>
 </div>
 <div class="sect2">
@@ -9049,6 +9239,18 @@ ORDER BY distance</code></pre>
 </tr>
 </tbody>
 </table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<code>apoc.static.get</code> and <code>apoc.static.getAll</code> have been migrated to be functions, the procedures have been deprecated.
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect2">
 <h3 id="utility-functions"><a class="link" href="#utility-functions">Utilities</a></h3>
@@ -10019,6 +10221,109 @@ RETURN p</code></pre>
 <div class="imageblock">
 <div class="content">
 <img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.atomic.update.png" alt="apoc.atomic.update" width="800">
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_log"><a class="link" href="#_log">Log</a></h3>
+<div class="sect3">
+<h4 id="log"><a class="link" href="#log">Log Procedures</a></h4>
+<div class="paragraph">
+<p>APOC provide a set of store procedures in order to add log functionality:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>apoc.log.info</code>: logs info message</p>
+</li>
+<li>
+<p><code>apoc.log.error</code>: logs error message</p>
+</li>
+<li>
+<p><code>apoc.log.warn</code>: logs warn message</p>
+</li>
+<li>
+<p><code>apoc.log.debug</code>: logs debug message</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Every log procedure has the following signature:</p>
+</div>
+<div class="paragraph">
+<p><code>apoc.log.&lt;name&gt;(message, params)</code></p>
+</div>
+<div class="paragraph">
+<p>Available configuration:</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">property</th>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><code>apoc.user.log.type</code></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>enum[none, safe, raw] (default value <code>safe</code>)</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>type of logging:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>node</code>: disable the procedures</p>
+</li>
+<li>
+<p><code>safe</code>: replace all <code>.</code> and whitespace (space and tab) with underscore and lowercase all characters</p>
+</li>
+<li>
+<p><code>raw</code>: left the messages as-is</p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><code>apoc.user.log.window.ops</code></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>int (default value <code>10</code>)</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>num of logs permitted in a time-window, exceeded this quota every log message will be skip</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><code>apoc.user.log.window.time</code></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>long (default value <code>10000</code>)</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>the length (in milliseconds) of the time-window (default 10 seconds)</p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Example:</p>
+</div>
+<div class="paragraph">
+<p>The following call (with the default configuration):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.log.info('Hello %s', ['World'])</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>produces the following output into the log:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">hello_world</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -12290,6 +12595,11 @@ The <strong>second</strong>, inner statement processes <strong>one</strong> elem
 <td class="tableblock halign-left valign-top"><p class="tableblock">50</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">How many concurrent tasks are generate when using <code>parallel:true</code></p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">failedParams</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">If set to a non-negative value, for each failed batch up to <code>failedParams</code> parameter sets are returned in in <code>yield failedParams</code>.</p></td>
+</tr>
 </tbody>
 </table>
 <div class="admonitionblock note">
@@ -12509,6 +12819,13 @@ If you override procedures or functions you might need to call <code>call dbms.c
 <p>Pairs or triples of name-type-default, to be used as input parameters. The default just takes an optional map, otherwise they will become proper paramters in order</p>
 </div></div></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>description</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>""</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>A general description about the business rules implemented into the procedure</p>
+</div></div></td>
+</tr>
 </tbody>
 </table>
 <div class="paragraph">
@@ -12552,7 +12869,7 @@ The default values are parsed as JSON.</p>
 <div class="content">
 <pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.custom.asProcedure('neighbours',
   'MATCH (n:Person {name:$name})--&gt;(nb) RETURN nb as neighbour','read',
-  [['neighbour','NODE']],[['name','STRING']]);
+  [['neighbour','NODE']],[['name','STRING'], 'get neighbours of a person']);
 
 CALL custom.neighbours('Keanu Reeves') YIELD neighbour;</code></pre>
 </div>
@@ -12616,18 +12933,83 @@ If your single row result is a list you can force a single row by setting the la
 <p>If set to true, the statement is treated as single row even with the list result type, then your statement has to return a list.</p>
 </div></div></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>description</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>""</code></p></td>
+<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<p>A general description about the business rules implemented into the function</p>
+</div></div></td>
+</tr>
 </tbody>
 </table>
 <div class="paragraph">
 <p>The type names are what you would expect and see in outputs of <code>dbms.procedures</code> or <code>apoc.help</code> just without the <code>?</code>.
 The default values are parsed as JSON.</p>
 </div>
+</div>
+<div class="sect3">
+<h4 id="_list_of_registered_procedures_function_with_code_apoc_custom_list_code"><a class="link" href="#_list_of_registered_procedures_function_with_code_apoc_custom_list_code">List of registered procedures/function with <code>apoc.custom.list</code></a></h4>
+<div class="paragraph">
+<p>The procedure <code>apoc.custom.list</code> provide a list of all registered procedures/function via
+<code>apoc.custom.asProcedure</code> and <code>apoc.custom.asFunction</code></p>
+</div>
+<div class="paragraph">
+<p>Given the this call:</p>
+</div>
 <div class="listingblock">
-<div class="title">Examples</div>
 <div class="content">
-<pre></pre>
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.custom.list</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>The the output will look like the following table:</p>
+</div>
+<table class="tableblock frame-all grid-all">
+<colgroup>
+<col>
+<col>
+<col>
+<col>
+<col>
+<col>
+<col>
+<col>
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">type</th>
+<th class="tableblock halign-left valign-top">name</th>
+<th class="tableblock halign-left valign-top">description</th>
+<th class="tableblock halign-left valign-top">mode</th>
+<th class="tableblock halign-left valign-top">statement</th>
+<th class="tableblock halign-left valign-top">inputs</th>
+<th class="tableblock halign-left valign-top">outputs</th>
+<th class="tableblock halign-left valign-top">forceSingle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"function"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"answer"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;null&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;null&gt;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"RETURN $input as answer"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">[["input","number"]]</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"long"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">false</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"procedure"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"answer"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"Procedure that answer to the Ultimate Question of Life, the Universe, and Everything"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"read"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">"RETURN $input as answer"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">[["input","int","42"]]</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">[["answer","number"]]</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">&lt;null&gt;</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
@@ -13086,8 +13468,111 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromCypher('statement',{params},'name',{properties})</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">creates a virtual graph object for later processing</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.fromDocument({json},{config})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">transform JSON documents into graph structures</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.graph.validateDocument({json},{config})</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">validate the JSON and returns informations about required fields violations</p></td>
+</tr>
 </tbody>
 </table>
+<div class="sect3">
+<h4 id="_code_apoc_graph_fromdocument_code"><a class="link" href="#_code_apoc_graph_fromdocument_code"><code>apoc.graph.fromDocument</code></a></h4>
+<div class="paragraph">
+<p>The procedure <code>apoc.graph.fromDocument</code> transforms a JSON into a graph structure. It takes two arguments:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>json</strong>, <em>type Object</em>: the JSON that must be transformed. Every entry must have an <code>id</code> and a <code>type</code> (name of Label), configurable via the config params.<br>
+The value can be a String, or Cypher Map or List of Maps.</p>
+</li>
+<li>
+<p><strong>config</strong>, <em>type Map</em>: the configuration params</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Currently spatial and datetime properties are not handled yet.
+More advanced configuration for mapping the document is coming in future versions.</p>
+</div>
+<div class="paragraph">
+<p>The config is composed by the following parameters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>write</strong>, <em>type boolean</em>: persist the graph otherwise return a Virtual Graph, default <strong>false</strong></p>
+</li>
+<li>
+<p><strong>labelField</strong>, <em>type String</em>: the field name that became the label of the node, default <strong>type</strong></p>
+</li>
+<li>
+<p><strong>idField</strong>, <em>type String</em>: the document field name that will become the id field of the created nodes (used for node resolution when you create relationships between nodes), default <strong>id</strong></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+    "id": 1,
+    "type": "artist",
+    "name": "Genesis",
+    "members": ["Tony Banks", "Mike Rutherford", "Phil Collins"],
+    "years": [1967, 1998, 1999, 2000, 2006]
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case it create one <code>Node</code> with labels <strong>Artist</strong></p>
+</div>
+<div class="paragraph">
+<p>It also accepts list of documents:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">[{
+    "id": 1,
+    "type": "artist",
+    "name": "Genesis",
+    "members": ["Tony Banks", "Mike Rutherford", "Phil Collins"],
+    "years": [1967, 1998, 1999, 2000, 2006]
+}, {
+    "id": 2,
+    "type": "artist",
+    "name": "Daft Punk",
+    "members": ["Guy-Manuel de Homem-Christo", "Thomas Bangalter."],
+    "years": [1987, 1993, 1999, 2004, 2008, 2011]
+}]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case it create 2 <code>Node</code> with labels <strong>Artist</strong></p>
+</div>
+<div class="paragraph">
+<p>JSON Tree to graph:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+	"id": 1,
+	"type": "artist",
+	"name": "Genesis",
+	"albums": [{
+		"type": "album",
+		"id": 1,
+		"producer": "Jonathan King",
+		"title": "From Genesis to Revelation"
+	}]
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this case it will create 2 <code>Node</code>, one <strong>Artist</strong> and one <strong>Album</strong> connected to each other by the <strong>ALBUMS</strong> <code>Relationship</code></p>
+</div>
+</div>
 <div class="sect3">
 <h4 id="_virtual_graph_examples"><a class="link" href="#_virtual_graph_examples">Virtual Graph Examples</a></h4>
 <div class="paragraph">
@@ -13134,6 +13619,20 @@ It&#8217;s basic structure is: <code>{name:"Name",properties:{properties},nodes:
 <div class="imageblock">
 <div class="content">
 <img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.graph.png" alt="apoc.graph" width="800">
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Virtual graph from JSON</div>
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.graph.fromDocument("{'id': 1,'type': 'artist','name':'Genesis','members': ['Tony Banks','Mike Rutherford','Phil Collins'],'years': [1967, 1998, 1999, 2000, 2006],'albums': [{'type': 'album','id': 1,'producer': 'Jonathan King','title': 'From Genesis to Revelation'}]}", false) yield graph return graph</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As a result we have a virtual graph with two nodes and one relationship:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.graph.fromDocument_1" alt="apoc.graph" width="800">
 </div>
 </div>
 </div>
@@ -14583,25 +15082,179 @@ The statements will then be executed in sort-order.</p>
 </tr>
 </tbody>
 </table>
+<div class="sect3">
+<h4 id="_uuid"><a class="link" href="#_uuid">UUID</a></h4>
+<div class="paragraph">
+<p>These procedures manage the UUID Handler Lifecycle.
+The UUID handler is a transaction event handler that automatically adds the UUID property to a provided label and for the provided property name.
+Please check the following documentation to an in-depth description.</p>
+</div>
+<div class="paragraph">
+<p>Enable <code>apoc.uuid.enabled=true</code> in <code>$NEO4J_HOME/config/neo4j.conf</code> first.</p>
+</div>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 83.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><strong>procedure</strong></code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">it will add the uuid transaction handler
+for the provided <code>label</code> and <code>uuidProperty</code>, in case the UUID handler is already present it will be replaced by the new one</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.uuid.remove(label) yield label, installed, properties</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">remove previously added uuid handler and returns uuid information. All the existing uuid properties are left as-is</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.uuid.removeAll() yield label, installed, properties</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">removes all previously added uuid handlers and returns uuids information. All the existing uuid properties are left as-is</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>CALL apoc.uuid.list() yield label, installed, properties</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">provides a list of all the uuid handlers installed with the related configuration</p></td>
+</tr>
+</tbody>
+</table>
+<div class="sect5">
+<h6 id="_config_4"><a class="link" href="#_config_4">Config</a></h6>
+<table class="tableblock frame-all grid-all spread">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>config</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>type</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>description</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">addToExistingNodes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Boolean (default: true)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">when installed, for the label provided, adds the UUID to the nodes already existing in your graph</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">uuidProperty</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">String (default: uuid)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">the name of the UUID field</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_uuid_examples"><a class="link" href="#_uuid_examples">UUID Examples</a></h5>
+<div class="paragraph">
+<p>First create a Constraint for the Label and the Property, if you try to add a <code>uuid</code> an error occured.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Add the <code>uuid</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">CALL apoc.uuid.install('Person') YIELD label RETURN label</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| label    | installed | properties                                               | batchComputationResult                                                                                                                         |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| "Person" | true      | {uuidProperty -&gt; "uuid", addToExistingNodes -&gt; true} | {wasTerminated -&gt; false, count -&gt; 10, batches -&gt; 1, successes -&gt; 1, failedOps -&gt; 0, timeTaken -&gt; 0, operationErrors -&gt; {}, failedBatches -&gt; 0} |
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is Node Person have 2 property:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.4/docs/images/apoc.uuid.result.png" alt="apoc.uuid.result" width="800">
+</div>
+</div>
+<div class="paragraph">
+<p>Get all the uuid installed, call the procedure as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.uuid.list() yield label, installed return label, installed</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>+---------------------------------------------------------------------------------+
+| label    | installed | properties                                               |
++---------------------------------------------------------------------------------+
+| "Person" | true      | {uuidProperty -&gt; "uuid", addToExistingNodes -&gt; true} |
++---------------------------------------------------------------------------------+</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Remove the uuid installed call the procedure as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.uuid.remove('Person') yield label return label</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>+---------------------------------------------------------------------------------+
+| label    | installed | properties                                               |
++---------------------------------------------------------------------------------+
+| "Person" | false     | {uuidProperty -&gt; "uuid", addToExistingNodes -&gt; true} |
++---------------------------------------------------------------------------------+
+1 row</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also remove all the uuid installed call the procedure as:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-cypher" data-lang="cypher">call apoc.uuid.removeAll() yield label return label</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The result is:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>+---------------------------------------------------------------------------------+
+| label    | installed | properties                                               |
++---------------------------------------------------------------------------------+
+| "Person" | false     | {uuidProperty -&gt; "uuid", addToExistingNodes -&gt; true} |
++---------------------------------------------------------------------------------+</pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="indexes"><a class="link" href="#indexes">Deprecated: Text and Lookup Indexes</a></h2>
+<h2 id="indexes"><a class="link" href="#indexes">Text and Lookup Indexes</a></h2>
 <div class="sectionbody">
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-These Index procedures are deprecated and will be removed from APOC soon.
-From version 3.5 Neo4j provides built-in, case-insensitive, configurable fulltext indices.
-</td>
-</tr>
-</table>
-</div>
 <div class="sect2">
 <h3 id="schema-index-operations"><a class="link" href="#schema-index-operations">Schema Index Procedures</a></h3>
 <table class="tableblock frame-all grid-all spread">
@@ -14966,7 +15619,20 @@ CREATE CONSTRAINT ON ()-[starred:STARRED]-() ASSERT exists(starred.month)</code>
 </div>
 </div>
 <div class="sect2">
-<h3 id="manual-indexes"><a class="link" href="#manual-indexes">Manual Indexes</a></h3>
+<h3 id="manual-indexes"><a class="link" href="#manual-indexes">Deprecated: Manual Indexes</a></h3>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+These Index procedures in the namespaces <code>apoc.index.*</code> are deprecated and will be removed from APOC soon.
+From version 3.5 Neo4j provides built-in, case-insensitive, configurable fulltext indices.
+</td>
+</tr>
+</table>
+</div>
 <div class="sect3">
 <h4 id="_index_queries"><a class="link" href="#_index_queries">Index Queries</a></h4>
 <div class="paragraph">
@@ -16185,7 +16851,7 @@ $(document).ready(function() {
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2019-03-05 18:07:53 MEZ
+Last updated 2019-04-12 11:15:01 MESZ
 </div>
 </div>
 </body>
