@@ -91,7 +91,7 @@ RETURN row.answer</code></pre><p>The same is possible as a function:</p><pre cla
                </div>
             </div>
             <p>Given statement will be registered as a procedure, the results will be turned into a stream of records.</p>
-            <div class="table" id="d0e16461">
+            <div class="table" id="d0e16854">
                <table class="table" summary="Parameters" border="1">
                   <caption class="table-title">Table&nbsp;13.2.&nbsp;Parameters</caption>
                   <colgroup>
@@ -166,6 +166,17 @@ RETURN row.answer</code></pre><p>The same is possible as a function:</p><pre cla
                            </p>
                         </td>
                      </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">description</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">""</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>A general description about the business rules implemented into the procedure</p>
+                        </td>
+                     </tr>
                   </tbody>
                </table>
             </div>
@@ -190,7 +201,7 @@ RETURN row.answer</code></pre><p>The same is possible as a function:</p><pre cla
                
             </p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.custom.asProcedure('neighbours',
   'MATCH (n:Person {name:$name})--&gt;(nb) RETURN nb as neighbour','read',
-  [['neighbour','NODE']],[['name','STRING']]);
+  [['neighbour','NODE']],[['name','STRING'], 'get neighbours of a person']);
 
 CALL custom.neighbours('Keanu Reeves') YIELD neighbour;</code></pre><p>
                
@@ -208,7 +219,7 @@ CALL custom.neighbours('Keanu Reeves') YIELD neighbour;</code></pre><p>
                If the given output type is a list, results will be collected into a list, otherwise the first row will be used.
                The statement needs to return a single column, otherwise an error is thrown.
             </p>
-            <div class="table" id="d0e16595">
+            <div class="table" id="d0e17000">
                <table class="table" summary="Parameters" border="1">
                   <caption class="table-title">Table&nbsp;13.3.&nbsp;Parameters</caption>
                   <colgroup>
@@ -285,17 +296,117 @@ CALL custom.neighbours('Keanu Reeves') YIELD neighbour;</code></pre><p>
                            </p>
                         </td>
                      </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">description</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">""</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>A general description about the business rules implemented into the function</p>
+                        </td>
+                     </tr>
                   </tbody>
                </table>
             </div>
             <p>The type names are what you would expect and see in outputs of <code class="literal">dbms.procedures</code> or <code class="literal">apoc.help</code> just without the <code class="literal">?</code>.
                The default values are parsed as JSON.
             </p>
-            <p><span class="formalpara-title">Examples.&nbsp;</span>
-               
-            </p><pre class="screen highlight"><code></code></pre><p>
-               
-            </p>
+         </section>
+         <section class="section" id="_list_of_registered_procedures_function_with_literal_apoc_custom_list_literal">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_list_of_registered_procedures_function_with_literal_apoc_custom_list_literal"></a>13.6.3.&nbsp;List of registered procedures/function with <code class="literal">apoc.custom.list</code></h3>
+                  </div>
+               </div>
+            </div>
+            <p>The procedure <code class="literal">apoc.custom.list</code> provide a list of all registered procedures/function via
+               <code class="literal">apoc.custom.asProcedure</code> and <code class="literal">apoc.custom.asFunction</code></p>
+            <p>Given the this call:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.custom.list</code></pre><p>The the output will look like the following table:</p>
+            <div class="informaltable">
+               <div class="table" id="d0e17124">
+                  <table class="informaltable" border="1">
+                     <colgroup>
+                        <col class="col_1"></col>
+                        <col class="col_2"></col>
+                        <col class="col_3"></col>
+                        <col class="col_4"></col>
+                        <col class="col_5"></col>
+                        <col class="col_6"></col>
+                        <col class="col_7"></col>
+                        <col class="col_8"></col>
+                     </colgroup>
+                     <thead>
+                        <tr>
+                           <th style="text-align: left; vertical-align: top; ">type</th>
+                           <th style="text-align: left; vertical-align: top; ">name</th>
+                           <th style="text-align: left; vertical-align: top; ">description</th>
+                           <th style="text-align: left; vertical-align: top; ">mode</th>
+                           <th style="text-align: left; vertical-align: top; ">statement</th>
+                           <th style="text-align: left; vertical-align: top; ">inputs</th>
+                           <th style="text-align: left; vertical-align: top; ">outputs</th>
+                           <th style="text-align: left; vertical-align: top; ">forceSingle</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>"function"</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>"answer"</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>&lt;null&gt;</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>&lt;null&gt;</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>"RETURN $input as answer"</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>[["input","number"]]</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>"long"</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>false</p>
+                           </td>
+                        </tr>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>"procedure"</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>"answer"</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>"Procedure that answer to the Ultimate Question of Life, the Universe, and Everything"</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>"read"</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>"RETURN $input as answer"</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>[["input","int","42"]]</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>[["answer","number"]]</p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>&lt;null&gt;</p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
          </section>
       </section>
       <footer><script type="text/javascript">

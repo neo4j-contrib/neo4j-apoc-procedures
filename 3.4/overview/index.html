@@ -119,20 +119,6 @@
                            <p>procedure</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.metrics.getClusterTimerMetric</p>
-                        </td>
-                        <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.metrics.getClusterTimerMetric(metricName, {}) - retrieve a system metric by its metric name. This procedure is only intended
-                              for neo4j.causal_clustering.core.message_processing_timer.* metrics. Additional configuration options may be passed matching
-                              the options available for apoc.load.csv.
-                           </p>
-                        </td>
-                     </tr>
-                     <tr>
-                        <td style="text-align: left; vertical-align: top; ">
-                           <p>procedure</p>
-                        </td>
-                        <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.periodic.list</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
@@ -733,6 +719,28 @@
                            <p>procedure</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.graph.fromDocument</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.graph.fromDocument({json}, {config}) yield graph - transform JSON documents into graph structures</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.graph.validateDocument</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.graph.validateDocument({json}, {config}) yield row - validates the json, return the result of the validation</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.lock.all</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
@@ -942,39 +950,6 @@
                            <p>CALL apoc.algo.pageRankWithCypher({iterations,node_cypher,rel_cypher,write,property,numCpu}) - calculates page rank based
                               on cypher input
                            </p>
-                        </td>
-                     </tr>
-                     <tr>
-                        <td style="text-align: left; vertical-align: top; ">
-                           <p>procedure</p>
-                        </td>
-                        <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.algo.betweenness</p>
-                        </td>
-                        <td style="text-align: left; vertical-align: top; ">
-                           <p>CALL apoc.algo.betweenness(['TYPE',&#8230;&#8203;],nodes,BOTH) YIELD node, score - calculate betweenness centrality for given nodes</p>
-                        </td>
-                     </tr>
-                     <tr>
-                        <td style="text-align: left; vertical-align: top; ">
-                           <p>procedure</p>
-                        </td>
-                        <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.algo.betweennessCypher</p>
-                        </td>
-                        <td style="text-align: left; vertical-align: top; ">
-                           <p>CALL apoc.algo.betweennessCypher(node_cypher,rel_cypher,write) - calculates betweeness  centrality based on cypher input</p>
-                        </td>
-                     </tr>
-                     <tr>
-                        <td style="text-align: left; vertical-align: top; ">
-                           <p>procedure</p>
-                        </td>
-                        <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.algo.closeness</p>
-                        </td>
-                        <td style="text-align: left; vertical-align: top; ">
-                           <p>CALL apoc.algo.closeness(['TYPE',&#8230;&#8203;],nodes, INCOMING) YIELD node, score - calculate closeness centrality for given nodes</p>
                         </td>
                      </tr>
                      <tr>
@@ -1909,7 +1884,7 @@
                            <p>apoc.index.orderedRange</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>just use a cypher query with a range predicate on an indexed field and wait for index backed order by in 3.5</p>
+                           <p>deprecated, just there for compatibility. Use plain cypher instead</p>
                         </td>
                      </tr>
                      <tr>
@@ -2361,6 +2336,42 @@
                            <p>procedure</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.export.xls.all</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">&nbsp;</td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.export.xls.data</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">&nbsp;</td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.export.xls.graph</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">&nbsp;</td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.export.xls.query</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">&nbsp;</td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.export.cypher.all</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
@@ -2662,7 +2673,9 @@
                         <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.custom.asProcedure</p>
                         </td>
-                        <td style="text-align: left; vertical-align: top; ">&nbsp;</td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.custom.asProcedure(name, statement, mode, outputs, inputs, description) - register a custom cypher procedure</p>
+                        </td>
                      </tr>
                      <tr>
                         <td style="text-align: left; vertical-align: top; ">
@@ -2671,7 +2684,20 @@
                         <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.custom.asFunction</p>
                         </td>
-                        <td style="text-align: left; vertical-align: top; ">&nbsp;</td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description) - register a custom cypher function</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.custom.list</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.custom.list() - provide a list of custom procedures/function registered</p>
+                        </td>
                      </tr>
                      <tr>
                         <td style="text-align: left; vertical-align: top; ">
@@ -2874,6 +2900,42 @@
                         <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.create.uuids(count) yield uuid - creates 'count' UUIDs</p>
                         </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.uuid.install</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">&nbsp;</td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.uuid.remove</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">&nbsp;</td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.uuid.removeAll</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">&nbsp;</td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.uuid.list</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">&nbsp;</td>
                      </tr>
                      <tr>
                         <td style="text-align: left; vertical-align: top; ">
@@ -3421,6 +3483,28 @@
                            <p>function</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.static.get</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.static.get(name) - returns statically stored value from config (apoc.static.&lt;key&gt;) or server lifetime storage</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.static.getAll</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.static.getAll(prefix) - returns statically stored values from config (apoc.static.&lt;prefix&gt;.*) or server lifetime storage</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.util.sha1</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
@@ -3605,6 +3689,19 @@
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.node.relationship.types(node, rel-direction-pattern) - returns a list of distinct relationship types</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.node.relationships.exist</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map with rel-pattern, boolean for the given relationship
+                              patterns
+                           </p>
                         </td>
                      </tr>
                      <tr>
@@ -5030,6 +5127,28 @@
                         <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.index.in.count(node1,'TYPE',node2,'prop:value*') YIELD value - lucene query on relationship index with the given type
                               name for <span class="strong"><strong>incoming</strong></span> relationship of the given node, <span class="strong"><strong>returns count-start-nodes</strong></span></p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.text.phonetic</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.text.phonetic(text) yield value - Compute the US_ENGLISH phonetic soundex encoding of all words of the text</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.text.doubleMetaphone</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.text.doubleMetaphone(value) yield value - Compute the Double Metaphone phonetic encoding of all words of the text value</p>
                         </td>
                      </tr>
                      <tr>
