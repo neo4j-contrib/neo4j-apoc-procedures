@@ -110,6 +110,7 @@ public class CsvFormat implements Format {
 
     public String[] writeResultHeader(Result result, CSVWriter out) {
         List<String> columns = result.columns();
+        columns.sort(Comparator.naturalOrder());
         int cols = columns.size();
         String[] header = columns.toArray(new String[cols]);
         out.writeNext(header, applyQuotesToAll);
