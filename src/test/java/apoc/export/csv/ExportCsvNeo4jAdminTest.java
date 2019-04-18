@@ -21,7 +21,7 @@ import static apoc.util.MapUtil.map;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
-public class ExportCsvNeo4jAdmin {
+public class ExportCsvNeo4jAdminTest {
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_TYPES_NODE = String
             .format("id:ID;born_2D:point;born_3D:point;localtime:localtime;time:time;dateTime:datetime;localDateTime:localdatetime;date:date;duration:duration;:LABEL%n");
@@ -95,10 +95,11 @@ public class ExportCsvNeo4jAdmin {
     @Test
     public void testCypherExportCsvForAdminNeo4jImportWithConfig() throws Exception {
 
-        File dir = new File(directory, "query_nodes.csv");
+        String fileName = "query_nodes.csv";
+        File dir = new File(directory, fileName);
 
-        TestUtil.testCall(db, "CALL apoc.export.csv.all({directory},{bulkImport: true, separateHeader: true, delim: ';'})",
-                map("directory", dir.getAbsolutePath()), r -> {
+        TestUtil.testCall(db, "CALL apoc.export.csv.all({fileName},{bulkImport: true, separateHeader: true, delim: ';'})",
+                map("fileName", fileName), r -> {
                     assertEquals(20000L, r.get("batchSize"));
                     assertEquals(1L, r.get("batches"));
                     assertEquals(7L, r.get("nodes"));
@@ -129,12 +130,13 @@ public class ExportCsvNeo4jAdmin {
 
     @Test
     public void testExportGraphNeo4jAdminCsv() throws Exception {
-        File output = new File(directory, "graph.csv");
+        String fileName = "graph.csv";
+        File output = new File(directory, fileName);
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                        "CALL apoc.export.csv.graph(graph, {file},{bulkImport: true, delim: ';'}) " +
+                        "CALL apoc.export.csv.graph(graph, {fileName},{bulkImport: true, delim: ';'}) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
-                        "RETURN *", map("file", output.getAbsolutePath()),
-                (r) -> assertResults(output, r, "graph"));
+                        "RETURN *", map("fileName", fileName),
+                (r) -> assertResults(fileName, r, "graph"));
 
         String file = output.getParent() + File.separator;
         assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS + EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS, "graph.nodes.Address.csv");
@@ -152,10 +154,10 @@ public class ExportCsvNeo4jAdmin {
 
     @Test(expected = RuntimeException.class)
     public void testCypherExportCsvForAdminNeo4jImportExceptionBulk() throws Exception {
-        File dir = new File(directory, "query_nodes.csv");
+        String fileName = "query_nodes.csv";
         try {
-            TestUtil.testCall(db, "CALL apoc.export.csv.query('MATCH (n) return (n)',{directory},{bulkImport: true})", Util.map("directory", dir.getAbsolutePath()), (r) -> {
-            });
+            TestUtil.testCall(db, "CALL apoc.export.csv.query('MATCH (n) return (n)',{fileName},{bulkImport: true})",
+                    Util.map("fileName", fileName), (r) -> {});
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
@@ -164,12 +166,12 @@ public class ExportCsvNeo4jAdmin {
         }
     }
 
-    private void assertResults(File output, Map<String, Object> r, final String source) {
+    private void assertResults(String fileName, Map<String, Object> r, final String source) {
         assertEquals(7L, r.get("nodes"));
         assertEquals(2L, r.get("relationships"));
         assertEquals(20L, r.get("properties"));
         assertEquals(source + ": nodes(7), rels(2)", r.get("source"));
-        assertEquals(output.getAbsolutePath(), r.get("file"));
+        assertEquals(fileName, r.get("file"));
         assertEquals("csv", r.get("format"));
         assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
     }
