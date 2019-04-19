@@ -55,7 +55,8 @@ public class MongoDB {
                                  @Name("db") String db,
                                  @Name("collection") String collection,
                                  @Name("query") Map<String, Object> query,
-                                 @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues, @Name(value = "skip", defaultValue = "0") Long skip,
+                                 @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues, 
+                                 @Name(value = "skip", defaultValue = "0") Long skip,
                                  @Name(value = "limit", defaultValue = "0") Long limit) {
         try (Coll coll = getMongoColl(hostOrKey, db, collection, compatibleValues)) {
             return coll.all(query, skip, limit).map(MapResult::new); // .onClose(coll::safeClose);
