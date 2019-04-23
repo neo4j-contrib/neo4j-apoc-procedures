@@ -323,8 +323,8 @@ public class NodesTest {
         String[] labels = {"A SPACE","HOPE ERA"};
         Map params = map("labels", labels,"limit", 50);
 
-        long baseNbr = 1_000  / labels.length ; // Chief M asked for a million nodes. Worked with 10.
-        int steps = 5;
+        long baseNbr = 1_000_000  / labels.length ; // Chief M asked for a million nodes. Worked with 10.
+        int steps = 500;
 
         for(String label: labels) {
             db.execute("CREATE CONSTRAINT ON (n:`"+ label+"`) ASSERT n.bid IS UNIQUE").close();
