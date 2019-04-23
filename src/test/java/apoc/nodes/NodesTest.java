@@ -26,8 +26,7 @@ public class NodesTest {
     @Before
     public void setUp() throws Exception {
         db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
-        TestUtil.registerProcedure(db,Nodes.class, Create.class);
-        TestUtil.registerProcedure(db, Periodic.class);
+        TestUtil.registerProcedure(db,Nodes.class, Create.class, Periodic.class);
     }
 
     @After
@@ -175,19 +174,15 @@ public class NodesTest {
         });
 
     }
-
     @Test
     public void testRemoveNodesEmptyLabels() {
         String[] labels = {};
-        Map params = new HashMap();
-        params.put("labels", labels);
-        params.put("limit", 50);
-        TestUtil.testResult(db,
-                "CALL apoc.nodes.removewithlabels",
+        Map params = map("labels", labels,"limit", 50);
+        TestUtil.testCall(db,
+                "CALL apoc.nodes.removebylabels",
                 params,
                 r -> {
-                    Map m = r.next();
-                    Map map = (Map) m.get("value");
+                    Map map = (Map) r.get("value");
                     assertNotNull(map);
                     assertEquals(0,map.size());
                 });
@@ -197,47 +192,37 @@ public class NodesTest {
     @Test
     public void testRemoveNodesWithLabels_AnEmptyLabel() {
         String[] labels = {"aa", "bb" ,"","cc"};
-        Map params = new HashMap();
-        params.put("labels", labels);
-        params.put("limit", 50);
-        TestUtil.testResult(db,
-                "CALL apoc.nodes.removewithlabels",
+        Map params = map("labels", labels,"limit", 50);
+        TestUtil.testCall(db,
+                "CALL apoc.nodes.removebylabels",
                 params,
                 r -> {
-                    Map m = r.next();
-                    Map map = (Map) m.get("value");
+                    Map map = (Map) r.get("value");
                     assertNotNull(map);
-                    // assertEquals(3,map.size());
+                    assertEquals(3,map.size());
                 });
     }
 
     @Test
     public void testRemoveNodesWithLabels_ALabelWithSpace() {
         String[] labels = {"A SPACE"};
-        Map params = new HashMap();
-        params.put("labels", labels);
-        params.put("limit", 50);
-
+        Map params = map("labels", labels,"limit", 50);
         db.execute("UNWIND range(1,1000) as id CREATE (n:`A SPACE` {id:id})").close();
 
-        TestUtil.testResult(db,
+        TestUtil.testCall(db,
                 "MATCH (n:`A SPACE`) RETURN count(n) as cnt",
                 params,
                 r -> {
-                    Map m = r.next();
-                    Long cnt = (Long) m.get("cnt");
-                    assertEquals(1000, cnt.longValue());
+                    assertEquals(1000L, r.get("cnt"));
                 });
 
-        db.execute("CALL apoc.nodes.removewithlabels", params).close();
+        db.execute("CALL apoc.nodes.removebylabels", params).close();
 
-        TestUtil.testResult(db,
+        TestUtil.testCall(db,
                 "MATCH (n:`A SPACE`) RETURN count(n) as cnt",
                 params,
                 r -> {
-                    Map m = r.next();
-                    Long cnt = (Long) m.get("cnt");
-                    assertEquals(0, cnt.longValue());
+                    assertEquals(0L, r.get("cnt"));
                 });
     }
 
@@ -245,76 +230,56 @@ public class NodesTest {
     @Test
     public void testRemoveNodesWithLabels_WithData() {
         String[] labels = {"aa", "bb", "cc"};
-        Map params = new HashMap();
-        params.put("labels", labels);
-        params.put("limit", 50);
+        Map params = map("labels", labels,"limit", 50);
 
         db.execute("UNWIND range(1,1000) as id CREATE (n:aa {id:id})").close();
         db.execute("UNWIND range(1,1000) as id CREATE (n:bb {id:id})").close();
         db.execute("UNWIND range(1,1000) as id CREATE (n:cc {id:id})").close();
 
-        TestUtil.testResult(db,
-                "MATCH (n:aa) RETURN count(n) as cnt",
-                params,
-                r -> {
-                    Map m = r.next();
-                    Long cnt = (Long) m.get("cnt");
-                    assertEquals(1000, cnt.longValue());
-                });
+        TestUtil.testCall(db,"MATCH (n:aa) RETURN count(n) as cnt",
+                (r) -> assertEquals(1000L, r.get("cnt") )
+        );
 
-        TestUtil.testResult(db,
-                "MATCH (n:bb) RETURN count(n) as cnt",
-                params,
-                r -> {
-                    Map m = r.next();
-                    Long cnt = (Long) m.get("cnt");
-                    assertEquals(1000, cnt.longValue());
-                });
+        TestUtil.testCall(db,"MATCH (n:bb) RETURN count(n) as cnt",
+                (r) ->assertEquals(1000L, r.get("cnt"))
+        );
 
-        TestUtil.testResult(db,
+        TestUtil.testCall(db,
                 "MATCH (n:cc) RETURN count(n) as cnt",
+                r -> assertEquals(1000L, r.get("cnt"))
+        );
+
+        TestUtil.testCall(db,"CALL apoc.nodes.removebylabels",
                 params,
-                r -> {
-                    Map m = r.next();
-                    Long cnt = (Long) m.get("cnt");
-                    assertEquals(1000, cnt.longValue());
-                });
+                (r) -> {
+                    Map vals = (Map) r.get("value");
+                    assertEquals(1000L, vals.get("aa") );
+                    assertEquals(1000L, vals.get("bb") );
+                    assertEquals(1000L, vals.get("cc") );
+                }
+        );
 
-        db.execute("CALL apoc.nodes.removewithlabels", params).close();
 
-        TestUtil.testResult(db,
-                "MATCH (n:aa) RETURN count(n) as cnt",
-                params,
-                r -> {
-                    Map m = r.next();
-                    Long cnt = (Long) m.get("cnt");
-                    assertEquals(0, cnt.longValue());
-                });
+        TestUtil.testCall(db,"MATCH (n:aa) RETURN count(n) as cnt",
+                (r) -> assertEquals(0L, r.get("cnt") )
+        );
 
-        TestUtil.testResult(db,
+        TestUtil.testCall(db,
                 "MATCH (n:bb) RETURN count(n) as cnt",
-                params,
-                r -> {
-                    Map m = r.next();
-                    Long cnt = (Long) m.get("cnt");
-                    assertEquals(0, cnt.longValue());
-                });
+                (r) -> assertEquals(0L, r.get("cnt"))
+        );
 
-        TestUtil.testResult(db,
+        TestUtil.testCall(db,
                 "MATCH (n:cc) RETURN count(n) as cnt",
-                params,
-                r -> {
-                    Map m = r.next();
-                    Long cnt = (Long) m.get("cnt");
-                    assertEquals(0, cnt.longValue());
-                });
+                r -> assertEquals(0L, r.get("cnt"))
+        );
     }
 
 
     @Test(expected = Exception.class )
     public void testRemoveNodesWithLabels_KoParamsMissing() {
         TestUtil.testCall(db,
-                "CALL apoc.nodes.removewithlabels(['aa','',,'bb'])",
+                "CALL apoc.nodes.removebylabels(['aa','',,'bb'])",
                 null,
                 r -> {
                 });
@@ -324,10 +289,9 @@ public class NodesTest {
     @Test(expected = Exception.class )
     public void testRemoveNodesWithLabels_NegativeLimit() {
         TestUtil.testCall(db,
-                "CALL apoc.nodes.removewithlabels(['aa','bb','cc','dd'], -123)",
-                null,
-                r -> {
-                });
+                "CALL apoc.nodes.removebylabels(['aa','bb','cc','dd'], -123)",
+                r -> {}
+        );
     }
 
     @Test
@@ -336,23 +300,70 @@ public class NodesTest {
 
         db.execute("UNWIND range(1,400) as id CREATE (n:aaopwl {id:id})").close();
 
-        Map params = new HashMap();
-        params.put("labels", labels);
-        params.put("limit", 50);
-        TestUtil.testResult(db,
-                "CALL apoc.nodes.removewithlabels",
+        Map params = map("labels", labels,"limit", 50);
+        TestUtil.testCall(db,
+                "CALL apoc.nodes.removebylabels",
                 params,
                 r -> {
                 });
 
-        TestUtil.testResult(db,
+        TestUtil.testCall(db,
                 "MATCH (n:aaopwl) RETURN count(n) as cnt",
-                params,
-                r -> {
-                    Map m = r.next();
-                    Long cnt = (Long) m.get("cnt");
-                    assertEquals(0, cnt.longValue());
-                });
+                r -> assertEquals(0L, r.get("cnt") )
+        );
+    }
+
+    /**
+     * This test creates a high number of nodes.
+     * Naturally, it takes a decent machine, some time to run
+     * and needs memory to run with a million nodes. Being generous, I used -Xmx16G
+     */
+    @Test
+    public void testRemoveNodesWithLabels_LabelsWithSpace_HighLoad() {
+        String[] labels = {"A SPACE","HOPE ERA"};
+        Map params = map("labels", labels,"limit", 50);
+
+        long baseNbr = 1_000  / labels.length ; // Chief M asked for a million nodes. Worked with 10.
+        int steps = 5;
+
+        for(String label: labels) {
+            db.execute("CREATE CONSTRAINT ON (n:`"+ label+"`) ASSERT n.bid IS UNIQUE").close();
+        }
+        // Creation of that lot of nodes in several steps.
+        long increment = baseNbr / steps ;
+        long startId = 1 ;
+        long endId =  increment;
+
+        for(int step = steps ; step>0 ; step --){
+            db.execute("UNWIND range("+ startId+","+ endId +") as id " +
+                    "CREATE (n:`A SPACE` {bid:toInteger(id)}) " +
+                    "CREATE (m:`HOPE ERA` {bid:toInteger(id)-1}) " +
+                    "CREATE (n)-[:BRINGS]->(m) " +
+                    "CREATE (m)-[:COMES_FROM]->(n) ").close();
+
+            startId = endId+1;
+            endId += increment;
+        }
+
+        // checking node count is equal to wanted number
+        for(String label: labels) {
+            TestUtil.testCall(db,
+                    "MATCH (n:`"+label+"`) RETURN count(n) as cnt",
+                    params,
+                    r -> {
+                        assertEquals(baseNbr, r.get("cnt"));
+                    });
+        }
+
+        db.execute("CALL apoc.nodes.removebylabels", params).close();
+
+        // Now checking the is no node remaining for each given label
+        for(String label: labels) {
+            TestUtil.testCall(db,
+                    "MATCH (n:`"+label+"`) RETURN count(n) as cnt",
+                    r -> assertEquals(0L, r.get("cnt"))
+            );
+        }
     }
 
 }

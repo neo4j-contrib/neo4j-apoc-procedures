@@ -305,18 +305,22 @@ public class Nodes {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.nodes.removewithlabels(['Person','Movie'],1000) | Will remove all the nodes having one of the given labels, via DETACH DELETE using apoc.periodic.iterate. Same limit used for each label. Default is 100. ")
-    public Stream<MapResult> removewithlabels(@Name("labels") List<String> labels, @Name(value = "limit",defaultValue="100")  Long limit) {
+    @Description("apoc.nodes.removebylabels(['Person','Movie'],1000) | Will remove all the nodes having one of the given labels, via DETACH DELETE using apoc.periodic.iterate. Same limit used for each label. Default is 100. ")
+    public Stream<MapResult> removebylabels(@Name("labels") List<String> labels, @Name(value = "limit",defaultValue="100") long limit) {
         if (limit <= 0)
             throw new RuntimeException("limit must be a positive integer");
 
-        Map<String,Object> results = new HashMap<String, Object>();
-        HashMap<String, Object> parameters = new HashMap<>();
+        Map<String,Object> results = map();
 
         for( String label: labels) {
-            if(label.trim().length()>0) {
-                String query = String.format("call apoc.periodic.iterate( 'MATCH (n:`%s`) RETURN n',  'DETACH DELETE n', {batchsize:%d,iterateList:true, parallel:true}  )", label, limit);
-                db.execute(query, parameters);
+            if(!label.isEmpty()) {
+                String query = String.format("CALL apoc.periodic.iterate('MATCH (n:`%s`) RETURN n',  'DETACH DELETE n', {batchsize:%d,iterateList:true, parallel:true}  )", label, limit);
+                Result result = db.execute(query);
+
+                while(result.hasNext()) {
+                    Map<String, Object> mso = result.next();
+                    results.put(label, mso.get("total") );
+                }
             }
         }
         MapResult mapResult = new MapResult(results);
