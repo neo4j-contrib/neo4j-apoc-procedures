@@ -21,8 +21,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -100,7 +98,7 @@ public class ExportCypher {
         progressInfo.batchSize = c.getBatchSize();
         ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
         boolean separatedFiles = !onlySchema && c.separateFiles();
-        FileManagerFactory.ExportCypherFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, separatedFiles, c.streamStatements());
+        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, separatedFiles, c.streamStatements());
 
         if (c.streamStatements()) {
             long timeout = c.getTimeoutSeconds();
@@ -116,8 +114,8 @@ public class ExportCypher {
         }
     }
 
-    private void doExport(SubGraph graph, ExportConfig c, boolean onlySchema, ProgressReporter reporter, FileManagerFactory.ExportCypherFileManager cypherFileManager) throws IOException {
-        MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph, c);
+    private void doExport(SubGraph graph, ExportConfig c, boolean onlySchema, ProgressReporter reporter, ExportFileManager cypherFileManager) throws IOException {
+        MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph, c, db);
 
         if (onlySchema)
             exporter.exportOnlySchema(cypherFileManager);
@@ -154,7 +152,7 @@ public class ExportCypher {
             this.batchSize = pi.batchSize;
             this.batches = pi.batches;
         }
-        public DataProgressInfo enrich(FileManagerFactory.ExportCypherFileManager fileInfo) {
+        public DataProgressInfo enrich(ExportFileManager fileInfo) {
             cypherStatements = fileInfo.drain("cypher");
             nodeStatements = fileInfo.drain("nodes");
             relationshipStatements = fileInfo.drain("relationships");

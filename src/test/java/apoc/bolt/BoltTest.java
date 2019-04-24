@@ -1,29 +1,29 @@
 package apoc.bolt;
 
+import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.*;
-import org.neo4j.driver.internal.InternalIsoDuration;
-import org.neo4j.driver.internal.InternalPoint2D;
-import org.neo4j.driver.internal.InternalPoint3D;
-import org.neo4j.graphdb.*;
-import org.neo4j.harness.ServerControls;
-import org.neo4j.harness.TestServerBuilders;
-import org.neo4j.harness.junit.Neo4jRule;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.test.TestGraphDatabaseFactory;
-import org.neo4j.values.storable.DurationValue;
 
-import java.time.*;
+import java.time.LocalTime;
+import java.time.OffsetTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.util.TestContainerUtil.cleanBuild;
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeNotNull;
 import static org.neo4j.driver.v1.Values.isoDuration;
 import static org.neo4j.driver.v1.Values.point;
-import static org.neo4j.values.storable.CoordinateReferenceSystem.*;
-import static org.neo4j.values.storable.Values.pointValue;
 
 /**
  * @author AgileLARUS
@@ -33,26 +33,20 @@ public class BoltTest {
 
     protected static GraphDatabaseService db;
 
-    private static String setup = "CREATE (m:Person {name:'Michael',surname:'Jordan',age:54, state:true, date:date('2018-10-30')})\n" +
-            "    CREATE (q:Person {name:'Tom',surname:'Burton',age:23, date:datetime('2018-10-30T12:50:35.556+0100')})\n" +
-            "    CREATE (p:Person {name:'John',surname:'William',age:22, date:localdatetime('20181030T19:32:24')})\n" +
-            "    CREATE (q)-[:KNOWS{since:2016, time:time('125035.556+0100')}]->(p)\n" +
-            "    CREATE (a:Person{name:'Tom', surname:'Loagan', duration:duration('P5M1DT12H')})\n" +
-            "    CREATE (b:Person{name:'John', surname:'Green', born:point({ x: 2.3, y: 4.5 })})\n" +
-            "    CREATE (c:Person{name:'Jim', surname:'Brown'})\n" +
-            "    CREATE (d:Person{name:'Anne', surname:'Olsson', born:point({ x: 2.3, y: 4.5 , z: 1.2})})\n" +
-            "    CREATE (a)-[:KNOWS{since:localtime('12:50:35.556'), born:point({ longitude: 56.7, latitude: 12.78 })}]->(b)\n" +
-            "    CREATE (b)-[:KNOWS{since:time('125035.556+0100'), born:point({ longitude: 56.7, latitude: 12.78, height: 100 })}]->(c)\n" +
-            "    CREATE (c)-[:KNOWS{since:2013}]->(d)";
-
-    public static ServerControls server;
+    private static Neo4jContainerExtension neo4jContainer;
     private static String BOLT_URL;
 
     @BeforeClass
     public static void setUp() throws Exception {
-        server = TestServerBuilders.newInProcessBuilder().withFixture(setup)
-                .withConfig("dbms.security.auth_enabled", "false").newServer();
-        BOLT_URL = "'"+server.boltURI().toString()+"'";
+        TestUtil.ignoreException(() -> {
+            neo4jContainer = new Neo4jContainerExtension()
+                    .withInitScript("init_neo4j_bolt.cypher")
+                    .withLogging()
+                    .withoutAuthentication();
+            neo4jContainer.start();
+        }, Exception.class);
+        assumeNotNull(neo4jContainer);
+        BOLT_URL = "'" + neo4jContainer.getBoltUrl() + "'";
 
         db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().newGraphDatabase();
         TestUtil.registerProcedure(db, Bolt.class);
@@ -60,8 +54,11 @@ public class BoltTest {
 
     @AfterClass
     public static void tearDown() {
-        db.shutdown();
-        server.close();
+        if (neo4jContainer != null) {
+            neo4jContainer.close();
+            db.shutdown();
+        }
+        cleanBuild();
     }
 
     @Test

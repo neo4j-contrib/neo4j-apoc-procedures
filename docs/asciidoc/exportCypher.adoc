@@ -17,6 +17,17 @@ It is possible to choose between three export formats:
 * `cypher-shell`: for Cypher shell
 * `plain`: doesn't output begin / commit / await just plain Cypher
 
+You can also use the Optimizations like: `useOptimizations: {config}`
+Config could have this params:
+
+* `unwindBatchSize`:  (default 100)
+* `type`: possible values ('NONE', 'UNWIND_BATCH', 'UNWIND_BATCH_PARAMS') (default 'UNWIND_BATCH')
+
+With `NONE` it will export the file with `CREATE` statement;
+
+With 'UNWIND_BATCH` it will export the file by batching the entities with the `UNWIND` method as explained in this
+https://medium.com/neo4j/5-tips-tricks-for-fast-batched-updates-of-graph-structures-with-neo4j-and-cypher-73c7f693c8cc[article].
+
 To change the export format, you have to set it on the config params like `{format : "cypher-shell"}`.
 
 By default the format is `neo4j-shell`.
@@ -40,6 +51,7 @@ call apoc.export.cypher.query(
 "/tmp/friendships.cypher", 
 {format:'plain',cypherFormat:'updateStructure'})`
 ----
+
 
 // tag::export.cypher[]
 `YIELD file, source, format, nodes, relationships, properties, time`
@@ -134,6 +146,10 @@ CALL apoc.export.cypher.all(null,{streamStatements:true,batchSize:100}) YIELD cy
 
 .exportAll (neo4j-shell format)
 
+==== Old method:
+
+Without the optimizations
+
 [source,cypher]
 ----
 CALL apoc.export.cypher.all({fileName},{config})
@@ -142,18 +158,18 @@ Result:
 [source,cypher]
 ----
 begin
-CREATE (:`Foo`:`UNIQUE IMPORT LABEL` {`name`:"foo", `UNIQUE IMPORT ID`:0});
-CREATE (:`Bar` {`name`:"bar", `age`:42});
-CREATE (:`Bar`:`UNIQUE IMPORT LABEL` {`age`:12, `UNIQUE IMPORT ID`:2});
+CREATE (:Foo:`UNIQUE IMPORT LABEL` {name:"foo", `UNIQUE IMPORT ID`:0});
+CREATE (:Bar {name:"bar", age:42});
+CREATE (:Bar:`UNIQUE IMPORT LABEL` {age:12, `UNIQUE IMPORT ID`:2});
 commit
 begin
-CREATE INDEX ON :`Foo`(`name`);
-CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
+CREATE INDEX ON :Foo(name);
+CREATE CONSTRAINT ON (node:Bar) ASSERT node.name IS UNIQUE;
 CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
 commit
 schema await
 begin
-MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:`Bar`{`name`:"bar"}) CREATE (n1)-[:`KNOWS`]->(n2);
+MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:Bar{name:"bar"}) CREATE (n1)-[:KNOWS]->(n2);
 commit
 begin
 MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
@@ -171,8 +187,52 @@ Result:
 [source,cypher]
 ----
 begin
-CREATE INDEX ON :`Foo`(`name`);
-CREATE CONSTRAINT ON (node:`Bar`) ASSERT node.`name` IS UNIQUE;
+CREATE INDEX ON :Foo(name);
+CREATE CONSTRAINT ON (node:Bar) ASSERT node.name IS UNIQUE;
 commit
 schema await
+----
+
+==== New method:
+
+With the optimizations
+
+[source,cypher]
+----
+CALL apoc.export.cypher.all({fileName},{config})
+----
+Result:
+[source,cypher]
+----
+BEGIN
+CREATE INDEX ON :Bar(first_name,last_name);
+CREATE INDEX ON :Foo(name);
+CREATE CONSTRAINT ON (node:Bar) ASSERT node.name IS UNIQUE;
+CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT node.`UNIQUE IMPORT ID` IS UNIQUE;
+COMMIT
+SCHEMA AWAIT
+BEGIN
+UNWIND [{_id:3, properties:{age:12}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;
+UNWIND [{_id:2, properties:{age:12}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar:Person;
+UNWIND [{_id:0, properties:{born:date('2018-10-31'), name:"foo"}}, {_id:4, properties:{born:date('2017-09-29'), name:"foo2"}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;
+UNWIND [{name:"bar", properties:{age:42}}, {name:"bar2", properties:{age:44}}] as row
+CREATE (n:Bar{name: row.name}) SET n += row.properties;
+UNWIND [{_id:6, properties:{age:99}}] as row
+CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties;
+COMMIT
+BEGIN
+UNWIND [{start: {_id:0}, end: {name:"bar"}, properties:{since:2016}}, {start: {_id:4}, end: {name:"bar2"}, properties:{since:2015}}] as row
+MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})
+MATCH (end:Bar{name: row.end.name})
+CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;
+COMMIT
+BEGIN
+MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;
+COMMIT
+BEGIN
+DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;
+COMMIT
 ----

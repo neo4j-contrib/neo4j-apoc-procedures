@@ -98,7 +98,6 @@ public class ImportCsvTest {
                 .newImpermanentDatabaseBuilder()
                 .setConfig("apoc.import.file.enabled", "true")
                 .setConfig("apoc.export.file.enabled", "true")
-                .setConfig("apoc.import.file.use_neo4j_config", "true")
                 .setConfig("dbms.security.allow_csv_import_from_file_urls","true")
                 .setConfig("dbms.directories.import",
                         new File("src/test/resources/csv-inputs").getAbsolutePath())

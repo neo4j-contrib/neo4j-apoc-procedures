@@ -24,6 +24,7 @@ Cypher brings along some basic functions for math, text, collections and maps.
 * <<utility-functions>>
 * <<bitwise-operations>>
 * <<atomic-updates>>
+* <<log>>
 
 [[conversion-functions]]
 === Conversion Functions
@@ -172,6 +173,8 @@ include::spatial.adoc[leveloffset=+3]
 | apoc.static.set(name, value) | stores value under key for server livetime storage, returns previously stored or configured value
 |===
 
+NOTE: `apoc.static.get` and `apoc.static.getAll` have been migrated to be functions, the procedures have been deprecated.
+
 [[utility-functions]]
 === Utilities
 
@@ -223,3 +226,8 @@ examples
 === Atomic
 
 include::atomic.adoc[leveloffset=1]
+=== Log
+
+include::log.adoc[leveloffset=1]
+
+

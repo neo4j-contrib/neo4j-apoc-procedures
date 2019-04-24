@@ -1,6 +1,7 @@
 package apoc.export.cypher.formatter;
 
 import apoc.export.util.FormatUtils;
+import apoc.util.Util;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Iterables;
@@ -51,7 +52,7 @@ public class CypherFormatterUtils {
         return result.toString();
     }
 
-    private static Map<String, Object> getNodeIdProperties(Node node, Map<String, Set<String>> uniqueConstraints) {
+    public static Map<String, Object> getNodeIdProperties(Node node, Map<String, Set<String>> uniqueConstraints) {
         Map<String, Object> nodeIdProperties = new LinkedHashMap<>();
         boolean uniqueLabelFound = false;
         List<String> list = getLabelsSorted(node);
@@ -175,7 +176,7 @@ public class CypherFormatterUtils {
         return result.length() > 0 ? result.substring(2) : "";
     }
 
-    private static StringBuilder formatProperties(String id, Map<String, Object> properties, boolean jsonStyle) {
+    public static StringBuilder formatProperties(String id, Map<String, Object> properties, boolean jsonStyle) {
         StringBuilder result = new StringBuilder(100);
         List<String> keys = Iterables.asList(properties.keySet());
         Collections.sort(keys);
@@ -186,8 +187,8 @@ public class CypherFormatterUtils {
         return result;
     }
 
-    private static String formatPropertyName(String id, String prop, Object value, boolean jsonStyle) {
-        return (id != null && !"".equals(id) ? id + "." : "") + "`" + prop + "`" + (jsonStyle ? ":" : "=" ) + toString(value);
+    public static String formatPropertyName(String id, String prop, Object value, boolean jsonStyle) {
+        return (id != null && !"".equals(id) ? id + "." : "") + quote(prop) + (jsonStyle ? ":" : "=" ) + toString(value);
     }
 
     // ---- to string ----
@@ -204,8 +205,12 @@ public class CypherFormatterUtils {
         return builder.toString();
     }
 
+    @Deprecated
+    /**
+     * use {@link Util#quote()}
+     */
     public static String quote(String id) {
-        return "`" + id + "`";
+        return Util.quote(id);
     }
 
     public static String label(String id) {

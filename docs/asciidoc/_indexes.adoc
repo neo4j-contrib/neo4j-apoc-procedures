@@ -1,9 +1,5 @@
 [[indexes]]
-== Deprecated: Text and Lookup Indexes
-
-[WARNING]
-These Index procedures are deprecated and will be removed from APOC soon.
-From version 3.5 Neo4j provides built-in, case-insensitive, configurable fulltext indices.
+== Text and Lookup Indexes
 
 [[schema-index-operations]]
 === Schema Index Procedures
@@ -20,7 +16,11 @@ From version 3.5 Neo4j provides built-in, case-insensitive, configurable fulltex
 include::schema-index.adoc[leveloffset=4]
 
 [[manual-indexes]]
-=== Manual Indexes
+=== Deprecated: Manual Indexes
+
+[WARNING]
+These Index procedures in the namespaces `apoc.index.*` are deprecated and will be removed from APOC soon.
+From version 3.5 Neo4j provides built-in, case-insensitive, configurable fulltext indices.
 
 ==== Index Queries
 

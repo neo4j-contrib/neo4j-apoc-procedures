@@ -1,6 +1,8 @@
 package apoc.export.json;
 
 import apoc.Description;
+import apoc.export.cypher.ExportFileManager;
+import apoc.export.cypher.FileManagerFactory;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
@@ -24,7 +26,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static apoc.util.FileUtils.checkWriteAllowed;
-import static apoc.util.FileUtils.getPrintWriter;
 
 public class ExportJson {
     @Context
@@ -76,13 +77,15 @@ public class ExportJson {
         ExportConfig c = new ExportConfig(config);
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "json"));
         JsonFormat exporter = new JsonFormat(db);
-        try (PrintWriter printWriter = getPrintWriter(fileName, null);) {
+
+        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, false, c.streamStatements());
+
+        try (PrintWriter printWriter = cypherFileManager.getPrintWriter("json")) {
             if (data instanceof SubGraph)
-                exporter.dump(((SubGraph)data),printWriter,reporter,c);
+                exporter.dump(((SubGraph)data),cypherFileManager,reporter,c);
             if (data instanceof Result)
                 exporter.dump(((Result)data),printWriter,reporter,c);
         }
         return reporter.stream();
     }
 }
-

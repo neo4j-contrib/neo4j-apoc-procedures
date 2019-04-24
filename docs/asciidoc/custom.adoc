@@ -44,6 +44,7 @@ Given statement will be registered as a procedure, the results will be turned in
 | mode | read | execution mode of the procedure: read, write, or schema
 | outputs | [["row","MAP"]] | List of pairs of name-type to be used as output columns, need to be in-order with the cypher statement, the default is a special case, that will collect all columns of the statement result into a map
 | inputs | [["params","MAP","{}"]] | Pairs or triples of name-type-default, to be used as input parameters. The default just takes an optional map, otherwise they will become proper paramters in order
+| description | "" | A general description about the business rules implemented into the procedure
 |===
 
 The type names are what you would expect and see in outputs of `dbms.procedures` or `apoc.help` just without the `?`.
@@ -65,7 +66,7 @@ The default values are parsed as JSON.
 ----
 CALL apoc.custom.asProcedure('neighbours',
   'MATCH (n:Person {name:$name})-->(nb) RETURN nb as neighbour','read',
-  [['neighbour','NODE']],[['name','STRING']]);
+  [['neighbour','NODE']],[['name','STRING'], 'get neighbours of a person']);
 
 CALL custom.neighbours('Keanu Reeves') YIELD neighbour;
 ----
@@ -90,13 +91,30 @@ The statement needs to return a single column, otherwise an error is thrown.
 If your single row result is a list you can force a single row by setting the last parameter to `true`
 | inputs | [["params","MAP","{}"]] | Pairs or triples of name-type-default, to be used as input parameters. The default just takes an optional map, otherwise they will become proper paramters in order
 | singleRow | false | If set to true, the statement is treated as single row even with the list result type, then your statement has to return a list.
+| description | "" | A general description about the business rules implemented into the function
 |===
 
 The type names are what you would expect and see in outputs of `dbms.procedures` or `apoc.help` just without the `?`.
 The default values are parsed as JSON.
 
 
-.Examples
+=== List of registered procedures/function with `apoc.custom.list`
+
+The procedure `apoc.custom.list` provide a list of all registered procedures/function via
+`apoc.custom.asProcedure` and `apoc.custom.asFunction`
+
+Given the this call:
+
+[source,cypher]
+----
+CALL apoc.custom.list
 ----
 
-----
+The the output will look like the following table:
+
+[%autowidth,opts=header]
+|===
+| type | name | description | mode | statement | inputs | outputs | forceSingle
+| "function"  | "answer" | <null> | <null> | "RETURN $input as answer" | [["input","number"]] | "long" | false
+| "procedure" | "answer" | "Procedure that answer to the Ultimate Question of Life, the Universe, and Everything" | "read" | "RETURN $input as answer" | [["input","int","42"]] | [["answer","number"]] | <null>
+|===

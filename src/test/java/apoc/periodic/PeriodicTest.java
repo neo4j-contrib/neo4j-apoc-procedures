@@ -15,11 +15,17 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.StreamSupport.stream;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
 import static org.neo4j.graphdb.DependencyResolver.SelectionStrategy.FIRST;
@@ -66,6 +72,17 @@ System.out.println("call list" + db.execute(callList).resultAsString());
     }
 
     @Test
+    public void testSlottedRuntime() throws Exception {
+        assertTrue(Periodic.slottedRuntime("MATCH (n) RETURN n").contains("cypher runtime=slotted "));
+        assertFalse(Periodic.slottedRuntime("cypher runtime=compiled MATCH (n) RETURN n").contains("cypher runtime=slotted "));
+        assertFalse(Periodic.slottedRuntime("cypher runtime=compiled MATCH (n) RETURN n").contains("cypher runtime=slotted cypher"));
+        assertTrue(Periodic.slottedRuntime("cypher 3.1 MATCH (n) RETURN n").contains(" runtime=slotted "));
+        assertFalse(Periodic.slottedRuntime("cypher 3.1 MATCH (n) RETURN n").contains(" runtime=slotted cypher "));
+        assertTrue(Periodic.slottedRuntime("cypher expressionEngine=compiled MATCH (n) RETURN n").contains(" runtime=slotted "));
+        assertFalse(Periodic.slottedRuntime("cypher expressionEngine=compiled MATCH (n) RETURN n").contains(" runtime=slotted cypher"));
+
+    }
+    @Test
     public void testTerminateCommit() throws Exception {
         testTerminatePeriodicQuery("CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (:Foo {id: id}) limit 1000', {})");
     }
@@ -100,7 +117,6 @@ System.out.println("call list" + db.execute(callList).resultAsString());
 
         // when&then
 
-        // TODO: remove forcing rule based in the 2nd kernelTransaction next line when 3.0.2 is released, due to https://github.com/neo4j/neo4j/pull/7152
         testResult(db, "CALL apoc.periodic.rock_n_roll('match (p:Person) return p', 'WITH {p} as p SET p.lastname =p.name REMOVE p.name', 10)", result -> {
             Map<String, Object> row = Iterators.single(result);
             assertEquals(10L, row.get("batches"));
@@ -288,6 +304,23 @@ System.out.println("call list" + db.execute(callList).resultAsString());
     }
 
     @Test
+    public void testIterateWithReportingFailed() throws Exception {
+        testResult(db, "CALL apoc.periodic.iterate('UNWIND range(-5, 5) AS x RETURN x', 'return sum(1000/x)', {batchSize:3, failedParams:9999})", result -> {
+            Map<String, Object> row = Iterators.single(result);
+            assertEquals(4L, row.get("batches"));
+            assertEquals(1L, row.get("failedBatches"));
+            assertEquals(11L, row.get("total"));
+            Map<String, List<Map<String, Object>>> failedParams = (Map<String, List<Map<String, Object>>>) row.get("failedParams");
+            assertEquals(1, failedParams.size());
+            List<Map<String, Object>> failedParamsForBatch = failedParams.get("1");
+            assertEquals( 3, failedParamsForBatch.size());
+
+            List<Object> values = stream(failedParamsForBatch.spliterator(),false).map(map -> map.get("x")).collect(toList());
+            assertEquals(values, Stream.of(-2l, -1l, 0l).collect(toList()));
+        });
+    }
+
+    @Test
     public void testIterateRetries() throws Exception {
         testResult(db, "CALL apoc.periodic.iterate('return 1', 'CREATE (n {prop: 1/{_retry}})', {retries:1})", result -> {
             Map<String, Object> row = Iterators.single(result);
@@ -306,6 +339,8 @@ System.out.println("call list" + db.execute(callList).resultAsString());
             assertEquals(100L, row.get("total"));
             assertEquals(100L, row.get("failedOperations"));
             assertEquals(0L, row.get("committedOperations"));
+            Map<String,Object> failedParams = (Map<String, Object>) row.get("failedParams");
+            assertTrue(failedParams.isEmpty());
         });
 
         testCall(db,

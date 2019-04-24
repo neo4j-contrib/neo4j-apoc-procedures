@@ -1,0 +1,7 @@
+CREATE KEYSPACE apoc_schema WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };
+USE apoc_schema;
+
+CREATE TABLE "PERSON" ("NAME" TEXT PRIMARY KEY, "SURNAME" TEXT, "EFFECTIVE_FROM_DATE" TIMESTAMP);
+
+INSERT INTO "PERSON" ("NAME", "SURNAME", "EFFECTIVE_FROM_DATE")
+VALUES ('John', NULL, '2016-06-22T19:10:25+0200');

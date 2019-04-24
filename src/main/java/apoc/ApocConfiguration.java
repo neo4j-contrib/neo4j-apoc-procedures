@@ -1,7 +1,6 @@
 package apoc;
 
 import apoc.cache.Static;
-import apoc.metrics.Metrics;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.neo4j.kernel.configuration.Config;
@@ -24,6 +23,8 @@ public class ApocConfiguration {
     private static Map<String, Object> config = new HashMap<>(32);
     private static final Map<String, String> PARAM_WHITELIST = new HashMap<>(2);
 
+    private static final Map<String, Object> DEFAULTS = Util.map("import.file.use_neo4j_config", true);
+
     static {
         PARAM_WHITELIST.put("dbms.security.allow_csv_import_from_file_urls", "import.file.allow_read_from_filesystem");
 
@@ -39,6 +40,7 @@ public class ApocConfiguration {
         Map<String, String> params = neo4jConfig.getRaw();
         apocConfig.clear();
         apocConfig.putAll(Util.subMap(params, PREFIX));
+        mergeDefaults();
         PARAM_WHITELIST.forEach((k, v) -> {
             Optional<Object> configValue = neo4jConfig.getValue(k);
             if (configValue.isPresent()) {
@@ -47,6 +49,10 @@ public class ApocConfiguration {
         });
         config.clear();
         params.forEach((k, v) -> { if (!SKIP.matcher(k).find()) {config.put(k, v);} });
+    }
+
+    private static void mergeDefaults() {
+        DEFAULTS.forEach((key, value) -> apocConfig.computeIfAbsent(key, (k) -> value));
     }
 
     public static Map<String, Object> get(String prefix) {

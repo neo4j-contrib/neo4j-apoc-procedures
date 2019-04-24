@@ -1,17 +1,23 @@
 package apoc.export.csv;
 
+import apoc.export.cypher.ExportFileManager;
 import apoc.export.util.*;
 import apoc.result.ProgressInfo;
 import com.opencsv.CSVWriter;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.*;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
+import static apoc.export.util.BulkImportUtil.formatHeader;
 import static apoc.export.util.MetaInformation.*;
+import static apoc.util.Util.joinLabels;
 
 /**
  * @author mh
@@ -31,13 +37,18 @@ public class CsvFormat implements Format {
     }
 
     @Override
-    public ProgressInfo dump(SubGraph graph, Writer writer, Reporter reporter, ExportConfig config) throws Exception {
+    public ProgressInfo dump(SubGraph graph, ExportFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
         try (Transaction tx = db.beginTx()) {
-            CSVWriter out = getCsvWriter(writer, config);
-            writeAll(graph, reporter, config, out);
+            if (config.isBulkImport()) {
+                writeAllBulkImport(graph, reporter, config, writer);
+            } else {
+                try (PrintWriter printWriter = writer.getPrintWriter("csv")) {
+                    CSVWriter out = getCsvWriter(printWriter, config);
+                    writeAll(graph, reporter, config, out);
+                }
+            }
             tx.success();
             reporter.done();
-            writer.close();
             return reporter.getTotal();
         }
     }
@@ -75,10 +86,9 @@ public class CsvFormat implements Format {
         return out;
     }
 
-    public ProgressInfo dump(Result result, Writer writer, Reporter reporter, ExportConfig config) throws Exception {
-        try (Transaction tx = db.beginTx()) {
-            CSVWriter out = getCsvWriter(writer, config);
-
+    public ProgressInfo dump(Result result, ExportFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
+        try (Transaction tx = db.beginTx(); PrintWriter printWriter = writer.getPrintWriter("csv");) {
+            CSVWriter out = getCsvWriter(printWriter, config);
             String[] header = writeResultHeader(result, out);
 
             String[] data = new String[header.length];
@@ -94,13 +104,13 @@ public class CsvFormat implements Format {
             });
             tx.success();
             reporter.done();
-            writer.close();
             return reporter.getTotal();
         }
     }
 
     public String[] writeResultHeader(Result result, CSVWriter out) {
         List<String> columns = result.columns();
+        columns.sort(Comparator.naturalOrder());
         int cols = columns.size();
         String[] header = columns.toArray(new String[cols]);
         out.writeNext(header, applyQuotesToAll);
@@ -120,6 +130,111 @@ public class CsvFormat implements Format {
         writeNodes(graph, out, reporter, nodePropTypes, cols, config.getBatchSize(), config.getDelim());
         writeRels(graph, out, reporter, relPropTypes, cols, nodeHeader.size(), config.getBatchSize(), config.getDelim());
     }
+
+    private void writeAllBulkImport(SubGraph graph, Reporter reporter, ExportConfig config, ExportFileManager writer) {
+        Map<Iterable<Label>, List<Node>> objectNodes = StreamSupport.stream(graph.getNodes().spliterator(), false)
+                .collect(Collectors.groupingBy(Node::getLabels));
+        Map<RelationshipType, List<Relationship>> objectRels = StreamSupport.stream(graph.getRelationships().spliterator(), false)
+                .collect(Collectors.groupingBy(Relationship::getType));
+        writeNodesBulkImport(reporter, config, writer, objectNodes);
+        writeRelsBulkImport(reporter, config, writer, objectRels);
+    }
+
+    private void writeNodesBulkImport(Reporter reporter, ExportConfig config, ExportFileManager writer, Map<Iterable<Label>, List<Node>> objectNode) {
+        objectNode.entrySet().forEach(entrySet -> {
+            Set<String> headerNode = generateHeaderNode(entrySet);
+
+            List<List<String>> rows = entrySet.getValue()
+                    .stream()
+                    .map(n -> {
+                        reporter.update(1, 0, n.getAllProperties().size());
+                        return headerNode.stream().map(s -> {
+                            if (s.equals(":LABEL")) {
+                                return joinLabels(entrySet.getKey(), config.getArrayDelim());
+                            }
+                            String prop = s.split(":")[0];
+                            return prop.equals("id") ? String.valueOf(n.getId()) : cleanPoint(FormatUtils.toString(n.getProperty(prop, "")));
+                        }).collect(Collectors.toList());
+                    })
+                    .collect(Collectors.toList());
+
+            String type = joinLabels(entrySet.getKey(), ".");
+            writeRow(config, writer, headerNode, rows, "nodes." + type);
+        });
+    }
+
+    private void writeRelsBulkImport(Reporter reporter, ExportConfig config, ExportFileManager writer, Map<RelationshipType, List<Relationship>> objectRel) {
+        objectRel.entrySet().forEach(entrySet -> {
+            Set<String> headerRel = generateHeaderRelationship(entrySet);
+
+            List<List<String>> rows = entrySet.getValue()
+                    .stream()
+                    .map(r -> {
+                        reporter.update(0, 1, r.getAllProperties().size());
+                        return headerRel.stream().map(s -> {
+                            switch (s) {
+                                case ":START_ID":
+                                    return String.valueOf(r.getStartNodeId());
+                                case ":END_ID":
+                                    return String.valueOf(r.getEndNodeId());
+                                case ":TYPE":
+                                    return entrySet.getKey().name();
+                                default:
+                                    String prop = s.split(":")[0];
+                                    return prop.equals("id") ? String.valueOf(r.getId()) : cleanPoint(FormatUtils.toString(r.getProperty(prop, "")));
+                            }
+                        }).collect(Collectors.toList());
+                    })
+                    .collect(Collectors.toList());
+            writeRow(config, writer, headerRel, rows, "relationships." + entrySet.getKey().name());
+        });
+    }
+
+    private String cleanPoint(String point) {
+        point = point.replace(",\"z\":null", "");
+        point = point.replace(",\"heigth\":null", "");
+        point = point.replace("\"", "");
+        return point;
+    }
+
+    private Set<String> generateHeaderNode(Map.Entry<Iterable<Label>, List<Node>> entrySet) {
+        Set<String> headerNode = new LinkedHashSet<>();
+        headerNode.add("id:ID");
+        Map<String,Class> keyTypes = new LinkedHashMap<>();
+        entrySet.getValue().forEach(node -> updateKeyTypes(keyTypes, node));
+        headerNode.addAll(keyTypes.entrySet().stream().map(stringClassEntry -> formatHeader(stringClassEntry)).collect(Collectors.toCollection(LinkedHashSet::new)));
+        headerNode.add(":LABEL");
+        return headerNode;
+    }
+
+    private Set<String> generateHeaderRelationship(Map.Entry<RelationshipType, List<Relationship>> entrySet) {
+        Set<String> headerNode = new LinkedHashSet<>();
+        Map<String,Class> keyTypes = new LinkedHashMap<>();
+        entrySet.getValue().forEach(relationship -> updateKeyTypes(keyTypes, relationship));
+        headerNode.addAll(keyTypes.entrySet().stream().map(stringClassEntry -> formatHeader(stringClassEntry)).collect(Collectors.toCollection(LinkedHashSet::new)));
+        headerNode.add(":START_ID");
+        headerNode.add(":END_ID");
+        headerNode.add(":TYPE");
+        return headerNode;
+    }
+
+    private void writeRow(ExportConfig config, ExportFileManager writer, Set<String> headerNode, List<List<String>> rows, String name) {
+        try (PrintWriter pw = writer.getPrintWriter(name);
+             CSVWriter csvWriter = getCsvWriter(pw, config)) {
+            if (config.isSeparateHeader()) {
+                try (PrintWriter pwHeader = writer.getPrintWriter("header." + name)) {
+                    CSVWriter csvWriterHeader = getCsvWriter(pwHeader, config);
+                    csvWriterHeader.writeNext(headerNode.toArray(new String[headerNode.size()]), false);
+                }
+            } else {
+                csvWriter.writeNext(headerNode.toArray(new String[headerNode.size()]), false);
+            }
+            rows.forEach(row -> csvWriter.writeNext(row.toArray(new String[row.size()]), false));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void writeAll2(SubGraph graph, Reporter reporter, ExportConfig config, CSVWriter out) {
         writeNodes(graph, out, reporter,config);
         writeRels(graph, out, reporter,config);
@@ -195,8 +310,7 @@ public class CsvFormat implements Format {
             row[offset+1]=String.valueOf(rel.getEndNode().getId());
             row[offset+2]=rel.getType().name();
             collectProps(relPropTypes.keySet(), rel, reporter, row, 3 + offset, delimiter);
-            out.writeNext(row,
-                          applyQuotesToAll);
+            out.writeNext(row, applyQuotesToAll);
             rels++;
             if (batchSize==-1 || rels % batchSize == 0) {
                 reporter.update(0, rels, 0);

@@ -1,10 +1,13 @@
 package apoc.load;
 
 import apoc.export.util.CountingReader;
+import apoc.load.util.LoadCsvConfig;
 import apoc.meta.Meta;
 import apoc.util.FileUtils;
 import apoc.util.Util;
+import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -12,17 +15,7 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -30,65 +23,44 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.util.Util.cleanUrl;
+import static apoc.util.Util.parseCharFromConfig;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static apoc.load.util.LoadCsvConfig.*;
 
 public class LoadCsv {
 
-    public static final char DEFAULT_ARRAY_SEP = ';';
-    public static final char DEFAULT_SEP = ',';
+
     @Context
     public GraphDatabaseService db;
 
-    public enum Results {
-        map, list, strings, stringMap
-    }
-
     @Procedure
     @Description("apoc.load.csv('url',{config}) YIELD lineNo, list, map - load CSV fom URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
-    public Stream<CSVResult> csv(@Name("url") String url, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) {
-        boolean failOnError = booleanValue(config, "failOnError", true);
+    public Stream<CSVResult> csv(@Name("url") String url, @Name(value = "config",defaultValue = "{}") Map<String, Object> configMap) {
+        LoadCsvConfig config = new LoadCsvConfig(configMap);
         try {
             CountingReader reader = FileUtils.readerFor(url);
 
-            char separator = separator(config, "sep", DEFAULT_SEP);
-            char arraySep = separator(config, "arraySep", DEFAULT_ARRAY_SEP);
-            long skip = longValue(config, "skip", 0L);
-            boolean hasHeader = booleanValue(config, "header", true);
-            long limit = longValue(config, "limit", Long.MAX_VALUE);
+            // new CSVReader(...) is deprecated, moved to the new builder
+            CSVReader csv = new CSVReaderBuilder(reader)
+                    .withCSVParser(new CSVParserBuilder()
+                            .withQuoteChar(config.getQuoteChar())
+                            .withSeparator(config.getSeparator())
+                            .build())
+                    .build();
 
-            EnumSet<Results> results = EnumSet.noneOf(Results.class);
-            for (String result : value(config, "results", asList("map","list"))) {
-                results.add(Results.valueOf(result));
-            }
-
-            List<String> ignore = value(config, "ignore", emptyList());
-            List<String> nullValues = value(config, "nullValues", emptyList());
-            Map<String, Map<String, Object>> mapping = value(config, "mapping", Collections.emptyMap());
-            Map<String, Mapping> mappings = createMapping(mapping, arraySep, ignore);
-
-            CSVReader csv = new CSVReader(reader, separator);
-            String[] header = getHeader(hasHeader, csv, ignore, mappings);
-            boolean checkIgnore = !ignore.isEmpty() || mappings.values().stream().anyMatch( m -> m.ignore);
-            return StreamSupport.stream(new CSVSpliterator(csv, header, url, skip, limit, checkIgnore,mappings, nullValues,results), false);
+            String[] header = getHeader(csv, config);
+            boolean checkIgnore = !config.getIgnore().isEmpty() || config.getMappings().values().stream().anyMatch( m -> m.ignore);
+            return StreamSupport.stream(new CSVSpliterator(csv, header, url, config.getSkip(), config.getLimit(),
+                    checkIgnore, config.getMappings(), config.getNullValues(), config.getResults(), config.getIgnoreErrors()), false);
         } catch (IOException e) {
 
-            if(!failOnError)
+            if(!config.isFailOnError())
                 return Stream.of(new  CSVResult(new String[0], new String[0], 0, true, Collections.emptyMap(), emptyList(), EnumSet.noneOf(Results.class)));
             else
                 throw new RuntimeException("Can't read CSV from URL " + cleanUrl(url), e);
         }
-    }
-
-    private Map<String, Mapping> createMapping(Map<String, Map<String, Object>> mapping, char arraySep, List<String> ignore) {
-        if (mapping.isEmpty()) return Collections.emptyMap();
-        HashMap<String, Mapping> result = new HashMap<>(mapping.size());
-        for (Map.Entry<String, Map<String, Object>> entry : mapping.entrySet()) {
-            String name = entry.getKey();
-            result.put(name, new Mapping(name, entry.getValue(), arraySep, ignore.contains(name)));
-        }
-        return result;
     }
 
     public static class Mapping {
@@ -106,7 +78,7 @@ public class LoadCsv {
             this.array = (Boolean) mapping.getOrDefault("array", false);
             this.ignore = (Boolean) mapping.getOrDefault("ignore", ignore);
             this.nullValues = (Collection<String>) mapping.getOrDefault("nullValues", emptyList());
-            this.arraySep = separator(mapping.getOrDefault("arraySep", arraySep).toString(),DEFAULT_ARRAY_SEP);
+            this.arraySep = parseCharFromConfig(mapping, "arraySep", arraySep);
             this.type = Meta.Types.from(mapping.getOrDefault("type", "STRING").toString());
             this.arrayPattern = Pattern.compile(String.valueOf(this.arraySep), Pattern.LITERAL);
 
@@ -145,49 +117,20 @@ public class LoadCsv {
         }
     }
 
-    private String[] getHeader(boolean hasHeader, CSVReader csv, List<String> ignore, Map<String, Mapping> mapping) throws IOException {
-        if (!hasHeader) return null;
-        String[] header = csv.readNext();
-        if (ignore.isEmpty()) return header;
+    private String[] getHeader(CSVReader csv, LoadCsvConfig config) throws IOException {
+        if (!config.isHasHeader()) return null;
+        String[] headers = csv.readNext();
+        List<String> ignore = config.getIgnore();
+        if (ignore.isEmpty()) return headers;
 
-        for (int i = 0; i < header.length; i++) {
-            if (ignore.contains(header[i]) || mapping.getOrDefault(header[i], Mapping.EMPTY).ignore) {
-                header[i] = null;
+        Map<String, Mapping> mappings = config.getMappings();
+        for (int i = 0; i < headers.length; i++) {
+            String header = headers[i];
+            if (ignore.contains(header) || mappings.getOrDefault(header, Mapping.EMPTY).ignore) {
+                headers[i] = null;
             }
         }
-        return header;
-    }
-
-    private boolean booleanValue(Map<String, Object> config, String key, boolean defaultValue) {
-        if (config == null || !config.containsKey(key)) return defaultValue;
-        Object value = config.get(key);
-        if (value instanceof Boolean) return ((Boolean) value);
-        return Boolean.parseBoolean(value.toString());
-    }
-
-    private long longValue(Map<String, Object> config, String key, long defaultValue) {
-        if (config == null || !config.containsKey(key)) return defaultValue;
-        Object value = config.get(key);
-        if (value instanceof Number) return ((Number) value).longValue();
-        return Long.parseLong(value.toString());
-    }
-
-    private <T> T value(Map<String, Object> config, String key, T defaultValue) {
-        if (config == null || !config.containsKey(key)) return defaultValue;
-        return (T) config.get(key);
-    }
-
-    private char separator(Map<String, Object> config, String key, char defaultValue) {
-        if (config == null) return defaultValue;
-        Object value = config.get(key);
-        if (value == null) return defaultValue;
-        return separator(value.toString(), defaultValue);
-    }
-
-    private static char separator(String separator, char defaultSep) {
-        if (separator==null) return defaultSep;
-        if ("TAB".equalsIgnoreCase(separator)) return '\t';
-        return separator.charAt(0);
+        return headers;
     }
 
     public static class CSVResult {
@@ -262,9 +205,10 @@ public class LoadCsv {
         private final Map<String, Mapping> mapping;
         private final List<String> nullValues;
         private final EnumSet<Results> results;
+        private final boolean ignoreErrors;
         long lineNo;
 
-        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results) throws IOException {
+        public CSVSpliterator(CSVReader csv, String[] header, String url, long skip, long limit, boolean ignore, Map<String, Mapping> mapping, List<String> nullValues, EnumSet<Results> results, boolean ignoreErrors) throws IOException {
             super(Long.MAX_VALUE, Spliterator.ORDERED);
             this.csv = csv;
             this.header = header;
@@ -273,6 +217,7 @@ public class LoadCsv {
             this.mapping = mapping;
             this.nullValues = nullValues;
             this.results = results;
+            this.ignoreErrors = ignoreErrors;
             this.limit = skip + limit;
             lineNo = skip;
             while (skip-- > 0) {
@@ -285,7 +230,8 @@ public class LoadCsv {
             try {
                 String[] row = csv.readNext();
                 if (row != null && lineNo < limit) {
-                    action.accept(new CSVResult(header, row, lineNo++, ignore,mapping, nullValues,results));
+                    action.accept(new CSVResult(header, row, lineNo, ignore,mapping, nullValues,results));
+                    lineNo++;
                     return true;
                 }
                 return false;

@@ -35,7 +35,6 @@ public class LoadRelativePathTest {
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
                 .setConfig("apoc.import.file.enabled","true")
-                .setConfig("apoc.import.file.use_neo4j_config", "true")
                 .setConfig("dbms.directories.import", PATH)
                 .setConfig("dbms.security.allow_csv_import_from_file_urls","true")
                 .newGraphDatabase();

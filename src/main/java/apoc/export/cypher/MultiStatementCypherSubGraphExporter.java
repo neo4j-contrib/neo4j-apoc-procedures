@@ -1,10 +1,13 @@
 package apoc.export.cypher;
 
-import apoc.export.cypher.formatter.CypherFormatterUtils;
-import apoc.export.util.*;
 import apoc.export.cypher.formatter.CypherFormatter;
+import apoc.export.cypher.formatter.CypherFormatterUtils;
+import apoc.export.util.ExportConfig;
+import apoc.export.util.ExportFormat;
+import apoc.export.util.Reporter;
 import apoc.util.Util;
 import org.neo4j.cypher.export.SubGraph;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
@@ -17,7 +20,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static apoc.export.cypher.formatter.CypherFormatterUtils.*;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_LABEL;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_PROP;
 
 /*
  * Idea is to lookup nodes for relationships via a unique index
@@ -36,11 +40,15 @@ public class MultiStatementCypherSubGraphExporter {
 
     private ExportFormat exportFormat;
     private CypherFormatter cypherFormat;
+    private ExportConfig exportConfig;
+    private GraphDatabaseService db;
 
-    public MultiStatementCypherSubGraphExporter(SubGraph graph, ExportConfig config) {
+    public MultiStatementCypherSubGraphExporter(SubGraph graph, ExportConfig config, GraphDatabaseService db) {
         this.graph = graph;
         this.exportFormat = config.getFormat();
+        this.exportConfig = config;
         this.cypherFormat = config.getCypherFormat().getFormatter();
+        this.db = db;
         gatherUniqueConstraints();
     }
 
@@ -59,18 +67,30 @@ public class MultiStatementCypherSubGraphExporter {
      * @param reporter
      * @param cypherFileManager
      */
-    public void export(ExportConfig config, Reporter reporter, FileManagerFactory.ExportCypherFileManager cypherFileManager) throws IOException {
+    public void export(ExportConfig config, Reporter reporter, ExportFileManager cypherFileManager) throws IOException {
 
         int batchSize = config.getBatchSize();
+        ExportConfig.OptimizationType useOptimizations = config.getOptimizationType();
 
-        exportNodes(cypherFileManager.getPrintWriter("nodes"), reporter, batchSize);
-        exportSchema(cypherFileManager.getPrintWriter("schema"));
-        exportRelationships(cypherFileManager.getPrintWriter("relationships"), reporter, batchSize);
+        switch (useOptimizations) {
+            case NONE:
+                exportNodes(cypherFileManager.getPrintWriter("nodes"), reporter, batchSize);
+                exportSchema(cypherFileManager.getPrintWriter("schema"));
+                exportRelationships(cypherFileManager.getPrintWriter("relationships"), reporter, batchSize);
+                break;
+            default:
+                artificialUniques += countArtificialUniques(graph.getNodes());
+                exportSchema(cypherFileManager.getPrintWriter("schema"));
+                PrintWriter nodeWrite = cypherFileManager.getPrintWriter("nodes");
+                exportNodesUnwindBatch(nodeWrite, reporter);
+                PrintWriter relWrite = cypherFileManager.getPrintWriter("relationships");
+                exportRelationshipsUnwindBatch(relWrite, reporter);
+        }
         exportCleanUp(cypherFileManager.getPrintWriter("cleanup"), batchSize);
         reporter.done();
     }
 
-    public void exportOnlySchema(FileManagerFactory.ExportCypherFileManager cypherFileManager) throws IOException {
+    public void exportOnlySchema(ExportFileManager cypherFileManager) throws IOException {
         exportSchema(cypherFileManager.getPrintWriter("schema"));
     }
 
@@ -81,6 +101,13 @@ public class MultiStatementCypherSubGraphExporter {
             begin(out);
             appendNodes(out, batchSize, reporter);
             commit(out);
+            out.flush();
+        }
+    }
+
+    private void exportNodesUnwindBatch(PrintWriter out, Reporter reporter) {
+        if (graph.getNodes().iterator().hasNext()) {
+            this.cypherFormat.statementForNodes(graph.getNodes(), uniqueConstraints, exportConfig, out, reporter, db);
             out.flush();
         }
     }
@@ -111,6 +138,13 @@ public class MultiStatementCypherSubGraphExporter {
             begin(out);
             appendRelationships(out, batchSize, reporter);
             commit(out);
+            out.flush();
+        }
+    }
+
+    private void exportRelationshipsUnwindBatch(PrintWriter out, Reporter reporter) {
+        if (graph.getRelationships().iterator().hasNext()) {
+            this.cypherFormat.statementForRelationships(graph.getRelationships(), uniqueConstraints, exportConfig, out, reporter, db);
             out.flush();
         }
     }
@@ -213,7 +247,7 @@ public class MultiStatementCypherSubGraphExporter {
 
     // ---- Common ----
 
-    private void begin(PrintWriter out) {
+    public void begin(PrintWriter out) {
         out.print(exportFormat.begin());
     }
 
@@ -226,25 +260,39 @@ public class MultiStatementCypherSubGraphExporter {
         begin(out);
     }
 
-    private void commit(PrintWriter out){
+    public void commit(PrintWriter out){
         out.print(exportFormat.commit());
     }
 
     private void gatherUniqueConstraints() {
         for (IndexDefinition indexDefinition : graph.getIndexes()) {
             String label = indexDefinition.getLabel().name();
-            //String prop = Iterables.first(indexDefinition.getPropertyKeys());
-            Set<String> props = StreamSupport.stream(indexDefinition.getPropertyKeys().spliterator(), false).collect(Collectors.toSet());
+            Set<String> props = StreamSupport
+                    .stream(indexDefinition.getPropertyKeys().spliterator(), false)
+                    .collect(Collectors.toSet());
             indexNames.add(label);
             indexedProperties.addAll(props);
-            if (indexDefinition.isConstraintIndex()) {
-                if (!uniqueConstraints.containsKey(label)) uniqueConstraints.put(label, props);
+            if (indexDefinition.isConstraintIndex()) { // we use the constraint that have few properties
+                uniqueConstraints.compute(label, (k, v) ->  v == null || v.size() > props.size() ? props : v);
             }
         }
     }
 
     private long countArtificialUniques(Node node) {
         long artificialUniques = 0;
+        artificialUniques = getArtificialUniques(node, artificialUniques);
+        return artificialUniques;
+    }
+
+    private long countArtificialUniques(Iterable<Node> n) {
+        long artificialUniques = 0;
+        for (Node node : n) {
+            artificialUniques = getArtificialUniques(node, artificialUniques);
+        }
+        return artificialUniques;
+    }
+
+    private long getArtificialUniques(Node node, long artificialUniques) {
         Iterator<Label> labels = node.getLabels().iterator();
         boolean uniqueFound = false;
         while (labels.hasNext()) {

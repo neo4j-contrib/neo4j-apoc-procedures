@@ -8,8 +8,9 @@ Supported protocols are `file`, `http`, `https`, `s3`, `hdfs` with redirect allo
 In case no protocol is passed, this procedure set will try to check whether the url is actually a file.
 
 [NOTE]
-If 'apoc.import.file.use_neo4j_config' is enabled, the procedures check whether file system access is allowed and possibly constrained to a specific directory by
+As `apoc.import.file.use_neo4j_config` is enabled, the procedures check whether file system access is allowed and possibly constrained to a specific directory by
 reading the two configuration parameters `dbms.security.allow_csv_import_from_file_urls` and `dbms.directories.import` respectively.
+If you want to remove these constraints please set `apoc.import.file.use_neo4j_config=false`
 
 [cols="1m,5"]
 |===
@@ -152,6 +153,7 @@ The output of `labels()` function is not sorted, use it in combination with `apo
 | batchSize | 20000 | define the batch size
 // | silent | false | if enabled write progress output
 | delim | "," | define the delimiter character (export csv)
+| arrayDelim | ";" | define the delimiter character for arrays (used in the bulk import)
 | quotes | 'always' | quote-character used for CSV, possible values are: 'always', 'none', 'ifNeeded'
 | useTypes | false | add type on file header (export csv and graphml export)
 | format | "neo4j-shell" | In export to Cypher script define the export format. Possible values are: "cypher-shell","neo4j-shell" and "plain"
@@ -161,9 +163,22 @@ The output of `labels()` function is not sorted, use it in combination with `apo
 | defaultRelationshipType | "RELATED" | set relationship type (import/export graphml)
 | separateFiles | false | export results in separated file by type (nodes, relationships..)
 | cypherFormat | create | In export to cypher script, define the cypher format (for example use `MERGE` instead of `CREATE`). Possible values are: "create", "updateAll", "addStructure", "updateStructure".
+| bulkImport | true | In export it creates files for Neo4j Admin import
+| separateHeader | false | In export it creates two file one for header and one for data
 |===
 
 Values for the `quotes` configuration:
 * `none`: the same behaviour of the current `false`
 * `always`:  the same behaviour of the current `true`
 * `ifNeeded`: it applies quotes only when it's necessary;
+
+When the config `bulkImport` is enable it create a list of file that can be used for Neo4j Bulk Import.
+
+*This config can be used only with `apoc.export.csv.all` and `apoc.export.csv.graph`*
+
+All file create are named as follow:
+
+* Nodes file are construct with the name of the input file append with `.nodes.[LABEL_NAME].csv`
+* Rel file are construct with the name of the input file append with `.relationships.[TYPE_NAME].csv`
+
+If Node or Relationship have more than one Label/Type it will create one file for Label/Type.

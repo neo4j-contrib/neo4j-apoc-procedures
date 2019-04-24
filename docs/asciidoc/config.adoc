@@ -3,20 +3,25 @@
 
 Set these config options in `$NEO4J_HOME/neo4j.conf`
 
-All boolean options default to **false**, i.e. they are disabled, unless mentioned otherwise.
+All boolean options have default value set to **false**. This means that they are *disabled*, unless mentioned otherwise.
 
 [cols="1m,5"]
 |===
 | apoc.trigger.enabled=false/true | Enable triggers
 | apoc.ttl.enabled=false/true | Enable time to live background task
-| apoc.ttl.schedule=5 | Set frequency in seconds to run ttl background task (default 60)
-| apoc.import.file.use_neo4j_config=true | Enable reading properties: `dbms.directories.import`,`dbms.security.allow_csv_import_from_file_urls`
-| apoc.import.file.enabled=true | Enable reading local files from disk
-| apoc.export.file.enabled=true | Enable writing local files to disk
+| apoc.ttl.schedule=5 (default `60`) | Set frequency in seconds to run ttl background task
+| apoc.import.file.use_neo4j_config=true/false (default `true`) | the procedures check whether file system access is
+allowed and possibly constrained to a specific directory by reading the two configuration parameters
+`dbms.security.allow_csv_import_from_file_urls` and `dbms.directories.import` respectively
+| apoc.import.file.enabled=false/true | Enable reading local files from disk
+| apoc.export.file.enabled=false/true | Enable writing local files to disk
 | apoc.jdbc.<key>.uri=jdbc-url-with-credentials | store jdbc-urls under a key to be used by apoc.load.jdbc
 | apoc.es.<key>.uri=es-url-with-credentials | store es-urls under a key to be used by elasticsearch procedures
 | apoc.mongodb.<key>.uri=mongodb-url-with-credentials | store mongodb-urls under a key to be used by mongodb procedures
-| apoc.couchbase.<key>.uri=couchbase-url-with-credentials | store couchbase-urls under a key to be used by couchbase procedures
-| apoc.jobs.scheduled.num_threads=number-of-threads | Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size. You can configure the pool size using this configuration property
-| apoc.jobs.pool.num_threads=number-of-threads | Number of threads in the default APOC thread pool used for background executions.
+| apoc.couchbase.<key>.uri=couchbase-url-with-credentials | store couchbase-urls under a key to be used by couchbase
+procedures
+| apoc.jobs.scheduled.num_threads=number-of-threads | Many periodic procedures rely on a scheduled executor that has
+a pool of threads with a default fixed size. You can configure the pool size using this configuration property
+| apoc.jobs.pool.num_threads=number-of-threads | Number of threads in the default APOC thread pool used for background
+executions.
 |===

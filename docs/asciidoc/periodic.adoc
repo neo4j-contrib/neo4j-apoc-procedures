@@ -79,6 +79,7 @@ The results of the outer statement are passed into the inner statement as parame
 | iterateList | false | the inner statement is only executed once but the whole batchSize list is passed in as parameter {_batch}
 | params | {} | externally passed in map of params
 | concurrency | 50 | How many concurrent tasks are generate when using `parallel:true`
+| failedParams | -1 | If set to a non-negative value, for each failed batch up to `failedParams` parameter sets are returned in in `yield failedParams`.
 |===
 
 NOTE: We plan to make `iterateList:true` the default in upcoming releases, due to the automatic UNWINDing and providing of nested results as variables,

@@ -1,7 +1,6 @@
 package apoc.export.util;
 
 import apoc.export.cypher.formatter.CypherFormat;
-import apoc.gephi.Gephi;
 import apoc.util.Util;
 
 import java.util.*;
@@ -20,21 +19,29 @@ public class ExportConfig {
     public static final String IF_NEEDED_QUUOTES = "ifNeeded";
 
     public static final int DEFAULT_BATCH_SIZE = 20000;
+    private static final int DEFAULT_UNWIND_BATCH_SIZE = 20;
     public static final String DEFAULT_DELIM = ",";
+    public static final String DEFAULT_ARRAY_DELIM = ";";
     public static final String DEFAULT_QUOTES = ALWAYS_QUOTES;
     private final boolean streamStatements;
 
-    private int batchSize = DEFAULT_BATCH_SIZE;
-    private boolean silent = false;
-    private String delim = DEFAULT_DELIM;
-    private String quotes = DEFAULT_QUOTES;
-    private boolean useTypes = false;
+    private int batchSize;
+    private boolean silent;
+    private boolean bulkImport = false;
+    private String delim;
+    private String quotes;
+    private boolean useTypes;
     private Set<String> caption;
-    private boolean writeNodeProperties = false;
+    private boolean writeNodeProperties;
     private boolean nodesOfRelationships;
     private ExportFormat format;
     private CypherFormat cypherFormat;
     private final Map<String, Object> config;
+    private boolean separateHeader;
+    private String arrayDelim;
+    private Map<String, Object> optimizations;
+    public enum OptimizationType {NONE, UNWIND_BATCH, UNWIND_BATCH_PARAMS}
+    private OptimizationType optimizationType;
 
     public int getBatchSize() {
         return batchSize;
@@ -42,6 +49,10 @@ public class ExportConfig {
 
     public boolean isSilent() {
         return silent;
+    }
+
+    public boolean isBulkImport() {
+        return bulkImport;
     }
 
     public char getDelimChar() {
@@ -56,7 +67,6 @@ public class ExportConfig {
         return quotes;
     }
 
-
     public boolean useTypes() {
         return useTypes;
     }
@@ -70,17 +80,33 @@ public class ExportConfig {
     public ExportConfig(Map<String,Object> config) {
         config = config != null ? config : Collections.emptyMap();
         this.silent = toBoolean(config.getOrDefault("silent",false));
-        this.batchSize = ((Number)config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE)).intValue();
-        this.delim = delim(config.getOrDefault("d", String.valueOf(DEFAULT_DELIM)).toString());
+        this.delim = delim(config.getOrDefault("delim", DEFAULT_DELIM).toString());
+        this.arrayDelim = delim(config.getOrDefault("arrayDelim", DEFAULT_ARRAY_DELIM).toString());
         this.useTypes = toBoolean(config.get("useTypes"));
         this.caption = convertCaption(config.getOrDefault("caption", asList("name", "title", "label", "id")));
         this.nodesOfRelationships = toBoolean(config.get("nodesOfRelationships"));
+        this.bulkImport = toBoolean(config.get("bulkImport"));
+        this.separateHeader = toBoolean(config.get("separateHeader"));
         this.format = ExportFormat.fromString((String) config.getOrDefault("format", "neo4j-shell"));
         this.cypherFormat = CypherFormat.fromString((String) config.getOrDefault("cypherFormat", "create"));
         this.config = config;
         this.streamStatements = toBoolean(config.get("streamStatements")) || toBoolean(config.get("stream"));
         this.writeNodeProperties = toBoolean(config.get("writeNodeProperties"));
         exportQuotes(config);
+        this.optimizations = (Map<String, Object>) config.getOrDefault("useOptimizations", Collections.emptyMap());
+        this.optimizationType = OptimizationType.valueOf(optimizations.getOrDefault("type", OptimizationType.UNWIND_BATCH.toString()).toString().toUpperCase());
+        validate();
+        if (optimizationType.equals(OptimizationType.UNWIND_BATCH_PARAMS)) {
+            this.batchSize = getUnwindBatchSize(); // batchSize is not considered because the data gets committed every UNWIND operation
+        } else {
+            this.batchSize = ((Number)config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE)).intValue();
+        }
+    }
+
+    private void validate() {
+        if (OptimizationType.UNWIND_BATCH_PARAMS.equals(this.optimizationType) && !ExportFormat.CYPHER_SHELL.equals(this.format)) {
+            throw new RuntimeException("`useOptimizations: 'UNWIND_BATCH_PARAMS'` can be used only in combination with `format: 'CYPHER_SHELL'`");
+        }
     }
 
     private void exportQuotes(Map<String, Object> config)
@@ -108,11 +134,6 @@ public class ExportConfig {
         throw new RuntimeException("Illegal delimiter '"+value+"'");
     }
 
-    public ExportConfig withTypes() {
-        this.useTypes =true;
-        return this;
-    }
-
     public String defaultRelationshipType() {
         return config.getOrDefault("defaultRelationshipType","RELATED").toString();
     }
@@ -127,10 +148,6 @@ public class ExportConfig {
 
     public boolean separateFiles() {
         return toBoolean(config.getOrDefault("separateFiles", false));
-    }
-
-    private ExportFormat format(Object format) {
-        return format != null && format instanceof String ? ExportFormat.fromString((String)format) : ExportFormat.NEO4J_SHELL;
     }
 
     private static Set<String> convertCaption(Object value) {
@@ -151,4 +168,25 @@ public class ExportConfig {
     public long getTimeoutSeconds() {
         return Util.toLong(config.getOrDefault("timeoutSeconds",100));
     }
+
+    public int getUnwindBatchSize() {
+        return ((Number)getOptimizations().getOrDefault("unwindBatchSize", DEFAULT_UNWIND_BATCH_SIZE)).intValue();
+    }
+
+    public Map<String, Object> getOptimizations() {
+        return optimizations;
+    }
+
+    public boolean isSeparateHeader() {
+        return this.separateHeader;
+    }
+
+    public String getArrayDelim() {
+        return arrayDelim;
+    }
+
+    public OptimizationType getOptimizationType() {
+        return optimizationType;
+    }
+
 }

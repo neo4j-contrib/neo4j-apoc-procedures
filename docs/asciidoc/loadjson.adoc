@@ -9,7 +9,7 @@ Most of them provide the data as JSON.
 With `apoc.load.json` you can retrieve data from URLs and turn it into map value(s) for Cypher to consume.
 Cypher is pretty good at deconstructing nested documents with dot syntax, slices, `UNWIND` etc. so it is easy to turn nested data into graphs.
 
-Sources with multiple JSON objects in a stream are also supported, like the https://dev.twitter.com/streaming/overview/processing[streaming Twitter format] or the Yelp Kaggle dataset.
+Sources with multiple JSON objects (JSONL,JSON Lines) in a stream are also supported, like the https://dev.twitter.com/streaming/overview/processing[streaming Twitter format] or the Yelp Kaggle dataset.
 
 ifdef::backend-html5[]
 ++++

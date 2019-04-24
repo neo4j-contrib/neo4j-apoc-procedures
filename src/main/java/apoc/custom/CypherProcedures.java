@@ -23,15 +23,13 @@ import org.neo4j.kernel.impl.util.DefaultValueMapper;
 import org.neo4j.kernel.impl.util.ValueUtils;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.Context;
-import org.neo4j.procedure.Mode;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.*;
 import org.neo4j.values.AnyValue;
 import org.neo4j.values.virtual.MapValue;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static apoc.util.Util.map;
 import static java.util.Collections.singletonList;
@@ -45,7 +43,9 @@ public class CypherProcedures {
 
     private static final String PREFIX = "custom";
     public static final String FUNCTIONS = "functions";
+    public static final String FUNCTION = "function";
     public static final String PROCEDURES = "procedures";
+    public static final String PROCEDURE = "procedure";
     @Context
     public GraphDatabaseAPI api;
     @Context
@@ -54,24 +54,26 @@ public class CypherProcedures {
     public Log log;
 
     /*
-    * store in graph properties, load at startup
-    * allow to register proper params as procedure-params
-    * allow to register proper return columns
-    * allow to register mode
+     * store in graph properties, load at startup
+     * allow to register proper params as procedure-params
+     * allow to register proper return columns
+     * allow to register mode
      */
     @Procedure(value = "apoc.custom.asProcedure",mode = Mode.WRITE)
+    @Description("apoc.custom.asProcedure(name, statement, mode, outputs, inputs, description) - register a custom cypher procedure")
     public void asProcedure(@Name("name") String name, @Name("statement") String statement,
-                         @Name(value = "mode",defaultValue = "read") String mode,
-                         @Name(value= "outputs", defaultValue = "null") List<List<String>> outputs,
-                         @Name(value= "inputs", defaultValue = "null") List<List<String>> inputs
-                         ) throws ProcedureException {
+                            @Name(value = "mode",defaultValue = "read") String mode,
+                            @Name(value= "outputs", defaultValue = "null") List<List<String>> outputs,
+                            @Name(value= "inputs", defaultValue = "null") List<List<String>> inputs,
+                            @Name(value= "description", defaultValue = "null") String description
+    ) throws ProcedureException {
         debug(name,"before", ktx);
 
         CustomStatementRegistry registry = new CustomStatementRegistry(api, log);
-        if (!registry.registerProcedure(name, statement, mode, outputs, inputs)) {
+        if (!registry.registerProcedure(name, statement, mode, outputs, inputs, description)) {
             throw new IllegalStateException("Error registering procedure "+name+", see log.");
         }
-        CustomProcedureStorage.storeProcedure(api, name, statement, mode, outputs, inputs);
+        CustomProcedureStorage.storeProcedure(api, name, statement, mode, outputs, inputs, description);
         debug(name, "after", ktx);
     }
 
@@ -85,15 +87,24 @@ public class CypherProcedures {
     }
 
     @Procedure(value = "apoc.custom.asFunction",mode = Mode.WRITE)
+    @Description("apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description) - register a custom cypher function")
     public void asFunction(@Name("name") String name, @Name("statement") String statement,
                            @Name(value= "outputs", defaultValue = "") String output,
                            @Name(value= "inputs", defaultValue = "null") List<List<String>> inputs,
-                           @Name(value = "forceSingle",defaultValue = "false") boolean forceSingle) throws ProcedureException {
+                           @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
+                           @Name(value = "description", defaultValue = "null") String description) throws ProcedureException {
         CustomStatementRegistry registry = new CustomStatementRegistry(api, log);
-        if (!registry.registerFunction(name, statement, output, inputs, forceSingle)) {
+        if (!registry.registerFunction(name, statement, output, inputs, forceSingle, description)) {
             throw new IllegalStateException("Error registering function "+name+", see log.");
         }
-        CustomProcedureStorage.storeFunction(api, name, statement, output, inputs, forceSingle);
+        CustomProcedureStorage.storeFunction(api, name, statement, output, inputs, forceSingle, description);
+    }
+
+    @Procedure(value = "apoc.custom.list", mode = Mode.READ)
+    @Description("apoc.custom.list() - provide a list of custom procedures/function registered")
+    public Stream<CustomProcedureInfo> list(){
+        CustomProcedureStorage registry = new CustomProcedureStorage(api, log);
+        return registry.list().stream();
     }
 
     static class CustomStatementRegistry {
@@ -107,12 +118,12 @@ public class CypherProcedures {
             this.log = log;
         }
 
-        public boolean registerProcedure(@Name("name") String name, @Name("statement") String statement, @Name(value = "mode", defaultValue = "read") String mode, @Name(value = "outputs", defaultValue = "null") List<List<String>> outputs, @Name(value = "inputs", defaultValue = "null") List<List<String>> inputs) {
+        public boolean registerProcedure(@Name("name") String name, @Name("statement") String statement, @Name(value = "mode", defaultValue = "read") String mode, @Name(value = "outputs", defaultValue = "null") List<List<String>> outputs, @Name(value = "inputs", defaultValue = "null") List<List<String>> inputs, @Name(value= "description", defaultValue = "") String description) {
             try {
                 Procedures procedures = api.getDependencyResolver().resolveDependency(Procedures.class);
                 boolean admin = false; // TODO
                 ProcedureSignature signature = new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
-                        Mode.valueOf(mode.toUpperCase()), admin, null, new String[0], null, null, false, true
+                        Mode.valueOf(mode.toUpperCase()), admin, null, new String[0], description, null, false, true
                 );
                 procedures.register(new CallableProcedure.BasicProcedure(signature) {
                     @Override
@@ -141,11 +152,11 @@ public class CypherProcedures {
 
         }
 
-        public boolean registerFunction(String name, String statement, String output, List<List<String>> inputs, boolean forceSingle)  {
+        public boolean registerFunction(String name, String statement, String output, List<List<String>> inputs, boolean forceSingle, String description)  {
             try {
                 AnyType outType = typeof(output.isEmpty() ? "LIST OF MAP" : output);
                 UserFunctionSignature signature = new UserFunctionSignature(qualifiedName(name), inputSignatures(inputs), outType,
-                        null, new String[0], null, false);
+                        null, new String[0], description, false);
 
                 DefaultValueMapper defaultValueMapper = new DefaultValueMapper(api.getDependencyResolver().resolveDependency(GraphDatabaseFacade.class));
 
@@ -307,6 +318,30 @@ public class CypherProcedures {
         }
     }
 
+    public static class CustomProcedureInfo {
+        public String type;
+        public String name;
+        public String description;
+        public String mode;
+        public String statement;
+        public List<List<String>>inputs;
+        public Object outputs;
+        public Boolean forceSingle;
+
+        public CustomProcedureInfo(String type, String name, String description, String mode,
+                                   String statement, List<List<String>> inputs, Object outputs,
+                                   Boolean forceSingle){
+            this.type = type;
+            this.name = name;
+            this.description = description;
+            this.statement = statement;
+            this.outputs = outputs;
+            this.inputs = inputs;
+            this.forceSingle = forceSingle;
+            this.mode = mode;
+        }
+    }
+
     public static class CustomProcedureStorage implements AvailabilityListener {
         public static final String APOC_CUSTOM = "apoc.custom";
         private GraphProperties properties;
@@ -333,11 +368,11 @@ public class CypherProcedures {
             Map<String, Map<String,Map<String, Object>>> stored = readData(properties);
             stored.get(FUNCTIONS).forEach((name, data) -> {
                 registry.registerFunction(name, (String) data.get("statement"), (String) data.get("output"),
-                        (List<List<String>>) data.get("inputs"), (Boolean)data.get("forceSingle"));
+                        (List<List<String>>) data.get("inputs"), (Boolean)data.get("forceSingle"), (String) data.get("description"));
             });
             stored.get(PROCEDURES).forEach((name, data) -> {
                 registry.registerProcedure(name, (String) data.get("statement"), (String) data.get("mode"),
-                        (List<List<String>>) data.get("outputs"), (List<List<String>>) data.get("inputs"));
+                        (List<List<String>>) data.get("outputs"), (List<List<String>>) data.get("inputs"), (String) data.get("description"));
             });
         }
 
@@ -346,13 +381,13 @@ public class CypherProcedures {
             properties = null;
         }
 
-        public static Map<String, Object> storeProcedure(GraphDatabaseAPI api, String name, String statement, String mode, List<List<String>> outputs, List<List<String>> inputs) {
+        public static Map<String, Object> storeProcedure(GraphDatabaseAPI api, String name, String statement, String mode, List<List<String>> outputs, List<List<String>> inputs, String description) {
 
-            Map<String, Object> data = map("statement", statement, "mode", mode, "inputs", inputs, "outputs", outputs);
+            Map<String, Object> data = map("statement", statement, "mode", mode, "inputs", inputs, "outputs", outputs, "description", description);
             return updateCustomData(getProperties(api), name, PROCEDURES, data);
         }
-        public static Map<String, Object> storeFunction(GraphDatabaseAPI api, String name, String statement, String output, List<List<String>> inputs, boolean forceSingle) {
-            Map<String, Object> data = map("statement", statement, "forceSingle", forceSingle, "inputs", inputs, "output", output);
+        public static Map<String, Object> storeFunction(GraphDatabaseAPI api, String name, String statement, String output, List<List<String>> inputs, boolean forceSingle, String description) {
+            Map<String, Object> data = map("statement", statement, "forceSingle", forceSingle, "inputs", inputs, "output", output, "description", description);
             return updateCustomData(getProperties(api), name, FUNCTIONS, data);
         }
 
@@ -383,10 +418,29 @@ public class CypherProcedures {
             }
         }
 
-        public Map<String, Map<String, Map<String, Object>>> list() {
-            try (Transaction tx = properties.getGraphDatabase().beginTx()) {
-                return readData(properties);
-            }
+        public List<CustomProcedureInfo> list() {
+            return readData(getProperties(api)).entrySet().stream()
+                    .flatMap(entryProcedureType -> {
+                        Map<String, Map<String, Object>> procedures = entryProcedureType.getValue();
+                        String type = entryProcedureType.getKey();
+                        boolean isProcedure = PROCEDURES.equals(type);
+                        return procedures.entrySet().stream().map(entryProcedure -> {
+                            String typeLabel = isProcedure ? PROCEDURE : FUNCTION;
+                            String outputs = isProcedure ? "outputs" : "output";
+                            String procedureName = entryProcedure.getKey();
+                            Map<String, Object> procedureParams = entryProcedure.getValue();
+                            return new CustomProcedureInfo(typeLabel, procedureName,
+                                    "null".equals(procedureParams.get("description")) ?
+                                            null : String.valueOf(procedureParams.get("description")),
+                                    procedureParams.containsKey("mode")
+                                            ? String.valueOf(procedureParams.get("mode")) : null,
+                                    String.valueOf(procedureParams.get("statement")),
+                                    (List<List<String>>) procedureParams.get("inputs"),
+                                    procedureParams.get(outputs),
+                                    (Boolean) procedureParams.get("forceSingle"));
+                        });
+                    })
+                    .collect(Collectors.toList());
         }
     }
 }
