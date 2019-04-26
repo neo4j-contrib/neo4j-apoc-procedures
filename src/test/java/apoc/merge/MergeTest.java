@@ -18,7 +18,6 @@ import static org.junit.Assert.*;
 public class MergeTest {
 
     private GraphDatabaseService db;
-    public static final Label PERSON = Label.label("Person");
 
     @Before
     public void setUp() throws Exception {
@@ -117,4 +116,147 @@ public class MergeTest {
         }
     }
 
+
+    // MERGE EAGER TESTS
+
+
+    @Test
+    public void testMergeEagerNode() throws Exception {
+        testCall(db, "CALL apoc.merge.node.eager(['Person','Bastard'],{ssid:'123'}, {name:'John'}) YIELD node RETURN node",
+                (row) -> {
+                    Node node = (Node) row.get("node");
+                    assertEquals(true, node.hasLabel(Label.label("Person")));
+                    assertEquals(true, node.hasLabel(Label.label("Bastard")));
+                    assertEquals("John", node.getProperty("name"));
+                    assertEquals("123", node.getProperty("ssid"));
+                });
+    }
+
+    @Test
+    public void testMergeEagerNodeWithOnCreate() throws Exception {
+        testCall(db, "CALL apoc.merge.node.eager(['Person','Bastard'],{ssid:'123'}, {name:'John'},{occupation:'juggler'}) YIELD node RETURN node",
+                (row) -> {
+                    Node node = (Node) row.get("node");
+                    assertEquals(true, node.hasLabel(Label.label("Person")));
+                    assertEquals(true, node.hasLabel(Label.label("Bastard")));
+                    assertEquals("John", node.getProperty("name"));
+                    assertEquals("123", node.getProperty("ssid"));
+                    assertFalse(node.hasProperty("occupation"));
+                });
+    }
+
+    @Test
+    public void testMergeEagerNodeWithOnMatch() throws Exception {
+        db.execute("CREATE (p:Person:Bastard {ssid:'123'})");
+        testCall(db, "CALL apoc.merge.node.eager(['Person','Bastard'],{ssid:'123'}, {name:'John'}, {occupation:'juggler'}) YIELD node RETURN node",
+                (row) -> {
+                    Node node = (Node) row.get("node");
+                    assertEquals(true, node.hasLabel(Label.label("Person")));
+                    assertEquals(true, node.hasLabel(Label.label("Bastard")));
+                    assertEquals("juggler", node.getProperty("occupation"));
+                    assertEquals("123", node.getProperty("ssid"));
+                    assertFalse(node.hasProperty("name"));
+                });
+    }
+
+    @Test
+    public void testMergeEagerNodesWithOnMatchCanMergeOnMultipleMatches() throws Exception {
+        db.execute("UNWIND range(1,5) as index MERGE (:Person:`Bastard Man`{ssid:'123', index:index})");
+
+        try (Transaction tx = db.beginTx()) {
+            Result result = db.execute("CALL apoc.merge.node.eager(['Person','Bastard Man'],{ssid:'123'}, {name:'John'}, {occupation:'juggler'}) YIELD node RETURN node");
+
+            for (long index = 1; index <= 5; index++) {
+                Node node = (Node) result.next().get("node");
+                assertEquals(true, node.hasLabel(Label.label("Person")));
+                assertEquals(true, node.hasLabel(Label.label("Bastard Man")));
+                assertEquals("123", node.getProperty("ssid"));
+                assertEquals(index, node.getProperty("index"));
+                assertEquals("juggler", node.getProperty("occupation"));
+                assertFalse(node.hasProperty("name"));
+            }
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testMergeEagerRelationships() throws Exception {
+        db.execute("create (:Person{name:'Foo'}), (:Person{name:'Bar'})");
+
+        testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship.eager(s, 'KNOWS', {rid:123}, {since:'Thu'}, e) YIELD rel RETURN rel",
+                (row) -> {
+                    Relationship rel = (Relationship) row.get("rel");
+                    assertEquals("KNOWS", rel.getType().name());
+                    assertEquals(123l, rel.getProperty("rid"));
+                    assertEquals("Thu", rel.getProperty("since"));
+                });
+
+        testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship.eager(s, 'KNOWS', {rid:123}, {since:'Fri'}, e) YIELD rel RETURN rel",
+                (row) -> {
+                    Relationship rel = (Relationship) row.get("rel");
+                    assertEquals("KNOWS", rel.getType().name());
+                    assertEquals(123l, rel.getProperty("rid"));
+                    assertEquals("Thu", rel.getProperty("since"));
+                });
+        testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship(s, 'OTHER', null, null, e) YIELD rel RETURN rel",
+                (row) -> {
+                    Relationship rel = (Relationship) row.get("rel");
+                    assertEquals("OTHER", rel.getType().name());
+                    assertTrue(rel.getAllProperties().isEmpty());
+                });
+    }
+
+    @Test
+    public void testMergeEagerRelationshipsWithOnMatch() throws Exception {
+        db.execute("create (:Person{name:'Foo'}), (:Person{name:'Bar'})");
+
+        testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship.eager(s, 'KNOWS', {rid:123}, {since:'Thu'}, e,{until:'Saturday'}) YIELD rel RETURN rel",
+                (row) -> {
+                    Relationship rel = (Relationship) row.get("rel");
+                    assertEquals("KNOWS", rel.getType().name());
+                    assertEquals(123l, rel.getProperty("rid"));
+                    assertEquals("Thu", rel.getProperty("since"));
+                    assertFalse(rel.hasProperty("until"));
+                });
+
+        testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship.eager(s, 'KNOWS', {rid:123}, {}, e,{since:'Fri'}) YIELD rel RETURN rel",
+                (row) -> {
+                    Relationship rel = (Relationship) row.get("rel");
+                    assertEquals("KNOWS", rel.getType().name());
+                    assertEquals(123l, rel.getProperty("rid"));
+                    assertEquals("Fri", rel.getProperty("since"));
+                });
+    }
+
+    @Test
+    public void testMergeEagerRelationshipsWithOnMatchCanMergeOnMultipleMatches() throws Exception {
+        db.execute("CREATE (foo:Person{name:'Foo'}), (bar:Person{name:'Bar'}) WITH foo, bar UNWIND range(1,3) as index CREATE (foo)-[:KNOWS {rid:123}]->(bar)");
+
+        try (Transaction tx = db.beginTx()) {
+            Result result = db.execute("MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship.eager(s, 'KNOWS', {rid:123}, {}, e, {since:'Fri'}) YIELD rel RETURN rel");
+
+            for (long index = 1; index <= 3; index++) {
+                Relationship rel = (Relationship) result.next().get("rel");
+                assertEquals("KNOWS", rel.getType().name());
+                assertEquals(123l, rel.getProperty("rid"));
+                assertEquals("Fri", rel.getProperty("since"));
+            }
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testMergeEagerWithEmptyIdentityPropertiesShouldFail() {
+        for (String idProps: new String[]{"null", "{}"}) {
+            try {
+                testCall(db, "CALL apoc.merge.node(['Person']," + idProps +", {name:'John'}) YIELD node RETURN node",
+                        row -> assertTrue(row.get("node") instanceof Node));
+                fail();
+            } catch (QueryExecutionException e) {
+                assertTrue(e.getMessage().contains("you need to supply at least one identifying property for a merge"));
+            }
+        }
+    }
 }
