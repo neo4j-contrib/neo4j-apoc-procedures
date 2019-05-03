@@ -13,6 +13,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.export.util.BulkImportUtil.formatHeader;
@@ -94,7 +95,8 @@ public class CsvFormat implements Format {
             String[] data = new String[header.length];
             result.accept((row) -> {
                 for (int col = 0; col < header.length; col++) {
-                    Object value = row.get(header[col]);
+                    String key = header[col];
+                    Object value = row.get(key);
                     data[col] = FormatUtils.toString(value);
                     reporter.update(value instanceof Node ? 1: 0,value instanceof Relationship ? 1: 0 , value instanceof PropertyContainer ? 0 : 1);
                 }
@@ -110,7 +112,6 @@ public class CsvFormat implements Format {
 
     public String[] writeResultHeader(Result result, CSVWriter out) {
         List<String> columns = result.columns();
-        columns.sort(Comparator.naturalOrder());
         int cols = columns.size();
         String[] header = columns.toArray(new String[cols]);
         out.writeNext(header, applyQuotesToAll);
@@ -123,7 +124,8 @@ public class CsvFormat implements Format {
 
         List<String> nodeHeader = generateHeader(nodePropTypes, config.useTypes(), "_id:id", "_labels:label");
         List<String> relHeader = generateHeader(relPropTypes, config.useTypes(), "_start:id", "_end:id", "_type:label");
-        List<String> header = new ArrayList<>(nodeHeader); header.addAll(relHeader);
+        List<String> header = new ArrayList<>(nodeHeader);
+        header.addAll(relHeader);
         out.writeNext(header.toArray(new String[header.size()]), applyQuotesToAll);
         int cols = header.size();
 
@@ -242,13 +244,19 @@ public class CsvFormat implements Format {
 
     private List<String> generateHeader(Map<String, Class> propTypes, boolean useTypes, String... starters) {
         List<String> result = new ArrayList<>();
-        Collections.addAll(result,starters);
-        for (Map.Entry<String, Class> entry : propTypes.entrySet()) {
-            String type = MetaInformation.typeFor(entry.getValue(), null);
-            if (type==null || type.equals("string") || !useTypes) result.add(entry.getKey());
-            else result.add(entry.getKey()+":"+ type);
+        if (useTypes) {
+            Collections.addAll(result, starters);
+        } else {
+            result.addAll(Stream.of(starters).map(s -> s.split(":")[0]).collect(Collectors.toList()));
         }
-        if (!useTypes) return result.stream().map( s -> s.split(":")[0]).collect(Collectors.toList());
+        result.addAll(propTypes.entrySet().stream()
+                .map(entry -> {
+                    String type = MetaInformation.typeFor(entry.getValue(), null);
+                    return (type == null || type.equals("string") || !useTypes)
+                            ? entry.getKey() : entry.getKey() + ":" + type;
+                })
+                .sorted()
+                .collect(Collectors.toList()));
         return result;
     }
 
