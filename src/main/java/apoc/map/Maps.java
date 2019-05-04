@@ -114,6 +114,40 @@ public class Maps {
     }
 
     @UserFunction
+    @Description("apoc.map.get(map,key,[default],[fail=true]) - returns value for key or throws exception if key doesn't exist and no default given")
+    public Object get(@Name("map") Map<String,Object> map, @Name("key") String key, @Name(value = "value", defaultValue = "null") Object value, @Name(value = "fail",defaultValue = "true") boolean fail) {
+        if (fail && value == null && !map.containsKey(key)) throw new IllegalArgumentException("Key "+key+" is not of one of the existing keys "+map.keySet());
+        return map.getOrDefault(key, value);
+    }
+
+    @UserFunction
+    @Description("apoc.map.mget(map,key,[defaults],[fail=true])  - returns list of values for keys or throws exception if one of the key doesn't exist and no default value given at that position")
+    public List<Object> mget(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys, @Name(value = "values", defaultValue = "[]") List<Object> values, @Name(value = "fail",defaultValue = "true") boolean fail) {
+        if (keys==null || map==null) return null;
+        int keySize = keys.size();
+        List<Object> result = new ArrayList<>(keySize);
+        int valuesSize = values == null ? -1 : values.size();
+        for (int i = 0; i < keySize; i++) {
+            result.add(get(map, keys.get(i), i < valuesSize ? values.get(i) : null,fail));
+        }
+        return result;
+    }
+
+    @UserFunction
+    @Description("apoc.map.submap(map,keys,[defaults],[fail=true])  - returns submap for keys or throws exception if one of the key doesn't exist and no default value given at that position")
+    public Map<String, Object> submap(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys, @Name(value = "values", defaultValue = "[]") List<Object> values, @Name(value = "fail",defaultValue = "true") boolean fail) {
+        if (keys==null || map==null) return null;
+        int keySize = keys.size();
+        Map<String,Object> result = new LinkedHashMap<>(keySize);
+        int valuesSize = values == null ? -1 : values.size();
+        for (int i = 0; i < keySize; i++) {
+            String key = keys.get(i);
+            result.put(key, get(map, key, i < valuesSize ? values.get(i) : null,fail));
+        }
+        return result;
+    }
+
+    @UserFunction
     @Description("apoc.map.setKey(map,key,value)")
     public Map<String,Object> setKey(@Name("map") Map<String,Object> map, @Name("key") String key, @Name("value") Object value) {
         return Util.merge(map, Util.map(key,value));
