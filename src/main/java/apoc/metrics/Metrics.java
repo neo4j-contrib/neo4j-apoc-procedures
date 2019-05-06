@@ -1,7 +1,9 @@
 package apoc.metrics;
 
 import apoc.ApocConfiguration;
+import apoc.export.util.CountingReader;
 import apoc.load.LoadCsv;
+import apoc.load.util.LoadCsvConfig;
 import apoc.util.FileUtils;
 import apoc.util.Util;
 import org.neo4j.logging.Log;
@@ -14,6 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import static apoc.util.FileUtils.closeReaderSafely;
 
 /**
  * @author moxious
@@ -162,10 +166,18 @@ public class Metrics {
                     "https://neo4j.com/docs/operations-manual/current/monitoring/metrics/expose/#metrics-csv");
         }
 
-        String url = new File(metricsDir, metricName + ".csv").toURI().toString();
-        return new LoadCsv().csv(url, config)
-                .filter(Metrics.duplicatedHeaderRows)
-                .map(csvResult -> new GenericMetric(metricName, Util.toLong(csvResult.map.get("t")), csvResult.map));
+        String url = new File(metricsDir, metricName + ".csv").getAbsolutePath();
+        CountingReader reader = null;
+        try {
+            reader = FileUtils.readFile(url);
+            return new LoadCsv()
+                    .streamCsv(url, new LoadCsvConfig(config), reader)
+                    .filter(Metrics.duplicatedHeaderRows)
+                    .map(csvResult -> new GenericMetric(metricName, Util.toLong(csvResult.map.get("t")), csvResult.map));
+        } catch (Exception e) {
+            closeReaderSafely(reader);
+            throw new RuntimeException(e);
+        }
     }
 
     @Procedure(mode=Mode.DBMS)
