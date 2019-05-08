@@ -47,6 +47,7 @@ public class LoadCsv {
                     .withCSVParser(new CSVParserBuilder()
                             .withQuoteChar(config.getQuoteChar())
                             .withSeparator(config.getSeparator())
+                            .withIgnoreQuotations( config.isIgnoreQuotations() )
                             .build())
                     .build();
 
