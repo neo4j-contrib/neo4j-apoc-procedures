@@ -22,6 +22,7 @@ public class LoadCsvConfig {
     private long limit;
 
     private boolean failOnError;
+    private boolean ignoreQuotations;
 
     private EnumSet<Results> results;
 
@@ -45,6 +46,7 @@ public class LoadCsvConfig {
         hasHeader = (boolean) config.getOrDefault("header", true);
         limit = (long) config.getOrDefault("limit", Long.MAX_VALUE);
         failOnError = (boolean) config.getOrDefault("failOnError", true);
+        ignoreQuotations = (boolean) config.getOrDefault("ignoreQuotations", false);
 
         results = EnumSet.noneOf(Results.class);
         List<String> resultList = (List<String>) config.getOrDefault("results", asList("map","list"));
@@ -114,5 +116,9 @@ public class LoadCsvConfig {
 
     public char getQuoteChar() {
         return quoteChar;
+    }
+
+    public boolean isIgnoreQuotations() {
+        return ignoreQuotations;
     }
 }
