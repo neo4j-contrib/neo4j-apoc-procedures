@@ -11,6 +11,7 @@ import org.bson.Document;
 import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Result;
 import org.neo4j.test.TestGraphDatabaseFactory;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
@@ -22,6 +23,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 import static apoc.util.MapUtil.map;
@@ -44,15 +46,17 @@ public class MongoDBTest {
     private static GraphDatabaseService db;
     private static MongoCollection<Document> collection;
 
-    private static Date currentTime = new Date();
+    private static final Date currentTime = new Date();
 
-    private static long longValue = 10_000L;
+    private static final long longValue = 10_000L;
 
     private static String HOST = null;
 
     private static Map<String, Object> params;
 
     private long numConnections = -1;
+
+    private static final long NUM_OF_RECORDS = 10_000L;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -75,7 +79,11 @@ public class MongoDBTest {
         MongoDatabase database = mongoClient.getDatabase("test");
         collection = database.getCollection("test");
         collection.deleteMany(new Document());
-        collection.insertOne(new Document(map("name", "testDocument", "date", currentTime, "longValue", longValue)));
+        LongStream.range(0, NUM_OF_RECORDS)
+                .forEach(i -> collection
+                        .insertOne(new Document(map("name", "testDocument",
+                                "date", currentTime, "longValue", longValue))));
+//        collection.insertOne(new Document(map("name", "testDocument", "date", currentTime, "longValue", longValue)));
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
                 .newGraphDatabase();
@@ -135,21 +143,14 @@ public class MongoDBTest {
 
     @Test
     public void testGet()  {
-        TestUtil.testCall(db, "CALL apoc.mongodb.get({host},{db},{collection},null)", params, r -> {
-            Map doc = (Map) r.get("value");
-            assertNotNull(doc.get("_id"));
-            assertEquals("testDocument", doc.get("name"));
-        });
+        TestUtil.testResult(db, "CALL apoc.mongodb.get({host},{db},{collection},null)", params,
+                res -> assertResult(res));
     }
 
     @Test
     public void testGetCompatible() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.get({host},{db},{collection},null,true)", params, r -> {
-            Map doc = (Map) r.get("value");
-            assertNotNull(doc.get("_id"));
-            assertEquals("testDocument", doc.get("name"));
-            assertEquals(currentTime.getTime(), doc.get("date"));
-        });
+        TestUtil.testResult(db, "CALL apoc.mongodb.get({host},{db},{collection},null,true)", params,
+                res -> assertResult(res, currentTime.getTime()));
     }
 
     @Test
@@ -163,33 +164,45 @@ public class MongoDBTest {
 
     @Test
     public void testFind() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.find({host},{db},{collection},{name:'testDocument'},null,null)", params, r -> {
+        TestUtil.testResult(db, "CALL apoc.mongodb.find({host},{db},{collection},{name:'testDocument'},null,null)",
+                params, res -> assertResult(res));
+    }
+
+    private void assertResult(Result res) {
+        assertResult(res, currentTime);
+    }
+
+    private void assertResult(Result res, Object date) {
+        int count = 0;
+        while (res.hasNext()) {
+            ++count;
+            Map<String, Object> r = res.next();
             Map doc = (Map) r.get("value");
             assertNotNull(doc.get("_id"));
             assertEquals("testDocument", doc.get("name"));
-        });
+            assertEquals(date, doc.get("date"));
+            assertEquals(longValue, doc.get("longValue"));
+        }
+        assertEquals(NUM_OF_RECORDS, count);
     }
 
     @Test
     public void testFindSort() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.find({host},{db},{collection},{name:'testDocument'},null,{name:1})", params, r -> {
-            Map doc = (Map) r.get("value");
-            assertNotNull(doc.get("_id"));
-            assertEquals("testDocument", doc.get("name"));
-        });
+        TestUtil.testResult(db, "CALL apoc.mongodb.find({host},{db},{collection},{name:'testDocument'},null,{name:1})",
+                params, res -> assertResult(res));
     }
 
     @Test
     public void testCount() throws Exception {
         TestUtil.testCall(db, "CALL apoc.mongodb.count({host},{db},{collection},{name:'testDocument'})", params, r -> {
-            assertEquals(1L, r.get("value"));
+            assertEquals(NUM_OF_RECORDS, r.get("value"));
         });
     }
 
     @Test
     public void testCountAll() throws Exception {
         TestUtil.testCall(db, "CALL apoc.mongodb.count({host},{db},{collection},null)", params, r -> {
-            assertEquals(1L, r.get("value"));
+            assertEquals(NUM_OF_RECORDS, r.get("value"));
         });
     }
 
@@ -197,7 +210,7 @@ public class MongoDBTest {
     public void testUpdate() throws Exception {
         TestUtil.testCall(db, "CALL apoc.mongodb.update({host},{db},{collection},{name:'testDocument'},{`$set`:{age:42}})", params, r -> {
             long affected = (long) r.get("value");
-            assertEquals(1L, affected);
+            assertEquals(NUM_OF_RECORDS, affected);
         });
     }
 
