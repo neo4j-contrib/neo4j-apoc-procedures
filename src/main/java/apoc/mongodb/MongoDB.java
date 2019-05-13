@@ -14,6 +14,8 @@ import java.io.Closeable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /*
@@ -57,24 +59,20 @@ public class MongoDB {
                                  @Name("query") Map<String, Object> query,
                                  @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues, @Name(value = "skip", defaultValue = "0") Long skip,
                                  @Name(value = "limit", defaultValue = "0") Long limit) {
-        try (Coll coll = getMongoColl(hostOrKey, db, collection, compatibleValues)) {
-            return coll.all(query, skip, limit).map(MapResult::new); // .onClose(coll::safeClose);
-        } catch (Exception e) {
-            log.error("apoc.mongodb.get - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], compatibleValues = [" + compatibleValues + "], skip = [" + skip + "], limit = [" + limit + "]", e);
-            throw new RuntimeException(e);
-        }
+        return executeMongoQuery(hostOrKey, db, collection, compatibleValues,
+                coll -> coll.all(query, skip, limit).map(MapResult::new),
+                e -> log.error("apoc.mongodb.get - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], compatibleValues = [" + compatibleValues + "], skip = [" + skip + "], limit = [" + limit + "]", e));
     }
 
     @Procedure
     @Description("apoc.mongodb.count(host-or-port,db-or-null,collection-or-null,query-or-null) yield value - perform a find operation on mongodb collection")
     public Stream<LongResult> count(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query) {
-        try (Coll coll = getMongoColl(hostOrKey, db, collection, false)) {
-            long count = coll.count(query);
-            return Stream.of(new LongResult(count)); // .onClose(coll::safeClose);
-        } catch (Exception e) {
-            log.error("apoc.mongodb.count - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "]",e);
-            throw new RuntimeException(e);
-        }
+        return executeMongoQuery(hostOrKey, db, collection, false,
+                coll -> {
+                    long count = coll.count(query);
+                    return Stream.of(new LongResult(count));
+                },
+                e -> log.error("apoc.mongodb.count - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "]",e));
     }
 
     private Coll getColl(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, boolean compatibleValues) {
@@ -85,13 +83,12 @@ public class MongoDB {
     @Procedure
     @Description("apoc.mongodb.first(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true|false]) yield value - perform a first operation on mongodb collection")
     public Stream<MapResult> first(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues) {
-        try (Coll coll = getMongoColl(hostOrKey, db, collection, compatibleValues)) {
-            Map<String, Object> result = coll.first(query);
-            return result == null || result.isEmpty() ? Stream.empty() : Stream.of(new MapResult(result)); // .onClose(coll::safeClose);
-        } catch (Exception e) {
-            log.error("apoc.mongodb.first - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], compatibleValues = [" + compatibleValues + "]",e);
-            throw new RuntimeException(e);
-        }
+        return executeMongoQuery(hostOrKey, db, collection, compatibleValues,
+                coll -> {
+                    Map<String, Object> result = coll.first(query);
+                    return result == null || result.isEmpty() ? Stream.empty() : Stream.of(new MapResult(result));
+                },
+                e -> log.error("apoc.mongodb.first - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], compatibleValues = [" + compatibleValues + "]",e));
     }
 
     @Procedure
@@ -105,12 +102,9 @@ public class MongoDB {
                                   @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues,
                                   @Name(value = "skip", defaultValue = "0") Long skip,
                                   @Name(value = "limit", defaultValue = "0") Long limit) {
-        try (Coll coll = getMongoColl(hostOrKey, db, collection, compatibleValues)) {
-            return coll.find(query, project, sort, skip, limit).map(MapResult::new); // .onClose(coll::safeClose);
-        } catch (Exception e) {
-            log.error("apoc.mongodb.find - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], project = [" + project + "], sort = [" + sort + "], compatibleValues = [" + compatibleValues + "], skip = [" + skip + "], limit = [" + limit + "]",e);
-            throw new RuntimeException(e);
-        }
+        return executeMongoQuery(hostOrKey, db, collection, compatibleValues,
+                coll -> coll.find(query, project, sort, skip, limit).map(MapResult::new),
+                e -> log.error("apoc.mongodb.find - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], project = [" + project + "], sort = [" + sort + "], compatibleValues = [" + compatibleValues + "], skip = [" + skip + "], limit = [" + limit + "]",e));
     }
 
     @Procedure
@@ -127,23 +121,17 @@ public class MongoDB {
     @Procedure
     @Description("apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) - delete the given documents from the mongodb collection and returns the number of affected documents")
     public Stream<LongResult> delete(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query) {
-        try (Coll coll = getMongoColl(hostOrKey, db, collection, false)) {
-            return Stream.of(new LongResult(coll.delete(query))); // .onClose(coll::safeClose);
-        } catch (Exception e) {
-            log.error("apoc.mongodb.delete - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "]",e);
-            throw new RuntimeException(e);
-        }
+        return executeMongoQuery(hostOrKey, db, collection, false,
+                coll -> Stream.of(new LongResult(coll.delete(query))),
+                e -> log.error("apoc.mongodb.delete - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "]",e));
     }
 
     @Procedure
     @Description("apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) - updates the given documents from the mongodb collection and returns the number of affected documents")
     public Stream<LongResult> update(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name("update") Map<String, Object> update) {
-        try (Coll coll = getMongoColl(hostOrKey, db, collection, false)) {
-            return Stream.of(new LongResult(coll.update(query, update))); // .onClose(coll::safeClose);
-        } catch (Exception e) {
-            log.error("apoc.mongodb.update - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], update = [" + update + "]",e);
-            throw new RuntimeException(e);
-        }
+        return executeMongoQuery(hostOrKey, db, collection, false,
+                coll -> Stream.of(new LongResult(coll.update(query, update))),
+                e -> log.error("apoc.mongodb.update - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], update = [" + update + "]",e));
     }
 
     private String getMongoDBUrl(String hostOrKey) {
@@ -202,6 +190,21 @@ public class MongoDB {
                     throw new RuntimeException("Could not create MongoDBClientWrapper instance", e);
                 }
             }
+        }
+    }
+
+    private <T> Stream<T> executeMongoQuery(String hostOrKey, String db, String collection, boolean compatibleValues,
+                                            Function<Coll, Stream<T>> execute, Consumer<Exception> onError) {
+        Coll coll = null;
+        try {
+            coll = getMongoColl(hostOrKey, db, collection, compatibleValues);
+            return execute.apply(coll).onClose(coll::safeClose);
+        } catch (Exception e) {
+            if (coll != null) {
+                coll.safeClose();
+            }
+            onError.accept(e);
+            throw new RuntimeException(e);
         }
     }
 }
