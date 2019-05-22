@@ -1,15 +1,12 @@
 package apoc.load;
 
 import apoc.util.TestUtil;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
-import org.xml.sax.SAXParseException;
 
 import java.util.Collections;
 import java.util.List;
@@ -22,29 +19,29 @@ import static org.junit.Assert.*;
 
 public class XmlTest {
 
-    public static final String XML_AS_NESTED_MAP =
+    private static final String XML_AS_NESTED_MAP =
             "{_type=parent, name=databases, " +
                     "_children=[" +
                     "{_type=child, name=Neo4j, _text=Neo4j is a graph database}, " +
                     "{_type=child, name=relational, _children=[" +
                     "{_type=grandchild, name=MySQL, _text=MySQL is a database & relational}, " +
                     "{_type=grandchild, name=Postgres, _text=Postgres is a relational database}]}]}";
-    public static final String XML_AS_NESTED_SIMPLE_MAP =
+    private static final String XML_AS_NESTED_SIMPLE_MAP =
             "{_type=parent, name=databases, " +
                     "_child=[" +
                     "{_type=child, name=Neo4j, _text=Neo4j is a graph database}, " +
                     "{_type=child, name=relational, _grandchild=[" +
                     "{_type=grandchild, name=MySQL, _text=MySQL is a database & relational}, " +
                     "{_type=grandchild, name=Postgres, _text=Postgres is a relational database}]}]}";
-    public static final String XML_XPATH_AS_NESTED_MAP =
+    static final String XML_XPATH_AS_NESTED_MAP =
             "[{_type=book, id=bk103, _children=[{_type=author, _text=Corets, Eva}, {_type=title, _text=Maeve Ascendant}, {_type=genre, _text=Fantasy}, {_type=price, _text=5.95}, {_type=publish_date, _text=2000-11-17}, {_type=description, _text=After the collapse of a nanotechnology " +
                     "society in England, the young survivors lay the " +
                     "foundation for a new society.}]}]";
 
-    public static final String XML_AS_SINGLE_LINE =
+    private static final String XML_AS_SINGLE_LINE =
             "{_type=table, _children=[{_type=tr, _children=[{_type=td, _children=[{_type=img, src=pix/logo-tl.gif}]}]}]}";
 
-    public static final String XML_AS_SINGLE_LINE_SIMPLE =
+    private static final String XML_AS_SINGLE_LINE_SIMPLE =
             "{_type=table, _table=[{_type=tr, _tr=[{_type=td, _td=[{_type=img, src=pix/logo-tl.gif}]}]}]}";
 
     private GraphDatabaseService db;
@@ -64,7 +61,7 @@ public class XmlTest {
     }
 
     @Test
-    public void testLoadXml() throws Exception {
+    public void testLoadXml() {
         testCall(db, "CALL apoc.load.xml('file:databases.xml')", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
@@ -73,7 +70,7 @@ public class XmlTest {
     }
 
     @Test
-    public void testLoadXmlSimple() throws Exception {
+    public void testLoadXmlSimple() {
         testCall(db, "CALL apoc.load.xmlSimple('file:databases.xml')", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
@@ -247,10 +244,10 @@ public class XmlTest {
                 row -> assertNotNull(row.get("node")));
         testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
             final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));
-            assertEquals(2l, (long)resultMap.get("XmlProcessingInstruction"));
-            assertEquals(1l, (long)resultMap.get("XmlDocument"));
-            assertEquals(3263l, (long)resultMap.get("XmlWord"));
-            assertEquals(454l, (long)resultMap.get("XmlTag"));
+            assertEquals(2L, (long)resultMap.get("XmlProcessingInstruction"));
+            assertEquals(1L, (long)resultMap.get("XmlDocument"));
+            assertEquals(3263L, (long)resultMap.get("XmlWord"));
+            assertEquals(454L, (long)resultMap.get("XmlTag"));
         });
 
         // no node more than one NEXT/NEXT_SIBLING
@@ -265,7 +262,7 @@ public class XmlTest {
         testResult(db, "match p=(:XmlDocument)-[:NEXT_WORD*]->(e:XmlWord) where not (e)-[:NEXT_WORD]->() return length(p) as len",
                 result -> {
                     Map<String, Object> r = Iterators.single(result);
-                    assertEquals(3263l, r.get("len"));
+                    assertEquals(3263L, r.get("len"));
                 });
     }
 
@@ -276,10 +273,10 @@ public class XmlTest {
                 row -> assertNotNull(row.get("node")));
         testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
             final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));
-            assertEquals(2l, (long)resultMap.get("XmlProcessingInstruction"));
-            assertEquals(1l, (long)resultMap.get("XmlDocument"));
-            assertEquals(3263l, (long)resultMap.get("XmlCharacters"));
-            assertEquals(454l, (long)resultMap.get("XmlTag"));
+            assertEquals(2L, (long)resultMap.get("XmlProcessingInstruction"));
+            assertEquals(1L, (long)resultMap.get("XmlDocument"));
+            assertEquals(3263L, (long)resultMap.get("XmlCharacters"));
+            assertEquals(454L, (long)resultMap.get("XmlTag"));
         });
 
         // no node more than one NEXT/NEXT_SIBLING
@@ -294,7 +291,7 @@ public class XmlTest {
         testResult(db, "match p=(:XmlDocument)-[:NE*]->(e:XmlCharacters) where not (e)-[:NE]->() return length(p) as len",
                 result -> {
                     Map<String, Object> r = Iterators.single(result);
-                    assertEquals(3263l, r.get("len"));
+                    assertEquals(3263L, r.get("len"));
                 });
     }
 
@@ -378,21 +375,17 @@ public class XmlTest {
         });
     }
 
-    @Test(expected = QueryExecutionException.class)
-    public void testLoadXmlPreventXXEVulnerabilityThrowsQueryExecutionException() {
-        try {
-            testResult(db, "CALL apoc.load.xml('file:src/test/resources/xml/xxe.xml', '/catalog/book[genre=\"Computer\"]') yield value as result", (r) -> {});
-        } catch (QueryExecutionException e) {
-            // We want test that the cause of the exception is SAXParseException with the correct cause message
-            Throwable except = ExceptionUtils.getRootCause(e);
-            assertTrue(except instanceof SAXParseException);
-            assertEquals("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true.", except.getMessage());
-            throw e;
-        }
+    @Test
+    public void testExternalDTDschouldNotBeLoaded() {
+        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/missingExternalDTD.xml', '/', null, true)",
+                (row) -> {
+                    Object value = row.get("value");
+                    assertEquals("{_type=document, _document=[null, {_type=title, _text=dtd 404}]}", value.toString());
+                });
     }
 
     @Test
-    public void testLoadXmlSingleLineSimple() throws Exception {
+    public void testLoadXmlSingleLineSimple() {
         testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml', '/', null, true)", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
@@ -401,7 +394,7 @@ public class XmlTest {
     }
 
     @Test
-    public void testLoadXmlSingleLine() throws Exception {
+    public void testLoadXmlSingleLine() {
         testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml')", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
