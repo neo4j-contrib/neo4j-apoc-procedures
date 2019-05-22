@@ -401,6 +401,15 @@ public class DateTest {
 		testCall(db, "RETURN apoc.date.add($firstOf2017ms, 'ms', -5, 'd') as firstOf2017Minus5days", params, row -> assertEquals(firstOf2017Minus5Daysms, row.get("firstOf2017Minus5days")));
 	}
 
+	@Test
+	public void testConvertFormats() throws Exception {
+		String rfcDateTime = "Tue, 14 May 2019 14:52:06 -0400";
+		String isoDateTime = "2019-05-14T14:52:06-04:00";
+		Map<String, Object> params = new HashMap<>();
+		params.put("rfcDateTime", rfcDateTime);
+		testCall(db, "RETURN apoc.date.convertFormats($rfcDateTime, 'rfc_1123_date_time', 'iso_date_time') as convertedTime", params, row -> assertEquals(isoDateTime, row.get("convertedTime")));
+	}
+
 	private SimpleDateFormat formatInUtcZone(final String pattern) {
 		SimpleDateFormat customFormat = new SimpleDateFormat(pattern);
 		customFormat.setTimeZone(TimeZone.getTimeZone("UTC"));

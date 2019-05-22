@@ -69,6 +69,7 @@ public class DateFormatUtil {
         map.put("year", DateTimeFormatter.ofPattern("yyyy"));
         map.put("year_month", DateTimeFormatter.ofPattern("yyyy-MM"));
         map.put("year_month_day", DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        map.put( "rfc_1123_date_time", DateTimeFormatter.RFC_1123_DATE_TIME );
         ISO_DATE_FORMAT = Collections.unmodifiableMap(map);
     }
 
