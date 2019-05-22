@@ -8,6 +8,7 @@ import apoc.util.s3.S3URLConnection;
 import org.apache.commons.io.output.WriterOutputStream;
 
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Arrays;
@@ -86,7 +87,7 @@ public class FileUtils {
     }
 
     public static String changeFileUrlIfImportDirectoryConstrained(String url) throws IOException {
-        if (isFile(url) && ApocConfiguration.isEnabled("import.file.use_neo4j_config")) {
+        if (isFile(url) && isImportUsingNeo4jConfig()) {
             if (!ApocConfiguration.isEnabled("import.file.allow_read_from_filesystem"))
                 throw new RuntimeException("Import file "+url+" not enabled, please set dbms.security.allow_csv_import_from_file_urls=true in your neo4j.conf");
 
@@ -138,9 +139,36 @@ public class FileUtils {
                 throw new RuntimeException(e);
             }
         } else {
-            outputStream = fileName.equals("-") ? out : new FileOutputStream(fileName);
+            outputStream = getOrCreateOutputStream(fileName, out);
+//            outputStream = fileName.equals("-") ? out : new FileOutputStream(fileName);
         }
         return new BufferedOutputStream(outputStream);
+    }
+
+    private static OutputStream getOrCreateOutputStream(String fileName, OutputStream out) throws FileNotFoundException, MalformedURLException {
+        OutputStream outputStream;
+        if (fileName.equals("-")) {
+            outputStream = out;
+        } else {
+            boolean enabled = isImportUsingNeo4jConfig();
+            if (enabled) {
+                String importDir = getConfiguredImportDirectory();
+                File file = new File(importDir, fileName);
+                outputStream = new FileOutputStream(file);
+            } else {
+                URI uri = URI.create(fileName);
+                outputStream = new FileOutputStream(uri.isAbsolute() ? uri.toURL().getFile() : fileName);
+            }
+        }
+        return outputStream;
+    }
+
+    private static boolean isImportUsingNeo4jConfig() {
+        return ApocConfiguration.isEnabled("import.file.use_neo4j_config");
+    }
+
+    public static String getConfiguredImportDirectory() {
+        return ApocConfiguration.get("dbms.directories.import", "import");
     }
 
     public static void checkReadAllowed(String url) {

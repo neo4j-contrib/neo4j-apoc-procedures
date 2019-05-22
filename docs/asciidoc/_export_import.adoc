@@ -1,6 +1,9 @@
 [[export-import]]
 == Export / Import
 
+[NOTE]
+In case you have the default configuration with `apoc.import.file.use_neo4j_config=true` the export consider as root the directory defined into the `dbms.directories.import` property
+
 === Loading Data from Web-APIs
 
 Supported protocols are `file`, `http`, `https`, `s3`, `hdfs` with redirect allowed. 
