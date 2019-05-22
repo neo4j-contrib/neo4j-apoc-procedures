@@ -47,6 +47,8 @@ public class JdbcTest {
         db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
         ApocConfiguration.initialize((GraphDatabaseAPI)db);
         ApocConfiguration.addToConfig(map("jdbc.derby.url","jdbc:derby:derbyDB"));
+        ApocConfiguration.addToConfig(map("jdbc.test.sql","SELECT * FROM PERSON"));
+        ApocConfiguration.addToConfig(map("jdbc.testparams.sql","SELECT * FROM PERSON WHERE NAME = ?"));
         TestUtil.registerProcedure(db,Jdbc.class);
         createPersonTableAndData();
     }
@@ -137,6 +139,18 @@ public class JdbcTest {
                         "EFFECTIVE_FROM_DATE", effectiveFromDate.toLocalDateTime(),
                         "TEST_TIME", time.toLocalTime(),
                         "NULL_DATE", null), row.get("row")));
+    }
+
+    @Test
+    public void testLoadJdbcSqlAlias() throws Exception {
+        testCall(db, "CALL apoc.load.jdbc('derby','test')",
+                (row) -> assertResult(row));
+    }
+
+    @Test
+    public void testLoadJdbcSqlAliasParams() throws Exception {
+        testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','testparams',['John'])", //  YIELD row RETURN row
+                (row) -> assertResult(row));
     }
 
     @Test(expected = RuntimeException.class)
