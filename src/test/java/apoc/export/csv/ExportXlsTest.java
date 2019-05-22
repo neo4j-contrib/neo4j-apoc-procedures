@@ -84,7 +84,6 @@ public class ExportXlsTest {
 
     private static GraphDatabaseService db;
     private static File directory = new File("target/import");
-//    private static MiniDFSCluster miniDFSCluster;
 
     static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
@@ -109,51 +108,54 @@ public class ExportXlsTest {
 
     @Test
     public void testExportAllXls() throws Exception {
-        File output = new File(directory, "all.xlsx");
-        TestUtil.testCall(db, "CALL apoc.export.xls.all({file},null)", map("file", output.getAbsolutePath()),
-                (r) -> assertResults(output, r, "database"));
+        String fileName = "all.xlsx";
+        TestUtil.testCall(db, "CALL apoc.export.xls.all({file},null)",
+                map("file", fileName),
+                (r) -> assertResults(fileName, r, "database"));
 
-        assertExcelFileForGraph(output);
+        assertExcelFileForGraph(fileName);
     }
 
     @Test
     public void testExportGraphXls() throws Exception {
-        File output = new File(directory, "graph.xlsx");
+        String fileName = "graph.xlsx";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
                         "CALL apoc.export.xls.graph(graph, {file},null) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
-                        "RETURN *", map("file", output.getAbsolutePath()),
-                (r) -> assertResults(output, r, "graph"));
-        assertExcelFileForGraph(output);
+                        "RETURN *",
+                map("file", fileName),
+                (r) -> assertResults(fileName, r, "graph"));
+        assertExcelFileForGraph(fileName);
     }
 
     @Test
     public void testExportQueryXls() throws Exception {
-        File output = new File(directory, "query.xlsx");
+        String fileName = "query.xlsx";
         String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
-        TestUtil.testCall(db, "CALL apoc.export.xls.query({query},{file},null)", map("file", output.getAbsolutePath(),"query",query),
+        TestUtil.testCall(db, "CALL apoc.export.xls.query({query},{file},null)",
+                map("file", fileName, "query", query),
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(5)"));
-                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    assertEquals(fileName, r.get("file"));
                     assertEquals("xls", r.get("format"));
 
                 });
-        assertExcelFileForQuery(output);
+        assertExcelFileForQuery(fileName);
     }
 
 
-    private void assertResults(File output, Map<String, Object> r, final String source) {
+    private void assertResults(String fileName, Map<String, Object> r, final String source) {
         assertEquals(8L, r.get("nodes")); // we're exporting nodes with multiple label multiple times
         assertEquals(2L, r.get("relationships"));
         assertEquals(25L, r.get("properties"));
         assertEquals(source + ": nodes(6), rels(2)", r.get("source"));
-        assertEquals(output.getAbsolutePath(), r.get("file"));
+        assertEquals(fileName, r.get("file"));
         assertEquals("xls", r.get("format"));
         assertTrue("Should get time greater than 0", ((long) r.get("time")) >= 0);
     }
 
-    private void assertExcelFileForGraph(File output) {
-        try (InputStream inp = new FileInputStream(output); Transaction tx = db.beginTx()) {
+    private void assertExcelFileForGraph(String fileName) {
+        try (InputStream inp = new FileInputStream(new File(directory, fileName)); Transaction tx = db.beginTx()) {
             Workbook wb = WorkbookFactory.create(inp);
 
             int numberOfSheets = wb.getNumberOfSheets();
@@ -170,8 +172,8 @@ public class ExportXlsTest {
         }
     }
 
-    private void assertExcelFileForQuery(File output) {
-        try (InputStream inp = new FileInputStream(output)) {
+    private void assertExcelFileForQuery(String fileName) {
+        try (InputStream inp = new FileInputStream(new File(directory, fileName))) {
             Workbook wb = WorkbookFactory.create(inp);
 
             int numberOfSheets = wb.getNumberOfSheets();
