@@ -22,12 +22,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.load.util.LoadCsvConfig.DEFAULT_ARRAY_SEP;
+import static apoc.load.util.LoadCsvConfig.Results;
+import static apoc.util.FileUtils.closeReaderSafely;
 import static apoc.util.Util.cleanUrl;
 import static apoc.util.Util.parseCharFromConfig;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-import static apoc.load.util.LoadCsvConfig.*;
 
 public class LoadCsv {
 
@@ -39,28 +41,33 @@ public class LoadCsv {
     @Description("apoc.load.csv('url',{config}) YIELD lineNo, list, map - load CSV fom URL as stream of values,\n config contains any of: {skip:1,limit:5,header:false,sep:'TAB',ignore:['tmp'],nullValues:['na'],arraySep:';',mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false}}")
     public Stream<CSVResult> csv(@Name("url") String url, @Name(value = "config",defaultValue = "{}") Map<String, Object> configMap) {
         LoadCsvConfig config = new LoadCsvConfig(configMap);
+        CountingReader reader = null;
         try {
-            CountingReader reader = FileUtils.readerFor(url);
-
-            // new CSVReader(...) is deprecated, moved to the new builder
-            CSVReader csv = new CSVReaderBuilder(reader)
-                    .withCSVParser(new CSVParserBuilder()
-                            .withQuoteChar(config.getQuoteChar())
-                            .withSeparator(config.getSeparator())
-                            .build())
-                    .build();
-
-            String[] header = getHeader(csv, config);
-            boolean checkIgnore = !config.getIgnore().isEmpty() || config.getMappings().values().stream().anyMatch( m -> m.ignore);
-            return StreamSupport.stream(new CSVSpliterator(csv, header, url, config.getSkip(), config.getLimit(),
-                    checkIgnore, config.getMappings(), config.getNullValues(), config.getResults(), config.getIgnoreErrors()), false);
+            reader = FileUtils.readerFor(url);
+            return streamCsv(url, config, reader);
         } catch (IOException e) {
-
+            closeReaderSafely(reader);
             if(!config.isFailOnError())
-                return Stream.of(new  CSVResult(new String[0], new String[0], 0, true, Collections.emptyMap(), emptyList(), EnumSet.noneOf(Results.class)));
+                return Stream.of(new CSVResult(new String[0], new String[0], 0, true, Collections.emptyMap(), emptyList(), EnumSet.noneOf(Results.class)));
             else
                 throw new RuntimeException("Can't read CSV from URL " + cleanUrl(url), e);
         }
+    }
+
+    public Stream<CSVResult> streamCsv(@Name("url") String url, LoadCsvConfig config, CountingReader reader) throws IOException {
+
+        CSVReader csv = new CSVReaderBuilder(reader)
+                .withCSVParser(new CSVParserBuilder()
+                        .withQuoteChar(config.getQuoteChar())
+                        .withSeparator(config.getSeparator())
+                        .build())
+                .build();
+
+        String[] header = getHeader(csv, config);
+        boolean checkIgnore = !config.getIgnore().isEmpty() || config.getMappings().values().stream().anyMatch(m -> m.ignore);
+        return StreamSupport.stream(new CSVSpliterator(csv, header, url, config.getSkip(), config.getLimit(),
+                checkIgnore, config.getMappings(), config.getNullValues(), config.getResults(), config.getIgnoreErrors()), false)
+                .onClose(() -> closeReaderSafely(reader));
     }
 
     public static class Mapping {

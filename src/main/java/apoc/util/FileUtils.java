@@ -74,7 +74,7 @@ public class FileUtils {
         }
     }
 
-    private static CountingReader readFile(String fileName) throws IOException, FileNotFoundException {
+    public static CountingReader readFile(String fileName) throws IOException, FileNotFoundException {
         File file = new File(fileName);
         if (!file.exists() || !file.isFile() || !file.canRead()) throw new IOException("Cannot open file "+fileName+" for reading.");
         return new CountingReader(file);
@@ -288,4 +288,10 @@ public class FileUtils {
             "dbms.directories.tx_log",
             "unsupported.dbms.directories.neo4j_home"
     );
+
+    public static void closeReaderSafely(CountingReader reader) {
+        if (reader != null) {
+            try { reader.close(); } catch (IOException ignored) { }
+        }
+    }
 }
