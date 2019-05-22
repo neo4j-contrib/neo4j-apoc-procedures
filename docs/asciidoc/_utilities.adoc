@@ -70,6 +70,9 @@ endif::[]
 | apoc.map.sortedProperties(map, ignoreCase:true) | returns a list of key/value list pairs, with pairs sorted by keys alphabetically, with optional case sensitivity
 | apoc.map.updateTree(tree,key,[[value,{data}]]) | returns map - adds the {data} map on each level of the nested tree, where the key-value pairs match
 | apoc.map.values(map, [key1,key2,key3,...],[addNullsForMissing]) returns list of values indicated by the keys
+| apoc.map.submap(map,keys,[[defaults]],[fail=true]) | returns submap for keys or throws exception if one of the key doesn't exist and no default value given at that position
+| apoc.map.mget(map,keys,[[defaults]],[fail=true]) | returns list of values for keys or throws exception if one of the key doesn't exist and no default value given at that position
+| apoc.map.get(map,key,[default],[fail=true]) | returns value for key or throws exception if key doesn't exist and no default given
 |===
 
 [[collection-list-functions]]

@@ -12,7 +12,6 @@ import org.neo4j.driver.v1.Session;
 import java.io.File;
 import java.util.Map;
 
-import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestContainerUtil.*;
 import static apoc.util.TestUtil.isTravis;

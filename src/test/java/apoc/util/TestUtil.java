@@ -81,6 +81,20 @@ public class TestUtil {
         } );
     }
 
+    public static void testFail(GraphDatabaseService db, String call, Class<? extends Exception> t) {
+        try {
+            testResult(db, call, null, (r) -> { while (r.hasNext()) {r.next();} r.close();});
+            fail("Didn't fail with "+t.getSimpleName());
+        } catch (Exception e) {
+            Throwable inner = e;
+            boolean found = false;
+            do {
+                found |= t.isInstance(inner);
+                inner = inner.getCause();
+            } while (inner!=null && inner.getCause() != inner);
+            assertTrue("Didn't fail with "+t.getSimpleName()+" but "+e.getClass().getSimpleName()+" "+e.getMessage(),found);
+        }
+    }
     public static void testResult(GraphDatabaseService db, String call, Consumer<Result> resultConsumer) {
         testResult(db,call,null,resultConsumer);
     }

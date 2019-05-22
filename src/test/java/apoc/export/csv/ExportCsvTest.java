@@ -17,7 +17,6 @@ import org.neo4j.graphdb.factory.GraphDatabaseSettings;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -111,12 +110,17 @@ public class ExportCsvTest {
         miniDFSCluster.shutdown();
     }
 
+    private String readFile(String fileName) {
+        return TestUtil.readFileToString(new File(directory, fileName));
+    }
+
     @Test
     public void testExportInvalidQuoteValue() throws Exception {
         try {
-            File output = new File(directory, "all.csv");
-            TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quote: 'Invalid'}, null)", map("file", output.getAbsolutePath()),
-                    (r) -> assertResults(output, r, "database"));
+            String fileName = "all.csv";
+            TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quote: 'Invalid'}, null)",
+                    map("file", fileName),
+                    (r) -> assertResults(fileName, r, "database"));
             fail();
         } catch (RuntimeException e) {
             assertTrue(true);
@@ -125,34 +129,37 @@ public class ExportCsvTest {
 
     @Test
     public void testExportAllCsv() throws Exception {
-        File output = new File(directory, "all.csv");
-        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},null)", map("file", output.getAbsolutePath()),
-                (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED, FileUtils.readFileToString(output, Charset.forName("UTF-8")));
+        String fileName = "all.csv";
+        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},null)", map("file", fileName),
+                (r) -> assertResults(fileName, r, "database"));
+        assertEquals(EXPECTED, readFile(fileName));
     }
 
     @Test
     public void testExportAllCsvWithQuotes() throws Exception {
-        File output = new File(directory, "all.csv");
-        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quotes: true})", map("file", output.getAbsolutePath()),
-                (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED, FileUtils.readFileToString(output, Charset.forName("UTF-8")));
+        String fileName = "all.csv";
+        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quotes: true})",
+                map("file", fileName),
+                (r) -> assertResults(fileName, r, "database"));
+        assertEquals(EXPECTED, readFile(fileName));
     }
 
     @Test
     public void testExportAllCsvWithoutQuotes() throws Exception {
-        File output = new File(directory, "all.csv");
-        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quotes: 'none'})", map("file", output.getAbsolutePath()),
-                (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_NONE_QUOTES, FileUtils.readFileToString(output, Charset.forName("UTF-8")));
+        String fileName = "all.csv";
+        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quotes: 'none'})",
+                map("file", fileName),
+                (r) -> assertResults(fileName, r, "database"));
+        assertEquals(EXPECTED_NONE_QUOTES, readFile(fileName));
     }
 
     @Test
     public void testExportAllCsvNeededQuotes() throws Exception {
-        File output = new File(directory, "all.csv");
-        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quotes: 'ifNeeded'})", map("file", output.getAbsolutePath()),
-                (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_NEEDED_QUOTES, FileUtils.readFileToString(output, Charset.forName("UTF-8")));
+        String fileName = "all.csv";
+        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quotes: 'ifNeeded'})",
+                map("file", fileName),
+                (r) -> assertResults(fileName, r, "database"));
+        assertEquals(EXPECTED_NEEDED_QUOTES, readFile(fileName));
     }
 
     @Test
@@ -171,7 +178,7 @@ public class ExportCsvTest {
                         assertEquals("database: nodes(6), rels(2)", r.get("source"));
                         assertEquals("csv", r.get("format"));
                         assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
-                        assertEquals(EXPECTED, FileUtils.readFileToString(output, Charset.forName("UTF-8")));
+                        assertEquals(EXPECTED, TestUtil.readFileToString(output));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -180,88 +187,91 @@ public class ExportCsvTest {
 
     @Test
     public void testExportGraphCsv() throws Exception {
-        File output = new File(directory, "graph.csv");
+        String fileName = "graph.csv";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
                         "CALL apoc.export.csv.graph(graph, {file},{quotes: 'none'}) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
-                        "RETURN *", map("file", output.getAbsolutePath()),
-                (r) -> assertResults(output, r, "graph"));
-        assertEquals(EXPECTED_NONE_QUOTES, FileUtils.readFileToString(output, Charset.forName("UTF-8")));
+                        "RETURN *", map("file", fileName),
+                (r) -> assertResults(fileName, r, "graph"));
+        assertEquals(EXPECTED_NONE_QUOTES, readFile(fileName));
     }
 
     @Test
     public void testExportGraphCsvWithoutQuotes() throws Exception {
-        File output = new File(directory, "graph.csv");
+        String fileName = "graph.csv";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
                         "CALL apoc.export.csv.graph(graph, {file},null) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
-                        "RETURN *", map("file", output.getAbsolutePath()),
-                (r) -> assertResults(output, r, "graph"));
-        assertEquals(EXPECTED, FileUtils.readFileToString(output, Charset.forName("UTF-8")));
+                        "RETURN *", map("file", fileName),
+                (r) -> assertResults(fileName, r, "graph"));
+        assertEquals(EXPECTED, readFile(fileName));
     }
 
     @Test
     public void testExportQueryCsv() throws Exception {
-        File output = new File(directory, "query.csv");
+        String fileName = "query.csv";
         String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
-        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},null)", map("file", output.getAbsolutePath(),"query",query),
+        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},null)",
+                map("file", fileName, "query", query),
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(5)"));
-                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    assertEquals(fileName, r.get("file"));
                     assertEquals("csv", r.get("format"));
 
                 });
-        assertEquals(EXPECTED_QUERY, FileUtils.readFileToString(output, Charset.forName("UTF-8")));
+        assertEquals(EXPECTED_QUERY, readFile(fileName));
     }
 
     @Test
     public void testExportQueryCsvWithoutQuotes() throws Exception {
-        File output = new File(directory, "query.csv");
+        String fileName = "query.csv";
         String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
-        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},{quotes: false})", map("file", output.getAbsolutePath(),"query",query),
+        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},{quotes: false})",
+                map("file", fileName, "query", query),
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(5)"));
-                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    assertEquals(fileName, r.get("file"));
                     assertEquals("csv", r.get("format"));
 
                 });
-        assertEquals(EXPECTED_QUERY_WITHOUT_QUOTES, FileUtils.readFileToString(output, Charset.forName("UTF-8")));
+        assertEquals(EXPECTED_QUERY_WITHOUT_QUOTES, readFile(fileName));
     }
 
     @Test
     public void testExportQueryNodesCsv() throws Exception {
-        File output = new File(directory, "query_nodes.csv");
+        String fileName = "query_nodes.csv";
         String query = "MATCH (u:User) return u";
-        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},null)", map("file", output.getAbsolutePath(),"query",query),
+        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},null)",
+                map("file", fileName, "query", query),
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(1)"));
-                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    assertEquals(fileName, r.get("file"));
                     assertEquals("csv", r.get("format"));
 
                 });
-        assertEquals(EXPECTED_QUERY_NODES, FileUtils.readFileToString(output, Charset.forName("UTF-8")));
+        assertEquals(EXPECTED_QUERY_NODES, readFile(fileName));
     }
 
     @Test
     public void testExportQueryNodesCsvParams() throws Exception {
-        File output = new File(directory, "query_nodes.csv");
+        String fileName = "query_nodes.csv";
         String query = "MATCH (u:User) WHERE u.age > {age} return u";
-        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},{params:{age:10}})", map("file", output.getAbsolutePath(),"query",query),
+        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},{params:{age:10}})", map("file", fileName,"query",query),
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(1)"));
-                    assertEquals(output.getAbsolutePath(), r.get("file"));
+                    assertEquals(fileName, r.get("file"));
                     assertEquals("csv", r.get("format"));
 
                 });
-        assertEquals(EXPECTED_QUERY_NODES, FileUtils.readFileToString(output, Charset.forName("UTF-8")));
+        assertEquals(EXPECTED_QUERY_NODES, readFile(fileName));
     }
 
-    private void assertResults(File output, Map<String, Object> r, final String source) {
+    private void assertResults(String fileName, Map<String, Object> r, final String source) {
         assertEquals(6L, r.get("nodes"));
         assertEquals(2L, r.get("relationships"));
         assertEquals(12L, r.get("properties"));
         assertEquals(source + ": nodes(6), rels(2)", r.get("source"));
-        assertEquals(output.getAbsolutePath(), r.get("file"));
+        assertEquals(fileName, r.get("file"));
         assertEquals("csv", r.get("format"));
         assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
     }

@@ -99,6 +99,31 @@ public class GraphRefactoringTest {
                     assertEquals(2L, node.getProperty("ID"));
                 });
     }
+    @Test
+    public void testMergeNodesIndexConflict() throws Exception {
+        /*
+        CREATE CONSTRAINT ON (a:A) ASSERT a.prop1 IS UNIQUE;
+CREATE CONSTRAINT ON (a:B) ASSERT a.prop2 IS UNIQUE;
+CREATE (a:A) SET a.prop1 = 1;
+CREATE (b:B) SET b.prop2 = 99;
+
+MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b]) YIELD node RETURN node;
+         */
+        db.execute("CREATE CONSTRAINT ON (a:A) ASSERT a.prop1 IS UNIQUE;").close();
+        db.execute("CREATE CONSTRAINT ON (b:B) ASSERT b.prop2 IS UNIQUE;").close();
+        db.execute("CALL db.awaitIndexes()").close();
+        long id = db.execute("CREATE (a:A) SET a.prop1 = 1 CREATE (b:B) SET b.prop2 = 99 RETURN id(a) as id ").<Long>columnAs("id").next();
+        testCall(db, "MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b]) YIELD node RETURN node",
+                      map("oldID", 1L, "newID",2L),
+                (r) -> {
+                    Node node = (Node) r.get("node");
+                    assertEquals(id, node.getId());
+                    assertTrue(node.hasLabel(Label.label("A")));
+                    assertTrue(node.hasLabel(Label.label("B")));
+                    assertEquals(1L, node.getProperty("prop1"));
+                    assertEquals(99L, node.getProperty("prop2"));
+                });
+    }
 
     /*
     ISSUE #590

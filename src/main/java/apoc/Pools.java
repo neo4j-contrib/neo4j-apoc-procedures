@@ -1,15 +1,27 @@
 package apoc;
 
 import apoc.util.Util;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.scheduler.JobScheduler;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.*;
-import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
+
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.scheduler.JobScheduler;
 
 public class Pools {
 
@@ -45,17 +57,32 @@ public class Pools {
         int queueSize = threads * 25;
         return new ThreadPoolExecutor(threads / 2, threads, 30L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(queueSize),
                 new CallerBlocksPolicy());
-//                new ThreadPoolExecutor.CallerRunsPolicy());
     }
+
     static class CallerBlocksPolicy implements RejectedExecutionHandler {
         @Override
         public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            if (!executor.isShutdown()) {
-                // block caller for 100ns
-                LockSupport.parkNanos(100);
+            // Submit again by directly injecting the task into the work queue, waiting if necessary, but also periodically checking if the pool has been
+            // shut down.
+            FutureTask<Void> task = new FutureTask<>( r, null );
+            BlockingQueue<Runnable> queue = executor.getQueue();
+            while (!executor.isShutdown()) {
                 try {
-                    // submit again
-                    executor.submit(r).get();
+                    if ( queue.offer( task, 250, TimeUnit.MILLISECONDS ) )
+                    {
+                        while ( !executor.isShutdown() )
+                        {
+                            try
+                            {
+                                task.get( 250, TimeUnit.MILLISECONDS );
+                                return; // Success!
+                            }
+                            catch ( TimeoutException ignore )
+                            {
+                                // This is fine an expected. We just want to check that the executor hasn't been shut down.
+                            }
+                        }
+                    }
                 } catch (InterruptedException | ExecutionException e) {
                     throw new RuntimeException(e);
                 }
