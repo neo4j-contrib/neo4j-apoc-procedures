@@ -161,15 +161,15 @@ public class MergeTest {
 
     @Test
     public void testMergeEagerNodesWithOnMatchCanMergeOnMultipleMatches() throws Exception {
-        db.execute("UNWIND range(1,5) as index MERGE (:Person:Bastard {ssid:'123', index:index})");
+        db.execute("UNWIND range(1,5) as index MERGE (:Person:`Bastard Man`{ssid:'123', index:index})");
 
         try (Transaction tx = db.beginTx()) {
-            Result result = db.execute("CALL apoc.merge.node.eager(['Person','Bastard'],{ssid:'123'}, {onCreateProps:{name:'John'}, onMatchProps:{occupation:'juggler'}}) YIELD node RETURN node");
+            Result result = db.execute("CALL apoc.merge.node.eager(['Person','Bastard Man'],{ssid:'123'}, {onCreateProps:{name:'John'}, onMatchProps:{occupation:'juggler'}}) YIELD node RETURN node");
 
             for (long index = 1; index <= 5; index++) {
                 Node node = (Node) result.next().get("node");
                 assertEquals(true, node.hasLabel(Label.label("Person")));
-                assertEquals(true, node.hasLabel(Label.label("Bastard")));
+                assertEquals(true, node.hasLabel(Label.label("Bastard Man")));
                 assertEquals("123", node.getProperty("ssid"));
                 assertEquals(index, node.getProperty("index"));
                 assertEquals("juggler", node.getProperty("occupation"));
