@@ -1,5 +1,6 @@
 package apoc.date;
 
+import apoc.util.DateFormatUtil;
 import apoc.util.Util;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -189,6 +190,21 @@ public class Date {
 	@Description("apoc.date.convert(12345, 'ms', 'd') convert a timestamp in one time unit into one of a different time unit")
 	public Long convert(@Name("time") long time, @Name(value = "unit") String unit, @Name(value = "toUnit") String toUnit) {
 		return unit(toUnit).convert(time, unit(unit));
+	}
+
+	@UserFunction
+	@Description("apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time', 'iso_date_time') convert a String of one date format into a String of another date format.")
+	public String convertFormat( @Name( "temporal" ) String input, @Name( value = "currentFormat" ) String currentFormat, @Name( value = "convertTo" , defaultValue = "yyyy-MM-dd" ) String convertTo )
+	{
+		if (input == null || input.isEmpty())
+		{
+			return null;
+		}
+
+		DateTimeFormatter currentFormatter = DateFormatUtil.getOrCreate( currentFormat );
+		DateTimeFormatter convertToFormatter = DateFormatUtil.getOrCreate( convertTo );
+
+		return convertToFormatter.format(  currentFormatter.parse( input ) );
 	}
 
 	@UserFunction
