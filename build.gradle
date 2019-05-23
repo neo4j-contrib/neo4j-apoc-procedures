@@ -158,6 +158,9 @@ dependencies {
     testCompile group: 'org.testcontainers', name: 'postgresql', version: testContainersVersion
     testCompile group: 'org.testcontainers', name: 'cassandra', version: testContainersVersion
 
+    testCompile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.9.7'
+
+
     configurations.all {
         exclude group: 'org.slf4j', module: 'slf4j-nop'
     }

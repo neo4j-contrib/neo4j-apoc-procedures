@@ -18,6 +18,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -35,27 +36,27 @@ public class ExportCsvTest {
             "\"{\"\"id\"\":0,\"\"labels\"\":[\"\"User\"\",\"\"User1\"\"],\"\"properties\"\":{\"\"name\"\":\"\"foo\"\",\"\"age\"\":42,\"\"male\"\":true,\"\"kids\"\":[\"\"a\"\",\"\"b\"\",\"\"c\"\"]}}\"%n" +
             "\"{\"\"id\"\":1,\"\"labels\"\":[\"\"User\"\"],\"\"properties\"\":{\"\"name\"\":\"\"bar\"\",\"\"age\"\":42}}\"%n" +
             "\"{\"\"id\"\":2,\"\"labels\"\":[\"\"User\"\"],\"\"properties\"\":{\"\"age\"\":12}}\"%n");
-    private static final String EXPECTED_QUERY = String.format("\"labels(u)\",\"u.age\",\"u.kids\",\"u.male\",\"u.name\"%n" +
-            "\"[\"\"User1\"\",\"\"User\"\"]\",\"42\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"true\",\"foo\"%n" +
-            "\"[\"\"User\"\"]\",\"42\",\"\",\"\",\"bar\"%n" +
-            "\"[\"\"User\"\"]\",\"12\",\"\",\"\",\"\"%n");
-    private static final String EXPECTED_QUERY_WITHOUT_QUOTES = String.format("labels(u),u.age,u.kids,u.male,u.name%n" +
-            "[\"User1\",\"User\"],42,[\"a\",\"b\",\"c\"],true,foo%n" +
-            "[\"User\"],42,,,bar%n" +
-            "[\"User\"],12,,,%n");
-    private static final String EXPECTED_QUERY_QUOTES_NONE = String.format("a.city,a.name,a.street,labels(a)%n" +
-            "Milano,Andrea,Via Garibaldi, 7,[\"Address1\",\"Address\"]%n" +
-            ",Bar Sport,,[\"Address\"]%n" +
+    private static final String EXPECTED_QUERY = String.format("\"u.age\",\"u.name\",\"u.male\",\"u.kids\",\"labels(u)\"%n" +
+            "\"42\",\"foo\",\"true\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"[\"\"User1\"\",\"\"User\"\"]\"%n" +
+            "\"42\",\"bar\",\"\",\"\",\"[\"\"User\"\"]\"%n" +
+            "\"12\",\"\",\"\",\"\",\"[\"\"User\"\"]\"%n");
+    private static final String EXPECTED_QUERY_WITHOUT_QUOTES = String.format("u.age,u.name,u.male,u.kids,labels(u)%n" +
+            "42,foo,true,[\"a\",\"b\",\"c\"],[\"User1\",\"User\"]%n" +
+            "42,bar,,,[\"User\"]%n" +
+            "12,,,,[\"User\"]%n");
+    private static final String EXPECTED_QUERY_QUOTES_NONE = String.format("a.name,a.city,a.street,labels(a)%n" +
+            "Andrea,Milano,Via Garibaldi, 7,[\"Address1\",\"Address\"]%n" +
+            "Bar Sport,,,[\"Address\"]%n" +
             ",,via Benni,[\"Address\"]%n");
-    private static final String EXPECTED_QUERY_QUOTES_ALWAYS = String.format("\"a.city\",\"a.name\",\"a.street\",\"labels(a)\"%n" +
-            "\"Milano\",\"Andrea\",\"Via Garibaldi, 7\",\"[\"\"Address1\"\",\"\"Address\"\"]\"%n" +
-            "\"\",\"Bar Sport\",\"\",\"[\"\"Address\"\"]\"%n" +
+    private static final String EXPECTED_QUERY_QUOTES_ALWAYS = String.format("\"a.name\",\"a.city\",\"a.street\",\"labels(a)\"%n" +
+            "\"Andrea\",\"Milano\",\"Via Garibaldi, 7\",\"[\"\"Address1\"\",\"\"Address\"\"]\"%n" +
+            "\"Bar Sport\",\"\",\"\",\"[\"\"Address\"\"]\"%n" +
             "\"\",\"\",\"via Benni\",\"[\"\"Address\"\"]\"%n");
-    private static final String EXPECTED_QUERY_QUOTES_NEEDED = String.format( "a.city,a.name,a.street,labels(a)%n" +
-            "Milano,Andrea,\"Via Garibaldi, 7\",\"[\"Address1\",\"Address\"]\"%n" +
-            ",Bar Sport,,\"[\"Address\"]\"%n" +
+    private static final String EXPECTED_QUERY_QUOTES_NEEDED = String.format("a.name,a.city,a.street,labels(a)%n" +
+            "Andrea,Milano,\"Via Garibaldi, 7\",\"[\"Address1\",\"Address\"]\"%n" +
+            "Bar Sport,,,\"[\"Address\"]\"%n" +
             ",,via Benni,\"[\"Address\"]\"%n");
-    private static final String EXPECTED = String.format("\"_id\",\"_labels\",\"name\",\"age\",\"male\",\"kids\",\"street\",\"city\",\"_start\",\"_end\",\"_type\"%n" +
+    private static final String EXPECTED = String.format("\"_id\",\"_labels\",\"age\",\"city\",\"kids\",\"male\",\"name\",\"street\",\"_start\",\"_end\",\"_type\"%n" +
             "\"0\",\":User:User1\",\"foo\",\"42\",\"true\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"\",\"\",,,%n" +
             "\"1\",\":User\",\"bar\",\"42\",\"\",\"\",\"\",\"\",,,%n" +
             "\"2\",\":User\",\"\",\"12\",\"\",\"\",\"\",\"\",,,%n" +
@@ -64,7 +65,7 @@ public class ExportCsvTest {
             "\"22\",\":Address\",\"\",\"\",\"\",\"\",\"via Benni\",\"\",,,%n" +
             ",,,,,,,,\"0\",\"1\",\"KNOWS\"%n" +
             ",,,,,,,,\"20\",\"21\",\"NEXT_DELIVERY\"%n");
-    private static final String EXPECTED_NONE_QUOTES = String.format("_id,_labels,name,age,male,kids,street,city,_start,_end,_type%n" +
+    private static final String EXPECTED_NONE_QUOTES = String.format("_id,_labels,age,city,kids,male,name,street,_start,_end,_type%n" +
             "0,:User:User1,foo,42,true,[\"a\",\"b\",\"c\"],,,,,%n" +
             "1,:User,bar,42,,,,,,,%n" +
             "2,:User,,12,,,,,,,%n" +
@@ -73,7 +74,7 @@ public class ExportCsvTest {
             "22,:Address,,,,,via Benni,,,,%n" +
             ",,,,,,,,0,1,KNOWS%n" +
             ",,,,,,,,20,21,NEXT_DELIVERY%n");
-    private static final String EXPECTED_NEEDED_QUOTES = String.format("_id,_labels,name,age,male,kids,street,city,_start,_end,_type%n" +
+    private static final String EXPECTED_NEEDED_QUOTES = String.format("_id,_labels,age,city,kids,male,name,street,_start,_end,_type%n" +
             "0,:User:User1,foo,42,true,\"[\"a\",\"b\",\"c\"]\",,,,,%n" +
             "1,:User,bar,42,,,,,,,%n" +
             "2,:User,,12,,,,,,,%n" +
@@ -391,6 +392,29 @@ public class ExportCsvTest {
                 getAndCheckStreamingMetadataQueryMatchAddress(sb));
 
         assertEquals(EXPECTED_QUERY_QUOTES_NONE, sb.toString());
+    }
+
+    @Test
+    public void testExportQueryCsvIssue1188() throws Exception {
+        String copyright = "\n" +
+                "(c) 2018 Hovsepian, Albanese, et al. \"\"ASCB(r),\"\" \"\"The American Society for Cell Biology(r),\"\" and \"\"Molecular Biology of the Cell(r)\"\" are registered trademarks of The American Society for Cell Biology.\n" +
+                "2018\n" +
+                "\n" +
+                "This article is distributed by The American Society for Cell Biology under license from the author(s). Two months after publication it is available to the public under an Attribution-Noncommercial-Share Alike 3.0 Unported Creative Commons License.\n" +
+                "\n";
+        String pk = "5921569";
+        db.execute("CREATE (n:Document{pk:{pk}, copyright: {copyright}})", map("copyright", copyright, "pk", pk)).close();
+        String query = "MATCH (n:Document{pk:'5921569'}) return n.pk as pk, n.copyright as copyright";
+        TestUtil.testCall(db, "CALL apoc.export.csv.query({query}, null, {config})", map("query", query,
+                "config", map("stream", true)),
+                (r) -> {
+                    List<String[]> csv = CsvTestUtil.toCollection(r.get("data").toString());
+                    assertEquals(2, csv.size());
+                    assertArrayEquals(new String[]{"pk","copyright"}, csv.get(0));
+                    assertArrayEquals(new String[]{"5921569",copyright}, csv.get(1));
+                });
+        db.execute("MATCH (d:Document) DETACH DELETE d").close();
+
     }
 
     private Consumer<Result> getAndCheckStreamingMetadataQueryMatchAddress(StringBuilder sb)
