@@ -91,6 +91,12 @@ If the file name is passed as `null` and the config `stream:true` the results ar
 
 ==== Note:
 
+For `apoc.export.csv.all/data/graph` nodes and relationships properties are ordered alphabetically, following this general structure:
+
+`_id,_labels,<list_nodes_properties_naturally_sorted>,_start,_end,_type,<list_rel_properties_naturally_sorted>`, so for instance:
+
+`_id,_labels,age,city,kids,male,name,street,_start,_end,_type,bar,foo`
+
 The labels exported are ordered alphabetically.
 The output of `labels()` function is not sorted, use it in combination with `apoc.coll.sort()`.
 
