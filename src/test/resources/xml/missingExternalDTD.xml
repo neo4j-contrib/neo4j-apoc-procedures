@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+
+<!DOCTYPE document SYSTEM "file://should-not-exist.dtd">
+<document>
+    <!-- The refenced external DTD should point to a non-exiting file.
+        Since we do not want to load external DTDs (XXE attack), the parser
+        should be configured in a way not to load external DTD and hence not fail.
+    -->
+    <title>dtd 404</title>
+</document>
