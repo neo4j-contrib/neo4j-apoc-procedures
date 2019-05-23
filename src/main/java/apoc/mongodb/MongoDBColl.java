@@ -31,6 +31,7 @@ class MongoDBColl implements MongoDB.Coll {
     private MongoCollection<Document> collection;
     private MongoClient mongoClient;
     private boolean compatibleValues = false;
+    private boolean doorStop = false;
 
     public MongoDBColl(String url, String db, String coll) {
         MongoClientURI connectionString = new MongoClientURI(url);
@@ -53,6 +54,7 @@ class MongoDBColl implements MongoDB.Coll {
 
     @Override
     public void close() throws IOException {
+        if (doorStop) return;
         mongoClient.close();
     }
 
@@ -111,8 +113,15 @@ class MongoDBColl implements MongoDB.Coll {
     }
 
     private Stream<Map<String, Object>> asStream(FindIterable<Document> result) {
+        this.doorStop = true;
         Iterable<Document> it = () -> result.iterator();
-        return StreamSupport.stream(it.spliterator(), false).map(doc -> this.documentToPackableMap(doc)).onClose(result.iterator()::close);
+        return StreamSupport
+                .stream(it.spliterator(), false)
+                .map(doc -> this.documentToPackableMap(doc))
+                .onClose( () -> {
+                        result.iterator().close();
+                        mongoClient.close();
+                    } );
     }
 
     @Override
