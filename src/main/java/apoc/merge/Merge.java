@@ -20,7 +20,7 @@ public class Merge {
     public GraphDatabaseService db;
 
     @Procedure(value="apoc.merge.node.eager", mode = Mode.WRITE, eager = true)
-    @Description("apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, config:{onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) - merge node with dynamic labels, with support for setting properties ON CREATE or ON MATCH")
+    @Description("apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) - merge nodes eagerly, with dynamic labels, with support for setting properties ON CREATE or ON MATCH")
     public Stream<NodeResult> nodesEager(@Name("label") List<String> labelNames,
                                         @Name("identProps") Map<String, Object> identProps,
                                         @Name(value = "props",defaultValue = "{}") Map<String, Object> props,
@@ -29,7 +29,7 @@ public class Merge {
     }
 
     @Procedure(value="apoc.merge.node", mode = Mode.WRITE)
-    @Description("apoc.merge.node(['Label'], identProps:{key:value, ...}, config:{onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) - merge node with dynamic labels, with support for setting properties ON CREATE or ON MATCH")
+    @Description("\"apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) - merge nodes with dynamic labels, with support for setting properties ON CREATE or ON MATCH")
     public Stream<NodeResult> nodes(@Name("label") List<String> labelNames,
                                         @Name("identProps") Map<String, Object> identProps,
                                         @Name(value = "props",defaultValue = "{}") Map<String, Object> props,
@@ -48,7 +48,7 @@ public class Merge {
     }
 
     @Procedure(value = "apoc.merge.relationship", mode = Mode.WRITE)
-    @Description("apoc.merge.relationship(startNode, relType,  identProps:{key:value, ...}, config:{onCreateProps:{key:value, ...}, onMatchProps:{key:value, ...}}, endNode) - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH")
+    @Description("apoc.merge.relationship(startNode, relType,  identProps:{key:value, ...}, onCreateProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...}) - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH")
     public Stream<RelationshipResult> relationship(@Name("startNode") Node startNode, @Name("relationshipType") String relType,
                                                         @Name("identProps") Map<String, Object> identProps,
                                                         @Name("props") Map<String, Object> onCreateProps,
@@ -68,7 +68,7 @@ public class Merge {
         return db.execute(cypher, params ).columnAs("r").stream().map(rel -> new RelationshipResult((Relationship) rel));
     }
     @Procedure(value = "apoc.merge.relationship.eager", mode = Mode.WRITE, eager = true)
-    @Description("apoc.merge.relationship.eager(startNode, relType,  identProps:{key:value, ...}, config:{onCreateProps:{key:value, ...}, onMatchProps:{key:value, ...}}, endNode) - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH")
+    @Description("apoc.merge.relationship(startNode, relType,  identProps:{key:value, ...}, onCreateProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...}) - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH")
     public Stream<RelationshipResult> relationshipEager(@Name("startNode") Node startNode, @Name("relationshipType") String relType,
                                                         @Name("identProps") Map<String, Object> identProps,
                                                         @Name("props") Map<String, Object> onCreateProps,
