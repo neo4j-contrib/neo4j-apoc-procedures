@@ -118,3 +118,15 @@ The the output will look like the following table:
 | "function"  | "answer" | <null> | <null> | "RETURN $input as answer" | [["input","number"]] | "long" | false
 | "procedure" | "answer" | "Procedure that answer to the Ultimate Question of Life, the Universe, and Everything" | "read" | "RETURN $input as answer" | [["input","int","42"]] | [["answer","number"]] | <null>
 |===
+
+
+=== How to manage procedure/function replication in a Causal Cluster
+
+In order to replicate the procedure/function in a cluster environment you can tune the following parameters:
+
+[%autowidth,opts=header]
+|===
+| name | type | description
+| `apoc.custom.procedures.refresh` | long (default `60000`) | the refresh time that allows replicating the procedure/function
+changes to each cluster member
+|===
