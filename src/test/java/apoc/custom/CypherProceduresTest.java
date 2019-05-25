@@ -1,6 +1,7 @@
 package apoc.custom;
 
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -44,7 +45,6 @@ public class CypherProceduresTest {
     }
 
     @Test
-    @Ignore
     public void overrideSingleCallStatement() throws Exception {
         db.execute("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");
         TestUtil.testCall(db, "call custom.answer() yield row return row", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
@@ -54,8 +54,8 @@ public class CypherProceduresTest {
         db.execute("call apoc.custom.asProcedure('answer','RETURN 43 as answer')");
         TestUtil.testCall(db, "call custom.answer() yield row return row", (row) -> assertEquals(43L, ((Map)row.get("row")).get("answer")));
     }
+
     @Test
-    @Ignore
     public void overrideCypherCallStatement() throws Exception {
         db.execute("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");
         TestUtil.testCall(db, "with 1 as foo call custom.answer() yield row return row", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));

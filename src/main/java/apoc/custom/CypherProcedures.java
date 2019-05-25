@@ -1,9 +1,11 @@
 package apoc.custom;
 
+import apoc.ApocConfiguration;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.collection.PrefetchingRawIterator;
 import org.neo4j.collection.RawIterator;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
@@ -343,9 +345,12 @@ public class CypherProcedures {
 
     public static class CustomProcedureStorage implements AvailabilityGuard.AvailabilityListener {
         public static final String APOC_CUSTOM = "apoc.custom";
+        public static final String APOC_CUSTOM_UPDATE = "apoc.custom.update";
         private GraphProperties properties;
         private final GraphDatabaseAPI api;
         private final Log log;
+        private Timer timer = new Timer(getClass().getSimpleName(), true);
+        private long lastUpdate;
 
         public CustomProcedureStorage(GraphDatabaseAPI api, Log log) {
             this.api = api;
@@ -356,6 +361,12 @@ public class CypherProcedures {
         public void available() {
             properties = getProperties(api);
             restoreProcedures();
+            long refreshInterval = Long.valueOf(ApocConfiguration.get("custom.procedures.refresh", "60000"));
+            timer.scheduleAtFixedRate(new TimerTask() {
+                public void run() {
+                    restoreProcedures();
+                }
+            }, refreshInterval, refreshInterval);
         }
 
         public static GraphPropertiesProxy getProperties(GraphDatabaseAPI api) {
@@ -363,20 +374,26 @@ public class CypherProcedures {
         }
 
         private void restoreProcedures() {
+            if (getLastUpdate(properties) <= lastUpdate) return;
+            lastUpdate = System.currentTimeMillis();
             CustomStatementRegistry registry = new CustomStatementRegistry(api, log);
-            Map<String, Map<String,Map<String, Object>>> stored = readData(properties);
+            Map<String, Map<String, Map<String, Object>>> stored = readData(properties);
             stored.get(FUNCTIONS).forEach((name, data) -> {
                 registry.registerFunction(name, (String) data.get("statement"), (String) data.get("output"),
-                        (List<List<String>>) data.get("inputs"), (Boolean)data.get("forceSingle"), (String) data.get("description"));
+                        (List<List<String>>) data.get("inputs"), (Boolean) data.get("forceSingle"), (String) data.get("description"));
             });
             stored.get(PROCEDURES).forEach((name, data) -> {
                 registry.registerProcedure(name, (String) data.get("statement"), (String) data.get("mode"),
                         (List<List<String>>) data.get("outputs"), (List<List<String>>) data.get("inputs"), (String) data.get("description"));
             });
+            clearQueryCaches(api);
         }
 
         @Override
         public void unavailable() {
+            if (timer != null) {
+                timer.cancel();
+            }
             properties = null;
         }
 
@@ -402,12 +419,20 @@ public class CypherProcedures {
                 Map<String, Object> previous = (value == null) ? procData.remove(name) : procData.put(name, value);
                 if (value != null || previous != null) {
                     properties.setProperty(APOC_CUSTOM, Util.toJson(data));
+                    properties.setProperty(APOC_CUSTOM_UPDATE, System.currentTimeMillis());
                 }
                 tx.success();
                 return previous;
             }
         }
 
+        private static long getLastUpdate(GraphProperties properties) {
+            try (Transaction tx = properties.getGraphDatabase().beginTx()) {
+                long lastUpdate = (long) properties.getProperty(APOC_CUSTOM_UPDATE, 0L);
+                tx.success();
+                return lastUpdate;
+            }
+        }
         private static Map<String, Map<String,Map<String, Object>>> readData(GraphProperties properties) {
             try (Transaction tx = properties.getGraphDatabase().beginTx()) {
                 String procedurePropertyData = (String) properties.getProperty(APOC_CUSTOM, "{\"functions\":{},\"procedures\":{}}");
@@ -416,6 +441,14 @@ public class CypherProcedures {
                 return result;
             }
         }
+
+        private static void clearQueryCaches(GraphDatabaseService db) {
+            try (Transaction tx = db.beginTx()) {
+                db.execute("call dbms.clearQueryCaches()").close();
+                tx.success();
+            }
+        }
+
 
         public List<CustomProcedureInfo> list() {
             return readData(getProperties(api)).entrySet().stream()
