@@ -8,7 +8,6 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -17,9 +16,9 @@ import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import java.io.IOException;
 import java.util.*;
 
+import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.*;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.Assume.*;
 
 /**
  * @author mh
@@ -49,6 +48,7 @@ public class ElasticSearchTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
+        assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             elastic = new ElasticsearchContainer();
             elastic.start();

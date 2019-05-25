@@ -13,8 +13,10 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.util.TestContainerUtil.*;
+import static apoc.util.TestUtil.isTravis;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
+import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 
 /**
@@ -28,7 +30,8 @@ public class SchemasEnterpriseFeaturesTest {
 
     @BeforeClass
     public static void beforeAll() {
-        executeGradleTasks("clean", "shadow");
+        assumeFalse(isTravis());
+        executeGradleTasks("shadow");
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
             neo4jContainer = createEnterpriseDB(!TestUtil.isTravis());
@@ -44,7 +47,7 @@ public class SchemasEnterpriseFeaturesTest {
             session.close();
             neo4jContainer.close();
         }
-        cleanBuild();
+        // cleanBuild();
     }
 
     @Test
