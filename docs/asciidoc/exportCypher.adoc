@@ -1,6 +1,14 @@
 [[export-cypher]]
 == Export to Cypher Script
 
+====
+If you are experimenting with imports that are failing you can add the `--debug` command line parameter, to see which statement was executed last and cause the failure.
+
+Also check the memory configuration of your Neo4j instance, you might want to up the HEAP to *2–4GB* with the `dbms.memory.heap.max_size=2G` setting in `neo4j.conf`.
+
+And provide more memory to cypher-shell itself by prefixing the command with: `JAVA_OPTS=-Xmx4G bin/cypher-shell …`
+====
+
 Make sure to set the config options in your `neo4j.conf`
 
 .neo4j.conf
