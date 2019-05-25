@@ -27,11 +27,11 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.isTravis;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.HttpURLConnection.HTTP_UNAUTHORIZED;
 import static org.junit.Assert.*;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.Assume.*;
 
 /**
  * @author mh
@@ -60,6 +60,7 @@ public class MongoDBTest {
 
     @BeforeClass
     public static void setUp() throws Exception {
+        assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             mongo = new GenericContainer("mongo:3")
                     .withNetworkAliases("mongo-" + Base58.randomString(6))

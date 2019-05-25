@@ -8,7 +8,6 @@ import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
@@ -19,13 +18,12 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.couchbase.CouchbaseTestUtils.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
-
+import static apoc.util.TestUtil.isTravis;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.Util.map;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.*;
 
 public class CouchbaseIT  {
 
@@ -39,6 +37,7 @@ public class CouchbaseIT  {
 
     @BeforeClass
     public static void setUp() throws Exception {
+        assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             couchbase = new CouchbaseContainer()
                     .withClusterAdmin(USERNAME, PASSWORD)

@@ -10,8 +10,8 @@ import org.neo4j.graphdb.GraphDatabaseService;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
 import static apoc.couchbase.CouchbaseTestUtils.*;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
+import static apoc.util.TestUtil.isTravis;
+import static org.junit.Assume.*;
 
 /**
  * Created by alberto.delazzari on 23/08/2018.
@@ -37,6 +37,7 @@ public class CouchbaseManagerIT {
 
     @BeforeClass
     public static void setUp() {
+        assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             couchbase = new CouchbaseContainer()
                     .withClusterAdmin(USERNAME, PASSWORD)
