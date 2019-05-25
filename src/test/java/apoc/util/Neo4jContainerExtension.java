@@ -24,18 +24,33 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
 
     private String filePath;
 
+    private boolean withDriver = true;
+
+    public Neo4jContainerExtension() {}
+
+    public Neo4jContainerExtension(String dockerImage) {
+        setDockerImageName(dockerImage);
+    }
+
     public Neo4jContainerExtension withInitScript(String filePath) {
         this.filePath = filePath;
+        return this;
+    }
+
+    public Neo4jContainerExtension withoutDriver() {
+        this.withDriver = false;
         return this;
     }
 
     @Override
     public void start() {
         super.start();
-        driver = GraphDatabase.driver(getBoltUrl(), getAuth());
-        session = driver.session();
-        if (filePath != null && !filePath.isEmpty()) {
-            executeScript(filePath);
+        if (withDriver) {
+            driver = GraphDatabase.driver(getBoltUrl(), getAuth());
+            session = driver.session();
+            if (filePath != null && !filePath.isEmpty()) {
+                executeScript(filePath);
+            }
         }
     }
 
@@ -78,8 +93,10 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
 
     @Override
     public void stop() {
-        session.close();
-        driver.close();
+        if (withDriver) {
+            session.close();
+            driver.close();
+        }
         super.stop();
     }
 }
