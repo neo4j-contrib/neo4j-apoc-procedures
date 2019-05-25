@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static apoc.couchbase.CouchbaseTestUtils.*;
+import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.*;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.Assume.*;
 
 @Ignore // The same tests are covered from CouchbaseIT, for now we disable this in order to reduce the build time
 public class CouchbaseTest {
@@ -39,6 +39,7 @@ public class CouchbaseTest {
 
     @BeforeClass
     public static void setUp() {
+        assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             couchbase = new CouchbaseContainer()
                     .withClusterAdmin(USERNAME, PASSWORD)

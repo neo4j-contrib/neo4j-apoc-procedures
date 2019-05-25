@@ -959,6 +959,63 @@ public class ExportCypherTest {
         static final String EXPECTED_ONLY_SCHEMA_CYPHER_SHELL = EXPECTED_ONLY_SCHEMA_NEO4J_SHELL.replace(NEO4J_SHELL.begin(), CYPHER_SHELL.begin())
                 .replace(NEO4J_SHELL.commit(), CYPHER_SHELL.commit()).replace(NEO4J_SHELL.schemaAwait(), CYPHER_SHELL.schemaAwait()) + EXPECTED_INDEXES_AWAIT;
 
+
+        static final String EXPECTED_NODES_COMPOUND_CONSTRAINT = String.format("BEGIN%n" +
+                "CREATE (:`Person` {`name`:\"John\", `surname`:\"Snow\"});%n" +
+                "CREATE (:`Person` {`name`:\"Matt\", `surname`:\"Jackson\"});%n" +
+                "CREATE (:`Person` {`name`:\"Jenny\", `surname`:\"White\"});%n" +
+                "CREATE (:`Person` {`name`:\"Susan\", `surname`:\"Brown\"});%n" +
+                "CREATE (:`Person` {`name`:\"Tom\", `surname`:\"Taylor\"});%n" +
+                "COMMIT%n");
+
+        static final String EXPECTED_SCHEMA_COMPOUND_CONSTRAINT = String.format("BEGIN%n" +
+                "CREATE CONSTRAINT ON (node:`Person`) ASSERT (node.`name`, node.`surname`) IS NODE KEY;%n" +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n");
+
+        static final String EXPECTED_RELATIONSHIP_COMPOUND_CONSTRAINT = String.format(("BEGIN%n" +
+                "MATCH (n1:`Person`{`surname`:\"Snow\", `name`:\"John\"}), (n2:`Person`{`surname`:\"Jackson\", `name`:\"Matt\"}) CREATE (n1)-[r:`KNOWS`]->(n2);%n" +
+                "COMMIT%n"));
+
+        static final String EXPECTED_INDEX_AWAIT_COMPOUND_CONSTRAINT =  String.format("CALL db.awaitIndex(':`Person`(`name`,`surname`)');%n");
+
+        static final String EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT = String.format("BEGIN%n" +
+                "CREATE CONSTRAINT ON (node:Person) ASSERT (node.name, node.surname) IS NODE KEY;%n" +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n" +
+                "BEGIN%n" +
+                "UNWIND [{surname:\"Snow\", name:\"John\", properties:{}}, {surname:\"Jackson\", name:\"Matt\", properties:{}}, {surname:\"White\", name:\"Jenny\", properties:{}}, {surname:\"Brown\", name:\"Susan\", properties:{}}, {surname:\"Taylor\", name:\"Tom\", properties:{}}] as row%n" +
+                "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
+                "COMMIT%n" +
+                "BEGIN%n" +
+                "UNWIND [{start: {name:\"John\", surname:\"Snow\"}, end: {name:\"Matt\", surname:\"Jackson\"}, properties:{}}] as row%n" +
+                "MATCH (start:Person{surname: row.start.surname, name: row.start.name})%n" +
+                "MATCH (end:Person{surname: row.end.surname, name: row.end.name})%n" +
+                "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n" +
+                "COMMIT%n");
+
+        static final String EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT = String.format(":begin%n" +
+                "CREATE CONSTRAINT ON (node:Person) ASSERT (node.name, node.surname) IS NODE KEY;%n" +
+                ":commit%n" +
+                "CALL db.awaitIndex(':Person(name,surname)');%n" +
+                ":begin%n" +
+                "UNWIND [{surname:\"Snow\", name:\"John\", properties:{}}, {surname:\"Jackson\", name:\"Matt\", properties:{}}, {surname:\"White\", name:\"Jenny\", properties:{}}, {surname:\"Brown\", name:\"Susan\", properties:{}}, {surname:\"Taylor\", name:\"Tom\", properties:{}}] as row%n" +
+                "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
+                ":commit%n" +
+                ":begin%n" +
+                "UNWIND [{start: {name:\"John\", surname:\"Snow\"}, end: {name:\"Matt\", surname:\"Jackson\"}, properties:{}}] as row%n" +
+                "MATCH (start:Person{surname: row.start.surname, name: row.start.name})%n" +
+                "MATCH (end:Person{surname: row.end.surname, name: row.end.name})%n" +
+                "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n" +
+                ":commit%n");
+
+        static final String EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT = String.format("CREATE CONSTRAINT ON (node:Person) ASSERT (node.name, node.surname) IS NODE KEY;%n" +
+                "UNWIND [{surname:\"Snow\", name:\"John\", properties:{}}, {surname:\"Jackson\", name:\"Matt\", properties:{}}, {surname:\"White\", name:\"Jenny\", properties:{}}, {surname:\"Brown\", name:\"Susan\", properties:{}}, {surname:\"Taylor\", name:\"Tom\", properties:{}}] as row%n" +
+                "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
+                "UNWIND [{start: {name:\"John\", surname:\"Snow\"}, end: {name:\"Matt\", surname:\"Jackson\"}, properties:{}}] as row%n" +
+                "MATCH (start:Person{surname: row.start.surname, name: row.start.name})%n" +
+                "MATCH (end:Person{surname: row.end.surname, name: row.end.name})%n" +
+                "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n");
     }
 
 }
