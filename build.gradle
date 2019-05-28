@@ -24,7 +24,7 @@ idea {
 }
 
 group = 'org.neo4j.procedure'
-version = '3.5.0.3'
+version = '3.5.0.4'
 archivesBaseName = 'apoc'
 
 jar {
@@ -227,7 +227,7 @@ asciidoctor {
     sources { include 'index.adoc' }
     outputDir = file('build/docs')
     attributes  'apoc-version' : version,
-                'apoc-release' : "3.5.0.3",
+                'apoc-release' : "3.5.0.4",
                 'neo4j-version' : neo4jVersionEffective,
                 'branch' : "3.5"
 }
