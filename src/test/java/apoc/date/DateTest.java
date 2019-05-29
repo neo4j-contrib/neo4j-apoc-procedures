@@ -1,5 +1,18 @@
 package apoc.date;
 
+import apoc.util.TestUtil;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.helpers.collection.Iterators;
+import org.neo4j.test.TestGraphDatabaseFactory;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -12,15 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 import java.util.stream.Stream;
-import apoc.util.TestUtil;
-import org.junit.*;
-import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -407,7 +411,7 @@ public class DateTest {
 		String isoDateTime = "2019-05-14T14:52:06-04:00";
 		Map<String, Object> params = new HashMap<>();
 		params.put("rfcDateTime", rfcDateTime);
-		testCall(db, "RETURN apoc.date.convertFormats($rfcDateTime, 'rfc_1123_date_time', 'iso_date_time') as convertedTime", params, row -> assertEquals(isoDateTime, row.get("convertedTime")));
+		testCall(db, "RETURN apoc.date.convertFormat($rfcDateTime, 'rfc_1123_date_time', 'iso_date_time') as convertedTime", params, row -> assertEquals(isoDateTime, row.get("convertedTime")));
 	}
 
 	private SimpleDateFormat formatInUtcZone(final String pattern) {
