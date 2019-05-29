@@ -24,7 +24,7 @@ public class CypherProceduresClusterTest {
     @BeforeClass
     public static void setupCluster() {
         assumeFalse(isTravis());
-        executeGradleTasks("shadow");
+        executeGradleTasks("clean", "shadow");
         TestUtil.ignoreException(() ->  cluster = TestContainerUtil
                 .createEnterpriseCluster(3, 1, Util.map("apoc.custom.procedures.refresh", 100)),
                 Exception.class);
@@ -36,7 +36,7 @@ public class CypherProceduresClusterTest {
         if (cluster != null) {
             cluster.close();
         }
-        // cleanBuild();
+        cleanBuild();
     }
 
     @Test

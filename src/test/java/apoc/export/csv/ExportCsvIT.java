@@ -30,7 +30,7 @@ public class ExportCsvIT {
     public static void beforeAll() {
         assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
-            executeGradleTasks("shadow");
+            executeGradleTasks("clean", "shadow");
             neo4jContainer = createEnterpriseDB(true);
             neo4jContainer.start();
         }, Exception.class);
@@ -43,7 +43,7 @@ public class ExportCsvIT {
         if (neo4jContainer != null) {
             neo4jContainer.close();
         }
-        // cleanBuild();
+        cleanBuild();
     }
 
     @Test
