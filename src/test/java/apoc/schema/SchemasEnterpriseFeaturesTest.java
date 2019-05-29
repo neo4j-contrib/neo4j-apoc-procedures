@@ -31,7 +31,7 @@ public class SchemasEnterpriseFeaturesTest {
     @BeforeClass
     public static void beforeAll() {
         assumeFalse(isTravis());
-        executeGradleTasks("shadow");
+        executeGradleTasks("clean", "shadow");
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
             neo4jContainer = createEnterpriseDB(!TestUtil.isTravis());
@@ -47,7 +47,7 @@ public class SchemasEnterpriseFeaturesTest {
             session.close();
             neo4jContainer.close();
         }
-        // cleanBuild();
+        cleanBuild();
     }
 
     @Test
