@@ -33,7 +33,7 @@ public class MetricsTest {
     public static void beforeAll() {
         assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
-            executeGradleTasks("shadow");
+            executeGradleTasks("clean", "shadow");
             neo4jContainer = createEnterpriseDB(true)
                 .withNeo4jConfig("apoc.import.file.enabled", "true");
             neo4jContainer.start();
@@ -47,7 +47,7 @@ public class MetricsTest {
         if (neo4jContainer != null) {
             neo4jContainer.close();
         }
-        // cleanBuild();
+        cleanBuild();
     }
 
     @Test
