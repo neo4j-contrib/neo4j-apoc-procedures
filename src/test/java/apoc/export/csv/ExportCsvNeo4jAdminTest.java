@@ -24,22 +24,22 @@ import static org.junit.Assert.assertEquals;
 public class ExportCsvNeo4jAdminTest {
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_TYPES_NODE = String
-            .format("id:ID;born_2D:point;born_3D:point;localtime:localtime;time:time;dateTime:datetime;localDateTime:localdatetime;date:date;duration:duration;:LABEL%n");
+            .format("id:ID;born_2D:point;born_3D:point;date:date;dateTime:datetime;duration:duration;localDateTime:localdatetime;localtime:localtime;time:time;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_TYPES_NODE = String
-            .format("3;{crs:cartesian,x:2.3,y:4.5};{crs:wgs-84-3d,latitude:56.7,longitude:12.78,height:100.0};12:50:35.556;12:50:35.556+01:00;2018-10-30T12:50:35.556+01:00;2018-10-30T19:32:24;2018-10-30;P5M1DT12H;Types%n");
+            .format("3;{crs:cartesian,x:2.3,y:4.5};{crs:wgs-84-3d,latitude:56.7,longitude:12.78,height:100.0};2018-10-30;2018-10-30T12:50:35.556+01:00;P5M1DT12H;2018-10-30T19:32:24;12:50:35.556;12:50:35.556+01:00;Types%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS = String
             .format("id:ID;name;street;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS1 = String
-            .format("id:ID;street;name;city;:LABEL%n");
+            .format("id:ID;city;name;street;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER = String
-            .format("id:ID;name;age:long;:LABEL%n");
+            .format("id:ID;age:long;name;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER1 = String
-            .format("id:ID;name;age:long;male:boolean;kids;:LABEL%n");
+            .format("id:ID;age:long;kids;male:boolean;name;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_RELATIONSHIP_KNOWS = String
             .format(":START_ID;:END_ID;:TYPE%n");
@@ -52,14 +52,14 @@ public class ExportCsvNeo4jAdminTest {
                     "22;;via Benni;Address%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS1 = String
-            .format("20;Via Garibaldi, 7;Andrea;Milano;\"Address1;Address\"%n");
+            .format("20;Milano;Andrea;Via Garibaldi, 7;\"Address1;Address\"%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER = String
-            .format("1;bar;42;User%n" +
-                    "2;;12;User%n");
+            .format("1;42;bar;User%n" +
+                    "2;12;;User%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER1 = String
-            .format("0;foo;42;true;[a,b,c];\"User1;User\"%n");
+            .format("0;42;[a,b,c];true;foo;\"User1;User\"%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_KNOWS = String
             .format("0;1;KNOWS%n");
