@@ -420,10 +420,25 @@
                            <p>procedure</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.merge.node.eager</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.merge.node.eager(['Label'], identProps:{key:value, &#8230;&#8203;}, onCreateProps:{key:value,&#8230;&#8203;}, onMatchProps:{key:value,&#8230;&#8203;}}) -
+                              merge nodes eagerly, with dynamic labels, with support for setting properties ON CREATE or ON MATCH
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.merge.node</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.merge.node(['Label'], {key:value, &#8230;&#8203;}, {key:value,&#8230;&#8203;}) - merge node with dynamic labels</p>
+                           <p>"apoc.merge.node.eager(['Label'], identProps:{key:value, &#8230;&#8203;}, onCreateProps:{key:value,&#8230;&#8203;}, onMatchProps:{key:value,&#8230;&#8203;}})
+                              - merge nodes with dynamic labels, with support for setting properties ON CREATE or ON MATCH
+                           </p>
                         </td>
                      </tr>
                      <tr>
@@ -434,8 +449,21 @@
                            <p>apoc.merge.relationship</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.merge.relationship(startNode, relType,  {key:value, &#8230;&#8203;}, {key:value, &#8230;&#8203;}, endNode) - merge relationship with dynamic
-                              type
+                           <p>apoc.merge.relationship(startNode, relType,  identProps:{key:value, &#8230;&#8203;}, onCreateProps:{key:value, &#8230;&#8203;}, endNode, onMatchProps:{key:value,
+                              &#8230;&#8203;}) - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.merge.relationship.eager</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.merge.relationship(startNode, relType,  identProps:{key:value, &#8230;&#8203;}, onCreateProps:{key:value, &#8230;&#8203;}, endNode, onMatchProps:{key:value,
+                              &#8230;&#8203;}) - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH
                            </p>
                         </td>
                      </tr>
@@ -3872,6 +3900,19 @@
                            <p>function</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.date.convertFormat</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time', 'iso_date_time') convert a String of one
+                              date format into a String of another date format.
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.date.add</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
@@ -4907,6 +4948,45 @@
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.map.mergeList([{maps}]) yield value - merges all maps in the list into one</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.get</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.get(map,key,[default],[fail=true]) - returns value for key or throws exception if key doesn&#8217;t exist and no default
+                              given
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.mget</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.mget(map,key,[defaults],[fail=true])  - returns list of values for keys or throws exception if one of the key doesn&#8217;t
+                              exist and no default value given at that position
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.submap</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.submap(map,keys,[defaults],[fail=true])  - returns submap for keys or throws exception if one of the key doesn&#8217;t
+                              exist and no default value given at that position
+                           </p>
                         </td>
                      </tr>
                      <tr>

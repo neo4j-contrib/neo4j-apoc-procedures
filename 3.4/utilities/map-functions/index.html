@@ -61,7 +61,7 @@
             </div>
          </div>
          <div class="informaltable">
-            <div class="table" id="d0e10812">
+            <div class="table" id="d0e10974">
                <table class="informaltable" border="1">
                   <colgroup>
                      <col class="col_1"></col>
@@ -178,6 +178,32 @@
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
                            <p>returns map - adds the {data} map on each level of the nested tree, where the key-value pairs match</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">apoc.map.values(map, [key1,key2,key3,&#8230;&#8203;],[addNullsForMissing]) returns list of values indicated by the keys</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.submap(map,keys,<span id="defaults"></span>,[fail=true])
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">returns submap for keys or throws exception if one of the key doesn&#8217;t exist and no default value given at that position</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.mget(map,keys,<span id="defaults"></span>,[fail=true])
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p><code class="literal">returns list of values for keys or throws exception if one of the key doesn&#8217;t exist and no default value given at that position</code></p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.get(map,key,[default],[fail=true])</p>
                         </td>
                      </tr>
                   </tbody>

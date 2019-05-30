@@ -420,10 +420,25 @@
                            <p>procedure</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.merge.node.eager</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.merge.node.eager(['Label'], identProps:{key:value, &#8230;&#8203;}, onCreateProps:{key:value,&#8230;&#8203;}, onMatchProps:{key:value,&#8230;&#8203;}}) -
+                              merge nodes eagerly, with dynamic labels, with support for setting properties ON CREATE or ON MATCH
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.merge.node</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.merge.node(['Label'], {key:value, &#8230;&#8203;}, {key:value,&#8230;&#8203;}) - merge node with dynamic labels</p>
+                           <p>"apoc.merge.node.eager(['Label'], identProps:{key:value, &#8230;&#8203;}, onCreateProps:{key:value,&#8230;&#8203;}, onMatchProps:{key:value,&#8230;&#8203;}})
+                              - merge nodes with dynamic labels, with support for setting properties ON CREATE or ON MATCH
+                           </p>
                         </td>
                      </tr>
                      <tr>
@@ -434,8 +449,21 @@
                            <p>apoc.merge.relationship</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.merge.relationship(startNode, relType,  {key:value, &#8230;&#8203;}, {key:value, &#8230;&#8203;}, endNode) - merge relationship with dynamic
-                              type
+                           <p>apoc.merge.relationship(startNode, relType,  identProps:{key:value, &#8230;&#8203;}, onCreateProps:{key:value, &#8230;&#8203;}, endNode, onMatchProps:{key:value,
+                              &#8230;&#8203;}) - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.merge.relationship.eager</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.merge.relationship(startNode, relType,  identProps:{key:value, &#8230;&#8203;}, onCreateProps:{key:value, &#8230;&#8203;}, endNode, onMatchProps:{key:value,
+                              &#8230;&#8203;}) - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH
                            </p>
                         </td>
                      </tr>
@@ -950,6 +978,39 @@
                            <p>CALL apoc.algo.pageRankWithCypher({iterations,node_cypher,rel_cypher,write,property,numCpu}) - calculates page rank based
                               on cypher input
                            </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.algo.betweenness</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>CALL apoc.algo.betweenness(['TYPE',&#8230;&#8203;],nodes,BOTH) YIELD node, score - calculate betweenness centrality for given nodes</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.algo.betweennessCypher</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>CALL apoc.algo.betweennessCypher(node_cypher,rel_cypher,write) - calculates betweeness  centrality based on cypher input</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>procedure</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.algo.closeness</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>CALL apoc.algo.closeness(['TYPE',&#8230;&#8203;],nodes, INCOMING) YIELD node, score - calculate closeness centrality for given nodes</p>
                         </td>
                      </tr>
                      <tr>
@@ -1884,7 +1945,7 @@
                            <p>apoc.index.orderedRange</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>deprecated, just there for compatibility. Use plain cypher instead</p>
+                           <p>just use a cypher query with a range predicate on an indexed field and wait for index backed order by in 3.5</p>
                         </td>
                      </tr>
                      <tr>
@@ -3571,6 +3632,17 @@
                            <p>function</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.node.relationships.exist</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map of relationship-pattenr &#8594; true/false for each pair</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.nodes.connected</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
@@ -3696,10 +3768,34 @@
                            <p>function</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.node.relationships.exist</p>
+                           <p>apoc.nodes.relationship.types</p>
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
-                           <p>apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map with rel-pattern, boolean for the given relationship
+                           <p>apoc.nodes.relationship.types(node, rel-direction-pattern) - returns a list of distinct relationship types</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.node.relationships.degrees</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.node.relationships.degrees(node, rel-direction-pattern) - returns a map with rel-pattern, boolean for the given relationship
+                              patterns
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.nodes.relationships.degrees</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.nodes.relationships.degrees(node, rel-direction-pattern) - returns a map with rel-pattern, boolean for the given relationship
                               patterns
                            </p>
                         </td>
@@ -3865,6 +3961,19 @@
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.date.convert(12345, 'ms', 'd') convert a timestamp in one time unit into one of a different time unit</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.date.convertFormat</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.date.convertFormat('Tue, 14 May 2019 14:52:06 -0400', 'rfc_1123_date_time', 'iso_date_time') convert a String of one
+                              date format into a String of another date format.
+                           </p>
                         </td>
                      </tr>
                      <tr>
@@ -4907,6 +5016,45 @@
                         </td>
                         <td style="text-align: left; vertical-align: top; ">
                            <p>apoc.map.mergeList([{maps}]) yield value - merges all maps in the list into one</p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.get</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.get(map,key,[default],[fail=true]) - returns value for key or throws exception if key doesn&#8217;t exist and no default
+                              given
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.mget</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.mget(map,key,[defaults],[fail=true])  - returns list of values for keys or throws exception if one of the key doesn&#8217;t
+                              exist and no default value given at that position
+                           </p>
+                        </td>
+                     </tr>
+                     <tr>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>function</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.submap</p>
+                        </td>
+                        <td style="text-align: left; vertical-align: top; ">
+                           <p>apoc.map.submap(map,keys,[defaults],[fail=true])  - returns submap for keys or throws exception if one of the key doesn&#8217;t
+                              exist and no default value given at that position
+                           </p>
                         </td>
                      </tr>
                      <tr>

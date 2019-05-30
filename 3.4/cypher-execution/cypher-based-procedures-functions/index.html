@@ -91,7 +91,7 @@ RETURN row.answer</code></pre><p>The same is possible as a function:</p><pre cla
                </div>
             </div>
             <p>Given statement will be registered as a procedure, the results will be turned into a stream of records.</p>
-            <div class="table" id="d0e16854">
+            <div class="table" id="d0e17044">
                <table class="table" summary="Parameters" border="1">
                   <caption class="table-title">Table&nbsp;13.2.&nbsp;Parameters</caption>
                   <colgroup>
@@ -219,7 +219,7 @@ CALL custom.neighbours('Keanu Reeves') YIELD neighbour;</code></pre><p>
                If the given output type is a list, results will be collected into a list, otherwise the first row will be used.
                The statement needs to return a single column, otherwise an error is thrown.
             </p>
-            <div class="table" id="d0e17000">
+            <div class="table" id="d0e17190">
                <table class="table" summary="Parameters" border="1">
                   <caption class="table-title">Table&nbsp;13.3.&nbsp;Parameters</caption>
                   <colgroup>
@@ -326,7 +326,7 @@ CALL custom.neighbours('Keanu Reeves') YIELD neighbour;</code></pre><p>
                <code class="literal">apoc.custom.asProcedure</code> and <code class="literal">apoc.custom.asFunction</code></p>
             <p>Given the this call:</p><pre class="programlisting highlight"><code data-lang="cypher">CALL apoc.custom.list</code></pre><p>The the output will look like the following table:</p>
             <div class="informaltable">
-               <div class="table" id="d0e17124">
+               <div class="table" id="d0e17314">
                   <table class="informaltable" border="1">
                      <colgroup>
                         <col class="col_1"></col>
@@ -401,6 +401,51 @@ CALL custom.neighbours('Keanu Reeves') YIELD neighbour;</code></pre><p>
                            </td>
                            <td style="text-align: left; vertical-align: top; ">
                               <p>&lt;null&gt;</p>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+         </section>
+         <section class="section" id="_how_to_manage_procedure_function_replication_in_a_causal_cluster">
+            <div class="titlepage">
+               <div>
+                  <div>
+                     <h3 class="title"><a class="anchor" href="#_how_to_manage_procedure_function_replication_in_a_causal_cluster"></a>13.6.4.&nbsp;How to manage procedure/function replication in a Causal Cluster
+                     </h3>
+                  </div>
+               </div>
+            </div>
+            <p>In order to replicate the procedure/function in a cluster environment you can tune the following parameters:</p>
+            <div class="informaltable">
+               <div class="table" id="d0e17398">
+                  <table class="informaltable" border="1">
+                     <colgroup>
+                        <col class="col_1"></col>
+                        <col class="col_2"></col>
+                        <col class="col_3"></col>
+                     </colgroup>
+                     <thead>
+                        <tr>
+                           <th style="text-align: left; vertical-align: top; ">name</th>
+                           <th style="text-align: left; vertical-align: top; ">type</th>
+                           <th style="text-align: left; vertical-align: top; ">description</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p><code class="literal">apoc.custom.procedures.refresh</code></p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>long (default <code class="literal">60000</code>)
+                              </p>
+                           </td>
+                           <td style="text-align: left; vertical-align: top; ">
+                              <p>the refresh time that allows replicating the procedure/function
+                                 changes to each cluster member
+                              </p>
                            </td>
                         </tr>
                      </tbody>
