@@ -204,7 +204,10 @@ public class CsvFormat implements Format {
         headerNode.add("id:ID");
         Map<String,Class> keyTypes = new LinkedHashMap<>();
         entrySet.getValue().forEach(node -> updateKeyTypes(keyTypes, node));
-        headerNode.addAll(keyTypes.entrySet().stream().map(stringClassEntry -> formatHeader(stringClassEntry)).collect(Collectors.toCollection(LinkedHashSet::new)));
+        headerNode.addAll(keyTypes.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(stringClassEntry -> formatHeader(stringClassEntry))
+                .collect(Collectors.toCollection(LinkedHashSet::new)));
         headerNode.add(":LABEL");
         return headerNode;
     }
@@ -213,7 +216,9 @@ public class CsvFormat implements Format {
         Set<String> headerNode = new LinkedHashSet<>();
         Map<String,Class> keyTypes = new LinkedHashMap<>();
         entrySet.getValue().forEach(relationship -> updateKeyTypes(keyTypes, relationship));
-        headerNode.addAll(keyTypes.entrySet().stream().map(stringClassEntry -> formatHeader(stringClassEntry)).collect(Collectors.toCollection(LinkedHashSet::new)));
+        headerNode.addAll(keyTypes.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(stringClassEntry -> formatHeader(stringClassEntry)).collect(Collectors.toCollection(LinkedHashSet::new)));
         headerNode.add(":START_ID");
         headerNode.add(":END_ID");
         headerNode.add(":TYPE");
