@@ -132,6 +132,7 @@ public class TestcontainersCausalCluster {
                 .withNetwork(network)
                 .withNetworkAliases(name)
                 .withoutDriver()
+                .withoutAuthentication()
                 .withNeo4jConfig("dbms.mode", instanceType.toString())
                 .withNeo4jConfig("dbms.connectors.default_listen_address", "0.0.0.0")
                 .withNeo4jConfig("dbms.connectors.default_advertised_address", name)
@@ -152,7 +153,7 @@ public class TestcontainersCausalCluster {
                                        List<GenericContainer> sidecars) {
         this.clusterMembers = clusterMembers;
         this.sidecars = sidecars;
-        this.driver = GraphDatabase.driver(getURI(), AuthTokens.basic("neo4j", "apoc"));
+        this.driver = GraphDatabase.driver(getURI(), AuthTokens.none());
         this.session = driver.session();
     }
 
