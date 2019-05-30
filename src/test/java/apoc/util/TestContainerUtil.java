@@ -33,7 +33,7 @@ public class TestContainerUtil {
 
     public static Neo4jContainerExtension createEnterpriseDB(boolean withLogging) {
         // We define the container with external volumes
-        Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension("neo4j:3.5.3-enterprise")
+        Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension("neo4j:3.4.12-enterprise")
                 .withPlugins(MountableFile.forHostPath("./target/tests/gradle-build/libs")) // map the apoc's artifact dir as the Neo4j's plugin dir
                 .withAdminPassword("apoc")
                 .withNeo4jConfig("apoc.export.file.enabled", "true")
