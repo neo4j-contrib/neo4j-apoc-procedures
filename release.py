@@ -7,7 +7,7 @@ import sys
 def main(token, tag_name, file_name):
     headers = {"Authorization": "bearer {token}".format(token=token)}
     data = {'tag_name': tag_name}
-    response = requests.post("https://api.github.com/repos/neo4j-contrib/neo4j-apoc-procedure/releases",
+    response = requests.post("https://api.github.com/repos/neo4j-contrib/neo4j-apoc-procedures/releases",
                              data=json.dumps(data), headers=headers)
     release_json = response.json()
     print(release_json)
