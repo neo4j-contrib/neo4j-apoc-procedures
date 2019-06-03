@@ -47,6 +47,10 @@ configurations {
     apt
 }
 
+shadowJar {
+    classifier = 'all'  
+}
+
 compileJava {
     options.annotationProcessorPath = configurations.apt
 	// type¦qualified name¦signature¦description¦execution mode¦location¦deprecated by
