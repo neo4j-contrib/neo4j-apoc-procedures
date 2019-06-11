@@ -6,6 +6,7 @@ import org.neo4j.graphdb.TransactionTerminatedException;
 import org.neo4j.procedure.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -75,5 +76,25 @@ public class Utils {
             if (params!=null && !params.isEmpty()) message = String.format(message,params.toArray(new Object[params.size()]));
             throw new RuntimeException(message);
         }
+    }
+
+    @UserFunction
+    @Description("apoc.util.compress(string, {config}) | compresses the string value into binary value. Optional configuration map with charSet parameter")
+    public List<Long> compress(@Name("string") String string, @Name( value = "config", defaultValue = "{}") Map<String,Object> config) {
+        if ( config.containsKey( "charSet" ) )
+        {
+            return CompressionUtils.bytesWithCharSet( string, (String) config.get( "charSet" ) );
+        }
+        return CompressionUtils.bytesWithCharSet( string, "UTF-8" );
+    }
+
+    @UserFunction
+    @Description("apoc.util.decompress(byteArray, {config}) | compresses the string value into binary value. Optional configuration map with charSet parameter")
+    public String decompress(@Name("byteArray") List<Long> bytes, @Name( value = "config", defaultValue = "{}") Map<String,Object> config) {
+        if ( config.containsKey( "charSet" ) )
+        {
+            return CompressionUtils.decompressWithCharSet( bytes, (String) config.get( "charSet" ) );
+        }
+        return CompressionUtils.decompressWithCharSet( bytes, "UTF-8" );
     }
 }

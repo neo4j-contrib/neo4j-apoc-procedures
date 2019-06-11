@@ -10,6 +10,7 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -47,6 +48,44 @@ public class UtilsTest {
     public void testMd5() throws Exception {
         TestUtil.testCall(db, "RETURN apoc.util.md5(['ABC']) AS value", r -> assertEquals("902fbdd2b1df0c4f70b4a5d23525e932", r.get("value")));
     }
+
+    @Test
+    public void testCompress() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.util.compress('abc') AS value",
+                r -> assertEquals(Arrays.asList(97L, 98L, 99L), r.get("value")));
+    }
+
+    @Test
+    public void testDecompress() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.util.decompress([97,98,99]) AS value",
+                r -> assertEquals("abc", r.get("value")));
+    }
+
+    @Test
+    public void testCompressWithCharSet() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.util.compress('ôo',{charSet:'ISO-8859-1'}) AS value",
+                r -> assertEquals( Arrays.asList(244L, 111L), r.get( "value" ) ));
+    }
+
+    @Test
+    public void testDecompressWithCharSet() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.util.decompress([244,111], {charSet:'ISO-8859-1'}) AS value",
+                r -> assertEquals("ôo", r.get("value")));
+    }
+
+    @Test
+    public void testCompressDecompress() throws Exception {
+        TestUtil.testCall(db, "WITH apoc.util.compress('ôo', {charSet:'ISO-8859-1'}) AS iso,apoc.util.compress('ôo', {charSet:'UTF-16'}) AS utf" +
+                        " RETURN iso, utf, apoc.util.decompress(iso, {charSet:'ISO-8859-1'}) AS dIso,  apoc.util.decompress(utf, {charSet:'UTF-16'}) AS dUtf",
+                r ->
+                {
+                    assertEquals( Arrays.asList(244L, 111L), r.get( "iso" ) );
+                    assertEquals( Arrays.asList(254L, 255L, 0L, 244L, 0L, 111L), r.get( "utf" ) );
+                    assertEquals("ôo", r.get("dIso"));
+                    assertEquals("ôo", r.get("dUtf"));
+                });
+    }
+
 
     @Test
     public void testValidateFalse() throws Exception {
