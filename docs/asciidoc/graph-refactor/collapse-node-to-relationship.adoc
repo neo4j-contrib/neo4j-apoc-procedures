@@ -1,0 +1,19 @@
+[[collapse-node-to-relationship]]
+= Collapse node to relationship
+
+[source,cypher]
+----
+CREATE (f:Foo)-[:FOO {a:1}]->(b:Bar {c:3})-[:BAR {b:2}]->(f) WITH id(b) as id
+CALL apoc.refactor.collapseNode(id,'FOOBAR')
+YIELD input, output RETURN *
+----
+
+Before we have this situation
+
+image::{img}/apoc.refactor.collapseNode.dataset.png[width=800]
+
+And the result are
+
+image::{img}/apoc.refactor.collapseNode.png[width=800]
+
+The property of the two relationship and the property of the node are joined in one relationship that has the  properties `a:1`, `b:2`, `name:Bar`

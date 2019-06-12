@@ -171,6 +171,10 @@
     </d:tocentry>
     <d:tocentry linkend="rename-label-type-property"><?dbhtml filename="graph-refactoring/rename-label-type-property/index.html"?>
     </d:tocentry>
+    <d:tocentry linkend="normalize-boolean"><?dbhtml filename="graph-refactoring/normalize-boolean/index.html"?>
+    </d:tocentry>
+    <d:tocentry linkend="property-value-label"><?dbhtml filename="graph-refactoring/property-value-label/index.html"?>
+    </d:tocentry>
   </d:tocentry>
 
     <d:tocentry linkend="operational"><?dbhtml filename="operational/index.html"?>
