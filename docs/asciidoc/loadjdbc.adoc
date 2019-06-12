@@ -1,6 +1,12 @@
 [[load-jdbc]]
 = Load JDBC
 
+[abstract]
+--
+This section describes procedures that can be used to import data from databases that have JDBC support.
+--
+
+
 == Overview: Database Integration
 
 Data Integration is an important topic.
@@ -38,11 +44,14 @@ To simplify the JDBC URL syntax and protect credentials, you can configure alias
 apoc.jdbc.myDB.url=jdbc:derby:derbyDB
 ----
 
+[source,cypher]
 ----
 CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON')
 
 becomes
 
+[source,cypher]
+----
 CALL apoc.load.jdbc('myDB','PERSON')
 ----
 
@@ -55,6 +64,7 @@ Northwind is a common example set for relational databases, which is also covere
 
 === MySQL Northwind Data
 
+[source,sql]
 ----
 select count(*) from products;
 +----------+
@@ -65,6 +75,7 @@ select count(*) from products;
 1 row in set (0,00 sec)
 ----
 
+[source,sql]
 ----
 describe products;
 +-----------------+---------------+------+-----+---------+----------------+
@@ -95,7 +106,7 @@ CALL apoc.load.driver("com.mysql.jdbc.Driver");
 .Count rows in products table
 [source,cypher]
 ----
-with "jdbc:mysql://localhost:3306/northwind?user=root" as url
+WITH "jdbc:mysql://localhost:3306/northwind?user=root" as url
 CALL apoc.load.jdbc(url,"products") YIELD row
 RETURN count(*);
 ----
@@ -113,7 +124,7 @@ RETURN count(*);
 .Return row from products table
 [source,cypher]
 ----
-with "jdbc:mysql://localhost:3306/northwind?user=root" as url
+WITH "jdbc:mysql://localhost:3306/northwind?user=root" as url
 CALL apoc.load.jdbc(url,"products") YIELD row
 RETURN row limit 1;
 ----
@@ -134,10 +145,12 @@ image::{img}/apoc-load-jdbc.jpg[width=800]
 
 == Load JDBC with params Examples
 
+[source,cypher]
 ----
-with "select firstname, lastname from employees where firstname like ? and lastname like ?" as sql
-call apoc.load.jdbcParams("northwind", sql, ['F%', '%w']) yield row
-return row
+WITH "select firstname, lastname from employees where firstname like ? and lastname like ?" as sql
+CALL apoc.load.jdbcParams("northwind", sql, ['F%', '%w'])
+YIELD row
+RETURN row
 ----
 
 JDBC pretends positional "?" for parameters, so the third apoc parameter has to be an array with values coherent with that positions.
@@ -149,9 +162,10 @@ You can load data from jdbc and create/update the graph using the query results 
 
 [source,cypher]
 ----
-CALL apoc.periodic.iterate('
-call apoc.load.jdbc("jdbc:mysql://localhost:3306/northwind?user=root","company")',
-'CREATE (p:Person) SET p += value', {batchSize:10000, parallel:true})
+CALL apoc.periodic.iterate(
+  'CALL apoc.load.jdbc("jdbc:mysql://localhost:3306/northwind?user=root","company")',
+  'CREATE (p:Person) SET p += value',
+  { batchSize:10000, parallel:true})
 RETURN batches, total
 ----
 
@@ -181,7 +195,8 @@ Now you can inspect the data in Cassandra with.
 
 [source,cypher]
 ----
-CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter')
+YIELD row
 RETURN count(*);
 ----
 
@@ -193,18 +208,19 @@ RETURN count(*);
 └────────┘
 ----
 
-
-
 [source,cypher]
 ----
-CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
+CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter')
+YIELD row
 RETURN row LIMIT 5;
 ----
 
 [source,cypher]
 ----
-CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter') yield row
-RETURN row.first_letter, row.artist LIMIT 5;
+CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter')
+YIELD row
+RETURN row.first_letter, row.artist
+LIMIT 5;
 ----
 
 ----
@@ -227,19 +243,25 @@ Let's create some graph data, we have a look at the track_by_artist table, which
 
 [source,cypher]
 ----
-CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row RETURN count(*);
+CALL apoc.load.jdbc('cassandra_songs','track_by_artist')
+YIELD row
+RETURN count(*);
 ----
 
 [source,cypher]
 ----
-CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
-RETURN row LIMIT 5;
+CALL apoc.load.jdbc('cassandra_songs','track_by_artist')
+YIELD row
+RETURN row
+LIMIT 5;
 ----
 
 [source,cypher]
 ----
-CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
-RETURN row.track_id, row.track_length_in_seconds, row.track, row.music_file, row.genre, row.artist, row.starred LIMIT 2;
+CALL apoc.load.jdbc('cassandra_songs','track_by_artist')
+YIELD row
+RETURN row.track_id, row.track_length_in_seconds, row.track, row.music_file, row.genre, row.artist, row.starred
+LIMIT 2;
 ----
 
 [.small]
@@ -283,7 +305,8 @@ CALL apoc.schema.assert(
 
 [source,cypher]
 ----
-CALL apoc.load.jdbc('cassandra_songs','track_by_artist') yield row
+CALL apoc.load.jdbc('cassandra_songs','track_by_artist')
+YIELD row
 MERGE (a:Artist {name:row.artist})
 MERGE (g:Genre {name:row.genre})
 CREATE (t:Track {id:toString(row.track_id), title:row.track, length:row.track_length_in_seconds})
@@ -356,7 +379,8 @@ And then call:
 [source,cypher]
 ----
 WITH 'jdbc:hive2://username%40krb-realm:password@hive-hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject' AS url
-CALL apoc.load.jdbc(url,'PRODUCTS') YIELD row
+CALL apoc.load.jdbc(url,'PRODUCTS')
+YIELD row
 RETURN row.name, row.price;
 ----
 
@@ -384,12 +408,14 @@ Credentials can be passed in two ways:
 
 * into url
 
+[source,cypher]
 ----
 CALL apoc.load.jdbc('jdbc:derby:derbyDB;user=apoc;password=Ap0c!#Db;create=true', 'PERSON')
 ----
 
 * by config parameter.
 
+[source,cypher]
 ----
 CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})
 ----
@@ -449,7 +475,7 @@ The jdbcUpdate is use for update relational database, from a SQL statement with 
 
 [source,cypher]
 ----
-CALL apoc.load.jdbcUpdate(jdbc-url,statement, params, config) YIELD  row;
+CALL apoc.load.jdbcUpdate(jdbc-url,statement, params, config)
 ----
 
 With this set of data you can call the procedure in two different mode:
@@ -466,14 +492,14 @@ You can call the procedure with param:
 
 [source,cypher]
 ----
-CALL apoc.load.jdbcUpdate('jdbc:mysql:....','INSERT INTO RECOMMENDATIONS values(?,?,?)',[user.id, reco.id, score]) YIELD row;
+CALL apoc.load.jdbcUpdate('jdbc:mysql:....','INSERT INTO RECOMMENDATIONS values(?,?,?)',[user.id, reco.id, score]);
 ----
 
 You can call the procedure without param:
 
 [source,cypher]
 ----
-CALL apoc.load.jdbcUpdate('jdbc:mysql:....','INSERT INTO RECOMMENDATIONS values(user.id, reco.id, score)') YIELD row;
+CALL apoc.load.jdbcUpdate('jdbc:mysql:....','INSERT INTO RECOMMENDATIONS values(user.id, reco.id, score)');
 ----
 
 === Load JDBC format date
@@ -484,7 +510,7 @@ If the returning JdbcType, from the load operation, is TIMESTAMP or TIMESTAMP_WI
 
 [source, cypher]
 ----
-CALL apoc.load.jdbc('key or url','table or statement', config) YIELD row
+CALL apoc.load.jdbc('key or url','table or statement', config);
 ----
 
 === Config
@@ -502,7 +528,10 @@ Example:
 .with timezone
 [source, cypher]
 ----
-CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], {timezone: "Asia/Tokyo"})
+CALL apoc.load.jdbc(
+  'jdbc:derby:derbyDB',
+  'SELECT * FROM PERSON WHERE NAME = ?',['John'],
+  {timezone: "Asia/Tokyo"})
 ----
 
 ----
@@ -516,6 +545,7 @@ CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',[
 CALL apoc.load.jdbcUpdate('jdbc:derby:derbyDB','UPDATE PERSON SET NAME = ? WHERE NAME = ?',['John','John'],{credentials:{user:'apoc',password:'Ap0c!#Db'}})
 ----
 
+[source,cypher]
 ----
 CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})
 ----

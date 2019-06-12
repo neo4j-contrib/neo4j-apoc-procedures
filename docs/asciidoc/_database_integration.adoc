@@ -1,6 +1,13 @@
 [[database-integration]]
 == Database Integration
 
+[abstract]
+--
+This chapter describes data integration procedures in the APOC library.
+--
+
+For more information on how to use these procedures, see:
+
 * <<load-jdbc>>
 * <<database-modeling>>
 * <<elasticsearch>>
