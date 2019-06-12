@@ -1,12 +1,17 @@
 [[extract-node-from-relationship]]
 = Extract node from relationships
 
+[abstract]
+--
+This section describes a procedure that can be used to create nodes from relationships.
+--
+
 [source,cypher]
 ----
 CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
 ----
 
-image::{img}/apoc.refactor.extractNode.dataset.png[width=800]
+image::{img}/apoc.refactor.extractNode.dataset.png[scaledwidth="100%"]
 
 We pass the ID of the relationship as parameter to extract a node
 
@@ -17,4 +22,4 @@ CALL apoc.refactor.extractNode(id,['FooBar'],'FOO','BAR')
 YIELD input, output RETURN *
 ----
 
-image::{img}/apoc.refactor.extractNode.png[width=800]
+image::{img}/apoc.refactor.extractNode.png[scaledwidth="100%"]
