@@ -19,6 +19,11 @@ Functions and procedures to efficiently find and navigate and dynamically create
 [[path-functions]]
 === Path Functions
 
+[abstract]
+--
+This section describes functions that can be used to do path operations.
+--
+
 Functions to create, combine and split paths
 
 [cols="1m,5"]
@@ -32,6 +37,11 @@ Functions to create, combine and split paths
 [[node-lookup]]
 === Lookup and Manipulation Procedures
 
+[abstract]
+--
+This section describes procedures that can be used to lookup nodes and relationships, and delete nodes.
+--
+
 [cols="1m,5"]
 |===
 | CALL apoc.nodes.get(node\|nodes\|id\|[ids]) | quickly returns all nodes with these ids
@@ -41,6 +51,12 @@ Functions to create, combine and split paths
 
 [[node-functions]]
 === Node Functions
+
+[abstract]
+--
+This section describes functions that can be used to
+--
+
 
 [cols="1m,5"]
 |===
@@ -71,6 +87,11 @@ Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in 
 [[data-creation]]
 === Creating Data
 
+[abstract]
+--
+This section describes functions that can be used to create data entities.
+--
+
 ifdef::backend-html5[]
 ++++
 <iframe width="560" height="315" src="https://www.youtube.com/embed/KsAb8QHClNg" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -95,6 +116,11 @@ endif::[]
 [[locking]]
 === Locking
 
+[abstract]
+--
+This section describes functions that can be used to acquire locks on nodes and relationships.
+--
+
 [cols="1m,5"]
 |===
 | call apoc.lock.nodes([nodes]) | acquires a write lock on the given nodes
@@ -106,13 +132,21 @@ endif::[]
 [[graph-generators]]
 === Generating Graphs
 
+[abstract]
+--
+This section describes procedures that can be used to generate example graphs.
+--
+
 Generate undirected (random direction) graphs with semi-real random distributions based on theoretical models.
 
 [cols="1m,5"]
 |===
 | apoc.generate.er(noNodes, noEdges, 'label', 'type') | generates a graph according to Erdos-Renyi model (uniform)
 | apoc.generate.ws(noNodes, degree, beta, 'label', 'type') | generates a graph according to Watts-Strogatz model (clusters)
-| apoc.generate.ba(noNodes, edgesPerNode, 'label', 'type') | generates a graph according to Barabasi-Albert model (preferential attachment)
+| apoc.generate.ba(noNodes, edgesPerNod[abstract]
+--
+This section describes functions that can be used to
+--e, 'label', 'type') | generates a graph according to Barabasi-Albert model (preferential attachment)
 | apoc.generate.complete(noNodes, 'label', 'type') | generates a complete graph (all nodes connected to all other nodes)
 | apoc.generate.simple([degrees], 'label', 'type') | generates a graph with the given degree distribution
 |===
@@ -129,7 +163,13 @@ CALL apoc.generate.simple([2,2,2,2], null, null)
 [[parallel-node-search]]
 === Parallel Node Search
 
-Utility to find nodes in parallel (if possible). These procedures return a single list of nodes or a list of 'reduced' records with node id, labels, and the properties where the search was executed upon.
+[abstract]
+--
+This section describes procedures that can be used to find nodes in parallel.
+--
+
+Utility to find nodes in parallel (if possible).
+These procedures return a single list of nodes or a list of 'reduced' records with node id, labels, and the properties where the search was executed upon.
 
 [cols="5m,4"]
 |===

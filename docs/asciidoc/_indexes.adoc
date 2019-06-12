@@ -3,7 +3,7 @@
 
 [abstract]
 --
-This chapter describes text and lookup index procedures in the APOC library.
+This chapter describes indexing procedures in the APOC library.
 --
 
 [[schema-index-operations]]
