@@ -1,6 +1,11 @@
 [[datetime-conversions]]
 = Date and Time Conversions
 
+[abstract]
+--
+This section describes functions for working with dates and times.
+--
+
 == Conversion between formatted dates and timestamps
 
 [cols="1m,5"]

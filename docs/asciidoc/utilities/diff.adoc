@@ -1,6 +1,11 @@
 [[node-difference]]
 = Diff
 
+[abstract]
+--
+This section describes a function that displays the difference between two nodes.
+--
+
 Diff is a user function to return a detailed diff between two nodes.
 
 `apoc.diff.nodes([leftNode],[rightNode])`

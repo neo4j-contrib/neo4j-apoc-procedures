@@ -1,6 +1,11 @@
 [[text-functions]]
 = Text Functions
 
+[abstract]
+--
+This section describes functions that can be used for string manipulation, comparison, and filtering.
+--
+
 Cypher has some basic functions to work with text like:
 
 * `split(string, delim)`
@@ -38,12 +43,12 @@ APOC tries to add many of them.
 | apoc.text.hexCharAt(text, index) | Returns the hex value string of the character at the given index
 | apoc.text.hexValue(value) | Returns the hex value string of the given value
 | apoc.text.byteCount(text,[charset]) | return size of text in bytes
-| apoc.text.bytes(text,[charset]) - return bytes of the text
+| apoc.text.bytes(text,[charset]) | return bytes of the text
 | apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end}) | tries it's best to convert the value to a cypher-property-string
-| apoc.text.base64Encode(text) - Encode a string with Base64
-| apoc.text.base64Decode(text) - Decode Base64 encoded string
-| apoc.text.base64UrlEncode(url) - Encode a url with Base64
-| apoc.text.base64UrlDecode(url) - Decode Base64 encoded url
+| apoc.text.base64Encode(text) | Encode a string with Base64
+| apoc.text.base64Decode(text) | Decode Base64 encoded string
+| apoc.text.base64UrlEncode(url) | Encode a url with Base64
+| apoc.text.base64UrlDecode(url) | Decode Base64 encoded url
 |===
 
 The `replace`, `split` and `regexGroups` functions work with regular expressions.

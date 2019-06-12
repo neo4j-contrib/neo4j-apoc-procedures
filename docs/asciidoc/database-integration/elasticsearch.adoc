@@ -26,7 +26,7 @@ This section describes procedures that can be used to interact with Elastic Sear
 
 [separator=¦,opts=header,cols="1,1m,5"]
 |===
-include::../../build/generated-documentation/apoc.es.csv[]
+include::../../../build/generated-documentation/apoc.es.csv[]
 |===
 
 
@@ -51,7 +51,7 @@ call apoc.es.get("localhost","tweets","users","1",null,null)
 call apoc.es.stats("localhost")
 ----
 
-image::http://i.imgur.com/qHAj9ma.png[width=500]
+image::http://i.imgur.com/qHAj9ma.png[scaledwidth="100%"]
 
 === Pagination
 

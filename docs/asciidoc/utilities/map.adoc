@@ -1,6 +1,11 @@
 [[map-functions]]
 = Map Functions
 
+[abstract]
+--
+This section describes functions for working with maps.
+--
+
 ifdef::backend-html5[]
 ++++
 <iframe width="560" height="315" src="https://www.youtube.com/embed/_Qdhouvx-Qw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>

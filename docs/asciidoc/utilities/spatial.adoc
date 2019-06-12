@@ -1,6 +1,11 @@
 [[spatial]]
 = Spatial
 
+[abstract]
+--
+This section describes spatial procedures and functions.
+--
+
 [cols="1m,5"]
 |===
 | CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData | look up geographic location of location from a geocoding service (the default one is OpenStreetMap)
@@ -24,7 +29,8 @@ First, how can we use the procedure:
 
 [source,cypher]
 ----
-CALL apoc.spatial.geocodeOnce('21 rue Paul Bellamy 44000 NANTES FRANCE') YIELD location
+CALL apoc.spatial.geocodeOnce('21 rue Paul Bellamy 44000 NANTES FRANCE')
+YIELD location
 RETURN location.latitude, location.longitude // will return 47.2221667, -1.5566624
 ----
 

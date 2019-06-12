@@ -1,6 +1,11 @@
 [[static-values]]
 = Static Value Storage
 
+[abstract]
+--
+This section describes procedures and functions for storing and retrieving static values.
+--
+
 [cols="1m,5"]
 |===
 | apoc.static.get(name) | returns statically stored value from config (apoc.static.<key>) or server lifetime storage

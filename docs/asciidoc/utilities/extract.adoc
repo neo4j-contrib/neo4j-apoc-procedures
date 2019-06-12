@@ -1,6 +1,11 @@
 [[data-extraction-functions]]
 = Extract Domain
 
+[abstract]
+--
+This section describes a function that can be used to extract the domain name of a URL or email address.
+--
+
 The User Function `apoc.data.domain` will take a url or email address and try to determine the domain name.
 This can be useful to make easier correlations and equality tests between differently formatted email addresses, and between urls to the same domains but specifying different locations.
 

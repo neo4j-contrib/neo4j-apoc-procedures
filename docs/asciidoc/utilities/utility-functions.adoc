@@ -1,10 +1,15 @@
 [[utility-functions]]
 = Utilities
 
+[abstract]
+--
+This section describes functions for computing hashes of strings, validating predicates, and causing a query to sleep.
+--
+
 [cols="1m,5"]
 |===
 | apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list
 | apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list
 | apoc.util.sleep({duration}) | sleeps for <duration> millis, transaction termination is honored
-| apoc.util.validate(predicate, message,[params]) | raises exception if prediate evaluates to true
+| apoc.util.validate(predicate, message,[params]) | raises exception if predicate evaluates to true
 |===

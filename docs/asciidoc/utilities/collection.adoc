@@ -1,6 +1,11 @@
 [[collection-list-functions]]
 = Collection Functions
 
+[abstract]
+--
+This section describes functions and procedures for working with collections and lists.
+--
+
 APOC has a wide variety of Collection and List functions.
 
 ifdef::backend-html5[]

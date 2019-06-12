@@ -108,7 +108,7 @@ call apoc.bolt.execute("bolt://user:password@localhost:7687",
 "match(p:Person {name:{name}}) return p", {name:'Michael'})
 ----
 
-image::{img}/apoc.bolt.execute.nodemap.PNG[width=800]
+image::{img}/apoc.bolt.execute.nodemap.PNG[scaledwidth="100%"]
 
 
 **Return node in virtual Node format**
@@ -119,7 +119,7 @@ call apoc.bolt.load("bolt://user:password@localhost:7687",
 "match(p:Person {name:{name}}) return p", {name:'Michael'}, {virtual:true})
 ----
 
-image::{img}/apoc.bolt.load.virtualnode.PNG[width=800]
+image::{img}/apoc.bolt.load.virtualnode.PNG[scaledwidth="100%"]
 
 
 **Create node and return statistic**
@@ -130,7 +130,7 @@ call apoc.bolt.execute("bolt://user:password@localhost:7687",
 "create(n:Node {name:{name}})", {name:'Node1'}, {statistics:true})
 ----
 
-image::{img}/apoc.bolt.execute.createandstatistics.PNG[width=800]
+image::{img}/apoc.bolt.execute.createandstatistics.PNG[scaledwidth="100%"]
 
 
 **Return more scalar values**
@@ -141,7 +141,7 @@ call apoc.bolt.execute("bolt://user:password@localhost:7687",
 "match (n:Person {name:{name}}) return n.age as age, n.name as name, n.surname as surname", {name:'Michael'})
 ----
 
-image::{img}/apoc.bolt.execute.scalarmulti.PNG[width=800]
+image::{img}/apoc.bolt.execute.scalarmulti.PNG[scaledwidth="100%"]
 
 
 **Return relationship in a map format**
@@ -152,7 +152,7 @@ call apoc.bolt.load("bolt://user:password@localhost:7687",
 "MATCH (n:Person{name:{name}})-[r:KNOWS]->(p) return r as rel", {name:'Anne'})
 ----
 
-image::{img}/apoc.bolt.load.relmap.PNG[width=800]
+image::{img}/apoc.bolt.load.relmap.PNG[scaledwidth="100%"]
 
 
 **Return virtual path**
@@ -163,7 +163,7 @@ call apoc.bolt.load("bolt://user:password@localhost:7687",
 "START n=node({idNode}) MATCH path= (n)-[r:REL_TYPE*..3]->(o) return path", {idNode:200}, {virtual:true})
 ----
 
-image::{img}/apoc.bolt.load.returnvirtualpath.PNG[width=800]
+image::{img}/apoc.bolt.load.returnvirtualpath.PNG[scaledwidth="100%"]
 
 
 **Create a Node with params in input**
@@ -174,4 +174,4 @@ call apoc.bolt.execute("bolt://user:password@localhost:7687",
 "CREATE (n:Car{brand:{brand},model:{model},year:{year}}) return n", {brand:'Ferrari',model:'California',year:2016})
 ----
 
-image::{img}/apoc.bolt.execute.createwithparams.PNG[width=800]
+image::{img}/apoc.bolt.execute.createwithparams.PNG[scaledwidth="100%"]

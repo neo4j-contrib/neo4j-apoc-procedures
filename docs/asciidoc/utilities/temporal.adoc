@@ -1,6 +1,11 @@
 [[temporal-conversions]]
 = Temporal Functions
 
+[abstract]
+--
+This section describes functions that can be used to format temporal values.
+--
+
 These functions can be used to format temporal values using a valid `DateTimeFormatter` pattern.
 
 

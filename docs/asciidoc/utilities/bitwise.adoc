@@ -1,6 +1,11 @@
 [[bitwise-operations]]
 = Bitwise operations
 
+[abstract]
+--
+This section describes procedures that can be used for doing bitwise operations.
+--
+
 // TODO function
 
 Provides a wrapper around the java bitwise operations.

@@ -1,6 +1,11 @@
 [[conversion-functions]]
 = Conversion Functions
 
+[abstract]
+--
+This section describes functions that can be used for type coercion of values.
+--
+
 Sometimes type information gets lost, these functions help you to coerce an "Any" value to the concrete type
 
 [cols="1m,5"]

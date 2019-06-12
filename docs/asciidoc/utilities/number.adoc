@@ -1,6 +1,11 @@
 [[number-conversions]]
 = Number Format Conversions
 
+[abstract]
+--
+This section describes functions that can be used to format numeric values.
+--
+
 == Conversion between formatted decimals
 
 * `apoc.number.format(number)` format a long or double using the default system pattern and language to produce a string
@@ -75,7 +80,7 @@
 ....
   return apoc.number.format('aaa') as value
 
-  null beacuse 'aaa' isn't a number
+  null because 'aaa' isn't a number
 ....
 
 ....

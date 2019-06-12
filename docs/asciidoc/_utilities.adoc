@@ -51,6 +51,7 @@ include::utilities/diff.adoc[leveloffset=2]
 
 include::utilities/spatial.adoc[leveloffset=2]
 include::utilities/static-values.adoc[leveloffset=2]
+include::utilities/hashing.adoc[leveloffset=+2]
 include::utilities/bitwise.adoc[leveloffset=2]
 include::utilities/atomic.adoc[leveloffset=2]
 
@@ -58,7 +59,7 @@ include::utilities/utility-functions.adoc[leveloffset=2]
 include::utilities/log.adoc[leveloffset=2]
 
 
-include::utilities/hashing.adoc[leveloffset=+2]
+
 
 
 
