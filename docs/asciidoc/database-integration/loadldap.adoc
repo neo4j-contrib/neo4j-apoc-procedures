@@ -1,6 +1,12 @@
 [[load-ldap]]
 = Load LDAP
 
+[abstract]
+--
+This section describes procedures that can be used to import data from LDAP.
+--
+
+
 With 'apoc.load.ldap' you can execute queries on any LDAP v3 enabled directory, the results are turned into a streams of entries.
 The entries can then be used to update or create graph structures.
 

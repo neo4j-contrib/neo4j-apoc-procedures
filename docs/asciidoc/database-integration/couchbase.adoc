@@ -1,6 +1,12 @@
 [[couchbase]]
 = Interacting with Couchbase
 
+[abstract]
+--
+This section describes procedures that can be used to interact with Couchbase.
+--
+
+
 // tag::couchbase[]
 
 [cols="3m,2"]

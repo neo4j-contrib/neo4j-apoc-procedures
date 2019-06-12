@@ -1,6 +1,11 @@
 [[mongodb]]
 = Interacting with MongoDB
 
+[abstract]
+--
+This section describes procedures that can be used to interact with MongoDB.
+--
+
 // tag::mongodb[]
 
 [cols="3m,2"]

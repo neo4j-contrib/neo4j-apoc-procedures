@@ -1,6 +1,13 @@
 [[bolt-neo4j]]
 = Bolt
 
+
+[abstract]
+--
+This section describes procedures that can be used to access other databases via the Bolt protocol.
+--
+
+
 Bolt procedures allows to accessing other databases via bolt protocol.
 
 [cols="3m,2"]

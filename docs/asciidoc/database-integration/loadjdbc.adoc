@@ -6,7 +6,6 @@
 This section describes procedures that can be used to import data from databases that have JDBC support.
 --
 
-
 == Overview: Database Integration
 
 Data Integration is an important topic.
@@ -47,6 +46,7 @@ apoc.jdbc.myDB.url=jdbc:derby:derbyDB
 [source,cypher]
 ----
 CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON')
+----
 
 becomes
 
