@@ -457,4 +457,12 @@ public class CypherTest {
                     assertEquals("C", ((Map) r.get("value")).get("cName"));
                 });
     }
+
+    @Test
+    public void testCypherDoIt() throws Exception {
+        testCall(db, "CALL apoc.cypher.doIt('CREATE (n:Node) SET n.prop = $param RETURN n AS node',{param: 'test!'}) YIELD value RETURN value",
+                r -> {
+                    assertEquals("test!", ((Node)((Map) r.get("value")).get("node")).getProperty( "prop" ));
+                });
+    }
 }

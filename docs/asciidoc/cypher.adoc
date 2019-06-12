@@ -56,6 +56,23 @@ call apoc.cypher.run("MATCH (n:`"+label+"`) RETURN keys(n) as keys LIMIT 1",null
 RETURN label, value.keys as keys
 ----
 
+==== Writing to the Graph: apoc.cypher.doIt
+
+The procedure `apoc.cypher.run` is _read only_. This means an error will occur if a query executed by `apoc.cypher.run` creates nodes/relationships or sets properties.
+
+To execute write queries use the procedure `apoc.cypher.doIt`.
+
+Usage of `apoc.cypher.doIt` is identical to `apoc.cypher.run`, except it is allowed to perform writes.
+
+Here is an example:
+[source,cypher]
+----
+CALL apoc.cypher.doIt("CREATE (n:Node) SET n.prop = 1 RETURN n",null) yield value
+RETURN value
+----
+This small query will create a node with label `Node` and property `prop` with value `1`.
+The returned `value` map contains the created node under the key `n`.
+
 [[cypher-timeboxed]]
 == Running a cypher statement timeboxed
 
