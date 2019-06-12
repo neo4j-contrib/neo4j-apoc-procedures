@@ -841,5 +841,38 @@ public class CollTest {
                 });
     }
 
+    @Test
+    public void testExtractMap() throws Exception {
+        testCall(db, "WITH [{a: 1},{b: 2},{a: 3}] AS coll" +
+                        " RETURN apoc.coll.extract(coll, 'a') AS ext",
+                (row) -> {
+                    assertEquals(asList(1L, null, 3L), (List<Long>) row.get( "ext" ));
+                });
+    }
+
+    @Test
+    public void testExtractNode() throws Exception {
+        testCall(db, "CREATE (n1:Node {prop: 1}) CREATE (n2:Node) CREATE (n3:Node {prop: 3}) WITH [n1,n2,n3] AS coll RETURN apoc.coll.extract(coll, 'prop') AS ext",
+                (row) -> {
+                    assertEquals(asList(1L, null, 3L), (List<Long>) row.get( "ext" ));
+                });
+    }
+
+    @Test
+    public void testExtractRelationship() throws Exception {
+        testCall(db, "CREATE (n1:Node) CREATE (n2:Node) CREATE (n1)-[r1:Rel {prop: 1}]->(n2) CREATE (n1)-[r2:Rel]->(n2) CREATE (n1)-[r3:Rel {prop: 3}]->(n2) WITH [r1,r2,r3] AS coll RETURN apoc.coll.extract(coll, 'prop') AS ext",
+                (row) -> {
+                    assertEquals(asList(1L, null, 3L), (List<Long>) row.get( "ext" ));
+                });
+    }
+
+    @Test
+    public void testExtractMixed() throws Exception {
+        testCall(db, "CREATE (n1:Node {prop: 0}) CREATE (n2:Node) CREATE (n1)-[r1:Rel {prop: 1}]->(n2) WITH [n1,r1,{prop: 2},'test'] AS coll RETURN apoc.coll.extract(coll, 'prop') AS ext",
+                (row) -> {
+                    assertEquals(asList(0L, 1L, 2L, null), (List<Long>) row.get( "ext" ));
+                });
+    }
+
 }
 

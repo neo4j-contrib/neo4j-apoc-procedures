@@ -1,6 +1,7 @@
 package apoc.coll;
 
 import org.apache.commons.math3.util.Combinations;
+import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Path;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.impl.util.statistics.IntCounter;
@@ -873,5 +874,28 @@ public class Coll {
         }
 
         return newList;
+    }
+
+    @UserFunction
+    @Description("apoc.coll.extract(coll, property) - extracts the property from each element in the coll and returns a list of the values ")
+    public List<Object> extract(@Name("coll") List<Object> coll, @Name( "property" ) String property) {
+        if (coll == null || coll.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return coll.stream().map( o -> {
+            if ( o instanceof Map )
+            {
+                return ((Map) o).getOrDefault( property, null );
+            }
+            else if ( o instanceof Entity )
+            {
+                return ((Entity) o).getProperty( property, null );
+            }
+            else
+            {
+                return null;
+            }
+        } ).collect( Collectors.toList() );
     }
 }
