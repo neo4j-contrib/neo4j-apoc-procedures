@@ -1,6 +1,12 @@
 [[virtual-nodes-rels]]
 == Virtual Nodes/Rels
 
+[abstract]
+--
+This section describes procedures that create virtual nodes and relationships.
+--
+
+
 Virtual Nodes and Relationships don't exist in the graph, they are only returned to the UI/user for representing a graph projection.
 They can be visualized or processed otherwise.
 Please note that they have negative id's.
@@ -64,12 +70,12 @@ CALL apoc.create.vRelationship(a,rel_type,{count:count},b) yield rel
 RETURN *;
 ----
 
-image::{img}/apoc.create.vRelationshipAndvNode.png[width=800]
+image::{img}/apoc.create.vRelationshipAndvNode.png[scaledwidth="100%"]
 
 [NOTE]
 Virtual nodes and virtual relationships have always a negative id
 
-image::{img}/vNodeId.png[width=200]
+image::{img}/vNodeId.png[scaledwidth="100%"]
 
 .Virtual pattern `vPattern`
 
@@ -78,7 +84,7 @@ image::{img}/vNodeId.png[width=200]
 CALL apoc.create.vPattern({_labels:['Person'],name:'Mary'},'KNOWS',{since:2012},{_labels:['Person'],name:'Michael'})
 ----
 
-image::{img}/apoc.create.vPattern.png[width=800]
+image::{img}/apoc.create.vPattern.png[scaledwidth="100%"]
 
 We can add more labels, just adding them on `_labels`
 
@@ -87,7 +93,7 @@ We can add more labels, just adding them on `_labels`
 CALL apoc.create.vPattern({_labels:['Person', 'Woman'],name:'Mary'},'KNOWS',{since:2012},{_labels:['Person', 'Man'],name:'Michael'})
 ----
 
-image::{img}/apoc.create.vPatternLabels.png[width=800]
+image::{img}/apoc.create.vPatternLabels.png[scaledwidth="100%"]
 
 .Virtual pattern full `vPatternFull`
 
@@ -96,7 +102,7 @@ image::{img}/apoc.create.vPatternLabels.png[width=800]
 CALL apoc.create.vPatternFull(['British','Person'],{name:'James', age:28},'KNOWS',{since:2009},['Swedish','Person'],{name:'Daniel', age:30})
 ----
 
-image::{img}/apoc.create.vPatternFull.png[width=800]
+image::{img}/apoc.create.vPatternFull.png[scaledwidth="100%"]
 
 We can create a virtual pattern from an existing one
 
@@ -115,64 +121,4 @@ CALL apoc.create.vPatternFull([labelA],{name: aName},rel_type,{since:2009},[labe
 RETURN *;
 ----
 
-image::{img}/apoc.create.vPatternFullTwo.png[width=800]
-
-== Nodes collapse
-
-[cols="1m,5"]
-|===
-| apoc.nodes.collapse([<node>], {config}) | returns the list of nodes merged into a VirtualNode
-|===
-
-==== Config:
-
-On `apoc.nodes.collapse` with config properties you can choose from 3 different behavior:
-
- * "properties": "overwrite" : if there is the same property in more node, in the new one will have the last relationship's/node's property value
- * "properties": "discard" : if there is the same property in more node, the new one will have the first relationship's/node's property value
- * "properties": "combine" : if there is the same property in more node, the new one a value's array with all relationship's/node's values
-
-If properties parameter isn't set relationships properties are `discard`.
-
- * "mergeVirtualRels: true/false" : give the possibility to merge relationships with same type and direction. (DEFAULT `true`)
- * "selfRel: true/false" : give the possibility to create the self relationship. (DEFAULT `false`)
- * "countMerge: true/false" : give the possibility count all the Nodes/Relationships merged. (DEFAULT `true`)
- * "collapsedLabel: true/false" : give the possibility to add the label `:Collapsed` to the virtualNode. (DEFAULT `false`)
-
-== Nodes collapse example
-
-With this dataset we have:
-
-image::{img}/apoc.nodes.collapse_1.png[width=600]
-
-If we want to collapse the people living in the city to a single node, we pass them to the procedure.
-
-[source,cypher]
-----
-MATCH (p:Person)-[:LIVES_IN]->(c:City)
-WITH c, collect(p) as subgraph
-CALL apoc.nodes.collapse(subgraph,{properties:'combine'}) yield from, rel, to
-return from, rel, to
-----
-
-And get this result:
-
-image::{img}/apoc.nodes.collapse_2.png[width=600]
-
-With this dataset we have:
-
-image::{img}/apoc.nodes.collapse_3.png[width=600]
-
-If we also want to collapse them onto the city itself, we add the city node _first_ to the collection.
-
-[source,cypher]
-----
-MATCH (p:Person)-[:LIVES_IN]->(c:City)
-WITH c, c + collect(p) as subgraph
-CALL apoc.nodes.collapse(subgraph) yield from, rel, to
-return from, rel, to
-----
-
-And get this result:
-
-image::{img}/apoc.nodes.collapse_4.png[width=600]
+image::{img}/apoc.create.vPatternFullTwo.png[scaledwidth="100%"]

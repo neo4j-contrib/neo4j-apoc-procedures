@@ -3,7 +3,7 @@
 
 [abstract]
 --
-This section describes graph refactoring procedures in the APOC library.
+This chapter describes graph refactoring procedures in the APOC library.
 --
 
 The available algorithms are described in the table below:

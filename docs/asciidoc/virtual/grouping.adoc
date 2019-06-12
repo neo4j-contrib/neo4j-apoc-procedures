@@ -1,6 +1,12 @@
 [[graph-grouping]]
 == Graph Grouping
 
+[abstract]
+--
+This section describes procedures that can be used to group nodes by property values to create virtual nodes for graph visualizations.
+--
+
+
 Large graphs are often hard to understand or visualize.
 
 Tabular results can be aggregated for overviews, e.g. in charts with sums, counts etc.
@@ -16,12 +22,13 @@ Basically you can use any `+(entity)<-->(entity)+` graph for the grouping, suppo
 .Example on movie graph
 [source,cypher]
 ----
-match (n) set n.century = toInteger(coalesce(n.born,n.relased)/100) * 100;
+MATCH (n)
+SET n.century = toInteger(coalesce(n.born,n.relased)/100) * 100;
 
-call apoc.nodes.group(['Person','Movie'],['century']);
+CALL apoc.nodes.group(['Person','Movie'],['century']);
 ----
 
-image::{img}/apoc.nodes.group.jpg[]
+image::{img}/apoc.nodes.group.jpg[scaledwidth="100%"]
 
 
 [NOTE]
@@ -30,7 +37,8 @@ _Sometimes_ an UI has an issue with the return values of the grouping (list of n
 
 [source,cypher]
 ----
-call apoc.nodes.group(['Person','Movie'],['century']) yield nodes, relationships
+CALL apoc.nodes.group(['Person','Movie'],['century'])
+YIELD nodes, relationships
 UNWIND nodes as node
 UNWIND relationships as rel
 RETURN node, rel;
@@ -41,7 +49,7 @@ RETURN node, rel;
 
 [source,cypher]
 ----
-call apoc.nodes.group(labels,properties, [grouping], [config])
+CALL apoc.nodes.group(labels,properties, [grouping], [config])
 ----
 
 The only required parameters are a _label-list_ (can also be `['*']`) and a _list of property names_ to group by (both for rels/nodes).
@@ -142,7 +150,7 @@ call apoc.nodes.group(['*'], ['country'])
 yield node, relationship return *
 ----
 
-image::{img}/grouping-country-all.jpg[]
+image::{img}/grouping-country-all.jpg[scaledwidth="100%"]
 
 ----
 call apoc.nodes.group(['*'], ['country'], null,
@@ -151,7 +159,7 @@ call apoc.nodes.group(['*'], ['country'], null,
 yield node, relationship return *
 ----
 
-image::{img}/grouping-country-filter.jpg[]
+image::{img}/grouping-country-filter.jpg[scaledwidth="100%"]
 
 To visualize this result in Neo4j Browser it's useful to have a custom Graph Style Sheet (GRASS) that renders the grouped properties with some of the aggregations.
 
