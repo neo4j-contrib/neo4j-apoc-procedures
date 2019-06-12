@@ -1,0 +1,58 @@
+[[collection-list-functions]]
+= Collection Functions
+
+APOC has a wide variety of Collection and List functions.
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/qgeEbI8gqe4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+[cols="1m,5"]
+|===
+| apoc.coll.sum([0.5,1,2.3]) | sum of all values in a list
+| apoc.coll.avg([0.5,1,2.3]) | avg of all values in a list
+| apoc.coll.min([0.5,1,2.3]) | minimum of all values in a list
+| apoc.coll.max([0.5,1,2.3]) | maximum of all values in a list
+| apoc.coll.sumLongs([1,3,3]) | sums all numeric values in a list
+| apoc.coll.partition(list,batchSize) | partitions a list into sublists of `batchSize`
+| apoc.coll.zip([list1],[list2]) | all values in a list
+| apoc.coll.pairs([1,2,3]) YIELD value | [1,2],[2,3],[3,null]
+| apoc.coll.pairsMin([1,2,3]) YIELD value | [1,2],[2,3]
+| apoc.coll.toSet([list]) | returns a unique list backed by a set
+| apoc.coll.sort(coll) | sort on Collections
+| apoc.coll.sortNodes([nodes], 'name') | sort nodes by property, ascending sorting by adding ^ in front of the sorting field
+| apoc.coll.sortMaps([maps], 'key') | sort maps by map key, ascending sorting by adding ^ in front of the sorting field
+| apoc.coll.reverse(coll) | returns the reversed list
+| apoc.coll.contains(coll, value) | returns true if collection contains the value
+| apoc.coll.containsAll(coll, values) | optimized contains-all operation (using a HashSet) returns true or false
+| apoc.coll.containsSorted(coll, value) | optimized contains on a sorted list operation (Collections.binarySearch) (returns true or false)
+| apoc.coll.containsAllSorted(coll, value) | optimized contains-all on a sorted list operation (Collections.binarySearch) (returns true or false)
+| apoc.coll.union(first, second) | creates the distinct union of the 2 lists
+| apoc.coll.subtract(first, second) | returns unique set of first list with all elements of second list removed
+| apoc.coll.removeAll(first, second) | returns first list with all elements of second list removed
+| apoc.coll.intersection(first, second) | returns the unique intersection of the two lists
+| apoc.coll.disjunction(first, second) | returns the disjunct set of the two lists
+| apoc.coll.unionAll(first, second) | creates the full union with duplicates of the two lists
+| apoc.coll.split(list,value) | splits collection on given values rows of lists, value itself will not be part of resulting lists
+| apoc.coll.indexOf(coll, value) | position of value in the list
+| apoc.coll.shuffle(coll) | returns the shuffled list
+| apoc.coll.randomItem(coll) | returns a random item from the list
+| apoc.coll.randomItems(coll, itemCount, allowRepick: false) | returns a list of `itemCount` random items from the list, optionally allowing picked elements to be picked again
+| apoc.coll.containsDuplicates(coll) | returns true if a collection contains duplicate elements
+| apoc.coll.duplicates(coll) | returns a list of duplicate items in the collection
+| apoc.coll.duplicatesWithCount(coll) | returns a list of duplicate items in the collection and their count, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)
+| apoc.coll.occurrences(coll, item) | returns the count of the given item in the collection
+| apoc.coll.frequencies(coll) | returns a list of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}, {item:abc, count:1}]`)
+| apoc.coll.frequenciesAsMap(coll) | return a map of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `{1: 2, 3: 2}`)
+| apoc.coll.sortMulti | sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip
+| apoc.coll.flatten | flattens a nested list
+| apoc.coll.combinations(coll, minSelect, maxSelect:minSelect) | Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive
+| CALL apoc.coll.elements(list,limit,offset) yield _1,_2,..,_10,_1s,_2i,_3f,_4m,_5l,_6n,_7r,_8p | deconstruct subset of mixed list into identifiers of the correct type
+| apoc.coll.set(coll, index, value) | set index to value
+| apoc.coll.insert(coll, index, value) | insert value at index
+| apoc.coll.insertAll(coll, index, values) | insert values at index
+| apoc.coll.remove(coll, index, [length=1]) | remove range of values from index to length
+| apoc.coll.different(values) | returns true if value are different
+|===

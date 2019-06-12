@@ -1,5 +1,5 @@
 [[node-difference]]
-== Diff
+= Diff
 
 Diff is a user function to return a detailed diff between two nodes.
 

@@ -1,3 +1,10 @@
+[[atomic-updates]]
+= Atomic
+
+[abstract]
+--
+This section describes algorithm that can be used for thread safe updating of properties on nodes and relationships.
+--
 
 Atomic procedures handle the concurrency, it's add a lock to the resource.
 If two users access to the same resource at the same time, with the parameter `times` (default value 5) we can determine how many time retry to modify the resource, until the lock is release.
@@ -28,7 +35,8 @@ We can add 10 to the property `age`
 [source,cypher]
 ----
 MATCH (n:Person {name:'Tom'})
-CALL apoc.atomic.add(n,'age',10,5) YIELD oldValue, newValue
+CALL apoc.atomic.add(n,'age',10,5)
+YIELD oldValue, newValue
 RETURN n
 ----
 
@@ -41,7 +49,8 @@ From the previous example we can go back to `age`: 40
 [source,cypher]
 ----
 MATCH (n:Person {name:'Tom'})
-CALL apoc.atomic.subtract(n,'age',10,5) YIELD oldValue, newValue
+CALL apoc.atomic.subtract(n,'age',10,5)
+YIELD oldValue, newValue
 RETURN n
 ----
 
@@ -57,7 +66,8 @@ CREATE (p:Person {name:'Will',age: 35})
 [source,cypher]
 ----
 MATCH (p:Person {name:'Will',age: 35})
-CALL apoc.atomic.concat(p,"name",'iam',5) YIELD newValue
+CALL apoc.atomic.concat(p,"name",'iam',5)
+YIELD newValue
 RETURN p
 ----
 
@@ -80,7 +90,8 @@ Now we add `Mary` to propery children at the position 2
 [source,cypher]
 ----
 MATCH (p:Person {name:'Tom'})
-CALL apoc.atomic.insert(p,'children',2,'Mary',5) YIELD newValue
+CALL apoc.atomic.insert(p,'children',2,'Mary',5)
+YIELD newValue
 RETURN p
 ----
 
@@ -100,7 +111,8 @@ Now we remove the element `X3` which is at the position 1 from the array `cars`
 [source,cypher]
 ----
 MATCH (p:Person {name:'Tom'})
-CALL apoc.atomic.remove(p,'cars',1,5) YIELD newValue
+CALL apoc.atomic.remove(p,'cars',1,5)
+YIELD newValue
 RETURN p
 ----
 
@@ -121,7 +133,8 @@ If we rename our node/rel (as in the example above) we have anyway to refer to i
 [source,cypher]
 ----
 MATCH (p:Person {name:'Tom'})
-CALL apoc.atomic.update(p,'salary1','n.salary1*3 + n.salary2',5) YIELD newValue
+CALL apoc.atomic.update(p,'salary1','n.salary1*3 + n.salary2',5)
+YIELD newValue
 RETURN p
 ----
 

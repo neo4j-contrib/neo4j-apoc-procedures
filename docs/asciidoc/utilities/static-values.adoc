@@ -1,0 +1,11 @@
+[[static-values]]
+= Static Value Storage
+
+[cols="1m,5"]
+|===
+| apoc.static.get(name) | returns statically stored value from config (apoc.static.<key>) or server lifetime storage
+| apoc.static.getAll(prefix) |  returns statically stored values from config (apoc.static.<prefix>) or server lifetime storage
+| apoc.static.set(name, value) | stores value under key for server livetime storage, returns previously stored or configured value
+|===
+
+NOTE: `apoc.static.get` and `apoc.static.getAll` have been migrated to be functions, the procedures have been deprecated.

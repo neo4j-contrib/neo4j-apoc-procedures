@@ -1,8 +1,19 @@
-= Spatial Functions
+[[spatial]]
+= Spatial
+
+[cols="1m,5"]
+|===
+| CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData | look up geographic location of location from a geocoding service (the default one is OpenStreetMap)
+| CALL apoc.spatial.reverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description | look up address from latitude and longitude from a geocoding service (the default one is OpenStreetMap)
+| CALL apoc.spatial.sortPathsByDistance(Collection<Path>) YIELD path, distance | sort a given collection of paths by geographic distance based on lat/long properties on the path nodes
+|===
+
+
+== Spatial Functions
 
 The spatial procedures are intended to enable geographic capabilities on your data.
 
-== Geocode
+=== Geocode
 
 The first procedure _geocode_ which will convert a textual address
 into a location containing _latitude_, _longitude_ and _description_. Despite being
@@ -36,7 +47,7 @@ RETURN location.description; // will return 21, Rue Paul Bellamy, Talensac - Pon
 //France métropolitaine, 44000, France
 ----
 
-== Configuring Geocode
+==== Configuring Geocode
 
 There are a few options that can be set in the neo4j.conf file to control the service:
 
@@ -51,7 +62,7 @@ For google, you should use either a key or a combination of client and signature
 about this on the google page for geocode access at
 https://developers.google.com/maps/documentation/geocoding/get-api-key#key
 
-== Configuring Custom Geocode Provider
+==== Configuring Custom Geocode Provider
 
 *Geocode*
 

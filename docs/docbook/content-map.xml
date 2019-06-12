@@ -96,6 +96,9 @@
       </d:tocentry>
       <d:tocentry linkend="atomic-updates"><?dbhtml filename="utilities/atomic-updates/index.html"?>
       </d:tocentry>
+
+      <d:tocentry linkend="log"><?dbhtml filename="utilities/log/index.html"?>
+      </d:tocentry>
   </d:tocentry>
 
     <d:tocentry linkend="nodes-relationships"><?dbhtml filename="nodes-relationships/index.html"?>
