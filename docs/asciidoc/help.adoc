@@ -1,7 +1,12 @@
 [[help]]
 == Built in Help
 
-image::{img}/apoc-help-apoc.jpg[width=600]
+[abstract]
+--
+This chapter describes the built in help in the APOC library.
+--
+
+image::{img}/apoc-help-apoc.jpg[scaledwidth="100%"]
 
 If you use `call apoc.help('keyword')` it lists all procedures and functions that have the keyword in their name.
 

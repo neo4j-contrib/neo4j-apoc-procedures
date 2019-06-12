@@ -13,6 +13,11 @@
     <d:tocentry linkend="overview"><?dbhtml filename="overview/index.html"?>
     </d:tocentry>
 
+    <d:tocentry linkend="user-defined-functions"><?dbhtml filename="user-defined-functions/index.html"?>
+    </d:tocentry>
+
+
+
   <d:tocentry linkend="schema"><?dbhtml filename="schema/index.html"?>
     <d:tocentry linkend="meta-graph"><?dbhtml filename="schema/meta-graph/index.html"?>
     </d:tocentry>

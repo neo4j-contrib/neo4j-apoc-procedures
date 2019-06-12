@@ -1,6 +1,11 @@
 [[export-import]]
 == Export / Import
 
+[abstract]
+--
+This chapter describes procedures in the APOC library that can be used to import and export data.
+--
+
 [NOTE]
 In case you have the default configuration with `apoc.import.file.use_neo4j_config=true` the export consider as root the directory defined into the `dbms.directories.import` property
 

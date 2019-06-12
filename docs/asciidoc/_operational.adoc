@@ -1,6 +1,11 @@
 [[operational]]
 == Operational
 
+[abstract]
+--
+This chapter describes operational procedures in the APOC library.
+--
+
 include::ttl.adoc[leveloffset=2]
 
 [[triggers]]

@@ -65,6 +65,11 @@ include::../../readme.adoc[tags=signature,leveloffset=1]
 [[installation]]
 == Installation in Neo4j Server & Docker
 
+[abstract]
+--
+This chapter describes how to install the APOC library.
+--
+
 include::../../readme.adoc[tags=install,leveloffset=1]
 
 include::../../readme.adoc[tags=warnings,leveloffset=0]
@@ -73,6 +78,12 @@ include::../../readme.adoc[tags=docker,leveloffset=0]
 
 [[overview]]
 == Overview of APOC Procedures & Functions
+
+[abstract]
+--
+This chapter provides an overview of all the procedures and functions in the APOC library.
+--
+
 
 [[table-all]]
 [separator=¦,opts=header]
@@ -83,7 +94,6 @@ include::../../build/generated-documentation/documentation.csv[]
 include::config.adoc[]
 
 include::functions.adoc[leveloffset=+1]
-
 
 include::_export_import.adoc[]
 

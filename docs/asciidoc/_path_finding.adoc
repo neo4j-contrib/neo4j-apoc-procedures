@@ -1,6 +1,11 @@
 [[path-finding]]
 == Path Finding
 
+[abstract]
+--
+This chapter describes path finding procedures in the APOC library.
+--
+
 APOC exposes some built in path-finding functions that Neo4j brings along.
 
 [cols="3m,3"]

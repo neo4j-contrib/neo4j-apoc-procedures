@@ -1,6 +1,11 @@
 [[indexes]]
 == Text and Lookup Indexes
 
+[abstract]
+--
+This chapter describes text and lookup index procedures in the APOC library.
+--
+
 [[schema-index-operations]]
 === Schema Index Procedures
 

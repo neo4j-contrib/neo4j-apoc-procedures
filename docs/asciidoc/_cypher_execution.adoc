@@ -1,6 +1,11 @@
 [[cypher-execution]]
 == Cypher Execution
 
+[abstract]
+--
+This chapter describes Cypher Execution procedures in the APOC library.
+--
+
 [cols="1m,5"]
 |===
 | CALL apoc.cypher.run(fragment, params) yield value | executes reading fragment with the given parameters

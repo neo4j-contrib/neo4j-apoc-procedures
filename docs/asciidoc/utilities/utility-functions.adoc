@@ -3,7 +3,7 @@
 
 [abstract]
 --
-This section describes functions for computing hashes of strings, validating predicates, and causing a query to sleep.
+This section describes functions for computing hashes of strings, validating predicates, and sleeping a query.
 --
 
 [cols="1m,5"]
