@@ -1,6 +1,11 @@
 [[load-csv]]
 == Load CSV
 
+[abstract]
+--
+This chapter describes procedures that can be used to import data from CSV files.
+--
+
 Many existing applications and data integrations use CSV as the minimal denominator format.
 
 In Cypher it is supported by `LOAD CSV` and with the `neo4j-import` (`neo4j-admin import`) for bulk imports.

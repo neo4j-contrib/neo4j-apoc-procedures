@@ -6,6 +6,11 @@
 This chapter describes procedures in the APOC library that can be used to import and export data.
 --
 
+* <<load-json>>
+* <<load-csv>>
+* <<load-xml>>
+* <<load-html>>
+
 [NOTE]
 In case you have the default configuration with `apoc.import.file.use_neo4j_config=true` the export consider as root the directory defined into the `dbms.directories.import` property
 
@@ -33,13 +38,13 @@ config contains any of: `{skip:1,limit:5,header:false,ignore:['aColumn'],arraySe
 nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false,nullValues:['n.A.']}}`
 |===
 
-include::loadjson.adoc[leveloffset=2]
+include::import/loadjson.adoc[leveloffset=2]
 
-include::loadcsv.adoc[leveloffset=+1]
+include::import/loadcsv.adoc[leveloffset=+1]
 
-include::loadxml.adoc[leveloffset=2]
+include::import/loadxml.adoc[leveloffset=2]
 
-include::loadhtml.adoc[leveloffset=2]
+include::import/loadhtml.adoc[leveloffset=2]
 
 include::gephi.adoc[leveloffset=2]
 

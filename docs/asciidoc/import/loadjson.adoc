@@ -1,6 +1,11 @@
 [[load-json]]
 = Load JSON
 
+[abstract]
+--
+This chapter describes procedures that can be used to import JSON data from web APIs or files.
+--
+
 == Load JSON
 
 Web APIs are a huge opportunity to access and integrate data from any sources with your graph.
@@ -86,7 +91,7 @@ UNWIND value.items AS item
 RETURN item.title, item.owner, item.creation_date, keys(item)
 ----
 
-image::{img}/apoc.load.json.so.png[width=800]
+image::{img}/apoc.load.json.so.png[scaledwidth="100%"]
 
 
 .Question authors from StackOverflow using json-path
@@ -120,7 +125,7 @@ MERGE (owner:User {id:q.owner.user_id}) ON CREATE SET owner.display_name = q.own
 MERGE (owner)-[:ASKED]->(question)
 ----
 
-image::{img}/apoc.load.json-so-result.png[width=800]
+image::{img}/apoc.load.json-so-result.png[scaledwidth="100%"]
 
 == Load JSON from Twitter (with additional parameters)
 

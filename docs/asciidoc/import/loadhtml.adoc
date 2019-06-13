@@ -1,6 +1,11 @@
 [[load-html]]
 == Load HTML
 
+[abstract]
+--
+This chapter describes procedures that can be used to import data from HTML pages.
+--
+
 Scraping Data from Html Pages.
 
 [cols="3m,2"]

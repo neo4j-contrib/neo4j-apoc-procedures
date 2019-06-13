@@ -1,6 +1,11 @@
 [[load-xml]]
 = Load XML
 
+[abstract]
+--
+This chapter describes procedures that can be used to import data from XML files.
+--
+
 == Load XML Introduction
 
 Many existing (enterprise) applications, endpoints and files use XML as data exchange format.
