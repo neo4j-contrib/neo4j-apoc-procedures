@@ -6,38 +6,17 @@
 This chapter describes path finding procedures in the APOC library.
 --
 
-APOC exposes some built in path-finding functions that Neo4j brings along.
+* <<path-finding-procedures>>
+* <<path-expander>>
+* <<expand-subgraph>>
+* <<expand-spanning-tree>>
+* <<neighbourhood-search>>
 
-[cols="3m,3"]
-|===
-| apoc.algo.dijkstra(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance') YIELD path, weight | run dijkstra with relationship property name as cost function
-| apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>',  'distance', 10) YIELD path, weight | run dijkstra with relationship property name as cost function and a default weight if the property does not exist
-| apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance','lat','lon')  YIELD path, weight | run A* with relationship property name as cost function
-| apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', {weight:'dist',default:10, x:'lon',y:'lat'}) YIELD path, weight | run A* with relationship property name as cost function
-| apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 5) YIELD path,  weight | run allSimplePaths with relationships given and maxNodes
-| apoc.stats.degrees(relTypesDirections) yield type, direction, total, min, max, mean, p50, p75, p90, p95, p99, p999 | compute degree distribution in parallel
-|===
+include::path-finding/path-finding-procedures.adoc[leveloffset=1]
+include::path-finding/expand.adoc[leveloffset=1]
+include::path-finding/expand-subgraph.adoc[leveloffset=1]
+include::path-finding/expand-spanning-tree.adoc[leveloffset=1]
+include::path-finding/neighborhood-search.adoc[leveloffset=1]
 
-Example: find the weighted shortest path based on relationship property `d` from `A` to `B` following just `:ROAD` relationships
 
-[source,cypher]
-----
-MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'})
-CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as weight
-RETURN path, weight
-----
 
-include::expand.adoc[leveloffset=1]
-
-[[neighbourhood-search]]
-=== Neighbor Functions
-
-[cols="1m,5"]
-|===
-| apoc.neighbors.tohop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern up to a certain distance
-| apoc.neighbors.tohop.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern up to a certain distance
-| apoc.neighbors.byhop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern grouped by distance
-| apoc.neighbors.byhop.count(node, rel-direction-pattern, distance) | returns the count distinct nodes of the given relationships in the pattern grouped by distance
-| apoc.neighbors.athop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern at a certain distance
-| apoc.neighbors.athop.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern at a certain distance
-|===

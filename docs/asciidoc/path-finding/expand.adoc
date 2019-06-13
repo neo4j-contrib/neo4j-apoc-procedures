@@ -1,9 +1,15 @@
 [[path-expander]]
 == Path Expander
 
+[abstract]
+--
+This section describes procedures that can be used to do variable length path traversals.
+--
+
 Thanks to Andrew Bowman (@inversefalcon) and Kees Vegter (@keesvegter)
 
-The apoc.path.expand procedure makes it possible to do variable length path traversals where you can specify the direction of the relationship per relationship type and a list of Label names which act as a "whitelist" or a "blacklist" or define end nodes for the expansion. The procedure will return a list of Paths in a variable name called "path".
+The apoc.path.expand procedure makes it possible to do variable length path traversals where you can specify the direction of the relationship per relationship type and a list of Label names which act as a "whitelist" or a "blacklist" or define end nodes for the expansion.
+The procedure will return a list of Paths in a variable name called "path".
 
 [cols="1m,5"]
 |===
@@ -523,48 +529,4 @@ CALL apoc.path.subgraphNodes(user, {relationshipFilter:'FRIEND'}) YIELD node
 RETURN node;
 ----
 
-== Expand to a subgraph and return all nodes and relationships within the subgraph
 
-----
-apoc.path.subgraphAll(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1}) yield nodes, relationships
-----
-
-Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
-Returns the collection of nodes in the subgraph, and the collection of relationships between all subgraph nodes.
-
-Accepts the same `config` values as in `expandConfig()`, though `uniqueness` and `minLevel` are not configurable.
-
-The `optional` config value isn't needed, as empty lists are yielded if there are no results, so rows are never eliminated.
-
-.Example
-
-Expand to local subgraph (and all its relationships) within 4 traversals:
-
-[source,cypher]
-----
-MATCH (user:User) WHERE user.id = 460
-CALL apoc.path.subgraphAll(user, {maxLevel:4}) YIELD nodes, relationships
-RETURN nodes, relationships;
-----
-
-== Expand a spanning tree
-
-----
-apoc.path.spanningTree(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1, optional:false}) yield path
-----
-
-Expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters.
-The paths returned collectively form a spanning tree.
-
-Accepts the same `config` values as in `expandConfig()`, though `uniqueness` and `minLevel` are not configurable.
-
-.Example
-
-Expand a spanning tree of all contiguous :User nodes:
-
-[source,cypher]
-----
-MATCH (user:User) WHERE user.id = 460
-CALL apoc.path.spanningTree(user, {labelFilter:'+User'}) YIELD path
-RETURN path;
-----

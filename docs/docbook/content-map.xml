@@ -128,6 +128,15 @@
       </d:tocentry>
       <d:tocentry linkend="neighbourhood-search"><?dbhtml filename="path-finding/neighbourhood-search/index.html"?>
       </d:tocentry>
+
+      <d:tocentry linkend="expand-subgraph"><?dbhtml filename="path-finding/expand-subgraph/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="expand-spanning-tree"><?dbhtml filename="path-finding/expand-spanning-tree/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="path-finding-procedures"><?dbhtml filename="path-finding/path-finding-procedures/index.html"?>
+      </d:tocentry>
     </d:tocentry>
 
     <d:tocentry linkend="cypher-execution"><?dbhtml filename="cypher-execution/index.html"?>
