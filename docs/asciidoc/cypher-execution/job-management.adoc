@@ -1,0 +1,74 @@
+[[job-management]]
+== Job management and periodic execution
+
+[abstract]
+--
+This section describes procedures that can be used to batch queries and schedule the running of background queries.
+--
+
+=== Introduction asynchronous transactional execution
+
+Cypher is great for querying graphs and importing and updating graph structures.
+While during imports you can use `PERIODIC COMMIT` to control transaction sizes in memory, 
+for other graph refactorings it's not that easy to commit transactions regularly to free memory for new update state.
+
+Also sometimes you want to schedule execution of Cypher statements to run regularly in the background or asynchronously ("fire & forget").
+
+This can also be useful in cloud environments that limit the runtime of statements (e.g. to 2 or 5 minutes) by scheduling execution in the background.
+
+The `apoc.periodic.*` procedures provide such capabilities.
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/t1Nr5C5TAYs" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+=== Overview Job Management
+
+// tag::periodic[]
+
+////
+[separator=¦,opts=header,cols="1,1m,5"]
+|===
+include::../../build/generated-documentation/apoc.periodic.csv[]
+|===
+////
+
+[cols="1m,5"]
+|===
+| CALL apoc.periodic.commit(statement, params) | repeats an batch update statement until it returns 0, this procedure is blocking
+| CALL apoc.periodic.list() | list all jobs
+| CALL apoc.periodic.submit('name',statement) | submit a one-off background statement
+| CALL apoc.periodic.schedule('name',statement,repeat-time-in-seconds) | submit a repeatedly-called background statement
+| CALL apoc.periodic.countdown('name',statement,delay-in-seconds) | submit a repeatedly-called background statement until it returns 0
+| CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total | iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g.
+| CALL apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:50,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows
+|===
+
+* there are also static methods `Jobs.submit`, and `Jobs.schedule` to be used from other procedures
+* jobs list is checked / cleared every 10s for finished jobs
+
+.copies over the `name` property of each person to `lastname`
+[source,cypher]
+----
+CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (p) where id(p)={id_p} SET p.lastname =p.name', 20000)
+----
+
+// end::periodic[]
+
+
+Many procedures run in the background or asynchronously. This setting overrides the default thread pool size (processors*2).
+
+`apoc.jobs.pool.num_threads=10`
+
+Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size (processors/4, at least 1). You can configure the pool size using the following configuration property:
+
+`apoc.jobs.scheduled.num_threads=10`
+
+
+
+
+
+
+

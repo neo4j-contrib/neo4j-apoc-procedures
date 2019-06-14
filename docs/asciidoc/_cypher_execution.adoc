@@ -21,10 +21,19 @@ This chapter describes Cypher Execution procedures in the APOC library.
 | CALL apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) | abort statement after timeout millis if not finished
 |===
 
+* <<running-cypher>>
+* <<job-management>>
+* <<commit-batching>>
+* <<periodic-commit>>
+* <<periodic-countdown>>
+* <<cypher-based-procedures-functions>>
+
 // TODO runFile: begin/commit/schema await/constraints/indexes
 
-include::cypher.adoc[leveloffset=2]
+include::cypher-execution/cypher.adoc[leveloffset=2]
 
-include::periodic.adoc[leveloffset=+1]
-
-include::custom.adoc[leveloffset=+1]
+include::cypher-execution/job-management.adoc[leveloffset=+1]
+include::cypher-execution/periodic-iterate.adoc[leveloffset=+1]
+include::cypher-execution/periodic-commit.adoc[leveloffset=+1]
+include::cypher-execution/periodic-countdown.adoc[leveloffset=+1]
+include::cypher-execution/custom.adoc[leveloffset=+1]

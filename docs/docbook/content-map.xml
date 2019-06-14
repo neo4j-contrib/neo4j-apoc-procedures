@@ -154,6 +154,10 @@
       </d:tocentry>
       <d:tocentry linkend="periodic-commit"><?dbhtml filename="cypher-execution/periodic-commit/index.html"?>
       </d:tocentry>
+
+      <d:tocentry linkend="periodic-countdown"><?dbhtml filename="cypher-execution/periodic-countdown/index.html"?>
+      </d:tocentry>
+
       <d:tocentry linkend="cypher-based-procedures-functions"><?dbhtml filename="cypher-execution/cypher-based-procedures-functions/index.html"?>
       </d:tocentry>
   </d:tocentry>

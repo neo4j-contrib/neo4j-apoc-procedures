@@ -1,0 +1,34 @@
+[[periodic-commit]]
+== apoc.periodic.commit
+
+[abstract]
+--
+This section describes a procedure that can be used to run a query repeatedly until there are no more elements on which to run the query.
+--
+
+Especially for graph processing it is useful to run a query repeatedly in separate transactions until it doesn't process and generates any results anymore.
+So you can iterate in batches over elements that don't fulfill a condition and update them so that they do afterwards.
+
+NOTE: as a safety net your statement used inside `apoc.periodic.commit` *must* contain a `LIMIT` clause.
+
+The query is executed repeatedly in separate transactions until it returns 0.
+
+[source,cypher]
+----
+call apoc.periodic.commit("
+match (user:User) WHERE exists( user.city )
+with user limit {limit}
+MERGE (city:City {name:user.city})
+MERGE (user)-[:LIVES_IN]->(city)
+REMOVE user.city
+RETURN count(*)
+",{limit:10000})
+----
+
+----
++=======+==========+
+|updates|executions|
++=======+==========+
+|2000000|200       |
++-------+----------+
+----
