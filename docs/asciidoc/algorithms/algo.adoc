@@ -1,9 +1,7 @@
 [[community-detection]]
 == Community Detection via Label Propagation
 
-[WARNING]
-Graph Algorithms (similarity, centrality and clustering) in APOC are deprecated and about to be removed.
-Please use the algorithms in https://r.neo4j.com/algo[neo4j-graph-algorithms] instead.
+include::deprecated.adoc[]
 
 APOC includes a simple procedure for label propagation.
 It may be used to detect communities or solve other graph partitioning problems.

@@ -6,6 +6,12 @@
 This chapter describes indexing procedures in the APOC library.
 --
 
+These procedures complement the indexing functionality that comes out of the box.
+
+* <<schema-index-operations>>
+* <<manual-indexes>>
+* <<fulltext-index>>
+
 [[schema-index-operations]]
 === Schema Index Procedures
 
@@ -84,7 +90,7 @@ match (p:Person) call apoc.index.addNode(p,["name","age"]) RETURN count(*);
 call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limit 2
 ----
 
-include::manual-indexes.adoc[leveloffset=+2]
+include::manual-indexes.adoc[leveloffset=+3]
 
 ==== Schema Index Queries
 

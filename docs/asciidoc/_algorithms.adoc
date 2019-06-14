@@ -1,9 +1,12 @@
 [[algorithms]]
 == Deprecated: Graph Algorithms
 
-[WARNING]
-Graph Algorithms (similarity, centrality and clustering) in APOC are deprecated and about to be removed.
-Please use the algorithms in https://r.neo4j.com/algo[neo4j-graph-algorithms] instead.
+include::algorithms/deprecated.adoc[]
+
+* <<similarity>>
+* <<community-detection>>
+* <<centrality>>
+* <<pagerank>>
 
 [[similarity]]
 === Similarity
@@ -36,7 +39,7 @@ Please use the algorithms in https://r.neo4j.com/algo[neo4j-graph-algorithms] in
 |===
 
 
-include::algo.adoc[leveloffset=+1]
-include::centrality.adoc[leveloffset=+2]
-include::pagerank.adoc[leveloffset=2]
+include::algorithms/algo.adoc[leveloffset=+1]
+include::algorithms/centrality.adoc[leveloffset=+2]
+include::algorithms/pagerank.adoc[leveloffset=2]
 

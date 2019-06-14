@@ -1,9 +1,7 @@
 [[centrality]]
 = Centrality Algorithms
 
-[WARNING]
-Graph Algorithms (similarity, centrality and clustering) in APOC are deprecated and about to be removed.
-Please use the algorithms in https://r.neo4j.com/algo[neo4j-graph-algorithms] instead.
+include::deprecated.adoc[]
 
 == Setup
 
