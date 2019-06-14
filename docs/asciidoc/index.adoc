@@ -50,20 +50,8 @@ endif::[]
 
 include::../../readme.adoc[tags=intro,leveloffset=1]
 
-include::help.adoc[]
-
-To generate the help output, apoc utilizes the built in `dbms.procedures()` and `dbms.functions()` utilities.
-
-ifdef::backend-html5[]
-++++
-<iframe width="560" height="315" src="https://www.youtube.com/embed/b1Yr2nHNS4M" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-++++
-endif::[]
-
-include::../../readme.adoc[tags=signature,leveloffset=1]
-
 [[installation]]
-== Installation in Neo4j Server & Docker
+== Installation
 
 [abstract]
 --
@@ -76,12 +64,25 @@ include::../../readme.adoc[tags=warnings,leveloffset=0]
 
 include::../../readme.adoc[tags=docker,leveloffset=0]
 
+
+include::help.adoc[]
+
+To generate the help output, apoc utilizes the built in `dbms.procedures()` and `dbms.functions()` utilities.
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/b1Yr2nHNS4M" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+include::../../readme.adoc[tags=signature,leveloffset=1]
+
 [[overview]]
-== Overview of APOC Procedures & Functions
+== Procedures & Functions
 
 [abstract]
 --
-This chapter provides an overview of all the procedures and functions in the APOC library.
+This chapter provides a reference of all the procedures and functions in the APOC library.
 --
 
 
