@@ -209,6 +209,15 @@
       </d:tocentry>
       <d:tocentry linkend="monitoring"><?dbhtml filename="operational/monitoring/index.html"?>
       </d:tocentry>
+
+      <d:tocentry linkend="ttl"><?dbhtml filename="operational/ttl/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="neo4j-config"><?dbhtml filename="operational/config/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="auto-uuid"><?dbhtml filename="operational/auto-uuid/index.html"?>
+      </d:tocentry>
     </d:tocentry>
 
     <d:tocentry linkend="indexes"><?dbhtml filename="indexes/index.html"?>

@@ -1,4 +1,11 @@
-== UUID
+[[auto-uuid]]
+= UUID
+
+[abstract]
+--
+This section describes procedures that manage automatically adding UUID properties to nodes.
+--
+
 
 These procedures manage the UUID Handler Lifecycle.
 The UUID handler is a transaction event handler that automatically adds the UUID property to a provided label and for the provided property name.

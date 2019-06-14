@@ -1,4 +1,11 @@
-== Triggers
+[[triggers]]
+= Triggers
+
+[abstract]
+--
+This section describes procedures that can be used to register triggers whenever data in Neo4j is created, updated, or deleted.
+--
+
 
 In a trigger you register Cypher statements that are called when data in Neo4j is changed (created, updated, deleted).
 You can run them before or after commit.
@@ -47,7 +54,7 @@ You can use these helper functions to extract nodes or relationships by label/re
 |===
 
 
-=== Triggers Examples
+== Triggers Examples
 
 .Set properties connected to a node
 
