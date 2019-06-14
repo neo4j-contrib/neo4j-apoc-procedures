@@ -1,5 +1,5 @@
 [[export-json]]
-== Export to Json File
+== Export to JSON File
 
 Make sure to set the config options in your `neo4j.conf`
 
@@ -52,7 +52,7 @@ result:
 
 [source,json]
 ----
-include::data/exportJSON/query_nodes_param.json[leveloffset]
+include::../data/exportJSON/query_nodes_param.json[leveloffset]
 ----
 
 .Export query Complex
@@ -66,7 +66,7 @@ result:
 
 [source,json]
 ----
-include::data/exportJSON/MapComplex.json[leveloffset]
+include::../data/exportJSON/MapComplex.json[leveloffset]
 ----
 
 .Export queryList
@@ -80,7 +80,7 @@ result:
 
 [source,json]
 ----
-include::data/exportJSON/listNode.json[leveloffset]
+include::../data/exportJSON/listNode.json[leveloffset]
 ----
 
 .Export queryMap
@@ -94,7 +94,7 @@ result:
 
 [source,json]
 ----
-include::data/exportJSON/MapNode.json[leveloffset]
+include::../data/exportJSON/MapNode.json[leveloffset]
 ----
 
 .Export all
@@ -108,7 +108,7 @@ result:
 
 [source,json]
 ----
-include::data/exportJSON/all.json[leveloffset]
+include::../data/exportJSON/all.json[leveloffset]
 ----
 
 .Export graph
@@ -125,7 +125,7 @@ result:
 
 [source,json]
 ----
-include::data/exportJSON/graph.json[leveloffset]
+include::../data/exportJSON/graph.json[leveloffset]
 ----
 
 .Export data
@@ -144,7 +144,7 @@ result:
 
 [source,json]
 ----
-include::data/exportJSON/data.json[leveloffset]
+include::../data/exportJSON/data.json[leveloffset]
 ----
 
 .Export query with config `writeNodeProperties`
@@ -158,5 +158,5 @@ result:
 
 [source,json]
 ----
-include::data/exportJSON/writeNodeProperties.json[leveloffset]
+include::../data/exportJSON/writeNodeProperties.json[leveloffset]
 ----

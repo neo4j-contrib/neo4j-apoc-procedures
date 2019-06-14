@@ -96,7 +96,9 @@ include::config.adoc[]
 
 include::functions.adoc[leveloffset=+1]
 
-include::_export_import.adoc[]
+include::_import.adoc[]
+
+include::_export.adoc[]
 
 include::_database_integration.adoc[]
 

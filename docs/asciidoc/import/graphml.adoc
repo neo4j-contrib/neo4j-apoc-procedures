@@ -1,0 +1,13 @@
+[[graphml-import]]
+= GraphML Import
+
+GraphML is used by other tools, like Gephi and CytoScape to read graph data.
+
+// tag::export.graphml[]
+
+`YIELD file, source, format, nodes, relationships, properties, time`
+
+[cols="1m,5"]
+|===
+| apoc.import.graphml(file-or-url,{batchSize: 10000, readLabels: true, storeNodeIds: false, defaultRelationshipType:"RELATED"}) | imports graphml into the graph
+|===

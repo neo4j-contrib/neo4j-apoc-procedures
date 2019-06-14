@@ -23,22 +23,36 @@
     </d:tocentry>
   </d:tocentry>
 
-    <d:tocentry linkend="export-import"><?dbhtml filename="export-import/index.html"?>
-      <d:tocentry linkend="load-json"><?dbhtml filename="export-import/load-json/index.html"?>
+    <d:tocentry linkend="import"><?dbhtml filename="import/index.html"?>
+      <d:tocentry linkend="web-apis"><?dbhtml filename="import/web-apis/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="load-csv"><?dbhtml filename="export-import/load-csv/index.html"?>
+
+      <d:tocentry linkend="load-json"><?dbhtml filename="import/load-json/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="import-csv"><?dbhtml filename="export-import/import-csv/index.html"?>
+      <d:tocentry linkend="load-csv"><?dbhtml filename="import/load-csv/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="load-xls"><?dbhtml filename="export-import/load-xls/index.html"?>
+      <d:tocentry linkend="import-csv"><?dbhtml filename="import/import-csv/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="load-xml"><?dbhtml filename="export-import/load-xml/index.html"?>
+      <d:tocentry linkend="load-xls"><?dbhtml filename="import/xls/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="load-html"><?dbhtml filename="export-import/load-html/index.html"?>
+      <d:tocentry linkend="load-xml"><?dbhtml filename="import/xml/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="gephi"><?dbhtml filename="export-import/gephi/index.html"?>
+      <d:tocentry linkend="load-html"><?dbhtml filename="import/html/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="graphml"><?dbhtml filename="export-import/graphml/index.html"?>
+
+    </d:tocentry>
+
+    <d:tocentry linkend="export"><?dbhtml filename="export/index.html"?>
+      <d:tocentry linkend="export-cypher"><?dbhtml filename="export/cypher/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="export-csv"><?dbhtml filename="export/csv/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="export-json"><?dbhtml filename="export/json/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="gephi"><?dbhtml filename="export/gephi/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="graphml-export"><?dbhtml filename="export/graphml/index.html"?>
       </d:tocentry>
     </d:tocentry>
 

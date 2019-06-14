@@ -1,5 +1,5 @@
 [[gephi]]
-== Streaming Data to Gephi
+= Streaming Data to Gephi
 
 // tag::gephi[]
 
@@ -17,7 +17,7 @@ include::../../build/generated-documentation/apoc.gephi.csv[]
 
 image::{img}/apoc-gephi.gif[width=800]
 
-=== Notes
+== Notes
 
 Gephi has a https://marketplace.gephi.org/plugin/graph-streaming/[streaming plugin], that can provide and accept https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master[JSON-graph-data] in a streaming fashion.
 
