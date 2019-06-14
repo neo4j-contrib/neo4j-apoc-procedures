@@ -144,6 +144,8 @@ include::_path_finding.adoc[]
 
 include::_cypher_execution.adoc[]
 
+include::_job_management.adoc[]
+
 include::_virtual.adoc[]
 
 ////

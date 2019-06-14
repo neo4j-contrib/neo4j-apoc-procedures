@@ -148,19 +148,19 @@
       </d:tocentry>
       <d:tocentry linkend="conditionals"><?dbhtml filename="cypher-execution/conditionals/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="job-management"><?dbhtml filename="cypher-execution/job-management/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="commit-batching"><?dbhtml filename="cypher-execution/commit-batching/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="periodic-commit"><?dbhtml filename="cypher-execution/periodic-commit/index.html"?>
-      </d:tocentry>
-
-      <d:tocentry linkend="periodic-countdown"><?dbhtml filename="cypher-execution/periodic-countdown/index.html"?>
-      </d:tocentry>
-
       <d:tocentry linkend="cypher-based-procedures-functions"><?dbhtml filename="cypher-execution/cypher-based-procedures-functions/index.html"?>
       </d:tocentry>
   </d:tocentry>
+
+    <d:tocentry linkend="job-management"><?dbhtml filename="job-management/index.html"?>
+      <d:tocentry linkend="commit-batching"><?dbhtml filename="job-management/commit-batching/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="periodic-commit"><?dbhtml filename="job-management/periodic-commit/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="periodic-countdown"><?dbhtml filename="job-management/periodic-countdown/index.html"?>
+      </d:tocentry>
+    </d:tocentry>
 
   <d:tocentry linkend="virtual"><?dbhtml filename="virtual/index.html"?>
     <d:tocentry linkend="virtual-nodes-rels"><?dbhtml filename="virtual/virtual-nodes-rels/index.html"?>
