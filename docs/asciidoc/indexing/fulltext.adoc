@@ -1,6 +1,11 @@
 [[fulltext-index]]
 = Deprecated: Full Text Search 
 
+[abstract]
+--
+This section describes full text search procedures in the APOC library.
+--
+
 [WARNING]
 These Fulltext-Index procedures are deprecated and will be removed from APOC soon.
 From version 3.5 Neo4j provides built-in, case-insensitive, configurable fulltext indices.
@@ -120,7 +125,8 @@ We can further specify that we want the text to contain both the word Paris, and
 CALL apoc.index.search("locations", "+Address.address:Paris~ +France~")
 YIELD node AS addr
 MATCH (addr)<-[:HAS_ADDRESS]-(company:Company)
-RETURN company LIMIT 50
+RETURN company
+LIMIT 50
 
 ----
 
@@ -309,7 +315,7 @@ RETURN apoc.index.nodes.count('Person', 'name:Jo*') AS value
 
 The result is:
 
-image::{img}/apoc.index.nodes.count.png[width=600]
+image::{img}/apoc.index.nodes.count.png[scaledwidth="100%"]
 
 * We call the apoc.index.relationships.count function as follow:
 
@@ -320,7 +326,7 @@ RETURN apoc.index.relationships.count('CHECKIN', 'on:2015-*') as value
 
 The result is:
 
-image::{img}/apoc.index.relationships.count.png[width=600]
+image::{img}/apoc.index.relationships.count.png[scaledwidth="100%"]
 
 * We call the apoc.index.between.count function as follow:
 
@@ -353,4 +359,4 @@ MATCH (joe:Person:Hipster {name:'Joe',age:42}) WITH joe RETURN apoc.index.out.co
 
 The result is:
 
-image::{img}/apoc.index.out.count.png[width=600]
+image::{img}/apoc.index.out.count.png[scaledwidth="100%"]
