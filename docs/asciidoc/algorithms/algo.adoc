@@ -1,6 +1,11 @@
 [[community-detection]]
 == Community Detection via Label Propagation
 
+[abstract]
+--
+This section describes the Label Propagation community detection algorithm.
+--
+
 include::deprecated.adoc[]
 
 APOC includes a simple procedure for label propagation.

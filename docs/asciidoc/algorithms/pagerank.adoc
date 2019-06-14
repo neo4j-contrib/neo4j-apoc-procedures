@@ -1,6 +1,11 @@
 [[pagerank]]
 = PageRank Algorithm
 
+[abstract]
+--
+This section describes the PageRank centrality algorithm.
+--
+
 include::deprecated.adoc[]
 
 == Setup

@@ -1,6 +1,11 @@
 [[centrality]]
 = Centrality Algorithms
 
+[abstract]
+--
+This section describes centrality algorithms in the APOC library.
+--
+
 include::deprecated.adoc[]
 
 == Setup
