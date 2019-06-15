@@ -1,5 +1,6 @@
 package apoc.result;
 
+import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.FilteringIterable;
 import org.neo4j.internal.helpers.collection.Iterables;
@@ -35,6 +36,13 @@ public class VirtualNode implements Node {
 
     public VirtualNode(long nodeId) {
         this.id = nodeId;
+    }
+
+    public VirtualNode(Node node, List<String> propertyNames) {
+        this.id = node.getId();
+        this.labels.addAll(Util.labelStrings(node));
+        String[] keys = propertyNames.toArray(new String[propertyNames.size()]);
+        this.props.putAll(node.getProperties(keys));
     }
 
     @Override
@@ -161,7 +169,7 @@ public class VirtualNode implements Node {
     }
 
     public void addLabels(Iterable<Label> labels) {
-        for (Label label: labels) {
+        for (Label label : labels) {
             addLabel(label);
         }
     }
@@ -199,7 +207,7 @@ public class VirtualNode implements Node {
 
     @Override
     public void setProperty(String s, Object o) {
-        props.put(s,o);
+        props.put(s, o);
     }
 
     @Override
@@ -240,8 +248,7 @@ public class VirtualNode implements Node {
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "VirtualNode{" + "labels=" + labels + ", props=" + props + ", rels=" + rels + '}';
     }
 }

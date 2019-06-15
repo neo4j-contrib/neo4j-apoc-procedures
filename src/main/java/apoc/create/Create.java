@@ -69,6 +69,7 @@ public class Create {
             return r;
         });
     }
+
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.create.removeProperties( [node,id,ids,nodes], [keys]) - removes the given property from the nodes(s)")
     public Stream<NodeResult> removeProperties(@Name("nodes") Object nodes, @Name("keys") List<String> keys) {
@@ -126,6 +127,7 @@ public class Create {
             return r;
         });
     }
+
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.create.nodes(['Label'], [{key:value,...}]) create multiple nodes with dynamic labels")
     public Stream<NodeResult> nodes(@Name("label") List<String> labelNames, @Name("props") List<Map<String, Object>> props) {
@@ -138,19 +140,25 @@ public class Create {
     public Stream<RelationshipResult> relationship(@Name("from") Node from,
                                                    @Name("relType") String relType, @Name("props") Map<String, Object> props,
                                                    @Name("to") Node to) {
-        return Stream.of(new RelationshipResult(setProperties(from.createRelationshipTo(to, withName(relType)),props)));
+        return Stream.of(new RelationshipResult(setProperties(from.createRelationshipTo(to, withName(relType)), props)));
     }
 
     @Procedure
     @Description("apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node")
     public Stream<NodeResult> vNode(@Name("label") List<String> labelNames, @Name("props") Map<String, Object> props) {
-        return Stream.of(new NodeResult(vNodeFunction(labelNames,props)));
+        return Stream.of(new NodeResult(vNodeFunction(labelNames, props)));
     }
 
     @UserFunction("apoc.create.vNode")
     @Description("apoc.create.vNode(['Label'], {key:value,...}) returns a virtual node")
     public Node vNodeFunction(@Name("label") List<String> labelNames, @Name(value = "props",defaultValue = "{}") Map<String, Object> props) {
         return new VirtualNode(Util.labels(labelNames), props);
+    }
+
+    @UserFunction("apoc.create.virtual.fromNode")
+    @Description("apoc.create.virtual.fromNode(node, [propertyNames]) returns a virtual node built from an existing node with only the requested properties")
+    public Node virtualFromNodeFunction(@Name("node") Node node, @Name("propertyNames") List<String> propertyNames) {
+        return new VirtualNode(node, propertyNames);
     }
 
     @Procedure
@@ -163,21 +171,22 @@ public class Create {
     @Procedure
     @Description("apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship")
     public Stream<RelationshipResult> vRelationship(@Name("from") Node from, @Name("relType") String relType, @Name("props") Map<String, Object> props, @Name("to") Node to) {
-        return Stream.of(new RelationshipResult(vRelationshipFunction(from,relType,props,to)));
+        return Stream.of(new RelationshipResult(vRelationshipFunction(from, relType, props, to)));
     }
 
     @UserFunction("apoc.create.vRelationship")
     @Description("apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) returns a virtual relationship")
     public Relationship vRelationshipFunction(@Name("from") Node from, @Name("relType") String relType, @Name("props") Map<String, Object> props, @Name("to") Node to) {
-        return new VirtualRelationship(from,to, withName(relType)).withProperties(props);
+        return new VirtualRelationship(from, to, withName(relType)).withProperties(props);
     }
 
     @Procedure
     @Description("apoc.create.vPattern({_labels:['LabelA'],key:value},'KNOWS',{key:value,...}, {_labels:['LabelB'],key:value}) returns a virtual pattern")
-    public Stream<VirtualPathResult> vPattern(@Name("from") Map<String,Object> n,
+    public Stream<VirtualPathResult> vPattern(@Name("from") Map<String, Object> n,
                                               @Name("relType") String relType, @Name("props") Map<String, Object> props,
-                                              @Name("to") Map<String,Object> m) {
-        n = new LinkedHashMap<>(n); m=new LinkedHashMap<>(m);
+                                              @Name("to") Map<String, Object> m) {
+        n = new LinkedHashMap<>(n);
+        m = new LinkedHashMap<>(m);
         RelationshipType type = withName(relType);
         VirtualNode from = new VirtualNode(Util.labels(n.remove("_labels")), n);
         VirtualNode to = new VirtualNode(Util.labels(m.remove("_labels")), m);
@@ -187,14 +196,14 @@ public class Create {
 
     @Procedure
     @Description("apoc.create.vPatternFull(['LabelA'],{key:value},'KNOWS',{key:value,...},['LabelB'],{key:value}) returns a virtual pattern")
-    public Stream<VirtualPathResult> vPatternFull(@Name("labelsN") List<String> labelsN, @Name("n") Map<String,Object> n,
+    public Stream<VirtualPathResult> vPatternFull(@Name("labelsN") List<String> labelsN, @Name("n") Map<String, Object> n,
                                                   @Name("relType") String relType, @Name("props") Map<String, Object> props,
-                                                  @Name("labelsM") List<String> labelsM, @Name("m") Map<String,Object> m) {
+                                                  @Name("labelsM") List<String> labelsM, @Name("m") Map<String, Object> m) {
         RelationshipType type = withName(relType);
         VirtualNode from = new VirtualNode(Util.labels(labelsN), n);
         VirtualNode to = new VirtualNode(Util.labels(labelsM), m);
         Relationship rel = new VirtualRelationship(from, to, type).withProperties(props);
-        return Stream.of(new VirtualPathResult(from,rel,to));
+        return Stream.of(new VirtualPathResult(from, rel, to));
     }
 
     private <T extends Entity> T setProperties(T pc, Map<String, Object> p) {
@@ -220,7 +229,7 @@ public class Create {
         if (value instanceof Iterable) {
             Iterable it = (Iterable) value;
             Object first = Iterables.firstOrNull(it);
-            if (first==null) return EMPTY_ARRAY;
+            if (first == null) return EMPTY_ARRAY;
             return Iterables.asArray(first.getClass(), it);
         }
         return value;
@@ -229,7 +238,7 @@ public class Create {
     @Procedure
     @Description("apoc.create.uuids(count) yield uuid - creates 'count' UUIDs ")
     public Stream<UUIDResult> uuids(@Name("count") long count) {
-        return LongStream.range(0,count).mapToObj(UUIDResult::new);
+        return LongStream.range(0, count).mapToObj(UUIDResult::new);
     }
 
     public static class UUIDResult {
@@ -239,7 +248,7 @@ public class Create {
         public UUIDResult(long row) {
             this.row = row;
             this.uuid = UUID.randomUUID().toString();
-                    // TODO Long.toHexString(uuid.getMostSignificantBits())+Long.toHexString(uuid.getLeastSignificantBits());
+            // TODO Long.toHexString(uuid.getMostSignificantBits())+Long.toHexString(uuid.getLeastSignificantBits());
         }
     }
 
