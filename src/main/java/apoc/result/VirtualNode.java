@@ -1,5 +1,6 @@
 package apoc.result;
 
+import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.FilteringIterable;
 import org.neo4j.helpers.collection.Iterables;
@@ -39,6 +40,14 @@ public class VirtualNode implements Node {
     public VirtualNode(long nodeId, GraphDatabaseService db) {
         this.id = nodeId;
         this.db = db;
+    }
+
+    public VirtualNode(Node node, List<String> propertyNames) {
+        this.id = node.getId();
+        this.db = node.getGraphDatabase();
+        this.labels.addAll(Util.labelStrings(node));
+        String[] keys = propertyNames.toArray(new String[propertyNames.size()]);
+        this.props.putAll(node.getProperties(keys));
     }
 
     @Override
@@ -166,7 +175,7 @@ public class VirtualNode implements Node {
 
     @Override
     public int getDegree(RelationshipType relationshipType, Direction direction) {
-        return (int) Iterables.count(getRelationships(relationshipType,direction));
+        return (int) Iterables.count(getRelationships(relationshipType, direction));
     }
 
     @Override
@@ -175,7 +184,7 @@ public class VirtualNode implements Node {
     }
 
     public void addLabels(Iterable<Label> labels) {
-        for (Label label: labels) {
+        for (Label label : labels) {
             addLabel(label);
         }
     }
@@ -218,7 +227,7 @@ public class VirtualNode implements Node {
 
     @Override
     public void setProperty(String s, Object o) {
-        props.put(s,o);
+        props.put(s, o);
     }
 
     @Override
@@ -259,8 +268,7 @@ public class VirtualNode implements Node {
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "VirtualNode{" + "labels=" + labels + ", props=" + props + ", rels=" + rels + '}';
     }
 }
