@@ -44,13 +44,13 @@ public abstract class RelationshipTypeAndDirections {
 		return relsAndDirs;
 	}
 
-	private static Direction directionFor(String type) {
+	public static Direction directionFor(String type) {
 		if (type.contains("<")) return INCOMING;
 		if (type.contains(">")) return OUTGOING;
 		return BOTH;
 	}
 
-	private static RelationshipType relationshipTypeFor(String name) {
+	public static RelationshipType relationshipTypeFor(String name) {
 		if (name.indexOf(BACKTICK) > -1) name = name.substring(name.indexOf(BACKTICK)+1,name.lastIndexOf(BACKTICK));
 		else {
 			name = name.replaceAll("[<>:]", "");

@@ -11,6 +11,7 @@ Please note that they have negative id's.
 |===
 | CALL apoc.create.vNode(['Label'], {key:value,...}) YIELD node | returns a virtual node
 | apoc.create.vNode(['Label'], {key:value,...}) | function returns a virtual node
+| apoc.create.virtual.fromNode(node, [propertyNames]) | function returns a virtual node  built from an existing node with only the requested properties
 | CALL apoc.create.vNodes(['Label'], [{key:value,...}]) | returns virtual nodes
 | CALL apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) YIELD rel | returns a virtual relationship
 | apoc.create.vRelationship(nodeFrom,'KNOWS',{key:value,...}, nodeTo) | function returns a virtual relationship
@@ -70,6 +71,15 @@ image::{img}/apoc.create.vRelationshipAndvNode.png[width=800]
 Virtual nodes and virtual relationships have always a negative id
 
 image::{img}/vNodeId.png[width=200]
+
+Virtual nodes can also be built from existing nodes, filtering the properties in order to get a subset of them.
+In this case, the Virtual node keeps the id of the original node.
+
+[source,cypher]
+----
+MATCH (node:Person {name:'neo', age:'42'})
+return apoc.create.virtual.fromNode(node, ['name']) as person
+----
 
 .Virtual pattern `vPattern`
 
