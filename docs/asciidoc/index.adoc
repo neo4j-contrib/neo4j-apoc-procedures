@@ -26,6 +26,8 @@ The guide covers the following areas:
 * <<import>> -- A detailed guide to procedures that can be used to import data from different formats including JSON, CSV, and XLS.
 * <<export>> -- A detailed guide to procedures that can be used to export data to different formats including JSON, CSV, GraphML, and Gephi.
 * <<database-integration>> -- A detailed guide to procedures that can be used to integrate with other databases including relational databases, MongoDB, Couchbase, and ElasticSearch.
+* <<temporal>>
+* <<mathematical>>
 * <<utilities>> -- A detailed guide to utility procedures and functions.
 * <<nodes-relationships>>
 * <<path-finding>>
@@ -41,6 +43,11 @@ The guide covers the following areas:
 [[introduction]]
 == Introduction
 
+[abstract]
+--
+This chapter provides an introduction to the APOC library, and instructions for installation and use.
+--
+
 
 ifdef::backend-html5[]
 ++++
@@ -53,9 +60,11 @@ include::../../readme.adoc[tags=intro-text]
 include::../../readme.adoc[tags=name-history]
 
 
+[[feedback]]
 === Feedback
 include::../../readme.adoc[tags=feedback]
 
+[[installation]]
 === Installation
 
 include::../../readme.adoc[tags=install-desktop,leveloffset=2]
@@ -66,6 +75,7 @@ include::../../readme.adoc[tags=warnings,leveloffset=1]
 
 include::../../readme.adoc[tags=docker,leveloffset=1]
 
+[[usage]]
 === Usage
 
 include::../../readme.adoc[tags=usage]
@@ -112,6 +122,10 @@ include::_export.adoc[]
 include::_database_integration.adoc[]
 
 include::_schema.adoc[]
+
+include::_temporal.adoc[]
+
+include::_mathematical.adoc[]
 
 include::_utilities.adoc[]
 

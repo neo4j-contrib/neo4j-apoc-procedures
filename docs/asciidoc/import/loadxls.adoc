@@ -49,7 +49,7 @@ The `{config}` parameter is a map
 
 In dateParse the first format matched return the date formatted, otherwise it will return an error
 
-In `format` config you can use the pattern describe as the Temporal functions: link:#_temporal[temporal funcionts]
+In `format` config you can use the pattern describe as the Temporal functions: <<temporal-conversions,temporal functions>>
 
 === Examples for apoc.load.xls
 

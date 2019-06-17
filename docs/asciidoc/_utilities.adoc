@@ -11,15 +11,9 @@ Cypher brings along some basic functions for math, text, collections and maps.
 * <<conversion-functions>>
 * <<map-functions>> 
 * <<collection-list-functions>>
-* <<text-functions>> 
-* <<math-functions>>
+* <<text-functions>>
 
-* <<data-extraction-functions>> 
-* <<datetime-conversions>> 
-* <<temporal-conversions>>
-
-* <<number-conversions>>
-* <<exact-math-functions>>
+* <<data-extraction-functions>>
 
 * <<phonetic-functions>>
 * <<node-difference>>
@@ -37,14 +31,8 @@ include::utilities/conversion.adoc[leveloffset=2]
 include::utilities/map.adoc[leveloffset=2]
 include::utilities/collection.adoc[leveloffset=2]
 include::utilities/text.adoc[leveloffset=2]
-include::utilities/math.adoc[leveloffset=2]
 
 include::utilities/extract.adoc[leveloffset=2]
-include::utilities/datetime.adoc[leveloffset=2]
-include::utilities/temporal.adoc[leveloffset=2]
-
-include::utilities/number.adoc[leveloffset=2]
-include::utilities/exact.adoc[leveloffset=2]
 
 include::utilities/phonetic.adoc[leveloffset=2]
 include::utilities/diff.adoc[leveloffset=2]

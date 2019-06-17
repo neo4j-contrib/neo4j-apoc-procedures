@@ -9,8 +9,6 @@
 	<d:tocentry linkend="help"><?dbhtml filename="help/index.html"?>
     </d:tocentry>
 
-    <d:tocentry linkend="installation"><?dbhtml filename="installation/index.html"?>
-    </d:tocentry>
 
     <d:tocentry linkend="config"><?dbhtml filename="config/index.html"?>
     </d:tocentry>
@@ -81,6 +79,24 @@
       </d:tocentry>
     </d:tocentry>
 
+    <d:tocentry linkend="temporal"><?dbhtml filename="temporal/index.html"?>
+      <d:tocentry linkend="temporal-conversions"><?dbhtml filename="temporal/temporal-conversions/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="datetime-conversions"><?dbhtml filename="temporal/datetime-conversions/index.html"?>
+      </d:tocentry>
+    </d:tocentry>
+
+    <d:tocentry linkend="mathematical"><?dbhtml filename="mathematical/index.html"?>
+      <d:tocentry linkend="math-functions"><?dbhtml filename="mathematical/math-functions/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="exact-math-functions"><?dbhtml filename="mathematical/exact-math-functions/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="number-conversions"><?dbhtml filename="mathematical/number-conversions/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="bitwise-operations"><?dbhtml filename="mathematical/bitwise-operations/index.html"?>
+      </d:tocentry>
+
+    </d:tocentry>
 
     <d:tocentry linkend="utilities"><?dbhtml filename="utilities/index.html"?>
       <d:tocentry linkend="conversion-functions"><?dbhtml filename="utilities/conversion-functions/index.html"?>
@@ -91,21 +107,7 @@
       </d:tocentry>
       <d:tocentry linkend="text-functions"><?dbhtml filename="utilities/text-functions/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="math-functions"><?dbhtml filename="utilities/math-functions/index.html"?>
-      </d:tocentry>
       <d:tocentry linkend="data-extraction-functions"><?dbhtml filename="utilities/data-extraction-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="number-functions"><?dbhtml filename="utilities/number-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="exact-math-functions"><?dbhtml filename="utilities/exact-math-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="datetime-conversions"><?dbhtml filename="utilities/datetime-conversions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="temporal-conversions"><?dbhtml filename="utilities/temporal-conversions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="number-conversions"><?dbhtml filename="utilities/number-conversions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="exact-math-functions"><?dbhtml filename="utilities/exact-math-functions/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="phonetic-functions"><?dbhtml filename="utilities/phonetic-functions/index.html"?>
       </d:tocentry>
@@ -118,8 +120,6 @@
       <d:tocentry linkend="static-values"><?dbhtml filename="utilities/static-values/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="utility-functions"><?dbhtml filename="utilities/utility-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="bitwise-operations"><?dbhtml filename="utilities/bitwise-operations/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="atomic-updates"><?dbhtml filename="utilities/atomic-updates/index.html"?>
       </d:tocentry>
