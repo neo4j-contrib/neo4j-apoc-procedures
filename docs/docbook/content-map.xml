@@ -110,14 +110,6 @@
       <d:tocentry linkend="data-extraction-functions"><?dbhtml filename="utilities/data-extraction-functions/index.html"?>
       </d:tocentry>
 
-
-
-      <d:tocentry linkend="phonetic-functions"><?dbhtml filename="utilities/phonetic-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="node-difference"><?dbhtml filename="utilities/node-difference/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="fingerprinting"><?dbhtml filename="utilities/fingerprinting/index.html"?>
-      </d:tocentry>
       <d:tocentry linkend="spatial"><?dbhtml filename="utilities/spatial/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="static-values"><?dbhtml filename="utilities/static-values/index.html"?>
@@ -272,6 +264,14 @@
       <d:tocentry linkend="locking"><?dbhtml filename="concurrency/locking/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="atomic-updates"><?dbhtml filename="concurrency/atomic-updates/index.html"?>
+      </d:tocentry>
+
+    </d:tocentry>
+
+    <d:tocentry linkend="comparing-graphs"><?dbhtml filename="comparing-graphs/index.html"?>
+      <d:tocentry linkend="node-difference"><?dbhtml filename="comparing-graphs/node-difference/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="fingerprinting"><?dbhtml filename="comparing-graphs/fingerprinting/index.html"?>
       </d:tocentry>
 
     </d:tocentry>

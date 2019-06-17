@@ -12,18 +12,10 @@ Cypher brings along some basic functions for math, text, collections and maps.
 * <<map-functions>> 
 * <<collection-list-functions>>
 * <<text-functions>>
-
 * <<data-extraction-functions>>
-
-* <<phonetic-functions>>
-* <<node-difference>>
-
 * <<spatial>>
 * <<static-values>>
-* <<fingerprinting>>
 * <<utility-functions>>
-* <<atomic-updates>>
-
 * <<log>>
 
 include::utilities/conversion.adoc[leveloffset=2]
@@ -33,12 +25,8 @@ include::utilities/text.adoc[leveloffset=2]
 
 include::utilities/extract.adoc[leveloffset=2]
 
-include::utilities/phonetic.adoc[leveloffset=2]
-include::utilities/diff.adoc[leveloffset=2]
-
 include::utilities/spatial.adoc[leveloffset=2]
 include::utilities/static-values.adoc[leveloffset=2]
-include::utilities/hashing.adoc[leveloffset=+2]
 
 include::utilities/utility-functions.adoc[leveloffset=2]
 include::utilities/log.adoc[leveloffset=2]

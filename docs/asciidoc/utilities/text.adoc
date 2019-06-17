@@ -6,16 +6,32 @@
 This section describes functions that can be used for string manipulation, comparison, and filtering.
 --
 
-Cypher has some basic functions to work with text like:
+Cypher has some basic functions to work with text like
 
 * `split(string, delim)`
 * `toLower` and `toUpper`
-* concatenation with `+` 
-* and predicates like `CONTAINS, STARTS WITH, ENDS WITH` and regular expression matches via `=~`
+* concatenation with `+`
+* predicates like `CONTAINS, STARTS WITH, ENDS WITH` and regular expression matches via `=~`.
 
-A lot of useful functions for string manipulation, comparison, filtering are missing though. 
-APOC tries to add many of them.
+But a lot of useful functions for string manipulation, comparison, and filtering are missing.
+APOC adds these functions.
 
+This section includes:
+
+* <<text-functions-overview>>
+* <<text-functions-data-extraction>>
+* <<text-functions-text-similarity>>
+* <<text-functions-phonetic-comparison>>
+* <<text-functions-formatting-text>>
+* <<text-functions-string-search>>
+* <<text-functions-regex>>
+* <<text-functions-split-join>>
+* <<text-functions-data-cleaning>>
+* <<text-functions-case-change>>
+* <<text-functions-base64-encoding-decoding>>
+* <<text-functions-random-string>>
+
+[[text-functions-overview]]
 == Overview Text Functions
 
 [cols="1m,5"]
@@ -54,6 +70,7 @@ APOC tries to add many of them.
 The `replace`, `split` and `regexGroups` functions work with regular expressions.
 
 
+[[text-functions-data-extraction]]
 == Data Extraction
 
 
@@ -64,6 +81,7 @@ The `replace`, `split` and `regexGroups` functions work with regular expressions
 | apoc.data.domain(email_or_url) | *deprecated* returns domain part of the value
 |===
 
+[[text-functions-text-similarity]]
 == Text Similarity Functions
 
 [cols="1m,5"]
@@ -78,7 +96,45 @@ The `replace`, `split` and `regexGroups` functions work with regular expressions
 | apoc.text.fuzzyMatch(text1, text2) | check if 2 words can be matched in a fuzzy way. Depending on the length of the String it will allow more characters that needs to be edited to match the second String.
 |===
 
+=== Compare the  strings with the Levenshtein distance
+
+Compare the given strings with the `StringUtils.distance(text1, text2)` method (Levenshtein).
+
+[source,cypher]
+----
+RETURN apoc.text.distance("Levenshtein", "Levenstein") // 1
+----
+
+=== Compare the given strings with the Sørensen–Dice coefficient formula.
+
+.computes the similarity assuming Locale.ENGLISH
+[source,cypher]
+----
+RETURN apoc.text.sorensenDiceSimilarity("belly", "jolly") // 0.5
+----
+
+.computes the similarity with an explicit locale
+[source,cypher]
+----
+RETURN apoc.text.sorensenDiceSimilarityWithLanguage("halım", "halim", "tr-TR") // 0.5
+----
+
+=== Check if 2 words can be matched in a fuzzy way with `fuzzyMatch`
+
+
+Depending on the length of the String it will allow more characters that needs to be edited to match the second String.
+
+[source,cypher]
+----
+RETURN apoc.text.fuzzyMatch("The", "the") // true
+----
+
+[[text-functions-phonetic-comparison]]
 == Phonetic Comparison Functions
+
+The phonetic text (soundex) functions allow you to compute the soundex encoding of a given string.
+There is also a procedure to compare how similar two strings sound under the soundex algorithm.
+All soundex procedures by default assume the used language is US English.
 
 [cols="1m,5"]
 |===
@@ -94,6 +150,19 @@ The `replace`, `split` and `regexGroups` functions work with regular expressions
 | apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta | Compute the US_ENGLISH soundex character difference between two given strings
 |===
 
+[source,cypher]
+----
+// will return 'H436'
+RETURN apoc.text.phonetic('Hello, dear User!')
+----
+
+[source,cypher]
+----
+// will return '4'  (very similar)
+RETURN apoc.text.phoneticDelta('Hello Mr Rabbit', 'Hello Mr Ribbit')
+----
+
+[[text-functions-formatting-text]]
 == Formatting Text
 
 Format the string with the params given, and optional param language.
@@ -112,6 +181,7 @@ RETURN apoc.text.format('ab%s %d %.1f %s%n',['cd',42,3.14,true]) AS value // abc
 RETURN apoc.text.format('ab%s %d %.1f %s%n',['cd',42,3.14,true],'it') AS value // abcd 42 3,1 true
 ----
 
+[[text-functions-string-search]]
 == String Search
 
 The `indexOf` function, provides the fist occurrence of the given `lookup` string within the `text`, or -1 if not found.
@@ -141,6 +211,7 @@ WITH text, len, apoc.text.indexOf(text, 'World',3) as index
 RETURN substring(text, case index when -1 then len-1 else index end, len);
 ----
 
+[[text-functions-regex]]
 == Regular Expressions
 
 .will return 'HelloWorld'
@@ -157,6 +228,7 @@ RETURN apoc.text.regexGroups('abc <link xxx1>yyy1</link> def <link xxx2>yyy2</li
 ----
 
 
+[[text-functions-split-join]]
 == Split and Join
 
 .will split with the given regular expression return ['Hello', 'World']
@@ -171,6 +243,7 @@ RETURN apoc.text.split('Hello   World', ' +')
 RETURN apoc.text.join(['Hello', 'World'], ' ')
 ----
 
+[[text-functions-data-cleaning]]
 == Data Cleaning
 
 .will return 'helloworld'
@@ -196,6 +269,7 @@ The clean functionality can be useful for cleaning up slightly dirty text data w
 
 Cleaning will strip the string of all non-alphanumeric characters (including spaces) and convert it to lower case.
 
+[[text-functions-case-change]]
 == Case Change Functions
 
 === Capitalise the first letter of the word with `capitalize`
@@ -286,6 +360,7 @@ RETURN apoc.text.toUpperCase("foo 22 bar");      // "FOO_22_BAR"
 ----
 
 
+[[text-functions-base64-encoding-decoding]]
 == Base64 De- and Encoding
 
 Encode or decode a string in base64 or base64Url
@@ -315,6 +390,7 @@ RETURN apoc.text.base64EncodeUrl("http://neo4j.com/?test=test") // aHR0cDovL25lb
 RETURN apoc.text.base64DecodeUrl("aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0") // http://neo4j.com/?test=test
 ----
 
+[[text-functions-random-string]]
 == Random String
 
 You can generate a random string to a specified length by calling `apoc.text.random` with a length parameter and optional string of valid characters.
@@ -334,39 +410,4 @@ The following call will return a random string including uppercase letters, numb
 [source,cypher]
 ----
 RETURN apoc.text.random(10, "A-Z0-9.$")
-----
-
-== Text Similarity Functions
-
-=== Compare the  strings with the Levenshtein distance
-
-Compare the given strings with the `StringUtils.distance(text1, text2)` method (Levenshtein).
-
-[source,cypher]
-----
-RETURN apoc.text.distance("Levenshtein", "Levenstein") // 1
-----
-
-=== Compare the given strings with the Sørensen–Dice coefficient formula.
-
-.computes the similarity assuming Locale.ENGLISH
-[source,cypher]
-----
-RETURN apoc.text.sorensenDiceSimilarity("belly", "jolly") // 0.5
-----
-
-.computes the similarity with an explicit locale
-[source,cypher]
-----
-RETURN apoc.text.sorensenDiceSimilarityWithLanguage("halım", "halim", "tr-TR") // 0.5
-----
-
-=== Check if 2 words can be matched in a fuzzy way with `fuzzyMatch`
-
-
-Depending on the length of the String it will allow more characters that needs to be edited to match the second String.
-
-[source,cypher]
-----
-RETURN apoc.text.fuzzyMatch("The", "the") // true
 ----

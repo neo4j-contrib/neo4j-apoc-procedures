@@ -128,6 +128,8 @@ include::_temporal.adoc[]
 
 include::_mathematical.adoc[]
 
+include::_comparing_graphs.adoc[]
+
 include::_utilities.adoc[]
 
 ////
@@ -143,7 +145,8 @@ include::_utilities.adoc[]
 
 <<exact-math-functions>>
 
-<<phonetic-functions>>
+<<
+phonetic-functions>>
 <<node-difference>>
 
 <<spatial>>
@@ -182,6 +185,10 @@ include::_virtual.adoc[]
 ////
 
 include::graph-refactor.adoc[]
+
+
+include::_concurrency.adoc[]
+
 ////
 [[clone-nodes]]
 [[merge-nodes]]
@@ -208,8 +215,6 @@ include::_indexes.adoc[]
 ////
 
 include::_algorithms.adoc[]
-
-include::_concurrency.adoc[]
 
 ////
 [[algorithms]]
