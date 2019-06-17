@@ -12,13 +12,11 @@ GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 
 `YIELD file, source, format, nodes, relationships, properties, time`
 
-[cols="1m,5"]
+[separator=¦,opts=header,cols="1,1m,5"]
 |===
-| apoc.export.graphml.all(file,config) | exports whole database as graphml to the provided file
-| apoc.export.graphml.data(nodes,rels,file,config) | exports given nodes and relationships as graphml to the provided file
-| apoc.export.graphml.graph(graph,file,config) | exports given graph object as graphml to the provided file
-| apoc.export.graphml.query(query,file,config) | exports nodes and relationships from the Cypher statement as graphml to the provided file
+include::../../../build/generated-documentation/apoc.export.graphml.csv[lines=1;3..6]
 |===
+
 
 All `Point` or `Temporal` data types are exported formatted as a String
 

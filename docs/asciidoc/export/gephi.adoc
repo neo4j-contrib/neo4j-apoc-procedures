@@ -20,17 +20,13 @@ image::{img}/apoc-gephi.gif[scaledwidth="100%"]
 
 // tag::gephi[]
 
-[cols="1m,5"]
+[separator=¦,opts=header,cols="1,1m,5"]
 |===
-| apoc.gephi.add(url-or-key, workspace, data, weightproperty, ['exportproperty']) | streams provided data to Gephi
+include::../../../build/generated-documentation/apoc.gephi.csv[]
 |===
 
 // end::gephi[]
 
-[separator=¦,opts=header,cols="1,1m,5"]
-|===
-include::.../../../build/generated-documentation/apoc.gephi.csv[]
-|===
 
 == Example
 

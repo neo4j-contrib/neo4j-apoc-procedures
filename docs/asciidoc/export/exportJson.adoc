@@ -16,12 +16,9 @@ apoc.export.file.enabled=true
 
 // tag::export.json[]
 `YIELD file, source, format, nodes, relationships, properties, time, rows`
-[cols="1m,5"]
+[separator=¦,opts=header,cols="1,1m,5"]
 |===
-| apoc.export.json.query(query,file,config) | exports results from the Cypher statement as Json to the provided file
-| apoc.export.json.all(file,config) | exports whole database as Json to the provided file
-| apoc.export.json.data(nodes,rels,file,config) | exports given nodes and relationships as Json to the provided file
-| apoc.export.json.graph(graph,file,config) | exports given graph object as Json to the provided file
+include::../../../build/generated-documentation/apoc.export.json.csv[]
 |===
 // end::export.json[]
 
