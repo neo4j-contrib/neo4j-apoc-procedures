@@ -272,44 +272,37 @@ Cleaning will strip the string of all non-alphanumeric characters (including spa
 [[text-functions-case-change]]
 == Case Change Functions
 
-=== Capitalise the first letter of the word with `capitalize`
-
+.Capitalise the first letter of the word with `capitalize`
 [source,cypher]
 ----
 RETURN apoc.text.capitalize("neo4j") // "Neo4j"
 ----
 
-=== Capitalise the first letter of every word in the text with `capitalizeAll`
-
+.Capitalise the first letter of every word in the text with `capitalizeAll`
 [source,cypher]
 ----
 RETURN apoc.text.capitalizeAll("graph database") // "Graph Database"
 ----
 
-=== Decapitalize the first letter of the string with `decapitalize`
-
+.Decapitalize the first letter of the string with `decapitalize`
 [source,cypher]
 ----
 RETURN apoc.text.decapitalize("Graph Database") // "graph Database"
 ----
 
-=== Decapitalize the first letter of all words with `decapitalizeAll`
-
+.Decapitalize the first letter of all words with `decapitalizeAll`
 [source,cypher]
 ----
 RETURN apoc.text.decapitalizeAll("Graph Databases") // "graph databases"
 ----
 
-=== Swap the case of a string with `swapCase`
-
-
+.Swap the case of a string with `swapCase`
 [source,cypher]
 ----
 RETURN apoc.text.swapCase("Neo4j") // nEO4J
 ----
 
-=== Convert a string to lower camelCase with `camelCase`
-
+.Convert a string to lower camelCase with `camelCase`
 [source,cypher]
 ----
 RETURN apoc.text.camelCase("FOO_BAR");    // "fooBar"
@@ -320,8 +313,7 @@ RETURN apoc.text.camelCase("Foobar");     // "foobar"
 RETURN apoc.text.camelCase("Foo$$Bar");   // "fooBar"
 ----
 
-=== Convert a string to UpperCamelCase with `upperCamelCase`
-
+.Convert a string to UpperCamelCase with `upperCamelCase`
 [source,cypher]
 ----
 RETURN apoc.text.upperCamelCase("FOO_BAR");   // "FooBar"
@@ -332,9 +324,7 @@ RETURN apoc.text.upperCamelCase("Foobar");    // "Foobar"
 RETURN apoc.text.upperCamelCase("Foo$$Bar");  // "FooBar"
 ----
 
-=== Convert a string to snake-case with `snakeCase`
-
-
+.Convert a string to snake-case with `snakeCase`
 [source,cypher]
 ----
 RETURN apoc.text.snakeCase("test Snake Case"); // "test-snake-case"
@@ -346,8 +336,7 @@ RETURN apoc.text.snakeCase("Foo bar");         // "foo-bar"
 RETURN apoc.text.snakeCase("Foo  bar");        // "foo-bar"
 ----
 
-=== Convert a string to UPPER_CASE with `toUpperCase
-
+.Convert a string to UPPER_CASE with `toUpperCase`
 [source,cypher]
 ----
 RETURN apoc.text.toUpperCase("test upper case"); // "TEST_UPPER_CASE"
@@ -365,26 +354,26 @@ RETURN apoc.text.toUpperCase("foo 22 bar");      // "FOO_22_BAR"
 
 Encode or decode a string in base64 or base64Url
 
-.EncodeBase64
+.Encode base 64
 [source,cypher]
 ----
 RETURN apoc.text.base64Encode("neo4j") // bmVvNGo=
 ----
 
-.DecodeBase64
+.Decode base 64
 [source,cypher]
 ----
 RETURN apoc.text.base64Decode("bmVvNGo=") // neo4j
 ----
 
 
-.EncodeBase64Url
+.Encode base 64 URL
 [source,cypher]
 ----
 RETURN apoc.text.base64EncodeUrl("http://neo4j.com/?test=test") // aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0
 ----
 
-.DecodeBase64Url
+.Decode base 64 URL
 [source,cypher]
 ----
 RETURN apoc.text.base64DecodeUrl("aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0") // http://neo4j.com/?test=test
@@ -405,8 +394,7 @@ The `valid` parameter will accept the following regex patterns, alternatively yo
 | 0-9 | Numbers 0-9 inclusive
 |===
 
-The following call will return a random string including uppercase letters, numbers and `.` and `$` characters.
-
+.The following call will return a random string including uppercase letters, numbers and `.` and `$` characters.
 [source,cypher]
 ----
 RETURN apoc.text.random(10, "A-Z0-9.$")

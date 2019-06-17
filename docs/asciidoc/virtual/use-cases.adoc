@@ -19,7 +19,7 @@ APOC has already some means to also create "virtual graphs" which can also be us
 
 Some more uses of virtual entities:
 
-- return only a few properties of nodes/rels to the visualization, e.g. of you have huge text properties
+- return only a few properties of nodes/rels to the visualization, e.g. if you have huge text properties
 - visualize clusters found by graph algorithms
 - aggregate information to a higher level of abstraction
 - skip intermediate nodes in a longer path
@@ -42,5 +42,5 @@ That's why we added a number of functions to access their properties, labels, an
 In some future, they might be subsumed by graph views, the ability to return graphs and composable Cypher queries in Cypher 10.
 
 [NOTE]
-We also allow graph projections to be used [as inputs for graph algorithms](https://neo4j.com/docs/graph-algorithms/current/introduction/#cypher-projection), so you don't actually have to change your data to run an algorithm on a different shape but you can just specify node- and relationship-lists with two Cypher statements.
+We also allow graph projections to be used https://neo4j.com/docs/graph-algorithms/3.5/projected-graph-model/cypher-projection/[as inputs for graph algorithms^], so you don't actually have to change your data to run an algorithm on a different shape but you can just specify node- and relationship-lists with two Cypher statements.
 You can visualize (a subset of) those using virtual nodes and relationships too.
