@@ -95,7 +95,6 @@
       </d:tocentry>
       <d:tocentry linkend="bitwise-operations"><?dbhtml filename="mathematical/bitwise-operations/index.html"?>
       </d:tocentry>
-
     </d:tocentry>
 
     <d:tocentry linkend="utilities"><?dbhtml filename="utilities/index.html"?>
@@ -107,8 +106,12 @@
       </d:tocentry>
       <d:tocentry linkend="text-functions"><?dbhtml filename="utilities/text-functions/index.html"?>
       </d:tocentry>
+
       <d:tocentry linkend="data-extraction-functions"><?dbhtml filename="utilities/data-extraction-functions/index.html"?>
       </d:tocentry>
+
+
+
       <d:tocentry linkend="phonetic-functions"><?dbhtml filename="utilities/phonetic-functions/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="node-difference"><?dbhtml filename="utilities/node-difference/index.html"?>
@@ -121,8 +124,7 @@
       </d:tocentry>
       <d:tocentry linkend="utility-functions"><?dbhtml filename="utilities/utility-functions/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="atomic-updates"><?dbhtml filename="utilities/atomic-updates/index.html"?>
-      </d:tocentry>
+
 
       <d:tocentry linkend="log"><?dbhtml filename="utilities/log/index.html"?>
       </d:tocentry>
@@ -137,8 +139,7 @@
       </d:tocentry>
       <d:tocentry linkend="data-creation"><?dbhtml filename="nodes-relationships/data-creation/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="locking"><?dbhtml filename="nodes-relationships/locking/index.html"?>
-      </d:tocentry>
+
       <d:tocentry linkend="graph-generators"><?dbhtml filename="nodes-relationships/graph-generators/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="parallel-node-search"><?dbhtml filename="nodes-relationships/parallel-node-search/index.html"?>
@@ -265,6 +266,14 @@
       </d:tocentry>
       <d:tocentry linkend="centrality"><?dbhtml filename="algorithms/centrality/index.html"?>
       </d:tocentry>
+    </d:tocentry>
+
+    <d:tocentry linkend="concurrency"><?dbhtml filename="concurrency/index.html"?>
+      <d:tocentry linkend="locking"><?dbhtml filename="concurrency/locking/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="atomic-updates"><?dbhtml filename="concurrency/atomic-updates/index.html"?>
+      </d:tocentry>
+
     </d:tocentry>
 
     <!--d:tocentry linkend="appendix"><?dbhtml filename="appendix/index.html"?>

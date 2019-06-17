@@ -36,6 +36,7 @@ The guide covers the following areas:
 * <<virtual>>
 * <<graph-refactoring>> -- A detailed guide to procedures that can be used to apply graph refactorings.
 * <<operational>>
+* <<concurrency>>
 * <<indexes>>
 * <<algorithms>>
 
@@ -207,6 +208,8 @@ include::_indexes.adoc[]
 ////
 
 include::_algorithms.adoc[]
+
+include::_concurrency.adoc[]
 
 ////
 [[algorithms]]
