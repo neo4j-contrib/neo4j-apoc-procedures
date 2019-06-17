@@ -68,13 +68,9 @@ call apoc.export.cypher.query(
 
 // tag::export.cypher[]
 `YIELD file, source, format, nodes, relationships, properties, time`
-[cols="1m,5"]
+[separator=¦,opts=header,cols="1,1m,5"]
 |===
-| apoc.export.cypher.all(file,config) | exports whole database incl. indexes as Cypher statements to the provided file
-| apoc.export.cypher.data(nodes,rels,file,config) | exports given nodes and relationships incl. indexes as Cypher statements to the provided file
-| apoc.export.cypher.graph(graph,file,config) | exports given graph object incl. indexes as Cypher statements to the provided file
-| apoc.export.cypher.query(query,file,config) | exports nodes and relationships from the Cypher statement incl. indexes as Cypher statements to the provided file
-| apoc.export.cypher.schema(file,config) | exports all schema indexes and constraints to cypher
+include::../../../build/generated-documentation/apoc.export.cypher.csv[]
 |===
 // end::export.cypher[]
 
