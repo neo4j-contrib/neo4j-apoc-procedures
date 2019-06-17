@@ -54,7 +54,7 @@ This section describes procedures that can be used to lookup nodes and relations
 
 [abstract]
 --
-This section describes functions that can be used to
+This section describes functions that can be used to apply different operations to nodes.
 --
 
 

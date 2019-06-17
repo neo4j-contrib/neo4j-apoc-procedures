@@ -1,5 +1,10 @@
 = Schema Information
 
+[abstract]
+--
+This section describes procedures that can be used to query and create schema indexes.
+--
+
 To drop or create index or constraint, you can use the following procedure:
 
 [source,cypher]

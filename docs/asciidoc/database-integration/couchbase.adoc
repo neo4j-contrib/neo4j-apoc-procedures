@@ -1,5 +1,5 @@
 [[couchbase]]
-= Interacting with Couchbase
+= Couchbase
 
 [abstract]
 --
