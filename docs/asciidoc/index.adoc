@@ -67,7 +67,10 @@ include::../../readme.adoc[tags=docker,leveloffset=0]
 
 include::help.adoc[]
 
-To generate the help output, apoc utilizes the built in `dbms.procedures()` and `dbms.functions()` utilities.
+[NOTE]
+====
+To generate the help output, this procedure uses the built in `dbms.procedures()` and `dbms.functions()` procedures.
+====
 
 ifdef::backend-html5[]
 ++++

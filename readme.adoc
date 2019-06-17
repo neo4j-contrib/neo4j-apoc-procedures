@@ -99,7 +99,7 @@ And for YIELDing their results, you have to know the output column names and typ
 
 INFO: The signatures are shown in error messages, if you use a procedure incorrectly.
 
-You can see the procedures signature in the output of `CALL apoc.help("name")` (which itself uses `dbms.procedures()` and `dbms.functions()`)
+You can see the procedures signature in the output of `CALL apoc.help("name")`
 
 [source,cypher]
 ----

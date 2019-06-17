@@ -14,6 +14,8 @@ In case you have the default configuration with `apoc.import.file.use_neo4j_conf
 * <<web-apis>>
 * <<load-json>>
 * <<load-csv>>
+* <<import-csv>>
+* <<load-xls>>
 * <<load-xml>>
 * <<load-html>>
 * <<graphml-import>>
@@ -23,6 +25,10 @@ include::import/webapis.adoc[leveloffset=2]
 include::import/loadjson.adoc[leveloffset=2]
 
 include::import/loadcsv.adoc[leveloffset=+1]
+
+include::import/importcsv.adoc[leveloffset=+1]
+
+include::import/loadxls.adoc[leveloffset=+1]
 
 include::import/loadxml.adoc[leveloffset=2]
 

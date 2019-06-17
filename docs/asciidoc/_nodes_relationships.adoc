@@ -121,13 +121,10 @@ endif::[]
 This section describes functions that can be used to acquire locks on nodes and relationships.
 --
 
-[cols="1m,5"]
+[separator=¦,opts=header,cols="1,1m,5"]
 |===
-| call apoc.lock.nodes([nodes]) | acquires a write lock on the given nodes
-| call apoc.lock.rels([relationships]) | acquires a write lock on the given relationship
-| call apoc.lock.all([nodes],[relationships]) | acquires a write lock on the given nodes and relationships
+include::../../build/generated-documentation/apoc.lock.csv[]
 |===
-
 
 [[graph-generators]]
 === Generating Graphs
@@ -139,16 +136,9 @@ This section describes procedures that can be used to generate example graphs.
 
 Generate undirected (random direction) graphs with semi-real random distributions based on theoretical models.
 
-[cols="1m,5"]
+[separator=¦,opts=header,cols="1,1m,5"]
 |===
-| apoc.generate.er(noNodes, noEdges, 'label', 'type') | generates a graph according to Erdos-Renyi model (uniform)
-| apoc.generate.ws(noNodes, degree, beta, 'label', 'type') | generates a graph according to Watts-Strogatz model (clusters)
-| apoc.generate.ba(noNodes, edgesPerNod[abstract]
---
-This section describes functions that can be used to
---e, 'label', 'type') | generates a graph according to Barabasi-Albert model (preferential attachment)
-| apoc.generate.complete(noNodes, 'label', 'type') | generates a complete graph (all nodes connected to all other nodes)
-| apoc.generate.simple([degrees], 'label', 'type') | generates a graph with the given degree distribution
+include::../../build/generated-documentation/apoc.generate.csv[]
 |===
 
 Example
@@ -178,6 +168,8 @@ These procedures return a single list of nodes or a list of 'reduced' records wi
 | call apoc.search.nodeReduced(labelPropertyMap, searchType, search ) yield id, labels, values | A merged set of 'minimal' Node information will be returned. One record per node (-id).
 | call apoc.search.nodeAllReduced(labelPropertyMap, searchType, search ) yield id, labels, values | All the found 'minimal' Node information will be returned. One record per label and property.
 |===
+
+These procedures are passed the following parameters:
 
 [cols="1m,4,3"]
 |===
