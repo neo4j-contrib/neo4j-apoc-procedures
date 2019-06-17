@@ -9,6 +9,35 @@
 :script: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/script
 :gh-docs: https://neo4j-contrib.github.io/neo4j-apoc-procedures
 
+
+[abstract]
+--
+This is the user guide for Neo4j APOC {docs-version}, authored by the Neo4j Labs Team.
+--
+
+The guide covers the following areas:
+
+* <<introduction>> -- An Introduction to the APOC library.
+* <<installation>> -- Instructions for installing the library.
+* <<help>> -- In-built help in the library.
+* <<overview>> -- A list of all APOC procedures and functions.
+* <<config>> -- Configuration options used by the library.
+* <<user-defined-functions>> -- An overview of user defined functions available in the library.
+* <<import>> -- A detailed guide to procedures that can be used to import data from different formats including JSON, CSV, and XLS.
+* <<export>> -- A detailed guide to procedures that can be used to export data to different formats including JSON, CSV, GraphML, and Gephi.
+* <<database-integration>> -- A detailed guide to procedures that can be used to integrate with other databases including relational databases, MongoDB, Couchbase, and ElasticSearch.
+* <<utilities>> -- A detailed guide to utility procedures and functions.
+* <<nodes-relationships>>
+* <<path-finding>>
+* <<cypher-execution>>
+* <<job-management>>
+* <<virtual>>
+* <<graph-refactoring>> -- A detailed guide to procedures that can be used to apply graph refactorings.
+* <<operational>>
+* <<indexes>>
+* <<algorithms>>
+
+
 [[introduction]]
 == Introduction
 
@@ -16,24 +45,6 @@ NOTE: Go here for documentation for APOC for Neo4j version link:{gh-docs}/index3
 
 === Documentation Overview
 
-.Main Sections
-* <<overview>>
-* <<export-import>>
-* <<database-integration>>
-* <<schema>>
-* <<utilities>>
-* <<cypher-execution>>
-* <<nodes-relationships>>
-* <<path-finding>>
-* <<virtual>>
-
-.Most Frequently Used
-1. <<load-json>>
-2. <<load-jdbc>>
-2. <<commit-batching>>
-3. <<datetime-conversions>>
-4. <<map-functions>>
-5. <<virtual-nodes-rels>>
 
 ////
 * <<help>>

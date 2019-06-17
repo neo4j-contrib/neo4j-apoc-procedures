@@ -97,10 +97,7 @@ See the link:{docs}[APOC User Guide^] for documentation of each of the major fea
 To call procedures correctly, you need to know their parameter names, types and positions.
 And for YIELDing their results, you have to know the output column names and types.
 
-[INFO]
-====
-The signatures are shown in error messages, if you use a procedure incorrectly.
-====
+INFO:The signatures are shown in error messages, if you use a procedure incorrectly.
 
 You can see the procedures signature in the output of `CALL apoc.help("name")`
 
