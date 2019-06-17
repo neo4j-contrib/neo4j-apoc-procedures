@@ -1,6 +1,11 @@
 [[graphml-export]]
 = GraphML Export
 
+[abstract]
+--
+This section describes procedures that can be used to export data in GraphML format.
+--
+
 GraphML is used by other tools, like Gephi and CytoScape to read graph data.
 
 // tag::export.graphml[]

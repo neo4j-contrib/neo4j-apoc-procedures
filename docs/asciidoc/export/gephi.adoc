@@ -1,6 +1,23 @@
 [[gephi]]
 = Streaming Data to Gephi
 
+[abstract]
+--
+This section describes a procedure that can be used to export data into the Gephi visualization tool.
+--
+
+Gephi has a https://marketplace.gephi.org/plugin/graph-streaming/[streaming plugin], that can provide and accept https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master[JSON-graph-data] in a streaming fashion.
+
+Make sure to install the plugin first and activate it for your workspace (there is a new "Streaming"-tab besides "Layout"), right-click "Master"->"start" to start the server.
+
+You can provide your workspace name (you might want to rename it before you start thes streaming), otherwise it defaults to `workspace0`
+
+The default Gephi-URL is http://localhost:8080, resulting in `http://localhost:8080/workspace0?operation=updateGraph`
+
+You can also configure it in `conf/neo4j.conf` via  `apoc.gephi.url=url` or `apoc.gephi.<key>.url=url`
+
+image::{img}/apoc-gephi.gif[scaledwidth="100%"]
+
 // tag::gephi[]
 
 [cols="1m,5"]
@@ -12,22 +29,8 @@
 
 [separator=¦,opts=header,cols="1,1m,5"]
 |===
-include::../../build/generated-documentation/apoc.gephi.csv[]
+include::.../../../build/generated-documentation/apoc.gephi.csv[]
 |===
-
-image::{img}/apoc-gephi.gif[width=800]
-
-== Notes
-
-Gephi has a https://marketplace.gephi.org/plugin/graph-streaming/[streaming plugin], that can provide and accept https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master[JSON-graph-data] in a streaming fashion.
-
-Make sure to install the plugin firsrt and activate it for your workspace (there is a new "Streaming"-tab besides "Layout"), right-click "Master"->"start" to start the server.
-
-You can provide your workspace name (you might want to rename it before you start thes streaming), otherwise it defaults to `workspace0`
-
-The default Gephi-URL is http://localhost:8080, resulting in `http://localhost:8080/workspace0?operation=updateGraph`
-
-You can also configure it in `conf/neo4j.conf` via  `apoc.gephi.url=url` or `apoc.gephi.<key>.url=url`
 
 == Example
 

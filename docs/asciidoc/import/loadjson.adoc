@@ -3,7 +3,7 @@
 
 [abstract]
 --
-This chapter describes procedures that can be used to import JSON data from web APIs or files.
+This section describes procedures that can be used to import JSON data from web APIs or files.
 --
 
 == Load JSON

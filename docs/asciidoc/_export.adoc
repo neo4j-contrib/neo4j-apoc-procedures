@@ -3,7 +3,7 @@
 
 [abstract]
 --
-This chapter describes procedures in the APOC library that can be used to import and export data.
+This chapter describes procedures in the APOC library that can be used to export data from Neo4j.
 --
 
 * <<export-csv>>

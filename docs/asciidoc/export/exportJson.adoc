@@ -1,6 +1,11 @@
 [[export-json]]
 == Export to JSON File
 
+[abstract]
+--
+This section describes procedures that can be used to export data in JSON format.
+--
+
 Make sure to set the config options in your `neo4j.conf`
 
 .Neo4j.conf

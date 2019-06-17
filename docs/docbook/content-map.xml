@@ -40,6 +40,10 @@
       <d:tocentry linkend="load-html"><?dbhtml filename="import/html/index.html"?>
       </d:tocentry>
 
+      <d:tocentry linkend="graphml-import"><?dbhtml filename="import/graphml/index.html"?>
+      </d:tocentry>
+
+
     </d:tocentry>
 
     <d:tocentry linkend="export"><?dbhtml filename="export/index.html"?>

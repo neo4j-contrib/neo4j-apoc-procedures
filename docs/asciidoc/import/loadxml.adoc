@@ -3,7 +3,7 @@
 
 [abstract]
 --
-This chapter describes procedures that can be used to import data from XML files.
+This section describes procedures that can be used to import data from XML files.
 --
 
 == Load XML Introduction
@@ -89,7 +89,7 @@ WITH "https://maps.googleapis.com/maps/api/directions/xml?origin=Mertens%20en%20
 CALL apoc.load.xmlSimple(url) YIELD value
 RETURN value._route._leg._distance._value, keys(value), keys(value._route), keys(value._route._leg), keys(value._route._leg._distance._value)
 ----
-image::{img}/apoc.load.xmlSimple.ex1.png[width=800]
+image::{img}/apoc.load.xmlSimple.ex1.png[scaledwidth="100%"]
 
 .Example 2
 [source,cypher]
@@ -99,7 +99,7 @@ CALL apoc.load.xmlSimple(url) YIELD value
 UNWIND keys(value) AS key
 RETURN key, apoc.meta.type(value[key]);
 ----
-image::{img}/apoc.load.xmlSimple.ex2.png[width=800]
+image::{img}/apoc.load.xmlSimple.ex2.png[scaledwidth="100%"]
 
 
 
@@ -131,7 +131,7 @@ WITH book.id as id, [attr IN book._children WHERE attr._type IN ['title','price'
 RETURN id, pairs[0] as title, pairs[1] as price
 ----
 
-image::{img}/apoc.load.xml.xpath.png[width=800]
+image::{img}/apoc.load.xml.xpath.png[scaledwidth="100%"]
 
 In this case we return only `id`, `title` and `prize` but we can return any other elements
 
@@ -145,7 +145,7 @@ WITH result._text as author
 RETURN author
 ----
 
-image::{img}/apoc.load.xml.xpath2.png[width=800]
+image::{img}/apoc.load.xml.xpath2.png[scaledwidth="100%"]
 
 
 

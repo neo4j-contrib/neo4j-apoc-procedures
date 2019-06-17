@@ -1,9 +1,9 @@
 [[expand-subgraph]]
-== Expand to a subgraph and return all nodes and relationships within the subgraph
+== Expand to subgraph
 
 [abstract]
 --
-This section describes a procedure that find a sub graph that starts from a set of start nodes.
+This section describes a procedure that expands a subgraph from a set of start nodes, and returns all nodes and relationships within the subgraph.
 --
 
 ----

@@ -1,6 +1,11 @@
 [[export-csv]]
 = Export to CSV
 
+[abstract]
+--
+This section describes procedures that can be used to export data in CSV format.
+--
+
 // tag::export.csv[]
 
 `YIELD file, source, format, nodes, relationships, properties, time, rows, data`

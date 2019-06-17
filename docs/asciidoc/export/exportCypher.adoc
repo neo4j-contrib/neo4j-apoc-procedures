@@ -1,6 +1,11 @@
 [[export-cypher]]
 == Export to Cypher Script
 
+[abstract]
+--
+This section describes procedures that can be used to export data in Cypher format.
+--
+
 ====
 If you are experimenting with imports that are failing you can add the `--debug` command line parameter, to see which statement was executed last and cause the failure.
 
