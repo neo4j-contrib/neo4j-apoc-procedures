@@ -13,7 +13,7 @@
 
 // tag::intro[]
 
-image::{img}/apoc.gif[float=right]
+image::apoc.gif[float=right]
 
 Neo4j 3.x introduced the concept of user-defined procedures and functions.
 Those are custom implementations of certain functionality, that can't be (easily) expressed in Cypher itself.
@@ -38,7 +38,7 @@ http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board 
 APOC is easily installed with http://neo4j.com/download[Neo4j Desktop], after creating your database just go to the "Manage" screen and the "Plugins" tab.
 Then click "Install" in the APOC box and you're done.
 
-image::{img}/desktop-apoc.jpg[width=800]
+image::desktop-apoc.jpg[width=800]
 
 == Feedback
 
@@ -77,7 +77,7 @@ All included procedures are listed in the link:{docs}#_overview_of_apoc_procedur
 
 // tag::help[]
 
-image::{img}/apoc-help-apoc.jpg[width=600]
+image::apoc-help-apoc.jpg[width=600]
 
 [cols="1m,5"]
 |===

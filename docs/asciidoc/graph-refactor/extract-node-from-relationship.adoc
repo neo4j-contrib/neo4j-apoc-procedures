@@ -11,7 +11,7 @@ This section describes a procedure that can be used to create nodes from relatio
 CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
 ----
 
-image::{img}/apoc.refactor.extractNode.dataset.png[scaledwidth="100%"]
+image::apoc.refactor.extractNode.dataset.png[scaledwidth="100%"]
 
 We pass the ID of the relationship as parameter to extract a node
 
@@ -22,4 +22,4 @@ CALL apoc.refactor.extractNode(id,['FooBar'],'FOO','BAR')
 YIELD input, output RETURN *
 ----
 
-image::{img}/apoc.refactor.extractNode.png[scaledwidth="100%"]
+image::apoc.refactor.extractNode.png[scaledwidth="100%"]

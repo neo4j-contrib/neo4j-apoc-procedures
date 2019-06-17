@@ -70,12 +70,12 @@ CALL apoc.create.vRelationship(a,rel_type,{count:count},b) yield rel
 RETURN *;
 ----
 
-image::{img}/apoc.create.vRelationshipAndvNode.png[scaledwidth="100%"]
+image::apoc.create.vRelationshipAndvNode.png[scaledwidth="100%"]
 
 [NOTE]
 Virtual nodes and virtual relationships have always a negative id
 
-image::{img}/vNodeId.png[scaledwidth="100%"]
+image::vNodeId.png[scaledwidth="100%"]
 
 .Virtual pattern `vPattern`
 
@@ -84,7 +84,7 @@ image::{img}/vNodeId.png[scaledwidth="100%"]
 CALL apoc.create.vPattern({_labels:['Person'],name:'Mary'},'KNOWS',{since:2012},{_labels:['Person'],name:'Michael'})
 ----
 
-image::{img}/apoc.create.vPattern.png[scaledwidth="100%"]
+image::apoc.create.vPattern.png[scaledwidth="100%"]
 
 We can add more labels, just adding them on `_labels`
 
@@ -93,7 +93,7 @@ We can add more labels, just adding them on `_labels`
 CALL apoc.create.vPattern({_labels:['Person', 'Woman'],name:'Mary'},'KNOWS',{since:2012},{_labels:['Person', 'Man'],name:'Michael'})
 ----
 
-image::{img}/apoc.create.vPatternLabels.png[scaledwidth="100%"]
+image::apoc.create.vPatternLabels.png[scaledwidth="100%"]
 
 .Virtual pattern full `vPatternFull`
 
@@ -102,7 +102,7 @@ image::{img}/apoc.create.vPatternLabels.png[scaledwidth="100%"]
 CALL apoc.create.vPatternFull(['British','Person'],{name:'James', age:28},'KNOWS',{since:2009},['Swedish','Person'],{name:'Daniel', age:30})
 ----
 
-image::{img}/apoc.create.vPatternFull.png[scaledwidth="100%"]
+image::apoc.create.vPatternFull.png[scaledwidth="100%"]
 
 We can create a virtual pattern from an existing one
 
@@ -121,4 +121,4 @@ CALL apoc.create.vPatternFull([labelA],{name: aName},rel_type,{since:2009},[labe
 RETURN *;
 ----
 
-image::{img}/apoc.create.vPatternFullTwo.png[scaledwidth="100%"]
+image::apoc.create.vPatternFullTwo.png[scaledwidth="100%"]

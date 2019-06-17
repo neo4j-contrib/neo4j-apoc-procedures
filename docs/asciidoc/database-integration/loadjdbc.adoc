@@ -25,7 +25,7 @@ endif::[]
 include::../../../build/generated-documentation/apoc.load.csv[lines=1;11..13]
 |===
 
-image::{img}/apoc-jdbc-northwind-load.jpg[scaledwidth="100%"]
+image::apoc-jdbc-northwind-load.jpg[scaledwidth="100%"]
 
 //include::overview.adoc[tags=jdbc,leveloffset=-1]
 ////
@@ -139,7 +139,7 @@ RETURN row limit 1;
 10 ms
 ----
 
-image::{img}/apoc-load-jdbc.jpg[width=800]
+image::apoc-load-jdbc.jpg[width=800]
 
 // apoc.load.jdbc('jdbc:derby:derbyDB/key','PERSON' || 'SELECT * FROM PERSON WHERE AGE > 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement
 

@@ -91,7 +91,7 @@ UNWIND value.items AS item
 RETURN item.title, item.owner, item.creation_date, keys(item)
 ----
 
-image::{img}/apoc.load.json.so.png[scaledwidth="100%"]
+image::apoc.load.json.so.png[scaledwidth="100%"]
 
 
 .Question authors from StackOverflow using json-path
@@ -125,7 +125,7 @@ MERGE (owner:User {id:q.owner.user_id}) ON CREATE SET owner.display_name = q.own
 MERGE (owner)-[:ASKED]->(question)
 ----
 
-image::{img}/apoc.load.json-so-result.png[scaledwidth="100%"]
+image::apoc.load.json-so-result.png[scaledwidth="100%"]
 
 == Load JSON from Twitter (with additional parameters)
 

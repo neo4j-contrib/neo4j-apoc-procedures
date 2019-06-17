@@ -32,7 +32,7 @@ NOTE: Please note that there are (case-sensitive) http://neo4j.com/docs/develope
 | apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name
 |===
 
-image::{img}/apoc.index.nodes-with-score.jpg[scaledwidth="100%"]
+image::apoc.index.nodes-with-score.jpg[scaledwidth="100%"]
 
 [cols="1m,5"]
 |===

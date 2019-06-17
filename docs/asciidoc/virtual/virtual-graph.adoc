@@ -186,7 +186,7 @@ RETURN *
 
 As a result we have a virtual graph object for later processing
 
-image::{img}/apoc.graph.png[width=800]
+image::apoc.graph.png[width=800]
 
 .Virtual graph from JSON
 
@@ -199,4 +199,4 @@ RETURN graph
 
 As a result we have a virtual graph with two nodes and one relationship:
 
-image::{img}/apoc.graph.fromDocument_1[scaledwidth="100%"]
+image::apoc.graph.fromDocument_1[scaledwidth="100%"]

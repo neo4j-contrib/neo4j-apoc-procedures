@@ -18,7 +18,7 @@ CREATE (p:Person {name:'Antony'})
 RETURN *
 ----
 
-image::{img}/apoc.refactor.to.dataset.png[scaledwidth="100%"]
+image::apoc.refactor.to.dataset.png[scaledwidth="100%"]
 
 [source,cypher]
 ----
@@ -30,7 +30,7 @@ YIELD input, output
 RETURN *
 ----
 
-image::{img}/apoc.refactor.to.png[scaledwidth="100%"]
+image::apoc.refactor.to.png[scaledwidth="100%"]
 
 Now the relationship is towards the new node `Person`
 
@@ -46,7 +46,7 @@ CREATE (p:Person {name:'Antony'})
 RETURN *
 ----
 
-image::{img}/apoc.refactor.from.dataset.png[scaledwidth="100%"]
+image::apoc.refactor.from.dataset.png[scaledwidth="100%"]
 
 [source,cypher]
 ----
@@ -55,6 +55,6 @@ MATCH (p:Person {name:'Antony'}) with p as p
 MATCH ()-[r]->(), (p:Person)  CALL apoc.refactor.from(r, p) YIELD input, output RETURN *
 ----
 
-image::{img}/apoc.refactor.from.png[scaledwidth="100%"]
+image::apoc.refactor.from.png[scaledwidth="100%"]
 
 Now the relationship starts from the new node `Person` from the old node `Bar`

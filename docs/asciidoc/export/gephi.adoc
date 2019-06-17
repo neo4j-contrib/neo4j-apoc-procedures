@@ -16,7 +16,7 @@ The default Gephi-URL is http://localhost:8080, resulting in `http://localhost:8
 
 You can also configure it in `conf/neo4j.conf` via  `apoc.gephi.url=url` or `apoc.gephi.<key>.url=url`
 
-image::{img}/apoc-gephi.gif[scaledwidth="100%"]
+image::apoc-gephi.gif[scaledwidth="100%"]
 
 // tag::gephi[]
 

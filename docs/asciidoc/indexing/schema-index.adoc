@@ -117,7 +117,7 @@ CALL apoc.schema.assert({Foo:['bar']},null)
 
 you will receive this result:
 
-image::{img}/apoc.schema.assert.index.png[scaledwidth="100%"]
+image::apoc.schema.assert.index.png[scaledwidth="100%"]
 
 When you:
 
@@ -128,7 +128,7 @@ CALL apoc.schema.assert(null,{Foo:['bar']})
 
 you will receive this result:
 
-image::{img}/apoc.schema.assert.constraint.png[scaledwidth="100%"]
+image::apoc.schema.assert.constraint.png[scaledwidth="100%"]
 
 When you:
 
@@ -139,7 +139,7 @@ CALL apoc.schema.assert(null,null)
 
 you will receive this result:
 
-image::{img}/apoc.schema.assert.drop.png[scaledwidth="100%"]
+image::apoc.schema.assert.drop.png[scaledwidth="100%"]
 
 
 === List indexes and constraints for nodes
@@ -165,7 +165,7 @@ CALL apoc.schema.nodes()
 
 you will receive this result:
 
-image::{img}/apoc.schema.nodes.png[scaledwidth="100%"]
+image::apoc.schema.nodes.png[scaledwidth="100%"]
 
 === List constraints for relationships
 
@@ -186,7 +186,7 @@ CALL apoc.schema.relationships()
 
 you will receive this result:
 
-image::{img}/apoc.schema.relationships.png[scaledwidth="100%"]
+image::apoc.schema.relationships.png[scaledwidth="100%"]
 
 === Check if an index or a constraint exists for a Label and property
 
@@ -198,7 +198,7 @@ RETURN apoc.schema.node.indexExists("Publication", ["name"])
 ----
 produces the following output:
 
-image::{img}/apoc.schema.node.indexExists.png[scaledwidth="100%"]
+image::apoc.schema.node.indexExists.png[scaledwidth="100%"]
 
 
 Given the previous constraint definitions, running this statement:
@@ -209,7 +209,7 @@ RETURN apoc.schema.node.constraintExists("Bar", ["foobar"])
 ----
 produces the following output:
 
-image::{img}/apoc.schema.node.constraintExists.png[scaledwidth="100%"]
+image::apoc.schema.node.constraintExists.png[scaledwidth="100%"]
 
 If you want to check if a constraint exists for a relationship you can run this statement:
 
@@ -220,4 +220,4 @@ RETURN apoc.schema.relationship.constraintExists('LIKED', ['day'])
 
 and you get the following result:
 
-image::{img}/apoc.schema.relationship.constraintExists.png[scaledwidth="100%"]
+image::apoc.schema.relationship.constraintExists.png[scaledwidth="100%"]

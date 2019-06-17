@@ -315,7 +315,7 @@ RETURN apoc.index.nodes.count('Person', 'name:Jo*') AS value
 
 The result is:
 
-image::{img}/apoc.index.nodes.count.png[scaledwidth="100%"]
+image::apoc.index.nodes.count.png[scaledwidth="100%"]
 
 * We call the apoc.index.relationships.count function as follow:
 
@@ -326,7 +326,7 @@ RETURN apoc.index.relationships.count('CHECKIN', 'on:2015-*') as value
 
 The result is:
 
-image::{img}/apoc.index.relationships.count.png[scaledwidth="100%"]
+image::apoc.index.relationships.count.png[scaledwidth="100%"]
 
 * We call the apoc.index.between.count function as follow:
 
@@ -337,7 +337,7 @@ MATCH (joe:Person:Hipster {name:'Joe',age:42}),(philz:Place {name:'Philz'}) WITH
 
 The result is:
 
-image::{img}/apoc.index.between.count.png[width=600]
+image::apoc.index.between.count.png[width=600]
 
 * We call the apoc.index.in.count function as follow:
 
@@ -348,7 +348,7 @@ MATCH (philz:Place {name:'Philz'}) WITH philz RETURN apoc.index.in.count(philz, 
 
 The result is:
 
-image::{img}/apoc.in.nodes.count.png[width=600]
+image::apoc.in.nodes.count.png[width=600]
 
 * We call the apoc.index.out.count function as follow:
 
@@ -359,4 +359,4 @@ MATCH (joe:Person:Hipster {name:'Joe',age:42}) WITH joe RETURN apoc.index.out.co
 
 The result is:
 
-image::{img}/apoc.index.out.count.png[scaledwidth="100%"]
+image::apoc.index.out.count.png[scaledwidth="100%"]

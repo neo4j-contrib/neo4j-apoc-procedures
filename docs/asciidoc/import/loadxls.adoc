@@ -58,7 +58,7 @@ In `format` config you can use the pattern describe as the Temporal functions: l
 CALL apoc.load.xls('file:///path/to/file.xls','Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})
 ----
 
-image::{img}/apoc.load.xls.png[scaledwidth="100%"]
+image::apoc.load.xls.png[scaledwidth="100%"]
 
 [source,cypher]
 ----
@@ -74,7 +74,7 @@ CALL apoc.load.xls('test_date.xlsx','sheet',{mapping:{Date:{type:'String'}}})
 
 .results
 
-image::{img}/apoc.load.xls_1.png[scaledwidth="100%"]
+image::apoc.load.xls_1.png[scaledwidth="100%"]
 
 [source,cypher]
 ----
@@ -83,7 +83,7 @@ CALL apoc.load.xls('test_date.xlsx','sheet',{mapping:{Date:{type:'String',dateFo
 
 .results
 
-image::{img}/apoc.load.xls_2.png[scaledwidth="100%"]
+image::apoc.load.xls_2.png[scaledwidth="100%"]
 
 [source,cypher]
 ----
@@ -92,4 +92,4 @@ CALL apoc.load.xls('test_date.xlsx','sheet',{mapping:{Date:{type:'String',datePa
 
 .results
 
-image::{img}/apoc.load.xls_3.png[scaledwidth="100%"]
+image::apoc.load.xls_3.png[scaledwidth="100%"]

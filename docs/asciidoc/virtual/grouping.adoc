@@ -28,7 +28,7 @@ SET n.century = toInteger(coalesce(n.born,n.relased)/100) * 100;
 CALL apoc.nodes.group(['Person','Movie'],['century']);
 ----
 
-image::{img}/apoc.nodes.group.jpg[scaledwidth="100%"]
+image::apoc.nodes.group.jpg[scaledwidth="100%"]
 
 
 [NOTE]
@@ -150,7 +150,7 @@ call apoc.nodes.group(['*'], ['country'])
 yield node, relationship return *
 ----
 
-image::{img}/grouping-country-all.jpg[scaledwidth="100%"]
+image::grouping-country-all.jpg[scaledwidth="100%"]
 
 ----
 call apoc.nodes.group(['*'], ['country'], null,
@@ -159,7 +159,7 @@ call apoc.nodes.group(['*'], ['country'], null,
 yield node, relationship return *
 ----
 
-image::{img}/grouping-country-filter.jpg[scaledwidth="100%"]
+image::grouping-country-filter.jpg[scaledwidth="100%"]
 
 To visualize this result in Neo4j Browser it's useful to have a custom Graph Style Sheet (GRASS) that renders the grouped properties with some of the aggregations.
 

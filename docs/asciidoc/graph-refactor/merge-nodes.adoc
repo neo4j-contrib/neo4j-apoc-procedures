@@ -53,7 +53,7 @@ CREATE (n1:Person {name:'Tom'}),
 return *;
 ----
 
-image::{img}/apoc.refactor.mergeNodes.createDataSetFirstExample.png[scaledwidth="100%"]
+image::apoc.refactor.mergeNodes.createDataSetFirstExample.png[scaledwidth="100%"]
 
 Next step is calling the apoc to merge nodes :Person
 
@@ -67,7 +67,7 @@ MATCH (n)-[r:WORKS_FOR]->(c) return *
 
 and the result is:
 
-image::{img}/apoc.refactor.mergeNodes.resultFirstExample.png[scaledwidth="100%"]
+image::apoc.refactor.mergeNodes.resultFirstExample.png[scaledwidth="100%"]
 
 In this case we have relationships with same start and end nodes so relationships are merged into one and properties are combined.
 
@@ -92,7 +92,7 @@ Create (n1:Person {name:'Tom'}),
 return *;
 ----
 
-image::{img}/apoc.refactor.mergeNodes.createDataSetSecondExample.png[scaledwidth="100%"]
+image::apoc.refactor.mergeNodes.createDataSetSecondExample.png[scaledwidth="100%"]
 
 Next step is calling the apoc to merge nodes :Person
 
@@ -106,9 +106,9 @@ MATCH (n)-[r:WORKS_FOR]->(c) return n.name,r.since,c.name;
 
 and the result is:
 
-image::{img}/apoc.refactor.mergeNodes.resultSecondExample.png[scaledwidth="100%"]
+image::apoc.refactor.mergeNodes.resultSecondExample.png[scaledwidth="100%"]
 
-image::{img}/apoc.refactor.mergeNodes.resultSecondExampleData.png[scaledwidth="100%"]
+image::apoc.refactor.mergeNodes.resultSecondExampleData.png[scaledwidth="100%"]
 
 In this case we have relationships with different end nodes so all relationships are maintained and properties are combined into all relationships.
 

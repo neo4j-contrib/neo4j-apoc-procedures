@@ -92,7 +92,7 @@ We create two nodes with different properties
 CREATE (f:Person {name:'Foo'}), (b:Person {surname:'Bar'}) RETURN f,b
 ----
 
-image::{img}/apoc.refactor.mergeNodes.dataset.png[width=800]
+image::apoc.refactor.mergeNodes.dataset.png[width=800]
 
 Now we want to merge these nodes into one
 
@@ -103,7 +103,7 @@ CALL apoc.refactor.mergeNodes([f,b])
 YIELD node RETURN node
 ----
 
-image::{img}/apoc.refactor.mergeNodes.png[width=800]
+image::apoc.refactor.mergeNodes.png[width=800]
 
 Thus we have one node with both properties `name` and `surname`
 ////

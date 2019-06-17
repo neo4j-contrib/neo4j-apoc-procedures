@@ -13,7 +13,7 @@ CREATE (:Person {prop: 'Y', name:'A'}),(:Person {prop: 'Yes', name:'B'}),(:Perso
 
 As a result, we have four nodes with different properties `prop` like `Y`, `Yes`, `NO`, `X`
 
-image::{img}/apoc.refactor.normalizeAsBoolean.dataset.png[scaledwidth="100%"]
+image::apoc.refactor.normalizeAsBoolean.dataset.png[scaledwidth="100%"]
 
 Now we want to transform some properties into a boolean, `Y`, `Yes` into true and the properties `NO` into false.
 The other properties that don't match these possibilities will be set as `null`.
@@ -27,4 +27,4 @@ ORDER BY n.id
 RETURN n.prop AS prop
 ----
 
-image::{img}/apoc.refactor.normalizeAsBoolean.png[scaledwidth="100%"]
+image::apoc.refactor.normalizeAsBoolean.png[scaledwidth="100%"]

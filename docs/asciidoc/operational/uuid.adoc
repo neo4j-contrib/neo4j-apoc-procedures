@@ -60,7 +60,7 @@ The result is:
 
 The result is Node Person have 2 property:
 
-image::{img}/apoc.uuid.result.png[width=800]
+image::apoc.uuid.result.png[width=800]
 
 Get all the uuid installed, call the procedure as:
 

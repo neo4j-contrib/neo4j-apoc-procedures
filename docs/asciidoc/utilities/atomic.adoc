@@ -40,7 +40,7 @@ YIELD oldValue, newValue
 RETURN n
 ----
 
-image::{img}/apoc.atomic.add.png[scaledwidth="100%"]
+image::apoc.atomic.add.png[scaledwidth="100%"]
 
 .subtract
 
@@ -71,7 +71,7 @@ YIELD newValue
 RETURN p
 ----
 
-image::{img}/apoc.atomic.concat.png[scaledwidth="100%"]
+image::apoc.atomic.concat.png[scaledwidth="100%"]
 
 .insert
 
@@ -84,7 +84,7 @@ we add a propery `children` that is an array
 CREATE (p:Person {name:'Tom', children: ['Anne','Sam','Paul']})
 ----
 
-image::{img}/apoc.atomic.insert.png[scaledwidth="100%"]
+image::apoc.atomic.insert.png[scaledwidth="100%"]
 
 Now we add `Mary` to propery children at the position 2
 [source,cypher]
@@ -95,7 +95,7 @@ YIELD newValue
 RETURN p
 ----
 
-image::{img}/apoc.atomic.insert.result.png[scaledwidth="100%"]
+image::apoc.atomic.insert.result.png[scaledwidth="100%"]
 
 .remove
 
@@ -116,7 +116,7 @@ YIELD newValue
 RETURN p
 ----
 
-image::{img}/apoc.atomic.remove.png[scaledwidth="100%"]
+image::apoc.atomic.remove.png[scaledwidth="100%"]
 
 .update
 
@@ -138,4 +138,4 @@ YIELD newValue
 RETURN p
 ----
 
-image::{img}/apoc.atomic.update.png[scaledwidth="100%"]
+image::apoc.atomic.update.png[scaledwidth="100%"]

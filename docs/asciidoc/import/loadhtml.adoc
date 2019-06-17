@@ -50,7 +50,7 @@ CALL apoc.load.html("https://en.wikipedia.org/",{metadata:"meta", h2:"h2"})
 
 You will get this result:
 
-image::{img}/apoc.load.htmlall.png[scaledwidth="100%"]
+image::apoc.load.htmlall.png[scaledwidth="100%"]
 
 
 [source,cypher]
@@ -60,7 +60,7 @@ CALL apoc.load.html("https://en.wikipedia.org/",{links:"link"})
 
 You will get this result:
 
-image::{img}/apoc.load.htmllinks.png[scaledwidth="100%"]
+image::apoc.load.htmllinks.png[scaledwidth="100%"]
 
 
 [source,cypher]
@@ -70,4 +70,4 @@ CALL apoc.load.html("https://en.wikipedia.org/",{metadata:"meta", h2:"h2"}, {cha
 
 You will get this result:
 
-image::{img}/apoc.load.htmlconfig.png[scaledwidth="100%"]
+image::apoc.load.htmlconfig.png[scaledwidth="100%"]

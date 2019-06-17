@@ -13,7 +13,7 @@ For more on these procedures, see:
 [[meta-graph]]
 === Meta Graph
 
-image::{img}/apoc.meta.graph.jpg[width=600]
+image::apoc.meta.graph.jpg[width=600]
 
 Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.
 

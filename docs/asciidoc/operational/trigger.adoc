@@ -78,7 +78,7 @@ CREATE (d)-[:SON_OF]->(m)
 CREATE (j)-[:SON_OF]->(d)
 ----
 
-image::{img}/apoc.trigger.add.setAllConnectedNodes.dataset.png[width=800]
+image::apoc.trigger.add.setAllConnectedNodes.dataset.png[width=800]
 
 Now we add the trigger using `apoc.trigger.propertiesByKey` on the `surname` property
 
@@ -98,7 +98,7 @@ MATCH (d:Person {name:'Daniel'})
 SET d.surname = 'William'
 ----
 
-image::{img}/apoc.trigger.add.setAllConnectedNodes.png[width=800]
+image::apoc.trigger.add.setAllConnectedNodes.png[width=800]
 
 The `surname` property is add/change on all related nodes
 
@@ -117,7 +117,7 @@ CREATE (l)-[:ACT_IN]->(m)
 CREATE (c)-[:ACT_IN]->(m)
 ----
 
-image::{img}/apoc.trigger.add.setLabels.png[width=800]
+image::apoc.trigger.add.setLabels.png[width=800]
 
 We add a trigger using `apoc.trigger.nodesByLabel` that when the label `Actor` of a node is removed, update all labels `Actor` with `Person`
 
@@ -135,7 +135,7 @@ MATCH(k:Actor {name:'Keanu Reeves'})
 REMOVE k:Actor
 ----
 
-image::{img}/apoc.trigger.add.setLabelsResult.png[width=800]
+image::apoc.trigger.add.setLabelsResult.png[width=800]
 
 .Create relationship on a new node
 
@@ -158,20 +158,20 @@ CREATE (a:Actor {name:'Tom Hanks'})
 CREATE (m:Movie {title:'Matrix'})
 ----
 
-image::{img}/apoc.trigger.add.create-rel-new-node.png[width=800]
+image::apoc.trigger.add.create-rel-new-node.png[width=800]
 
 .Pause trigger
 
 We have the possibility to pause a trigger without remove it, if we will need it in the future
 
-image::{img}/apoc.trigger.pause.png[width=800]
+image::apoc.trigger.pause.png[width=800]
 
 
 .Resume paused trigger
 
 When you need again of a trigger paused
 
-image::{img}/apoc.trigger.resume.png[width=800]
+image::apoc.trigger.resume.png[width=800]
 
 .Enforcing property type
 

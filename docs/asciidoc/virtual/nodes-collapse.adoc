@@ -30,7 +30,7 @@ If properties parameter isn't set relationships properties are `discard`.
 
 With this dataset we have:
 
-image::{img}/apoc.nodes.collapse_1.png[scaledwidth="100%"]
+image::apoc.nodes.collapse_1.png[scaledwidth="100%"]
 
 If we want to collapse the people living in the city to a single node, we pass them to the procedure.
 
@@ -44,11 +44,11 @@ return from, rel, to
 
 And get this result:
 
-image::{img}/apoc.nodes.collapse_2.png[scaledwidth="100%"]
+image::apoc.nodes.collapse_2.png[scaledwidth="100%"]
 
 With this dataset we have:
 
-image::{img}/apoc.nodes.collapse_3.png[scaledwidth="100%"]
+image::apoc.nodes.collapse_3.png[scaledwidth="100%"]
 
 If we also want to collapse them onto the city itself, we add the city node _first_ to the collection.
 
@@ -62,4 +62,4 @@ return from, rel, to
 
 And get this result:
 
-image::{img}/apoc.nodes.collapse_4.png[scaledwidth="100%"]
+image::apoc.nodes.collapse_4.png[scaledwidth="100%"]

@@ -108,4 +108,4 @@ By doing this procedure call:
 
 You'll get the following result:
 
-image::{img}/apoc.model.jdbc[scaledwidth="100%"]
+image::apoc.model.jdbc[scaledwidth="100%"]
