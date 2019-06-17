@@ -41,17 +41,6 @@ The guide covers the following areas:
 [[introduction]]
 == Introduction
 
-NOTE: Go here for documentation for APOC for Neo4j version link:{gh-docs}/index30.html[3.0.x] link:{gh-docs}/index31.html[3.1.x] link:{gh-docs}/index32.html[3.2.x] link:{gh-docs}/index33.html[3.3.x] link:{gh-docs}/3.4[3.4.x] link:{gh-docs}/3.5[3.5.x]
-
-=== Documentation Overview
-
-
-////
-* <<help>>
-* <<installation>>
-* <<overview>>
-* <<config>>
-////
 
 ifdef::backend-html5[]
 ++++
@@ -59,21 +48,27 @@ ifdef::backend-html5[]
 ++++
 endif::[]
 
-include::../../readme.adoc[tags=intro,leveloffset=1]
+include::../../readme.adoc[tags=intro-text]
 
-[[installation]]
-== Installation
+include::../../readme.adoc[tags=name-history]
 
-[abstract]
---
-This chapter describes how to install the APOC library.
---
 
-include::../../readme.adoc[tags=install,leveloffset=1]
+=== Feedback
+include::../../readme.adoc[tags=feedback]
 
-include::../../readme.adoc[tags=warnings,leveloffset=0]
+=== Installation
 
-include::../../readme.adoc[tags=docker,leveloffset=0]
+include::../../readme.adoc[tags=install-desktop,leveloffset=2]
+
+include::../../readme.adoc[tags=install,leveloffset=2]
+
+include::../../readme.adoc[tags=warnings,leveloffset=1]
+
+include::../../readme.adoc[tags=docker,leveloffset=1]
+
+=== Usage
+
+include::../../readme.adoc[tags=usage]
 
 
 include::help.adoc[]
