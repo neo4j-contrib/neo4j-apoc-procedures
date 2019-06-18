@@ -32,13 +32,24 @@ Functions to create, combine and split paths
 |===
 
 [[rel-functions]]
-=== Relationship Procedures
+=== Relationship Functions and Procedures
 
 [abstract]
 --
-This section describes procedures that can be used to lookup relationships.
+This section describes procedures that can be used to query relationships.
 --
 
+.Functions
+[cols="1m,5"]
+|===
+| apoc.rel.id(rel) | returns id for (virtual) relationships
+| apoc.rel.type(rel) | returns type for (virtual) relationships
+| apoc.any.properties(rel, [[keys]]) | returns properties for virtual and real rels. Optionally restrict via keys.
+| apoc.any.property(rel) | returns property for virtual and real rels
+|===
+
+
+.Procedures
 [cols="1m,5"]
 |===
 | CALL apoc.get.rels(rel\|id\|[ids]) | quickly returns all relationships with these ids
@@ -49,7 +60,7 @@ This section describes procedures that can be used to lookup relationships.
 
 [abstract]
 --
-This section describes functions that can be used to apply different operations to nodes.
+This section describes functions that can be used to query nodes.
 --
 
 .Functions
@@ -64,11 +75,8 @@ This section describes functions that can be used to apply different operations 
 | apoc.node.degree.in(node, relationshipName) | returns total number of incoming relationship
 | apoc.node.degree.out(node, relationshipName) | returns total number of outgoing relationship
 | apoc.node.labels(node) | returns labels for (virtual) nodes
-| apoc.rel.id(rel) | returns id for (virtual) relationships
-| apoc.rel.type(rel) | returns type for (virtual) relationships
-| apoc.any.properties(node/rel/map, [[keys]]) | returns properties for virtual and real, nodes, rels and maps, optionally restrict via keys
-| apoc.any.property(node/rel/map) | returns property for virtual and real, nodes, rels and maps
-| apoc.create.uuid() | returns a UUID string
+| apoc.any.properties(node/map, [[keys]]) | returns properties for virtual and real nodes, and maps. Optionally restrict via keys.
+| apoc.any.property(node/map) | returns property for virtual and real nodes, and maps
 | apoc.label.exists(element, label) | returns true or false related to label existance
 |===
 

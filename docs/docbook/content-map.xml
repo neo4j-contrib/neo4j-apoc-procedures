@@ -188,9 +188,6 @@
       <d:tocentry linkend="warmup"><?dbhtml filename="operational/warmup/index.html"?>
       </d:tocentry>
 
-
-      <d:tocentry linkend="auto-uuid"><?dbhtml filename="operational/auto-uuid/index.html"?>
-      </d:tocentry>
     </d:tocentry>
 
     <d:tocentry linkend="database-introspection"><?dbhtml filename="database-introspection/index.html"?>
@@ -236,6 +233,9 @@
       </d:tocentry>
       <d:tocentry linkend="data-creation"><?dbhtml filename="graph-updates/data-creation/index.html"?>
       </d:tocentry>
+
+        <d:tocentry linkend="auto-uuid"><?dbhtml filename="graph-updates/uuid/index.html"?>
+        </d:tocentry>
 
       <d:tocentry linkend="ttl"><?dbhtml filename="graph-updates/ttl/index.html"?>
       </d:tocentry>

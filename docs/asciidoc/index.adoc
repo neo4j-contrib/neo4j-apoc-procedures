@@ -33,8 +33,8 @@ The guide covers the following areas:
 * <<nodes-relationships>>
 * <<path-finding>>
 * <<cypher-execution>>
-* <<job-management>>
 * <<virtual>>
+* <<job-management>>
 * <<operational>>
 * <<utilities>> -- A detailed guide to utility procedures and functions.
 * <<indexes>>
@@ -138,9 +138,9 @@ include::_path_finding.adoc[]
 
 include::_cypher_execution.adoc[]
 
-include::_job_management.adoc[]
-
 include::_virtual.adoc[]
+
+include::_job_management.adoc[]
 
 include::_operational.adoc[]
 

@@ -7,6 +7,7 @@ This chapter describes procedures that can be used to perform graph updates.
 --
 
 * <<data-creation>>
+* <<auto-uuid>>
 * <<periodic-execution>>
 * <<graph-refactoring>>
 * <<atomic-updates>>
@@ -14,6 +15,8 @@ This chapter describes procedures that can be used to perform graph updates.
 * <<ttl>>
 
 include::graph-updates/data-creation.adoc[leveloffset=2]
+
+include::graph-updates/uuid.adoc[leveloffset=2]
 
 include::graph-updates/periodic-execution.adoc[leveloffset=2]
 

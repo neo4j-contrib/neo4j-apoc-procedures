@@ -1,13 +1,29 @@
 [[auto-uuid]]
-= UUID
+= UUIDs
 
 [abstract]
 --
-This section describes procedures that manage automatically adding UUID properties to nodes.
+This section describes procedures that can be used to add UUID properties to nodes.
 --
 
+This section includes:
 
-These procedures manage the UUID Handler Lifecycle.
+* <<manual-uuids>>
+* <<automatic-uuids>>
+
+[[manual-uuids]]
+== Manual UUIDs
+
+.Functions
+[cols="1m,5"]
+|===
+| apoc.create.uuid() | returns a UUID string
+|===
+
+[[automatic-uuids]]
+== Automatic UUIDs
+
+There are also procedures that handle automatic adding of UUID properties, via the UUID Handler Lifecycle.
 The UUID handler is a transaction event handler that automatically adds the UUID property to a provided label and for the provided property name.
 Please check the following documentation to an in-depth description.
 
@@ -23,7 +39,7 @@ for the provided `label` and `uuidProperty`, in case the UUID handler is already
 | CALL apoc.uuid.list() yield label, installed, properties | provides a list of all the uuid handlers installed with the related configuration
 |===
 
-==== Config
+=== Config
 
 |===
 |*config* | *type* | *description*
