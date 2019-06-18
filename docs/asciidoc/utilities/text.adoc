@@ -31,6 +31,7 @@ This section includes:
 * <<text-functions-base64-encoding-decoding>>
 * <<text-functions-random-string>>
 * <<text-functions-extract-domain>>
+* <<text-functions-hashing>>
 
 [[text-functions-overview]]
 == Overview Text Functions
@@ -418,3 +419,12 @@ RETURN apoc.data.domain(email) // will return 'bar.com'
 WITH 'http://www.example.com/all-the-things' AS url
 RETURN apoc.data.domain(url) // will return 'www.example.com'
 ----
+
+[[text-functions-hash]]
+== Hashing Functions
+
+[cols="1m,5"]
+|===
+| apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list
+| apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list
+|===
