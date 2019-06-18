@@ -180,8 +180,6 @@
   </d:tocentry>
 
     <d:tocentry linkend="operational"><?dbhtml filename="operational/index.html"?>
-      <d:tocentry linkend="ttl"><?dbhtml filename="operational/ttl/index.html"?>
-      </d:tocentry>
       <d:tocentry linkend="triggers"><?dbhtml filename="operational/triggers/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="init-script"><?dbhtml filename="operational/init-script/index.html"?>
@@ -189,9 +187,6 @@
       <d:tocentry linkend="warmup"><?dbhtml filename="operational/warmup/index.html"?>
       </d:tocentry>
 
-
-      <d:tocentry linkend="ttl"><?dbhtml filename="operational/ttl/index.html"?>
-      </d:tocentry>
 
       <d:tocentry linkend="auto-uuid"><?dbhtml filename="operational/auto-uuid/index.html"?>
       </d:tocentry>
@@ -237,6 +232,9 @@
       <d:tocentry linkend="atomic-updates"><?dbhtml filename="graph-updates/atomic-updates/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="data-creation"><?dbhtml filename="graph-updates/data-creation/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="ttl"><?dbhtml filename="graph-updates/ttl/index.html"?>
       </d:tocentry>
 
       <d:tocentry linkend="periodic-execution"><?dbhtml filename="graph-updates/periodic-execution/index.html"?>

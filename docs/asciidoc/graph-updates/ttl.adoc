@@ -1,5 +1,5 @@
 [[ttl]]
-== Time To Live (TTL) - Expire Nodes
+= Time To Live (TTL) - Expire Nodes
 
 [abstract]
 --
@@ -36,7 +36,7 @@ SET n.ttl = timestamp() + 3600
 
 Optionally set `apoc.ttl.schedule=5` as repeat frequency.
 
-=== Process
+== Process
 
 30s after startup an index is created:
 

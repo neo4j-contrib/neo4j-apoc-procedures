@@ -12,7 +12,6 @@ Cypher brings along some basic functions for math, text, collections and maps.
 * <<map-functions>> 
 * <<collection-list-functions>>
 * <<text-functions>>
-* <<data-extraction-functions>>
 * <<spatial>>
 * <<static-values>>
 * <<utility-functions>>
@@ -22,8 +21,6 @@ include::utilities/conversion.adoc[leveloffset=2]
 include::utilities/map.adoc[leveloffset=2]
 include::utilities/collection.adoc[leveloffset=2]
 include::utilities/text.adoc[leveloffset=2]
-
-include::utilities/extract.adoc[leveloffset=2]
 
 include::utilities/spatial.adoc[leveloffset=2]
 include::utilities/static-values.adoc[leveloffset=2]

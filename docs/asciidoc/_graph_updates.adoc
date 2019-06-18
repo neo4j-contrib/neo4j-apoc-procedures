@@ -7,20 +7,23 @@ This chapter describes procedures that can be used to perform graph updates.
 --
 
 * <<data-creation>>
-* <<atomic-updates>>
-* <<locking>>
 * <<periodic-execution>>
 * <<graph-refactoring>>
+* <<atomic-updates>>
+* <<locking>>
+* <<ttl>>
 
 include::graph-updates/data-creation.adoc[leveloffset=2]
 
+include::graph-updates/periodic-execution.adoc[leveloffset=2]
+
 include::graph-updates/atomic.adoc[leveloffset=2]
+
+include::graph-updates/graph-refactor.adoc[leveloffset=2]
 
 include::graph-updates/locking.adoc[leveloffset=2]
 
-include::graph-updates/periodic-execution.adoc[leveloffset=2]
-
-include::graph-updates/graph-refactor.adoc[leveloffset=2]
+include::graph-updates/ttl.adoc[leveloffset=2]
 
 
 

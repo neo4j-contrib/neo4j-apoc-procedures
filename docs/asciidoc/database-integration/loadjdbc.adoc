@@ -1,5 +1,5 @@
 [[load-jdbc]]
-= Load JDBC
+= Load JDBC (RDBMS)
 
 [abstract]
 --
