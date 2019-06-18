@@ -1,17 +1,5 @@
-[[schema]]
-== Schema Information and Operations
-
-[abstract]
---
-This chapter describes procedures that can be used for schema information and operations in the APOC library.
---
-
-For more on these procedures, see:
-
-* <<meta-graph>>
-
 [[meta-graph]]
-=== Meta Graph
+= Meta Graph
 
 image::apoc.meta.graph.jpg[scaledwidth="100%"]
 

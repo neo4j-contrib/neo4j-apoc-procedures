@@ -19,12 +19,6 @@
     </d:tocentry>
 
 
-
-  <d:tocentry linkend="schema"><?dbhtml filename="schema/index.html"?>
-    <d:tocentry linkend="meta-graph"><?dbhtml filename="schema/meta-graph/index.html"?>
-    </d:tocentry>
-  </d:tocentry>
-
     <d:tocentry linkend="import"><?dbhtml filename="import/index.html"?>
       <d:tocentry linkend="web-apis"><?dbhtml filename="import/web-apis/index.html"?>
       </d:tocentry>
@@ -191,17 +185,30 @@
       </d:tocentry>
       <d:tocentry linkend="warmup"><?dbhtml filename="operational/warmup/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="monitoring"><?dbhtml filename="operational/monitoring/index.html"?>
-      </d:tocentry>
+
 
       <d:tocentry linkend="ttl"><?dbhtml filename="operational/ttl/index.html"?>
       </d:tocentry>
 
-      <d:tocentry linkend="neo4j-config"><?dbhtml filename="operational/config/index.html"?>
-      </d:tocentry>
+
 
       <d:tocentry linkend="auto-uuid"><?dbhtml filename="operational/auto-uuid/index.html"?>
       </d:tocentry>
+    </d:tocentry>
+
+    <d:tocentry linkend="database-introspection"><?dbhtml filename="database-introspection/index.html"?>
+
+      <d:tocentry linkend="monitoring"><?dbhtml filename="database-introspection/monitoring/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="neo4j-config"><?dbhtml filename="database-introspection/config/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="meta-graph"><?dbhtml filename="database-introspection/meta/index.html"?>
+      </d:tocentry>
+
+
+
     </d:tocentry>
 
     <d:tocentry linkend="indexes"><?dbhtml filename="indexes/index.html"?>

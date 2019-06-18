@@ -18,7 +18,6 @@ This is the user guide for Neo4j APOC {docs-version}, authored by the Neo4j Labs
 The guide covers the following areas:
 
 * <<introduction>> -- An Introduction to the APOC library.
-* <<installation>> -- Instructions for installing the library.
 * <<help>> -- In-built help in the library.
 * <<overview>> -- A list of all APOC procedures and functions.
 * <<config>> -- Configuration options used by the library.
@@ -27,7 +26,7 @@ The guide covers the following areas:
 * <<export>> -- A detailed guide to procedures that can be used to export data to different formats including JSON, CSV, GraphML, and Gephi.
 * <<database-integration>> -- A detailed guide to procedures that can be used to integrate with other databases including relational databases, MongoDB, Couchbase, and ElasticSearch.
 * <<graph-updates>> -- A detailed guide to procedures that can be used to apply graph updates.
-* <<schema>>
+* <<database-introspection>>
 * <<temporal>>
 * <<mathematical>>
 * <<comparing-graphs>>
@@ -125,7 +124,7 @@ include::_database_integration.adoc[]
 
 include::_graph_updates.adoc[]
 
-include::_schema.adoc[]
+include::_database_introspection.adoc[]
 
 include::_temporal.adoc[]
 

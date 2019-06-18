@@ -9,9 +9,7 @@ This chapter describes operational procedures in the APOC library.
 * <<ttl>>
 * <<triggers>>
 * <<init-script>>
-* <<neo4j-config>>
 * <<warmup>>
-* <<monitoring>>
 * <<auto-uuid>>
 
 include::operational/ttl.adoc[leveloffset=2]
@@ -20,10 +18,6 @@ include::operational/trigger.adoc[leveloffset=2]
 
 include::operational/cypher_init.adoc[leveloffset=2]
 
-include::operational/config.adoc[leveloffset=2]
-
 include::operational/warmup.adoc[leveloffset=2]
-
-include::operational/monitoring.adoc[leveloffset=2]
 
 include::operational/uuid.adoc[leveloffset=2]
