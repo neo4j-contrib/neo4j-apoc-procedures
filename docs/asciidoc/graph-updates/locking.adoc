@@ -1,16 +1,3 @@
-[[concurrency]]
-== Concurrency
-
-[abstract]
---
-This chapter describes procedures that can be used when executing concurrent operations.
---
-
-* <<atomic-updates>>
-* <<locking>>
-
-include::utilities/atomic.adoc[leveloffset=2]
-
 [[locking]]
 === Locking
 
@@ -23,11 +10,3 @@ This section describes functions that can be used to acquire locks on nodes and 
 |===
 include::../../build/generated-documentation/apoc.lock.csv[]
 |===
-
-
-
-
-
-
-
-

@@ -1,0 +1,26 @@
+[[graph-updates]]
+== Graph Updates
+
+[abstract]
+--
+This chapter describes procedures that can be used to perform graph updates.
+--
+
+* <<data-creation>>
+* <<atomic-updates>>
+* <<locking>>
+
+include::graph-updates/data-creation.adoc[leveloffset=2]
+
+include::graph-updates/atomic.adoc[leveloffset=2]
+
+include::graph-updates/locking.adoc[leveloffset=2]
+
+
+
+
+
+
+
+
+

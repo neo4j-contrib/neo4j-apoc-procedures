@@ -34,6 +34,7 @@ The guide covers the following areas:
 * <<cypher-execution>>
 * <<job-management>>
 * <<virtual>>
+* <<graph-updates>>
 * <<graph-refactoring>> -- A detailed guide to procedures that can be used to apply graph refactorings.
 * <<operational>>
 * <<concurrency>>
@@ -122,6 +123,10 @@ include::_export.adoc[]
 
 include::_database_integration.adoc[]
 
+include::_graph_updates.adoc[]
+
+include::graph-refactor.adoc[]
+
 include::_schema.adoc[]
 
 include::_temporal.adoc[]
@@ -184,10 +189,8 @@ include::_virtual.adoc[]
 [[graph-grouping]]
 ////
 
-include::graph-refactor.adoc[]
 
 
-include::_concurrency.adoc[]
 
 ////
 [[clone-nodes]]
