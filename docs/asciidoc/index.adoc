@@ -30,13 +30,13 @@ The guide covers the following areas:
 * <<temporal>>
 * <<mathematical>>
 * <<comparing-graphs>>
-* <<utilities>> -- A detailed guide to utility procedures and functions.
 * <<nodes-relationships>>
 * <<path-finding>>
 * <<cypher-execution>>
 * <<job-management>>
 * <<virtual>>
 * <<operational>>
+* <<utilities>> -- A detailed guide to utility procedures and functions.
 * <<indexes>>
 * <<algorithms>>
 
@@ -144,9 +144,9 @@ include::_virtual.adoc[]
 
 include::_operational.adoc[]
 
-include::_indexes.adoc[]
-
 include::_utilities.adoc[]
+
+include::_indexes.adoc[]
 
 include::_algorithms.adoc[]
 

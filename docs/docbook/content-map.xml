@@ -159,8 +159,11 @@
       </d:tocentry>
   </d:tocentry>
 
-    <d:tocentry linkend="job-management"><?dbhtml filename="job-management/index.html"?>
-
+    <d:tocentry linkend="job-management"><?dbhtml filename="background-operations/index.html"?>
+      <d:tocentry linkend="periodic-background"><?dbhtml filename="background-operations/background-jobs/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="triggers"><?dbhtml filename="background-operations/triggers/index.html"?>
+      </d:tocentry>
     </d:tocentry>
 
   <d:tocentry linkend="virtual"><?dbhtml filename="virtual/index.html"?>
@@ -190,8 +193,6 @@
       <d:tocentry linkend="ttl"><?dbhtml filename="operational/ttl/index.html"?>
       </d:tocentry>
 
-
-
       <d:tocentry linkend="auto-uuid"><?dbhtml filename="operational/auto-uuid/index.html"?>
       </d:tocentry>
     </d:tocentry>
@@ -206,8 +207,6 @@
 
       <d:tocentry linkend="meta-graph"><?dbhtml filename="database-introspection/meta/index.html"?>
       </d:tocentry>
-
-
 
     </d:tocentry>
 

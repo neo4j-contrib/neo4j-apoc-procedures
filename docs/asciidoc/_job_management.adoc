@@ -1,5 +1,5 @@
 [[job-management]]
-== Background Jobs
+== Background Operations
 
 [abstract]
 --
@@ -7,33 +7,17 @@ This chapter describes procedures that can be used to schedule execution of Cyph
 --
 
 Sometimes you want to schedule execution of Cypher statements to run regularly in the background or asynchronously ("fire & forget").
-
 This can also be useful in cloud environments that limit the runtime of statements (e.g. to 2 or 5 minutes) by scheduling execution in the background.
 
 The `apoc.periodic.*` procedures provide such capabilities.
 
-[cols="1m,5"]
-|===
-| CALL apoc.periodic.list() | list all jobs
-| CALL apoc.periodic.submit('name',statement) | submit a one-off background statement
-| CALL apoc.periodic.schedule('name',statement,repeat-time-in-seconds) | submit a repeatedly-called background statement
-| CALL apoc.periodic.countdown('name',statement,delay-in-seconds) | submit a repeatedly-called background statement until it returns 0
-|===
 
-* there are also static methods `Jobs.submit`, and `Jobs.schedule` to be used from other procedures
-* jobs list is checked / cleared every 10s for finished jobs
+* <<periodic-background>>
+* <<triggers>>
 
 
-Many procedures run in the background or asynchronously. This setting overrides the default thread pool size (processors*2).
-
-`apoc.jobs.pool.num_threads=10`
-
-Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size (processors/4, at least 1). You can configure the pool size using the following configuration property:
-
-`apoc.jobs.scheduled.num_threads=10`
-
-
-include::job-management/periodic-countdown.adoc[leveloffset=+1]
+include::job-management/periodic-background.adoc[leveloffset=2]
+include::job-management/trigger.adoc[leveloffset=2]
 
 
 
