@@ -119,7 +119,7 @@
     <d:tocentry linkend="nodes-relationships"><?dbhtml filename="nodes-relationships/index.html"?>
       <d:tocentry linkend="path-functions"><?dbhtml filename="nodes-relationships/path-functions/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="node-lookup"><?dbhtml filename="nodes-relationships/node-lookup/index.html"?>
+      <d:tocentry linkend="rel-functions"><?dbhtml filename="nodes-relationships/relationship-functions/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="node-functions"><?dbhtml filename="nodes-relationships/node-functions/index.html"?>
       </d:tocentry>

@@ -33,30 +33,28 @@ Functions to create, combine and split paths
 | apoc.path.elements(path) | returns a list of node-relationship-node-...
 |===
 
-[[node-lookup]]
-=== Lookup and Manipulation Procedures
+[[rel-functions]]
+=== Relationship Procedures
 
 [abstract]
 --
-This section describes procedures that can be used to lookup nodes and relationships, and delete nodes.
+This section describes procedures that can be used to lookup relationships.
 --
 
 [cols="1m,5"]
 |===
-| CALL apoc.nodes.get(node\|nodes\|id\|[ids]) | quickly returns all nodes with these ids
 | CALL apoc.get.rels(rel\|id\|[ids]) | quickly returns all relationships with these ids
-| CALL apoc.nodes.delete(node\|nodes\|id\|[ids]) | quickly delete all nodes with these ids
 |===
 
 [[node-functions]]
-=== Node Functions
+=== Node Functions and Procedures
 
 [abstract]
 --
 This section describes functions that can be used to apply different operations to nodes.
 --
 
-
+.Functions
 [cols="1m,5"]
 |===
 | apoc.nodes.isDense(node) | returns true if it is a dense node
@@ -82,6 +80,12 @@ rel-direction-pattern syntax:
 
 Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in either direction, outgoing :MENTORS relationships, and incoming :REPORTS_TO relationships.
 
+.Procedures
+[cols="1m,5"]
+|===
+| CALL apoc.nodes.get(node\|nodes\|id\|[ids]) | quickly returns all nodes with these ids
+| CALL apoc.nodes.delete(node\|nodes\|id\|[ids]) | quickly delete all nodes with these ids
+|===
 
 [[graph-generators]]
 === Generating Graphs

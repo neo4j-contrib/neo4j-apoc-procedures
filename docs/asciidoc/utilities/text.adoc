@@ -420,7 +420,7 @@ WITH 'http://www.example.com/all-the-things' AS url
 RETURN apoc.data.domain(url) // will return 'www.example.com'
 ----
 
-[[text-functions-hash]]
+[[text-functions-hashing]]
 == Hashing Functions
 
 [cols="1m,5"]
