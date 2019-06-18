@@ -133,44 +133,7 @@ include::_mathematical.adoc[]
 
 include::_comparing_graphs.adoc[]
 
-include::_utilities.adoc[]
-
-////
-<<utilities>>
-
-<<conversion-functions>> | <<map-functions>> | <<collection-list-functions>>
-
-<<text-functions>> | <<math-functions>>
-
-<<data-extraction-functions>> | <<datetime-conversions>> | <<temporal-conversions>>
-
-<<number-conversions>>
-
-<<exact-math-functions>>
-
-<<
-phonetic-functions>>
-<<node-difference>>
-
-<<spatial>>
-<<static-values>>
-<<utility-functions>>
-<<bitwise-operations>>
-<<atomic-updates>>
-////
-
 include::_nodes_relationships.adoc[]
-
-////
-<<nodes-relationships>>
-<<path-functions>>
-<<node-lookup>>
-<<node-functions>>
-<<data-creation>>
-<<locking>>
-<<graph-generators>>
-<<parallel-node-search>>
-////
 
 include::_path_finding.adoc[]
 
@@ -180,40 +143,11 @@ include::_job_management.adoc[]
 
 include::_virtual.adoc[]
 
-////
-[[virtual]]
-[[virtual-nodes-rels]]
-[[virtual-graph]]
-[[graph-grouping]]
-////
-
-
-
-
-////
-[[clone-nodes]]
-[[merge-nodes]]
-[[redirect-relationship]]
-[[invert-relationship]]
-[[set-relationship-type]]
-[[extract-node-from-relationship]]
-[[collapse-node-to-relationship]]
-[[categorize]]
-[[rename-label-type-property]]
-////
-
 include::_operational.adoc[]
 
 include::_indexes.adoc[]
 
-////
-
-[[indexes]]
-[[schema-index-operations]]
-[[manual-indexes]]
-[[fulltext-index]]
-
-////
+include::_utilities.adoc[]
 
 include::_algorithms.adoc[]
 
