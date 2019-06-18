@@ -14,6 +14,7 @@ Those register a given Cypher statement, prefixed with the `custom.*` namespace,
 
 Here is a simple example:
 
+[source,cypher]
 ----
 CALL apoc.custom.asProcedure('answer','RETURN 42 as answer')
 ----
@@ -21,6 +22,7 @@ CALL apoc.custom.asProcedure('answer','RETURN 42 as answer')
 This registers the statement as procedure `custom.answer` that you then can call.
 As no information on parameter and return types is given, it just returns a stream of columns of maps called `row`.
 
+[source,cypher]
 ----
 CALL custom.answer YIELD row
 RETURN row.answer
@@ -28,6 +30,7 @@ RETURN row.answer
 
 The same is possible as a function:
 
+[source,cypher]
 ----
 CALL apoc.custom.asFunction('answer','RETURN 42')
 ----
@@ -67,7 +70,7 @@ The default values are parsed as JSON.
 * LIST TYPE, LIST OF TYPE
 * ANY
 
-.Example Neighbours of a node by name
+.Find neighbours of a node by name
 [source,cypher]
 ----
 CALL apoc.custom.asProcedure('neighbours',
