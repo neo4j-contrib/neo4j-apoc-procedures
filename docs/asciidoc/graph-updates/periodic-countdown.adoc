@@ -1,11 +1,6 @@
 [[periodic-countdown]]
 == apoc.periodic.countdown
 
-[abstract]
---
-This section describes a procedure that can be used to run a query repeatedly until a termination condition is reached.
---
-
 Repeats a statement until the termination is reached. The statement must return a numeric value and it should decrement (like a monotonically decreasing function). When the return value reaches 0 than the iteration stops.
 For example, define a counter with a numeric property:
 

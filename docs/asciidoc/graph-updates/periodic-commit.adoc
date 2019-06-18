@@ -1,11 +1,6 @@
 [[periodic-commit]]
 == apoc.periodic.commit
 
-[abstract]
---
-This section describes a procedure that can be used to run a query repeatedly until there are no more elements on which to run the query.
---
-
 Especially for graph processing it is useful to run a query repeatedly in separate transactions until it doesn't process and generates any results anymore.
 So you can iterate in batches over elements that don't fulfill a condition and update them so that they do afterwards.
 

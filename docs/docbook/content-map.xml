@@ -129,8 +129,6 @@
       </d:tocentry>
       <d:tocentry linkend="node-functions"><?dbhtml filename="nodes-relationships/node-functions/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="data-creation"><?dbhtml filename="nodes-relationships/data-creation/index.html"?>
-      </d:tocentry>
 
       <d:tocentry linkend="graph-generators"><?dbhtml filename="nodes-relationships/graph-generators/index.html"?>
       </d:tocentry>
@@ -168,13 +166,7 @@
   </d:tocentry>
 
     <d:tocentry linkend="job-management"><?dbhtml filename="job-management/index.html"?>
-      <d:tocentry linkend="commit-batching"><?dbhtml filename="job-management/commit-batching/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="periodic-commit"><?dbhtml filename="job-management/periodic-commit/index.html"?>
-      </d:tocentry>
 
-      <d:tocentry linkend="periodic-countdown"><?dbhtml filename="job-management/periodic-countdown/index.html"?>
-      </d:tocentry>
     </d:tocentry>
 
   <d:tocentry linkend="virtual"><?dbhtml filename="virtual/index.html"?>
@@ -260,11 +252,17 @@
       </d:tocentry>
     </d:tocentry>
 
-    <d:tocentry linkend="concurrency"><?dbhtml filename="concurrency/index.html"?>
-      <d:tocentry linkend="locking"><?dbhtml filename="concurrency/locking/index.html"?>
+    <d:tocentry linkend="graph-updates"><?dbhtml filename="graph-updates/index.html"?>
+      <d:tocentry linkend="locking"><?dbhtml filename="graph-updates/locking/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="atomic-updates"><?dbhtml filename="concurrency/atomic-updates/index.html"?>
+      <d:tocentry linkend="atomic-updates"><?dbhtml filename="graph-updates/atomic-updates/index.html"?>
       </d:tocentry>
+      <d:tocentry linkend="data-creation"><?dbhtml filename="graph-updates/data-creation/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="periodic-execution"><?dbhtml filename="graph-updates/periodic-execution/index.html"?>
+      </d:tocentry>
+
 
     </d:tocentry>
 

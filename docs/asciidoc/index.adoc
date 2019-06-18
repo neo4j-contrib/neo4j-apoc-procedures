@@ -26,18 +26,19 @@ The guide covers the following areas:
 * <<import>> -- A detailed guide to procedures that can be used to import data from different formats including JSON, CSV, and XLS.
 * <<export>> -- A detailed guide to procedures that can be used to export data to different formats including JSON, CSV, GraphML, and Gephi.
 * <<database-integration>> -- A detailed guide to procedures that can be used to integrate with other databases including relational databases, MongoDB, Couchbase, and ElasticSearch.
+* <<graph-updates>>
+* <<graph-refactoring>> -- A detailed guide to procedures that can be used to apply graph refactorings.
+* <<schema>>
 * <<temporal>>
 * <<mathematical>>
+* <<comparing-graphs>>
 * <<utilities>> -- A detailed guide to utility procedures and functions.
 * <<nodes-relationships>>
 * <<path-finding>>
 * <<cypher-execution>>
 * <<job-management>>
 * <<virtual>>
-* <<graph-updates>>
-* <<graph-refactoring>> -- A detailed guide to procedures that can be used to apply graph refactorings.
 * <<operational>>
-* <<concurrency>>
 * <<indexes>>
 * <<algorithms>>
 

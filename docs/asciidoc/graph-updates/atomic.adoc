@@ -1,5 +1,5 @@
 [[atomic-updates]]
-= Atomic
+= Atomic Property Updates
 
 [abstract]
 --

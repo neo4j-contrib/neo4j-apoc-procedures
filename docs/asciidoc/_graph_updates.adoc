@@ -9,6 +9,7 @@ This chapter describes procedures that can be used to perform graph updates.
 * <<data-creation>>
 * <<atomic-updates>>
 * <<locking>>
+* <<periodic-execution>>
 
 include::graph-updates/data-creation.adoc[leveloffset=2]
 
@@ -16,6 +17,7 @@ include::graph-updates/atomic.adoc[leveloffset=2]
 
 include::graph-updates/locking.adoc[leveloffset=2]
 
+include::graph-updates/periodic-execution.adoc[leveloffset=2]
 
 
 

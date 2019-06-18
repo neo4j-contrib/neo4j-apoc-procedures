@@ -1,10 +1,11 @@
 [[commit-batching]]
 == apoc.periodic.iterate
 
-[abstract]
---
-This section describes a procedure that can be used to run a query repeatedly on batches of elements, until all batches have been processed.
---
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/t1Nr5C5TAYs" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
 
 With `apoc.periodic.iterate` you provide 2 statements, the *first* outer statement is providing a stream of values to be processed.
 The *second*, inner statement processes *one* element at a time or with `iterateList:true` the whole batch at a time.
