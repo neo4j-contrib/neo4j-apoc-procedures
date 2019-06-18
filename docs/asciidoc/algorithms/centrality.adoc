@@ -1,5 +1,5 @@
 [[centrality]]
-= Centrality Algorithms
+= Deprecated: Centrality Algorithms
 
 [abstract]
 --

@@ -1,5 +1,5 @@
 [[similarity]]
-= Similarity
+= Deprecated: Similarity
 
 [abstract]
 --

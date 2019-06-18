@@ -1,5 +1,5 @@
 [[community-detection]]
-== Community Detection via Label Propagation
+== Deprecated: Community Detection via Label Propagation
 
 [abstract]
 --

@@ -1,5 +1,5 @@
 [[path-finding-procedures]]
-== Path Finding Procedures
+= Path Finding Procedures
 
 [abstract]
 --

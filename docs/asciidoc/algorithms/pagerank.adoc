@@ -1,5 +1,5 @@
 [[pagerank]]
-= PageRank Algorithm
+= Deprecated: PageRank Algorithm
 
 [abstract]
 --

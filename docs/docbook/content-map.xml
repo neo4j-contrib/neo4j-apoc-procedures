@@ -126,24 +126,25 @@
 
       <d:tocentry linkend="graph-generators"><?dbhtml filename="nodes-relationships/graph-generators/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="parallel-node-search"><?dbhtml filename="nodes-relationships/parallel-node-search/index.html"?>
-      </d:tocentry>
+
     </d:tocentry>
 
-    <d:tocentry linkend="path-finding"><?dbhtml filename="path-finding/index.html"?>
-      <d:tocentry linkend="path-expander"><?dbhtml filename="path-finding/path-expander/index.html"?>
+    <d:tocentry linkend="path-finding"><?dbhtml filename="graph-querying/index.html"?>
+      <d:tocentry linkend="path-expander"><?dbhtml filename="graph-querying/path-expander/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="neighbourhood-search"><?dbhtml filename="path-finding/neighbourhood-search/index.html"?>
-      </d:tocentry>
-
-      <d:tocentry linkend="expand-subgraph"><?dbhtml filename="path-finding/expand-subgraph/index.html"?>
+      <d:tocentry linkend="neighbourhood-search"><?dbhtml filename="graph-querying/neighbourhood-search/index.html"?>
       </d:tocentry>
 
-      <d:tocentry linkend="expand-spanning-tree"><?dbhtml filename="path-finding/expand-spanning-tree/index.html"?>
+      <d:tocentry linkend="expand-subgraph"><?dbhtml filename="graph-querying/expand-subgraph/index.html"?>
       </d:tocentry>
 
-      <d:tocentry linkend="path-finding-procedures"><?dbhtml filename="path-finding/path-finding-procedures/index.html"?>
+      <d:tocentry linkend="expand-spanning-tree"><?dbhtml filename="graph-querying/expand-spanning-tree/index.html"?>
+
+        <d:tocentry linkend="parallel-node-search"><?dbhtml filename="graph-querying/parallel-node-search/index.html"?>
+        </d:tocentry>
       </d:tocentry>
+
+
     </d:tocentry>
 
     <d:tocentry linkend="cypher-execution"><?dbhtml filename="cypher-execution/index.html"?>
@@ -223,6 +224,8 @@
       <d:tocentry linkend="pagerank"><?dbhtml filename="algorithms/pagerank/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="centrality"><?dbhtml filename="algorithms/centrality/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="path-finding-procedures"><?dbhtml filename="algorithms/path-finding-procedures/index.html"?>
       </d:tocentry>
     </d:tocentry>
 
