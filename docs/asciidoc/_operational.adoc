@@ -9,9 +9,12 @@ This chapter describes operational procedures in the APOC library.
 * <<init-script>>
 * <<warmup>>
 * <<auto-uuid>>
+* <<log>>
 
 include::operational/cypher_init.adoc[leveloffset=2]
 
 include::operational/warmup.adoc[leveloffset=2]
 
 include::operational/uuid.adoc[leveloffset=2]
+
+include::operational/log.adoc[leveloffset=2]
