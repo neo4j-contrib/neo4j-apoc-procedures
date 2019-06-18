@@ -181,33 +181,6 @@
     <d:tocentry linkend="graph-grouping"><?dbhtml filename="virtual/graph-grouping/index.html"?>
     </d:tocentry>
   </d:tocentry>
- 
-  <d:tocentry linkend="graph-refactoring"><?dbhtml filename="graph-refactoring/index.html"?>
-    <d:tocentry linkend="clone-nodes"><?dbhtml filename="graph-refactoring/clone-nodes/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="clone-subgraph"><?dbhtml filename="graph-refactoring/clone-subgraph/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="merge-nodes"><?dbhtml filename="graph-refactoring/merge-nodes/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="redirect-relationship"><?dbhtml filename="graph-refactoring/redirect-relationship/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="invert-relationship"><?dbhtml filename="graph-refactoring/invert-relationship/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="set-relationship-type"><?dbhtml filename="graph-refactoring/set-relationship-type/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="extract-node-from-relationship"><?dbhtml filename="graph-refactoring/extract-node-from-relationship/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="collapse-node-to-relationship"><?dbhtml filename="graph-refactoring/collapse-node-to-relationship/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="categorize"><?dbhtml filename="graph-refactoring/categorize/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="rename-label-type-property"><?dbhtml filename="graph-refactoring/rename-label-type-property/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="normalize-boolean"><?dbhtml filename="graph-refactoring/normalize-boolean/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="property-value-label"><?dbhtml filename="graph-refactoring/property-value-label/index.html"?>
-    </d:tocentry>
-  </d:tocentry>
 
     <d:tocentry linkend="operational"><?dbhtml filename="operational/index.html"?>
       <d:tocentry linkend="ttl"><?dbhtml filename="operational/ttl/index.html"?>
@@ -261,6 +234,34 @@
       </d:tocentry>
 
       <d:tocentry linkend="periodic-execution"><?dbhtml filename="graph-updates/periodic-execution/index.html"?>
+
+        <d:tocentry linkend="graph-refactoring"><?dbhtml filename="graph-updates/graph-refactoring/index.html"?>
+          <d:tocentry linkend="clone-nodes"><?dbhtml filename="graph-updates/graph-refactoring/clone-nodes/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="clone-subgraph"><?dbhtml filename="graph-updates/graph-refactoring/clone-subgraph/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="merge-nodes"><?dbhtml filename="graph-updates/graph-refactoring/merge-nodes/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="redirect-relationship"><?dbhtml filename="graph-updates/graph-refactoring/redirect-relationship/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="invert-relationship"><?dbhtml filename="graph-updates/graph-refactoring/invert-relationship/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="set-relationship-type"><?dbhtml filename="graph-updates/graph-refactoring/set-relationship-type/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="extract-node-from-relationship"><?dbhtml filename="graph-updates/graph-refactoring/extract-node-from-relationship/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="collapse-node-to-relationship"><?dbhtml filename="graph-updates/graph-refactoring/collapse-node-to-relationship/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="categorize"><?dbhtml filename="graph-updates/graph-refactoring/categorize/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="rename-label-type-property"><?dbhtml filename="graph-updates/graph-refactoring/rename-label-type-property/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="normalize-boolean"><?dbhtml filename="graph-updates/graph-refactoring/normalize-boolean/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="property-value-label"><?dbhtml filename="graph-updates/graph-refactoring/property-value-label/index.html"?>
+          </d:tocentry>
+        </d:tocentry>
+
       </d:tocentry>
 
 

@@ -26,8 +26,7 @@ The guide covers the following areas:
 * <<import>> -- A detailed guide to procedures that can be used to import data from different formats including JSON, CSV, and XLS.
 * <<export>> -- A detailed guide to procedures that can be used to export data to different formats including JSON, CSV, GraphML, and Gephi.
 * <<database-integration>> -- A detailed guide to procedures that can be used to integrate with other databases including relational databases, MongoDB, Couchbase, and ElasticSearch.
-* <<graph-updates>>
-* <<graph-refactoring>> -- A detailed guide to procedures that can be used to apply graph refactorings.
+* <<graph-updates>> -- A detailed guide to procedures that can be used to apply graph updates.
 * <<schema>>
 * <<temporal>>
 * <<mathematical>>
@@ -125,8 +124,6 @@ include::_export.adoc[]
 include::_database_integration.adoc[]
 
 include::_graph_updates.adoc[]
-
-include::graph-refactor.adoc[]
 
 include::_schema.adoc[]
 

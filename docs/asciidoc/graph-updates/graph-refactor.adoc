@@ -1,9 +1,9 @@
 [[graph-refactoring]]
-== Graph Refactoring
+= Graph Refactorings
 
 [abstract]
 --
-This chapter describes graph refactoring procedures in the APOC library.
+This section describes graph refactoring procedures in the APOC library.
 --
 
 The available algorithms are described in the table below:
@@ -57,29 +57,29 @@ On mergeNodes procedure there is also a config parameter to merge relationships 
 If relationships have same start and end nodes will be merged into one, and properties managed by the properties config.
 If relationships have different start/end nodes (related to direction), relationships will be maintained and properties will be combine in all relationship.
 
-include::graph-refactor/clone-nodes.adoc[leveloffset=2]
+include::graph-refactor/clone-nodes.adoc[leveloffset=3]
 
-include::graph-refactor/clone-subgraph.adoc[leveloffset=2]
+include::graph-refactor/clone-subgraph.adoc[leveloffset=3]
 
-include::graph-refactor/merge-nodes.adoc[leveloffset=2]
+include::graph-refactor/merge-nodes.adoc[leveloffset=3]
 
-include::graph-refactor/redirect-relationship.adoc[leveloffset=2]
+include::graph-refactor/redirect-relationship.adoc[leveloffset=3]
 
-include::graph-refactor/invert-relationship.adoc[leveloffset=2]
+include::graph-refactor/invert-relationship.adoc[leveloffset=3]
 
-include::graph-refactor/set-relationship-type.adoc[leveloffset=2]
+include::graph-refactor/set-relationship-type.adoc[leveloffset=3]
 
-include::graph-refactor/extract-node-from-relationship.adoc[leveloffset=2]
+include::graph-refactor/extract-node-from-relationship.adoc[leveloffset=3]
 
-include::graph-refactor/collapse-node-to-relationship.adoc[leveloffset=2]
+include::graph-refactor/collapse-node-to-relationship.adoc[leveloffset=3]
 
-include::graph-refactor/normalize-boolean.adoc[leveloffset=2]
+include::graph-refactor/normalize-boolean.adoc[leveloffset=3]
 
-include::graph-refactor/categorize.adoc[leveloffset=2]
+include::graph-refactor/categorize.adoc[leveloffset=3]
 
-include::graph-refactor/property-value-label.adoc[leveloffset=2]
+include::graph-refactor/property-value-label.adoc[leveloffset=3]
 
-include::graph-refactor/rename-label-type-property.adoc[leveloffset=2]
+include::graph-refactor/rename-label-type-property.adoc[leveloffset=3]
 
 
 ////
