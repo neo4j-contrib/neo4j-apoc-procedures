@@ -17,16 +17,27 @@ public class CypherInitializerTest {
     public void init(String... initializers) {
         GraphDatabaseBuilder graphDatabaseBuilder = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder();
 
-        int index = 1;
-        for (String initializer: initializers) {
-            graphDatabaseBuilder.setConfig("apoc.initializer.cypher." + index++, initializer);
+        if (initializers.length == 1) {
+            graphDatabaseBuilder.setConfig("apoc.initializer.cypher", initializers[0]);
+        } else {
+            int index = 1;
+            for (String initializer: initializers) {
+                graphDatabaseBuilder.setConfig("apoc.initializer.cypher." + index++, initializer);
+            }
         }
+
         db = graphDatabaseBuilder.newGraphDatabase();
     }
 
     @After
     public void teardown() {
         db.shutdown();
+    }
+
+    @Test
+    public void noInitializerWorks() {
+        init();
+        expectNodeCount(0);
     }
 
     @Test
