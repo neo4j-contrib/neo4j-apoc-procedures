@@ -6,6 +6,10 @@
 This chapter describes procedures in the APOC library that can be used to import data into Neo4j.
 --
 
+The APOC library adds support for importing data from various data formats, including JSON, XML, and XLS.
+
+
+
 For more information on how to use these procedures, see:
 
 * <<web-apis>>

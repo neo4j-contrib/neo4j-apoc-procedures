@@ -30,21 +30,22 @@ nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',i
 
 == Load Single File From Compressed File (zip/tar/tar.gz/tgz)
 
-For load file from compressed file the url right syntax is:
+When loading data from compressed files, we need to put the `!` character before the file name.
+For example:
 
+.Loading a compressed CSV file
 ----
-apoc.load.csv("pathToFile!csv/fileName.csv")
+apoc.load.csv("pathToFile!csv/fileName.csv.tgz")
 ----
 
+.Loading a compressed JSON file
 ----
 apoc.load.json("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tgz?raw=true!person.json");
 ----
 
-You have to put the ! character before the filename.
-
 == Using S3 protocol
 
-For using S3 protocol you have to copy these jars into the plugins directory:
+When using the S3 protocol we need to download and copy the following jars into the plugins directory:
 
 * aws-java-sdk-core-1.11.250.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-core/1.11.250)
 * aws-java-sdk-s3-1.11.250.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3/1.11.250)
@@ -52,13 +53,16 @@ For using S3 protocol you have to copy these jars into the plugins directory:
 * httpcore-4.5.4.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore/4.4.8)
 * joda-time-2.9.9.jar (https://mvnrepository.com/artifact/joda-time/joda-time/2.9.9)
 
-S3 Url must be:
+Once those files have been copied we'll need to restart the database.
 
-* s3://accessKey:secretKey@endpoint:port/bucket/key
+The S3 URL must be in the following format:
+
+* `s3://accessKey:secretKey@endpoint:port/bucket/key`
 or
-* s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey
+* `s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey`
 
 
 == failOnError
 
-Adding on config the parameter `failOnError:false` (by default `true`), in case of error the procedure don't fail but just return zero rows.
+
+Adding the config parameter `failOnError:false` (by default `true`), will mean that in the case of an error the procedure will not fail, but just return zero rows.
