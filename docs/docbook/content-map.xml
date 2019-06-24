@@ -91,29 +91,26 @@
       </d:tocentry>
     </d:tocentry>
 
-    <d:tocentry linkend="utilities"><?dbhtml filename="utilities/index.html"?>
-      <d:tocentry linkend="conversion-functions"><?dbhtml filename="utilities/conversion-functions/index.html"?>
+    <d:tocentry linkend="misc"><?dbhtml filename="misc/index.html"?>
+      <d:tocentry linkend="conversion-functions"><?dbhtml filename="misc/conversion-functions/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="map-functions"><?dbhtml filename="utilities/map-functions/index.html"?>
+      <d:tocentry linkend="map-functions"><?dbhtml filename="misc/map-functions/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="collection-list-functions"><?dbhtml filename="utilities/collection-list-functions/index.html"?>
+      <d:tocentry linkend="collection-list-functions"><?dbhtml filename="misc/collection-list-functions/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="text-functions"><?dbhtml filename="utilities/text-functions/index.html"?>
-      </d:tocentry>
-
-      <d:tocentry linkend="data-extraction-functions"><?dbhtml filename="utilities/data-extraction-functions/index.html"?>
+      <d:tocentry linkend="text-functions"><?dbhtml filename="misc/text-functions/index.html"?>
       </d:tocentry>
 
-      <d:tocentry linkend="spatial"><?dbhtml filename="utilities/spatial/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="static-values"><?dbhtml filename="utilities/static-values/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="utility-functions"><?dbhtml filename="utilities/utility-functions/index.html"?>
+      <d:tocentry linkend="data-extraction-functions"><?dbhtml filename="misc/data-extraction-functions/index.html"?>
       </d:tocentry>
 
-
-      <d:tocentry linkend="log"><?dbhtml filename="utilities/log/index.html"?>
+      <d:tocentry linkend="spatial"><?dbhtml filename="misc/spatial/index.html"?>
       </d:tocentry>
+      <d:tocentry linkend="static-values"><?dbhtml filename="misc/static-values/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="utility-functions"><?dbhtml filename="misc/utility-functions/index.html"?>
+      </d:tocentry>
+
   </d:tocentry>
 
     <d:tocentry linkend="nodes-relationships"><?dbhtml filename="nodes-relationships/index.html"?>

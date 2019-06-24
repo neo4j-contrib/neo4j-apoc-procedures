@@ -3,7 +3,7 @@
 
 [abstract]
 --
-This chapter describes utility functions and procedures in the APOC library.
+This chapter describes miscellaneous functions and procedures in the APOC library.
 --
 
 Cypher brings along some basic functions for math, text, collections and maps.
