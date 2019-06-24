@@ -9,12 +9,12 @@ This section describes procedures that can be used to import JSON data from web 
 == Load JSON
 
 Web APIs are a huge opportunity to access and integrate data from any sources with your graph.
-Most of them provide the data as JSON.
+Most of them provide the data is JSON format.
 
-With `apoc.load.json` you can retrieve data from URLs and turn it into map value(s) for Cypher to consume.
-Cypher is pretty good at deconstructing nested documents with dot syntax, slices, `UNWIND` etc. so it is easy to turn nested data into graphs.
+With `apoc.load.json` we can retrieve data from URLs and turn it into map value(s) for Cypher to consume.
+Cypher has support for deconstructing nested documents with dot syntax, slices, `UNWIND` etc. so it is easy to turn nested data into graphs.
 
-Sources with multiple JSON objects (JSONL,JSON Lines) in a stream are also supported, like the https://dev.twitter.com/streaming/overview/processing[streaming Twitter format] or the Yelp Kaggle dataset.
+Sources with multiple JSON objects (JSONL,JSON Lines) in a stream, like the https://dev.twitter.com/streaming/overview/processing[streaming Twitter format] or the Yelp Kaggle dataset, are also supported,
 
 ifdef::backend-html5[]
 ++++

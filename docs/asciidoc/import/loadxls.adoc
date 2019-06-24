@@ -13,12 +13,10 @@ That's why we decided not to include it into the apoc jar, but make it an option
 
 Please download these jars and put them into your `plugins` directory:
 
-For XLS files:
-
+.For XLS files:
 * http://repo1.maven.org/maven2/org/apache/poi/poi/3.17/poi-3.17.jar[poi-3.17.jar^]
 
-Additional for XLSX files:
-
+.Additional for XLSX files:
 * http://repo1.maven.org/maven2/org/apache/commons/commons-collections4/4.1/commons-collections4-4.1.jar[commons-collections4-4.1.jar^]
 * http://repo1.maven.org/maven2/org/apache/poi/poi-ooxml/3.17/poi-ooxml-3.17.jar[poi-ooxml-3.17.jar^]
 * http://repo1.maven.org/maven2/org/apache/poi/poi-ooxml-schemas/3.17/poi-ooxml-schemas-3.17.jar[poi-ooxml-schemas-3.17.jar^]
@@ -27,7 +25,7 @@ Additional for XLSX files:
 
 === Usage
 
-The usage of `apoc.load.xls` is similar to apoc.load.csv with the main difference the ability to select a worksheet or a range from a sheet to load.
+The usage of `apoc.load.xls` is similar to `apoc.load.csv` with the main difference the ability to select a worksheet or a range from a sheet to load.
 
 You can either select the sheet by name like `'Kids'`, or offset like `'Results!B2:F3'`
 
@@ -51,7 +49,7 @@ In dateParse the first format matched return the date formatted, otherwise it wi
 
 In `format` config you can use the pattern describe as the Temporal functions: <<temporal-conversions,temporal functions>>
 
-=== Examples for apoc.load.xls
+=== Examples for `apoc.load.xls`
 
 [source,cypher]
 ----
