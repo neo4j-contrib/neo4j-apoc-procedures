@@ -30,11 +30,13 @@ Apache License 2.0
 // tag::name-history[]
 === "APOC" Name history
 
+// tag::name-history-text[]
 http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board of the Nebuchadnezzar in the Matrix movie. He was killed by Cypher.
 
 *APOC* was also the first bundled http://neo4j.com/blog/convenient-package-neo4j-apoc-0-1-released/[A Package Of Component^] for Neo4j in 2009.
 
 *APOC* also stands for "Awesome Procedures On Cypher"
+// end::name-history-text[]
 // end::name-history[]
 
 // tag::install-desktop[]

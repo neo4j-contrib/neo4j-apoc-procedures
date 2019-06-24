@@ -21,7 +21,7 @@ The guide covers the following areas:
 * <<help>> -- In-built help in the library.
 * <<overview>> -- A list of all APOC procedures and functions.
 * <<config>> -- Configuration options used by the library.
-* <<user-defined-functions>> -- An overview of user defined functions available in the library.
+//* <<user-defined-functions>> -- An overview of user defined functions available in the library.
 * <<import>> -- A detailed guide to procedures that can be used to import data from different formats including JSON, CSV, and XLS.
 * <<export>> -- A detailed guide to procedures that can be used to export data to different formats including JSON, CSV, GraphML, and Gephi.
 * <<database-integration>> -- A detailed guide to procedures that can be used to integrate with other databases including relational databases, MongoDB, Couchbase, and ElasticSearch.
@@ -58,12 +58,12 @@ endif::[]
 
 include::../../readme.adoc[tags=intro-text]
 
-include::../../readme.adoc[tags=name-history]
+[NOTE]
+====
+.APOC Name History
+include::../../readme.adoc[tags=name-history-text]
+====
 
-
-[[feedback]]
-=== Feedback
-include::../../readme.adoc[tags=feedback]
 
 [[installation]]
 === Installation
@@ -80,6 +80,10 @@ include::../../readme.adoc[tags=docker,leveloffset=1]
 === Usage
 
 include::../../readme.adoc[tags=usage]
+
+[[feedback]]
+=== Feedback
+include::../../readme.adoc[tags=feedback]
 
 
 include::help.adoc[]
@@ -114,7 +118,7 @@ include::../../build/generated-documentation/documentation.csv[]
 
 include::config.adoc[]
 
-include::functions.adoc[leveloffset=+1]
+//include::functions.adoc[leveloffset=+1]
 
 include::_import.adoc[]
 

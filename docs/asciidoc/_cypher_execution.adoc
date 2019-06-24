@@ -21,6 +21,8 @@ This chapter describes Cypher Execution procedures in the APOC library.
 | CALL apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) | abort statement after timeout millis if not finished
 |===
 
+For more information on how to use these procedures, see:
+
 * <<running-cypher>>
 * <<cypher-based-procedures-functions>>
 

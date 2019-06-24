@@ -10,6 +10,8 @@ This chapter describes operational procedures in the APOC library.
 * <<warmup>>
 * <<log>>
 
+For more information on how to use these procedures, see:
+
 include::operational/cypher_init.adoc[leveloffset=2]
 
 include::operational/warmup.adoc[leveloffset=2]

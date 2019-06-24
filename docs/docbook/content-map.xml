@@ -176,13 +176,13 @@
   </d:tocentry>
 
     <d:tocentry linkend="operational"><?dbhtml filename="operational/index.html"?>
-      <d:tocentry linkend="triggers"><?dbhtml filename="operational/triggers/index.html"?>
-      </d:tocentry>
+
       <d:tocentry linkend="init-script"><?dbhtml filename="operational/init-script/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="warmup"><?dbhtml filename="operational/warmup/index.html"?>
       </d:tocentry>
-
+      <d:tocentry linkend="log"><?dbhtml filename="operational/log/index.html"?>
+      </d:tocentry>
     </d:tocentry>
 
     <d:tocentry linkend="database-introspection"><?dbhtml filename="database-introspection/index.html"?>

@@ -6,6 +6,8 @@
 This chapter describes procedures that can be used for schema information and operations in the APOC library.
 --
 
+For more information on how to use these procedures, see:
+
 * <<temporal-conversions>>
 * <<datetime-conversions>>
 

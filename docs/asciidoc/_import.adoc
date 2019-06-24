@@ -6,10 +6,7 @@
 This chapter describes procedures in the APOC library that can be used to import data into Neo4j.
 --
 
-
-[NOTE]
-In case you have the default configuration with `apoc.import.file.use_neo4j_config=true` the export consider as root the directory defined into the `dbms.directories.import` property
-
+For more information on how to use these procedures, see:
 
 * <<web-apis>>
 * <<load-json>>

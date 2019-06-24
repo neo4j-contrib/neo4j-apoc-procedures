@@ -6,6 +6,8 @@
 This chapter describes advanced graph querying procedures in the APOC library.
 --
 
+For more information on how to use these procedures, see:
+
 * <<path-expander>>
 * <<expand-subgraph>>
 * <<expand-spanning-tree>>

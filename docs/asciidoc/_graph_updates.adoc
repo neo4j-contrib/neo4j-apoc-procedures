@@ -6,6 +6,8 @@
 This chapter describes procedures that can be used to perform graph updates.
 --
 
+For more information on how to use these procedures, see:
+
 * <<data-creation>>
 * <<auto-uuid>>
 * <<periodic-execution>>
