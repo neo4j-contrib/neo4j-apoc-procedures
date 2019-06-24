@@ -23,6 +23,21 @@ This section describes functions for working with dates and times.
 
 `apoc.date.currentTimestamp()` provides the System.currentTimeMillis which is current throughout transaction execution compared to Cypher's timestamp() function which does not update within a transaction
 
+.The following captures the current timestamp, sleeps for 1 second, and then captures the current timestamp again:
+[source,cypher]
+----
+WITH apoc.date.currentTimestamp() as start
+CALL apoc.util.sleep(1000)
+RETURN start, apoc.date.currentTimestamp() AS end;
+----
+
+.Results
+[opts="header",cols="1, 1"]
+|===
+| Start | End
+| 1561386222609 | 1561386223612
+|===
+
 == Conversion of timestamps between different time units
 
 * `apoc.date.convert(12345, 'ms', 'd')` convert a timestamp in one time unit into one of a different time unit
@@ -44,36 +59,17 @@ Splits date (optionally, using given custom format) into fields returning a map 
 RETURN apoc.date.fields('2015-03-25 03:15:59')
 ----
 
-=== Reading single datetime field from UTC epoch
-
-Extracts the value of one field from a datetime epoch.
-
-* `apoc.date.field(12345)`
-
-
-Following fields are supported:
-
-[options="header"]
-|===============================================================================================================
-| Result field	| Represents
-| 'years'		| year
-| 'months' 		| month of year
-| 'days' 		| day of month
-| 'hours' 		| hour of day
-| 'minutes' 	| minute of hour
-| 'seconds'		| second of minute
-| 'zone'		| https://dohcs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html#timezone[time zone]
-|===============================================================================================================
-
-== Examples
-
+.The following returns the fields in a date and time:
 [source,cypher]
 ----
-RETURN apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')
+RETURN apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') AS output;
 ----
 
-----
-  {
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+|  {
     'weekdays': 5,
     'years': 2015,
     'seconds': 5,
@@ -83,22 +79,26 @@ RETURN apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz')
     'months': 1,
     'days': 2
   }
-----
+|===
 
+.The following returns the fields in a date:
 [source,cypher]
 ----
-RETURN apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z')
+RETURN apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z') AS output;
 ----
 
-----
-  {
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+|  {
     'weekdays': 5,
     'years': 2015,
     'zoneid': 'EET',
     'months': 1,
     'days': 2
   }
-----
+|===
 
 
 == Notes on formats:
@@ -126,20 +126,36 @@ Following fields are supported:
 | Result field	| Represents
 | 'years'		| year
 | 'months' 		| month of year
-| 'days' 		| day of month
+| 'days' 		| day of month (default)
 | 'hours' 		| hour of day
 | 'minutes' 	| minute of hour
 | 'seconds'		| second of minute
 | 'millis'		| milliseconds of a second
 |===============================================================================================================
 
-== Examples
-
+.The following returns the day of the month of the timestamp:
 [source,cypher]
 ----
-RETURN apoc.date.field(12345, 'days')
+RETURN apoc.date.field(12345) AS output;
 ----
 
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| 1
+|===
+
+.The following returns the year of the timestamp:
+[source,cypher]
 ----
-    2
+RETURN apoc.date.field(12345, 'years') AS output;
 ----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| 1970
+|===
+
