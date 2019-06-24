@@ -169,8 +169,6 @@
     </d:tocentry>
     <d:tocentry linkend="nodes-collapse"><?dbhtml filename="virtual/nodes-collapse/index.html"?>
     </d:tocentry>
-    <d:tocentry linkend="virtual-use-cases"><?dbhtml filename="virtual/use-cases/index.html"?>
-    </d:tocentry>
     <d:tocentry linkend="virtual-graph"><?dbhtml filename="virtual/virtual-graph/index.html"?>
     </d:tocentry>
     <d:tocentry linkend="graph-grouping"><?dbhtml filename="virtual/graph-grouping/index.html"?>
