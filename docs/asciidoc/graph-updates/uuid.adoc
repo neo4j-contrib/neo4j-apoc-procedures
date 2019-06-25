@@ -86,14 +86,17 @@ First create a Constraint for the Label and the Property, if you try to add a `u
 
 [source,cypher]
 ----
-CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE
+CREATE CONSTRAINT ON (person:Person)
+ASSERT person.uuid IS UNIQUE
 ----
 
 Add the `uuid`:
 
 [source,cypher]
 ----
-CALL apoc.uuid.install('Person') YIELD label RETURN label
+CALL apoc.uuid.install('Person')
+YIELD label, installed, properties
+RETURN label, installed, properties
 ----
 
 The result is:
@@ -112,9 +115,9 @@ Get all the uuid installed, call the procedure as:
 
 [source,cypher]
 ----
-call apoc.uuid.list()
-YIELD label, installed
-RETURN label, installed
+CALL apoc.uuid.list()
+YIELD label, installed, properties
+RETURN label, installed, properties
 ----
 
 The result is:
@@ -130,9 +133,9 @@ Remove the uuid installed call the procedure as:
 
 [source,cypher]
 ----
-call apoc.uuid.remove('Person')
-yield label
-return label
+CALL apoc.uuid.remove('Person')
+YIELD label, installed, properties
+RETURN label, installed, properties
 ----
 
 The result is:
@@ -148,7 +151,9 @@ You can also remove all the uuid installed call the procedure as:
 
 [source,cypher]
 ----
-call apoc.uuid.removeAll() yield label return label
+CALL apoc.uuid.removeAll()
+YIELD label, installed, properties
+RETURN label, installed, properties
 ----
 
 The result is:
