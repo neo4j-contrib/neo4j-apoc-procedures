@@ -1,9 +1,9 @@
 [[meta-graph]]
 = Meta Graph
 
-image::apoc.meta.graph.jpg[scaledwidth="100%"]
-
 Returns a virtual graph that represents the labels and relationship-types available in your database and how they are connected.
+
+image::apoc.meta.graph.jpg[scaledwidth="100%"]
 
 .Procedures
 [cols="1m,5"]

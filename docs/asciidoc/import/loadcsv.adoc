@@ -49,20 +49,21 @@ Rana,12,Tea;Milk
 Selina,19,Cola
 ----
 
+[source, cypher]
 ----
 CALL apoc.load.csv('/tmp/test.csv') yield lineNo, map, list
 RETURN *;
 ----
 
-----
-+---------------------------------------------------------------------------------------+
-| lineNo | list                       | map                                             |
-+---------------------------------------------------------------------------------------+
-| 0      | ["Selma", "9", "Soda"]     | {name: "Selma", age: "9", beverage: "Soda"}     |
-| 1      | ["Rana", "12", "Tea;Milk"] | {name: "Rana", age: "12", beverage: "Tea;Milk"} |
-| 2      | ["Selina", "19", "Cola"]   | {name: "Selina", age: "19", beverage: "Cola"}   |
-+---------------------------------------------------------------------------------------+
-----
+.Results
+[opts="header",cols="1,1,1"]
+|===
+| lineNo | list | map
+| 0      | ["Selma", "9", "Soda"]     | {name: "Selma", age: "9", beverage: "Soda"}
+| 1      | ["Rana", "12", "Tea;Milk"] | {name: "Rana", age: "12", beverage: "Tea;Milk"}
+| 2      | ["Selina", "19", "Cola"]   | {name: "Selina", age: "19", beverage: "Cola"}
+|===
+
 
 === Configuration Options
 
@@ -95,6 +96,7 @@ Besides the file you can pass in a config map:
 |===
 
 
+[source,cypher]
 ----
 CALL apoc.load.csv('/tmp/test.csv',
   {skip:1,limit:1,header:true,ignore:'name',
@@ -102,16 +104,14 @@ CALL apoc.load.csv('/tmp/test.csv',
 RETURN *;
 ----
 
-----
-+---------------------------------------------------------------------------------------+
-| lineNo | list                       | map                                             |
-+---------------------------------------------------------------------------------------+
-| 0      | ["Selma", "9", "Soda"]     | {name: "Selma", age: "9", beverage: "Soda"}     |
-| 1      | ["Rana", "12", "Tea;Milk"] | {name: "Rana", age: "12", beverage: "Tea;Milk"} |
-| 2      | ["Selina", "19", "Cola"]   | {name: "Selina", age: "19", beverage: "Cola"}   |
-+---------------------------------------------------------------------------------------+
-----
-
+.Results
+[opts="header",cols="1,1,1"]
+|===
+| lineNo | list | map
+| 0      | ["Selma", "9", "Soda"]     | {name: "Selma", age: "9", beverage: "Soda"}
+| 1      | ["Rana", "12", "Tea;Milk"] | {name: "Rana", age: "12", beverage: "Tea;Milk"}
+| 2      | ["Selina", "19", "Cola"]   | {name: "Selina", age: "19", beverage: "Cola"}
+|===
 
 === Transaction Batching
 
@@ -130,11 +130,11 @@ CREATE (p:Person) SET p = row
 
 NOTE: Please note that the parallel operation only works well for non-conflicting updates otherwise you might run into deadlocks.
 
-To make these datastructures available to Cypher, you can use `apoc.load.xml`.
-It takes a file or http URL and parses the XML into a map datastructure.
+To make these data structures available to Cypher, you can use `apoc.load.xml`.
+It takes a file or http URL and parses the XML into a map data structure.
 
 NOTE: in previous releases we've had `apoc.load.xmlSimple`.
-This is now deprecated and has been superseeded by `apoc.load.xml(url, [xPath], [config], true)`.Simple XML Format
+This is now deprecated and has been superseded by `apoc.load.xml(url, [xPath], [config], true)`.Simple XML Format
 
 See the following usage-examples for the procedures.
 
