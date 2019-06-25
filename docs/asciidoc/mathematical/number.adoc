@@ -27,64 +27,94 @@ This section describes functions that can be used to format numeric values.
 
 == Examples
 
-....
-  return apoc.number.format(12345.67) as value
+.The following formats a double value using the default system pattern:
+[source,cypher]
+----
+RETURN apoc.number.format(12345.67) as value;
+----
 
-  ╒═════════╕
-  │value    │
-  ╞═════════╡
-  │12,345.67│
-  └─────────┘
-....
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 12,345.67
+|===
 
-....
-  return apoc.number.format(12345, '#,##0.00;(#,##0.00)', 'it') as value
+.The following formats a double value, using `.` as thousand separator, `,` as decimal separator, rounding down:
+[source,cypher]
+----
+RETURN apoc.number.format(12345, '#,##0.00;(#,##0.00)', 'it') as value;
+----
 
-  ╒═════════╕
-  │value    │
-  ╞═════════╡
-  │12.345,00│
-  └─────────
-....
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 12.345,00
+|===
 
-....
-  return apoc.number.format(12345.67, '#,##0.00;(#,##0.00)', 'it') as value
+.The following formats a double value, using `.` as thousand separator and `,` as decimal separator:
+[source,cypher]
+----
+RETURN apoc.number.format(12345.67, '#,##0.00;(#,##0.00)', 'it') as value;
+----
 
-  ╒═════════╕
-  │value    │
-  ╞═════════╡
-  │12.345,67│
-  └─────────┘
-....
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 12.345,67
+|===
 
-....
-  return apoc.number.parseInt('12.345', '#,##0.00;(#,##0.00)', 'it') as value
+.The following parses a formatted value as an int:
+[source,cypher]
+----
+RETURN apoc.number.parseInt('12.345', '#,##0.00;(#,##0.00)', 'it') as value;
+----
 
-  ╒═════╕
-  │value│
-  ╞═════╡
-  │12345│
-  └─────┘
-....
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 12345
+|===
 
-....
-  return apoc.number.parseFloat('12.345,67', '#,##0.00;(#,##0.00)', 'it') as value
+.The following parses a formatted value as a float:
+[source,cypher]
+----
+RETURN apoc.number.parseFloat('12.345,67', '#,##0.00;(#,##0.00)', 'it') as value;
+----
 
-  ╒════════╕
-  │value   │
-  ╞════════╡
-  │12345.67│
-  └────────┘
-....
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 12345.67
+|===
 
-....
-  return apoc.number.format('aaa') as value
+.The following formats a non numeric value:
+[source,cypher]
+----
+RETURN apoc.number.format('aaa') AS value;
+----
 
-  null because 'aaa' isn't a number
-....
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| null
+|===
 
-....
-  RETURN apoc.number.parseInt('aaa')
-  
-  Return null because 'aaa' is unparsable.
-....
+.The following parses a non numeric value:
+[source,cypher]
+----
+RETURN apoc.number.parseInt('aaa') AS value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| null
+|===
+
