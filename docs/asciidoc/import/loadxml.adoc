@@ -83,7 +83,8 @@ call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-p
 [source,cypher]
 ----
 WITH "https://maps.googleapis.com/maps/api/directions/xml?origin=Mertens%20en%20Torfsstraat%2046,%202018%20Antwerpen&destination=Rubensstraat%2010,%202300%20Turnhout&sensor=false&mode=bicycling&alternatives=false&key=AIzaSyAPPIXGudOyHD_KAa2f_1l_QVNbsd_pMQs" AS url
-CALL apoc.load.xmlSimple(url) YIELD value
+CALL apoc.load.xmlSimple(url)
+YIELD value
 RETURN value._route._leg._distance._value, keys(value), keys(value._route), keys(value._route._leg), keys(value._route._leg._distance._value)
 ----
 image::apoc.load.xmlSimple.ex1.png[scaledwidth="100%"]
@@ -92,7 +93,8 @@ image::apoc.load.xmlSimple.ex1.png[scaledwidth="100%"]
 [source,cypher]
 ----
 WITH "https://maps.googleapis.com/maps/api/directions/xml?origin=Mertens%20en%20Torfsstraat%2046,%202018%20Antwerpen&destination=Rubensstraat%2010,%202300%20Turnhout&sensor=false&mode=bicycling&alternatives=false&key=AIzaSyAPPIXGudOyHD_KAa2f_1l_QVNbsd_pMQs" AS url
-CALL apoc.load.xmlSimple(url) YIELD value
+CALL apoc.load.xmlSimple(url)
+YIELD value
 UNWIND keys(value) AS key
 RETURN key, apoc.meta.type(value[key]);
 ----
@@ -108,7 +110,8 @@ You can provide a map of HTTP headers to the config property.
 ----
 WITH { `X-API-KEY`: 'abc123' } as headers,
 WITH "https://myapi.com/api/v1/" AS url
-CALL apoc.load.xml(url, '', { headers: headers }) YIELD value
+CALL apoc.load.xml(url, '', { headers: headers })
+YIELD value
 UNWIND keys(value) AS key
 RETURN key, apoc.meta.type(value[key]);
 ----
@@ -123,7 +126,8 @@ From the Microsoft's book.xml file we can get only the books that have as `genre
 
 [source,cypher,subs=attributes]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml", '/catalog/book[genre=\"Computer\"]') yield value as book
+CALL apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml", '/catalog/book[genre=\"Computer\"]')
+YIELD value as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['title','price'] | attr._text] as pairs
 RETURN id, pairs[0] as title, pairs[1] as price
 ----
@@ -137,7 +141,8 @@ For example the `author` of the book with `id = bg102`
 
 [source,cypher,subs=attributes]
 ----
-call apoc.load.xml('https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml', '/catalog/book[@id="bk102"]/author') yield value as result
+call apoc.load.xml('https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml', '/catalog/book[@id="bk102"]/author')
+YIELD value as result
 WITH result._text as author
 RETURN author
 ----
@@ -155,7 +160,7 @@ And each element into their own little map with `_type`, attributes and `_childr
 
 [source,cypher,subs=attributes]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml")
+CALL apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml")
 ----
 
 [source,javascript]
@@ -176,19 +181,19 @@ You can access attributes per element directly.
 
 [source,cypher,subs=attributes]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml") yield value as catalog
+CALL apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml")
+YIELD value as catalog
 UNWIND catalog._children as book
 RETURN book.id
 ----
 
-----
-╒═══════╕
-│book.id│
-╞═══════╡
-│bk101  │
-├───────┤
-│bk102  │
-----
+.Results
+[opts="header",cols="1"]
+|===
+| book.id
+| bk101
+| bk102
+|===
 
 
 === For each book, how do I access book author and title ?
@@ -199,19 +204,20 @@ You have to filter over the sub-elements  in the `_childrens` array in this case
 
 [source,cypher,subs=attributes]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml") yield value as catalog
+CALL apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml")
+YIELD value as catalog
 UNWIND catalog._children as book
 RETURN book.id, [attr IN book._children WHERE attr._type IN ['author','title'] | [attr._type, attr._text]] as pairs
 ----
 
-----
-╒═══════╤════════════════════════════════════════════════════════════════════════╕
-│book.id│pairs                                                                   │
-╞═══════╪════════════════════════════════════════════════════════════════════════╡
-│bk101  │[[author, Gambardella, Matthew], [title, XML Developer's Guide]]        │
-├───────┼────────────────────────────────────────────────────────────────────────┤
-│bk102  │[[author, Ralls, Kim], [title, Midnight Rain]]                          │
-----
+.Results
+[opts="header",cols="1,1"]
+|===
+| book.id | pairs
+| bk101 | \[[author, Gambardella, Matthew], [title, XML Developer's Guide]]
+| book.id | \[[author, Ralls, Kim], [title, Midnight Rain]]
+|===
+
 
 ==== How do I return collection elements?
 
@@ -219,20 +225,20 @@ This is not too nice, we could also just have returned the values and then grabb
 
 [source,cypher,subs=attributes]
 ----
-call apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml") yield value as catalog
+CALL apoc.load.xml("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml")
+YIELD value as catalog
 UNWIND catalog._children as book
 WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | attr._text] as pairs
 RETURN id, pairs[0] as author, pairs[1] as title
 ----
 
-----
-╒═════╤════════════════════╤══════════════════════════════╕
-│id   │author              │title                         │
-╞═════╪════════════════════╪══════════════════════════════╡
-│bk101│Gambardella, Matthew│XML Developer's Guide         │
-├─────┼────────────────────┼──────────────────────────────┤
-│bk102│Ralls, Kim          │Midnight Rain                 │
-----
+.Results
+[opts="header",cols="1,1,1"]
+|===
+| id | author | title
+| bk101 | Gambardella, Matthew | XML Developer's Guide
+| bk102 | Ralls, Kim          | Midnight Rain
+|===
 
 == Extracting Datastructures
 
@@ -249,16 +255,14 @@ CALL apoc.map.fromPairs(pairs) yield value
 RETURN id, value
 ----
 
-----
-╒═════╤════════════════════════════════════════════════════════════════════╕
-│id   │value                                                               │
-╞═════╪════════════════════════════════════════════════════════════════════╡
-│bk101│{author: Gambardella, Matthew, title: XML Developer's Guide}        │
-├─────┼────────────────────────────────────────────────────────────────────┤
-│bk102│{author: Ralls, Kim, title: Midnight Rain}                          │
-├─────┼────────────────────────────────────────────────────────────────────┤
-│bk103│{author: Corets, Eva, title: Maeve Ascendant}                       │
-----
+.Results
+[opts="header",cols="1,1"]
+|===
+| id | value
+| bk101 | {author: Gambardella, Matthew, title: XML Developer's Guide}
+| bk102 | {author: Ralls, Kim, title: Midnight Rain}
+| bk103 | {author: Corets, Eva, title: Maeve Ascendant}
+|===
 
 ==== Return individual Columns
 
@@ -273,16 +277,14 @@ CALL apoc.map.fromPairs(pairs) yield value
 RETURN id, value.author, value.title
 ----
 
-----
-╒═════╤════════════════════╤══════════════════════════════╕
-│id   │value.author        │value.title                   │
-╞═════╪════════════════════╪══════════════════════════════╡
-│bk101│Gambardella, Matthew│XML Developer's Guide         │
-├─────┼────────────────────┼──────────────────────────────┤
-│bk102│Ralls, Kim          │Midnight Rain                 │
-├─────┼────────────────────┼──────────────────────────────┤
-│bk103│Corets, Eva         │Maeve Ascendant               │
-----
+.Results
+[opts="header",cols="1,1,1"]
+|===
+| id | value.author | value.title
+| bk101 | Gambardella, Matthew | XML Developer's Guide
+| bk102 | Ralls, Kim  | Midnight Rain
+| bk103 | Corets, Eva | Maeve Ascendant
+|===
 
 == import xml directly
 
@@ -337,13 +339,13 @@ The following options are available for the `config` map:
 
 [source,cypher,subs=attributes]
 ----
-call
+CALL
 apoc.xml.import("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/src/test/resources/xml/books.xml",{createNextWordRelationships:
 true})
-yield node
-return node;
+YIELD node
+RETURN node;
 
-call apoc.xml.import('https://seafile.rlp.net/f/6282a26504cc4f079ab9/?dl=1', {connectCharacters: true, charactersForTag:{lb:' '}, filterLeadingWhitespace: true}) yield node
+CALL apoc.xml.import('https://seafile.rlp.net/f/6282a26504cc4f079ab9/?dl=1', {connectCharacters: true, charactersForTag:{lb:' '}, filterLeadingWhitespace: true}) yield node
 return node;
 
 ----

@@ -51,7 +51,8 @@ Selina,19,Cola
 
 [source, cypher]
 ----
-CALL apoc.load.csv('/tmp/test.csv') yield lineNo, map, list
+CALL apoc.load.csv('test.csv')
+YIELD lineNo, map, list
 RETURN *;
 ----
 
@@ -98,9 +99,13 @@ Besides the file you can pass in a config map:
 
 [source,cypher]
 ----
-CALL apoc.load.csv('/tmp/test.csv',
-  {skip:1,limit:1,header:true,ignore:'name',
-   mapping:{age:{type:'int'},beverage:{array:true,arraySep:';',name:'drinks'}) yield lineNo, map, list
+CALL apoc.load.csv('test.csv', {skip:1, limit:1, header:true, ignore:['name'],
+   mapping:{
+     age: {type:'int'},
+     beverage: {array:true, arraySep:';', name:'drinks'}
+   }
+})
+YIELD lineNo, map, list
 RETURN *;
 ----
 
@@ -108,9 +113,7 @@ RETURN *;
 [opts="header",cols="1,1,1"]
 |===
 | lineNo | list | map
-| 0      | ["Selma", "9", "Soda"]     | {name: "Selma", age: "9", beverage: "Soda"}
-| 1      | ["Rana", "12", "Tea;Milk"] | {name: "Rana", age: "12", beverage: "Tea;Milk"}
-| 2      | ["Selina", "19", "Cola"]   | {name: "Selina", age: "19", beverage: "Cola"}
+| 1 | [12,["Tea","Milk"]] | {"age":12,"drinks":["Tea","Milk"]}
 |===
 
 === Transaction Batching
