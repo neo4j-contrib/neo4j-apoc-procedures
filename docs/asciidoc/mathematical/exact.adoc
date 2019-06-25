@@ -26,37 +26,46 @@ The default value is 0 (unlimited precision arithmetic) while for 'roundingModel
 
 For example if we set as `prec` 2:
 
-....
-  return apoc.number.exact.div('5555.5555','5', 2, 'HALF_DOWN') as value
+[source,cypher]
+----
+RETURN apoc.number.exact.div('5555.5555','5', 2, 'HALF_DOWN') as value;
+----
 
-  ╒═════════╕
-  │value    │
-  ╞═════════╡
-  │  1100   │
-  └─────────┘
-....
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 1100
+|===
+
 
 As a result we have only the first two digits precise.
 If we set 8 we have all the result precise
-....
-  return apoc.number.exact.div('5555.5555','5', 8, 'HALF_DOWN') as value
 
-  ╒═════════╕
-  │value    │
-  ╞═════════╡
-  │1111.1111│
-  └─────────┘
-....
+[source,cypher]
+----
+RETURN apoc.number.exact.div('5555.5555','5', 8, 'HALF_DOWN') as value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 1111.1111
+|===
 
 All the functions accept as input the *scientific notation* as `1E6`, for example:
-....
-  return apoc.number.exact.add('1E6','1E6') as value
 
-  ╒═════════╕
-  │value    │
-  ╞═════════╡
-  │ 2000000 │
-  └─────────┘
-....
+[source,cypher]
+----
+RETURN apoc.number.exact.add('1E6','1E6') as value;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Value
+| 2000000
+|===
 
 For other information see the documentation about https://docs.oracle.com/javase/7/docs/api/java/math/BigDecimal.html#[BigDecimal] and https://docs.oracle.com/javase/7/docs/api/java/math/BigInteger.html#[BigInteger]
