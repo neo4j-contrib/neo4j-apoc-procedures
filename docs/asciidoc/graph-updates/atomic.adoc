@@ -40,7 +40,12 @@ YIELD oldValue, newValue
 RETURN n
 ----
 
-image::apoc.atomic.add.png[scaledwidth="100%"]
+.Results
+[opts="header",cols="1"]
+|===
+| n
+| {"name":"Tom","age":50}
+|===
 
 .subtract
 
@@ -53,6 +58,14 @@ CALL apoc.atomic.subtract(n,'age',10,5)
 YIELD oldValue, newValue
 RETURN n
 ----
+
+.Results
+[opts="header",cols="1"]
+|===
+| n
+| {"name":"Tom","age":40}
+|===
+
 
 .concat
 
@@ -71,31 +84,40 @@ YIELD newValue
 RETURN p
 ----
 
-image::apoc.atomic.concat.png[scaledwidth="100%"]
+.Results
+[opts="header",cols="1"]
+|===
+| p
+| {"name":"William","age":35}
+|===
+
 
 .insert
 
 Dataset
 
-we add a propery `children` that is an array
+we add a property `children` that is an array
 
 [source,cypher]
 ----
-CREATE (p:Person {name:'Tom', children: ['Anne','Sam','Paul']})
+CREATE (p:Person {name:'David', children: ['Anne','Sam','Paul']})
 ----
 
-image::apoc.atomic.insert.png[scaledwidth="100%"]
-
-Now we add `Mary` to propery children at the position 2
+Now we add `Mary` to property `children` at the position 2
 [source,cypher]
 ----
-MATCH (p:Person {name:'Tom'})
+MATCH (p:Person {name:'David'})
 CALL apoc.atomic.insert(p,'children',2,'Mary',5)
 YIELD newValue
 RETURN p
 ----
 
-image::apoc.atomic.insert.result.png[scaledwidth="100%"]
+.Results
+[opts="header",cols="1"]
+|===
+| p
+| {"name":"David","children":["Anne","Sam","Mary","Paul"]}
+|===
 
 .remove
 
@@ -103,27 +125,32 @@ Dataset
 
 [source,cypher]
 ----
-CREATE (p:Person {name:'Tom', cars: ['Class A','X3','Focus']})
+CREATE (p:Person {name:'John', cars: ['Class A','X3','Focus']})
 ----
 
 Now we remove the element `X3` which is at the position 1 from the array `cars`
 
 [source,cypher]
 ----
-MATCH (p:Person {name:'Tom'})
+MATCH (p:Person {name:'John'})
 CALL apoc.atomic.remove(p,'cars',1,5)
 YIELD newValue
 RETURN p
 ----
 
-image::apoc.atomic.remove.png[scaledwidth="100%"]
+.Results
+[opts="header",cols="1"]
+|===
+| p
+| {"name":"John","cars":["Class A","Focus"]}
+|===
 
 .update
 
 Dataset
 
 ----
-CREATE (p:Person {name:'Tom', salary1:1800, salary2:1500})
+CREATE (p:Person {name:'Ryan', salary1:1800, salary2:1500})
 ----
 
 We want to update `salary1` with the result of an expression.
@@ -132,10 +159,15 @@ If we rename our node/rel (as in the example above) we have anyway to refer to i
 
 [source,cypher]
 ----
-MATCH (p:Person {name:'Tom'})
+MATCH (p:Person {name:'Ryan'})
 CALL apoc.atomic.update(p,'salary1','n.salary1*3 + n.salary2',5)
 YIELD newValue
 RETURN p
 ----
 
-image::apoc.atomic.update.png[scaledwidth="100%"]
+.Results
+[opts="header",cols="1"]
+|===
+| p
+| {"name":"Ryan","salary1":6900,"salary2":1500}
+|===
