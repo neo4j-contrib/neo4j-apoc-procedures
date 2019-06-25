@@ -10,20 +10,19 @@ The query is executed repeatedly in separate transactions until it returns 0.
 
 [source,cypher]
 ----
-call apoc.periodic.commit("
-match (user:User) WHERE exists( user.city )
-with user limit {limit}
-MERGE (city:City {name:user.city})
-MERGE (user)-[:LIVES_IN]->(city)
-REMOVE user.city
-RETURN count(*)
-",{limit:10000})
+call apoc.periodic.commit(
+  "match (user:User) WHERE exists( user.city )
+   with user limit {limit}
+   MERGE (city:City {name:user.city})
+   MERGE (user)-[:LIVES_IN]->(city)
+   REMOVE user.city
+   RETURN count(*)",
+  {limit:10000})
 ----
 
-----
-+=======+==========+
-|updates|executions|
-+=======+==========+
-|2000000|200       |
-+-------+----------+
-----
+.Results
+[opts="header"]
+|===
+| Updates | Executions
+| 2000000 | 200
+|===
