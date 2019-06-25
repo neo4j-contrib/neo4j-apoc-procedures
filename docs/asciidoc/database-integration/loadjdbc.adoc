@@ -67,33 +67,37 @@ Northwind is a common example set for relational databases, which is also covere
 [source,sql]
 ----
 select count(*) from products;
-+----------+
-| count(*) |
-+----------+
-|       77 |
-+----------+
-1 row in set (0,00 sec)
 ----
+
+
+.Results
+[opts="header",cols="1"]
+|===
+| count(*)
+| 77
+|===
+
 
 [source,sql]
 ----
 describe products;
-+-----------------+---------------+------+-----+---------+----------------+
-| Field           | Type          | Null | Key | Default | Extra          |
-+-----------------+---------------+------+-----+---------+----------------+
-| ProductID       | int(11)       | NO   | PRI | NULL    | auto_increment |
-| ProductName     | varchar(40)   | NO   | MUL | NULL    |                |
-| SupplierID      | int(11)       | YES  | MUL | NULL    |                |
-| CategoryID      | int(11)       | YES  | MUL | NULL    |                |
-| QuantityPerUnit | varchar(20)   | YES  |     | NULL    |                |
-| UnitPrice       | decimal(10,4) | YES  |     | 0.0000  |                |
-| UnitsInStock    | smallint(2)   | YES  |     | 0       |                |
-| UnitsOnOrder    | smallint(2)   | YES  |     | 0       |                |
-| ReorderLevel    | smallint(2)   | YES  |     | 0       |                |
-| Discontinued    | bit(1)        | NO   |     | b'0'    |                |
-+-----------------+---------------+------+-----+---------+----------------+
-10 rows in set (0,00 sec)
 ----
+
+.Results
+[opts="header"]
+|===
+| Field           | Type          | Null | Key | Default | Extra
+| ProductID       | int(11)       | NO   | PRI | NULL    | auto_increment
+| ProductName     | varchar(40)   | NO   | MUL | NULL    |
+| SupplierID      | int(11)       | YES  | MUL | NULL    |
+| CategoryID      | int(11)       | YES  | MUL | NULL    |
+| QuantityPerUnit | varchar(20)   | YES  |     | NULL    |
+| UnitPrice       | decimal(10,4) | YES  |     | 0.0000  |
+| UnitsInStock    | smallint(2)   | YES  |     | 0       |
+| UnitsOnOrder    | smallint(2)   | YES  |     | 0       |
+| ReorderLevel    | smallint(2)   | YES  |     | 0       |
+| Discontinued    | bit(1)        | NO   |     | b'0'    |
+|===
 
 == Load JDBC Examples
 
@@ -111,15 +115,12 @@ CALL apoc.load.jdbc(url,"products") YIELD row
 RETURN count(*);
 ----
 
-----
-+----------+
-| count(*) |
-+----------+
-| 77       |
-+----------+
-1 row
-23 ms
-----
+.Results
+[opts="header",cols="1"]
+|===
+| count(*)
+| 77
+|===
 
 .Return row from products table
 [source,cypher]
@@ -129,15 +130,13 @@ CALL apoc.load.jdbc(url,"products") YIELD row
 RETURN row limit 1;
 ----
 
-----
-+--------------------------------------------------------------------------------+
-| row                                                                            |
-+--------------------------------------------------------------------------------+
-| {UnitPrice -> 18.0000, UnitsOnOrder -> 0, CategoryID -> 1, UnitsInStock -> 39} |
-+--------------------------------------------------------------------------------+
-1 row
-10 ms
-----
+.Results
+[opts="header",cols="1"]
+|===
+| row
+| {UnitPrice -> 18.0000, UnitsOnOrder -> 0, CategoryID -> 1, UnitsInStock -> 39}
+|===
+
 
 image::apoc-load-jdbc.jpg[width=800]
 
@@ -200,13 +199,12 @@ YIELD row
 RETURN count(*);
 ----
 
-----
-╒════════╕
-│count(*)│
-╞════════╡
-│3605    │
-└────────┘
-----
+.Results
+[opts="header",cols="1"]
+|===
+| count(*)
+| 3605
+|===
 
 [source,cypher]
 ----
@@ -223,21 +221,16 @@ RETURN row.first_letter, row.artist
 LIMIT 5;
 ----
 
-----
-╒════════════════╤═══════════════════════════════╕
-│row.first_letter│row.artist                     │
-╞════════════════╪═══════════════════════════════╡
-│C               │C.W. Stoneking                 │
-├────────────────┼───────────────────────────────┤
-│C               │CH2K                           │
-├────────────────┼───────────────────────────────┤
-│C               │CHARLIE HUNTER WITH LEON PARKER│
-├────────────────┼───────────────────────────────┤
-│C               │Calvin Harris                  │
-├────────────────┼───────────────────────────────┤
-│C               │Camané                         │
-└────────────────┴───────────────────────────────┘
-----
+.Results
+[opts="header",cols="1,1"]
+|===
+| row.first_letter | row.artist
+| C |  C.W. Stoneking
+| C |  CH2K
+| C |  CHARLIE HUNTER WITH LEON PARKER
+| C |  Calvin Harris
+| C |  Camané
+|===
 
 Let's create some graph data, we have a look at the track_by_artist table, which contains about 60k records.
 
@@ -264,16 +257,13 @@ RETURN row.track_id, row.track_length_in_seconds, row.track, row.music_file, row
 LIMIT 2;
 ----
 
-[.small]
-----
-╒════════════════════════════════════╤══════╤════════════════╤══════════════════╤═════════╤════════════════════════════╤═══════════╕
-│row.track_id                        │length│row.track       │row.music_file    │row.genre│row.artist                  │row.starred│
-╞════════════════════════════════════╪══════╪════════════════╪══════════════════╪═════════╪════════════════════════════╪═══════════╡
-│c0693b1e-0eaa-4e81-b23f-b083db303842│219   │1913 Massacre   │TRYKHMD128F934154C│folk     │Woody Guthrie & Jack Elliott│false      │
-├────────────────────────────────────┼──────┼────────────────┼──────────────────┼─────────┼────────────────────────────┼───────────┤
-│7d114937-0bc7-41c7-8e0c-94b5654ac77f│178   │Alabammy Bound  │TRMQLPV128F934152B│folk     │Woody Guthrie & Jack Elliott│false      │
-└────────────────────────────────────┴──────┴────────────────┴──────────────────┴─────────┴────────────────────────────┴───────────┘
-----
+.Results
+[opts="header"]
+|===
+| row.track_id | length | row.track | row.music_file | row.genre | row.artist | row.starred
+| c0693b1e-0eaa-4e81-b23f-b083db303842 | 219   | 1913 Massacre   | TRYKHMD128F934154C | folk     | Woody Guthrie & Jack Elliott | false
+| 7d114937-0bc7-41c7-8e0c-94b5654ac77f | 178   | Alabammy Bound   | TRMQLPV128F934152B | folk     | Woody Guthrie & Jack Elliott | false
+|===
 
 Let's create some indexes and constraints, note that other indexes and constraints will be dropped by this.
 
@@ -284,21 +274,17 @@ CALL apoc.schema.assert(
   {Artist:['name'],Track:['id'],Genre:['name']});
 ----
 
-----
-╒════════════╤═══════╤══════╤═══════╕
-│label       │key    │unique│action │
-╞════════════╪═══════╪══════╪═══════╡
-│Track       │title  │false │CREATED│
-├────────────┼───────┼──────┼───────┤
-│Track       │length │false │CREATED│
-├────────────┼───────┼──────┼───────┤
-│Artist      │name   │true  │CREATED│
-├────────────┼───────┼──────┼───────┤
-│Genre       │name   │true  │CREATED│
-├────────────┼───────┼──────┼───────┤
-│Track       │id     │true  │CREATED│
-└────────────┴───────┴──────┴───────┘
-----
+.Results
+[opts="header"]
+|===
+| label | key | unique | action
+| Track | title | false | CREATED
+| Track | length | false | CREATED
+| Artist | name | true | CREATED
+| Genre | name | true | CREATED
+| Track | id | true | CREATED
+|===
+
 
 // TODO add some nice queries, create graph data from cassandra
 
