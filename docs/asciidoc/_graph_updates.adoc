@@ -6,6 +6,8 @@
 This chapter describes procedures that can be used to perform graph updates.
 --
 
+The APOC library adds extra functionality for writing to the database.
+
 For more information on how to use these procedures, see:
 
 * <<data-creation>>
