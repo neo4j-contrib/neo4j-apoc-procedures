@@ -120,7 +120,7 @@ YIELD newValue
 RETURN p
 ----
 
-The expression always have to be referenced with the `n.` that refers to the node/rel passed as the first parameter.
+The expression always have to be referenced with the `n.` that refers to the entity passed as the first parameter.
 If we rename our node/rel (as in the example above) we have anyway to refer to it in the expression as `n`.
 
 .Results
