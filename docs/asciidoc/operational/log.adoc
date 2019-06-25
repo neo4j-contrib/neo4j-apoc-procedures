@@ -42,9 +42,9 @@ The following call (with the default configuration):
 call apoc.log.info('Hello %s', ['World'])
 ----
 
-produces the following output into the log:
+produces the following output in the Neo4j log:
 
 [source,cypher]
 ----
-hello_world
+2019-06-25 11:02:07.458+0000 INFO  hello_world
 ----
