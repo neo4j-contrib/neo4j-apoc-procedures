@@ -19,19 +19,17 @@ If two users access to the same resource at the same time, with the parameter `t
 | CALL apoc.atomic.update(node/relationship, "property", "expression", [times]) YIELD oldValue, newValue | update the property with the result of the expression
 |===
 
-== Atomic Examples
-
-.add
-
-Dataset
-
-[source,cypher]
+.The following creates sample nodes:
+[source, cypher]
 ----
 CREATE (p:Person {name:'Tom',age: 40})
+CREATE (p:Person {name:'Will',age: 35})
+CREATE (p:Person {name:'David', children: ['Anne','Sam','Paul']})
+CREATE (p:Person {name:'John', cars: ['Class A','X3','Focus']})
+CREATE (p:Person {name:'Ryan', salary1:1800, salary2:1500})
 ----
 
-We can add 10 to the property `age`
-
+.The following adds 10 to the property `age` for `Tom`:
 [source,cypher]
 ----
 MATCH (n:Person {name:'Tom'})
@@ -47,10 +45,7 @@ RETURN n
 | {"name":"Tom","age":50}
 |===
 
-.subtract
-
-From the previous example we can go back to `age`: 40
-
+.The following subtracts 10 from the property `age` for `Tom`:
 [source,cypher]
 ----
 MATCH (n:Person {name:'Tom'})
@@ -67,15 +62,7 @@ RETURN n
 |===
 
 
-.concat
-
-Dataset
-
-[source,cypher]
-----
-CREATE (p:Person {name:'Will',age: 35})
-----
-
+.The following concatenates `iam` to the `name` property for `Will`:
 [source,cypher]
 ----
 MATCH (p:Person {name:'Will',age: 35})
@@ -92,18 +79,7 @@ RETURN p
 |===
 
 
-.insert
-
-Dataset
-
-we add a property `children` that is an array
-
-[source,cypher]
-----
-CREATE (p:Person {name:'David', children: ['Anne','Sam','Paul']})
-----
-
-Now we add `Mary` to property `children` at the position 2
+.The following adds `Mary` in position 2 of `children` list:
 [source,cypher]
 ----
 MATCH (p:Person {name:'David'})
@@ -119,17 +95,7 @@ RETURN p
 | {"name":"David","children":["Anne","Sam","Mary","Paul"]}
 |===
 
-.remove
-
-Dataset
-
-[source,cypher]
-----
-CREATE (p:Person {name:'John', cars: ['Class A','X3','Focus']})
-----
-
-Now we remove the element `X3` which is at the position 1 from the array `cars`
-
+.The following removes the element `X3`, which is at position 1, from the array `cars`
 [source,cypher]
 ----
 MATCH (p:Person {name:'John'})
@@ -145,18 +111,7 @@ RETURN p
 | {"name":"John","cars":["Class A","Focus"]}
 |===
 
-.update
-
-Dataset
-
-----
-CREATE (p:Person {name:'Ryan', salary1:1800, salary2:1500})
-----
-
-We want to update `salary1` with the result of an expression.
-The expression always have to be referenced with the `n.` that refers to the node/rel passed as parameter.
-If we rename our node/rel (as in the example above) we have anyway to refer to it in the expression as `n`.
-
+.The following updates `salary1` with the result of an expression:
 [source,cypher]
 ----
 MATCH (p:Person {name:'Ryan'})
@@ -164,6 +119,9 @@ CALL apoc.atomic.update(p,'salary1','n.salary1*3 + n.salary2',5)
 YIELD newValue
 RETURN p
 ----
+
+The expression always have to be referenced with the `n.` that refers to the node/rel passed as the first parameter.
+If we rename our node/rel (as in the example above) we have anyway to refer to it in the expression as `n`.
 
 .Results
 [opts="header",cols="1"]
