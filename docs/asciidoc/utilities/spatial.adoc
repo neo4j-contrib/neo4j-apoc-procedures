@@ -6,6 +6,9 @@
 This section describes spatial procedures and functions.
 --
 
+The spatial procedures enable geographic capabilities on your data, and complement the https://neo4j.com/docs/cypher-manual/current/functions/spatial/[spatial functions^] that come with Neo4j.
+More extensive Spatial functionality can be found in the https://neo4j-contrib.github.io/spatial/0.24-neo4j-3.1/index.html[Neo4j Spatial Library^].
+
 [cols="1m,5"]
 |===
 | CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData | look up geographic location of location from a geocoding service (the default one is OpenStreetMap)
@@ -14,16 +17,10 @@ This section describes spatial procedures and functions.
 |===
 
 
-== Spatial Functions
-
-The spatial procedures are intended to enable geographic capabilities on your data.
-
 === Geocode
 
-The first procedure _geocode_ which will convert a textual address
-into a location containing _latitude_, _longitude_ and _description_. Despite being
-only a single function, together with the built-in functions _point_ and _distance_
-we can achieve quite powerful results.
+The _geocode_ procedure converts a textual address into a location containing _latitude_, _longitude_ and _description_.
+Despite being only a single function, together with the built-in functions _point_ and _distance_ we can achieve quite powerful results.
 
 First, how can we use the procedure:
 
@@ -31,8 +28,16 @@ First, how can we use the procedure:
 ----
 CALL apoc.spatial.geocodeOnce('21 rue Paul Bellamy 44000 NANTES FRANCE')
 YIELD location
-RETURN location.latitude, location.longitude // will return 47.2221667, -1.5566624
+RETURN location.latitude, location.longitude
 ----
+
+.Results
+[opts="header"]
+|===
+| location.latitude | location.longitude
+| 47.2221667 | -1.5566625
+|===
+
 
 There are three forms of the procedure:
 
@@ -40,18 +45,23 @@ There are three forms of the procedure:
 * geocode(address,maxResults) returns zero, one or more up to maxResults.
 * reverseGeocode(latitude,longitude) returns zero or one result.
 
-This is because the backing geocoding service (OSM, Google, OpenCage or other) might return multiple
-results for the same query. GeocodeOnce() is designed to return the first, or highest
-ranking result.
+This is because the backing geocoding service (OSM, Google, OpenCage or other) might return multiple results for the same query.
+GeocodeOnce() is designed to return the first, or highest ranking result.
 
-The third procedure _reverseGeocode_ will convert a location containing _latitude_ and _longitude_
-into a textual address.
+The third procedure _reverseGeocode_ will convert a location containing _latitude_ and _longitude_ into a textual address.
+
+[source,cypher]
 ----
 CALL apoc.spatial.reverseGeocode(47.2221667,-1.5566625) YIELD location
-RETURN location.description; // will return 21, Rue Paul Bellamy, Talensac - Pont Morand,
-//Hauts-Pavés - Saint-Félix, Nantes, Loire-Atlantique, Pays de la Loire,
-//France métropolitaine, 44000, France
+RETURN location.description;
 ----
+
+.Results
+[opts="header"]
+|===
+| location.description
+| "21, Rue Paul Bellamy, Talensac - Pont Morand, Hauts-Pavés - Saint-Félix, Nantes, Loire-Atlantique, Pays de la Loire, France métropolitaine, 44000, France"
+|===
 
 ==== Configuring Geocode
 
