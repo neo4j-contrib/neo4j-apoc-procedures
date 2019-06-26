@@ -6,6 +6,7 @@ plugins {
     id "com.bmuschko.nexus" version "2.3.1"
     id "me.champeau.gradle.jmh" version "0.4.8"
     id "io.codearte.nexus-staging" version "0.20.0"
+    id 'maven-publish'
 }
 asciidoctorj {
     version = '1.6.1'
@@ -370,3 +371,34 @@ jmh {
 jmhJar {
     mergeServiceFiles()
 }
+
+task mySourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+task myJavadocJar(type: Jar) {
+    from javadoc
+    archiveClassifier = 'javadoc'
+}
+
+
+publishing {
+
+
+    repositories {
+        maven {
+            name = 'pipeline'
+            url = "file://${rootProject.buildDir}/repo"
+        }
+    }
+    publications {
+        full(MavenPublication) {
+            from(components.java)
+            artifact(mySourcesJar)
+            artifact(myJavadocJar)
+
+        }
+    }
+}
+
