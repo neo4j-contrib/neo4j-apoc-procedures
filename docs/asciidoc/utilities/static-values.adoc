@@ -14,3 +14,91 @@ This section describes procedures and functions for storing and retrieving stati
 |===
 
 NOTE: `apoc.static.get` and `apoc.static.getAll` have been migrated to be functions, the procedures have been deprecated.
+
+The examples below assume that we have the following entries in the Neo4j configuration file:
+
+----
+apoc.static.twitter.bearer=ABCDEF
+apoc.static.twitter.url=https://api.twitter.com/1.1/search/tweets.json?count=100&result_type=recent&lang=en&q=
+----
+
+.The following returns the `apoc.static.twitter.bearer` value:
+[source,cypher]
+----
+RETURN apoc.static.get("twitter.bearer") AS value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+| "ABCDEF"
+|===
+
+
+.The following returns all values with the `twitter` prefix
+[source,cypher]
+----
+RETURN apoc.static.getAll("twitter") AS value
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+| {"bearer":"ABCDEF","url":"https://api.twitter.com/1.1/search/tweets.json?count=100&result_type=recent&lang=en&q="}
+|===
+
+
+.The following stores an in memory value that lasts for the lifetime of the server:
+[source,cypher]
+----
+CALL apoc.static.set("twitter.user", "Michael")
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| value
+| null
+|===
+
+[[caching-query-results]]
+== Caching Query Results
+
+We can also use these procedures and functions to cache the results of queries.
+
+.The following creates a sample graph
+[source, cypher]
+----
+CREATE (:Person {name: "Mark"})
+CREATE (:Person {name: "Michael"})
+CREATE (:Person {name: "Karin"})
+CREATE (:Person {name: "Jennifer"})
+----
+
+.The following finds people whose name does not start with the letter `m` and stores them as a static value:
+[source,cypher]
+----
+MATCH (p:Person)
+WHERE not (p.name starts with "M")
+WITH collect(p) AS people
+CALL apoc.static.set("cached.people", people)
+YIELD value
+RETURN value
+----
+
+.The following retrieves those people from the `cached.people` static value:
+[source,cypher]
+----
+UNWIND apoc.static.get("cached.people") AS person
+RETURN person, labels(person) AS label, apoc.meta.cypher.type(person) AS type
+----
+
+.Results
+[opts="header"]
+|===
+| person | label | type
+| {"name":"Karin"}   | ["Person"] | "NODE"
+| {"name":"Jennifer"}|["Person"] | "NODE"
+|===
