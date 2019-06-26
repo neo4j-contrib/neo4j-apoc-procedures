@@ -6,6 +6,8 @@
 This section describes procedures and functions for storing and retrieving static values.
 --
 
+The library has support for storing and retrieving static values, functionality that can be used to work with API credentials or cache query results.
+
 [cols="1m,5"]
 |===
 | apoc.static.get(name) | returns statically stored value from config (apoc.static.<key>) or server lifetime storage
@@ -13,7 +15,15 @@ This section describes procedures and functions for storing and retrieving stati
 | apoc.static.set(name, value) | stores value under key for server livetime storage, returns previously stored or configured value
 |===
 
-NOTE: `apoc.static.get` and `apoc.static.getAll` have been migrated to be functions, the procedures have been deprecated.
+NOTE: `apoc.static.get` and `apoc.static.getAll` have been migrated to functions, the procedures have been deprecated.
+
+This section includes the following sub sections:
+
+* <<api-credentials>>
+* <<caching-query-results>>
+
+[[api-credentials]]
+== Working with API Credentials
 
 The examples below assume that we have the following entries in the Neo4j configuration file:
 
