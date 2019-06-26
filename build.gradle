@@ -383,9 +383,35 @@ publishing {
     }
     publications {
         full(MavenPublication) {
-            from(components.java)
-            artifact(mySourcesJar)
-            artifact(myJavadocJar)
+            pom {
+                name = "neo4j-apoc-procedure"
+                description = "A collection of useful Neo4j Procedures"
+                groupId = groupId
+                artifactId = archivesBaseName
+                version = version
+                scm { url = "http://github.com/neo4j-contrib/neo4j-apoc-procedures" }
+
+                licenses {
+                    license {
+                        name ='The Apache Software License, Version 2.0'
+                        url ='http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        comments ="""Note that this license is for the project itself, and not for its dependencies."""
+                        distribution= "repo"
+                    }
+                }
+
+                developers {
+                    developer {
+                        id ='michaelhunger'
+                        name= 'Michael Hunger'
+                        email= 'michael.hunger@neo4j.com'
+                    }
+                }
+                
+                from(components.java)
+                artifact(mySourcesJar)
+                artifact(myJavadocJar)
+            }
 
         }
     }
