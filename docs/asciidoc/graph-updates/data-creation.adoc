@@ -27,20 +27,146 @@ endif::[]
 | CALL apoc.create.setRelProperties( [rel,id,ids,rels], [keys], [values]) | sets the given property on the relationship(s)
 | CALL apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) | create relationship with dynamic rel-type
 | CALL apoc.nodes.link([nodes],'REL_TYPE') | creates a linked list of nodes from first to last
-| CALL apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) | merge nodes with dynamic labels, with support for setting properties ON CREATE or ON MATCH
+| CALL apoc.merge.node(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) | merge nodes with dynamic labels, with support for setting properties ON CREATE or ON MATCH
 | CALL apoc.merge.relationship(startNode, relType, identProps:{key:value, ...}, onCreateProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...}) | merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH
 | CALL apoc.create.removeProperties( [node,id,ids,nodes], [keys]) | removes the given property from the nodes(s)
+| CALL apoc.create.removeRelProperties( [rel,id,ids,rels], [keys], [values]) | removes the given property from the relationship(s)
 |===
 
 
 This section includes:
 
+* <<delete-labels>>
+* <<set-properties>>
 * <<delete-properties>>
 * <<linked-lists>>
 
 
+
+[[delete-labels]]
+==== Remove Node Labels
+
+Cypher supports deleting of labels as long as the labels are hard coded.
+If the labels are dynamically specified we can use the `apoc.create.removeLabels` procedure.
+
+.The following creates a sample graph of people:
+[source,cypher]
+----
+CREATE (jennifer:Person:US {name: "Jennifer", community: 1, partition: 4})
+CREATE (karin:Person:US {name: "Karin", community: 4, partition: 2})
+CREATE (mark:Person:UK {name: "Mark", community: 3, partition: 3})
+----
+
+.The following removes all labels except `Person` from all nodes:
+[source,cypher]
+----
+CALL db.labels()
+YIELD label WHERE label <> "Person"
+WITH collect(label) AS labels
+MATCH (p:Person)
+WITH collect(p) AS people, labels
+CALL apoc.create.removeLabels(people, labels)
+YIELD node
+RETURN node, labels(node) AS labels
+----
+
+.Results
+[opts="header"]
+|===
+| node | labels
+| (:Person {name: "Jennifer", partition: 4, community: 1}) | ["Person"]
+| (:Person {name: "Karin", partition: 2, community: 4})    | ["Person"]
+| (:Person {name: "Mark", partition: 3, community: 3})     | ["Person"]
+|===
+
+[[set-properties]]
+==== Set Node and Relationship Properties
+Cypher supports setting of properties as long as the property names are hard coded.
+If the property names are dynamically specified we can use the `apoc.create.setProperties` and `apoc.create.setRelProperties` procedures.
+
+.The following creates a sample graph of people:
+[source,cypher]
+----
+CREATE (jennifer:Person {name: "Jennifer", community: 1, partition: 4})
+CREATE (karin:Person {name: "Karin", community: 4, partition: 2})
+CREATE (elaine:Person {name: "Elaine", community: 3, partition: 3})
+MERGE (jennifer)-[:FRIENDS {since: datetime("2019-06-01")}]-(karin)
+MERGE (jennifer)-[:FRIENDS {since: datetime("2019-05-04")}]-(elaine)
+----
+
+.The following duplicates all node properties on `Person` nodes:
+[source, cypher]
+----
+MATCH (p:Person)
+WITH p, keys(p) AS keys
+CALL apoc.create.setProperties(p,[k in keys | k + "Copy"], [k in keys | p[k]])
+YIELD node
+RETURN node
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| node
+| {"name":"Jennifer","partition":4,"community":1,"nameCopy":"Jennifer","partitionCopy":4,"communityCopy":1}
+| {"name":"Karin","partition":2,"community":4,"nameCopy":"Karin","partitionCopy":2,"communityCopy":4}
+| {"name":"Mark","partition":3,"community":3,"nameCopy":"Mark","partitionCopy":3,"communityCopy":3}
+|===
+
+.The following duplicates all relationship properties:
+[source,cypher]
+-----
+MATCH (:Person)-[friends:FRIENDS]->(:Person)
+WITH friends, keys(friends) AS keys
+CALL apoc.create.setRelProperties(friends,[k in keys | k + "Copy"], [k in keys | friends[k]])
+YIELD rel
+RETURN startNode(rel) AS start, rel, endNode(rel) AS end
+-----
+
+.Results
+[opts="header"]
+|===
+| start | rel | end
+| {
+    "name": "Jennifer",
+    "partition": 4,
+    "community": 1,
+    "nameCopy": "Jennifer",
+    "partitionCopy": 4,
+    "communityCopy": 1
+  } | {
+        "sinceCopy": "2019-05-04T00:00:00Z",
+        "since": "2019-05-04T00:00:00Z"
+      }   | {
+              "name": "Elaine",
+              "partition": 3,
+              "community": 3,
+              "nameCopy": "Elaine",
+              "partitionCopy": 3,
+              "communityCopy": 3
+            }
+| {
+    "name": "Jennifer",
+    "partition": 4,
+    "community": 1,
+    "nameCopy": "Jennifer",
+    "partitionCopy": 4,
+    "communityCopy": 1
+  } | {
+        "sinceCopy": "2019-06-01T00:00:00Z",
+        "since": "2019-06-01T00:00:00Z"
+      }   | {
+              "name": "Karin",
+              "partition": 2,
+              "community": 4,
+              "nameCopy": "Karin",
+              "partitionCopy": 2,
+              "communityCopy": 4
+            }
+|===
+
 [[delete-properties]]
-==== Delete Properties
+==== Remove Node and Relationship Properties
 
 Cypher supports deleting of properties as long as the property names are hard coded.
 If the property names are dynamically specified we can use the `apoc.create.removeProperties` and `apoc.create.removeRelProperties` procedures.
