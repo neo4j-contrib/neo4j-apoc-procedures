@@ -6,6 +6,9 @@
 This section describes functions that can be used to create data entities.
 --
 
+The library has support for procedures that add to the write functionality that comes with Neo4j.
+Many of these procedures enable dynamic data creation, such as dynamically adding node labels and node or relationship properties.
+
 ifdef::backend-html5[]
 ++++
 <iframe width="560" height="315" src="https://www.youtube.com/embed/KsAb8QHClNg" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
@@ -24,9 +27,58 @@ endif::[]
 | CALL apoc.create.setRelProperties( [rel,id,ids,rels], [keys], [values]) | sets the given property on the relationship(s)
 | CALL apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) | create relationship with dynamic rel-type
 | CALL apoc.nodes.link([nodes],'REL_TYPE') | creates a linked list of nodes from first to last
+| CALL apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) | merge nodes with dynamic labels, with support for setting properties ON CREATE or ON MATCH
+| CALL apoc.merge.relationship(startNode, relType, identProps:{key:value, ...}, onCreateProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...}) | merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH
 |===
 
+* dynamic relationship creation
+* dynamic setting of properties
 
+.people.csv
+----
+person1,person2,relationship
+"Arya","Mark","CHILD_OF"
+"Mark","Michael","WORKS_WITH"
+----
+
+[source,cypher]
+----
+
+----
+
+==== Delete Properties
+
+.The following creates a sample graph of people:
+[source,cypher]
+----
+CREATE (:Person {name: "Jennifer", community: 1, partition: 4})
+CREATE (:Person {name: "Karin", community: 4, partition: 2})
+CREATE (:Person {name: "Elaine", community: 3, partition: 3})
+----
+
+.The following deletes all properties except for `name` from all nodes:
+[source,cypher]
+----
+CALL db.propertyKeys()
+YIELD propertyKey WHERE propertyKey <> "name"
+WITH collect(propertyKey) AS propertyKeys
+MATCH (p:Person)
+WITH collect(p) AS nodes, propertyKeys
+CALL apoc.create.removeProperties(nodes, propertyKeys)
+YIELD node
+RETURN node
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| node
+| {"name":"Jennifer"}
+| {"name":"Karin"}
+| {"name":"Elaine"}
+|===
+
+==== Linked Lists
 
 .The following creates a sample graph of events:
 [source,cypher]

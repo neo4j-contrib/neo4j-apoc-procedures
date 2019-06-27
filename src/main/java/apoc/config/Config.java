@@ -1,11 +1,11 @@
 package apoc.config;
 
 import apoc.ApocConfiguration;
-import apoc.Description;
 import apoc.result.MapResult;
 import apoc.util.Util;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Procedure;
 
 import java.util.stream.Stream;
