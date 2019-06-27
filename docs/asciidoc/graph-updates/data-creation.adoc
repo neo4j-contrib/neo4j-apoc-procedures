@@ -29,34 +29,24 @@ endif::[]
 | CALL apoc.nodes.link([nodes],'REL_TYPE') | creates a linked list of nodes from first to last
 | CALL apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) | merge nodes with dynamic labels, with support for setting properties ON CREATE or ON MATCH
 | CALL apoc.merge.relationship(startNode, relType, identProps:{key:value, ...}, onCreateProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...}) | merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH
+| CALL apoc.create.removeProperties( [node,id,ids,nodes], [keys]) | removes the given property from the nodes(s)
 |===
 
-* dynamic relationship creation
-* dynamic setting of properties
 
-.people.csv
-----
-person1,person2,relationship
-"Arya","Mark","CHILD_OF"
-"Mark","Michael","WORKS_WITH"
-----
-
-[source,cypher]
-----
-
-----
 
 ==== Delete Properties
 
 .The following creates a sample graph of people:
 [source,cypher]
 ----
-CREATE (:Person {name: "Jennifer", community: 1, partition: 4})
-CREATE (:Person {name: "Karin", community: 4, partition: 2})
-CREATE (:Person {name: "Elaine", community: 3, partition: 3})
+CREATE (jennifer:Person {name: "Jennifer", community: 1, partition: 4})
+CREATE (karin:Person {name: "Karin", community: 4, partition: 2})
+CREATE (elaine:Person {name: "Elaine", community: 3, partition: 3})
+MERGE (jennifer)-[:FRIENDS {since: datetime("2019-06-01")}]-(karin)
+MERGE (jennifer)-[:FRIENDS {since: datetime("2019-05-04")}]-(elaine)
 ----
 
-.The following deletes all properties except for `name` from all nodes:
+.The following deletes all properties except for `name` from `Person` nodes:
 [source,cypher]
 ----
 CALL db.propertyKeys()
@@ -76,6 +66,27 @@ RETURN node
 | {"name":"Jennifer"}
 | {"name":"Karin"}
 | {"name":"Elaine"}
+|===
+
+.The following deletes properties from all relationships:
+[source,cypher]
+-----
+CALL db.propertyKeys()
+YIELD propertyKey
+WITH collect(propertyKey) AS propertyKeys
+MATCH (:Person)-[friends:FRIENDS]->(:Person)
+WITH collect(friends) AS friendsRels, propertyKeys
+CALL apoc.create.removeRelProperties(friendsRels, propertyKeys)
+YIELD rel
+RETURN startNode(rel) AS start, rel, endNode(rel) AS end
+-----
+
+.Results
+[opts="header"]
+|===
+| start | rel | end
+| {"name":"Jennifer"} | {}   | {"name":"Elaine"}
+| {"name":"Jennifer"} | {}   | {"name":"Karin"}
 |===
 
 ==== Linked Lists
