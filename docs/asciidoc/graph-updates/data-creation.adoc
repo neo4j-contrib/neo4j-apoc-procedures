@@ -33,8 +33,17 @@ endif::[]
 |===
 
 
+This section includes:
 
+* <<delete-properties>>
+* <<linked-lists>>
+
+
+[[delete-properties]]
 ==== Delete Properties
+
+Cypher supports deleting of properties as long as the property names are hard coded.
+If the property names are dynamically specified we can use the `apoc.create.removeProperties` and `apoc.create.removeRelProperties` procedures.
 
 .The following creates a sample graph of people:
 [source,cypher]
@@ -89,7 +98,10 @@ RETURN startNode(rel) AS start, rel, endNode(rel) AS end
 | {"name":"Jennifer"} | {}   | {"name":"Karin"}
 |===
 
+[[linked-lists]]
 ==== Linked Lists
+
+Creating a linked list from a collection of nodes can be done in Cypher, but is much easier with the `apoc.nodes.link` procedure.
 
 .The following creates a sample graph of events:
 [source,cypher]
