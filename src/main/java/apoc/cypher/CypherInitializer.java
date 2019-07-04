@@ -2,7 +2,6 @@ package apoc.cypher;
 
 import apoc.ApocConfiguration;
 import org.neo4j.graphdb.DependencyResolver;
-import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -15,10 +14,21 @@ public class CypherInitializer implements AvailabilityListener {
 
     private final GraphDatabaseAPI db;
     private final Log userLog;
+    private final Procedures procs;
+
+    /**
+     * indicates the status of the initializer, to be used for tests to ensure initializer operations are already done
+     */
+    private boolean finished = false;
 
     public CypherInitializer(GraphDatabaseAPI db, Log userLog) {
         this.db = db;
         this.userLog = userLog;
+        procs = db.getDependencyResolver().resolveDependency(Procedures.class, DependencyResolver.SelectionStrategy.FIRST);
+    }
+
+    public boolean isFinished() {
+        return finished;
     }
 
     @Override
@@ -29,25 +39,29 @@ public class CypherInitializer implements AvailabilityListener {
         // unfortunately an AvailabilityListener is triggered before that
         new Thread(() -> {
 
-            awaitApocProceduresRegistered();
+            try {
+                awaitApocProceduresRegistered();
 
-            Map<String, Object> stringObjectMap;
-            String singleInitializer = ApocConfiguration.get(INITIALIZER_CYPHER, null);
-            if (singleInitializer != null) {
-                stringObjectMap = Collections.singletonMap("1", singleInitializer);
-            } else {
-                stringObjectMap = ApocConfiguration.get(INITIALIZER_CYPHER);
-            }
-
-            SortedMap<String, Object> initializers = new TreeMap<>(stringObjectMap);
-            for (Object initializer: initializers.values()) {
-                String query = initializer.toString();
-                try {
-                    db.execute(query);
-                    userLog.info("successfully initialized: " + query);
-                } catch (Exception e) {
-                    userLog.warn("error upon initialization, running: "+query, e);
+                Map<String, Object> stringObjectMap;
+                String singleInitializer = ApocConfiguration.get(INITIALIZER_CYPHER, null);
+                if (singleInitializer != null) {
+                    stringObjectMap = Collections.singletonMap("1", singleInitializer);
+                } else {
+                    stringObjectMap = ApocConfiguration.get(INITIALIZER_CYPHER);
                 }
+
+                SortedMap<String, Object> initializers = new TreeMap<>(stringObjectMap);
+                for (Object initializer: initializers.values()) {
+                    String query = initializer.toString();
+                    try {
+                        db.execute(query);
+                        userLog.info("successfully initialized: " + query);
+                    } catch (Exception e) {
+                        userLog.warn("error upon initialization, running: "+query, e);
+                    }
+                }
+            } finally {
+                finished = true;
             }
         }).start();
     }
@@ -63,9 +77,7 @@ public class CypherInitializer implements AvailabilityListener {
     }
 
     private boolean areApocProceduresRegistered() {
-        Procedures procs = db.getDependencyResolver().resolveDependency(Procedures.class, DependencyResolver.SelectionStrategy.FIRST);
-        Set<ProcedureSignature> allProcedures = procs.getAllProcedures();
-        return allProcedures.stream().anyMatch(signature -> signature.name().toString().startsWith("apoc"));
+        return procs.getAllProcedures().stream().anyMatch(signature -> signature.name().toString().startsWith("apoc"));
     }
 
     @Override
