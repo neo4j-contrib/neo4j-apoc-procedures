@@ -42,6 +42,7 @@ public class ExportConfig {
     private Map<String, Object> optimizations;
     public enum OptimizationType {NONE, UNWIND_BATCH, UNWIND_BATCH_PARAMS}
     private OptimizationType optimizationType;
+    private int unwindBatchSize;
 
     public int getBatchSize() {
         return batchSize;
@@ -95,17 +96,17 @@ public class ExportConfig {
         exportQuotes(config);
         this.optimizations = (Map<String, Object>) config.getOrDefault("useOptimizations", Collections.emptyMap());
         this.optimizationType = OptimizationType.valueOf(optimizations.getOrDefault("type", OptimizationType.UNWIND_BATCH.toString()).toString().toUpperCase());
+        this.batchSize = ((Number)config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE)).intValue();
+        this.unwindBatchSize = ((Number)getOptimizations().getOrDefault("unwindBatchSize", DEFAULT_UNWIND_BATCH_SIZE)).intValue();
         validate();
-        if (optimizationType.equals(OptimizationType.UNWIND_BATCH_PARAMS)) {
-            this.batchSize = getUnwindBatchSize(); // batchSize is not considered because the data gets committed every UNWIND operation
-        } else {
-            this.batchSize = ((Number)config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE)).intValue();
-        }
     }
 
     private void validate() {
         if (OptimizationType.UNWIND_BATCH_PARAMS.equals(this.optimizationType) && !ExportFormat.CYPHER_SHELL.equals(this.format)) {
             throw new RuntimeException("`useOptimizations: 'UNWIND_BATCH_PARAMS'` can be used only in combination with `format: 'CYPHER_SHELL'`");
+        }
+        if (!OptimizationType.NONE.equals(this.optimizationType) && this.unwindBatchSize > this.batchSize) {
+            throw new RuntimeException("`unwindBatchSize` must be <= `batchSize`");
         }
     }
 
@@ -169,9 +170,7 @@ public class ExportConfig {
         return Util.toLong(config.getOrDefault("timeoutSeconds",100));
     }
 
-    public int getUnwindBatchSize() {
-        return ((Number)getOptimizations().getOrDefault("unwindBatchSize", DEFAULT_UNWIND_BATCH_SIZE)).intValue();
-    }
+    public int getUnwindBatchSize() { return unwindBatchSize; }
 
     public Map<String, Object> getOptimizations() {
         return optimizations;
