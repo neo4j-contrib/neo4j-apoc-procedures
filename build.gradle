@@ -83,8 +83,6 @@ dependencies {
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.2.0'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.7.3'
-    compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.0'
-
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
 
     compileOnly "org.apache.poi:poi:3.17"
@@ -184,7 +182,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 test {
-//    exclude '**/CypherProceduresClusterTest.class'
+    exclude '**/CypherProceduresClusterTest.class'
     systemProperties 'user.language': 'en', 'user.country': 'US'
     testLogging {
         // taken from https://stackoverflow.com/a/36130467/158701
