@@ -199,7 +199,11 @@ RETURN graph
 
 As a result we have a virtual graph with two nodes and one relationship:
 
+<<<<<<< HEAD
 image::apoc.graph.fromDocument_1[scaledwidth="100%"]
+=======
+image::{img}/apoc.graph.fromDocument_1[width=800]
+>>>>>>> fixes #1200: better error handling for apoc.graph.fromDocument
 
 You can also do a pre-validation over the document with the `apoc.graph.validateDocument` procedure that will return the
 record with invalid data.
