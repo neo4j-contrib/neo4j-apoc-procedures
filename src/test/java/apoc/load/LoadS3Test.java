@@ -74,8 +74,7 @@ public class LoadS3Test {
         String url = minio.putFile("src/test/resources/xml/books.xml");
 
         testCall(db, "CALL apoc.load.xml({url},'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", Util.map("url", url), (r) -> {
-            Object value = r.values();
-            assertEquals(XML_XPATH_AS_NESTED_MAP, value.toString());
+            assertEquals(XML_XPATH_AS_NESTED_MAP, r.get("result"));
         });
     }
 
