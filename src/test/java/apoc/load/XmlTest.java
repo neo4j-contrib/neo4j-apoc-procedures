@@ -413,4 +413,18 @@ public class XmlTest {
                     assertEquals(XML_AS_SINGLE_LINE, value);
                 });
     }
+
+    @Test
+    public void testParse() {
+        testCall(db, "WITH '<?xml version=\"1.0\"?><table><tr><td><img src=\"pix/logo-tl.gif\"></img></td></tr></table>' AS xmlString RETURN apoc.xml.parse(xmlString) AS value",
+                (row) -> assertEquals(XML_AS_SINGLE_LINE, row.get("value")));
+    }
+
+    @Test
+    public void testParseWithXPath() throws Exception {
+        String xmlString = FileUtils.readFileToString(new File("src/test/resources/xml/books.xml"), Charset.forName("UTF-8"));
+        testCall(db, "RETURN apoc.xml.parse({xmlString}, '/catalog/book[title=\"Maeve Ascendant\"]/.') AS result",
+                map("xmlString", xmlString),
+                (r) -> assertEquals(XML_XPATH_AS_NESTED_MAP, r.get("result")));
+    }
 }
