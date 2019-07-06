@@ -67,7 +67,7 @@ It takes two arguments:
 The value can be a String, or Cypher Map or List of Maps.
 * *config*, _type Map_: the configuration params
 
-Currently spatial and datetime properties are not handled yet. 
+Currently spatial and datetime properties are not handled yet.
 More advanced configuration for mapping the document is coming in future versions.
 
 The config is composed by the following parameters:
