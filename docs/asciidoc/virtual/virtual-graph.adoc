@@ -75,9 +75,36 @@ The config is composed by the following parameters:
 * *write*, _type boolean_: persist the graph otherwise return a Virtual Graph, default *false*
 * *labelField*, _type String_: the field name that became the label of the node, default *type*
 * *idField*, _type String_: the document field name that will become the id field of the created nodes (used for node resolution when you create relationships between nodes), default *id*
-* *autoGenerateID*, _type boolean_: in case of missing id-field value it generates an UUID for it, default *true*
+* *generateId*, _type boolean_: in case of missing id-field value it generates an UUID for it, default *true*
 * *defaultLabel*, _type String_: in case of missing label-field value is uses the provided default label, default is empty
+* *skipValidation*, _type boolean_: in case you want skip the validation process into the `apoc.graph.fromDocument` procedure *false*
+* *mappings*, _type Map<String, String>_: you can use a JSON path like syntax for:
+** include properties
+** defining document properties as value objects, by prepending the `@` to the property name
+** define custom/composite keys per Labels, by prepending the `!` to the property name
 
+Following an example of configuration with mappings:
+
+[source, cypher]
+----
+{
+    write: false,
+    idField: "id",
+    mappings: {
+      `$`: 'Person:Reader{*,@size}'
+      `$.books`: 'Book{!title, released}'
+    }
+}
+----
+
+Lets describe the mappings:
+
+* **`$`: 'Person:Reader{*,@size}'**: this means that at the root object will be applied
+two labels `Person` and `Reader`, all properties are included and the `size` property will be transformed into a value objects
+as you can see no id is specified so we will consider as id the property defined into the `idField`
+* **`$.books`: 'Book{!title, released}'**: this means that at the `books` property of the root object will transformed
+into a node with label Book composed by two properties `title` considered as id (it's marked with `!`) and `released`
+moreover the property will be connected to the parent node of type `Person:Reader` via the `BOOKS` relationship
 
 [source, json]
 ----
@@ -194,7 +221,7 @@ image::apoc.graph.png[width=800]
 
 [source,cypher]
 ----
-CALL apoc.graph.fromDocument("{'id': 1,'type': 'artist','name':'Genesis','members': ['Tony Banks','Mike Rutherford','Phil Collins'],'years': [1967, 1998, 1999, 2000, 2006],'albums': [{'type': 'album','id': 1,'producer': 'Jonathan King','title': 'From Genesis to Revelation'}]}", false)
+CALL apoc.graph.fromDocument("{'id': 1,'type': 'artist','name':'Genesis','members': ['Tony Banks','Mike Rutherford','Phil Collins'],'years': [1967, 1998, 1999, 2000, 2006],'albums': [{'type': 'album','id': 1,'producer': 'Jonathan King','title': 'From Genesis to Revelation'}]}", {write: false})
 YIELD graph
 RETURN graph
 ----
@@ -202,6 +229,55 @@ RETURN graph
 As a result we have a virtual graph with two nodes and one relationship:
 
 image::apoc.graph.fromDocument_1[scaledwidth="100%"]
+
+
+In case this json:
+[source, json]
+----
+{
+    "id": 1,
+    "type": "Person",
+    "name": "Andrea",
+    "sizes": {
+        "weight": {
+            "value": 70,
+            "um": "Kg"
+        },
+        "height": {
+            "value": 174,
+            "um": "cm"
+        }
+    }
+}
+----
+You can manage the `sizes` property as value object so you manage it as follows:
+
+
+[source,cypher]
+----
+call apoc.graph.validateDocument(<json>, {mappings: {`$`: "Person{*,@sizes}"}})
+----
+
+So the procedure will create a node with the following properties:
+[source, json]
+----
+{
+    "id": 1,
+    "type": "Person",
+    "name": "Andrea",
+    "sizes.weight.value": 70,
+    "sizes.weight.um": "Kg",
+    "sizes.height.value": 174,
+    "sizes.height.um": "cm"
+}
+----
+
+As specified you can also provide a set of value-object properties for a Label:
+
+[source,cypher]
+----
+call apoc.graph.validateDocument(<json>, {mappings: {`$`: "Person{*,@sizes}"}})
+----
 
 You can also do a pre-validation over the document with the `apoc.graph.validateDocument` procedure that will return the
 record with invalid data.

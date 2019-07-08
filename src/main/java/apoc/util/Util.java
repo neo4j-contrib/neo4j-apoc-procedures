@@ -748,4 +748,29 @@ public class Util {
         }
         return separator.charAt(0);
     }
+
+    public static Map<String, Object> flattenMap(Map<String, Object> map) {
+        return flattenMap(map, null);
+    }
+
+    public static Map<String, Object> flattenMap(Map<String, Object> map, String prefix) {
+        return map.entrySet().stream()
+                .flatMap(entry -> {
+                    String key;
+                    if (prefix != null && !prefix.isEmpty()) {
+                        key = prefix + "." + entry.getKey();
+                    } else {
+                        key = entry.getKey();
+                    }
+                    Object value = entry.getValue();
+                    if (value instanceof Map) {
+                        return flattenMap((Map<String, Object>) value, key).entrySet().stream();
+                    } else {
+                        Map.Entry<String, Object> newEntry = new AbstractMap.SimpleEntry(key, entry.getValue());
+                        return Stream.of(newEntry);
+                    }
+                })
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+    }
+
 }
