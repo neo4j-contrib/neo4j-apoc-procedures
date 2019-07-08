@@ -57,30 +57,31 @@ public class ExportCsvTest {
             "Bar Sport,,,\"[\"Address\"]\"%n" +
             ",,via Benni,\"[\"Address\"]\"%n");
     private static final String EXPECTED = String.format("\"_id\",\"_labels\",\"age\",\"city\",\"kids\",\"male\",\"name\",\"street\",\"_start\",\"_end\",\"_type\"%n" +
-            "\"0\",\":User:User1\",\"foo\",\"42\",\"true\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"\",\"\",,,%n" +
-            "\"1\",\":User\",\"bar\",\"42\",\"\",\"\",\"\",\"\",,,%n" +
-            "\"2\",\":User\",\"\",\"12\",\"\",\"\",\"\",\"\",,,%n" +
-            "\"20\",\":Address:Address1\",\"Andrea\",\"\",\"\",\"\",\"Via Garibaldi, 7\",\"Milano\",,,%n" +
-            "\"21\",\":Address\",\"Bar Sport\",\"\",\"\",\"\",\"\",\"\",,,%n" +
-            "\"22\",\":Address\",\"\",\"\",\"\",\"\",\"via Benni\",\"\",,,%n" +
+            "\"0\",\":User:User1\",\"42\",\"\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"true\",\"foo\",\"\",,,%n" +
+            "\"1\",\":User\",\"42\",\"\",\"\",\"\",\"bar\",\"\",,,%n" +
+            "\"2\",\":User\",\"12\",\"\",\"\",\"\",\"\",\"\",,,%n" +
+            "\"20\",\":Address:Address1\",\"\",\"Milano\",\"\",\"\",\"Andrea\",\"Via Garibaldi, 7\",,,%n" +
+            "\"21\",\":Address\",\"\",\"\",\"\",\"\",\"Bar Sport\",\"\",,,%n" +
+            "\"22\",\":Address\",\"\",\"\",\"\",\"\",\"\",\"via Benni\",,,%n" +
             ",,,,,,,,\"0\",\"1\",\"KNOWS\"%n" +
             ",,,,,,,,\"20\",\"21\",\"NEXT_DELIVERY\"%n");
+
     private static final String EXPECTED_NONE_QUOTES = String.format("_id,_labels,age,city,kids,male,name,street,_start,_end,_type%n" +
-            "0,:User:User1,foo,42,true,[\"a\",\"b\",\"c\"],,,,,%n" +
-            "1,:User,bar,42,,,,,,,%n" +
-            "2,:User,,12,,,,,,,%n" +
-            "20,:Address:Address1,Andrea,,,,Via Garibaldi, 7,Milano,,,%n" +
-            "21,:Address,Bar Sport,,,,,,,,%n" +
-            "22,:Address,,,,,via Benni,,,,%n" +
+            "0,:User:User1,42,,[\"a\",\"b\",\"c\"],true,foo,,,,%n" +
+            "1,:User,42,,,,bar,,,,%n" +
+            "2,:User,12,,,,,,,,%n" +
+            "20,:Address:Address1,,Milano,,,Andrea,Via Garibaldi, 7,,,%n" +
+            "21,:Address,,,,,Bar Sport,,,,%n" +
+            "22,:Address,,,,,,via Benni,,,%n" +
             ",,,,,,,,0,1,KNOWS%n" +
             ",,,,,,,,20,21,NEXT_DELIVERY%n");
     private static final String EXPECTED_NEEDED_QUOTES = String.format("_id,_labels,age,city,kids,male,name,street,_start,_end,_type%n" +
-            "0,:User:User1,foo,42,true,\"[\"a\",\"b\",\"c\"]\",,,,,%n" +
-            "1,:User,bar,42,,,,,,,%n" +
-            "2,:User,,12,,,,,,,%n" +
-            "20,:Address:Address1,Andrea,,,,\"Via Garibaldi, 7\",Milano,,,%n" +
-            "21,:Address,Bar Sport,,,,,,,,%n" +
-            "22,:Address,,,,,via Benni,,,,%n" +
+            "0,:User:User1,42,,\"[\"a\",\"b\",\"c\"]\",true,foo,,,,%n" +
+            "1,:User,42,,,,bar,,,,%n" +
+            "2,:User,12,,,,,,,,%n" +
+            "20,:Address:Address1,,Milano,,,Andrea,\"Via Garibaldi, 7\",,,%n" +
+            "21,:Address,,,,,Bar Sport,,,,%n" +
+            "22,:Address,,,,,,via Benni,,,%n" +
             ",,,,,,,,0,1,KNOWS%n" +
             ",,,,,,,,20,21,NEXT_DELIVERY%n");
 
