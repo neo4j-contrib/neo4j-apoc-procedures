@@ -182,7 +182,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 test {
-    exclude '**/CypherProceduresClusterTest.class'
+//    exclude '**/CypherProceduresClusterTest.class'
     systemProperties 'user.language': 'en', 'user.country': 'US'
     testLogging {
         // taken from https://stackoverflow.com/a/36130467/158701
