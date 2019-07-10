@@ -44,6 +44,14 @@ ext {
     testContainersVersion = '1.11.0'
 }
 
+repositories {
+    jcenter();
+    mavenCentral();
+    maven {
+        url "https://repo.gradle.org/gradle/libs-releases"
+    }
+}
+
 configurations {
     apt
 }
@@ -75,7 +83,6 @@ dependencies {
     compile group: 'com.jayway.jsonpath', name: 'json-path', version: '2.2.0'
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.7.3'
-
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
 
     compileOnly "org.apache.poi:poi:3.17"
@@ -149,7 +156,7 @@ dependencies {
     jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
     jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
 
-    testCompile group: 'org.gradle', name: 'gradle-tooling-api', version: '4.3'
+    testCompile group: 'org.gradle', name: 'gradle-tooling-api', version: '5.2'
 
     testCompile group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
     testCompile group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
@@ -175,6 +182,7 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 test {
+//    exclude '**/CypherProceduresClusterTest.class'
     systemProperties 'user.language': 'en', 'user.country': 'US'
     testLogging {
         // taken from https://stackoverflow.com/a/36130467/158701
