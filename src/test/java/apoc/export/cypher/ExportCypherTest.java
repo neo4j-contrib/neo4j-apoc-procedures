@@ -23,7 +23,7 @@ import static org.junit.Assert.*;
  */
 public class ExportCypherTest {
 
-    private static final Map<String, Object> exportConfig = map("useOptimizations", map("type", "none"),"separateFiles", true);
+    private static final Map<String, Object> exportConfig = map("useOptimizations", map("type", "none"), "separateFiles", true, "format", "neo4j-admin");
     private static GraphDatabaseService db;
     private static File directory = new File("target/import");
 
@@ -78,7 +78,7 @@ public class ExportCypherTest {
 
     @Test
     public void testExportAllCypherResults() {
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all(null,{useOptimizations: { type: 'none'}})", (r) -> {
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all(null,{useOptimizations: { type: 'none'}, format: 'neo4j-shell'})", (r) -> {
             assertResults(null, r, "database");
             assertEquals(EXPECTED_NEO4J_SHELL, r.get("cypherStatements"));
         });
@@ -87,7 +87,7 @@ public class ExportCypherTest {
     @Test
     public void testExportAllCypherStreaming() {
         StringBuilder sb = new StringBuilder();
-        TestUtil.testResult(db, "CALL apoc.export.cypher.all(null,{useOptimizations: { type: 'none'}, streamStatements:true,batchSize:3})", (res) -> {
+        TestUtil.testResult(db, "CALL apoc.export.cypher.all(null,{useOptimizations: { type: 'none'}, streamStatements:true,batchSize:3, format: 'neo4j-shell'})", (res) -> {
             Map<String, Object> r = res.next();
             assertEquals(3L, r.get("batchSize"));
             assertEquals(1L, r.get("batches"));
@@ -116,7 +116,7 @@ public class ExportCypherTest {
     @Test
     public void testExportAllCypherDefault() throws Exception {
         String fileName = "all.cypher";
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({fileName},{useOptimizations: { type: 'none'}})",
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({fileName},{useOptimizations: { type: 'none'}, format: 'neo4j-shell'})",
                 map("fileName", fileName),
                 (r) -> assertResults(fileName, r, "database"));
         assertEquals(EXPECTED_NEO4J_SHELL, readFile(fileName));
@@ -149,9 +149,10 @@ public class ExportCypherTest {
     public void testExportGraphCypher() throws Exception {
         String fileName = "graph.cypher";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                "CALL apoc.export.cypher.graph(graph, {file},{useOptimizations: { type: 'none'}}) " +
+                "CALL apoc.export.cypher.graph(graph, {file},{exportConfig}) " +
                 "YIELD nodes, relationships, properties, file, source,format, time " +
-                "RETURN *", map("file", fileName), (r) -> assertResults(fileName, r, "graph"));
+                "RETURN *", map("file", fileName, "exportConfig", map("useOptimizations", map("type", "none"), "format", "neo4j-shell")),
+                (r) -> assertResults(fileName, r, "graph"));
         assertEquals(EXPECTED_NEO4J_SHELL, readFile(fileName));
     }
 
@@ -372,7 +373,7 @@ public class ExportCypherTest {
     @Test
     public void testExportAllCypherDefaultWithUnwindBatchSizeOptimized() throws Exception {
         String fileName = "allDefaultOptimized.cypher";
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}})", map("file", fileName),
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}, format: 'neo4j-shell'})", map("file", fileName),
                 (r) -> assertResultsOptimized(fileName, r));
         assertEquals(EXPECTED_NEO4J_OPTIMIZED_BATCH_SIZE, readFile(fileName));
     }
@@ -380,7 +381,7 @@ public class ExportCypherTest {
     @Test
     public void testExportAllCypherDefaultOptimized() throws Exception {
         String fileName = "allDefaultOptimized.cypher";
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file})", map("file", fileName),
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file}, {exportConfig})", map("file", fileName, "exportConfig", map("format", "neo4j-shell")),
                 (r) -> assertResultsOptimized(fileName, r));
         assertEquals(EXPECTED_NEO4J_OPTIMIZED, readFile(fileName));
     }
@@ -389,7 +390,7 @@ public class ExportCypherTest {
     public void testExportAllCypherDefaultSeparatedFilesOptimized() throws Exception {
         String fileName = "allDefaultOptimized.cypher";
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file}, {exportConfig})",
-                map("file", fileName, "exportConfig", map("separateFiles", true)),
+                map("file", fileName, "exportConfig", map("separateFiles", true, "format", "neo4j-shell")),
                 (r) -> assertResultsOptimized(fileName, r));
         assertEquals(EXPECTED_NODES_OPTIMIZED, readFile("allDefaultOptimized.nodes.cypher"));
         assertEquals(EXPECTED_RELATIONSHIPS_OPTIMIZED, readFile("allDefaultOptimized.relationships.cypher"));

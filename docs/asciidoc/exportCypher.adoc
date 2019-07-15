@@ -19,10 +19,10 @@ apoc.import.file.enabled=true
 
 Data is exported as Cypher statements to the given file.
 
-It is possible to choose between three export formats:
+It is possible to choose between three export formats (`cypher-shell` is the default value):
 
-* `neo4j-shell`: for Neo4j Shell and partly `apoc.cypher.runFile`
 * `cypher-shell`: for Cypher shell
+* `neo4j-shell`: for Neo4j Shell and partly `apoc.cypher.runFile`
 * `plain`: doesn't output begin / commit / await just plain Cypher
 
 You can also use the Optimizations like: `useOptimizations: {config}`
