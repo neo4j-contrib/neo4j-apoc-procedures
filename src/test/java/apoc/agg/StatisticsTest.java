@@ -32,11 +32,12 @@ public class StatisticsTest {
     public void testStatistics() throws Exception {
         testCall(db, "UNWIND [] as value RETURN apoc.agg.statistics(value) as p",
                 (row) -> {
-                    assertEquals(map("min",0L,"max",0L,"minNonZero",Long.MAX_VALUE,"total",0L,"stdev",0D,"mean",0D), row.get("p"));
+
+                    assertEquals(map("min", null, "max", null, "minNonZero", Long.valueOf(Long.MAX_VALUE).doubleValue(), "total", 0L, "stdev", 0D, "mean", 0D), row.get("p"));
                 });
         testCall(db, "UNWIND [0,1,1,2,2,2,3] as value RETURN apoc.agg.statistics(value,[0.5,0.95]) as p",
                 (row) -> {
-                    assertEquals(map("total", 7L, "min", 0L, "minNonZero", 1L, "max", 3L, "mean", 1.5714285714285714D, "0.5", 2L, "0.95", 3L, "stdev", 0.9035079029052512), row.get("p"));
+                    assertEquals(map("total", 7L, "min", 0L, "minNonZero", 1D, "max", 3L, "mean", 1.5714285714285714D, "0.5", 2L, "0.95", 3L, "stdev", 0.9035079029052512), row.get("p"));
                 });
     }
 
