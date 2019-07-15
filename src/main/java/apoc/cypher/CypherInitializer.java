@@ -77,7 +77,13 @@ public class CypherInitializer implements AvailabilityListener {
     }
 
     private boolean areApocProceduresRegistered() {
-        return procs.getAllProcedures().stream().anyMatch(signature -> signature.name().toString().startsWith("apoc"));
+        try {
+            return procs.getAllProcedures().stream().anyMatch(signature -> signature.name().toString().startsWith("apoc"));
+        } catch (ConcurrentModificationException e) {
+            // if a CME happens (possible during procedure scanning)
+            // we return false and the caller will try again
+            return false;
+        }
     }
 
     @Override
