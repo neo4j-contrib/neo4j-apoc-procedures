@@ -37,8 +37,8 @@ The guide covers the following areas:
 * <<database-introspection>> -- A detailed guide to procedures that can be used to introspect the database.
 * <<operational>> -- A detailed guide to operational procedures.
 * <<misc>> -- A detailed guide to miscellaneous procedures and functions, including map and collection functions, text functions, and spatial functionality.
-* <<indexes>>
-* <<algorithms>>
+* <<indexes>> -- A detailed guide to indexing procedures.
+* <<algorithms>> -- A detailed guide to Graph Algorithms.
 
 
 [[introduction]]
