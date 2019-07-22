@@ -1,0 +1,27 @@
+[[expand-spanning-tree]]
+== Expand a spanning tree
+
+[abstract]
+--
+This section describes a procedure that finds a spanning tree that starts from a set of start nodes.
+--
+
+----
+apoc.path.spanningTree(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1, optional:false}) yield path
+----
+
+Expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters.
+The paths returned collectively form a spanning tree.
+
+Accepts the same `config` values as in `expandConfig()`, though `uniqueness` and `minLevel` are not configurable.
+
+.Example
+
+Expand a spanning tree of all contiguous :User nodes:
+
+[source,cypher]
+----
+MATCH (user:User) WHERE user.id = 460
+CALL apoc.path.spanningTree(user, {labelFilter:'+User'}) YIELD path
+RETURN path;
+----

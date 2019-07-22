@@ -1,236 +1,37 @@
-[[utilities]]
-== Utility Functions
+[[misc]]
+== Miscellaneous
+
+[abstract]
+--
+This chapter describes utility functions and procedures in the APOC library.
+--
 
 Cypher brings along some basic functions for math, text, collections and maps.
 
 * <<conversion-functions>>
 * <<map-functions>> 
 * <<collection-list-functions>>
-* <<text-functions>> 
-* <<math-functions>>
-
-* <<data-extraction-functions>> 
-* <<datetime-conversions>> 
-* <<temporal-conversions>>
-
-* <<number-conversions>>
-* <<exact-math-functions>>
-
-* <<phonetic-functions>>
-* <<node-difference>>
-
+* <<text-functions>>
 * <<spatial>>
 * <<static-values>>
 * <<utility-functions>>
-* <<bitwise-operations>>
-* <<atomic-updates>>
-* <<log>>
 
-[[conversion-functions]]
-=== Conversion Functions
+include::utilities/conversion.adoc[leveloffset=2]
+include::utilities/map.adoc[leveloffset=2]
+include::utilities/collection.adoc[leveloffset=2]
+include::utilities/text.adoc[leveloffset=2]
 
-Sometimes type information gets lost, these functions help you to coerce an "Any" value to the concrete type
+include::utilities/spatial.adoc[leveloffset=2]
+include::utilities/static-values.adoc[leveloffset=2]
 
-[cols="1m,5"]
-|===
-| apoc.convert.toString(value) | tries it's best to convert the value to a string
-| apoc.convert.toMap(value) | tries it's best to convert the value to a map
-| apoc.convert.toList(value) | tries it's best to convert the value to a list
-| apoc.convert.toBoolean(value) | tries it's best to convert the value to a boolean
-| apoc.convert.toNode(value) | tries it's best to convert the value to a node
-| apoc.convert.toRelationship(value) | tries it's best to convert the value to a relationship
-| apoc.convert.toSet(value) | tries it's best to convert the value to a set
-| apoc.convert.toFloat(value) | tries it's best to convert the value to a floating point value
-| apoc.convert.toInteger(value) | tries it's best to convert the value to a integer value
-|===
+include::utilities/utility-functions.adoc[leveloffset=2]
 
-[[map-functions]]
-=== Map Functions
 
-ifdef::backend-html5[]
-++++
-<iframe width="560" height="315" src="https://www.youtube.com/embed/_Qdhouvx-Qw" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-++++
-endif::[]
 
-[cols="1m,5"]
-|===
-| apoc.map.fromNodes(label, property) | creates map from nodes with this label grouped by property
-| apoc.map.fromPairs([[key,value],[key2,value2],...]) | creates map from list with key-value pairs
-| apoc.map.fromLists([keys],[values]) | creates map from a keys and a values list
-| apoc.map.fromValues([key,value,key1,value1]) | creates map from alternating keys and values in a list
-| apoc.map.merge({first},{second}) yield value | creates map from merging the two source maps
-| apoc.map.mergeList([{maps}]) yield value | merges all maps in the list into one
-| apoc.map.setKey(map,key,value) | returns the map with the value for this key added or replaced
-| apoc.map.removeKey(map,key) | returns the map with the key removed
-| apoc.map.removeKeys(map,[keys]) | returns the map with the keys removed
-| apoc.map.clean(map,[keys],[values]) yield value | removes the keys and values (e.g. null-placeholders) contained in those lists, good for data cleaning from CSV/JSON
-| apoc.map.groupBy([maps/nodes/relationships],'key') yield value | creates a map of the list keyed by the given property, with single values
-| apoc.map.groupByMulti([maps/nodes/relationships],'key') yield value | creates a map of the list keyed by the given property, with list values
-| apoc.map.sortedProperties(map, ignoreCase:true) | returns a list of key/value list pairs, with pairs sorted by keys alphabetically, with optional case sensitivity
-| apoc.map.updateTree(tree,key,[[value,{data}]]) | returns map - adds the {data} map on each level of the nested tree, where the key-value pairs match
-| apoc.map.values(map, [key1,key2,key3,...],[addNullsForMissing]) returns list of values indicated by the keys
-| apoc.map.submap(map,keys,[[defaults]],[fail=true]) | returns submap for keys or throws exception if one of the key doesn't exist and no default value given at that position
-| apoc.map.mget(map,keys,[[defaults]],[fail=true]) | returns list of values for keys or throws exception if one of the key doesn't exist and no default value given at that position
-| apoc.map.get(map,key,[default],[fail=true]) | returns value for key or throws exception if key doesn't exist and no default given
-|===
 
-[[collection-list-functions]]
-=== Collection Functions
 
-APOC has a wide variety of Collection and List functions.
 
-ifdef::backend-html5[]
-++++
-<iframe width="560" height="315" src="https://www.youtube.com/embed/qgeEbI8gqe4" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-++++
-endif::[]
 
-[cols="1m,5"]
-|===
-| apoc.coll.sum([0.5,1,2.3]) | sum of all values in a list
-| apoc.coll.avg([0.5,1,2.3]) | avg of all values in a list
-| apoc.coll.min([0.5,1,2.3]) | minimum of all values in a list
-| apoc.coll.max([0.5,1,2.3]) | maximum of all values in a list
-| apoc.coll.sumLongs([1,3,3]) | sums all numeric values in a list
-| apoc.coll.partition(list,batchSize) | partitions a list into sublists of `batchSize`
-| apoc.coll.zip([list1],[list2]) | all values in a list
-| apoc.coll.pairs([1,2,3]) YIELD value | [1,2],[2,3],[3,null]
-| apoc.coll.pairsMin([1,2,3]) YIELD value | [1,2],[2,3]
-| apoc.coll.toSet([list]) | returns a unique list backed by a set
-| apoc.coll.sort(coll) | sort on Collections
-| apoc.coll.sortNodes([nodes], 'name') | sort nodes by property, ascending sorting by adding ^ in front of the sorting field
-| apoc.coll.sortMaps([maps], 'key') | sort maps by map key, ascending sorting by adding ^ in front of the sorting field
-| apoc.coll.reverse(coll) | returns the reversed list
-| apoc.coll.contains(coll, value) | returns true if collection contains the value
-| apoc.coll.containsAll(coll, values) | optimized contains-all operation (using a HashSet) returns true or false
-| apoc.coll.containsSorted(coll, value) | optimized contains on a sorted list operation (Collections.binarySearch) (returns true or false)
-| apoc.coll.containsAllSorted(coll, value) | optimized contains-all on a sorted list operation (Collections.binarySearch) (returns true or false)
-| apoc.coll.union(first, second) | creates the distinct union of the 2 lists
-| apoc.coll.subtract(first, second) | returns unique set of first list with all elements of second list removed
-| apoc.coll.removeAll(first, second) | returns first list with all elements of second list removed
-| apoc.coll.intersection(first, second) | returns the unique intersection of the two lists
-| apoc.coll.disjunction(first, second) | returns the disjunct set of the two lists
-| apoc.coll.unionAll(first, second) | creates the full union with duplicates of the two lists
-| apoc.coll.split(list,value) | splits collection on given values rows of lists, value itself will not be part of resulting lists
-| apoc.coll.indexOf(coll, value) | position of value in the list
-| apoc.coll.shuffle(coll) | returns the shuffled list
-| apoc.coll.randomItem(coll) | returns a random item from the list
-| apoc.coll.randomItems(coll, itemCount, allowRepick: false) | returns a list of `itemCount` random items from the list, optionally allowing picked elements to be picked again
-| apoc.coll.containsDuplicates(coll) | returns true if a collection contains duplicate elements
-| apoc.coll.duplicates(coll) | returns a list of duplicate items in the collection
-| apoc.coll.duplicatesWithCount(coll) | returns a list of duplicate items in the collection and their count, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}]`)
-| apoc.coll.occurrences(coll, item) | returns the count of the given item in the collection
-| apoc.coll.frequencies(coll) | returns a list of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `[{item: xyz, count:2}, {item:zyx, count:5}, {item:abc, count:1}]`)
-| apoc.coll.frequenciesAsMap(coll) | return a map of frequencies of the items in the collection, keyed by `item` and `count` (e.g., `{1: 2, 3: 2}`)
-| apoc.coll.sortMulti | sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip
-| apoc.coll.flatten | flattens a nested list
-| apoc.coll.combinations(coll, minSelect, maxSelect:minSelect) | Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive
-| CALL apoc.coll.elements(list,limit,offset) yield _1,_2,..,_10,_1s,_2i,_3f,_4m,_5l,_6n,_7r,_8p | deconstruct subset of mixed list into identifiers of the correct type
-| apoc.coll.set(coll, index, value) | set index to value
-| apoc.coll.insert(coll, index, value) | insert value at index
-| apoc.coll.insertAll(coll, index, values) | insert values at index
-| apoc.coll.remove(coll, index, [length=1]) | remove range of values from index to length
-| apoc.coll.different(values) | returns true if value are different
-|===
 
-include::text.adoc[leveloffset=+1]
-
-[[math-functions]]
-=== Math Functions
-
-[cols="1m,5"]
-|===
-| apoc.math.round(value,[precision=0],mode=[HALF_UP,CEILING,FLOOR,UP,DOWN,HALF_EVEN,HALF_DOWN,DOWN,UNNECESSARY]) | rounds value with optionally given precision (default 0) and optional rounding mode (default HALF_UP)
-| apoc.math.maxLong() | return the maximum value a long can have
-| apoc.math.minLong() | return the minimum value a long can have
-| apoc.math.maxDouble() | return the largest positive finite value of type double
-| apoc.math.minDouble() | return the smallest positive nonzero value of type double
-| apoc.math.maxInt() | return the maximum value a int can have
-| apoc.math.minInt() | return the minimum value a int can have
-| apoc.math.maxByte() | return the maximum value a byte can have
-| apoc.math.minByte() | return the minimum value a byte can have
-| apoc.number.romanToArabic(romanNumber)  | convert roman numbers to arabic
-| apoc.number.arabicToRoman(number)  | convert arabic numbers to roman
-|===
-
-[[spatial]]
-=== Spatial
-
-[cols="1m,5"]
-|===
-| CALL apoc.spatial.geocode('address') YIELD location, latitude, longitude, description, osmData | look up geographic location of location from a geocoding service (the default one is OpenStreetMap)
-| CALL apoc.spatial.reverseGeocode(latitude,longitude) YIELD location, latitude, longitude, description | look up address from latitude and longitude from a geocoding service (the default one is OpenStreetMap)
-| CALL apoc.spatial.sortPathsByDistance(Collection<Path>) YIELD path, distance | sort a given collection of paths by geographic distance based on lat/long properties on the path nodes
-|===
-
-include::spatial.adoc[leveloffset=+3]
-
-[[static-values]]
-=== Static Value Storage
-
-[cols="1m,5"]
-|===
-| apoc.static.get(name) | returns statically stored value from config (apoc.static.<key>) or server lifetime storage
-| apoc.static.getAll(prefix) |  returns statically stored values from config (apoc.static.<prefix>) or server lifetime storage
-| apoc.static.set(name, value) | stores value under key for server livetime storage, returns previously stored or configured value
-|===
-
-NOTE: `apoc.static.get` and `apoc.static.getAll` have been migrated to be functions, the procedures have been deprecated.
-
-[[utility-functions]]
-=== Utilities
-
-[cols="1m,5"]
-|===
-| apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list
-| apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list
-| apoc.util.sleep({duration}) | sleeps for <duration> millis, transaction termination is honored
-| apoc.util.validate(predicate, message,[params]) | raises exception if prediate evaluates to true
-|===
-
-include::phonetic.adoc[leveloffset=2]
-include::extract.adoc[leveloffset=2]
-
-include::datetime.adoc[leveloffset=2]
-include::temporal.adoc[leveloffset=2]
-
-include::number.adoc[leveloffset=2]
-
-include::exact.adoc[leveloffset=2]
-
-include::hashing.adoc[leveloffset=+2]
-
-include::diff.adoc[leveloffset=2]
-
-[[bitwise-operations]]
-=== Bitwise operations
-
-// TODO function
-
-Provides a wrapper around the java bitwise operations.
-|===
-| apoc.bitwise.op(a long, "operation", b long ) as <identifier>
-|===
-
-examples
-|===
-| operator | name | example | result
-| a & b | AND | apoc.bitwise.op(60,"&",13) | 12
-| a \| b | OR | apoc.bitwise.op(60,"\|",13) | 61
-| a ^ b | XOR | apoc.bitwise.op(60,"&",13) | 49
-| ~a | NOT | apoc.bitwise.op(60,"&",0) | -61
-| a << b | LEFT SHIFT | apoc.bitwise.op(60,"<<",2) | 240
-| a >> b | RIGHT SHIFT | apoc.bitwise.op(60,">>",2) | 15
-| a >>> b | UNSIGNED RIGHT SHIFT | apoc.bitwise.op(60,">>>",2) | 15
-|===
-
-[[atomic-updates]]
-=== Atomic
-
-include::atomic.adoc[leveloffset=1]
-=== Log
-
-include::log.adoc[leveloffset=1]
 
 

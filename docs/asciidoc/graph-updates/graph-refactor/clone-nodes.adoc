@@ -1,0 +1,50 @@
+[[clone-nodes]]
+= Clone nodes
+
+[abstract]
+--
+This section describes procedures that can be used to clone nodes and relationships.
+--
+
+
+We create a dataset
+[source,cypher]
+----
+CREATE (f:Foo{name:'Foo'}),(b:Bar{name:'Bar'})
+----
+
+As result we have two nodes
+
+image::apoc.refactor.cloneNodes.dataset.png[scaledwidth="100%"]
+
+[source,cypher]
+----
+MATCH (f:Foo{name:'Foo'}),(b:Bar{name:'Bar'}) WITH f,b
+CALL apoc.refactor.cloneNodes([f,b]) yield input, output RETURN *
+----
+
+As result we have the two nodes that we have created before and their clones
+
+image::apoc.refactor.cloneNodes.png[scaledwidth="100%"]
+
+.Clone nodes with relationship
+
+We create a dataset of two different nodes of type `Actor` connected with other two different node of type `Movie`
+
+[source,cypher]
+----
+CREATE (k:Actor {name:'Keanu Reeves'})-[:ACTED_IN {role:'Neo'}]->(m:Movie {title:'The Matrix'}),
+	   (t:Actor {name:'Tom Hanks'})-[:ACTED_IN {role:'Forrest'}]->(f:Movie {title:'Forrest Gump'}) RETURN *
+----
+
+image::apoc.refactor.cloneNodesWithRelationships.dataset.png[scaledwidth="100%"]
+
+[source,cypher]
+----
+MATCH (k:Actor {name:'Keanu Reeves'}), (t:Actor {name:'Tom Hanks'})
+CALL apoc.refactor.cloneNodesWithRelationships([k,t]) YIELD input, output RETURN *
+----
+
+As result we have a copy of the nodes and relationships
+
+image::apoc.refactor.cloneNodesWithRelationships.png[scaledwidth="100%"]

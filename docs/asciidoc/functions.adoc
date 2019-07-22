@@ -1,4 +1,11 @@
+[[user-defined-functions]]
 = User Defined Functions
+
+[abstract]
+--
+This chapter describes gives an overview of user defined features, and summarises the functions in the APOC library.
+--
+
 
 Introduced in Neo4j 3.1.0-M10
 
@@ -95,4 +102,4 @@ In our APOC procedure library we already converted about https://github.com/neo4
 
 You can list user defined functions with `call dbms.functions()`
 
-image::{img}/dbms.functions.jpg[]
+image::dbms.functions.jpg[scaledwidth="100%"]

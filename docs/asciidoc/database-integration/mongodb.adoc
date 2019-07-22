@@ -1,0 +1,53 @@
+[[mongodb]]
+= MongoDB
+
+[abstract]
+--
+This section describes procedures that can be used to interact with MongoDB.
+--
+
+// tag::mongodb[]
+
+[cols="3m,2"]
+|===
+| CALL apoc.mongodb.get(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true\|false],skip-or-null,limit-or-null) yield value | perform a find operation on mongodb collection
+| CALL apoc.mongodb.count(host-or-port,db-or-null,collection-or-null,query-or-null) yield value | perform a find operation on mongodb collection
+| CALL apoc.mongodb.first(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true\|false]) yield value | perform a first operation on mongodb collection
+| CALL apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,[compatibleValues=true\|false],skip-or-null) yield value | perform a find,project,sort operation on mongodb collection
+| CALL apoc.mongodb.insert(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
+| CALL apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) yield value | deletes the given documents from the mongodb collection and returns the number of affected documents
+| CALL apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) yield value | updates the given documents from the mongodb collection and returns the number of affected documents
+|===
+
+If your documents have date fields or any other type that can be automatically converted by Neo4j, you need to set *compatibleValues* to true. These values will be converted according to Jackson databind default mapping.
+
+Copy these jars into the plugins directory:
+
+* bson-3.4.2.jar
+* mongo-java-driver-3.4.2.jar
+* mongodb-driver-3.4.2.jar
+* mongodb-driver-core-3.4.2.jar
+
+You should be able to get them from https://mongodb.github.io/mongo-java-driver/[here], and https://mvnrepository.com/artifact/org.mongodb/bson/3.4.2[here (BSON)] (via Download)
+
+Or you get them locally from your gradle build of apoc.
+
+----
+gradle copyRuntimeLibs
+cp lib/mongodb*.jar lib/bson*.jar $NEO4J_HOME/plugins/
+----
+
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDocument'})
+----
+
+If you need automatic conversion of *unpackable* values then the cypher query will be:
+
+[source,cypher]
+----
+CALL apoc.mongodb.first('mongodb://localhost:27017','test','test',{name:'testDocument'},true)
+----
+
+// end::mongodb[]
+

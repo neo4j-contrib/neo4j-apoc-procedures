@@ -1,0 +1,13 @@
+[[utility-functions]]
+= Utilities
+
+[abstract]
+--
+This section describes functions for validating predicates, and sleeping a query.
+--
+
+[cols="1m,5"]
+|===
+| apoc.util.sleep({duration}) | sleeps for <duration> millis, transaction termination is honored
+| apoc.util.validate(predicate, message,[params]) | raises exception if predicate evaluates to true
+|===

@@ -1,0 +1,24 @@
+[[comparing-graphs]]
+== Comparing Graphs
+
+[abstract]
+--
+This chapter describes procedures that can be used to compare graphs against each other.
+--
+
+For more information on how to use these procedures, see:
+
+* <<node-difference>>
+* <<fingerprinting>>
+
+include::utilities/diff.adoc[leveloffset=2]
+include::utilities/hashing.adoc[leveloffset=+2]
+
+
+
+
+
+
+
+
+

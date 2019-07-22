@@ -1,42 +1,22 @@
 [[algorithms]]
-== Deprecated: Graph Algorithms
+== Graph Algorithms
 
-[WARNING]
-Graph Algorithms (similarity, centrality and clustering) in APOC are deprecated and about to be removed.
-Please use the algorithms in https://r.neo4j.com/algo[neo4j-graph-algorithms] instead.
+[abstract]
+--
+This chapter describes graph algorithms in the APOC library.
+--
 
-[[similarity]]
-=== Similarity
+include::algorithms/deprecated.adoc[]
 
-[cols="3m,3"]
-|===
-| apoc.algo.cosineSimilarity([vector1], [vector2]) | Compute cosine similarity
-| apoc.algo.euclideanDistance([vector1], [vector2]) | Compute Euclidean distance
-| apoc.algo.euclideanSimilarity([vector1], [vector2]) | Compute Euclidean similarity
-|===
+* <<path-finding-procedures>>
+* <<similarity>>
+* <<community-detection>>
+* <<centrality>>
+* <<pagerank>>
 
-[cols="3m,3"]
-|===
-| apoc.algo.betweenness(['TYPE',...],nodes,BOTH) YIELD node, score | calculate betweenness  centrality for given nodes
-| apoc.algo.closeness(['TYPE',...],nodes, INCOMING) YIELD node, score | calculate closeness  centrality for given nodes
-| apoc.algo.cover(nodeIds) YIELD rel | return relationships between this set of nodes
-|===
-
-[cols="3m,3"]
-|===
-| apoc.algo.pageRank(nodes) YIELD node, score | calculates page rank for given nodes
-| apoc.algo.pageRankWithConfig(nodes,{iterations:_,types:_}) YIELD node, score | calculates page rank for given nodes
-|===
-
-[cols="3m,3"]
-|===
-| apoc.algo.community(times,labels,partitionKey,type,direction,weightKey,batchSize) | simple label propagation kernel
-| apoc.algo.cliques(minSize) YIELD clique | search the graph and return all maximal cliques at least at  large as the minimum size argument.
-| apoc.algo.cliquesWithNode(startNode, minSize) YIELD clique | search the graph and return all maximal cliques that  are at least as large than the minimum size argument and contain this node
-|===
-
-
-include::algo.adoc[leveloffset=+1]
-include::centrality.adoc[leveloffset=+2]
-include::pagerank.adoc[leveloffset=2]
+include::algorithms/path-finding-procedures.adoc[leveloffset=2]
+include::algorithms/similarity.adoc[leveloffset=2]
+include::algorithms/algo.adoc[leveloffset=+1]
+include::algorithms/centrality.adoc[leveloffset=+2]
+include::algorithms/pagerank.adoc[leveloffset=2]
 

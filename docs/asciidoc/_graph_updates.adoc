@@ -1,0 +1,40 @@
+[[graph-updates]]
+== Graph Updates
+
+[abstract]
+--
+This chapter describes procedures that can be used to perform graph updates.
+--
+
+The APOC library adds extra functionality for writing to the database.
+
+For more information on how to use these procedures, see:
+
+* <<data-creation>>
+* <<auto-uuid>>
+* <<periodic-execution>>
+* <<graph-refactoring>>
+* <<atomic-updates>>
+* <<locking>>
+* <<ttl>>
+
+include::graph-updates/data-creation.adoc[leveloffset=2]
+
+include::graph-updates/uuid.adoc[leveloffset=2]
+
+include::graph-updates/periodic-execution.adoc[leveloffset=2]
+
+include::graph-updates/atomic.adoc[leveloffset=2]
+
+include::graph-updates/graph-refactor.adoc[leveloffset=2]
+
+include::graph-updates/locking.adoc[leveloffset=2]
+
+include::graph-updates/ttl.adoc[leveloffset=2]
+
+
+
+
+
+
+

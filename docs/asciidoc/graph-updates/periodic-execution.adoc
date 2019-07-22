@@ -1,0 +1,35 @@
+[[periodic-execution]]
+= Periodic Execution
+
+[abstract]
+--
+This section describes procedures that can be used to batch transactions when executing large write operations.
+--
+
+Cypher is great for querying graphs and importing and updating graph structures.
+While during imports you can use `PERIODIC COMMIT` to control transaction sizes in memory, but for other graph refactorings it's not that easy to commit transactions regularly to free memory for new update state.
+
+[cols="1m,5"]
+|===
+| CALL apoc.periodic.commit(statement, params) | repeats an batch update statement until it returns 0, this procedure is blocking
+| CALL apoc.periodic.rock_n_roll(statementIteration, statementAction, batchSize) YIELD batches, total | iterate over first statement and apply action statement with given transaction batch size. Returns to numeric values holding the number of batches and the number of total processed rows. E.g.
+| CALL apoc.periodic.iterate('statement returning items', 'statement per item', {batchSize:1000,iterateList:true,parallel:false,params:{},concurrency:50,retries:0}) YIELD batches, total - run the second statement for each item returned by the first statement. Returns number of batches and total processed rows
+|===
+
+This section includes:
+
+* <<commit-batching>>
+* <<periodic-commit>>
+* <<periodic-rock-n-roll>>
+
+include::periodic-iterate.adoc[leveloffset=+1]
+include::periodic-commit.adoc[leveloffset=+1]
+
+[[periodic-rock-n-roll]]
+=== apoc.periodic.rock_n_roll
+
+.copies over the `name` property of each person to `lastname`
+[source,cypher]
+----
+CALL apoc.periodic.rock_n_roll('match (p:Person) return id(p) as id_p', 'MATCH (p) where id(p)={id_p} SET p.lastname =p.name', 20000)
+----

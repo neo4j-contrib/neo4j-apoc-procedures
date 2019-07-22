@@ -1,0 +1,22 @@
+[[conversion-functions]]
+= Conversion Functions
+
+[abstract]
+--
+This section describes functions that can be used for type coercion of values.
+--
+
+Sometimes type information gets lost, these functions help you to coerce an "Any" value to the concrete type
+
+[cols="1m,5"]
+|===
+| apoc.convert.toString(value) | tries it's best to convert the value to a string
+| apoc.convert.toMap(value) | tries it's best to convert the value to a map
+| apoc.convert.toList(value) | tries it's best to convert the value to a list
+| apoc.convert.toBoolean(value) | tries it's best to convert the value to a boolean
+| apoc.convert.toNode(value) | tries it's best to convert the value to a node
+| apoc.convert.toRelationship(value) | tries it's best to convert the value to a relationship
+| apoc.convert.toSet(value) | tries it's best to convert the value to a set
+| apoc.convert.toFloat(value) | tries it's best to convert the value to a floating point value
+| apoc.convert.toInteger(value) | tries it's best to convert the value to a integer value
+|===

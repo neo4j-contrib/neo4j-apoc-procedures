@@ -1,0 +1,74 @@
+[[clone-subgraph]]
+= Clone subgraph
+
+[abstract]
+--
+This section describes procedures that can be used to clone subgraphs.
+--
+
+
+You can use the `cloneSubgraph()` and `cloneSubraphFromPaths()` to clone a subgraph defined either by a list of nodes and a list of relationships, or a list of paths.
+This is useful when you want to ensure the cloned subgraph isn't connected to the original nodes, or to nodes outside the subgraph.
+
+If relationships are not provided, then all relationships between the given nodes will be cloned.
+
+In the config map, we can supply a `standinNodes` list (of pairs of nodes), allowing an existing node in the graph to act as a standin for another node in the cloned subgraph.
+This can be useful when you want to attach the cloned subgraph to another node in your graph (in place of cloning a node).
+
+For example, when cloning a tree from one root to another.
+
+Let's create a dataset of two trees:
+
+[source,cypher]
+----
+CREATE  (rootA:Root{name:'A'}),
+        (rootB:Root{name:'B'}),
+        (n1:Node{name:'node1', id:1}),
+        (n2:Node{name:'node2', id:2}),
+        (n3:Node{name:'node3', id:3}),
+        (n4:Node{name:'node4', id:4}),
+        (n5:Node{name:'node5', id:5}),
+        (n6:Node{name:'node6', id:6}),
+        (n7:Node{name:'node7', id:7}),
+        (n8:Node{name:'node8', id:8}),
+        (n9:Node{name:'node9', id:9}),
+        (n10:Node{name:'node10', id:10}),
+        (n11:Node{name:'node11', id:11}),
+        (n12:Node{name:'node12', id:12})
+        CREATE (rootA)-[:LINK]->(n1)-[:LINK]->(n2)-[:LINK]->(n3)-[:LINK]->(n4)
+        CREATE               (n1)-[:LINK]->(n5)-[:LINK]->(n6)<-[:LINK]-(n7)
+        CREATE                             (n5)-[:LINK]->(n8)
+        CREATE                             (n5)-[:LINK]->(n9)-[:DIFFERENT_LINK]->(n10)
+        CREATE (rootB)-[:LINK]->(n11)
+----
+
+For our use case, we want to clone a subtree starting from rootA consisting only of outgoing :LINK relationships,
+and attach that subgraph to rootB. rootB becomes the standin for rootA (which is not cloned).
+
+[source,cypher]
+----
+MATCH  (rootA:Root{name:'A'}),
+        (rootB:Root{name:'B'})
+MATCH path = (rootA)-[:LINK*]->(node)
+WITH rootA, rootB, collect(path) as paths
+CALL apoc.refactor.cloneSubgraphFromPaths(paths, {standinNodes:[[rootA, rootB]]}) YIELD input, output, error
+RETURN input, output, error
+----
+
+A subsequent MATCH to the entire graph will show the subgraph has been cloned and attached to rootB.
+
+We can instead use `apoc.refactor.cloneSubgraph()`, providing the lists of nodes and relationships which form the subgraph.
+We can get the nodes and rels from the yielded output of `apoc.path.subgraphAll()`, and we can filter to the relationship types we want in the call.
+
+After clearing and repopulating the tree graph, we can run:
+
+[source,cypher]
+----
+MATCH  (rootA:Root{name:'A'}),
+        (rootB:Root{name:'B'})
+CALL apoc.path.subgraphAll(rootA, {relationshipFilter:'LINK>'}) YIELD nodes, relationships
+CALL apoc.refactor.cloneSubgraph(nodes, [rel in relationships WHERE type(rel) = 'LINK'], {standinNodes:[[rootA, rootB]]}) YIELD input, output, error
+RETURN input, output, error
+----
+
+The resulting graph will be the same as our earlier `apoc.refactor.cloneSubgraphFromPaths()` call.

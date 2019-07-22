@@ -1,0 +1,42 @@
+[[periodic-background]]
+= Background Jobs
+
+[abstract]
+--
+This section describes procedures that can be used to run procedures in the background or asynchronously.
+--
+
+
+[cols="1m,5"]
+|===
+| CALL apoc.periodic.list() | list all jobs
+| CALL apoc.periodic.submit('name',statement) | submit a one-off background statement
+| CALL apoc.periodic.schedule('name',statement,repeat-time-in-seconds) | submit a repeatedly-called background statement
+| CALL apoc.periodic.countdown('name',statement,delay-in-seconds) | submit a repeatedly-called background statement until it returns 0
+|===
+
+* there are also static methods `Jobs.submit`, and `Jobs.schedule` to be used from other procedures
+* jobs list is checked / cleared every 10s for finished jobs
+
+Many procedures run in the background or asynchronously. This setting overrides the default thread pool size (processors*2).
+
+`apoc.jobs.pool.num_threads=10`
+
+Many periodic procedures rely on a scheduled executor that has a pool of threads with a default fixed size (processors/4, at least 1). You can configure the pool size using the following configuration property:
+
+`apoc.jobs.scheduled.num_threads=10`
+
+Repeats a statement until the termination is reached. The statement must return a numeric value and it should decrement (like a monotonically decreasing function). When the return value reaches 0 than the iteration stops.
+For example, define a counter with a numeric property:
+
+[source,cypher]
+----
+CREATE (counter:Counter) SET counter.c = 10
+----
+
+and decrement this property by 1 each second:
+
+[source,cypher]
+----
+CALL apoc.periodic.countdown('decrement',"MATCH (counter:Counter) SET counter.c = counter.c - 1 RETURN counter.c as count", 1)
+----
