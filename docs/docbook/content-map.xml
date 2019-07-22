@@ -92,12 +92,6 @@
     </d:tocentry>
 
     <d:tocentry linkend="misc"><?dbhtml filename="misc/index.html"?>
-      <d:tocentry linkend="conversion-functions"><?dbhtml filename="misc/conversion-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="map-functions"><?dbhtml filename="misc/map-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="collection-list-functions"><?dbhtml filename="misc/collection-list-functions/index.html"?>
-      </d:tocentry>
       <d:tocentry linkend="text-functions"><?dbhtml filename="misc/text-functions/index.html"?>
       </d:tocentry>
 
@@ -112,6 +106,16 @@
       </d:tocentry>
 
   </d:tocentry>
+
+
+    <d:tocentry linkend="data-structures"><?dbhtml filename="data-structures/index.html"?>
+      <d:tocentry linkend="conversion-functions"><?dbhtml filename="data-structures/conversion-functions/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="map-functions"><?dbhtml filename="data-structures/map-functions/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="collection-list-functions"><?dbhtml filename="data-structures/collection-list-functions/index.html"?>
+      </d:tocentry>
+    </d:tocentry>
 
     <d:tocentry linkend="nodes-relationships"><?dbhtml filename="nodes-relationships/index.html"?>
 
