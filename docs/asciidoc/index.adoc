@@ -136,8 +136,6 @@ include::_mathematical.adoc[]
 
 include::_comparing_graphs.adoc[]
 
-include::_nodes_relationships.adoc[]
-
 include::_path_finding.adoc[]
 
 include::_cypher_execution.adoc[]

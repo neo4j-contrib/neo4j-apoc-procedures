@@ -18,6 +18,7 @@ For more information on how to use these procedures, see:
 * <<locking>>
 * <<ttl>>
 * <<graph-generators>>
+* <<deleting-data>>
 
 include::graph-updates/data-creation.adoc[leveloffset=2]
 
@@ -56,3 +57,17 @@ CALL apoc.generate.ba(1000, 2, 'TestLabel', 'TEST_REL_TYPE')
 CALL apoc.generate.ws(1000, null, null, null)
 CALL apoc.generate.simple([2,2,2,2], null, null)
 ----
+
+[[deleting-data]]
+=== Deleting Data
+
+[abstract]
+--
+This section describes procedures that can be used to delete graph data
+--
+
+.Procedures
+[cols="1m,5"]
+|===
+| CALL apoc.nodes.delete(node\|nodes\|id\|[ids]) | quickly delete all nodes with these ids
+|===

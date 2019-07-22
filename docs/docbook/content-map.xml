@@ -114,13 +114,6 @@
   </d:tocentry>
 
     <d:tocentry linkend="nodes-relationships"><?dbhtml filename="nodes-relationships/index.html"?>
-      <d:tocentry linkend="path-functions"><?dbhtml filename="nodes-relationships/path-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="rel-functions"><?dbhtml filename="nodes-relationships/relationship-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="node-functions"><?dbhtml filename="nodes-relationships/node-functions/index.html"?>
-      </d:tocentry>
-
 
 
     </d:tocentry>
@@ -135,9 +128,17 @@
       </d:tocentry>
 
       <d:tocentry linkend="expand-spanning-tree"><?dbhtml filename="graph-querying/expand-spanning-tree/index.html"?>
+      </d:tocentry>
 
-        <d:tocentry linkend="parallel-node-search"><?dbhtml filename="graph-querying/parallel-node-search/index.html"?>
-        </d:tocentry>
+      <d:tocentry linkend="parallel-node-search"><?dbhtml filename="graph-querying/parallel-node-search/index.html"?>
+      </d:tocentry>
+
+
+      <d:tocentry linkend="path-functions"><?dbhtml filename="graph-querying/path-querying/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="rel-functions"><?dbhtml filename="graph-querying/relationship-querying/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="node-functions"><?dbhtml filename="graph-querying/node-querying/index.html"?>
       </d:tocentry>
 
 
@@ -230,6 +231,9 @@
       <d:tocentry linkend="atomic-updates"><?dbhtml filename="graph-updates/atomic-updates/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="data-creation"><?dbhtml filename="graph-updates/data-creation/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="deleting-data"><?dbhtml filename="graph-updates/data-deletion/index.html"?>
       </d:tocentry>
 
         <d:tocentry linkend="auto-uuid"><?dbhtml filename="graph-updates/uuid/index.html"?>
