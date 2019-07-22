@@ -69,6 +69,7 @@ include::../../readme.adoc[tags=name-history-text]
 === Installation
 
 include::../../readme.adoc[tags=install-desktop,leveloffset=2]
+image::desktop-apoc.jpg[width=800]
 
 include::../../readme.adoc[tags=install,leveloffset=2]
 
