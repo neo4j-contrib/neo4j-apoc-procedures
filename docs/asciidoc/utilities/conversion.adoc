@@ -56,7 +56,7 @@ RETURN apoc.convert.toString(1) AS output
 .Convert number 1 to boolean
 [source,cypher]
 ----
-RETURN apoc.convert.Boolean(1) AS output
+RETURN apoc.convert.toBoolean(1) AS output
 ----
 
 .Results
@@ -69,7 +69,7 @@ RETURN apoc.convert.Boolean(1) AS output
 .Convert number 0 to boolean
 [source,cypher]
 ----
-RETURN apoc.convert.Boolean(0) AS output
+RETURN apoc.convert.toBoolean(0) AS output
 ----
 
 .Results
