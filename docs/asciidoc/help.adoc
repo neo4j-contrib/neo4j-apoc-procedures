@@ -1,8 +1,16 @@
 [[help]]
 == Built in Help
 
-image::{img}/apoc-help-apoc.jpg[width=600]
+[abstract]
+--
+This chapter describes the built in help in the APOC library.
+--
 
-If you use `call apoc.help('keyword')` it lists all procedures and functions that have the keyword in their name.
+The APOC library ships with the `apoc.help` procedure, which can be used for procedure and function discovery.
 
-With an empty keyword it lists all APOC procedures and functions, their signature and description.
+image::apoc-help-apoc.jpg[scaledwidth="100%"]
+
+Running `call apoc.help('keyword')` will lists all procedures and functions that have the keyword in their name.
+If no keyword is provided, it will return a list of all APOC procedures and functions, along with their signatures and descriptions.
+
+If you use `RETURN apoc.version()` it displays the current APOC version.

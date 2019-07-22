@@ -1,0 +1,34 @@
+[[similarity]]
+= Deprecated: Similarity
+
+[abstract]
+--
+This section describes similarity algorithms in the APOC library.
+--
+
+[cols="3m,3"]
+|===
+| apoc.algo.cosineSimilarity([vector1], [vector2]) | Compute cosine similarity
+| apoc.algo.euclideanDistance([vector1], [vector2]) | Compute Euclidean distance
+| apoc.algo.euclideanSimilarity([vector1], [vector2]) | Compute Euclidean similarity
+|===
+
+[cols="3m,3"]
+|===
+| apoc.algo.betweenness(['TYPE',...],nodes,BOTH) YIELD node, score | calculate betweenness  centrality for given nodes
+| apoc.algo.closeness(['TYPE',...],nodes, INCOMING) YIELD node, score | calculate closeness  centrality for given nodes
+| apoc.algo.cover(nodeIds) YIELD rel | return relationships between this set of nodes
+|===
+
+[cols="3m,3"]
+|===
+| apoc.algo.pageRank(nodes) YIELD node, score | calculates page rank for given nodes
+| apoc.algo.pageRankWithConfig(nodes,{iterations:_,types:_}) YIELD node, score | calculates page rank for given nodes
+|===
+
+[cols="3m,3"]
+|===
+| apoc.algo.community(times,labels,partitionKey,type,direction,weightKey,batchSize) | simple label propagation kernel
+| apoc.algo.cliques(minSize) YIELD clique | search the graph and return all maximal cliques at least at  large as the minimum size argument.
+| apoc.algo.cliquesWithNode(startNode, minSize) YIELD clique | search the graph and return all maximal cliques that  are at least as large than the minimum size argument and contain this node
+|===

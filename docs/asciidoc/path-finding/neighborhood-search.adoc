@@ -1,0 +1,17 @@
+[[neighbourhood-search]]
+== Neighbor Functions
+
+[abstract]
+--
+This section describes procedures that can be used to find the nodes in the neighborhood of a specified node.
+--
+
+[cols="1m,5"]
+|===
+| apoc.neighbors.tohop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern up to a certain distance
+| apoc.neighbors.tohop.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern up to a certain distance
+| apoc.neighbors.byhop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern grouped by distance
+| apoc.neighbors.byhop.count(node, rel-direction-pattern, distance) | returns the count distinct nodes of the given relationships in the pattern grouped by distance
+| apoc.neighbors.athop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern at a certain distance
+| apoc.neighbors.athop.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern at a certain distance
+|===

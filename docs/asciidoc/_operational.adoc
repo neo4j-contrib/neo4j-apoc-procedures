@@ -1,47 +1,19 @@
 [[operational]]
 == Operational
 
-include::ttl.adoc[leveloffset=2]
+[abstract]
+--
+This chapter describes operational procedures in the APOC library.
+--
 
-[[triggers]]
-=== Triggers
+For more information on how to use these procedures, see:
 
-include::trigger.adoc[leveloffset=2]
+* <<init-script>>
+* <<warmup>>
+* <<log>>
 
-[[init-script]]
-=== Cypher init script
+include::operational/cypher_init.adoc[leveloffset=2]
 
-include::cypher_init.adoc[leveloffset=1]
+include::operational/warmup.adoc[leveloffset=2]
 
-[[neo4j-config]]
-=== Config
-
-[cols="1m,5"]
-|===
-| apoc.config.list | Lists the Neo4j configuration as key,value table
-| apoc.config.map | Lists the Neo4j configuration as map
-|===
-
-[[warmup]]
-=== Warmup
-
-[cols="1m,5"]
-|===
-| CALL apoc.warmup.run([loadProperties],[loadDynamicProperties],[loadIndexes]) | Quickly warm up the page-caches by touching pages in paralle optionally load property-records, dynamic-properties, indexes
-|===
-
-[[monitoring]]
-=== Monitoring
-
-[cols="1m,5"]
-|===
-| apoc.monitor.ids | node and relationships-ids in total and in use
-| apoc.monitor.kernel | store information such as kernel version, start time, read-only, database-name, store-log-version etc.
-| apoc.monitor.store | store size information for the different types of stores
-| apoc.monitor.tx | number of transactions total,opened,committed,concurrent,rolled-back,last-tx-id
-| apoc.monitor.locks(minWaitTime long) | db locking information such as avertedDeadLocks, lockCount, contendedLockCount and contendedLocks etc. (enterprise)
-|===
-
-// include::{img}/apoc.monitor.png[width=600]
-
-include::uuid.adoc[leveloffset=2]
+include::operational/log.adoc[leveloffset=2]

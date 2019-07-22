@@ -18,7 +18,7 @@ include::overview.adoc[tags=procedurecount]
 
 == APOC Guides by Section
 
-// image::{img}/meetup.png[float=right]
+// image::meetup.png[float=right]
 . pass:a[<a play-topic='{guides}/datetime.html'>Date & Time Conversion</a>]
 . pass:a[<a play-topic='{guides}/loadjson.html'>Load JSON</a>]
 . pass:a[<a play-topic='{guides}/loadjdbc.html'>Load JDBC</a>]

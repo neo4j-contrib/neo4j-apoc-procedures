@@ -1,0 +1,18 @@
+[[graphml-import]]
+= GraphML Import
+
+[abstract]
+--
+This chapter describes a procedure that can be using to load data from GraphML into Neo4j.
+--
+
+GraphML is used by other tools, like Gephi and CytoScape, to read graph data.
+
+// tag::export.graphml[]
+
+`YIELD file, source, format, nodes, relationships, properties, time`
+
+[separator=¦,opts=header,cols="1,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.export.graphml.csv[lines=1;2]
+|===

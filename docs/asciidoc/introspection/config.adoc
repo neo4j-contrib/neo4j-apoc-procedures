@@ -1,0 +1,13 @@
+[[neo4j-config]]
+= Config
+
+[abstract]
+--
+This section describes procedures that can be used to list Neo4j configuration.
+--
+
+[cols="1m,5"]
+|===
+| apoc.config.list | Lists the Neo4j configuration as key,value table
+| apoc.config.map | Lists the Neo4j configuration as map
+|===

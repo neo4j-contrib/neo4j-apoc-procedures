@@ -1,0 +1,68 @@
+[[web-apis]]
+= Loading Data from Web-APIs
+
+[abstract]
+--
+This section gives an overview of procedures that can be used to load data from Web-APIs into Neo4j.
+--
+
+Supported protocols are `file`, `http`, `https`, `s3`, `hdfs` with redirect allowed.
+
+If no procedure is provided, this procedure will try to check whether the URL is actually a file.
+
+[NOTE]
+As `apoc.import.file.use_neo4j_config` is enabled, the procedures check whether file system access is allowed and possibly constrained to a specific directory by
+reading the two configuration parameters `dbms.security.allow_csv_import_from_file_urls` and `dbms.directories.import` respectively.
+If you want to remove these constraints please set `apoc.import.file.use_neo4j_config=false`
+
+[cols="1m,5"]
+|===
+| CALL apoc.load.json('http://example.com/map.json', [path], [config]) YIELD value as person CREATE (p:Person) SET p = person | load from JSON URL (e.g. web-api) to import JSON as stream of values if the JSON was an array or a single value if it was a map
+| CALL apoc.load.xml('http://example.com/test.xml', ['xPath'], [config]) YIELD value as doc CREATE (p:Person) SET p.name = doc.name | load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `+_type+`, `+_text+` and `+_children+` fields.
+| CALL apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name | load from XML URL (e.g. web-api) to import XML as single nested map with attributes and `+_type+`, `+_text+` fields and `+_<childtype>+` collections per child-element-type.
+| CALL apoc.load.csv('url',{sep:";"}) YIELD lineNo, list, strings, map, stringMap | load CSV fom URL as stream of values +
+config contains any of: `{skip:1,limit:5,header:false,sep:'TAB',ignore:['aColumn'],arraySep:';',results:['map','list','strings','stringMap'], +
+nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false,nullValues:['n.A.']}}`
+| CALL apoc.load.xls('url','Sheet'/'Sheet!A2:B5',{config}) YIELD lineNo, list, map | load XLS fom URL as stream of values +
+config contains any of: `{skip:1,limit:5,header:false,ignore:['aColumn'],arraySep:';'+
+nullValues:[''],mapping:{years:{type:'int',arraySep:'-',array:false,name:'age',ignore:false,nullValues:['n.A.']}}`
+|===
+
+== Load Single File From Compressed File (zip/tar/tar.gz/tgz)
+
+When loading data from compressed files, we need to put the `!` character before the file name.
+For example:
+
+.Loading a compressed CSV file
+----
+apoc.load.csv("pathToFile!csv/fileName.csv.tgz")
+----
+
+.Loading a compressed JSON file
+----
+apoc.load.json("https://github.com/neo4j-contrib/neo4j-apoc-procedures/tree/3.4/src/test/resources/testload.tgz?raw=true!person.json");
+----
+
+== Using S3 protocol
+
+When using the S3 protocol we need to download and copy the following jars into the plugins directory:
+
+* aws-java-sdk-core-1.11.250.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-core/1.11.250)
+* aws-java-sdk-s3-1.11.250.jar (https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3/1.11.250)
+* httpclient-4.4.8.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient/4.5.4)
+* httpcore-4.5.4.jar (https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore/4.4.8)
+* joda-time-2.9.9.jar (https://mvnrepository.com/artifact/joda-time/joda-time/2.9.9)
+
+Once those files have been copied we'll need to restart the database.
+
+The S3 URL must be in the following format:
+
+* `s3://accessKey:secretKey@endpoint:port/bucket/key`
+or
+* `s3://endpoint:port/bucket/key?accessKey=accessKey&secretKey=secretKey`
+
+
+== failOnError
+
+
+Adding the config parameter `failOnError:false` (by default `true`), will mean that in the case of an error the procedure will not fail, but just return zero rows.

@@ -1,0 +1,29 @@
+[[community-detection]]
+== Deprecated: Community Detection via Label Propagation
+
+[abstract]
+--
+This section describes the Label Propagation community detection algorithm.
+--
+
+include::deprecated.adoc[]
+
+APOC includes a simple procedure for label propagation.
+It may be used to detect communities or solve other graph partitioning problems.
+The following example shows how it may be used.
+
+The example call with scan all nodes 25 times.
+During a scan the procedure will look at all outgoing relationships of type :X for each node n.
+For each of these relationships, it will compute a weight and use that as a vote for the other node's 'partition' property value.
+Finally, n.partition is set to the property value that acquired the most votes.
+
+Weights are computed by multiplying the relationship weight with the weight of the other nodes.
+Both weights are taken from the 'weight' property; if no such property is found, the weight is assumed to be 1.0.
+Similarly, if no 'weight' property key was specified, all weights are assumed to be 1.0.
+
+[source,cypher]
+----
+CALL apoc.algo.community(25,null,'partition','X','OUTGOING','weight',10000)
+----
+
+The second argument is a list of label names and may be used to restrict which nodes are scanned.

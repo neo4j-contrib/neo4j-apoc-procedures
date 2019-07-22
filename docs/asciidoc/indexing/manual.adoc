@@ -1,0 +1,80 @@
+[[manual-indexes]]
+= Deprecated: Manual Indexes
+
+[abstract]
+--
+This section describes manual indexing procedures in the APOC library.
+--
+
+[WARNING]
+These Index procedures in the namespaces `apoc.index.*` are deprecated and will be removed from APOC soon.
+From version 3.5 Neo4j provides built-in, case-insensitive, configurable fulltext indices.
+
+== Index Queries
+
+Procedures to add to and query manual indexes
+
+NOTE: Please note that there are (case-sensitive) http://neo4j.com/docs/developer-manual/current/#cypher-schema[automatic schema indexes], for equality, non-equality, existence, range queries, starts with, ends-with and contains!
+
+[cols="1m,5"]
+|===
+| apoc.index.addAllNodes('index-name',{label1:['prop1',...],...}, {options}) | add all nodes to this full text index with the given fields, additionally populates a 'search' index field with all of them in one place
+| apoc.index.addNode(node,['prop1',...]) | add node to an index for each label it has
+| apoc.index.addNodeByLabel('Label',node,['prop1',...]) | add node to an index for the given label
+| apoc.index.addNodeByName('name',node,['prop1',...]) | add node to an index for the given name
+| apoc.index.addNodeMap(node,{key:value}) | add node to an index for each label it has with the given attributes which can also be computed
+| apoc.index.addNodeMapByName(index, node,{key:value}) | add node to an index for each label it has with the given attributes which can also be computed
+| apoc.index.addRelationship(rel,['prop1',...]) | add relationship to an index for its type
+| apoc.index.addRelationshipByName('name',rel,['prop1',...]) | add relationship to an index for the given name
+| apoc.index.addRelationshipMap(rel,{key:value}) | add relationship to an index for its type indexing the given document which can be computed
+| apoc.index.addRelationshipMapByName(index, rel,{key:value}) | add relationship to an index for its type indexing the given document which can be computed
+| apoc.index.removeNodeByName('name',node) remove node from an index for the given name
+| apoc.index.removeRelationshipByName('name',rel) remove relationship from an index for the given name
+|===
+
+image::apoc.index.nodes-with-score.jpg[scaledwidth="100%"]
+
+[cols="1m,5"]
+|===
+| apoc.index.search('index-name', 'query') YIELD node, weight | search for the first 100 nodes in the given full text index matching the given lucene query returned by relevance
+| apoc.index.nodes('Label','prop:value*') YIELD node, weight | lucene query on node index with the given label name
+| apoc.index.relationships('TYPE','prop:value*') YIELD rel, weight | lucene query on relationship index with the given type name
+| apoc.index.between(node1,'TYPE',node2,'prop:value*') YIELD rel, weight | lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null)
+| apoc.index.out(node,'TYPE','prop:value*') YIELD node, weight | lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns end-nodes*
+| apoc.index.in(node,'TYPE','prop:value*') YIELD node, weight | lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns start-nodes*
+| apoc.index.nodes.count('Label','prop:value*') YIELD value | lucene query on node index with the given label name, *returns count-nodes*
+| apoc.index.relationships.count('TYPE','prop:value*') YIELD value | lucene query on relationship index with the given type name, *returns count-relationships*
+| apoc.index.between.count(node1,'TYPE',node2,'prop:value*') YIELD value | lucene query on relationship index with the given type name bound by either or both sides (each node parameter can be null), *returns count-relationships*
+| apoc.index.out.count(node,'TYPE','prop:value*') YIELD value | lucene query on relationship index with the given type name for *outgoing* relationship of the given node, *returns count-end-nodes*
+| apoc.index.in.count(node,'TYPE','prop:value*') YIELD value | lucene query on relationship index with the given type name for *incoming* relationship of the given node, *returns count-start-nodes*
+|===
+
+== Index Management
+
+[cols="1m,5"]
+|===
+| CALL apoc.index.list() YIELD type,name,config | lists all manual indexes
+| CALL apoc.index.remove('name') YIELD type,name,config | removes manual indexes
+| CALL apoc.index.forNodes('name',{config}) YIELD type,name,config | gets or creates manual node index
+| CALL apoc.index.forRelationships('name',{config}) YIELD type,name,config | gets or creates manual relationship index
+|===
+
+.Add node to index example
+[source,cypher]
+----
+match (p:Person) call apoc.index.addNode(p,["name","age"]) RETURN count(*);
+// 129s for 1M People
+call apoc.index.nodes('Person','name:name100*') YIELD node, weight return * limit 2
+----
+
+include::manual-indexes.adoc[leveloffset=+3]
+
+== Schema Index Queries
+
+Schema Index lookups that keep order and can apply limits
+
+[cols="1m,5"]
+|===
+| apoc.index.orderedRange(label,key,min,max,sort-relevance,limit) yield node | schema range scan which keeps index order and adds limit, values can be null, boundaries are inclusive
+| apoc.index.orderedByText(label,key,operator,value,sort-relevance,limit) yield node | schema string search which keeps index order and adds limit, operator is 'STARTS WITH' or 'CONTAINS'
+|===
