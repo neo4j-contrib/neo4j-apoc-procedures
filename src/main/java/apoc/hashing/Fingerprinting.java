@@ -7,7 +7,6 @@ import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
 
-import javax.xml.bind.DatatypeConverter;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -165,10 +164,18 @@ public class Fingerprinting {
             MessageDigest md = MessageDigest.getInstance(DIGEST_ALGORITHM);
             DiagnosingMessageDigestDecorator dmd = new DiagnosingMessageDigestDecorator(md);
             consumer.accept(dmd);
-            return DatatypeConverter.printHexBinary(md.digest());
+            return renderAsHex(md.digest());
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static String renderAsHex(byte[] content) {
+        Formatter formatter = new Formatter();
+        for (byte b : content) {
+            formatter.format("%02X", b);
+        }
+        return formatter.toString();
     }
 
     private String convertValueToString(Object value) {

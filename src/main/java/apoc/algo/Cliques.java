@@ -23,7 +23,7 @@ public class Cliques {
 
     @Deprecated
     @Procedure
-    @Description("apoc.algo.cliques(minSize) YIELD cliques - search the graph and return all maximal cliques at least at " +
+    @Description("apoc.algo.cliques(minSize) YIELD clique - search the graph and return all maximal cliques at least at " +
             "large as the minimum size argument.")
     public Stream<CliqueResult> cliques(@Name( "minSize" ) Number size)
     {
@@ -40,7 +40,7 @@ public class Cliques {
 
     @Deprecated
     @Procedure
-    @Description("apoc.algo.cliquesWithNode(startNode, minSize) YIELD cliques - search the graph and return all maximal cliques that " +
+    @Description("apoc.algo.cliquesWithNode(startNode, minSize) YIELD clique - search the graph and return all maximal cliques that " +
             "are at least as large than the minimum size argument and contain this node ")
     public Stream<CliqueResult> cliquesWithNode(@Name( "startNode" ) Node startNode, @Name( "minSize" ) Number size)
     {
