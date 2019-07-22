@@ -121,8 +121,7 @@
       <d:tocentry linkend="node-functions"><?dbhtml filename="nodes-relationships/node-functions/index.html"?>
       </d:tocentry>
 
-      <d:tocentry linkend="graph-generators"><?dbhtml filename="nodes-relationships/graph-generators/index.html"?>
-      </d:tocentry>
+
 
     </d:tocentry>
 
@@ -222,6 +221,10 @@
     </d:tocentry>
 
     <d:tocentry linkend="graph-updates"><?dbhtml filename="graph-updates/index.html"?>
+
+      <d:tocentry linkend="graph-generators"><?dbhtml filename="graph-updates/graph-generators/index.html"?>
+      </d:tocentry>
+
       <d:tocentry linkend="locking"><?dbhtml filename="graph-updates/locking/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="atomic-updates"><?dbhtml filename="graph-updates/atomic-updates/index.html"?>

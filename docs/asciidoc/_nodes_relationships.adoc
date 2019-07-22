@@ -11,7 +11,7 @@ Functions and procedures to efficiently find and navigate and dynamically create
 * <<path-functions>>
 * <<rel-functions>>
 * <<node-functions>>
-* <<graph-generators>>
+
 
 [[path-functions]]
 === Path Functions
@@ -93,26 +93,4 @@ Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in 
 | CALL apoc.nodes.delete(node\|nodes\|id\|[ids]) | quickly delete all nodes with these ids
 |===
 
-[[graph-generators]]
-=== Generating Graphs
 
-[abstract]
---
-This section describes procedures that can be used to generate example graphs.
---
-
-Generate undirected (random direction) graphs with semi-real random distributions based on theoretical models.
-
-[separator=¦,opts=header,cols="1,1m,5"]
-|===
-include::../../build/generated-documentation/apoc.generate.csv[]
-|===
-
-Example
-
-[source,cypher]
-----
-CALL apoc.generate.ba(1000, 2, 'TestLabel', 'TEST_REL_TYPE')
-CALL apoc.generate.ws(1000, null, null, null)
-CALL apoc.generate.simple([2,2,2,2], null, null)
-----
