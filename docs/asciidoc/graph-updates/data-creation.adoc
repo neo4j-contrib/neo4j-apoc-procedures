@@ -41,8 +41,6 @@ This section includes:
 * <<delete-properties>>
 * <<linked-lists>>
 
-
-
 [[delete-labels]]
 ==== Remove Node Labels
 

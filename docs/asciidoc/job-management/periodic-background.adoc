@@ -1,6 +1,12 @@
 [[periodic-background]]
 = Background Jobs
 
+[abstract]
+--
+This section describes procedures that can be used to run procedures in the background or asynchronously.
+--
+
+
 [cols="1m,5"]
 |===
 | CALL apoc.periodic.list() | list all jobs
