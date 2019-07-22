@@ -13,41 +13,52 @@
 
 // tag::intro[]
 
-image::{img}/apoc.gif[float=right]
+image::apoc.gif[float=right]
 
+// tag::intro-text[]
 Neo4j 3.x introduced the concept of user-defined procedures and functions.
 Those are custom implementations of certain functionality, that can't be (easily) expressed in Cypher itself.
 They are implemented in Java and can be easily deployed into your Neo4j instance, and then be called from Cypher directly.
 
 The APOC library consists of many (about 450) procedures and functions to help with many different tasks in areas like data integration, graph algorithms or data conversion.
+// end::intro-text[]
 
 === License
 
 Apache License 2.0
 
+// tag::name-history[]
 === "APOC" Name history
 
+// tag::name-history-text[]
 http://matrix.wikia.com/wiki/Apoc[Apoc^] was the technician and driver on board of the Nebuchadnezzar in the Matrix movie. He was killed by Cypher.
 
 *APOC* was also the first bundled http://neo4j.com/blog/convenient-package-neo4j-apoc-0-1-released/[A Package Of Component^] for Neo4j in 2009.
 
 *APOC* also stands for "Awesome Procedures On Cypher"
+// end::name-history-text[]
+// end::name-history[]
 
+// tag::install-desktop[]
 == Installation: With Neo4j Desktop
 
 APOC is easily installed with http://neo4j.com/download[Neo4j Desktop], after creating your database just go to the "Manage" screen and the "Plugins" tab.
 Then click "Install" in the APOC box and you're done.
 
-image::{img}/desktop-apoc.jpg[width=800]
+image::desktop-apoc.jpg[width=800]
+// end::install-desktop[]
 
 == Feedback
 
+// tag::feedback[]
 Please provide feedback and report bugs as https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues[GitHub issues] or join the https://community.neo4j.com/c/neo4j-graph-platform/procedures-apoc[Neo4j Community Forum and ask in the APOC & Procedures category^].
+// end::feedback[]
 
 // tag::calling-procedures[]
 
 == Calling Procedures & Functions within Cypher
 
+// tag::usage[]
 User defined *Functions* can be used in *any* expression or predicate, just like built-in functions.
 
 *Procedures* can be called stand-alone with `CALL procedure.name();`
@@ -64,6 +75,7 @@ CALL apoc.load.json(url) YIELD value as person
 MERGE (p:Person {name:person.name})
    ON CREATE SET p.age = person.age, p.children = size(person.children)
 ----
+// end::usage[]
 // end::calling-procedures[]
 
 // end::intro[]
@@ -77,7 +89,7 @@ All included procedures are listed in the link:{docs}#_overview_of_apoc_procedur
 
 // tag::help[]
 
-image::{img}/apoc-help-apoc.jpg[width=600]
+image::apoc-help-apoc.jpg[width=600]
 
 [cols="1m,5"]
 |===
@@ -97,9 +109,9 @@ See the link:{docs}[APOC User Guide^] for documentation of each of the major fea
 To call procedures correctly, you need to know their parameter names, types and positions.
 And for YIELDing their results, you have to know the output column names and types.
 
-INFO: The signatures are shown in error messages, if you use a procedure incorrectly.
+INFO:The signatures are shown in error messages, if you use a procedure incorrectly.
 
-You can see the procedures signature in the output of `CALL apoc.help("name")` (which itself uses `dbms.procedures()` and `dbms.functions()`)
+You can see the procedures signature in the output of `CALL apoc.help("name")`
 
 [source,cypher]
 ----

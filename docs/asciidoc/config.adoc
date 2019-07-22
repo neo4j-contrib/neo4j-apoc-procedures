@@ -1,6 +1,12 @@
 [[config]]
 == Configuration Options
 
+[abstract]
+--
+This chapter gives an overview of all the configuration options used by the APOC library.
+--
+
+
 Set these config options in `$NEO4J_HOME/neo4j.conf`
 
 All boolean options have default value set to **false**. This means that they are *disabled*, unless mentioned otherwise.

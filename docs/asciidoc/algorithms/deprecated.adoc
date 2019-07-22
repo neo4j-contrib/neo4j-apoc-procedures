@@ -1,0 +1,3 @@
+[WARNING]
+Graph Algorithms (similarity, centrality and clustering) in APOC are deprecated and about to be removed.
+Please use the algorithms in the https://r.neo4j.com/algo[Graph Algorithms Library] instead.

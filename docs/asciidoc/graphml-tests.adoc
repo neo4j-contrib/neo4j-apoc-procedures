@@ -206,7 +206,7 @@ We tried to import a subset of the graph on **Gephi** :
 * 1.000.000 relationships
 * 153.000 properties
 
-image::{img}/import_gephi.png[width=800]
+image::import_gephi.png[width=800]
 
 The file has been imported in few seconds.
 
@@ -215,4 +215,4 @@ The file has been imported in few seconds.
 With the same subset we tried to import it on **yEd**.
 The export file has to convert into UTF-8.
 
-image::{img}/import_yed.png[width=800]
+image::import_yed.png[width=800]

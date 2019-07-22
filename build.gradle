@@ -419,6 +419,7 @@ publishing {
                 artifactId = archivesBaseName
                 version = version
                 scm { url = "http://github.com/neo4j-contrib/neo4j-apoc-procedures" }
+                url = 'http://github.com/neo4j-contrib/neo4j-apoc-procedures'
 
                 licenses {
                     license {

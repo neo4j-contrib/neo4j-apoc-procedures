@@ -1,0 +1,25 @@
+[[property-value-label]]
+= Property value to a label
+
+[abstract]
+--
+This section describes a procedure that can be used to create a label from a property value.
+--
+
+You can use the procedure `apoc.create.addLabels` to move a property to a label with Cypher as follows
+
+.Create a node with property studio
+[source,cypher]
+----
+CREATE (:Movie {title: 'A Few Good Men', genre: 'Drama'})
+----
+
+.Move the 'genre' property to a label and remove it as a property
+[source,cypher]
+----
+MATCH (n:Movie)
+CALL apoc.create.addLabels( id(n), [ n.genre ] )
+YIELD node
+REMOVE node.genre
+RETURN node
+----

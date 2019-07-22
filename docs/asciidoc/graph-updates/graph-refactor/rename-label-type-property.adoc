@@ -1,0 +1,18 @@
+[[rename-label-type-property]]
+= Rename
+
+[abstract]
+--
+This section describes procedures that can be used to rename labels, relationship types, and properties of nodes and relationships.
+--
+
+Procedures set for renaming labels, relationship types, nodes and relationships' properties.
+They return the list of eventually impacted constraints and indexes, the user should take care of.
+
+[cols="1m,5"]
+|===
+| call apoc.refactor.rename.label(oldLabel, newLabel, [nodes]) | rename a label from 'oldLabel' to 'newLabel' for all nodes. If 'nodes' is provided renaming is applied to this set only
+| call apoc.refactor.rename.type(oldType, newType, [rels]) | rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only
+| call apoc.refactor.rename.nodeProperty(oldName, newName, [nodes]) | rename all node's property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only
+| call apoc.refactor.rename.typeProperty(oldName, newName, [rels]) | rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only
+|===

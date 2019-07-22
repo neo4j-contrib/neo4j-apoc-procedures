@@ -1,0 +1,19 @@
+[[mathematical]]
+== Mathematical
+
+[abstract]
+--
+This chapter describes procedures and functions that can be used for mathematical operations.
+--
+
+For more information on how to use these procedures, see:
+
+* <<math-functions>>
+* <<exact-math-functions>>
+* <<number-conversions>>
+* <<bitwise-operations>>
+
+include::mathematical/math.adoc[leveloffset=2]
+include::mathematical/exact.adoc[leveloffset=2]
+include::mathematical/number.adoc[leveloffset=2]
+include::mathematical/bitwise.adoc[leveloffset=2]

@@ -1,0 +1,60 @@
+[[redirect-relationship]]
+= Redirect relationships
+
+[abstract]
+--
+This section describes procedures that can be used to redirect relationships from source or target nodes.
+--
+
+== Redirect Source Node
+
+We start with two nodes related each other with a relationship.
+We create a new node which we will use to redirect the relationship like end node
+
+[source,cypher]
+----
+CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
+CREATE (p:Person {name:'Antony'})
+RETURN *
+----
+
+image::apoc.refactor.to.dataset.png[scaledwidth="100%"]
+
+[source,cypher]
+----
+MATCH (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) with id(rel) as id
+MATCH (p:Person {name:'Antony'}) with p as p
+MATCH ()-[r]->(), (p:Person)
+CALL apoc.refactor.to(r, p)
+YIELD input, output
+RETURN *
+----
+
+image::apoc.refactor.to.png[scaledwidth="100%"]
+
+Now the relationship is towards the new node `Person`
+
+== Redirect Target Node
+
+We start with two nodes related each other with a relationship.
+We create a new node which we will use to redirect the relationship like start node
+
+[source,cypher]
+----
+CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
+CREATE (p:Person {name:'Antony'})
+RETURN *
+----
+
+image::apoc.refactor.from.dataset.png[scaledwidth="100%"]
+
+[source,cypher]
+----
+MATCH (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) with id(rel) as id
+MATCH (p:Person {name:'Antony'}) with p as p
+MATCH ()-[r]->(), (p:Person)  CALL apoc.refactor.from(r, p) YIELD input, output RETURN *
+----
+
+image::apoc.refactor.from.png[scaledwidth="100%"]
+
+Now the relationship starts from the new node `Person` from the old node `Bar`

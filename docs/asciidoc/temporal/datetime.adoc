@@ -1,0 +1,161 @@
+[[datetime-conversions]]
+= Date and Time Conversions
+
+[abstract]
+--
+This section describes functions for working with dates and times.
+--
+
+== Conversion between formatted dates and timestamps
+
+[cols="1m,5"]
+|===
+| apoc.date.parse('2015/03/25 03:15:59',['ms'/'s'], ['yyyy/MM/dd HH:mm:ss']) | same as previous, but accepts custom datetime format
+| apoc.date.format(12345, ['ms'/'s'], ['yyyy/MM/dd HH:mm:ss']) | the same as previous, but accepts custom datetime format
+| apoc.date.systemTimezone() | return the system timezone display format string
+| apoc.date.currentTimestamp() | provides current time millis with changing values over a transaction
+|===
+
+* possible unit values: `ms,s,m,h,d` and their long forms `millis,milliseconds,seconds,minutes,hours,days`.
+* possible time zone values: Either an abbreviation such as `PST`, a full name such as `America/Los_Angeles`, or a custom ID such as `GMT-8:00`. Full names are recommended. You can view a list of full names in https://en.wikipedia.org/wiki/List_of_tz_database_time_zones[this Wikipedia page].
+
+== Current timestamp
+
+`apoc.date.currentTimestamp()` provides the System.currentTimeMillis which is current throughout transaction execution compared to Cypher's timestamp() function which does not update within a transaction
+
+.The following captures the current timestamp, sleeps for 1 second, and then captures the current timestamp again:
+[source,cypher]
+----
+WITH apoc.date.currentTimestamp() as start
+CALL apoc.util.sleep(1000)
+RETURN start, apoc.date.currentTimestamp() AS end;
+----
+
+.Results
+[opts="header",cols="1, 1"]
+|===
+| Start | End
+| 1561386222609 | 1561386223612
+|===
+
+== Conversion of timestamps between different time units
+
+* `apoc.date.convert(12345, 'ms', 'd')` convert a timestamp in one time unit into one of a different time unit
+
+* possible unit values: `ms,s,m,h,d` and their long forms.
+
+== Adding/subtracting time unit values to timestamps
+
+* `apoc.date.add(12345, 'ms', -365, 'd')` given a timestamp in one time unit, adds a value of the specified time unit
+
+* possible unit values: `ms,s,m,h,d` and their long forms.
+
+== Reading separate datetime fields:
+
+Splits date (optionally, using given custom format) into fields returning a map from field name to its value.
+
+[source,cypher]
+----
+RETURN apoc.date.fields('2015-03-25 03:15:59')
+----
+
+.The following returns the fields in a date and time:
+[source,cypher]
+----
+RETURN apoc.date.fields('2015-01-02 03:04:05 EET', 'yyyy-MM-dd HH:mm:ss zzz') AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+|  {
+    'weekdays': 5,
+    'years': 2015,
+    'seconds': 5,
+    'zoneid': 'EET',
+    'minutes': 4,
+    'hours': 3,
+    'months': 1,
+    'days': 2
+  }
+|===
+
+.The following returns the fields in a date:
+[source,cypher]
+----
+RETURN apoc.date.fields('2015/01/02_EET', 'yyyy/MM/dd_z') AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+|  {
+    'weekdays': 5,
+    'years': 2015,
+    'zoneid': 'EET',
+    'months': 1,
+    'days': 2
+  }
+|===
+
+
+== Notes on formats:
+
+* the default format is `yyyy-MM-dd HH:mm:ss`
+* if the format pattern doesn't specify timezone, formatter considers dates to belong to the UTC timezone
+* if the timezone pattern is specified, the timezone is extracted from the date string, otherwise an error will be reported
+* the `to/fromSeconds` timestamp values are in POSIX (Unix time) system, i.e. timestamps represent the number of seconds elapsed since https://en.wikipedia.org/wiki/Unix_time[00:00:00 UTC, Thursday, 1 January 1970]
+* the full list of supported formats is described in https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html[SimpleDateFormat JavaDoc]
+
+== Reading single datetime field from UTC Epoch:
+
+Extracts the value of one field from a datetime epoch.
+
+[source,cypher]
+----
+RETURN apoc.date.field(12345)
+----
+
+
+Following fields are supported:
+
+[options="header"]
+|===============================================================================================================
+| Result field	| Represents
+| 'years'		| year
+| 'months' 		| month of year
+| 'days' 		| day of month (default)
+| 'hours' 		| hour of day
+| 'minutes' 	| minute of hour
+| 'seconds'		| second of minute
+| 'millis'		| milliseconds of a second
+|===============================================================================================================
+
+.The following returns the day of the month of the timestamp:
+[source,cypher]
+----
+RETURN apoc.date.field(12345) AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| 1
+|===
+
+.The following returns the year of the timestamp:
+[source,cypher]
+----
+RETURN apoc.date.field(12345, 'years') AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| 1970
+|===
+

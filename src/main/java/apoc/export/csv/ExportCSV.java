@@ -1,7 +1,6 @@
 package apoc.export.csv;
 
 import apoc.ApocConfig;
-import apoc.Description;
 import apoc.Pools;
 import apoc.export.cypher.ExportFileManager;
 import apoc.export.cypher.FileManagerFactory;
@@ -17,6 +16,7 @@ import org.neo4j.graphdb.*;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.TerminationGuard;
 
 import java.util.Collection;
@@ -46,6 +46,9 @@ public class ExportCSV {
 
     @Context
     public Pools pools;
+
+    public ExportCSV() {
+    }
 
     @Procedure
     @Description("apoc.export.csv.all(file,config) - exports whole database as csv to the provided file")

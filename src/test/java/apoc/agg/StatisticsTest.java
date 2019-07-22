@@ -11,8 +11,6 @@ import java.util.Map;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.Util.map;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class StatisticsTest {

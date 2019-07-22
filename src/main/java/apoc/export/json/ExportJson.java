@@ -1,7 +1,6 @@
 package apoc.export.json;
 
 import apoc.ApocConfig;
-import apoc.Description;
 import apoc.export.cypher.ExportFileManager;
 import apoc.export.cypher.FileManagerFactory;
 import apoc.export.util.ExportConfig;
@@ -13,6 +12,7 @@ import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.*;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
@@ -42,7 +42,7 @@ public class ExportJson {
     }
 
     @Procedure
-    @Description("apoc.exportJson.json.all(file,config) - exports whole database as json to the provided file")
+    @Description("apoc.export.json.all(file,config) - exports whole database as json to the provided file")
     public Stream<ProgressInfo> all(@Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
         String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
@@ -50,14 +50,14 @@ public class ExportJson {
     }
 
     @Procedure
-    @Description("apoc.exportJson.json.data(nodes,rels,file,config) - exports given nodes and relationships as json to the provided file")
+    @Description("apoc.export.json.data(nodes,rels,file,config) - exports given nodes and relationships as json to the provided file")
     public Stream<ProgressInfo> data(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
         String source = String.format("data: nodes(%d), rels(%d)", nodes.size(), rels.size());
         return exportJson(fileName, source, new NodesAndRelsSubGraph(tx, nodes, rels), config);
     }
     @Procedure
-    @Description("apoc.exportJson.json.graph(graph,file,config) - exports given graph object as json to the provided file")
+    @Description("apoc.export.json.graph(graph,file,config) - exports given graph object as json to the provided file")
     public Stream<ProgressInfo> graph(@Name("graph") Map<String,Object> graph, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
         Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
@@ -67,7 +67,7 @@ public class ExportJson {
     }
 
     @Procedure
-    @Description("apoc.exportJson.json.query(query,file,{config,...,params:{params}}) - exports results from the cypher statement as json to the provided file")
+    @Description("apoc.export.json.query(query,file,{config,...,params:{params}}) - exports results from the cypher statement as json to the provided file")
     public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         Map<String,Object> params = config == null ? Collections.emptyMap() : (Map<String,Object>)config.getOrDefault("params", Collections.emptyMap());
         Result result = tx.execute(query,params);

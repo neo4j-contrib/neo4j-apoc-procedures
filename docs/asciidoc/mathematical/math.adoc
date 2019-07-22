@@ -1,0 +1,126 @@
+[[math-functions]]
+= Math Functions
+
+[abstract]
+--
+This section describes functions for common math operations.
+--
+
+[cols="1m,5"]
+|===
+| apoc.math.round(value,[precision=0],mode=[HALF_UP,CEILING,FLOOR,UP,DOWN,HALF_EVEN,HALF_DOWN,DOWN,UNNECESSARY]) | rounds value with optionally given precision (default 0) and optional rounding mode (default HALF_UP)
+| apoc.math.maxLong() | return the maximum value a long can have
+| apoc.math.minLong() | return the minimum value a long can have
+| apoc.math.maxDouble() | return the largest positive finite value of type double
+| apoc.math.minDouble() | return the smallest positive nonzero value of type double
+| apoc.math.maxInt() | return the maximum value a int can have
+| apoc.math.minInt() | return the minimum value a int can have
+| apoc.math.maxByte() | return the maximum value a byte can have
+| apoc.math.minByte() | return the minimum value a byte can have
+| apoc.number.romanToArabic(romanNumber)  | convert roman numbers to arabic
+| apoc.number.arabicToRoman(number)  | convert arabic numbers to roman
+|===
+
+.The following returns the maximum long value:
+[source,cypher]
+----
+RETURN apoc.math.maxLong() AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| 9223372036854775807
+|===
+
+.The following returns the minimum long value:
+[source,cypher]
+----
+RETURN apoc.math.minLong() AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| -9223372036854775808
+|===
+
+.The following returns the maximum double value:
+[source,cypher]
+----
+RETURN apoc.math.maxDouble() AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| 1.7976931348623157e+308.0
+|===
+
+.The following returns the minimum double value:
+[source,cypher]
+----
+RETURN apoc.math.minDouble() AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| 5e-324
+|===
+
+.The following returns the maximum int value:
+[source,cypher]
+----
+RETURN apoc.math.maxInt() AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| 2147483647
+|===
+
+.The following returns the minimum int value:
+[source,cypher]
+----
+RETURN apoc.math.minInt() AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| -2147483648
+|===
+
+.The following returns the maximum byte value:
+[source,cypher]
+----
+RETURN apoc.math.maxByte() AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| 127
+|===
+
+.The following returns the minimum byte value:
+[source,cypher]
+----
+RETURN apoc.math.minByte() AS output;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| -128
+|===

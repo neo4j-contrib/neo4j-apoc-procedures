@@ -1,7 +1,6 @@
 package apoc.config;
 
 import apoc.ApocConfig;
-import apoc.Description;
 import apoc.result.MapResult;
 import apoc.util.Util;
 import org.apache.commons.configuration2.Configuration;
@@ -9,6 +8,7 @@ import org.neo4j.common.DependencyResolver;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Procedure;
 
 import java.util.Map;

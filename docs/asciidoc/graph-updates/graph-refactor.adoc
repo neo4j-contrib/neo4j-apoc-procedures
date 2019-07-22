@@ -1,0 +1,110 @@
+[[graph-refactoring]]
+= Graph Refactorings
+
+[abstract]
+--
+This section describes graph refactoring procedures in the APOC library.
+--
+
+The available algorithms are described in the table below:
+
+[cols="1m,5"]
+|===
+| call apoc.refactor.cloneNodes([node1,node2,...]) |  clone nodes with their labels and properties
+| call apoc.refactor.cloneNodesWithRelationships([node1,node2,...]) | clone nodes with their labels, properties and relationships
+| call apoc.refactor.cloneSubgraph([node1,node2,...], [rel1,rel2,...]=[], {standinNodes:[[oldNode1, standinNode1], ...], skipProperties:[prop1, prop2, ...]}={}) YIELD input, output, error |
+clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map), and clone the given relationships (will exist between cloned nodes only). If no relationships are provided, all relationships between the given nodes will be cloned. Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.
+| call apoc.refactor.cloneSubgraphFromPaths([path1,path2,...], {standinNodes:[[oldNode1, standinNode1], ...], skipProperties:[prop1, prop2, ...]}={}) YIELD input, output, error |
+from the subgraph formed from the given paths, clone nodes with their labels and properties (optionally skipping any properties in the skipProperties list via the config map),
+and clone the relationships (will exist between cloned nodes only). Relationships can be redirected according to optional standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.
+| call apoc.refactor.mergeNodes([node1,node2]) | merge nodes onto first in list
+| call apoc.refactor.mergeRelationships([rel1,rel2,...],{config}) | merge relationships onto first in list
+| call apoc.refactor.to(rel, endNode) | redirect relationship to use new end-node
+| call apoc.refactor.from(rel, startNode) | redirect relationship to use new start-node
+| call apoc.refactor.invert(rel) | inverts relationship direction
+| call apoc.refactor.setType(rel, 'NEW-TYPE') | change relationship-type
+| call apoc.refactor.extractNode([rel1,rel2,...], [labels], 'OUT','IN') | extract node from relationships
+| call apoc.refactor.collapseNode([node1,node2],'TYPE') | collapse nodes with 2 rels to relationship, node with one rel becomes self-relationship
+| call apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) | normalize/convert a property to be boolean
+| call apoc.refactor.categorize(node, propertyKey, type, outgoing, label) | turn each unique propertyKey into a category node and connect to it
+|===
+
+For more information on how to use these procedures, see:
+
+* <<clone-nodes>>
+* <<clone-subgraph>>
+* <<merge-nodes>>
+* <<redirect-relationship>>
+* <<invert-relationship>>
+* <<set-relationship-type>>
+* <<extract-node-from-relationship>>
+* <<collapse-node-to-relationship>>
+* <<normalize-boolean>>
+* <<categorize>>
+* <<property-value-label>>
+* <<rename-label-type-property>>
+
+On mergeRelationship and mergeNodes with config properties you can choose from 3 different management:
+
+ * "overwrite" or "override": if there is the same property in more relationship, in the new one will have the last relationship's property value
+ * "discard" : if there is the same property in more relationship, the new one will have the first relationship's property value
+ * "combine" : if there is the same property in more relationship, the new one a value's array with all relationships' values
+
+On mergeNodes procedure there is also a config parameter to merge relationships of the merged nodes:
+
+ * "mergeRels: true/false" : give the possibility to merge relationships with same type and direction.
+
+If relationships have same start and end nodes will be merged into one, and properties managed by the properties config.
+If relationships have different start/end nodes (related to direction), relationships will be maintained and properties will be combine in all relationship.
+
+include::graph-refactor/clone-nodes.adoc[leveloffset=3]
+
+include::graph-refactor/clone-subgraph.adoc[leveloffset=3]
+
+include::graph-refactor/merge-nodes.adoc[leveloffset=3]
+
+include::graph-refactor/redirect-relationship.adoc[leveloffset=3]
+
+include::graph-refactor/invert-relationship.adoc[leveloffset=3]
+
+include::graph-refactor/set-relationship-type.adoc[leveloffset=3]
+
+include::graph-refactor/extract-node-from-relationship.adoc[leveloffset=3]
+
+include::graph-refactor/collapse-node-to-relationship.adoc[leveloffset=3]
+
+include::graph-refactor/normalize-boolean.adoc[leveloffset=3]
+
+include::graph-refactor/categorize.adoc[leveloffset=3]
+
+include::graph-refactor/property-value-label.adoc[leveloffset=3]
+
+include::graph-refactor/rename-label-type-property.adoc[leveloffset=3]
+
+
+////
+=== Merge nodes
+
+We create two nodes with different properties
+
+[source,cypher]
+----
+CREATE (f:Person {name:'Foo'}), (b:Person {surname:'Bar'}) RETURN f,b
+----
+
+image::apoc.refactor.mergeNodes.dataset.png[width=800]
+
+Now we want to merge these nodes into one
+
+[source,cypher]
+----
+MATCH (f:Person {name:'Foo'}), (b:Person {surname:'Bar'})
+CALL apoc.refactor.mergeNodes([f,b])
+YIELD node RETURN node
+----
+
+image::apoc.refactor.mergeNodes.png[width=800]
+
+Thus we have one node with both properties `name` and `surname`
+////
+

@@ -1,0 +1,26 @@
+[[set-relationship-type]]
+= Set Relationship Types
+
+[abstract]
+--
+This section describes a procedure that can be used to change relationship types.
+--
+
+With a simple relationship between two node
+
+[source,cypher]
+----
+CREATE (f:Foo)-[rel:FOOBAR]->(b:Bar)
+----
+
+image::apoc.refactor.setType.dataset.png[scaledwidth="100%"]
+
+We can change the relationship type from `FOOBAR` to `NEW-TYPE`
+
+[source,cypher]
+----
+MATCH (f:Foo)-[rel:FOOBAR]->(b:Bar) with rel
+CALL apoc.refactor.setType(rel, 'NEW-TYPE') YIELD input, output RETURN *
+----
+
+image::apoc.refactor.setType.png[scaledwidth="100%"]

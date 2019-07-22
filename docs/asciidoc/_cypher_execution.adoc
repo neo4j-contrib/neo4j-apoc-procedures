@@ -1,6 +1,11 @@
 [[cypher-execution]]
 == Cypher Execution
 
+[abstract]
+--
+This chapter describes Cypher Execution procedures in the APOC library.
+--
+
 [cols="1m,5"]
 |===
 | CALL apoc.cypher.run(fragment, params) yield value | executes reading fragment with the given parameters
@@ -16,10 +21,13 @@
 | CALL apoc.cypher.runTimeboxed('cypherStatement',{params}, timeout) | abort statement after timeout millis if not finished
 |===
 
+For more information on how to use these procedures, see:
+
+* <<running-cypher>>
+* <<cypher-based-procedures-functions>>
+
 // TODO runFile: begin/commit/schema await/constraints/indexes
 
-include::cypher.adoc[leveloffset=2]
+include::cypher-execution/cypher.adoc[leveloffset=2]
 
-include::periodic.adoc[leveloffset=+1]
-
-include::custom.adoc[leveloffset=+1]
+include::cypher-execution/custom.adoc[leveloffset=+1]
