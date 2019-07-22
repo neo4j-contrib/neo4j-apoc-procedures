@@ -19,4 +19,89 @@ Sometimes type information gets lost, these functions help you to coerce an "Any
 | apoc.convert.toSet(value) | tries its best to convert the value to a set
 | apoc.convert.toFloat(value) | tries its best to convert the value to a floating point value
 | apoc.convert.toInteger(value) | tries its best to convert the value to a integer value
+| apoc.convert.toIntList(value) | tries its best to convert the value to a list of integers
+| apoc.convert.toStringList(value) | tries its best to convert the value to a list of strings
+| apoc.convert.toBooleanList(value) | tries its best to convert the value to a list of booleans
+| apoc.convert.toNodeList(value) | tries its best to convert the value to a list of nodes
+| apoc.convert.toRelationshipList(value) | tries its best to convert the value to a list of relationships
 |===
+
+
+.Convert numeric value to string
+[source,cypher]
+----
+RETURN apoc.convert.toString(1) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "1"
+|===
+
+.Convert map to string
+[source,cypher]
+----
+RETURN apoc.convert.toString(1) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "{key=value}"
+|===
+
+.Convert number 1 to boolean
+[source,cypher]
+----
+RETURN apoc.convert.Boolean(1) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| true
+|===
+
+.Convert number 0 to boolean
+[source,cypher]
+----
+RETURN apoc.convert.Boolean(0) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| false
+|===
+
+.Convert list to set
+[source,cypher]
+----
+RETURN apoc.convert.toSet([1,2,3,2]) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 2, 3]
+|===
+
+.Convert list of strings to list of integers
+[source,cypher]
+----
+return apoc.convert.toIntList(["1", "2", "3"]) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 2, 3]
+|===
+
