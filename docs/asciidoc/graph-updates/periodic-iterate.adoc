@@ -1,0 +1,65 @@
+[[commit-batching]]
+== apoc.periodic.iterate
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/t1Nr5C5TAYs" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+With `apoc.periodic.iterate` you provide 2 statements, the *first* outer statement is providing a stream of values to be processed.
+The *second*, inner statement processes *one* element at a time or with `iterateList:true` the whole batch at a time.
+
+The results of the outer statement are passed into the inner statement as parameters, they are automatically made available with their names.
+
+.configuration options
+[options=header]
+|===
+| param | default | description
+| batchSize | 1000 | that many inner statements are run within a single tx params: {_count, _batch}
+| parallel | false | run inner statement in parallel, note that statements might deadlock
+| retries | 0 | if the inner statement fails with an error, sleep 100ms and retry until retries-count is reached, param {_retry}
+| iterateList | false | the inner statement is only executed once but the whole batchSize list is passed in as parameter {_batch}
+| params | {} | externally passed in map of params
+| concurrency | 50 | How many concurrent tasks are generate when using `parallel:true`
+| failedParams | -1 | If set to a non-negative value, for each failed batch up to `failedParams` parameter sets are returned in in `yield failedParams`.
+|===
+
+NOTE: We plan to make `iterateList:true` the default in upcoming releases, due to the automatic UNWINDing and providing of nested results as variables,
+most queries should continue work.
+
+So if you were to add an `:Actor` label to several million `:Person` nodes, you would run:
+
+[source,cypher]
+----
+CALL apoc.periodic.iterate(
+  "MATCH (p:Person) WHERE (p)-[:ACTED_IN]->() RETURN p",
+  "SET p:Actor",
+  {batchSize:10000, parallel:true})
+----
+
+Which would take 10k people from the stream and update them in a single transaction, executing the *second* statement for each person.
+
+Those executions can happen in parallel as updating node-labels or properties doesn't conflict.
+
+If you do more complex operations like updating or removing relationships, either *don't use parallel* OR make sure that you batch the work in a way that each subgraph of data is updated in one operation, e.g. by transferring the root objects.
+If you attempt complex operations, try to use e.g. `retries:3` to retry failed operations.
+
+[source,cypher]
+----
+CALL apoc.periodic.iterate(
+  "MATCH (o:Order) WHERE o.date > '2016-10-13' RETURN o",
+  "MATCH (o)-[:HAS_ITEM]->(i) WITH o, sum(i.value) as value SET o.value = value",
+  {batchSize:100, parallel:true})
+----
+
+.iterating over the whole batch (more efficient)
+[source,cypher]
+----
+CALL apoc.periodic.iterate(
+  "MATCH (o:Order) WHERE o.date > '2016-10-13' RETURN o",
+  "MATCH (o)-[:HAS_ITEM]->(i) WITH o, sum(i.value) as value SET o.value = value",
+  {batchSize:100, iterateList:true, parallel:true})
+----
+
+The stream of other data can also come from another source, like a different database, CSV or JSON file.

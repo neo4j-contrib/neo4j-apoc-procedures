@@ -1,0 +1,131 @@
+[[atomic-updates]]
+= Atomic Property Updates
+
+[abstract]
+--
+This section describes algorithm that can be used for thread safe updating of properties on nodes and relationships.
+--
+
+Atomic procedures handle the concurrency, it's add a lock to the resource.
+If two users access to the same resource at the same time, with the parameter `times` (default value 5) we can determine how many time retry to modify the resource, until the lock is release.
+
+[cols="1m,5"]
+|===
+| CALL apoc.atomic.add(node/relationship, "property", number, [times]) YIELD oldValue, newValue  | adds the number to the value of the property
+| CALL apoc.atomic.subtract(node/relationship, "property", number, [times]) YIELD oldValue, newValue | subtracts the number to the value of the property
+| CALL apoc.atomic.concat(node/relationship, "property", "string", [times]) YIELD oldValue, newValue | concatenate the string to the property
+| CALL apoc.atomic.insert(node/relationship, "property", position, object, [times]) YIELD oldValue, newValue | inserts the object in the chosen position of the array
+| CALL apoc.atomic.remove(node/relationship, "property", position, [times]) YIELD oldValue, newValue | remove from the array the element to the position selected
+| CALL apoc.atomic.update(node/relationship, "property", "expression", [times]) YIELD oldValue, newValue | update the property with the result of the expression
+|===
+
+.The following creates sample nodes:
+[source, cypher]
+----
+CREATE (p:Person {name:'Tom',age: 40})
+CREATE (p:Person {name:'Will',age: 35})
+CREATE (p:Person {name:'David', children: ['Anne','Sam','Paul']})
+CREATE (p:Person {name:'John', cars: ['Class A','X3','Focus']})
+CREATE (p:Person {name:'Ryan', salary1:1800, salary2:1500})
+----
+
+.The following adds 10 to the property `age` for `Tom`:
+[source,cypher]
+----
+MATCH (n:Person {name:'Tom'})
+CALL apoc.atomic.add(n,'age',10,5)
+YIELD oldValue, newValue
+RETURN n
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| n
+| {"name":"Tom","age":50}
+|===
+
+.The following subtracts 10 from the property `age` for `Tom`:
+[source,cypher]
+----
+MATCH (n:Person {name:'Tom'})
+CALL apoc.atomic.subtract(n,'age',10,5)
+YIELD oldValue, newValue
+RETURN n
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| n
+| {"name":"Tom","age":40}
+|===
+
+
+.The following concatenates `iam` to the `name` property for `Will`:
+[source,cypher]
+----
+MATCH (p:Person {name:'Will',age: 35})
+CALL apoc.atomic.concat(p,"name",'iam',5)
+YIELD newValue
+RETURN p
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| p
+| {"name":"William","age":35}
+|===
+
+
+.The following adds `Mary` in position 2 of `children` list:
+[source,cypher]
+----
+MATCH (p:Person {name:'David'})
+CALL apoc.atomic.insert(p,'children',2,'Mary',5)
+YIELD newValue
+RETURN p
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| p
+| {"name":"David","children":["Anne","Sam","Mary","Paul"]}
+|===
+
+.The following removes the element `X3`, which is at position 1, from the array `cars`
+[source,cypher]
+----
+MATCH (p:Person {name:'John'})
+CALL apoc.atomic.remove(p,'cars',1,5)
+YIELD newValue
+RETURN p
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| p
+| {"name":"John","cars":["Class A","Focus"]}
+|===
+
+.The following updates `salary1` with the result of an expression:
+[source,cypher]
+----
+MATCH (p:Person {name:'Ryan'})
+CALL apoc.atomic.update(p,'salary1','n.salary1*3 + n.salary2',5)
+YIELD newValue
+RETURN p
+----
+
+The expression always have to be referenced with the `n.` that refers to the entity  passed as the first parameter.
+If we rename our node/rel (as in the example above) we have anyway to refer to it in the expression as `n`.
+
+.Results
+[opts="header",cols="1"]
+|===
+| p
+| {"name":"Ryan","salary1":6900,"salary2":1500}
+|===

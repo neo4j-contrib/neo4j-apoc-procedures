@@ -1,38 +1,56 @@
 [[path-finding]]
-== Path Finding
+== Advanced Graph Querying
 
-APOC exposes some built in path-finding functions that Neo4j brings along.
+[abstract]
+--
+This chapter describes advanced graph querying procedures in the APOC library.
+--
 
-[cols="3m,3"]
+For more information on how to use these procedures, see:
+
+* <<path-expander>>
+* <<expand-subgraph>>
+* <<expand-spanning-tree>>
+* <<neighbourhood-search>>
+* <<parallel-node-search>>
+
+include::path-finding/expand.adoc[leveloffset=1]
+include::path-finding/expand-subgraph.adoc[leveloffset=1]
+include::path-finding/expand-spanning-tree.adoc[leveloffset=1]
+include::path-finding/neighborhood-search.adoc[leveloffset=1]
+
+[[parallel-node-search]]
+=== Parallel Node Search
+
+[abstract]
+--
+This section describes procedures that can be used to find nodes in parallel.
+--
+
+Utility to find nodes in parallel (if possible).
+These procedures return a single list of nodes or a list of 'reduced' records with node id, labels, and the properties where the search was executed upon.
+
+[cols="5m,4"]
 |===
-| apoc.algo.dijkstra(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance') YIELD path, weight | run dijkstra with relationship property name as cost function
-| apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>',  'distance', 10) YIELD path, weight | run dijkstra with relationship property name as cost function and a default weight if the property does not exist
-| apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance','lat','lon')  YIELD path, weight | run A* with relationship property name as cost function
-| apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', {weight:'dist',default:10, x:'lon',y:'lat'}) YIELD path, weight | run A* with relationship property name as cost function
-| apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 5) YIELD path,  weight | run allSimplePaths with relationships given and maxNodes
-| apoc.stats.degrees(relTypesDirections) yield type, direction, total, min, max, mean, p50, p75, p90, p95, p99, p999 | compute degree distribution in parallel
+| call apoc.search.node(labelPropertyMap, searchType, search ) yield node | A distinct set of Nodes will be returned.
+| call apoc.search.nodeAll(labelPropertyMap, searchType, search ) yield node | All the found Nodes will be returned.
+| call apoc.search.nodeReduced(labelPropertyMap, searchType, search ) yield id, labels, values | A merged set of 'minimal' Node information will be returned. One record per node (-id).
+| call apoc.search.nodeAllReduced(labelPropertyMap, searchType, search ) yield id, labels, values | All the found 'minimal' Node information will be returned. One record per label and property.
 |===
 
-Example: find the weighted shortest path based on relationship property `d` from `A` to `B` following just `:ROAD` relationships
+These procedures are passed the following parameters:
 
+[cols="1m,4,3"]
+|===
+| labelPropertyMap |   `'{ label1 : "propertyOne", label2 :["propOne","propTwo"] }'` | (JSON or Map) For every Label-Property combination a search will be executed in parallel (if possible): Label1.propertyOne, label2.propOne and label2.propTwo.
+| searchType |  'exact' or 'contains' or 'starts with' or 'ends with' | Case insensitive string search operators
+| searchType |  "<", ">", "=", "<>", "<=", ">=", "=~" | Operators
+| search | 'Keanu' | The actual search term (string, number, etc).
+|===
+
+.example
 [source,cypher]
 ----
-MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'})
-CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as weight
-RETURN path, weight
+CALL apoc.search.nodeAll('{Person: "name",Movie: ["title","tagline"]}','contains','her') YIELD node AS n RETURN n
+call apoc.search.nodeReduced({Person: 'born', Movie: ['released']},'>',2000) yield id, labels, properties RETURN *
 ----
-
-include::expand.adoc[leveloffset=1]
-
-[[neighbourhood-search]]
-=== Neighbor Functions
-
-[cols="1m,5"]
-|===
-| apoc.neighbors.tohop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern up to a certain distance
-| apoc.neighbors.tohop.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern up to a certain distance
-| apoc.neighbors.byhop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern grouped by distance
-| apoc.neighbors.byhop.count(node, rel-direction-pattern, distance) | returns the count distinct nodes of the given relationships in the pattern grouped by distance
-| apoc.neighbors.athop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern at a certain distance
-| apoc.neighbors.athop.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern at a certain distance
-|===

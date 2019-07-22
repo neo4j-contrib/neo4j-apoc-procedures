@@ -1,0 +1,145 @@
+[[load-csv]]
+== Load CSV
+
+[abstract]
+--
+This section describes procedures that can be used to import data from CSV files.
+--
+
+Many existing applications and data integrations use CSV as the minimal denominator format.
+CSV files contain text with delimiters (most often comma, but also tab (TSV) and colon (DSV)) separating columns and newlines for rows.
+Fields are possibly quoted to handle stray quotes, newlines, and the use of the delimiter within a field.
+
+In Cypher it is supported by `LOAD CSV` and with the `neo4j-import` (`neo4j-admin import`) tool for bulk imports.
+The existing `LOAD CSV` works ok for most uses, but has a few features missing, that `apoc.load.csv` and `apoc.load.xls` add.
+
+* provide a line number
+* provide both a map and a list representation of each line
+* automatic data conversion (including split into arrays)
+* option to keep the original string formatted values
+* ignoring fields (makes it easier to assign a full line as properties)
+* headerless files
+* replacing certain values with null
+
+The APOC procedures also support reading compressed files.
+
+The data conversion is useful for setting properties directly, but for computation within Cypher it's problematic as Cypher doesn't know the type of map values so they default to `Any`.
+
+To use them correctly, you'll have to indicate their type to Cypher by using the built-in (e.g. `toInteger`) or apoc (e.g. `apoc.convert.toBoolean`) conversion functions on the value.
+
+For reading from files you'll have to enable the config option:
+
+----
+apoc.import.file.enabled=true
+----
+
+By default file paths are global, for paths relative to the `import` directory set:
+
+----
+apoc.import.file.use_neo4j_config=true
+----
+
+=== Examples for apoc.load.csv
+
+.test.csv
+----
+name,age,beverage
+Selma,9,Soda
+Rana,12,Tea;Milk
+Selina,19,Cola
+----
+
+[source, cypher]
+----
+CALL apoc.load.csv('test.csv')
+YIELD lineNo, map, list
+RETURN *;
+----
+
+.Results
+[opts="header",cols="1,1,1"]
+|===
+| lineNo | list | map
+| 0      | ["Selma", "9", "Soda"]     | {name: "Selma", age: "9", beverage: "Soda"}
+| 1      | ["Rana", "12", "Tea;Milk"] | {name: "Rana", age: "12", beverage: "Tea;Milk"}
+| 2      | ["Selina", "19", "Cola"]   | {name: "Selina", age: "19", beverage: "Cola"}
+|===
+
+
+=== Configuration Options
+
+Besides the file you can pass in a config map:
+
+[opts="autowidth,header",cols="m,m,a"]
+|===
+| name | default | description
+| skip | none | skip result rows
+| limit | none | limit result rows
+| header | true | indicates if file has a header
+| sep | ',' | separator character or 'TAB'
+| quoteChar | '"' | the char to use for quoted elements
+| arraySep | ';' | array separator
+| ignore | [] | which columns to ignore
+| nullValues | [] | which values to treat as null, e.g. `['na',false]`
+| mapping | {} | per field mapping, entry key is field name, .e.g `{years:{....}` see below
+|===
+
+.mapping config for each field in the `mapping` entry
+[opts="autowidth,header",cols="m,m,a"]
+|===
+| name | default | description
+| type | none | 'int', 'string' etc.
+| array | false | indicates if field is an array
+| arraySep | ';' | separator for array
+| name | none | rename field
+| ignore | false | ignore/remove this field
+| nullValues | [] | which values to treat as null, e.g. `['na',false]`
+|===
+
+
+[source,cypher]
+----
+CALL apoc.load.csv('test.csv', {skip:1, limit:1, header:true, ignore:['name'],
+   mapping:{
+     age: {type:'int'},
+     beverage: {array:true, arraySep:';', name:'drinks'}
+   }
+})
+YIELD lineNo, map, list
+RETURN *;
+----
+
+.Results
+[opts="header",cols="1,1,1"]
+|===
+| lineNo | list | map
+| 1 | [12,["Tea","Milk"]] | {"age":12,"drinks":["Tea","Milk"]}
+|===
+
+=== Transaction Batching
+
+To handle large files, `USING PERIODIC COMMIT` can be prepended to `LOAD CSV`, you'll have to watch  out though for *Eager* operations which might break that behavior.
+
+In apoc you can combine any data source with `apoc.periodic.iterate` to achieve the same.
+
+[source,cypher]
+----
+CALL apoc.periodic.iterate('
+CALL apoc.load.csv({url}) yield map as row return row
+','
+CREATE (p:Person) SET p = row
+', {batchSize:10000, iterateList:true, parallel:true});
+----
+
+NOTE: Please note that the parallel operation only works well for non-conflicting updates otherwise you might run into deadlocks.
+
+To make these data structures available to Cypher, you can use `apoc.load.xml`.
+It takes a file or http URL and parses the XML into a map data structure.
+
+NOTE: in previous releases we've had `apoc.load.xmlSimple`.
+This is now deprecated and has been superseded by `apoc.load.xml(url, [xPath], [config], true)`.Simple XML Format
+
+See the following usage-examples for the procedures.
+
+
+

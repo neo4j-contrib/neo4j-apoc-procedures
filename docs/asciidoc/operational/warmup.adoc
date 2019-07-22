@@ -1,0 +1,13 @@
+[[warmup]]
+= Warmup
+
+[abstract]
+--
+This section describes a procedure that can be used to warm up the database.
+--
+
+
+[cols="1m,5"]
+|===
+| CALL apoc.warmup.run([loadProperties],[loadDynamicProperties],[loadIndexes]) | Quickly warm up the page-caches by touching pages in paralle optionally load property-records, dynamic-properties, indexes
+|===

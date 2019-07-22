@@ -1,6 +1,16 @@
 [[database-integration]]
 == Database Integration
 
+[abstract]
+--
+This chapter describes data integration procedures in the APOC library.
+--
+
+The APOC library adds support for integrating with other databases, including relational databases (via JDBC), MongoDB, Elastic, and Couchbase.
+It also has support for importing data from LDAP directories and executing queries against other Neo4j databases.
+
+For more information on how to use these procedures, see:
+
 * <<load-jdbc>>
 * <<database-modeling>>
 * <<elasticsearch>>
@@ -9,17 +19,17 @@
 * <<bolt-neo4j>>
 * <<load-ldap>>
 
-include::loadjdbc.adoc[leveloffset=+2]
+include::database-integration/loadjdbc.adoc[leveloffset=+2]
 
-include::modelling.adoc[leveloffset=+1]
+include::database-integration/modelling.adoc[leveloffset=+1]
 
-include::elasticsearch.adoc[leveloffset=+2]
+include::database-integration/elasticsearch.adoc[leveloffset=+2]
 
-include::mongodb.adoc[leveloffset=+2]
+include::database-integration/mongodb.adoc[leveloffset=+2]
 
-include::couchbase.adoc[leveloffset=+2]
+include::database-integration/couchbase.adoc[leveloffset=+2]
 
-include::bolt.adoc[leveloffset=+2]
+include::database-integration/bolt.adoc[leveloffset=+2]
 
-include::loadldap.adoc[leveloffset=+2]
+include::database-integration/loadldap.adoc[leveloffset=+2]
 

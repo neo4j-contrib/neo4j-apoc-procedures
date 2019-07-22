@@ -1,0 +1,30 @@
+[[export]]
+== Export
+
+[abstract]
+--
+This chapter describes procedures in the APOC library that can be used to export data from Neo4j.
+--
+
+The APOC library adds support for exporting data into various data formats, including JSON, CSV, and Cypher script.
+
+[NOTE]
+In case you have the default configuration with `apoc.import.file.use_neo4j_config=true` the export consider as root the directory defined into the `dbms.directories.import` property
+
+For more information on how to use these procedures, see:
+
+* <<export-csv>>
+* <<export-json>>
+* <<export-cypher>>
+* <<graphml-export>>
+* <<gephi>>
+
+include::export/csv.adoc[leveloffset=2]
+
+include::export/exportJson.adoc[leveloffset=1]
+
+include::export/exportCypher.adoc[leveloffset=1]
+
+include::export/graphml.adoc[leveloffset=2]
+
+include::export/gephi.adoc[leveloffset=2]
