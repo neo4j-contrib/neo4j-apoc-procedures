@@ -48,7 +48,11 @@ RETURN apoc.map.fromPairs([
 [opts="header",cols="1"]
 |===
 | Output
-| {"name":"Cristiano Ronaldo","dob":"1985-02-05"}
+a|
+[source,json]
+----
+{"name":"Cristiano Ronaldo","dob":"1985-02-06"}
+----
 |===
 
 .Create map from alternating keys and values in a list:
@@ -64,7 +68,12 @@ RETURN apoc.map.fromValues([
 [opts="header",cols="1"]
 |===
 | Output
-| {"name":"Cristiano Ronaldo","dob":"1985-02-05"}
+a|
+
+[source,json]
+----
+{"name":"Cristiano Ronaldo","dob":"1985-02-06"}
+----
 |===
 
 .Create map from keys and values lists:
@@ -80,7 +89,13 @@ RETURN apoc.map.fromLists(
 [opts="header",cols="1"]
 |===
 | Output
-| {"name":"Cristiano Ronaldo","dob":"1985-02-05"}
+a|
+
+[source,json]
+----
+{"name":"Cristiano Ronaldo","dob":"1985-02-06"}
+----
+
 |===
 
 
@@ -97,7 +112,11 @@ RETURN apoc.map.merge(
 [opts="header",cols="1"]
 |===
 | Output
-| {"name":"Cristiano Ronaldo","country":"Portugal","dob":"1985-02-05"}
+a|
+[source,json]
+----
+{"name":"Cristiano Ronaldo","country":"Portugal","dob":"1985-02-06"}
+----
 |===
 
 .Merges multiple maps:
@@ -114,7 +133,12 @@ RETURN apoc.map.mergeList([
 [opts="header",cols="1"]
 |===
 | Output
-| {"name":"Cristiano Ronaldo","country":"Portugal","dob":"1985-02-05"}
+a|
+
+[source,json]
+----
+{"name":"Cristiano Ronaldo","country":"Portugal","dob":"1985-02-06"}
+----
 |===
 
 .Updates a key in a map:
@@ -131,10 +155,15 @@ RETURN apoc.map.setKey(
 [opts="header",cols="1"]
 |===
 | Output
-| {"name":"Cristiano Ronaldo","country":"Portugal","dob":"1986-02-06"}
+a|
+[source,json]
+----
+{"name":"Cristiano Ronaldo","country":"Portugal","dob":"1986-02-06"}
+----
+
 |===
 
-.Removes a key from a map:
+.Remove a key from a map:
 [source,cypher]
 ----
 RETURN apoc.map.removeKey(
@@ -147,18 +176,111 @@ RETURN apoc.map.removeKey(
 [opts="header",cols="1"]
 |===
 | Output
-| {"name":"Cristiano Ronaldo","country":"Portugal"}
+a|
+[source,json]
+----
+{"name":"Cristiano Ronaldo","country":"Portugal"}
+----
 |===
 
-.Remove empty string values from a map:
+.Remove keys from a map:
 [source,cypher]
 ----
-RETURN apoc.map.clean({name: "Cristiano Ronaldo", surname: ""}, [], [""]) AS output
+RETURN apoc.map.removeKeys(
+    {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05")},
+    ["dob", "country"]
+) AS output
 ----
 
 .Results
 [opts="header",cols="1"]
 |===
 | Output
-| {"name":"Cristiano Ronaldo"}
+a|
+
+[source,json]
+----
+{"name":"Cristiano Ronaldo"}}
+----
+|===
+
+.Remove empty string values from a map:
+[source,cypher]
+----
+RETURN apoc.map.clean({name: "Cristiano Ronaldo", club: ""}, [], [""]) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+a|
+[source,json]
+----
+{"name":"Cristiano Ronaldo"}}
+----
+|===
+
+.Remove empty string values and the keys `dob` and `country` from a map:
+[source,cypher]
+----
+RETURN apoc.map.clean(
+    {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05"), club: ""},
+    ["dob", "country"],
+    [""]
+) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+a|
+[source,json]
+----
+{"name":"Cristiano Ronaldo"}
+----
+|===
+
+.Create a map of the list keyed by `club`, with list values
+[source,cypher]
+----
+RETURN apoc.map.groupByMulti([
+	{name: "Cristiano Ronaldo", club: "Juventus"},
+    {name: "Lionel Messi", club: "Barcelona"},
+    {name: "Aaron Ramsey", club: "Juventus"},
+    {name: "Luiz Suarez", club: "Barcelona"}
+], "club") AS output
+----
+
+.Results
+[opts="header",cols="a"]
+|===
+| Output
+|
+[source,json]
+----
+{
+    "Juventus": [
+      {
+        "name": "Cristiano Ronaldo",
+        "club": "Juventus"
+      },
+      {
+        "name": "Aaron Ramsey",
+        "club": "Juventus"
+      }
+    ],
+    "Barcelona": [
+      {
+        "name": "Lionel Messi",
+        "club": "Barcelona"
+      },
+      {
+        "name": "Luiz Suarez",
+        "club": "Barcelona"
+      }
+    ]
+  }
+----
 |===
