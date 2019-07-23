@@ -51,7 +51,10 @@ RETURN apoc.map.fromPairs([
 a|
 [source,json]
 ----
-{"name":"Cristiano Ronaldo","dob":"1985-02-06"}
+{
+  "name": "Cristiano Ronaldo",
+  "age": "1985-02-05"
+}
 ----
 |===
 
@@ -72,7 +75,10 @@ a|
 
 [source,json]
 ----
-{"name":"Cristiano Ronaldo","dob":"1985-02-06"}
+{
+  "name": "Cristiano Ronaldo",
+  "age": "1985-02-05"
+}
 ----
 |===
 
@@ -93,7 +99,10 @@ a|
 
 [source,json]
 ----
-{"name":"Cristiano Ronaldo","dob":"1985-02-06"}
+{
+  "name": "Cristiano Ronaldo",
+  "age": "1985-02-05"
+}
 ----
 
 |===
@@ -115,7 +124,11 @@ RETURN apoc.map.merge(
 a|
 [source,json]
 ----
-{"name":"Cristiano Ronaldo","country":"Portugal","dob":"1985-02-06"}
+{
+  "name": "Cristiano Ronaldo",
+  "country": "Portugal",
+  "dob": "1985-02-05"
+}
 ----
 |===
 
@@ -137,7 +150,11 @@ a|
 
 [source,json]
 ----
-{"name":"Cristiano Ronaldo","country":"Portugal","dob":"1985-02-06"}
+{
+  "name": "Cristiano Ronaldo",
+  "country": "Portugal",
+  "dob": "1985-02-05"
+}
 ----
 |===
 
@@ -158,7 +175,11 @@ RETURN apoc.map.setKey(
 a|
 [source,json]
 ----
-{"name":"Cristiano Ronaldo","country":"Portugal","dob":"1986-02-06"}
+{
+  "name": "Cristiano Ronaldo",
+  "country": "Portugal",
+  "dob": "1986-02-06"
+}
 ----
 
 |===
@@ -179,7 +200,10 @@ RETURN apoc.map.removeKey(
 a|
 [source,json]
 ----
-{"name":"Cristiano Ronaldo","country":"Portugal"}
+{
+  "name": "Cristiano Ronaldo",
+  "country": "Portugal"
+}
 ----
 |===
 
@@ -200,7 +224,9 @@ a|
 
 [source,json]
 ----
-{"name":"Cristiano Ronaldo"}}
+{
+  "name": "Cristiano Ronaldo"
+}
 ----
 |===
 
@@ -217,7 +243,9 @@ RETURN apoc.map.clean({name: "Cristiano Ronaldo", club: ""}, [], [""]) AS output
 a|
 [source,json]
 ----
-{"name":"Cristiano Ronaldo"}}
+{
+  "name": "Cristiano Ronaldo"
+}
 ----
 |===
 
@@ -238,7 +266,9 @@ RETURN apoc.map.clean(
 a|
 [source,json]
 ----
-{"name":"Cristiano Ronaldo"}
+{
+  "name": "Cristiano Ronaldo"
+}
 ----
 |===
 
