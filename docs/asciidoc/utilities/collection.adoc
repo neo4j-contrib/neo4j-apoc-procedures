@@ -609,3 +609,69 @@ RETURN apoc.coll.flatten([1,2,3,[4,5,6]]) AS output
 | Output
 | [1, 2, 3, 4, 5, 6]
 |===
+
+.The following returns a collection of all combinations of list elements of selection size between `3` and `4` elements:
+[source,cypher]
+----
+RETURN apoc.coll.combinations([1,3,5,7,9], 3, 4) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [[1, 3, 5], [1, 3, 7], [1, 5, 7], [3, 5, 7], [1, 3, 9], [1, 5, 9], [3, 5, 9], [1, 7, 9], [3, 7, 9], [5, 7, 9], [1, 3, 5, 7], [1, 3, 5, 9], [1, 3, 7, 9], [1, 5, 7, 9], [3, 5, 7, 9]]
+|===
+
+.The following replaces the item at index `4` with the value `11`:
+[source,cypher]
+----
+RETURN apoc.coll.set([1,3,5,7,9], 4, 11) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 3, 5, 7, 11]
+|===
+
+.The following inserts the value `11` at index `3` in the list:
+[source,cypher]
+----
+RETURN apoc.coll.insert([1,3,5,7,9], 3, 11) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 3, 5, 11, 7, 9]
+|===
+
+.The following removes `2` values, starting from index `1`:
+[source,cypher]
+----
+RETURN apoc.coll.remove([1,3,5,7,9], 1, 2) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 7, 9]
+|===
+
+.The following indicates whether all values in a collection are different:
+[source,cypher]
+----
+RETURN apoc.coll.different([1,3,5,7,9]) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| true
+|===
+
