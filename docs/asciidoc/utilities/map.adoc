@@ -35,7 +35,7 @@ endif::[]
 |===
 
 
-.Create map from list of key-value pairs:
+.The following creates a map from list of key-value pairs:
 [source,cypher]
 ----
 RETURN apoc.map.fromPairs([
@@ -58,7 +58,7 @@ a|
 ----
 |===
 
-.Create map from alternating keys and values in a list:
+.The following creates a map from alternating keys and values in a list:
 [source,cypher]
 ----
 RETURN apoc.map.fromValues([
@@ -82,7 +82,7 @@ a|
 ----
 |===
 
-.Create map from keys and values lists:
+.The following creates a map from keys and values lists:
 [source,cypher]
 ----
 RETURN apoc.map.fromLists(
@@ -108,7 +108,7 @@ a|
 |===
 
 
-.Merges two maps:
+.The following merges two maps:
 [source,cypher]
 ----
 RETURN apoc.map.merge(
@@ -132,7 +132,7 @@ a|
 ----
 |===
 
-.Merges multiple maps:
+.The following merges multiple maps:
 [source,cypher]
 ----
 RETURN apoc.map.mergeList([
@@ -158,7 +158,7 @@ a|
 ----
 |===
 
-.Updates a key in a map:
+.The following updates a key in a map:
 [source,cypher]
 ----
 RETURN apoc.map.setKey(
@@ -184,7 +184,7 @@ a|
 
 |===
 
-.Remove a key from a map:
+.The following removes a key from a map:
 [source,cypher]
 ----
 RETURN apoc.map.removeKey(
@@ -207,7 +207,7 @@ a|
 ----
 |===
 
-.Remove keys from a map:
+.The following removes keys from a map:
 [source,cypher]
 ----
 RETURN apoc.map.removeKeys(
@@ -230,7 +230,7 @@ a|
 ----
 |===
 
-.Remove empty string values from a map:
+.The following removes empty string values from a map:
 [source,cypher]
 ----
 RETURN apoc.map.clean({name: "Cristiano Ronaldo", club: ""}, [], [""]) AS output
@@ -249,7 +249,7 @@ a|
 ----
 |===
 
-.Remove empty string values and the keys `dob` and `country` from a map:
+.The following removes empty string values and the keys `dob` and `country` from a map:
 [source,cypher]
 ----
 RETURN apoc.map.clean(
@@ -272,7 +272,22 @@ a|
 ----
 |===
 
-.Create a map of the list keyed by `club`, with list values
+.The following returns a list of key/value list pairs with pairs sorted by key alphabetically:
+[source,cypher]
+----
+WITH {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05")} AS map
+RETURN apoc.map.sortedProperties(map) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [["country","Portugal"],["dob","1985-02-05"],["name","Cristiano Ronaldo"]]
+|===
+
+
+.The following creates a map keyed by `club`, with list values
 [source,cypher]
 ----
 RETURN apoc.map.groupByMulti([
@@ -313,4 +328,78 @@ RETURN apoc.map.groupByMulti([
     ]
   }
 ----
+|===
+
+.The following returns a list of values for keys `name` and `country`, and a `null` value for missing key `missingKey`:
+[source,cypher]
+----
+WITH {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05")} AS map
+RETURN apoc.map.values(map, ["name", "country", "missingKey"], true) AS output
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| ["Cristiano Ronaldo","Portugal",null]
+|===
+
+.The following throws an exception when attempting to look up missing key `missingKey` with no default value:
+[source,cypher]
+----
+WITH {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05")} AS map
+RETURN apoc.map.get(map, "missingKey") AS output
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| Neo.ClientError.Procedure.ProcedureCallFailed: Failed to invoke function `apoc.map.get`: Caused by: java.lang.IllegalArgumentException: Key missingKey is not of one of the existing keys [country, dob, name]
+|===
+
+.The following returns default value `defaultValue` when attempting to look up missing key `missingKey`:
+[source,cypher]
+----
+WITH {name:"Cristiano Ronaldo", country:"Portugal", dob:date("1985-02-05")} AS map
+RETURN apoc.map.get(map, "missingKey", "defaultValue") AS output
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| "defaultValue"
+|===
+
+.The following returns a list of values for keys `name` and `country`:
+[source,cypher]
+----
+WITH {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05")} AS map
+RETURN apoc.map.mget(map, ["name", "country"]) AS output
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| ["Cristiano Ronaldo", "Portugal"]
+|===
+
+.The following returns a list of values for keys `name` and `country`, and default value `defaultValue` for missing key `missingKey`:
+[source,cypher]
+----
+WITH {name:"Cristiano Ronaldo",country:"Portugal",dob:date("1985-02-05")} AS map
+RETURN apoc.map.mget(
+    map,
+    ["name", "country", "missingKey"],
+    [null, null, "defaultValue"]
+) AS output
+----
+
+.Results
+[opts="header"]
+|===
+| Output
+| ["Cristiano Ronaldo", "Portugal", "defaultValue"]
 |===
