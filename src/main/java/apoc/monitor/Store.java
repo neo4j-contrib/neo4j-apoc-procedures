@@ -1,16 +1,12 @@
 package apoc.monitor;
 
-import org.neo4j.procedure.Description;
 import apoc.result.StoreInfoResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Procedure;
 
-import javax.management.ObjectName;
 import java.util.stream.Stream;
-
-import static org.neo4j.jmx.JmxUtils.getAttribute;
-import static org.neo4j.jmx.JmxUtils.getObjectName;
 
 public class Store  {
 
@@ -29,7 +25,10 @@ public class Store  {
     @Procedure
     @Description("apoc.monitor.store() returns informations about the sizes of the different parts of the neo4j graph store")
     public Stream<StoreInfoResult> store() {
-        ObjectName objectName = getObjectName(db, JMX_OBJECT_NAME);
+
+        // TODO: fix JMX
+        return Stream.empty();
+        /*ObjectName objectName = getObjectName(db, JMX_OBJECT_NAME);
 
         StoreInfoResult storeInfo = new StoreInfoResult(
                 getAttribute(objectName, LOG_SIZE),
@@ -40,7 +39,7 @@ public class Store  {
                 getAttribute(objectName, TOTAL_SIZE),
                 getAttribute(objectName, NODE_SIZE));
 
-        return Stream.of(storeInfo);
+        return Stream.of(storeInfo);*/
     }
 
 

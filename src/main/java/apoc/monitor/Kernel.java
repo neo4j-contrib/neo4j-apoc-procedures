@@ -9,8 +9,6 @@ import org.neo4j.procedure.Procedure;
 import javax.management.ObjectName;
 import java.util.stream.Stream;
 
-import static org.neo4j.jmx.JmxUtils.getAttribute;
-import static org.neo4j.jmx.JmxUtils.getObjectName;
 
 public class Kernel {
 
@@ -30,7 +28,8 @@ public class Kernel {
     @Procedure
     @Description("apoc.monitor.kernel() returns informations about the neo4j kernel")
     public Stream<KernelInfoResult> kernel() {
-        ObjectName objectName = getObjectName(database, JMX_OBJECT_NAME);
+        return Stream.empty(); // TODO: fix JMX
+        /*ObjectName objectName = getObjectName(database, JMX_OBJECT_NAME);
 
         KernelInfoResult info = new KernelInfoResult(
                 getAttribute(objectName, READ_ONLY),
@@ -41,7 +40,7 @@ public class Kernel {
                 getAttribute(objectName, STORE_LOG_VERSION),
                 getAttribute(objectName, STORE_CREATION_DATE));
 
-        return Stream.of(info);
+        return Stream.of(info);*/
     }
 
 }

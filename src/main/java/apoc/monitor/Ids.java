@@ -1,16 +1,12 @@
 package apoc.monitor;
 
-import org.neo4j.procedure.Description;
 import apoc.result.IdsResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Procedure;
 
-import javax.management.ObjectName;
 import java.util.stream.Stream;
-
-import static org.neo4j.jmx.JmxUtils.getAttribute;
-import static org.neo4j.jmx.JmxUtils.getObjectName;
 
 public class Ids {
 
@@ -26,10 +22,12 @@ public class Ids {
     @Procedure
     @Description("apoc.monitor.ids() returns the object ids in use for this neo4j instance")
     public Stream<IdsResult> ids() {
-        return Stream.of(getIdsInUse());
+        // TODO: fix jmx
+        return Stream.empty();
+//        return Stream.of(getIdsInUse());
     }
 
-    private IdsResult getIdsInUse() {
+    /*private IdsResult getIdsInUse() {
         ObjectName objectName = getObjectName(db, JMX_OBJECT_NAME);
 
         return new IdsResult(
@@ -38,5 +36,5 @@ public class Ids {
                 getAttribute(objectName, PROP_IDS_KEY),
                 getAttribute(objectName, REL_TYPE_IDS_KEY)
         );
-    }
+    }*/
 }

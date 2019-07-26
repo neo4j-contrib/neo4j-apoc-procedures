@@ -1,21 +1,14 @@
 package apoc.monitor;
 
-import org.neo4j.procedure.Description;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import javax.management.ObjectName;
-import javax.management.openmbean.CompositeData;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-
-import static apoc.util.MapUtil.map;
-import static org.neo4j.jmx.JmxUtils.*;
 
 /**
  * @author kv
@@ -39,6 +32,9 @@ public class Locks {
     @Description("deprecated, the information is not provided by neo4j anymore.\napoc.monitor.locks(minWaitTime) yield advertedDeadLocks, lockCount, contendedLockCount, minimumWaitTimeMs, contendedLocks, info")
     public Stream<LockInfoResult> lockInfo(@Name("minWaitTime") Long minWaitTime) {
 
+        return Stream.empty();
+
+/*
         if (minWaitTime == null || minWaitTime < 0) minWaitTime = 0L;
 
         ObjectName objectName = getObjectName(database, JMX_OBJECT_NAME);
@@ -49,8 +45,10 @@ public class Locks {
 
         LockInfoResult info = new LockInfoResult(minWaitTime, locks.length, avertedDeadLocks, lockInfos.size(), lockInfos);
         return Stream.of(info);
+*/
     }
 
+/*
     public List<Map<String, Object>> getContentedLocks(ObjectName objectName, @Name("minWaitTime") Long minwaittime) {
         CompositeData[] clocks = invoke(objectName, JMX_CONTENDED_LOCKS_KEY, new Long[]{minwaittime}, new String[]{"long"});
         List<Map<String, Object>> lockInfos = new ArrayList<>(clocks.length);
@@ -63,6 +61,7 @@ public class Locks {
         }
         return lockInfos;
     }
+*/
 
     public static class LockInfoResult {
 
