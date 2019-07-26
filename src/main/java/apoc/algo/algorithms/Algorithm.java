@@ -1,10 +1,10 @@
 package apoc.algo.algorithms;
 
 import apoc.util.Util;
-import org.neo4j.collection.primitive.Primitive;
-import org.neo4j.collection.primitive.PrimitiveLongIntMap;
-import org.neo4j.collection.primitive.PrimitiveLongIntVisitor;
-import org.neo4j.collection.primitive.hopscotch.LongKeyIntValueTable;
+import org.eclipse.collections.api.map.primitive.LongIntMap;
+import org.eclipse.collections.api.map.primitive.MutableLongIntMap;
+import org.eclipse.collections.impl.map.mutable.primitive.LongIntHashMap;
+import org.eclipse.collections.impl.map.mutable.primitive.SynchronizedLongIntMap;
 import org.neo4j.graphdb.Result;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -23,6 +23,7 @@ import static java.lang.System.currentTimeMillis;
 
 public class Algorithm implements AlgoIdGenerator {
 
+//    public static final int NULL = -1;
     public static final int INITIAL_ARRAY_SIZE=100_000;
     public static final String COMPILED_RUNTIME = "CYPHER runtime=" + Util.COMPILED + " ";
     private final GraphDatabaseAPI db;
@@ -36,7 +37,7 @@ public class Algorithm implements AlgoIdGenerator {
     // Arrays to hold the graph.
     // Mapping from Algo node ID to Graph nodeID
     private  int [] nodeMapping;
-    private final PrimitiveLongIntMap nodeMap = Primitive.longIntMap(INITIAL_ARRAY_SIZE);
+    private final MutableLongIntMap nodeMap = new SynchronizedLongIntMap(new LongIntHashMap(INITIAL_ARRAY_SIZE));
 
     // Degree of each algo node.
     public int [] sourceDegreeData;
@@ -75,13 +76,8 @@ public class Algorithm implements AlgoIdGenerator {
         log.info("Time for iteration over " + relCount + " relations = " + readRelationshipMillis + " millis");
 
         nodeMapping = new int[getNodeCount()];
-        nodeMap.visitEntries(new PrimitiveLongIntVisitor<RuntimeException>() {
-            @Override
-            public boolean visited(long nodeId, int algoId) throws RuntimeException {
-                nodeMapping[algoId]=(int)nodeId;
-                return false;
-            }
-        });
+
+        nodeMap.forEachKeyValue((longArg, intArg) -> nodeMapping[intArg]=(int)longArg);
         return true;
     }
 
@@ -98,15 +94,17 @@ public class Algorithm implements AlgoIdGenerator {
     }
 
     public int getOrCreateAlgoNodeId(long node) {
-        int id = nodeMap.get(node);
-        if (id != LongKeyIntValueTable.NULL) return id;
+        return nodeMap.getIfAbsentPut(node, () -> maxAlgoNodeId++ );
+
+        /*int id = nodeMap.get(node);
+        if (id != NULL) return id;
         synchronized (nodeMap) {
             id = nodeMap.get(node);
-            if (id != LongKeyIntValueTable.NULL) return id;
+            if (id != NULL) return id;
             id = maxAlgoNodeId++;
             nodeMap.put(node, id);
             return id;
-        }
+        }*/
     }
 
     @Override
@@ -230,6 +228,7 @@ public class Algorithm implements AlgoIdGenerator {
     }
 
     private static class RelationshipLoader implements Result.ResultVisitor<RuntimeException> {
+        private static final int NO_SUCH_VALUE = -1;
         private final AlgoIdGenerator algoIdGenerator;
         private final int task;
         private final boolean weighted;
@@ -246,7 +245,7 @@ public class Algorithm implements AlgoIdGenerator {
         private Chunks relationshipWeight;
         private Chunks sourceDegreeData;
         private Chunks sourceChunkStartingIndex;
-        private PrimitiveLongIntMap weights;
+        private MutableLongIntMap weights;
 
         public RelationshipLoader(int task, boolean weighted, int defaultWeight, AlgoIdGenerator algoIdGenerator) {
             this.task = task;
@@ -260,7 +259,7 @@ public class Algorithm implements AlgoIdGenerator {
             sourceDegreeData = new Chunks(nodeCount).withDefault(0);
 
             if (weighted) {
-                weights = Primitive.longIntMap(INITIAL_ARRAY_SIZE);
+                weights = new LongIntHashMap(INITIAL_ARRAY_SIZE);
             }
         }
 
@@ -309,7 +308,7 @@ public class Algorithm implements AlgoIdGenerator {
             relData.clear();
         }
 
-        private void transformRelationshipDataToOffsetStorage(Chunks relData, int relDataIdx, PrimitiveLongIntMap weights, Chunks relationshipTarget, Chunks relationshipWeight, int[] offsetTracker) {
+        private void transformRelationshipDataToOffsetStorage(Chunks relData, int relDataIdx, LongIntMap weights, Chunks relationshipTarget, Chunks relationshipWeight, int[] offsetTracker) {
             int sourceIndex = 0;
             //            if (defaultWeight!=0) Arrays.fill(relationshipWeight,defaultWeight);
             for (int i=0;i<relDataIdx;i++) {
@@ -318,8 +317,8 @@ public class Algorithm implements AlgoIdGenerator {
                     sourceIndex = -id-1;
                 } else {
                     long key = ((long) sourceIndex) << 32 | id;
-                    int weight = weights.get(key);
-                    if (weight != LongKeyIntValueTable.NULL) {
+                    int weight = weights.getIfAbsent(key, NO_SUCH_VALUE);
+                    if (weight != NO_SUCH_VALUE) {
                        relationshipWeight.set(offsetTracker[sourceIndex],weight);
                     }
                     relationshipTarget.set(offsetTracker[sourceIndex],id);

@@ -6,7 +6,7 @@ import apoc.export.util.CountingInputStream;
 import apoc.path.RelationshipTypeAndDirections;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.neo4j.collection.primitive.PrimitiveLongIterator;
+import org.eclipse.collections.api.iterator.LongIterator;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Node;
 import org.neo4j.internal.helpers.collection.Iterables;
@@ -438,7 +438,7 @@ public class Util {
         return runNumericQuery(db,REL_COUNT,null);
     }
 
-    public static LongStream toLongStream(PrimitiveLongIterator it) {
+    public static LongStream toLongStream(LongIterator it) {
         PrimitiveIterator.OfLong iterator = new PrimitiveIterator.OfLong() {
 
             @Override

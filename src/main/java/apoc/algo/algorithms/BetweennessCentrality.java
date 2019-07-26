@@ -1,8 +1,10 @@
 package apoc.algo.algorithms;
 
 import apoc.Pools;
-import org.neo4j.collection.primitive.Primitive;
-import org.neo4j.collection.primitive.PrimitiveIntObjectMap;
+import org.eclipse.collections.api.map.primitive.MutableIntFloatMap;
+import org.eclipse.collections.api.map.primitive.MutableIntObjectMap;
+import org.eclipse.collections.impl.map.mutable.primitive.IntFloatHashMap;
+import org.eclipse.collections.impl.map.mutable.primitive.IntObjectHashMap;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
@@ -22,7 +24,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
     private int relCount;
     private Statistics stats = new Statistics();
 
-    private PrimitiveIntObjectMap intermediateBcPerThread;
+    private MutableIntObjectMap<MutableIntFloatMap> intermediateBcPerThread;
     float betweennessCentrality[];
     private String property;
     private final TerminationGuard guard;
@@ -127,7 +129,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
 
 
         List<Future> futures = new ArrayList<>(batches);
-        intermediateBcPerThread = Primitive.intObjectMap();
+        intermediateBcPerThread = new IntObjectHashMap<>();
         int nodeIter = 0;
         int batchNumber = 0;
         while(nodeIter < nodeCount) {
@@ -160,7 +162,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
             float value = 0;
             Object batchValue = 0;
             for (int batch = 0; batch < batchNumber; batch++) {
-                batchValue = ((PrimitiveIntObjectMap)intermediateBcPerThread.get(batch)).get(i);
+                batchValue = intermediateBcPerThread.get(batch).get(i);
                 if (batchValue != null)
                     value += (float)batchValue;
             }
@@ -180,11 +182,11 @@ public class BetweennessCentrality implements AlgorithmInterface {
         log.info("Thread: " + Thread.currentThread().getName() + " processing " + start + " " + end);
         // Map<Integer, ArrayList<Integer>>predecessors = new HashMap<Integer, ArrayList<Integer>>(); // Pw
 
-        PrimitiveIntObjectMap predecessors = Primitive.intObjectMap();
+        MutableIntObjectMap<List<Integer>> predecessors = new IntObjectHashMap<>();
 
         int numShortestPaths[] = new int [nodeCount]; // sigma
         int distance[] = new int[nodeCount]; // distance
-        PrimitiveIntObjectMap map = Primitive.intObjectMap();
+        MutableIntFloatMap map = new IntFloatHashMap();
         float delta[] = new float[nodeCount];
 
         int processedNode = 0;
@@ -223,7 +225,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
                     if (distance[target] == (distance[nodeDequeued] + 1)) {
                         numShortestPaths[target] = numShortestPaths[target] + numShortestPaths[nodeDequeued];
                         if (!predecessors.containsKey(target)) {
-                            ArrayList<Integer> list = new ArrayList<Integer>();
+                            List<Integer> list = new ArrayList<Integer>();
                             predecessors.put(target, list);
                         }
                         ((ArrayList<Integer>)predecessors.get(target)).add(nodeDequeued);

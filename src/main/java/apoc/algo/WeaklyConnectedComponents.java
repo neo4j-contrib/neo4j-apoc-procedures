@@ -2,9 +2,10 @@ package apoc.algo;
 
 import apoc.algo.wcc.CCVar;
 import apoc.result.CCResult;
-import org.neo4j.collection.primitive.Primitive;
-import org.neo4j.collection.primitive.PrimitiveLongIterator;
-import org.neo4j.collection.primitive.PrimitiveLongSet;
+import org.eclipse.collections.api.set.primitive.LongSet;
+import org.eclipse.collections.api.set.primitive.MutableLongSet;
+import org.eclipse.collections.impl.set.mutable.primitive.LongHashSet;
+import org.eclipse.collections.impl.set.mutable.primitive.SynchronizedLongSet;
 import org.neo4j.graphdb.*;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
@@ -29,7 +30,7 @@ public class WeaklyConnectedComponents {
 	public Stream<CCResult> wcc() {
 		List<List<CCVar>> results = new LinkedList<List<CCVar>>();
 		ResourceIterator<Node> nodes = db.getAllNodes().iterator();
-		PrimitiveLongSet allNodes = Primitive.longSet(0);
+		MutableLongSet allNodes = new SynchronizedLongSet(new LongHashSet()); // TODO: initialze with total number of nodes
 		while (nodes.hasNext()) {
 			Node node = nodes.next();
 			if (node.getDegree() == 0) {
@@ -42,33 +43,31 @@ public class WeaklyConnectedComponents {
 		}
 		nodes.close();
 
-		PrimitiveLongIterator it = allNodes.iterator();
-		while (it.hasNext()) {
+
+		allNodes.forEach(id -> {
 			try {
-				long n = it.next();
 				List<CCVar> result = new LinkedList<CCVar>();
-				PrimitiveLongIterator reachableIDs = go(db.getNodeById(n), Direction.BOTH,result).iterator();
-				while (reachableIDs.hasNext()) {
-					long id = (long) reachableIDs.next();
-					allNodes.remove(id);
-				}
+				LongSet reachableIDs = go(db.getNodeById(id), Direction.BOTH,result);
+				reachableIDs.forEach(localId -> {
+					allNodes.remove(localId);
+				});
 				results.add(result);
 
 			} catch (NoSuchElementException e) {
-				break;
+				// pass
 			}
-			it = allNodes.iterator();
-		}
-		allNodes.close();
+
+		});
+
 		return results.stream().map((x) ->new CCResult( x.stream().map((z) -> new Long(z.getId())).collect(Collectors.toList()), x.stream().collect(Collectors.groupingBy(CCVar::getType)).entrySet().stream().collect(Collectors.toMap(
                 e -> e.getKey(),
                 e -> e.getValue().size()))
             ));
 	}
 
-	private PrimitiveLongSet go(Node node, Direction direction, List<CCVar> result) {
+	private LongSet go(Node node, Direction direction, List<CCVar> result) {
 
-		PrimitiveLongSet visitedIDs = Primitive.longSet(0);
+		MutableLongSet visitedIDs = new LongHashSet();
 		Stack<Node> frontierList = new Stack<Node>();
 
 		frontierList.push(node);
