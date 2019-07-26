@@ -2,6 +2,7 @@ package apoc.algo.algorithms;
 
 import apoc.util.Util;
 import org.neo4j.cypher.EntityNotFoundException;
+import org.neo4j.exceptions.KernelException;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.kernel.api.Write;
 import org.neo4j.internal.kernel.api.exceptions.schema.IllegalTokenNameException;
@@ -67,7 +68,7 @@ public class AlgoUtils {
             }
             propertyNameId = ctx.getKernelTransactionBoundToThisThread(true).tokenWrite().propertyKeyGetOrCreateForName(algorithm.getPropertyName());
             tx.success();
-        } catch (IllegalTokenNameException e) {
+        } catch (KernelException e) {
             throw new RuntimeException(e);
         }
         final long totalNodes = algorithm.numberOfNodes();

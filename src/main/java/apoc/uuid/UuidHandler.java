@@ -9,7 +9,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
-import org.neo4j.graphdb.event.TransactionEventHandler;
+import org.neo4j.graphdb.event.TransactionEventListenerAdapter;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.kernel.impl.core.EmbeddedProxySPI;
@@ -25,7 +25,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class UuidHandler implements TransactionEventHandler {
+public class UuidHandler extends TransactionEventListenerAdapter {
 
     private static final String APOC_UUID = "apoc.uuid";
     static ConcurrentHashMap<String, UuidConfig> uuid = new ConcurrentHashMap();
@@ -77,8 +77,7 @@ public class UuidHandler implements TransactionEventHandler {
     }
 
     @Override
-    public Object beforeCommit(TransactionData txData) {
-        GraphDatabaseService db = properties.getGraphDatabase();
+    public Object beforeCommit(TransactionData txData, GraphDatabaseService db ) {
         Map<String, String> exceptions = new LinkedHashMap<>();
         Iterable<Node> createdNodes = txData.createdNodes();
         Iterable<PropertyEntry<Node>> assignedNodeProperties = txData.assignedNodeProperties();
@@ -115,23 +114,15 @@ public class UuidHandler implements TransactionEventHandler {
             nodeProperties.forEach(nodePropertyEntry -> {
                 if (predicate == null) {
                     if (nodePropertyEntry.entity().hasLabel(Label.label(label)) && nodePropertyEntry.key().equals(uuidProperty)) {
-                        nodePropertyEntry.entity().setProperty(uuidProperty, nodePropertyEntry.previouslyCommitedValue());
+                        nodePropertyEntry.entity().setProperty(uuidProperty, nodePropertyEntry.previouslyCommittedValue());
                     }
                 } else {
                     if (nodePropertyEntry.entity().hasLabel(Label.label(label)) && nodePropertyEntry.key().equals(uuidProperty) && predicate.test(nodePropertyEntry)) {
-                        nodePropertyEntry.entity().setProperty(uuidProperty, nodePropertyEntry.previouslyCommitedValue());
+                        nodePropertyEntry.entity().setProperty(uuidProperty, nodePropertyEntry.previouslyCommittedValue());
                     }
                 }
             });
         }
-    }
-
-    @Override
-    public void afterCommit(TransactionData data, Object state) {
-    }
-
-    @Override
-    public void afterRollback(TransactionData data, Object state) {
     }
 
     public static Map<String, UuidConfig> list() {

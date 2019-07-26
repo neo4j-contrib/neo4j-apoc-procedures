@@ -4,6 +4,7 @@ import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
+import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -117,10 +118,12 @@ public class Uuid {
     public static class UuidLifeCycle {
         private final GraphDatabaseAPI db;
         private final Log log;
+        private final DatabaseManagementService databaseManagementService;
         private UuidHandler uuidHandler;
 
-        public UuidLifeCycle(GraphDatabaseAPI db, Log log) {
+        public UuidLifeCycle(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, Log log) {
             this.db = db;
+            this.databaseManagementService = databaseManagementService;
             this.log = log;
         }
 
@@ -131,12 +134,12 @@ public class Uuid {
             }
 
             uuidHandler = new UuidHandler(db, log);
-            db.registerTransactionEventHandler(uuidHandler);
+            databaseManagementService.registerTransactionEventListener("neo4j", uuidHandler); // TODO: decide which db to use
         }
 
         public void stop() {
             if (uuidHandler == null) return;
-            db.unregisterTransactionEventHandler(uuidHandler);
+            databaseManagementService.unregisterTransactionEventListener("neo4j", uuidHandler);
         }
     }
 }

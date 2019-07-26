@@ -1,15 +1,17 @@
 package apoc.index;
 
 import apoc.result.ListResult;
-import apoc.util.MapUtil;
 import apoc.util.QueueBasedSpliterator;
+import org.neo4j.common.DependencyResolver;
+import org.neo4j.exceptions.KernelException;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.IndexDefinition;
-import org.neo4j.helpers.collection.Pair;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.*;
-import org.neo4j.internal.kernel.api.exceptions.KernelException;
-import org.neo4j.kernel.api.schema.SchemaDescriptorFactory;
+import org.neo4j.internal.schema.IndexDescriptor;
+import org.neo4j.internal.schema.IndexOrder;
+import org.neo4j.internal.schema.SchemaDescriptor;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.*;
@@ -20,9 +22,8 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.graphdb.Label;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.api.schema.LabelSchemaDescriptor;
+import org.neo4j.internal.schema.LabelSchemaDescriptor;
 import org.neo4j.kernel.impl.api.KernelStatement;
-import org.neo4j.values.storable.NoValue;
 import org.neo4j.values.storable.Value;
 
 import java.util.*;
@@ -75,32 +76,7 @@ public class SchemaIndex {
         }).map(NodeResult::new).limit(limit);
     }
 
-    @Procedure
-    @Deprecated
-    @Description("deprecated, just there for compatibility. Use plain cypher instead")
-    public Stream<NodeResult> orderedRange(@Name("label") String label, @Name("key") String key, @Name("min") Object min, @Name("max") Object max, @Name("relevance") boolean relevance, @Name("limit") long limit)  {
-        Map<String, Object> params = MapUtil.map("min", min, "max", max, "limit", limit);
-        List<Object> formatValues = new ArrayList<>();
-        formatValues.add(label);
-        String query = "MATCH (n:`%s`) WHERE ";
-        if (min!=null) {
-            query += "n.`%s` >= $min ";
-            formatValues.add(key);
-        }
-        if (max!=null) {
-            if (min!=null) {
-                query+= "AND ";
-            }
-            query += "n.`%s` <= $max ";
-            formatValues.add(key);
-        }
-        // we need order by id(n) to be consistent with previous versions (lucene based)
-        query += "RETURN n ORDER by id(n) LIMIT $limit";
-        Result result = db.execute(String.format(query, formatValues.toArray()), params);
-        return result.columnAs("n").stream().map(o -> new NodeResult((Node)o));
-    }
-
-    public Stream<Node> queryForRange(@Name("label") String label, @Name("key") String key, @Name("min") Object min, @Name("max") Object max, @Name("limit") long limit) {
+        public Stream<Node> queryForRange(@Name("label") String label, @Name("key") String key, @Name("min") Object min, @Name("max") Object max, @Name("limit") long limit) {
         Map<String, Object> params = map("min", min, "max", max, "limit", limit);
         String query = "MATCH (n:`" + label + "`)";
         if (min != null || max != null) {
@@ -113,15 +89,6 @@ public class SchemaIndex {
         if (limit > 0) query+="LIMIT {limit}";
         ResourceIterator<Node> it = db.execute(query, params).columnAs("n");
         return it.stream().onClose(it::close);
-    }
-
-    @Procedure
-    @Deprecated
-    @Description("just use a cypher query with a range predicate on an indexed field and wait for index backed order by in 3.5")
-    public Stream<NodeResult> orderedByText(@Name("label") String label, @Name("key") String key, @Name("operator") String operator, @Name("value") String value, @Name("relevance") boolean relevance, @Name("limit") long limit)  {
-        Map<String, Object> params = MapUtil.map("value", value, "limit", limit);
-        Result result = db.execute(String.format("MATCH (n:`%s`) WHERE n.`%s` %s $value RETURN n ORDER by id(n) LIMIT $limit", label, key, operator), params); // we need order by id(n) to be consistent with previous versions (lucene based)
-        return result.columnAs("n").stream().map(o -> new NodeResult((Node)o));
     }
 
     @Procedure("apoc.schema.properties.distinct")
@@ -163,9 +130,9 @@ public class SchemaIndex {
                     int[] propertyKeyIds = StreamSupport.stream(indexDefinition.getPropertyKeys().spliterator(), false)
                             .mapToInt(name -> tokenRead.propertyKey(name))
                             .toArray();
-                    LabelSchemaDescriptor schema = SchemaDescriptorFactory.forLabel(tokenRead.nodeLabel(indexDefinition.getLabel().name()), propertyKeyIds);
-                    IndexReference indexReference = schemaRead.index(schema);
-                    scanIndex(queue, indexDefinition, key, read, cursors, indexReference);
+                    LabelSchemaDescriptor schema = SchemaDescriptor.forLabel(tokenRead.nodeLabel(indexDefinition.getLabel().name()), propertyKeyIds);
+                    IndexDescriptor indexDescriptor = schemaRead.index(schema);
+                    scanIndex(queue, indexDefinition, key, read, cursors, indexDescriptor);
                 }
             }
             threadTx.success();
@@ -173,22 +140,24 @@ public class SchemaIndex {
         }
     }
 
-    private void scanIndex(BlockingQueue<PropertyValueCount> queue, IndexDefinition indexDefinition, String key, Read read, CursorFactory cursors, IndexReference indexReference) {
+    private void scanIndex(BlockingQueue<PropertyValueCount> queue, IndexDefinition indexDefinition, String key, Read read, CursorFactory cursors, IndexDescriptor indexDescriptor) {
         try (NodeValueIndexCursor cursor = cursors.allocateNodeValueIndexCursor()) {
             // we need to using IndexOrder.NONE here to prevent an exception
             // however the index guarantees to be scanned in order unless
             // there are writes done in the same tx beforehand - which we don't do.
-            read.nodeIndexScan(indexReference, cursor, IndexOrder.NONE, true);
-            Value previousValue = NoValue.NO_VALUE;
+            IndexReadSession indexSession = read.indexReadSession( indexDescriptor );
+            read.nodeIndexScan(indexSession, cursor, IndexOrder.NONE, true);
+
+            Value previousValue = null;
             long count = 0;
             while (cursor.next()) {
                 for (int i = 0; i < cursor.numberOfProperties(); i++) {
-                    int k = cursor.propertyKey(i);
+                    int k = cursor.propertyKey(i);  // TODO: check if this line can be rmoved
                     Value v = cursor.propertyValue(i);
                     if (v.equals(previousValue)) {
                         count++;
                     } else {
-                        if (!previousValue.equals(NoValue.NO_VALUE)) {
+                        if (previousValue!=null) {
                             putIntoQueue(queue, indexDefinition, key, previousValue, count);
                         }
                         previousValue = v;

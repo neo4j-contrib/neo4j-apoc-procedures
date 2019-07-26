@@ -2,20 +2,20 @@ package apoc.schema;
 
 import apoc.result.AssertSchemaResult;
 import apoc.result.ConstraintRelationshipInfo;
-import apoc.result.GraphResult;
 import apoc.result.IndexConstraintNodeInfo;
-import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.common.TokenNameLookup;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
-import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.kernel.api.*;
 import org.neo4j.internal.kernel.api.exceptions.LabelNotFoundKernelException;
 import org.neo4j.internal.kernel.api.exceptions.schema.IndexNotFoundKernelException;
-import org.neo4j.internal.kernel.api.schema.constraints.ConstraintDescriptor;
+import org.neo4j.internal.schema.ConstraintDescriptor;
+import org.neo4j.internal.schema.IndexDescriptor;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.SilentTokenNameLookup;
 import org.neo4j.kernel.api.Statement;
@@ -281,19 +281,23 @@ public class Schemas {
             TokenNameLookup tokens = new SilentTokenNameLookup(tokenRead);
 
             SchemaRead schemaRead = tx.schemaRead();
-            Iterable<IndexReference> indexesIterator;
+            Iterable<IndexDescriptor> indexesIterator;
             Iterable<ConstraintDescriptor> constraintsIterator;
 
             if (includeLabels.isEmpty()) {
-                Iterable<IndexReference> allIndex = () -> schemaRead.indexesGetAll();
-                indexesIterator = StreamSupport.stream(allIndex.spliterator(),false)
+
+                Iterator<IndexDescriptor> allIndex = schemaRead.indexesGetAll();
+
+                indexesIterator = StreamSupport.stream(
+                        Spliterators.spliteratorUnknownSize(allIndex, Spliterator.ORDERED),
+                        false)
                         .filter(index -> Arrays.stream(index.schema().getEntityTokenIds()).noneMatch(id -> {
-                            try {
-                                return excludeLabels.contains(tokenRead.nodeLabelName(id));
-                            } catch (LabelNotFoundKernelException e) {
-                                return false;
-                            }
-                        })).collect(Collectors.toList());
+                    try {
+                        return excludeLabels.contains(tokenRead.nodeLabelName(id));
+                    } catch (LabelNotFoundKernelException e) {
+                        return false;
+                    }
+                })).collect(Collectors.toList());
 
                 Iterable<ConstraintDescriptor> allConstraints = () -> schemaRead.constraintsGetAll();
                 constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
@@ -317,7 +321,7 @@ public class Schemas {
                 indexesIterator = includeLabels.stream()
                         .filter(label -> !excludeLabels.contains(label) && tokenRead.nodeLabel(label) != -1)
                         .flatMap(label -> {
-                            Iterable<IndexReference> indexesForLabel = () -> schemaRead.indexesGetForLabel(tokenRead.nodeLabel(label));
+                            Iterable<IndexDescriptor> indexesForLabel = () -> schemaRead.indexesGetForLabel(tokenRead.nodeLabel(label));
                             return StreamSupport.stream(indexesForLabel.spliterator(), false);
                         })
                         .collect(Collectors.toList());
@@ -330,7 +334,7 @@ public class Schemas {
                     .sorted(Comparator.comparing(i -> i.label));
 
             Stream<IndexConstraintNodeInfo> indexNodeInfoStream = StreamSupport.stream(indexesIterator.spliterator(), false)
-                    .map(indexReference -> this.nodeInfoFromIndexDefinition(indexReference, schemaRead, tokens))
+                    .map(indexDescriptor -> this.nodeInfoFromIndexDefinition(indexDescriptor, schemaRead, tokens))
                     .sorted(Comparator.comparing(i -> i.label));
 
             return Stream.of(constraintNodeInfoStream, indexNodeInfoStream).flatMap(e -> e);
@@ -384,7 +388,7 @@ public class Schemas {
      * @return
      */
     private IndexConstraintNodeInfo nodeInfoFromConstraintDescriptor(ConstraintDescriptor constraintDescriptor, TokenNameLookup tokens) {
-        String labelName =  tokens.labelGetName(constraintDescriptor.schema().keyId());
+        String labelName =  tokens.labelGetName(constraintDescriptor.schema().getLabelId());
         List<String> properties = new ArrayList<>();
         Arrays.stream(constraintDescriptor.schema().getPropertyIds()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
         return new IndexConstraintNodeInfo(
@@ -405,30 +409,30 @@ public class Schemas {
     /**
      * Index info from IndexDefinition
      *
-     * @param indexReference
+     * @param indexDescriptor
      * @param schemaRead
      * @param tokens
      * @return
      */
-    private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexReference indexReference, SchemaRead schemaRead, TokenNameLookup tokens){
-        int[] labelIds = indexReference.schema().getEntityTokenIds();
+    private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexDescriptor indexDescriptor, SchemaRead schemaRead, TokenNameLookup tokens){
+        int[] labelIds = indexDescriptor.schema().getEntityTokenIds();
         if (labelIds.length != 1) throw new IllegalStateException("Index with more than one label");
         String labelName =  tokens.labelGetName(labelIds[0]);
         List<String> properties = new ArrayList<>();
-        Arrays.stream(indexReference.properties()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
+        Arrays.stream(indexDescriptor.schema().getPropertyIds()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
         try {
             return new IndexConstraintNodeInfo(
                     // Pretty print for index name
                     String.format(":%s(%s)", labelName, StringUtils.join(properties, ",")),
                     labelName,
                     properties,
-                    schemaRead.indexGetState(indexReference).toString(),
-                    !indexReference.isUnique() ? "INDEX" : "UNIQUENESS",
-                    schemaRead.indexGetState(indexReference).equals(InternalIndexState.FAILED) ? schemaRead.indexGetFailure(indexReference) : "NO FAILURE",
-                    schemaRead.indexGetPopulationProgress(indexReference).getCompleted() / schemaRead.indexGetPopulationProgress(indexReference).getTotal() * 100,
-                    schemaRead.indexSize(indexReference),
-                    schemaRead.indexUniqueValuesSelectivity(indexReference),
-                    indexReference.userDescription(tokens)
+                    schemaRead.indexGetState(indexDescriptor).toString(),
+                    !indexDescriptor.isUnique() ? "INDEX" : "UNIQUENESS",
+                    schemaRead.indexGetState(indexDescriptor).equals(InternalIndexState.FAILED) ? schemaRead.indexGetFailure(indexDescriptor) : "NO FAILURE",
+                    schemaRead.indexGetPopulationProgress(indexDescriptor).getCompleted() / schemaRead.indexGetPopulationProgress(indexDescriptor).getTotal() * 100,
+                    schemaRead.indexSize(indexDescriptor),
+                    schemaRead.indexUniqueValuesSelectivity(indexDescriptor),
+                    indexDescriptor.userDescription(tokens)
             );
         } catch(IndexNotFoundKernelException e) {
             return new IndexConstraintNodeInfo(
@@ -437,10 +441,10 @@ public class Schemas {
                     labelName,
                     properties,
                     "NOT_FOUND",
-                    !indexReference.isUnique() ? "INDEX" : "UNIQUENESS",
+                    !indexDescriptor.isUnique() ? "INDEX" : "UNIQUENESS",
                     "NOT_FOUND",
                     0,0,0,
-                    indexReference.userDescription(tokens)
+                    indexDescriptor.userDescription(tokens)
             );
         }
     }

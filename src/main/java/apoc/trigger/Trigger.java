@@ -4,12 +4,10 @@ import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.coll.SetBackedList;
 import apoc.util.Util;
+import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.event.LabelEntry;
-import org.neo4j.graphdb.event.PropertyEntry;
-import org.neo4j.graphdb.event.TransactionData;
-import org.neo4j.graphdb.event.TransactionEventHandler;
-import org.neo4j.helpers.collection.Iterators;
+import org.neo4j.graphdb.event.*;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.impl.core.EmbeddedProxySPI;
 import org.neo4j.kernel.impl.core.GraphProperties;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -168,7 +166,7 @@ public class Trigger {
         return Stream.of(new TriggerInfo(name,(String)resume.get("kernelTransaction"), (Map<String,Object>) resume.get("selector"), (Map<String,Object>) resume.get("params"),true, false));
     }
 
-    public static class TriggerHandler implements TransactionEventHandler {
+    public static class TriggerHandler implements TransactionEventListener {
         public static final String APOC_TRIGGER = "apoc.trigger";
         static ConcurrentHashMap<String,Map<String,Object>> triggers = new ConcurrentHashMap(map("",map()));
         private static GraphProperties properties;
@@ -259,7 +257,7 @@ public class Trigger {
         }
 
         @Override
-        public Object beforeCommit(TransactionData txData) throws Exception {
+        public Object beforeCommit(TransactionData txData, GraphDatabaseService databaseService) throws Exception {
             executeTriggers(txData, "before");
             return null;
         }
@@ -301,12 +299,12 @@ public class Trigger {
         }
 
         @Override
-        public void afterCommit(TransactionData txData, Object state) {
+        public void afterCommit(TransactionData txData, Object state, GraphDatabaseService databaseService) {
             executeTriggers(txData, "after");
         }
 
         @Override
-        public void afterRollback(TransactionData txData, Object state) {
+        public void afterRollback(TransactionData txData, Object state, GraphDatabaseService databaseService) {
             executeTriggers(txData, "rollback");
         }
 
@@ -335,7 +333,7 @@ public class Trigger {
             result.compute(entry.key(),
                     (k, v) -> {
                         if (v == null) v = new ArrayList<>(100);
-                        Map<String, Object> map = map("key", k, entityType, entry.entity(), "old", entry.previouslyCommitedValue());
+                        Map<String, Object> map = map("key", k, entityType, entry.entity(), "old", entry.previouslyCommittedValue());
                         if (!removed) map.put("new", entry.value());
                         v.add(map);
                         return v;
@@ -358,12 +356,15 @@ public class Trigger {
     }
 
     public static class LifeCycle {
-        private final GraphDatabaseAPI db;
         private final Log log;
+        private final GraphDatabaseAPI db;
         private TriggerHandler triggerHandler;
+        private final DatabaseManagementService databaseManagementService;
+        private final String databaseName = "neo4j";
 
-        public LifeCycle(GraphDatabaseAPI db, Log log) {
+        public LifeCycle(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, Log log) {
             this.db = db;
+            this.databaseManagementService = databaseManagementService;
             this.log = log;
         }
 
@@ -374,12 +375,12 @@ public class Trigger {
             }
 
             triggerHandler = new Trigger.TriggerHandler(db,log);
-            db.registerTransactionEventHandler(triggerHandler);
+            databaseManagementService.registerTransactionEventListener(databaseName, triggerHandler); // TODO: care about databaseName
         }
 
         public void stop() {
             if (triggerHandler == null) return;
-            db.unregisterTransactionEventHandler(triggerHandler);
+            databaseManagementService.unregisterTransactionEventListener(databaseName, triggerHandler);
         }
     }
 }

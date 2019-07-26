@@ -3,12 +3,12 @@ package apoc;
 import apoc.cache.Static;
 import apoc.util.FileUtils;
 import apoc.util.Util;
-import org.neo4j.kernel.configuration.Config;
+import org.neo4j.configuration.Config;
+import org.neo4j.graphdb.config.Setting;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -37,14 +37,16 @@ public class ApocConfiguration {
     public static void initialize(GraphDatabaseAPI db) {
         Static.clear();
         Config neo4jConfig = db.getDependencyResolver().resolveDependency(Config.class);
-        Map<String, String> params = neo4jConfig.getRaw();
+
+        Map<String, Setting<Object>> params = neo4jConfig.getDeclaredSettings();
         apocConfig.clear();
         apocConfig.putAll(Util.subMap(params, PREFIX));
         mergeDefaults();
         PARAM_WHITELIST.forEach((k, v) -> {
-            Optional<Object> configValue = neo4jConfig.getValue(k);
-            if (configValue.isPresent()) {
-                apocConfig.put(v, configValue.get().toString());
+            Setting<Object> setting = neo4jConfig.getSetting(k);
+            Object configValue = neo4jConfig.get(setting);
+            if (configValue!=null) {
+                apocConfig.put(v, configValue.toString());
             }
         });
         config.clear();
