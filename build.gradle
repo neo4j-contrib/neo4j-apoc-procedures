@@ -2,30 +2,30 @@ plugins {
     id 'java'
     id 'idea'
     id 'com.github.johnrengelman.shadow' version '4.0.2'
-    id "org.asciidoctor.convert" version "1.5.9.2"
+    id "org.asciidoctor.convert" version "2.3.0"
     id "com.bmuschko.nexus" version "2.3.1"
-    id "me.champeau.gradle.jmh" version "0.4.8"
+//    id "me.champeau.gradle.jmh" version "0.4.8"
     id "io.codearte.nexus-staging" version "0.20.0"
     id 'maven-publish'
 }
 asciidoctorj {
-    version = '1.6.1'
+    version = '2.1.0'
 }
 apply plugin: 'io.codearte.nexus-staging'
 
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 11
+targetCompatibility = 11
 
 idea {
     project {
-        ext.jdkName = '1.8'
-        ext.languageLevel = '1.8'
+        ext.jdkName = '11'
+        ext.languageLevel = '11'
     }
 }
 
 group = 'org.neo4j.procedure'
-version = '3.5.0.5'
+version = '4.0.0'
 archivesBaseName = 'apoc'
 
 jar {
@@ -38,18 +38,19 @@ description = """neo4j-apoc-procedures"""
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
-    neo4jVersion = "3.5.7"
+    neo4jVersion = "4.0.0-SNAPSHOT"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.11.0'
 }
 
 repositories {
-    jcenter();
-    mavenCentral();
+    jcenter()
+    mavenCentral()
     maven {
         url "https://repo.gradle.org/gradle/libs-releases"
     }
+    mavenLocal()
 }
 
 configurations {
@@ -153,8 +154,8 @@ dependencies {
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     compile group: 'org.apache.commons', name: 'commons-text', version: '1.2'
-    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
-    jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
+//    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
+//    jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
 
     testCompile group: 'org.gradle', name: 'gradle-tooling-api', version: '5.2'
 
@@ -326,6 +327,7 @@ task copyRuntimeLibs(type: Copy) {
     from configurations.testRuntime 
 }
 
+/*
 jmh {
 //    include = ['some regular expression'] // include pattern (regular expression) for benchmarks to be executed
 //    exclude = ['some regular expression'] // exclude pattern (regular expression) for benchmarks to be executed
@@ -365,9 +367,11 @@ jmh {
 //    duplicateClassesStrategy = 'fail' // Strategy to apply when encountring duplicate classes during creation of the fat jar (i.e. while executing jmhJar task)
 }
 
+
 jmhJar {
     mergeServiceFiles()
 }
+*/
 
 task mySourcesJar(type: Jar) {
     from sourceSets.main.allJava
