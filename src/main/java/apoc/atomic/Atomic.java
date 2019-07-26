@@ -7,7 +7,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Lock;
 import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.helpers.TransactionTemplate;
+import org.neo4j.internal.helpers.TransactionTemplate;
 import org.neo4j.procedure.*;
 
 import java.lang.reflect.Array;

@@ -8,7 +8,7 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
-import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterables;
 
 import java.util.ArrayList;
 import java.util.Collection;

@@ -5,7 +5,7 @@ import apoc.generate.relationship.RelationshipGenerator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.Pair;
+import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.ArrayList;
 import java.util.List;

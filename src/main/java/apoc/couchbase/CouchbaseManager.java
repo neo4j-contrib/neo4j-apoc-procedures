@@ -3,7 +3,7 @@ package apoc.couchbase;
 import apoc.ApocConfiguration;
 import com.couchbase.client.java.auth.PasswordAuthenticator;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
-import org.neo4j.helpers.collection.Pair;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.parboiled.common.StringUtils;
 
 import java.net.URI;

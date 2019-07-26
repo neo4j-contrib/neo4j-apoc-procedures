@@ -4,7 +4,7 @@ import apoc.generate.config.DistributionBasedConfig;
 import apoc.generate.distribution.MutableDegreeDistribution;
 import apoc.generate.distribution.MutableSimpleDegreeDistribution;
 import apoc.generate.utils.WeightedReservoirSampler;
-import org.neo4j.helpers.collection.Pair;
+import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.ArrayList;
 import java.util.List;

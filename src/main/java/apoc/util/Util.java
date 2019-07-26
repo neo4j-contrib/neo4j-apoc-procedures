@@ -9,8 +9,8 @@ import org.apache.commons.lang.StringUtils;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Node;
-import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.helpers.collection.Pair;
+import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -517,7 +517,7 @@ public class Util {
     public static Map<String, Object> mapFromLists(List<String> keys, List<Object> values) {
         if (keys == null || values == null || keys.size() != values.size())
             throw new RuntimeException("keys and values lists have to be not null and of same size");
-        if (keys.isEmpty()) return Collections.<String,Object>emptyMap();
+        if (keys.isEmpty()) return Collections.emptyMap();
         if (keys.size()==1) return Collections.singletonMap(keys.get(0),values.get(0));
         ListIterator<Object> it = values.listIterator();
         Map<String, Object> res = new LinkedHashMap<>(keys.size());
@@ -528,7 +528,7 @@ public class Util {
     }
 
     public static Map<String, Object> mapFromPairs(List<List<Object>> pairs) {
-        if (pairs.isEmpty()) return Collections.<String,Object>emptyMap();
+        if (pairs.isEmpty()) return Collections.emptyMap();
         Map<String,Object> map = new LinkedHashMap<>(pairs.size());
         for (List<Object> pair : pairs) {
             if (pair.isEmpty()) continue;
@@ -704,8 +704,8 @@ public class Util {
 
     public static <T> T createInstanceOrNull(String className) {
         try {
-            return (T)Class.forName(className).newInstance();
-        } catch (IllegalAccessException | InstantiationException | ClassNotFoundException e) {
+            return (T)Class.forName(className).getDeclaredConstructor().newInstance();
+        } catch (IllegalAccessException | InstantiationException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException e) {
             return null;
         }
     }

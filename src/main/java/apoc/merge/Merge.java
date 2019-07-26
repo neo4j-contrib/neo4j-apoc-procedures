@@ -4,7 +4,7 @@ import apoc.result.*;
 import apoc.util.Util;
 import com.google.common.collect.Lists;
 import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Iterators;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.procedure.*;
 
 import java.util.*;

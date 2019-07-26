@@ -10,8 +10,8 @@ import org.neo4j.kernel.api.KernelTransaction;
 import java.util.Arrays;
 
 import static org.neo4j.graphdb.Direction.OUTGOING;
-import static org.neo4j.internal.kernel.api.Read.ANY_LABEL;
-import static org.neo4j.internal.kernel.api.Read.ANY_RELATIONSHIP_TYPE;
+import static org.neo4j.internal.kernel.api.TokenRead.ANY_LABEL;
+import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 
 /**
  * @author mh

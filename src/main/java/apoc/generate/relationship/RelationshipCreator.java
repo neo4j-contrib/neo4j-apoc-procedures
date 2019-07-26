@@ -2,7 +2,6 @@ package apoc.generate.relationship;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.unsafe.batchinsert.BatchInserter;
 
 /**
  * A component creating {@link Relationship}s with properties.

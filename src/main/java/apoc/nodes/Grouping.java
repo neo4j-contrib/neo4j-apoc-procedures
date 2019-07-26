@@ -6,7 +6,7 @@ import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;

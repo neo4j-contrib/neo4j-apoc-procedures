@@ -2,9 +2,9 @@ package apoc.path;
 
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.traversal.BranchState;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.helpers.collection.NestingIterator;
-import org.neo4j.helpers.collection.Pair;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.helpers.collection.NestingIterator;
+import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.ArrayList;
 import java.util.Iterator;

@@ -3,7 +3,7 @@ package apoc.neighbors;
 import apoc.result.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Node;
-import org.neo4j.helpers.collection.Pair;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.procedure.*;
 import org.roaringbitmap.RoaringBitmap;
 import org.roaringbitmap.longlong.LongBitmapDataProvider;

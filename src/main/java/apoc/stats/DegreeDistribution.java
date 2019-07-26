@@ -6,21 +6,25 @@ import apoc.util.kernel.MultiThreadedGlobalGraphOperations;
 import org.HdrHistogram.AtomicHistogram;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.helpers.collection.Pair;
-import org.neo4j.internal.kernel.api.*;
+import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.internal.kernel.api.CursorFactory;
+import org.neo4j.internal.kernel.api.NodeCursor;
+import org.neo4j.internal.kernel.api.Read;
+import org.neo4j.internal.kernel.api.TokenRead;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.token.api.NamedToken;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.neo4j.internal.kernel.api.Read.ANY_LABEL;
-import static org.neo4j.kernel.api.StatementConstants.ANY_RELATIONSHIP_TYPE;
+import static org.neo4j.internal.kernel.api.TokenRead.ANY_LABEL;
+import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 
 /**
  * @author mh

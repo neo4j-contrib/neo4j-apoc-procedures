@@ -1,6 +1,6 @@
 package apoc;
 
-import org.neo4j.helpers.collection.MapUtil;
+import org.neo4j.internal.helpers.collection.MapUtil;
 
 import java.util.Map;
 

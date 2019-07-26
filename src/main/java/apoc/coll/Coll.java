@@ -2,13 +2,13 @@ package apoc.coll;
 
 import org.apache.commons.math3.util.Combinations;
 import org.neo4j.graphdb.Path;
-import org.neo4j.helpers.collection.Pair;
-import org.neo4j.kernel.impl.util.statistics.IntCounter;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.procedure.*;
 import apoc.result.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.util.IntCounter;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -18,7 +18,6 @@ import java.util.stream.Stream;
 import java.lang.reflect.Array;
 
 import static java.util.Arrays.asList;
-import static org.neo4j.helpers.collection.Pair.*;
 
 public class Coll {
 
@@ -792,7 +791,7 @@ public class Coll {
 
             List<Pair<String, Boolean>> fields = orderFields.stream().map(v -> {
                 boolean asc = v.charAt(0) == '^';
-                return of(asc ? v.substring(1) : v, asc);
+                return Pair.of(asc ? v.substring(1) : v, asc);
             }).collect(Collectors.toList());
 
             Comparator<Map<String, Comparable<Object>>> compare = (o1, o2) -> {

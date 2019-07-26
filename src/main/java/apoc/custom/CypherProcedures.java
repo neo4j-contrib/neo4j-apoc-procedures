@@ -3,30 +3,31 @@ package apoc.custom;
 import apoc.ApocConfiguration;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
-import org.neo4j.collection.PrefetchingRawIterator;
 import org.neo4j.collection.RawIterator;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.kernel.api.Procedures;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
 import org.neo4j.internal.kernel.api.procs.*;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.ResourceTracker;
-import org.neo4j.kernel.api.proc.CallableProcedure;
-import org.neo4j.kernel.api.proc.CallableUserFunction;
-import org.neo4j.kernel.api.proc.Key;
+import org.neo4j.kernel.api.procedure.CallableProcedure;
+import org.neo4j.kernel.api.procedure.CallableUserFunction;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.impl.core.EmbeddedProxySPI;
 import org.neo4j.kernel.impl.core.GraphProperties;
 import org.neo4j.kernel.impl.core.GraphPropertiesProxy;
 import org.neo4j.kernel.impl.factory.GraphDatabaseFacade;
-import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.impl.util.DefaultValueMapper;
 import org.neo4j.kernel.impl.util.ValueUtils;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 import org.neo4j.values.AnyValue;
+import org.neo4j.values.storable.Values;
 import org.neo4j.values.virtual.MapValue;
 
 import java.util.*;
@@ -110,13 +111,15 @@ public class CypherProcedures {
     }
 
     static class CustomStatementRegistry {
+//        private final KernelImpl kernelImpl;
+        private final GlobalProcedures globalProcedures;
         GraphDatabaseAPI api;
-        Procedures procedures;
         private final Log log;
 
         public CustomStatementRegistry(GraphDatabaseAPI api, Log log) {
             this.api = api;
-            procedures = api.getDependencyResolver().resolveDependency(Procedures.class);
+//            kernelImpl = api.getDependencyResolver().resolveDependency(KernelImpl.class);
+            globalProcedures = api.getDependencyResolver().resolveDependency(GlobalProcedures.class);
             this.log = log;
         }
 
@@ -125,25 +128,21 @@ public class CypherProcedures {
                 Procedures procedures = api.getDependencyResolver().resolveDependency(Procedures.class);
                 boolean admin = false; // TODO
                 ProcedureSignature signature = new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
-                        Mode.valueOf(mode.toUpperCase()), admin, null, new String[0], description, null, false, true
+                        Mode.valueOf(mode.toUpperCase()), admin, null, new String[0], description, null,  false, false, true
                 );
-                procedures.register(new CallableProcedure.BasicProcedure(signature) {
+                globalProcedures.register(new CallableProcedure.BasicProcedure(signature) {
                     @Override
-                    public RawIterator<Object[], ProcedureException> apply(org.neo4j.kernel.api.proc.Context ctx, Object[] input, ResourceTracker resourceTracker) throws ProcedureException {
-                        KernelTransaction ktx = ctx.get(Key.key("KernelTransaction", KernelTransaction.class));
+                    public RawIterator<AnyValue[], ProcedureException> apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input, ResourceTracker resourceTracker) throws ProcedureException {
+                        KernelTransaction ktx = ctx.kernelTransaction();
                         debug(name, "inside", ktx);
                         Map<String, Object> params = params(input, inputs);
                         Result result = api.execute(statement, params);
                         resourceTracker.registerCloseableResource(result);
                         String[] names = outputs == null ? null : outputs.stream().map(pair -> pair.get(0)).toArray(String[]::new);
-                        return new PrefetchingRawIterator<Object[], ProcedureException>() {
-                            @Override
-                            protected Object[] fetchNextOrNull() {
-                                if (!result.hasNext()) return null;
-                                Map<String, Object> row = result.next();
-                                return toResult(row, names);
-                            }
-                        };
+
+                        Stream<AnyValue[]> stream = result.stream().map(row -> toResult(row, names));
+                        return Iterators.asRawIterator(stream);
+
                     }
                 }, true);
                 return true;
@@ -162,9 +161,9 @@ public class CypherProcedures {
 
                 DefaultValueMapper defaultValueMapper = new DefaultValueMapper(api.getDependencyResolver().resolveDependency(GraphDatabaseFacade.class));
 
-                procedures.register(new CallableUserFunction.BasicUserFunction(signature) {
+                globalProcedures.register(new CallableUserFunction.BasicUserFunction(signature) {
                     @Override
-                    public AnyValue apply(org.neo4j.kernel.api.proc.Context ctx, AnyValue[] input) throws ProcedureException {
+                    public AnyValue apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input) throws ProcedureException {
                         Map<String, Object> params = functionParams(input, inputs, defaultValueMapper);
                         try (Result result = api.execute(statement, params)) {
 //                resourceTracker.registerCloseableResource(result); // TODO
@@ -196,7 +195,6 @@ public class CypherProcedures {
                 return false;
             }
         }
-
 
         public static QualifiedName qualifiedName(@Name("name") String name) {
             String[] names = name.split("\\.");
@@ -292,11 +290,11 @@ public class CypherProcedures {
                 default: return null;
             }
         }
-        private Object[] toResult(Map<String, Object> row, String[] names) {
-            if (names == null) return new Object[] {row};
-            Object[] result = new Object[names.length];
+        private AnyValue[] toResult(Map<String, Object> row, String[] names) {
+            if (names == null) return Values.values(row);
+            AnyValue[] result = new AnyValue[names.length];
             for (int i = 0; i < names.length; i++) {
-                result[i] = row.get(names[i]);
+                result[i] = Values.of(row.get(names[i]));
             }
             return result;
         }

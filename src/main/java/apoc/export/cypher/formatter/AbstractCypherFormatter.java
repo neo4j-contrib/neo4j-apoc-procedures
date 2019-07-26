@@ -6,7 +6,7 @@ import apoc.export.util.Reporter;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterables;
 
 import java.io.PrintWriter;
 import java.util.*;

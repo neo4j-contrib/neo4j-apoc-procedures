@@ -5,7 +5,7 @@ import apoc.get.Get;
 import apoc.result.*;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterables;
 
 import java.util.LinkedHashMap;
 import java.util.List;

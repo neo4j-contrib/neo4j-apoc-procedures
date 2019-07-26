@@ -10,7 +10,7 @@ import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.graphdb.spatial.Point;
-import org.neo4j.helpers.collection.Pair;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.Read;
 import org.neo4j.internal.kernel.api.TokenRead;
 import org.neo4j.kernel.api.KernelTransaction;
@@ -28,8 +28,8 @@ import static apoc.util.MapUtil.map;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toMap;
-import static org.neo4j.internal.kernel.api.Read.ANY_LABEL;
-import static org.neo4j.internal.kernel.api.Read.ANY_RELATIONSHIP_TYPE;
+import static org.neo4j.internal.kernel.api.TokenRead.ANY_LABEL;
+import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 
 public class Meta {
 

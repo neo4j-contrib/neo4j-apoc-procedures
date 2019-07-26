@@ -5,7 +5,7 @@ import org.neo4j.internal.kernel.api.CursorFactory;
 import org.neo4j.internal.kernel.api.NodeCursor;
 import org.neo4j.internal.kernel.api.helpers.Nodes;
 
-import static org.neo4j.internal.kernel.api.Read.ANY_RELATIONSHIP_TYPE;
+import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 
 public class DegreeUtil {
 

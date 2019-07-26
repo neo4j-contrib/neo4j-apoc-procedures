@@ -6,7 +6,7 @@ import org.apache.commons.text.similarity.JaroWinklerDistance;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.helpers.collection.Pair;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.procedure.Description;
 import apoc.result.StringResult;
 import org.neo4j.procedure.Name;

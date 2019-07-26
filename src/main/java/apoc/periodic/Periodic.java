@@ -4,8 +4,8 @@ import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.helpers.collection.Pair;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 

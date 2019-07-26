@@ -1,8 +1,8 @@
 package apoc.result;
 
 import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.FilteringIterable;
-import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.FilteringIterable;
+import org.neo4j.internal.helpers.collection.Iterables;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;

@@ -1,10 +1,9 @@
 package apoc;
 
-import apoc.index.FreeTextSearch;
 import apoc.util.TestUtil;
 
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.helpers.collection.MapUtil;
+import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.internal.kernel.api.exceptions.KernelException;
 
 import java.util.Map;

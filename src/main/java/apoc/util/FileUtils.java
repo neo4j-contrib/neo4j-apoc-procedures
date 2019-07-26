@@ -11,6 +11,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -125,7 +126,7 @@ public class FileUtils {
     }
 
     public static PrintWriter getPrintWriter(String fileName, Writer out) throws IOException {
-        OutputStream outputStream = getOutputStream(fileName, new WriterOutputStream(out));
+        OutputStream outputStream = getOutputStream(fileName, new WriterOutputStream(out, Charset.defaultCharset()));
         return outputStream == null ? null : new PrintWriter(outputStream);
     }
 

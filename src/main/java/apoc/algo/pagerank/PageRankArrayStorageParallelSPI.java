@@ -4,7 +4,7 @@ import apoc.algo.algorithms.AlgoUtils;
 import apoc.algo.algorithms.AlgorithmInterface;
 import apoc.stats.DegreeUtil;
 import apoc.util.kernel.MultiThreadedGlobalGraphOperations;
-import org.neo4j.graphdb.DependencyResolver;
+import org.neo4j.common.DependencyResolver;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.RelationshipType;
