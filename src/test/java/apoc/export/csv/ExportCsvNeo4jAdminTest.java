@@ -1,16 +1,17 @@
 package apoc.export.csv;
 
+import apoc.ApocSettings;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,29 +68,23 @@ public class ExportCsvNeo4jAdminTest {
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_NEXT_DELIVERY = String
             .format("20;21;NEXT_DELIVERY%n");
 
-    private static GraphDatabaseService db;
     private static File directory = new File("target/import");
 
     static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
     }
 
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
+            .withSetting(ApocSettings.apoc_export_file_enabled, "true");
+
     @BeforeClass
     public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory()
-                .newImpermanentDatabaseBuilder()
-                .setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
-                .setConfig("apoc.export.file.enabled", "true")
-                .newGraphDatabase();
         TestUtil.registerProcedure(db, ExportCSV.class, Graphs.class);
         db.execute("CREATE (f:User1:User {name:'foo',age:42,male:true,kids:['a','b','c']})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})").close();
         db.execute("CREATE (f:Address1:Address {name:'Andrea', city: 'Milano', street:'Via Garibaldi, 7'})-[:NEXT_DELIVERY]->(a:Address {name: 'Bar Sport'}), (b:Address {street: 'via Benni'})").close();
         db.execute("CREATE (a:Types {date: date('2018-10-30'), localDateTime: localdatetime('20181030T19:32:24'), dateTime: datetime('2018-10-30T12:50:35.556+0100'), localtime: localtime('12:50:35.556'), duration: duration('P5M1DT12H'), time: time('125035.556+0100'), born_2D: point({ x: 2.3, y: 4.5 }), born_3D:point({ longitude: 56.7, latitude: 12.78, height: 100 })})").close();
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        db.shutdown();
     }
 
     @Test

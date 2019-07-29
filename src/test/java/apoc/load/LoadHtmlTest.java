@@ -1,11 +1,11 @@
 package apoc.load;
 
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.util.Collections;
@@ -18,8 +18,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 public class LoadHtmlTest {
-
-    private GraphDatabaseService db;
 
     private static final String RESULT_QUERY_METADATA = ("{attributes={charset=UTF-8}, tagName=meta}, " +
             "{attributes={name=ResourceLoaderDynamicStyles}, tagName=meta}, " +
@@ -36,15 +34,12 @@ public class LoadHtmlTest {
             "{text=References[edit], tagName=h2}, " +
             "{text=Navigation menu, tagName=h2}");
 
-    @Before
-    public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().newGraphDatabase();
-        TestUtil.registerProcedure(db, LoadHtml.class);
-    }
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
-    @After
-    public void tearDown() {
-        db.shutdown();
+    @Before
+    public void setup() {
+        TestUtil.registerProcedure(db, LoadHtml.class);
     }
 
     @Test

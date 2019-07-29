@@ -8,9 +8,10 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 import java.io.IOException;
@@ -38,7 +39,8 @@ public class ElasticSearchTest {
 
     private static final String DOCUMENT = "{\"name\":\"Neo4j\",\"company\":\"Neo Technology\",\"description\":\"Awesome stuff with a graph database\"}";
 
-    protected static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     private static Map<String, Object> defaultParams = Util.map("index", ES_INDEX, "type", ES_TYPE, "id", ES_ID);
 
@@ -56,9 +58,6 @@ public class ElasticSearchTest {
         assumeNotNull(elastic);
         assumeTrue("Elastic Search must be running", elastic.isRunning());
         defaultParams.put("host", elastic.getHttpHostAddress());
-        db = new TestGraphDatabaseFactory()
-                .newImpermanentDatabaseBuilder()
-                .newGraphDatabase();
         TestUtil.registerProcedure(db, ElasticSearch.class);
         insertDocuments();
     }
@@ -67,7 +66,6 @@ public class ElasticSearchTest {
     public static void tearDown() {
         if (elastic != null) {
             elastic.stop();
-            db.shutdown();
         }
     }
 

@@ -1,13 +1,15 @@
 package apoc.config;
 
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import static apoc.ApocSettings.dynamic;
 import static org.junit.Assert.assertEquals;
+import static org.neo4j.configuration.SettingValueParsers.STRING;
 
 /**
  * @author mh
@@ -15,19 +17,13 @@ import static org.junit.Assert.assertEquals;
  */
 public class ConfigTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(dynamic("foo", STRING), "bar");
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
-                .setConfig("foo", "bar")
-                .newGraphDatabase();
         TestUtil.registerProcedure(db, Config.class);
-    }
-
-    @After
-    public void tearDown(){
-        db.shutdown();
     }
 
     @Test

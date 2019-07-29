@@ -2,15 +2,13 @@ package apoc.atomic;
 
 import apoc.util.ArrayBackedList;
 import apoc.util.TestUtil;
-import apoc.util.Util;
-import org.junit.*;
-import org.neo4j.cypher.internal.frontend.v2_3.ast.functions.E;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.TransactionTemplate;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
@@ -27,15 +25,12 @@ import static org.junit.Assert.assertEquals;
  * @since 26-06-17
  */
 public class AtomicTest {
-	private GraphDatabaseService db;
+
+	@Rule
+	public DbmsRule db = new ImpermanentDbmsRule();
 
 	@Before public void setUp() throws Exception {
-		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
 		TestUtil.registerProcedure(db, Atomic.class);
-	}
-
-	@After public void tearDown() {
-		db.shutdown();
 	}
 
 	@Test

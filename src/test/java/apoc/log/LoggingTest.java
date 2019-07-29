@@ -2,8 +2,10 @@ package apoc.log;
 
 import apoc.util.TestUtil;
 import org.junit.Test;
-import org.neo4j.internal.kernel.api.exceptions.KernelException;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.exceptions.KernelException;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -183,13 +185,15 @@ public class LoggingTest {
     @Test
     public void shouldCallTheProcedure() throws KernelException {
         // given
-        GraphDatabaseAPI db = (GraphDatabaseAPI) TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
+        Pair<DatabaseManagementService, GraphDatabaseService> pair = TestUtil.apocGraphDatabaseBuilder();
+        DatabaseManagementService dbms = pair.first();
+        GraphDatabaseService db = pair.other();
         TestUtil.registerProcedure(db, Logging.class);
 
         // when
         db.execute("CALL apoc.log.warn('Prova %s', [1])");
 
         // then
-        db.shutdown();
+        dbms.shutdown();
     }
 }

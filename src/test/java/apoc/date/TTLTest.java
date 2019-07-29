@@ -1,16 +1,18 @@
 package apoc.date;
 
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import static org.junit.Assert.*;
+import static apoc.ApocSettings.apoc_ttl_enabled;
+import static apoc.ApocSettings.apoc_ttl_schedule;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author mh
@@ -18,24 +20,17 @@ import static org.junit.Assert.*;
  */
 public class TTLTest {
 
-    private static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(apoc_ttl_schedule, "5")
+            .withSetting(apoc_ttl_enabled, "true");
 
     @BeforeClass
     public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory()
-                .newImpermanentDatabaseBuilder()
-                .setConfig("apoc.ttl.schedule","5")
-                .setConfig("apoc.ttl.enabled","true")
-                .newGraphDatabase();
         TestUtil.registerProcedure(db, Date.class);
         db.execute("CREATE (n:Foo:TTL) SET n.ttl = timestamp() + 100").close();
         db.execute("CREATE (n:Bar) WITH n CALL apoc.date.expireIn(n,500,'ms') RETURN count(*)").close();
         testNodes(1,1);
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        db.shutdown();
     }
 
     @Test

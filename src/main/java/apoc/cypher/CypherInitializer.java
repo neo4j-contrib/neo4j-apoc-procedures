@@ -4,6 +4,7 @@ import apoc.ApocConfiguration;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.internal.kernel.api.Procedures;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
+import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
@@ -15,7 +16,7 @@ public class CypherInitializer implements AvailabilityListener {
 
     private final GraphDatabaseAPI db;
     private final Log userLog;
-    private final Procedures procs;
+    private final GlobalProcedures procs;
 
     /**
      * indicates the status of the initializer, to be used for tests to ensure initializer operations are already done
@@ -25,7 +26,7 @@ public class CypherInitializer implements AvailabilityListener {
     public CypherInitializer(GraphDatabaseAPI db, Log userLog) {
         this.db = db;
         this.userLog = userLog;
-        procs = db.getDependencyResolver().resolveDependency(Procedures.class, DependencyResolver.SelectionStrategy.FIRST);
+        procs = db.getDependencyResolver().resolveDependency(GlobalProcedures.class);
     }
 
     public boolean isFinished() {
@@ -79,8 +80,8 @@ public class CypherInitializer implements AvailabilityListener {
 
     private boolean areApocProceduresRegistered() {
         try {
-            return procs.proceduresGetAll().stream().anyMatch(signature -> signature.name().toString().startsWith("apoc"));
-        } catch (ConcurrentModificationException|ProcedureException e) {
+            return procs.getAllProcedures().stream().anyMatch(signature -> signature.name().toString().startsWith("apoc"));
+        } catch (ConcurrentModificationException e) {
             // if a CME happens (possible during procedure scanning)
             // we return false and the caller will try again
             return false;

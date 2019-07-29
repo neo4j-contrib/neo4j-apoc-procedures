@@ -1,32 +1,27 @@
 package apoc.label;
 
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 
 public class LabelTest {
 
-    private static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     @BeforeClass
     public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, Label.class);
     }
 
-    @AfterClass
-    public static void tearDown() {
-        db.shutdown();
-    }
-
     @Test
-    public void testVerifyNodeLabelExistance() throws Exception {
+    public void testVerifyNodeLabelExistence() throws Exception {
 
         db.execute("create (a:Person{name:'Foo'})");
 
@@ -41,8 +36,7 @@ public class LabelTest {
     }
 
     @Test
-    public void testVerifyRelTypeExistance() throws Exception {
-
+    public void testVerifyRelTypeExistence() throws Exception {
 
         db.execute("create (a:Person{name:'Foo'}), (b:Person{name:'Bar'}), (a)-[:LOVE{since:2010}]->(b)");
 

@@ -1,12 +1,13 @@
 package apoc.load;
 
+import apoc.ApocSettings;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Collections;
 import java.util.List;
@@ -44,20 +45,14 @@ public class XmlTest {
     private static final String XML_AS_SINGLE_LINE_SIMPLE =
             "{_type=table, _table=[{_type=tr, _tr=[{_type=td, _td=[{_type=img, src=pix/logo-tl.gif}]}]}]}";
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(ApocSettings.apoc_import_file_enabled, "true")
+            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, "false");
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
-                .setConfig("apoc.import.file.use_neo4j_config", "false")
-                .setConfig("apoc.import.file.enabled", "true")
-                .newGraphDatabase();
         TestUtil.registerProcedure(db, Xml.class);
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     @Test

@@ -55,7 +55,7 @@ public class Periodic {
 
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.commit(statement,params) - runs the given statement in separate transactions until it returns 0")
-    public Stream<RundownResult> commit(@Name("statement") String statement, @Name(value = "params", defaultValue = "") Map<String,Object> parameters) throws ExecutionException, InterruptedException {
+    public Stream<RundownResult> commit(@Name("statement") String statement, @Name(value = "params", defaultValue = "{}") Map<String,Object> parameters) throws ExecutionException, InterruptedException {
         Map<String,Object> params = parameters == null ? Collections.emptyMap() : parameters;
         long total = 0, executions = 0, updates = 0;
         long start = nanoTime();

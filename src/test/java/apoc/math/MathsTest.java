@@ -1,11 +1,11 @@
 package apoc.math;
 
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.math.RoundingMode;
 
@@ -15,13 +15,11 @@ import static org.junit.Assert.assertEquals;
 
 public class MathsTest {
 
-    private static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
+
     @BeforeClass public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db,Maths.class);
-    }
-    @AfterClass public static void tearDown() {
-        db.shutdown();
     }
 
     @Test public void testRoundMode() throws Exception {

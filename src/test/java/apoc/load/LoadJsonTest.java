@@ -1,14 +1,15 @@
 package apoc.load;
 
+import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.net.URL;
 import java.util.List;
@@ -24,20 +25,15 @@ import static org.junit.Assert.assertFalse;
 
 public class LoadJsonTest {
 
-    private GraphDatabaseService db;
-	@Before public void setUp() throws Exception {
-        URL url = ClassLoader.getSystemResource("map.json");
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
-                .setConfig("apoc.import.file.enabled","true")
-                .setConfig("apoc.import.file.use_neo4j_config", "false")
-                .setConfig("apoc.json.zip.url","https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.zip?raw=true!person.json")
-                .setConfig("apoc.json.simpleJson.url", url.toString())
-                .newGraphDatabase();
-        TestUtil.registerProcedure(db, LoadJson.class);
-    }
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(ApocSettings.apoc_import_file_enabled, "true")
+            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, "false")
+            .withSetting(ApocSettings.apoc_json_zip_url, "https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.zip?raw=true!person.json")
+            .withSetting(ApocSettings.apoc_json_simpleJson_url, ClassLoader.getSystemResource("map.json").toString());
 
-    @After public void tearDown() {
-	    db.shutdown();
+	@Before public void setUp() throws Exception {
+        TestUtil.registerProcedure(db, LoadJson.class);
     }
 
     @Test public void testLoadJson() throws Exception {

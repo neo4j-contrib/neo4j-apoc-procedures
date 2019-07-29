@@ -1,28 +1,24 @@
 package apoc.number;
 
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 
 public class ArabicRomanTest {
 
-    private static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
+
 
     @BeforeClass
-    public static void sUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+    public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, ArabicRoman.class);
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        db.shutdown();
     }
 
     @Test
@@ -35,7 +31,6 @@ public class ArabicRomanTest {
         testCall(db, "RETURN apoc.number.romanToArabic('') AS value", row -> assertEquals(new Integer(0),  row.get("value")));
         testCall(db, "RETURN apoc.number.romanToArabic(null) AS value", row -> assertEquals(new Integer(0),  row.get("value")));
     }
-
 
     @Test
     public void testToRoman() throws Exception {

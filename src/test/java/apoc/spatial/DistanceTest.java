@@ -2,20 +2,22 @@ package apoc.spatial;
 
 import apoc.result.DistancePathResult;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.*;
 
-import static org.junit.Assert.*;
-import static apoc.util.TestUtil.testCall;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class DistanceTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     private static final String LABEL = "Point";
     private static final String LAT = "latitude";
@@ -24,14 +26,8 @@ public class DistanceTest {
     private static final String RELATES = "RELATES";
 
     @Before
-    public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+    public void setup() {
         TestUtil.registerProcedure(db, Distance.class);
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     /* This test fails due to a bug in neo with Path objects returned in scala

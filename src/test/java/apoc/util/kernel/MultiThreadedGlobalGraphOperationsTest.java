@@ -1,35 +1,32 @@
 package apoc.util.kernel;
 
-import org.junit.*;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static apoc.util.kernel.MultiThreadedGlobalGraphOperations.*;
 import static apoc.util.kernel.MultiThreadedGlobalGraphOperations.GlobalOperationsTypes.NODES;
 import static apoc.util.kernel.MultiThreadedGlobalGraphOperations.GlobalOperationsTypes.RELATIONSHIPS;
-import static org.junit.Assert.*;
-import static apoc.util.kernel.MultiThreadedGlobalGraphOperations.*;
+import static org.junit.Assert.assertEquals;
 
 public class MultiThreadedGlobalGraphOperationsTest {
 
-    private static GraphDatabaseAPI db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        db = (GraphDatabaseAPI) new TestGraphDatabaseFactory().newImpermanentDatabase();
         createData();
     }
 
     private static void createData() {
         db.execute("UNWIND range(1,1000) as x MERGE (s{id:x}) MERGE (e{id:x+1}) merge (s)-[:REL{id:x}]->(e)");
-    }
-
-    @AfterClass
-    public static void afterClass() throws Exception {
-        if (db!=null) db.shutdown();
     }
 
     @Test

@@ -2,30 +2,28 @@ package apoc.algo;
 
 import apoc.algo.pagerank.PageRankAlgoTest;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Result;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.IOException;
 import java.util.Map;
 
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.graphdb.Result;
-import org.neo4j.test.TestGraphDatabaseFactory;
-
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class PageRankTest
 {
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     public static final String COMPANIES_QUERY = "CREATE (a:Company {name:'a'})\n" +
                                                  "CREATE (b:Company {name:'b'})\n" +
@@ -101,16 +99,8 @@ public class PageRankTest
     @Before
     public void setUp() throws Exception
     {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure( db, PageRank.class );
     }
-
-    @After
-    public void tearDown()
-    {
-        db.shutdown();
-    }
-
 
     @Test
     public void shouldGetPageRankExpectedResult() throws IOException

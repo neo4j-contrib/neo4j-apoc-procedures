@@ -1,31 +1,26 @@
 package apoc.path;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import apoc.util.Util;
-import org.junit.*;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
-
 import apoc.util.TestUtil;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class LabelSequenceTest {
-    private static GraphDatabaseService db;
 
-    public LabelSequenceTest() throws Exception {
-    }
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     @BeforeClass
     public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, PathExplorer.class);
         String sequence = "create (s:Start{name:'start'})-[:REL]->(:A{name:'a'})-[:REL]->(:B{name:'b'})-[:REL]->(:A:C{name:'ac'})-[:REL]->(:B:A{name:'ba'})-[:REL]->(:D:A{name:'da'})";
         try (Transaction tx = db.beginTx()) {
@@ -33,13 +28,6 @@ public class LabelSequenceTest {
             tx.success();
         }
     }
-
-    @AfterClass
-    public static void tearDown() {
-        db.shutdown();
-    }
-
-
 
     @Test
     public void testBasicSequence() throws Throwable {

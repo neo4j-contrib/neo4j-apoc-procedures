@@ -1,22 +1,17 @@
 package apoc.export.csv;
 
+import apoc.ApocSettings;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -116,7 +111,12 @@ public class ImportCsvLdbcTest {
             new AbstractMap.SimpleEntry<>("tagclass_isSubclassOf_tagclass", ":START_ID(TagClass)|:END_ID(TagClass)\n")
     ).collect(Collectors.toMap(AbstractMap.SimpleEntry::getKey, AbstractMap.SimpleEntry::getValue)));
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(ApocSettings.apoc_import_file_enabled, "true")
+            .withSetting(ApocSettings.apoc_export_file_enabled, "true")
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File("src/test/resources/csv-inputs").getAbsolutePath())
+            .withSetting(GraphDatabaseSettings.allow_file_urls, "true");
 
     @Before
     public void setUp() throws Exception {
@@ -127,21 +127,7 @@ public class ImportCsvLdbcTest {
             CsvTestUtil.saveCsvFile(entry.getKey(), entry.getValue());
         }
 
-        db = new TestGraphDatabaseFactory()
-                .newImpermanentDatabaseBuilder()
-                .setConfig("apoc.import.file.enabled", "true")
-                .setConfig("apoc.export.file.enabled", "true")
-                .setConfig("dbms.security.allow_csv_import_from_file_urls","true")
-                .setConfig("dbms.directories.import",
-                        new File("src/test/resources/csv-inputs").getAbsolutePath())
-                .newGraphDatabase();
-
         TestUtil.registerProcedure(db, ImportCsv.class);
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     @Test

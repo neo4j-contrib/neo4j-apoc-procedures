@@ -4,12 +4,13 @@ import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.*;
 
@@ -26,22 +27,19 @@ import static org.neo4j.graphdb.Label.label;
  */
 public class GraphsTest {
 
-    private static GraphDatabaseService db;
-
     private static Map<String,Object> graph = map("name","test","properties",map("answer",42L));
+
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
+
     @BeforeClass
     public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db,Graphs.class);
         Result result = db.execute("CREATE (a:Actor {name:'Tom Hanks'})-[r:ACTED_IN {roles:'Forrest'}]->(m:Movie {title:'Forrest Gump'}) RETURN [a,m] as nodes, [r] as relationships");
         while (result.hasNext()) {
             graph.putAll(result.next());
         }
 
-    }
-    @AfterClass
-    public static void tearDown() {
-        db.shutdown();
     }
 
     @Test

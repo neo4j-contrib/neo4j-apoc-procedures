@@ -125,7 +125,6 @@ public class CypherProcedures {
 
         public boolean registerProcedure(@Name("name") String name, @Name("statement") String statement, @Name(value = "mode", defaultValue = "read") String mode, @Name(value = "outputs", defaultValue = "null") List<List<String>> outputs, @Name(value = "inputs", defaultValue = "null") List<List<String>> inputs, @Name(value= "description", defaultValue = "") String description) {
             try {
-                Procedures procedures = api.getDependencyResolver().resolveDependency(Procedures.class);
                 boolean admin = false; // TODO
                 ProcedureSignature signature = new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
                         Mode.valueOf(mode.toUpperCase()), admin, null, new String[0], description, null,  false, false, true

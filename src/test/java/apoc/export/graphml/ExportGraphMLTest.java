@@ -1,20 +1,23 @@
 package apoc.export.graphml;
 
+import apoc.ApocSettings;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
-import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.diff.DefaultNodeMatcher;
 import org.xmlunit.diff.Diff;
@@ -111,39 +114,30 @@ public class ExportGraphMLTest {
     private static final String DATA_EMPTY = "<node id=\"n0\" labels=\":Test\"><data key=\"labels\">:Test</data><data key=\"name\"></data><data key=\"limit\">3</data></node>%n";
     private static final String EXPECTED_TYPES_EMPTY = String.format(HEADER + KEY_TYPES_EMPTY + GRAPH + DATA_EMPTY + FOOTER);
 
-    private static GraphDatabaseService db;
-    private static File directory = new File("target/import");
-
-    static { //noinspection ResultOfMethodCallIgnored
-        directory.mkdirs();
-    }
-
     @Rule
     public TestName testName = new TestName();
 
     private static final String TEST_WITH_NO_IMPORT = "WithNoImportConfig";
     private static final String TEST_WITH_NO_EXPORT = "WithNoExportConfig";
 
-    @Before
-    public void setUp() throws Exception {
-        GraphDatabaseBuilder builder  = new TestGraphDatabaseFactory()
-                .newImpermanentDatabaseBuilder()
-                .setConfig("apoc.import.file.use_neo4j_config", "false")
-                .setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath());
-        if (!testName.getMethodName().endsWith(TEST_WITH_NO_EXPORT)) {
-            builder.setConfig("apoc.export.file.enabled", "true");
-        }
-        if (!testName.getMethodName().endsWith(TEST_WITH_NO_IMPORT)) {
-            builder.setConfig("apoc.import.file.enabled", "true");
-        }
-        db = builder.newGraphDatabase();
-        TestUtil.registerProcedure(db, ExportGraphML.class, Graphs.class);
-        db.execute("CREATE (f:Foo:Foo2:Foo0 {name:'foo', born:Date('2018-10-10'), place:point({ longitude: 56.7, latitude: 12.78, height: 100 })})-[:KNOWS]->(b:Bar {name:'bar',age:42, place:point({ longitude: 56.7, latitude: 12.78})}),(c:Bar {age:12,values:[1,2,3]})").close();
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+                .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, "false")
+                .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
+                .withSetting(ApocSettings.apoc_export_file_enabled, Boolean.toString(testName.getMethodName().endsWith(TEST_WITH_NO_EXPORT))) //TODO: check condition
+                .withSetting(ApocSettings.apoc_import_file_enabled, Boolean.toString(testName.getMethodName().endsWith(TEST_WITH_NO_IMPORT)));
+
+
+    private static File directory = new File("target/import");
+
+    static { //noinspection ResultOfMethodCallIgnored
+        directory.mkdirs();
     }
 
-    @After
-    public void tearDown() {
-        db.shutdown();
+    @Before
+    public void setUp() throws Exception {
+        TestUtil.registerProcedure(db, ExportGraphML.class, Graphs.class);
+        db.execute("CREATE (f:Foo:Foo2:Foo0 {name:'foo', born:Date('2018-10-10'), place:point({ longitude: 56.7, latitude: 12.78, height: 100 })})-[:KNOWS]->(b:Bar {name:'bar',age:42, place:point({ longitude: 56.7, latitude: 12.78})}),(c:Bar {age:12,values:[1,2,3]})").close();
     }
 
     @Test

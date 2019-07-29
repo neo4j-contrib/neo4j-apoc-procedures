@@ -4,31 +4,28 @@ import apoc.ApocConfiguration;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TestName;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.sql.*;
-import java.time.*;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.time.ZoneId;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
-import static java.util.Collections.emptyList;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
 public class JdbcTest extends AbstractJdbcTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     private Connection conn;
 
@@ -39,9 +36,8 @@ public class JdbcTest extends AbstractJdbcTest {
 
     @Before
     public void setUp() throws Exception {
-        db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
-        ApocConfiguration.initialize((GraphDatabaseAPI)db);
-        ApocConfiguration.addToConfig(map("jdbc.derby.url","jdbc:derby:derbyDB"));
+//        ApocConfiguration.initialize((GraphDatabaseAPI)db);
+        ApocConfiguration.addToConfig(map("jdbc.derby.url","jdbc:derby:derbyDB"));  // TODO: move to .withSetting
         ApocConfiguration.addToConfig(map("jdbc.test.sql","SELECT * FROM PERSON"));
         ApocConfiguration.addToConfig(map("jdbc.testparams.sql","SELECT * FROM PERSON WHERE NAME = ?"));
         TestUtil.registerProcedure(db,Jdbc.class);
@@ -50,7 +46,6 @@ public class JdbcTest extends AbstractJdbcTest {
 
     @After
     public void tearDown() throws SQLException {
-        db.shutdown();
         conn.close();
         try {
             if (testName.getMethodName().endsWith(TEST_WITH_AUTHENTICATION)) {

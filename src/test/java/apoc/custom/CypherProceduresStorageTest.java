@@ -3,12 +3,11 @@ package apoc.custom;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.internal.kernel.api.exceptions.KernelException;
 import org.neo4j.io.fs.FileUtils;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,24 +23,25 @@ import static org.junit.Assert.assertEquals;
 public class CypherProceduresStorageTest {
 
     public static final File STORE_DIR = new File("cypher-storage");
-    private GraphDatabaseService db;
+
+    @Rule
+    public static DbmsRule db = new ImpermanentDbmsRule();
+
 
     @Before
     public void setUp() throws Exception {
-        db = new GraphDatabaseFactory().newEmbeddedDatabase(STORE_DIR);
         TestUtil.registerProcedure(db, CypherProcedures.class);
     }
 
     @After
     public void tearDown() throws IOException {
-        db.shutdown();
         FileUtils.deleteRecursively(STORE_DIR);
     }
 
-    private void restartDb() throws KernelException {
-        db.shutdown();
-        db = new GraphDatabaseFactory().newEmbeddedDatabase(STORE_DIR);
-        TestUtil.registerProcedure(db, CypherProcedures.class);
+    private void restartDb() throws IOException {
+        db.restartDatabase();
+//        db = new GraphDatabaseFactory().newEmbeddedDatabase(STORE_DIR);
+//        TestUtil.registerProcedure(db, CypherProcedures.class); // TODO: maybe that's needed
     }
     @Test
     public void registerSimpleStatement() throws Exception {

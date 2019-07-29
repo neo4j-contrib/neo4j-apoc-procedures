@@ -1,37 +1,33 @@
 package apoc.search;
 
+import apoc.util.TestUtil;
+import apoc.util.Util;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
+
 import static org.junit.Assert.assertEquals;
 
-import apoc.util.Util;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.TestGraphDatabaseFactory;
-
-import apoc.util.TestUtil;
-
 public class ParallelNodeSearchTest {
-    private static GraphDatabaseService db;
 
-    @BeforeClass
-    public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure(db, ParallelNodeSearch.class);
-        String movies = Util.readResourceFile("movies.cypher");
+	@ClassRule
+	public static DbmsRule db = new ImpermanentDbmsRule();
+
+	@BeforeClass
+    public static void initDb() throws Exception {
+		TestUtil.registerProcedure(db, ParallelNodeSearch.class);
+
+		String movies = Util.readResourceFile("movies.cypher");
 		 try (Transaction tx = db.beginTx()) {
 			db.execute(movies);
 			tx.success();
 		 }
     }
 
-    @AfterClass
-    public static void tearDown() {
-        db.shutdown();
-    }
-
-    @Test 
+    @Test
     public void testMultiSearchNode() throws Throwable {
     	String query = "call apoc.search.node('{Person: \"name\",Movie: [\"title\",\"tagline\"]}','CONTAINS','her') yield node as n return count(n) as c";
 		TestUtil.testCall(db, query, (row) -> assertEquals(6L,row.get("c")));

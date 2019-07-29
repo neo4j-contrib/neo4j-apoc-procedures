@@ -5,29 +5,31 @@ import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import java.util.List;
-import java.util.Map;
 import org.junit.AfterClass;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
+
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class SubgraphTest {
 
-	private static GraphDatabaseService db;
-	
 	private static Long fullGraphCount;
+
+	@ClassRule
+	public static DbmsRule db = new ImpermanentDbmsRule();
 
 	@BeforeClass
 	public static void setUp() throws Exception {
-		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-		TestUtil.registerProcedure(db, PathExplorer.class);
-		TestUtil.registerProcedure(db, Cover.class);
+		TestUtil.registerProcedure(db, PathExplorer.class, Cover.class);
 		String movies = Util.readResourceFile("movies.cypher");
 		String bigbrother = "MATCH (per:Person) MERGE (bb:BigBrother {name : 'Big Brother' })  MERGE (bb)-[:FOLLOWS]->(per)";
 		try (Transaction tx = db.beginTx()) {
@@ -45,11 +47,6 @@ public class SubgraphTest {
 			Map<String, Object> row = result.next();
 			fullGraphCount = (Long) row.get("graphCount");
 		}
-	}
-
-	@AfterClass
-	public static void tearDown() {
-		db.shutdown();
 	}
 
 	@Test

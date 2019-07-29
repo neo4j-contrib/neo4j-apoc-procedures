@@ -1,16 +1,18 @@
 package apoc.load.relative;
 
+import apoc.ApocSettings;
 import apoc.load.LoadCsv;
 import apoc.load.LoadJson;
 import apoc.load.Xml;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mortbay.util.StringMap;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Result;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -28,23 +30,16 @@ import static org.junit.Assert.assertFalse;
 
 public class LoadRelativePathTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(ApocSettings.apoc_import_file_enabled, "true")
+            .withSetting(GraphDatabaseSettings.allow_file_urls, "true")
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, PATH);
+
     private static String PATH = new File(LoadRelativePathTest.class.getClassLoader().getResource("test.csv").getPath()).getParent();
 
     @Before public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory()
-                .newImpermanentDatabaseBuilder()
-                .setConfig("apoc.import.file.enabled","true")
-                .setConfig("dbms.directories.import", PATH)
-                .setConfig("dbms.security.allow_csv_import_from_file_urls","true")
-                .newGraphDatabase();
-        TestUtil.registerProcedure(db, LoadCsv.class);
-        TestUtil.registerProcedure(db, LoadJson.class);
-        TestUtil.registerProcedure(db, Xml.class);
-    }
-
-    @After public void tearDown() {
-        db.shutdown();
+        TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class, Xml.class);
     }
 
     //CSV

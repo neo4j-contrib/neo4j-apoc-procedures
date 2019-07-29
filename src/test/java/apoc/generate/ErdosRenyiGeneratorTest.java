@@ -6,14 +6,16 @@ import apoc.generate.config.GeneratorConfiguration;
 import apoc.generate.node.SocialNetworkNodeCreator;
 import apoc.generate.relationship.ErdosRenyiRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
+import apoc.util.TestUtil;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Pair;
 
 import static org.junit.Assert.assertEquals;
-import static org.neo4j.helpers.collection.Iterables.count;
 
 /**
  * Integration test for {@link Neo4jGraphGenerator} with
@@ -45,20 +47,20 @@ public class ErdosRenyiGeneratorTest {
     }
 
     private void assertUsingDatabase(int numberOfNodes, int numberOfEdges) {
-        GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        try {
-            new Neo4jGraphGenerator(database).generateGraph(getGeneratorConfiguration(numberOfNodes, numberOfEdges));
+        Pair<DatabaseManagementService, GraphDatabaseService> pair = TestUtil.apocGraphDatabaseBuilder();
+        DatabaseManagementService dbms = pair.first();
+        GraphDatabaseService database = pair.other();
 
-            assertCorrectNumberOfNodesAndRelationships(database, numberOfNodes, numberOfEdges);
-        } finally {
-            database.shutdown();
-        }
+        new Neo4jGraphGenerator(database).generateGraph(getGeneratorConfiguration(numberOfNodes, numberOfEdges));
+
+        assertCorrectNumberOfNodesAndRelationships(database, numberOfNodes, numberOfEdges);
+        dbms.shutdown();
     }
 
     private void assertCorrectNumberOfNodesAndRelationships(GraphDatabaseService database, int numberOfNodes, int numberOfEdges) {
         try (Transaction tx = database.beginTx()) {
-            assertEquals(numberOfNodes, count(database.getAllNodes()));
-            assertEquals(numberOfEdges, count(database.getAllRelationships()));
+            assertEquals(numberOfNodes, Iterables.count(database.getAllNodes()));
+            assertEquals(numberOfEdges, Iterables.count(database.getAllRelationships()));
 
             tx.success();
         }

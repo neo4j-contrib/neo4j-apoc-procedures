@@ -3,13 +3,14 @@ package apoc.convert;
 import apoc.util.TestUtil;
 import junit.framework.TestCase;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.List;
 import java.util.Map;
@@ -22,14 +23,11 @@ import static org.junit.Assert.*;
 
 public class ConvertJsonTest {
 
-    private GraphDatabaseService db;
-	@Before public void setUp() throws Exception {
-	    db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure(db, Json.class);
-    }
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
-    @After public void tearDown() {
-	    db.shutdown();
+	@Before public void setUp() throws Exception {
+        TestUtil.registerProcedure(db, Json.class);
     }
 
     @Test public void testToJsonList() throws Exception {

@@ -1,14 +1,15 @@
 package apoc.export.json;
 
+import apoc.ApocSettings;
 import apoc.graph.Graphs;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.util.Map;
@@ -19,7 +20,6 @@ import static org.junit.Assert.assertTrue;
 
 public class ExportJsonTest {
 
-    private static GraphDatabaseService db;
     private static File directory = new File("target/import");
     private static File directoryExpected = new File("docs/asciidoc/data/exportJSON");
 
@@ -27,20 +27,15 @@ public class ExportJsonTest {
         directory.mkdirs();
     }
 
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+        .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
+        .withSetting(ApocSettings.apoc_export_file_enabled, "true");
+
     @Before
-    public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory()
-                .newImpermanentDatabaseBuilder()
-                .setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
-                .setConfig("apoc.export.file.enabled", "true")
-                .newGraphDatabase();
+    public void setup() {
         TestUtil.registerProcedure(db, ExportJson.class, Graphs.class);
         db.execute("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[:KNOWS {since: 1993}]->(b:User {name:'Jim',age:42}),(c:User {age:12})").close();
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     @Test

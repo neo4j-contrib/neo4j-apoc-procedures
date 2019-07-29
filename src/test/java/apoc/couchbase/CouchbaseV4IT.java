@@ -12,12 +12,14 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
 import java.util.List;
 import java.util.Map;
 
+import static apoc.ApocSettings.dynamic;
 import static apoc.couchbase.CouchbaseTestUtils.*;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.Util.map;
@@ -25,11 +27,25 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
+import static org.neo4j.configuration.SettingValueParsers.STRING;
 
 public class CouchbaseV4IT {
 
     private static String HOST = null;
 
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY, STRING),
+                    CONNECTION_TIMEOUT_CONFIG_VALUE)
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY, STRING),
+                    SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY, STRING),
+                    KV_TIMEOUT_CONFIG_VALUE)
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + IO_POOL_SIZE_CONFIG_KEY, STRING),
+                    IO_POOL_SIZE_CONFIG_VALUE)
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + COMPUTATION_POOL_SIZE_CONFIG_KEY, STRING),
+                    COMPUTATION_POOL_SIZE_CONFIG_VALUE);
+            
     private static GraphDatabaseService graphDB;
 
     private static Bucket couchbaseBucket;
@@ -55,18 +71,6 @@ public class CouchbaseV4IT {
         assumeTrue("should fill Couchbase with data", isFilled);
         HOST = getUrl(couchbase);
         couchbaseBucket = getCouchbaseBucket(couchbase);
-        graphDB = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY,
-                        CONNECTION_TIMEOUT_CONFIG_VALUE)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY,
-                        SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY,
-                        KV_TIMEOUT_CONFIG_VALUE)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + IO_POOL_SIZE_CONFIG_KEY,
-                        IO_POOL_SIZE_CONFIG_VALUE)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + COMPUTATION_POOL_SIZE_CONFIG_KEY,
-                        COMPUTATION_POOL_SIZE_CONFIG_VALUE)
-                .newGraphDatabase();
         TestUtil.registerProcedure(graphDB, Couchbase.class);
     }
 
@@ -74,7 +78,6 @@ public class CouchbaseV4IT {
     public static void tearDown() {
         if (couchbase != null) {
             couchbase.stop();
-            graphDB.shutdown();
         }
     }
 

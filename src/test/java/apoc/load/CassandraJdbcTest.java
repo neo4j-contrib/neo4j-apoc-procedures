@@ -1,13 +1,16 @@
 package apoc.load;
 
-import apoc.ApocConfiguration;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.CassandraContainer;
 
 import java.sql.SQLException;
@@ -20,7 +23,8 @@ import static org.junit.Assume.*;
 
 public class CassandraJdbcTest extends AbstractJdbcTest {
 
-    private static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     public static CassandraContainer cassandra;
 
@@ -34,8 +38,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
         },Exception.class);
         assumeNotNull("Cassandra container has to exist", cassandra);
         assumeTrue("Cassandra must be running", cassandra.isRunning());
-        db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
-        ApocConfiguration.initialize((GraphDatabaseAPI)db);
+
         TestUtil.registerProcedure(db,Jdbc.class);
         db.execute("CALL apoc.load.driver('com.github.adejanovski.cassandra.jdbc.CassandraDriver')").close();
     }
@@ -43,7 +46,6 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
     @AfterClass
     public static void tearDown() throws SQLException {
         if (cassandra != null) {
-            db.shutdown();
             cassandra.stop();
         }
     }

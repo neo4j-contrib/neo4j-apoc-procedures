@@ -3,31 +3,27 @@ package apoc.algo.pagerank;
 import apoc.Pools;
 import apoc.algo.LabelPropagation;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.TerminationGuard;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.procedure.TerminationGuard;
-import org.neo4j.test.TestGraphDatabaseFactory;
-
 import static org.junit.Assert.assertEquals;
 
 public class PageRankAlgoTest
 {
-    private GraphDatabaseService db;
-
     public static final String COMPANY_RESULT_QUERY = "MATCH (c:Company) " +
                                                       "WHERE c.name = {name} " +
                                                       "RETURN id(c) AS id, " +
@@ -73,18 +69,14 @@ public class PageRankAlgoTest
         }
     };
 
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
+
     @Before
     public void setUp() throws Exception
     {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         ctx = ((GraphDatabaseAPI)db).getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class);
         TestUtil.registerProcedure( db, LabelPropagation.class );
-    }
-
-    @After
-    public void tearDown()
-    {
-        db.shutdown();
     }
 
     @Test

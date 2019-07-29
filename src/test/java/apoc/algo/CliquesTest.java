@@ -2,16 +2,19 @@ package apoc.algo;
 
 import apoc.util.TestUtil;
 import org.hamcrest.Matcher;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static org.hamcrest.CoreMatchers.hasItems;
@@ -24,17 +27,12 @@ import static org.junit.Assert.*;
  */
 public class CliquesTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, Cliques.class);
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     private static final String SINGLE_CLIQUE = "CREATE (a {n:'a'}), (b {n:'b'}), (c {n:'c'})" +

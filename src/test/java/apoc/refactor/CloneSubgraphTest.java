@@ -6,13 +6,12 @@ import apoc.map.Maps;
 import apoc.meta.Meta;
 import apoc.path.PathExplorer;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,15 +22,16 @@ import static org.junit.Assert.assertThat;
 
 public class CloneSubgraphTest {
     private static final String STANDIN_SYNTAX_EXCEPTION_MSG = "\'standinNodes\' must be a list of node pairs";
-    private GraphDatabaseService db;
 
     @Rule
     public ExpectedException exceptionGrabber = ExpectedException.none();
 
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
+
     @Before
-    public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure(db, GraphRefactoring.class, Coll.class, PathExplorer.class, Cover.class, Meta.class, Maps.class); // helpful for matching to subgraphs
+    public void setup() {
+        TestUtil.registerProcedure(db, GraphRefactoring.class, Coll.class, PathExplorer.class, Cover.class, Meta.class, Maps.class);
 
         // tree structure, testing clone of branches and standins
         db.execute("CREATE (rA:Root{name:'A'}), \n" +
@@ -53,11 +53,6 @@ public class CloneSubgraphTest {
                 "CREATE                             (n5)-[:LINK]->(n8)\n" +
                 "CREATE                             (n5)-[:LINK]->(n9)-[:DIFFERENT_LINK]->(n10)\n" +
                 "CREATE (rB)-[:LINK]->(n11)");
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     @Test

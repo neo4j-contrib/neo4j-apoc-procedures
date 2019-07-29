@@ -1,54 +1,54 @@
 package apoc.cypher;
 
+import apoc.util.TestUtil;
 import apoc.util.Utils;
 import org.junit.After;
 import org.junit.Test;
-import org.neo4j.graphdb.DependencyResolver;
-import org.neo4j.graphdb.factory.GraphDatabaseBuilder;
-import org.neo4j.helpers.Listeners;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.internal.kernel.api.exceptions.KernelException;
+import org.neo4j.common.DependencyResolver;
+import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.internal.helpers.Listeners;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.kernel.availability.AvailabilityGuard;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.availability.DatabaseAvailabilityGuard;
-import org.neo4j.kernel.impl.proc.Procedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.ReflectionUtil;
-import org.neo4j.test.TestGraphDatabaseFactory;
 
+import static apoc.ApocSettings.dynamic;
+import static apoc.util.TestUtil.apocGraphDatabaseBuilder;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
+import static org.neo4j.configuration.SettingValueParsers.STRING;
 
 public class CypherInitializerTest {
 
-    public GraphDatabaseAPI db ;
+    public GraphDatabaseService db;
+    public DatabaseManagementService dbms;
 
     public void init(String... initializers) {
-        GraphDatabaseBuilder graphDatabaseBuilder = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder();
-        if (initializers.length == 1) {
-            graphDatabaseBuilder.setConfig("apoc.initializer.cypher", initializers[0]);
-        } else {
-            int index = 1;
-            for (String initializer: initializers) {
-                graphDatabaseBuilder.setConfig("apoc.initializer.cypher." + index++, initializer);
-            }
-        }
 
-        db = (GraphDatabaseAPI) graphDatabaseBuilder.newGraphDatabase();
+        Pair<DatabaseManagementService, GraphDatabaseService> pair = apocGraphDatabaseBuilder(builder -> {
+            if (initializers.length == 1) {
+            } else {
+                int index = 1;
+                for (String initializer: initializers) {
+                    builder.setConfig(dynamic("apoc.initializer.cypher." + index++, STRING), initializer);
+                }
+            }
+        });
+
+        dbms = pair.first();
+        db = pair.other();
 
         // NB we need to register at least one procedure with name "apoc", otherwise initializer will not get called
-        try {
-            Procedures procedures = db.getDependencyResolver().resolveDependency(Procedures.class, DependencyResolver.SelectionStrategy.FIRST);
-            procedures.registerProcedure(Utils.class);
-        } catch (KernelException e) {
-            throw new RuntimeException(e);
-        }
-
+        TestUtil.registerProcedure(db, Utils.class);
         waitForInitializerBeingFinished();
     }
 
     private void waitForInitializerBeingFinished() {
-        CypherInitializer initializer = getInitializer(db);
+        CypherInitializer initializer = getInitializer();
         while (!initializer.isFinished()) {
             try {
                 Thread.sleep(10);
@@ -61,11 +61,11 @@ public class CypherInitializerTest {
 
     /**
      * get a reference to CypherInitializer for diagnosis. This needs to use reflection.
-     * @param db
      * @return
      */
-    private CypherInitializer getInitializer(GraphDatabaseAPI db) {
-        DatabaseAvailabilityGuard availabilityGuard = (DatabaseAvailabilityGuard) db.getDependencyResolver().resolveDependency(AvailabilityGuard.class, DependencyResolver.SelectionStrategy.FIRST);
+    private CypherInitializer getInitializer() {
+        GraphDatabaseAPI api = (GraphDatabaseAPI) db;
+        DatabaseAvailabilityGuard availabilityGuard = (DatabaseAvailabilityGuard) api.getDependencyResolver().resolveDependency(AvailabilityGuard.class, DependencyResolver.SelectionStrategy.FIRST);
         try {
             Listeners<AvailabilityListener> listeners = ReflectionUtil.getPrivateField(availabilityGuard, "listeners", Listeners.class);
 
@@ -83,7 +83,7 @@ public class CypherInitializerTest {
 
     @After
     public void teardown() {
-        db.shutdown();
+        dbms.shutdown();
     }
 
     @Test

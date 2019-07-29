@@ -1,16 +1,15 @@
 package apoc.temporal;
 
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.neo4j.test.TestGraphDatabaseFactory;
-
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertEquals;
@@ -18,17 +17,13 @@ import static org.junit.Assert.assertEquals;
 public class TemporalProceduresTest
 {
     @Rule public ExpectedException expected = ExpectedException.none();
-    private static GraphDatabaseService db;
+
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     @BeforeClass public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, TemporalProcedures.class);
     }
-
-    @AfterClass public static void tearDown() {
-        db.shutdown();
-    }
-
 
     @Test
     public void shouldFormatDate() throws Throwable
@@ -39,7 +34,6 @@ public class TemporalProceduresTest
             assertEquals("2018-12-10", res.next().get("output"));
         }
     }
-
 
     @Test
     public void shouldFormatDateTime() throws Throwable

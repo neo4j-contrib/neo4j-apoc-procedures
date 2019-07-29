@@ -1,21 +1,22 @@
 package apoc.map;
 
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
-import static org.neo4j.helpers.collection.Iterators.asSet;
+import static org.junit.Assert.assertEquals;
+import static org.neo4j.internal.helpers.collection.Iterators.asSet;
 
 /**
  * @author mh
@@ -23,15 +24,12 @@ import static org.neo4j.helpers.collection.Iterators.asSet;
  */
 public class MapsTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public static DbmsRule db = new ImpermanentDbmsRule();
+
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db,Maps.class);
-    }
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     @Test

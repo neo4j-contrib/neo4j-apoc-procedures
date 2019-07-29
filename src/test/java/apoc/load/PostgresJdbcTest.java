@@ -4,8 +4,10 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 
@@ -21,7 +23,8 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
     // Even if Postgres support the `TIMESTAMP WITH TIMEZONE` type,
     // the JDBC driver doesn't. Please check https://github.com/pgjdbc/pgjdbc/issues/996 and when the issue is closed fix this
 
-    private static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     public static JdbcDatabaseContainer postgress;
 
@@ -34,7 +37,6 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
         },Exception.class);
         assumeNotNull("Postgres container has to exist", postgress);
         assumeTrue("Postgres must be running", postgress.isRunning());
-        db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
         TestUtil.registerProcedure(db,Jdbc.class);
         db.execute("CALL apoc.load.driver('org.postgresql.Driver')").close();
     }
@@ -43,7 +45,6 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
     public static void tearDown() throws SQLException {
         if (postgress != null) {
             postgress.stop();
-            db.shutdown();
         }
     }
 

@@ -1,11 +1,11 @@
 package apoc.warmup;
 
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static org.junit.Assert.assertEquals;
 
@@ -15,11 +15,11 @@ import static org.junit.Assert.assertEquals;
  */
 public class WarmupTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, Warmup.class);
         // Create enough nodes and relationships to span 2 pages
         db.execute("CREATE CONSTRAINT ON (f:Foo) ASSERT f.foo IS UNIQUE").close();
@@ -31,11 +31,6 @@ public class WarmupTest {
                 "MATCH (n)-[r:KNOWS]->(m) " +
                 "WHERE NOT id(r) IN ids " +
                 "DELETE n, m, r").close();
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     @Test

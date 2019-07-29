@@ -1,17 +1,16 @@
 package apoc.refactor.rename;
 
 
-import apoc.result.VirtualNode;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Result;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,15 +27,11 @@ import static org.junit.Assert.assertEquals;
  */
 public class RenameTest {
 
-	private GraphDatabaseService db;
+	@Rule
+	public static DbmsRule db = new ImpermanentDbmsRule();
 
 	@Before public void setUp() throws Exception {
-		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
 		TestUtil.registerProcedure(db, Rename.class);
-	}
-
-	@After public void tearDown() {
-		db.shutdown();
 	}
 
 	@Test

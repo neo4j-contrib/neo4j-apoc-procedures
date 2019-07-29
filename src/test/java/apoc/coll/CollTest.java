@@ -2,15 +2,12 @@ package apoc.coll;
 
 import apoc.convert.Json;
 import apoc.util.TestUtil;
-import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.*;
 
@@ -21,20 +18,16 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.*;
-import static org.neo4j.helpers.collection.Iterables.asSet;
+import static org.neo4j.internal.helpers.collection.Iterables.asSet;
 
 public class CollTest {
 
-    private static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
+
 
     @BeforeClass public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure(db, Coll.class);
-        TestUtil.registerProcedure(db, Json.class);
-    }
-
-    @AfterClass public static void tearDown() {
-        db.shutdown();
+        TestUtil.registerProcedure(db, Coll.class, Json.class);
     }
 
     @Test

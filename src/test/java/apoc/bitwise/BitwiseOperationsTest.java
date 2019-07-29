@@ -1,40 +1,31 @@
 package apoc.bitwise;
 
-import org.junit.AfterClass;
+import apoc.util.TestUtil;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
+
+import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 
-import apoc.util.TestUtil;
-
-import java.util.Map;
-
 public class BitwiseOperationsTest {
-    private static GraphDatabaseService db;
+
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
+
     public static final String BITWISE_CALL = "return apoc.bitwise.op({a},{op},{b}) as value";
 
     private int a,b;
 
-
-    public BitwiseOperationsTest() throws Exception {
-    }
-
     @BeforeClass
     public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, BitwiseOperations.class);
     }
-
-    @AfterClass
-    public static void tearDown() {
-        db.shutdown();
-    }
-
 
     public void testOperation(String op, long expected) {
         Map<String, Object> params = map("a", a, "op", op, "b", b);

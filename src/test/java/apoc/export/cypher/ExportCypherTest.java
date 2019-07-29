@@ -1,12 +1,13 @@
 package apoc.export.cypher;
 
+import apoc.ApocSettings;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import org.junit.*;
 import org.junit.rules.TestName;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,12 +25,17 @@ import static org.junit.Assert.*;
 public class ExportCypherTest {
 
     private static final Map<String, Object> exportConfig = map("useOptimizations", map("type", "none"), "separateFiles", true, "format", "neo4j-admin");
-    private static GraphDatabaseService db;
+
     private static File directory = new File("target/import");
 
     static { //noinspection ResultOfMethodCallIgnored
         directory.mkdirs();
     }
+
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
+            .withSetting(ApocSettings.apoc_export_file_enabled, "true");
 
     @Rule
     public TestName testName = new TestName();
@@ -39,10 +45,6 @@ public class ExportCypherTest {
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
-                .setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
-                .setConfig("apoc.export.file.enabled", "true")
-                .newGraphDatabase();
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
         if (testName.getMethodName().endsWith(OPTIMIZED)) {
             db.execute("CREATE INDEX ON :Foo(name)").close();
@@ -69,12 +71,6 @@ public class ExportCypherTest {
             db.execute("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12})").close();
         }
     }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
-    }
-
 
     @Test
     public void testExportAllCypherResults() {

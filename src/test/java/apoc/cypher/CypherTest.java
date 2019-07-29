@@ -1,17 +1,22 @@
 package apoc.cypher;
 
+import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.Utils;
 import org.hamcrest.Matchers;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
+import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,28 +37,18 @@ import static org.junit.Assert.*;
  */
 public class CypherTest {
 
-    private static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(ApocSettings.apoc_import_file_enabled, "true")
+            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, "false")
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File("src/test/resources").getAbsolutePath());
 
     @Rule
     public ExpectedException thrown= ExpectedException.none();
 
     @BeforeClass
-    public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory()
-                .newImpermanentDatabaseBuilder()
-                .setConfig("apoc.import.file.enabled", "true")
-                .setConfig("apoc.import.file.use_neo4j_config", "false")
-                .setConfig(GraphDatabaseSettings.load_csv_file_url_root,new File("src/test/resources").getAbsolutePath())
-                .newGraphDatabase();
-        TestUtil.registerProcedure(db, Cypher.class);
-        TestUtil.registerProcedure(db, Utils.class);
-        TestUtil.registerProcedure(db, CypherFunctions.class);
-        TestUtil.registerProcedure(db, Timeboxed.class);
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        db.shutdown();
+    public static void setUp() {
+        TestUtil.registerProcedure(db, Cypher.class, Utils.class, CypherFunctions.class, Timeboxed.class);
     }
 
     @After

@@ -5,12 +5,16 @@ import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.harness.junit.rule.Neo4jRule;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.time.LocalTime;
 import java.time.OffsetTime;
@@ -33,7 +37,8 @@ import static org.neo4j.driver.v1.Values.point;
  */
 public class BoltTest {
 
-    protected static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     private static Neo4jContainerExtension neo4jContainer;
     private static String BOLT_URL;
@@ -51,7 +56,6 @@ public class BoltTest {
         assumeNotNull(neo4jContainer);
         BOLT_URL = "'" + neo4jContainer.getBoltUrl() + "'";
 
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().newGraphDatabase();
         TestUtil.registerProcedure(db, Bolt.class);
     }
 
@@ -59,7 +63,6 @@ public class BoltTest {
     public static void tearDown() {
         if (neo4jContainer != null) {
             neo4jContainer.close();
-            db.shutdown();
         }
         cleanBuild();
     }

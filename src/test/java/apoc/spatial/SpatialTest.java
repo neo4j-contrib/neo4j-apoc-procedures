@@ -1,34 +1,37 @@
 package apoc.spatial;
 
+import apoc.ApocSettings;
 import apoc.date.Date;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.graphdb.Result;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.net.URL;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Result;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
-import org.neo4j.test.TestGraphDatabaseFactory;
-
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.*;
 import static java.util.Collections.emptyMap;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class SpatialTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(ApocSettings.apoc_import_file_enabled, "true");
+
     private Map<String, Map<String, Object>> eventNodes = new LinkedHashMap<>();
     private Map<String, Map<String, Object>> spaceNodes = new LinkedHashMap<>();
     private Map<String, Map<String, Object>> spaceTimeNodes = new LinkedHashMap<>();
@@ -73,7 +76,6 @@ public class SpatialTest {
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig("apoc.import.file.enabled","true").newGraphDatabase();
         TestUtil.registerProcedure(db, Date.class);
         TestUtil.registerProcedure(db, MockGeocode.class);
         URL url = ClassLoader.getSystemResource("spatial.json");
@@ -98,11 +100,6 @@ public class SpatialTest {
             }
         }
         eventNodes.put(name, event);
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     @Test

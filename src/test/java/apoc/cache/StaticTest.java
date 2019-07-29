@@ -1,17 +1,17 @@
 package apoc.cache;
 
-import apoc.ApocConfiguration;
-import apoc.cypher.Cypher;
 import apoc.util.TestUtil;
-import org.junit.*;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.factory.GraphDatabaseSettings;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.configuration.SettingValueParsers;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.io.File;
-
+import static apoc.ApocSettings.dynamic;
 import static apoc.util.MapUtil.map;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author mh
@@ -19,22 +19,16 @@ import static org.junit.Assert.*;
  */
 public class StaticTest {
     public static final String VALUE = "testValue";
-    private GraphDatabaseService db;
+
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(GraphDatabaseSettings.procedure_unrestricted,"apoc.*")
+            .withSetting(dynamic("apoc.static.test", SettingValueParsers.STRING), VALUE)
+            .withSetting(dynamic("apoc.static.all.test", SettingValueParsers.STRING), VALUE);
 
     @Before
     public  void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory()
-                .newImpermanentDatabaseBuilder()
-                .setConfig(GraphDatabaseSettings.procedure_unrestricted,"apoc.*")
-                .setConfig("apoc.static.test",VALUE)
-                .setConfig("apoc.static.all.test",VALUE)
-                .newGraphDatabase();
         TestUtil.registerProcedure(db, Static.class);
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     @Test

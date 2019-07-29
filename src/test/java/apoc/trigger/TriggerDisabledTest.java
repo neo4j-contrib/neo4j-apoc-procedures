@@ -1,12 +1,13 @@
 package apoc.trigger;
 
+import apoc.ApocSettings;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static org.junit.Assert.assertTrue;
 
@@ -22,27 +23,17 @@ import static org.junit.Assert.assertTrue;
  */
 public class TriggerDisabledTest
 {
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(ApocSettings.apoc_trigger_enabled, "false");
+
     private long start;
 
     @Before
     public void setUp() throws Exception
     {
-        db = new TestGraphDatabaseFactory()
-                .newImpermanentDatabaseBuilder()
-                .setConfig( "apoc.trigger.enabled", "false" )
-                .newGraphDatabase();
         start = System.currentTimeMillis();
         TestUtil.registerProcedure( db, Trigger.class );
-    }
-
-    @After
-    public void tearDown()
-    {
-        if ( db != null )
-        {
-            db.shutdown();
-        }
     }
 
     @Ignore

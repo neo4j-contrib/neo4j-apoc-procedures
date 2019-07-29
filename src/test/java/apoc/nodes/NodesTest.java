@@ -5,20 +5,27 @@ import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static apoc.util.Util.map;
 import static java.util.Arrays.asList;
 import static java.util.Collections.*;
 import static org.junit.Assert.*;
 import static org.neo4j.graphdb.Label.label;
-import static org.neo4j.helpers.collection.Iterators.asSet;
-import org.neo4j.helpers.collection.Iterables;
+import static org.neo4j.internal.helpers.collection.Iterators.asSet;
 
 /**
  * @author mh
@@ -26,18 +33,13 @@ import org.neo4j.helpers.collection.Iterables;
  */
 public class NodesTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
+
     @Before
     public void setUp() throws Exception {
-        db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
         TestUtil.registerProcedure(db, Nodes.class, Create.class);
     }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
-    }
-
 
     @Test
     public void isDense() throws Exception {

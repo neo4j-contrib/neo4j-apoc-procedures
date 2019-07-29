@@ -1,11 +1,15 @@
 package apoc.create;
 
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.*;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Map;
 
@@ -16,15 +20,13 @@ import static org.junit.Assert.assertEquals;
 
 public class CreateTest {
 
-    private GraphDatabaseService db;
     public static final Label PERSON = Label.label("Person");
 
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
+
     @Before public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db,Create.class);
-    }
-    @After public void tearDown() {
-        db.shutdown();
     }
 
     @Test public void testCreateNode() throws Exception {

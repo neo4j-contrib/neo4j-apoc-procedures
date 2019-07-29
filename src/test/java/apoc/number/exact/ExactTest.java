@@ -1,17 +1,13 @@
 package apoc.number.exact;
 
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
-
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
@@ -26,15 +22,11 @@ public class ExactTest {
 	@Rule
 	public ExpectedException expected = ExpectedException.none();
 
-	private static GraphDatabaseService db;
+	@ClassRule
+	public static DbmsRule db = new ImpermanentDbmsRule();
 
 	@BeforeClass public static void sUp() throws Exception {
-		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
 		TestUtil.registerProcedure(db, Exact.class);
-	}
-
-	@AfterClass public static void tearDown() {
-		db.shutdown();
 	}
 
 	@Test

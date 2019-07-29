@@ -1,15 +1,16 @@
 package apoc.load;
 
+import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.GenericContainer;
 
 import java.net.URL;
@@ -25,17 +26,14 @@ import static org.junit.Assert.*;
 
 public class LoadCsvTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(ApocSettings.apoc_import_file_enabled, "true");
 
     private GenericContainer httpServer;
 
     @Before public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig("apoc.import.file.enabled","true").newGraphDatabase();
         TestUtil.registerProcedure(db, LoadCsv.class);
-    }
-
-    @After public void tearDown() {
-        db.shutdown();
     }
 
     @Test public void testLoadCsv() throws Exception {

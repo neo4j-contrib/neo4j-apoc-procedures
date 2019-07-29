@@ -1,25 +1,23 @@
 package apoc.algo;
 
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Result;
-import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -58,17 +56,13 @@ public class PathFindingTest {
             "CREATE (f)-[:DIRECT {dist:304.28*1000}]->(m)\n" +
             "CREATE (f)-[:DIRECT {dist:393.15*1000}]->(h)";
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
+
 
     @Before
    	public void setUp() throws Exception {
-   		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
    		TestUtil.registerProcedure(db, PathFinding.class);
-   	}
-
-   	@After
-   	public void tearDown() {
-   		db.shutdown();
    	}
 
     @Test

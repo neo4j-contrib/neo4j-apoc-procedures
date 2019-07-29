@@ -3,14 +3,16 @@ package apoc.refactor.util;
 import apoc.refactor.GraphRefactoring;
 import apoc.util.ArrayBackedList;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static apoc.util.TestUtil.testCall;
@@ -25,20 +27,15 @@ import static org.junit.Assert.assertEquals;
  */
 public class PropertiesManagerTest {
 
-	private GraphDatabaseService db;
+	@Rule
+	public static DbmsRule db = new ImpermanentDbmsRule();
 
 	private String QUERY = "MATCH (d:Person {name:'Daniele'})\n" + "MATCH (p:Country {name:'USA'})\n" + "MATCH (d)-[r:TRAVELS_TO]->(p)\n" + "MATCH (d)-[h:GOES_TO]->(p)\n"
 					+ "MATCH (d)-[l:FLIGHTS_TO]->(p) return r as rel1,h as rel2";
 
 	@Before
 	public void setUp() throws Exception {
-		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
 		TestUtil.registerProcedure(db, GraphRefactoring.class);
-	}
-
-	@After
-	public void tearDown() {
-		db.shutdown();
 	}
 
 	@Test

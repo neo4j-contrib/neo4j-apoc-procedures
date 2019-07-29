@@ -1,39 +1,39 @@
 package apoc.trigger;
 
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Map;
 
+import static apoc.ApocSettings.apoc_trigger_enabled;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.neo4j.helpers.collection.MapUtil.map;
+import static org.neo4j.internal.helpers.collection.MapUtil.map;
 
 /**
  * @author mh
  * @since 20.09.16
  */
 public class TriggerTest {
-    private GraphDatabaseService db;
+
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(apoc_trigger_enabled, "true");
+
     private long start;
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
-                .setConfig("apoc.trigger.enabled","true")
-                .newGraphDatabase();
         start = System.currentTimeMillis();
         TestUtil.registerProcedure(db, Trigger.class);
-    }
-
-    @After
-    public void tearDown() {
-        if (db!=null) db.shutdown();
     }
 
     @Test

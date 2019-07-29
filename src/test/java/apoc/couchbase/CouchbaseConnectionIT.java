@@ -9,15 +9,17 @@ import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.env.CouchbaseEnvironment;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
 import org.junit.*;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
 import java.util.Arrays;
 
+import static apoc.ApocSettings.dynamic;
 import static apoc.couchbase.CouchbaseTestUtils.*;
 import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assume.*;
+import static org.neo4j.configuration.SettingValueParsers.STRING;
 
 /**
  * Created by alberto.delazzari on 22/08/2018.
@@ -26,8 +28,19 @@ import static org.junit.Assume.*;
 public class CouchbaseConnectionIT {
 
     private static final String COUCHBASE_CONFIG_KEY = "demo";
+    static final String baseConfigKey = "apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + COUCHBASE_CONFIG_KEY + ".";
 
-    private static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(dynamic(baseConfigKey + CouchbaseManager.URI_CONFIG_KEY, STRING), "localhost")
+            .withSetting(dynamic(baseConfigKey + CouchbaseManager.USERNAME_CONFIG_KEY, STRING), USERNAME)
+            .withSetting(dynamic(baseConfigKey + CouchbaseManager.PASSWORD_CONFIG_KEY, STRING),  PASSWORD)
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY, STRING),
+                    CONNECTION_TIMEOUT_CONFIG_VALUE)
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY, STRING),
+                    SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY, STRING),
+                    KV_TIMEOUT_CONFIG_VALUE);
 
     private static int COUCHBASE_SERVER_VERSION;
 
@@ -53,26 +66,13 @@ public class CouchbaseConnectionIT {
         assumeTrue("couchbase must be running", couchbase.isRunning());
         boolean isFilled = fillDB(couchbase.getCouchbaseCluster());
         assumeTrue("should fill Couchbase with data", isFilled);
-        String baseConfigKey = "apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + COUCHBASE_CONFIG_KEY + ".";
         COUCHBASE_SERVER_VERSION = getVersion(couchbase);
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
-                .setConfig(baseConfigKey + CouchbaseManager.URI_CONFIG_KEY, "localhost")
-                .setConfig(baseConfigKey + CouchbaseManager.USERNAME_CONFIG_KEY, USERNAME)
-                .setConfig(baseConfigKey + CouchbaseManager.PASSWORD_CONFIG_KEY, PASSWORD)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY,
-                        CONNECTION_TIMEOUT_CONFIG_VALUE)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY,
-                        SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY,
-                        KV_TIMEOUT_CONFIG_VALUE)
-                .newGraphDatabase();
     }
-
+    
     @AfterClass
     public static void tearDown() {
         if (couchbase != null) {
             couchbase.stop();
-            db.shutdown();
         }
     }
 

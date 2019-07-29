@@ -1,17 +1,19 @@
 package apoc.uuid;
 
+import apoc.ApocSettings;
 import apoc.create.Create;
 import apoc.periodic.Periodic;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.List;
 import java.util.Map;
@@ -27,24 +29,16 @@ import static org.junit.Assert.assertFalse;
  */
 public class UUIDTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(GraphDatabaseSettings.auth_enabled, "true")
+            .withSetting(ApocSettings.apoc_uuid_enabled, "true");
 
     private static final String UUID_TEST_REGEXP = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
 
     @Before
     public void setUp() throws Exception {
-        db = TestUtil.apocGraphDatabaseBuilder()
-                .setConfig("apoc.uuid.enabled", "true")
-                .setConfig("dbms.security.auth_enabled", "true")
-                .newGraphDatabase();
-        TestUtil.registerProcedure(db, Uuid.class);
-        TestUtil.registerProcedure(db, Create.class);
-        TestUtil.registerProcedure(db, Periodic.class);
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
+        TestUtil.registerProcedure(db, Uuid.class, Create.class, Periodic.class);
     }
 
     @Test

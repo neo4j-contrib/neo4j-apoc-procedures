@@ -1,11 +1,11 @@
 package apoc.data.url;
 
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,13 +15,14 @@ import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 
 public class ExtractURLTest {
-    private static GraphDatabaseService db;
-    private static HashMap<String,Map<String,Object>> testCases;
 
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
+
+    private static HashMap<String,Map<String,Object>> testCases;
 
     @BeforeClass
     public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, ExtractURL.class);
 
         // Test cases map URLs to an array of strings representing what their correct answers should
@@ -54,11 +55,6 @@ public class ExtractURLTest {
                 "protocol","neo4j", "user", null, "host","graphapps", "port",null, "path","/neo4j-browser", "file","/neo4j-browser?cmd=play&arg=cypher", "query","cmd=play&arg=cypher", "anchor",null)
         );
 
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        db.shutdown();
     }
 
     @Test

@@ -1,12 +1,12 @@
 package apoc.model;
 
-import apoc.ApocConfiguration;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.*;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.*;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.MySQLContainer;
 
@@ -21,8 +21,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.*;
 
 public class ModelTest {
-
-    private GraphDatabaseService db;
 
     @Rule
     public TestName testName = new TestName();
@@ -47,16 +45,13 @@ public class ModelTest {
         }
     }
 
-    @Before
-    public void setUp() throws Exception {
-        db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
-        ApocConfiguration.initialize((GraphDatabaseAPI)db);
-        TestUtil.registerProcedure(db, Model.class);
-    }
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
-    @After
-    public void tearDown() {
-        db.shutdown();
+    @Before
+    public void initDb() {
+        //ApocConfiguration.initialize((GraphDatabaseAPI)db);
+        TestUtil.registerProcedure(db, Model.class);
     }
 
     @Test

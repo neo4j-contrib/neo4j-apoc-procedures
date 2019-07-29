@@ -283,7 +283,7 @@ public class FileUtils {
             "dbms.directories.import",
             "dbms.directories.lib",
             "dbms.directories.logs",
-            "dbms.directories.metrics",
+//            "dbms.directories.metrics",  // metrics is only in EE
             "dbms.directories.plugins",
             "dbms.directories.run",
             "dbms.directories.tx_log",

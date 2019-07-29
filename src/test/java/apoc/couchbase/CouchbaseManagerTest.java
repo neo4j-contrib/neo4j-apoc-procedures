@@ -3,14 +3,16 @@ package apoc.couchbase;
 import com.couchbase.client.java.auth.PasswordAuthenticator;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.helpers.collection.Pair;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Arrays;
 import java.util.List;
 
+import static apoc.ApocSettings.dynamic;
 import static apoc.couchbase.CouchbaseTestUtils.*;
+import static org.neo4j.configuration.SettingValueParsers.STRING;
 
 /**
  * Created by alberto.delazzari on 24/08/2018.
@@ -27,28 +29,19 @@ public class CouchbaseManagerTest {
 
     private static final String COUCHBASE_CONFIG_KEY = "demo";
 
-    private static GraphDatabaseService graphDB;
+    private static final String BASE_CONFIG_KEY = "apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + COUCHBASE_CONFIG_KEY + ".";
 
-    @BeforeClass
-    public static void setUp() {
-        String baseConfigKey = "apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + COUCHBASE_CONFIG_KEY + ".";
-        graphDB = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
-                .setConfig(baseConfigKey + CouchbaseManager.URI_CONFIG_KEY, "localhost")
-                .setConfig(baseConfigKey + CouchbaseManager.USERNAME_CONFIG_KEY, USERNAME)
-                .setConfig(baseConfigKey + CouchbaseManager.PASSWORD_CONFIG_KEY, PASSWORD)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY,
-                        CONNECTION_TIMEOUT_CONFIG_VALUE)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY,
-                        SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY,
-                        KV_TIMEOUT_CONFIG_VALUE)
-                .newGraphDatabase();
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        graphDB.shutdown();
-    }
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule()
+                .withSetting(dynamic(BASE_CONFIG_KEY + CouchbaseManager.URI_CONFIG_KEY, STRING), "localhost")
+                .withSetting(dynamic(BASE_CONFIG_KEY + CouchbaseManager.USERNAME_CONFIG_KEY, STRING), USERNAME)
+                .withSetting(dynamic(BASE_CONFIG_KEY + CouchbaseManager.PASSWORD_CONFIG_KEY, STRING), PASSWORD)
+                .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY, STRING),
+                           CONNECTION_TIMEOUT_CONFIG_VALUE)
+                .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY, STRING),
+                           SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
+                .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY, STRING),
+                           KV_TIMEOUT_CONFIG_VALUE);
 
     @Test
     public void testURIFailsWithExceptionIfNotCredentials() {

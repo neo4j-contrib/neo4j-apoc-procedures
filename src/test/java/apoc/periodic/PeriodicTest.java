@@ -3,23 +3,23 @@ package apoc.periodic;
 import apoc.load.Jdbc;
 import apoc.util.MapUtil;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Iterators;
+import org.neo4j.common.DependencyResolver;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.impl.api.KernelTransactions;
-import org.neo4j.kernel.impl.core.EmbeddedProxySPI;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -28,24 +28,19 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.*;
-import static org.neo4j.graphdb.DependencyResolver.SelectionStrategy.FIRST;
 
 public class PeriodicTest {
 
     public static final long RUNDOWN_COUNT = 1000;
     public static final int BATCH_SIZE = 399;
-    private GraphDatabaseService db;
+
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
-    public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+    public void initDb() throws Exception {
         TestUtil.registerProcedure(db, Periodic.class, Jdbc.class);
         db.execute("call apoc.periodic.list() yield name call apoc.periodic.cancel(name) yield name as name2 return count(*)").close();
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     @Test
@@ -168,14 +163,11 @@ System.out.println("call list" + db.execute(callList).resultAsString());
 
     boolean terminateQuery(String pattern) {
         DependencyResolver dependencyResolver = ((GraphDatabaseAPI) db).getDependencyResolver();
-        EmbeddedProxySPI nodeManager = dependencyResolver.resolveDependency( EmbeddedProxySPI.class, FIRST );
-        KernelTransactions kernelTransactions = dependencyResolver.resolveDependency(KernelTransactions.class, FIRST);
-
+        KernelTransactions kernelTransactions = dependencyResolver.resolveDependency(KernelTransactions.class);
         long numberOfKilledTransactions = kernelTransactions.activeTransactions().stream()
                 .filter(kernelTransactionHandle ->
-                    kernelTransactionHandle.executingQueries().anyMatch(
-                            executingQuery -> executingQuery.queryText().contains(pattern)
-                    )
+                        kernelTransactionHandle.executingQuery().map(query -> query.queryText().contains(pattern))
+                                .orElse(false)
                 )
                 .map(kernelTransactionHandle -> kernelTransactionHandle.markForTermination(Status.Transaction.Terminated))
                 .count();

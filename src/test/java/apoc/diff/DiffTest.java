@@ -1,13 +1,13 @@
 package apoc.diff;
 
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,11 +24,11 @@ public class DiffTest {
     private static Node node2;
     private static Node node3;
 
-    private static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     @BeforeClass
     public static void setup() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, Diff.class);
 
         try (Transaction tx = db.beginTx()) {
@@ -106,8 +106,4 @@ public class DiffTest {
         assertEquals("val1", inCommon.get("prop1"));
     }
 
-    @AfterClass
-    public static void tearDown() {
-        db.shutdown();
-    }
 }

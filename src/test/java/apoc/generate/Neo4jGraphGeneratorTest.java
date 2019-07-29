@@ -9,38 +9,31 @@ import apoc.generate.node.SocialNetworkNodeCreator;
 import apoc.generate.relationship.RelationshipCreator;
 import apoc.generate.relationship.SimpleGraphRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
-import apoc.get.Get;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
-import static org.neo4j.helpers.collection.Iterables.count;
+import static org.neo4j.internal.helpers.collection.Iterables.count;
 
 /**
  * Smoke test for {@link Neo4jGraphGenerator}.
  */
 public class Neo4jGraphGeneratorTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, Generate.class);
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     @Test

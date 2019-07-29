@@ -12,7 +12,7 @@ import static java.util.Arrays.asList;
  * @author mh
  * @since 19.01.14
  */
-public class ExportConfig {
+public class  ExportConfig {
     public static final char QUOTECHAR = '"';
     public static final String NONE_QUOTES = "none";
     public static final String ALWAYS_QUOTES = "always";

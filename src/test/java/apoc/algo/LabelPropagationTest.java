@@ -1,11 +1,11 @@
 package apoc.algo;
 
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static apoc.util.TestUtil.testCall;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -13,17 +13,12 @@ import static org.junit.Assert.assertThat;
 
 public class LabelPropagationTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
    	public void setUp() throws Exception {
-   		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
    		TestUtil.registerProcedure(db, LabelPropagation.class);
-   	}
-
-   	@After
-   	public void tearDown() {
-   		db.shutdown();
    	}
 
     @Test

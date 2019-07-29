@@ -1,12 +1,14 @@
 package apoc.export.util;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.*;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author mh
@@ -14,17 +16,8 @@ import static org.junit.Assert.*;
  */
 public class FormatUtilsTest {
 
-    private GraphDatabaseService db;
-
-    @Before
-    public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().newGraphDatabase();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        if (db!=null) db.shutdown();
-    }
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Test
     public void formatString() throws Exception {

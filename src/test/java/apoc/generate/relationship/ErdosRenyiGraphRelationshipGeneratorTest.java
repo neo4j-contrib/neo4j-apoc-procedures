@@ -3,31 +3,26 @@ package apoc.generate.relationship;
 import apoc.generate.Generate;
 import apoc.generate.config.ErdosRenyiConfig;
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.helpers.collection.Pair;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
 
-public class ErdosRenyiGraphRelationshipGeneratorTest {
+public class ErdosRenyiGraphRelationshipGeneratorTest  {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
-    public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+    public void setup() {
         TestUtil.registerProcedure(db, Generate.class);
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     @Test

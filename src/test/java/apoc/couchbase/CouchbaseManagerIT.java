@@ -6,12 +6,15 @@ import com.couchbase.client.java.bucket.BucketType;
 import com.couchbase.client.java.cluster.DefaultBucketSettings;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
+import static apoc.ApocSettings.dynamic;
 import static apoc.couchbase.CouchbaseTestUtils.*;
 import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assume.*;
+import static org.neo4j.configuration.SettingValueParsers.STRING;
 
 /**
  * Created by alberto.delazzari on 23/08/2018.
@@ -24,15 +27,30 @@ public class CouchbaseManagerIT {
 
     private static final String COUCHBASE_CONFIG_KEY = "demo";
 
+    public static final String BASE_CONFIG_KEY = "apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + COUCHBASE_CONFIG_KEY + ".";
+
+    public static CouchbaseContainer couchbase;
+
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(dynamic(BASE_CONFIG_KEY + CouchbaseManager.URI_CONFIG_KEY, STRING), "localhost")
+            .withSetting(dynamic(BASE_CONFIG_KEY + CouchbaseManager.USERNAME_CONFIG_KEY, STRING), USERNAME)
+            .withSetting(dynamic(BASE_CONFIG_KEY + CouchbaseManager.PASSWORD_CONFIG_KEY, STRING), PASSWORD)
+            .withSetting(dynamic(BASE_CONFIG_KEY + CouchbaseManager.PORT_CONFIG_KEY, STRING), couchbase.getMappedPort(8091).toString())  // TODO: need to wait for container
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY, STRING),
+                    CONNECTION_TIMEOUT_CONFIG_VALUE)
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY, STRING),
+                    SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY, STRING),
+                    KV_TIMEOUT_CONFIG_VALUE);
+
+
     private static final String BUCKET_NAME_WITH_PASSWORD = "mysecretbucket";
 
     private static final String BUCKET_PASSWORD = "drowssap";
 
     private static int COUCHBASE_SERVER_VERSION;
 
-    private static GraphDatabaseService graphDB;
-
-    public static CouchbaseContainer couchbase;
 
 
     @BeforeClass
@@ -55,28 +73,13 @@ public class CouchbaseManagerIT {
         assumeTrue("should fill Couchbase with data", isFilled);
         COUCHBASE_SERVER_VERSION = getVersion(couchbase);
 
-        String baseConfigKey = "apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + COUCHBASE_CONFIG_KEY + ".";
-
-        graphDB = TestUtil.apocGraphDatabaseBuilder()
-                .setConfig(baseConfigKey + CouchbaseManager.URI_CONFIG_KEY, "localhost")
-                .setConfig(baseConfigKey + CouchbaseManager.USERNAME_CONFIG_KEY, USERNAME)
-                .setConfig(baseConfigKey + CouchbaseManager.PASSWORD_CONFIG_KEY, PASSWORD)
-                .setConfig(baseConfigKey + CouchbaseManager.PORT_CONFIG_KEY, couchbase.getMappedPort(8091).toString())
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY,
-                        CONNECTION_TIMEOUT_CONFIG_VALUE)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY,
-                        SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY,
-                        KV_TIMEOUT_CONFIG_VALUE)
-                .newGraphDatabase();
     }
 
     @AfterClass
     public static void tearDown() {
         if (couchbase != null) {
             couchbase.stop();
-            graphDB.shutdown();
-        }
+            }
     }
 
     /**

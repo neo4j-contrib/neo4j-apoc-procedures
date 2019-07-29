@@ -9,10 +9,10 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.junit.*;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
@@ -43,7 +43,9 @@ public class MongoDBTest {
 
     public static GenericContainer mongo;
 
-    private static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
+
     private static MongoCollection<Document> collection;
 
     private static final Date currentTime = new Date();
@@ -85,9 +87,6 @@ public class MongoDBTest {
                         .insertOne(new Document(map("name", "testDocument",
                                 "date", currentTime, "longValue", longValue))));
 //        collection.insertOne(new Document(map("name", "testDocument", "date", currentTime, "longValue", longValue)));
-        db = new TestGraphDatabaseFactory()
-                .newImpermanentDatabaseBuilder()
-                .newGraphDatabase();
         TestUtil.registerProcedure(db, MongoDB.class);
         mongoClient.close();
     }
@@ -96,7 +95,6 @@ public class MongoDBTest {
     public static void tearDown() {
         if (mongo != null) {
             mongo.stop();
-            db.shutdown();
         }
     }
 

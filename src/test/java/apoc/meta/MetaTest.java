@@ -2,12 +2,14 @@ package apoc.meta;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.neo4j.values.storable.*;
 
 import java.time.Clock;
@@ -28,17 +30,12 @@ import static org.neo4j.graphdb.traversal.Evaluators.toDepth;
 
 public class MetaTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setUp() throws Exception {
-        db = TestUtil.apocGraphDatabaseBuilder().newGraphDatabase();
         TestUtil.registerProcedure(db, Meta.class);
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     /*

@@ -7,14 +7,14 @@ import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.helpers.collection.Pair;
+import org.neo4j.internal.helpers.collection.Pair;
 
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.neo4j.graphdb.Direction.*;
 import static org.neo4j.graphdb.RelationshipType.withName;
-import static org.neo4j.helpers.collection.Iterables.iterable;
+import static org.neo4j.internal.helpers.collection.Iterables.iterable;
 
 @RunWith(Parameterized.class)
 public class RelationshipTypeAndDirectionsTest {

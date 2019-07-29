@@ -2,10 +2,16 @@ package apoc.result;
 
 import apoc.util.Util;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Iterables;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.exceptions.KernelException;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -14,12 +20,8 @@ import static org.junit.Assert.*;
 
 public class VirtualNodeTest {
 
-    private static GraphDatabaseService db;
-
-    @BeforeClass
-    public static void setUp() {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-    }
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     @Test
     public void shouldCreateVirtualNode() {
@@ -106,6 +108,5 @@ public class VirtualNodeTest {
         assertEquals(1, Iterables.count(end.getRelationships(Direction.INCOMING, relationshipType)));
         assertEquals(start, end.getRelationships().iterator().next().getOtherNode(end));
     }
-
 
 }

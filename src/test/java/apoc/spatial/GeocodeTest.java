@@ -2,49 +2,39 @@ package apoc.spatial;
 
 import apoc.ApocConfiguration;
 import apoc.util.JsonUtil;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import apoc.util.TestUtil;
+import org.junit.*;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.assumeTravis;
-import static apoc.util.TestUtil.registerProcedure;
-import static apoc.util.TestUtil.testCallCount;
-import static apoc.util.TestUtil.testCallEmpty;
-import static apoc.util.TestUtil.testResult;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static apoc.util.TestUtil.*;
+import static org.junit.Assert.*;
+import static org.neo4j.configuration.SettingImpl.newBuilder;
+import static org.neo4j.configuration.SettingValueParsers.STRING;
 
 public class GeocodeTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(newBuilder("apoc.spatial.geocode.provider", STRING, null).build(), "opencage") // TODO: consider moving settings to ApocSettings.java
+            .withSetting(newBuilder("apoc.spatial.geocode.opencage.key", STRING, null).build(), "<YOUR_API_KEY>")
+            .withSetting(newBuilder("apoc.spatial.geocode.opencage.url", STRING, null).build(), "https://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY")
+            .withSetting(newBuilder("apoc.spatial.geocode.opencage.reverse.url", STRING, null).build(), "https://api.opencagedata.com/geocode/v1/json?q=LAT+LNG&key=KEY");
+
+    @Before
+    public void initDb() throws Exception {
+        assumeTravis();
+        TestUtil.registerProcedure(db, Geocode.class);
+    }
 
     @Before
     public void setUp() throws Exception {
         assumeTravis();
-        // Impermanent Database creation with additional configuration
-        db = new TestGraphDatabaseFactory()
-                .newImpermanentDatabaseBuilder()
-                .loadPropertiesFromFile("src/test/resources/geoSpatial.conf")
-                .newGraphDatabase();
-        registerProcedure(db, Geocode.class);
-    }
-
-    @After
-    public void tearDown() {
-        if (db!=null) {
-            db.shutdown();
-        }
     }
 
     @Test

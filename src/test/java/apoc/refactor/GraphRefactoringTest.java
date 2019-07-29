@@ -4,18 +4,20 @@ import apoc.util.ArrayBackedList;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.testCall;
-import static apoc.util.TestUtil.testCallEmpty;
-import static apoc.util.TestUtil.testResult;
+import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
@@ -28,17 +30,14 @@ import static org.junit.Assert.*;
  */
 public class GraphRefactoringTest {
 
-    private GraphDatabaseService db;
+    @Rule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, GraphRefactoring.class);
     }
 
-    /*
-        MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) call apoc.refactor.mergeNodes([o,n]) yield node return node
-     */
     @After
     public void tearDown() {
         db.shutdown();

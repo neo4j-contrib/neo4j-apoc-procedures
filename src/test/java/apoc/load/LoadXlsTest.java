@@ -1,16 +1,18 @@
 package apoc.load;
 
+import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.neo4j.values.storable.LocalDateTimeValue;
 
 import java.net.URL;
@@ -18,7 +20,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 
 import static apoc.util.MapUtil.map;
@@ -30,21 +35,16 @@ import static org.junit.Assert.*;
 
 public class LoadXlsTest {
 
-    private GraphDatabaseService db;
     private static String loadTest = Thread.currentThread().getContextClassLoader().getResource("load_test.xlsx").getPath();
     private static String testDate = Thread.currentThread().getContextClassLoader().getResource("test_date.xlsx").getPath();
     private static String brokenHeader = Thread.currentThread().getContextClassLoader().getResource("brokenHeader.xls").getPath();
 
-    @Before public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory()
-                .newImpermanentDatabaseBuilder()
-                .setConfig("apoc.import.file.enabled","true")
-                .newGraphDatabase();
-        TestUtil.registerProcedure(db, LoadXls.class);
-    }
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(ApocSettings.apoc_import_file_enabled, "true");
 
-    @After public void tearDown() {
-        db.shutdown();
+    @Before public void setUp() throws Exception {
+        TestUtil.registerProcedure(db, LoadXls.class);
     }
 
     @Test public void testLoadXls() throws Exception {

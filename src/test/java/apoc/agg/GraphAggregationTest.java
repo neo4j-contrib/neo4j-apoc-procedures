@@ -1,14 +1,12 @@
 package apoc.agg;
 
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.PropertyContainer;
-import org.neo4j.graphdb.ResourceIterator;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.HashMap;
 import java.util.List;
@@ -16,24 +14,19 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static apoc.util.TestUtil.testCall;
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static org.junit.Assert.assertEquals;
 import static apoc.util.Util.map;
-import static org.neo4j.helpers.collection.Iterators.asSet;
+import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+import static org.neo4j.internal.helpers.collection.Iterators.asSet;
 
 public class GraphAggregationTest {
 
-    private static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     @BeforeClass public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, apoc.agg.Graph.class);
         db.execute("CREATE (a:A {id:'a'})-[:AB {id:'ab'}]->(b:B {id:'b'})-[:BC {id:'bc'}]->(c:C {id:'c'}),(a)-[:AC {id:'ac'}]->(c)").close();
-    }
-
-    @AfterClass public static void tearDown() {
-        db.shutdown();
     }
 
     @Test

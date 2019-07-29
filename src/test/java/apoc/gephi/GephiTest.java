@@ -1,21 +1,20 @@
 package apoc.gephi;
 
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import static apoc.util.TestUtil.registerProcedure;
+import static apoc.util.TestUtil.testCall;
+import static apoc.util.Util.map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeTrue;
-
-import static apoc.util.TestUtil.testCall;
-import static apoc.util.TestUtil.registerProcedure;
-import static apoc.util.Util.map;
 
 /**
  * @author mh
@@ -25,7 +24,8 @@ public class GephiTest {
 
     private static final String GEPHI_WORKSPACE = "workspace1";
 
-    private static GraphDatabaseService db;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     private static boolean isGephiRunning() {
         try {
@@ -43,16 +43,8 @@ public class GephiTest {
     @BeforeClass
     public static void setUp() throws Exception {
         assumeTrue(isGephiRunning());
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        registerProcedure(db,Gephi.class);
+        registerProcedure(db, Gephi.class);
         db.execute("CREATE (:Foo {name:'Foo'})-[:KNOWS{weight:7.2,foo:'foo',bar:3.0,directed:'error',label:'foo'}]->(:Bar {name:'Bar'})").close();
-    }
-
-    @AfterClass
-    public static void tearDown() {
-        if (db!=null) {
-            db.shutdown();
-        }
     }
 
     @Test

@@ -1,23 +1,30 @@
 package apoc.text;
 
 import apoc.util.TestUtil;
-import org.junit.*;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.*;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import static java.lang.Math.toIntExact;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
+import static java.lang.Math.toIntExact;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 
@@ -27,23 +34,18 @@ import static org.junit.Assert.*;
  * @since 05.05.16
  */
 public class StringsTest {
-    private static GraphDatabaseService db;
 
     @Rule
     public ExpectedException thrown= ExpectedException.none();
+
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
 
     @BeforeClass
     public static void setUp() throws Exception
     {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure( db, Strings.class );
-    }
-
-    @AfterClass
-    public static void tearDown()
-    {
-        db.shutdown();
     }
 
     @Test

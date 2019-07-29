@@ -1,15 +1,13 @@
 package apoc.custom;
 
 import apoc.util.TestUtil;
-import apoc.util.Util;
-import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.NullLog;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.List;
 import java.util.Map;
@@ -23,20 +21,21 @@ import static org.junit.Assert.*;
  * @author mh
  * @since 18.08.18
  */
-public class CypherProceduresTest {
+public class CypherProceduresTest  {
 
-    private GraphDatabaseService db;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
-    public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
+    public void setup() {
         TestUtil.registerProcedure(db, CypherProcedures.class);
+
     }
 
-    @After
-    public void tearDown() {
-        db.shutdown();
-    }
+//    @Override
+//    protected Class procedureClass() {
+//        return CypherProcedures.class;
+//    }
 
     @Test
     public void registerSimpleStatement() throws Exception {

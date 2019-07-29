@@ -1,32 +1,26 @@
 package apoc.monitor;
 
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 
 
 public class LockProcedureTest {
-    private static GraphDatabaseService db;
 
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     @BeforeClass
     public static void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, Locks.class);
     }
-
-    @AfterClass
-    public static void tearDown() {
-        db.shutdown();
-    }
-
 
     @Test
     @Ignore("information no longer available from Neo4j")

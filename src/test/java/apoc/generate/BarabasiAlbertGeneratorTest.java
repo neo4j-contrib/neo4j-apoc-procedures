@@ -6,25 +6,21 @@ import apoc.generate.config.GeneratorConfiguration;
 import apoc.generate.node.SocialNetworkNodeCreator;
 import apoc.generate.relationship.BarabasiAlbertRelationshipGenerator;
 import apoc.generate.relationship.SocialNetworkRelationshipCreator;
-import org.apache.commons.lang.ArrayUtils;
+import apoc.util.TestUtil;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.factory.GraphDatabaseFactory;
-import org.neo4j.test.TestGraphDatabaseFactory;
-import org.neo4j.unsafe.batchinsert.BatchInserter;
-import org.neo4j.unsafe.batchinsert.BatchInserters;
+import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Pair;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.neo4j.helpers.collection.Iterables.count;
 
 /**
  * Integration test for {@link Neo4jGraphGenerator} with {@link BarabasiAlbertRelationshipGenerator}.
@@ -43,7 +39,10 @@ public class BarabasiAlbertGeneratorTest {
 
     @Test
     public void shouldGeneratePowerLawDistribution() {
-        GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        Pair<DatabaseManagementService, GraphDatabaseService> pair = TestUtil.apocGraphDatabaseBuilder();
+        DatabaseManagementService dbms = pair.first();
+        GraphDatabaseService database = pair.other();
+
         try {
             new Neo4jGraphGenerator(database).generateGraph(getGeneratorConfiguration(100, 2));
 
@@ -61,7 +60,7 @@ public class BarabasiAlbertGeneratorTest {
             //todo make this an automated test
             //System.out.println(ArrayUtils.toString(degrees.toArray(new Integer[degrees.size()])));
         } finally {
-            database.shutdown();
+            dbms.shutdown();
         }
     }
 
@@ -72,19 +71,21 @@ public class BarabasiAlbertGeneratorTest {
     }
 
     private void assertUsingDatabase(int numberOfNodes, int edgesPerNewNode) {
-        GraphDatabaseService database = new TestGraphDatabaseFactory().newImpermanentDatabase();
+        Pair<DatabaseManagementService, GraphDatabaseService> pair = TestUtil.apocGraphDatabaseBuilder();
+        DatabaseManagementService dbms = pair.first();
+        GraphDatabaseService database = pair.other();
 
         new Neo4jGraphGenerator(database).generateGraph(getGeneratorConfiguration(numberOfNodes, edgesPerNewNode));
 
         assertCorrectNumberOfNodesAndRelationships(database, numberOfNodes, edgesPerNewNode);
 
-        database.shutdown();
+        dbms.shutdown();
     }
 
     private void assertCorrectNumberOfNodesAndRelationships(GraphDatabaseService database, int numberOfNodes, int edgesPerNewNode) {
         try (Transaction tx = database.beginTx()) {
-            assertEquals(numberOfNodes, count(database.getAllNodes()));
-            assertEquals(numberOfNodes * edgesPerNewNode - (edgesPerNewNode * (edgesPerNewNode + 1) / 2), count(database.getAllRelationships()));
+            assertEquals(numberOfNodes, Iterables.count(database.getAllNodes()));
+            assertEquals(numberOfNodes * edgesPerNewNode - (edgesPerNewNode * (edgesPerNewNode + 1) / 2), Iterables.count(database.getAllRelationships()));
 
             tx.success();
         }

@@ -1,17 +1,17 @@
 package apoc.date;
 
 import apoc.util.TestUtil;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.helpers.collection.Iterators;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -34,8 +34,12 @@ import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.*;
 
 public class DateTest {
+
 	@Rule public ExpectedException expected = ExpectedException.none();
-	private static GraphDatabaseService db;
+
+	@ClassRule
+	public static DbmsRule db = new ImpermanentDbmsRule();
+
 	private DateFormat defaultFormat = formatInUtcZone("yyyy-MM-dd HH:mm:ss");
 	private String epochAsString = defaultFormat.format(new java.util.Date(0L));
 	private java.util.Date testDate = new java.util.Date(1464739200000L);
@@ -46,13 +50,7 @@ public class DateTest {
 
 	@BeforeClass
 	public static void sUp() throws Exception {
-		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
 		TestUtil.registerProcedure(db, Date.class);
-	}
-
-	@AfterClass
-	public static void tearDown() {
-		db.shutdown();
 	}
 
 	@Test public void testToDays() throws Exception {

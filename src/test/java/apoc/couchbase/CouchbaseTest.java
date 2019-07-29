@@ -11,8 +11,8 @@ import com.couchbase.client.java.document.JsonDocument;
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.error.DocumentAlreadyExistsException;
 import org.junit.*;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.couchbase.CouchbaseContainer;
 
 import java.util.Arrays;
@@ -20,10 +20,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static apoc.ApocSettings.dynamic;
 import static apoc.couchbase.CouchbaseTestUtils.*;
 import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.*;
 import static org.junit.Assume.*;
+import static org.neo4j.configuration.SettingValueParsers.STRING;
 
 @Ignore // The same tests are covered from CouchbaseIT, for now we disable this in order to reduce the build time
 public class CouchbaseTest {
@@ -32,7 +34,11 @@ public class CouchbaseTest {
 
     private static Bucket couchbaseBucket;
 
-    private static GraphDatabaseService graphDB;
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY, STRING), CONNECTION_TIMEOUT_CONFIG_VALUE)
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY,STRING), SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
+            .withSetting(dynamic("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY, STRING), KV_TIMEOUT_CONFIG_VALUE);
 
     @ClassRule
     public static CouchbaseContainer couchbase;
@@ -57,21 +63,12 @@ public class CouchbaseTest {
         assumeTrue("should fill Couchbase with data", isFilled);
         HOST = getUrl(couchbase);
         couchbaseBucket = getCouchbaseBucket(couchbase);
-        graphDB = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + CONNECTION_TIMEOUT_CONFIG_KEY,
-                        CONNECTION_TIMEOUT_CONFIG_VALUE)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + SOCKET_CONNECT_TIMEOUT_CONFIG_KEY,
-                        SOCKET_CONNECT_TIMEOUT_CONFIG_VALUE)
-                .setConfig("apoc." + CouchbaseManager.COUCHBASE_CONFIG_KEY + KV_TIMEOUT_CONFIG_KEY,
-                        KV_TIMEOUT_CONFIG_VALUE)
-                .newGraphDatabase();
     }
 
     @AfterClass
     public static void tearDown() {
         if (couchbase != null) {
             couchbase.stop();
-            graphDB.shutdown();
         }
     }
 

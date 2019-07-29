@@ -1,24 +1,24 @@
 package apoc.algo;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
+import apoc.util.TestUtil;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.List;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
-
-import apoc.util.TestUtil;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 
 public class WeaklyConnectedComponentsTest {
-	
-	private static GraphDatabaseService db;
-	
+
+	@ClassRule
+	public static DbmsRule db = new ImpermanentDbmsRule();
+
 	public static final String CC_GRAPH =
             "CREATE (a:Node {name:'A'})"+
             "CREATE (b:Node {name:'B'})"+
@@ -35,13 +35,7 @@ public class WeaklyConnectedComponentsTest {
 
 	@Before
 	public void setUp() throws Exception {
-		db = new TestGraphDatabaseFactory().newImpermanentDatabase();
 		TestUtil.registerProcedure(db, WeaklyConnectedComponents.class);
-	}
-
-	@After
-	public void tearDown() {
-		db.shutdown();
 	}
 
 	// ==========================================================================================
