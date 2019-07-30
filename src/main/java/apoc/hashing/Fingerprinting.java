@@ -26,7 +26,7 @@ public class Fingerprinting {
 
     @UserFunction
     @Description("calculate a checksum (md5) over a node or a relationship. This deals gracefully with array properties. Two identical entities do share the same hash.")
-    public String fingerprint(@Name("some object") Object thing, @Name(value = "propertyExcludes", defaultValue = "") List<String> excludedPropertyKeys) {
+    public String fingerprint(@Name("some object") Object thing, @Name(value = "propertyExcludes", defaultValue = "[]") List<String> excludedPropertyKeys) {
         return withMessageDigest(md -> fingerprint(md, thing, excludedPropertyKeys));
     }
 
@@ -54,7 +54,7 @@ public class Fingerprinting {
 
     @UserFunction
     @Description("calculate a checksum (md5) over a the full graph. Be aware that this function does use in-memomry datastructures depending on the size of your graph.")
-    public String fingerprintGraph(@Name(value = "propertyExcludes", defaultValue = "") List<String> excludedPropertyKeys) {
+    public String fingerprintGraph(@Name(value = "propertyExcludes", defaultValue = "[]") List<String> excludedPropertyKeys) {
 
         return withMessageDigest(messageDigest -> {
             // step 1: load all nodes, calc their hash and map them to id

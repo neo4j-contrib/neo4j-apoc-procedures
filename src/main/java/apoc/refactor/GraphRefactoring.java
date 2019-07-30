@@ -258,7 +258,7 @@ public class GraphRefactoring {
      */
     @Procedure(mode = Mode.WRITE,eager = true)
     @Description("apoc.refactor.mergeNodes([node1,node2],[{properties:'overwrite' or 'discard' or 'combine'}]) merge nodes onto first in list")
-    public Stream<NodeResult> mergeNodes(@Name("nodes") List<Node> nodes, @Name(value = "config", defaultValue = "") Map<String, Object> config) {
+    public Stream<NodeResult> mergeNodes(@Name("nodes") List<Node> nodes, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (nodes == null || nodes.isEmpty()) return Stream.empty();
         RefactorConfig conf = new RefactorConfig(config);
         // grab write locks upfront consistently ordered
@@ -279,7 +279,7 @@ public class GraphRefactoring {
      */
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.refactor.mergeRelationships([rel1,rel2]) merge relationships onto first in list")
-    public Stream<RelationshipResult> mergeRelationships(@Name("rels") List<Relationship> relationships, @Name(value = "config", defaultValue = "") Map<String, Object> config) {
+    public Stream<RelationshipResult> mergeRelationships(@Name("rels") List<Relationship> relationships, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (relationships == null || relationships.isEmpty()) return Stream.empty();
         RefactorConfig conf = new RefactorConfig(config);
         Iterator<Relationship> it = relationships.iterator();

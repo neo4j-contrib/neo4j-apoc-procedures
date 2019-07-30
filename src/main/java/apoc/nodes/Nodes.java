@@ -141,7 +141,7 @@ public class Nodes {
 
     @Procedure
     @Description("apoc.nodes.collapse([nodes...],[{properties:'overwrite' or 'discard' or 'combine'}]) yield from, rel, to merge nodes onto first in list")
-    public Stream<VirtualPathResult> collapse(@Name("nodes") List<Node> nodes, @Name(value = "config", defaultValue = "") Map<String, Object> config) {
+    public Stream<VirtualPathResult> collapse(@Name("nodes") List<Node> nodes, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (nodes == null || nodes.isEmpty()) return Stream.empty();
         if (nodes.size() == 1) return Stream.of(new VirtualPathResult(nodes.get(0), null, null));
         Set<Node> nodeSet = new LinkedHashSet<>(nodes);
