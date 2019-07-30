@@ -1,14 +1,15 @@
 package apoc.ttl;
 
-import apoc.ApocConfiguration;
+import apoc.ApocSettings;
 import apoc.util.Util;
+import org.neo4j.configuration.Config;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.logging.Log;
 import org.neo4j.scheduler.Group;
 import org.neo4j.scheduler.JobHandle;
 import org.neo4j.scheduler.JobScheduler;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.logging.Log;
 
 import java.util.concurrent.TimeUnit;
 
@@ -23,26 +24,27 @@ public class TTLLifeCycle {
     public static Group TTL_GROUP = Group.INDEX_UPDATING;
     private final JobScheduler scheduler;
     private final GraphDatabaseAPI db;
+    private final Config config;
     private JobHandle ttlIndexJobHandle;
     private JobHandle ttlJobHandle;
     private Log log;
 
-    public TTLLifeCycle(JobScheduler scheduler, GraphDatabaseAPI db, Log log) {
+    public TTLLifeCycle(JobScheduler scheduler, GraphDatabaseAPI db, Config config, Log log) {
         this.scheduler = scheduler;
-        this.log = log;
         this.db = db;
+        this.config = config;
+        this.log = log;
     }
 
     public void start() {
-        boolean enabled = Util.toBoolean(ApocConfiguration.get("ttl.enabled", null));
-        if (!enabled) return;
 
-        long ttlSchedule = Util.toLong(ApocConfiguration.get("ttl.schedule", DEFAULT_SCHEDULE));
-        ttlIndexJobHandle = scheduler.schedule(TTL_GROUP, this::createTTLIndex, (int)(ttlSchedule*0.8), TimeUnit.SECONDS);
-
-        long limit = Util.toLong(ApocConfiguration.get("ttl.limit", 1000L));
-
-        ttlJobHandle = scheduler.scheduleRecurring(TTL_GROUP, () -> expireNodes(limit), ttlSchedule, ttlSchedule, TimeUnit.SECONDS);
+        boolean enabled = config.get(ApocSettings.apoc_ttl_enabled);
+        if (enabled) {
+            long ttlSchedule = config.get(ApocSettings.apoc_ttl_schedule).getSeconds();
+            ttlIndexJobHandle = scheduler.schedule(TTL_GROUP, this::createTTLIndex, (int)(ttlSchedule*0.8), TimeUnit.SECONDS);
+            long limit = config.get(ApocSettings.apoc_ttl_limit);
+            ttlJobHandle = scheduler.scheduleRecurring(TTL_GROUP, () -> expireNodes(limit), ttlSchedule, ttlSchedule, TimeUnit.SECONDS);
+        }
     }
 
     public void expireNodes(long limit) {

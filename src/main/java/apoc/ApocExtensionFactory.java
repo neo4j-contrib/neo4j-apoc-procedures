@@ -6,6 +6,7 @@ import apoc.trigger.Trigger;
 import apoc.ttl.TTLLifeCycle;
 import apoc.util.ApocUrlStreamHandlerFactory;
 import apoc.uuid.Uuid;
+import org.neo4j.configuration.Config;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.internal.kernel.api.Procedures;
 import org.neo4j.kernel.availability.AvailabilityGuard;
@@ -45,6 +46,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         LogService log();
         AvailabilityGuard availabilityGuard();
         DatabaseManagementService databaseManagementService();
+        Config config();
     }
 
     @Override
@@ -77,7 +79,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
             ApocConfiguration.initialize(db);
             Pools.NEO4J_SCHEDULER = dependencies.scheduler();
             registerCustomProcedures();
-            ttlLifeCycle = new TTLLifeCycle(Pools.NEO4J_SCHEDULER, db, log.getUserLog(TTLLifeCycle.class));
+            ttlLifeCycle = new TTLLifeCycle(Pools.NEO4J_SCHEDULER, db, dependencies.config(), log.getUserLog(TTLLifeCycle.class));
             ttlLifeCycle.start();
 
             uuidLifeCycle = new Uuid.UuidLifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Uuid.class));
