@@ -51,7 +51,7 @@ call apoc.es.get("localhost","tweets","users","1",null,null)
 call apoc.es.stats("localhost")
 ----
 
-image::http://i.imgur.com/qHAj9ma.png[scaledwidth="100%"]
+image::apoc.es.get.png[scaledwidth="100%"]
 
 === Pagination
 
