@@ -44,7 +44,7 @@ This section describes procedures that can be used to generate example graphs.
 
 Generate undirected (random direction) graphs with semi-real random distributions based on theoretical models.
 
-[separator=¦,opts=header,cols="1,1m,5"]
+[separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
 include::../../build/generated-documentation/apoc.generate.csv[]
 |===

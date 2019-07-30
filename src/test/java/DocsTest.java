@@ -53,21 +53,14 @@ public class DocsTest {
     static class Row {
         private String type;
         private String name;
+        private String signature;
         private String description;
 
-        public Row(String type, String name, String description) {
+        public Row(String type, String name, String signature, String description) {
             this.type = type;
             this.name = name;
+            this.signature = signature;
             this.description = description;
-        }
-
-        @Override
-        public String toString() {
-            return "Row{" +
-                    "type='" + type + '\'' +
-                    ", name='" + name + '\'' +
-                    ", description='" + description + '\'' +
-                    '}';
         }
     }
 
@@ -76,24 +69,24 @@ public class DocsTest {
         // given
         List<Row> rows = new ArrayList<>();
 
-        Result proceduresResult = db.execute("CALL dbms.procedures() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'procedure' AS type, name, description ORDER BY signature");
+        Result proceduresResult = db.execute("CALL dbms.procedures() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'procedure' AS type, name, description, signature ORDER BY signature");
         while(proceduresResult.hasNext()) {
             Map<String, Object> record = proceduresResult.next();
-            rows.add(new Row(record.get("type").toString(), record.get("name").toString(), record.get("description").toString()));
+            rows.add(new Row(record.get("type").toString(), record.get("name").toString(), record.get("signature").toString(), record.get("description").toString()));
         }
 
-        Result functionsResult = db.execute("CALL dbms.functions() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'function' AS type, name, description ORDER BY signature");
+        Result functionsResult = db.execute("CALL dbms.functions() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'function' AS type, name, description, signature ORDER BY signature");
         while(functionsResult.hasNext()) {
             Map<String, Object> record = functionsResult.next();
-            rows.add(new Row(record.get("type").toString(), record.get("name").toString(), record.get("description").toString()));
+            rows.add(new Row(record.get("type").toString(), record.get("name").toString(), record.get("signature").toString(), record.get("description").toString()));
         }
 
 
         try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File("build/generated-documentation/documentation.csv")), StandardCharsets.UTF_8 ))
         {
-            writer.write("¦type¦qualified name¦description\n");
+            writer.write("¦type¦qualified name¦signature¦description\n");
             for (Row row : rows) {
-                writer.write(String.format("¦%s¦%s¦%s\n", row.type, row.name, row.description));
+                writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, row.description));
             }
 
         }
@@ -112,9 +105,9 @@ public class DocsTest {
         for (Map.Entry<String, List<Row>> record : collect.entrySet()) {
             try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File(String.format("build/generated-documentation/%s.csv", record.getKey()))), StandardCharsets.UTF_8 ))
             {
-                writer.write("¦type¦qualified name¦description\n");
+                writer.write("¦type¦qualified name¦signature¦description\n");
                 for (Row row : record.getValue()) {
-                    writer.write(String.format("¦%s¦%s¦%s\n", row.type, row.name, row.description));
+                    writer.write(String.format("¦%s¦%s¦%s¦%s\n", row.type, row.name, row.signature, row.description));
                 }
 
             }
