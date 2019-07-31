@@ -52,7 +52,7 @@ public class CypherProceduresTest {
         System.out.println(clearCaches);
 
         db.execute("call apoc.custom.asProcedure('answer','RETURN 43 as answer')");
-        TestUtil.testCall(db, "call custom.answer() yield row return row", (row) -> assertEquals(43L, ((Map)row.get("row")).get("answer")));
+        TestUtil.testCall(db, "call custom.answer() yield row AS row2 return row2 AS row", (row) -> assertEquals(43L, ((Map)row.get("row")).get("answer")));
     }
 
     @Test
@@ -62,7 +62,7 @@ public class CypherProceduresTest {
         db.execute("call dbms.clearQueryCaches()").close();
 
         db.execute("call apoc.custom.asProcedure('answer','RETURN 43 as answer')");
-        TestUtil.testCall(db, "with 1 as foo call custom.answer() yield row return row", (row) -> assertEquals(43L, ((Map)row.get("row")).get("answer")));
+        TestUtil.testCall(db, "with 1 as foo call custom.answer() yield row AS row2 return row2 AS row", (row) -> assertEquals(43L, ((Map)row.get("row")).get("answer")));
     }
 
     @Test
