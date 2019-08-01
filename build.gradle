@@ -94,6 +94,8 @@ dependencies {
     compile 'org.jsoup:jsoup:1.11.3'
 
     compile group: 'org.roaringbitmap', name: 'RoaringBitmap', version: '0.7.17'
+    compile group: 'org.apache.commons', name: 'commons-configuration2', version: '2.5'
+    testCompile group: 'com.github.stefanbirkner', name: 'system-rules', version: '1.19.0'
 
     testCompile 'net.sourceforge.jexcelapi:jxl:2.6.12'
 

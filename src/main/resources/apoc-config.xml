@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<configuration>
+
+    <env/>  <!-- env variables take precedence -->
+    <system/>
+<!--    <properties fileName="${env:HOME}/apoc.conf" config-optional="true"/>-->
+    <properties fileName="${sys:NEO4J_CONF}/apoc.conf" config-optional="true"/> <!-- we're setting NEO4J_CONF in ApocConfig.java -->
+
+    <!--
+        <properties fileName="subConfig1.properties"/>
+        <xml fileName="subConfig2.xml"/>
+    -->
+</configuration>
