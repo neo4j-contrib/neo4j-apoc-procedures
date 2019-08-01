@@ -4,37 +4,29 @@ import apoc.result.ListResult;
 import apoc.util.QueueBasedSpliterator;
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.exceptions.KernelException;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.IndexDefinition;
-import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.*;
 import org.neo4j.internal.schema.IndexDescriptor;
 import org.neo4j.internal.schema.IndexOrder;
+import org.neo4j.internal.schema.LabelSchemaDescriptor;
 import org.neo4j.internal.schema.SchemaDescriptor;
+import org.neo4j.kernel.api.KernelTransaction;
+import org.neo4j.kernel.impl.api.KernelStatement;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.*;
-import apoc.result.NodeResult;
-import org.neo4j.graphdb.Direction;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.graphdb.Label;
-import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.internal.schema.LabelSchemaDescriptor;
-import org.neo4j.kernel.impl.api.KernelStatement;
 import org.neo4j.values.storable.Value;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import static apoc.util.MapUtil.map;
-import static apoc.path.RelationshipTypeAndDirections.parse;
 
 /**
  * @author mh
@@ -53,43 +45,6 @@ public class SchemaIndex {
     @Context
     public TerminationGuard terminationGuard;
 
-    @Procedure
-    @Deprecated
-    @Description("apoc.index.relatedNodes([nodes],label,key,'<TYPE'/'TYPE>'/'TYPE',limit) yield node - schema range scan which keeps index order and adds limit and checks opposite node of relationship against the given set of nodes")
-    public Stream<NodeResult> related(@Name("nodes") List<Node> nodes,
-                                      @Name("label") String label, @Name("key") String key,
-                                      @Name("relationship") String relationship,
-                                      @Name("limit") long limit) {
-        Set<Node> nodeSet = new HashSet<>(nodes);
-        Pair<RelationshipType, Direction> relTypeDirection = parse(relationship).get(0);
-        RelationshipType type = relTypeDirection.first();
-        Direction dir = relTypeDirection.other();
-
-        return queryForRange(label,key,Long.MIN_VALUE,Long.MAX_VALUE,0).filter((node) -> {
-            for (Relationship rel : node.getRelationships(dir, type)) {
-                Node other = rel.getOtherNode(node);
-                if (nodeSet.contains(other)) {
-                    return true;
-                }
-            }
-            return false;
-        }).map(NodeResult::new).limit(limit);
-    }
-
-        public Stream<Node> queryForRange(@Name("label") String label, @Name("key") String key, @Name("min") Object min, @Name("max") Object max, @Name("limit") long limit) {
-        Map<String, Object> params = map("min", min, "max", max, "limit", limit);
-        String query = "MATCH (n:`" + label + "`)";
-        if (min != null || max != null) {
-            query += " WHERE ";
-            if (min != null) query += "{min} <=";
-            query += " n.`" + key + "` ";
-            if (max != null) query += "<= {max}";
-        }
-        query += " RETURN n ";
-        if (limit > 0) query+="LIMIT {limit}";
-        ResourceIterator<Node> it = db.execute(query, params).columnAs("n");
-        return it.stream().onClose(it::close);
-    }
 
     @Procedure("apoc.schema.properties.distinct")
     @Description("apoc.schema.properties.distinct(label, key) - quickly returns all distinct values for a given key")
@@ -152,9 +107,8 @@ public class SchemaIndex {
             long count = 0;
             while (cursor.next()) {
                 for (int i = 0; i < cursor.numberOfProperties(); i++) {
-                    int k = cursor.propertyKey(i);  // TODO: check if this line can be rmoved
                     Value v = cursor.propertyValue(i);
-                    if (v.equals(previousValue)) {
+                    if (Objects.equals(v, previousValue)) { //  nullsafe equals
                         count++;
                     } else {
                         if (previousValue!=null) {

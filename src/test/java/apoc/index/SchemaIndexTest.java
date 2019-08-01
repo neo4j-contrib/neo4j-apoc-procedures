@@ -44,15 +44,13 @@ public class SchemaIndexTest {
         TestUtil.registerProcedure(db, SchemaIndex.class);
         db.execute("CREATE (city:City {name:'London'}) WITH city UNWIND range("+firstPerson+","+lastPerson+") as id CREATE (:Person {name:'name'+id, id:id, age:id % 100, address:id+'Main St.'})-[:LIVES_IN]->(city)").close();
         //
-//        db.execute("CALL db.createIndex(':Person(name)', 'lucene-1.0')").close();
         db.execute("CREATE INDEX ON :Person(name)").close();
         db.execute("CREATE INDEX ON :Person(age)").close();
         db.execute("CREATE INDEX ON :Person(address)").close();
-//        db.execute("CALL db.createIndex(':Person(address)', 'lucene-1.0')").close();
         db.execute("CREATE CONSTRAINT ON (p:Person) ASSERT p.id IS UNIQUE").close();
         db.execute("CREATE INDEX ON :Foo(bar)").close();
         db.execute("CREATE (f:Foo {bar:'three'}), (f2a:Foo {bar:'four'}), (f2b:Foo {bar:'four'})").close();
-        personIds = IntStream.range(firstPerson, lastPerson+1).mapToObj(Long::new).collect(Collectors.toList());
+        personIds = LongStream.range(firstPerson, lastPerson+1).boxed().collect(Collectors.toList());
         personNames = IntStream.range(firstPerson, lastPerson+1).mapToObj(Integer::toString).map(i -> "name"+i).sorted().collect(Collectors.toList());
         personAddresses = IntStream.range(firstPerson, lastPerson+1).mapToObj(Integer::toString).map(i -> i+"Main St.").sorted().collect(Collectors.toList());
         personAges = IntStream.range(firstPerson, lastPerson+1)
@@ -64,92 +62,6 @@ public class SchemaIndexTest {
             db.schema().awaitIndexesOnline(2,TimeUnit.SECONDS);
             tx.success();
         }
-    }
-
-    @Test
-    public void testRelated() throws Exception {
-        testResult(db, "MATCH (city:City) WITH city CALL apoc.index.related([city],'Person','age','LIVES_IN>',5) YIELD node RETURN *", r -> {
-            Function<Result,Object> age = (res) -> ((Node)res.next().get("node")).getProperty("age");
-            LongStream.of(0,0,1,1,2).forEach( (a) -> assertEquals(a,age.apply(r)));
-            assertEquals(false, r.hasNext());
-        });
-    }
-
-    @Test
-    public void testOrderedRangeNumbers() throws Exception {
-        testResult(db, "CALL apoc.index.orderedRange('Person','age',10,30,false,10)", r -> {
-            for (long i=10;i<20;i++) {
-                Node node = (Node) r.next().get("node");
-                long id = (Long) node.getProperty("id");
-                long age = (Long) node.getProperty("age");
-                assertEquals(id % 100, age);
-                assertEquals(true, 10 <= age && age <= 30);
-            }
-            assertEquals(false, r.hasNext());
-        });
-    }
-
-    @Test
-    public void testOrderedRangeNumbersLowerBound() throws Exception {
-        testResult(db, "CALL apoc.index.orderedRange('Person','age',10,null,false,5)", r -> {
-            for (long i=10;i<15;i++) {
-                Node node = (Node) r.next().get("node");
-                long id = (Long) node.getProperty("id");
-                long age = (Long) node.getProperty("age");
-                assertEquals(id % 100, age);
-                assertEquals(true, 10 <= age);
-            }
-            assertEquals(false, r.hasNext());
-        });
-    }
-    @Test
-    public void testOrderedRangeNumbersUpperBound() throws Exception {
-        testResult(db, "CALL apoc.index.orderedRange('Person','age',null,10,false,5)", r -> {
-            for (long i=1;i<6;i++) {
-                Node node = (Node) r.next().get("node");
-                long id = (Long) node.getProperty("id");
-                long age = (Long) node.getProperty("age");
-                assertEquals(id % 100, age);
-                assertEquals(true, age <= 10);
-            }
-            assertEquals(false, r.hasNext());
-        });
-    }
-
-    @Test
-    public void testOrderedRangeNumbersRangeSmallerSize() throws Exception {
-        testResult(db, "CALL apoc.index.orderedRange('Person','age',10,15,false,10)", r -> {
-            for (long i=0;i<10;i++) {
-                Node node = (Node) r.next().get("node");
-                long id = (Long) node.getProperty("id");
-                long age = (Long) node.getProperty("age");
-                assertEquals(id % 100, age);
-                assertEquals(true, 10 <= age && age <= 15);
-            }
-            assertEquals(false, r.hasNext());
-        });
-    }
-
-    @Test
-    public void testOrderedRangeText() throws Exception {
-        testResult(db, "CALL apoc.index.orderedRange('Person','name','name10','name30',false,10)", r -> {
-            assertEquals(2L, ((Node) r.next().get("node")).getProperty("id"));
-            assertEquals(3L, ((Node) r.next().get("node")).getProperty("id"));
-            for (long i=10;i<18;i++) {
-                assertEquals(i, ((Node) r.next().get("node")).getProperty("id"));
-            }
-            assertEquals(false, r.hasNext());
-        });
-    }
-    @Test
-    public void testOrderByText() throws Exception {
-        testResult(db, "CALL apoc.index.orderedByText('Person','name','STARTS WITH','name1',false,10)", r -> {
-            assertEquals(1L,((Node)r.next().get("node")).getProperty("id"));
-            for (long i=10;i<19;i++) {
-                assertEquals(i, ((Node) r.next().get("node")).getProperty("id"));
-            }
-            assertEquals(false, r.hasNext());
-        });
     }
 
     @Test
