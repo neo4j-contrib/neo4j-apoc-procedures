@@ -54,7 +54,8 @@ public class ApocConfig extends LifecycleAdapter {
             log.info("from system properties: NEO4J_CONF=%s", neo4jConfFolder);
             return neo4jConfFolder;
         } else {
-            throw new IllegalStateException("cannot determine conf folder from sys property  " + command );
+            log.info("cannot determine conf folder from sys property %s, assuming '.' ", command);
+            return ".";
         }
     }
 

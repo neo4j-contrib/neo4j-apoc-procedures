@@ -1,12 +1,14 @@
 package apoc.cache;
 
-import apoc.ApocConfiguration;
-import org.neo4j.procedure.*;
+import apoc.ApocConfig;
 import apoc.result.KeyValueResult;
-import apoc.result.MapResult;
 import apoc.result.ObjectResult;
 import apoc.util.Util;
+import org.apache.commons.configuration2.Configuration;
+import org.neo4j.common.DependencyResolver;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.procedure.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +22,9 @@ public class Static {
 
     @Context
     public GraphDatabaseAPI db;
+
+    @Context
+    public DependencyResolver dependencyResolver;
 
     private static Map<String,Object> storage = new HashMap<>();
 
@@ -36,13 +41,6 @@ public class Static {
         return storage.getOrDefault(key, fromConfig(key));
     }
 
-    @Deprecated
-    @Procedure("apoc.static.getAll")
-    @Description("apoc.static.getAll(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage")
-    public Stream<MapResult> getAllProc(@Name("prefix") String prefix) {
-        return Stream.of(new MapResult(getFromConfigAndStorage(prefix)));
-    }
-
     @UserFunction("apoc.static.getAll")
     @Description("apoc.static.getAll(prefix) - returns statically stored values from config (apoc.static.<prefix>.*) or server lifetime storage")
     public Map<String,Object> getAll(@Name("prefix") String prefix) {
@@ -50,8 +48,12 @@ public class Static {
     }
 
     private HashMap<String, Object> getFromConfigAndStorage(@Name("prefix") String prefix) {
-        Map<String,Object> config = ApocConfiguration.get("static." + prefix);
-        HashMap<String, Object> result = new HashMap<>(config);
+
+        HashMap<String, Object> result = new HashMap<>();
+
+        Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
+        String configPrefix = prefix.isEmpty() ? "apoc.static": "apoc.static." + prefix;
+        Iterators.stream(config.getKeys(configPrefix)).forEach(s -> result.put(s.substring(configPrefix.length()+1), config.getString(s)));
         result.putAll(Util.subMap(storage, prefix));
         return result;
     }
@@ -64,11 +66,12 @@ public class Static {
     }
 
     private Object fromConfig(@Name("key") String key) {
-        return ApocConfiguration.get("static."+key,null);
+        Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
+        return config.getString("apoc.static."+key,null);
     }
 
     @Procedure("apoc.static.set")
-    @Description("apoc.static.set(name, value) - stores value under key for server livetime storage, returns previously stored or configured value")
+    @Description("apoc.static.set(name, value) - stores value under key for server lifetime storage, returns previously stored or configured value")
     public Stream<ObjectResult> set(@Name("key") String key, @Name("value") Object value) {
         Object previous = value == null ? storage.remove(key) : storage.put(key, value);
         return Stream.of(new ObjectResult(previous==null ? fromConfig(key) : previous));

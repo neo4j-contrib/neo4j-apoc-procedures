@@ -21,11 +21,10 @@ public class ApocConfigTest {
         cut = new ApocConfig(null, null, new SimpleLogService(logProvider));
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void testDetermineNeo4jConfFolderShouldFail() {
-
+    @Test
+    public void testDetermineNeo4jConfFolderDefault() {
         System.setProperty(SUN_JAVA_COMMAND, "");
-        cut.determineNeo4jConfFolder();
+        assertEquals(".", cut.determineNeo4jConfFolder());
     }
 
     @Test

@@ -4,12 +4,11 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import static apoc.ApocSettings.dynamic;
 import static org.junit.Assert.assertEquals;
-import static org.neo4j.configuration.SettingValueParsers.STRING;
 
 /**
  * @author mh
@@ -18,8 +17,11 @@ import static org.neo4j.configuration.SettingValueParsers.STRING;
 public class ConfigTest {
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(dynamic("foo", STRING), "bar");
+    public final ProvideSystemProperty systemPropertyRule
+            = new ProvideSystemProperty("foo", "bar");
+
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setUp() throws Exception {
