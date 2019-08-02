@@ -215,7 +215,7 @@ html {
           tabTheSource($('body'));
           var $header = $('header').first();
           $header.prepend(
-            $('<a href="" id="logo"><img src="https://cdn.neo4jlabs.com/images/beaker.png" alt="Neo4j Labs Logo"/></a>')
+            $('<a href="" id="logo"><img src="https://s3.amazonaws.com/dev.assets.neo4j.com/wp-content/uploads/20190802073913/labs-logo6.png" alt="Neo4j Labs Logo"/></a>')
           );
           var sidebar = $('<div id=\"sidebar-wrapper\"/>');
           $.get('toc.html', function (d){
