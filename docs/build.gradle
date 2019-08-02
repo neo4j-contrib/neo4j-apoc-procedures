@@ -41,11 +41,12 @@ ext {
     if (1 < versionParts.size()) { versions.apocDocs += '-preview' }
 
     docsBaseUri = "https://neo4j.com/docs"
-    apocBaseUri = "https://neo4j.com/labs/docs/apoc"
+    apocBaseUri = "https://neo4j.com/docs/labs/apoc"
     crossReferenceBase = [ // We have no strategy for cross references; always link to current.
             'operations-manual' : "${docsBaseUri}/operations-manual/current",
             'developer-manual'  : "${docsBaseUri}/developer-manual/current",
             'graph-algorithms'  : "${docsBaseUri}/graph-algorithms/current",
+            'neo4j-streams'  : "${docsBaseUri}/labs/neo4j-streams/current",
             'apoc'              : "${apocBaseUri}/${versions.apocDocs}",
             'java-reference'    : "${docsBaseUri}/java-reference/current",
             'rest-docs'         : "${docsBaseUri}/rest-docs/current",
@@ -174,8 +175,10 @@ html {
         "Developer_Manual=${crossReferenceBase['developer-manual']}/",
         "OGM_Manual=${crossReferenceBase['ogm-manual']}/",
         "Graph_Algorithms=${crossReferenceBase['graph-algorithms']}/",
-        "APOC=${crossReferenceBase['apoc']}/",
         "Java_Reference=${crossReferenceBase['java-reference']}/",
+        "APOC=${crossReferenceBase['apoc']}/",
+        "Neo4j_Streams=${crossReferenceBase['neo4j-streams']}/",
+
     ].join(" ")
     def scripts = [
 //        '//ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js',
