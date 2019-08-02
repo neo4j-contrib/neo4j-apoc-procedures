@@ -1,9 +1,10 @@
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Result;
+import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.reflections.Reflections;
 import org.reflections.scanners.ResourcesScanner;
 import org.reflections.scanners.SubTypesScanner;
@@ -19,21 +20,22 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static apoc.ApocConfig.APOC_UUID_ENABLED;
+import static apoc.ApocConfig.apocConfig;
+
 /**
  * @author ab-larus
  * @since 05.09.18
  */
 public class DocsTest {
 
-    private GraphDatabaseService db;
-
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule()
+            .withSetting(GraphDatabaseSettings.auth_enabled, true);
 
     @Before
     public void setUp() throws Exception {
-        db = TestUtil.apocGraphDatabaseBuilder()
-                .setConfig("apoc.uuid.enabled", "true")
-                .setConfig("dbms.security.auth_enabled", "true")
-                .newGraphDatabase();
+        apocConfig().setProperty(APOC_UUID_ENABLED, true);
 
         Set<Class<?>> allClasses = allClasses();
         for (Class<?> klass : allClasses) {
@@ -43,11 +45,6 @@ public class DocsTest {
         }
 
         new File("build/generated-documentation").mkdirs();
-    }
-
-    @After
-    public void tearDown() {
-        db.shutdown();
     }
 
     static class Row {
@@ -69,18 +66,24 @@ public class DocsTest {
         // given
         List<Row> rows = new ArrayList<>();
 
-        Result proceduresResult = db.execute("CALL dbms.procedures() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'procedure' AS type, name, description, signature ORDER BY signature");
-        while(proceduresResult.hasNext()) {
-            Map<String, Object> record = proceduresResult.next();
-            rows.add(new Row(record.get("type").toString(), record.get("name").toString(), record.get("signature").toString(), record.get("description").toString()));
-        }
+        List<Row> procedureRows = db.executeTransactionally("CALL dbms.procedures() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'procedure' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
+                result -> result.stream().map(record -> new Row(
+                        record.get("type").toString(),
+                        record.get("name").toString(),
+                        record.get("signature").toString(),
+                        record.get("description").toString())
+                ).collect(Collectors.toList()));
+        rows.addAll(procedureRows);
 
-        Result functionsResult = db.execute("CALL dbms.functions() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'function' AS type, name, description, signature ORDER BY signature");
-        while(functionsResult.hasNext()) {
-            Map<String, Object> record = functionsResult.next();
-            rows.add(new Row(record.get("type").toString(), record.get("name").toString(), record.get("signature").toString(), record.get("description").toString()));
-        }
+        List<Row> functionRows = db.executeTransactionally("CALL dbms.functions() YIELD signature, name, description WHERE name STARTS WITH 'apoc' RETURN 'function' AS type, name, description, signature ORDER BY signature", Collections.emptyMap(),
+                result -> result.stream().map(record -> new Row(
+                        record.get("type").toString(),
+                        record.get("name").toString(),
+                        record.get("signature").toString(),
+                        record.get("description").toString())
+                ).collect(Collectors.toList()));
 
+        rows.addAll(functionRows);
 
         try (Writer writer = new OutputStreamWriter( new FileOutputStream( new File("build/generated-documentation/documentation.csv")), StandardCharsets.UTF_8 ))
         {
