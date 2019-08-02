@@ -62,29 +62,29 @@ public class ExportCsvTest {
             "\"0\",\":User:User1\",\"foo\",\"42\",\"true\",\"[\"\"a\"\",\"\"b\"\",\"\"c\"\"]\",\"\",\"\",,,%n" +
             "\"1\",\":User\",\"bar\",\"42\",\"\",\"\",\"\",\"\",,,%n" +
             "\"2\",\":User\",\"\",\"12\",\"\",\"\",\"\",\"\",,,%n" +
-            "\"20\",\":Address:Address1\",\"Andrea\",\"\",\"\",\"\",\"Via Garibaldi, 7\",\"Milano\",,,%n" +
-            "\"21\",\":Address\",\"Bar Sport\",\"\",\"\",\"\",\"\",\"\",,,%n" +
-            "\"22\",\":Address\",\"\",\"\",\"\",\"\",\"via Benni\",\"\",,,%n" +
+            "\"3\",\":Address:Address1\",\"Andrea\",\"\",\"\",\"\",\"Via Garibaldi, 7\",\"Milano\",,,%n" +
+            "\"4\",\":Address\",\"Bar Sport\",\"\",\"\",\"\",\"\",\"\",,,%n" +
+            "\"5\",\":Address\",\"\",\"\",\"\",\"\",\"via Benni\",\"\",,,%n" +
             ",,,,,,,,\"0\",\"1\",\"KNOWS\"%n" +
-            ",,,,,,,,\"20\",\"21\",\"NEXT_DELIVERY\"%n");
+            ",,,,,,,,\"3\",\"4\",\"NEXT_DELIVERY\"%n");
     private static final String EXPECTED_NONE_QUOTES = String.format("_id,_labels,age,city,kids,male,name,street,_start,_end,_type%n" +
             "0,:User:User1,foo,42,true,[\"a\",\"b\",\"c\"],,,,,%n" +
             "1,:User,bar,42,,,,,,,%n" +
             "2,:User,,12,,,,,,,%n" +
-            "20,:Address:Address1,Andrea,,,,Via Garibaldi, 7,Milano,,,%n" +
-            "21,:Address,Bar Sport,,,,,,,,%n" +
-            "22,:Address,,,,,via Benni,,,,%n" +
+            "3,:Address:Address1,Andrea,,,,Via Garibaldi, 7,Milano,,,%n" +
+            "4,:Address,Bar Sport,,,,,,,,%n" +
+            "5,:Address,,,,,via Benni,,,,%n" +
             ",,,,,,,,0,1,KNOWS%n" +
-            ",,,,,,,,20,21,NEXT_DELIVERY%n");
+            ",,,,,,,,3,4,NEXT_DELIVERY%n");
     private static final String EXPECTED_NEEDED_QUOTES = String.format("_id,_labels,age,city,kids,male,name,street,_start,_end,_type%n" +
             "0,:User:User1,foo,42,true,\"[\"a\",\"b\",\"c\"]\",,,,,%n" +
             "1,:User,bar,42,,,,,,,%n" +
             "2,:User,,12,,,,,,,%n" +
-            "20,:Address:Address1,Andrea,,,,\"Via Garibaldi, 7\",Milano,,,%n" +
-            "21,:Address,Bar Sport,,,,,,,,%n" +
-            "22,:Address,,,,,via Benni,,,,%n" +
+            "3,:Address:Address1,Andrea,,,,\"Via Garibaldi, 7\",Milano,,,%n" +
+            "4,:Address,Bar Sport,,,,,,,,%n" +
+            "5,:Address,,,,,via Benni,,,,%n" +
             ",,,,,,,,0,1,KNOWS%n" +
-            ",,,,,,,,20,21,NEXT_DELIVERY%n");
+            ",,,,,,,,3,4,NEXT_DELIVERY%n");
 
     private static File directory = new File("target/import");
     static { //noinspection ResultOfMethodCallIgnored
@@ -108,7 +108,9 @@ public class ExportCsvTest {
 
     @AfterClass
     public static void tearDown() {
-        miniDFSCluster.shutdown();
+        if (miniDFSCluster!= null) {
+            miniDFSCluster.shutdown();
+        }
     }
 
     private String readFile(String fileName) {

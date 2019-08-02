@@ -123,7 +123,7 @@ dependencies {
 //        exclude group: 'org.mortbay.jetty'
         exclude group: 'org.eclipse.jetty'
         exclude group: 'org.eclipse.jetty.aggregate'
-        exclude group: 'com.sun.jersey'
+//        exclude group: 'com.sun.jersey'
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
     compileOnly group: 'org.apache.hadoop', name: 'hadoop-hdfs', version: '2.7.5', withoutServers
