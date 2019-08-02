@@ -41,7 +41,13 @@ public class LoadS3Test {
 
     @After public void tearDown() throws Exception {
         db.shutdown();
-        minio.deleteAll();
+
+        // The line below is quite flaky, but we don't want it to fail the build
+        try {
+            minio.deleteAll();
+        } catch(Exception ignored) {
+
+        }
     }
 
     @Test
