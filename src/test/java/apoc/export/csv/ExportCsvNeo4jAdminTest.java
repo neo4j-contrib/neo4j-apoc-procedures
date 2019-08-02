@@ -28,7 +28,7 @@ public class ExportCsvNeo4jAdminTest {
             .format("id:ID;born_2D:point;born_3D:point;localtime:localtime;time:time;dateTime:datetime;localDateTime:localdatetime;date:date;duration:duration;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_TYPES_NODE = String
-            .format("3;{crs:cartesian,x:2.3,y:4.5};{crs:wgs-84-3d,latitude:56.7,longitude:12.78,height:100.0};12:50:35.556;12:50:35.556+01:00;2018-10-30T12:50:35.556+01:00;2018-10-30T19:32:24;2018-10-30;P5M1DT12H;Types%n");
+            .format("6;{crs:cartesian,x:2.3,y:4.5};{crs:wgs-84-3d,latitude:56.7,longitude:12.78,height:100.0};12:50:35.556;12:50:35.556+01:00;2018-10-30T12:50:35.556+01:00;2018-10-30T19:32:24;2018-10-30;P5M1DT12H;Types%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS = String
             .format("id:ID;name;street;:LABEL%n");
@@ -49,11 +49,11 @@ public class ExportCsvNeo4jAdminTest {
             .format(":START_ID;:END_ID;:TYPE%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS = String
-            .format("21;Bar Sport;;Address%n" +
-                    "22;;via Benni;Address%n");
+            .format("4;Bar Sport;;Address%n" +
+                    "5;;via Benni;Address%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_NODE_ADDRESS1 = String
-            .format("20;Via Garibaldi, 7;Andrea;Milano;\"Address1;Address\"%n");
+            .format("3;Via Garibaldi, 7;Andrea;Milano;\"Address1;Address\"%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_NODE_USER = String
             .format("1;bar;42;User%n" +
@@ -66,7 +66,7 @@ public class ExportCsvNeo4jAdminTest {
             .format("0;1;KNOWS%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_NEXT_DELIVERY = String
-            .format("20;21;NEXT_DELIVERY%n");
+            .format("3;4;NEXT_DELIVERY%n");
 
     private static File directory = new File("target/import");
 

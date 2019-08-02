@@ -180,7 +180,7 @@ public class CypherTest {
     }
     @Test
     public void testRunFile() throws Exception {
-        testResult(db, "CALL apoc.cypher.runFile('src/test/resources/create_delete.cypher')",
+        testResult(db, "CALL apoc.cypher.runFile('create_delete.cypher')",
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(-1L, row.get("row"));
@@ -197,7 +197,7 @@ public class CypherTest {
     }
     @Test
     public void testRunWithPeriodic() throws Exception {
-        testResult(db, "CALL apoc.cypher.runFile('src/test/resources/periodic.cypher')",
+        testResult(db, "CALL apoc.cypher.runFile('periodic.cypher')",
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(-1L, row.get("row"));
@@ -211,7 +211,7 @@ public class CypherTest {
 
     @Test
     public void testRunFileWithSchema() throws Exception {
-        testResult(db, "CALL apoc.cypher.runFile('src/test/resources/schema_create.cypher')",
+        testResult(db, "CALL apoc.cypher.runFile('schema_create.cypher')",
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(-1L, row.get("row"));
@@ -224,7 +224,7 @@ public class CypherTest {
     }
     @Test
     public void testRunFileWithResults() throws Exception {
-        testResult(db, "CALL apoc.cypher.runFile('src/test/resources/create.cypher')",
+        testResult(db, "CALL apoc.cypher.runFile('create.cypher')",
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(row.get("row"),((Map)row.get("result")).get("id"));
@@ -248,7 +248,7 @@ public class CypherTest {
     }
     @Test
     public void testRunFileWithParameters() throws Exception {
-        testResult(db, "CALL apoc.cypher.runFile('src/test/resources/parameterized.cypher', {statistics:false,parameters:{foo:123,bar:'baz'}})",
+        testResult(db, "CALL apoc.cypher.runFile('parameterized.cypher', {statistics:false,parameters:{foo:123,bar:'baz'}})",
                 r -> {
                     assertTrue("first row",r.hasNext());
                     Map<String,Object> result = (Map<String,Object>)r.next().get("result");
@@ -269,7 +269,7 @@ public class CypherTest {
 
     @Test
     public void testRunFilesMultiple() throws Exception {
-        testResult(db, "CALL apoc.cypher.runFiles(['src/test/resources/create.cypher', 'src/test/resources/create_delete.cypher'])",
+        testResult(db, "CALL apoc.cypher.runFiles(['create.cypher', 'create_delete.cypher'])",
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(row.get("row"),((Map)row.get("result")).get("id"));
@@ -303,7 +303,7 @@ public class CypherTest {
     @Test
     @Ignore
     public void testSchemaRunFile() throws Exception {
-        testResult(db, "CALL apoc.cypher.runSchemaFile('src/test/resources/schema.cypher')",
+        testResult(db, "CALL apoc.cypher.runSchemaFile('schema.cypher')",
                 r -> {
                     Map<String, Object> row = r.next();
                     Map result = (Map) row.get("result");
@@ -314,7 +314,7 @@ public class CypherTest {
     @Test
     @Ignore
     public void testSchemaRunFiles() throws Exception {
-        testResult(db, "CALL apoc.cypher.runSchemaFiles(['src/test/resources/constraints.cypher', 'src/test/resources/drop_constraints.cypher', 'src/test/resources/index.cypher'])",
+        testResult(db, "CALL apoc.cypher.runSchemaFiles(['constraints.cypher', 'drop_constraints.cypher', 'index.cypher'])",
                 r -> {
                     Map<String, Object> row = r.next();
                     Map result = (Map) row.get("result");
@@ -332,7 +332,7 @@ public class CypherTest {
     @Test
     @Ignore
     public void testSchemaRunMixedSchemaAndDataFile() throws Exception {
-        testResult(db, "CALL apoc.cypher.runSchemaFile('src/test/resources/schema_create.cypher')",
+        testResult(db, "CALL apoc.cypher.runSchemaFile('schema_create.cypher')",
                 r -> {
                     Map<String, Object> row = r.next();
                     Map result = (Map) row.get("result");
