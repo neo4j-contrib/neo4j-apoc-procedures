@@ -1,46 +1,41 @@
 package apoc.cypher;
 
+import apoc.ApocConfig;
 import apoc.util.TestUtil;
 import apoc.util.Utils;
-import org.junit.After;
+import org.apache.commons.configuration2.Configuration;
+import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.common.DependencyResolver;
-import org.neo4j.dbms.api.DatabaseManagementService;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.internal.helpers.Listeners;
 import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.kernel.availability.AvailabilityGuard;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.availability.DatabaseAvailabilityGuard;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.test.ReflectionUtil;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import static apoc.ApocSettings.dynamic;
-import static apoc.util.TestUtil.apocGraphDatabaseBuilder;
 import static apoc.util.TestUtil.testResult;
 import static org.junit.Assert.assertEquals;
-import static org.neo4j.configuration.SettingValueParsers.STRING;
 
 public class CypherInitializerTest {
 
-    public GraphDatabaseService db;
-    public DatabaseManagementService dbms;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     public void init(String... initializers) {
 
-        Pair<DatabaseManagementService, GraphDatabaseService> pair = apocGraphDatabaseBuilder(builder -> {
-            if (initializers.length == 1) {
-            } else {
-                int index = 1;
-                for (String initializer: initializers) {
-                    builder.setConfig(dynamic("apoc.initializer.cypher." + index++, STRING), initializer);
-                }
-            }
-        });
+        Configuration config = db.resolveDependency(ApocConfig.class).getConfig();
+        Iterators.stream(config.getKeys(CypherInitializer.CONFIG_APOC_INITIALIZER_CYPHER)).forEach(k -> config.clearProperty(k));
 
-        dbms = pair.first();
-        db = pair.other();
+        if (initializers.length == 1) {
+            config.setProperty(CypherInitializer.CONFIG_APOC_INITIALIZER_CYPHER, initializers[0]);
+        } else {
+            int index = 1;
+            for (String initializer : initializers) {
+                config.setProperty(CypherInitializer.CONFIG_APOC_INITIALIZER_CYPHER + "." + index++, initializer);
+            }
+        }
 
         // NB we need to register at least one procedure with name "apoc", otherwise initializer will not get called
         TestUtil.registerProcedure(db, Utils.class);
@@ -64,8 +59,7 @@ public class CypherInitializerTest {
      * @return
      */
     private CypherInitializer getInitializer() {
-        GraphDatabaseAPI api = (GraphDatabaseAPI) db;
-        DatabaseAvailabilityGuard availabilityGuard = (DatabaseAvailabilityGuard) api.getDependencyResolver().resolveDependency(AvailabilityGuard.class, DependencyResolver.SelectionStrategy.FIRST);
+        DatabaseAvailabilityGuard availabilityGuard = (DatabaseAvailabilityGuard) db.getDependencyResolver().resolveDependency(AvailabilityGuard.class);
         try {
             Listeners<AvailabilityListener> listeners = ReflectionUtil.getPrivateField(availabilityGuard, "listeners", Listeners.class);
 
@@ -79,11 +73,6 @@ public class CypherInitializerTest {
             throw new RuntimeException(e);
         }
 
-    }
-
-    @After
-    public void teardown() {
-        dbms.shutdown();
     }
 
     @Test
@@ -119,5 +108,4 @@ public class CypherInitializerTest {
     private void expectNodeCount(int i) {
         testResult(db, "match (n) return n", result -> assertEquals(i, Iterators.count(result)));
     }
-
 }

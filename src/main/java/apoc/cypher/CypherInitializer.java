@@ -1,22 +1,26 @@
 package apoc.cypher;
 
-import apoc.ApocConfiguration;
+import apoc.ApocConfig;
+import org.apache.commons.configuration2.Configuration;
 import org.neo4j.common.DependencyResolver;
-import org.neo4j.internal.kernel.api.Procedures;
-import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.availability.AvailabilityListener;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 
-import java.util.*;
+import java.util.ConcurrentModificationException;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 public class CypherInitializer implements AvailabilityListener {
-    public static final String INITIALIZER_CYPHER = "initializer.cypher";
+
+    public static final String CONFIG_APOC_INITIALIZER_CYPHER = "apoc.initializer.cypher";
 
     private final GraphDatabaseAPI db;
     private final Log userLog;
     private final GlobalProcedures procs;
+    private final DependencyResolver dependencyResolver;
 
     /**
      * indicates the status of the initializer, to be used for tests to ensure initializer operations are already done
@@ -26,7 +30,8 @@ public class CypherInitializer implements AvailabilityListener {
     public CypherInitializer(GraphDatabaseAPI db, Log userLog) {
         this.db = db;
         this.userLog = userLog;
-        procs = db.getDependencyResolver().resolveDependency(GlobalProcedures.class);
+        this.dependencyResolver = db.getDependencyResolver();
+        this.procs = dependencyResolver.resolveDependency(GlobalProcedures.class);
     }
 
     public boolean isFinished() {
@@ -43,16 +48,15 @@ public class CypherInitializer implements AvailabilityListener {
 
             try {
                 awaitApocProceduresRegistered();
+                Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
 
-                Map<String, Object> stringObjectMap;
-                String singleInitializer = ApocConfiguration.get(INITIALIZER_CYPHER, null);
-                if (singleInitializer != null) {
-                    stringObjectMap = Collections.singletonMap("1", singleInitializer);
-                } else {
-                    stringObjectMap = ApocConfiguration.get(INITIALIZER_CYPHER);
-                }
+                TreeMap<String, String> initializers = Iterators.stream(config.getKeys(CONFIG_APOC_INITIALIZER_CYPHER))
+                        .collect(Collectors.toMap(k -> k, k -> config.getString(k),
+                                (v1, v2) -> {
+                                    throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));
+                                },
+                                TreeMap::new));
 
-                SortedMap<String, Object> initializers = new TreeMap<>(stringObjectMap);
                 for (Object initializer: initializers.values()) {
                     String query = initializer.toString();
                     try {
