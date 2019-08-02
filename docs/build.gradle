@@ -26,7 +26,7 @@ buildscript {
 plugins {
     id 'base'
     id 'org.neo4j.doc.build.saxon' version '1.0-alpha02'
-    id 'org.neo4j.doc.build.docbook' version '1.0-alpha03'
+    id 'org.neo4j.doc.build.docbook' version '1.0-alpha12'
 }
 
 if (!project.hasProperty('apocVersion')) { ext.apocVersion = '3.5.0.5' }
@@ -207,6 +207,28 @@ html {
         'css/extra.css'
     ].join(" ")
 
+    def javascript =
+        '''\
+
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://cdn.neo4jlabs.com/images/beaker.png" alt="Neo4j Labs Logo"/></a>')
+          );
+          var sidebar = $('<div id=\"sidebar-wrapper\"/>');
+          $.get('toc.html', function (d){
+            $(d).appendTo(sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          sidebar.insertAfter($('header').first());
+        });
+
+        '''
+
+
     stylesheet "classpath:xsl/chunk-from-toc/xhtml/chunktoc.xsl"
     input sourceFile
 
@@ -226,6 +248,7 @@ html {
         "html.stylesheet": styles,
         "chunk.toc": "${contentMap}",
         "current.docid": "$docId",
+        "neo.embedded.javascript": javascript
     ])
     doLast {
         copy {
