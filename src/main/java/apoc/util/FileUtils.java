@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static apoc.ApocConfig.apocConfig;
+
 /**
  * @author mh
  * @since 22.05.16
@@ -30,7 +32,7 @@ public class FileUtils {
     public static final Pattern HDFS_PATTERN = Pattern.compile("^(hdfs:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
 
     public static CountingReader readerFor(String fileName) throws IOException {
-        checkReadAllowed(fileName);
+        apocConfig().checkReadAllowed(fileName);
         if (fileName==null) return null;
         fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
         if (fileName.matches("^\\w+:/.+")) {
@@ -43,7 +45,7 @@ public class FileUtils {
         return readFile(fileName);
     }
     public static CountingInputStream inputStreamFor(String fileName) throws IOException {
-        checkReadAllowed(fileName);
+        apocConfig().checkReadAllowed(fileName);
         if (fileName==null) return null;
         fileName = changeFileUrlIfImportDirectoryConstrained(fileName);
         if (fileName.matches("^\\w+:/.+")) {
@@ -170,15 +172,6 @@ public class FileUtils {
 
     public static String getConfiguredImportDirectory() {
         return ApocConfiguration.get("dbms.directories.import", "import");
-    }
-
-    public static void checkReadAllowed(String url) {
-        if (isFile(url) && !ApocConfiguration.isEnabled("import.file.enabled"))
-            throw new RuntimeException("Import from files not enabled, please set apoc.import.file.enabled=true in your neo4j.conf");
-    }
-    public static void checkWriteAllowed() {
-        if (!ApocConfiguration.isEnabled("export.file.enabled"))
-            throw new RuntimeException("Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf");
     }
 
     public static StreamConnection openS3InputStream(URL url) throws IOException {

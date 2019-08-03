@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.ApocConfig;
 import apoc.result.MapResult;
 import apoc.result.NodeResult;
 import apoc.util.FileUtils;
@@ -45,6 +46,9 @@ public class Xml {
     private static final XMLInputFactory FACTORY = XMLInputFactory.newFactory();
 
     @Context
+    public ApocConfig apocConfig;
+
+    @Context
     public GraphDatabaseService db;
 
     @Context
@@ -74,7 +78,7 @@ public class Xml {
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
             documentBuilder.setEntityResolver((publicId, systemId) -> new InputSource(new StringReader("")));
 
-            FileUtils.checkReadAllowed(url);
+            apocConfig.checkReadAllowed(url);
             url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
 
             Map<String, Object> headers = (Map) config.getOrDefault( "headers", Collections.emptyMap() );
@@ -127,7 +131,7 @@ public class Xml {
     }
 
     private XMLStreamReader getXMLStreamReaderFromUrl(String url, XmlImportConfig config) throws IOException, XMLStreamException {
-        FileUtils.checkReadAllowed(url);
+        apocConfig.checkReadAllowed(url);
         url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
         URLConnection urlConnection = new URL(url).openConnection();
         FACTORY.setProperty(XMLInputFactory.IS_COALESCING, true);

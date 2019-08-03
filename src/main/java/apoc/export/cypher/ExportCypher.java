@@ -1,5 +1,6 @@
 package apoc.export.cypher;
 
+import apoc.ApocConfig;
 import apoc.Pools;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.NodesAndRelsSubGraph;
@@ -24,8 +25,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.util.FileUtils.checkWriteAllowed;
-
 /**
  * @author mh
  * @since 22.05.16
@@ -36,6 +35,9 @@ public class ExportCypher {
 
     @Context
     public TerminationGuard terminationGuard;
+
+    @Context
+    public ApocConfig apocConfig;
 
     public ExportCypher(GraphDatabaseService db) {
         this.db = db;
@@ -92,7 +94,7 @@ public class ExportCypher {
     }
 
     private Stream<DataProgressInfo> exportCypher(@Name("file") String fileName, String source, SubGraph graph, ExportConfig c, boolean onlySchema) throws IOException {
-        if (fileName != null) checkWriteAllowed();
+        if (fileName != null) apocConfig.checkWriteAllowed();
 
         ProgressInfo progressInfo = new ProgressInfo(fileName, source, "cypher");
         progressInfo.batchSize = c.getBatchSize();

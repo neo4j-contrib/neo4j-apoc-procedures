@@ -1,5 +1,6 @@
 package apoc.export.graphml;
 
+import apoc.ApocConfig;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
@@ -23,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.util.FileUtils.checkWriteAllowed;
 import static apoc.util.FileUtils.getPrintWriter;
 
 /**
@@ -33,6 +33,9 @@ import static apoc.util.FileUtils.getPrintWriter;
 public class ExportGraphML {
     @Context
     public GraphDatabaseService db;
+
+    @Context
+    public ApocConfig apocConfig;
 
     @Procedure(name = "apoc.import.graphml",mode = Mode.WRITE)
     @Description("apoc.import.graphml(file,config) - imports graphml file")
@@ -91,7 +94,7 @@ public class ExportGraphML {
     }
 
     private Stream<ProgressInfo> exportGraphML(@Name("file") String fileName, String source, SubGraph graph, ExportConfig config) throws Exception, XMLStreamException {
-        if (fileName != null) checkWriteAllowed();
+        if (fileName != null) apocConfig.checkWriteAllowed();
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "graphml"));
         PrintWriter printWriter = getPrintWriter(fileName, null);
         XmlGraphMLWriter exporter = new XmlGraphMLWriter();

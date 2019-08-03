@@ -6,6 +6,7 @@ import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.context.ExtensionContext;
 import org.neo4j.kernel.lifecycle.Lifecycle;
 import org.neo4j.logging.internal.LogService;
+import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
 /**
  * a kernel extension for the new apoc configuration mechanism
@@ -16,6 +17,7 @@ public class ApocConfigExtensionFactory extends ExtensionFactory<ApocConfigExten
     public interface Dependencies {
         LogService log();
         Config config();
+        GlobalProceduresRegistry globalProceduresRegistry();
     }
 
     public ApocConfigExtensionFactory() {
@@ -24,7 +26,7 @@ public class ApocConfigExtensionFactory extends ExtensionFactory<ApocConfigExten
 
     @Override
     public Lifecycle newInstance(ExtensionContext context, Dependencies dependencies) {
-        return new ApocConfig(context, dependencies.config(), dependencies.log());
+        return new ApocConfig(context, dependencies.config(), dependencies.log(), dependencies.globalProceduresRegistry());
     }
 
 }

@@ -1,5 +1,6 @@
 package apoc.export.json;
 
+import apoc.ApocConfig;
 import apoc.Description;
 import apoc.export.cypher.ExportFileManager;
 import apoc.export.cypher.FileManagerFactory;
@@ -25,11 +26,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static apoc.util.FileUtils.checkWriteAllowed;
-
 public class ExportJson {
     @Context
     public GraphDatabaseService db;
+
+    @Context
+    public ApocConfig apocConfig;
+
 
     public ExportJson(GraphDatabaseService db) {
         this.db = db;
@@ -73,7 +76,7 @@ public class ExportJson {
     }
 
     private Stream<ProgressInfo> exportJson(@Name("file") String fileName, String source, Object data, Map<String,Object> config) throws Exception {
-        checkWriteAllowed();
+        apocConfig.checkWriteAllowed();
         ExportConfig c = new ExportConfig(config);
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "json"));
         JsonFormat exporter = new JsonFormat(db);

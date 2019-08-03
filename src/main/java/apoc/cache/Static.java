@@ -4,8 +4,6 @@ import apoc.ApocConfig;
 import apoc.result.KeyValueResult;
 import apoc.result.ObjectResult;
 import apoc.util.Util;
-import org.apache.commons.configuration2.Configuration;
-import org.neo4j.common.DependencyResolver;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.*;
@@ -24,7 +22,7 @@ public class Static {
     public GraphDatabaseAPI db;
 
     @Context
-    public DependencyResolver dependencyResolver;
+    public ApocConfig apocConfig;
 
     private static Map<String,Object> storage = new HashMap<>();
 
@@ -50,10 +48,8 @@ public class Static {
     private HashMap<String, Object> getFromConfigAndStorage(@Name("prefix") String prefix) {
 
         HashMap<String, Object> result = new HashMap<>();
-
-        Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
         String configPrefix = prefix.isEmpty() ? "apoc.static": "apoc.static." + prefix;
-        Iterators.stream(config.getKeys(configPrefix)).forEach(s -> result.put(s.substring(configPrefix.length()+1), config.getString(s)));
+        Iterators.stream(apocConfig.getKeys(configPrefix)).forEach(s -> result.put(s.substring(configPrefix.length()+1), apocConfig.getString(s)));
         result.putAll(Util.subMap(storage, prefix));
         return result;
     }
@@ -66,8 +62,7 @@ public class Static {
     }
 
     private Object fromConfig(@Name("key") String key) {
-        Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
-        return config.getString("apoc.static."+key,null);
+        return apocConfig.getString("apoc.static."+key);
     }
 
     @Procedure("apoc.static.set")

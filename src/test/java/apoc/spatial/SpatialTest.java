@@ -1,5 +1,6 @@
 package apoc.spatial;
 
+import apoc.ApocConfig;
 import apoc.ApocSettings;
 import apoc.date.Date;
 import apoc.util.JsonUtil;

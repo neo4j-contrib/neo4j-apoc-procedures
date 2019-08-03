@@ -2,14 +2,18 @@ package apoc;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.neo4j.configuration.Config;
 import org.neo4j.logging.AssertableLogProvider;
 import org.neo4j.logging.LogProvider;
 import org.neo4j.logging.internal.SimpleLogService;
 
 import java.io.File;
+import java.util.Collections;
 
 import static apoc.ApocConfig.SUN_JAVA_COMMAND;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ApocConfigTest {
 
@@ -18,7 +22,10 @@ public class ApocConfigTest {
     @Before
     public void setup() {
         LogProvider logProvider = new AssertableLogProvider();
-        cut = new ApocConfig(null, null, new SimpleLogService(logProvider));
+
+        Config neo4jConfig = mock(Config.class);
+        when(neo4jConfig.getDeclaredSettings()).thenReturn(Collections.emptyMap());
+        cut = new ApocConfig(null, neo4jConfig, new SimpleLogService(logProvider), null);
     }
 
     @Test

@@ -4,14 +4,22 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.combined.CombinedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.neo4j.configuration.Config;
+import org.neo4j.function.ThrowingFunction;
+import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
+import org.neo4j.kernel.api.procedure.Context;
 import org.neo4j.kernel.extension.context.ExtensionContext;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
+import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
+import java.lang.reflect.Field;
 import java.net.URL;
+import java.util.Iterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static apoc.util.FileUtils.isFile;
 
 public class ApocConfig extends LifecycleAdapter {
 
@@ -21,14 +29,18 @@ public class ApocConfig extends LifecycleAdapter {
     private final ExtensionContext context;
     private final Config neo4jConfig;
     private final Log log;
+    private final GlobalProceduresRegistry globalProceduresRegistry;
 
     private Configuration config;
 
+    private static ApocConfig theInstance;
 
-    public ApocConfig(ExtensionContext context, Config neo4jConfig, LogService log) {
+    public ApocConfig(ExtensionContext context, Config neo4jConfig, LogService log, GlobalProceduresRegistry globalProceduresRegistry) {
         this.context = context;
         this.neo4jConfig = neo4jConfig;
         this.log = log.getInternalLog(ApocConfig.class);
+        this.globalProceduresRegistry = globalProceduresRegistry;
+        theInstance = this;
     }
 
     public Configuration getConfig() {
@@ -41,6 +53,12 @@ public class ApocConfig extends LifecycleAdapter {
         String neo4jConfFolder = System.getenv().getOrDefault("NEO4J_CONF", determineNeo4jConfFolder());
         System.setProperty("NEO4J_CONF", neo4jConfFolder);
         log.info("system property NEO4J_CONF set to %s", neo4jConfFolder);
+
+
+        // expose this config instance via `@Context ApocConfig config`
+        if (globalProceduresRegistry!=null) {
+            globalProceduresRegistry.registerComponent((Class<ApocConfig>) getClass(), ctx -> this, true);
+        }
 
         loadConfiguration();
     }
@@ -70,5 +88,38 @@ public class ApocConfig extends LifecycleAdapter {
         CombinedConfigurationBuilder builder = new CombinedConfigurationBuilder()
                 .configure(new Parameters().fileBased().setURL(resource));
         config = builder.getConfiguration();
+
+        // copy apoc settings from neo4j.conf for legacy support
+        neo4jConfig.getDeclaredSettings().entrySet().stream()
+                .filter(e -> e.getKey().startsWith("apoc."))
+                .forEach(e -> config.setProperty(e.getKey(), neo4jConfig.get(e.getValue())));
+    }
+
+    public void checkReadAllowed(String url) {
+        if (isFile(url) && !config.getBoolean("apoc.import.file.enabled")) {
+            throw new RuntimeException("Import from files not enabled, please set apoc.import.file.enabled=true in your apoc.conf");
+        }
+    }
+    public void checkWriteAllowed() {
+        if (!config.getBoolean("apoc.export.file.enabled")) {
+            throw new RuntimeException("Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf");
+        }
+    }
+
+    public static ApocConfig apocConfig() {
+        return theInstance;
+    }
+
+
+    /*
+     * delegate methods for Configuration
+     */
+
+    public Iterator<String> getKeys(String prefix) {
+        return getConfig().getKeys(prefix);
+    }
+
+    public String getString(String key) {
+        return getConfig().getString(key);
     }
 }

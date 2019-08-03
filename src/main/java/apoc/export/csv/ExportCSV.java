@@ -1,5 +1,6 @@
 package apoc.export.csv;
 
+import apoc.ApocConfig;
 import apoc.Description;
 import apoc.Pools;
 import apoc.export.cypher.ExportFileManager;
@@ -29,8 +30,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.util.FileUtils.checkWriteAllowed;
-
 /**
  * @author mh
  * @since 22.05.16
@@ -41,6 +40,9 @@ public class ExportCSV {
 
     @Context
     public TerminationGuard terminationGuard;
+
+    @Context
+    public ApocConfig apocConfig;
 
     public ExportCSV(GraphDatabaseService db) {
         this.db = db;
@@ -92,7 +94,7 @@ public class ExportCSV {
     }
 
     private Stream<ProgressInfo> exportCsv(@Name("file") String fileName, String source, Object data, ExportConfig exportConfig) throws Exception {
-        checkWriteAllowed();
+        apocConfig.checkWriteAllowed();
         ProgressInfo progressInfo = new ProgressInfo(fileName, source, "csv");
         progressInfo.batchSize = exportConfig.getBatchSize();
         ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
