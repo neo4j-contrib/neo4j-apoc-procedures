@@ -25,7 +25,7 @@ public class ApocConfigTest {
 
         Config neo4jConfig = mock(Config.class);
         when(neo4jConfig.getDeclaredSettings()).thenReturn(Collections.emptyMap());
-        cut = new ApocConfig(null, neo4jConfig, new SimpleLogService(logProvider), null);
+        cut = new ApocConfig(neo4jConfig, new SimpleLogService(logProvider), null);
     }
 
     @Test

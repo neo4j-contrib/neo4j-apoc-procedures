@@ -26,7 +26,7 @@ public class ApocConfigExtensionFactory extends ExtensionFactory<ApocConfigExten
 
     @Override
     public Lifecycle newInstance(ExtensionContext context, Dependencies dependencies) {
-        return new ApocConfig(context, dependencies.config(), dependencies.log(), dependencies.globalProceduresRegistry());
+        return new ApocConfig(dependencies.config(), dependencies.log(), dependencies.globalProceduresRegistry());
     }
 
 }

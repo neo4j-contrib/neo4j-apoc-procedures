@@ -18,25 +18,34 @@ import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+import org.w3c.dom.Element;
 import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.diff.DefaultNodeMatcher;
 import org.xmlunit.diff.Diff;
+import org.xmlunit.diff.ElementSelector;
 import org.xmlunit.diff.ElementSelectors;
+import org.xmlunit.util.Nodes;
 
+import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import static apoc.ApocConfig.*;
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.*;
+import static org.xmlunit.diff.ElementSelectors.byName;
 
 /**
  * @author mh
  * @since 22.05.16
  */
 public class ExportGraphMLTest {
+
+    public static final List<String> ATTRIBUTES_CONTAINING_NODE_IDS = Arrays.asList("id", "source", "target");
 
     public static final String KEY_TYPES_EMPTY = "<key id=\"name\" for=\"node\" attr.name=\"name\" attr.type=\"string\"/>%n" +
             "<key id=\"limit\" for=\"node\" attr.name=\"limit\" attr.type=\"long\"/>%n" +
@@ -123,10 +132,7 @@ public class ExportGraphMLTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
                 .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, "false")
-                .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
-                .withSetting(ApocSettings.apoc_export_file_enabled, Boolean.toString(testName.getMethodName().endsWith(TEST_WITH_NO_EXPORT))) //TODO: check condition
-                .withSetting(ApocSettings.apoc_import_file_enabled, Boolean.toString(testName.getMethodName().endsWith(TEST_WITH_NO_IMPORT)));
-
+                .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath());
 
     private static File directory = new File("target/import");
 
@@ -137,6 +143,10 @@ public class ExportGraphMLTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, ExportGraphML.class, Graphs.class);
+
+        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, Boolean.toString(!testName.getMethodName().endsWith(TEST_WITH_NO_EXPORT)));
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, Boolean.toString(!testName.getMethodName().endsWith(TEST_WITH_NO_IMPORT)));
+
         db.execute("CREATE (f:Foo:Foo2:Foo0 {name:'foo', born:Date('2018-10-10'), place:point({ longitude: 56.7, latitude: 12.78, height: 100 })})-[:KNOWS]->(b:Bar {name:'bar',age:42, place:point({ longitude: 56.7, latitude: 12.78})}),(c:Bar {age:12,values:[1,2,3]})").close();
     }
 
@@ -172,7 +182,7 @@ public class ExportGraphMLTest {
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             TestCase.assertTrue(except instanceof RuntimeException);
-            assertEquals("Import from files not enabled, please set apoc.import.file.enabled=true in your neo4j.conf", except.getMessage());
+            assertEquals("Import from files not enabled, please set apoc.import.file.enabled=true in your apoc.conf", except.getMessage());
             throw e;
         }
     }
@@ -252,9 +262,29 @@ public class ExportGraphMLTest {
                 .withTest(output)
                 .checkForSimilar()
                 .ignoreWhitespace()
-                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
+                .withAttributeFilter(attr -> !ATTRIBUTES_CONTAINING_NODE_IDS.contains(attr.getLocalName())) // ignore id properties
+//                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
+                // similar to ElementSelectors.byNameAndAllAttributes, but ignore blacklistes attributes
+                .withNodeMatcher(new DefaultNodeMatcher((ElementSelector) (controlElement, testElement) -> {
+                    if (!byName.canBeCompared(controlElement, testElement)) {
+                        return false;
+                    }
+                    Map<QName, String> cAttrs = Nodes.getAttributes(controlElement);
+                    Map<QName, String> tAttrs = Nodes.getAttributes(testElement);
+                    if (cAttrs.size() != tAttrs.size()) {
+                        return false;
+                    }
+                    for (Map.Entry<QName, String> e: cAttrs.entrySet()) {
+                        if ((!ATTRIBUTES_CONTAINING_NODE_IDS.contains(e.getKey().getLocalPart()))
+                            && (!e.getValue().equals(tAttrs.get(e.getKey())))) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }))
                 .build();
-        assertFalse(myDiff.hasDifferences());
+
+        assertFalse(myDiff.toString(), myDiff.hasDifferences());
     }
 
     @Test
@@ -276,7 +306,7 @@ public class ExportGraphMLTest {
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             TestCase.assertTrue(except instanceof RuntimeException);
-            assertEquals("Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf", except.getMessage());
+            assertEquals("Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf", except.getMessage());
             throw e;
         }
     }

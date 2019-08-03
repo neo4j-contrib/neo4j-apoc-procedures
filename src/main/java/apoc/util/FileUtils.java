@@ -1,5 +1,6 @@
 package apoc.util;
 
+import apoc.ApocConfig;
 import apoc.ApocConfiguration;
 import apoc.export.util.CountingInputStream;
 import apoc.export.util.CountingReader;
@@ -167,7 +168,7 @@ public class FileUtils {
     }
 
     private static boolean isImportUsingNeo4jConfig() {
-        return ApocConfiguration.isEnabled("import.file.use_neo4j_config");
+        return apocConfig().getBoolean(ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG);
     }
 
     public static String getConfiguredImportDirectory() {

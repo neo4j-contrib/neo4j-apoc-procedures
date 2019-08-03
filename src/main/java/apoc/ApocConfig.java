@@ -4,16 +4,11 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.combined.CombinedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.neo4j.configuration.Config;
-import org.neo4j.function.ThrowingFunction;
-import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
-import org.neo4j.kernel.api.procedure.Context;
-import org.neo4j.kernel.extension.context.ExtensionContext;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
-import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.regex.Matcher;
@@ -25,8 +20,17 @@ public class ApocConfig extends LifecycleAdapter {
 
     public static final String SUN_JAVA_COMMAND = "sun.java.command";
     public static final Pattern CONF_DIR_PATTERN = Pattern.compile("--config-dir=(\\S+)");
+    public static final String APOC_IMPORT_FILE_ENABLED = "apoc.import.file.enabled";
+    public static final String APOC_EXPORT_FILE_ENABLED = "apoc.export.file.enabled";
+    public static final String APOC_IMPORT_FILE_USE_NEO4J_CONFIG = "apoc.import.file.use_neo4j_config";
+    public static final String APOC_TTL_SCHEDULE = "apoc.ttl.schedule";
+    public static final String APOC_TTL_ENABLED = "apoc.ttl.enabled";
+    public static final String APOC_TTL_LIMIT = "apoc.ttl.limit";
+    public static final String APOC_TRIGGER_ENABLED = "apoc.trigger.enabled";
+    public static final String APOC_UUID_ENABLED = "apoc.uuid.enabled";
+    public static final String APOC_JSON_ZIP_URL = "apoc.json.zip.url";
+    public static final String APOC_JSON_SIMPLE_JSON_URL = "apoc.json.simpleJson.url";
 
-    private final ExtensionContext context;
     private final Config neo4jConfig;
     private final Log log;
     private final GlobalProceduresRegistry globalProceduresRegistry;
@@ -35,8 +39,7 @@ public class ApocConfig extends LifecycleAdapter {
 
     private static ApocConfig theInstance;
 
-    public ApocConfig(ExtensionContext context, Config neo4jConfig, LogService log, GlobalProceduresRegistry globalProceduresRegistry) {
-        this.context = context;
+    public ApocConfig(Config neo4jConfig, LogService log, GlobalProceduresRegistry globalProceduresRegistry) {
         this.neo4jConfig = neo4jConfig;
         this.log = log.getInternalLog(ApocConfig.class);
         this.globalProceduresRegistry = globalProceduresRegistry;
@@ -96,12 +99,13 @@ public class ApocConfig extends LifecycleAdapter {
     }
 
     public void checkReadAllowed(String url) {
-        if (isFile(url) && !config.getBoolean("apoc.import.file.enabled")) {
-            throw new RuntimeException("Import from files not enabled, please set apoc.import.file.enabled=true in your apoc.conf");
+        if (isFile(url) && !config.getBoolean(APOC_IMPORT_FILE_ENABLED)) {
+            throw new RuntimeException("Import from files not enabled," +
+                    " please set apoc.import.file.enabled=true in your apoc.conf");
         }
     }
     public void checkWriteAllowed() {
-        if (!config.getBoolean("apoc.export.file.enabled")) {
+        if (!config.getBoolean(APOC_EXPORT_FILE_ENABLED)) {
             throw new RuntimeException("Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf");
         }
     }
@@ -121,5 +125,13 @@ public class ApocConfig extends LifecycleAdapter {
 
     public String getString(String key) {
         return getConfig().getString(key);
+    }
+
+    public void setProperty(String key, Object value) {
+        getConfig().setProperty(key, value);
+    }
+
+    public boolean getBoolean(String key) {
+        return getConfig().getBoolean(key);
     }
 }
