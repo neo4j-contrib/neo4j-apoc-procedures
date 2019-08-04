@@ -1,6 +1,6 @@
 :readme:
 :branch: 3.5
-:docs: https://neo4j-contrib.github.io/neo4j-apoc-procedures/index35.html
+:docs: https://neo4j.com/docs/labs/apoc/current/
 :apoc-release: 3.5.0.4
 :neo4j-version: 3.5.6
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/images
