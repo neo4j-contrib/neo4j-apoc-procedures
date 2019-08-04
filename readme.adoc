@@ -1,6 +1,6 @@
 :readme:
 :branch: 3.5
-:docs: https://neo4j.com/docs/labs/apoc/current/
+:docs: https://neo4j.com/docs/labs/apoc/current
 :apoc-release: 3.5.0.4
 :neo4j-version: 3.5.6
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/images
@@ -82,7 +82,7 @@ MERGE (p:Person {name:person.name})
 
 == APOC Procedures & Functions Overview
 
-All included procedures are listed in the link:{docs}#_overview_of_apoc_procedures_functions[overview in the documentation^] and detailed in subsequent sections.
+All included procedures are listed in the link:{docs}/overview[overview in the documentation^] and detailed in subsequent sections.
 
 === Built in Help
 
