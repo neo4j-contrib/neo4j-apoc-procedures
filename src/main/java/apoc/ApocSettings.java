@@ -24,7 +24,7 @@ public class ApocSettings implements SettingsDeclaration {
 
     public static final Setting<Boolean> apoc_import_file_enabled = newBuilder( APOC_IMPORT_FILE_ENABLED, BOOL, false ).build();
 
-    public static final Setting<Boolean> apoc_import_file_use__neo4j__config = newBuilder( APOC_IMPORT_FILE_USE_NEO4J_CONFIG, BOOL, false ).build();
+    public static final Setting<Boolean> apoc_import_file_use__neo4j__config = newBuilder( APOC_IMPORT_FILE_USE_NEO4J_CONFIG, BOOL, true ).build();
 
     @Description("how often does TTL expiry check run in background")
     public static final Setting<Duration> apoc_ttl_schedule = newBuilder(APOC_TTL_SCHEDULE, DURATION, Duration.ofMinutes(1) ).build();

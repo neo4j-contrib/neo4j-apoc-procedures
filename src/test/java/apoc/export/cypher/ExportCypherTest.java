@@ -3,7 +3,10 @@ package apoc.export.cypher;
 import apoc.ApocSettings;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TestName;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.test.rule.DbmsRule;
@@ -473,7 +476,6 @@ public class ExportCypherTest {
     @Test
     public void testExportQueryCypherShellWithUnwindBatchSizeWithBatchSizeParamsOdd() throws Exception {
         String fileName = "allPlainOdd.cypher";
-        File output = new File(directory, fileName);
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'cypher-shell', useOptimizations: { type: 'unwind_batch_params', unwindBatchSize: 2}, batchSize:2})",
                 map("file", fileName),
                 (r) -> assertResultsOdd(fileName, r));

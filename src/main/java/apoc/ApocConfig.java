@@ -57,7 +57,6 @@ public class ApocConfig extends LifecycleAdapter {
         System.setProperty("NEO4J_CONF", neo4jConfFolder);
         log.info("system property NEO4J_CONF set to %s", neo4jConfFolder);
 
-
         // expose this config instance via `@Context ApocConfig config`
         if (globalProceduresRegistry!=null) {
             globalProceduresRegistry.registerComponent((Class<ApocConfig>) getClass(), ctx -> this, true);
