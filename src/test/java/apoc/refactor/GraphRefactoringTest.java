@@ -31,7 +31,7 @@ import static org.junit.Assert.*;
 public class GraphRefactoringTest {
 
     @Rule
-    public static DbmsRule db = new ImpermanentDbmsRule();
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setUp() throws Exception {

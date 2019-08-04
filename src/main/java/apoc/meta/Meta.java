@@ -35,8 +35,6 @@ public class Meta {
 
     @Context
     public GraphDatabaseService db;
-    @Context
-    public GraphDatabaseAPI api;
 
     @Context
     public KernelTransaction kernelTx;

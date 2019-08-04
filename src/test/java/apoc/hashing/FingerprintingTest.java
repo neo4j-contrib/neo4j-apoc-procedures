@@ -25,7 +25,7 @@ public class FingerprintingTest  {
 
     @Before
     public void setup() {
-        TestUtil.registerProcedure(db);
+        TestUtil.registerProcedure(db, Fingerprinting.class);
     }
 
     @Test

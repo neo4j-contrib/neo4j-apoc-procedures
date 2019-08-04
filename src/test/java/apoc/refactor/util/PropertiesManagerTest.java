@@ -28,7 +28,7 @@ import static org.junit.Assert.assertEquals;
 public class PropertiesManagerTest {
 
 	@Rule
-	public static DbmsRule db = new ImpermanentDbmsRule();
+	public DbmsRule db = new ImpermanentDbmsRule();
 
 	private String QUERY = "MATCH (d:Person {name:'Daniele'})\n" + "MATCH (p:Country {name:'USA'})\n" + "MATCH (d)-[r:TRAVELS_TO]->(p)\n" + "MATCH (d)-[h:GOES_TO]->(p)\n"
 					+ "MATCH (d)-[l:FLIGHTS_TO]->(p) return r as rel1,h as rel2";

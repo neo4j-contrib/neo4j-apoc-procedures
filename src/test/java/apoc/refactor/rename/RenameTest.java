@@ -28,7 +28,7 @@ import static org.junit.Assert.assertEquals;
 public class RenameTest {
 
 	@Rule
-	public static DbmsRule db = new ImpermanentDbmsRule();
+	public DbmsRule db = new ImpermanentDbmsRule();
 
 	@Before public void setUp() throws Exception {
 		TestUtil.registerProcedure(db, Rename.class);
