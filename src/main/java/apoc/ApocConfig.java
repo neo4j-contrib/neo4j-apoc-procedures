@@ -4,6 +4,7 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.combined.CombinedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.neo4j.configuration.Config;
+import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
@@ -30,6 +31,7 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_UUID_ENABLED = "apoc.uuid.enabled";
     public static final String APOC_JSON_ZIP_URL = "apoc.json.zip.url";
     public static final String APOC_JSON_SIMPLE_JSON_URL = "apoc.json.simpleJson.url";
+    public static final String APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM = "apoc.import.file.allow_read_from_filesystem";
 
     private final Config neo4jConfig;
     private final Log log;
@@ -95,6 +97,9 @@ public class ApocConfig extends LifecycleAdapter {
         neo4jConfig.getDeclaredSettings().entrySet().stream()
                 .filter(e -> e.getKey().startsWith("apoc."))
                 .forEach(e -> config.setProperty(e.getKey(), neo4jConfig.get(e.getValue())));
+
+        boolean allowFileUrls = neo4jConfig.get(GraphDatabaseSettings.allow_file_urls);
+        config.setProperty(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, allowFileUrls);
     }
 
     public void checkReadAllowed(String url) {
@@ -124,6 +129,10 @@ public class ApocConfig extends LifecycleAdapter {
 
     public String getString(String key) {
         return getConfig().getString(key);
+    }
+
+    public String getString(String key, String defaultValue) {
+        return getConfig().getString(key, defaultValue);
     }
 
     public void setProperty(String key, Object value) {

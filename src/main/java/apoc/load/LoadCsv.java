@@ -33,7 +33,6 @@ import static java.util.Collections.emptyMap;
 
 public class LoadCsv {
 
-
     @Context
     public GraphDatabaseService db;
 

@@ -7,12 +7,15 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.GenericContainer;
 
+import java.io.File;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -28,9 +31,13 @@ public class LoadCsvTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, "true");
+            .withSetting(ApocSettings.apoc_import_file_enabled, "true")
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File(getUrlFileName("test.csv").toURI()).getParent());
 
     private GenericContainer httpServer;
+
+    public LoadCsvTest() throws URISyntaxException {
+    }
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class);
@@ -320,16 +327,18 @@ RETURN m.col_1,m.col_2,m.col_3
         }, Exception.class);
         Assume.assumeNotNull(httpServer);
         try {
-            testResult(db, "CALL apoc.load.csv({url})", map("url", "http://localhost:" + httpServer.getMappedPort(8000)),
+            testResult(db, "CALL apoc.load.csv($url)", map("url", "http://localhost:" + httpServer.getMappedPort(8000)),
                     (r) -> {});
         } catch (QueryExecutionException e) {
             assertTrue(e.getMessage().contains("The redirect URI has a different protocol: file:/etc/passwd"));
             throw e;
+        } finally {
+            httpServer.stop();
         }
-        httpServer.stop();
     }
 
     @Test public void testWithEmptyQuoteChar() throws Exception {
+        //TODO: fix this test to not download 7 MB each time.
         Assume.assumeFalse("skip this on travis it downloads 7.3 MB of data", TestUtil.isTravis());
         URL url = new URL("https://www.fhwa.dot.gov/bridge/nbi/2010/delimited/AL10.txt");
         testResult(db, "CALL apoc.load.csv({url}, {quoteChar: '\0'})", map("url",url.toString()),

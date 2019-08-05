@@ -107,9 +107,13 @@ public class TestUtil {
     }
     public static void testResult(GraphDatabaseService db, String call, Map<String,Object> params, Consumer<Result> resultConsumer) {
         try (Transaction tx = db.beginTx()) {
-            Map<String, Object> p = (params == null) ? Collections.<String, Object>emptyMap() : params;
-            resultConsumer.accept(db.execute(call, p));
+            Map<String, Object> p = (params == null) ? Collections.emptyMap() : params;
+            Result result = db.execute(call, p);
+            result.hasNext(); // force execution - seems to be necessary in 4.0
+            resultConsumer.accept(result);
             tx.success();
+        } catch (RuntimeException e) {
+            throw e;
         }
     }
 

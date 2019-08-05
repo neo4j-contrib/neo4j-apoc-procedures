@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM;
 import static apoc.ApocConfig.apocConfig;
 
 /**
@@ -92,10 +93,10 @@ public class FileUtils {
 
     public static String changeFileUrlIfImportDirectoryConstrained(String url) throws IOException {
         if (isFile(url) && isImportUsingNeo4jConfig()) {
-            if (!ApocConfiguration.isEnabled("import.file.allow_read_from_filesystem"))
+            if (!apocConfig().getBoolean(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM))
                 throw new RuntimeException("Import file "+url+" not enabled, please set dbms.security.allow_csv_import_from_file_urls=true in your neo4j.conf");
 
-            String importDir = ApocConfiguration.get("dbms.directories.import", null);
+            String importDir = apocConfig().getString("dbms.directories.import", null);
 
             URI uri = URI.create(url);
             if(uri == null) throw new RuntimeException("Path not valid!");
@@ -103,7 +104,7 @@ public class FileUtils {
             if (importDir != null && !importDir.isEmpty()) {
                 try {
                     String relativeFilePath = !uri.getPath().isEmpty() ? uri.getPath() : uri.getHost();
-                    String absolutePath = url.startsWith(importDir) ? url : new File(importDir, relativeFilePath).getAbsolutePath();
+                    String absolutePath = relativeFilePath.startsWith(importDir) ? relativeFilePath : new File(importDir, relativeFilePath).getAbsolutePath();
 
                     return new File(absolutePath).toURI().toString();
                 } catch (Exception e){
