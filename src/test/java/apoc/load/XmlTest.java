@@ -2,13 +2,18 @@ package apoc.load;
 
 import apoc.ApocSettings;
 import apoc.util.TestUtil;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.io.File;
+import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -46,7 +51,14 @@ public class XmlTest {
             )
     );
 
-    static final String XML_XPATH_AS_NESTED_MAP = "[{_children=[{_type=author, _text=Corets, Eva}, {_type=title, _text=Maeve Ascendant}, {_type=genre, _text=Fantasy}, {_type=price, _text=5.95}, {_type=publish_date, _text=2000-11-17}, {_type=description, _text=After the collapse of a nanotechnology society in England, the young survivors lay the foundation for a new society.}], _type=book, id=bk103}]";
+    public static final Map<String, Object> XML_XPATH_AS_NESTED_MAP = map("_type", "book", "id", "bk103", "_children",
+            Arrays.asList(map("_type", "author", "_text", "Corets, Eva"),
+                    map("_type", "title", "_text", "Maeve Ascendant"),
+                    map("_type", "genre", "_text", "Fantasy"),
+                    map("_type", "price", "_text", "5.95"),
+                    map("_type", "publish_date", "_text", "2000-11-17"),
+                    map("_type", "description", "_text", "After the collapse of a nanotechnology society in England, the young survivors lay the foundation for a new society.")
+            ));
 
     private static final Map<String, Object> XML_AS_SINGLE_LINE = map(
             "_type", "table",
@@ -204,8 +216,8 @@ public class XmlTest {
     public void testLoadXmlXpathReturnBookFromBookTitle () {
         testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[title=\"Maeve Ascendant\"]/.') yield value as result",
                 (r) -> {
-                    Object value = r.values();
-                    assertEquals(XML_XPATH_AS_NESTED_MAP, value.toString());
+                    Object value = Iterables.single(r.values());
+                    assertEquals(XML_XPATH_AS_NESTED_MAP, value);
                 });
     }
 
@@ -428,5 +440,19 @@ public class XmlTest {
                 (row) -> {
                     assertEquals(XML_AS_SINGLE_LINE, row.get("value"));
                 });
+    }
+
+    @Test
+    public void testParse() {
+        testCall(db, "WITH '<?xml version=\"1.0\"?><table><tr><td><img src=\"pix/logo-tl.gif\"></img></td></tr></table>' AS xmlString RETURN apoc.xml.parse(xmlString) AS value",
+                (row) -> assertEquals(XML_AS_SINGLE_LINE, row.get("value")));
+    }
+
+    @Test
+    public void testParseWithXPath() throws Exception {
+        String xmlString = FileUtils.readFileToString(new File("src/test/resources/xml/books.xml"), Charset.forName("UTF-8"));
+        testCall(db, "RETURN apoc.xml.parse($xmlString, '/catalog/book[title=\"Maeve Ascendant\"]/.') AS result",
+                map("xmlString", xmlString),
+                (r) -> assertEquals(XML_XPATH_AS_NESTED_MAP, r.get("result")));
     }
 }

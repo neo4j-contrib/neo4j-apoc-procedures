@@ -98,6 +98,11 @@ In our APOC procedure library we already converted about https://github.com/neo4
 | 2
 | apoc.util.md5(value)
 
+| XML parse function
+| 1
+| RETURN apoc.xml.parse('<?xml version="1.0"?><table><tr><td><img src="pix/logo-tl.gif"></img></td></tr></table>') AS value
+
+
 |===
 
 You can list user defined functions with `call dbms.functions()`

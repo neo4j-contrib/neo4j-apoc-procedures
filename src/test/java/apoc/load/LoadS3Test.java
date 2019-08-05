@@ -4,6 +4,7 @@ import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.junit.*;
+import org.neo4j.driver.internal.util.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -73,8 +74,8 @@ public class LoadS3Test {
         String url = minio.putFile("src/test/resources/xml/books.xml");
 
         testCall(db, "CALL apoc.load.xml($url,'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", Util.map("url", url), (r) -> {
-            Object value = r.values();
-            assertEquals(XML_XPATH_AS_NESTED_MAP, value.toString());
+            Object value = Iterables.single(r.values());
+            assertEquals(XML_XPATH_AS_NESTED_MAP, value);
         });
     }
 

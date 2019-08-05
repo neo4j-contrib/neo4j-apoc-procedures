@@ -349,3 +349,15 @@ CALL apoc.xml.import('https://seafile.rlp.net/f/6282a26504cc4f079ab9/?dl=1', {co
 return node;
 
 ----
+
+=== Helper Function `apoc.xml.parse`
+
+In case you have in your dataset nodes with property values XML string you can parse them into Maps
+with the `apoc.xml.parse` function.
+
+Following an example of how to use it:
+
+```
+WITH '<?xml version="1.0"?><table><tr><td><img src="pix/logo-tl.gif"></img></td></tr></table>' AS xmlString
+RETURN apoc.xml.parse(xmlString) AS value
+```

@@ -25,7 +25,8 @@ import static org.junit.Assert.*;
  * @author mh
  * @since 23.05.16
  */
-public class SchemaIndexTest {
+public class
+SchemaIndexTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
