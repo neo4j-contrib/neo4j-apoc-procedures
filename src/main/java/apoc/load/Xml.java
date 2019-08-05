@@ -1,5 +1,6 @@
 package apoc.load;
 
+import apoc.export.util.CountingInputStream;
 import apoc.result.MapResult;
 import apoc.result.NodeResult;
 import apoc.util.FileUtils;
@@ -26,12 +27,10 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,6 +55,15 @@ public class Xml {
         return xmlXpathToMapResult(url, simpleMode, path ,config);
     }
 
+    @UserFunction("apoc.xml.parse")
+    @Description("RETURN apoc.xml.parse(<xml string>, <xPath string>, config, false) AS value")
+    public Map<String, Object> parse(@Name("data") String data, @Name(value = "path", defaultValue = "/") String path, @Name(value = "config",defaultValue = "{}") Map<String, Object> config, @Name(value = "simple", defaultValue = "false") boolean simpleMode) throws Exception {
+        if (config == null) config = Collections.emptyMap();
+        boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
+        return parse(new ByteArrayInputStream(data.getBytes(Charset.forName("UTF-8"))), simpleMode, path, failOnError)
+                .map(mr -> mr.value).findFirst().orElse(null);
+    }
+
     @Procedure(deprecatedBy = "apoc.load.xml")
     @Deprecated
     @Description("apoc.load.xmlSimple('http://example.com/test.xml') YIELD value as doc CREATE (p:Person) SET p.name = doc.name load from XML URL (e.g. web-api) to import XML as single nested map with attributes and _type, _text and _children fields. This method does intentionally not work with XML mixed content.")
@@ -66,6 +74,21 @@ public class Xml {
     private Stream<MapResult> xmlXpathToMapResult(@Name("url") String url, boolean simpleMode, String path, Map<String, Object> config) throws Exception {
         if (config == null) config = Collections.emptyMap();
         boolean failOnError = (boolean) config.getOrDefault("failOnError", true);
+        try {
+            FileUtils.checkReadAllowed(url);
+            url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
+            Map<String, Object> headers = (Map) config.getOrDefault( "headers", Collections.emptyMap() );
+            CountingInputStream is = Util.openInputStream(url, headers, null);
+            return parse(is, simpleMode, path, failOnError);
+        } catch (Exception e){
+            if(!failOnError)
+                return Stream.of(new MapResult(Collections.emptyMap()));
+            else
+                throw e;
+        }
+    }
+
+    private Stream<MapResult> parse(InputStream data, boolean simpleMode, String path, boolean failOnError) throws Exception {
         List<MapResult> result = new ArrayList<>();
         try {
             DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -74,12 +97,7 @@ public class Xml {
             DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
             documentBuilder.setEntityResolver((publicId, systemId) -> new InputSource(new StringReader("")));
 
-            FileUtils.checkReadAllowed(url);
-            url = FileUtils.changeFileUrlIfImportDirectoryConstrained(url);
-
-            Map<String, Object> headers = (Map) config.getOrDefault( "headers", Collections.emptyMap() );
-
-            Document doc = documentBuilder.parse(Util.openInputStream(url, headers, null));
+            Document doc = documentBuilder.parse(data);
             XPathFactory xPathFactory = XPathFactory.newInstance();
 
             XPath xPath = xPathFactory.newXPath();
@@ -101,13 +119,13 @@ public class Xml {
             if(!failOnError)
                 return Stream.of(new MapResult(Collections.emptyMap()));
             else
-                throw new FileNotFoundException(e.getMessage());
+                throw e;
         }
         catch (Exception e){
             if(!failOnError)
                 return Stream.of(new MapResult(Collections.emptyMap()));
             else
-                throw new Exception(e);
+                throw e;
         }
         return result.stream();
     }
