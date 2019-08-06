@@ -3,6 +3,7 @@ package apoc.util;
 import apoc.export.util.PointSerializer;
 import apoc.export.util.TemporalSerializer;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -98,6 +99,22 @@ public class JsonUtil {
             return JsonPath.parse(json,JSON_PATH_CONFIG).read(path, type);
         } catch (IOException e) {
             throw new RuntimeException("Can't convert " + json + " to "+type.getSimpleName()+" with path "+path, e);
+        }
+    }
+
+    public static String writeValueAsString(Object json) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(json);
+        } catch (JsonProcessingException e) {
+            return null;
+        }
+    }
+
+    public static byte[] writeValueAsBytes(Object json) {
+        try {
+            return OBJECT_MAPPER.writeValueAsBytes(json);
+        } catch (JsonProcessingException e) {
+            return null;
         }
     }
 }

@@ -55,7 +55,7 @@ Its basic structure is: `{name:"Name",properties:{properties},nodes:[nodes],rela
 | apoc.graph.fromDB('name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromCypher('statement',{params},'name',{properties}) | creates a virtual graph object for later processing
 | apoc.graph.fromDocument({json},{config}) | transform JSON documents into graph structures
-| apoc.graph.validateDocument({json},{config}) | validate the JSON and returns informations about required fields violations
+| apoc.graph.validateDocument({json},{config}) | validate the JSON and returns information about required fields violations
 |===
 
 === `apoc.graph.fromDocument`
@@ -200,3 +200,22 @@ RETURN graph
 As a result we have a virtual graph with two nodes and one relationship:
 
 image::apoc.graph.fromDocument_1[scaledwidth="100%"]
+
+You can also do a pre-validation over the document with the `apoc.graph.validateDocument` procedure that will return the
+record with invalid data.
+
+[source,cypher]
+----
+call apoc.graph.validateDocument('[{"foo": "foo"}, {"bar": "bar", "id": 1, "type": "label"}, {"fooBar": "fooBar", "id": 1}]')
+----
+
+or
+
+[source,cypher]
+----
+call apoc.graph.validateDocument([{foo: "foo"}, {bar: "bar", id: 1, type: "label"}, {fooBar: "fooBar", id: 1}])
+----
+
+Will display the following result:
+
+image::apoc.graph.validateDocument[scaledwidth="100%"]
