@@ -6,9 +6,7 @@ import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Relationship;
@@ -22,8 +20,7 @@ import java.util.*;
 import static apoc.util.MapUtil.map;
 import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 import static org.neo4j.graphdb.Label.label;
 
 /**
@@ -47,8 +44,8 @@ public class GraphsTest {
                 });
     }
 
-    @Rule
-    public ExpectedException thrown= ExpectedException.none();
+//    @Rule
+//    public ExpectedException thrown = ExpectedException.none();
 
     @Test
     public void testFromData() throws Exception {
@@ -385,7 +382,7 @@ public class GraphsTest {
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
-            assertEquals("every object must have id as `id` field name", except.getMessage());
+            assertEquals("The object `{\"type\":\"artist\",\"name\":\"Genesis\"}` must have `id` as id-field name", except.getMessage());
             throw e;
         }
     }
@@ -394,19 +391,33 @@ public class GraphsTest {
     public void testValidateDocument() throws Exception {
         List<Object> list = Arrays.asList(Util.map("type", "artist", "name", "Daft Punk"),
                 Util.map("id", 1, "type", "artist", "name", "Daft Punk"),
-                Util.map("id", 1, "name", "Daft Punk"));
+                Util.map("id", 1, "name", "Daft Punk"),
+                Util.map("name", "Daft Punk"));
 
         TestUtil.testResult(db, "CALL apoc.graph.validateDocument($json) yield row",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(list)), result -> {
                     Map<String, Object> row = (Map<String, Object>) result.next().get("row");
                     assertEquals(0L, row.get("index"));
-                    assertEquals("every object must have id as `id` field name", row.get("message"));
-                    row = (Map<String, Object>) result.next().get("row");
-                    assertEquals(1L, row.get("index"));
-                    assertEquals("Valid", row.get("message"));
+                    assertEquals("The object `{\"type\":\"artist\",\"name\":\"Daft Punk\"}` must have `id` as id-field name", row.get("message"));
                     row = (Map<String, Object>) result.next().get("row");
                     assertEquals(2L, row.get("index"));
-                    assertEquals("every object must have type as `label` field name", row.get("message"));
+                    assertEquals("The object `{\"id\":1,\"name\":\"Daft Punk\"}` must have `type` as label-field name", row.get("message"));
+                    row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(3L, row.get("index"));
+                    assertEquals("The object `{\"name\":\"Daft Punk\"}` must have `id` as id-field name and `type` as label-field name", row.get("message"));
+                    assertFalse("should not have next", result.hasNext());
+                });
+    }
+
+    @Test
+    public void testValidateDocumentWithCutErrorFormatter() throws Exception {
+        String json = "{\"quiz\":{\"sport\":{\"q1\":{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bulls\",\"Los Angeles Kings\",\"Golden State Warriros\",\"Huston Rocket\"],\"answer\":\"Huston Rocket\"}},\"maths\":{\"q1\":{\"question\":\"5 + 7 = ?\",\"options\":[\"10\",\"11\",\"12\",\"13\"],\"answer\":\"12\"},\"q2\":{\"question\":\"12 - 8 = ?\",\"options\":[\"1\",\"2\",\"3\",\"4\"],\"answer\":\"4\"}}}}";
+
+        TestUtil.testResult(db, "CALL apoc.graph.validateDocument($json) yield row",
+                Util.map("json", json), result -> {
+                    Map<String, Object> row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(0L, row.get("index"));
+                    assertEquals("The object `{\"quiz\":{\"sport\":{\"q1\":{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bul...}` must have `id` as id-field name and `type` as label-field name", row.get("message"));
                     assertFalse("should not have next", result.hasNext());
                 });
     }
@@ -552,11 +563,16 @@ public class GraphsTest {
     }
 
     @Test
-    public void testCreateVirtualSimpleNodeWithErrorType() throws Exception{
-        thrown.expect(QueryExecutionException.class);
-        thrown.expectMessage("every object must have type as `label` field name");
-        Map<String, Object> genesisMap = Util.map("id", 1L, "name", "Genesis");
-        db.executeTransactionally("CALL apoc.graph.fromDocument($json) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)));
+    public void testCreateVirtualSimpleNodeWithErrorType() throws Exception {
+        try {
+            Map<String, Object> genesisMap = Util.map("id", 1L, "name", "Genesis");
+            db.executeTransactionally("CALL apoc.graph.fromDocument($json) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)), result -> null);
+            fail();
+        } catch (QueryExecutionException e) {
+            Throwable rootCause = ExceptionUtils.getRootCause(e);
+            assertEquals("The object `{\"id\":1,\"name\":\"Genesis\"}` must have `type` as label-field name", rootCause.getMessage());
+
+        }
     }
 
     @Test
