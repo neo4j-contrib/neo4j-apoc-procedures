@@ -1,19 +1,19 @@
 package apoc.util;
 
-import apoc.ApocSettings;
 import apoc.config.Config;
 import apoc.load.relative.LoadRelativePathTest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import org.junit.rules.TestName;
 import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.configuration.SettingValueParsers;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 
+import static apoc.ApocConfig.apocConfig;
 import static org.junit.Assert.assertEquals;
 
 public class FileUtilsTest {
@@ -21,30 +21,27 @@ public class FileUtilsTest {
     @Rule
     public TestName testName = new TestName();
 
+
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.allow_file_urls, "true")
-            .withSetting(ApocSettings.dynamic("foo", SettingValueParsers.STRING), "BAR")
-            ;
+            .withSetting(GraphDatabaseSettings.allow_file_urls, "true");
 
-    //TODO: conditionally amend import folder to settings
-    /*
-            if (testName.getMethodName().endsWith(TEST_WITH_DIRECTORY_IMPORT)) {
-            builder.setConfig("dbms.directories.import", "import");
-        }
+    @Rule
+    public ProvideSystemProperty sysprops = new ProvideSystemProperty("foo", "bar");
 
-     */
-
-    private static final File PATH = new File("target/test-data");
-
-    private static String TEST_FILE_RELATIVE = new File(PATH.getAbsolutePath() + "/import/test.csv").toURI().toString();
     private static String TEST_FILE_ABSOLUTE = new File(LoadRelativePathTest.class.getClassLoader().getResource("test.csv").getPath()).toURI().toString();
     private static String TEST_FILE = LoadRelativePathTest.class.getClassLoader().getResource("test.csv").getPath();
 
     private static final String TEST_WITH_DIRECTORY_IMPORT = "WithDirectoryImport";
+    private String TEST_FILE_RELATIVE;
 
     @Before
     public void setUp() throws Exception {
+        String importFolder = db.getDatabaseDirAbsolutePath() + "/import/";
+        TEST_FILE_RELATIVE = new File(importFolder  + "test.csv").toURI().toString();
+        if (testName.getMethodName().endsWith(TEST_WITH_DIRECTORY_IMPORT)) {
+            apocConfig().setProperty("dbms.directories.import", importFolder);
+        }
         TestUtil.registerProcedure(db, Config.class);
     }
 

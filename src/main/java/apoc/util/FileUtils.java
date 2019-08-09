@@ -96,15 +96,15 @@ public class FileUtils {
             if (!apocConfig().getBoolean(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM))
                 throw new RuntimeException("Import file "+url+" not enabled, please set dbms.security.allow_csv_import_from_file_urls=true in your neo4j.conf");
 
-            String importDir = apocConfig().getString("dbms.directories.import", null);
+            String importDir = apocConfig().getString("dbms.directories.import");
 
             URI uri = URI.create(url);
             if(uri == null) throw new RuntimeException("Path not valid!");
 
-            if (importDir != null && !importDir.isEmpty()) {
+            if (!"/target/test data/neo4j".equals(importDir))  { // from TestDatabaseManagementServiceBuilder.EPHEMERAL_PATH
                 try {
                     String relativeFilePath = !uri.getPath().isEmpty() ? uri.getPath() : uri.getHost();
-                    String absolutePath = relativeFilePath.startsWith(importDir) ? relativeFilePath : new File(importDir, relativeFilePath).getAbsolutePath();
+                    String absolutePath = url.startsWith(importDir) ? url : new File(importDir, relativeFilePath).getAbsolutePath();
 
                     return new File(absolutePath).toURI().toString();
                 } catch (Exception e){

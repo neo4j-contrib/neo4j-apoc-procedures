@@ -5,17 +5,21 @@ import org.apache.commons.configuration2.builder.combined.CombinedConfigurationB
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.config.Setting;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static apoc.util.FileUtils.isFile;
+import static org.neo4j.configuration.GraphDatabaseSettings.*;
 
 public class ApocConfig extends LifecycleAdapter {
 
@@ -32,6 +36,22 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_JSON_ZIP_URL = "apoc.json.zip.url";
     public static final String APOC_JSON_SIMPLE_JSON_URL = "apoc.json.simpleJson.url";
     public static final String APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM = "apoc.import.file.allow_read_from_filesystem";
+
+    public static final List<Setting> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = Arrays.asList(
+            legacy_certificates_directory,
+            data_directory,
+            load_csv_file_url_root,
+            logs_directory,
+            plugin_dir,
+            logical_logs_location,
+            transaction_logs_root_path,
+            neo4j_home
+    );
+
+// old settings from 3.x that seem to no longer be existent
+//"dbms.directories.lib",
+//            "dbms.directories.metrics",  // metrics is only in EE
+//            "dbms.directories.run",
 
     private final Config neo4jConfig;
     private final Log log;
@@ -97,6 +117,10 @@ public class ApocConfig extends LifecycleAdapter {
         neo4jConfig.getDeclaredSettings().entrySet().stream()
                 .filter(e -> e.getKey().startsWith("apoc."))
                 .forEach(e -> config.setProperty(e.getKey(), neo4jConfig.get(e.getValue())));
+
+        for (Setting s : NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES) {
+            config.setProperty(s.name(), neo4jConfig.get(s).toString());
+        }
 
         boolean allowFileUrls = neo4jConfig.get(GraphDatabaseSettings.allow_file_urls);
         config.setProperty(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, allowFileUrls);
