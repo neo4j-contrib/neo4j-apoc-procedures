@@ -3,6 +3,7 @@ package apoc.util;
 import apoc.ApocConfiguration;
 import apoc.export.util.CountingInputStream;
 import apoc.export.util.CountingReader;
+import apoc.export.util.ExportConfig;
 import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
 import org.apache.commons.io.output.WriterOutputStream;
@@ -175,9 +176,14 @@ public class FileUtils {
         if (isFile(url) && !ApocConfiguration.isEnabled("import.file.enabled"))
             throw new RuntimeException("Import from files not enabled, please set apoc.import.file.enabled=true in your neo4j.conf");
     }
-    public static void checkWriteAllowed() {
+    public static void checkWriteAllowed(ExportConfig exportConfig) {
         if (!ApocConfiguration.isEnabled("export.file.enabled"))
-            throw new RuntimeException("Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf");
+            if (exportConfig == null || !exportConfig.streamStatements()) {
+                throw new RuntimeException("Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf");
+            }
+    }
+    public static void checkWriteAllowed() {
+        checkWriteAllowed(null);
     }
 
     public static StreamConnection openS3InputStream(URL url) throws IOException {

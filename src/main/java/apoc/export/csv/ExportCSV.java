@@ -88,7 +88,7 @@ public class ExportCSV {
     }
 
     private Stream<ProgressInfo> exportCsv(@Name("file") String fileName, String source, Object data, ExportConfig exportConfig) throws Exception {
-        checkWriteAllowed();
+        checkWriteAllowed(exportConfig);
         ProgressInfo progressInfo = new ProgressInfo(fileName, source, "csv");
         progressInfo.batchSize = exportConfig.getBatchSize();
         ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
