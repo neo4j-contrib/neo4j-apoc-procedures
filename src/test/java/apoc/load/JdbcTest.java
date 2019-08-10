@@ -10,11 +10,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.lang.reflect.InvocationTargetException;
 import java.sql.*;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -99,12 +103,19 @@ public class JdbcTest extends AbstractJdbcTest {
 
         testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], {config})",
                 map("config", map("timezone", asiaTokio.toString())),
-                (row) -> assertEquals(Util.map("NAME", "John", "SURNAME", null,
+                (row) -> {
+                    Map<String, Object> expected = MapUtil.map("NAME", "John", "SURNAME", null,
                             "HIRE_DATE", hireDate.toLocalDate(),
-                            "EFFECTIVE_FROM_DATE", effectiveFromDate.toInstant().atZone(asiaTokio).toOffsetDateTime(),
+                            "EFFECTIVE_FROM_DATE", ZonedDateTime.ofInstant(effectiveFromDate.toInstant(), ZoneId.of("+09:00")),
                             "TEST_TIME", time.toLocalTime(),
-                            "NULL_DATE", null), row.get("row")
-                )
+                            "NULL_DATE", null);
+                    Map<String, Object> rowColumn = (Map<String, Object>) row.get("row");
+
+                    expected.keySet().forEach( k -> {
+                        assertEquals(expected.get(k), rowColumn.get(k));
+                    });
+                    assertEquals(expected, rowColumn);
+                }
         );
     }
 
@@ -215,11 +226,10 @@ public class JdbcTest extends AbstractJdbcTest {
             assertEquals("In config param credentials must be passed both user and password.", except.getMessage());
             throw e;
         }
-
     }
 
-    private void createPersonTableAndData() throws ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException {
-        Class.forName("org.apache.derby.jdbc.EmbeddedDriver").newInstance(); // The JDBC specification does not recommend calling newInstance(), but adding a newInstance() call guarantees that Derby will be booted on any JVM. See: http://db.apache.org/derby/docs/10.14/devguide/tdevdvlp20349.html
+    private void createPersonTableAndData() throws ClassNotFoundException, SQLException, IllegalAccessException, InstantiationException, NoSuchMethodException, InvocationTargetException {
+        Class.forName("org.apache.derby.jdbc.EmbeddedDriver").getDeclaredConstructor().newInstance(); // The JDBC specification does not recommend calling newInstance(), but adding a newInstance() call guarantees that Derby will be booted on any JVM. See: http://db.apache.org/derby/docs/10.14/devguide/tdevdvlp20349.html
         if (testName.getMethodName().endsWith(TEST_WITH_AUTHENTICATION)) {
             System.setProperty("derby.connection.requireAuthentication", "true");
             System.setProperty("derby.user.apoc", "Ap0c!#Db");

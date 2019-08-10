@@ -371,7 +371,6 @@ public class ConvertJsonTest {
             Throwable except = ExceptionUtils.getRootCause(e);
             TestCase.assertTrue(except instanceof RuntimeException);
             assertEquals("Only include or exclude attribute are possible!", except.getMessage());
-            throw e;
         }
 
     }
@@ -390,7 +389,6 @@ public class ConvertJsonTest {
             Throwable except = ExceptionUtils.getRootCause(e);
             TestCase.assertTrue(except instanceof RuntimeException);
             assertEquals("Only include or exclude attribute are possible!", except.getMessage());
-            throw e;
         }
 
     }

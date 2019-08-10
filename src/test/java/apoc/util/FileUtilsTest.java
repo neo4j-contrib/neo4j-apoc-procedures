@@ -34,10 +34,11 @@ public class FileUtilsTest {
 
     private static final String TEST_WITH_DIRECTORY_IMPORT = "WithDirectoryImport";
     private String TEST_FILE_RELATIVE;
+    private String importFolder;
 
     @Before
     public void setUp() throws Exception {
-        String importFolder = db.getDatabaseDirAbsolutePath() + "/import/";
+        importFolder = db.getDatabaseDirAbsolutePath() + "/import/";
         TEST_FILE_RELATIVE = new File(importFolder  + "test.csv").toURI().toString();
         if (testName.getMethodName().endsWith(TEST_WITH_DIRECTORY_IMPORT)) {
             apocConfig().setProperty("dbms.directories.import", importFolder);
@@ -83,6 +84,14 @@ public class FileUtilsTest {
     @Test
     public void importDirectoryWithRelativePathWithDirectoryImport() throws Exception {
         assertEquals(TEST_FILE_RELATIVE, FileUtils.changeFileUrlIfImportDirectoryConstrained("test.csv"));
+    }
+
+
+    @Test
+    public void importDirectoryWithRelativeArchivePathWithDirectoryImport() throws Exception {
+        String localPath = "test.zip!sub/test.csv";
+        String expected = importFolder + "/" + localPath;
+        assertEquals(new File(expected).toURI().toString(), FileUtils.changeFileUrlIfImportDirectoryConstrained(localPath));
     }
 
 }

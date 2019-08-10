@@ -119,7 +119,10 @@ public class ApocConfig extends LifecycleAdapter {
                 .forEach(e -> config.setProperty(e.getKey(), neo4jConfig.get(e.getValue())));
 
         for (Setting s : NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES) {
-            config.setProperty(s.name(), neo4jConfig.get(s).toString());
+            Object value = neo4jConfig.get(s);
+            if (value!=null) {
+                config.setProperty(s.name(), value.toString());
+            }
         }
 
         boolean allowFileUrls = neo4jConfig.get(GraphDatabaseSettings.allow_file_urls);
@@ -165,5 +168,16 @@ public class ApocConfig extends LifecycleAdapter {
 
     public boolean getBoolean(String key) {
         return getConfig().getBoolean(key);
+    }
+
+    public boolean isImportFolderConfigured() {
+        // in case we're test database import path is TestDatabaseManagementServiceBuilder.EPHEMERAL_PATH
+
+        String importFolder = config.getString("dbms.directories.import");
+        if (importFolder==null) {
+            return false;
+        } else {
+            return !"/target/test data/neo4j".equals(importFolder);
+        }
     }
 }

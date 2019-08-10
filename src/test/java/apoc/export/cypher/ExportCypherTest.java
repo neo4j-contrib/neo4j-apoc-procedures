@@ -16,6 +16,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Map;
 
+import static apoc.ApocConfig.APOC_EXPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
 import static apoc.export.util.ExportFormat.*;
 import static apoc.util.Util.map;
@@ -37,8 +39,7 @@ public class ExportCypherTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
-            .withSetting(ApocSettings.apoc_export_file_enabled, "true");
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath());
 
     @Rule
     public TestName testName = new TestName();
@@ -48,6 +49,7 @@ public class ExportCypherTest {
 
     @Before
     public void setUp() throws Exception {
+        apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
         if (testName.getMethodName().endsWith(OPTIMIZED)) {
             db.execute("CREATE INDEX ON :Foo(name)").close();

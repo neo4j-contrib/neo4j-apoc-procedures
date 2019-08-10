@@ -1,6 +1,5 @@
 package apoc.cypher;
 
-import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import apoc.util.Utils;
@@ -24,6 +23,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.ApocConfig.APOC_IMPORT_FILE_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
@@ -39,8 +40,7 @@ public class CypherTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, "true")
-            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, "false")
+            .withSetting(GraphDatabaseSettings.allow_file_urls, "true")
             .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File("src/test/resources").getAbsolutePath());
 
     @Rule
@@ -48,6 +48,7 @@ public class CypherTest {
 
     @BeforeClass
     public static void setUp() {
+        apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
         TestUtil.registerProcedure(db, Cypher.class, Utils.class, CypherFunctions.class, Timeboxed.class);
     }
 

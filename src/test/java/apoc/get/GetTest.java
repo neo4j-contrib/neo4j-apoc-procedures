@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 public class GetTest {
 
     @Rule
-    public static DbmsRule db = new ImpermanentDbmsRule();
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setUp() throws Exception {

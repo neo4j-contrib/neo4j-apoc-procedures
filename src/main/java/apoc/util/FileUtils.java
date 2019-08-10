@@ -13,6 +13,8 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -96,27 +98,26 @@ public class FileUtils {
             if (!apocConfig().getBoolean(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM))
                 throw new RuntimeException("Import file "+url+" not enabled, please set dbms.security.allow_csv_import_from_file_urls=true in your neo4j.conf");
 
-            String importDir = apocConfig().getString("dbms.directories.import");
-
             URI uri = URI.create(url);
-            if(uri == null) throw new RuntimeException("Path not valid!");
-
-            if (!"/target/test data/neo4j".equals(importDir))  { // from TestDatabaseManagementServiceBuilder.EPHEMERAL_PATH
-                try {
-                    String relativeFilePath = !uri.getPath().isEmpty() ? uri.getPath() : uri.getHost();
-                    String absolutePath = url.startsWith(importDir) ? url : new File(importDir, relativeFilePath).getAbsolutePath();
-
-                    return new File(absolutePath).toURI().toString();
-                } catch (Exception e){
-                    throw new IOException("Cannot open file "+url+" from directory "+importDir+" for reading.");
-                }
-            } else {
-                try {
-                    return new File(uri.getPath()).toURI().toString();
-                } catch (Exception e) {
-                    throw new IOException("Cannot open file "+url+" for reading.");
-                }
+            String path = uri.getPath();
+            if (path.isEmpty()) {
+                path = uri.getHost(); // in case of file://test.csv
             }
+            Path normalized = Paths.get(path).normalize(); // get rid of ".." et.al.
+
+            File result;
+            if (apocConfig().isImportFolderConfigured()) {
+                Path importDir = Paths.get(apocConfig().getString("dbms.directories.import")).toAbsolutePath();
+
+                result = normalized.startsWith(importDir) ?
+                        normalized.toFile() :
+                        // use subpath to strip off leading "/" from normalized
+                        new File(importDir.toFile(), normalized.subpath(0, normalized.getNameCount()).toString());
+
+            } else {
+                result = normalized.toFile();
+            }
+            return result.toURI().toString();
         }
         return url;
     }

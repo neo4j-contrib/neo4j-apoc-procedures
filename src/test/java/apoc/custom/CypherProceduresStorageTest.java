@@ -25,8 +25,7 @@ public class CypherProceduresStorageTest {
     public static final File STORE_DIR = new File("cypher-storage");
 
     @Rule
-    public static DbmsRule db = new ImpermanentDbmsRule();
-
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setUp() throws Exception {
@@ -41,7 +40,7 @@ public class CypherProceduresStorageTest {
     private void restartDb() throws IOException {
         db.restartDatabase();
 //        db = new GraphDatabaseFactory().newEmbeddedDatabase(STORE_DIR);
-//        TestUtil.registerProcedure(db, CypherProcedures.class); // TODO: maybe that's needed
+        TestUtil.registerProcedure(db, CypherProcedures.class); // TODO: maybe that's needed
     }
     @Test
     public void registerSimpleStatement() throws Exception {

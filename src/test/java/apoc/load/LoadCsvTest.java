@@ -3,10 +3,7 @@ package apoc.load;
 import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.*;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
@@ -337,6 +334,7 @@ RETURN m.col_1,m.col_2,m.col_3
         }
     }
 
+    @Ignore("long running test")
     @Test public void testWithEmptyQuoteChar() throws Exception {
         //TODO: fix this test to not download 7 MB each time.
         Assume.assumeFalse("skip this on travis it downloads 7.3 MB of data", TestUtil.isTravis());
