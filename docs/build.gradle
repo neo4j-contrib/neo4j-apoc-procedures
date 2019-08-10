@@ -25,11 +25,11 @@ buildscript {
 
 plugins {
     id 'base'
-    id 'org.neo4j.doc.build.saxon' version '1.0-alpha01'
-    id 'org.neo4j.doc.build.docbook' version '1.0-alpha03'
+    id 'org.neo4j.doc.build.saxon' version '1.0-alpha02'
+    id 'org.neo4j.doc.build.docbook' version '1.0-alpha12'
 }
 
-if (!project.hasProperty('apocVersion')) { ext.apocVersion = '3.5.0.3' }
+if (!project.hasProperty('apocVersion')) { ext.apocVersion = '3.5.0.5' }
 
 ext {
     versionParts = apocVersion.split('-')
@@ -41,11 +41,12 @@ ext {
     if (1 < versionParts.size()) { versions.apocDocs += '-preview' }
 
     docsBaseUri = "https://neo4j.com/docs"
-    apocBaseUri = "https://neo4j-contrib.github.io/neo4j-apoc-procedures"
+    apocBaseUri = "https://neo4j.com/docs/labs/apoc"
     crossReferenceBase = [ // We have no strategy for cross references; always link to current.
             'operations-manual' : "${docsBaseUri}/operations-manual/current",
             'developer-manual'  : "${docsBaseUri}/developer-manual/current",
             'graph-algorithms'  : "${docsBaseUri}/graph-algorithms/current",
+            'neo4j-streams'  : "${docsBaseUri}/labs/neo4j-streams/current",
             'apoc'              : "${apocBaseUri}/${versions.apocDocs}",
             'java-reference'    : "${docsBaseUri}/java-reference/current",
             'rest-docs'         : "${docsBaseUri}/rest-docs/current",
@@ -174,8 +175,10 @@ html {
         "Developer_Manual=${crossReferenceBase['developer-manual']}/",
         "OGM_Manual=${crossReferenceBase['ogm-manual']}/",
         "Graph_Algorithms=${crossReferenceBase['graph-algorithms']}/",
-        "APOC=${crossReferenceBase['apoc']}/",
         "Java_Reference=${crossReferenceBase['java-reference']}/",
+        "APOC=${crossReferenceBase['apoc']}/",
+        "Neo4j_Streams=${crossReferenceBase['neo4j-streams']}/",
+
     ].join(" ")
     def scripts = [
 //        '//ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js',
@@ -204,6 +207,28 @@ html {
         'css/extra.css'
     ].join(" ")
 
+    def javascript =
+        '''\
+
+        $(document).ready(function() {
+          CodeMirror.colorize();
+          tabTheSource($('body'));
+          var $header = $('header').first();
+          $header.prepend(
+            $('<a href="" id="logo"><img src="https://s3.amazonaws.com/dev.assets.neo4j.com/wp-content/uploads/20190802073913/labs-logo6.png" alt="Neo4j Labs Logo"/></a>')
+          );
+          var sidebar = $('<div id=\"sidebar-wrapper\"/>');
+          $.get('toc.html', function (d){
+            $(d).appendTo(sidebar);
+            highlightToc();
+            highlightLibraryHeader();
+          });
+          sidebar.insertAfter($('header').first());
+        });
+
+        '''
+
+
     stylesheet "classpath:xsl/chunk-from-toc/xhtml/chunktoc.xsl"
     input sourceFile
 
@@ -223,6 +248,7 @@ html {
         "html.stylesheet": styles,
         "chunk.toc": "${contentMap}",
         "current.docid": "$docId",
+        "neo.embedded.javascript": javascript
     ])
     doLast {
         copy {

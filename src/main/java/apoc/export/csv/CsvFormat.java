@@ -13,6 +13,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.export.util.BulkImportUtil.formatHeader;
@@ -26,6 +27,9 @@ import static apoc.util.Util.joinLabels;
 public class CsvFormat implements Format {
     private final GraphDatabaseService db;
     private boolean applyQuotesToAll = true;
+
+    private static final String[] NODE_HEADER_FIXED_COLUMNS = {"_id:id", "_labels:label"};
+    private static final String[] REL_HEADER_FIXED_COLUMNS = {"_start:id", "_end:id", "_type:label"};
 
     public CsvFormat(GraphDatabaseService db) {
         this.db = db;
@@ -94,7 +98,8 @@ public class CsvFormat implements Format {
             String[] data = new String[header.length];
             result.accept((row) -> {
                 for (int col = 0; col < header.length; col++) {
-                    Object value = row.get(header[col]);
+                    String key = header[col];
+                    Object value = row.get(key);
                     data[col] = FormatUtils.toString(value);
                     reporter.update(value instanceof Node ? 1: 0,value instanceof Relationship ? 1: 0 , value instanceof PropertyContainer ? 0 : 1);
                 }
@@ -110,7 +115,6 @@ public class CsvFormat implements Format {
 
     public String[] writeResultHeader(Result result, CSVWriter out) {
         List<String> columns = result.columns();
-        columns.sort(Comparator.naturalOrder());
         int cols = columns.size();
         String[] header = columns.toArray(new String[cols]);
         out.writeNext(header, applyQuotesToAll);
@@ -120,15 +124,15 @@ public class CsvFormat implements Format {
     public void writeAll(SubGraph graph, Reporter reporter, ExportConfig config, CSVWriter out) {
         Map<String,Class> nodePropTypes = collectPropTypesForNodes(graph);
         Map<String,Class> relPropTypes = collectPropTypesForRelationships(graph);
-
-        List<String> nodeHeader = generateHeader(nodePropTypes, config.useTypes(), "_id:id", "_labels:label");
-        List<String> relHeader = generateHeader(relPropTypes, config.useTypes(), "_start:id", "_end:id", "_type:label");
-        List<String> header = new ArrayList<>(nodeHeader); header.addAll(relHeader);
+        List<String> nodeHeader = generateHeader(nodePropTypes, config.useTypes(), NODE_HEADER_FIXED_COLUMNS);
+        List<String> relHeader = generateHeader(relPropTypes, config.useTypes(), REL_HEADER_FIXED_COLUMNS);
+        List<String> header = new ArrayList<>(nodeHeader);
+        header.addAll(relHeader);
         out.writeNext(header.toArray(new String[header.size()]), applyQuotesToAll);
         int cols = header.size();
 
-        writeNodes(graph, out, reporter, nodePropTypes, cols, config.getBatchSize(), config.getDelim());
-        writeRels(graph, out, reporter, relPropTypes, cols, nodeHeader.size(), config.getBatchSize(), config.getDelim());
+        writeNodes(graph, out, reporter, nodeHeader.subList(NODE_HEADER_FIXED_COLUMNS.length, nodeHeader.size()), cols, config.getBatchSize(), config.getDelim());
+        writeRels(graph, out, reporter, relHeader.subList(REL_HEADER_FIXED_COLUMNS.length, relHeader.size()), cols, nodeHeader.size(), config.getBatchSize(), config.getDelim());
     }
 
     private void writeAllBulkImport(SubGraph graph, Reporter reporter, ExportConfig config, ExportFileManager writer) {
@@ -242,32 +246,38 @@ public class CsvFormat implements Format {
 
     private List<String> generateHeader(Map<String, Class> propTypes, boolean useTypes, String... starters) {
         List<String> result = new ArrayList<>();
-        Collections.addAll(result,starters);
-        for (Map.Entry<String, Class> entry : propTypes.entrySet()) {
-            String type = MetaInformation.typeFor(entry.getValue(), null);
-            if (type==null || type.equals("string") || !useTypes) result.add(entry.getKey());
-            else result.add(entry.getKey()+":"+ type);
+        if (useTypes) {
+            Collections.addAll(result, starters);
+        } else {
+            result.addAll(Stream.of(starters).map(s -> s.split(":")[0]).collect(Collectors.toList()));
         }
-        if (!useTypes) return result.stream().map( s -> s.split(":")[0]).collect(Collectors.toList());
+        result.addAll(propTypes.entrySet().stream()
+                .map(entry -> {
+                    String type = MetaInformation.typeFor(entry.getValue(), null);
+                    return (type == null || type.equals("string") || !useTypes)
+                            ? entry.getKey() : entry.getKey() + ":" + type;
+                })
+                .sorted()
+                .collect(Collectors.toList()));
         return result;
     }
 
     private void writeNodes(SubGraph graph, CSVWriter out, Reporter reporter, ExportConfig config) {
         Map<String,Class> nodePropTypes = collectPropTypesForNodes(graph);
-        List<String> nodeHeader = generateHeader(nodePropTypes, config.useTypes(), "_id:id", "_labels:label");
+        List<String> nodeHeader = generateHeader(nodePropTypes, config.useTypes(), NODE_HEADER_FIXED_COLUMNS);
         String[] header = nodeHeader.toArray(new String[nodeHeader.size()]);
         out.writeNext(header, applyQuotesToAll); // todo types
         int cols = header.length;
-        writeNodes(graph, out, reporter, nodePropTypes, cols, config.getBatchSize(), config.getDelim());
+        writeNodes(graph, out, reporter, nodeHeader.subList(NODE_HEADER_FIXED_COLUMNS.length, nodeHeader.size()), cols, config.getBatchSize(), config.getDelim());
     }
 
-    private void writeNodes(SubGraph graph, CSVWriter out, Reporter reporter, Map<String, Class> nodePropTypes, int cols, int batchSize, String delimiter) {
+    private void writeNodes(SubGraph graph, CSVWriter out, Reporter reporter, List<String> header, int cols, int batchSize, String delimiter) {
         String[] row=new String[cols];
         int nodes = 0;
         for (Node node : graph.getNodes()) {
             row[0]=String.valueOf(node.getId());
             row[1]=getLabelsString(node);
-            collectProps(nodePropTypes.keySet(), node, reporter, row, 2, delimiter);
+            collectProps(header, node, reporter, row, 2, delimiter);
             out.writeNext(row, applyQuotesToAll);
             nodes++;
             if (batchSize==-1 || nodes % batchSize == 0) {
@@ -295,21 +305,21 @@ public class CsvFormat implements Format {
 
     private void writeRels(SubGraph graph, CSVWriter out, Reporter reporter, ExportConfig config) {
         Map<String,Class> relPropTypes = collectPropTypesForRelationships(graph);
-        List<String> header = generateHeader(relPropTypes, config.useTypes(), "_start:id", "_end:id", "_type:label");
+        List<String> header = generateHeader(relPropTypes, config.useTypes(), REL_HEADER_FIXED_COLUMNS);
         out.writeNext(header.toArray(new String[header.size()]), applyQuotesToAll);
         int cols = header.size();
         int offset = 0;
-        writeRels(graph, out, reporter, relPropTypes, cols, offset, config.getBatchSize(), config.getDelim());
+        writeRels(graph, out, reporter, header.subList(REL_HEADER_FIXED_COLUMNS.length, header.size()), cols, offset, config.getBatchSize(), config.getDelim());
     }
 
-    private void writeRels(SubGraph graph, CSVWriter out, Reporter reporter, Map<String, Class> relPropTypes, int cols, int offset, int batchSize, String delimiter) {
+    private void writeRels(SubGraph graph, CSVWriter out, Reporter reporter, List<String> relHeader, int cols, int offset, int batchSize, String delimiter) {
         String[] row=new String[cols];
         int rels = 0;
         for (Relationship rel : graph.getRelationships()) {
             row[offset]=String.valueOf(rel.getStartNode().getId());
             row[offset+1]=String.valueOf(rel.getEndNode().getId());
             row[offset+2]=rel.getType().name();
-            collectProps(relPropTypes.keySet(), rel, reporter, row, 3 + offset, delimiter);
+            collectProps(relHeader, rel, reporter, row, 3 + offset, delimiter);
             out.writeNext(row, applyQuotesToAll);
             rels++;
             if (batchSize==-1 || rels % batchSize == 0) {

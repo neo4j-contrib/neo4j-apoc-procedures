@@ -13,6 +13,7 @@ import java.util.*;
 import static apoc.util.MapUtil.map;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.neo4j.helpers.collection.Iterators.asSet;
 
@@ -121,6 +122,58 @@ public class MapsTest {
         TestUtil.testCall(db, "RETURN apoc.map.setLists({}, ['a','b'],[1,false]) AS value", (r) -> {
             assertEquals(map("a",1L,"b",false),r.get("value"));
         });
+    }
+
+
+
+    @Test
+    public void testGet() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.get({a:1},'a') AS value", (r) -> {
+            assertEquals(1L,r.get("value"));
+        });
+        TestUtil.testCall(db, "RETURN apoc.map.get({a:1},'c',42) AS value", (r) -> {
+            assertEquals(42L,r.get("value"));
+        });
+        TestUtil.testCall(db, "RETURN apoc.map.get({a:1},'c',null,false) AS value", (r) -> {
+            assertEquals(null,r.get("value"));
+        });
+        TestUtil.testFail(db, "RETURN apoc.map.get({a:1},'c') AS value", IllegalArgumentException.class);
+    }
+
+    @Test
+    public void testSubMap() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.submap({a:1,b:1},['a']) AS value", (r) -> {
+            assertEquals(map("a",1L),r.get("value"));
+        });
+        TestUtil.testCall(db, "RETURN apoc.map.submap({a:1,b:2},['a','b']) AS value", (r) -> {
+            assertEquals(map("a",1L,"b",2L),r.get("value"));
+        });
+        TestUtil.testCall(db, "RETURN apoc.map.submap({a:1,b:1},['c'],[42]) AS value", (r) -> {
+            assertEquals(map("c",42L),r.get("value"));
+        });
+        TestUtil.testCall(db, "RETURN apoc.map.submap({a:1,b:1},['c'],null,false) AS value", (r) -> {
+            assertEquals(map("c",null),r.get("value"));
+        });
+        TestUtil.testFail(db, "RETURN apoc.map.submap({a:1,b:1},['c']) AS value", IllegalArgumentException.class);
+        TestUtil.testFail(db, "RETURN apoc.map.submap({a:1,b:1},['a','c']) AS value", IllegalArgumentException.class);
+    }
+
+    @Test
+    public void testMGet() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.mget({a:1,b:1},['a']) AS value", (r) -> {
+            assertEquals(asList(1L),r.get("value"));
+        });
+        TestUtil.testCall(db, "RETURN apoc.map.mget({a:1,b:2},['a','b']) AS value", (r) -> {
+            assertEquals(asList(1L,2L),r.get("value"));
+        });
+        TestUtil.testCall(db, "RETURN apoc.map.mget({a:1,b:1},['c'],[42]) AS value", (r) -> {
+            assertEquals(asList(42L),r.get("value"));
+        });
+        TestUtil.testCall(db, "RETURN apoc.map.mget({a:1,b:1},['c'],null,false) AS value", (r) -> {
+            assertEquals(singletonList(null),r.get("value"));
+        });
+        TestUtil.testFail(db, "RETURN apoc.map.mget({a:1,b:1},['c']) AS value", IllegalArgumentException.class);
+        TestUtil.testFail(db, "RETURN apoc.map.mget({a:1,b:1},['a','c']) AS value", IllegalArgumentException.class);
     }
 
     @Test

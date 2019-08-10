@@ -1,38 +1,139 @@
 [[path-finding]]
-== Path Finding
+== Advanced Graph Querying
 
-APOC exposes some built in path-finding functions that Neo4j brings along.
+[abstract]
+--
+This chapter describes advanced graph querying procedures in the APOC library.
+--
 
-[cols="3m,3"]
-|===
-| apoc.algo.dijkstra(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance') YIELD path, weight | run dijkstra with relationship property name as cost function
-| apoc.algo.dijkstraWithDefaultWeight(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>',  'distance', 10) YIELD path, weight | run dijkstra with relationship property name as cost function and a default weight if the property does not exist
-| apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 'distance','lat','lon')  YIELD path, weight | run A* with relationship property name as cost function
-| apoc.algo.aStar(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', {weight:'dist',default:10, x:'lon',y:'lat'}) YIELD path, weight | run A* with relationship property name as cost function
-| apoc.algo.allSimplePaths(startNode, endNode, 'KNOWS\|<WORKS_WITH\|IS_MANAGER_OF>', 5) YIELD path,  weight | run allSimplePaths with relationships given and maxNodes
-| apoc.stats.degrees(relTypesDirections) yield type, direction, total, min, max, mean, p50, p75, p90, p95, p99, p999 | compute degree distribution in parallel
-|===
+For more information on how to use these procedures, see:
 
-Example: find the weighted shortest path based on relationship property `d` from `A` to `B` following just `:ROAD` relationships
+* <<path-expander>>
+* <<expand-subgraph>>
+* <<expand-spanning-tree>>
+* <<neighbourhood-search>>
+* <<path-functions>>
+* <<rel-functions>>
+* <<node-functions>>
+* <<parallel-node-search>>
 
-[source,cypher]
-----
-MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'})
-CALL apoc.algo.dijkstra(from, to, 'ROAD', 'd') yield path as path, weight as weight
-RETURN path, weight
-----
+include::path-finding/expand.adoc[leveloffset=1]
+include::path-finding/expand-subgraph.adoc[leveloffset=1]
+include::path-finding/expand-spanning-tree.adoc[leveloffset=1]
+include::path-finding/neighborhood-search.adoc[leveloffset=1]
 
-include::expand.adoc[leveloffset=1]
+[[path-functions]]
+=== Path Manipulation
 
-[[neighbourhood-search]]
-=== Neighbor Functions
+[abstract]
+--
+This section describes functions that can be used to do path operations.
+--
+
+Functions to create, combine and split paths
 
 [cols="1m,5"]
 |===
-| apoc.neighbors.tohop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern up to a certain distance
-| apoc.neighbors.tohop.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern up to a certain distance
-| apoc.neighbors.byhop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern grouped by distance
-| apoc.neighbors.byhop.count(node, rel-direction-pattern, distance) | returns the count distinct nodes of the given relationships in the pattern grouped by distance
-| apoc.neighbors.athop(node, rel-direction-pattern, distance) | returns distinct nodes of the given relationships in the pattern at a certain distance
-| apoc.neighbors.athop.count(node, rel-direction-pattern, distance) | returns the count of distinct nodes of the given relationships in the pattern at a certain distance
+| apoc.path.create(startNode,[rels]) | creates a path instance of the given elements
+| apoc.path.slice(path, [offset], [length]) | creates a sub-path with the given offset and length
+| apoc.path.combine(path1, path2) | combines the paths into one if the connecting node matches
+| apoc.path.elements(path) | returns a list of node-relationship-node-...
 |===
+
+
+[[rel-functions]]
+=== Relationship Querying
+
+[abstract]
+--
+This section describes procedures that can be used to query relationships.
+--
+
+.Functions
+[cols="1m,5"]
+|===
+| apoc.rel.id(rel) | returns id for (virtual) relationships
+| apoc.rel.type(rel) | returns type for (virtual) relationships
+| apoc.any.properties(rel, [[keys]]) | returns properties for virtual and real rels. Optionally restrict via keys.
+| apoc.any.property(rel) | returns property for virtual and real rels
+|===
+
+
+.Procedures
+[cols="1m,5"]
+|===
+| CALL apoc.get.rels(rel\|id\|[ids]) | quickly returns all relationships with these ids
+|===
+
+[[node-functions]]
+=== Node Querying
+
+[abstract]
+--
+This section describes functions that can be used to query nodes.
+--
+
+.Functions
+[cols="1m,5"]
+|===
+| apoc.nodes.isDense(node) | returns true if it is a dense node
+| apoc.nodes.connected(start, end, rel-direction-pattern) | returns true when the node is connected to the other node, optimized for dense nodes
+| apoc.node.relationship.exists(node, rel-direction-pattern) | returns true when the node has the relationships of the pattern
+| apoc.node.relationship.types(node, rel-direction-pattern) | returns a list of distinct relationship types
+| apoc.node.degree(node, rel-direction-pattern) | returns total degrees of the given relationships in the pattern, can use `'>'` or `'<'` for all outgoing or incoming relationships
+| apoc.node.id(node) | returns id for (virtual) nodes
+| apoc.node.degree.in(node, relationshipName) | returns total number of incoming relationship
+| apoc.node.degree.out(node, relationshipName) | returns total number of outgoing relationship
+| apoc.node.labels(node) | returns labels for (virtual) nodes
+| apoc.any.properties(node/map, [[keys]]) | returns properties for virtual and real nodes, and maps. Optionally restrict via keys.
+| apoc.any.property(node/map) | returns property for virtual and real nodes, and maps
+| apoc.label.exists(element, label) | returns true or false related to label existance
+|===
+
+rel-direction-pattern syntax:
+
+`[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
+
+Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in either direction, outgoing :MENTORS relationships, and incoming :REPORTS_TO relationships.
+
+.Procedures
+[cols="1m,5"]
+|===
+| CALL apoc.nodes.get(node\|nodes\|id\|[ids]) | quickly returns all nodes with these ids
+|===
+
+[[parallel-node-search]]
+=== Parallel Node Search
+
+[abstract]
+--
+This section describes procedures that can be used to find nodes in parallel.
+--
+
+Utility to find nodes in parallel (if possible).
+These procedures return a single list of nodes or a list of 'reduced' records with node id, labels, and the properties where the search was executed upon.
+
+[cols="5m,4"]
+|===
+| call apoc.search.node(labelPropertyMap, searchType, search ) yield node | A distinct set of Nodes will be returned.
+| call apoc.search.nodeAll(labelPropertyMap, searchType, search ) yield node | All the found Nodes will be returned.
+| call apoc.search.nodeReduced(labelPropertyMap, searchType, search ) yield id, labels, values | A merged set of 'minimal' Node information will be returned. One record per node (-id).
+| call apoc.search.nodeAllReduced(labelPropertyMap, searchType, search ) yield id, labels, values | All the found 'minimal' Node information will be returned. One record per label and property.
+|===
+
+These procedures are passed the following parameters:
+
+[cols="1m,4,3"]
+|===
+| labelPropertyMap |   `'{ label1 : "propertyOne", label2 :["propOne","propTwo"] }'` | (JSON or Map) For every Label-Property combination a search will be executed in parallel (if possible): Label1.propertyOne, label2.propOne and label2.propTwo.
+| searchType |  'exact' or 'contains' or 'starts with' or 'ends with' | Case insensitive string search operators
+| searchType |  "<", ">", "=", "<>", "<=", ">=", "=~" | Operators
+| search | 'Keanu' | The actual search term (string, number, etc).
+|===
+
+.example
+[source,cypher]
+----
+CALL apoc.search.nodeAll('{Person: "name",Movie: ["title","tagline"]}','contains','her') YIELD node AS n RETURN n
+call apoc.search.nodeReduced({Person: 'born', Movie: ['released']},'>',2000) yield id, labels, properties RETURN *
+----

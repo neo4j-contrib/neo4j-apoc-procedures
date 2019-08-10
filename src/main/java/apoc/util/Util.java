@@ -46,6 +46,10 @@ public class Util {
     public static final String REL_COUNT = "MATCH ()-->() RETURN count(*) as result";
     public static final String COMPILED = "interpreted"; // todo handle enterprise properly
 
+    public static String labelString(List<String> labelNames) {
+        return labelNames.stream().map(Util::quote).collect(Collectors.joining(":"));
+    }
+
     public static String labelString(Node n) {
         return joinLabels(n.getLabels(), ":");
     }

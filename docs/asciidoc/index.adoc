@@ -9,38 +9,46 @@
 :script: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/script
 :gh-docs: https://neo4j-contrib.github.io/neo4j-apoc-procedures
 
+
+[abstract]
+--
+This is the user guide for Neo4j APOC {docs-version}, authored by the Neo4j Labs Team.
+--
+
+The guide covers the following areas:
+
+* <<introduction>> -- An Introduction to the APOC library.
+* <<help>> -- In-built help in the library.
+* <<overview>> -- A list of all APOC procedures and functions.
+* <<config>> -- Configuration options used by the library.
+//* <<user-defined-functions>> -- An overview of user defined functions available in the library.
+* <<import>> -- A detailed guide to procedures that can be used to import data from different formats including JSON, CSV, and XLS.
+* <<export>> -- A detailed guide to procedures that can be used to export data to different formats including JSON, CSV, GraphML, and Gephi.
+* <<database-integration>> -- A detailed guide to procedures that can be used to integrate with other databases including relational databases, MongoDB, Couchbase, and ElasticSearch.
+* <<graph-updates>> -- A detailed guide to procedures that can be used to apply graph updates.
+* <<data-structures>> -- A detailed guide to procedures and functions, that can be used to work with data structures.
+* <<temporal>>-- A detailed guide to procedures that can be used to format temporal types.
+* <<mathematical>> -- A detailed guide to procedures and functions that can be used for mathematical operations.
+* <<path-finding>> -- A detailed guide to procedures that can be used for advanced graph querying.
+* <<comparing-graphs>> -- A detailed guide to procedures that can be used to compare graphs.
+* <<cypher-execution>> -- A detailed guide to procedures that can be used for Cypher scripting.
+* <<virtual>> -- A detailed guide to procedures that can be used to create virtual nodes and relationships.
+* <<job-management>> -- A detailed guide to procedures that can be used for background job management.
+* <<database-introspection>> -- A detailed guide to procedures that can be used to introspect the database.
+* <<operational>> -- A detailed guide to operational procedures.
+* <<misc>> -- A detailed guide to miscellaneous procedures and functions, including map and collection functions, text functions, and spatial functionality.
+* <<indexes>> -- A detailed guide to indexing procedures.
+* <<algorithms>> -- A detailed guide to Graph Algorithms.
+
+
 [[introduction]]
 == Introduction
 
-NOTE: Go here for documentation for APOC for Neo4j version link:{gh-docs}/index30.html[3.0.x] link:{gh-docs}/index31.html[3.1.x] link:{gh-docs}/index32.html[3.2.x] link:{gh-docs}/index33.html[3.3.x] link:{gh-docs}/3.4[3.4.x] link:{gh-docs}/3.5[3.5.x]
+[abstract]
+--
+This chapter provides an introduction to the APOC library, and instructions for installation and use.
+--
 
-=== Documentation Overview
-
-.Main Sections
-* <<overview>>
-* <<export-import>>
-* <<database-integration>>
-* <<schema>>
-* <<utilities>>
-* <<cypher-execution>>
-* <<nodes-relationships>>
-* <<path-finding>>
-* <<virtual>>
-
-.Most Frequently Used
-1. <<load-json>>
-2. <<load-jdbc>>
-2. <<commit-batching>>
-3. <<datetime-conversions>>
-4. <<map-functions>>
-5. <<virtual-nodes-rels>>
-
-////
-* <<help>>
-* <<installation>>
-* <<overview>>
-* <<config>>
-////
 
 ifdef::backend-html5[]
 ++++
@@ -48,11 +56,43 @@ ifdef::backend-html5[]
 ++++
 endif::[]
 
-include::../../readme.adoc[tags=intro,leveloffset=1]
+include::../../readme.adoc[tags=intro-text]
+
+[NOTE]
+====
+.APOC Name History
+include::../../readme.adoc[tags=name-history-text]
+====
+
+
+[[installation]]
+=== Installation
+
+include::../../readme.adoc[tags=install-desktop,leveloffset=2]
+image::desktop-apoc.jpg[width=800]
+
+include::../../readme.adoc[tags=install,leveloffset=2]
+
+include::../../readme.adoc[tags=warnings,leveloffset=1]
+
+include::../../readme.adoc[tags=docker,leveloffset=1]
+
+[[usage]]
+=== Usage
+
+include::../../readme.adoc[tags=usage]
+
+[[feedback]]
+=== Feedback
+include::../../readme.adoc[tags=feedback]
+
 
 include::help.adoc[]
 
-To generate the help output, apoc utilizes the built in `dbms.procedures()` and `dbms.functions()` utilities.
+[NOTE]
+====
+To generate the help output, this procedure uses the built in `dbms.procedures()` and `dbms.functions()` procedures.
+====
 
 ifdef::backend-html5[]
 ++++
@@ -62,17 +102,14 @@ endif::[]
 
 include::../../readme.adoc[tags=signature,leveloffset=1]
 
-[[installation]]
-== Installation in Neo4j Server & Docker
-
-include::../../readme.adoc[tags=install,leveloffset=1]
-
-include::../../readme.adoc[tags=warnings,leveloffset=0]
-
-include::../../readme.adoc[tags=docker,leveloffset=0]
-
 [[overview]]
-== Overview of APOC Procedures & Functions
+== Procedures & Functions
+
+[abstract]
+--
+This chapter provides a reference of all the procedures and functions in the APOC library.
+--
+
 
 [[table-all]]
 [separator=¦,opts=header]
@@ -82,91 +119,41 @@ include::../../build/generated-documentation/documentation.csv[]
 
 include::config.adoc[]
 
-include::functions.adoc[leveloffset=+1]
+//include::functions.adoc[leveloffset=+1]
 
+include::_import.adoc[]
 
-include::_export_import.adoc[]
+include::_export.adoc[]
 
 include::_database_integration.adoc[]
 
-include::_schema.adoc[]
+include::_graph_updates.adoc[]
 
-include::_utilities.adoc[]
 
-////
-<<utilities>>
+include::_data_structures.adoc[]
 
-<<conversion-functions>> | <<map-functions>> | <<collection-list-functions>>
+include::_temporal.adoc[]
 
-<<text-functions>> | <<math-functions>>
-
-<<data-extraction-functions>> | <<datetime-conversions>> | <<temporal-conversions>>
-
-<<number-conversions>>
-
-<<exact-math-functions>>
-
-<<phonetic-functions>>
-<<node-difference>>
-
-<<spatial>>
-<<static-values>>
-<<utility-functions>>
-<<bitwise-operations>>
-<<atomic-updates>>
-////
-
-include::_nodes_relationships.adoc[]
-
-////
-<<nodes-relationships>>
-<<path-functions>>
-<<node-lookup>>
-<<node-functions>>
-<<data-creation>>
-<<locking>>
-<<graph-generators>>
-<<parallel-node-search>>
-////
+include::_mathematical.adoc[]
 
 include::_path_finding.adoc[]
+
+include::_comparing_graphs.adoc[]
+
 
 include::_cypher_execution.adoc[]
 
 include::_virtual.adoc[]
 
-////
-[[virtual]]
-[[virtual-nodes-rels]]
-[[virtual-graph]]
-[[graph-grouping]]
-////
+include::_job_management.adoc[]
 
-include::graph-refactor.adoc[]
-////
-[[clone-nodes]]
-[[merge-nodes]]
-[[redirect-relationship]]
-[[invert-relationship]]
-[[set-relationship-type]]
-[[extract-node-from-relationship]]
-[[collapse-node-to-relationship]]
-[[categorize]]
-[[rename-label-type-property]]
-////
+include::_database_introspection.adoc[]
 
 include::_operational.adoc[]
 
+include::_misc.adoc[]
+
 include::_indexes.adoc[]
-
-////
-
-[[indexes]]
-[[schema-index-operations]]
-[[manual-indexes]]
-[[fulltext-index]]
-
-////
 
 include::_algorithms.adoc[]
 

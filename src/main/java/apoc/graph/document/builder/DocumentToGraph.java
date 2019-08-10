@@ -3,11 +3,14 @@ package apoc.graph.document.builder;
 import apoc.graph.util.GraphsConfig;
 import apoc.result.VirtualGraph;
 import apoc.result.VirtualNode;
+import apoc.util.FixedSizeStringWriter;
+import apoc.util.JsonUtil;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,10 +31,25 @@ public class DocumentToGraph {
     }
 
     public void validate(Map map) {
+        List<String> messages = new ArrayList<>();
         if (!map.containsKey(config.getIdField())) {
-            throw new RuntimeException("every object must have " + config.getIdField() + " as `id` field name");
-        } else if (!map.containsKey(config.getLabelField())) {
-            throw new RuntimeException("every object must have " + config.getLabelField() + " as `label` field name");
+            messages.add("`" + config.getIdField() + "` as id-field name");
+        }
+        if (!map.containsKey(config.getLabelField())) {
+            messages.add("`" + config.getLabelField() + "` as label-field name");
+        }
+        if (!messages.isEmpty()) {
+            String json = formatDocument(map);
+            throw new RuntimeException("The object `" + json + "` must have " + String.join(" and ", messages));
+        }
+    }
+
+    private String formatDocument(Map map) {
+        try (FixedSizeStringWriter writer = new FixedSizeStringWriter(100)) {
+            JsonUtil.OBJECT_MAPPER.writeValue(writer, map);
+            return writer.toString().concat(writer.isExceeded() ? "...}" : "");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

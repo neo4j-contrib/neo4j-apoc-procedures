@@ -1,0 +1,82 @@
+[[graphml-export]]
+= GraphML Export
+
+[abstract]
+--
+This section describes procedures that can be used to export data in GraphML format.
+--
+
+GraphML is used by other tools, like Gephi and CytoScape to read graph data.
+
+// tag::export.graphml[]
+
+`YIELD file, source, format, nodes, relationships, properties, time`
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.export.graphml.csv[lines=1;3..6]
+|===
+
+
+All `Point` or `Temporal` data types are exported formatted as a String
+
+e.g:
+[cols="1m,2"]
+|===
+|Point 3d | {"crs":"wgs-84-3d","latitude":56.7,"longitude":12.78,"height":100.0}
+|Point 2d | {"crs":"wgs-84-3d","latitude":56.7,"longitude":12.78,"height":null}
+|Date | 2018-10-10
+|LocalDateTime | 2018-10-10T00:00
+|===
+// end::export.graphml[]
+
+.configuration options
+[options=header]
+|===
+| param | default | description
+| format | | In export to Graphml script define the export format. Possible value is: "gephi"
+| caption | | It's an array of string (i.e. ['name','title']) that define an ordered set of properties eligible as value for the `Label` value, if no match is found the there is a fallback to the node label, if the node label is missing the then the ID is used
+| useTypes | false | Write the attribute type information to the graphml output
+|===
+
+== Note:
+
+The labels exported are ordered alphabetically.
+The output of `labels()` function is not sorted, use it in combination with `apoc.coll.sort()`.
+
+.configuration options
+[options=header]
+|===
+| param | default | description
+| batchSize | 20000 | define the batch size
+// | silent | false | if enabled write progress output
+| delim | "," | define the delimiter character (export csv)
+| arrayDelim | ";" | define the delimiter character for arrays (used in the bulk import)
+| quotes | 'always' | quote-character used for CSV, possible values are: 'always', 'none', 'ifNeeded'
+| useTypes | false | add type on file header (export csv and graphml export)
+| format | "neo4j-shell" | In export to Cypher script define the export format. Possible values are: "cypher-shell","neo4j-shell" and "plain"
+| nodesOfRelationships | false | if enabled add relationship between nodes (export Cypher)
+| storeNodeIds| false | set nodes' ids (import/export graphml)
+| readLabels | false | read nodes' labels (import/export graphml)
+| defaultRelationshipType | "RELATED" | set relationship type (import/export graphml)
+| separateFiles | false | export results in separated file by type (nodes, relationships..)
+| cypherFormat | create | In export to cypher script, define the cypher format (for example use `MERGE` instead of `CREATE`). Possible values are: "create", "updateAll", "addStructure", "updateStructure".
+| bulkImport | true | In export it creates files for Neo4j Admin import
+| separateHeader | false | In export it creates two file one for header and one for data
+|===
+
+Values for the `quotes` configuration:
+* `none`: the same behaviour of the current `false`
+* `always`:  the same behaviour of the current `true`
+* `ifNeeded`: it applies quotes only when it's necessary;
+
+When the config `bulkImport` is enable it create a list of file that can be used for Neo4j Bulk Import.
+
+*This config can be used only with `apoc.export.csv.all` and `apoc.export.csv.graph`*
+
+All file create are named as follow:
+
+* Nodes file are construct with the name of the input file append with `.nodes.[LABEL_NAME].csv`
+* Rel file are construct with the name of the input file append with `.relationships.[TYPE_NAME].csv`
+
+If Node or Relationship have more than one Label/Type it will create one file for Label/Type.

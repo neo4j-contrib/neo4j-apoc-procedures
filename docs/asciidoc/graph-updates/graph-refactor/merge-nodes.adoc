@@ -1,0 +1,122 @@
+[[merge-nodes]]
+= Merge Nodes
+
+[abstract]
+--
+This section describes procedures that can be used to merge nodes.
+--
+
+You can merge a list of nodes onto the first one in the list.
+
+All relationships are merged onto that node too.
+You can specify the merge behavior for properties globally and/or individually.
+
+[source,cypher]
+----
+MATCH (p:Person)
+WITH p ORDER BY p.created DESC // newest one first
+WITH p.email, collect(p) as nodes
+CALL apoc.refactor.mergeNodes(nodes, {properties: {name:'discard', age:'overwrite', kids:'combine', `addr.*`, 'overwrite',`.*`: 'discard'}}) YIELD node
+RETURN node
+----
+
+This config option also works for `apoc.refactor.mergeRelationships([rels],{config})`.
+
+[opts=header]
+|===
+| type | operations
+| discard | the first nodes' property will remain if already set, otherwise the first property in list will be written
+| overwrite / override | last property in list wins
+| combine | if there is only one property in list, it will be set / kept as single property otherwise create an array, tries to coerce values
+|===
+
+For mergeNodes you can Merge relationships with same type and direction, you can spacify this with property mergeRels.
+Relationships properties are managed with the same nodes' method, if properties parameter isn't set relationships properties are combined.
+
+.example1 - Relationships with same start and end nodes
+
+First of all we have to create nodes and relationships
+
+[source,cypher]
+----
+CREATE (n1:Person {name:'Tom'}),
+(n2:Person {name:'John'}),
+(n3:Company {name:'Company1'}),
+(n5:Car {brand:'Ferrari'}),
+(n6:Animal:Cat {name:'Derby'}),
+(n7:City {name:'London'}),
+(n1)-[:WORKS_FOR{since:2015}]->(n3),
+(n2)-[:WORKS_FOR{since:2018}]->(n3),
+(n3)-[:HAS_HQ{since:2004}]->(n7),
+(n1)-[:DRIVE{since:2017}]->(n5),
+(n2)-[:HAS{since:2013}]->(n6)
+return *;
+----
+
+image::apoc.refactor.mergeNodes.createDataSetFirstExample.png[scaledwidth="100%"]
+
+Next step is calling the apoc to merge nodes :Person
+
+[source,cypher]
+----
+MATCH (a1:Person{name:'John'}), (a2:Person {name:'Tom'})
+WITH head(collect([a1,a2])) as nodes
+CALL apoc.refactor.mergeNodes(nodes,{properties:"combine", mergeRels:true}) yield node
+MATCH (n)-[r:WORKS_FOR]->(c) return *
+----
+
+and the result is:
+
+image::apoc.refactor.mergeNodes.resultFirstExample.png[scaledwidth="100%"]
+
+In this case we have relationships with same start and end nodes so relationships are merged into one and properties are combined.
+
+Relationships with different start or end nodes
+
+[source,cypher]
+----
+Create (n1:Person {name:'Tom'}),
+(n2:Person {name:'John'}),
+(n3:Company {name:'Company1'}),
+(n4:Company {name:'Company2'}),
+(n5:Car {brand:'Ferrari'}),
+(n6:Animal:Cat {name:'Derby'}),
+(n7:City {name:'London'}),
+(n8:City {name:'Liverpool'}),
+(n1)-[:WORKS_FOR{since:2015}]->(n3),
+(n2)-[:WORKS_FOR{since:2018}]->(n4),
+(n3)-[:HAS_HQ{since:2004}]->(n7),
+(n4)-[:HAS_HQ{since:2007}]->(n8),
+(n1)-[:DRIVE{since:2017}]->(n5),
+(n2)-[:HAS{since:2013}]->(n6)
+return *;
+----
+
+image::apoc.refactor.mergeNodes.createDataSetSecondExample.png[scaledwidth="100%"]
+
+Next step is calling the apoc to merge nodes :Person
+
+[source,cypher]
+----
+MATCH (a1:Person{name:'John'}), (a2:Person {name:'Tom'})
+WITH head(collect([a1,a2])) as nodes
+CALL apoc.refactor.mergeNodes(nodes,{properties:"combine", mergeRels:true}) yield node
+MATCH (n)-[r:WORKS_FOR]->(c) return n.name,r.since,c.name;
+----
+
+and the result is:
+
+image::apoc.refactor.mergeNodes.resultSecondExample.png[scaledwidth="100%"]
+
+image::apoc.refactor.mergeNodes.resultSecondExampleData.png[scaledwidth="100%"]
+
+In this case we have relationships with different end nodes so all relationships are maintained and properties are combined into all relationships.
+
+[source,cypher]
+----
+MATCH (p:Person)
+WITH p ORDER BY p.created DESC // newest one first
+WITH p.email, collect(p) as nodes
+CALL apoc.refactor.mergeNodes(nodes, {properties:'combine', mergeRels: true}) YIELD node
+RETURN node
+----

@@ -14,11 +14,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static apoc.util.TestUtil.isTravis;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.Assume.*;
 
 public class ModelTest {
 
@@ -31,11 +31,12 @@ public class ModelTest {
 
     @BeforeClass
     public static void setUpContainer() {
+        assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             mysql = new MySQLContainer().withInitScript("init_mysql.sql");
             mysql.start();
         },Exception.class);
-        assumeNotNull("MySQL container has to exist",mysql);
+        assumeNotNull("MySQL container has to exist", mysql);
         assumeTrue("MySQL must be running", mysql.isRunning());
     }
 

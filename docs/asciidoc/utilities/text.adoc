@@ -1,0 +1,430 @@
+[[text-functions]]
+= Text Functions
+
+[abstract]
+--
+This section describes functions that can be used for string manipulation, comparison, and filtering.
+--
+
+Cypher has some basic functions to work with text like
+
+* `split(string, delim)`
+* `toLower` and `toUpper`
+* concatenation with `+`
+* predicates like `CONTAINS, STARTS WITH, ENDS WITH` and regular expression matches via `=~`.
+
+But a lot of useful functions for string manipulation, comparison, and filtering are missing.
+APOC adds these functions.
+
+This section includes:
+
+* <<text-functions-overview>>
+* <<text-functions-data-extraction>>
+* <<text-functions-text-similarity>>
+* <<text-functions-phonetic-comparison>>
+* <<text-functions-formatting-text>>
+* <<text-functions-string-search>>
+* <<text-functions-regex>>
+* <<text-functions-split-join>>
+* <<text-functions-data-cleaning>>
+* <<text-functions-case-change>>
+* <<text-functions-base64-encoding-decoding>>
+* <<text-functions-random-string>>
+* <<text-functions-extract-domain>>
+* <<text-functions-hashing>>
+
+[[text-functions-overview]]
+== Overview Text Functions
+
+[cols="1m,5"]
+|===
+| apoc.text.indexOf(text, lookup, offset=0, to=-1==len)| find the first occurence of the lookup string in the text, from inclusive, to exclusive,, -1 if not found, null if text is null.
+| apoc.text.indexesOf(text, lookup, from=0, to=-1==len)| finds all occurences of the lookup string in the text, return list, from inclusive, to exclusive, empty list if not found, null if text is null.
+| apoc.text.replace(text, regex, replacement)| replace each substring of the given string that matches the given regular expression with the given replacement.
+| apoc.text.regexGroups(text, regex) | returns an array containing a nested array for each match. The inner array contains all match groups.
+| apoc.text.join(['text1','text2',...], delimiter) | join the given strings with the given delimiter.
+| apoc.text.format(text,[params],language) | sprintf format the string with the params given, and optional param language (default value is 'en').
+| apoc.text.lpad(text,count,delim) | left pad the string to the given width
+| apoc.text.rpad(text,count,delim) | right pad the string to the given width
+| apoc.text.random(length, [valid]) | returns a random string to the specified length
+| apoc.text.capitalize(text) | capitalise the first letter of the word
+| apoc.text.capitalizeAll(text) | capitalise the first letter of every word in the text
+| apoc.text.decapitalize(text) | decapitalize the first letter of the word
+| apoc.text.decapitalizeAll(text) | decapitalize the first letter of all words
+| apoc.text.swapCase(text) | Swap the case of a string
+| apoc.text.camelCase(text) | Convert a string to camelCase
+| apoc.text.upperCamelCase(text) | Convert a string to UpperCamelCase
+| apoc.text.snakeCase(text) | Convert a string to snake-case
+| apoc.text.toUpperCase(text) | Convert a string to UPPER_CASE
+| apoc.text.charAt(text, index) | Returns the decimal value of the character at the given index
+| apoc.text.code(codepoint) | Returns the unicode character of the given codepoint
+| apoc.text.hexCharAt(text, index) | Returns the hex value string of the character at the given index
+| apoc.text.hexValue(value) | Returns the hex value string of the given value
+| apoc.text.byteCount(text,[charset]) | return size of text in bytes
+| apoc.text.bytes(text,[charset]) | return bytes of the text
+| apoc.text.toCypher(value, {skipKeys,keepKeys,skipValues,keepValues,skipNull,node,relationship,start,end}) | tries it's best to convert the value to a cypher-property-string
+| apoc.text.base64Encode(text) | Encode a string with Base64
+| apoc.text.base64Decode(text) | Decode Base64 encoded string
+| apoc.text.base64UrlEncode(url) | Encode a url with Base64
+| apoc.text.base64UrlDecode(url) | Decode Base64 encoded url
+|===
+
+The `replace`, `split` and `regexGroups` functions work with regular expressions.
+
+
+[[text-functions-data-extraction]]
+== Data Extraction
+
+
+[cols="1m,5"]
+|===
+| apoc.data.url('url') as {protocol,user,host,port,path,query,file,anchor} | turn URL into map structure
+| apoc.data.email('email_address') as {personal,user,domain} | extract the personal name, user and domain as a map (needs javax.mail jar)
+| apoc.data.domain(email_or_url) | *deprecated* returns domain part of the value
+|===
+
+[[text-functions-text-similarity]]
+== Text Similarity Functions
+
+[cols="1m,5"]
+|===
+| apoc.text.distance(text1, text2) | compare the given strings with the Levenshtein distance algorithm
+| apoc.text.levenshteinDistance(text1, text2) | compare the given strings with the Levenshtein distance algorithm
+| apoc.text.levenshteinSimilarity(text1, text2) | calculate the similarity (a value within 0 and 1) between two texts based on Levenshtein distance.
+| apoc.text.hammingDistance(text1, text2) | compare the given strings with the Hamming distance algorithm
+| apoc.text.jaroWinklerDistance(text1, text2) | compare the given strings with the Jaro-Winkler distance algorithm
+| apoc.text.sorensenDiceSimilarity(text1, text2) | compare the given strings with the Sørensen–Dice coefficient formula, assuming an English locale
+| apoc.text.sorensenDiceSimilarityWithLanguage(text1, text2, languageTag) | compare the given strings with the Sørensen–Dice coefficient formula, with the provided IETF language tag
+| apoc.text.fuzzyMatch(text1, text2) | check if 2 words can be matched in a fuzzy way. Depending on the length of the String it will allow more characters that needs to be edited to match the second String.
+|===
+
+=== Compare the  strings with the Levenshtein distance
+
+Compare the given strings with the `StringUtils.distance(text1, text2)` method (Levenshtein).
+
+[source,cypher]
+----
+RETURN apoc.text.distance("Levenshtein", "Levenstein") // 1
+----
+
+=== Compare the given strings with the Sørensen–Dice coefficient formula.
+
+.computes the similarity assuming Locale.ENGLISH
+[source,cypher]
+----
+RETURN apoc.text.sorensenDiceSimilarity("belly", "jolly") // 0.5
+----
+
+.computes the similarity with an explicit locale
+[source,cypher]
+----
+RETURN apoc.text.sorensenDiceSimilarityWithLanguage("halım", "halim", "tr-TR") // 0.5
+----
+
+=== Check if 2 words can be matched in a fuzzy way with `fuzzyMatch`
+
+
+Depending on the length of the String it will allow more characters that needs to be edited to match the second String.
+
+[source,cypher]
+----
+RETURN apoc.text.fuzzyMatch("The", "the") // true
+----
+
+[[text-functions-phonetic-comparison]]
+== Phonetic Comparison Functions
+
+The phonetic text (soundex) functions allow you to compute the soundex encoding of a given string.
+There is also a procedure to compare how similar two strings sound under the soundex algorithm.
+All soundex procedures by default assume the used language is US English.
+
+[cols="1m,5"]
+|===
+| apoc.text.phonetic(value) | Compute the US_ENGLISH phonetic soundex encoding of all words of the text value which can be a single string or a list of strings
+| apoc.text.doubleMetaphone(value) | Compute the Double Metaphone phonetic encoding of all words of the text value which can be a single string or a list of strings
+| apoc.text.clean(text) | strip the given string of everything except alpha numeric characters and convert it to lower case.
+| apoc.text.compareCleaned(text1, text2) | compare the given strings stripped of everything except alpha numeric characters converted to lower case.
+|===
+
+.Procedure
+[cols="1m,5"]
+|===
+| apoc.text.phoneticDelta(text1, text2) yield phonetic1, phonetic2, delta | Compute the US_ENGLISH soundex character difference between two given strings
+|===
+
+[source,cypher]
+----
+// will return 'H436'
+RETURN apoc.text.phonetic('Hello, dear User!')
+----
+
+[source,cypher]
+----
+// will return '4'  (very similar)
+RETURN apoc.text.phoneticDelta('Hello Mr Rabbit', 'Hello Mr Ribbit')
+----
+
+[[text-functions-formatting-text]]
+== Formatting Text
+
+Format the string with the params given, and optional param language.
+
+.without language param ('en' default)
+
+[source,cypher]
+----
+RETURN apoc.text.format('ab%s %d %.1f %s%n',['cd',42,3.14,true]) AS value // abcd 42 3.1 true
+----
+
+.with language param
+
+[source,cypher]
+----
+RETURN apoc.text.format('ab%s %d %.1f %s%n',['cd',42,3.14,true],'it') AS value // abcd 42 3,1 true
+----
+
+[[text-functions-string-search]]
+== String Search
+
+The `indexOf` function, provides the fist occurrence of the given `lookup` string within the `text`, or -1 if not found.
+It can optionally take `from` (inclusive) and `to` (exclusive) parameters.
+
+[source,cypher]
+----
+RETURN apoc.text.indexOf('Hello World!', 'World') // 6
+----
+
+The `indexesOf` function, provides all occurrences of the given lookup string within the text, or empty list if not found.
+It can optionally take `from` (inclusive) and `to` (exclusive) parameters.
+
+
+[source,cypher]
+----
+RETURN apoc.text.indexesOf('Hello World!', 'o',2,9) // [4,7]
+----
+
+If you want to get a substring starting from your index match, you can use this
+
+.returns `World!`
+[source,cypher]
+----
+WITH 'Hello World!' as text, length(text) as len
+WITH text, len, apoc.text.indexOf(text, 'World',3) as index
+RETURN substring(text, case index when -1 then len-1 else index end, len);
+----
+
+[[text-functions-regex]]
+== Regular Expressions
+
+.will return 'HelloWorld'
+[source,cypher]
+----
+RETURN apoc.text.replace('Hello World!', '[^a-zA-Z]', '')
+----
+
+[source,cypher]
+----
+RETURN apoc.text.regexGroups('abc <link xxx1>yyy1</link> def <link xxx2>yyy2</link>','<link (\\w+)>(\\w+)</link>') AS result
+
+// [["<link xxx1>yyy1</link>", "xxx1", "yyy1"], ["<link xxx2>yyy2</link>", "xxx2", "yyy2"]]
+----
+
+
+[[text-functions-split-join]]
+== Split and Join
+
+.will split with the given regular expression return ['Hello', 'World']
+[source,cypher]
+----
+RETURN apoc.text.split('Hello   World', ' +')
+----
+
+.will return 'Hello World'
+[source,cypher]
+----
+RETURN apoc.text.join(['Hello', 'World'], ' ')
+----
+
+[[text-functions-data-cleaning]]
+== Data Cleaning
+
+.will return 'helloworld'
+[source,cypher]
+----
+RETURN apoc.text.clean('Hello World!')
+----
+
+.will return `true`
+[source,cypher]
+----
+RETURN apoc.text.compareCleaned('Hello World!', '_hello-world_')
+----
+
+.will return only 'Hello World!'
+[source,cypher]
+----
+UNWIND ['Hello World!', 'hello worlds'] as text
+RETURN apoc.text.filterCleanMatches(text, 'hello_world') as text
+----
+
+The clean functionality can be useful for cleaning up slightly dirty text data with inconsistent formatting for non-exact comparisons.
+
+Cleaning will strip the string of all non-alphanumeric characters (including spaces) and convert it to lower case.
+
+[[text-functions-case-change]]
+== Case Change Functions
+
+.Capitalise the first letter of the word with `capitalize`
+[source,cypher]
+----
+RETURN apoc.text.capitalize("neo4j") // "Neo4j"
+----
+
+.Capitalise the first letter of every word in the text with `capitalizeAll`
+[source,cypher]
+----
+RETURN apoc.text.capitalizeAll("graph database") // "Graph Database"
+----
+
+.Decapitalize the first letter of the string with `decapitalize`
+[source,cypher]
+----
+RETURN apoc.text.decapitalize("Graph Database") // "graph Database"
+----
+
+.Decapitalize the first letter of all words with `decapitalizeAll`
+[source,cypher]
+----
+RETURN apoc.text.decapitalizeAll("Graph Databases") // "graph databases"
+----
+
+.Swap the case of a string with `swapCase`
+[source,cypher]
+----
+RETURN apoc.text.swapCase("Neo4j") // nEO4J
+----
+
+.Convert a string to lower camelCase with `camelCase`
+[source,cypher]
+----
+RETURN apoc.text.camelCase("FOO_BAR");    // "fooBar"
+RETURN apoc.text.camelCase("Foo bar");    // "fooBar"
+RETURN apoc.text.camelCase("Foo22 bar");  // "foo22Bar"
+RETURN apoc.text.camelCase("foo-bar");    // "fooBar"
+RETURN apoc.text.camelCase("Foobar");     // "foobar"
+RETURN apoc.text.camelCase("Foo$$Bar");   // "fooBar"
+----
+
+.Convert a string to UpperCamelCase with `upperCamelCase`
+[source,cypher]
+----
+RETURN apoc.text.upperCamelCase("FOO_BAR");   // "FooBar"
+RETURN apoc.text.upperCamelCase("Foo bar");   // "FooBar"
+RETURN apoc.text.upperCamelCase("Foo22 bar"); // "Foo22Bar"
+RETURN apoc.text.upperCamelCase("foo-bar");   // "FooBar"
+RETURN apoc.text.upperCamelCase("Foobar");    // "Foobar"
+RETURN apoc.text.upperCamelCase("Foo$$Bar");  // "FooBar"
+----
+
+.Convert a string to snake-case with `snakeCase`
+[source,cypher]
+----
+RETURN apoc.text.snakeCase("test Snake Case"); // "test-snake-case"
+RETURN apoc.text.snakeCase("FOO_BAR");         // "foo-bar"
+RETURN apoc.text.snakeCase("Foo bar");         // "foo-bar"
+RETURN apoc.text.snakeCase("fooBar");          // "foo-bar"
+RETURN apoc.text.snakeCase("foo-bar");         // "foo-bar"
+RETURN apoc.text.snakeCase("Foo bar");         // "foo-bar"
+RETURN apoc.text.snakeCase("Foo  bar");        // "foo-bar"
+----
+
+.Convert a string to UPPER_CASE with `toUpperCase`
+[source,cypher]
+----
+RETURN apoc.text.toUpperCase("test upper case"); // "TEST_UPPER_CASE"
+RETURN apoc.text.toUpperCase("FooBar");          // "FOO_BAR"
+RETURN apoc.text.toUpperCase("fooBar");          // "FOO_BAR"
+RETURN apoc.text.toUpperCase("foo-bar");         // "FOO_BAR"
+RETURN apoc.text.toUpperCase("foo--bar");        // "FOO_BAR"
+RETURN apoc.text.toUpperCase("foo$$bar");        // "FOO_BAR"
+RETURN apoc.text.toUpperCase("foo 22 bar");      // "FOO_22_BAR"
+----
+
+
+[[text-functions-base64-encoding-decoding]]
+== Base64 De- and Encoding
+
+Encode or decode a string in base64 or base64Url
+
+.Encode base 64
+[source,cypher]
+----
+RETURN apoc.text.base64Encode("neo4j") // bmVvNGo=
+----
+
+.Decode base 64
+[source,cypher]
+----
+RETURN apoc.text.base64Decode("bmVvNGo=") // neo4j
+----
+
+
+.Encode base 64 URL
+[source,cypher]
+----
+RETURN apoc.text.base64EncodeUrl("http://neo4j.com/?test=test") // aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0
+----
+
+.Decode base 64 URL
+[source,cypher]
+----
+RETURN apoc.text.base64DecodeUrl("aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0") // http://neo4j.com/?test=test
+----
+
+[[text-functions-random-string]]
+== Random String
+
+You can generate a random string to a specified length by calling `apoc.text.random` with a length parameter and optional string of valid characters.
+
+The `valid` parameter will accept the following regex patterns, alternatively you can provide a string of letters and/or characters.
+
+[cols="1m,5"]
+|===
+| Pattern | Description
+| A-Z | A-Z in uppercase
+| a-z | A-Z in lowercase
+| 0-9 | Numbers 0-9 inclusive
+|===
+
+.The following call will return a random string including uppercase letters, numbers and `.` and `$` characters.
+[source,cypher]
+----
+RETURN apoc.text.random(10, "A-Z0-9.$")
+----
+
+[[text-functions-extract-domain]]
+== Extract Domain
+
+The User Function `apoc.data.domain` will take a url or email address and try to determine the domain name.
+This can be useful to make easier correlations and equality tests between differently formatted email addresses, and between urls to the same domains but specifying different locations.
+
+[source,cypher]
+----
+WITH 'foo@bar.com' AS email
+RETURN apoc.data.domain(email) // will return 'bar.com'
+----
+
+[source,cypher]
+----
+WITH 'http://www.example.com/all-the-things' AS url
+RETURN apoc.data.domain(url) // will return 'www.example.com'
+----
+
+[[text-functions-hashing]]
+== Hashing Functions
+
+[cols="1m,5"]
+|===
+| apoc.util.sha1([values]) | computes the sha1 of the concatenation of all string values of the list
+| apoc.util.md5([values]) | computes the md5 of the concatenation of all string values of the list
+|===

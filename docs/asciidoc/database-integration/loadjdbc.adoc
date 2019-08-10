@@ -1,0 +1,535 @@
+[[load-jdbc]]
+= Load JDBC (RDBMS)
+
+[abstract]
+--
+This section describes procedures that can be used to import data from databases that have JDBC support.
+--
+
+Data Integration is an important topic.
+Reading data from relational databases to create and augment data models is a very helpful exercise.
+
+With `apoc.load.jdbc` you can access any database that provides a JDBC driver, and execute queries whose results are turned into streams of rows. 
+Those rows can then be used to update or create graph structures.
+
+ifdef::backend-html5[]
+++++
+<iframe width="560" height="315" src="https://www.youtube.com/embed/e8UfOHJngQA" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+++++
+endif::[]
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.load.csv[lines=1;6..8]
+|===
+
+image::apoc-jdbc-northwind-load.jpg[scaledwidth="100%"]
+
+//include::overview.adoc[tags=jdbc,leveloffset=-1]
+////
+[cols="1m,5"]
+|===
+| CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON') YIELD row CREATE (:Person {name:row.name}) | load from relational database, either a full table or a sql statement
+| CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE AGE > 18') | load from relational database, either a full table or a sql statement
+| CALL apoc.load.driver('org.apache.derby.jdbc.EmbeddedDriver') | register JDBC driver of source database
+|===
+////
+
+To simplify the JDBC URL syntax and protect credentials, you can configure aliases in `conf/neo4j.conf`:
+
+----
+apoc.jdbc.myDB.url=jdbc:derby:derbyDB
+----
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('jdbc:derby:derbyDB','PERSON')
+----
+
+becomes
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('myDB','PERSON')
+----
+
+The 3rd value in the `apoc.jdbc.<alias>.url=` effectively defines an alias to be used in  `apoc.load.jdbc('<alias>',....`
+
+
+== MySQL Example
+
+Northwind is a common example set for relational databases, which is also covered in our import guides, e.g. pass:a[<a play-topic='northwind graph'>:play northwind graph</a>] in the Neo4j browser.
+
+=== MySQL Northwind Data
+
+[source,sql]
+----
+select count(*) from products;
+----
+
+
+.Results
+[opts="header",cols="1"]
+|===
+| count(*)
+| 77
+|===
+
+
+[source,sql]
+----
+describe products;
+----
+
+.Results
+[opts="header"]
+|===
+| Field           | Type          | Null | Key | Default | Extra
+| ProductID       | int(11)       | NO   | PRI | NULL    | auto_increment
+| ProductName     | varchar(40)   | NO   | MUL | NULL    |
+| SupplierID      | int(11)       | YES  | MUL | NULL    |
+| CategoryID      | int(11)       | YES  | MUL | NULL    |
+| QuantityPerUnit | varchar(20)   | YES  |     | NULL    |
+| UnitPrice       | decimal(10,4) | YES  |     | 0.0000  |
+| UnitsInStock    | smallint(2)   | YES  |     | 0       |
+| UnitsOnOrder    | smallint(2)   | YES  |     | 0       |
+| ReorderLevel    | smallint(2)   | YES  |     | 0       |
+| Discontinued    | bit(1)        | NO   |     | b'0'    |
+|===
+
+== Load JDBC Examples
+
+.Load the JDBC driver
+[source,cypher]
+----
+CALL apoc.load.driver("com.mysql.jdbc.Driver");
+----
+
+.Count rows in products table
+[source,cypher]
+----
+WITH "jdbc:mysql://localhost:3306/northwind?user=root" as url
+CALL apoc.load.jdbc(url,"products") YIELD row
+RETURN count(*);
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| count(*)
+| 77
+|===
+
+.Return row from products table
+[source,cypher]
+----
+WITH "jdbc:mysql://localhost:3306/northwind?user=root" as url
+CALL apoc.load.jdbc(url,"products") YIELD row
+RETURN row limit 1;
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| row
+| {UnitPrice -> 18.0000, UnitsOnOrder -> 0, CategoryID -> 1, UnitsInStock -> 39}
+|===
+
+
+image::apoc-load-jdbc.jpg[width=800]
+
+// apoc.load.jdbc('jdbc:derby:derbyDB/key','PERSON' || 'SELECT * FROM PERSON WHERE AGE > 18') YIELD row CREATE (:Person {name:row.name}) load from relational database, either a full table or a sql statement
+
+== Load JDBC with params Examples
+
+[source,cypher]
+----
+WITH "select firstname, lastname from employees where firstname like ? and lastname like ?" as sql
+CALL apoc.load.jdbcParams("northwind", sql, ['F%', '%w'])
+YIELD row
+RETURN row
+----
+
+JDBC pretends positional "?" for parameters, so the third apoc parameter has to be an array with values coherent with that positions.
+In case of 2 parameters, firstname and lastname ['firstname-position','lastname-position']
+
+== Load data in transactional batches
+
+You can load data from jdbc and create/update the graph using the query results in batches (and in parallel).
+
+[source,cypher]
+----
+CALL apoc.periodic.iterate(
+  'CALL apoc.load.jdbc("jdbc:mysql://localhost:3306/northwind?user=root","company")',
+  'CREATE (p:Person) SET p += value',
+  { batchSize:10000, parallel:true})
+RETURN batches, total
+----
+
+== Cassandra Example
+
+Setup Song database as initial dataset
+
+----
+curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/playlist.cql
+curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/artists.csv
+curl -OL https://raw.githubusercontent.com/neo4j-contrib/neo4j-cassandra-connector/master/db_gen/songs.csv
+$CASSANDRA_HOME/bin/cassandra
+$CASSANDRA_HOME/bin/cqlsh -f playlist.cql
+----
+
+Download the https://github.com/adejanovski/cassandra-jdbc-wrapper#installing[Cassandra JDBC Wrapper], and put it into your `$NEO4J_HOME/plugins` directory.
+Add this config option to `$NEO4J_HOME/conf/neo4j.conf` to make it easier to interact with the cassandra instance.
+
+.Add to conf/neo4j.conf
+----
+apoc.jdbc.cassandra_songs.url=jdbc:cassandra://localhost:9042/playlist
+----
+
+Restart the server.
+
+Now you can inspect the data in Cassandra with.
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter')
+YIELD row
+RETURN count(*);
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| count(*)
+| 3605
+|===
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter')
+YIELD row
+RETURN row LIMIT 5;
+----
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('cassandra_songs','artists_by_first_letter')
+YIELD row
+RETURN row.first_letter, row.artist
+LIMIT 5;
+----
+
+.Results
+[opts="header",cols="1,1"]
+|===
+| row.first_letter | row.artist
+| C |  C.W. Stoneking
+| C |  CH2K
+| C |  CHARLIE HUNTER WITH LEON PARKER
+| C |  Calvin Harris
+| C |  Camané
+|===
+
+Let's create some graph data, we have a look at the track_by_artist table, which contains about 60k records.
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('cassandra_songs','track_by_artist')
+YIELD row
+RETURN count(*);
+----
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('cassandra_songs','track_by_artist')
+YIELD row
+RETURN row
+LIMIT 5;
+----
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('cassandra_songs','track_by_artist')
+YIELD row
+RETURN row.track_id, row.track_length_in_seconds, row.track, row.music_file, row.genre, row.artist, row.starred
+LIMIT 2;
+----
+
+.Results
+[opts="header"]
+|===
+| row.track_id | length | row.track | row.music_file | row.genre | row.artist | row.starred
+| c0693b1e-0eaa-4e81-b23f-b083db303842 | 219   | 1913 Massacre   | TRYKHMD128F934154C | folk     | Woody Guthrie & Jack Elliott | false
+| 7d114937-0bc7-41c7-8e0c-94b5654ac77f | 178   | Alabammy Bound   | TRMQLPV128F934152B | folk     | Woody Guthrie & Jack Elliott | false
+|===
+
+Let's create some indexes and constraints, note that other indexes and constraints will be dropped by this.
+
+[source,cypher]
+----
+CALL apoc.schema.assert(
+  {Track:['title','length']},
+  {Artist:['name'],Track:['id'],Genre:['name']});
+----
+
+.Results
+[opts="header"]
+|===
+| label | key | unique | action
+| Track | title | false | CREATED
+| Track | length | false | CREATED
+| Artist | name | true | CREATED
+| Genre | name | true | CREATED
+| Track | id | true | CREATED
+|===
+
+
+// TODO add some nice queries, create graph data from cassandra
+
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('cassandra_songs','track_by_artist')
+YIELD row
+MERGE (a:Artist {name:row.artist})
+MERGE (g:Genre {name:row.genre})
+CREATE (t:Track {id:toString(row.track_id), title:row.track, length:row.track_length_in_seconds})
+CREATE (a)-[:PERFORMED]->(t)
+CREATE (t)-[:GENRE]->(g);
+----
+
+----
+Added 63213 labels, created 63213 nodes, set 182413 properties, created 119200 relationships, statement executed in 40076 ms.
+----
+
+== Support for Hive with Kerberos Auth
+
+Support for Hive especially with Kerberos is more involved.
+
+First of all the required configuration is more detailed, make sure to get this information:
+
+* kerberos user / password
+* kerberos realm / kdc
+* hive hostname + port (10000)
+
+Create this `login.conf` file at a known location:
+
+.login.conf
+----
+KerberosClient {
+  com.sun.security.auth.module.Krb5LoginModule required
+  debug=true debugNative=true;
+};
+----
+
+Add these options to your `conf/neo4j.conf`
+
+.neo4j.conf
+----
+dbms.jvm.additional=-Djava.security.auth.login.config=/path/to/login.conf
+dbms.jvm.additional=-Djava.security.auth.login.config.client=KerberosClient
+dbms.jvm.additional=-Djava.security.krb5.realm=KRB.REALM.COM
+dbms.jvm.additional=-Djava.security.krb5.kdc=krb-kdc.host.com
+----
+
+Unlike other JDBC drivers, Hive comes with a bunch of dependencies, you can download these from the Hadoop providers
+
+* https://www.cloudera.com/downloads/connectors/hive/jdbc/2-5-20.html[Cloudera Hive Drivers^]
+* https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.3/bk_data-access/content/hive-jdbc-odbc-drivers.html[Hortonworks Hive Drivers^]
+* https://cwiki.apache.org/confluence/display/Hive/HiveServer2+Clients#HiveServer2Clients-JDBC[Apache Hive Driver^]
+
+or grab them from https://search.maven.org[maven central^].
+
+The versions might vary, use what comes with your Hive driver.
+
+* hadoop-common-2.7.3.2.6.1.0-129.jar
+* hive-exec-1.2.1000.2.6.1.0-129.jar
+* hive-jdbc-1.2.1000.2.6.1.0-129.jar
+* hive-metastore-1.2.1000.2.6.1.0-129.jar
+* hive-service-1.2.1000.2.6.1.0-129.jar
+* httpclient-4.4.jar
+* httpcore-4.4.jar
+* libfb303-0.9.2.jar
+* libthrift-0.9.3.jar
+
+Now you can use a JDBC URL like this from APOC.
+
+NOTE: This has no newlines, it's just wrapped because it is too long.
+
+`jdbc:hive2://username%40krb-realm:password@hive-hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject`
+
+And then call:
+
+[source,cypher]
+----
+WITH 'jdbc:hive2://username%40krb-realm:password@hive-hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject' AS url
+CALL apoc.load.jdbc(url,'PRODUCTS')
+YIELD row
+RETURN row.name, row.price;
+----
+
+You can also set it in your `conf/neo4j.conf` as a key:
+
+.neo4j.conf
+----
+apoc.jdbc.my-hive.url=jdbc:hive2://username%40krb-realm:password@hive-hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject
+----
+
+And then use the more compact call:
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('my-hive','SELECT * PRODUCTS');
+----
+
+
+== LOAD JDBC - Resources
+
+To use other JDBC drivers use these download links and JDBC URL.
+Put the JDBC driver into the `$NEO4J_HOME/plugins` directory and configure the JDBC-URL in `$NEO4J_HOME/conf/neo4j.conf` with `apoc.jdbc.<alias>.url=<jdbc-url>`
+
+Credentials can be passed in two ways:
+
+* into url
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('jdbc:derby:derbyDB;user=apoc;password=Ap0c!#Db;create=true', 'PERSON')
+----
+
+* by config parameter.
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})
+----
+
+[options="header",cols="a,3m,a"]
+|===
+|Database | JDBC-URL | Driver Source
+
+|MySQL 
+|jdbc:mysql://<hostname>:<port/3306>/<database>?user=<user>&password=<pass>
+|http://dev.mysql.com/downloads/connector/j/[MySQL Driver]
+
+|Postgres
+|jdbc:postgresql://<hostname>/<database>?user=<user>&password=<pass>
+|https://jdbc.postgresql.org/download.html[PostgresSQL JDBC Driver]
+
+|Oracle
+|jdbc:oracle:thin:<user>/<pass>@<host>:<port>/<service_name>
+|http://www.oracle.com/technetwork/database/features/jdbc/index.html[Oracle JDBC Driver]
+
+|MS SQLServer
+|jdbc:sqlserver://;servername=<servername>;databaseName=<database>;user=<user>;password=<pass>
+|https://www.microsoft.com/en-us/download/details.aspx?id=11774[SQLServer Driver]
+
+|IBM DB2
+|jdbc:db2://<host>:<port/5021>/<database>:user=<user>;password=<pass>;
+|http://www-01.ibm.com/support/docview.wss?uid=swg21363866[DB2 Driver]
+
+|Derby
+|jdbc:derby:derbyDB
+|Included in JDK6-8
+
+|Cassandra 
+|jdbc:cassandra://<host>:<port/9042>/<database>
+|link:https://github.com/adejanovski/cassandra-jdbc-wrapper#installing[Cassandra JDBC Wrapper]
+
+|SAP Hana
+|jdbc:sap://<host>:<port/39015>/?user=<user>&password=<pass>
+|https://www.sap.com/developer/topics/sap-hana-express.html[SAP Hana ngdbc Driver]
+
+|Apache Hive (w/ Kerberos)
+|jdbc:hive2://username%40krb-realm:password@hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject
+| https://cwiki.apache.org/confluence/display/Hive/HiveServer2+Clients#HiveServer2Clients-JDBC[Apache Hive Driver] https://www.cloudera.com/downloads/connectors/hive/jdbc/2-5-20.html[(Cloudera)] https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.3/bk_data-access/content/hive-jdbc-odbc-drivers.html[(Hortonworks)]
+ There are several jars (hadoop-common-xxx.jar hive-exec-xxx.jar hive-jdbc-xxx.jar hive-metastore-xxx.jar hive-service-xxx.jar httpclient-4.4.jar httpcore-4.4.jar libfb303-0.9.2.jar libthrift-0.9.3.jar)
+|===
+
+There are a number of blog posts / examples that details usage of apoc.load.jdbc
+
+* https://jesusbarrasa.wordpress.com/2016/09/30/quickgraph4-explore-your-browser-history-in-neo4j/[Explore your browser history in Neo4j]
+* https://blog.knoldus.com/2016/09/12/neo4j-with-scala-migrate-data-from-other-database-to-neo4j/[Neo4j With Scala : Migrate Data From Other Database to Neo4j]
+* https://neo4j.com/blog/apoc-database-integration-import-export-cypher/[APOC: Database Integration, Import and Export with Awesome Procedures On Cypher]
+
+
+== LOAD JDBC - UPDATE
+
+The jdbcUpdate is use for update relational database, from a SQL statement with optional parameters
+
+[source,cypher]
+----
+CALL apoc.load.jdbcUpdate(jdbc-url,statement, params, config)
+----
+
+With this set of data you can call the procedure in two different mode:
+
+[source,cypher]
+----
+MATCH (u:User)-[:BOUGHT]->(p:Product)<-[:BOUGHT]-(o:User)-[:BOUGHT]->(reco)
+WHERE u <> o AND NOT (u)-[:BOUGHT]->(reco)
+WITH u, reco, count(*) as score
+WHERE score > 1000
+----
+
+You can call the procedure with param:
+
+[source,cypher]
+----
+CALL apoc.load.jdbcUpdate('jdbc:mysql:....','INSERT INTO RECOMMENDATIONS values(?,?,?)',[user.id, reco.id, score]);
+----
+
+You can call the procedure without param:
+
+[source,cypher]
+----
+CALL apoc.load.jdbcUpdate('jdbc:mysql:....','INSERT INTO RECOMMENDATIONS values(user.id, reco.id, score)');
+----
+
+=== Load JDBC format date
+
+Starting from Neo4j 3.4 there is the support for https://neo4j.com/docs/developer-manual/current/cypher/syntax/temporal/[Temporal Values]
+
+If the returning JdbcType, from the load operation, is TIMESTAMP or TIMESTAMP_WITH_TIMEZONE you could provide the configuration parameter **timezone** with type https://docs.oracle.com/javase/8/docs/api/java/time/ZoneId.html[java.time.ZoneId]
+
+[source, cypher]
+----
+CALL apoc.load.jdbc('key or url','table or statement', config);
+----
+
+=== Config
+
+Config param is optional, the default value is an empty map.
+
+[cols="3m,2"]
+|===
+|timezone| default value: null
+|credentials| default value: {}
+|===
+
+Example:
+
+.with timezone
+[source, cypher]
+----
+CALL apoc.load.jdbc(
+  'jdbc:derby:derbyDB',
+  'SELECT * FROM PERSON WHERE NAME = ?',['John'],
+  {timezone: "Asia/Tokyo"})
+----
+
+----
+2018-10-31T01:32:25.012+09:00[Asia/Tokyo]
+----
+
+
+.with credentials
+[source,cypher]
+----
+CALL apoc.load.jdbcUpdate('jdbc:derby:derbyDB','UPDATE PERSON SET NAME = ? WHERE NAME = ?',['John','John'],{credentials:{user:'apoc',password:'Ap0c!#Db'}})
+----
+
+[source,cypher]
+----
+CALL apoc.load.jdbc('jdbc:derby:derbyDB', 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})
+----

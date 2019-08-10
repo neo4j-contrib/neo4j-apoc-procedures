@@ -2,6 +2,7 @@ package apoc.merge;
 
 import apoc.result.*;
 import apoc.util.Util;
+import com.google.common.collect.Lists;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.procedure.*;
@@ -10,61 +11,77 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static apoc.util.Util.labelString;
+import static java.util.Collections.emptyMap;
+
 public class Merge {
 
     @Context
     public GraphDatabaseService db;
 
-    @Procedure(mode = Mode.WRITE)
-    @Description("apoc.merge.node(['Label'], {key:value, ...}, {key:value,...}) - merge node with dynamic labels")
-    public Stream<NodeResult> node(@Name("label") List<String> labelNames, @Name("identProps") Map<String, Object> identProps, @Name("props") Map<String, Object> props) {
-        if ((identProps==null) || (identProps.isEmpty())) {
+    @Procedure(value="apoc.merge.node.eager", mode = Mode.WRITE, eager = true)
+    @Description("apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) - merge nodes eagerly, with dynamic labels, with support for setting properties ON CREATE or ON MATCH")
+    public Stream<NodeResult> nodesEager(@Name("label") List<String> labelNames,
+                                        @Name("identProps") Map<String, Object> identProps,
+                                        @Name(value = "props",defaultValue = "{}") Map<String, Object> props,
+                                        @Name(value = "onMatchProps",defaultValue = "{}") Map<String, Object> onMatchProps) {
+        return nodes(labelNames, identProps,props,onMatchProps);
+    }
+
+    @Procedure(value="apoc.merge.node", mode = Mode.WRITE)
+    @Description("\"apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) - merge nodes with dynamic labels, with support for setting properties ON CREATE or ON MATCH")
+    public Stream<NodeResult> nodes(@Name("label") List<String> labelNames,
+                                        @Name("identProps") Map<String, Object> identProps,
+                                        @Name(value = "props",defaultValue = "{}") Map<String, Object> props,
+                                        @Name(value = "onMatchProps",defaultValue = "{}") Map<String, Object> onMatchProps) {
+        if (identProps==null || identProps.isEmpty()) {
             throw new IllegalArgumentException("you need to supply at least one identifying property for a merge");
         }
 
-        String labels = labelNames.stream().map(s -> wrapInBacktics(s)).collect(Collectors.joining(":"));
+        String labels = labelString(labelNames);
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("props", Util.merge(identProps, props));
+        Map<String, Object> params = Util.map("identProps", identProps, "onCreateProps", props, "onMatchProps", onMatchProps);
         String identPropsString = buildIdentPropsString(identProps);
 
-        final String cypher = "MERGE (n:" + labels + "{" + identPropsString + "}) ON CREATE SET n += $props RETURN n";
-        Node node = Iterators.single(db.execute(cypher, params ).columnAs("n"));
-        return Stream.of(new NodeResult(node));
+        final String cypher = "MERGE (n:" + labels + "{" + identPropsString + "}) ON CREATE SET n += $onCreateProps ON MATCH SET n += $onMatchProps RETURN n";
+        return db.execute(cypher, params ).columnAs("n").stream().map(node -> new NodeResult((Node) node));
     }
 
-    private String wrapInBacktics(String s) {
-        return "`" + s + "`";
-    }
-
-    @Procedure(mode = Mode.WRITE)
-    @Description("apoc.merge.relationship(startNode, relType,  {key:value, ...}, {key:value, ...}, endNode) - merge relationship with dynamic type")
+    @Procedure(value = "apoc.merge.relationship", mode = Mode.WRITE)
+    @Description("apoc.merge.relationship(startNode, relType,  identProps:{key:value, ...}, onCreateProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...}) - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH")
     public Stream<RelationshipResult> relationship(@Name("startNode") Node startNode, @Name("relationshipType") String relType,
-                                                   @Name("identProps") Map<String, Object> identProps, @Name("props") Map<String, Object> props, @Name("endNode") Node endNode) {
+                                                        @Name("identProps") Map<String, Object> identProps,
+                                                        @Name("props") Map<String, Object> onCreateProps,
+                                                        @Name("endNode") Node endNode,
+                                                        @Name(value = "onMatchProps",defaultValue = "{}") Map<String, Object> onMatchProps) {
         String identPropsString = buildIdentPropsString(identProps);
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("props", Util.merge(identProps, props));
-        params.put("startNode", startNode);
-        params.put("endNode", endNode);
+        Map<String, Object> params = Util.map("identProps", identProps, "onCreateProps", onCreateProps==null ? emptyMap() : onCreateProps,
+                "onMatchProps", onMatchProps == null ? emptyMap() : onMatchProps, "startNode", startNode, "endNode", endNode);
 
-        final String cypher = "WITH $startNode as startNode, $endNode as endNode MERGE (startNode)-[r:"+ wrapInBacktics(relType) +"{"+identPropsString+"}]->(endNode) ON CREATE SET r+= $props RETURN r";
-        Relationship rel = Iterators.single(db.execute(cypher, params ).columnAs("r"));
-        return Stream.of(new RelationshipResult(rel));
+        final String cypher =
+                "WITH $startNode as startNode, $endNode as endNode " +
+                "MERGE (startNode)-[r:"+ Util.quote(relType) +"{"+identPropsString+"}]->(endNode) " +
+                "ON CREATE SET r+= $onCreateProps " +
+                "ON MATCH SET r+= $onMatchProps " +
+                "RETURN r";
+        return db.execute(cypher, params ).columnAs("r").stream().map(rel -> new RelationshipResult((Relationship) rel));
     }
+    @Procedure(value = "apoc.merge.relationship.eager", mode = Mode.WRITE, eager = true)
+    @Description("apoc.merge.relationship(startNode, relType,  identProps:{key:value, ...}, onCreateProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...}) - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH")
+    public Stream<RelationshipResult> relationshipEager(@Name("startNode") Node startNode, @Name("relationshipType") String relType,
+                                                        @Name("identProps") Map<String, Object> identProps,
+                                                        @Name("props") Map<String, Object> onCreateProps,
+                                                        @Name("endNode") Node endNode,
+                                                        @Name(value = "onMatchProps",defaultValue = "{}") Map<String, Object> onMatchProps) {
+        return relationship(startNode, relType, identProps, onCreateProps, endNode, onMatchProps );
+    }
+
 
     private String buildIdentPropsString(Map<String, Object> identProps) {
-        if (identProps==null) {
-            return "";
-        } else {
-            return identProps.keySet().stream().map(s -> "`"+s+"`:$props.`" + s+"`").collect(Collectors.joining(","));
-        }
+        if (identProps == null) return "";
+        return identProps.keySet().stream().map(Util::quote)
+                .map(s -> "`"+s+"`:$identProps.`" + s+"`")
+                .collect(Collectors.joining(","));
     }
-
-    private Map<String, Object> buildParams(Map<String, Object> identProps, Map<String, Object> props) {
-        Map<String, Object> map = identProps == null ? new HashMap<>() : new HashMap<>(identProps);
-        map.put("props", props == null ? Collections.EMPTY_MAP : props);
-        return map;
-    }
-
 }

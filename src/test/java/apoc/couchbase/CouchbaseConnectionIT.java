@@ -12,14 +12,12 @@ import org.junit.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.test.TestGraphDatabaseFactory;
 import org.testcontainers.couchbase.CouchbaseContainer;
-import org.testcontainers.elasticsearch.ElasticsearchContainer;
 
 import java.util.Arrays;
 
-import static org.junit.Assume.assumeNotNull;
-import static org.junit.Assume.assumeTrue;
-
 import static apoc.couchbase.CouchbaseTestUtils.*;
+import static apoc.util.TestUtil.isTravis;
+import static org.junit.Assume.*;
 
 /**
  * Created by alberto.delazzari on 22/08/2018.
@@ -39,6 +37,7 @@ public class CouchbaseConnectionIT {
 
     @BeforeClass
     public static void setUp() {
+        assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             couchbase = new CouchbaseContainer()
                     .withClusterAdmin(USERNAME, PASSWORD)

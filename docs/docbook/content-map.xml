@@ -1,39 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <d:toc xmlns:d="http://docbook.org/ns/docbook" xmlns="http://www.w3.org/1999/xhtml" role="chunk-toc">
 
-  <d:tocentry linkend="introduction"><?dbhtml filename="index.html"?>
+  <d:tocentry linkend="apoc"><?dbhtml filename="index.html"?>
+
+    <d:tocentry linkend="introduction"><?dbhtml filename="introduction/index.html"?>
+    </d:tocentry>
+
 	<d:tocentry linkend="help"><?dbhtml filename="help/index.html"?>
     </d:tocentry>
 
-    <d:tocentry linkend="installation"><?dbhtml filename="installation/index.html"?>
-    </d:tocentry>
 
     <d:tocentry linkend="config"><?dbhtml filename="config/index.html"?>
     </d:tocentry>
     <d:tocentry linkend="overview"><?dbhtml filename="overview/index.html"?>
     </d:tocentry>
 
-  <d:tocentry linkend="schema"><?dbhtml filename="schema/index.html"?>
-    <d:tocentry linkend="meta-graph"><?dbhtml filename="schema/meta-graph/index.html"?>
+    <d:tocentry linkend="user-defined-functions"><?dbhtml filename="user-defined-functions/index.html"?>
     </d:tocentry>
-  </d:tocentry>
 
-    <d:tocentry linkend="export-import"><?dbhtml filename="export-import/index.html"?>
-      <d:tocentry linkend="load-json"><?dbhtml filename="export-import/load-json/index.html"?>
+
+    <d:tocentry linkend="import"><?dbhtml filename="import/index.html"?>
+      <d:tocentry linkend="web-apis"><?dbhtml filename="import/web-apis/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="load-csv"><?dbhtml filename="export-import/load-csv/index.html"?>
+
+      <d:tocentry linkend="load-json"><?dbhtml filename="import/load-json/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="import-csv"><?dbhtml filename="export-import/import-csv/index.html"?>
+      <d:tocentry linkend="load-csv"><?dbhtml filename="import/load-csv/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="load-xls"><?dbhtml filename="export-import/load-xls/index.html"?>
+      <d:tocentry linkend="import-csv"><?dbhtml filename="import/import-csv/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="load-xml"><?dbhtml filename="export-import/load-xml/index.html"?>
+      <d:tocentry linkend="load-xls"><?dbhtml filename="import/xls/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="load-html"><?dbhtml filename="export-import/load-html/index.html"?>
+      <d:tocentry linkend="load-xml"><?dbhtml filename="import/xml/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="gephi"><?dbhtml filename="export-import/gephi/index.html"?>
+      <d:tocentry linkend="load-html"><?dbhtml filename="import/html/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="graphml"><?dbhtml filename="export-import/graphml/index.html"?>
+
+      <d:tocentry linkend="graphml-import"><?dbhtml filename="import/graphml/index.html"?>
+      </d:tocentry>
+
+
+    </d:tocentry>
+
+    <d:tocentry linkend="export"><?dbhtml filename="export/index.html"?>
+      <d:tocentry linkend="export-cypher"><?dbhtml filename="export/cypher/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="export-csv"><?dbhtml filename="export/csv/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="export-json"><?dbhtml filename="export/json/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="gephi"><?dbhtml filename="export/gephi/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="graphml-export"><?dbhtml filename="export/graphml/index.html"?>
       </d:tocentry>
     </d:tocentry>
 
@@ -54,72 +73,79 @@
       </d:tocentry>
     </d:tocentry>
 
-
-    <d:tocentry linkend="utilities"><?dbhtml filename="utilities/index.html"?>
-      <d:tocentry linkend="conversion-functions"><?dbhtml filename="utilities/conversion-functions/index.html"?>
+    <d:tocentry linkend="temporal"><?dbhtml filename="temporal/index.html"?>
+      <d:tocentry linkend="temporal-conversions"><?dbhtml filename="temporal/temporal-conversions/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="map-functions"><?dbhtml filename="utilities/map-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="collection-list-functions"><?dbhtml filename="utilities/collection-list-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="text-functions"><?dbhtml filename="utilities/text-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="math-functions"><?dbhtml filename="utilities/math-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="data-extraction-functions"><?dbhtml filename="utilities/data-extraction-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="number-functions"><?dbhtml filename="utilities/number-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="exact-math-functions"><?dbhtml filename="utilities/exact-math-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="datetime-conversions"><?dbhtml filename="utilities/datetime-conversions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="temporal-conversions"><?dbhtml filename="utilities/temporal-conversions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="number-conversions"><?dbhtml filename="utilities/number-conversions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="exact-math-functions"><?dbhtml filename="utilities/exact-math-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="phonetic-functions"><?dbhtml filename="utilities/phonetic-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="node-difference"><?dbhtml filename="utilities/node-difference/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="fingerprinting"><?dbhtml filename="utilities/fingerprinting/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="spatial"><?dbhtml filename="utilities/spatial/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="static-values"><?dbhtml filename="utilities/static-values/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="utility-functions"><?dbhtml filename="utilities/utility-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="bitwise-operations"><?dbhtml filename="utilities/bitwise-operations/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="atomic-updates"><?dbhtml filename="utilities/atomic-updates/index.html"?>
-      </d:tocentry>
-  </d:tocentry>
-
-    <d:tocentry linkend="nodes-relationships"><?dbhtml filename="nodes-relationships/index.html"?>
-      <d:tocentry linkend="path-functions"><?dbhtml filename="nodes-relationships/path-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="node-lookup"><?dbhtml filename="nodes-relationships/node-lookup/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="node-functions"><?dbhtml filename="nodes-relationships/node-functions/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="data-creation"><?dbhtml filename="nodes-relationships/data-creation/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="locking"><?dbhtml filename="nodes-relationships/locking/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="graph-generators"><?dbhtml filename="nodes-relationships/graph-generators/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="parallel-node-search"><?dbhtml filename="nodes-relationships/parallel-node-search/index.html"?>
+      <d:tocentry linkend="datetime-conversions"><?dbhtml filename="temporal/datetime-conversions/index.html"?>
       </d:tocentry>
     </d:tocentry>
 
-    <d:tocentry linkend="path-finding"><?dbhtml filename="path-finding/index.html"?>
-      <d:tocentry linkend="path-expander"><?dbhtml filename="path-finding/path-expander/index.html"?>
+    <d:tocentry linkend="mathematical"><?dbhtml filename="mathematical/index.html"?>
+      <d:tocentry linkend="math-functions"><?dbhtml filename="mathematical/math-functions/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="neighbourhood-search"><?dbhtml filename="path-finding/neighbourhood-search/index.html"?>
+      <d:tocentry linkend="exact-math-functions"><?dbhtml filename="mathematical/exact-math-functions/index.html"?>
       </d:tocentry>
+      <d:tocentry linkend="number-conversions"><?dbhtml filename="mathematical/number-conversions/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="bitwise-operations"><?dbhtml filename="mathematical/bitwise-operations/index.html"?>
+      </d:tocentry>
+    </d:tocentry>
+
+    <d:tocentry linkend="misc"><?dbhtml filename="misc/index.html"?>
+      <d:tocentry linkend="text-functions"><?dbhtml filename="misc/text-functions/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="data-extraction-functions"><?dbhtml filename="misc/data-extraction-functions/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="spatial"><?dbhtml filename="misc/spatial/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="static-values"><?dbhtml filename="misc/static-values/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="utility-functions"><?dbhtml filename="misc/utility-functions/index.html"?>
+      </d:tocentry>
+
+  </d:tocentry>
+
+
+    <d:tocentry linkend="data-structures"><?dbhtml filename="data-structures/index.html"?>
+      <d:tocentry linkend="conversion-functions"><?dbhtml filename="data-structures/conversion-functions/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="map-functions"><?dbhtml filename="data-structures/map-functions/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="collection-list-functions"><?dbhtml filename="data-structures/collection-list-functions/index.html"?>
+      </d:tocentry>
+    </d:tocentry>
+
+    <d:tocentry linkend="nodes-relationships"><?dbhtml filename="nodes-relationships/index.html"?>
+
+
+    </d:tocentry>
+
+    <d:tocentry linkend="path-finding"><?dbhtml filename="graph-querying/index.html"?>
+      <d:tocentry linkend="path-expander"><?dbhtml filename="graph-querying/path-expander/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="neighbourhood-search"><?dbhtml filename="graph-querying/neighbourhood-search/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="expand-subgraph"><?dbhtml filename="graph-querying/expand-subgraph/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="expand-spanning-tree"><?dbhtml filename="graph-querying/expand-spanning-tree/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="parallel-node-search"><?dbhtml filename="graph-querying/parallel-node-search/index.html"?>
+      </d:tocentry>
+
+
+      <d:tocentry linkend="path-functions"><?dbhtml filename="graph-querying/path-querying/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="rel-functions"><?dbhtml filename="graph-querying/relationship-querying/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="node-functions"><?dbhtml filename="graph-querying/node-querying/index.html"?>
+      </d:tocentry>
+
+
     </d:tocentry>
 
     <d:tocentry linkend="cypher-execution"><?dbhtml filename="cypher-execution/index.html"?>
@@ -131,59 +157,49 @@
       </d:tocentry>
       <d:tocentry linkend="conditionals"><?dbhtml filename="cypher-execution/conditionals/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="job-management"><?dbhtml filename="cypher-execution/job-management/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="commit-batching"><?dbhtml filename="cypher-execution/commit-batching/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="periodic-commit"><?dbhtml filename="cypher-execution/periodic-commit/index.html"?>
-      </d:tocentry>
       <d:tocentry linkend="cypher-based-procedures-functions"><?dbhtml filename="cypher-execution/cypher-based-procedures-functions/index.html"?>
       </d:tocentry>
   </d:tocentry>
 
+    <d:tocentry linkend="job-management"><?dbhtml filename="background-operations/index.html"?>
+      <d:tocentry linkend="periodic-background"><?dbhtml filename="background-operations/background-jobs/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="triggers"><?dbhtml filename="background-operations/triggers/index.html"?>
+      </d:tocentry>
+    </d:tocentry>
+
   <d:tocentry linkend="virtual"><?dbhtml filename="virtual/index.html"?>
     <d:tocentry linkend="virtual-nodes-rels"><?dbhtml filename="virtual/virtual-nodes-rels/index.html"?>
+    </d:tocentry>
+    <d:tocentry linkend="nodes-collapse"><?dbhtml filename="virtual/nodes-collapse/index.html"?>
     </d:tocentry>
     <d:tocentry linkend="virtual-graph"><?dbhtml filename="virtual/virtual-graph/index.html"?>
     </d:tocentry>
     <d:tocentry linkend="graph-grouping"><?dbhtml filename="virtual/graph-grouping/index.html"?>
     </d:tocentry>
   </d:tocentry>
- 
-  <d:tocentry linkend="graph-refactoring"><?dbhtml filename="graph-refactoring/index.html"?>
-    <d:tocentry linkend="clone-nodes"><?dbhtml filename="graph-refactoring/clone-nodes/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="clone-subgraph"><?dbhtml filename="graph-refactoring/clone-subgraph/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="merge-nodes"><?dbhtml filename="graph-refactoring/merge-nodes/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="redirect-relationship"><?dbhtml filename="graph-refactoring/redirect-relationship/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="invert-relationship"><?dbhtml filename="graph-refactoring/invert-relationship/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="set-relationship-type"><?dbhtml filename="graph-refactoring/set-relationship-type/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="extract-node-from-relationship"><?dbhtml filename="graph-refactoring/extract-node-from-relationship/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="collapse-node-to-relationship"><?dbhtml filename="graph-refactoring/collapse-node-to-relationship/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="categorize"><?dbhtml filename="graph-refactoring/categorize/index.html"?>
-    </d:tocentry>
-    <d:tocentry linkend="rename-label-type-property"><?dbhtml filename="graph-refactoring/rename-label-type-property/index.html"?>
-    </d:tocentry>
-  </d:tocentry>
 
     <d:tocentry linkend="operational"><?dbhtml filename="operational/index.html"?>
-      <d:tocentry linkend="ttl"><?dbhtml filename="operational/ttl/index.html"?>
-      </d:tocentry>
-      <d:tocentry linkend="triggers"><?dbhtml filename="operational/triggers/index.html"?>
-      </d:tocentry>
+
       <d:tocentry linkend="init-script"><?dbhtml filename="operational/init-script/index.html"?>
       </d:tocentry>
       <d:tocentry linkend="warmup"><?dbhtml filename="operational/warmup/index.html"?>
       </d:tocentry>
-      <d:tocentry linkend="monitoring"><?dbhtml filename="operational/monitoring/index.html"?>
+      <d:tocentry linkend="log"><?dbhtml filename="operational/log/index.html"?>
       </d:tocentry>
+    </d:tocentry>
+
+    <d:tocentry linkend="database-introspection"><?dbhtml filename="database-introspection/index.html"?>
+
+      <d:tocentry linkend="monitoring"><?dbhtml filename="database-introspection/monitoring/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="neo4j-config"><?dbhtml filename="database-introspection/config/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="meta-graph"><?dbhtml filename="database-introspection/meta/index.html"?>
+      </d:tocentry>
+
     </d:tocentry>
 
     <d:tocentry linkend="indexes"><?dbhtml filename="indexes/index.html"?>
@@ -205,6 +221,71 @@
       </d:tocentry>
       <d:tocentry linkend="centrality"><?dbhtml filename="algorithms/centrality/index.html"?>
       </d:tocentry>
+      <d:tocentry linkend="path-finding-procedures"><?dbhtml filename="algorithms/path-finding-procedures/index.html"?>
+      </d:tocentry>
+    </d:tocentry>
+
+    <d:tocentry linkend="graph-updates"><?dbhtml filename="graph-updates/index.html"?>
+
+      <d:tocentry linkend="graph-generators"><?dbhtml filename="graph-updates/graph-generators/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="locking"><?dbhtml filename="graph-updates/locking/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="atomic-updates"><?dbhtml filename="graph-updates/atomic-updates/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="data-creation"><?dbhtml filename="graph-updates/data-creation/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="deleting-data"><?dbhtml filename="graph-updates/data-deletion/index.html"?>
+      </d:tocentry>
+
+        <d:tocentry linkend="auto-uuid"><?dbhtml filename="graph-updates/uuid/index.html"?>
+        </d:tocentry>
+
+      <d:tocentry linkend="ttl"><?dbhtml filename="graph-updates/ttl/index.html"?>
+      </d:tocentry>
+
+      <d:tocentry linkend="periodic-execution"><?dbhtml filename="graph-updates/periodic-execution/index.html"?>
+
+        <d:tocentry linkend="graph-refactoring"><?dbhtml filename="graph-updates/graph-refactoring/index.html"?>
+          <d:tocentry linkend="clone-nodes"><?dbhtml filename="graph-updates/graph-refactoring/clone-nodes/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="clone-subgraph"><?dbhtml filename="graph-updates/graph-refactoring/clone-subgraph/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="merge-nodes"><?dbhtml filename="graph-updates/graph-refactoring/merge-nodes/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="redirect-relationship"><?dbhtml filename="graph-updates/graph-refactoring/redirect-relationship/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="invert-relationship"><?dbhtml filename="graph-updates/graph-refactoring/invert-relationship/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="set-relationship-type"><?dbhtml filename="graph-updates/graph-refactoring/set-relationship-type/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="extract-node-from-relationship"><?dbhtml filename="graph-updates/graph-refactoring/extract-node-from-relationship/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="collapse-node-to-relationship"><?dbhtml filename="graph-updates/graph-refactoring/collapse-node-to-relationship/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="categorize"><?dbhtml filename="graph-updates/graph-refactoring/categorize/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="rename-label-type-property"><?dbhtml filename="graph-updates/graph-refactoring/rename-label-type-property/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="normalize-boolean"><?dbhtml filename="graph-updates/graph-refactoring/normalize-boolean/index.html"?>
+          </d:tocentry>
+          <d:tocentry linkend="property-value-label"><?dbhtml filename="graph-updates/graph-refactoring/property-value-label/index.html"?>
+          </d:tocentry>
+        </d:tocentry>
+
+      </d:tocentry>
+
+
+    </d:tocentry>
+
+    <d:tocentry linkend="comparing-graphs"><?dbhtml filename="comparing-graphs/index.html"?>
+      <d:tocentry linkend="node-difference"><?dbhtml filename="comparing-graphs/node-difference/index.html"?>
+      </d:tocentry>
+      <d:tocentry linkend="fingerprinting"><?dbhtml filename="comparing-graphs/fingerprinting/index.html"?>
+      </d:tocentry>
+
     </d:tocentry>
 
     <!--d:tocentry linkend="appendix"><?dbhtml filename="appendix/index.html"?>

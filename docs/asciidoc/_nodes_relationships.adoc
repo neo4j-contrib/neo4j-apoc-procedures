@@ -1,151 +1,17 @@
 [[nodes-relationships]]
 == Node, Relationship and Path Functions and Procedures
 
+[abstract]
+--
+This chapter describes node, relationship, and path functions and procedures in the APOC library.
+--
+
 Functions and procedures to efficiently find and navigate and dynamically create and update nodes and relationships.
 
-* <<path-functions>>
-* <<node-lookup>>
-* <<node-functions>>
-* <<data-creation>>
-* <<locking>>
-* <<graph-generators>>
-* <<parallel-node-search>>
-
-[[path-functions]]
-=== Path Functions
-
-Functions to create, combine and split paths
-
-[cols="1m,5"]
-|===
-| apoc.path.create(startNode,[rels]) | creates a path instance of the given elements
-| apoc.path.slice(path, [offset], [length]) | creates a sub-path with the given offset and length
-| apoc.path.combine(path1, path2) | combines the paths into one if the connecting node matches
-| apoc.path.elements(path) | returns a list of node-relationship-node-...
-|===
-
-[[node-lookup]]
-=== Lookup and Manipulation Procedures
-
-[cols="1m,5"]
-|===
-| CALL apoc.nodes.get(node\|nodes\|id\|[ids]) | quickly returns all nodes with these ids
-| CALL apoc.get.rels(rel\|id\|[ids]) | quickly returns all relationships with these ids
-| CALL apoc.nodes.delete(node\|nodes\|id\|[ids]) | quickly delete all nodes with these ids
-|===
-
-[[node-functions]]
-=== Node Functions
-
-[cols="1m,5"]
-|===
-| apoc.nodes.isDense(node) | returns true if it is a dense node
-| apoc.nodes.connected(start, end, rel-direction-pattern) | returns true when the node is connected to the other node, optimized for dense nodes
-| apoc.node.relationship.exists(node, rel-direction-pattern) | returns true when the node has the relationships of the pattern
-| apoc.node.relationship.types(node, rel-direction-pattern) | returns a list of distinct relationship types
-| apoc.node.degree(node, rel-direction-pattern) | returns total degrees of the given relationships in the pattern, can use `'>'` or `'<'` for all outgoing or incoming relationships
-| apoc.node.id(node) | returns id for (virtual) nodes
-| apoc.node.degree.in(node, relationshipName) | returns total number of incoming relationship
-| apoc.node.degree.out(node, relationshipName) | returns total number of outgoing relationship
-| apoc.node.labels(node) | returns labels for (virtual) nodes
-| apoc.rel.id(rel) | returns id for (virtual) relationships
-| apoc.rel.type(rel) | returns type for (virtual) relationships
-| apoc.any.properties(node/rel/map, [[keys]]) | returns properties for virtual and real, nodes, rels and maps, optionally restrict via keys
-| apoc.any.property(node/rel/map) | returns property for virtual and real, nodes, rels and maps
-| apoc.create.uuid() | returns a UUID string
-| apoc.label.exists(element, label) | returns true or false related to label existance
-|===
-
-rel-direction-pattern syntax:
-
-`[<]RELATIONSHIP_TYPE1[>]|[<]RELATIONSHIP_TYPE2[>]|...`
-
-Example: `'FRIEND|MENTORS>|<REPORTS_TO'` will match to :FRIEND relationships in either direction, outgoing :MENTORS relationships, and incoming :REPORTS_TO relationships.
 
 
-[[data-creation]]
-=== Creating Data
-
-ifdef::backend-html5[]
-++++
-<iframe width="560" height="315" src="https://www.youtube.com/embed/KsAb8QHClNg" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-++++
-endif::[]
-
-[cols="1m,5"]
-|===
-| CALL apoc.create.node(['Label'], {key:value,...}) | create node with dynamic labels
-| CALL apoc.create.nodes(['Label'], [{key:value,...}]) | create multiple nodes with dynamic labels
-| CALL apoc.create.addLabels( [node,id,ids,nodes], ['Label',...]) | adds the given labels to the node or nodes
-| CALL apoc.create.removeLabels( [node,id,ids,nodes], ['Label',...]) | removes the given labels from the node or nodes
-| CALL apoc.create.setProperty( [node,id,ids,nodes], key, value) | sets the given property on the node(s)
-| CALL apoc.create.setProperties( [node,id,ids,nodes], [keys], [values]) | sets the given property on the nodes(s)
-| CALL apoc.create.setRelProperty( [rel,id,ids,rels], key, value) | sets the given property on the relationship(s)
-| CALL apoc.create.setRelProperties( [rel,id,ids,rels], [keys], [values]) | sets the given property on the relationship(s)
-| CALL apoc.create.relationship(person1,'KNOWS',{key:value,...}, person2) | create relationship with dynamic rel-type
-| CALL apoc.create.uuids(count) YIELD uuid, row | creates count UUIDs
-| CALL apoc.nodes.link([nodes],'REL_TYPE') | creates a linked list of nodes from first to last
-|===
-
-[[locking]]
-=== Locking
-
-[cols="1m,5"]
-|===
-| call apoc.lock.nodes([nodes]) | acquires a write lock on the given nodes
-| call apoc.lock.rels([relationships]) | acquires a write lock on the given relationship
-| call apoc.lock.all([nodes],[relationships]) | acquires a write lock on the given nodes and relationships
-|===
 
 
-[[graph-generators]]
-=== Generating Graphs
 
-Generate undirected (random direction) graphs with semi-real random distributions based on theoretical models.
 
-[cols="1m,5"]
-|===
-| apoc.generate.er(noNodes, noEdges, 'label', 'type') | generates a graph according to Erdos-Renyi model (uniform)
-| apoc.generate.ws(noNodes, degree, beta, 'label', 'type') | generates a graph according to Watts-Strogatz model (clusters)
-| apoc.generate.ba(noNodes, edgesPerNode, 'label', 'type') | generates a graph according to Barabasi-Albert model (preferential attachment)
-| apoc.generate.complete(noNodes, 'label', 'type') | generates a complete graph (all nodes connected to all other nodes)
-| apoc.generate.simple([degrees], 'label', 'type') | generates a graph with the given degree distribution
-|===
-
-Example
-
-[source,cypher]
-----
-CALL apoc.generate.ba(1000, 2, 'TestLabel', 'TEST_REL_TYPE')
-CALL apoc.generate.ws(1000, null, null, null)
-CALL apoc.generate.simple([2,2,2,2], null, null)
-----
-
-[[parallel-node-search]]
-=== Parallel Node Search
-
-Utility to find nodes in parallel (if possible). These procedures return a single list of nodes or a list of 'reduced' records with node id, labels, and the properties where the search was executed upon.
-
-[cols="5m,4"]
-|===
-| call apoc.search.node(labelPropertyMap, searchType, search ) yield node | A distinct set of Nodes will be returned.
-| call apoc.search.nodeAll(labelPropertyMap, searchType, search ) yield node | All the found Nodes will be returned.
-| call apoc.search.nodeReduced(labelPropertyMap, searchType, search ) yield id, labels, values | A merged set of 'minimal' Node information will be returned. One record per node (-id).
-| call apoc.search.nodeAllReduced(labelPropertyMap, searchType, search ) yield id, labels, values | All the found 'minimal' Node information will be returned. One record per label and property.
-|===
-
-[cols="1m,4,3"]
-|===
-| labelPropertyMap |   `'{ label1 : "propertyOne", label2 :["propOne","propTwo"] }'` | (JSON or Map) For every Label-Property combination a search will be executed in parallel (if possible): Label1.propertyOne, label2.propOne and label2.propTwo.
-| searchType |  'exact' or 'contains' or 'starts with' or 'ends with' | Case insensitive string search operators
-| searchType |  "<", ">", "=", "<>", "<=", ">=", "=~" | Operators
-| search | 'Keanu' | The actual search term (string, number, etc).
-|===
-
-.example
-[source,cypher]
-----
-CALL apoc.search.nodeAll('{Person: "name",Movie: ["title","tagline"]}','contains','her') YIELD node AS n RETURN n
-call apoc.search.nodeReduced({Person: 'born', Movie: ['released']},'>',2000) yield id, labels, properties RETURN *
-----
 

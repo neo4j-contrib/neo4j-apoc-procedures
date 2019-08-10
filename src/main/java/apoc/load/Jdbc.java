@@ -20,8 +20,7 @@ import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.load.util.JdbcUtil.getConnection;
-import static apoc.load.util.JdbcUtil.getUrlOrKey;
+import static apoc.load.util.JdbcUtil.*;
 
 /**
  * @author mh
@@ -72,7 +71,7 @@ public class Jdbc {
     private Stream<RowResult> executeQuery(String urlOrKey, String tableOrSelect, Map<String, Object> config, Object... params) {
         LoadJdbcConfig loadJdbcConfig = new LoadJdbcConfig(config);
         String url = getUrlOrKey(urlOrKey);
-        String query = tableOrSelect.indexOf(' ') == -1 ? "SELECT * FROM " + tableOrSelect : tableOrSelect;
+        String query = getSqlOrKey(tableOrSelect);
         try {
             Connection connection = getConnection(url,loadJdbcConfig);
             try {

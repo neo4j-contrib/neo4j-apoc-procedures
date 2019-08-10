@@ -1,0 +1,12 @@
+[[locking]]
+= Locking
+
+[abstract]
+--
+This section describes functions that can be used to acquire locks on nodes and relationships.
+--
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.lock.csv[]
+|===

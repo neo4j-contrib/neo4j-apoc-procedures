@@ -1,0 +1,30 @@
+[[normalize-boolean]]
+= Normalize As Boolean
+
+[abstract]
+--
+This section describes a procedure that can be used to translate string values to booleans.
+--
+
+[source,cypher]
+----
+CREATE (:Person {prop: 'Y', name:'A'}),(:Person {prop: 'Yes', name:'B'}),(:Person {prop: 'NO', name:'C'}),(:Person {prop: 'X', name:'D'})
+----
+
+As a result, we have four nodes with different properties `prop` like `Y`, `Yes`, `NO`, `X`
+
+image::apoc.refactor.normalizeAsBoolean.dataset.png[scaledwidth="100%"]
+
+Now we want to transform some properties into a boolean, `Y`, `Yes` into true and the properties `NO` into false.
+The other properties that don't match these possibilities will be set as `null`.
+
+[source,cypher]
+----
+MATCH (n)
+CALL apoc.refactor.normalizeAsBoolean(n,'prop',['Y','Yes'],['NO'])
+WITH n
+ORDER BY n.id
+RETURN n.prop AS prop
+----
+
+image::apoc.refactor.normalizeAsBoolean.png[scaledwidth="100%"]

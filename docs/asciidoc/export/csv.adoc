@@ -1,0 +1,35 @@
+[[export-csv]]
+= Export to CSV
+
+[abstract]
+--
+This section describes procedures that can be used to export data in CSV format.
+--
+
+// tag::export.csv[]
+
+`YIELD file, source, format, nodes, relationships, properties, time, rows, data`
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../../build/generated-documentation/apoc.export.csv.csv[lines=1;2..]
+|===
+
+If the file name is passed as `null` and the config `stream:true` the results are streamed back in the `data` column, e.g.
+
+== Note:
+
+For `apoc.export.csv.all/data/graph` nodes and relationships properties are ordered alphabetically, following this general structure:
+
+`_id,_labels,<list_nodes_properties_naturally_sorted>,_start,_end,_type,<list_rel_properties_naturally_sorted>`, so for instance:
+
+`_id,_labels,age,city,kids,male,name,street,_start,_end,_type,bar,foo`
+
+The labels exported are ordered alphabetically.
+The output of `labels()` function is not sorted, use it in combination with `apoc.coll.sort()`.
+
+[source,cypher]
+----
+CALL apoc.export.csv.all(null, {stream:true,batchSize:100}) YIELD data RETURN data
+----
+
+// end::export.csv[]

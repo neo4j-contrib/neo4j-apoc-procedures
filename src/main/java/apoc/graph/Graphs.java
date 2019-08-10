@@ -137,17 +137,19 @@ public class Graphs {
 
     @Description("apoc.graph.validateDocument({json}, {config}) yield row - validates the json, return the result of the validation")
     @Procedure(mode = Mode.READ)
-    public Stream<RowResult> validateDocument(@Name("json") Object document, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) throws Exception {
+    public Stream<RowResult> validateDocument(@Name("json") Object document, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
         DocumentToGraph documentToGraph = new DocumentToGraph(db, new GraphsConfig(config));
         AtomicLong index = new AtomicLong(-1);
         return getDocumentCollection(document).stream()
                 .map(elem -> {
+                    long line = index.incrementAndGet();
                     try {
                         documentToGraph.validate(elem);
-                        return new RowResult(Util.map("index", index.incrementAndGet(), "message", "Valid"));
+                        return null;
                     } catch (Exception e) {
-                        return new RowResult(Util.map("index", index.incrementAndGet(), "message", e.getMessage()));
+                        return new RowResult(Util.map("index", line, "message", e.getMessage()));
                     }
-                });
+                })
+                .filter(elem -> elem != null);
     }
 }

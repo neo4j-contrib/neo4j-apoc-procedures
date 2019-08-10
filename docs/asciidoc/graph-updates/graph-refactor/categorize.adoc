@@ -1,0 +1,16 @@
+[[categorize]]
+= Categorize
+
+[abstract]
+--
+This section describes a procedure that replaces string property values on nodes with relationship to a unique category node for that property value.
+--
+
+This example will turn all n.color properties into :HAS_ATTRIBUTE relationships to :Color nodes with a matching .colour property.
+
+[source,cypher]
+----
+CALL apoc.refactor.categorize('color', 'HAS_ATTRIBUTE', true, 'Color', 'colour', ['popularity'], 1)
+----
+
+Additionally, it will also copy over the first 'popularity' property value encountered on any node n for each newly created :Color node and remove any occurrences of that property value on nodes with the same 'Color'.

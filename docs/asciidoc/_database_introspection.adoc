@@ -1,0 +1,21 @@
+[[database-introspection]]
+== Database Introspection
+
+[abstract]
+--
+This chapter describes procedures that can be used to introspect the database.
+--
+
+The APOC library adds extra tools for introspecting the database.
+
+For more on these procedures, see:
+
+* <<meta-graph>>
+* <<neo4j-config>>
+* <<monitoring>>
+
+include::introspection/meta.adoc[leveloffset=2]
+
+include::introspection/config.adoc[leveloffset=2]
+
+include::introspection/monitoring.adoc[leveloffset=2]

@@ -1,0 +1,73 @@
+[[graph-updates]]
+== Graph Updates
+
+[abstract]
+--
+This chapter describes procedures that can be used to perform graph updates.
+--
+
+The APOC library adds extra functionality for writing to the database.
+
+For more information on how to use these procedures, see:
+
+* <<data-creation>>
+* <<auto-uuid>>
+* <<periodic-execution>>
+* <<graph-refactoring>>
+* <<atomic-updates>>
+* <<locking>>
+* <<ttl>>
+* <<graph-generators>>
+* <<deleting-data>>
+
+include::graph-updates/data-creation.adoc[leveloffset=2]
+
+include::graph-updates/uuid.adoc[leveloffset=2]
+
+include::graph-updates/periodic-execution.adoc[leveloffset=2]
+
+include::graph-updates/atomic.adoc[leveloffset=2]
+
+include::graph-updates/graph-refactor.adoc[leveloffset=2]
+
+include::graph-updates/locking.adoc[leveloffset=2]
+
+include::graph-updates/ttl.adoc[leveloffset=2]
+
+[[graph-generators]]
+=== Generating Graphs
+
+[abstract]
+--
+This section describes procedures that can be used to generate example graphs.
+--
+
+Generate undirected (random direction) graphs with semi-real random distributions based on theoretical models.
+
+[separator=¦,opts=header,cols="1,1m,1m,5"]
+|===
+include::../../build/generated-documentation/apoc.generate.csv[]
+|===
+
+Example
+
+[source,cypher]
+----
+CALL apoc.generate.ba(1000, 2, 'TestLabel', 'TEST_REL_TYPE')
+CALL apoc.generate.ws(1000, null, null, null)
+CALL apoc.generate.simple([2,2,2,2], null, null)
+----
+
+[[deleting-data]]
+=== Deleting Data
+
+[abstract]
+--
+This section describes procedures that can be used to delete graph data
+--
+
+.Procedures
+[cols="1m,5"]
+|===
+| CALL apoc.nodes.delete(node\|nodes\|id\|[ids]) | quickly delete all nodes with these ids
+|===

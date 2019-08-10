@@ -1,0 +1,177 @@
+[[bolt-neo4j]]
+= Bolt
+
+
+[abstract]
+--
+This section describes procedures that can be used to access other databases via the Bolt protocol.
+--
+
+
+Bolt procedures allows to accessing other databases via bolt protocol.
+
+[cols="3m,2"]
+|===
+| CALL apoc.bolt.execute(urlOrKey, statement, params, config) YIELD row  | access to other databases via bolt for read and write
+| CALL apoc.bolt.load(urlOrKey, statement, params, config) YIELD row | access to other databases via bolt for read
+|===
+
+**urlOrKey** param allows users to decide if send url by apoc or if put it into neo4j.conf file.
+
+* **apoc** : write the complete url in his right position on the apoc.
+
+[source,cypher]
+----
+call apoc.bolt.load("bolt://user:password@localhost:7687","match(p:Person {name:{name}}) return p", {name:'Michael'})
+----
+
+* **neo4j.conf** : here the are two choices:
+
+1) **complete url**: write the complete url with the param apoc.bolt.url;
+
+.apoc
+
+[source,cypher]
+----
+call apoc.bolt.load("","match(p:Person {name:{name}}) return p", {name:'Michael'})
+----
+
+.neo4jConf
+
+[source,txt]
+----
+//simple url
+apoc.bolt.url=bolt://user:password@localhost:7687
+----
+
+
+2) **by key**: set the url with a personal key apoc.bolt.yourKey.url; in this case in the apoc on the url param user has to insert the key.
+
+.apoc
+
+[source,cypher]
+----
+call apoc.bolt.load("test","match(p:Person {name:{name}}) return p", {name:'Michael'})
+----
+
+.neo4jConf
+
+[source,txt]
+----
+//with key
+apoc.bolt.test.url=bolt://user:password@localhost:7687
+apoc.bolt.production.url=bolt://password:test@localhost:7688
+----
+
+Config available are:
+
+* `statistics`: possible values are true/false, the default value is false. This config print the execution statistics;
+* `virtual`: possible values are true/false, the default value is false. This config return result in virtual format and not in map format, in apoc.bolt.load.
+
+== Driver configuration
+
+To set the configuration of the Driver, you can add the parameter `driverConfig` in the config.
+Is's a map of values, the values that we don't pass to the config, are set to the default value.
+
+[source,cypher]
+----
+{logging='INFO', encryption=true, logLeakedSessions:true, maxIdleConnectionPoolSize:10, idleTimeBeforeConnectionTest:-1, trustStrategy:'TRUST_ALL_CERTIFICATES',
+ routingFailureLimit: 1, routingRetryDelayMillis:5000, connectionTimeoutMillis:5000, maxRetryTimeMs:30000 }
+----
+
+
+[options=header]
+|===
+| param | description | possible values/ types
+| logging | logging provider to use | INFO, WARNING, OFF, SEVERE, CONFIG, FINE, FINER
+| encryption | Disable or enabled encryption | true, false
+| logLeakedSessions |Disable or enable logging of leaked sessions | true, false
+| maxIdleConnectionPoolSize| Max number of connections | number
+| idleTimeBeforeConnectionTest| Pooled connections that have been idle in the pool for longer than this timeout | Milliseconds
+| trustStrategy |Specify how to determine the authenticity of an encryption certificate provided by the Neo4j instance we are connecting to | TRUST_ALL_CERTIFICATES, TRUST_SYSTEM_CA_SIGNED_CERTIFICATES, or directly a custom certificate
+| routingFailureLimit| the number of times to retry each server in the list of routing servers | number
+| routingRetryDelayMillis| Specify how long to wait before retrying to connect to a routing server | Milliseconds
+| connectionTimeoutMillis| Specify socket connection timeout | Milliseconds
+| maxRetryTimeMs| Specify the maximum time transactions are allowed to retry | Milliseconds
+|===
+
+You can find all the values in the documentation http://neo4j.com/docs/api/java-driver/current/org/neo4j/driver/v1/Config.ConfigBuilder.html[Config.ConfigBuilder]
+
+
+== Bolt Examples
+
+**Return node in map format**
+
+[source,cypher]
+----
+call apoc.bolt.execute("bolt://user:password@localhost:7687",
+"match(p:Person {name:{name}}) return p", {name:'Michael'})
+----
+
+image::apoc.bolt.execute.nodemap.PNG[scaledwidth="100%"]
+
+
+**Return node in virtual Node format**
+
+[source,cypher]
+----
+call apoc.bolt.load("bolt://user:password@localhost:7687",
+"match(p:Person {name:{name}}) return p", {name:'Michael'}, {virtual:true})
+----
+
+image::apoc.bolt.load.virtualnode.PNG[scaledwidth="100%"]
+
+
+**Create node and return statistic**
+
+[source,cypher]
+----
+call apoc.bolt.execute("bolt://user:password@localhost:7687",
+"create(n:Node {name:{name}})", {name:'Node1'}, {statistics:true})
+----
+
+image::apoc.bolt.execute.createandstatistics.PNG[scaledwidth="100%"]
+
+
+**Return more scalar values**
+
+[source,cypher]
+----
+call apoc.bolt.execute("bolt://user:password@localhost:7687",
+"match (n:Person {name:{name}}) return n.age as age, n.name as name, n.surname as surname", {name:'Michael'})
+----
+
+image::apoc.bolt.execute.scalarmulti.PNG[scaledwidth="100%"]
+
+
+**Return relationship in a map format**
+
+[source,cypher]
+----
+call apoc.bolt.load("bolt://user:password@localhost:7687",
+"MATCH (n:Person{name:{name}})-[r:KNOWS]->(p) return r as rel", {name:'Anne'})
+----
+
+image::apoc.bolt.load.relmap.PNG[scaledwidth="100%"]
+
+
+**Return virtual path**
+
+[source,cypher]
+----
+call apoc.bolt.load("bolt://user:password@localhost:7687",
+"START n=node({idNode}) MATCH path= (n)-[r:REL_TYPE*..3]->(o) return path", {idNode:200}, {virtual:true})
+----
+
+image::apoc.bolt.load.returnvirtualpath.PNG[scaledwidth="100%"]
+
+
+**Create a Node with params in input**
+
+[source,cypher]
+----
+call apoc.bolt.execute("bolt://user:password@localhost:7687",
+"CREATE (n:Car{brand:{brand},model:{model},year:{year}}) return n", {brand:'Ferrari',model:'California',year:2016})
+----
+
+image::apoc.bolt.execute.createwithparams.PNG[scaledwidth="100%"]

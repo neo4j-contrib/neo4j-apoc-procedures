@@ -1,51 +1,60 @@
 package apoc.load;
 
 import apoc.util.TestUtil;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
-import org.xml.sax.SAXParseException;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.nio.charset.Charset;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static apoc.util.TestUtil.*;
+import static apoc.util.Util.map;
 import static org.junit.Assert.*;
 
 public class XmlTest {
 
-    public static final String XML_AS_NESTED_MAP =
-            "{_type=parent, name=databases, " +
-                    "_children=[" +
-                    "{_type=child, name=Neo4j, _text=Neo4j is a graph database}, " +
-                    "{_type=child, name=relational, _children=[" +
-                    "{_type=grandchild, name=MySQL, _text=MySQL is a database & relational}, " +
-                    "{_type=grandchild, name=Postgres, _text=Postgres is a relational database}]}]}";
-    public static final String XML_AS_NESTED_SIMPLE_MAP =
-            "{_type=parent, name=databases, " +
-                    "_child=[" +
-                    "{_type=child, name=Neo4j, _text=Neo4j is a graph database}, " +
-                    "{_type=child, name=relational, _grandchild=[" +
-                    "{_type=grandchild, name=MySQL, _text=MySQL is a database & relational}, " +
-                    "{_type=grandchild, name=Postgres, _text=Postgres is a relational database}]}]}";
-    public static final String XML_XPATH_AS_NESTED_MAP =
-            "[{_type=book, id=bk103, _children=[{_type=author, _text=Corets, Eva}, {_type=title, _text=Maeve Ascendant}, {_type=genre, _text=Fantasy}, {_type=price, _text=5.95}, {_type=publish_date, _text=2000-11-17}, {_type=description, _text=After the collapse of a nanotechnology " +
-                    "society in England, the young survivors lay the " +
-                    "foundation for a new society.}]}]";
+    private static List<Map<String, Object>> DBS_CHILDREN = Arrays.asList(
+            map("_type", "grandchild", "name", "MySQL", "_text", "MySQL is a database & relational"),
+            map("_type", "grandchild", "name", "Postgres", "_text", "Postgres is a relational database"));
+    private static List<Map<String, Object>> DBS = Arrays.asList(map("_type", "child", "name", "Neo4j", "_text", "Neo4j is a graph database"),
+        map("_type", "child", "name", "relational", "_children", DBS_CHILDREN));
+    private static final Map<String, Object> XML_AS_NESTED_MAP = map("_type", "parent", "name", "databases", "_children", DBS);
 
-    public static final String XML_AS_SINGLE_LINE =
-            "{_type=table, _children=[{_type=tr, _children=[{_type=td, _children=[{_type=img, src=pix/logo-tl.gif}]}]}]}";
+    private static List<Map<String, Object>> DBS_NESTED = Arrays.asList(map("_type", "child", "name", "Neo4j", "_text", "Neo4j is a graph database"),
+            map("_type", "child", "name", "relational", "_grandchild", DBS_CHILDREN));
 
-    public static final String XML_AS_SINGLE_LINE_SIMPLE =
-            "{_type=table, _table=[{_type=tr, _tr=[{_type=td, _td=[{_type=img, src=pix/logo-tl.gif}]}]}]}";
+    private static final Map<String, Object> XML_AS_NESTED_SIMPLE_MAP = map("_type", "parent", "name", "databases", "_child", DBS_NESTED);
+
+    public static final Map<String, Object> XML_XPATH_AS_NESTED_MAP = map("_type", "book", "id", "bk103", "_children",
+            Arrays.asList(map("_type", "author", "_text", "Corets, Eva"),
+                    map("_type", "title", "_text", "Maeve Ascendant"),
+                    map("_type", "genre", "_text", "Fantasy"),
+                    map("_type", "price", "_text", "5.95"),
+                    map("_type", "publish_date", "_text", "2000-11-17"),
+                    map("_type", "description", "_text", "After the collapse of a nanotechnology society in England, the young survivors lay the foundation for a new society.")
+            ));
+
+
+    private static final Map<String, Object> XML_AS_SINGLE_LINE = map("_type", "table",
+            "_children", Arrays.asList(
+                    map("_type", "tr", "_children",
+                            Arrays.asList(map("_type", "td", "_children",
+                                    Arrays.asList(map("_type", "img", "src", "pix/logo-tl.gif")))))));
+
+    private static final Map<String, Object> XML_AS_SINGLE_LINE_SIMPLE = map("_type", "table",
+            "_table", Arrays.asList(
+                    map("_type", "tr", "_tr", Arrays.asList(map("_type", "td", "_td", Arrays.asList(map("_type", "img", "src", "pix/logo-tl.gif")))))));
+
+    private static final Map<String, Object> MIXED_CONTENT = map("_type", "root", "_children",
+            Arrays.asList(map("_type", "text", "_children", Arrays.asList(map("_type", "mixed"), "text0", "text1")), map("_type", "text", "_text", "text as cdata")));
 
     private GraphDatabaseService db;
 
@@ -64,20 +73,20 @@ public class XmlTest {
     }
 
     @Test
-    public void testLoadXml() throws Exception {
+    public void testLoadXml() {
         testCall(db, "CALL apoc.load.xml('file:databases.xml')", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
-                    assertEquals(XML_AS_NESTED_MAP, value.toString());
+                    assertEquals(XML_AS_NESTED_MAP, value);
                 });
     }
 
     @Test
-    public void testLoadXmlSimple() throws Exception {
+    public void testLoadXmlSimple() {
         testCall(db, "CALL apoc.load.xmlSimple('file:databases.xml')", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
-                    assertEquals(XML_AS_NESTED_SIMPLE_MAP, value.toString());
+                    assertEquals(XML_AS_NESTED_SIMPLE_MAP, value);
                 });
     }
 
@@ -87,7 +96,7 @@ public class XmlTest {
                 (row) -> {
                     Object value = row.get("value");
                     //assertEquals("{_type=root, _children=[{_type=text, _children=[text0, {_type=mixed}, text1]}, {_type=text, _text=text as cdata}]}", value.toString());
-                    assertEquals("{_type=root, _children=[{_type=text, _children=[{_type=mixed}, text0, text1]}, {_type=text, _text=text as cdata}]}", value.toString());
+                    assertEquals(MIXED_CONTENT, value);
 
                 });
     }
@@ -177,8 +186,7 @@ public class XmlTest {
     public void testLoadXmlXpathReturnBookFromBookTitle () {
         testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/books.xml', '/catalog/book[title=\"Maeve Ascendant\"]/.') yield value as result",
                 (r) -> {
-                    Object value = r.values();
-                    assertEquals(XML_XPATH_AS_NESTED_MAP, value.toString());
+                    assertEquals(XML_XPATH_AS_NESTED_MAP, r.get("result"));
                 });
     }
 
@@ -247,10 +255,10 @@ public class XmlTest {
                 row -> assertNotNull(row.get("node")));
         testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
             final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));
-            assertEquals(2l, (long)resultMap.get("XmlProcessingInstruction"));
-            assertEquals(1l, (long)resultMap.get("XmlDocument"));
-            assertEquals(3263l, (long)resultMap.get("XmlWord"));
-            assertEquals(454l, (long)resultMap.get("XmlTag"));
+            assertEquals(2L, (long)resultMap.get("XmlProcessingInstruction"));
+            assertEquals(1L, (long)resultMap.get("XmlDocument"));
+            assertEquals(3263L, (long)resultMap.get("XmlWord"));
+            assertEquals(454L, (long)resultMap.get("XmlTag"));
         });
 
         // no node more than one NEXT/NEXT_SIBLING
@@ -265,7 +273,7 @@ public class XmlTest {
         testResult(db, "match p=(:XmlDocument)-[:NEXT_WORD*]->(e:XmlWord) where not (e)-[:NEXT_WORD]->() return length(p) as len",
                 result -> {
                     Map<String, Object> r = Iterators.single(result);
-                    assertEquals(3263l, r.get("len"));
+                    assertEquals(3263L, r.get("len"));
                 });
     }
 
@@ -276,10 +284,10 @@ public class XmlTest {
                 row -> assertNotNull(row.get("node")));
         testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
             final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));
-            assertEquals(2l, (long)resultMap.get("XmlProcessingInstruction"));
-            assertEquals(1l, (long)resultMap.get("XmlDocument"));
-            assertEquals(3263l, (long)resultMap.get("XmlCharacters"));
-            assertEquals(454l, (long)resultMap.get("XmlTag"));
+            assertEquals(2L, (long)resultMap.get("XmlProcessingInstruction"));
+            assertEquals(1L, (long)resultMap.get("XmlDocument"));
+            assertEquals(3263L, (long)resultMap.get("XmlCharacters"));
+            assertEquals(454L, (long)resultMap.get("XmlTag"));
         });
 
         // no node more than one NEXT/NEXT_SIBLING
@@ -294,7 +302,7 @@ public class XmlTest {
         testResult(db, "match p=(:XmlDocument)-[:NE*]->(e:XmlCharacters) where not (e)-[:NE]->() return length(p) as len",
                 result -> {
                     Map<String, Object> r = Iterators.single(result);
-                    assertEquals(3263l, r.get("len"));
+                    assertEquals(3263L, r.get("len"));
                 });
     }
 
@@ -378,34 +386,45 @@ public class XmlTest {
         });
     }
 
-    @Test(expected = QueryExecutionException.class)
-    public void testLoadXmlPreventXXEVulnerabilityThrowsQueryExecutionException() {
-        try {
-            testResult(db, "CALL apoc.load.xml('file:src/test/resources/xml/xxe.xml', '/catalog/book[genre=\"Computer\"]') yield value as result", (r) -> {});
-        } catch (QueryExecutionException e) {
-            // We want test that the cause of the exception is SAXParseException with the correct cause message
-            Throwable except = ExceptionUtils.getRootCause(e);
-            assertTrue(except instanceof SAXParseException);
-            assertEquals("DOCTYPE is disallowed when the feature \"http://apache.org/xml/features/disallow-doctype-decl\" set to true.", except.getMessage());
-            throw e;
-        }
+    @Test
+    public void testExternalDTDschouldNotBeLoaded() {
+        Map<String, Object> expected = map("_type", "document", "_document", Arrays.asList(null, map("_type", "title", "_text", "dtd 404")));
+        testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/missingExternalDTD.xml', '/', null, true)",
+                (row) -> {
+                    Object value = row.get("value");
+                    assertEquals(expected, value);
+                });
     }
 
     @Test
-    public void testLoadXmlSingleLineSimple() throws Exception {
+    public void testLoadXmlSingleLineSimple() {
         testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml', '/', null, true)", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
-                    assertEquals(XML_AS_SINGLE_LINE_SIMPLE, value.toString());
+                    assertEquals(XML_AS_SINGLE_LINE_SIMPLE, value);
                 });
     }
 
     @Test
-    public void testLoadXmlSingleLine() throws Exception {
+    public void testLoadXmlSingleLine() {
         testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml')", //  YIELD value RETURN value
                 (row) -> {
                     Object value = row.get("value");
-                    assertEquals(XML_AS_SINGLE_LINE, value.toString());
+                    assertEquals(XML_AS_SINGLE_LINE, value);
                 });
+    }
+
+    @Test
+    public void testParse() {
+        testCall(db, "WITH '<?xml version=\"1.0\"?><table><tr><td><img src=\"pix/logo-tl.gif\"></img></td></tr></table>' AS xmlString RETURN apoc.xml.parse(xmlString) AS value",
+                (row) -> assertEquals(XML_AS_SINGLE_LINE, row.get("value")));
+    }
+
+    @Test
+    public void testParseWithXPath() throws Exception {
+        String xmlString = FileUtils.readFileToString(new File("src/test/resources/xml/books.xml"), Charset.forName("UTF-8"));
+        testCall(db, "RETURN apoc.xml.parse({xmlString}, '/catalog/book[title=\"Maeve Ascendant\"]/.') AS result",
+                map("xmlString", xmlString),
+                (r) -> assertEquals(XML_XPATH_AS_NESTED_MAP, r.get("result")));
     }
 }

@@ -1,0 +1,120 @@
+[[conversion-functions]]
+= Conversion Functions
+
+[abstract]
+--
+This section describes functions that can be used for type coercion of values.
+--
+
+Sometimes type information gets lost, these functions help you to coerce an "Any" value to the concrete type
+
+[cols="1m,5"]
+|===
+| apoc.convert.toString(value) | tries its best to convert the value to a string
+| apoc.convert.toMap(value) | tries its best to convert the value to a map
+| apoc.convert.toList(value) | tries its best to convert the value to a list
+| apoc.convert.toBoolean(value) | tries its best to convert the value to a boolean
+| apoc.convert.toNode(value) | tries its best to convert the value to a node
+| apoc.convert.toRelationship(value) | tries its best to convert the value to a relationship
+| apoc.convert.toSet(value) | tries its best to convert the value to a set
+| apoc.convert.toFloat(value) | tries its best to convert the value to a floating point value
+| apoc.convert.toInteger(value) | tries its best to convert the value to a integer value
+| apoc.convert.toIntList(value) | tries its best to convert the value to a list of integers
+| apoc.convert.toStringList(value) | tries its best to convert the value to a list of strings
+| apoc.convert.toBooleanList(value) | tries its best to convert the value to a list of booleans
+| apoc.convert.toNodeList(value) | tries its best to convert the value to a list of nodes
+| apoc.convert.toRelationshipList(value) | tries its best to convert the value to a list of relationships
+|===
+
+
+.Convert numeric value to string
+[source,cypher]
+----
+RETURN apoc.convert.toString(1) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "1"
+|===
+
+.Convert map to string
+[source,cypher]
+----
+RETURN apoc.convert.toString({key: "value"}) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| "{key=value}"
+|===
+
+.Convert number 1 to boolean
+[source,cypher]
+----
+RETURN apoc.convert.toBoolean(1) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| true
+|===
+
+.Convert number 0 to boolean
+[source,cypher]
+----
+RETURN apoc.convert.toBoolean(0) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| false
+|===
+
+.Convert list to set
+[source,cypher]
+----
+RETURN apoc.convert.toSet([1,2,3,2]) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 2, 3]
+|===
+
+.Convert list of strings to list of integers
+[source,cypher]
+----
+return apoc.convert.toIntList(["1", "2", "3"]) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| [1, 2, 3]
+|===
+
+
+.Convert list of values to list of strings
+[source,cypher]
+----
+return apoc.convert.toStringList([1, "2", 3, "Four"]) AS output
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| Output
+| ["1", "2", "3", "Four"]
+|===

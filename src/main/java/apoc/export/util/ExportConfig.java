@@ -87,7 +87,7 @@ public class ExportConfig {
         this.nodesOfRelationships = toBoolean(config.get("nodesOfRelationships"));
         this.bulkImport = toBoolean(config.get("bulkImport"));
         this.separateHeader = toBoolean(config.get("separateHeader"));
-        this.format = ExportFormat.fromString((String) config.getOrDefault("format", "neo4j-shell"));
+        this.format = ExportFormat.fromString((String) config.getOrDefault("format", "cypher-shell"));
         this.cypherFormat = CypherFormat.fromString((String) config.getOrDefault("cypherFormat", "create"));
         this.config = config;
         this.streamStatements = toBoolean(config.get("streamStatements")) || toBoolean(config.get("stream"));

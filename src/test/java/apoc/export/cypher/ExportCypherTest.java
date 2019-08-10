@@ -2,7 +2,6 @@ package apoc.export.cypher;
 
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
-import apoc.util.Util;
 import org.junit.*;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -12,11 +11,10 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Map;
-import java.util.Scanner;
 
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
 import static apoc.export.util.ExportFormat.*;
-import static apoc.util.MapUtil.map;
+import static apoc.util.Util.map;
 import static org.junit.Assert.*;
 
 /**
@@ -25,7 +23,7 @@ import static org.junit.Assert.*;
  */
 public class ExportCypherTest {
 
-    private static final Map<String, Object> exportConfig = Util.map("useOptimizations", Util.map("type", "none"),"separateFiles", true);
+    private static final Map<String, Object> exportConfig = map("useOptimizations", map("type", "none"), "separateFiles", true, "format", "neo4j-admin");
     private static GraphDatabaseService db;
     private static File directory = new File("target/import");
 
@@ -41,8 +39,10 @@ public class ExportCypherTest {
 
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
-                .setConfig("apoc.export.file.enabled", "true").newGraphDatabase();
+        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
+                .setConfig(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
+                .setConfig("apoc.export.file.enabled", "true")
+                .newGraphDatabase();
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
         if (testName.getMethodName().endsWith(OPTIMIZED)) {
             db.execute("CREATE INDEX ON :Foo(name)").close();
@@ -78,7 +78,7 @@ public class ExportCypherTest {
 
     @Test
     public void testExportAllCypherResults() {
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all(null,{useOptimizations: { type: 'none'}})", (r) -> {
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all(null,{useOptimizations: { type: 'none'}, format: 'neo4j-shell'})", (r) -> {
             assertResults(null, r, "database");
             assertEquals(EXPECTED_NEO4J_SHELL, r.get("cypherStatements"));
         });
@@ -87,7 +87,7 @@ public class ExportCypherTest {
     @Test
     public void testExportAllCypherStreaming() {
         StringBuilder sb = new StringBuilder();
-        TestUtil.testResult(db, "CALL apoc.export.cypher.all(null,{useOptimizations: { type: 'none'}, streamStatements:true,batchSize:3})", (res) -> {
+        TestUtil.testResult(db, "CALL apoc.export.cypher.all(null,{useOptimizations: { type: 'none'}, streamStatements:true,batchSize:3, format: 'neo4j-shell'})", (res) -> {
             Map<String, Object> r = res.next();
             assertEquals(3L, r.get("batchSize"));
             assertEquals(1L, r.get("batches"));
@@ -115,124 +115,128 @@ public class ExportCypherTest {
     // -- Whole file test -- //
     @Test
     public void testExportAllCypherDefault() throws Exception {
-        File output = new File(directory, "all.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{useOptimizations: { type: 'none'}})", map("file", output.getAbsolutePath()), (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_NEO4J_SHELL, readFile(output));
+        String fileName = "all.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({fileName},{useOptimizations: { type: 'none'}, format: 'neo4j-shell'})",
+                map("fileName", fileName),
+                (r) -> assertResults(fileName, r, "database"));
+        assertEquals(EXPECTED_NEO4J_SHELL, readFile(fileName));
     }
 
     @Test
     public void testExportAllCypherForCypherShell() throws Exception {
-        File output = new File(directory, "all.cypher");
+        String fileName = "all.cypher";
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{config})",
-                map("file", output.getAbsolutePath(), "config", Util.map("useOptimizations", Util.map("type", "none"), "format", "cypher-shell")), (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_CYPHER_SHELL, readFile(output));
+                map("file", fileName, "config", map("useOptimizations", map("type", "none"), "format", "cypher-shell")),
+                (r) -> assertResults(fileName, r, "database"));
+        assertEquals(EXPECTED_CYPHER_SHELL, readFile(fileName));
     }
 
     @Test
     public void testExportQueryCypherForNeo4j() throws Exception {
-        File output = new File(directory, "all.cypher");
+        String fileName = "all.cypher";
         String query = "MATCH (n) OPTIONAL MATCH p = (n)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
-                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("useOptimizations", Util.map("type", "none"), "format", "neo4j-shell")), (r) -> {
+                map("file", fileName, "query", query, "config", map("useOptimizations", map("type", "none"), "format", "neo4j-shell")), (r) -> {
                 });
-        assertEquals(EXPECTED_NEO4J_SHELL, readFile(output));
+        assertEquals(EXPECTED_NEO4J_SHELL, readFile(fileName));
     }
 
-    private static String readFile(File output) throws FileNotFoundException {
-        return new Scanner(output).useDelimiter("\\Z").next() + String.format("%n");
+    private static String readFile(String fileName) throws FileNotFoundException {
+        return TestUtil.readFileToString(new File(directory, fileName));
     }
 
     @Test
     public void testExportGraphCypher() throws Exception {
-        File output = new File(directory, "graph.cypher");
+        String fileName = "graph.cypher";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                "CALL apoc.export.cypher.graph(graph, {file},{useOptimizations: { type: 'none'}}) " +
+                "CALL apoc.export.cypher.graph(graph, {file},{exportConfig}) " +
                 "YIELD nodes, relationships, properties, file, source,format, time " +
-                "RETURN *", map("file", output.getAbsolutePath()), (r) -> assertResults(output, r, "graph"));
-        assertEquals(EXPECTED_NEO4J_SHELL, readFile(output));
+                "RETURN *", map("file", fileName, "exportConfig", map("useOptimizations", map("type", "none"), "format", "neo4j-shell")),
+                (r) -> assertResults(fileName, r, "graph"));
+        assertEquals(EXPECTED_NEO4J_SHELL, readFile(fileName));
     }
 
     // -- Separate files tests -- //
     @Test
     public void testExportAllCypherNodes() throws Exception {
-        File output = new File(directory, "all.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
-                (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_NODES, readFile(new File(directory, "all.nodes.cypher")));
+        String fileName = "all.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", fileName, "exportConfig", exportConfig),
+                (r) -> assertResults(fileName, r, "database"));
+        assertEquals(EXPECTED_NODES, readFile("all.nodes.cypher"));
     }
 
     @Test
     public void testExportAllCypherRelationships() throws Exception {
-        File output = new File(directory, "all.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
-                (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_RELATIONSHIPS, readFile(new File(directory, "all.relationships.cypher")));
+        String fileName = "all.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", fileName, "exportConfig", exportConfig),
+                (r) -> assertResults(fileName, r, "database"));
+        assertEquals(EXPECTED_RELATIONSHIPS, readFile("all.relationships.cypher"));
     }
 
     @Test
     public void testExportAllCypherSchema() throws Exception {
-        File output = new File(directory, "all.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
-                (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_SCHEMA, readFile(new File(directory, "all.schema.cypher")));
+        String fileName = "all.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", fileName, "exportConfig", exportConfig),
+                (r) -> assertResults(fileName, r, "database"));
+        assertEquals(EXPECTED_SCHEMA, readFile("all.schema.cypher"));
     }
 
     @Test
     public void testExportAllCypherCleanUp() throws Exception {
-        File output = new File(directory, "all.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
-                (r) -> assertResults(output, r, "database"));
-        assertEquals(EXPECTED_CLEAN_UP, readFile(new File(directory, "all.cleanup.cypher")));
+        String fileName = "all.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{exportConfig})", map("file", fileName, "exportConfig", exportConfig),
+                (r) -> assertResults(fileName, r, "database"));
+        assertEquals(EXPECTED_CLEAN_UP, readFile("all.cleanup.cypher"));
     }
 
     @Test
     public void testExportGraphCypherNodes() throws Exception {
-        File output = new File(directory, "graph.cypher");
+        String fileName = "graph.cypher";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
                 "CALL apoc.export.cypher.graph(graph, {file},{exportConfig}) " +
                 "YIELD nodes, relationships, properties, file, source,format, time " +
-                "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig), (r) -> assertResults(output, r, "graph"));
-        assertEquals(EXPECTED_NODES, readFile(new File(directory, "graph.nodes.cypher")));
+                "RETURN *", map("file", fileName, "exportConfig", exportConfig), (r) -> assertResults(fileName, r, "graph"));
+        assertEquals(EXPECTED_NODES, readFile("graph.nodes.cypher"));
     }
 
     @Test
     public void testExportGraphCypherRelationships() throws Exception {
-        File output = new File(directory, "graph.cypher");
+        String fileName = "graph.cypher";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
                         "CALL apoc.export.cypher.graph(graph, {file},{exportConfig}) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
-                        "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
-                (r) -> assertResults(output, r, "graph"));
-        assertEquals(EXPECTED_RELATIONSHIPS, readFile(new File(directory, "graph.relationships.cypher")));
+                        "RETURN *", map("file", fileName, "exportConfig", exportConfig),
+                (r) -> assertResults(fileName, r, "graph"));
+        assertEquals(EXPECTED_RELATIONSHIPS, readFile("graph.relationships.cypher"));
     }
 
     @Test
     public void testExportGraphCypherSchema() throws Exception {
-        File output = new File(directory, "graph.cypher");
+        String fileName = "graph.cypher";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
                         "CALL apoc.export.cypher.graph(graph, {file},{exportConfig}) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
-                        "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
-                (r) -> assertResults(output, r, "graph"));
-        assertEquals(EXPECTED_SCHEMA, readFile(new File(directory, "graph.schema.cypher")));
+                        "RETURN *", map("file", fileName, "exportConfig", exportConfig),
+                (r) -> assertResults(fileName, r, "graph"));
+        assertEquals(EXPECTED_SCHEMA, readFile("graph.schema.cypher"));
     }
 
     @Test
     public void testExportGraphCypherCleanUp() throws Exception {
-        File output = new File(directory, "graph.cypher");
+        String fileName = "graph.cypher";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
                         "CALL apoc.export.cypher.graph(graph, {file},{exportConfig}) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
-                        "RETURN *", map("file", output.getAbsolutePath(), "exportConfig", exportConfig),
-                (r) -> assertResults(output, r, "graph"));
-        assertEquals(EXPECTED_CLEAN_UP, readFile(new File(directory, "graph.cleanup.cypher")));
+                        "RETURN *", map("file", fileName, "exportConfig", exportConfig),
+                (r) -> assertResults(fileName, r, "graph"));
+        assertEquals(EXPECTED_CLEAN_UP, readFile("graph.cleanup.cypher"));
     }
 
-    private void assertResults(File output, Map<String, Object> r, final String source) {
+    private void assertResults(String fileName, Map<String, Object> r, final String source) {
         assertEquals(3L, r.get("nodes"));
         assertEquals(1L, r.get("relationships"));
         assertEquals(6L, r.get("properties"));
-        assertEquals(output == null ? null : output.getAbsolutePath(), r.get("file"));
+        assertEquals(fileName, r.get("file"));
         assertEquals(source + ": nodes(3), rels(1)", r.get("source"));
         assertEquals("cypher", r.get("format"));
         assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
@@ -240,58 +244,59 @@ public class ExportCypherTest {
 
     @Test
     public void testExportQueryCypherPlainFormat() throws Exception {
-        File output = new File(directory, "all.cypher");
+        String fileName = "all.cypher";
         String query = "MATCH (n) OPTIONAL MATCH p = (n)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
-                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("useOptimizations", Util.map("type", "none"), "format", "plain")), (r) -> {
+                map("file", fileName, "query", query, "config", map("useOptimizations", map("type", "none"), "format", "plain")), (r) -> {
                 });
-        assertEquals(EXPECTED_PLAIN, readFile(output));
+        assertEquals(EXPECTED_PLAIN, readFile(fileName));
     }
 
     @Test
     public void testExportQueryCypherFormatUpdateAll() throws Exception {
-        File output = new File(directory, "all.cypher");
+        String fileName = "all.cypher";
         String query = "MATCH (n) OPTIONAL MATCH p = (n)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
-                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("useOptimizations", Util.map("type", "none"), "format", "neo4j-shell", "cypherFormat", "updateAll")), (r) -> {
+                map("file", fileName, "query", query, "config", map("useOptimizations", map("type", "none"), "format", "neo4j-shell", "cypherFormat", "updateAll")), (r) -> {
                 });
-        assertEquals(EXPECTED_NEO4J_MERGE, readFile(output));
+        assertEquals(EXPECTED_NEO4J_MERGE, readFile(fileName));
     }
 
     @Test
     public void testExportQueryCypherFormatAddStructure() throws Exception {
-        File output = new File(directory, "all.cypher");
+        String fileName = "all.cypher";
         String query = "MATCH (n) OPTIONAL MATCH p = (n)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
-                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("useOptimizations", Util.map("type", "none"), "format", "neo4j-shell", "cypherFormat", "addStructure")), (r) -> {
+                map("file", fileName, "query", query, "config", map("useOptimizations", map("type", "none"), "format", "neo4j-shell", "cypherFormat", "addStructure")), (r) -> {
                 });
-        assertEquals(EXPECTED_NODES_MERGE_ON_CREATE_SET + EXPECTED_SCHEMA_EMPTY + EXPECTED_RELATIONSHIPS + EXPECTED_CLEAN_UP_EMPTY, readFile(output));
+        assertEquals(EXPECTED_NODES_MERGE_ON_CREATE_SET + EXPECTED_SCHEMA_EMPTY + EXPECTED_RELATIONSHIPS + EXPECTED_CLEAN_UP_EMPTY, readFile(fileName));
     }
 
     @Test
     public void testExportQueryCypherFormatUpdateStructure() throws Exception {
-        File output = new File(directory, "all.cypher");
+        String fileName = "all.cypher";
         String query = "MATCH (n) OPTIONAL MATCH p = (n)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
-                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("useOptimizations", Util.map("type", "none"), "format", "neo4j-shell", "cypherFormat", "updateStructure")), (r) -> {
+                map("file", fileName, "query", query, "config", map("useOptimizations", map("type", "none"), "format", "neo4j-shell", "cypherFormat", "updateStructure")), (r) -> {
                 });
-        assertEquals(EXPECTED_NODES_EMPTY + EXPECTED_SCHEMA_EMPTY + EXPECTED_RELATIONSHIPS_MERGE_ON_CREATE_SET + EXPECTED_CLEAN_UP_EMPTY, readFile(output));
+        assertEquals(EXPECTED_NODES_EMPTY + EXPECTED_SCHEMA_EMPTY + EXPECTED_RELATIONSHIPS_MERGE_ON_CREATE_SET + EXPECTED_CLEAN_UP_EMPTY, readFile(fileName));
     }
 
     @Test
     public void testExportSchemaCypher() throws Exception {
-        File output = new File(directory, "onlySchema.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.schema({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", exportConfig), (r) -> {
+        String fileName = "onlySchema.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.schema({file},{exportConfig})", map("file", fileName, "exportConfig", exportConfig), (r) -> {
         });
-        assertEquals(EXPECTED_ONLY_SCHEMA_NEO4J_SHELL, readFile(new File(directory, "onlySchema.cypher")));
+        assertEquals(EXPECTED_ONLY_SCHEMA_NEO4J_SHELL, readFile(fileName));
     }
 
     @Test
     public void testExportSchemaCypherShell() throws Exception {
-        File output = new File(directory, "onlySchema.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.schema({file},{exportConfig})", map("file", output.getAbsolutePath(), "exportConfig", Util.map("useOptimizations", Util.map("type", "none"), "format", "cypher-shell")), (r) -> {
-        });
-        assertEquals(EXPECTED_ONLY_SCHEMA_CYPHER_SHELL, readFile(new File(directory, "onlySchema.cypher")));
+        String fileName = "onlySchema.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.schema({file},{exportConfig})",
+                map("file", fileName, "exportConfig", map("useOptimizations", map("type", "none"), "format", "cypher-shell")),
+                (r) -> {});
+        assertEquals(EXPECTED_ONLY_SCHEMA_CYPHER_SHELL, readFile(fileName));
     }
 
     @Test
@@ -301,12 +306,12 @@ public class ExportCypherTest {
                 "place3d1:point({ x: 2.3, y: 4.5 , z: 1.2})})" +
                 "-[:FRIEND_OF {place2d:point({ longitude: 56.7, latitude: 12.78 })}]->" +
                 "(:Bar {place3d:point({ longitude: 12.78, latitude: 56.7, height: 100 })})").close();
-        File output = new File(directory, "temporalPoint.cypher");
+        String fileName = "temporalPoint.cypher";
         String query = "MATCH (n:Test)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
-                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("useOptimizations", Util.map("type", "none"),"format", "neo4j-shell")), (r) -> {
-                });
-        assertEquals(EXPECTED_CYPHER_POINT, readFile(output));
+                map("file", fileName, "query", query, "config", map("useOptimizations", map("type", "none"),"format", "neo4j-shell")),
+                (r) -> {});
+        assertEquals(EXPECTED_CYPHER_POINT, readFile(fileName));
     }
 
     @Test
@@ -317,12 +322,12 @@ public class ExportCypherTest {
                 "localTime:localdatetime('20181030T19:32:24')})" +
                 "-[:FRIEND_OF {date:date('2018-10-30')}]->" +
                 "(:Bar {datetime:datetime('2018-10-30T12:50:35.556')})").close();
-        File output = new File(directory, "temporalDate.cypher");
+        String fileName = "temporalDate.cypher";
         String query = "MATCH (n:Test)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
-                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("useOptimizations", Util.map("type", "none"),"format", "neo4j-shell")), (r) -> {
-                });
-        assertEquals(EXPECTED_CYPHER_DATE, readFile(output));
+                map("file", fileName, "query", query, "config", map("useOptimizations", map("type", "none"),"format", "neo4j-shell")),
+                (r) -> {});
+        assertEquals(EXPECTED_CYPHER_DATE, readFile(fileName));
     }
 
     @Test
@@ -332,12 +337,12 @@ public class ExportCypherTest {
                 "t:time('125035.556+0100')})" +
                 "-[:FRIEND_OF {t:time('125035.556+0100')}]->" +
                 "(:Bar {datetime:datetime('2018-10-30T12:50:35.556+0100')})").close();
-        File output = new File(directory, "temporalTime.cypher");
+        String fileName = "temporalTime.cypher";
         String query = "MATCH (n:Test)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
-                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("useOptimizations", Util.map("type", "none"),"format", "neo4j-shell")), (r) -> {
-                });
-        assertEquals(EXPECTED_CYPHER_TIME, readFile(output));
+                map("file", fileName, "query", query, "config", map("useOptimizations", map("type", "none"),"format", "neo4j-shell")),
+                (r) -> {});
+        assertEquals(EXPECTED_CYPHER_TIME, readFile(fileName));
     }
 
     @Test
@@ -346,157 +351,173 @@ public class ExportCypherTest {
                 "duration:duration('P5M1.5D')})" +
                 "-[:FRIEND_OF {duration:duration('P5M1.5D')}]->" +
                 "(:Bar {duration:duration('P5M1.5D')})").close();
-        File output = new File(directory, "temporalDuration.cypher");
+        String fileName = "temporalDuration.cypher";
         String query = "MATCH (n:Test)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
-                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("useOptimizations", Util.map("type", "none"),"format", "neo4j-shell")), (r) -> {
-                });
-        assertEquals(EXPECTED_CYPHER_DURATION, readFile(output));
+                map("file", fileName, "query", query, "config", map("useOptimizations", map("type", "none"),"format", "neo4j-shell")),
+                (r) -> {});
+        assertEquals(EXPECTED_CYPHER_DURATION, readFile(fileName));
     }
 
     @Test
     public void testExportWithAscendingLabels() throws FileNotFoundException {
         db.execute("CREATE (f:User:User1:User0:User12 {name:'Alan'})").close();
-        File output = new File(directory, "ascendingLabels.cypher");
+        String fileName = "ascendingLabels.cypher";
         String query = "MATCH (f:User) WHERE f.name='Alan' RETURN f";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
-                map("file", output.getAbsolutePath(), "query", query, "config", Util.map("useOptimizations", Util.map("type", "none"),"format", "neo4j-shell")), (r) -> {
-                });
-        assertEquals(EXPECTED_CYPHER_LABELS_ASCENDEND, readFile(output));
+                map("file", fileName, "query", query, "config", map("useOptimizations", map("type", "none"),"format", "neo4j-shell")),
+                (r) -> {});
+        assertEquals(EXPECTED_CYPHER_LABELS_ASCENDEND, readFile(fileName));
     }
 
     @Test
     public void testExportAllCypherDefaultWithUnwindBatchSizeOptimized() throws Exception {
-        File output = new File(directory, "allDefaultOptimized.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}})", map("file", output.getAbsolutePath()), (r) -> assertResultsOptimized(output, r));
-        assertEquals(EXPECTED_NEO4J_OPTIMIZED_BATCH_SIZE, readFile(output));
+        String fileName = "allDefaultOptimized.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}, format: 'neo4j-shell'})", map("file", fileName),
+                (r) -> assertResultsOptimized(fileName, r));
+        assertEquals(EXPECTED_NEO4J_OPTIMIZED_BATCH_SIZE, readFile(fileName));
     }
 
     @Test
     public void testExportAllCypherDefaultOptimized() throws Exception {
-        File output = new File(directory, "allDefaultOptimized.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file})", map("file", output.getAbsolutePath()), (r) -> assertResultsOptimized(output, r));
-        assertEquals(EXPECTED_NEO4J_OPTIMIZED, readFile(output));
+        String fileName = "allDefaultOptimized.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file}, {exportConfig})", map("file", fileName, "exportConfig", map("format", "neo4j-shell")),
+                (r) -> assertResultsOptimized(fileName, r));
+        assertEquals(EXPECTED_NEO4J_OPTIMIZED, readFile(fileName));
     }
 
     @Test
     public void testExportAllCypherDefaultSeparatedFilesOptimized() throws Exception {
-        File output = new File(directory, "allDefaultOptimized.cypher");
+        String fileName = "allDefaultOptimized.cypher";
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file}, {exportConfig})",
-                map("file", output.getAbsolutePath(), "exportConfig", Util.map("separateFiles", true)),
-                (r) -> assertResultsOptimized(output, r));
-        assertEquals(EXPECTED_NODES_OPTIMIZED, readFile(new File(directory, "allDefaultOptimized.nodes.cypher")));
-        assertEquals(EXPECTED_RELATIONSHIPS_OPTIMIZED, readFile(new File(directory, "allDefaultOptimized.relationships.cypher")));
-        assertEquals(EXPECTED_SCHEMA_OPTIMIZED, readFile(new File(directory, "allDefaultOptimized.schema.cypher")));
-        assertEquals(EXPECTED_CLEAN_UP, readFile(new File(directory, "allDefaultOptimized.cleanup.cypher")));
+                map("file", fileName, "exportConfig", map("separateFiles", true, "format", "neo4j-shell")),
+                (r) -> assertResultsOptimized(fileName, r));
+        assertEquals(EXPECTED_NODES_OPTIMIZED, readFile("allDefaultOptimized.nodes.cypher"));
+        assertEquals(EXPECTED_RELATIONSHIPS_OPTIMIZED, readFile("allDefaultOptimized.relationships.cypher"));
+        assertEquals(EXPECTED_SCHEMA_OPTIMIZED, readFile("allDefaultOptimized.schema.cypher"));
+        assertEquals(EXPECTED_CLEAN_UP, readFile("allDefaultOptimized.cleanup.cypher"));
     }
 
     @Test
     public void testExportAllCypherCypherShellWithUnwindBatchSizeOptimized() throws Exception {
-        File output = new File(directory, "allCypherShellOptimized.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'cypher-shell', useOptimizations: {type: 'unwind_batch'}})", map("file", output.getAbsolutePath()), (r) -> assertResultsOptimized(output, r));
-        assertEquals(EXPECTED_CYPHER_SHELL_OPTIMIZED_BATCH_SIZE, readFile(output));
+        String fileName = "allCypherShellOptimized.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'cypher-shell', useOptimizations: {type: 'unwind_batch'}})",
+                map("file", fileName),
+                (r) -> assertResultsOptimized(fileName, r));
+        assertEquals(EXPECTED_CYPHER_SHELL_OPTIMIZED_BATCH_SIZE, readFile(fileName));
     }
 
     @Test
     public void testExportAllCypherCypherShellOptimized() throws Exception {
-        File output = new File(directory, "allCypherShellOptimized.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'cypher-shell'})", map("file", output.getAbsolutePath()), (r) -> assertResultsOptimized(output, r));
-        assertEquals(EXPECTED_CYPHER_SHELL_OPTIMIZED, readFile(output));
+        String fileName = "allCypherShellOptimized.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'cypher-shell'})",
+                map("file", fileName),
+                (r) -> assertResultsOptimized(fileName, r));
+        assertEquals(EXPECTED_CYPHER_SHELL_OPTIMIZED, readFile(fileName));
     }
 
     @Test
     public void testExportAllCypherPlainWithUnwindBatchSizeOptimized() throws Exception {
-        File output = new File(directory, "allPlainOptimized.cypher");
+        String fileName = "allPlainOptimized.cypher";
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'plain', useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}})",
-                map("file", output.getAbsolutePath()), (r) -> assertResultsOptimized(output, r));
-        assertEquals(EXPECTED_PLAIN_OPTIMIZED_BATCH_SIZE, readFile(output));
+                map("file", fileName),
+                (r) -> assertResultsOptimized(fileName, r));
+        assertEquals(EXPECTED_PLAIN_OPTIMIZED_BATCH_SIZE, readFile(fileName));
     }
 
     @Test
     public void testExportAllCypherPlainAddStructureWithUnwindBatchSizeOptimized() throws Exception {
-        File output = new File(directory, "allPlainAddStructureOptimized.cypher");
+        String fileName = "allPlainAddStructureOptimized.cypher";
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'plain', cypherFormat: 'addStructure', useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}})",
-                map("file", output.getAbsolutePath()), (r) -> assertResultsOptimized(output, r));
-        assertEquals(EXPECTED_PLAIN_ADD_STRUCTURE_UNWIND, readFile(output));
+                map("file", fileName), (r) -> assertResultsOptimized(fileName, r));
+        assertEquals(EXPECTED_PLAIN_ADD_STRUCTURE_UNWIND, readFile(fileName));
     }
 
     @Test
     public void testExportAllCypherPlainUpdateStructureWithUnwindBatchSizeOptimized() throws Exception {
-        File output = new File(directory, "allPlainUpdateStructureOptimized.cypher");
+        String fileName = "allPlainUpdateStructureOptimized.cypher";
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'plain', cypherFormat: 'updateStructure', useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}})",
-                map("file", output.getAbsolutePath()), (r) -> {
+                map("file", fileName), (r) -> {
                     assertEquals(0L, r.get("nodes"));
                     assertEquals(2L, r.get("relationships"));
                     assertEquals(2L, r.get("properties"));
-                    assertEquals(output == null ? null : output.getAbsolutePath(), r.get("file"));
+                    assertEquals(fileName, r.get("file"));
                     assertEquals("cypher", r.get("format"));
                     assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
                 });
-        assertEquals(EXPECTED_PLAIN_UPDATE_STRUCTURE_UNWIND, readFile(output));
+        assertEquals(EXPECTED_PLAIN_UPDATE_STRUCTURE_UNWIND, readFile(fileName));
     }
 
     @Test
     public void testExportAllCypherPlainUpdateAllWithUnwindBatchSizeOptimized() throws Exception {
-        File output = new File(directory, "allPlainUpdateAllOptimized.cypher");
+        String fileName = "allPlainUpdateAllOptimized.cypher";
+        File output = new File(directory, fileName);
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'plain', cypherFormat: 'updateAll', useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}})",
-                map("file", output.getAbsolutePath()), (r) -> assertResultsOptimized(output, r));
-        assertEquals(EXPECTED_UPDATE_ALL_UNWIND, readFile(output));
+                map("file", fileName), (r) -> assertResultsOptimized(fileName, r));
+        assertEquals(EXPECTED_UPDATE_ALL_UNWIND, readFile(fileName));
     }
 
     @Test
     public void testExportQueryCypherShellWithUnwindBatchSizeWithBatchSizeOptimized() throws Exception {
-        File output = new File(directory, "allPlainOptimized.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'cypher-shell', useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}, batchSize: 2})", map("file", output.getAbsolutePath()), (r) -> assertResultsOptimized(output, r));
-        assertEquals(EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED_UNWIND, readFile(output));
+        String fileName = "allPlainOptimized.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'cypher-shell', useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}, batchSize: 2})",
+                map("file", fileName),
+                (r) -> assertResultsOptimized(fileName, r));
+        assertEquals(EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED_UNWIND, readFile(fileName));
     }
 
     @Test
     public void testExportQueryCypherShellWithUnwindBatchSizeWithBatchSizeOdd() throws Exception {
-        File output = new File(directory, "allPlainOdd.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'cypher-shell', useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}, batchSize: 2})", map("file", output.getAbsolutePath()), (r) -> assertResultsOdd(output, r));
-        assertEquals(EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED_ODD, readFile(output));
+        String fileName = "allPlainOdd.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'cypher-shell', useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}, batchSize: 2})",
+                map("file", fileName), (r) -> assertResultsOdd(fileName, r));
+        assertEquals(EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED_ODD, readFile(fileName));
     }
 
     @Test
     public void testExportQueryCypherShellWithUnwindBatchSizeWithBatchSizeParamsOdd() throws Exception {
-        File output = new File(directory, "allPlainOdd.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'cypher-shell', useOptimizations: { type: 'unwind_batch_params', unwindBatchSize: 2}, batchSize:2})", map("file", output.getAbsolutePath()), (r) -> assertResultsOdd(output, r));
-        assertEquals(EXPECTED_QUERY_CYPHER_SHELL_PARAMS_OPTIMIZED_ODD, readFile(output));
+        String fileName = "allPlainOdd.cypher";
+        File output = new File(directory, fileName);
+        TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'cypher-shell', useOptimizations: { type: 'unwind_batch_params', unwindBatchSize: 2}, batchSize:2})",
+                map("file", fileName),
+                (r) -> assertResultsOdd(fileName, r));
+        assertEquals(EXPECTED_QUERY_CYPHER_SHELL_PARAMS_OPTIMIZED_ODD, readFile(fileName));
     }
 
     @Test
     @Ignore("non-deterministic index order")
     public void testExportAllCypherPlainOptimized() throws Exception {
-        File output = new File(directory, "queryPlainOptimized.cypher");
-        TestUtil.testCall(db, "CALL apoc.export.cypher.query('MATCH (f:Foo)-[r:KNOWS]->(b:Bar) return f,r,b', {file},{format:'cypher-shell', useOptimizations: {type: 'unwind_batch'}})", map("file", output.getAbsolutePath()), (r) -> {
-            assertEquals(4L, r.get("nodes"));
-            assertEquals(2L, r.get("relationships"));
-            assertEquals(10L, r.get("properties"));
-            assertEquals(output.getAbsolutePath(), r.get("file"));
-            assertEquals("statement: nodes(4), rels(2)", r.get("source"));
-            assertEquals("cypher", r.get("format"));
-            assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
-        });
-        String actual = readFile(output);
+        String fileName = "queryPlainOptimized.cypher";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.query('MATCH (f:Foo)-[r:KNOWS]->(b:Bar) return f,r,b', {file},{format:'cypher-shell', useOptimizations: {type: 'unwind_batch'}})",
+                map("file", fileName),
+                (r) -> {
+                    assertEquals(4L, r.get("nodes"));
+                    assertEquals(2L, r.get("relationships"));
+                    assertEquals(10L, r.get("properties"));
+                    assertEquals(fileName, r.get("file"));
+                    assertEquals("statement: nodes(4), rels(2)", r.get("source"));
+                    assertEquals("cypher", r.get("format"));
+                    assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
+                });
+        String actual = readFile(fileName);
         assertTrue("expected generated output",EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED.equals(actual) || EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED2.equals(actual));
     }
 
-    private void assertResultsOptimized(File output, Map<String, Object> r) {
+    private void assertResultsOptimized(String fileName, Map<String, Object> r) {
         assertEquals(7L, r.get("nodes"));
         assertEquals(2L, r.get("relationships"));
         assertEquals(13L, r.get("properties"));
-        assertEquals(output == null ? null : output.getAbsolutePath(), r.get("file"));
+        assertEquals(fileName, r.get("file"));
         assertEquals("database" + ": nodes(7), rels(2)", r.get("source"));
         assertEquals("cypher", r.get("format"));
         assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
     }
 
-    private void assertResultsOdd(File output, Map<String, Object> r) {
+    private void assertResultsOdd(String fileName, Map<String, Object> r) {
         assertEquals(7L, r.get("nodes"));
         assertEquals(1L, r.get("relationships"));
         assertEquals(13L, r.get("properties"));
-        assertEquals(output == null ? null : output.getAbsolutePath(), r.get("file"));
+        assertEquals(fileName, r.get("file"));
         assertEquals("database" + ": nodes(7), rels(1)", r.get("source"));
         assertEquals("cypher", r.get("format"));
         assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
@@ -939,6 +960,63 @@ public class ExportCypherTest {
         static final String EXPECTED_ONLY_SCHEMA_CYPHER_SHELL = EXPECTED_ONLY_SCHEMA_NEO4J_SHELL.replace(NEO4J_SHELL.begin(), CYPHER_SHELL.begin())
                 .replace(NEO4J_SHELL.commit(), CYPHER_SHELL.commit()).replace(NEO4J_SHELL.schemaAwait(), CYPHER_SHELL.schemaAwait()) + EXPECTED_INDEXES_AWAIT;
 
+
+        static final String EXPECTED_NODES_COMPOUND_CONSTRAINT = String.format("BEGIN%n" +
+                "CREATE (:`Person` {`name`:\"John\", `surname`:\"Snow\"});%n" +
+                "CREATE (:`Person` {`name`:\"Matt\", `surname`:\"Jackson\"});%n" +
+                "CREATE (:`Person` {`name`:\"Jenny\", `surname`:\"White\"});%n" +
+                "CREATE (:`Person` {`name`:\"Susan\", `surname`:\"Brown\"});%n" +
+                "CREATE (:`Person` {`name`:\"Tom\", `surname`:\"Taylor\"});%n" +
+                "COMMIT%n");
+
+        static final String EXPECTED_SCHEMA_COMPOUND_CONSTRAINT = String.format("BEGIN%n" +
+                "CREATE CONSTRAINT ON (node:`Person`) ASSERT (node.`name`, node.`surname`) IS NODE KEY;%n" +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n");
+
+        static final String EXPECTED_RELATIONSHIP_COMPOUND_CONSTRAINT = String.format(("BEGIN%n" +
+                "MATCH (n1:`Person`{`surname`:\"Snow\", `name`:\"John\"}), (n2:`Person`{`surname`:\"Jackson\", `name`:\"Matt\"}) CREATE (n1)-[r:`KNOWS`]->(n2);%n" +
+                "COMMIT%n"));
+
+        static final String EXPECTED_INDEX_AWAIT_COMPOUND_CONSTRAINT =  String.format("CALL db.awaitIndex(':`Person`(`name`,`surname`)');%n");
+
+        static final String EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT = String.format("BEGIN%n" +
+                "CREATE CONSTRAINT ON (node:Person) ASSERT (node.name, node.surname) IS NODE KEY;%n" +
+                "COMMIT%n" +
+                "SCHEMA AWAIT%n" +
+                "BEGIN%n" +
+                "UNWIND [{surname:\"Snow\", name:\"John\", properties:{}}, {surname:\"Jackson\", name:\"Matt\", properties:{}}, {surname:\"White\", name:\"Jenny\", properties:{}}, {surname:\"Brown\", name:\"Susan\", properties:{}}, {surname:\"Taylor\", name:\"Tom\", properties:{}}] as row%n" +
+                "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
+                "COMMIT%n" +
+                "BEGIN%n" +
+                "UNWIND [{start: {name:\"John\", surname:\"Snow\"}, end: {name:\"Matt\", surname:\"Jackson\"}, properties:{}}] as row%n" +
+                "MATCH (start:Person{surname: row.start.surname, name: row.start.name})%n" +
+                "MATCH (end:Person{surname: row.end.surname, name: row.end.name})%n" +
+                "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n" +
+                "COMMIT%n");
+
+        static final String EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT = String.format(":begin%n" +
+                "CREATE CONSTRAINT ON (node:Person) ASSERT (node.name, node.surname) IS NODE KEY;%n" +
+                ":commit%n" +
+                "CALL db.awaitIndex(':Person(name,surname)');%n" +
+                ":begin%n" +
+                "UNWIND [{surname:\"Snow\", name:\"John\", properties:{}}, {surname:\"Jackson\", name:\"Matt\", properties:{}}, {surname:\"White\", name:\"Jenny\", properties:{}}, {surname:\"Brown\", name:\"Susan\", properties:{}}, {surname:\"Taylor\", name:\"Tom\", properties:{}}] as row%n" +
+                "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
+                ":commit%n" +
+                ":begin%n" +
+                "UNWIND [{start: {name:\"John\", surname:\"Snow\"}, end: {name:\"Matt\", surname:\"Jackson\"}, properties:{}}] as row%n" +
+                "MATCH (start:Person{surname: row.start.surname, name: row.start.name})%n" +
+                "MATCH (end:Person{surname: row.end.surname, name: row.end.name})%n" +
+                "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n" +
+                ":commit%n");
+
+        static final String EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT = String.format("CREATE CONSTRAINT ON (node:Person) ASSERT (node.name, node.surname) IS NODE KEY;%n" +
+                "UNWIND [{surname:\"Snow\", name:\"John\", properties:{}}, {surname:\"Jackson\", name:\"Matt\", properties:{}}, {surname:\"White\", name:\"Jenny\", properties:{}}, {surname:\"Brown\", name:\"Susan\", properties:{}}, {surname:\"Taylor\", name:\"Tom\", properties:{}}] as row%n" +
+                "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
+                "UNWIND [{start: {name:\"John\", surname:\"Snow\"}, end: {name:\"Matt\", surname:\"Jackson\"}, properties:{}}] as row%n" +
+                "MATCH (start:Person{surname: row.start.surname, name: row.start.name})%n" +
+                "MATCH (end:Person{surname: row.end.surname, name: row.end.name})%n" +
+                "CREATE (start)-[r:KNOWS]->(end) SET r += row.properties;%n");
     }
 
 }
