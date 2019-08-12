@@ -39,9 +39,9 @@ public class ApocSettings implements SettingsDeclaration {
 
     public static final Setting<Boolean> apoc_uuid_enabled = newBuilder(APOC_UUID_ENABLED, BOOL, false ).build();
 
-    public static final Setting<String> apoc_json_zip_url = newBuilder(APOC_JSON_ZIP_URL, STRING, null ).build();
+//    public static final Setting<String> apoc_json_zip_url = newBuilder(APOC_JSON_ZIP_URL, STRING, null ).build();
 
-    public static final Setting<String> apoc_json_simpleJson_url = newBuilder(APOC_JSON_SIMPLE_JSON_URL, STRING, null ).build();
+//    public static final Setting<String> apoc_json_simpleJson_url = newBuilder(APOC_JSON_SIMPLE_JSON_URL, STRING, null ).build();
 
     public static <T> Setting<T> dynamic(String name, SettingValueParser<T> parser) {
         return newBuilder(name, parser, null).build();

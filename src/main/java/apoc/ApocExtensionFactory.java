@@ -13,12 +13,12 @@ import org.neo4j.kernel.availability.AvailabilityGuard;
 import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
 import org.neo4j.kernel.extension.context.ExtensionContext;
-import org.neo4j.logging.internal.LogService;
-import org.neo4j.scheduler.JobScheduler;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.Lifecycle;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
+import org.neo4j.logging.internal.LogService;
+import org.neo4j.scheduler.JobScheduler;
 
 import java.net.URL;
 
@@ -76,52 +76,54 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
 
         @Override
         public void start() {
-            ApocConfiguration.initialize(db);
-            Pools.NEO4J_SCHEDULER = dependencies.scheduler();
-            registerCustomProcedures();
-            ttlLifeCycle = new TTLLifeCycle(Pools.NEO4J_SCHEDULER, db, dependencies.config(), log.getUserLog(TTLLifeCycle.class));
-            ttlLifeCycle.start();
+            ApocConfig.withNonSystemDatabase(db, aVoid -> {
 
-            uuidLifeCycle = new Uuid.UuidLifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Uuid.class));
-            uuidLifeCycle.start();
+                ApocConfiguration.initialize(db);
+                Pools.NEO4J_SCHEDULER = dependencies.scheduler();
 
-            triggerLifeCycle = new Trigger.LifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Trigger.class));
-            triggerLifeCycle.start();
+                ttlLifeCycle = new TTLLifeCycle(Pools.NEO4J_SCHEDULER, db, dependencies.config(), log.getUserLog(TTLLifeCycle.class));
+                ttlLifeCycle.start();
 
-            customProcedureStorage = new CypherProcedures.CustomProcedureStorage(db, log.getUserLog(CypherProcedures.class));
-            AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
-            availabilityGuard.addListener(customProcedureStorage);
-            availabilityGuard.addListener(new CypherInitializer(db, log.getUserLog(CypherInitializer.class)));
-        }
+                uuidLifeCycle = new Uuid.UuidLifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Uuid.class));
+                uuidLifeCycle.start();
 
-        public void registerCustomProcedures() {
+                triggerLifeCycle = new Trigger.LifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Trigger.class));
+                triggerLifeCycle.start();
 
+                customProcedureStorage = new CypherProcedures.CustomProcedureStorage(db, log.getUserLog(CypherProcedures.class));
+                AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
+                availabilityGuard.addListener(customProcedureStorage);
+                availabilityGuard.addListener(new CypherInitializer(db, log.getUserLog(CypherInitializer.class)));
+
+            });
         }
 
         @Override
         public void stop() {
-            if (ttlLifeCycle !=null) {
-                try {
-                    ttlLifeCycle.stop();
-                } catch(Exception e) {
-                    userLog.warn("Error stopping ttl service",e);
+            ApocConfig.withNonSystemDatabase(db, aVoid -> {
+                if (ttlLifeCycle !=null) {
+                    try {
+                        ttlLifeCycle.stop();
+                    } catch(Exception e) {
+                        userLog.warn("Error stopping ttl service",e);
+                    }
                 }
-            }
-            if (triggerLifeCycle !=null) {
-                try {
-                    triggerLifeCycle.stop();
-                } catch(Exception e) {
-                    userLog.warn("Error stopping trigger service",e);
+                if (triggerLifeCycle !=null) {
+                    try {
+                        triggerLifeCycle.stop();
+                    } catch(Exception e) {
+                        userLog.warn("Error stopping trigger service",e);
+                    }
                 }
-            }
 
-            if (uuidLifeCycle !=null) {
-                try {
-                    uuidLifeCycle.stop();
-                } catch (Exception e) {
-                    userLog.warn("Error stopping uuid service", e);
+                if (uuidLifeCycle !=null) {
+                    try {
+                        uuidLifeCycle.stop();
+                    } catch (Exception e) {
+                        userLog.warn("Error stopping uuid service", e);
+                    }
                 }
-            }
+            });
 
         }
 

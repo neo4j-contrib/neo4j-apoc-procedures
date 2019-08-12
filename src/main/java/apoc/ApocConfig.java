@@ -3,8 +3,10 @@ package apoc;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.combined.CombinedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.config.Setting;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
@@ -15,6 +17,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,16 +59,24 @@ public class ApocConfig extends LifecycleAdapter {
     private final Config neo4jConfig;
     private final Log log;
     private final GlobalProceduresRegistry globalProceduresRegistry;
+    private final GraphDatabaseService graphDatabaseService;
 
     private Configuration config;
 
     private static ApocConfig theInstance;
 
-    public ApocConfig(Config neo4jConfig, LogService log, GlobalProceduresRegistry globalProceduresRegistry) {
+    public ApocConfig(Config neo4jConfig, LogService log, GlobalProceduresRegistry globalProceduresRegistry, GraphDatabaseService graphDatabaseService) {
         this.neo4jConfig = neo4jConfig;
         this.log = log.getInternalLog(ApocConfig.class);
         this.globalProceduresRegistry = globalProceduresRegistry;
+        this.graphDatabaseService = graphDatabaseService;
         theInstance = this;
+    }
+
+    public static void withNonSystemDatabase(GraphDatabaseService db, Consumer<Void> consumer) {
+        if (!db.databaseName().equals(SYSTEM_DATABASE_NAME)) {
+            consumer.accept(null);
+        }
     }
 
     public Configuration getConfig() {
@@ -74,17 +85,19 @@ public class ApocConfig extends LifecycleAdapter {
 
     @Override
     public void start() throws Exception {
-        // grab NEO4J_CONF from environment. If not set, calculate it from sun.java.command system property
-        String neo4jConfFolder = System.getenv().getOrDefault("NEO4J_CONF", determineNeo4jConfFolder());
-        System.setProperty("NEO4J_CONF", neo4jConfFolder);
-        log.info("system property NEO4J_CONF set to %s", neo4jConfFolder);
+        withNonSystemDatabase(graphDatabaseService, aVoid -> {
+            // grab NEO4J_CONF from environment. If not set, calculate it from sun.java.command system property
+            String neo4jConfFolder = System.getenv().getOrDefault("NEO4J_CONF", determineNeo4jConfFolder());
+            System.setProperty("NEO4J_CONF", neo4jConfFolder);
+            log.info("system property NEO4J_CONF set to %s", neo4jConfFolder);
 
-        // expose this config instance via `@Context ApocConfig config`
-        if (globalProceduresRegistry!=null) {
-            globalProceduresRegistry.registerComponent((Class<ApocConfig>) getClass(), ctx -> this, true);
-        }
+            // expose this config instance via `@Context ApocConfig config`
+            if (globalProceduresRegistry!=null) {
+                globalProceduresRegistry.registerComponent((Class<ApocConfig>) getClass(), ctx -> this, true);
+            }
 
-        loadConfiguration();
+            loadConfiguration();
+        });
     }
 
     protected String determineNeo4jConfFolder() {
@@ -104,29 +117,33 @@ public class ApocConfig extends LifecycleAdapter {
     /**
      * use apache commons to load configuration
      * classpath:/apoc-config.xml contains a description where to load configuration from
-     * @throws org.apache.commons.configuration2.ex.ConfigurationException
      */
-    protected void loadConfiguration() throws org.apache.commons.configuration2.ex.ConfigurationException {
-        URL resource = getClass().getClassLoader().getResource("apoc-config.xml");
-        log.info("loading apoc meta config from %s", resource.toString());
-        CombinedConfigurationBuilder builder = new CombinedConfigurationBuilder()
-                .configure(new Parameters().fileBased().setURL(resource));
-        config = builder.getConfiguration();
+    protected void loadConfiguration() {
+        try {
 
-        // copy apoc settings from neo4j.conf for legacy support
-        neo4jConfig.getDeclaredSettings().entrySet().stream()
-                .filter(e -> e.getKey().startsWith("apoc."))
-                .forEach(e -> config.setProperty(e.getKey(), neo4jConfig.get(e.getValue())));
+            URL resource = getClass().getClassLoader().getResource("apoc-config.xml");
+            log.info("loading apoc meta config from %s", resource.toString());
+            CombinedConfigurationBuilder builder = new CombinedConfigurationBuilder()
+                    .configure(new Parameters().fileBased().setURL(resource));
+            config = builder.getConfiguration();
 
-        for (Setting s : NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES) {
-            Object value = neo4jConfig.get(s);
-            if (value!=null) {
-                config.setProperty(s.name(), value.toString());
+            // copy apoc settings from neo4j.conf for legacy support
+            neo4jConfig.getDeclaredSettings().entrySet().stream()
+                    .filter(e -> e.getKey().startsWith("apoc."))
+                    .forEach(e -> config.setProperty(e.getKey(), neo4jConfig.get(e.getValue())));
+
+            for (Setting s : NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES) {
+                Object value = neo4jConfig.get(s);
+                if (value!=null) {
+                    config.setProperty(s.name(), value.toString());
+                }
             }
-        }
 
-        boolean allowFileUrls = neo4jConfig.get(GraphDatabaseSettings.allow_file_urls);
-        config.setProperty(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, allowFileUrls);
+            boolean allowFileUrls = neo4jConfig.get(GraphDatabaseSettings.allow_file_urls);
+            config.setProperty(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, allowFileUrls);
+        } catch (ConfigurationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void checkReadAllowed(String url) {
