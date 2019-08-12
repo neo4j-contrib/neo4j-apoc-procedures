@@ -97,7 +97,7 @@ public class ExportGraphML {
     }
 
     private Stream<ProgressInfo> exportGraphML(@Name("file") String fileName, String source, SubGraph graph, ExportConfig config) throws Exception {
-        if (fileName != null) apocConfig.checkWriteAllowed();
+        if (fileName != null) apocConfig.checkWriteAllowed(config);
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "graphml"));
         PrintWriter printWriter = getPrintWriter(fileName, null);
         XmlGraphMLWriter exporter = new XmlGraphMLWriter();

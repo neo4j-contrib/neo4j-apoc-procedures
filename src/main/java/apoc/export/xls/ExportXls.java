@@ -2,6 +2,7 @@ package apoc.export.xls;
 
 import apoc.ApocConfig;
 import apoc.Description;
+import apoc.export.util.ExportConfig;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
@@ -74,7 +75,8 @@ public class ExportXls {
     }
 
     private Stream<ProgressInfo> exportXls(@Name("file") String fileName, String source, Object data, Map<String,Object> configMap) throws Exception {
-        apocConfig.checkWriteAllowed();
+        ExportConfig c = new ExportConfig(configMap);
+        apocConfig.checkWriteAllowed(c);
         try (Transaction tx = db.beginTx();
              OutputStream out = getOutputStream(fileName, null);
              SXSSFWorkbook wb = new SXSSFWorkbook(100)) {

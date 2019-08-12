@@ -100,7 +100,7 @@ public class ExportCypher {
     }
 
     private Stream<DataProgressInfo> exportCypher(@Name("file") String fileName, String source, SubGraph graph, ExportConfig c, boolean onlySchema) throws IOException {
-        if (fileName != null) apocConfig.checkWriteAllowed();
+        if (fileName != null) apocConfig.checkWriteAllowed(c);
 
         ProgressInfo progressInfo = new ProgressInfo(fileName, source, "cypher");
         progressInfo.batchSize = c.getBatchSize();

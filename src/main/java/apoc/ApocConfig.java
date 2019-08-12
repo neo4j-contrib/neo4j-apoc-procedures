@@ -1,5 +1,6 @@
 package apoc;
 
+import apoc.export.util.ExportConfig;
 import apoc.load.Jdbc;
 import apoc.util.SimpleRateLimiter;
 import org.apache.commons.configuration2.Configuration;
@@ -227,9 +228,12 @@ public class ApocConfig extends LifecycleAdapter {
                     " please set apoc.import.file.enabled=true in your apoc.conf");
         }
     }
-    public void checkWriteAllowed() {
+
+    public void checkWriteAllowed(ExportConfig exportConfig) {
         if (!config.getBoolean(APOC_EXPORT_FILE_ENABLED)) {
-            throw new RuntimeException("Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf");
+            if (exportConfig==null || !exportConfig.streamStatements()) {
+                throw new RuntimeException("Export to files not enabled, please set apoc.export.file.enabled=true in your apoc.conf");
+            }
         }
     }
 
