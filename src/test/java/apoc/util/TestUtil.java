@@ -109,7 +109,6 @@ public class TestUtil {
         try (Transaction tx = db.beginTx()) {
             Map<String, Object> p = (params == null) ? Collections.emptyMap() : params;
             Result result = db.execute(call, p);
-            result.hasNext(); // force execution - seems to be necessary in 4.0
             resultConsumer.accept(result);
             tx.success();
         } catch (RuntimeException e) {

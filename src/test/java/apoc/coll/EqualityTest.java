@@ -3,11 +3,14 @@ package apoc.coll;
 import apoc.util.ArrayBackedIterator;
 import apoc.util.ArrayBackedList;
 import apoc.util.TestUtil;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphalgo.impl.util.PathImpl;
 import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -21,6 +24,9 @@ import static org.junit.Assert.assertTrue;
  * @since 02.06.16
  */
 public class EqualityTest {
+
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule();
 
     @Test
     public void testSpecial() throws Exception {
@@ -159,9 +165,6 @@ public class EqualityTest {
     @Test
     public void testGraphEntities() throws Exception {
 
-        Pair<DatabaseManagementService, GraphDatabaseService> pair = TestUtil.apocGraphDatabaseBuilder();
-        DatabaseManagementService dbms = pair.first();
-        GraphDatabaseService db = pair.other();
         try (Transaction tx = db.beginTx()) {
             Node n1 = db.createNode();
             Node n2 = db.createNode();
@@ -189,7 +192,6 @@ public class EqualityTest {
             shouldNotMatch(p2,p1);
             shouldNotMatch(asList(p2),asList(p1));
         }
-        dbms.shutdown();
     }
 
     @Test

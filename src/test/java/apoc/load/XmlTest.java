@@ -16,34 +16,65 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static apoc.util.TestUtil.*;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
+import static org.neo4j.internal.helpers.collection.MapUtil.map;
 
 public class XmlTest {
 
-    private static final String XML_AS_NESTED_MAP =
-            "{_type=parent, name=databases, " +
-                    "_children=[" +
-                    "{_type=child, name=Neo4j, _text=Neo4j is a graph database}, " +
-                    "{_type=child, name=relational, _children=[" +
-                    "{_type=grandchild, name=MySQL, _text=MySQL is a database & relational}, " +
-                    "{_type=grandchild, name=Postgres, _text=Postgres is a relational database}]}]}";
-    private static final String XML_AS_NESTED_SIMPLE_MAP =
-            "{_type=parent, name=databases, " +
-                    "_child=[" +
-                    "{_type=child, name=Neo4j, _text=Neo4j is a graph database}, " +
-                    "{_type=child, name=relational, _grandchild=[" +
-                    "{_type=grandchild, name=MySQL, _text=MySQL is a database & relational}, " +
-                    "{_type=grandchild, name=Postgres, _text=Postgres is a relational database}]}]}";
-    static final String XML_XPATH_AS_NESTED_MAP =
-            "[{_type=book, id=bk103, _children=[{_type=author, _text=Corets, Eva}, {_type=title, _text=Maeve Ascendant}, {_type=genre, _text=Fantasy}, {_type=price, _text=5.95}, {_type=publish_date, _text=2000-11-17}, {_type=description, _text=After the collapse of a nanotechnology " +
-                    "society in England, the young survivors lay the " +
-                    "foundation for a new society.}]}]";
+    private static final Map<String, Object> XML_AS_NESTED_MAP = map(
+            "_type", "parent",
+            "name", "databases",
+            "_children", asList(
+                    map("_type", "child", "name", "Neo4j", "_text", "Neo4j is a graph database"),
+                    map("_type", "child", "name", "relational", "_children", asList(
+                            map("_type", "grandchild", "name", "MySQL", "_text", "MySQL is a database & relational"),
+                            map("_type", "grandchild", "name", "Postgres", "_text", "Postgres is a relational database")
+                    ))
+            )
+    );
 
-    private static final String XML_AS_SINGLE_LINE =
-            "{_type=table, _children=[{_type=tr, _children=[{_type=td, _children=[{_type=img, src=pix/logo-tl.gif}]}]}]}";
+    private static final Map<String, Object> XML_AS_NESTED_SIMPLE_MAP = map(
+        "_type", "parent",
+        "name", "databases",
+        "_child", asList(
+                    map("_type", "child", "name", "Neo4j", "_text", "Neo4j is a graph database"),
+                    map("_type", "child", "name", "relational", "_grandchild", asList(
+                            map("_type", "grandchild", "name", "MySQL", "_text", "MySQL is a database & relational"),
+                            map("_type", "grandchild", "name", "Postgres", "_text", "Postgres is a relational database")
+                    ))
+            )
+    );
 
-    private static final String XML_AS_SINGLE_LINE_SIMPLE =
-            "{_type=table, _table=[{_type=tr, _tr=[{_type=td, _td=[{_type=img, src=pix/logo-tl.gif}]}]}]}";
+    static final String XML_XPATH_AS_NESTED_MAP = "[{_children=[{_type=author, _text=Corets, Eva}, {_type=title, _text=Maeve Ascendant}, {_type=genre, _text=Fantasy}, {_type=price, _text=5.95}, {_type=publish_date, _text=2000-11-17}, {_type=description, _text=After the collapse of a nanotechnology society in England, the young survivors lay the foundation for a new society.}], _type=book, id=bk103}]";
+
+    private static final Map<String, Object> XML_AS_SINGLE_LINE = map(
+            "_type", "table",
+            "_children", asList( map(
+                    "_type", "tr",
+                    "_children", asList(map(
+                        "_type", "td",
+                        "_children", asList(map(
+                                "_type", "img",
+                                    "src", "pix/logo-tl.gif"
+                            ))
+                    ))
+            ))
+    );
+
+
+    private static final Map<String, Object> XML_AS_SINGLE_LINE_SIMPLE = map(
+            "_type", "table",
+            "_table", asList(map(
+                    "_type", "tr",
+                    "_tr", asList(map(
+                            "_type", "td",
+                            "_td", asList(map(
+                                    "_type", "img",
+                                    "src", "pix/logo-tl.gif"
+                            ))
+                    ))))
+    );
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
@@ -59,8 +90,7 @@ public class XmlTest {
     public void testLoadXml() {
         testCall(db, "CALL apoc.load.xml('file:databases.xml')", //  YIELD value RETURN value
                 (row) -> {
-                    Object value = row.get("value");
-                    assertEquals(XML_AS_NESTED_MAP, value.toString());
+                    assertEquals(XML_AS_NESTED_MAP, row.get("value"));
                 });
     }
 
@@ -68,20 +98,26 @@ public class XmlTest {
     public void testLoadXmlSimple() {
         testCall(db, "CALL apoc.load.xmlSimple('file:databases.xml')", //  YIELD value RETURN value
                 (row) -> {
-                    Object value = row.get("value");
-                    assertEquals(XML_AS_NESTED_SIMPLE_MAP, value.toString());
+                    assertEquals(XML_AS_NESTED_SIMPLE_MAP, row.get("value"));
                 });
     }
 
     @Test
     public void testMixedContent() {
         testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/mixedcontent.xml')", //  YIELD value RETURN value
-                (row) -> {
-                    Object value = row.get("value");
-                    //assertEquals("{_type=root, _children=[{_type=text, _children=[text0, {_type=mixed}, text1]}, {_type=text, _text=text as cdata}]}", value.toString());
-                    assertEquals("{_type=root, _children=[{_type=text, _children=[{_type=mixed}, text0, text1]}, {_type=text, _text=text as cdata}]}", value.toString());
-
-                });
+                (row) -> assertEquals(map("_type", "root",
+                        "_children", asList(
+                                map("_type", "text",
+                                        "_children", asList(
+                                                map("_type", "mixed"),
+                                                "text0",
+                                                "text1"
+                                        )),
+                                map("_type", "text",
+                                        "_text", "text as cdata")
+                        )
+                        )
+                        , row.get("value")));
     }
 
     @Test
@@ -122,27 +158,26 @@ public class XmlTest {
 
     @Test
     public void testReturnCollectionElements() {
-        testResult(db, "call apoc.load.xml('file:src/test/resources/xml/books.xml') yield value as catalog\n"+
-                        "UNWIND catalog._children as book\n" +
-                        "WITH book.id as id, [attr IN book._children WHERE attr._type IN ['author','title'] | attr._text] as pairs\n" +
-                        "RETURN id, pairs[0] as author, pairs[1] as title"
-                , result -> {
-                    assertEquals("+-----------------------------------------------------------------------------+\n" +
-                            "| id      | author                 | title                                    |\n" +
-                            "+-----------------------------------------------------------------------------+\n" +
-                            "| \"bk101\" | \"Gambardella, Matthew\" | \"Arciniegas, Fabio\"                      |\n" +
-                            "| \"bk102\" | \"Ralls, Kim\"           | \"Midnight Rain\"                          |\n" +
-                            "| \"bk103\" | \"Corets, Eva\"          | \"Maeve Ascendant\"                        |\n" +
-                            "| \"bk104\" | \"Corets, Eva\"          | \"Oberon's Legacy\"                        |\n" +
-                            "| \"bk105\" | \"Corets, Eva\"          | \"The Sundered Grail\"                     |\n" +
-                            "| \"bk106\" | \"Randall, Cynthia\"     | \"Lover Birds\"                            |\n" +
-                            "| \"bk107\" | \"Thurman, Paula\"       | \"Splish Splash\"                          |\n" +
-                            "| \"bk108\" | \"Knorr, Stefan\"        | \"Creepy Crawlies\"                        |\n" +
-                            "| \"bk109\" | \"Kress, Peter\"         | \"Paradox Lost\"                           |\n" +
-                            "| \"bk110\" | \"O'Brien, Tim\"         | \"Microsoft .NET: The Programming Bible\"  |\n" +
-                            "| \"bk111\" | \"O'Brien, Tim\"         | \"MSXML3: A Comprehensive Guide\"          |\n" +
-                            "| \"bk112\" | \"Galos, Mike\"          | \"Visual Studio 7: A Comprehensive Guide\" |\n" +
-                            "+-----------------------------------------------------------------------------+\n" +
+        testResult(db, "call apoc.load.xml('file:src/test/resources/xml/books.xml') yield value as catalog " +
+                "unwind catalog._children as book " +
+                "return book.id as id, [x in book._children where x._type = 'author' | x._text] as authors, [x in book._children where x._type='title' | x._text] as title", result -> {
+
+                    assertEquals("+-----------------------------------------------------------------------------------------------------+\n" +
+                            "| id      | authors                                      | title                                      |\n" +
+                            "+-----------------------------------------------------------------------------------------------------+\n" +
+                            "| \"bk101\" | [\"Gambardella, Matthew\",\"Arciniegas, Fabio\"] | [\"XML Developer's Guide\"]                  |\n" +
+                            "| \"bk102\" | [\"Ralls, Kim\"]                               | [\"Midnight Rain\"]                          |\n" +
+                            "| \"bk103\" | [\"Corets, Eva\"]                              | [\"Maeve Ascendant\"]                        |\n" +
+                            "| \"bk104\" | [\"Corets, Eva\"]                              | [\"Oberon's Legacy\"]                        |\n" +
+                            "| \"bk105\" | [\"Corets, Eva\"]                              | [\"The Sundered Grail\"]                     |\n" +
+                            "| \"bk106\" | [\"Randall, Cynthia\"]                         | [\"Lover Birds\"]                            |\n" +
+                            "| \"bk107\" | [\"Thurman, Paula\"]                           | [\"Splish Splash\"]                          |\n" +
+                            "| \"bk108\" | [\"Knorr, Stefan\"]                            | [\"Creepy Crawlies\"]                        |\n" +
+                            "| \"bk109\" | [\"Kress, Peter\"]                             | [\"Paradox Lost\"]                           |\n" +
+                            "| \"bk110\" | [\"O'Brien, Tim\"]                             | [\"Microsoft .NET: The Programming Bible\"]  |\n" +
+                            "| \"bk111\" | [\"O'Brien, Tim\"]                             | [\"MSXML3: A Comprehensive Guide\"]          |\n" +
+                            "| \"bk112\" | [\"Galos, Mike\"]                              | [\"Visual Studio 7: A Comprehensive Guide\"] |\n" +
+                            "+-----------------------------------------------------------------------------------------------------+\n" +
                             "12 rows\n", result.resultAsString());
                 });
     }
@@ -234,15 +269,15 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlWithNextWordRels() {
-        testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5.xml', " +
+        testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5-shortened.xml', " +
                         "{createNextWordRelationships: true, filterLeadingWhitespace: true}) yield node",
                 row -> assertNotNull(row.get("node")));
         testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
             final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));
             assertEquals(2L, (long)resultMap.get("XmlProcessingInstruction"));
             assertEquals(1L, (long)resultMap.get("XmlDocument"));
-            assertEquals(3263L, (long)resultMap.get("XmlWord"));
-            assertEquals(454L, (long)resultMap.get("XmlTag"));
+            assertEquals(369L, (long)resultMap.get("XmlWord"));
+            assertEquals(158L, (long)resultMap.get("XmlTag"));
         });
 
         // no node more than one NEXT/NEXT_SIBLING
@@ -257,21 +292,21 @@ public class XmlTest {
         testResult(db, "match p=(:XmlDocument)-[:NEXT_WORD*]->(e:XmlWord) where not (e)-[:NEXT_WORD]->() return length(p) as len",
                 result -> {
                     Map<String, Object> r = Iterators.single(result);
-                    assertEquals(3263L, r.get("len"));
+                    assertEquals(369L, r.get("len"));
                 });
     }
 
     @Test
     public void testLoadXmlWithNextEntityRels() {
-        testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5.xml', " +
+        testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5-shortened.xml', " +
                         "{connectCharacters: true, filterLeadingWhitespace: true}) yield node",
                 row -> assertNotNull(row.get("node")));
         testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
             final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));
             assertEquals(2L, (long)resultMap.get("XmlProcessingInstruction"));
             assertEquals(1L, (long)resultMap.get("XmlDocument"));
-            assertEquals(3263L, (long)resultMap.get("XmlCharacters"));
-            assertEquals(454L, (long)resultMap.get("XmlTag"));
+            assertEquals(369L, (long)resultMap.get("XmlCharacters"));
+            assertEquals(158L, (long)resultMap.get("XmlTag"));
         });
 
         // no node more than one NEXT/NEXT_SIBLING
@@ -286,7 +321,7 @@ public class XmlTest {
         testResult(db, "match p=(:XmlDocument)-[:NE*]->(e:XmlCharacters) where not (e)-[:NE]->() return length(p) as len",
                 result -> {
                     Map<String, Object> r = Iterators.single(result);
-                    assertEquals(3263L, r.get("len"));
+                    assertEquals(369L, r.get("len"));
                 });
     }
 
@@ -383,8 +418,7 @@ public class XmlTest {
     public void testLoadXmlSingleLineSimple() {
         testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml', '/', null, true)", //  YIELD value RETURN value
                 (row) -> {
-                    Object value = row.get("value");
-                    assertEquals(XML_AS_SINGLE_LINE_SIMPLE, value.toString());
+                    assertEquals(XML_AS_SINGLE_LINE_SIMPLE, row.get("value"));
                 });
     }
 
@@ -392,8 +426,7 @@ public class XmlTest {
     public void testLoadXmlSingleLine() {
         testCall(db, "CALL apoc.load.xml('file:src/test/resources/xml/singleLine.xml')", //  YIELD value RETURN value
                 (row) -> {
-                    Object value = row.get("value");
-                    assertEquals(XML_AS_SINGLE_LINE, value.toString());
+                    assertEquals(XML_AS_SINGLE_LINE, row.get("value"));
                 });
     }
 }

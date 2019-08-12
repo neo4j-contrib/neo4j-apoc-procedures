@@ -15,6 +15,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.ApocConfig.*;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -28,11 +29,11 @@ public class LoadJsonTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_import_file_enabled, "true")
-            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, "false")
-            .withSetting(ApocSettings.apoc_json_zip_url, "https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.zip?raw=true!person.json")
-            .withSetting(ApocSettings.apoc_json_simpleJson_url, ClassLoader.getSystemResource("map.json").toString());
+            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, "false");
 
 	@Before public void setUp() throws Exception {
+	    apocConfig().setProperty(APOC_JSON_ZIP_URL, "https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.zip?raw=true!person.json");
+	    apocConfig().setProperty(APOC_JSON_SIMPLE_JSON_URL, ClassLoader.getSystemResource("map.json").toString());
         TestUtil.registerProcedure(db, LoadJson.class);
     }
 
@@ -234,7 +235,7 @@ public class LoadJsonTest {
     public void testLoadJsonByUrlInConfigFileWrongKey() throws Exception {
 
         try {
-            testResult(db, "CALL apoc.load.json({key})",map("key","foo"), (r) -> {});
+            testResult(db, "CALL apoc.load.json({key})",map("key","foo"), (r) -> r.hasNext());
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);

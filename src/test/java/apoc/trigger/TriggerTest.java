@@ -1,5 +1,6 @@
 package apoc.trigger;
 
+import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
@@ -13,6 +14,8 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Map;
 
+import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.ApocSettings.apoc_trigger_enabled;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -26,7 +29,7 @@ public class TriggerTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(apoc_trigger_enabled, "true");
+            .withSetting(apoc_trigger_enabled, "true");  // need to use settings here, apocConfig().setProperty in `setUp` is too late
 
     private long start;
 

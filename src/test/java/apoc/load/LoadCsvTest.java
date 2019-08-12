@@ -325,7 +325,7 @@ RETURN m.col_1,m.col_2,m.col_3
         Assume.assumeNotNull(httpServer);
         try {
             testResult(db, "CALL apoc.load.csv($url)", map("url", "http://localhost:" + httpServer.getMappedPort(8000)),
-                    (r) -> {});
+                    (r) -> r.hasNext());
         } catch (QueryExecutionException e) {
             assertTrue(e.getMessage().contains("The redirect URI has a different protocol: file:/etc/passwd"));
             throw e;

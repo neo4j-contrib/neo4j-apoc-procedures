@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.AssertableLogProvider;
 import org.neo4j.logging.LogProvider;
 import org.neo4j.logging.internal.SimpleLogService;
@@ -29,7 +30,10 @@ public class ApocConfigTest {
         when(neo4jConfig.getDeclaredSettings()).thenReturn(Collections.emptyMap());
         when(neo4jConfig.get(any())).thenReturn(null);
         when(neo4jConfig.get(GraphDatabaseSettings.allow_file_urls)).thenReturn(false);
-        cut = new ApocConfig(neo4jConfig, new SimpleLogService(logProvider), null);
+
+        GraphDatabaseService db = mock(GraphDatabaseService.class);
+        when(db.databaseName()).thenReturn(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
+        cut = new ApocConfig(neo4jConfig, new SimpleLogService(logProvider), null, db);
     }
 
     @Test

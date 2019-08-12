@@ -488,13 +488,13 @@ public class NodesTest {
 
         TestUtil.testResult(db, "MATCH (p:Person)-[:LIVES_IN]->(c:City)\n" +
                 "WITH c, c + collect(p) as subgraph\n" +
-                "CALL apoc.nodes.collapse(subgraph,{mergeVirtualRels:true, countMerge: true}) yield from, rel, to return from, rel, to", null, result -> {
+                "CALL apoc.nodes.collapse(subgraph,{properties:'discard', mergeVirtualRels:true, countMerge: true}) yield from, rel, to return from, rel, to", null, result -> {
             Map<String, Object> map = result.next();
 
-            assertEquals(Util.map("name","John", "count", 6), ((VirtualNode)map.get("from")).getAllProperties());
+            assertEquals(Util.map("name","London", "count", 6), ((VirtualNode)map.get("from")).getAllProperties());
             assertEquals(label, labelSet((VirtualNode) map.get("from")));
-            assertNull(((VirtualRelationship) map.get("rel")));
-            assertNull(((VirtualNode) map.get("to")));
+            assertNull(map.get("rel"));
+            assertNull(map.get("to"));
             assertFalse(result.hasNext());
         });
     }

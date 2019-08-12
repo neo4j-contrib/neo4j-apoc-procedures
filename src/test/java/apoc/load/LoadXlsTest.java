@@ -213,8 +213,8 @@ RETURN m.col_1,m.col_2,m.col_3
     @Test
     public void testLoadXlsDateWithMappingTypeString() throws Exception {
 
-        LocalDateTimeValue date = LocalDateTimeValue.localDateTime(2018,10,10, 0, 0, 0, 0);
-        LocalDateTimeValue time = LocalDateTimeValue.localDateTime(1899,12,31, 12,01,10, 0);
+        LocalDateTime date = LocalDateTime.of(2018,10,10, 0, 0, 0);
+        LocalDateTime time = LocalDateTime.of(1899,12,31, 12,01,10);
 
             testResult(db, "CALL apoc.load.xls({url},'sheet',{mapping:{Date:{type:'String', dateFormat: 'iso_date'}}})", map("url", testDate),
                 (r) -> {
@@ -249,8 +249,8 @@ RETURN m.col_1,m.col_2,m.col_3
     @Test
     public void testLoadXlsDateWithMappingArrayTypeString() throws Exception {
 
-        LocalDateTimeValue date = LocalDateTimeValue.localDateTime(2018,10,10, 0, 0, 0, 0);
-        LocalDateTimeValue time = LocalDateTimeValue.localDateTime(1899,12,31, 12,01,10, 0);
+        LocalDateTime date = LocalDateTime.of(2018,10,10, 0, 0, 0);
+        LocalDateTime time = LocalDateTime.of(1899,12,31, 12,01,10);
         String elementExpected = "2018-09-10T00:00:00";
 
         testResult(db, "CALL apoc.load.xls({url},'sheet',{mapping:{Date:{type:'String', dateFormat: '', dateParse: []}}})", map("url",testDate),
@@ -286,9 +286,9 @@ RETURN m.col_1,m.col_2,m.col_3
     @Test
     public void testLoadXlsDateWithMappingArrayTypeDate() throws Exception {
 
-        LocalDateTimeValue time = LocalDateTimeValue.localDateTime(1899,12,31, 12,01,10, 0);
-        LocalDateTimeValue localDateTimeValue = LocalDateTimeValue.localDateTime(2018,9,10, 0,0,0, 0);
-        LocalDateTimeValue localDateTimeValue1 = LocalDateTimeValue.localDateTime(2018,10,10, 0,0,0, 0);
+        LocalDateTime time = LocalDateTime.of(1899,12,31, 12,01,10);
+        LocalDateTime localDateTimeValue = LocalDateTime.of(2018,9,10, 0,0,0);
+        LocalDateTime localDateTimeValue1 = LocalDateTime.of(2018,10,10, 0,0,0);
 
         LocalDate localDate = LocalDate.of(2018,10,5);
         LocalDate LocalDate1 = LocalDate.of(2018,10,10);

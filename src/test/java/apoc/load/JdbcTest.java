@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.ApocConfiguration;
 import apoc.util.TestUtil;
 import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -20,6 +19,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Map;
 
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -40,10 +40,9 @@ public class JdbcTest extends AbstractJdbcTest {
 
     @Before
     public void setUp() throws Exception {
-//        ApocConfiguration.initialize((GraphDatabaseAPI)db);
-        ApocConfiguration.addToConfig(map("jdbc.derby.url","jdbc:derby:derbyDB"));  // TODO: move to .withSetting
-        ApocConfiguration.addToConfig(map("jdbc.test.sql","SELECT * FROM PERSON"));
-        ApocConfiguration.addToConfig(map("jdbc.testparams.sql","SELECT * FROM PERSON WHERE NAME = ?"));
+        apocConfig().setProperty("apoc.jdbc.derby.url","jdbc:derby:derbyDB");
+        apocConfig().setProperty("apoc.jdbc.test.sql","SELECT * FROM PERSON");
+        apocConfig().setProperty("apoc.jdbc.testparams.sql","SELECT * FROM PERSON WHERE NAME = ?");
         TestUtil.registerProcedure(db,Jdbc.class);
         createPersonTableAndData();
     }
@@ -260,7 +259,7 @@ public class JdbcTest extends AbstractJdbcTest {
     @Test(expected = QueryExecutionException.class)
     public void testLoadJdbcWrongKey() throws Exception {
         try {
-            testResult(db, "CALL apoc.load.jdbc('derbyy','PERSON')", (r) -> {});
+            testResult(db, "CALL apoc.load.jdbc('derbyy','PERSON')", (r) -> r.hasNext());
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);

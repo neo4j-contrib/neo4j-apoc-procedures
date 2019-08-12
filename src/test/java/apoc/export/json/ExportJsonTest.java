@@ -4,12 +4,15 @@ import apoc.ApocSettings;
 import apoc.graph.Graphs;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
+import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
+import org.skyscreamer.jsonassert.*;
+import org.skyscreamer.jsonassert.comparator.CustomComparator;
 
 import java.io.File;
 import java.util.Map;
@@ -335,6 +338,12 @@ public class ExportJsonTest {
     private void assertFileEquals(String fileName) {
         String expectedText = TestUtil.readFileToString(new File(directoryExpected, fileName));
         String actualText = TestUtil.readFileToString(new File(directory, fileName));
-        assertEquals(JsonUtil.parse(expectedText,null,Object.class), JsonUtil.parse(actualText,null,Object.class));
+
+        try {
+            CustomComparator ignoreIdComparator = new CustomComparator(JSONCompareMode.STRICT, new Customization("**.id", (o1, o2) -> true));
+            JSONAssert.assertEquals("error comparing " + fileName, expectedText, actualText, ignoreIdComparator);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

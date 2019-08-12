@@ -33,6 +33,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
 
@@ -721,9 +722,13 @@ public class Util {
     }
 
     public static Optional<String> getLoadUrlByConfigFile(String loadType, String key, String suffix){
-        key = Optional.ofNullable(key).map(s -> s + "." + suffix).orElse(StringUtils.EMPTY);
-        Object value = ApocConfiguration.get(loadType).get(key);
-        return Optional.ofNullable(value).map(Object::toString);
+        key = Optional.ofNullable(key)
+                .map(s ->
+                        Stream.of("apoc", loadType, s, suffix).collect(Collectors.joining("."))
+                )
+                .orElse(StringUtils.EMPTY);
+        String value = apocConfig().getString(key);
+        return Optional.ofNullable(value);
     }
 
     public static String dateFormat(TemporalAccessor value, String format){

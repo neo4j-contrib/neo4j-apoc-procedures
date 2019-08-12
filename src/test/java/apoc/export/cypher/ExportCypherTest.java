@@ -1,6 +1,5 @@
 package apoc.export.cypher;
 
-import apoc.ApocSettings;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import org.junit.Before;
@@ -452,7 +451,6 @@ public class ExportCypherTest {
     @Test
     public void testExportAllCypherPlainUpdateAllWithUnwindBatchSizeOptimized() throws Exception {
         String fileName = "allPlainUpdateAllOptimized.cypher";
-        File output = new File(directory, fileName);
         TestUtil.testCall(db, "CALL apoc.export.cypher.all({file},{format:'plain', cypherFormat: 'updateAll', useOptimizations: { type: 'unwind_batch', unwindBatchSize: 2}})",
                 map("file", fileName), (r) -> assertResultsOptimized(fileName, r));
         assertEquals(EXPECTED_UPDATE_ALL_UNWIND, readFile(fileName));

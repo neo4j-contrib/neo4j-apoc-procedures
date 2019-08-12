@@ -134,12 +134,12 @@ public class Uuid {
             }
 
             uuidHandler = new UuidHandler(db, log);
-            databaseManagementService.registerTransactionEventListener("neo4j", uuidHandler); // TODO: decide which db to use
+            databaseManagementService.registerTransactionEventListener(db.databaseName(), uuidHandler);
         }
 
         public void stop() {
             if (uuidHandler == null) return;
-            databaseManagementService.unregisterTransactionEventListener("neo4j", uuidHandler);
+            databaseManagementService.unregisterTransactionEventListener(db.databaseName(), uuidHandler);
         }
     }
 }

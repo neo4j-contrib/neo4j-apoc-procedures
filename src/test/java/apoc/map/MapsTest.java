@@ -25,7 +25,7 @@ import static org.neo4j.internal.helpers.collection.Iterators.asSet;
 public class MapsTest {
 
     @Rule
-    public static DbmsRule db = new ImpermanentDbmsRule();
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void setUp() throws Exception {

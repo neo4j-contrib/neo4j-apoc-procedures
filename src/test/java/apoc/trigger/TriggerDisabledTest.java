@@ -1,185 +1,65 @@
 package apoc.trigger;
 
-import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import static org.junit.Assert.assertTrue;
+import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 
 /**
  * @author alexiudice
  * @since 14.07.18
- *
+ * <p>
  * Tests for fix of #845.
- *
+ * <p>
  * Testing disabled triggers needs to be a different test file from 'TriggerTest.java' since
- *  Trigger classes and methods are static and 'TriggerTest.java' instantiates a class that enables triggers.
+ * Trigger classes and methods are static and 'TriggerTest.java' instantiates a class that enables triggers.
  *
+ * NOTE: this test class expects every method to fail with a RuntimeException
  */
-public class TriggerDisabledTest
-{
-    @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_trigger_enabled, "false");
+public class TriggerDisabledTest {
 
-    private long start;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
+
+    @Rule
+    public ExpectedException exceptionRule = ExpectedException.none();
 
     @Before
-    public void setUp() throws Exception
-    {
-        start = System.currentTimeMillis();
-        TestUtil.registerProcedure( db, Trigger.class );
-    }
-
-    @Ignore
-    @Test
-    public void testTriggerDisabledList() throws Exception
-    {
-        try
-        {
-            db.execute( "CALL apoc.trigger.list() YIELD name RETURN name" ).close();
-            // If no error is thrown, then the test fails.
-            assertTrue( false );
-        }
-        // Catches NullPointerExceptions since they are a subclass of a RuntimeException
-        //  and they were the original error thrown (see #845). We do not expected one, so
-        //  it causes test failure.
-        catch ( NullPointerException e )
-        {
-            assertTrue( false );
-        }
-        // We expect a RuntimeException to be thrown.
-        catch ( RuntimeException e )
-        {
-            // Give the user a specific message that hints at what setting they need to change to fix
-            // this problem.
-            String msg = e.getMessage();
-            assertTrue(msg.indexOf("apoc.trigger.enabled") >= 0);
-        }
-        // Any other exception causes the test to fail.
-        catch ( Exception e )
-        {
-            assertTrue( false );
-        }
+    public void setUp() throws Exception {
+        apocConfig().setProperty(APOC_TRIGGER_ENABLED, false);
+        exceptionRule.expect(RuntimeException.class);
+        exceptionRule.expectMessage(Trigger.TriggerHandler.NOT_ENABLED_ERROR);
+        TestUtil.registerProcedure(db, Trigger.class);
     }
 
     @Test
-    public void testTriggerDisabledAdd() throws Exception
-    {
-        try
-        {
-            db.execute( "CALL apoc.trigger.add('test-trigger', 'RETURN 1', {phase: 'before'}) YIELD name RETURN name" ).close();
-            // If no error is thrown, then the test fails.
-            assertTrue( false );
-        }
-        // Catches NullPointerExceptions since they are a subclass of a RuntimeException
-        //  and they were the original error thrown (see #845). We do not expected one, so
-        //  it causes test failure.
-        catch ( NullPointerException e )
-        {
-            assertTrue( false );
-        }
-        // We expect a RuntimeException to be thrown.
-        catch ( RuntimeException e )
-        {
-
-        }
-        // Any other exception causes the test to fail.
-        catch ( Exception e )
-        {
-            assertTrue( false );
-        }
+    public void testTriggerDisabledList() {
+        db.execute("CALL apoc.trigger.list() YIELD name RETURN name").close();
     }
 
     @Test
-    public void testTriggerDisabledRemove() throws Exception
-    {
-
-        try
-        {
-            db.execute( "CALL apoc.trigger.REMOVE('test-trigger')" ).close();
-            // If no error is thrown, then the test fails.
-            assertTrue( false );
-        }
-        // Catches NullPointerExceptions since they are a subclass of a RuntimeException
-        //  and they were the original error thrown (see #845). We do not expected one, so
-        //  it causes test failure.
-        catch ( NullPointerException e )
-        {
-            assertTrue( false );
-        }
-        // We expect a RuntimeException to be thrown.
-        catch ( RuntimeException e )
-        {
-
-        }
-        // Any other exception causes the test to fail.
-        catch ( Exception e )
-        {
-            assertTrue( false );
-        }
+    public void testTriggerDisabledAdd() {
+        db.execute("CALL apoc.trigger.add('test-trigger', 'RETURN 1', {phase: 'before'}) YIELD name RETURN name");
     }
 
     @Test
-    public void testTriggerDisabledResume() throws Exception
-    {
-
-        try
-        {
-            db.execute( "CALL apoc.trigger.resume('test-trigger')" ).close();
-            // If no error is thrown, then the test fails.
-            assertTrue( false );
-        }
-        // Catches NullPointerExceptions since they are a subclass of a RuntimeException
-        //  and they were the original error thrown (see #845). We do not expected one, so
-        //  it causes test failure.
-        catch ( NullPointerException e )
-        {
-            assertTrue( false );
-        }
-        // We expect a RuntimeException to be thrown.
-        catch ( RuntimeException e )
-        {
-
-        }
-        // Any other exception causes the test to fail.
-        catch ( Exception e )
-        {
-            assertTrue( false );
-        }
+    public void testTriggerDisabledRemove() {
+        db.execute("CALL apoc.trigger.remove('test-trigger')").close();
     }
 
     @Test
-    public void testTriggerDisabledPause() throws Exception
-    {
+    public void testTriggerDisabledResume() {
+        db.execute("CALL apoc.trigger.resume('test-trigger')").close();
+    }
 
-        try
-        {
-            db.execute( "CALL apoc.trigger.pause('test-trigger')" ).close();
-            // If no error is thrown, then the test fails.
-            assertTrue( false );
-        }
-        // Catches NullPointerExceptions since they are a subclass of a RuntimeException
-        //  and they were the original error thrown (see #845). We do not expected one, so
-        //  it causes test failure.
-        catch ( NullPointerException e )
-        {
-            assertTrue( false );
-        }
-        // We expect a RuntimeException to be thrown.
-        catch ( RuntimeException e )
-        {
-
-        }
-        // Any other exception causes the test to fail.
-        catch ( Exception e )
-        {
-            assertTrue( false );
-        }
+    @Test
+    public void testTriggerDisabledPause() {
+        db.execute("CALL apoc.trigger.pause('test-trigger')").close();
     }
 }

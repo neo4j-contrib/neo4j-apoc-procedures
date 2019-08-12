@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://www.deutschestextarchiv.de/basisformat.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<?xml-model href="http://www.deutschestextarchiv.de/basisformat.sch" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<!-- some comment -->
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+    <teiHeader>
+        <fileDesc>
+            <titleStmt>
+                <title type="main">Brief an Samuel Thomas Soemmerring</title>
+                <title type="sub">Hamburg, 28. Januar bis 20. Feburar 1791</title>
+                <author>
+                    <persName>
+                        <surname>Alexander von</surname>
+                        <forename>Humboldt</forename>
+                    </persName>
+                </author>
+                <editor corresp="#DTACorpusPublisher">
+                    <persName ref="http://d-nb.info/gnd/115266127">
+                        <surname>Geyken</surname>
+                        <forename>Alexander</forename>
+                    </persName>
+                </editor>
+                <editor corresp="#DTACorpusPublisher">
+                    <persName ref="http://d-nb.info/gnd/1018099549">
+                        <surname>Haaf</surname>
+                        <forename>Susanne</forename>
+                    </persName>
+                </editor>
+                <editor corresp="#DTACorpusPublisher">
+                    <persName ref="http://d-nb.info/gnd/1019062681">
+                        <surname>Jurish</surname>
+                        <forename>Bryan</forename>
+                    </persName>
+                </editor>
+                <editor corresp="#DTACorpusPublisher">
+                    <persName>
+                        <surname>Boenig</surname>
+                        <forename>Matthias</forename>
+                    </persName>
+                </editor>
+                <editor corresp="#DTACorpusPublisher">
+                    <persName>
+                        <surname>Thomas</surname>
+                        <forename>Christian</forename>
+                    </persName>
+                </editor>
+                <editor corresp="#DTACorpusPublisher">
+                    <persName>
+                        <surname>Wiegand</surname>
+                        <forename>Frank</forename>
+                    </persName>
+                </editor>
+                <respStmt>
+                    <persName>
+                        <surname>Gerlach</surname>
+                        <forename>Klaus</forename>
+                    </persName>
+                    <resp>
+                        <note type="remarkResponsibility">Bereitstellung der Texttranskription.</note>
+                        <date type="importDTA">2016-09-27T17:00:45Z</date>
+                    </resp>
+                </respStmt>
+                <respStmt>
+                    <persName>
+                        <surname>Gerlach</surname>
+                        <forename>Klaus</forename>
+                    </persName>
+                    <persName>
+                        <surname>Päsler</surname>
+                        <forename>Ulrich</forename>
+                    </persName>
+                    <resp>
+                        <note type="remarkResponsibility">TEI-Textannotation.</note>
+                        <note type="remarkRevisionDTA">Bitte beachten Sie, dass die aktuelle Transkription (und
+                            Textauszeichnung) mittlerweile nicht mehr dem Stand zum Zeitpunkt der Übernahme des Werkes
+                            in das DTA entsprechen muss.
+                        </note>
+                        <date type="importDTA">2016-09-27T17:00:45Z</date>
+                    </resp>
+                </respStmt>
+                <respStmt>
+                    <orgName ref="http://www.clarin-d.de">CLARIN-D</orgName>
+                    <resp>
+                        <note type="remarkResponsibility">Langfristige Bereitstellung der DTA-Ausgabe</note>
+                        <ref target="http://fedora.dwds.de"/>
+                    </resp>
+                </respStmt>
+            </titleStmt>
+            <editionStmt>
+                <edition>Vollständige digitalisierte Ausgabe.</edition>
+            </editionStmt>
+            <extent>
+                <measure type="images">8</measure>
+                <measure type="tokens">1451</measure>
+                <measure type="types">771</measure>
+                <measure type="characters">9779</measure>
+            </extent>
+            <publicationStmt>
+                <publisher xml:id="DTACorpusPublisher">
+                    <email>dta@bbaw.de</email>
+                    <orgName role="project">Deutsches Textarchiv</orgName>
+                    <orgName role="hostingInstitution" xml:lang="en">Berlin-Brandenburg Academy of Sciences and
+                        Humanities (BBAW)
+                    </orgName>
+                    <orgName role="hostingInstitution" xml:lang="de">Berlin-Brandenburgische Akademie der Wissenschaften
+                        (BBAW)
+                    </orgName>
+                    <address>
+                        <addrLine>Jägerstr. 22/23, 10117 Berlin</addrLine>
+                        <country>Germany</country>
+                    </address>
+                </publisher>
+                <pubPlace>Berlin</pubPlace>
+                <date type="publication">2016-09-28T07:59:59Z</date>
+                <availability>
+                    <licence target="http://creativecommons.org/licenses/by-sa/4.0/">Distributed under the Creative
+                        Commons Attribution-ShareAlike 4.0 International license
+                    </licence>
+                </availability>
+                <idno>
+                    <idno type="URLWeb">http://www.deutschestextarchiv.de/humboldt_soemmering01_1791</idno>
+                    <idno type="URLXML">
+                        http://www.deutschestextarchiv.de/dtaq/book/download_xml/humboldt_soemmering01_1791
+                    </idno>
+                    <idno type="URLHTML">
+                        http://www.deutschestextarchiv.de/dtaq/book/download_html/humboldt_soemmering01_1791
+                    </idno>
+                    <idno type="URLText">
+                        http://www.deutschestextarchiv.de/dtaq/book/download_text/humboldt_soemmering01_1791
+                    </idno>
+                    <idno type="DTADirName">humboldt_soemmering01_1791</idno>
+                    <idno type="DTAID">31105</idno>
+                </idno>
+            </publicationStmt>
+            <sourceDesc>
+                <bibl type="MAN">Humboldt, Alexander von: Brief an Samuel Thomas Soemmerring. Hamburg, 28.01.-20.02.1791
+                    (=Alexander von Humboldt auf Reisen - Wissenschaft aus der Bewegung 2016).
+                </bibl>
+                <biblFull>
+                    <titleStmt>
+                        <title level="m" type="main">Brief an Samuel Thomas Soemmerring</title>
+                        <title level="m" type="sub">Hamburg, 28. Januar bis 20. Feburar 1791</title>
+                        <author>
+                            <persName>
+                                <surname>Alexander von</surname>
+                                <forename>Humboldt</forename>
+                            </persName>
+                        </author>
+                    </titleStmt>
+                    <editionStmt>
+                        <edition n="1"/>
+                    </editionStmt>
+                    <publicationStmt>
+                        <publisher/>
+                        <pubPlace>Hamburg</pubPlace>
+                        <date type="creation">1791</date>
+                    </publicationStmt>
+                </biblFull>
+                <msDesc>
+                    <msIdentifier>
+                        <repository>Freies Deutsches Hochstift / Frankfurter Goethe-Museum (Frankfurt am Main):
+                            Handschriftenabteilung
+                        </repository>
+                        <idno>
+                            <idno type="shelfmark">Hs-5051</idno>
+                        </idno>
+                    </msIdentifier>
+                    <physDesc>
+                        <typeDesc>
+                            <p>Current</p>
+                        </typeDesc>
+                    </physDesc>
+                </msDesc>
+            </sourceDesc>
+        </fileDesc>
+        <encodingDesc>
+            <editorialDecl>
+                <p/>
+                <p>
+                    <![CDATA[
+<p>Dieses Werk wurde in XML/TEI P5 nach <a href="http://www.deutschestextarchiv.de/doku/basisformat">DTA-Basisformat</a> kodiert.</p>
+]]>
+                </p>
+            </editorialDecl>
+            <tagsDecl>
+                <rendition scheme="css" xml:id="rendition-aq">font-family:sans-serif</rendition>
+                <rendition scheme="css" xml:id="rendition-b">font-weight:bold</rendition>
+                <rendition scheme="css" xml:id="rendition-blue">color:blue</rendition>
+                <rendition scheme="css" xml:id="rendition-c">display:block; text-align:center</rendition>
+                <rendition scheme="css" xml:id="rendition-et">display:block; margin-left:2em; text-indent:0</rendition>
+                <rendition scheme="css" xml:id="rendition-et2">display:block; margin-left:4em; text-indent:0</rendition>
+                <rendition scheme="css" xml:id="rendition-et3">display:block; margin-left:6em; text-indent:0</rendition>
+                <rendition scheme="css" xml:id="rendition-f">border:1px dotted silver</rendition>
+                <rendition scheme="css" xml:id="rendition-fr">border:1px dotted silver</rendition>
+                <rendition scheme="css" xml:id="rendition-g">letter-spacing:0.125em</rendition>
+                <rendition scheme="css" xml:id="rendition-i">font-style:italic</rendition>
+                <rendition scheme="css" xml:id="rendition-in">font-size:150%</rendition>
+                <rendition scheme="css" xml:id="rendition-k">font-variant:small-caps</rendition>
+                <rendition scheme="css" xml:id="rendition-larger">font-size:larger</rendition>
+                <rendition scheme="css" xml:id="rendition-red">color:red</rendition>
+                <rendition scheme="css" xml:id="rendition-right">display:block; text-align:right</rendition>
+                <rendition scheme="css" xml:id="rendition-s">text-decoration:line-through</rendition>
+                <rendition scheme="css" xml:id="rendition-smaller">font-size:smaller</rendition>
+                <rendition scheme="css" xml:id="rendition-sub">vertical-align:sub; font-size:.7em</rendition>
+                <rendition scheme="css" xml:id="rendition-sup">vertical-align:super; font-size:.7em</rendition>
+                <rendition scheme="css" xml:id="rendition-u">text-decoration:underline</rendition>
+                <rendition scheme="css" xml:id="rendition-uu">border-bottom:double 3px #000</rendition>
+            </tagsDecl>
+        </encodingDesc>
+        <profileDesc>
+            <langUsage>
+                <language ident="deu">German</language>
+            </langUsage>
+            <textClass>
+                <classCode scheme="http://www.deutschestextarchiv.de/doku/klassifikation#dwds1main">Gebrauchsliteratur
+                </classCode>
+                <classCode scheme="http://www.deutschestextarchiv.de/doku/klassifikation#dwds1sub">Brief</classCode>
+                <classCode scheme="http://www.deutschestextarchiv.de/doku/klassifikation#DTACorpus">dtae</classCode>
+            </textClass>
+        </profileDesc>
+    </teiHeader>
+    <text>
+        <body>
+            <pb n="1r" facs="#f0001"/>
+            <div type="letter" n="1">
+                <opener>
+                    <dateline rendition="#right">Hamburg, den 28.ten
+                        <choice>
+                            <abbr>Jan.</abbr>
+                            <expan>Januar</expan>
+                        </choice>
+                        1791.
+                    </dateline>
+                </opener>
+                <p>den 20ten
+                    <choice>
+                        <abbr>Febr.</abbr>
+                        <expan>Februar</expan>
+                    </choice>
+                </p>
+                <closer rend="paragraph">
+                    <salute>Leben Sie wohl, mein Bester! Grüßen Sie Forsters und vergessen Sie nicht Ihren</salute>
+                    <signed>Humboldt.</signed>
+                </closer>
+            </div>
+        </body>
+    </text>
+</TEI>

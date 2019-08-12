@@ -87,7 +87,7 @@ public class JsonUtil {
         }
     }
 
-    public static Stream<Object> loadJson(@Name("url") String url) {
+    public static Stream<Object> loadJson(String url) {
         return loadJson(url,null,null,"", true);
     }
 

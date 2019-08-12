@@ -176,6 +176,8 @@ dependencies {
     testCompile group: 'org.testcontainers', name: 'cassandra', version: testContainersVersion
 
     testCompile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: '2.9.7'
+    testCompile group: 'org.skyscreamer', name: 'jsonassert', version: '1.5.0'
+    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.13.2'
 
 
     configurations.all {
@@ -224,6 +226,10 @@ test {
         }
     }
 
+    //maxHeapSize = "8G"
+//    forkEvery = 1
+//    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+//}
 
     if (System.env.TRAVIS !=null) {
         minHeapSize = "128m"

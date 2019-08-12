@@ -267,7 +267,7 @@ public class SchemasTest {
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(new Double(100), r.get("populationProgress"));
             assertEquals(new Double(1), r.get("valuesSelectivity"));
-            assertEquals("Index( GENERAL, :Foo(bar) )", r.get("userDescription"));
+            assertEquals("Index( 1, 'index_1', GENERAL, :Foo(bar), native-btree-1.0 )", r.get("userDescription"));
 
             assertTrue(!result.hasNext());
         });
@@ -472,7 +472,7 @@ public class SchemasTest {
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(new Double(100), r.get("populationProgress"));
             assertEquals(new Double(1), r.get("valuesSelectivity"));
-            assertEquals("Index( GENERAL, :Foo(bar) )", r.get("userDescription"));
+            assertEquals("Index( 1, 'index_1', GENERAL, :Foo(bar), native-btree-1.0 )", r.get("userDescription"));
 
             assertTrue(!result.hasNext());
         });
@@ -500,7 +500,7 @@ public class SchemasTest {
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(new Double(100), r.get("populationProgress"));
             assertEquals(new Double(1), r.get("valuesSelectivity"));
-            assertEquals("Index( GENERAL, :Foo(bar) )", r.get("userDescription"));
+            assertEquals("Index( 1, 'index_1', GENERAL, :Foo(bar), native-btree-1.0 )", r.get("userDescription"));
 
             r = result.next();
 
@@ -512,7 +512,7 @@ public class SchemasTest {
             assertEquals("NO FAILURE", r.get("failure"));
             assertEquals(new Double(100), r.get("populationProgress"));
             assertEquals(new Double(1), r.get("valuesSelectivity"));
-            assertEquals("Index( GENERAL, :Person(name) )", r.get("userDescription"));
+            assertEquals("Index( 3, 'index_3', GENERAL, :Person(name), native-btree-1.0 )", r.get("userDescription"));
 
             assertTrue(!result.hasNext());
         });

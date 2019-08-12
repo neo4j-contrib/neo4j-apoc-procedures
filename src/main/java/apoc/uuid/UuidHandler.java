@@ -133,19 +133,16 @@ public class UuidHandler extends TransactionEventListenerAdapter {
 
     public static void checkConstraintUuid(String label, UuidConfig config) {
         GraphDatabaseService db = properties.getGraphDatabase();
-        try (Transaction tx = db.beginTx()) {
-            Schema schema = db.schema();
-            Stream<ConstraintDefinition> constraintDefinitionStream = StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false);
-            boolean exists = constraintDefinitionStream.anyMatch(constraint -> {
-                Stream<String> streamPropertyKeys = StreamSupport.stream(constraint.getPropertyKeys().spliterator(), false);
-                return streamPropertyKeys.anyMatch(property -> property.equals(config.getUuidProperty()));
-            });
-            if (!exists) {
-                String error = String.format("`CREATE CONSTRAINT ON (%s:%s) ASSERT %s.%s IS UNIQUE`",
-                        label.toLowerCase(), label, label.toLowerCase(), config.getUuidProperty());
-                throw new RuntimeException("No constraint found for label: " + label + ", please add the constraint with the following : " + error);
-            }
-            tx.success();
+        Schema schema = db.schema();
+        Stream<ConstraintDefinition> constraintDefinitionStream = StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false);
+        boolean exists = constraintDefinitionStream.anyMatch(constraint -> {
+            Stream<String> streamPropertyKeys = StreamSupport.stream(constraint.getPropertyKeys().spliterator(), false);
+            return streamPropertyKeys.anyMatch(property -> property.equals(config.getUuidProperty()));
+        });
+        if (!exists) {
+            String error = String.format("`CREATE CONSTRAINT ON (%s:%s) ASSERT %s.%s IS UNIQUE`",
+                    label.toLowerCase(), label, label.toLowerCase(), config.getUuidProperty());
+            throw new RuntimeException("No constraint found for label: " + label + ", please add the constraint with the following : " + error);
         }
     }
 

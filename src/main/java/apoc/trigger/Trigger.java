@@ -1,6 +1,5 @@
 package apoc.trigger;
 
-import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.coll.SetBackedList;
 import apoc.util.Util;
@@ -18,6 +17,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.Util.map;
 
 /**
@@ -173,7 +174,7 @@ public class Trigger {
         private final Log log;
 
         public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
-                " Set 'apoc.trigger.enabled=true' in your neo4j.conf file located in the $NEO4J_HOME/conf/ directory.";
+                " Set 'apoc.trigger.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
 
         public TriggerHandler(GraphDatabaseAPI api, Log log) {
             properties = api.getDependencyResolver().resolveDependency(EmbeddedProxySPI.class).newGraphPropertiesProxy();
@@ -360,7 +361,6 @@ public class Trigger {
         private final GraphDatabaseAPI db;
         private TriggerHandler triggerHandler;
         private final DatabaseManagementService databaseManagementService;
-        private final String databaseName = "neo4j";
 
         public LifeCycle(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, Log log) {
             this.db = db;
@@ -369,18 +369,18 @@ public class Trigger {
         }
 
         public void start() {
-            boolean enabled = Util.toBoolean(ApocConfiguration.get("trigger.enabled", null));
+            boolean enabled = apocConfig().getBoolean(APOC_TRIGGER_ENABLED);
             if (!enabled) {
                 return;
             }
 
             triggerHandler = new Trigger.TriggerHandler(db,log);
-            databaseManagementService.registerTransactionEventListener(databaseName, triggerHandler); // TODO: care about databaseName
+            databaseManagementService.registerTransactionEventListener(db.databaseName(), triggerHandler);
         }
 
         public void stop() {
             if (triggerHandler == null) return;
-            databaseManagementService.unregisterTransactionEventListener(databaseName, triggerHandler);
+            databaseManagementService.unregisterTransactionEventListener(db.databaseName(), triggerHandler);
         }
     }
 }

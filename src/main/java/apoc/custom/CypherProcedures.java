@@ -362,7 +362,9 @@ public class CypherProcedures {
             long refreshInterval = Long.valueOf(ApocConfiguration.get("custom.procedures.refresh", "60000"));
             timer.scheduleAtFixedRate(new TimerTask() {
                 public void run() {
-                    restoreProcedures();
+                    if (getLastUpdate(properties) > lastUpdate) {
+                        restoreProcedures();
+                    }
                 }
             }, refreshInterval, refreshInterval);
         }
@@ -372,7 +374,6 @@ public class CypherProcedures {
         }
 
         private void restoreProcedures() {
-            if (getLastUpdate(properties) <= lastUpdate) return;
             lastUpdate = System.currentTimeMillis();
             CustomStatementRegistry registry = new CustomStatementRegistry(api, log);
             Map<String, Map<String, Map<String, Object>>> stored = readData(properties);

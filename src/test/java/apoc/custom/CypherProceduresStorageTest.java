@@ -7,6 +7,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.io.fs.FileUtils;
 import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.EmbeddedDbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
@@ -25,7 +26,7 @@ public class CypherProceduresStorageTest {
     public static final File STORE_DIR = new File("cypher-storage");
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule();
+    public DbmsRule db = new EmbeddedDbmsRule();
 
     @Before
     public void setUp() throws Exception {
@@ -39,7 +40,6 @@ public class CypherProceduresStorageTest {
 
     private void restartDb() throws IOException {
         db.restartDatabase();
-//        db = new GraphDatabaseFactory().newEmbeddedDatabase(STORE_DIR);
         TestUtil.registerProcedure(db, CypherProcedures.class); // TODO: maybe that's needed
     }
     @Test

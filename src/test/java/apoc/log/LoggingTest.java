@@ -1,11 +1,19 @@
 package apoc.log;
 
 import apoc.util.TestUtil;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.exceptions.KernelException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.logging.AssertableLogProvider;
+import org.neo4j.logging.AssertableLogProvider.LogMatcherBuilder;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,6 +23,11 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.*;
 
 public class LoggingTest {
+
+    public static AssertableLogProvider logProvider = new AssertableLogProvider();
+
+    @ClassRule
+    public static DbmsRule db = new ImpermanentDbmsRule(logProvider);
 
     @Test
     public void shouldWriteSafeStrings() {
@@ -185,15 +198,13 @@ public class LoggingTest {
     @Test
     public void shouldCallTheProcedure() throws KernelException {
         // given
-        Pair<DatabaseManagementService, GraphDatabaseService> pair = TestUtil.apocGraphDatabaseBuilder();
-        DatabaseManagementService dbms = pair.first();
-        GraphDatabaseService db = pair.other();
         TestUtil.registerProcedure(db, Logging.class);
 
         // when
         db.execute("CALL apoc.log.warn('Prova %s', [1])");
 
         // then
-        dbms.shutdown();
+        logProvider.print(System.out);
+//        logProvider.assertExactly(new LogMatcherBuilder(Matchers.equalTo("org.neo4j.kernel.api.procedure.GlobalProcedures")).warn("prova_"));
     }
 }
