@@ -16,11 +16,14 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static apoc.util.MapUtil.map;
 import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.neo4j.graphdb.Label.label;
 
 /**
@@ -374,7 +377,7 @@ public class GraphsTest {
         db.executeTransactionally("MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) detach delete p");
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testCreateVirtualSimpleNodeWithErrorId() throws Exception{
         Map<String, Object> genesisMap = Util.map("type", "artist", "name", "Genesis");
         try {
@@ -383,7 +386,6 @@ public class GraphsTest {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
             assertEquals("The object `{\"type\":\"artist\",\"name\":\"Genesis\"}` must have `id` as id-field name", except.getMessage());
-            throw e;
         }
     }
 
@@ -394,8 +396,8 @@ public class GraphsTest {
                 Util.map("id", 1, "name", "Daft Punk"),
                 Util.map("name", "Daft Punk"));
 
-        TestUtil.testResult(db, "CALL apoc.graph.validateDocument($json) yield row",
-                Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(list)), result -> {
+        TestUtil.testResult(db, "CALL apoc.graph.validateDocument($json, $config) yield row",
+                Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(list), "config", Util.map("generateId", false, "defaultLabel", "")), result -> {
                     Map<String, Object> row = (Map<String, Object>) result.next().get("row");
                     assertEquals(0L, row.get("index"));
                     assertEquals("The object `{\"type\":\"artist\",\"name\":\"Daft Punk\"}` must have `id` as id-field name", row.get("message"));
@@ -413,13 +415,27 @@ public class GraphsTest {
     public void testValidateDocumentWithCutErrorFormatter() throws Exception {
         String json = "{\"quiz\":{\"sport\":{\"q1\":{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bulls\",\"Los Angeles Kings\",\"Golden State Warriros\",\"Huston Rocket\"],\"answer\":\"Huston Rocket\"}},\"maths\":{\"q1\":{\"question\":\"5 + 7 = ?\",\"options\":[\"10\",\"11\",\"12\",\"13\"],\"answer\":\"12\"},\"q2\":{\"question\":\"12 - 8 = ?\",\"options\":[\"1\",\"2\",\"3\",\"4\"],\"answer\":\"4\"}}}}";
 
-        TestUtil.testResult(db, "CALL apoc.graph.validateDocument($json) yield row",
-                Util.map("json", json), result -> {
+        Set<String> errors = new HashSet<>();
+        errors.add("The object `{\"quiz\":{\"sport\":{\"q1\":{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bul...}` must have `id` as id-field name and `type` as label-field name");
+        errors.add("The object `{\"sport\":{\"q1\":{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bulls\",\"Los...}` must have `id` as id-field name and `type` as label-field name");
+        errors.add("The object `{\"q1\":{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bulls\",\"Los Angeles ...}` must have `id` as id-field name and `type` as label-field name");
+        errors.add("The object `{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bulls\",\"Los Angeles Kings\"...}` must have `id` as id-field name and `type` as label-field name");
+        errors.add("The object `{\"q1\":{\"question\":\"5 + 7 = ?\",\"options\":[\"10\",\"11\",\"12\",\"13\"],\"answer\":\"12\"},\"q2\":{\"question\":\"12 - ...}` must have `id` as id-field name and `type` as label-field name");
+        errors.add("The object `{\"question\":\"5 + 7 = ?\",\"options\":[\"10\",\"11\",\"12\",\"13\"],\"answer\":\"12\"}` must have `id` as id-field name and `type` as label-field name");
+        errors.add("The object `{\"question\":\"12 - 8 = ?\",\"options\":[\"1\",\"2\",\"3\",\"4\"],\"answer\":\"4\"}` must have `id` as id-field name and `type` as label-field name");
+        TestUtil.testResult(db, "CALL apoc.graph.validateDocument($json, $config) yield row",
+                Util.map("json", json, "config", Util.map("generateId", false, "defaultLabel", "")), result -> {
                     Map<String, Object> row = (Map<String, Object>) result.next().get("row");
                     assertEquals(0L, row.get("index"));
-                    assertEquals("The object `{\"quiz\":{\"sport\":{\"q1\":{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bul...}` must have `id` as id-field name and `type` as label-field name", row.get("message"));
+                    Set<String> message = messageToSet(row);
+                    assertEquals(errors, message);
                     assertFalse("should not have next", result.hasNext());
                 });
+    }
+
+    private Set<String> messageToSet(Map<String, Object> row) {
+        return Stream.of(row.get("message").toString().split("\n"))
+                .collect(Collectors.toSet());
     }
 
     @Test
@@ -563,15 +579,16 @@ public class GraphsTest {
     }
 
     @Test
-    public void testCreateVirtualSimpleNodeWithErrorType() throws Exception {
+    public void testCreateVirtualSimpleNodeWithErrorType() throws Exception{
+        Map<String, Object> genesisMap = Util.map("id", 1L, "name", "Genesis");
         try {
-            Map<String, Object> genesisMap = Util.map("id", 1L, "name", "Genesis");
-            db.executeTransactionally("CALL apoc.graph.fromDocument($json) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)), result -> null);
-            fail();
+            TestUtil.testCall(db, "CALL apoc.graph.fromDocument($json, $config) yield graph",
+                    Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap),
+                            "config", map("defaultLabel", "")),
+                    result -> { });
         } catch (QueryExecutionException e) {
             Throwable rootCause = ExceptionUtils.getRootCause(e);
             assertEquals("The object `{\"id\":1,\"name\":\"Genesis\"}` must have `type` as label-field name", rootCause.getMessage());
-
         }
     }
 
@@ -692,6 +709,67 @@ public class GraphsTest {
                     assertEquals(genesisMap.get("id"), artist.getProperty("id"));
                     Arrays.equals((Long[]) genesisMap.get("years"), (Long[]) artist.getProperty("years"));
                     Arrays.equals((String[]) genesisMap.get("members"), (String[]) artist.getProperty("members"));
+                });
+    }
+
+
+    @Test
+    public void shouldFindDuplicatesWithValidation() {
+        Map<String, Object> child = Util.map("key", "childKey");
+        List<Map<String, Object>> data = Arrays.asList(
+                Util.map("key", "value", "key1", "Foo"), // index 0
+                Util.map("key", "value", "key1", "Foo"), // index 1 -> dup of index 0
+                Util.map("key", "value1", "key1", "Foo", "child", child), // index 2
+                Util.map("key", "value1", "key1", "Foo"), // index 3
+                Util.map("key", "value2", "key1", "Foo", "childA", child), // index 4 -> dup of "child" field at index 1
+                Util.map("key", "value2", "key1", "Foo", "childA", Util.map("child", child)) // index 5 -> dup of "child" field at index 1
+        );
+
+        TestUtil.testResult(db, "CALL apoc.graph.validateDocument($json, $config)",
+                Util.map("json", data, "config", Util.map("generateId", false, "defaultLabel", "")), result -> {
+                    Map<String, Object> row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(0L, row.get("index"));
+                    Set<String> errors = new HashSet<>();
+                    Set<String> messages = messageToSet(row);
+                    errors.add("The object `{\"key1\":\"Foo\",\"key\":\"value\"}` has duplicate at lines [1]");
+                    errors.add("The object `{\"key1\":\"Foo\",\"key\":\"value\"}` must have `id` as id-field name and `type` as label-field name");
+                    assertEquals(errors, messages);
+
+                    row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(1L, row.get("index"));
+                    assertEquals("The object `{\"key1\":\"Foo\",\"key\":\"value\"}` must have `id` as id-field name and `type` as label-field name", row.get("message"));
+
+                    row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(2L, row.get("index"));
+                    errors = new HashSet<>();
+                    messages = messageToSet(row);
+                    errors.add("The object `{\"key\":\"childKey\"}` has duplicate at lines [4,5]");
+                    errors.add("The object `{\"key1\":\"Foo\",\"key\":\"value1\",\"child\":{\"key\":\"childKey\"}}` must have `id` as id-field name and `type` as label-field name");
+                    errors.add("The object `{\"key\":\"childKey\"}` must have `id` as id-field name and `type` as label-field name");
+                    assertEquals(errors, messages);
+
+                    row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(3L, row.get("index"));
+                    assertEquals("The object `{\"key1\":\"Foo\",\"key\":\"value1\"}` must have `id` as id-field name and `type` as label-field name", row.get("message"));
+
+                    row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(4L, row.get("index"));
+                    errors = new HashSet<>();
+                    messages = messageToSet(row);
+                    errors.add("The object `{\"key1\":\"Foo\",\"key\":\"value2\",\"childA\":{\"key\":\"childKey\"}}` must have `id` as id-field name and `type` as label-field name");
+                    errors.add("The object `{\"key\":\"childKey\"}` must have `id` as id-field name and `type` as label-field name");
+                    assertEquals(errors, messages);
+
+                    row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(5L, row.get("index"));
+                    errors = new HashSet<>();
+                    messages = messageToSet(row);
+                    errors.add("The object `{\"key1\":\"Foo\",\"key\":\"value2\",\"childA\":{\"child\":{\"key\":\"childKey\"}}}` must have `id` as id-field name and `type` as label-field name");
+                    errors.add("The object `{\"child\":{\"key\":\"childKey\"}}` must have `id` as id-field name and `type` as label-field name");
+                    errors.add("The object `{\"key\":\"childKey\"}` must have `id` as id-field name and `type` as label-field name");
+                    assertEquals(errors, messages);
+
+                    assertFalse("should not have next", result.hasNext());
                 });
     }
 

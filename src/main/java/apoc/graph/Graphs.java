@@ -5,8 +5,8 @@ import apoc.graph.document.builder.DocumentToGraph;
 import apoc.graph.util.GraphsConfig;
 import apoc.result.RowResult;
 import apoc.result.VirtualGraph;
-import apoc.util.JsonUtil;
 import apoc.util.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
@@ -15,7 +15,6 @@ import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.procedure.*;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 
 /**
@@ -117,39 +116,20 @@ public class Graphs {
     @Description("apoc.graph.fromDocument({json}, {config}) yield graph - transform JSON documents into graph structures")
     @Procedure(mode = Mode.WRITE)
     public Stream<VirtualGraph> fromDocument(@Name("json") Object document, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) throws Exception {
-        Collection<Map> coll = getDocumentCollection(document);
         DocumentToGraph documentToGraph = new DocumentToGraph(tx, new GraphsConfig(config));
-        return Stream.of(documentToGraph.create(coll));
-    }
-
-    public Collection<Map> getDocumentCollection(@Name("json") Object document) {
-        Collection<Map> coll;
-        if (document instanceof String) {
-            document  = JsonUtil.parse((String) document, null, Object.class);
-        }
-        if (document instanceof Collection) {
-            coll = (Collection) document;
-        } else {
-            coll = Collections.singleton((Map) document);
-        }
-        return coll;
+        return Stream.of(documentToGraph.create(document));
     }
 
     @Description("apoc.graph.validateDocument({json}, {config}) yield row - validates the json, return the result of the validation")
     @Procedure(mode = Mode.READ)
     public Stream<RowResult> validateDocument(@Name("json") Object document, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
-        DocumentToGraph documentToGraph = new DocumentToGraph(tx, new GraphsConfig(config));
-        AtomicLong index = new AtomicLong(-1);
-        return getDocumentCollection(document).stream()
-                .map(elem -> {
-                    long line = index.incrementAndGet();
-                    try {
-                        documentToGraph.validate(elem);
-                        return null;
-                    } catch (Exception e) {
-                        return new RowResult(Util.map("index", line, "message", e.getMessage()));
-                    }
-                })
-                .filter(elem -> elem != null);
+        GraphsConfig graphConfig = new GraphsConfig(config);
+        DocumentToGraph documentToGraph = new DocumentToGraph(tx, graphConfig);
+        Map<Long, List<String>> dups = documentToGraph.validateDocument(document);
+
+        return dups.entrySet().stream()
+                .map(e -> new RowResult(Util.map("index", e.getKey(), "message", String.join(StringUtils.LF, e.getValue()))));
     }
+
+
 }
