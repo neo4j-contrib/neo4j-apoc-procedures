@@ -234,6 +234,22 @@ public class MapsTest {
     }
 
     @Test
+    public void testFlattenWithDelimiter() {
+        Map<String, Object> nestedMap = map("somekey", "someValue", "somenumeric", 123);
+        nestedMap = map("anotherkey", "anotherValue", "nested", nestedMap);
+        Map<String, Object> map = map("string", "value", "int", 10, "nested", nestedMap);
+
+        TestUtil.testCall(db, "RETURN apoc.map.flatten({map}, '-') AS value", map("map", map), (r) -> {
+            Map<String, Object> resultMap = (Map<String, Object>)r.get("value");
+            assertEquals(map("string", "value",
+                    "int", 10,
+                    "nested-anotherkey", "anotherValue",
+                    "nested-nested-somekey", "someValue",
+                    "nested-nested-somenumeric", 123), resultMap);
+        });
+    }
+
+    @Test
     public void testSortedProperties() {
         TestUtil.testCall(db, "WITH {b:8, d:3, a:2, E: 12, C:9} as map RETURN apoc.map.sortedProperties(map, false) AS sortedProperties", (r) -> {
             List<List<String>> sortedProperties = (List<List<String>>)r.get("sortedProperties");

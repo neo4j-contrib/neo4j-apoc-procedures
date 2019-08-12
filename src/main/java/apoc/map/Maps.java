@@ -249,18 +249,18 @@ public class Maps {
 
 
     @UserFunction
-    @Description("apoc.map.flatten(map) yield map - flattens nested items in map using dot notation")
-    public Map<String,Object> flatten(@Name("map") Map<String, Object> map) {
+    @Description("apoc.map.flatten(map, delimiter:'.') yield map - flattens nested items in map using dot notation")
+    public Map<String,Object> flatten(@Name("map") Map<String, Object> map, @Name(value="delimiter", defaultValue = ".") String delimiter) {
         Map<String, Object> flattenedMap = new HashMap<>();
-        flattenMapRecursively(flattenedMap, map, "");
+        flattenMapRecursively(flattenedMap, map, "", delimiter == null ? "." : delimiter);
         return flattenedMap;
     }
 
     @SuppressWarnings("unchecked")
-    private void flattenMapRecursively(Map<String, Object> flattenedMap, Map<String, Object> map, String prefix) {
+    private void flattenMapRecursively(Map<String, Object> flattenedMap, Map<String, Object> map, String prefix, String delimiter) {
         for (Map.Entry<String, Object> entry : map.entrySet()) {
              if (entry.getValue() instanceof Map) {
-                 flattenMapRecursively(flattenedMap, (Map<String, Object>) entry.getValue(), prefix + entry.getKey() + ".");
+                 flattenMapRecursively(flattenedMap, (Map<String, Object>) entry.getValue(), prefix + entry.getKey() + delimiter, delimiter);
              } else {
                  flattenedMap.put(prefix + entry.getKey(), entry.getValue());
              }
