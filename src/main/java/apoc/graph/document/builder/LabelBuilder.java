@@ -16,7 +16,7 @@ public class LabelBuilder {
     }
 
     public Label buildLabel(Map<String, Object> obj) {
-        String label = "DocNode"; // Default label
+        String label = "";
 
         Object type = obj.get(config.getLabelField());
         if (type != null) {

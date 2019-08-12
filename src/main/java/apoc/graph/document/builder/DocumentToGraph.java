@@ -5,6 +5,7 @@ import apoc.result.VirtualGraph;
 import apoc.result.VirtualNode;
 import apoc.util.FixedSizeStringWriter;
 import apoc.util.JsonUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -13,7 +14,9 @@ import org.neo4j.graphdb.Relationship;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class DocumentToGraph {
@@ -30,21 +33,23 @@ public class DocumentToGraph {
         this.config = config;
     }
 
-    public void validate(Map map) {
-        List<String> messages = new ArrayList<>();
-        if (!map.containsKey(config.getIdField())) {
-            messages.add("`" + config.getIdField() + "` as id-field name");
-        }
-        if (!map.containsKey(config.getLabelField())) {
-            messages.add("`" + config.getLabelField() + "` as label-field name");
-        }
-        if (!messages.isEmpty()) {
-            String json = formatDocument(map);
-            throw new RuntimeException("The object `" + json + "` must have " + String.join(" and ", messages));
-        }
+    public Map<Map<String, Object>, List<String>> validate(Map<String, Object> map) {
+        return flatMapFields(map)
+                .map(elem -> {
+                    List<String> msgs = new ArrayList<>();
+                    if (!elem.containsKey(config.getIdField())) {
+                        msgs.add("`" + config.getIdField() + "` as id-field name");
+                    }
+                    if (!elem.containsKey(config.getLabelField())) {
+                        msgs.add("`" + config.getLabelField() + "` as label-field name");
+                    }
+                    return new AbstractMap.SimpleEntry<>(elem, msgs);
+                })
+                .filter(elem -> !elem.getValue().isEmpty())
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
     }
 
-    private String formatDocument(Map map) {
+    public String formatDocument(Map map) {
         try (FixedSizeStringWriter writer = new FixedSizeStringWriter(100)) {
             JsonUtil.OBJECT_MAPPER.writeValue(writer, map);
             return writer.toString().concat(writer.isExceeded() ? "...}" : "");
@@ -56,9 +61,12 @@ public class DocumentToGraph {
     private void fromDocument(Map<String, Object> document, Node source, String type,
                               Map<String, Set<Node>> nodes, Set<Relationship> relationships) {
         boolean isRootNode = source == null;
+        prepareData(document);
+        Map<Map<String, Object>, List<String>> errors = validate(document);
+        if (!errors.isEmpty()) {
+            throwError(errors);
+        }
         Label label = this.documentLabelBuilder.buildLabel(document);
-
-        validate(document);
 
         Object idValue = document.get(config.getIdField());
         // retrieve the current node
@@ -107,6 +115,26 @@ public class DocumentToGraph {
 
     }
 
+    private void throwError(Map<Map<String, Object>, List<String>> errors) {
+        String error = formatError(errors);
+        throw new RuntimeException(error);
+    }
+
+    private String formatError(Map<Map<String, Object>, List<String>> errors) {
+        return errors.entrySet().stream()
+                .map(e -> "The object `" + formatDocument(e.getKey()) + "` must have " + String.join(" and ", e.getValue()))
+                .collect(Collectors.joining(StringUtils.LF));
+    }
+
+    public void prepareData(Map<String, Object> document) {
+        if (config.isGenerateId()) {
+            document.computeIfAbsent(config.getIdField(), key -> UUID.randomUUID().toString());
+        }
+        if (!config.getDefaultLabel().isEmpty()) {
+            document.computeIfAbsent(config.getLabelField(), key -> config.getDefaultLabel());
+        }
+    }
+
     private Set<Node> getNodesWithSameIds(Map<String, Set<Node>> nodes, Object idValue) {
         return nodes.computeIfAbsent(idValue.toString(), (k) -> new LinkedHashSet<>());
     }
@@ -147,11 +175,89 @@ public class DocumentToGraph {
         return true;
     }
 
-    public VirtualGraph create(Collection<Map> coll) {
-        Map<String, Set<Node>> nodes = new HashMap<>();
+    private List<Map<String, Object>> getDocumentCollection(Object document) {
+        List<Map<String, Object>> coll;
+        if (document instanceof String) {
+            document  = JsonUtil.parse((String) document, null, Object.class);
+        }
+        if (document instanceof List) {
+            coll = (List) document;
+        } else {
+            coll = Arrays.asList((Map) document);
+        }
+        return coll;
+    }
+
+    public VirtualGraph create(Object documentObj) {
+        Collection<Map<String, Object>> coll = getDocumentCollection(documentObj);
+        Map<String, Set<Node>> nodes = new LinkedHashMap<>();
         Set<Relationship> relationships = new LinkedHashSet<>();
         coll.forEach(map -> fromDocument(map, null, null, nodes, relationships));
         return new VirtualGraph("Graph", nodes.values().stream().flatMap(Set::stream).collect(Collectors.toCollection(LinkedHashSet::new)), relationships, Collections.emptyMap());
     }
 
+    public Map<Long, List<String>> findDuplicates(Object doc) {
+        // duplicate validation
+        // the check on duplicates must be provided on raw data without apply the default label or auto generate the id
+        AtomicLong index = new AtomicLong(-1);
+        return getDocumentCollection(doc).stream()
+                .flatMap(e -> {
+                    long lineDup = index.incrementAndGet();
+                    return flatMapFields(e)
+                            .map(ee -> new AbstractMap.SimpleEntry<Map, Long>(ee, lineDup));
+                })
+                .collect(Collectors.groupingBy(Map.Entry::getKey,
+                        Collectors.mapping(Map.Entry::getValue, Collectors.toList())))
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue().size() > 1)
+                .map(e -> {
+                    long line = e.getValue().get(0);
+                    String elem = formatDocument(e.getKey());
+                    String dupLines = e.getValue().subList(1, e.getValue().size())
+                            .stream()
+                            .map(ee -> String.valueOf(ee))
+                            .collect(Collectors.joining(","));
+                    return new AbstractMap.SimpleEntry<>(line,
+                            String.format("The object `%s` has duplicate at lines [%s]", elem, dupLines));
+                })
+                .collect(Collectors.groupingBy(Map.Entry::getKey,
+                        Collectors.mapping(Map.Entry::getValue, Collectors.toList())));
+    }
+
+    private Stream<Map<String, Object>> flatMapFields(Map<String, Object> map) {
+        Stream<Map<String, Object>> stream = Stream.of(map);
+        return Stream.concat(stream, map.values()
+                .stream()
+                .filter(e -> e instanceof Map)
+                .flatMap(e -> flatMapFields((Map<String, Object>) e)));
+    }
+
+    public Map<Long, String> validate(Object doc) {
+        AtomicLong index = new AtomicLong(-1);
+        return getDocumentCollection(doc).stream()
+                .map(elem -> {
+                    long line = index.incrementAndGet();
+                    prepareData(elem);
+                    // id, label validation
+                    Map<Map<String, Object>, List<String>> errors = validate(elem);
+                    if (errors.isEmpty()) {
+                        return null;
+                    } else {
+                        return new AbstractMap.SimpleEntry<>(line, formatError(errors));
+                    }
+                })
+                .filter(e -> e != null)
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+    }
+
+    public Map<Long, List<String>> validateDocument(Object document) {
+        Map<Long, List<String>> dups = findDuplicates(document);
+        Map<Long, String> invalids = validate(document);
+
+        for (Map.Entry<Long, String> invalid : invalids.entrySet()) {
+            dups.computeIfAbsent(invalid.getKey(), (key) -> new ArrayList<>()).add(invalid.getValue());
+        }
+        return dups;
+    }
 }
