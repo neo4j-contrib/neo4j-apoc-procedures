@@ -1,32 +1,17 @@
 package apoc;
 
-import apoc.util.Util;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.function.Consumer;
-
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.scheduler.JobScheduler;
 
-public class Pools {
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.function.Consumer;
 
-    static final String CONFIG_JOBS_SCHEDULED_NUM_THREADS = "jobs.scheduled.num_threads";
-    static final String CONFIG_JOBS_POOL_NUM_THREADS = "jobs.pool.num_threads";
+import static apoc.ApocConfig.apocConfig;
+
+public class Pools {
 
     public final static int DEFAULT_SCHEDULED_THREADS = Runtime.getRuntime().availableProcessors() / 4;
     public final static int DEFAULT_POOL_THREADS = Runtime.getRuntime().availableProcessors() * 2;
@@ -91,12 +76,12 @@ public class Pools {
     }
 
     public static int getNoThreadsInDefaultPool() {
-        Integer maxThreads = Util.toInteger(ApocConfiguration.get(CONFIG_JOBS_POOL_NUM_THREADS, DEFAULT_POOL_THREADS));
-        return Math.max(1, maxThreads == null ? DEFAULT_POOL_THREADS : maxThreads);
+        int maxThreads = apocConfig().getInt(ApocConfig.APOC_CONFIG_JOBS_POOL_NUM_THREADS, DEFAULT_POOL_THREADS);
+        return Math.max(1, maxThreads);
     }
     public static int getNoThreadsInScheduledPool() {
-        Integer maxThreads = Util.toInteger(ApocConfiguration.get(CONFIG_JOBS_SCHEDULED_NUM_THREADS, DEFAULT_SCHEDULED_THREADS));
-        return Math.max(1, maxThreads == null ? DEFAULT_POOL_THREADS : maxThreads);
+        Integer maxThreads = apocConfig().getInt(ApocConfig.APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS, DEFAULT_SCHEDULED_THREADS);
+        return Math.max(1, maxThreads);
     }
 
     private static ExecutorService createSinglePool() {

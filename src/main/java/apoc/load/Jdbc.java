@@ -46,7 +46,7 @@ public class Jdbc {
         loadDriver(driverClass);
     }
 
-    private static void loadDriver(@Name("driverClass") String driverClass) {
+    public static void loadDriver(@Name("driverClass") String driverClass) {
         try {
             Class.forName(driverClass);
         } catch (ClassNotFoundException e) {

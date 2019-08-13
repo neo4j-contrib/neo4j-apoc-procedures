@@ -1,5 +1,6 @@
 package apoc;
 
+import apoc.load.Jdbc;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.builder.combined.CombinedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
@@ -8,6 +9,7 @@ import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.config.Setting;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
@@ -50,6 +52,8 @@ public class ApocConfig extends LifecycleAdapter {
             transaction_logs_root_path,
             neo4j_home
     );
+    static final String APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS = "apoc.jobs.scheduled.num_threads";
+    static final String APOC_CONFIG_JOBS_POOL_NUM_THREADS = "apoc.jobs.pool.num_threads";
 
 // old settings from 3.x that seem to no longer be existent
 //"dbms.directories.lib",
@@ -141,9 +145,17 @@ public class ApocConfig extends LifecycleAdapter {
 
             boolean allowFileUrls = neo4jConfig.get(GraphDatabaseSettings.allow_file_urls);
             config.setProperty(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, allowFileUrls);
+
+            loadJdbcDrivers();
         } catch (ConfigurationException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void loadJdbcDrivers() {
+        Iterators.stream(config.getKeys("apoc.jdbc"))
+                .filter(k -> k.endsWith("driver"))
+                .forEach(k -> Jdbc.loadDriver(k));
     }
 
     public void checkReadAllowed(String url) {
@@ -196,5 +208,9 @@ public class ApocConfig extends LifecycleAdapter {
         } else {
             return !"/target/test data/neo4j".equals(importFolder);
         }
+    }
+
+    public int getInt(String key, int defaultValue) {
+        return getConfig().getInt(key, defaultValue);
     }
 }
