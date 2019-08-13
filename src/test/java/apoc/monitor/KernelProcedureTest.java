@@ -1,21 +1,30 @@
 package apoc.monitor;
 
 import apoc.date.Date;
+import apoc.util.TestUtil;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.text.SimpleDateFormat;
 
-import static org.junit.Assert.*;
 import static apoc.util.TestUtil.testCall;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-public class KernelProcedureTest extends MonitorTestCase {
+public class KernelProcedureTest {
+
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
+
+    @Before
+    public void setup() {
+        TestUtil.registerProcedure(db, Kernel.class);
+    }
 
     private SimpleDateFormat format = new SimpleDateFormat(Date.DEFAULT_FORMAT);
-
-    @Override
-    Class procedureClass() {
-        return Kernel.class;
-    }
 
     @Test
     public void testGetKernelInfo() {
@@ -24,9 +33,9 @@ public class KernelProcedureTest extends MonitorTestCase {
             try {
                 String startTime = (String) row.get("kernelStartTime");
                 String kernelVersion = String.valueOf(row.get("kernelVersion"));
-                assertEquals("impermanent-db", String.valueOf(row.get("databaseName")));
+                assertEquals("neo4j", row.get("databaseName"));
                 assertTrue(format.parse(startTime).getTime() < now);
-                assertTrue(kernelVersion.contains("3."));
+                assertTrue(kernelVersion.contains("4."));
                 assertEquals(0, (long) row.get("storeLogVersion"));
             } catch (Exception e) {
                 throw new RuntimeException(e);

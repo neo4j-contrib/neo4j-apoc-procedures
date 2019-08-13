@@ -2,6 +2,8 @@ package apoc.monitor;
 
 import apoc.result.IdsResult;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.kernel.impl.store.stats.StoreEntityCounters;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Procedure;
@@ -22,19 +24,13 @@ public class Ids {
     @Procedure
     @Description("apoc.monitor.ids() returns the object ids in use for this neo4j instance")
     public Stream<IdsResult> ids() {
-        // TODO: fix jmx
-        return Stream.empty();
-//        return Stream.of(getIdsInUse());
+
+        StoreEntityCounters storeEntityCounters = ((GraphDatabaseAPI) db).getDependencyResolver().resolveDependency(StoreEntityCounters.class);
+        return Stream.of(new IdsResult(
+                storeEntityCounters.nodes(),
+                storeEntityCounters.relationships(),
+                storeEntityCounters.properties(),
+                storeEntityCounters.relationshipTypes()
+        ));
     }
-
-    /*private IdsResult getIdsInUse() {
-        ObjectName objectName = getObjectName(db, JMX_OBJECT_NAME);
-
-        return new IdsResult(
-                getAttribute(objectName, NODE_IDS_KEY),
-                getAttribute(objectName, REL_IDS_KEY),
-                getAttribute(objectName, PROP_IDS_KEY),
-                getAttribute(objectName, REL_TYPE_IDS_KEY)
-        );
-    }*/
 }

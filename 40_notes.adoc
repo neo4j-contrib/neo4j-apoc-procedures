@@ -12,6 +12,8 @@ apoc.algo.wcc (algo package)
 apoc.static.get (proc deleted, function exists)
 apoc.static.getAll (proc deleted, function exists)
 
+apoc.monitor.locks() (proc deleted, cannot get information via api)
+
 
 ## functions
 

@@ -1,16 +1,23 @@
 package apoc.monitor;
 
+import apoc.util.TestUtil;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static apoc.util.TestUtil.testCall;
+import static org.junit.Assert.assertEquals;
 
-public class IdsProcedureTest extends MonitorTestCase {
+public class IdsProcedureTest {
 
-    @Override
-    Class procedureClass() {
-        return Ids.class;
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
+
+    @Before
+    public void setup() {
+        TestUtil.registerProcedure(db, Ids.class);
     }
 
     @Test
