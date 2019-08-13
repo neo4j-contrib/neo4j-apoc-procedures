@@ -32,11 +32,6 @@ public class CypherProceduresTest  {
 
     }
 
-//    @Override
-//    protected Class procedureClass() {
-//        return CypherProcedures.class;
-//    }
-
     @Test
     public void registerSimpleStatement() throws Exception {
         db.execute("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");

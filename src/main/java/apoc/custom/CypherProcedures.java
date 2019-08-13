@@ -4,11 +4,11 @@ import apoc.ApocConfiguration;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.collection.RawIterator;
+import org.neo4j.graphdb.DatabaseShutdownException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.internal.kernel.api.Procedures;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
 import org.neo4j.internal.kernel.api.procs.*;
 import org.neo4j.kernel.api.KernelTransaction;
@@ -27,8 +27,11 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 import org.neo4j.values.AnyValue;
+import org.neo4j.values.ValueMapper;
 import org.neo4j.values.storable.Values;
 import org.neo4j.values.virtual.MapValue;
+import org.neo4j.values.virtual.MapValueBuilder;
+import org.neo4j.values.virtual.VirtualValues;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -113,14 +116,16 @@ public class CypherProcedures {
     static class CustomStatementRegistry {
 //        private final KernelImpl kernelImpl;
         private final GlobalProcedures globalProcedures;
+        private final ValueMapper valueMapper;
         GraphDatabaseAPI api;
         private final Log log;
 
         public CustomStatementRegistry(GraphDatabaseAPI api, Log log) {
             this.api = api;
+            this.log = log;
 //            kernelImpl = api.getDependencyResolver().resolveDependency(KernelImpl.class);
             globalProcedures = api.getDependencyResolver().resolveDependency(GlobalProcedures.class);
-            this.log = log;
+            valueMapper = api.getDependencyResolver().resolveDependency(ValueMapper.class);
         }
 
         public boolean registerProcedure(@Name("name") String name, @Name("statement") String statement, @Name(value = "mode", defaultValue = "read") String mode, @Name(value = "outputs", defaultValue = "null") List<List<String>> outputs, @Name(value = "inputs", defaultValue = "null") List<List<String>> inputs, @Name(value= "description", defaultValue = "") String description) {
@@ -134,7 +139,7 @@ public class CypherProcedures {
                     public RawIterator<AnyValue[], ProcedureException> apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input, ResourceTracker resourceTracker) throws ProcedureException {
                         KernelTransaction ktx = ctx.kernelTransaction();
                         debug(name, "inside", ktx);
-                        Map<String, Object> params = params(input, inputs);
+                        Map<String, Object> params = params(input, inputs, valueMapper);
                         Result result = api.execute(statement, params);
                         resourceTracker.registerCloseableResource(result);
                         String[] names = outputs == null ? null : outputs.stream().map(pair -> pair.get(0)).toArray(String[]::new);
@@ -289,20 +294,50 @@ public class CypherProcedures {
                 default: return null;
             }
         }
+
         private AnyValue[] toResult(Map<String, Object> row, String[] names) {
-            if (names == null) return Values.values(row);
-            AnyValue[] result = new AnyValue[names.length];
-            for (int i = 0; i < names.length; i++) {
-                result[i] = Values.of(row.get(names[i]));
+            if (names == null) {
+                return new AnyValue[]{convertToValueRecursive(row)};
+            } else {
+                AnyValue[] result = new AnyValue[names.length];
+                for (int i = 0; i < names.length; i++) {
+                    result[i] = convertToValueRecursive(row.get(names[i]));
+                }
+                return result;
             }
-            return result;
         }
 
-        public Map<String, Object> params(Object[] input, @Name(value = "inputs", defaultValue = "null") List<List<String>> inputs) {
-            if (inputs == null) return (Map<String,Object>)input[0];
+        private AnyValue convertToValueRecursive(Object... toConverts) {
+            switch (toConverts.length) {
+                case 0:
+                    return Values.NO_VALUE;
+                case 1:
+                    Object toConvert = toConverts[0];
+                    if (toConvert instanceof List) {
+                        List list = (List) toConvert;
+                        AnyValue[] objects = ((Stream<AnyValue>) list.stream().map(x -> convertToValueRecursive(x))).toArray(AnyValue[]::new);
+                        return VirtualValues.list(objects);
+                    } else if (toConvert instanceof Map) {
+                        Map<String,Object> map = (Map) toConvert;
+                        MapValueBuilder builder = new MapValueBuilder(map.size());
+                        map.entrySet().stream().forEach(e ->{
+                            builder.add(e.getKey(), convertToValueRecursive(e.getValue()));
+                        });
+                        return builder.build();
+                    } else {
+                        return Values.of(toConvert);
+                    }
+                default:
+                    AnyValue[] values = Arrays.stream(toConverts).map(c -> convertToValueRecursive(c)).toArray(AnyValue[]::new);
+                    return VirtualValues.list(values);
+            }
+        }
+
+        public Map<String, Object> params(AnyValue[] input, @Name(value = "inputs", defaultValue = "null") List<List<String>> inputs, ValueMapper valueMapper) {
+            if (inputs == null) return (Map<String, Object>) input[0].map(valueMapper);
             Map<String, Object> params = new HashMap<>(input.length);
             for (int i = 0; i < input.length; i++) {
-                params.put(inputs.get(i).get(0), input[i]);
+                params.put(inputs.get(i).get(0), input[i].map(valueMapper));
             }
             return params;
         }
@@ -360,10 +395,14 @@ public class CypherProcedures {
             properties = getProperties(api);
             restoreProcedures();
             long refreshInterval = Long.valueOf(ApocConfiguration.get("custom.procedures.refresh", "60000"));
-            timer.scheduleAtFixedRate(new TimerTask() {
+            timer.scheduleAtFixedRate( new TimerTask() {
                 public void run() {
-                    if (getLastUpdate(properties) > lastUpdate) {
-                        restoreProcedures();
+                    try {
+                        if (getLastUpdate(properties) > lastUpdate) {
+                            restoreProcedures();
+                        }
+                    } catch (DatabaseShutdownException e) {
+                        // ignore
                     }
                 }
             }, refreshInterval, refreshInterval);
