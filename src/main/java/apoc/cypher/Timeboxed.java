@@ -1,13 +1,15 @@
 package apoc.cypher;
 
-import apoc.Pools;
 import apoc.result.MapResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.TransactionTerminatedException;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -16,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.PoolsLifecycle.pools;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
@@ -41,7 +44,7 @@ public class Timeboxed {
 
         // run query to be timeboxed in a separate thread to enable proper tx termination
         // if we'd run this in current thread, a tx.terminate would kill the transaction the procedure call uses itself.
-        Pools.DEFAULT.submit(() -> {
+        pools().getDefaultExecutorService().submit(() -> {
             try (Transaction tx = db.beginTx()) {
                 txAtomic.set(tx);
                 Result result = db.execute(cypher, params == null ? Collections.EMPTY_MAP : params);
@@ -59,7 +62,7 @@ public class Timeboxed {
         });
 
         //
-        Pools.SCHEDULED.schedule(() -> {
+        pools().getScheduledExecutorService().schedule(() -> {
             Transaction tx = txAtomic.get();
             if (tx==null) {
                 log.info("tx is null, either the other transaction finished gracefully or has not yet been start.");

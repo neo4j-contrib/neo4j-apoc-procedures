@@ -1,6 +1,5 @@
 package apoc.warmup;
 
-import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.io.pagecache.PageCache;
 import org.neo4j.io.pagecache.PageCursor;
@@ -19,6 +18,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static apoc.PoolsLifecycle.pools;
 
 /**
  * @author Sascha Peukert
@@ -139,13 +140,13 @@ public class Warmup {
             if (idx == BATCH_SIZE) {
                 long[] submitted = ids.clone();
                 idx = 0;
-                futures.add(Util.inTxFuture(Pools.DEFAULT, db, () -> loadRecords(submitted, record, recordStore, guard)));
+                futures.add(Util.inTxFuture(pools().getDefaultExecutorService(), db, () -> loadRecords(submitted, record, recordStore, guard)));
             }
             pages += removeDone(futures, false);
         }
         if (idx > 0) {
             long[] submitted = Arrays.copyOf(ids, idx);
-            futures.add(Util.inTxFuture(Pools.DEFAULT, db, () -> loadRecords(submitted, record, recordStore, guard)));
+            futures.add(Util.inTxFuture(pools().getDefaultExecutorService(), db, () -> loadRecords(submitted, record, recordStore, guard)));
         }
         pages += removeDone(futures, true);
         return pages;

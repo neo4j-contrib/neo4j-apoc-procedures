@@ -1,6 +1,6 @@
 package apoc.algo;
 
-import apoc.Pools;
+import apoc.PoolsLifecycle;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.logging.Log;
@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import static apoc.PoolsLifecycle.pools;
 import static apoc.util.Util.parseDirection;
 
 public class LabelPropagation {
@@ -78,13 +79,13 @@ public class LabelPropagation {
 
             // Await processing of node batches
             for (Future<Void> future : futures) {
-                Pools.force(future);
+                PoolsLifecycle.force(future);
             }
         }
     }
 
     private Future<Void> clusterBatch(List<Node> batch, String partitionKey, RelationshipType relationshipType, Direction direction, String weightKey) {
-        return Pools.processBatch(batch, db, (node) -> {
+        return pools().processBatch(batch, db, (node) -> {
             Map<Object, Double> votes = new HashMap<>();
             for (Relationship rel :
                     relationshipType == null

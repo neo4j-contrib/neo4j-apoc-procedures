@@ -2,7 +2,6 @@ package apoc.export.csv;
 
 import apoc.ApocConfig;
 import apoc.Description;
-import apoc.Pools;
 import apoc.export.cypher.ExportFileManager;
 import apoc.export.cypher.FileManagerFactory;
 import apoc.export.util.ExportConfig;
@@ -29,6 +28,8 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static apoc.PoolsLifecycle.pools;
 
 /**
  * @author mh
@@ -109,7 +110,7 @@ public class ExportCSV {
             ProgressReporter reporterWithConsumer = reporter.withConsumer(
                     (pi) -> Util.put(queue, pi == ProgressInfo.EMPTY ? ProgressInfo.EMPTY : new ProgressInfo(pi).drain(cypherFileManager.getStringWriter("csv")), timeout)
             );
-            Util.inTxFuture(Pools.DEFAULT, db, () -> {
+            Util.inTxFuture(pools().getDefaultExecutorService(), db, () -> {
                 dump(data, exportConfig, reporterWithConsumer, cypherFileManager, exporter);
                 return true;
             });

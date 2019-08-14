@@ -11,8 +11,7 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 import java.text.SimpleDateFormat;
 
 import static apoc.util.TestUtil.testCall;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class KernelProcedureTest {
 
@@ -36,7 +35,7 @@ public class KernelProcedureTest {
                 assertEquals("neo4j", row.get("databaseName"));
                 assertTrue(format.parse(startTime).getTime() < now);
                 assertTrue(kernelVersion.contains("4."));
-                assertEquals(0, (long) row.get("storeLogVersion"));
+                assertNotNull(row.get("storeLogVersion"));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

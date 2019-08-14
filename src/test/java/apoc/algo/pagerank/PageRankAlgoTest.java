@@ -1,6 +1,5 @@
 package apoc.algo.pagerank;
 
-import apoc.Pools;
 import apoc.algo.LabelPropagation;
 import apoc.util.TestUtil;
 import org.junit.Before;
@@ -20,6 +19,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
+import static apoc.PoolsLifecycle.pools;
 import static org.junit.Assert.assertEquals;
 
 public class PageRankAlgoTest
@@ -60,7 +60,7 @@ public class PageRankAlgoTest
                                                  "  (k)-[:TYPE_2 {score:0.80}]->(e)\n";
 
     public static final double EXPECTED = 2.87711;
-    static ExecutorService pool = Pools.DEFAULT;
+    static ExecutorService pool = pools().getDefaultExecutorService();
     private ThreadToStatementContextBridge ctx;
 
     private TerminationGuard guard = new TerminationGuard() {

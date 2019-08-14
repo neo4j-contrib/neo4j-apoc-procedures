@@ -7,6 +7,7 @@ import apoc.util.Util;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Mode;
@@ -115,7 +116,7 @@ public class Uuid {
 
     }
 
-    public static class UuidLifeCycle {
+    public static class UuidLifeCycle extends LifecycleAdapter {
         private final GraphDatabaseAPI db;
         private final Log log;
         private final DatabaseManagementService databaseManagementService;
@@ -127,6 +128,7 @@ public class Uuid {
             this.log = log;
         }
 
+        @Override
         public void start() {
             boolean enabled = Util.toBoolean(ApocConfiguration.get("uuid.enabled", null));
             if (!enabled) {
@@ -137,6 +139,7 @@ public class Uuid {
             databaseManagementService.registerTransactionEventListener(db.databaseName(), uuidHandler);
         }
 
+        @Override
         public void stop() {
             if (uuidHandler == null) return;
             databaseManagementService.unregisterTransactionEventListener(db.databaseName(), uuidHandler);

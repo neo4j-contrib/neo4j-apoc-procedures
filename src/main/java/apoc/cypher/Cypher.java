@@ -1,6 +1,5 @@
 package apoc.cypher;
 
-import apoc.Pools;
 import apoc.result.MapResult;
 import apoc.util.FileUtils;
 import apoc.util.QueueBasedSpliterator;
@@ -24,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static apoc.PoolsLifecycle.pools;
 import static apoc.util.MapUtil.map;
 import static apoc.util.Util.param;
 import static apoc.util.Util.quote;
@@ -40,7 +40,7 @@ import static org.neo4j.procedure.Mode.WRITE;
 public class Cypher {
 
     public static final String COMPILED_PREFIX = "CYPHER runtime="+ Util.COMPILED;
-    public static final ExecutorService POOL = Pools.DEFAULT;
+    public static final ExecutorService POOL = pools().getDefaultExecutorService();
     public static final int PARTITIONS = 100 * Runtime.getRuntime().availableProcessors();
     public static final int MAX_BATCH = 10000;
     @Context

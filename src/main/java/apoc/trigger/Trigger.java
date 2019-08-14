@@ -5,11 +5,15 @@ import apoc.coll.SetBackedList;
 import apoc.util.Util;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.event.*;
+import org.neo4j.graphdb.event.LabelEntry;
+import org.neo4j.graphdb.event.PropertyEntry;
+import org.neo4j.graphdb.event.TransactionData;
+import org.neo4j.graphdb.event.TransactionEventListener;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.impl.core.EmbeddedProxySPI;
 import org.neo4j.kernel.impl.core.GraphProperties;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
+import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
@@ -356,7 +360,7 @@ public class Trigger {
         return result;
     }
 
-    public static class LifeCycle {
+    public static class LifeCycle extends LifecycleAdapter {
         private final Log log;
         private final GraphDatabaseAPI db;
         private TriggerHandler triggerHandler;
@@ -368,6 +372,7 @@ public class Trigger {
             this.log = log;
         }
 
+        @Override
         public void start() {
             boolean enabled = apocConfig().getBoolean(APOC_TRIGGER_ENABLED);
             if (!enabled) {
@@ -378,6 +383,7 @@ public class Trigger {
             databaseManagementService.registerTransactionEventListener(db.databaseName(), triggerHandler);
         }
 
+        @Override
         public void stop() {
             if (triggerHandler == null) return;
             databaseManagementService.unregisterTransactionEventListener(db.databaseName(), triggerHandler);

@@ -1,14 +1,13 @@
 package apoc.util;
 
 import apoc.ApocConfiguration;
-import apoc.Pools;
 import apoc.export.util.CountingInputStream;
 import apoc.path.RelationshipTypeAndDirections;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
-import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
@@ -34,6 +33,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static apoc.ApocConfig.apocConfig;
+import static apoc.PoolsLifecycle.pools;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
 
@@ -188,7 +188,7 @@ public class Util {
 
     public static <T> T inTx(GraphDatabaseService db, Callable<T> callable) {
         try {
-            return inTxFuture(Pools.DEFAULT, db, callable).get();
+            return inTxFuture(pools().getDefaultExecutorService(), db, callable).get();
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -204,7 +204,7 @@ public class Util {
     }
 
     public static <T> Future<T> inFuture(Callable<T> callable) {
-        return Pools.DEFAULT.submit(callable);
+        return pools().getDefaultExecutorService().submit(callable);
     }
 
     public static Double toDouble(Object value) {

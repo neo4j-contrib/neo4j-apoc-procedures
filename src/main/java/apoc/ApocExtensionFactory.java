@@ -21,6 +21,8 @@ import org.neo4j.logging.internal.LogService;
 import org.neo4j.scheduler.JobScheduler;
 
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author mh
@@ -61,11 +63,10 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         private final LogService log;
         private final GraphDatabaseAPI db;
         private final Dependencies dependencies;
-        private Trigger.LifeCycle triggerLifeCycle;
         private Log userLog;
-        private TTLLifeCycle ttlLifeCycle;
-        private Uuid.UuidLifeCycle uuidLifeCycle;
         private CypherProcedures.CustomProcedureStorage customProcedureStorage;
+
+        private final Map<String, Lifecycle> services = new HashMap<>();
 
         public ApocLifecycle(LogService log, GraphDatabaseAPI db, Dependencies dependencies) {
             this.log = log;
@@ -79,16 +80,20 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
             ApocConfig.withNonSystemDatabase(db, aVoid -> {
 
                 ApocConfiguration.initialize(db);
-                Pools.NEO4J_SCHEDULER = dependencies.scheduler();
+//                Pools.NEO4J_SCHEDULER = dependencies.scheduler();
 
-                ttlLifeCycle = new TTLLifeCycle(Pools.NEO4J_SCHEDULER, db, dependencies.config(), log.getUserLog(TTLLifeCycle.class));
-                ttlLifeCycle.start();
+                services.put("ttl", new TTLLifeCycle(dependencies.scheduler(), db, dependencies.config(), log.getUserLog(TTLLifeCycle.class)));
+                services.put("uuid", new Uuid.UuidLifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Uuid.class)));
+                services.put("trigger", new Trigger.LifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Trigger.class)));
+                services.put("pools", new PoolsLifecycle());
 
-                uuidLifeCycle = new Uuid.UuidLifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Uuid.class));
-                uuidLifeCycle.start();
-
-                triggerLifeCycle = new Trigger.LifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Trigger.class));
-                triggerLifeCycle.start();
+                services.entrySet().stream().forEach(entry -> {
+                    try {
+                        entry.getValue().start();
+                    } catch (Exception e) {
+                        userLog.error("failed to start service " + entry.getKey(), e);
+                    }
+                });
 
                 customProcedureStorage = new CypherProcedures.CustomProcedureStorage(db, log.getUserLog(CypherProcedures.class));
                 AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
@@ -101,30 +106,14 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         @Override
         public void stop() {
             ApocConfig.withNonSystemDatabase(db, aVoid -> {
-                if (ttlLifeCycle !=null) {
+                services.entrySet().stream().forEach(entry -> {
                     try {
-                        ttlLifeCycle.stop();
-                    } catch(Exception e) {
-                        userLog.warn("Error stopping ttl service",e);
-                    }
-                }
-                if (triggerLifeCycle !=null) {
-                    try {
-                        triggerLifeCycle.stop();
-                    } catch(Exception e) {
-                        userLog.warn("Error stopping trigger service",e);
-                    }
-                }
-
-                if (uuidLifeCycle !=null) {
-                    try {
-                        uuidLifeCycle.stop();
+                        entry.getValue().stop();
                     } catch (Exception e) {
-                        userLog.warn("Error stopping uuid service", e);
+                        userLog.error("failed to stop service " + entry.getKey(), e);
                     }
-                }
+                });
             });
-
         }
 
     }

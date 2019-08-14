@@ -1,6 +1,5 @@
 package apoc.algo.algorithms;
 
-import apoc.Pools;
 import org.eclipse.collections.api.map.primitive.MutableIntFloatMap;
 import org.eclipse.collections.api.map.primitive.MutableIntObjectMap;
 import org.eclipse.collections.impl.map.mutable.primitive.IntFloatHashMap;
@@ -12,6 +11,8 @@ import org.neo4j.procedure.TerminationGuard;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+
+import static apoc.PoolsLifecycle.pools;
 
 public class BetweennessCentrality implements AlgorithmInterface {
     public static final int WRITE_BATCH=100_000;
@@ -115,7 +116,7 @@ public class BetweennessCentrality implements AlgorithmInterface {
         Arrays.fill(betweennessCentrality, 0);
         long before = System.currentTimeMillis();
 
-        int numOfThreads = Pools.getNoThreadsInDefaultPool();
+        int numOfThreads = pools().getNoThreadsInDefaultPool();
         assert(numOfThreads != 0);
         int batchSize = (int)nodeCount/numOfThreads;
         int batches = 0;

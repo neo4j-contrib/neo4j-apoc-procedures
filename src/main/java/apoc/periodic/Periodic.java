@@ -1,6 +1,5 @@
 package apoc.periodic;
 
-import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
@@ -20,6 +19,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static apoc.PoolsLifecycle.pools;
 import static apoc.util.Util.merge;
 import static java.lang.System.nanoTime;
 import static java.util.Collections.singletonMap;
@@ -44,7 +44,7 @@ public class Periodic {
                 if (entry.getValue().isDone() || entry.getValue().isCancelled()) it.remove();
             }
         };
-        Pools.SCHEDULED.scheduleAtFixedRate(runnable,10,10,TimeUnit.SECONDS);
+        pools().getScheduledExecutorService().scheduleAtFixedRate(runnable,10,10,TimeUnit.SECONDS);
     }
 
     @Procedure
@@ -72,7 +72,7 @@ public class Periodic {
 
         do {
             Map<String, Object> window = Util.map("_count", updates, "_total", total);
-            updates = Util.getFuture(Pools.SCHEDULED.submit(() -> {
+            updates = Util.getFuture(pools().getScheduledExecutorService().submit(() -> {
                 batches.incrementAndGet();
                 try {
                     return executeNumericResultStatement(statement, merge(window, params));
@@ -191,7 +191,7 @@ public class Periodic {
         Future<T> future = list.remove(info);
         if (future != null && !future.isDone()) future.cancel(false);
 
-        Future newFuture = Pools.SCHEDULED.submit(task);
+        Future newFuture = pools().getScheduledExecutorService().submit(task);
         list.put(info,newFuture);
         return info;
     }
@@ -204,7 +204,7 @@ public class Periodic {
         Future future = list.remove(info);
         if (future != null && !future.isDone()) future.cancel(false);
 
-        ScheduledFuture<?> newFuture = Pools.SCHEDULED.scheduleWithFixedDelay(task, delay, repeat, TimeUnit.SECONDS);
+        ScheduledFuture<?> newFuture = pools().getScheduledExecutorService().scheduleWithFixedDelay(task, delay, repeat, TimeUnit.SECONDS);
         list.put(info,newFuture);
         return info;
     }
@@ -332,7 +332,7 @@ public class Periodic {
 
     private Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, boolean parallel, boolean iterateList, long retries,
                                                                                  Iterator<Map<String, Object>> iterator, Consumer<Map<String, Object>> consumer, int concurrency, int failedParams) {
-        ExecutorService pool = parallel ? Pools.DEFAULT : Pools.SINGLE;
+        ExecutorService pool = parallel ? pools().getDefaultExecutorService() : pools().getSingleExecutorService();
         List<Future<Long>> futures = new ArrayList<>(concurrency);
         long batches = 0;
         long start = System.nanoTime();
@@ -475,7 +475,7 @@ public class Periodic {
         Future future = list.remove(info);
         if (future != null) future.cancel(false);
 
-        ScheduledFuture<?> newFuture = Pools.SCHEDULED.schedule(task, delay, TimeUnit.SECONDS);
+        ScheduledFuture<?> newFuture = pools().getScheduledExecutorService().schedule(task, delay, TimeUnit.SECONDS);
         list.put(info,newFuture);
         return info;
     }
@@ -528,7 +528,7 @@ public class Periodic {
         @Override
         public void run() {
             if (Periodic.this.executeNumericResultStatement(statement, Collections.emptyMap()) > 0) {
-                Pools.SCHEDULED.schedule(() -> submit(name, this), rate, TimeUnit.SECONDS);
+                pools().getScheduledExecutorService().schedule(() -> submit(name, this), rate, TimeUnit.SECONDS);
             }
         }
     }

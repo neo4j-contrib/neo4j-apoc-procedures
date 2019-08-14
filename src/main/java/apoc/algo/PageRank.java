@@ -1,24 +1,24 @@
 package apoc.algo;
 
-import apoc.algo.pagerank.PageRank.PageRankStatistics;
-import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.procedure.*;
-import apoc.Pools;
 import apoc.algo.algorithms.AlgoUtils;
+import apoc.algo.pagerank.PageRank.PageRankStatistics;
 import apoc.algo.pagerank.PageRankArrayStorageParallelCypher;
 import apoc.algo.pagerank.PageRankArrayStorageParallelSPI;
 import apoc.result.NodeScore;
 import apoc.util.Util;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
+import org.neo4j.procedure.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
+import static apoc.PoolsLifecycle.pools;
 import static apoc.algo.algorithms.AlgoUtils.*;
 
 public class PageRank {
@@ -26,7 +26,7 @@ public class PageRank {
     private static final String SETTING_PAGE_RANK_ITERATIONS = "iterations";
     private static final String SETTING_PAGE_RANK_TYPES = "types";
 
-    static final ExecutorService pool = Pools.DEFAULT;
+    static final ExecutorService pool = pools().getDefaultExecutorService();
     static final Long DEFAULT_PAGE_RANK_ITERATIONS = 20L;
 
     @Context
@@ -87,7 +87,7 @@ public class PageRank {
         boolean shouldWrite = (boolean)config.getOrDefault(SETTING_WRITE, DEFAULT_PAGE_RANK_WRITE);
         Number weight = (Number) config.get(SETTING_WEIGHTED);
         Number batchSize = (Number) config.get(SETTING_BATCH_SIZE);
-        int concurrency = ((Number) config.getOrDefault("concurrency",Pools.getNoThreadsInDefaultPool())).intValue();
+        int concurrency = ((Number) config.getOrDefault("concurrency", pools().getNoThreadsInDefaultPool())).intValue();
         String property = (String) config.getOrDefault("property","pagerank");
 
         long beforeReading = System.currentTimeMillis();

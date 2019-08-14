@@ -24,19 +24,17 @@ public class TestContainerUtil {
 
     private static File baseDir = Paths.get(".").toFile();
 
-
-
-
     public static TestcontainersCausalCluster createEnterpriseCluster(int numOfCoreInstances, int numberOfReadReplica, Map<String, Object> neo4jConfig) {
         return TestcontainersCausalCluster.create(numOfCoreInstances, numberOfReadReplica, Duration.ofMinutes(4), neo4jConfig);
     }
 
     public static Neo4jContainerExtension createEnterpriseDB(boolean withLogging) {
         // We define the container with external volumes
-        Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension("neo4j:3.5.3-enterprise")
+        Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension("neo4j:4.0.0-alpha09mr02-enterprise")
                 .withPlugins(MountableFile.forHostPath("./target/tests/gradle-build/libs")) // map the apoc's artifact dir as the Neo4j's plugin dir
                 .withAdminPassword("apoc")
-                .withNeo4jConfig("apoc.export.file.enabled", "true")
+//                .withNeo4jConfig("apoc.export.file.enabled", "true")
+                .withEnv("apoc.export.file.enabled", "true")
                 .withNeo4jConfig("dbms.security.procedures.unrestricted", "apoc.*")
 //                .withEnv("NEO4J_wrapper_java_additional","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -Xdebug-Xnoagent-Djava.compiler=NONE-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005")
                 .withFileSystemBind("./target/import", "/import") // map the "target/import" dir as the Neo4j's import dir

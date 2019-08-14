@@ -41,6 +41,8 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_JSON_ZIP_URL = "apoc.json.zip.url";
     public static final String APOC_JSON_SIMPLE_JSON_URL = "apoc.json.simpleJson.url";
     public static final String APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM = "apoc.import.file.allow_read_from_filesystem";
+    public static final String APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS = "apoc.jobs.scheduled.num_threads";
+    public static final String APOC_CONFIG_JOBS_POOL_NUM_THREADS = "apoc.jobs.pool.num_threads";
 
     public static final List<Setting> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = Arrays.asList(
             legacy_certificates_directory,
@@ -52,8 +54,6 @@ public class ApocConfig extends LifecycleAdapter {
             transaction_logs_root_path,
             neo4j_home
     );
-    static final String APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS = "apoc.jobs.scheduled.num_threads";
-    static final String APOC_CONFIG_JOBS_POOL_NUM_THREADS = "apoc.jobs.pool.num_threads";
 
 // old settings from 3.x that seem to no longer be existent
 //"dbms.directories.lib",
