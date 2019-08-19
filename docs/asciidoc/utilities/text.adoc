@@ -95,7 +95,7 @@ The `replace`, `split` and `regexGroups` functions work with regular expressions
 | apoc.text.jaroWinklerDistance(text1, text2) | compare the given strings with the Jaro-Winkler distance algorithm
 | apoc.text.sorensenDiceSimilarity(text1, text2) | compare the given strings with the Sørensen–Dice coefficient formula, assuming an English locale
 | apoc.text.sorensenDiceSimilarityWithLanguage(text1, text2, languageTag) | compare the given strings with the Sørensen–Dice coefficient formula, with the provided IETF language tag
-| apoc.text.fuzzyMatch(text1, text2) | check if 2 words can be matched in a fuzzy way. Depending on the length of the String it will allow more characters that needs to be edited to match the second String.
+| apoc.text.fuzzyMatch(text1, text2) | check if 2 words can be matched in a fuzzy way (LevenShtein). Depending on the length of the String it will allow more characters that needs to be edited to match the second String (distance: length < 3 then 0, length < 5 then 1, else 2).
 |===
 
 === Compare the  strings with the Levenshtein distance
@@ -124,7 +124,7 @@ RETURN apoc.text.sorensenDiceSimilarityWithLanguage("halım", "halim", "tr-TR") 
 === Check if 2 words can be matched in a fuzzy way with `fuzzyMatch`
 
 
-Depending on the length of the String it will allow more characters that needs to be edited to match the second String.
+Depending on the length of the String (distance: length < 3 then 0, length < 5 then 1, else 2) it will allow more characters that needs to be edited to match the second String (LevenShtein distance).
 
 [source,cypher]
 ----
