@@ -29,28 +29,16 @@ public class Periodic {
     public static final Pattern RUNTIME_PATTERN = Pattern.compile("\\bruntime\\s*=", Pattern.CASE_INSENSITIVE);
     public static final Pattern CYPHER_PREFIX_PATTERN = Pattern.compile("\\bcypher\\b", Pattern.CASE_INSENSITIVE);
     public static final String CYPHER_RUNTIME_SLOTTED = "cypher runtime=slotted ";
+    final static Pattern LIMIT_PATTERN = Pattern.compile("\\slimit\\s", Pattern.CASE_INSENSITIVE);
+
     @Context public GraphDatabaseService db;
     @Context public TerminationGuard terminationGuard;
-
     @Context public Log log;
-
-    final static Map<JobInfo,Future> list = new ConcurrentHashMap<>();
-
-    final static Pattern LIMIT_PATTERN = Pattern.compile("\\slimit\\s", Pattern.CASE_INSENSITIVE);
-    static {
-        Runnable runnable = () -> {
-            for (Iterator<Map.Entry<JobInfo, Future>> it = list.entrySet().iterator(); it.hasNext(); ) {
-                Map.Entry<JobInfo, Future> entry = it.next();
-                if (entry.getValue().isDone() || entry.getValue().isCancelled()) it.remove();
-            }
-        };
-        pools().getScheduledExecutorService().scheduleAtFixedRate(runnable,10,10,TimeUnit.SECONDS);
-    }
 
     @Procedure
     @Description("apoc.periodic.list - list all jobs")
     public Stream<JobInfo> list() {
-        return list.entrySet().stream().map( (e) -> e.getKey().update(e.getValue()));
+        return pools().getJobList().entrySet().stream().map( (e) -> e.getKey().update(e.getValue()));
     }
 
     @Procedure(mode = Mode.WRITE)
@@ -146,7 +134,7 @@ public class Periodic {
     @Description("apoc.periodic.cancel(name) - cancel job with the given name")
     public Stream<JobInfo> cancel(@Name("name") String name) {
         JobInfo info = new JobInfo(name);
-        Future future = list.remove(info);
+        Future future = pools().getJobList().remove(info);
         if (future != null) {
             future.cancel(true);
             return Stream.of(info.update(future));
@@ -188,11 +176,11 @@ public class Periodic {
      */
     public static <T> JobInfo submit(String name, Runnable task) {
         JobInfo info = new JobInfo(name);
-        Future<T> future = list.remove(info);
+        Future<T> future = pools().getJobList().remove(info);
         if (future != null && !future.isDone()) future.cancel(false);
 
         Future newFuture = pools().getScheduledExecutorService().submit(task);
-        list.put(info,newFuture);
+        pools().getJobList().put(info,newFuture);
         return info;
     }
 
@@ -201,11 +189,11 @@ public class Periodic {
      */
     public static JobInfo schedule(String name, Runnable task, long delay, long repeat) {
         JobInfo info = new JobInfo(name,delay,repeat);
-        Future future = list.remove(info);
+        Future future = pools().getJobList().remove(info);
         if (future != null && !future.isDone()) future.cancel(false);
 
         ScheduledFuture<?> newFuture = pools().getScheduledExecutorService().scheduleWithFixedDelay(task, delay, repeat, TimeUnit.SECONDS);
-        list.put(info,newFuture);
+        pools().getJobList().put(info,newFuture);
         return info;
     }
 
@@ -472,11 +460,11 @@ public class Periodic {
      */
     public static JobInfo schedule(String name, Runnable task, long delay) {
         JobInfo info = new JobInfo(name,delay,0);
-        Future future = list.remove(info);
+        Future future = pools().getJobList().remove(info);
         if (future != null) future.cancel(false);
 
         ScheduledFuture<?> newFuture = pools().getScheduledExecutorService().schedule(task, delay, TimeUnit.SECONDS);
-        list.put(info,newFuture);
+        pools().getJobList().put(info,newFuture);
         return info;
     }
 

@@ -40,7 +40,6 @@ import static org.neo4j.procedure.Mode.WRITE;
 public class Cypher {
 
     public static final String COMPILED_PREFIX = "CYPHER runtime="+ Util.COMPILED;
-    public static final ExecutorService POOL = pools().getDefaultExecutorService();
     public static final int PARTITIONS = 100 * Runtime.getRuntime().availableProcessors();
     public static final int MAX_BATCH = 10000;
     @Context
@@ -368,7 +367,7 @@ public class Cypher {
     }
 
     private Future<List<Map<String, Object>>> submit(GraphDatabaseService db, String statement, Map<String, Object> params, String key, List<Object> partition) {
-        return POOL.submit(() -> Iterators.addToCollection(db.execute(statement, parallelParams(params, key, partition)), new ArrayList<>(partition.size())));
+        return pools().getDefaultExecutorService().submit(() -> Iterators.addToCollection(db.execute(statement, parallelParams(params, key, partition)), new ArrayList<>(partition.size())));
     }
 
     private static Collection asCollection(Object value) {
