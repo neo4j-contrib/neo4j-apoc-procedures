@@ -75,6 +75,12 @@ public class ApocConfig extends LifecycleAdapter {
         this.globalProceduresRegistry = globalProceduresRegistry;
         this.graphDatabaseService = graphDatabaseService;
         theInstance = this;
+
+        // expose this config instance via `@Context ApocConfig config`
+        if (globalProceduresRegistry!=null) {
+            globalProceduresRegistry.registerComponent((Class<ApocConfig>) getClass(), ctx -> this, true);
+            this.log.info("successfully registered ApocConfig for @Context");
+        }
     }
 
     public static void withNonSystemDatabase(GraphDatabaseService db, Consumer<Void> consumer) {
@@ -95,10 +101,6 @@ public class ApocConfig extends LifecycleAdapter {
             System.setProperty("NEO4J_CONF", neo4jConfFolder);
             log.info("system property NEO4J_CONF set to %s", neo4jConfFolder);
 
-            // expose this config instance via `@Context ApocConfig config`
-            if (globalProceduresRegistry!=null) {
-                globalProceduresRegistry.registerComponent((Class<ApocConfig>) getClass(), ctx -> this, true);
-            }
 
             loadConfiguration();
         });
