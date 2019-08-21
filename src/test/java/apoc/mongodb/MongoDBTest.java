@@ -168,7 +168,7 @@ public class MongoDBTest {
     }
 
     private void assertResult(Result res) {
-        assertResult(res, currentTime);
+        assertResult(res, currentTime.getTime());
     }
 
     private void assertResult(Result res, Object date) {

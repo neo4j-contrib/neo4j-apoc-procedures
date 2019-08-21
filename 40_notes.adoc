@@ -26,3 +26,7 @@ apoc.monitor.locks() (proc deleted, cannot get information via api)
 * all apoc* configuration option needs to be moved to `apoc.conf`
 ** `apoc.initializer.cypher`
 ** *apoc.initializer.cypher.<anything>`
+
+
+** mongo calls use `compatibleValue:true` by default. Reason: 4.0 doesn't support java.util.Date as nested value in a map returned from a procedures.
+Side effect: date values are returned as millis since epoc.
