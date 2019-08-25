@@ -6,9 +6,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.dbms.api.DatabaseManagementService;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.CassandraContainer;
@@ -71,7 +68,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
     public void testLoadJdbcUpdate() throws Exception {
         db.execute("CALL apoc.load.jdbcUpdate({url},'UPDATE \"PERSON\" SET \"SURNAME\" = \\\'DOE\\\' WHERE \"NAME\" = \\\'John\\\'')", Util.map("url", getUrl(),
                 "config", Util.map("schema", "test","credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
-        ));
+        )).hasNext();
         testCall(db, "CALL apoc.load.jdbc({url},'SELECT * FROM \"PERSON\" WHERE \"NAME\" = ?', ['John'])",
                 Util.map("url", getUrl(),
                         "config", Util.map("schema", "test", "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
