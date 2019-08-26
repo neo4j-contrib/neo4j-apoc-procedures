@@ -1,6 +1,5 @@
 package apoc.spatial;
 
-import apoc.ApocConfiguration;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import org.junit.*;
@@ -11,24 +10,25 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.*;
 import static org.junit.Assert.*;
-import static org.neo4j.configuration.SettingImpl.newBuilder;
-import static org.neo4j.configuration.SettingValueParsers.STRING;
 
 public class GeocodeTest {
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(newBuilder("apoc.spatial.geocode.provider", STRING, null).build(), "opencage") // TODO: consider moving settings to ApocSettings.java
-            .withSetting(newBuilder("apoc.spatial.geocode.opencage.key", STRING, null).build(), "<YOUR_API_KEY>")
-            .withSetting(newBuilder("apoc.spatial.geocode.opencage.url", STRING, null).build(), "https://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY")
-            .withSetting(newBuilder("apoc.spatial.geocode.opencage.reverse.url", STRING, null).build(), "https://api.opencagedata.com/geocode/v1/json?q=LAT+LNG&key=KEY");
+    public DbmsRule db = new ImpermanentDbmsRule();
 
     @Before
     public void initDb() throws Exception {
         assumeTravis();
+        apocConfig().setProperty("apoc.spatial.geocode.provider", "opencage");
+        apocConfig().setProperty("apoc.spatial.geocode.opencage.key", "<YOUR_API_KEY>");
+        apocConfig().setProperty("apoc.spatial.geocode.opencage.url", "https://api.opencagedata.com/geocode/v1/json?q=PLACE&key=KEY");
+        apocConfig().setProperty("apoc.spatial.geocode.opencage.reverse.url", "https://api.opencagedata.com/geocode/v1/json?q=LAT+LNG&key=KEY");
+
+//        List<String> strings = Iterators.asList(apocConfig().getConfig().getKeys("apoc.spatial.geocode.opencage"));
         TestUtil.registerProcedure(db, Geocode.class);
     }
 
@@ -61,8 +61,8 @@ public class GeocodeTest {
     @Test
     public void testGeocodeOpenCage() throws Exception {
         // If the key is not defined the test won't fail
-        String provider = ApocConfiguration.get(Geocode.PREFIX).get(Geocode.GEOCODE_PROVIDER_KEY).toString().toLowerCase();
-        Assume.assumeTrue(!"<YOUR_API_KEY>".equals(ApocConfiguration.get(Geocode.PREFIX).get(provider + ".key").toString()));
+        String provider = apocConfig().getString(Geocode.PREFIX +"." + Geocode.GEOCODE_PROVIDER_KEY).toLowerCase();
+        Assume.assumeTrue(!"<YOUR_API_KEY>".equals(apocConfig().getString(Geocode.PREFIX +"." + provider + ".key")));
 
         // We use testGeocode() instead of testGeocodeWithThrottling() because the slow test takes less time than the fast one
         // The overall execution is strictly tight to the remote service according to quota and request policies
@@ -72,9 +72,8 @@ public class GeocodeTest {
     @Test
     public void testReverseGeocodeOpenCage() throws Exception {
         // If the key is not defined the test won't fail
-        String provider = ApocConfiguration.get(Geocode.PREFIX).get(Geocode.GEOCODE_PROVIDER_KEY).toString().toLowerCase();
-        Assume.assumeTrue(!"<YOUR_API_KEY>".equals(ApocConfiguration.get(Geocode.PREFIX).get(provider + ".key").toString()));
-
+        String provider = apocConfig().getString(Geocode.PREFIX +"." + Geocode.GEOCODE_PROVIDER_KEY).toLowerCase();
+        Assume.assumeTrue(!"<YOUR_API_KEY>".equals(apocConfig().getString(Geocode.PREFIX +"." + provider + ".key")));
         testGeocode("openCage",1000, true);
     }
 
@@ -119,10 +118,9 @@ public class GeocodeTest {
     }
 
 
-    private void setupSupplier(String name, long throttle) {
-        ApocConfiguration.addToConfig(map(
-                Geocode.PREFIX + "." +Geocode.GEOCODE_PROVIDER_KEY, name,
-                Geocode.PREFIX + "." + name + ".throttle", Long.toString(throttle)));
+    private void setupSupplier(String providerName, long throttle) {
+        apocConfig().setProperty(Geocode.PREFIX + ".provider", providerName);
+        apocConfig().setProperty(Geocode.PREFIX + "." + providerName + ".throttle", Long.toString(throttle));
     }
 
     private void testGeocodeAddress(Map map, String provider) {

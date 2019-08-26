@@ -1,8 +1,8 @@
 package apoc.spatial;
 
-import apoc.ApocConfiguration;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
+import org.apache.commons.configuration2.Configuration;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.MapUtil.map;
 import static apoc.util.Util.toDouble;
 import static apoc.util.Util.toLong;
@@ -20,7 +21,7 @@ import static java.lang.System.currentTimeMillis;
 
 public class Geocode {
     public static final int MAX_RESULTS = 100;
-    public static final String PREFIX = "spatial.geocode";
+    public static final String PREFIX = "apoc.spatial.geocode";
     public static final String GEOCODE_PROVIDER_KEY = "provider";
 
     @Context
@@ -78,7 +79,7 @@ public class Geocode {
         private String urlTemplate;
         private String urlTemplateReverse;
 
-        public SupplierWithKey(Map<String, Object> config, TerminationGuard terminationGuard, String provider) {
+        public SupplierWithKey(Configuration config, TerminationGuard terminationGuard, String provider) {
             this.configBase = provider;
 
             if (!config.containsKey(configKey("url"))) {
@@ -87,10 +88,10 @@ public class Geocode {
             if (!config.containsKey(configKey("reverse.url"))) {
                 throw new IllegalArgumentException("Missing 'reverse.url' for reverse-geocode provider: " + provider);
             }
-            urlTemplate = config.get(configKey("url")).toString();
+            urlTemplate = config.getString(configKey("url"));
             if (!urlTemplate.contains("PLACE")) throw new IllegalArgumentException("Missing 'PLACE' in url template: " + urlTemplate);
 
-            urlTemplateReverse = config.get(configKey("reverse.url")).toString();
+            urlTemplateReverse = config.getString(configKey("reverse.url"));
             if (!urlTemplateReverse.contains("LAT") || !urlTemplateReverse.contains("LNG")) throw new IllegalArgumentException("Missing 'LAT' or 'LNG' in url template: " + urlTemplateReverse);
 
             if (urlTemplate.contains("KEY") && !config.containsKey(configKey("key"))) {
@@ -100,11 +101,11 @@ public class Geocode {
             if (urlTemplateReverse.contains("KEY") && !config.containsKey(configKey("key"))) {
                 throw new IllegalArgumentException("Missing 'key' for reverse-geocode provider: " + provider);
             }
-            String key = config.get(configKey("key")).toString();
+            String key = config.getString(configKey("key"));
             urlTemplate = urlTemplate.replace("KEY", key);
             urlTemplateReverse = urlTemplateReverse.replace("KEY", key);
 
-            this.throttler = new Throttler(terminationGuard, toLong(ApocConfiguration.get(configKey("throttle"), Throttler.DEFAULT_THROTTLE)));
+            this.throttler = new Throttler(terminationGuard, apocConfig().getInt(configKey("throttle"), (int) Throttler.DEFAULT_THROTTLE));
         }
 
         @SuppressWarnings("unchecked")
@@ -182,8 +183,8 @@ public class Geocode {
 
         private Throttler throttler;
 
-        public OSMSupplier(Map<String, Object> config, TerminationGuard terminationGuard) {
-            this.throttler = new Throttler(terminationGuard, toLong(config.getOrDefault("osm.throttle", Throttler.DEFAULT_THROTTLE)));
+        public OSMSupplier(Configuration config, TerminationGuard terminationGuard) {
+            this.throttler = new Throttler(terminationGuard, toLong(config.getString("osm.throttle", Long.toString(Throttler.DEFAULT_THROTTLE))));
         }
 
         @SuppressWarnings("unchecked")
@@ -218,7 +219,7 @@ public class Geocode {
 
     class GoogleSupplier implements GeocodeSupplier {
         private final Throttler throttler;
-        private Map<String, Object> configMap;
+        private Configuration config;
 
         private static final String BASE_GOOGLE_API_URL = "https://maps.googleapis.com/maps/api/geocode/json";
 
@@ -226,16 +227,16 @@ public class Geocode {
         private static final String GEOCODE_URL = BASE_GOOGLE_API_URL + "?%s&address=";
 
 
-        public GoogleSupplier(Map<String, Object> config, TerminationGuard terminationGuard) {
-            this.throttler = new Throttler(terminationGuard, toLong(config.getOrDefault("google.throttle", Throttler.DEFAULT_THROTTLE)));
-            this.configMap = config;
+        public GoogleSupplier(Configuration config, TerminationGuard terminationGuard) {
+            this.throttler = new Throttler(terminationGuard, toLong(config.getString("google.throttle", Long.toString(Throttler.DEFAULT_THROTTLE))));
+            this.config = config;
         }
 
-        private String credentials(Map<String, Object> config) {
+        private String credentials(Configuration config) {
             if (config.containsKey("google.client") && config.containsKey("google.signature")) {
-                return "client=" + config.get("google.client") + "&signature=" + config.get("google.signature");
+                return "client=" + config.getString("google.client") + "&signature=" + config.getString("google.signature");
             } else if (config.containsKey("google.key")) {
-                return "key=" + config.get("google.key");
+                return "key=" + config.getString("google.key");
             } else {
                 return "auth=free"; // throw new RuntimeException("apoc.spatial.geocode: No google client or key specified in neo4j.conf config file");
             }
@@ -247,7 +248,7 @@ public class Geocode {
                 return Stream.empty();
             }
             throttler.waitForThrottle();
-            Object value = JsonUtil.loadJson(String.format(GEOCODE_URL, credentials(this.configMap)) + Util.encodeUrlComponent(address)).findFirst().orElse(null);
+            Object value = JsonUtil.loadJson(String.format(GEOCODE_URL, credentials(this.config)) + Util.encodeUrlComponent(address)).findFirst().orElse(null);
             if (value instanceof Map) {
                 Map map = (Map) value;
                 if (map.get("status").equals("OVER_QUERY_LIMIT")) throw new IllegalStateException("QUOTA_EXCEEDED from geocode API: "+map.get("status")+" message: "+map.get("error_message"));
@@ -268,7 +269,7 @@ public class Geocode {
                 return Stream.empty();
             }
             throttler.waitForThrottle();
-            Object value = JsonUtil.loadJson(String.format(REVERSE_GEOCODE_URL, credentials(this.configMap)) + Util.encodeUrlComponent(latitude+","+longitude)).findFirst().orElse(null);
+            Object value = JsonUtil.loadJson(String.format(REVERSE_GEOCODE_URL, credentials(this.config)) + Util.encodeUrlComponent(latitude+","+longitude)).findFirst().orElse(null);
             if (value instanceof Map) {
                 Map map = (Map) value;
                 if (map.get("status").equals("OVER_QUERY_LIMIT")) throw new IllegalStateException("QUOTA_EXCEEDED from geocode API: "+map.get("status")+" message: "+map.get("error_message"));
@@ -285,9 +286,9 @@ public class Geocode {
     }
 
     private GeocodeSupplier getSupplier() {
-        Map<String, Object> activeConfig = ApocConfiguration.get(PREFIX);
+        Configuration activeConfig = apocConfig().getConfig().subset(PREFIX);
         if (activeConfig.containsKey(GEOCODE_PROVIDER_KEY)) {
-            String supplier = activeConfig.get(GEOCODE_PROVIDER_KEY).toString().toLowerCase();
+            String supplier = activeConfig.getString(GEOCODE_PROVIDER_KEY).toLowerCase();
             switch (supplier) {
                 case "google" : return new GoogleSupplier(activeConfig, terminationGuard);
                 case "osm" : return new OSMSupplier(activeConfig,terminationGuard);
