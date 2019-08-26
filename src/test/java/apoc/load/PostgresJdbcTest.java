@@ -50,7 +50,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbc() throws Exception {
-        testCall(db, "CALL apoc.load.jdbc({url},'PERSON')", Util.map("url", postgress.getJdbcUrl(),
+        testCall(db, "CALL apoc.load.jdbc($url,'PERSON',[], $config)", Util.map("url", postgress.getJdbcUrl(),
                 "config", Util.map("schema", "test",
                         "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
                 (row) -> assertResult(row));
@@ -58,7 +58,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbSelect() throws Exception {
-        testCall(db, "CALL apoc.load.jdbc({url},'SELECT * FROM PERSON')", Util.map("url", postgress.getJdbcUrl(),
+        testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM PERSON',[], $config)", Util.map("url", postgress.getJdbcUrl(),
                 "config", Util.map("schema", "test",
                         "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
                 (row) -> assertResult(row));
@@ -66,7 +66,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbcUpdate() throws Exception {
-        testCall(db, "CALL apoc.load.jdbcUpdate({url},'UPDATE PERSON SET \"SURNAME\" = ? WHERE \"NAME\" = ?', ['DOE', 'John'])",
+        testCall(db, "CALL apoc.load.jdbcUpdate($url,'UPDATE PERSON SET \"SURNAME\" = ? WHERE \"NAME\" = ?', ['DOE', 'John'], $config)",
                 Util.map("url", postgress.getJdbcUrl(),
                         "config", Util.map("schema", "test",
                                 "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
@@ -75,7 +75,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbcParams() throws Exception {
-        testCall(db, "CALL apoc.load.jdbc({url},'SELECT * FROM PERSON WHERE \"NAME\" = ?',['John'])", //  YIELD row RETURN row
+        testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM PERSON WHERE \"NAME\" = ?',['John'], $config)", //  YIELD row RETURN row
                 Util.map("url", postgress.getJdbcUrl(),
                         "config", Util.map("schema", "test",
                                 "credentials", Util.map("user", postgress.getUsername(), "password", postgress.getPassword()))),
