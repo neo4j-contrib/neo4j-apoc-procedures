@@ -31,6 +31,7 @@ public class StaticTest {
     @Before
     public  void setUp() throws Exception {
         TestUtil.registerProcedure(db, Static.class);
+        Static.clear();
     }
 
     @Test
