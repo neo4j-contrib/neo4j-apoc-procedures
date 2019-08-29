@@ -1,7 +1,5 @@
 package apoc.util;
 
-import apoc.ApocConfiguration;
-
 /**
  * @author mh
  * @since 29.05.16

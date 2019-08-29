@@ -1,6 +1,5 @@
 package apoc.custom;
 
-import apoc.ApocConfiguration;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.collection.RawIterator;
@@ -37,6 +36,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.Util.map;
 import static java.util.Collections.singletonList;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.*;
@@ -379,6 +379,7 @@ public class CypherProcedures {
     public static class CustomProcedureStorage implements AvailabilityListener {
         public static final String APOC_CUSTOM = "apoc.custom";
         public static final String APOC_CUSTOM_UPDATE = "apoc.custom.update";
+        public static final String CUSTOM_PROCEDURES_REFRESH = "apoc.custom.procedures.refresh";
         private GraphProperties properties;
         private final GraphDatabaseAPI api;
         private final Log log;
@@ -394,7 +395,7 @@ public class CypherProcedures {
         public void available() {
             properties = getProperties(api);
             restoreProcedures();
-            long refreshInterval = Long.valueOf(ApocConfiguration.get("custom.procedures.refresh", "60000"));
+            long refreshInterval = apocConfig().getInt(CUSTOM_PROCEDURES_REFRESH, 60000);
             timer.scheduleAtFixedRate( new TimerTask() {
                 public void run() {
                     try {

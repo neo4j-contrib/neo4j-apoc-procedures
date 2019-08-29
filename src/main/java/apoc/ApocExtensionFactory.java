@@ -8,6 +8,7 @@ import apoc.util.ApocUrlStreamHandlerFactory;
 import apoc.uuid.Uuid;
 import org.neo4j.configuration.Config;
 import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.internal.kernel.api.Procedures;
 import org.neo4j.kernel.availability.AvailabilityGuard;
 import org.neo4j.kernel.extension.ExtensionFactory;
@@ -23,6 +24,9 @@ import org.neo4j.scheduler.JobScheduler;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
+
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
 
 /**
  * @author mh
@@ -75,12 +79,15 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
             userLog = log.getUserLog(ApocExtensionFactory.class);
         }
 
+        public static void withNonSystemDatabase(GraphDatabaseService db, Consumer<Void> consumer) {
+            if (!db.databaseName().equals(SYSTEM_DATABASE_NAME)) {
+                consumer.accept(null);
+            }
+        }
+
         @Override
         public void start() {
-            ApocConfig.withNonSystemDatabase(db, aVoid -> {
-
-                ApocConfiguration.initialize(db);
-//                Pools.NEO4J_SCHEDULER = dependencies.scheduler();
+            withNonSystemDatabase(db, aVoid -> {
 
                 services.put("ttl", new TTLLifeCycle(dependencies.scheduler(), db, dependencies.config(), log.getUserLog(TTLLifeCycle.class)));
                 services.put("uuid", new Uuid.UuidLifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Uuid.class)));
@@ -105,7 +112,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
 
         @Override
         public void stop() {
-            ApocConfig.withNonSystemDatabase(db, aVoid -> {
+            withNonSystemDatabase(db, aVoid -> {
                 services.entrySet().stream().forEach(entry -> {
                     try {
                         entry.getValue().stop();

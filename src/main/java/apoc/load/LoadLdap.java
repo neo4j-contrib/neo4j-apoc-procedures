@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.ApocConfiguration;
 import com.novell.ldap.*;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Mode;
@@ -11,6 +10,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static apoc.ApocConfig.apocConfig;
 
 public class LoadLdap {
 
@@ -26,11 +27,11 @@ public class LoadLdap {
     public static Map<String, Object> getConnectionMap(Object conn) {
         if (conn instanceof String) {
             //String value = "ldap.forumsys.com cn=read-only-admin,dc=example,dc=com password";
-            Object value = ApocConfiguration.get("loadldap").get(conn.toString() + ".config");
+            String value = apocConfig().getString("apoc.loadldap" + conn.toString() + ".config");
             // format <ldaphost:port> <logindn> <loginpw>
             if (value == null) throw new RuntimeException("No apoc.loadldap."+conn+".config ldap access configuration specified");
             Map<String, Object> config = new HashMap<>();
-            String[] sConf = ((String) value).split(" ");
+            String[] sConf = value.split(" ");
             config.put("ldapHost", sConf[0]);
             config.put("loginDN", sConf[1]);
             config.put("loginPW", sConf[2]);

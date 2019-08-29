@@ -1,6 +1,5 @@
 package apoc.metrics;
 
-import apoc.ApocConfiguration;
 import apoc.export.util.CountingReader;
 import apoc.load.LoadCsv;
 import apoc.load.util.LoadCsvConfig;
@@ -17,6 +16,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static apoc.ApocConfig.apocConfig;
 import static apoc.util.FileUtils.closeReaderSafely;
 
 /**
@@ -40,7 +40,7 @@ public class Metrics {
         public static StoragePair fromDirectorySetting(String dir) {
             if (dir == null) return null;
 
-            String configLocation = ApocConfiguration.get(dir, null);
+            String configLocation = apocConfig().getString("apoc." + dir, null);
             if (configLocation == null) return null;
 
             File f = new File(configLocation);

@@ -1,7 +1,6 @@
 package apoc.config;
 
 import apoc.ApocConfig;
-import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.result.MapResult;
 import apoc.util.Util;
@@ -12,13 +11,9 @@ import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Procedure;
 
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Spliterator;
-import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * @author mh

@@ -1,5 +1,6 @@
 package apoc.util;
 
+import apoc.ApocConfig;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.*;
@@ -24,6 +25,7 @@ public class UtilIT {
 
     @Before
     public void setUp() throws Exception {
+        new ApocConfig();  // empty test configuration, ensure ApocConfig.apocConfig() can be used
         TestUtil.ignoreException(() -> {
             httpServer = new GenericContainer("alpine")
                     .withCommand("/bin/sh", "-c", String.format("while true; do { echo -e 'HTTP/1.1 301 Moved Permanently\\r\\nLocation: %s'; echo ; } | nc -l -p 8000; done",

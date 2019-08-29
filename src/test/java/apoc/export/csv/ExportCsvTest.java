@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static apoc.util.MapUtil.map;
+import static apoc.util.TestUtil.testResult;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.*;
 
@@ -282,7 +283,7 @@ public class ExportCsvTest {
     @Test public void testExportAllCsvStreaming() throws Exception {
         String statement = "CALL apoc.export.csv.all(null,{stream:true,batchSize:2})";
         StringBuilder sb=new StringBuilder();
-        TestUtil.testResult(db, statement, (res) -> {
+        testResult(db, statement, (res) -> {
             Map<String, Object> r = res.next();
             assertEquals(2L, r.get("batchSize"));
             assertEquals(1L, r.get("batches"));
@@ -328,7 +329,7 @@ public class ExportCsvTest {
     @Test public void testCypherCsvStreaming() throws Exception {
         String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
         StringBuilder sb = new StringBuilder();
-        TestUtil.testResult(db, "CALL apoc.export.csv.query({query},null,{stream:true,batchSize:2})", map("query",query),
+        testResult(db, "CALL apoc.export.csv.query({query},null,{stream:true,batchSize:2})", map("query",query),
                 getAndCheckStreamingMetadataQueryMatchUsers(sb));
         assertEquals(EXPECTED_QUERY, sb.toString());
     }
@@ -336,7 +337,7 @@ public class ExportCsvTest {
     @Test public void testCypherCsvStreamingWithoutQuotes() throws Exception {
         String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
         StringBuilder sb = new StringBuilder();
-        TestUtil.testResult(db, "CALL apoc.export.csv.query({query},null,{quotes: false, stream:true,batchSize:2})", map("query",query),
+        testResult(db, "CALL apoc.export.csv.query({query},null,{quotes: false, stream:true,batchSize:2})", map("query",query),
                 getAndCheckStreamingMetadataQueryMatchUsers(sb));
 
         assertEquals(EXPECTED_QUERY_WITHOUT_QUOTES, sb.toString());
@@ -372,7 +373,7 @@ public class ExportCsvTest {
     @Test public void testCypherCsvStreamingWithAlwaysQuotes() throws Exception {
         String query = "MATCH (a:Address) return a.name, a.city, a.street, labels(a)";
         StringBuilder sb = new StringBuilder();
-        TestUtil.testResult(db, "CALL apoc.export.csv.query({query},null,{quotes: 'always', stream:true,batchSize:2})", map("query",query),
+        testResult(db, "CALL apoc.export.csv.query({query},null,{quotes: 'always', stream:true,batchSize:2})", map("query",query),
                 getAndCheckStreamingMetadataQueryMatchAddress(sb));
 
         assertEquals(EXPECTED_QUERY_QUOTES_ALWAYS, sb.toString());
@@ -381,7 +382,7 @@ public class ExportCsvTest {
     @Test public void testCypherCsvStreamingWithNeededQuotes() throws Exception {
         String query = "MATCH (a:Address) return a.name, a.city, a.street, labels(a)";
         StringBuilder sb = new StringBuilder();
-        TestUtil.testResult(db, "CALL apoc.export.csv.query({query},null,{quotes: 'ifNeeded', stream:true,batchSize:2})", map("query",query),
+        testResult(db, "CALL apoc.export.csv.query({query},null,{quotes: 'ifNeeded', stream:true,batchSize:2})", map("query",query),
                 getAndCheckStreamingMetadataQueryMatchAddress(sb));
 
         assertEquals(EXPECTED_QUERY_QUOTES_NEEDED, sb.toString());
@@ -390,7 +391,7 @@ public class ExportCsvTest {
     @Test public void testCypherCsvStreamingWithNoneQuotes() throws Exception {
         String query = "MATCH (a:Address) return a.name, a.city, a.street, labels(a)";
         StringBuilder sb = new StringBuilder();
-        TestUtil.testResult(db, "CALL apoc.export.csv.query({query},null,{quotes: 'none', stream:true,batchSize:2})", map("query",query),
+        testResult(db, "CALL apoc.export.csv.query({query},null,{quotes: 'none', stream:true,batchSize:2})", map("query",query),
                 getAndCheckStreamingMetadataQueryMatchAddress(sb));
 
         assertEquals(EXPECTED_QUERY_QUOTES_NONE, sb.toString());
@@ -446,4 +447,5 @@ public class ExportCsvTest {
             sb.append(r.get("data"));
         };
     }
+
 }

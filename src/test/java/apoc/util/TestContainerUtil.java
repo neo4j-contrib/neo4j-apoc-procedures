@@ -30,13 +30,17 @@ public class TestContainerUtil {
 
     public static Neo4jContainerExtension createEnterpriseDB(boolean withLogging) {
         // We define the container with external volumes
+        File importFolder = new File("target/import");
+        importFolder.mkdirs();
         Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension("neo4j:4.0.0-alpha09mr02-enterprise")
                 .withPlugins(MountableFile.forHostPath("./target/tests/gradle-build/libs")) // map the apoc's artifact dir as the Neo4j's plugin dir
                 .withAdminPassword("apoc")
 //                .withNeo4jConfig("apoc.export.file.enabled", "true")
                 .withEnv("apoc.export.file.enabled", "true")
                 .withNeo4jConfig("dbms.security.procedures.unrestricted", "apoc.*")
-//                .withEnv("NEO4J_wrapper_java_additional","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 -Xdebug-Xnoagent-Djava.compiler=NONE-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005")
+//                .withEnv("NEO4J_dbms_jvm_additional","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005")
+                .withEnv("apoc.export.file.enabled", "true")
+                .withExposedPorts(5005)
                 .withFileSystemBind("./target/import", "/import") // map the "target/import" dir as the Neo4j's import dir
                 .withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes");
         if (withLogging) {

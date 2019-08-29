@@ -1,17 +1,19 @@
 package apoc;
 
 import apoc.load.Jdbc;
+import apoc.util.SimpleRateLimiter;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.combined.CombinedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.config.Setting;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
+import org.neo4j.logging.NullLog;
 import org.neo4j.logging.internal.LogService;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
@@ -19,7 +21,6 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,30 +64,31 @@ public class ApocConfig extends LifecycleAdapter {
     private final Config neo4jConfig;
     private final Log log;
     private final GlobalProceduresRegistry globalProceduresRegistry;
-    private final GraphDatabaseService graphDatabaseService;
 
     private Configuration config;
 
     private static ApocConfig theInstance;
+    private LoggingType loggingType;
+    private SimpleRateLimiter rateLimiter;
 
-    public ApocConfig(Config neo4jConfig, LogService log, GlobalProceduresRegistry globalProceduresRegistry, GraphDatabaseService graphDatabaseService) {
+    public ApocConfig(Config neo4jConfig, LogService log, GlobalProceduresRegistry globalProceduresRegistry) {
         this.neo4jConfig = neo4jConfig;
         this.log = log.getInternalLog(ApocConfig.class);
         this.globalProceduresRegistry = globalProceduresRegistry;
-        this.graphDatabaseService = graphDatabaseService;
         theInstance = this;
 
         // expose this config instance via `@Context ApocConfig config`
-        if (globalProceduresRegistry!=null) {
-            globalProceduresRegistry.registerComponent((Class<ApocConfig>) getClass(), ctx -> this, true);
-            this.log.info("successfully registered ApocConfig for @Context");
-        }
+        globalProceduresRegistry.registerComponent((Class<ApocConfig>) getClass(), ctx -> this, true);
+        this.log.info("successfully registered ApocConfig for @Context");
     }
 
-    public static void withNonSystemDatabase(GraphDatabaseService db, Consumer<Void> consumer) {
-        if (!db.databaseName().equals(SYSTEM_DATABASE_NAME)) {
-            consumer.accept(null);
-        }
+    // use only for unit tests
+    public ApocConfig() {
+        this.neo4jConfig = null;
+        this.log = NullLog.getInstance();
+        this.globalProceduresRegistry = null;
+        theInstance = this;
+        this.config = new PropertiesConfiguration();
     }
 
     public Configuration getConfig() {
@@ -94,16 +96,13 @@ public class ApocConfig extends LifecycleAdapter {
     }
 
     @Override
-    public void start() throws Exception {
-        withNonSystemDatabase(graphDatabaseService, aVoid -> {
-            // grab NEO4J_CONF from environment. If not set, calculate it from sun.java.command system property
-            String neo4jConfFolder = System.getenv().getOrDefault("NEO4J_CONF", determineNeo4jConfFolder());
-            System.setProperty("NEO4J_CONF", neo4jConfFolder);
-            log.info("system property NEO4J_CONF set to %s", neo4jConfFolder);
-
-
-            loadConfiguration();
-        });
+    public void init() throws Exception {
+        log.debug("called init");
+        // grab NEO4J_CONF from environment. If not set, calculate it from sun.java.command system property
+        String neo4jConfFolder = System.getenv().getOrDefault("NEO4J_CONF", determineNeo4jConfFolder());
+        System.setProperty("NEO4J_CONF", neo4jConfFolder);
+        log.info("system property NEO4J_CONF set to %s", neo4jConfFolder);
+        loadConfiguration();
     }
 
     protected String determineNeo4jConfFolder() {
@@ -135,8 +134,12 @@ public class ApocConfig extends LifecycleAdapter {
 
             // copy apoc settings from neo4j.conf for legacy support
             neo4jConfig.getDeclaredSettings().entrySet().stream()
+                    .filter(e-> !config.containsKey(e.getKey()))
                     .filter(e -> e.getKey().startsWith("apoc."))
-                    .forEach(e -> config.setProperty(e.getKey(), neo4jConfig.get(e.getValue())));
+                    .forEach(e -> {
+                        log.info("setting from neo4j.conf: " + e.getKey() + "=" + neo4jConfig.get(e.getValue()));
+                        config.setProperty(e.getKey(), neo4jConfig.get(e.getValue()));
+                    });
 
             for (Setting s : NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES) {
                 Object value = neo4jConfig.get(s);
@@ -149,9 +152,34 @@ public class ApocConfig extends LifecycleAdapter {
             config.setProperty(APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM, allowFileUrls);
 
             loadJdbcDrivers();
+
+            initLogging();
         } catch (ConfigurationException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public LoggingType getLoggingType() {
+        return loggingType;
+    }
+
+    public SimpleRateLimiter getRateLimiter() {
+        return rateLimiter;
+    }
+
+    public void setLoggingType(LoggingType loggingType) {
+        this.loggingType = loggingType;
+    }
+
+    public void setRateLimiter(SimpleRateLimiter rateLimiter) {
+        this.rateLimiter = rateLimiter;
+    }
+
+    public enum LoggingType {none, safe, raw}
+
+    private void initLogging() {
+        loggingType = LoggingType.valueOf(getString("apoc.user.log.type", "safe").trim());
+        rateLimiter = new SimpleRateLimiter(getInt( "apoc.user.log.window.time", 10000), getInt("apoc.user.log.window.ops", 10));
     }
 
     private void loadJdbcDrivers() {
@@ -183,6 +211,10 @@ public class ApocConfig extends LifecycleAdapter {
 
     public Iterator<String> getKeys(String prefix) {
         return getConfig().getKeys(prefix);
+    }
+
+    public boolean containsKey(String key) {
+        return getConfig().containsKey(key);
     }
 
     public String getString(String key) {

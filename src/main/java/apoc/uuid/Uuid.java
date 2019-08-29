@@ -1,6 +1,5 @@
 package apoc.uuid;
 
-import apoc.ApocConfiguration;
 import apoc.Description;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
@@ -17,6 +16,9 @@ import org.neo4j.procedure.Procedure;
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import static apoc.ApocConfig.APOC_UUID_ENABLED;
+import static apoc.ApocConfig.apocConfig;
 
 public class Uuid {
 
@@ -130,7 +132,7 @@ public class Uuid {
 
         @Override
         public void start() {
-            boolean enabled = Util.toBoolean(ApocConfiguration.get("uuid.enabled", null));
+            boolean enabled = apocConfig().getBoolean(APOC_UUID_ENABLED);
             if (!enabled) {
                 return;
             }

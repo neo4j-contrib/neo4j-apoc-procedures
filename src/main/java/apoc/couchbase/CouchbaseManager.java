@@ -1,14 +1,16 @@
 package apoc.couchbase;
 
-import apoc.ApocConfiguration;
 import com.couchbase.client.java.auth.PasswordAuthenticator;
 import com.couchbase.client.java.env.DefaultCouchbaseEnvironment;
+import org.apache.commons.configuration2.Configuration;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.parboiled.common.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+
+import static apoc.ApocConfig.apocConfig;
 
 /**
  * Creates a {@link CouchbaseConnection} though that all of the operations
@@ -72,15 +74,15 @@ public class CouchbaseManager {
      * @return a tuple2, the connections objects that we need to establish a connection to a Couchbase Server
      */
     protected static Pair<PasswordAuthenticator, List<String>> getConnectionObjectsFromConfigurationKey(String configurationKey) {
-        Map<String, Object> couchbaseConfig = getKeyMap(configurationKey);
+        Configuration couchbaseConfig = getKeyMap(configurationKey);
 
         Object username, password;
-        if ((username = couchbaseConfig.get(USERNAME_CONFIG_KEY)) == null || (password = couchbaseConfig.get(PASSWORD_CONFIG_KEY)) == null) {
+        if ((username = couchbaseConfig.getString(USERNAME_CONFIG_KEY)) == null || (password = couchbaseConfig.getString(PASSWORD_CONFIG_KEY)) == null) {
             throw new RuntimeException("Please check you 'apoc.couchbase." + configurationKey + "' configuration, username and password are missing");
         }
 
         Object url;
-        if ((url = couchbaseConfig.get(URI_CONFIG_KEY)) == null) {
+        if ((url = couchbaseConfig.getString(URI_CONFIG_KEY)) == null) {
             throw new RuntimeException("Please check you 'apoc.couchbase." + configurationKey + "' configuration, url is missing");
         }
 
@@ -159,11 +161,11 @@ public class CouchbaseManager {
         builder.ioPoolSize(Integer.parseInt(getConfig("ioPoolSize")));
         builder.computationPoolSize(Integer.parseInt(getConfig("computationPoolSize")));
         if (singleHostURI == null || singleHostURI.getScheme() == null) {
-            Map<String, Object> couchbaseConfig = getKeyMap(hostOrKey);
+            Configuration couchbaseConfig = getKeyMap(hostOrKey);
 
-            Object port;
-            if ((port = couchbaseConfig.get(PORT_CONFIG_KEY)) != null) {
-                builder.bootstrapHttpDirectPort(Integer.parseInt(port.toString()));
+            int port;
+            if (( port = couchbaseConfig.getInt(PORT_CONFIG_KEY, -1)) != -1) {
+                builder.bootstrapHttpDirectPort(port);
             }
         } else {
             if (singleHostURI.getPort() != -1) {
@@ -175,26 +177,28 @@ public class CouchbaseManager {
 
     private static List<String> getNodes(String hostOrKey) {
         URI singleHostURI = checkAndGetURI(hostOrKey);
-        Object url;
+        String url;
         if (singleHostURI == null || singleHostURI.getScheme() == null) {
-            Map<String, Object> couchbaseConfig = getKeyMap(hostOrKey);
-            if ((url = couchbaseConfig.get(URI_CONFIG_KEY)) == null) {
+            Configuration couchbaseConfig = getKeyMap(hostOrKey);
+
+            url = couchbaseConfig.getString(URI_CONFIG_KEY, null);
+            if (url == null)  {
                 throw new RuntimeException("Please check you 'apoc.couchbase." + hostOrKey + "' configuration, url is missing");
             }
         } else {
             url = singleHostURI.getHost();
         }
-        return Arrays.asList(url.toString().split(","));
+        return Arrays.asList(url.split(","));
     }
 
     private static PasswordAuthenticator getPasswordAuthenticator(String hostOrKey) {
         URI singleHostURI = checkAndGetURI(hostOrKey);
 
         if (singleHostURI == null || singleHostURI.getScheme() == null) {
-            Map<String, Object> couchbaseConfig = getKeyMap(hostOrKey);
+            Configuration couchbaseConfig = getKeyMap(hostOrKey);
 
             Object username, password;
-            if ((username = couchbaseConfig.get(USERNAME_CONFIG_KEY)) == null || (password = couchbaseConfig.get(PASSWORD_CONFIG_KEY)) == null) {
+            if ((username = couchbaseConfig.getString(USERNAME_CONFIG_KEY)) == null || (password = couchbaseConfig.getString(PASSWORD_CONFIG_KEY)) == null) {
                 throw new RuntimeException("Please check you 'apoc.couchbase." + hostOrKey + "' configuration, username and password are missing");
             }
 
@@ -205,8 +209,8 @@ public class CouchbaseManager {
         }
     }
 
-    private static Map<String, Object> getKeyMap(String hostOrKey) {
-        Map<String, Object> couchbaseConfig = ApocConfiguration.get(COUCHBASE_CONFIG_KEY + hostOrKey);
+    private static Configuration getKeyMap(String hostOrKey) {
+        Configuration couchbaseConfig = apocConfig().getConfig().subset("apoc." + COUCHBASE_CONFIG_KEY + hostOrKey);
 
         if (couchbaseConfig.isEmpty()) {
             throw new RuntimeException("Please check neo4j.conf file 'apoc.couchbase." + hostOrKey + "' is missing");
@@ -216,7 +220,7 @@ public class CouchbaseManager {
     }
 
     public static String getConfig(String key) {
-        return ApocConfiguration.get(COUCHBASE_CONFIG_KEY + key, DEFAULT_CONFIG.get(key)).toString();
+        return apocConfig().getString("apoc." + COUCHBASE_CONFIG_KEY + key, DEFAULT_CONFIG.get(key).toString());
     }
 
 }

@@ -8,10 +8,10 @@ public class SimpleRateLimiter {
     private final AtomicInteger countDownLatch = new AtomicInteger(0);
     private final AtomicLong lastUpdate = new AtomicLong(0);
 
-    private final long timeWindow;
+    private final int timeWindow;
     private final int operationPerWindow;
 
-    public SimpleRateLimiter(long timeWindow, int operationPerWindow) {
+    public SimpleRateLimiter(int timeWindow, int operationPerWindow) {
         this.timeWindow = timeWindow;
         this.operationPerWindow = operationPerWindow;
     }

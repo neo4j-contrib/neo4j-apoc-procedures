@@ -1,7 +1,6 @@
 package apoc.util;
 
 import apoc.ApocConfig;
-import apoc.ApocConfiguration;
 import apoc.export.util.CountingInputStream;
 import apoc.export.util.CountingReader;
 import apoc.util.hdfs.HDFSUtils;
@@ -158,7 +157,7 @@ public class FileUtils {
         } else {
             boolean enabled = isImportUsingNeo4jConfig();
             if (enabled) {
-                String importDir = getConfiguredImportDirectory();
+                String importDir = apocConfig().getString("dbms.directories.import", "import");
                 File file = new File(importDir, fileName);
                 outputStream = new FileOutputStream(file);
             } else {
@@ -171,10 +170,6 @@ public class FileUtils {
 
     private static boolean isImportUsingNeo4jConfig() {
         return apocConfig().getBoolean(ApocConfig.APOC_IMPORT_FILE_USE_NEO4J_CONFIG);
-    }
-
-    public static String getConfiguredImportDirectory() {
-        return ApocConfiguration.get("dbms.directories.import", "import");
     }
 
     public static StreamConnection openS3InputStream(URL url) throws IOException {
@@ -216,8 +211,8 @@ public class FileUtils {
      * @returns a File pointing to Neo4j's log directory, if it exists and is readable, null otherwise.
      */
     public static File getLogDirectory() {
-        String neo4jHome = ApocConfiguration.get("unsupported.dbms.directories.neo4j_home", "");
-        String logDir = ApocConfiguration.get("dbms.directories.logs", "");
+        String neo4jHome = apocConfig().getString("unsupported.dbms.directories.neo4j_home", "");
+        String logDir = apocConfig().getString("dbms.directories.logs", "");
 
         File logs = logDir.isEmpty() ? new File(neo4jHome, "logs") : new File(logDir);
 
@@ -233,8 +228,8 @@ public class FileUtils {
      * aren't enabled, or aren't readable.
      */
     public static File getMetricsDirectory() {
-        String neo4jHome = ApocConfiguration.get("unsupported.dbms.directories.neo4j_home", "");
-        String metricsSetting = ApocConfiguration.get("dbms.directories.metrics", "");
+        String neo4jHome = apocConfig().getString("unsupported.dbms.directories.neo4j_home", "");
+        String metricsSetting = apocConfig().getString("dbms.directories.metrics", "");
 
         File metricsDir = metricsSetting.isEmpty() ? new File(neo4jHome, "metrics") : new File(metricsSetting);
 
@@ -243,28 +238,6 @@ public class FileUtils {
         }
 
         return null;
-    }
-
-    /**
-     * Given a file, determine whether it resides in neo4j controlled directory or not.  This method takes into account
-     * the possibility of symlinks / hardlinks.  Keep in mind Neo4j does not have one root home, but its configured
-     * directories may be spread all over the filesystem, so there's no parent.
-     * @param f the file to check
-     * @return true if the file's actual storage is in the neo4j home directory, false otherwise.  If f is a symlink
-     * that resides in a neo4j directory that points somewhere outside, returns false.
-     * @throws IOException if the canonical path cannot be determined.
-     */
-    public static boolean inNeo4jOwnedDirectory(File f) throws IOException {
-        String canonicalPath = f.getCanonicalPath();
-
-        for(String dirSetting : NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES) {
-            String actualDir = ApocConfiguration.get(dirSetting, null);
-            if (canonicalPath.contains(actualDir)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     // This is the list of dbms.directories.* valid configuration items for neo4j.

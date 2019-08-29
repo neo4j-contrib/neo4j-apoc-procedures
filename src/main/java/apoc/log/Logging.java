@@ -1,7 +1,6 @@
 package apoc.log;
 
-import apoc.ApocConfiguration;
-import apoc.util.SimpleRateLimiter;
+import apoc.ApocConfig;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -17,28 +16,11 @@ import java.util.function.Consumer;
  */
 public class Logging {
 
-    enum LoggingType {none, safe, raw}
-
-    private static LoggingType LOGGING_TYPE;
-
-    private static SimpleRateLimiter RATE_LIMITER;
-
-    public Logging() {}
-
-    public Logging(LoggingType loggingType, long timeWindow, int maxOpsPerWindow) { // for testing purpose only
-        LOGGING_TYPE = loggingType;
-        RATE_LIMITER = new SimpleRateLimiter(timeWindow, maxOpsPerWindow);
-
-    }
-
-    static {
-        LOGGING_TYPE = LoggingType.valueOf(ApocConfiguration.get("user.log.type", "safe").trim());
-        RATE_LIMITER = new SimpleRateLimiter(Long.valueOf(ApocConfiguration.get("user.log.window.time", "10000")),
-                Integer.valueOf(ApocConfiguration.get("user.log.window.ops", "10")));
-    }
-
     @Context
     public Log log;
+
+    @Context
+    public ApocConfig apocConfig;
 
     @Procedure
     @Description("apoc.log.error(message, params) - logs error message")
@@ -71,7 +53,7 @@ public class Logging {
     public String format(String message, List<Object> params) { // visible for testing
         if (canLog()) {
             String formattedMessage = String.format(message, params.isEmpty() ? new Object[0] : params.toArray(new Object[params.size()]));
-            if (LoggingType.safe == LOGGING_TYPE) {
+            if (ApocConfig.LoggingType.safe == apocConfig.getLoggingType()) {
                 return formattedMessage.replaceAll("\\.| |\\t", "_").toLowerCase();
             }
             return formattedMessage;
@@ -87,10 +69,10 @@ public class Logging {
     }
 
     private boolean canLog() {
-        if (LoggingType.none == LOGGING_TYPE) {
+        if (ApocConfig.LoggingType.none == apocConfig.getLoggingType()) {
             return false;
         }
-        return RATE_LIMITER.canExecute();
+        return apocConfig.getRateLimiter().canExecute();
     }
 
 }

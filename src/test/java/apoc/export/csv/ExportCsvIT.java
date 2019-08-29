@@ -7,6 +7,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.v1.Session;
 
+import java.io.IOException;
 import java.util.List;
 
 import static apoc.util.MapUtil.map;
@@ -39,7 +40,7 @@ public class ExportCsvIT {
     }
 
     @AfterClass
-    public static void afterAll() {
+    public static void afterAll() throws IOException, InterruptedException {
         if (neo4jContainer != null) {
             neo4jContainer.close();
         }

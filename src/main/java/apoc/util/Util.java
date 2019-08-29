@@ -1,6 +1,5 @@
 package apoc.util;
 
-import apoc.ApocConfiguration;
 import apoc.export.util.CountingInputStream;
 import apoc.path.RelationshipTypeAndDirections;
 import org.apache.commons.io.IOUtils;
@@ -267,8 +266,8 @@ public class Util {
             headers.forEach((k,v) -> con.setRequestProperty(k, v == null ? "" : v.toString()));
         }
 //        con.setDoInput(true);
-        con.setConnectTimeout(toLong(ApocConfiguration.get("http.timeout.connect",10_000)).intValue());
-        con.setReadTimeout(toLong(ApocConfiguration.get("http.timeout.read",60_000)).intValue());
+        con.setConnectTimeout(apocConfig().getInt("apoc.http.timeout.connect",10_000));
+        con.setReadTimeout(apocConfig().getInt("apoc.http.timeout.read",60_000));
         return con;
     }
 

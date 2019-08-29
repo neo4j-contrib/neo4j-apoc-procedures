@@ -1,7 +1,6 @@
 package apoc;
 
 import org.neo4j.configuration.Config;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
 import org.neo4j.kernel.extension.context.ExtensionContext;
@@ -18,16 +17,15 @@ public class ApocConfigExtensionFactory extends ExtensionFactory<ApocConfigExten
         LogService log();
         Config config();
         GlobalProceduresRegistry globalProceduresRegistry();
-        GraphDatabaseService graphDatabaseService();
     }
 
     public ApocConfigExtensionFactory() {
-        super(ExtensionType.DATABASE, "ApocConfig");
+        super(ExtensionType.GLOBAL, "ApocConfig");
     }
 
     @Override
     public Lifecycle newInstance(ExtensionContext context, Dependencies dependencies) {
-        return new ApocConfig(dependencies.config(), dependencies.log(), dependencies.globalProceduresRegistry(), dependencies.graphDatabaseService());
+        return new ApocConfig(dependencies.config(), dependencies.log(), dependencies.globalProceduresRegistry());
     }
 
 }

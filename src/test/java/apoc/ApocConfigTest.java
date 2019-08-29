@@ -4,10 +4,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.logging.AssertableLogProvider;
 import org.neo4j.logging.LogProvider;
 import org.neo4j.logging.internal.SimpleLogService;
+import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
 import java.io.File;
 import java.util.Collections;
@@ -31,9 +31,9 @@ public class ApocConfigTest {
         when(neo4jConfig.get(any())).thenReturn(null);
         when(neo4jConfig.get(GraphDatabaseSettings.allow_file_urls)).thenReturn(false);
 
-        GraphDatabaseService db = mock(GraphDatabaseService.class);
-        when(db.databaseName()).thenReturn(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
-        cut = new ApocConfig(neo4jConfig, new SimpleLogService(logProvider), null, db);
+        GlobalProceduresRegistry registry = mock(GlobalProceduresRegistry.class);
+
+        cut = new ApocConfig(neo4jConfig, new SimpleLogService(logProvider), registry);
     }
 
     @Test
@@ -53,7 +53,7 @@ public class ApocConfigTest {
     public void testApocConfFileBeingLoaded() throws Exception {
         String confDir = new File(getClass().getClassLoader().getResource("apoc.conf").toURI()).getParent();
         System.setProperty(SUN_JAVA_COMMAND, "com.neo4j.server.enterprise.CommercialEntryPoint --home-dir=/home/stefan/neo4j-enterprise-4.0.0-alpha09mr02 --config-dir=" + confDir);
-        cut.start();
+        cut.init();
 
         assertEquals("bar", cut.getConfig().getString("foo"));
     }

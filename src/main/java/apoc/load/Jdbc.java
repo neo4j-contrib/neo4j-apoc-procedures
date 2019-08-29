@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.ApocConfiguration;
 import apoc.load.util.LoadJdbcConfig;
 import apoc.result.RowResult;
 import apoc.util.MapUtil;
@@ -28,11 +27,13 @@ import static apoc.load.util.JdbcUtil.*;
  */
 public class Jdbc {
 
+/*
     static {
         ApocConfiguration.get("jdbc").forEach((k, v) -> {
             if (k.endsWith("driver")) loadDriver(v.toString());
         });
     }
+*/
 
     @Context
     public Log log;
