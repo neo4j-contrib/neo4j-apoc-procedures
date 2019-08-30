@@ -226,9 +226,9 @@ test {
         }
     }
 
-    //maxHeapSize = "8G"
-//    forkEvery = 1
-//    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+    maxHeapSize = "8G"
+    forkEvery = 100
+    //maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 //}
 
     if (System.env.TRAVIS !=null) {
