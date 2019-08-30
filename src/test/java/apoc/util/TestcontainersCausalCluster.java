@@ -41,7 +41,7 @@ public class TestcontainersCausalCluster {
         return IntStream.rangeClosed(1, numOfMembers).mapToObj(generateInstanceName);
     }
 
-    public static TestcontainersCausalCluster create(int numberOfCoreMembers, int numberOfReadReplica, Duration timeout, Map<String, Object> neo4jConfig) {
+    public static TestcontainersCausalCluster create(int numberOfCoreMembers, int numberOfReadReplica, Duration timeout, Map<String, Object> neo4jConfig, Map<String, String> envSettings) {
         if (numberOfCoreMembers < 3) {
             throw new IllegalArgumentException("numberOfCoreMembers must be >= 3");
         }
@@ -65,8 +65,8 @@ public class TestcontainersCausalCluster {
         sidecars.values().forEach(GenericContainer::start);
 
         // Build the core/read_replica
-        List<Neo4jContainerExtension> members = getClusterMembers(numberOfCoreMembers, ClusterInstanceType.CORE, sidecars, network, initialDiscoveryMembers, neo4jConfig, timeout);
-        members.addAll(getClusterMembers(numberOfReadReplica, ClusterInstanceType.READ_REPLICA, sidecars, network, initialDiscoveryMembers, neo4jConfig, timeout));
+        List<Neo4jContainerExtension> members = getClusterMembers(numberOfCoreMembers, ClusterInstanceType.CORE, sidecars, network, initialDiscoveryMembers, neo4jConfig, envSettings, timeout);
+        members.addAll(getClusterMembers(numberOfReadReplica, ClusterInstanceType.READ_REPLICA, sidecars, network, initialDiscoveryMembers, neo4jConfig, envSettings, timeout));
 
         // Start all of them in parallel
         final CountDownLatch latch = new CountDownLatch(numberOfCoreMembers);
@@ -91,7 +91,7 @@ public class TestcontainersCausalCluster {
                                                                    Network network,
                                                                    String initialDiscoveryMembers,
                                                                    Map<String, Object> neo4jConfig,
-                                                                   Duration timeout) {
+                                                                   Map<String, String> envSettings, Duration timeout) {
         // Currently needed as a whole new waiting strategy due to a bug in test containers
         WaitStrategy waitForBolt = new LogMessageWaitStrategy()
                 .withRegEx(String.format(".*Bolt enabled on 0\\.0\\.0\\.0:%d\\.\n", DEFAULT_BOLT_PORT))
@@ -99,7 +99,7 @@ public class TestcontainersCausalCluster {
         Function<GenericContainer, String> getProxyUrl = instance ->
                 String.format("%s:%d", instance.getContainerIpAddress(), instance.getMappedPort(DEFAULT_BOLT_PORT));
         return iterateMembers(numberOfCoreMembers, instanceType)
-                .map(name -> getNeo4jContainerExtension(waitForBolt, network, initialDiscoveryMembers, sidecars, getProxyUrl, instanceType, neo4jConfig, name))
+                .map(name -> getNeo4jContainerExtension(waitForBolt, network, initialDiscoveryMembers, sidecars, getProxyUrl, instanceType, neo4jConfig, envSettings, name))
                 .collect(toList());
     }
 
@@ -126,11 +126,12 @@ public class TestcontainersCausalCluster {
                                                                       Function<GenericContainer, String> getProxyUrl,
                                                                       ClusterInstanceType instanceType,
                                                                       Map<String, Object> neo4jConfig,
-                                                                      String name) {
+                                                                      Map<String, String> envSettings, String name) {
         Neo4jContainerExtension container =  TestContainerUtil.createEnterpriseDB(!TestUtil.isTravis())
                 .withLabel("memberType", instanceType.toString())
                 .withNetwork(network)
                 .withNetworkAliases(name)
+                .withCreateContainerCmdModifier(cmd -> cmd.withHostName(name))
                 .withoutDriver()
                 .withNeo4jConfig("dbms.mode", instanceType.toString())
                 .withNeo4jConfig("dbms.connectors.default_listen_address", "0.0.0.0")
@@ -139,6 +140,7 @@ public class TestcontainersCausalCluster {
                 .withNeo4jConfig("causal_clustering.initial_discovery_members", initialDiscoveryMembers)
                 .waitingFor(waitForBolt);
         neo4jConfig.forEach((conf, value) -> container.withNeo4jConfig(conf, String.valueOf(value)));
+        container.withEnv(envSettings);
         return container;
     }
 
