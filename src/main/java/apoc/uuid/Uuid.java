@@ -1,6 +1,7 @@
 package apoc.uuid;
 
 import apoc.Description;
+import apoc.Pools;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.dbms.api.DatabaseManagementService;
@@ -25,6 +26,9 @@ public class Uuid {
     @Context
     public GraphDatabaseService db;
 
+    @Context
+    public Pools pools;
+
     @Procedure(mode = Mode.DBMS)
     @Description("CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult | it will add the uuid transaction handler\n" +
             "for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one")
@@ -33,7 +37,7 @@ public class Uuid {
         UuidHandler.checkConstraintUuid(label, uuidConfig);
         Map<String, Object> addToExistingNodesResult = Collections.emptyMap();
         if (uuidConfig.isAddToExistingNodes()) {
-            addToExistingNodesResult = Util.inTx(db, () ->
+            addToExistingNodesResult = Util.inTx(db, pools, () ->
                     db.execute("CALL apoc.periodic.iterate(" +
                             "\"MATCH (n:" + Util.sanitizeAndQuote(label) + ") RETURN n\",\n" +
                             "\"SET n." + Util.sanitizeAndQuote(uuidConfig.getUuidProperty()) + " = apoc.create.uuid()\", {batchSize:10000, parallel:true})")

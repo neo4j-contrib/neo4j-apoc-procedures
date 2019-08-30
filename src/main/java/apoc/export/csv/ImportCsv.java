@@ -1,6 +1,7 @@
 package apoc.export.csv;
 
 import apoc.Description;
+import apoc.Pools;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
 import apoc.util.Util;
@@ -19,6 +20,9 @@ public class ImportCsv {
     @Context
     public GraphDatabaseService db;
 
+    @Context
+    public Pools pools;
+
     public ImportCsv(GraphDatabaseService db) {
         this.db = db;
     }
@@ -34,7 +38,7 @@ public class ImportCsv {
             @Name("config") Map<String, Object> config
     ) throws Exception {
         ProgressInfo result =
-                Util.inThread(() -> {
+                Util.inThread(pools, () -> {
                     final ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo("progress.csv", "file", "csv"));
 
                     final CsvLoaderConfig clc = CsvLoaderConfig.from(config);

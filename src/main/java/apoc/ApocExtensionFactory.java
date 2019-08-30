@@ -92,7 +92,6 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
                 services.put("ttl", new TTLLifeCycle(dependencies.scheduler(), db, dependencies.config(), log.getUserLog(TTLLifeCycle.class)));
                 services.put("uuid", new Uuid.UuidLifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Uuid.class)));
                 services.put("trigger", new Trigger.LifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Trigger.class)));
-                services.put("pools", new PoolsLifecycle());
 
                 services.entrySet().stream().forEach(entry -> {
                     try {

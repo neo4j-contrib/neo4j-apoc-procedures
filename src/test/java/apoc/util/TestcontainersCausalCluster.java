@@ -131,7 +131,7 @@ public class TestcontainersCausalCluster {
                 .withLabel("memberType", instanceType.toString())
                 .withNetwork(network)
                 .withNetworkAliases(name)
-                .withCreateContainerCmdModifier(cmd -> cmd.withHostName(name))
+                .withCreateContainerCmdModifier(cmd -> {cmd.withHostName(name); cmd.withMemory(512 * 1024 * 1024l   );})
                 .withoutDriver()
                 .withNeo4jConfig("dbms.mode", instanceType.toString())
                 .withNeo4jConfig("dbms.connectors.default_listen_address", "0.0.0.0")

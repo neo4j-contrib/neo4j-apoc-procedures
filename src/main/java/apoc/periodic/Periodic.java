@@ -1,5 +1,6 @@
 package apoc.periodic;
 
+import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
@@ -19,7 +20,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.PoolsLifecycle.pools;
 import static apoc.util.Util.merge;
 import static java.lang.System.nanoTime;
 import static java.util.Collections.singletonMap;
@@ -34,11 +34,14 @@ public class Periodic {
     @Context public GraphDatabaseService db;
     @Context public TerminationGuard terminationGuard;
     @Context public Log log;
+    @Context
+    public Pools pools;
+
 
     @Procedure
     @Description("apoc.periodic.list - list all jobs")
     public Stream<JobInfo> list() {
-        return pools().getJobList().entrySet().stream().map( (e) -> e.getKey().update(e.getValue()));
+        return pools.getJobList().entrySet().stream().map( (e) -> e.getKey().update(e.getValue()));
     }
 
     @Procedure(mode = Mode.WRITE)
@@ -60,7 +63,7 @@ public class Periodic {
 
         do {
             Map<String, Object> window = Util.map("_count", updates, "_total", total);
-            updates = Util.getFuture(pools().getScheduledExecutorService().submit(() -> {
+            updates = Util.getFuture(pools.getScheduledExecutorService().submit(() -> {
                 batches.incrementAndGet();
                 try {
                     return executeNumericResultStatement(statement, merge(window, params));
@@ -134,7 +137,7 @@ public class Periodic {
     @Description("apoc.periodic.cancel(name) - cancel job with the given name")
     public Stream<JobInfo> cancel(@Name("name") String name) {
         JobInfo info = new JobInfo(name);
-        Future future = pools().getJobList().remove(info);
+        Future future = pools.getJobList().remove(info);
         if (future != null) {
             future.cancel(true);
             return Stream.of(info.update(future));
@@ -174,29 +177,28 @@ public class Periodic {
     /**
      * Call from a procedure that gets a <code>@Context GraphDatbaseAPI db;</code> injected and provide that db to the runnable.
      */
-    public static <T> JobInfo submit(String name, Runnable task) {
+    public <T> JobInfo submit(String name, Runnable task) {
         JobInfo info = new JobInfo(name);
-        Future<T> future = pools().getJobList().remove(info);
+        Future<T> future = pools.getJobList().remove(info);
         if (future != null && !future.isDone()) future.cancel(false);
 
-        Future newFuture = pools().getScheduledExecutorService().submit(task);
-        pools().getJobList().put(info,newFuture);
+        Future newFuture = pools.getScheduledExecutorService().submit(task);
+        pools.getJobList().put(info,newFuture);
         return info;
     }
 
     /**
      * Call from a procedure that gets a <code>@Context GraphDatbaseAPI db;</code> injected and provide that db to the runnable.
      */
-    public static JobInfo schedule(String name, Runnable task, long delay, long repeat) {
+    public JobInfo schedule(String name, Runnable task, long delay, long repeat) {
         JobInfo info = new JobInfo(name,delay,repeat);
-        Future future = pools().getJobList().remove(info);
+        Future future = pools.getJobList().remove(info);
         if (future != null && !future.isDone()) future.cancel(false);
 
-        ScheduledFuture<?> newFuture = pools().getScheduledExecutorService().scheduleWithFixedDelay(task, delay, repeat, TimeUnit.SECONDS);
-        pools().getJobList().put(info,newFuture);
+        ScheduledFuture<?> newFuture = pools.getScheduledExecutorService().scheduleWithFixedDelay(task, delay, repeat, TimeUnit.SECONDS);
+        pools.getJobList().put(info,newFuture);
         return info;
     }
-
 
     /**
      * as long as cypherLoop does not return 0, null, false, or the empty string as 'value' do:
@@ -256,7 +258,7 @@ public class Periodic {
         boolean parallel = Util.toBoolean(config.getOrDefault("parallel", false));
         boolean iterateList = Util.toBoolean(config.getOrDefault("iterateList", true));
         long retries = Util.toLong(config.getOrDefault("retries", 0)); // todo sleep/delay or push to end of batch to try again or immediate ?
-        Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
+        Map<String,Object> params = (Map<String, Object>) config.getOrDefault("params", Collections.emptyMap());
         int failedParams = Util.toInteger(config.getOrDefault("failedParams", -1));
         try (Result result = db.execute(slottedRuntime(cypherIterate),params)) {
             Pair<String,Boolean> prepared = prepareInnerStatement(cypherAction, iterateList, result.columns(), "_batch");
@@ -304,7 +306,6 @@ public class Periodic {
         return Pattern.compile(pattern,Pattern.CASE_INSENSITIVE|Pattern.MULTILINE|Pattern.DOTALL);
     }
 
-
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
     public Stream<BatchAndTotalResult> rock_n_roll(
@@ -320,7 +321,7 @@ public class Periodic {
 
     private Stream<BatchAndTotalResult> iterateAndExecuteBatchedInSeparateThread(int batchsize, boolean parallel, boolean iterateList, long retries,
                                                                                  Iterator<Map<String, Object>> iterator, Consumer<Map<String, Object>> consumer, int concurrency, int failedParams) {
-        ExecutorService pool = parallel ? pools().getDefaultExecutorService() : pools().getSingleExecutorService();
+        ExecutorService pool = parallel ? pools.getDefaultExecutorService() : pools.getSingleExecutorService();
         List<Future<Long>> futures = new ArrayList<>(concurrency);
         long batches = 0;
         long start = System.nanoTime();
@@ -455,19 +456,6 @@ public class Periodic {
         }
     }
 
-    /**
-     * Call from a procedure that gets a <code>@Context GraphDatbaseAPI db;</code> injected and provide that db to the runnable.
-     */
-    public static JobInfo schedule(String name, Runnable task, long delay) {
-        JobInfo info = new JobInfo(name,delay,0);
-        Future future = pools().getJobList().remove(info);
-        if (future != null) future.cancel(false);
-
-        ScheduledFuture<?> newFuture = pools().getScheduledExecutorService().schedule(task, delay, TimeUnit.SECONDS);
-        pools().getJobList().put(info,newFuture);
-        return info;
-    }
-
     public static class JobInfo {
         public final String name;
         public long delay;
@@ -516,7 +504,7 @@ public class Periodic {
         @Override
         public void run() {
             if (Periodic.this.executeNumericResultStatement(statement, Collections.emptyMap()) > 0) {
-                pools().getScheduledExecutorService().schedule(() -> submit(name, this), rate, TimeUnit.SECONDS);
+                pools.getScheduledExecutorService().schedule(() -> submit(name, this), rate, TimeUnit.SECONDS);
             }
         }
     }

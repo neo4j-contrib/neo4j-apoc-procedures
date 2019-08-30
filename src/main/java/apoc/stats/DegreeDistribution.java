@@ -1,5 +1,6 @@
 package apoc.stats;
 
+import apoc.Pools;
 import apoc.path.RelationshipTypeAndDirections;
 import apoc.util.kernel.MultiThreadedGlobalGraphOperations;
 import org.HdrHistogram.AtomicHistogram;
@@ -22,7 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static apoc.PoolsLifecycle.pools;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_LABEL;
 import static org.neo4j.internal.kernel.api.TokenRead.ANY_RELATIONSHIP_TYPE;
 
@@ -90,11 +90,14 @@ public class DegreeDistribution {
     @Context
     public KernelTransaction tx;
 
+    @Context
+    public Pools pools;
+
     @Procedure
     public Stream<DegreeStats.Result> degrees(@Name(value = "types", defaultValue = "") String types) {
         List<DegreeStats> stats = prepareStats(types);
 
-        MultiThreadedGlobalGraphOperations.forAllNodes(db, pools().getDefaultExecutorService(), BATCHSIZE,
+        MultiThreadedGlobalGraphOperations.forAllNodes(db, pools.getDefaultExecutorService(), BATCHSIZE,
                 (ktx,nodeCursor)-> stats.forEach((s) -> s.computeDegree(nodeCursor, ktx.cursors()))
         );
         return stats.stream().map(DegreeStats::done);

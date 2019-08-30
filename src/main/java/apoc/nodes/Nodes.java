@@ -1,5 +1,6 @@
 package apoc.nodes;
 
+import apoc.Pools;
 import apoc.create.Create;
 import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
@@ -13,7 +14,6 @@ import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.procedure.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -24,8 +24,14 @@ import static apoc.util.Util.map;
 
 public class Nodes {
 
-    @Context public GraphDatabaseService db;
-    @Context public KernelTransaction ktx;
+    @Context
+    public GraphDatabaseService db;
+
+    @Context
+    public KernelTransaction ktx;
+
+    @Context
+    public Pools pools;
 
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.nodes.link([nodes],'REL_TYPE') - creates a linked list of nodes from first to last")
@@ -56,7 +62,7 @@ public class Nodes {
         while (it.hasNext()) {
             final List<Node> batch = Util.take(it, (int)batchSize);
 //            count += Util.inTx(api,() -> batch.stream().peek( n -> {n.getRelationships().forEach(Relationship::delete);n.delete();}).count());
-            count += Util.inTx(db,() -> {db.execute("FOREACH (n in {nodes} | DETACH DELETE n)",map("nodes",batch)).close();return batch.size();});
+            count += Util.inTx(db, pools, () -> {db.execute("FOREACH (n in {nodes} | DETACH DELETE n)",map("nodes",batch)).close();return batch.size();});
         }
         return Stream.of(new LongResult(count));
     }

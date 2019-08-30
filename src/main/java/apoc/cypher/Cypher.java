@@ -1,5 +1,6 @@
 package apoc.cypher;
 
+import apoc.Pools;
 import apoc.result.MapResult;
 import apoc.util.FileUtils;
 import apoc.util.QueueBasedSpliterator;
@@ -7,7 +8,6 @@ import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
-import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.PoolsLifecycle.pools;
 import static apoc.util.MapUtil.map;
 import static apoc.util.Util.param;
 import static apoc.util.Util.quote;
@@ -42,18 +41,18 @@ public class Cypher {
     public static final String COMPILED_PREFIX = "CYPHER runtime="+ Util.COMPILED;
     public static final int PARTITIONS = 100 * Runtime.getRuntime().availableProcessors();
     public static final int MAX_BATCH = 10000;
+
     @Context
     public GraphDatabaseService db;
+
     @Context
     public Log log;
+
     @Context
     public TerminationGuard terminationGuard;
 
-    /*
-    TODO: add in alpha06
     @Context
-    ProcedureTransaction procedureTransaction;
-     */
+    public Pools pools;
 
     @Procedure
     @Description("apoc.cypher.run(fragment, params) yield value - executes reading fragment with the given parameters")
@@ -104,7 +103,7 @@ public class Cypher {
 
     private Stream<RowResult> runManyStatements(Reader reader, Map<String, Object> params, boolean schemaOperation, boolean addStatistics, int timeout) {
         BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100);
-        Util.inThread(() -> {
+        Util.inThread(pools, () -> {
             if (schemaOperation) {
                 runSchemaStatementsInTx(reader, queue, params, addStatistics,timeout);
             } else {
@@ -124,8 +123,8 @@ public class Cypher {
             if (stmt.trim().isEmpty()) continue;
             if (!isSchemaOperation(stmt)) {
                 if (isPeriodicOperation(stmt))
-                    Util.inThread(() -> executeStatement(queue, stmt, params, addStatistics,timeout));
-                else Util.inTx(db, () -> executeStatement(queue, stmt, params, addStatistics,timeout));
+                    Util.inThread(pools, () -> executeStatement(queue, stmt, params, addStatistics,timeout));
+                else Util.inTx(db, pools, () -> executeStatement(queue, stmt, params, addStatistics,timeout));
             }
         }
     }
@@ -137,7 +136,7 @@ public class Cypher {
             String stmt = removeShellControlCommands(scanner.next());
             if (stmt.trim().isEmpty()) continue;
             if (isSchemaOperation(stmt)) {
-                Util.inTx(db, () -> executeStatement(queue, stmt, params, addStatistics, timeout));
+                Util.inTx(db, pools, () -> executeStatement(queue, stmt, params, addStatistics, timeout));
             }
         }
     }
@@ -277,7 +276,7 @@ public class Cypher {
         db.execute("EXPLAIN " + statement).close();
         BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100000);
         Stream<List<Object>> parallelPartitions = Util.partitionSubList(data, (int)(partitions <= 0 ? PARTITIONS : partitions), null);
-        Util.inFuture(() -> {
+        Util.inFuture(pools, () -> {
             long total = parallelPartitions
                 .map((List<Object> partition) -> {
                     try {
@@ -367,14 +366,7 @@ public class Cypher {
     }
 
     private Future<List<Map<String, Object>>> submit(GraphDatabaseService db, String statement, Map<String, Object> params, String key, List<Object> partition) {
-        return pools().getDefaultExecutorService().submit(() -> Iterators.addToCollection(db.execute(statement, parallelParams(params, key, partition)), new ArrayList<>(partition.size())));
-    }
-
-    private static Collection asCollection(Object value) {
-        if (value instanceof Collection) return (Collection) value;
-        if (value instanceof Iterable) return Iterables.asCollection((Iterable) value);
-        if (value instanceof Iterator) return Iterators.asCollection((Iterator) value);
-        return Collections.singleton(value);
+        return pools.getDefaultExecutorService().submit(() -> Iterators.addToCollection(db.execute(statement, parallelParams(params, key, partition)), new ArrayList<>(partition.size())));
     }
 
     @Procedure(mode = WRITE)

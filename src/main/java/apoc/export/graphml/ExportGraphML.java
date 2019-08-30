@@ -1,6 +1,7 @@
 package apoc.export.graphml;
 
 import apoc.ApocConfig;
+import apoc.Pools;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
@@ -37,11 +38,14 @@ public class ExportGraphML {
     @Context
     public ApocConfig apocConfig;
 
+    @Context
+    public Pools pools;
+
     @Procedure(name = "apoc.import.graphml",mode = Mode.WRITE)
     @Description("apoc.import.graphml(file,config) - imports graphml file")
     public Stream<ProgressInfo> file(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         ProgressInfo result =
-        Util.inThread(() -> {
+        Util.inThread(pools, () -> {
             ExportConfig exportConfig = new ExportConfig(config);
             ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, "file", "graphml"));
             XmlGraphMLReader graphMLReader = new XmlGraphMLReader(db).reporter(reporter)

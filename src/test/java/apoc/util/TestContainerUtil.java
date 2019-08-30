@@ -41,7 +41,8 @@ public class TestContainerUtil {
 //                .withEnv("NEO4J_dbms_jvm_additional","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005")
 //                .withExposedPorts(5005)
                 .withFileSystemBind("./target/import", "/import") // map the "target/import" dir as the Neo4j's import dir
-                .withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes");
+                .withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
+                .withCreateContainerCmdModifier(cmd -> cmd.withMemory(512 * 1024 * 1024l));
         if (withLogging) {
             neo4jContainer.withLogging();
         }

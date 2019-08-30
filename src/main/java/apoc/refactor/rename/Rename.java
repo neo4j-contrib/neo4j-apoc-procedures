@@ -1,5 +1,6 @@
 package apoc.refactor.rename;
 
+import apoc.Pools;
 import apoc.periodic.Periodic;
 import apoc.periodic.Periodic.BatchAndTotalResult;
 import apoc.util.MapUtil;
@@ -7,7 +8,6 @@ import apoc.util.Util;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
-import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -28,6 +27,9 @@ public class Rename {
 	@Context public GraphDatabaseService db;
     @Context public Log log;
     @Context public TerminationGuard terminationGuard;
+
+    @Context
+	public Pools pools;
 
     /**
 	 * Rename the Label of a node by creating a new one and deleting the old.
@@ -85,6 +87,7 @@ public class Rename {
         periodic.db = this.db;
         periodic.log = this.log;
         periodic.terminationGuard = this.terminationGuard;
+        periodic.pools = this.pools;
         return periodic;
     }
 

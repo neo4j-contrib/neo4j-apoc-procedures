@@ -1,6 +1,7 @@
 package apoc.nodes;
 
 import apoc.Description;
+import apoc.Pools;
 import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.util.Util;
@@ -18,7 +19,6 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.PoolsLifecycle.pools;
 import static java.util.Collections.*;
 
 /**
@@ -31,8 +31,12 @@ public class Grouping {
 
     @Context
     public GraphDatabaseService db;
+
     @Context
     public Log log;
+
+    @Context
+    public Pools pools;
 
     public static class GroupResult {
         public List<Node> nodes;
@@ -102,7 +106,7 @@ public class Grouping {
 
         List<Future> futures = new ArrayList<>(1000);
 
-        ExecutorService pool = pools().getDefaultExecutorService();
+        ExecutorService pool = pools.getDefaultExecutorService();
         for (String labelName : labels) {
             Label label = Label.label(labelName);
             Label[] singleLabel = {label};

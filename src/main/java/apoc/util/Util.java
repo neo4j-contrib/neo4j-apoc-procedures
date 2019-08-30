@@ -1,5 +1,6 @@
 package apoc.util;
 
+import apoc.Pools;
 import apoc.export.util.CountingInputStream;
 import apoc.path.RelationshipTypeAndDirections;
 import org.apache.commons.io.IOUtils;
@@ -32,7 +33,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static apoc.ApocConfig.apocConfig;
-import static apoc.PoolsLifecycle.pools;
 import static apoc.util.DateFormatUtil.getOrCreate;
 import static java.lang.String.format;
 
@@ -185,25 +185,26 @@ public class Util {
         }
     }
 
-    public static <T> T inTx(GraphDatabaseService db, Callable<T> callable) {
+    public static <T> T inTx(GraphDatabaseService db, Pools pools, Callable<T> callable) {
         try {
-            return inTxFuture(pools().getDefaultExecutorService(), db, callable).get();
+            return inTxFuture(pools.getDefaultExecutorService(), db, callable).get();
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
             throw new RuntimeException("Error executing in separate transaction: "+e.getMessage(), e);
         }
     }
-    public static <T> T inThread(Callable<T> callable) {
+
+    public static <T> T inThread(Pools pools, Callable<T> callable) {
         try {
-            return inFuture(callable).get();
+            return inFuture(pools, callable).get();
         } catch (Exception e) {
             throw new RuntimeException("Error executing in separate thread: "+e.getMessage(), e);
         }
     }
 
-    public static <T> Future<T> inFuture(Callable<T> callable) {
-        return pools().getDefaultExecutorService().submit(callable);
+    public static <T> Future<T> inFuture(Pools pools, Callable<T> callable) {
+        return pools.getDefaultExecutorService().submit(callable);
     }
 
     public static Double toDouble(Object value) {

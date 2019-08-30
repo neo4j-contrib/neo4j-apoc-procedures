@@ -1,5 +1,6 @@
 package apoc.cypher;
 
+import apoc.Pools;
 import apoc.result.MapResult;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
@@ -18,7 +19,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.PoolsLifecycle.pools;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 /**
@@ -33,6 +33,9 @@ public class Timeboxed {
     @Context
     public Log log;
 
+    @Context
+    public Pools pools;
+
     private final static Map<String,Object> POISON = Collections.singletonMap("__magic", "POISON");
 
     @Procedure
@@ -44,7 +47,7 @@ public class Timeboxed {
 
         // run query to be timeboxed in a separate thread to enable proper tx termination
         // if we'd run this in current thread, a tx.terminate would kill the transaction the procedure call uses itself.
-        pools().getDefaultExecutorService().submit(() -> {
+        pools.getDefaultExecutorService().submit(() -> {
             try (Transaction tx = db.beginTx()) {
                 txAtomic.set(tx);
                 Result result = db.execute(cypher, params == null ? Collections.EMPTY_MAP : params);
@@ -62,7 +65,7 @@ public class Timeboxed {
         });
 
         //
-        pools().getScheduledExecutorService().schedule(() -> {
+        pools.getScheduledExecutorService().schedule(() -> {
             Transaction tx = txAtomic.get();
             if (tx==null) {
                 log.info("tx is null, either the other transaction finished gracefully or has not yet been start.");
@@ -74,8 +77,8 @@ public class Timeboxed {
         }, timeout, MILLISECONDS);
 
         // consume the blocking queue using a custom iterator finishing upon POISON
-        Iterator<Map<String,Object>> queueConsumer = new Iterator<Map<String, Object>>() {
-            Map<String,Object> nextElement = null;
+        Iterator<Map<String,Object>> queueConsumer = new Iterator<>() {
+            Map<String, Object> nextElement = null;
             boolean hasFinished = false;
 
             @Override
@@ -85,7 +88,7 @@ public class Timeboxed {
                 } else {
                     try {
                         nextElement = queue.poll(timeout, MILLISECONDS);
-                        if (nextElement==null) {
+                        if (nextElement == null) {
                             log.warn("couldn't grab queue element, aborting - this should never happen");
                             hasFinished = true;
                         } else {

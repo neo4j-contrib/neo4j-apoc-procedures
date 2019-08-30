@@ -4,6 +4,9 @@ import apoc.periodic.Periodic;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
+import org.neo4j.logging.Log;
+import org.neo4j.logging.internal.LogService;
+import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
 import java.util.Iterator;
 import java.util.List;
@@ -12,40 +15,45 @@ import java.util.concurrent.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import static apoc.ApocConfig.apocConfig;
-
-public class PoolsLifecycle extends LifecycleAdapter {
-
-    private static PoolsLifecycle theInstance = null;
+public class Pools extends LifecycleAdapter {
 
     public final static int DEFAULT_SCHEDULED_THREADS = Runtime.getRuntime().availableProcessors() / 4;
     public final static int DEFAULT_POOL_THREADS = Runtime.getRuntime().availableProcessors() * 2;
+    private final Log log;
+    private final GlobalProceduresRegistry globalProceduresRegistry;
+    private final ApocConfig apocConfig;
 
     private ExecutorService singleExecutorService = Executors.newSingleThreadExecutor();
-    private ScheduledExecutorService scheduledExecutorService
-            = Executors.newScheduledThreadPool(getNoThreadsInScheduledPool());
+    private ScheduledExecutorService scheduledExecutorService;
     private ExecutorService defaultExecutorService;
 
     private final Map<Periodic.JobInfo,Future> jobList = new ConcurrentHashMap<>();
 
-//    public static JobScheduler NEO4J_SCHEDULER = null;
+    public Pools(LogService log, GlobalProceduresRegistry globalProceduresRegistry, ApocConfig apocConfig) {
 
-    public PoolsLifecycle() {
-        if (theInstance!=null) {
-            throw new IllegalStateException("you cannot instantiate Pools more than once");
-        }
-        theInstance = this;
+        this.log = log.getInternalLog(Pools.class);
+        this.globalProceduresRegistry = globalProceduresRegistry;
+        this.apocConfig = apocConfig;
+
+        // expose this config instance via `@Context ApocConfig config`
+        globalProceduresRegistry.registerComponent((Class<Pools>) getClass(), ctx -> this, true);
+        this.log.info("successfully registered Pools for @Context");
     }
 
     @Override
-    public void start() {
+    public void init() {
 
-        int threads = getNoThreadsInDefaultPool();
+        int threads = Math.max(1, apocConfig.getInt(ApocConfig.APOC_CONFIG_JOBS_POOL_NUM_THREADS, DEFAULT_POOL_THREADS));
+
         int queueSize = threads * 25;
         this.defaultExecutorService = new ThreadPoolExecutor(threads / 2, threads, 30L, TimeUnit.SECONDS, new ArrayBlockingQueue<>(queueSize),
                 new CallerBlocksPolicy());
 
-        pools().getScheduledExecutorService().scheduleAtFixedRate(() -> {
+        this.scheduledExecutorService = Executors.newScheduledThreadPool(
+                Math.max(1, apocConfig.getInt(ApocConfig.APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS, DEFAULT_SCHEDULED_THREADS))
+        );
+
+        scheduledExecutorService.scheduleAtFixedRate(() -> {
             for (Iterator<Map.Entry<Periodic.JobInfo, Future>> it = jobList.entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry<Periodic.JobInfo, Future> entry = it.next();
                 if (entry.getValue().isDone() || entry.getValue().isCancelled()) it.remove();
@@ -54,7 +62,7 @@ public class PoolsLifecycle extends LifecycleAdapter {
     }
 
     @Override
-    public void stop() throws Exception {
+    public void shutdown() throws Exception {
         Stream.of(singleExecutorService, defaultExecutorService, scheduledExecutorService).forEach( service -> {
             try {
                 service.shutdown();
@@ -63,7 +71,6 @@ public class PoolsLifecycle extends LifecycleAdapter {
 
             }
         });
-        theInstance = null;
     }
 
     public ExecutorService getSingleExecutorService() {
@@ -80,10 +87,6 @@ public class PoolsLifecycle extends LifecycleAdapter {
 
     public Map<Periodic.JobInfo, Future> getJobList() {
         return jobList;
-    }
-
-    public static PoolsLifecycle pools() {
-        return theInstance;
     }
 
     static class CallerBlocksPolicy implements RejectedExecutionHandler {
@@ -117,17 +120,8 @@ public class PoolsLifecycle extends LifecycleAdapter {
         }
     }
 
-    public int getNoThreadsInDefaultPool() {
-        int maxThreads = apocConfig().getInt(ApocConfig.APOC_CONFIG_JOBS_POOL_NUM_THREADS, DEFAULT_POOL_THREADS);
-        return Math.max(1, maxThreads);
-    }
-    public int getNoThreadsInScheduledPool() {
-        Integer maxThreads = apocConfig().getInt(ApocConfig.APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS, DEFAULT_SCHEDULED_THREADS);
-        return Math.max(1, maxThreads);
-    }
-
     public <T> Future<Void> processBatch(List<T> batch, GraphDatabaseService db, Consumer<T> action) {
-        return defaultExecutorService.submit((Callable<Void>) () -> {
+        return defaultExecutorService.submit(() -> {
                 try (Transaction tx = db.beginTx()) {
                     batch.forEach(action);
                     tx.success();

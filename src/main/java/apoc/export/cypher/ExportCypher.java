@@ -1,6 +1,7 @@
 package apoc.export.cypher;
 
 import apoc.ApocConfig;
+import apoc.Pools;
 import apoc.export.util.ExportConfig;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
@@ -26,8 +27,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static apoc.PoolsLifecycle.pools;
-
 /**
  * @author mh
  * @since 22.05.16
@@ -41,6 +40,9 @@ public class ExportCypher {
 
     @Context
     public ApocConfig apocConfig;
+
+    @Context
+    public Pools pools;
 
     public ExportCypher(GraphDatabaseService db) {
         this.db = db;
@@ -110,7 +112,7 @@ public class ExportCypher {
             final BlockingQueue<DataProgressInfo> queue = new ArrayBlockingQueue<>(1000);
             ProgressReporter reporterWithConsumer = reporter.withConsumer(
                     (pi) -> Util.put(queue,pi == ProgressInfo.EMPTY ? DataProgressInfo.EMPTY : new DataProgressInfo(pi).enrich(cypherFileManager),timeout));
-            Util.inTxFuture(pools().getDefaultExecutorService(), db, () -> { doExport(graph, c, onlySchema, reporterWithConsumer, cypherFileManager); return true; });
+            Util.inTxFuture(pools.getDefaultExecutorService(), db, () -> { doExport(graph, c, onlySchema, reporterWithConsumer, cypherFileManager); return true; });
             QueueBasedSpliterator<DataProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, DataProgressInfo.EMPTY, terminationGuard, timeout);
             return StreamSupport.stream(spliterator, false);
         } else {

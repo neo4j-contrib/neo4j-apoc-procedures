@@ -1,6 +1,6 @@
 package apoc.refactor;
 
-import apoc.PoolsLifecycle;
+import apoc.Pools;
 import apoc.algo.Cover;
 import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
@@ -17,7 +17,6 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.PoolsLifecycle.pools;
 import static apoc.refactor.util.RefactorUtil.*;
 
 public class GraphRefactoring {
@@ -26,6 +25,9 @@ public class GraphRefactoring {
 
     @Context
     public Log log;
+
+    @Context
+    public Pools pools;
 
     private Stream<NodeRefactorResult> doCloneNodes(@Name("nodes") List<Node> nodes, @Name("withRelationships") boolean withRelationships, List<String> skipProperties) {
         if (nodes == null) return Stream.empty();
@@ -437,14 +439,14 @@ public class GraphRefactoring {
 
             // Await processing of node batches
             for (Future<Void> future : futures) {
-                PoolsLifecycle.force(future);
+                Pools.force(future);
             }
             tx.success();
         }
     }
 
     private Future<Void> categorizeNodes(List<Node> batch, String sourceKey, String relationshipType, Boolean outgoing, String label, String targetKey, List<String> copiedKeys) {
-        return pools().processBatch(batch, db, (Node node) -> {
+        return pools.processBatch(batch, db, (Node node) -> {
             Object value = node.getProperty(sourceKey, null);
             if (value != null) {
                 String q =
