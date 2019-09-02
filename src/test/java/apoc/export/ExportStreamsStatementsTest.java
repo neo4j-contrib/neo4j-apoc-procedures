@@ -60,13 +60,13 @@ public class ExportStreamsStatementsTest {
                 "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
                 ":commit%n" +
                 ":begin%n" +
-                "UNWIND [{_id:1, properties:{name:\"Apple Watch Series 4\"}}] as row%n" +
+                "UNWIND [{_id:1, properties:{name:\"Apple Watch Series 4\"}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Product;%n" +
-                "UNWIND [{_id:0, properties:{name:\"Foo\", age:42}}] as row%n" +
+                "UNWIND [{_id:0, properties:{name:\"Foo\", age:42}}] AS row%n" +
                 "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:User:Customer;%n" +
                 ":commit%n" +
                 ":begin%n" +
-                "UNWIND [{start: {_id:0}, end: {_id:1}, properties:{}}] as row%n" +
+                "UNWIND [{start: {_id:0}, end: {_id:1}, properties:{}}] AS row%n" +
                 "MATCH (start:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.start._id})%n" +
                 "MATCH (end:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row.end._id})%n" +
                 "CREATE (start)-[r:BOUGHT]->(end) SET r += row.properties;%n" +

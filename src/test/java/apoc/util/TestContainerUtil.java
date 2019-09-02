@@ -6,7 +6,9 @@ import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 import org.testcontainers.utility.MountableFile;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Collections;
@@ -42,14 +44,27 @@ public class TestContainerUtil {
         Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(neo4jDockerImageVersion)
                 .withPlugins(MountableFile.forHostPath("./build/libs")) // map the apoc's artifact dir as the Neo4j's plugin dir
                 .withAdminPassword("apoc")
-//                .withNeo4jConfig("apoc.export.file.enabled", "true")
                 .withEnv("NEO4J_dbms_memory_heap_max__size", "1G")
                 .withEnv("apoc.export.file.enabled", "true")
                 .withNeo4jConfig("dbms.security.procedures.unrestricted", "apoc.*")
                 .withFileSystemBind("./target/import", "/import") // map the "target/import" dir as the Neo4j's import dir
                 .withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
 //                .withDebugger()  // uncomment this line for remote debbuging inside docker's neo4j instance
-                .withCreateContainerCmdModifier(cmd -> cmd.withMemory(1024 * 1024 * 1024l));
+                .withCreateContainerCmdModifier(cmd -> cmd.withMemory(1024 * 1024 * 1024l))
+
+                // set uid if possible - export tests do write to "/import"
+                .withCreateContainerCmdModifier(cmd -> {
+                    try {
+                        Process p = Runtime.getRuntime().exec("id -u");
+                        BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                        String s = br.readLine();
+                        p.waitFor();
+                        p.destroy();
+                        cmd.withUser(s);
+                    } catch (Exception e) {
+                        // ignore since it may fail depending on operating system
+                    }
+                });
         if (withLogging) {
             neo4jContainer.withLogging();
         }

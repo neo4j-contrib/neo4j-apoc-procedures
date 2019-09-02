@@ -8,13 +8,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.driver.Session;
 
+import java.io.File;
 import java.util.Map;
 
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestContainerUtil.createEnterpriseDB;
-import static apoc.util.TestContainerUtil.testCall;
+import static apoc.util.TestContainerUtil.*;
 import static apoc.util.TestUtil.isTravis;
+import static apoc.util.TestUtil.readFileToString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
@@ -25,6 +26,8 @@ import static org.junit.Assume.assumeNotNull;
  */
 public class ExportCypherEnterpriseFeaturesTest {
 
+    private static File directory = new File("target/import"); // it's the directory bounded to the /import dir inside the Neo4jContainer
+
     private static Neo4jContainerExtension neo4jContainer;
     private static Session session;
 
@@ -33,6 +36,7 @@ public class ExportCypherEnterpriseFeaturesTest {
         assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
+            executeGradleTasks("shadow");
             neo4jContainer = createEnterpriseDB(!TestUtil.isTravis())
                     .withInitScript("init_neo4j_export_csv.cypher");
             neo4jContainer.start();
@@ -50,26 +54,30 @@ public class ExportCypherEnterpriseFeaturesTest {
 
     @Test
     public void testExportWithCompoundConstraintCypherShell() {
-        testCall(session, "CALL apoc.export.cypher.all(null, $config)",
-                map("config", Util.map("format", "cypher-shell")),
-                (r) -> assertExportStatement(EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT, r));
+        String fileName = "testCypherShellWithCompoundConstraint.cypher";
+        testCall(session, "CALL apoc.export.cypher.all($file, $config)",
+                map("file", fileName, "config", Util.map("format", "cypher-shell")), (r) -> {
+                    assertExportStatement(EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT, r, fileName);
+                });
     }
 
     @Test
     public void testExportWithCompoundConstraintPlain() {
-        testCall(session, "CALL apoc.export.cypher.all(null, $config)",
-                map("config", Util.map("format", "plain")),
-                (r) -> assertExportStatement(EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT, r));
+        String fileName = "testPlainFormatWithCompoundConstraint.cypher";
+        testCall(session, "CALL apoc.export.cypher.all($file, $config)",
+                map("file", fileName, "config", Util.map("format", "plain")),
+                (r) -> assertExportStatement(EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT, r, fileName));
     }
 
     @Test
     public void testExportWithCompoundConstraintNeo4jShell() {
-        testCall(session, "CALL apoc.export.cypher.all(null,$config)",
-                map("config", Util.map("format", "neo4j-shell")),
-                (r) -> assertExportStatement(EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT, r));
+        String fileName = "testNeo4jShellWithCompoundConstraint.cypher";
+        testCall(session, "CALL apoc.export.cypher.all($file, $config)",
+                map("file", fileName, "config", Util.map("format", "neo4j-shell")),
+                (r) -> assertExportStatement(EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT, r, fileName));
     }
 
-    private void assertExportStatement(String expectedStatement, Map<String, Object> result) {
-        assertEquals(expectedStatement, result.get("cypherStatements"));
+    private void assertExportStatement(String expectedStatement, Map<String, Object> result, String fileName) {
+        assertEquals(expectedStatement, isTravis() ? result.get("cypherStatements") : readFileToString(new File(directory, fileName)));
     }
 }
