@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -90,8 +89,6 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 									   ExportConfig exportConfig,
 									   PrintWriter out, Reporter reporter,
 									   GraphDatabaseService db) {
-		ExportConfig.OptimizationType exportType = exportConfig.getOptimizationType();
-
 		AtomicInteger nodeCount = new AtomicInteger(0);
 		Function<Node, Map.Entry<Set<String>, Set<String>>> keyMapper = (node) -> {
 			try (Transaction tx = db.beginTx()) {
@@ -105,20 +102,19 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 				.collect(Collectors.groupingByConcurrent(keyMapper));
 
 		AtomicInteger propertiesCount = new AtomicInteger(0);
-		AtomicInteger batchCount = new AtomicInteger(0);
 
-		int batchSize = exportConfig.getBatchSize();
-		int unwindBatchSize = exportConfig.getUnwindBatchSize();
+		AtomicInteger batchCount = new AtomicInteger(0);
 		groupedData.forEach((key, nodeList) -> {
+			AtomicInteger unwindCount = new AtomicInteger(0);
 			final int nodeListSize = nodeList.size();
 			final Node last = nodeList.get(nodeListSize - 1);
 			nodeCount.addAndGet(nodeListSize);
-			for (int i = 0; i < nodeListSize; i++) {
-				writeUnwindStart(exportConfig, out, batchCount);
+			for (int index = 0; index < nodeList.size(); index++) {
+				Node node = nodeList.get(index);
+				writeBatchBegin(exportConfig, out, batchCount);
+				writeUnwindStart(exportConfig, out, unwindCount);
 				batchCount.incrementAndGet();
-
-				Node node = nodeList.get(i);
-
+				unwindCount.incrementAndGet();
 				Map<String, Object> props = node.getAllProperties();
 				// start element
 				out.append("{");
@@ -130,51 +126,17 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 				// properties
 				out.append(", ");
 				out.append("properties:");
-				writeProperties(out, props, (es) -> !idMap.containsKey(es.getKey()));
+
 				propertiesCount.addAndGet(props.size());
+				props.keySet().removeAll(idMap.keySet());
+				writeProperties(out, props);
 
 				// end element
 				out.append("}");
-				boolean isEnd = last.equals(node);
-				if (isEnd || batchCount.get() % unwindBatchSize == 0 || batchCount.get() % batchSize == 0) {
-					int unwindLength = (i + 1) % unwindBatchSize;
-					int unwindLeftOver = (unwindBatchSize - unwindLength) % unwindBatchSize;
-					batchCount.addAndGet(unwindLeftOver);
-					writeUnwindEnd(exportConfig, out, batchCount, isEnd);
-					if(isEnd || writeClosingStatements(exportConfig, batchCount)) {
-						out.append(StringUtils.LF);
-						out.append(nodeClause);
-
-						String label = getUniqueConstrainedLabel(node, uniqueConstraints);
-						out.append("(n:");
-						out.append(Util.quote(label));
-						out.append("{");
-						int size = key.getValue().size();
-						for (String s: key.getValue()) {
-							--size;
-							out.append(Util.quote(s) + ": row." + formatNodeId(s));
-							if (size > 0) {
-								out.append(", ");
-							}
-						}
-						out.append("}) ");
-						out.append(setClause);
-						out.append("n += row.properties");
-						String addLabels = key.getKey().stream()
-								.filter(l -> !l.equals(label))
-								.map(Util::quote)
-								.collect(Collectors.joining(":"));
-						if (!addLabels.isEmpty()) {
-							out.append(" SET n:");
-							out.append(addLabels);
-						}
-						out.append(";");
-						out.append(StringUtils.LF);
-						if(exportType == ExportConfig.OptimizationType.UNWIND_BATCH_PARAMS || (batchCount.get() % batchSize == 0)){
-							out.append(exportConfig.getFormat().commit());
-						}
-					}
-
+				if (last.equals(node) || isBatchMatch(exportConfig, batchCount) || isUnwindBatchMatch(exportConfig, unwindCount)) {
+					closeUnwindNodes(nodeClause, setClause, uniqueConstraints, exportConfig, out, key, last);
+					writeBatchEnd(exportConfig, out, batchCount);
+					unwindCount.set(0);
 				} else {
 					out.append(", ");
 				}
@@ -185,16 +147,57 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		reporter.update(nodeCount.get(), 0, propertiesCount.longValue());
 	}
 
+	private void closeUnwindNodes(String nodeClause, String setClause, Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig, PrintWriter out, Map.Entry<Set<String>, Set<String>> key, Node last) {
+		writeUnwindEnd(exportConfig, out);
+		out.append(StringUtils.LF);
+		out.append(nodeClause);
+
+		String label = getUniqueConstrainedLabel(last, uniqueConstraints);
+		out.append("(n:");
+		out.append(Util.quote(label));
+		out.append("{");
+		writeSetProperties(out, key.getValue());
+		out.append("}) ");
+		out.append(setClause);
+		out.append("n += row.properties");
+		String addLabels = key.getKey().stream()
+				.filter(l -> !l.equals(label))
+				.map(Util::quote)
+				.collect(Collectors.joining(":"));
+		if (!addLabels.isEmpty()) {
+			out.append(" SET n:");
+			out.append(addLabels);
+		}
+		out.append(";");
+		out.append(StringUtils.LF);
+	}
+
+	private void writeSetProperties(PrintWriter out, Set<String> value) {
+		writeSetProperties(out, value, null);
+	}
+
+	private void writeSetProperties(PrintWriter out, Set<String> value, String prefix) {
+		if (prefix == null) prefix = "";
+		int size = value.size();
+		for (String s: value) {
+			--size;
+			out.append(Util.quote(s) + ": row." + prefix + formatNodeId(s));
+			if (size > 0) {
+				out.append(", ");
+			}
+		}
+	}
+
+	private boolean isBatchMatch(ExportConfig exportConfig, AtomicInteger batchCount) {
+		return batchCount.get() % exportConfig.getBatchSize() == 0;
+	}
+
 	public void buildStatementForRelationships(String relationshipClause,
 											   String setClause, Iterable<Relationship> relationship,
 											   Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig,
 											   PrintWriter out, Reporter reporter,
 											   GraphDatabaseService db) {
-		int batchSize = exportConfig.getBatchSize();
-		ExportConfig.OptimizationType exportType = exportConfig.getOptimizationType();
-
 		AtomicInteger relCount = new AtomicInteger(0);
-
 
 		Function<Relationship, Map<String, Object>> keyMapper = (rel) -> {
 			try (Transaction tx = db.beginTx()) {
@@ -223,19 +226,19 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		AtomicInteger propertiesCount = new AtomicInteger(0);
 		AtomicInteger batchCount = new AtomicInteger(0);
 
-		int unwindBatchSize = exportConfig.getUnwindBatchSize();
-
 		String start = "start";
 		String end = "end";
 		groupedData.forEach((path, relationshipList) -> {
+			AtomicInteger unwindCount = new AtomicInteger(0);
 			final int relSize = relationshipList.size();
 			relCount.addAndGet(relSize);
 			final Relationship last = relationshipList.get(relSize - 1);
-			for (int i = 0; i < relSize; i++) {
-				writeUnwindStart(exportConfig, out, batchCount);
+			for (int index = 0; index < relationshipList.size(); index++) {
+				Relationship rel = relationshipList.get(index);
+				writeBatchBegin(exportConfig, out, batchCount);
+				writeUnwindStart(exportConfig, out, unwindCount);
 				batchCount.incrementAndGet();
-				Relationship rel = relationshipList.get(i);
-
+				unwindCount.incrementAndGet();
 				Map<String, Object> props = rel.getAllProperties();
 				// start element
 				out.append("{");
@@ -253,37 +256,16 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 				// properties
 				out.append(", ");
 				out.append("properties:");
-				writeProperties(out, props, null);
+				writeProperties(out, props);
 				propertiesCount.addAndGet(props.size());
 
 				// end element
 				out.append("}");
 
-				boolean isEnd = last.equals(rel);
-				if (isEnd || batchCount.get() % unwindBatchSize == 0) {
-					int unwindLength = (i + 1) % unwindBatchSize;
-					int unwindLeftOver = (unwindBatchSize - unwindLength) % unwindBatchSize;
-					batchCount.addAndGet(unwindLeftOver);
-					writeUnwindEnd(exportConfig, out, batchCount, isEnd);
-					if(isEnd || writeClosingStatements(exportConfig, batchCount)) {
-						// match start node
-						writeRelationshipMatchAsciiNode(startNode, out, start, path, uniqueConstraints);
-
-						// match end node
-						writeRelationshipMatchAsciiNode(endNode, out, end, path, uniqueConstraints);
-
-						out.append(StringUtils.LF);
-
-						// create the relationship (depends on the strategy)
-						out.append(relationshipClause);
-						out.append("(start)-[r:" + Util.quote(path.get("type").toString()) + "]->(end) ");
-						out.append(setClause);
-						out.append("r += row.properties;");
-						out.append(StringUtils.LF);
-						if (exportType == ExportConfig.OptimizationType.UNWIND_BATCH_PARAMS || (batchCount.get() % batchSize == 0)) {
-							out.append(exportConfig.getFormat().commit());
-						}
-					}
+				if (last.equals(rel) || isBatchMatch(exportConfig, batchCount) || isUnwindBatchMatch(exportConfig, unwindCount)) {
+					closeUnwindRelationships(relationshipClause, setClause, uniqueConstraints, exportConfig, out, start, end, path, last);
+					writeBatchEnd(exportConfig, out, batchCount);
+					unwindCount.set(0);
 				} else {
 					out.append(", ");
 				}
@@ -294,15 +276,40 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		reporter.update(0, relCount.get(), propertiesCount.longValue());
 	}
 
-	public void writeProperties(PrintWriter out, Map<String, Object> props, Predicate<Map.Entry<String, Object>> predicate) {
+	private void closeUnwindRelationships(String relationshipClause, String setClause, Map<String, Set<String>> uniqueConstraints, ExportConfig exportConfig, PrintWriter out, String start, String end, Map<String, Object> path, Relationship last) {
+		writeUnwindEnd(exportConfig, out);
+		// match start node
+		writeRelationshipMatchAsciiNode(last.getStartNode(), out, start, path, uniqueConstraints);
+
+		// match end node
+		writeRelationshipMatchAsciiNode(last.getEndNode(), out, end, path, uniqueConstraints);
+
+		out.append(StringUtils.LF);
+
+		// create the relationship (depends on the strategy)
+		out.append(relationshipClause);
+		out.append("(start)-[r:" + Util.quote(path.get("type").toString()) + "]->(end) ");
+		out.append(setClause);
+		out.append("r += row.properties;");
+		out.append(StringUtils.LF);
+	}
+
+	private boolean isUnwindBatchMatch(ExportConfig exportConfig, AtomicInteger batchCount) {
+		return batchCount.get() % exportConfig.getUnwindBatchSize() == 0;
+	}
+
+	private void writeBatchEnd(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount) {
+		if (isBatchMatch(exportConfig, batchCount)) {
+			out.append(exportConfig.getFormat().commit());
+		}
+	}
+
+	public void writeProperties(PrintWriter out, Map<String, Object> props) {
 		out.append("{");
 		if (!props.isEmpty()) {
 			int size = props.size();
 			for (Map.Entry<String, Object> es : props.entrySet()) {
 				--size;
-				if (predicate != null && !predicate.test(es)) {
-					continue;
-				}
 				out.append(Util.quote(es.getKey()));
 				out.append(":");
 				out.append(CypherFormatterUtils.toString(es.getValue()));
@@ -321,57 +328,35 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		return Util.quote(key);
 	}
 
-	private boolean writeClosingStatements(ExportConfig exportConfig, AtomicInteger batchCount) {
-		if (exportConfig.getOptimizationType() == ExportConfig.OptimizationType.UNWIND_BATCH_PARAMS) {
-			return batchCount.get() % exportConfig.getUnwindBatchSize() == 0;
-		} else {
-			return batchCount.get() % exportConfig.getBatchSize() == 0 || batchCount.get() % exportConfig.getUnwindBatchSize() == 0;
+	private void addCommitToEnd(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount) {
+		if (batchCount.get() % exportConfig.getBatchSize() != 0) {
+			out.append(exportConfig.getFormat().commit());
 		}
 	}
 
-	private void addCommitToEnd(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount) {
-		if (exportConfig.getOptimizationType() == ExportConfig.OptimizationType.UNWIND_BATCH_PARAMS) {
-			if (batchCount.get() % exportConfig.getUnwindBatchSize() != 0) {
-				out.append(exportConfig.getFormat().commit());
-			}
-		} else {
-			if (batchCount.get() % exportConfig.getBatchSize() != 0) {
-				out.append(exportConfig.getFormat().commit());
-			}
+	private void writeBatchBegin(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount) {
+		if (isBatchMatch(exportConfig, batchCount)) {
+			out.append(exportConfig.getFormat().begin());
 		}
-
 	}
 
 	private void writeUnwindStart(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount) {
-		if (exportConfig.getFormat() == ExportFormat.CYPHER_SHELL
-				&& exportConfig.getOptimizationType() == ExportConfig.OptimizationType.UNWIND_BATCH_PARAMS) {
-			if (batchCount.get() % exportConfig.getUnwindBatchSize() == 0) {
-				out.append(":param rows => [");
-			}
-		} else {
-			if (batchCount.get() % exportConfig.getUnwindBatchSize() == 0) {
-				if (batchCount.get() % exportConfig.getBatchSize() == 0) {
-					out.append(exportConfig.getFormat().begin());
-				}
-				out.append("UNWIND [");
-			}
+		if (isUnwindBatchMatch(exportConfig, batchCount)) {
+			String start = (exportConfig.getFormat() == ExportFormat.CYPHER_SHELL
+					&& exportConfig.getOptimizationType() == ExportConfig.OptimizationType.UNWIND_BATCH_PARAMS) ?
+					":param rows => [" : "UNWIND [";
+			out.append(start);
 		}
 	}
 
-	private void writeUnwindEnd(ExportConfig exportConfig, PrintWriter out, AtomicInteger batchCount, boolean isEnd) {
+	private void writeUnwindEnd(ExportConfig exportConfig, PrintWriter out) {
+		out.append("]");
 		if (exportConfig.getFormat() == ExportFormat.CYPHER_SHELL
 				&& exportConfig.getOptimizationType() == ExportConfig.OptimizationType.UNWIND_BATCH_PARAMS) {
-			if (isEnd || batchCount.get() % exportConfig.getUnwindBatchSize() == 0) {
-				out.append("]");
-				out.append(StringUtils.LF);
-				out.append(exportConfig.getFormat().begin());
-				out.append("UNWIND $rows AS row");
-			} else {
-				out.append(", ");
-			}
-		} else {
-			out.append("] as row");
+			out.append(StringUtils.LF);
+			out.append("UNWIND $rows");
 		}
+		out.append(" AS row");
 	}
 
 	private String getUniqueConstrainedLabel(Node node, Map<String, Set<String>> uniqueConstraints) {
@@ -401,14 +386,7 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		out.append(":");
 		out.append(Util.quote(getUniqueConstrainedLabel(node, uniqueConstraints)));
 		out.append("{");
-		int size = entry.getValue().size();
-		for (String s: entry.getValue()) {
-			--size;
-			out.append(Util.quote(s) + ": row." + key + "." + formatNodeId(s));
-			if (size > 0) {
-				out.append(", ");
-			}
-		}
+		writeSetProperties(out, entry.getValue(), key + ".");
 		out.append("})");
 	}
 
@@ -419,7 +397,6 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		if (props != null && !props.isEmpty()) {
 			String[] propsArray = props.toArray(new String[props.size()]);
 			properties = node.getProperties(propsArray);
-
 		} else {
 			properties = Util.map(UNIQUE_ID_PROP, node.getId());
 		}

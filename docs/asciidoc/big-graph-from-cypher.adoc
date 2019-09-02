@@ -345,23 +345,23 @@ In case of you choose CYPHER-SHELL as format you can also choose the UNWIND_BATC
 so the generated file looks like the following
 [source,cypher]
 ----
+:begin
 :param rows => [{_id: 0, properties: {born:date('2018-10-31'), name:"foo"}}, {_id: 1, properties: {born:date('2017-09-29'), name:"foo2"}}]
-:begin
 UNWIND $rows AS row
 CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;
 :commit
+:begin
 :param rows => [{_id: 2, properties: {born:date('2016-03-12'), name:"foo3"}}]
-:begin
 UNWIND $rows AS row
 CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Foo;
 :commit
-:param rows => [{_id: 4, properties: {age:12}}, {_id: 5, properties: {age:12}}]
 :begin
+:param rows => [{_id: 4, properties: {age:12}}, {_id: 5, properties: {age:12}}]
 UNWIND $rows AS row
 CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Bar;
 :commit
-:param rows => [{name: "bar", properties: {age:42}}, {name: "bar2", properties: {age:44}}]
 :begin
+:param rows => [{name: "bar", properties: {age:42}}, {name: "bar2", properties: {age:44}}]
 UNWIND $rows AS row
 CREATE (n:Bar{name: row.name}) SET n += row.properties;
 :commit
