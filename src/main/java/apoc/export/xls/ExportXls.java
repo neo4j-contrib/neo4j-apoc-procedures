@@ -40,7 +40,7 @@ public class ExportXls {
     }
 
     @Procedure
-    @Description("apoc.export.csv.all(file,config) - exports whole database as csv to the provided file")
+    @Description("apoc.export.xls.all(file,config) - exports whole database as xls to the provided file")
     public Stream<ProgressInfo> all(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
 
         String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(db), Util.relCount(db));
@@ -48,7 +48,7 @@ public class ExportXls {
     }
 
     @Procedure
-    @Description("apoc.export.csv.data(nodes,rels,file,config) - exports given nodes and relationships as csv to the provided file")
+    @Description("apoc.export.xls.data(nodes,rels,file,config) - exports given nodes and relationships as xls to the provided file")
     public Stream<ProgressInfo> data(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
 
         String source = String.format("data: nodes(%d), rels(%d)", nodes.size(), rels.size());
@@ -56,7 +56,7 @@ public class ExportXls {
     }
 
     @Procedure
-    @Description("apoc.export.csv.graph(graph,file,config) - exports given graph object as csv to the provided file")
+    @Description("apoc.export.xls.graph(graph,file,config) - exports given graph object as xls to the provided file")
     public Stream<ProgressInfo> graph(@Name("graph") Map<String,Object> graph, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
 
         Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
@@ -66,7 +66,7 @@ public class ExportXls {
     }
 
     @Procedure
-    @Description("apoc.export.csv.query(query,file,{config,...,params:{params}}) - exports results from the cypher statement as csv to the provided file")
+    @Description("apoc.export.xls.query(query,file,{config,...,params:{params}}) - exports results from the cypher statement as xls to the provided file")
     public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         Map<String,Object> params = config == null ? Collections.emptyMap() : (Map<String,Object>)config.getOrDefault("params", Collections.emptyMap());
         Result result = db.execute(query,params);
