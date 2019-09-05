@@ -1,5 +1,6 @@
 package apoc.graph;
 
+import apoc.graph.util.GraphsConfig;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -24,6 +25,7 @@ import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertArrayEquals;
 import static org.neo4j.graphdb.Label.label;
 
 /**
@@ -141,14 +143,16 @@ public class GraphsTest {
             Iterator<Node> nodeIterator = nodes.iterator();
             Iterator<Relationship> relationshipIterator = relationships.iterator();
 
-            Node albumGenesis = nodeIterator.next();
-            assertEquals(asList(label("Album")), albumGenesis.getLabels());
-            assertTrue(albumGenesis.getId() < 0);
-            assertEquals(albumGenesisMap, albumGenesis.getAllProperties());
             Node artistGenesis = nodeIterator.next();
             assertEquals(asList(label("Artist")), artistGenesis.getLabels());
             assertTrue(artistGenesis.getId() < 0);
             assertEquals(artistGenesisMap, artistGenesis.getAllProperties());
+
+            Node albumGenesis = nodeIterator.next();
+            assertEquals(asList(label("Album")), albumGenesis.getLabels());
+            assertTrue(albumGenesis.getId() < 0);
+            assertEquals(albumGenesisMap, albumGenesis.getAllProperties());
+
             Relationship rel = relationshipIterator.next();
             assertEquals(RelationshipType.withName("ALBUMS"), rel.getType());
             assertTrue(rel.getId() < 0);
@@ -188,26 +192,30 @@ public class GraphsTest {
                     Iterator<Node> nodeIterator = nodes.iterator();
                     Iterator<Relationship> relationshipIterator = relationships.iterator();
 
-                    Node albumGenesis = nodeIterator.next();
-                    assertEquals(asList(label("Album")), albumGenesis.getLabels());
-                    assertTrue(albumGenesis.getId() < 0);
-                    assertEquals(albumGenesisMap, albumGenesis.getAllProperties());
                     Node artistGenesis = nodeIterator.next();
                     assertEquals(asList(label("Artist")), artistGenesis.getLabels());
                     assertTrue(artistGenesis.getId() < 0);
                     assertEquals(artistGenesisMap, artistGenesis.getAllProperties());
-                    Relationship rel = relationshipIterator.next();
-                    assertEquals(RelationshipType.withName("ALBUMS"), rel.getType());
-                    assertTrue(rel.getId() < 0);
+
+                    Node artistDaftPunk = nodeIterator.next();
+                    assertEquals(asList(label("Artist")), artistDaftPunk.getLabels());
+                    assertTrue(artistDaftPunk.getId() < 0);
+                    assertEquals(artistDaftPunkMap, artistDaftPunk.getAllProperties());
+
+                    Node albumGenesis = nodeIterator.next();
+                    assertEquals(asList(label("Album")), albumGenesis.getLabels());
+                    assertTrue(albumGenesis.getId() < 0);
+                    assertEquals(albumGenesisMap, albumGenesis.getAllProperties());
 
                     Node albumDaftPunk = nodeIterator.next();
                     assertEquals(asList(label("Album")), albumDaftPunk.getLabels());
                     assertTrue(albumDaftPunk.getId() < 0);
                     assertEquals(albumDaftPunkMap, albumDaftPunk.getAllProperties());
-                    Node artistDaftPunk = nodeIterator.next();
-                    assertEquals(asList(label("Artist")), artistDaftPunk.getLabels());
-                    assertTrue(artistDaftPunk.getId() < 0);
-                    assertEquals(artistDaftPunkMap, artistDaftPunk.getAllProperties());
+
+                    Relationship rel = relationshipIterator.next();
+                    assertEquals(RelationshipType.withName("ALBUMS"), rel.getType());
+                    assertTrue(rel.getId() < 0);
+
                     rel = relationshipIterator.next();
                     assertEquals(RelationshipType.withName("ALBUMS"), rel.getType());
                     assertTrue(rel.getId() < 0);
@@ -250,27 +258,32 @@ public class GraphsTest {
                     assertEquals(asList(label("Album")), albumGenesis.getLabels());
                     assertTrue(albumGenesis.getId() > 0);
                     assertEquals(albumGenesisMap, albumGenesis.getAllProperties());
-                    Node artistGenesis = nodeIterator.next();
-                    assertEquals(asList(label("Artist")), artistGenesis.getLabels());
-                    assertTrue(artistGenesis.getId() > 0);
-                    assertEquals(artistGenesisMap, artistGenesis.getAllProperties());
-                    Relationship rel = relationshipIterator.next();
-                    assertEquals("ALBUMS", rel.getType().name());
-                    assertTrue(rel.getId() > 0);
 
                     Node albumDaftPunk = nodeIterator.next();
                     assertEquals(asList(label("Album")), albumDaftPunk.getLabels());
                     assertTrue(albumDaftPunk.getId() > 0);
                     assertEquals(albumDaftPunkMap, albumDaftPunk.getAllProperties());
+
+                    Node artistGenesis = nodeIterator.next();
+                    assertEquals(asList(label("Artist")), artistGenesis.getLabels());
+                    assertTrue(artistGenesis.getId() > 0);
+                    assertEquals(artistGenesisMap, artistGenesis.getAllProperties());
+
                     Node artistDaftPunk = nodeIterator.next();
                     assertEquals(asList(label("Artist")), artistDaftPunk.getLabels());
                     assertTrue(artistDaftPunk.getId() > 0);
                     assertEquals(artistDaftPunkMap, artistDaftPunk.getAllProperties());
+
+                    Relationship rel = relationshipIterator.next();
+                    assertEquals("ALBUMS", rel.getType().name());
+                    assertTrue(rel.getId() > 0);
                     rel = relationshipIterator.next();
                     assertEquals("ALBUMS", rel.getType().name());
                     assertTrue(rel.getId() > 0);
                 });
         db.executeTransactionally("MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) detach delete p");
+        Long count = TestUtil.singleResultFirstColumn(db, "MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) RETURN count(p) AS count");
+        assertEquals(0L, count.longValue());
     }
 
     @Test
@@ -294,14 +307,16 @@ public class GraphsTest {
                     Iterator<Node> nodeIterator = nodes.iterator();
                     Iterator<Relationship> relationshipIterator = relationships.iterator();
 
-                    Node albumGenesis = nodeIterator.next();
-                    assertEquals(asList(label("Album")), albumGenesis.getLabels());
-                    assertTrue(albumGenesis.getId() < 0);
-                    assertEquals(albumMap, albumGenesis.getAllProperties());
                     Node artistGenesis = nodeIterator.next();
                     assertEquals(asList(label("Artist")), artistGenesis.getLabels());
                     assertTrue(artistGenesis.getId() < 0);
                     assertEquals(genesisMap, artistGenesis.getAllProperties());
+
+                    Node albumGenesis = nodeIterator.next();
+                    assertEquals(asList(label("Album")), albumGenesis.getLabels());
+                    assertTrue(albumGenesis.getId() < 0);
+                    assertEquals(albumMap, albumGenesis.getAllProperties());
+
                     Relationship rel = relationshipIterator.next();
                     assertEquals(RelationshipType.withName("ALBUMS"), rel.getType());
                     assertTrue(rel.getId() < 0);
@@ -328,14 +343,16 @@ public class GraphsTest {
                     Iterator<Node> nodeIterator = nodes.iterator();
                     Iterator<Relationship> relationshipIterator = relationships.iterator();
 
-                    Node albumGenesis = nodeIterator.next();
-                    assertEquals(asList(label("Album")), albumGenesis.getLabels());
-                    assertTrue(albumGenesis.getId() < 0);
-                    assertEquals(albumMap, albumGenesis.getAllProperties());
                     Node artistGenesis = nodeIterator.next();
                     assertEquals(asList(label("Artist")), artistGenesis.getLabels());
                     assertTrue(artistGenesis.getId() < 0);
                     assertEquals(genesisMap, artistGenesis.getAllProperties());
+
+                    Node albumGenesis = nodeIterator.next();
+                    assertEquals(asList(label("Album")), albumGenesis.getLabels());
+                    assertTrue(albumGenesis.getId() < 0);
+                    assertEquals(albumMap, albumGenesis.getAllProperties());
+
                     Relationship rel = relationshipIterator.next();
                     assertEquals(RelationshipType.withName("ALBUMS"), rel.getType());
                     assertTrue(rel.getId() < 0);
@@ -375,6 +392,8 @@ public class GraphsTest {
                     assertTrue(rel.getId() > 0);
                 });
         db.executeTransactionally("MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) detach delete p");
+        Long count = TestUtil.singleResultFirstColumn( db, "MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) RETURN count(p) AS count");
+        assertEquals(0L, count.longValue());
     }
 
     @Test
@@ -463,11 +482,6 @@ public class GraphsTest {
                     Iterator<Node> nodeIterator = nodes.iterator();
                     Iterator<Relationship> relationshipIterator = relationships.iterator();
 
-                    Node product = nodeIterator.next();
-                    assertEquals(asList(label("Console")), product.getLabels());
-                    assertTrue(product.getId() < 0);
-                    assertEquals(productMap, product.getAllProperties());
-
                     Node john = nodeIterator.next();
                     assertEquals(asList(label("User")), john.getLabels());
                     assertTrue(john.getId() < 0);
@@ -477,6 +491,11 @@ public class GraphsTest {
                     assertEquals(asList(label("User")), jane.getLabels());
                     assertTrue(jane.getId() < 0);
                     assertEquals(janeMap, jane.getAllProperties());
+
+                    Node product = nodeIterator.next();
+                    assertEquals(asList(label("Console")), product.getLabels());
+                    assertTrue(product.getId() < 0);
+                    assertEquals(productMap, product.getAllProperties());
 
                     Relationship rel = relationshipIterator.next();
                     Node startJohn = rel.getStartNode();
@@ -525,20 +544,20 @@ public class GraphsTest {
                     Iterator<Node> nodeIterator = nodes.iterator();
                     Iterator<Relationship> relationshipIterator = relationships.iterator();
 
-                    Node robert = nodeIterator.next();
-                    assertEquals(asList(label("Person")), robert.getLabels());
-                    assertTrue(robert.getId() < 0);
-                    assertEquals(robertMap, robert.getAllProperties());
+                    Node john = nodeIterator.next();
+                    assertEquals(asList(label("Father")), john.getLabels());
+                    assertTrue(john.getId() < 0);
+                    assertEquals(johnMap, john.getAllProperties());
 
                     Node james = nodeIterator.next();
                     assertEquals(asList(label("Father")), james.getLabels());
                     assertTrue(james.getId() < 0);
                     assertEquals(jamesMap, james.getAllProperties());
 
-                    Node john = nodeIterator.next();
-                    assertEquals(asList(label("Father")), john.getLabels());
-                    assertTrue(john.getId() < 0);
-                    assertEquals(johnMap, john.getAllProperties());
+                    Node robert = nodeIterator.next();
+                    assertEquals(asList(label("Person")), robert.getLabels());
+                    assertTrue(robert.getId() < 0);
+                    assertEquals(robertMap, robert.getAllProperties());
 
                     Relationship rel = relationshipIterator.next();
                     assertEquals(RelationshipType.withName("SON"), rel.getType());
@@ -570,12 +589,13 @@ public class GraphsTest {
         db.executeTransactionally("CALL apoc.graph.fromDocument($json, $config) yield graph",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(list), "config", Util.map("write", true)));
 
-        long count = TestUtil.singleResultFirstColumn(db, "MATCH p = (a:User{id: 1})-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User{id: 2}) RETURN count(p) AS count");
-        assertEquals(1L, count);
+        Long count = TestUtil.singleResultFirstColumn(db, "MATCH p = (a:User{id: 1})-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User{id: 2}) RETURN count(p) AS count");
+        assertEquals(1L, count.longValue());
 
         db.executeTransactionally("MATCH p = (a:User)-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User) detach delete p");
-        count = TestUtil.singleResultFirstColumn( db,"MATCH p = (a:User)-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User) RETURN count(p) AS count");
-        assertEquals(0L, count);
+
+        count = TestUtil.singleResultFirstColumn(db, "MATCH p = (a:User)-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User) RETURN count(p) AS count");
+        assertEquals(0L, count.longValue());
     }
 
     @Test
@@ -667,14 +687,14 @@ public class GraphsTest {
                     assertEquals(2, relationships.size());
                     Iterator<Node> nodeIterator = nodes.iterator();
                     Iterator<Relationship> relationshipIterator = relationships.iterator();
-                    Node album = nodeIterator.next();
-                    assertEquals(asList(label("Album")), album.getLabels());
-                    assertTrue(album.getId() < 0);
-                    assertEquals(album1Map, album.getAllProperties());
                     Node artist = nodeIterator.next();
                     assertEquals(asList(label("Artist")), artist.getLabels());
                     assertTrue(artist.getId() < 0);
                     assertEquals(genesisMap, artist.getAllProperties());
+                    Node album = nodeIterator.next();
+                    assertEquals(asList(label("Album")), album.getLabels());
+                    assertTrue(album.getId() < 0);
+                    assertEquals(album1Map, album.getAllProperties());
                     Node album2 = nodeIterator.next();
                     assertEquals(asList(label("Album")), album2.getLabels());
                     assertTrue(album2.getId() < 0);
@@ -707,11 +727,10 @@ public class GraphsTest {
                     assertEquals(genesisMap.get("type"), artist.getProperty("type"));
                     assertEquals(genesisMap.get("name"), artist.getProperty("name"));
                     assertEquals(genesisMap.get("id"), artist.getProperty("id"));
-                    Arrays.equals((Long[]) genesisMap.get("years"), (Long[]) artist.getProperty("years"));
-                    Arrays.equals((String[]) genesisMap.get("members"), (String[]) artist.getProperty("members"));
+                    assertArrayEquals((Long[]) genesisMap.get("years"), (Long[]) artist.getProperty("years"));
+                    assertArrayEquals((String[]) genesisMap.get("members"), (String[]) artist.getProperty("members"));
                 });
     }
-
 
     @Test
     public void shouldFindDuplicatesWithValidation() {
@@ -773,4 +792,80 @@ public class GraphsTest {
                 });
     }
 
+    @Test
+    public void shouldCreateTheGraphMappingObjectAccordingToThePattern() {
+        GraphsConfig.GraphMapping mapping = GraphsConfig.GraphMapping.from("Person{*,@sizes}");
+        assertEquals(Arrays.asList("sizes"), mapping.getValueObjects());
+        assertEquals(Collections.emptyList(), mapping.getProperties());
+        assertEquals(Collections.emptyList(), mapping.getIds());
+        assertTrue(mapping.isAllProps());
+        assertEquals(Arrays.asList("Person"), mapping.getLabels());
+
+        mapping = GraphsConfig.GraphMapping.from("Book{!title, released}");
+        assertEquals(Collections.emptyList(), mapping.getValueObjects());
+        assertEquals(Arrays.asList("released", "title"), mapping.getProperties());
+        assertEquals(Arrays.asList("title"), mapping.getIds());
+        assertEquals(Arrays.asList("Book"), mapping.getLabels());
+        assertFalse(mapping.isAllProps());
+    }
+
+    @Test
+    public void shouldCreateFlattenValueObjectAndNewNodes() {
+        String[] strings = {"foo", "bar"};
+        Map<String, Object> book1 = map("title", "Flow My Tears, the Policeman Said", "released", 1974);
+        Map<String, Object> book2 = map("title", "The man in the High Castle", "released", 1962);
+        Map<String, Object> inputMap = map("id", 1, "type", "Person", "name", "Andrea",
+                "sizes", map("weight", map("value", 70, "um", "Kg"), "height", map("value", 174, "um", "cm"),
+                        "array", strings),
+                "books", Arrays.asList(book1,book2)
+        );
+        Map<String, Object> expectedMap = map("id", 1, "type", "Person", "name", "Andrea",
+                "sizes.weight.value", 70, "sizes.weight.um", "Kg", "sizes.height.value", 174, "sizes.height.um", "cm");
+
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json, $config) yield graph",
+                Util.map("json", inputMap, "config", map("mappings", map("$", "Person:Reader{*,@sizes}", "$.books", "Book{!title, released}"))), result -> {
+                    Map<String, Object> map = result.next();
+                    assertEquals("Graph", ((Map) map.get("graph")).get("name"));
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Collection<Relationship> rels = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    assertEquals(3, nodes.size());
+                    assertEquals(2, rels.size());
+                    Iterator<Node> nodeIterator = nodes.iterator();
+                    Iterator<Relationship> relationshipIterator = rels.iterator();
+
+                    Node person = nodeIterator.next();
+                    assertEquals(asList(label("Person"), label("Reader")), person.getLabels());
+                    assertTrue(person.getId() < 0);
+                    Map<String, Object> allProperties = new HashMap<>(person.getAllProperties());
+                    allProperties.remove("sizes.array"); // we test only non-array properties
+                    assertEquals(expectedMap, allProperties);
+                    assertArrayEquals(strings, (String[]) person.getProperty("sizes.array"));
+
+                    Node book1Node = nodeIterator.next();
+                    assertEquals(asList(label("Book")), book1Node.getLabels());
+                    assertTrue(book1Node.getId() < 0);
+                    allProperties = book1Node.getAllProperties();
+                    assertEquals(book1, allProperties);
+
+                    Node book2Node = nodeIterator.next();
+                    assertEquals(asList(label("Book")), book2Node.getLabels());
+                    assertTrue(book2Node.getId() < 0);
+                    allProperties = book2Node.getAllProperties();
+                    assertEquals(book2, allProperties);
+
+                    Relationship rel = relationshipIterator.next();
+                    assertEquals(RelationshipType.withName("BOOKS"), rel.getType());
+                    assertTrue(rel.getId() < 0);
+                    assertEquals(person, rel.getStartNode());
+                    assertEquals(book1Node, rel.getEndNode());
+
+                    rel = relationshipIterator.next();
+                    assertEquals(RelationshipType.withName("BOOKS"), rel.getType());
+                    assertTrue(rel.getId() < 0);
+                    assertEquals(person, rel.getStartNode());
+                    assertEquals(book2Node, rel.getEndNode());
+
+                    assertFalse("should not have next", result.hasNext());
+                });
+    }
 }

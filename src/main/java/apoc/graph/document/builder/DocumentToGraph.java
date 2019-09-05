@@ -5,6 +5,7 @@ import apoc.result.VirtualGraph;
 import apoc.result.VirtualNode;
 import apoc.util.FixedSizeStringWriter;
 import apoc.util.JsonUtil;
+import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -21,6 +22,8 @@ import java.util.stream.StreamSupport;
 
 public class DocumentToGraph {
 
+    private static final String JSON_ROOT = "$";
+
     private Transaction tx;
     private RelationshipBuilder documentRelationBuilder;
     private LabelBuilder documentLabelBuilder;
@@ -33,17 +36,38 @@ public class DocumentToGraph {
         this.config = config;
     }
 
-    public Map<Map<String, Object>, List<String>> validate(Map<String, Object> map) {
-        return flatMapFields(map)
+    private boolean hasId(Map<String, Object> map, String path) {
+        List<String> ids = config.idsForPath(path);
+        if (ids.isEmpty()) {
+            return map.containsKey(config.getIdField());
+        } else {
+            return map.keySet().containsAll(ids);
+        }
+    }
+
+    private boolean hasLabel(Map<String, Object> map, String path) {
+        return !config.labelsForPath(path).isEmpty() || map.containsKey(config.getLabelField());
+    }
+
+    public Map<Map<String, Object>, List<String>> validate(Map<String, Object> map, String path) {
+        return flatMapFieldsWithPath(map, path)
+                .entrySet()
+                .stream()
+                .flatMap(elem -> elem.getValue().stream().map(data -> new AbstractMap.SimpleEntry<>(elem.getKey(), data)))
                 .map(elem -> {
+                    String subPath = elem.getKey();
+                    List<String> valueObjects = config.valueObjectForPath(subPath);
                     List<String> msgs = new ArrayList<>();
-                    if (!elem.containsKey(config.getIdField())) {
-                        msgs.add("`" + config.getIdField() + "` as id-field name");
+                    Map<String, Object> value = elem.getValue();
+                    if (valueObjects.isEmpty()) {
+                        if (!hasId(value, subPath)) {
+                            msgs.add("`" + config.getIdField() + "` as id-field name");
+                        }
+                        if (!hasLabel(value, subPath)) {
+                            msgs.add("`" + config.getLabelField() + "` as label-field name");
+                        }
                     }
-                    if (!elem.containsKey(config.getLabelField())) {
-                        msgs.add("`" + config.getLabelField() + "` as label-field name");
-                    }
-                    return new AbstractMap.SimpleEntry<>(elem, msgs);
+                    return new AbstractMap.SimpleEntry<>(value, msgs);
                 })
                 .filter(elem -> !elem.getValue().isEmpty())
                 .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
@@ -59,27 +83,47 @@ public class DocumentToGraph {
     }
 
     private void fromDocument(Map<String, Object> document, Node source, String type,
-                              Map<String, Set<Node>> nodes, Set<Relationship> relationships) {
-        boolean isRootNode = source == null;
-        prepareData(document);
-        Map<Map<String, Object>, List<String>> errors = validate(document);
-        if (!errors.isEmpty()) {
-            throwError(errors);
-        }
-        Label label = this.documentLabelBuilder.buildLabel(document);
+                              Map<Set<String>, Set<Node>> nodes, Set<Relationship> relationships,
+                              String propertyName) {
+        String path = propertyName == null ? JSON_ROOT : propertyName;
 
-        Object idValue = document.get(config.getIdField());
+        // clean the object form unwanted properties
+        if (!config.allPropertiesForPath(path)) {
+            document.keySet().retainAll(config.propertiesForPath(path));
+        }
+
+        boolean isRootNode = source == null;
+        prepareData(document, path);
+
+        // validate
+        if (!config.isSkipValidation()) {
+            Map<Map<String, Object>, List<String>> errors = validate(document, path);
+            if (!errors.isEmpty()) {
+                throwError(errors);
+            }
+        }
+
+        Label[] labels = this.documentLabelBuilder.buildLabel(document, path);
+        Map<String, Object> idValues = filterNodeIdProperties(document, path);
+
         // retrieve the current node
         final Node node;
         if (this.config.isWrite()) {
-            node = getOrCreateRealNode(label, idValue);
+            node = getOrCreateRealNode(labels, idValues);
         } else {
-            node = getOrCreateVirtualNode(nodes, label, idValue);
+            node = getOrCreateVirtualNode(nodes, labels, idValues);
         }
 
         // write node properties
         document.entrySet().stream()
-                .filter(e -> isSimpleType(e))
+                .filter(e -> isSimpleType(e, path))
+                .flatMap(e -> {
+                    if (e.getValue() instanceof Map) {
+                        return Util.flattenMap((Map<String, Object>) e.getValue(), e.getKey()).entrySet().stream();
+                    } else {
+                        return Stream.of(e);
+                    }
+                })
                 .forEach(e -> {
                     Object value = e.getValue();
                     if (value instanceof List) {
@@ -96,19 +140,21 @@ public class DocumentToGraph {
 
         // get child nodes
         document.entrySet().stream()
-                .filter(e -> !isSimpleType(e))
+                .filter(e -> !isSimpleType(e, path))
                 .forEach(e -> {
+                    String newPath = path + "."  + e.getKey();
                     if (e.getValue() instanceof Map) { // if value is a complex object (map)
                         Map inner = (Map) e.getValue();
-                        fromDocument(inner, node, e.getKey(), nodes, relationships);
+                        fromDocument(inner, node, e.getKey(), nodes, relationships, newPath);
                     } else {
                         List<Map> list = (List) e.getValue(); // if value is and array
-                        list.forEach(map -> fromDocument(map, node, e.getKey(), nodes, relationships));
+                        list.forEach(map -> fromDocument(map, node, e.getKey(), nodes, relationships, newPath));
                     }
                 });
 
-        Set<Node> nodesWithSameIds = getNodesWithSameIds(nodes, idValue);
+        Set<Node> nodesWithSameIds = getNodesWithSameLabels(nodes, labels);
         nodesWithSameIds.add(node);
+
         if (!isRootNode) {
             relationships.addAll(documentRelationBuilder.buildRelation(source, node, type));
         }
@@ -126,49 +172,79 @@ public class DocumentToGraph {
                 .collect(Collectors.joining(StringUtils.LF));
     }
 
-    public void prepareData(Map<String, Object> document) {
+    public void prepareData(Map<String, Object> document, String path) {
         if (config.isGenerateId()) {
-            document.computeIfAbsent(config.getIdField(), key -> UUID.randomUUID().toString());
-        }
-        if (!config.getDefaultLabel().isEmpty()) {
-            document.computeIfAbsent(config.getLabelField(), key -> config.getDefaultLabel());
+            List<String> ids = config.idsForPath(path);
+            String idField;
+            if (ids.isEmpty()) {
+                idField = config.getIdField();
+            } else {
+                idField = ids.get(0);
+            }
+            document.computeIfAbsent(idField, key -> UUID.randomUUID().toString());
         }
     }
 
-    private Set<Node> getNodesWithSameIds(Map<String, Set<Node>> nodes, Object idValue) {
-        return nodes.computeIfAbsent(idValue.toString(), (k) -> new LinkedHashSet<>());
+    private Map<String, Object> filterNodeIdProperties(Map<String, Object> document, String path) {
+        List<String> ids = config.idsForPath(path);
+        Map<String, Object> idMap = new HashMap<>(document);
+        if(ids.isEmpty()) {
+            idMap.keySet().retainAll(Collections.singleton(config.getIdField()));
+        } else {
+            idMap.keySet().retainAll(ids);
+        }
+        return idMap;
     }
 
-    private Node getOrCreateVirtualNode(Map<String, Set<Node>> nodes, Label label, Object idValue) {
-        Set<Node> nodesWithSameIds = getNodesWithSameIds(nodes, idValue);
+    private Map<String, Object> filterNodeIdProperties(Node n, Map<String, Object> idMap) {
+        return n.getProperties(idMap.keySet().toArray(new String[idMap.keySet().size()]));
+    }
+
+    private Set<Node> getNodesWithSameLabels(Map<Set<String>, Set<Node>> nodes, Label[] labels) {
+        Set<String> set = Stream.of(labels).map(Label::name).collect(Collectors.toSet());
+        return nodes.computeIfAbsent(set, (k) -> new LinkedHashSet<>());
+    }
+
+    private Node getOrCreateVirtualNode(Map<Set<String>, Set<Node>> nodes, Label[] labels, Map<String, Object> idValues) {
+        Set<Node> nodesWithSameIds = getNodesWithSameLabels(nodes, labels);
         return nodesWithSameIds
                 .stream()
                 .filter(n -> {
-                    if (n.hasLabel(label)) {
-                        return true;
+                    if (Stream.of(labels).anyMatch(label -> n.hasLabel(label))) {
+                        Map<String, Object> ids = filterNodeIdProperties(n, idValues);
+                        return idValues.equals(ids);
                     }
                     return StreamSupport.stream(n.getRelationships().spliterator(), false)
-                            .anyMatch(r -> r.getOtherNode(n).hasLabel(label));
+                            .anyMatch(r -> {
+                                Node otherNode = r.getOtherNode(n);
+                                Map<String, Object> ids = filterNodeIdProperties(otherNode, idValues);
+                                return Stream.of(labels).anyMatch(label -> otherNode.hasLabel(label)) && idValues.equals(ids);
+                            });
                 })
                 .findFirst()
-                .orElse(new VirtualNode(new Label[]{label}, Collections.emptyMap()));
+                .orElseGet(() -> new VirtualNode(labels, Collections.emptyMap()));
     }
 
-    private Node getOrCreateRealNode(Label label, Object idValue) {
-        Node nodeInDB = tx.findNode(label, config.getIdField(), idValue);
-        return nodeInDB != null ? nodeInDB : tx.createNode(label);
+    private Node getOrCreateRealNode(Label[] labels, Map<String, Object> idValues) {
+        return Stream.of(labels)
+                .map(label -> tx.findNodes(label, idValues))
+                .filter(it -> it.hasNext())
+                .map(it -> it.next())
+                .findFirst()
+                .orElseGet(() -> tx.createNode(labels));
     }
 
-    private boolean isSimpleType(Map.Entry<String, Object> e) {
+    private boolean isSimpleType(Map.Entry<String, Object> e, String path) {
+        List<String> valueObjects = config.valueObjectForPath(path);
         if (e.getValue() instanceof Map) {
-            return false;
+            return valueObjects.contains(e.getKey());
         }
         if (e.getValue() instanceof List) {
             List list = (List) e.getValue();
             if (!list.isEmpty()) {
                 Object object = list.get(0); // assumption: homogeneous array
                 if (object instanceof Map) { // if is an array of complex type
-                    return false;
+                    return false; // TODO add support for array of value objects
                 }
             }
         }
@@ -190,9 +266,9 @@ public class DocumentToGraph {
 
     public VirtualGraph create(Object documentObj) {
         Collection<Map<String, Object>> coll = getDocumentCollection(documentObj);
-        Map<String, Set<Node>> nodes = new LinkedHashMap<>();
+        Map<Set<String>, Set<Node>> nodes = new LinkedHashMap<>();
         Set<Relationship> relationships = new LinkedHashSet<>();
-        coll.forEach(map -> fromDocument(map, null, null, nodes, relationships));
+        coll.forEach(map -> fromDocument(map, null, null, nodes, relationships, JSON_ROOT));
         return new VirtualGraph("Graph", nodes.values().stream().flatMap(Set::stream).collect(Collectors.toCollection(LinkedHashSet::new)), relationships, Collections.emptyMap());
     }
 
@@ -233,14 +309,38 @@ public class DocumentToGraph {
                 .flatMap(e -> flatMapFields((Map<String, Object>) e)));
     }
 
+    private Map<String, List<Map<String, Object>>> flatMapFieldsWithPath(Map<String, Object> map, String path) {
+        Map<String, List<Map<String, Object>>> flatWithPath = new HashMap<>();
+        String newPath = path == null ? JSON_ROOT : path;
+        flatWithPath.computeIfAbsent(newPath, e -> new ArrayList<>()).add(map);
+        Map<String, List<Map<String, Object>>> collect = map.entrySet()
+                .stream()
+                .filter(e -> !isSimpleType(e, path))
+                .flatMap(e -> {
+                    String subPath = newPath + "." + e.getKey();
+                    if (e.getValue() instanceof Map) {
+                        return flatMapFieldsWithPath((Map<String, Object>) e.getValue(), subPath).entrySet().stream();
+                    } else {
+                        List<Map<String, Object>> list = (List<Map<String, Object>>) e.getValue();
+                        return list.stream().flatMap(le -> flatMapFieldsWithPath(le, subPath).entrySet().stream());
+                    }
+                })
+                .flatMap(e -> e.getValue().stream().map(ee -> new AbstractMap.SimpleEntry<>(e.getKey(), ee)))
+                .collect(Collectors.groupingBy(e -> e.getKey(),
+                        Collectors.mapping(e -> e.getValue(), Collectors.toList())));
+        flatWithPath.putAll(collect);
+
+        return flatWithPath;
+    }
+
     public Map<Long, String> validate(Object doc) {
         AtomicLong index = new AtomicLong(-1);
         return getDocumentCollection(doc).stream()
                 .map(elem -> {
                     long line = index.incrementAndGet();
-                    prepareData(elem);
+                    prepareData(elem, JSON_ROOT);
                     // id, label validation
-                    Map<Map<String, Object>, List<String>> errors = validate(elem);
+                    Map<Map<String, Object>, List<String>> errors = validate(elem, JSON_ROOT);
                     if (errors.isEmpty()) {
                         return null;
                     } else {
