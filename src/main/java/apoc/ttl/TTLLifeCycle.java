@@ -1,8 +1,7 @@
 package apoc.ttl;
 
-import apoc.ApocSettings;
+import apoc.ApocConfig;
 import apoc.util.Util;
-import org.neo4j.configuration.Config;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -25,26 +24,25 @@ public class TTLLifeCycle extends LifecycleAdapter {
     public static Group TTL_GROUP = Group.INDEX_UPDATING;
     private final JobScheduler scheduler;
     private final GraphDatabaseAPI db;
-    private final Config config;
+    private final ApocConfig apocConfig;
     private JobHandle ttlIndexJobHandle;
     private JobHandle ttlJobHandle;
     private Log log;
 
-    public TTLLifeCycle(JobScheduler scheduler, GraphDatabaseAPI db, Config config, Log log) {
+    public TTLLifeCycle(JobScheduler scheduler, GraphDatabaseAPI db, ApocConfig apocConfig, Log log) {
         this.scheduler = scheduler;
         this.db = db;
-        this.config = config;
+        this.apocConfig = apocConfig;
         this.log = log;
     }
 
     @Override
     public void start() {
-
-        boolean enabled = config.get(ApocSettings.apoc_ttl_enabled);
+        boolean enabled = apocConfig.getBoolean(ApocConfig.APOC_TTL_ENABLED);
         if (enabled) {
-            long ttlSchedule = config.get(ApocSettings.apoc_ttl_schedule).getSeconds();
+            long ttlSchedule = apocConfig.getInt(ApocConfig.APOC_TTL_SCHEDULE, DEFAULT_SCHEDULE);
             ttlIndexJobHandle = scheduler.schedule(TTL_GROUP, this::createTTLIndex, (int)(ttlSchedule*0.8), TimeUnit.SECONDS);
-            long limit = config.get(ApocSettings.apoc_ttl_limit);
+            long limit = apocConfig.getInt(ApocConfig.APOC_TTL_LIMIT, 1000);
             ttlJobHandle = scheduler.scheduleRecurring(TTL_GROUP, () -> expireNodes(limit), ttlSchedule, ttlSchedule, TimeUnit.SECONDS);
         }
     }

@@ -4,14 +4,17 @@ import apoc.util.TestUtil;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
+import org.junit.rules.RuleChain;
+import org.junit.rules.TestRule;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import static apoc.ApocSettings.apoc_ttl_enabled;
-import static apoc.ApocSettings.apoc_ttl_schedule;
+import static apoc.ApocConfig.APOC_TTL_ENABLED;
+import static apoc.ApocConfig.APOC_TTL_SCHEDULE;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -20,10 +23,14 @@ import static org.junit.Assert.assertEquals;
  */
 public class TTLTest {
 
+    public static DbmsRule db = new ImpermanentDbmsRule();
+
+    public static ProvideSystemProperty systemPropertyRule
+            = new ProvideSystemProperty(APOC_TTL_ENABLED, "true")
+            .and(APOC_TTL_SCHEDULE, "5");
+
     @ClassRule
-    public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(apoc_ttl_schedule, "5")
-            .withSetting(apoc_ttl_enabled, "true");
+    public static TestRule chain = RuleChain.outerRule(systemPropertyRule).around(db);
 
     @BeforeClass
     public static void setUp() throws Exception {
