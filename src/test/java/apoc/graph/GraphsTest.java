@@ -4,6 +4,7 @@ import apoc.graph.util.GraphsConfig;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -16,6 +17,8 @@ import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,9 +26,7 @@ import java.util.stream.Stream;
 import static apoc.util.MapUtil.map;
 import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.*;
 import static org.neo4j.graphdb.Label.label;
 
 /**
@@ -866,6 +867,36 @@ public class GraphsTest {
                     assertEquals(book2Node, rel.getEndNode());
 
                     assertFalse("should not have next", result.hasNext());
+                });
+    }
+
+    @Test
+    public void testDeeplyNestedStructures() throws IOException {
+        String json = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("deeplyNestedObject.json"), Charset.forName("UTF-8"));
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+                map("json", json, "config", map("idField", "name")), result -> {
+                    Map<String, Object> map = result.next();
+                    assertEquals("Graph", ((Map) map.get("graph")).get("name"));
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Map<String, List<Node>> nodeMap = nodes.stream()
+                            .collect(Collectors.groupingBy(e -> e.getLabels().iterator().next().name()));
+
+                    assertEquals(1, nodeMap.get("Project").size());
+                    assertEquals(3, nodeMap.get("Company").size());
+                    assertEquals(5, nodeMap.get("Worker").size());
+                    assertEquals(19, nodeMap.get("Task").size());
+
+
+                    Collection<Relationship> rels = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    Map<String, List<Relationship>> relMap = rels.stream()
+                            .collect(Collectors.groupingBy(e -> String.format("(%s)-[%s]-(%s)",
+                                    e.getStartNode().getLabels().iterator().next().name(),
+                                    e.getType().name(),
+                                    e.getEndNode().getLabels().iterator().next().name())));
+                    assertEquals(5, relMap.get("(Project)-[TASKS]-(Task)").size());
+                    assertEquals(19, relMap.get("(Task)-[WORKER]-(Worker)").size());
+                    assertEquals(14, relMap.get("(Task)-[SUBTASKS]-(Task)").size());
+                    assertEquals(5, relMap.get("(Worker)-[COMPANY]-(Company)").size());
                 });
     }
 }
