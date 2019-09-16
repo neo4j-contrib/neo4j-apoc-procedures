@@ -33,7 +33,7 @@ if (!project.hasProperty('apocVersion')) { ext.apocVersion = '3.5.0.5' }
 
 ext {
     versionParts = apocVersion.split('-')
-    branch = '3.4'
+    branch = '3.5'
     versions = [
         'apoc' : apocVersion,
         'apocDocs' : versionParts[0].split('\\.')[0..1].join('.'),
