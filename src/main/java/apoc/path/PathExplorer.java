@@ -57,8 +57,8 @@ public class PathExplorer {
 		Map<String, Object> configMap = new HashMap<>(config);
 		configMap.put("uniqueness", "NODE_GLOBAL");
 
-		if (config.containsKey("minLevel")) {
-			throw new IllegalArgumentException("minLevel not supported in subgraphNodes");
+		if (config.containsKey("minLevel") && !config.get("minLevel").equals(0l) && !config.get("minLevel").equals(1l)) {
+			throw new IllegalArgumentException("minLevel can only be 0 or 1 in subgraphNodes()");
 		}
 
 		return expandConfigPrivate(start, configMap).map( path -> path == null ? new NodeResult(null) : new NodeResult(path.endNode()) );
@@ -71,8 +71,8 @@ public class PathExplorer {
 		configMap.remove("optional"); // not needed, will return empty collections anyway if no results
 		configMap.put("uniqueness", "NODE_GLOBAL");
 
-		if (config.containsKey("minLevel")) {
-			throw new IllegalArgumentException("minLevel not supported in subgraphAll");
+		if (config.containsKey("minLevel") && !config.get("minLevel").equals(0l) && !config.get("minLevel").equals(1l)) {
+			throw new IllegalArgumentException("minLevel can only be 0 or 1 in subgraphAll()");
 		}
 
 		List<Node> subgraphNodes = expandConfigPrivate(start, configMap).map( Path::endNode ).collect(Collectors.toList());
@@ -87,8 +87,8 @@ public class PathExplorer {
 		Map<String, Object> configMap = new HashMap<>(config);
 		configMap.put("uniqueness", "NODE_GLOBAL");
 
-		if (config.containsKey("minLevel")) {
-			throw new IllegalArgumentException("minLevel not supported in spanningTree");
+		if (config.containsKey("minLevel") && !config.get("minLevel").equals(0l) && !config.get("minLevel").equals(1l)) {
+			throw new IllegalArgumentException("minLevel can only be 0 or 1 in spanningTree()");
 		}
 
 		return expandConfigPrivate(start, configMap).map( PathResult::new );
