@@ -1,23 +1,28 @@
 package apoc.neighbors;
 
-import apoc.result.*;
+import apoc.result.ListResult;
+import apoc.result.LongResult;
+import apoc.result.NodeListResult;
+import apoc.result.NodeResult;
 import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.Node;
 import org.neo4j.internal.helpers.collection.Pair;
-import org.neo4j.procedure.*;
-import org.roaringbitmap.RoaringBitmap;
-import org.roaringbitmap.longlong.LongBitmapDataProvider;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 import org.roaringbitmap.longlong.Roaring64NavigableMap;
 
 import java.util.*;
-import java.util.stream.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.path.RelationshipTypeAndDirections.parse;
 
 public class Neighbors {
 
     @Context
-    public GraphDatabaseService db;
+    public Transaction tx;
 
     @Procedure("apoc.neighbors.tohop")
     @Description("apoc.neighbors.tohop(node, rel-direction-pattern, distance) - returns distinct nodes of the given relationships in the pattern up to a certain distance, can use '>' or '<' for all outgoing or incoming relationships")
@@ -48,7 +53,7 @@ public class Neighbors {
             iterator = nextB.iterator();
             while (iterator.hasNext()) {
                 nodeId = iterator.next();
-                node = db.getNodeById(nodeId);
+                node = tx.getNodeById(nodeId);
                 for (Pair<RelationshipType, Direction> pair : parse(types)) {
                     for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
                         nextA.add((r.getOtherNodeId(nodeId)));
@@ -65,7 +70,7 @@ public class Neighbors {
                 iterator = nextA.iterator();
                 while (iterator.hasNext()) {
                     nodeId = iterator.next();
-                    node = db.getNodeById(nodeId);
+                    node = tx.getNodeById(nodeId);
                     for (Pair<RelationshipType, Direction> pair : parse(types)) {
                         for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
                             nextB.add(r.getOtherNodeId(nodeId));
@@ -83,7 +88,7 @@ public class Neighbors {
         seen.removeLong(node.getId());
 
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(seen.iterator(), Spliterator.SORTED), false)
-                .map(x -> new NodeResult(db.getNodeById(x)));
+                .map(x -> new NodeResult(tx.getNodeById(x)));
     }
 
     @Procedure("apoc.neighbors.tohop.count")
@@ -115,7 +120,7 @@ public class Neighbors {
             iterator = nextB.iterator();
             while (iterator.hasNext()) {
                 nodeId = iterator.next();
-                node = db.getNodeById(nodeId);
+                node = tx.getNodeById(nodeId);
                 for (Pair<RelationshipType, Direction> pair : parse(types)) {
                     for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
                         nextA.add(r.getOtherNodeId(nodeId));
@@ -132,7 +137,7 @@ public class Neighbors {
                 iterator = nextA.iterator();
                 while (iterator.hasNext()) {
                     nodeId = iterator.next();
-                    node = db.getNodeById(nodeId);
+                    node = tx.getNodeById(nodeId);
                     for (Pair<RelationshipType, Direction> pair : parse(types)) {
                         for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
                             nextB.add(r.getOtherNodeId(nodeId));
@@ -177,7 +182,7 @@ public class Neighbors {
         for(int i = 1; i < distance; i++) {
             iterator = seen[i-1].iterator();
             while (iterator.hasNext()) {
-                node = db.getNodeById(iterator.next());
+                node = tx.getNodeById(iterator.next());
                 for (Pair<RelationshipType, Direction> pair : parse(types)) {
                     for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
                         seen[i].add(r.getOtherNodeId(node.getId()));
@@ -192,7 +197,7 @@ public class Neighbors {
 
         return Arrays.stream(seen).map(x -> new NodeListResult(
                 StreamSupport.stream(Spliterators.spliteratorUnknownSize(x.iterator(), Spliterator.SORTED), false)
-                        .map(y -> db.getNodeById((long) y))
+                        .map(y -> tx.getNodeById((long) y))
                         .collect(Collectors.toList())));
     }
 
@@ -221,7 +226,7 @@ public class Neighbors {
         for(int i = 1; i < distance; i++) {
             iterator = seen[i-1].iterator();
             while (iterator.hasNext()) {
-                node = db.getNodeById(iterator.next());
+                node = tx.getNodeById(iterator.next());
                 for (Pair<RelationshipType, Direction> pair : parse(types)) {
                     for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
                         seen[i].add(r.getOtherNodeId(node.getId()));
@@ -267,7 +272,7 @@ public class Neighbors {
         for(int i = 1; i < distance; i++) {
             iterator = seen[i-1].iterator();
             while (iterator.hasNext()) {
-                node = db.getNodeById(iterator.next());
+                node = tx.getNodeById(iterator.next());
                 for (Pair<RelationshipType, Direction> pair : parse(types)) {
                     for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
                         seen[i].add(r.getOtherNodeId(node.getId()));
@@ -281,7 +286,7 @@ public class Neighbors {
         }
 
         return StreamSupport
-                .stream(Spliterators.spliteratorUnknownSize(seen[distance.intValue() - 1].iterator(), Spliterator.SORTED), false).map(y -> new NodeResult(db.getNodeById(y)));
+                .stream(Spliterators.spliteratorUnknownSize(seen[distance.intValue() - 1].iterator(), Spliterator.SORTED), false).map(y -> new NodeResult(tx.getNodeById(y)));
     }
 
     @Procedure("apoc.neighbors.athop.count")
@@ -309,7 +314,7 @@ public class Neighbors {
         for (int i = 1; i < distance; i++) {
             iterator = seen[i - 1].iterator();
             while (iterator.hasNext()) {
-                node = db.getNodeById(iterator.next());
+                node = tx.getNodeById(iterator.next());
                 for (Pair<RelationshipType, Direction> pair : parse(types)) {
                     for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
                         seen[i].add(r.getOtherNodeId(node.getId()));

@@ -38,7 +38,7 @@ public class CsvFormat implements Format {
     }
 
     @Override
-    public ProgressInfo dump(SubGraph graph, ExportFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
+    public ProgressInfo dump(SubGraph graph, ExportFileManager writer, Reporter reporter, ExportConfig config) {
         try (Transaction tx = db.beginTx()) {
             if (config.isBulkImport()) {
                 writeAllBulkImport(graph, reporter, config, writer);
@@ -48,7 +48,7 @@ public class CsvFormat implements Format {
                     writeAll(graph, reporter, config, out);
                 }
             }
-            tx.success();
+            tx.commit();
             reporter.done();
             return reporter.getTotal();
         }
@@ -87,7 +87,7 @@ public class CsvFormat implements Format {
         return out;
     }
 
-    public ProgressInfo dump(Result result, ExportFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
+    public ProgressInfo dump(Result result, ExportFileManager writer, Reporter reporter, ExportConfig config) {
         try (Transaction tx = db.beginTx(); PrintWriter printWriter = writer.getPrintWriter("csv");) {
             CSVWriter out = getCsvWriter(printWriter, config);
             String[] header = writeResultHeader(result, out);
@@ -98,13 +98,13 @@ public class CsvFormat implements Format {
                     String key = header[col];
                     Object value = row.get(key);
                     data[col] = FormatUtils.toString(value);
-                    reporter.update(value instanceof Node ? 1: 0,value instanceof Relationship ? 1: 0 , value instanceof PropertyContainer ? 0 : 1);
+                    reporter.update(value instanceof Node ? 1: 0,value instanceof Relationship ? 1: 0 , value instanceof Entity ? 0 : 1);
                 }
                 out.writeNext(data, applyQuotesToAll);
                 reporter.nextRow();
                 return true;
             });
-            tx.success();
+            tx.commit();
             reporter.done();
             return reporter.getTotal();
         }
@@ -288,7 +288,7 @@ public class CsvFormat implements Format {
         }
     }
 
-    private void collectProps(Collection<String> fields, PropertyContainer pc, Reporter reporter, String[] row, int offset, String delimiter) {
+    private void collectProps(Collection<String> fields, Entity pc, Reporter reporter, String[] row, int offset, String delimiter) {
         for (String field : fields) {
             if (pc.hasProperty(field)) {
                 row[offset] = FormatUtils.toString(pc.getProperty(field));

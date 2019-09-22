@@ -13,10 +13,7 @@ import apoc.util.QueueBasedSpliterator;
 import apoc.util.Util;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.*;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -36,6 +33,9 @@ import java.util.stream.StreamSupport;
  */
 public class ExportCSV {
     @Context
+    public Transaction tx;
+
+    @Context
     public GraphDatabaseService db;
 
     @Context
@@ -47,18 +47,11 @@ public class ExportCSV {
     @Context
     public Pools pools;
 
-    public ExportCSV(GraphDatabaseService db) {
-        this.db = db;
-    }
-
-    public ExportCSV() {
-    }
-
     @Procedure
     @Description("apoc.export.csv.all(file,config) - exports whole database as csv to the provided file")
     public Stream<ProgressInfo> all(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
-        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(db), Util.relCount(db));
-        return exportCsv(fileName, source, new DatabaseSubGraph(db), new ExportConfig(config));
+        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
+        return exportCsv(fileName, source, new DatabaseSubGraph(db, tx), new ExportConfig(config));
     }
 
     @Procedure
@@ -84,7 +77,7 @@ public class ExportCSV {
         ExportConfig exportConfig = new ExportConfig(config);
         preventBulkImport(exportConfig);
         Map<String,Object> params = config == null ? Collections.emptyMap() : (Map<String,Object>)config.getOrDefault("params", Collections.emptyMap());
-        Result result = db.execute(query,params);
+        Result result = tx.execute(query,params);
 
         String source = String.format("statement: cols(%d)", result.columns().size());
         return exportCsv(fileName, source,result, exportConfig);
@@ -112,7 +105,7 @@ public class ExportCSV {
             ProgressReporter reporterWithConsumer = reporter.withConsumer(
                     (pi) -> Util.put(queue, pi == ProgressInfo.EMPTY ? ProgressInfo.EMPTY : new ProgressInfo(pi).drain(cypherFileManager.getStringWriter("csv")), timeout)
             );
-            Util.inTxFuture(pools.getDefaultExecutorService(), db, () -> {
+            Util.inTxFuture(pools.getDefaultExecutorService(), db, txInThread -> {
                 dump(data, exportConfig, reporterWithConsumer, cypherFileManager, exporter);
                 return true;
             });
@@ -124,7 +117,7 @@ public class ExportCSV {
         }
     }
 
-    private void dump(Object data, ExportConfig c, ProgressReporter reporter, ExportFileManager printWriter, CsvFormat exporter) throws Exception {
+    private void dump(Object data, ExportConfig c, ProgressReporter reporter, ExportFileManager printWriter, CsvFormat exporter) {
         if (data instanceof SubGraph)
             exporter.dump((SubGraph)data,printWriter,reporter,c);
         if (data instanceof Result)

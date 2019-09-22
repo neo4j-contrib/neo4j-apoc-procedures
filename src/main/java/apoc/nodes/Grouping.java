@@ -29,8 +29,10 @@ public class Grouping {
 
     private static final int BATCHSIZE = 10000;
 
+    @Context GraphDatabaseService db;
+
     @Context
-    public GraphDatabaseService db;
+    public Transaction tx;
 
     @Context
     public Log log;
@@ -70,7 +72,7 @@ public class Grouping {
                                      @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
 
         Set<String> labels = new HashSet<>(labelNames);
-        if (labels.remove("*")) labels.addAll(db.getAllLabels().stream().map(Label::name).collect(Collectors.toSet()));
+        if (labels.remove("*")) labels.addAll(tx.getAllLabels().stream().map(Label::name).collect(Collectors.toSet()));
 
         String[] keys = groupByProperties.toArray(new String[groupByProperties.size()]);
 
@@ -111,10 +113,10 @@ public class Grouping {
             Label label = Label.label(labelName);
             Label[] singleLabel = {label};
 
-            try (ResourceIterator<Node> nodes = (labelName.equals("*")) ? db.getAllNodes().iterator() : db.findNodes(label)) {
+            try (ResourceIterator<Node> nodes = (labelName.equals("*")) ? tx.getAllNodes().iterator() : tx.findNodes(label)) {
                 while (nodes.hasNext()) {
                     List<Node> batch = Util.take(nodes, BATCHSIZE);
-                    futures.add(Util.inTxFuture(pool, db, () -> {
+                    futures.add(Util.inTxFuture(pool, db, txInThread -> {
                         try {
                             for (Node node : batch) {
                                 NodeKey key = keyFor(node, labelName, keys);
@@ -125,7 +127,7 @@ public class Grouping {
                                 });
                                 virtualNodes.compute(key, (k, v) -> {
                                             if (v == null) {
-                                                v = new VirtualNode(singleLabel, propertiesFor(node, keys), db);
+                                                v = new VirtualNode(singleLabel, propertiesFor(node, keys));
                                             }
                                             VirtualNode vn = v;
                                             if (!nodeAggNames.isEmpty()) {
@@ -157,7 +159,7 @@ public class Grouping {
                 ArrayList<Map.Entry<NodeKey, Set<Node>>> submitted = new ArrayList<>(batch);
                 batch.clear();
                 size = 0;
-                futures.add(Util.inTxFuture(pool, db, () -> {
+                futures.add(Util.inTxFuture(pool, db, txInThread -> {
                     try {
                         for (Map.Entry<NodeKey, Set<Node>> entry : submitted) {
                             for (Node node : entry.getValue()) {
@@ -245,7 +247,7 @@ public class Grouping {
     public Set<String> computeIncludedRels(@Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (!config.containsKey("includeRels") && !config.containsKey("excludeRels")) return null;
 
-        Set<String> includeRels = db.getAllRelationshipTypes().stream().map(RelationshipType::name).collect(Collectors.toSet());
+        Set<String> includeRels = tx.getAllRelationshipTypes().stream().map(RelationshipType::name).collect(Collectors.toSet());
         if (config.containsKey("includeRels")) {
             Object rels = config.get("includeRels");
             if (rels instanceof Collection) includeRels.retainAll((Collection<String>) rels);
@@ -271,8 +273,8 @@ public class Grouping {
         return keys.toArray(new String[keys.size()]);
     }
 
-    private <C extends Collection<T>, T extends PropertyContainer> C fixAggregates(C pcs) {
-        for (PropertyContainer pc : pcs) {
+    private <C extends Collection<T>, T extends Entity> C fixAggregates(C pcs) {
+        for (Entity pc : pcs) {
             pc.getAllProperties().entrySet().forEach((entry) -> {
                 Object v = entry.getValue();
                 String k = entry.getKey();
@@ -292,7 +294,7 @@ public class Grouping {
         return pcs;
     }
 
-    private void aggregate(PropertyContainer pc, Map<String, List<String>> aggregations, Map<String, Object> properties) {
+    private void aggregate(Entity pc, Map<String, List<String>> aggregations, Map<String, Object> properties) {
         aggregations.forEach((k2, aggNames) -> {
             for (String aggName : aggNames) {
                 String key = aggName + "_" + k2;

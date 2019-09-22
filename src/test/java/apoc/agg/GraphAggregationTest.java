@@ -4,7 +4,7 @@ import apoc.util.TestUtil;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Entity;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -31,9 +31,9 @@ public class GraphAggregationTest {
 
     @Test
     public void testGraph() throws Exception {
-        Map<String, PropertyContainer> pcs = new HashMap<>();
+        Map<String, Entity> pcs = new HashMap<>();
         db.execute("MATCH (n) RETURN n.id as id, n UNION ALL MATCH ()-[n]->() RETURN n.id as id, n")
-                .stream().forEach(row -> pcs.put(row.get("id").toString(), (PropertyContainer)row.get("n")));
+                .stream().forEach(row -> pcs.put(row.get("id").toString(), (Entity)row.get("n")));
 
         testCall(db, "RETURN apoc.agg.graph(null) as g",
                 (row) -> {
@@ -55,21 +55,21 @@ public class GraphAggregationTest {
         testCall(db, "MATCH p=(a:A)-[r]->(b:B) RETURN apoc.agg.graph([{a:a,b:b,r:r}]) as g", assertABAB(pcs));
         testCall(db, "MATCH p=(:A)-->() RETURN apoc.agg.graph(p) as g",
                 (row) -> {
-                    Map<String, List<PropertyContainer>> graph = (Map<String, List<PropertyContainer>>) row.get("g");
+                    Map<String, List<Entity>> graph = (Map<String, List<Entity>>) row.get("g");
                     assertEquals(asSet(pcs.get("a"),pcs.get("b"),pcs.get("c")), asSet(graph.get("nodes").iterator()));
                     assertEquals(asSet(pcs.get("ab"),pcs.get("ac")), asSet(graph.get("relationships").iterator()));
                 });
         testCall(db, "MATCH p=()-->() RETURN apoc.agg.graph(p) as g",
                 (row) -> {
-                    Map<String, List<PropertyContainer>> graph = (Map<String, List<PropertyContainer>>) row.get("g");
+                    Map<String, List<Entity>> graph = (Map<String, List<Entity>>) row.get("g");
                     assertEquals(asSet(pcs.get("a"),pcs.get("b"),pcs.get("c")), asSet(graph.get("nodes").iterator()));
                     assertEquals(asSet(pcs.get("ab"),pcs.get("ac"),pcs.get("bc")), asSet(graph.get("relationships").iterator()));
          });
     }
 
-    public Consumer<Map<String, Object>> assertABAB(Map<String, PropertyContainer> pcs) {
+    public Consumer<Map<String, Object>> assertABAB(Map<String, Entity> pcs) {
         return (row) -> {
-            Map<String, List<PropertyContainer>> graph = (Map<String, List<PropertyContainer>>) row.get("g");
+            Map<String, List<Entity>> graph = (Map<String, List<Entity>>) row.get("g");
             assertEquals(asSet(pcs.get("a"),pcs.get("b")), asSet(graph.get("nodes").iterator()));
             assertEquals(asList(pcs.get("ab")), graph.get("relationships"));
         };

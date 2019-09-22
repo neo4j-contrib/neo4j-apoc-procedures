@@ -1,17 +1,14 @@
 package apoc.algo;
 
-import org.neo4j.procedure.Description;
 import apoc.path.RelationshipTypeAndDirections;
 import apoc.result.PathResult;
 import apoc.result.WeightedPathResult;
 import apoc.util.Util;
-import org.neo4j.graphalgo.CommonEvaluators;
-import org.neo4j.graphalgo.GraphAlgoFactory;
-import org.neo4j.graphalgo.PathFinder;
-import org.neo4j.graphalgo.WeightedPath;
+import org.neo4j.graphalgo.*;
 import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
@@ -25,6 +22,9 @@ public class PathFinding {
     @Context
     public GraphDatabaseService db;
 
+    @Context
+    public Transaction tx;
+
     @Procedure
     @Description("apoc.algo.aStar(startNode, endNode, 'KNOWS|<WORKS_WITH|IS_MANAGER_OF>', 'distance','lat','lon') " +
             "YIELD path, weight - run A* with relationship property name as cost function")
@@ -37,6 +37,7 @@ public class PathFinding {
             @Name("lonPropertyName") String lonPropertyName) {
 
         PathFinder<WeightedPath> algo = GraphAlgoFactory.aStar(
+                new BasicEvaluationContext(tx, db),
                 buildPathExpander(relTypesAndDirs),
                 CommonEvaluators.doubleCostEvaluator(weightPropertyName),
                 CommonEvaluators.geoEstimateEvaluator(latPropertyName, lonPropertyName));
@@ -59,6 +60,7 @@ public class PathFinding {
         String lonPropertyName = config.getOrDefault("x", "longitude").toString();
 
         PathFinder<WeightedPath> algo = GraphAlgoFactory.aStar(
+                new BasicEvaluationContext(tx, db),
                 buildPathExpander(relTypesAndDirs),
                 CommonEvaluators.doubleCostEvaluator(relationshipCostPropertyKey, defaultCost),
                 CommonEvaluators.geoEstimateEvaluator(latPropertyName, lonPropertyName));
@@ -94,6 +96,7 @@ public class PathFinding {
             @Name("maxNodes") long maxNodes) {
 
         PathFinder<Path> algo = GraphAlgoFactory.allSimplePaths(
+                new BasicEvaluationContext(tx, db),
                 buildPathExpander(relTypesAndDirs),
                 (int) maxNodes
         );
@@ -115,6 +118,7 @@ public class PathFinding {
             @Name("defaultWeight") double defaultWeight) {
 
         PathFinder<WeightedPath> algo = GraphAlgoFactory.dijkstra(
+                new BasicEvaluationContext(tx, db),
                 buildPathExpander(relTypesAndDirs),
                 (relationship, direction) -> Util.toDouble(relationship.getProperty(weightPropertyName, defaultWeight))
         );

@@ -11,10 +11,7 @@ import apoc.util.Util;
 import org.neo4j.cypher.export.CypherResultSubGraph;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.procedure.*;
 
@@ -32,8 +29,12 @@ import java.util.stream.StreamSupport;
  * @since 22.05.16
  */
 public class ExportCypher {
+
     @Context
-    public GraphDatabaseService db;
+    GraphDatabaseService db;
+
+    @Context
+    public Transaction tx;
 
     @Context
     public TerminationGuard terminationGuard;
@@ -55,8 +56,8 @@ public class ExportCypher {
     @Description("apoc.export.cypher.all(file,config) - exports whole database incl. indexes as cypher statements to the provided file")
     public Stream<DataProgressInfo> all(@Name(value = "file",defaultValue = "") String fileName, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) throws IOException {
         if (Util.isNullOrEmpty(fileName)) fileName=null;
-        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(db), Util.relCount(db));
-        return exportCypher(fileName, source, new DatabaseSubGraph(db), new ExportConfig(config), false);
+        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
+        return exportCypher(fileName, source, new DatabaseSubGraph(db, tx), new ExportConfig(config), false);
     }
 
     @Procedure
@@ -83,7 +84,7 @@ public class ExportCypher {
     public Stream<DataProgressInfo> query(@Name("query") String query, @Name(value = "file",defaultValue = "") String fileName, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) throws IOException {
         if (Util.isNullOrEmpty(fileName)) fileName=null;
         ExportConfig c = new ExportConfig(config);
-        Result result = db.execute(query);
+        Result result = tx.execute(query);
         SubGraph graph = CypherResultSubGraph.from(result, db, c.getRelsInBetween());
         String source = String.format("statement: nodes(%d), rels(%d)",
                 Iterables.count(graph.getNodes()), Iterables.count(graph.getRelationships()));
@@ -94,8 +95,8 @@ public class ExportCypher {
     @Description("apoc.export.cypher.schema(file,config) - exports all schema indexes and constraints to cypher")
     public Stream<DataProgressInfo> schema(@Name(value = "file",defaultValue = "") String fileName, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) throws IOException {
         if (Util.isNullOrEmpty(fileName)) fileName=null;
-        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(db), Util.relCount(db));
-        return exportCypher(fileName, source, new DatabaseSubGraph(db), new ExportConfig(config), true);
+        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
+        return exportCypher(fileName, source, new DatabaseSubGraph(db, tx), new ExportConfig(config), true);
     }
 
     private Stream<DataProgressInfo> exportCypher(@Name("file") String fileName, String source, SubGraph graph, ExportConfig c, boolean onlySchema) throws IOException {
@@ -112,7 +113,7 @@ public class ExportCypher {
             final BlockingQueue<DataProgressInfo> queue = new ArrayBlockingQueue<>(1000);
             ProgressReporter reporterWithConsumer = reporter.withConsumer(
                     (pi) -> Util.put(queue,pi == ProgressInfo.EMPTY ? DataProgressInfo.EMPTY : new DataProgressInfo(pi).enrich(cypherFileManager),timeout));
-            Util.inTxFuture(pools.getDefaultExecutorService(), db, () -> { doExport(graph, c, onlySchema, reporterWithConsumer, cypherFileManager); return true; });
+            Util.inTxFuture(pools.getDefaultExecutorService(), db, txInThread -> { doExport(graph, c, onlySchema, reporterWithConsumer, cypherFileManager); return true; });
             QueueBasedSpliterator<DataProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, DataProgressInfo.EMPTY, terminationGuard, timeout);
             return StreamSupport.stream(spliterator, false);
         } else {
@@ -121,7 +122,7 @@ public class ExportCypher {
         }
     }
 
-    private void doExport(SubGraph graph, ExportConfig c, boolean onlySchema, ProgressReporter reporter, ExportFileManager cypherFileManager) throws IOException {
+    private void doExport(SubGraph graph, ExportConfig c, boolean onlySchema, ProgressReporter reporter, ExportFileManager cypherFileManager) {
         MultiStatementCypherSubGraphExporter exporter = new MultiStatementCypherSubGraphExporter(graph, c, db);
 
         if (onlySchema)

@@ -4,6 +4,8 @@ import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.ResultConsumer;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.logging.Log;
@@ -15,6 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.LockSupport;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -34,9 +37,8 @@ public class Periodic {
     @Context public GraphDatabaseService db;
     @Context public TerminationGuard terminationGuard;
     @Context public Log log;
-    @Context
-    public Pools pools;
-
+    @Context public Pools pools;
+    @Context public Transaction tx;
 
     @Procedure
     @Description("apoc.periodic.list - list all jobs")
@@ -120,7 +122,7 @@ public class Periodic {
 
     private long executeNumericResultStatement(@Name("statement") String statement, @Name("params") Map<String, Object> parameters) {
         long sum = 0;
-        try (Result result = db.execute(statement, parameters)) {
+        try (Result result = tx.execute(statement, parameters)) {
             while (result.hasNext()) {
                 Collection<Object> row = result.next().values();
                 for (Object value : row) {
@@ -150,7 +152,7 @@ public class Periodic {
     public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement) {
         JobInfo info = submit(name, () -> {
             try {
-                Iterators.count(db.execute(statement));
+                Iterators.count(tx.execute(statement));
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }
@@ -162,7 +164,7 @@ public class Periodic {
     @Description("apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.")
     public Stream<JobInfo> repeat(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate, @Name(value = "config", defaultValue = "{}") Map<String,Object> config ) {
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
-        JobInfo info = schedule(name, () -> Iterators.count(db.execute(statement, params)),0,rate);
+        JobInfo info = schedule(name, () -> Iterators.count(tx.execute(statement, params)),0,rate);
         return Stream.of(info);
     }
 
@@ -226,15 +228,15 @@ public class Periodic {
         while (true) {
             loopParams.put("previous", value);
 
-            try (Result result = db.execute(cypherLoop, loopParams)) {
+            try (Result result = tx.execute(cypherLoop, loopParams)) {
                 value = result.next().get("loop");
                 if (!Util.toBoolean(value)) return allResults;
             }
 
             log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
-            try (Result result = db.execute(cypherIterate)) {
+            try (Result result = tx.execute(cypherIterate)) {
                 Stream<BatchAndTotalResult> oneResult =
-                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, false, false,0, result, params -> db.execute(cypherAction, params), 50, -1);
+                    iterateAndExecuteBatchedInSeparateThread((int) batchSize, false, false,0, result, params -> tx.execute(cypherAction, params), 50, -1);
                 final Object loopParam = value;
                 allResults = Stream.concat(allResults, oneResult.map(r -> r.inLoop(loopParam)));
             }
@@ -260,12 +262,12 @@ public class Periodic {
         long retries = Util.toLong(config.getOrDefault("retries", 0)); // todo sleep/delay or push to end of batch to try again or immediate ?
         Map<String,Object> params = (Map<String, Object>) config.getOrDefault("params", Collections.emptyMap());
         int failedParams = Util.toInteger(config.getOrDefault("failedParams", -1));
-        try (Result result = db.execute(slottedRuntime(cypherIterate),params)) {
+        try (Result result = tx.execute(slottedRuntime(cypherIterate),params)) {
             Pair<String,Boolean> prepared = prepareInnerStatement(cypherAction, iterateList, result.columns(), "_batch");
             String innerStatement = prepared.first();
             iterateList=prepared.other();
             log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, parallel, iterateList, retries, result, (p) -> db.execute(innerStatement, merge(params, p)).close(), concurrency, failedParams);
+            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, parallel, iterateList, retries, result, (p) -> db.executeTransactionally(innerStatement, merge(params, p), ResultConsumer.EMPTY_CONSUMER), concurrency, failedParams);
         }
     }
 
@@ -306,6 +308,7 @@ public class Periodic {
         return Pattern.compile(pattern,Pattern.CASE_INSENSITIVE|Pattern.MULTILINE|Pattern.DOTALL);
     }
 
+    @Deprecated
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.rock_n_roll('some cypher for iteration', 'some cypher as action on each iteration', 10000) YIELD batches, total - run the action statement in batches over the iterator statement's results in a separate thread. Returns number of batches and total processed rows")
     public Stream<BatchAndTotalResult> rock_n_roll(
@@ -314,8 +317,8 @@ public class Periodic {
             @Name("batchSize") long batchSize) {
 
         log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
-        try (Result result = db.execute(cypherIterate)) {
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, p -> db.execute(cypherAction, p).close(), 50, -1);
+        try (Result result = tx.execute(cypherIterate)) {
+            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, p -> db.executeTransactionally(cypherAction, p, ResultConsumer.EMPTY_CONSUMER), 50, -1);
         }
     }
 
@@ -338,10 +341,10 @@ public class Periodic {
             if (log.isDebugEnabled()) log.debug("execute in batch no " + batches + " batch size " + batchsize);
             List<Map<String,Object>> batch = Util.take(iterator, batchsize);
             long currentBatchSize = batch.size();
-            Callable<Long> task;
+            Function<Transaction, Long> task;
             if (iterateList) {
                 long finalBatches = batches;
-                task = () -> {
+                task = txInThread -> {
                     long c = count.addAndGet(currentBatchSize);
                     if (Util.transactionIsTerminated(terminationGuard)) return 0L;
                     try {
@@ -358,7 +361,7 @@ public class Periodic {
                 };
             } else {
                 final long finalBatches = batches;
-                task = () -> {
+                task = txInThread -> {
                     if (Util.transactionIsTerminated(terminationGuard)) return 0L;
                     return batch.stream().map(
                         p -> {

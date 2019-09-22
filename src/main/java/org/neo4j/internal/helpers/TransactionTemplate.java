@@ -19,18 +19,14 @@
  */
 package org.neo4j.internal.helpers;
 
+import org.neo4j.graphdb.*;
+
 import java.lang.reflect.Proxy;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.graphdb.TransactionFailureException;
-import org.neo4j.graphdb.TransactionTerminatedException;
-import org.neo4j.graphdb.TransientFailureException;
 
 /**
  * Neo4j transaction template that automates the retry-on-exception logic. It uses the builder
@@ -199,7 +195,6 @@ public class TransactionTemplate
             try ( Transaction tx = gds.beginTx() )
             {
                 T result = txFunction.apply( tx );
-                tx.success();
                 return result;
             }
             catch ( Throwable ex )

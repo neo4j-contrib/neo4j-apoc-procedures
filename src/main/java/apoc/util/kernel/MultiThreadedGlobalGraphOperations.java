@@ -2,17 +2,21 @@ package apoc.util.kernel;
 
 import org.neo4j.common.DependencyResolver;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.kernel.api.*;
+import org.neo4j.internal.kernel.api.CursorFactory;
+import org.neo4j.internal.kernel.api.NodeCursor;
+import org.neo4j.internal.kernel.api.Read;
+import org.neo4j.internal.kernel.api.RelationshipScanCursor;
+import org.neo4j.internal.recordstorage.RecordStorageEngine;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
-import org.neo4j.internal.recordstorage.RecordStorageEngine;
 import org.neo4j.kernel.impl.store.CommonAbstractStore;
 import org.neo4j.kernel.impl.store.NeoStores;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
@@ -143,7 +147,7 @@ public class MultiThreadedGlobalGraphOperations {
         @Override
         public Void call() {
             try (Transaction tx = db.beginTx()) {
-                KernelTransaction ktx = ctx.getKernelTransactionBoundToThisThread(true);
+                KernelTransaction ktx = ctx.getKernelTransactionBoundToThisThread(true, db.databaseId());
                 CursorFactory cursors = ktx.cursors();
                 Read read = ktx.dataRead();
 
@@ -158,7 +162,7 @@ public class MultiThreadedGlobalGraphOperations {
                         throw new IllegalArgumentException("dunno how to deal with type " + type);
 
                 }
-                tx.success();
+                tx.commit();
                 return null;
             }
         }

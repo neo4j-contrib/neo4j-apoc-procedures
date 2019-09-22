@@ -1,24 +1,18 @@
 package apoc.gephi;
 
-import org.neo4j.procedure.Description;
 import apoc.graph.Graphs;
 import apoc.result.ProgressInfo;
 import apoc.util.JsonUtil;
 import apoc.util.UrlResolver;
 import apoc.util.Util;
+import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.List;
-import java.util.Arrays;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,7 +33,7 @@ public class Gephi {
         return new UrlResolver("http", "localhost", 8080).getUrl("gephi", hostOrKey);
     }
 
-    public static double doubleValue(PropertyContainer pc, String prop, Number defaultValue) {
+    public static double doubleValue(Entity pc, String prop, Number defaultValue) {
        return Util.toDouble(pc.getProperty(prop, defaultValue));
 
     }
@@ -70,12 +64,12 @@ public class Gephi {
         return Stream.concat(toGraphStream(nodes, "an", weightproperty, exportproperties), toGraphStream(rels, "ae", weightproperty, exportproperties)).collect(Collectors.joining("\r\n"));
     }
 
-    private Stream<String> toGraphStream(Collection<? extends PropertyContainer> source, String operation,String weightproperty, String[] exportproperties) {
+    private Stream<String> toGraphStream(Collection<? extends Entity> source, String operation,String weightproperty, String[] exportproperties) {
         Map<String,Map<String,Object>> colors=new HashMap<>();
         return source.stream().map(n -> map(operation, data(n,colors,weightproperty, exportproperties))).map(Util::toJson);
     }
 
-    private Map<String, Object> data(PropertyContainer pc, Map<String, Map<String, Object>> colors, String weightproperty, String[] exportproperties) {
+    private Map<String, Object> data(Entity pc, Map<String, Map<String, Object>> colors, String weightproperty, String[] exportproperties) {
         if (pc instanceof Node) {
             Node n = (Node) pc;
             String labels = Util.labelString(n);

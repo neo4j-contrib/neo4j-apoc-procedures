@@ -3,10 +3,9 @@ package apoc.convert;
 import apoc.coll.SetBackedList;
 import apoc.meta.Meta.Types;
 import apoc.util.Util;
+import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
-import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
@@ -32,8 +31,8 @@ public class Convert {
     @Description("apoc.convert.toMap(value) | tries it's best to convert the value to a map")
     public Map<String, Object> toMap(@Name("map") Object map) {
 
-        if (map instanceof PropertyContainer) {
-            return ((PropertyContainer)map).getAllProperties();
+        if (map instanceof Entity) {
+            return ((Entity)map).getAllProperties();
         } else if (map instanceof Map) {
             return (Map<String, Object>) map;
         } else {

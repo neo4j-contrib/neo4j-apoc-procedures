@@ -1,10 +1,12 @@
 package apoc.refactor.util;
 
 import apoc.util.ArrayBackedList;
-import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Entity;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author AgileLARUS
@@ -15,7 +17,7 @@ public class PropertiesManager {
     private PropertiesManager() {
     }
 
-    public static void mergeProperties(Map<String, Object> properties, PropertyContainer target, RefactorConfig refactorConfig) {
+    public static void mergeProperties(Map<String, Object> properties, Entity target, RefactorConfig refactorConfig) {
         for (Map.Entry<String, Object> prop : properties.entrySet()) {
             String key = prop.getKey();
             String mergeMode = refactorConfig.getMergeMode(key);
@@ -23,7 +25,7 @@ public class PropertiesManager {
         }
     }
 
-    private static void mergeProperty(PropertyContainer target, RefactorConfig propertyManagementMode, Map.Entry<String, Object> prop, String key, String mergeMode) {
+    private static void mergeProperty(Entity target, RefactorConfig propertyManagementMode, Map.Entry<String, Object> prop, String key, String mergeMode) {
         switch (mergeMode) {
             case RefactorConfig.OVERWRITE:
             case RefactorConfig.OVERRIDE:
@@ -40,7 +42,7 @@ public class PropertiesManager {
         }
     }
 
-    public static void combineProperties(Map.Entry<String, Object> prop, PropertyContainer target) {
+    public static void combineProperties(Map.Entry<String, Object> prop, Entity target) {
         if (!target.hasProperty(prop.getKey()))
             target.setProperty(prop.getKey(), prop.getValue());
         else {

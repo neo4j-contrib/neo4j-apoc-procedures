@@ -3,7 +3,6 @@ package apoc.ttl;
 import apoc.ApocConfig;
 import apoc.util.Util;
 import org.neo4j.graphdb.QueryStatistics;
-import org.neo4j.graphdb.Result;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
@@ -50,12 +49,15 @@ public class TTLLifeCycle extends LifecycleAdapter {
     public void expireNodes(long limit) {
         try {
             if (!Util.isWriteableInstance(db)) return;
-            Result result = db.execute("MATCH (t:TTL) where t.ttl < timestamp() WITH t LIMIT {limit} DETACH DELETE t", Util.map("limit", limit));
-            QueryStatistics stats = result.getQueryStatistics();
-            result.close();
-            if (stats.getNodesDeleted()>0) {
-                log.info("TTL: Expired %d nodes %d relationships", stats.getNodesDeleted(), stats.getRelationshipsDeleted());
-            }
+            db.executeTransactionally("MATCH (t:TTL) where t.ttl < timestamp() WITH t LIMIT {limit} DETACH DELETE t",
+                    Util.map("limit", limit),
+                    result -> {
+                        QueryStatistics stats = result.getQueryStatistics();
+                        if (stats.getNodesDeleted()>0) {
+                            log.info("TTL: Expired %d nodes %d relationships", stats.getNodesDeleted(), stats.getRelationshipsDeleted());
+                        }
+
+                    });
         } catch (Exception e) {
             log.error("TTL: Error deleting expired nodes", e);
         }
@@ -63,7 +65,7 @@ public class TTLLifeCycle extends LifecycleAdapter {
 
     public void createTTLIndex() {
         try {
-            db.execute("CREATE INDEX ON :TTL(ttl)").close();
+            db.executeTransactionally("CREATE INDEX ON :TTL(ttl)");
         } catch (Exception e) {
             log.error("TTL: Error creating index", e);
         }

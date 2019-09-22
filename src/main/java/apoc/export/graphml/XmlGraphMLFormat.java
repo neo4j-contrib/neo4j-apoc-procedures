@@ -32,7 +32,7 @@ public class XmlGraphMLFormat implements Format {
         try (Transaction tx = db.beginTx()) {
             XmlGraphMLWriter graphMlWriter = new XmlGraphMLWriter();
             graphMlWriter.write(graph, writer.getPrintWriter("graphml"), reporter, config);
-            tx.success();
+            tx.commit();
         }
         return reporter.getTotal();
     }

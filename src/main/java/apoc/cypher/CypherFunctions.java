@@ -1,8 +1,8 @@
 package apoc.cypher;
 
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -20,7 +20,7 @@ import static apoc.cypher.Cypher.withParamMapping;
  */
 public class CypherFunctions {
     @Context
-    public GraphDatabaseService db;
+    public Transaction tx;
 
     @UserFunction
     @Deprecated
@@ -29,7 +29,7 @@ public class CypherFunctions {
         if (params == null) params = Collections.emptyMap();
         String resolvedStatement = withParamMapping(statement, params.keySet());
         if (!resolvedStatement.contains(" runtime")) resolvedStatement = "cypher runtime=slotted " + resolvedStatement;
-        try (Result result = db.execute(resolvedStatement, params)) {
+        try (Result result = tx.execute(resolvedStatement, params)) {
 
         String firstColumn = result.columns().get(0);
         try (ResourceIterator<Object> iter = result.columnAs(firstColumn)) {

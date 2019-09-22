@@ -1,15 +1,12 @@
 package apoc.lock;
 
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.*;
-import apoc.result.*;
-import org.neo4j.graphdb.*;
-import org.neo4j.kernel.api.KernelTransaction;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 public class Lock {
 
@@ -27,7 +24,7 @@ public class Lock {
             for (Relationship rel : rels) {
                 tx.acquireWriteLock(rel);
             }
-            tx.success();
+            tx.commit();
         }
     }
     @Procedure(mode = Mode.WRITE)
@@ -37,7 +34,7 @@ public class Lock {
             for (Node node : nodes) {
                 tx.acquireWriteLock(node);
             }
-            tx.success();
+            tx.commit();
         }
     }
 
@@ -48,7 +45,7 @@ public class Lock {
             for (Node node : nodes) {
                 tx.acquireReadLock(node);
             }
-            tx.success();
+            tx.commit();
         }
     }
 
@@ -60,7 +57,7 @@ public class Lock {
             for (Relationship rel : rels) {
                 tx.acquireWriteLock(rel);
             }
-            tx.success();
+            tx.commit();
         }
     }
 
@@ -71,7 +68,7 @@ public class Lock {
             for (Relationship rel : rels) {
                 tx.acquireReadLock(rel);
             }
-            tx.success();
+            tx.commit();
         }
     }
 }

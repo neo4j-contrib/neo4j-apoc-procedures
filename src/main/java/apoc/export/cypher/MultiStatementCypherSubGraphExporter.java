@@ -90,7 +90,7 @@ public class MultiStatementCypherSubGraphExporter {
         reporter.done();
     }
 
-    public void exportOnlySchema(ExportFileManager cypherFileManager) throws IOException {
+    public void exportOnlySchema(ExportFileManager cypherFileManager) {
         exportSchema(cypherFileManager.getPrintWriter("schema"));
     }
 

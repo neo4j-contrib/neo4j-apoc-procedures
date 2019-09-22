@@ -1,6 +1,5 @@
 package apoc.trigger;
 
-import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
@@ -14,8 +13,6 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.Map;
 
-import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
-import static apoc.ApocConfig.apocConfig;
 import static apoc.ApocSettings.apoc_trigger_enabled;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -141,7 +138,7 @@ public class TriggerTest {
     @Test
     public void testLowerCaseName() throws Exception {
         db.execute("create constraint on (p:Person) assert p.id is unique").close();
-        Trigger.TriggerHandler.add("timestamp","UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n.id = toLower(n.name)",null);
+        TriggerHandler.add("timestamp","UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n.id = toLower(n.name)",null);
 //        Trigger.TriggerHandler.add("lowercase","UNWIND {createdNodes} AS n SET n.id = toLower(n.name)",null);
         db.execute("CREATE (f:Person {name:'John Doe'})").close();
         TestUtil.testCall(db, "MATCH (f:Person) RETURN f", (row) -> {
@@ -152,7 +149,7 @@ public class TriggerTest {
     @Test
     public void testSetLabels() throws Exception {
         db.execute("CREATE (f {name:'John Doe'})").close();
-        Trigger.TriggerHandler.add("timestamp","UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n:Man",null);
+        TriggerHandler.add("timestamp","UNWIND apoc.trigger.nodesByLabel({assignedLabels},'Person') AS n SET n:Man",null);
         db.execute("MATCH (f) SET f:Person").close();
         TestUtil.testCall(db, "MATCH (f:Man) RETURN f", (row) -> {
             assertEquals("John Doe", ((Node)row.get("f")).getProperty("name"));
@@ -164,7 +161,7 @@ public class TriggerTest {
     }
     @Test
     public void testTxId() throws Exception {
-        Trigger.TriggerHandler.add("txInfo","UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}", map("phase","after"));
+        TriggerHandler.add("txInfo","UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}", map("phase","after"));
         db.execute("CREATE (f:Bar)").close();
         TestUtil.testCall(db, "MATCH (f:Bar) RETURN f", (row) -> {
             assertEquals(true, (Long)((Node)row.get("f")).getProperty("txId") > -1L);
@@ -174,7 +171,7 @@ public class TriggerTest {
     
     @Test
     public void testPauseResult() throws Exception {
-        Trigger.TriggerHandler.add("test","UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}", map("phase","after") );
+        TriggerHandler.add("test","UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}", map("phase","after") );
         TestUtil.testCall(db, "CALL apoc.trigger.pause('test')", (row) -> {
             assertEquals("test", row.get("name"));
             assertEquals(true, row.get("installed"));
@@ -184,7 +181,7 @@ public class TriggerTest {
 
     @Test
     public void testPauseOnCallList() throws Exception {
-        Trigger.TriggerHandler.add("test","UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}", map("phase","after") );
+        TriggerHandler.add("test","UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}", map("phase","after") );
         db.execute("CALL apoc.trigger.pause('test')");
         TestUtil.testCall(db, "CALL apoc.trigger.list()", (row) -> {
             assertEquals("test", row.get("name"));
@@ -195,7 +192,7 @@ public class TriggerTest {
 
     @Test
     public void testResumeResult() throws Exception {
-        Trigger.TriggerHandler.add("test","UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}", map("phase","after") );
+        TriggerHandler.add("test","UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}", map("phase","after") );
         db.execute("CALL apoc.trigger.pause('test')");
         TestUtil.testCall(db, "CALL apoc.trigger.resume('test')", (row) -> {
             assertEquals("test", row.get("name"));

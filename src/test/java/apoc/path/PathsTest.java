@@ -65,12 +65,12 @@ public class PathsTest {
     @Test
     public void elements() throws Exception {
         TestUtil.testCall(db, "MATCH p = (a:A) RETURN apoc.path.elements(p) as e",(row) -> {
-            List<PropertyContainer> pc = (List<PropertyContainer>) row.get("e");
+            List<Entity> pc = (List<Entity>) row.get("e");
             assertEquals(1,pc.size());
             assertEquals(true,((Node)pc.get(0)).hasLabel(Label.label("A")));
         });
         TestUtil.testCall(db, "MATCH p = (a:A)-->() RETURN apoc.path.elements(p) as e",(row) -> {
-            List<PropertyContainer> pc = (List<PropertyContainer>) row.get("e");
+            List<Entity> pc = (List<Entity>) row.get("e");
             assertEquals(3,pc.size());
             assertEquals(true,((Node)pc.get(0)).hasLabel(Label.label("A")));
             assertEquals(true,((Relationship)pc.get(1)).isType(RelationshipType.withName("NEXT")));

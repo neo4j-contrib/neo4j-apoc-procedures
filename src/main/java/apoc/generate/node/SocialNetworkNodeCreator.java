@@ -1,9 +1,9 @@
 package apoc.generate.node;
 
 import com.github.javafaker.Faker;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
 
 /**
  * A {@link NodeCreator} that assigns every {@link Node} a "Person" {@link Label}, and a randomly generated English
@@ -20,11 +20,9 @@ public class SocialNetworkNodeCreator implements NodeCreator {
      * {@inheritDoc}
      */
     @Override
-    public Node createNode(GraphDatabaseService database) {
-        Node node = database.createNode(PERSON_LABEL);
-
+    public Node createNode(Transaction tx) {
+        Node node = tx.createNode(PERSON_LABEL);
         node.setProperty(NAME, faker.name().fullName());
-
         return node;
     }
 }

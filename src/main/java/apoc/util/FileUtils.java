@@ -129,12 +129,12 @@ public class FileUtils {
         return true;
     }
 
-    public static PrintWriter getPrintWriter(String fileName, Writer out) throws IOException {
+    public static PrintWriter getPrintWriter(String fileName, Writer out) {
         OutputStream outputStream = getOutputStream(fileName, new WriterOutputStream(out, Charset.defaultCharset()));
         return outputStream == null ? null : new PrintWriter(outputStream);
     }
 
-    public static OutputStream getOutputStream(String fileName, OutputStream out) throws IOException {
+    public static OutputStream getOutputStream(String fileName, OutputStream out) {
         if (fileName == null) return null;
         OutputStream outputStream;
         if (isHdfs(fileName)) {
@@ -150,22 +150,26 @@ public class FileUtils {
         return new BufferedOutputStream(outputStream);
     }
 
-    private static OutputStream getOrCreateOutputStream(String fileName, OutputStream out) throws FileNotFoundException, MalformedURLException {
-        OutputStream outputStream;
-        if (fileName.equals("-")) {
-            outputStream = out;
-        } else {
-            boolean enabled = isImportUsingNeo4jConfig();
-            if (enabled) {
-                String importDir = apocConfig().getString("dbms.directories.import", "import");
-                File file = new File(importDir, fileName);
-                outputStream = new FileOutputStream(file);
+    private static OutputStream getOrCreateOutputStream(String fileName, OutputStream out) {
+        try {
+            OutputStream outputStream;
+            if (fileName.equals("-")) {
+                outputStream = out;
             } else {
-                URI uri = URI.create(fileName);
-                outputStream = new FileOutputStream(uri.isAbsolute() ? uri.toURL().getFile() : fileName);
+                boolean enabled = isImportUsingNeo4jConfig();
+                if (enabled) {
+                    String importDir = apocConfig().getString("dbms.directories.import", "import");
+                    File file = new File(importDir, fileName);
+                    outputStream = new FileOutputStream(file);
+                } else {
+                    URI uri = URI.create(fileName);
+                    outputStream = new FileOutputStream(uri.isAbsolute() ? uri.toURL().getFile() : fileName);
+                }
             }
+            return outputStream;
+        } catch (FileNotFoundException|MalformedURLException e) {
+            throw new RuntimeException(e);
         }
-        return outputStream;
     }
 
     private static boolean isImportUsingNeo4jConfig() {

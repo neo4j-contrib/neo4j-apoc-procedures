@@ -4,6 +4,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.logging.AssertableLogProvider;
 import org.neo4j.logging.LogProvider;
 import org.neo4j.logging.internal.SimpleLogService;
@@ -32,8 +33,8 @@ public class ApocConfigTest {
         when(neo4jConfig.get(GraphDatabaseSettings.allow_file_urls)).thenReturn(false);
 
         GlobalProceduresRegistry registry = mock(GlobalProceduresRegistry.class);
-
-        cut = new ApocConfig(neo4jConfig, new SimpleLogService(logProvider), registry);
+        DatabaseManagementService databaseManagementService = mock(DatabaseManagementService.class);
+        cut = new ApocConfig(neo4jConfig, new SimpleLogService(logProvider), registry, databaseManagementService);
     }
 
     @Test

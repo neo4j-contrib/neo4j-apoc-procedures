@@ -11,10 +11,7 @@ import apoc.result.ProgressInfo;
 import apoc.util.Util;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.*;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
@@ -27,6 +24,9 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public class ExportJson {
+    @Context
+    public Transaction tx;
+
     @Context
     public GraphDatabaseService db;
 
@@ -45,8 +45,8 @@ public class ExportJson {
     @Description("apoc.exportJson.json.all(file,config) - exports whole database as json to the provided file")
     public Stream<ProgressInfo> all(@Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
-        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(db), Util.relCount(db));
-        return exportJson(fileName, source, new DatabaseSubGraph(db), config);
+        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
+        return exportJson(fileName, source, new DatabaseSubGraph(db, tx), config);
     }
 
     @Procedure
@@ -70,7 +70,7 @@ public class ExportJson {
     @Description("apoc.exportJson.json.query(query,file,{config,...,params:{params}}) - exports results from the cypher statement as json to the provided file")
     public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
         Map<String,Object> params = config == null ? Collections.emptyMap() : (Map<String,Object>)config.getOrDefault("params", Collections.emptyMap());
-        Result result = db.execute(query,params);
+        Result result = tx.execute(query,params);
         String source = String.format("statement: cols(%d)", result.columns().size());
         return exportJson(fileName, source,result,config);
     }

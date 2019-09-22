@@ -3,10 +3,10 @@ package apoc.graph.document.builder;
 import apoc.graph.util.GraphsConfig;
 import apoc.result.VirtualGraph;
 import apoc.result.VirtualNode;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -15,13 +15,13 @@ import java.util.stream.StreamSupport;
 
 public class DocumentToGraph {
 
-    private GraphDatabaseService db;
+    private Transaction tx;
     private RelationshipBuilder documentRelationBuilder;
     private LabelBuilder documentLabelBuilder;
     private GraphsConfig config;
 
-    public DocumentToGraph(GraphDatabaseService db, GraphsConfig config) {
-        this.db = db;
+    public DocumentToGraph(Transaction tx, GraphsConfig config) {
+        this.tx = tx;
         this.documentRelationBuilder = new RelationshipBuilder(config);
         this.documentLabelBuilder = new LabelBuilder(config);
         this.config = config;
@@ -105,12 +105,12 @@ public class DocumentToGraph {
                             .anyMatch(r -> r.getOtherNode(n).hasLabel(label));
                 })
                 .findFirst()
-                .orElse(new VirtualNode(new Label[]{label}, Collections.emptyMap(), db));
+                .orElse(new VirtualNode(new Label[]{label}, Collections.emptyMap()));
     }
 
     private Node getOrCreateRealNode(Label label, Object idValue) {
-        Node nodeInDB = db.findNode(label, config.getIdField(), idValue);
-        return nodeInDB != null ? nodeInDB : db.createNode(label);
+        Node nodeInDB = tx.findNode(label, config.getIdField(), idValue);
+        return nodeInDB != null ? nodeInDB : tx.createNode(label);
     }
 
     private boolean isSimpleType(Map.Entry<String, Object> e) {

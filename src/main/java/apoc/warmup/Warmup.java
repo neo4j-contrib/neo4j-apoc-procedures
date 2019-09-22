@@ -1,6 +1,7 @@
 package apoc.warmup;
 
 import apoc.util.Util;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.io.pagecache.PageCache;
 import org.neo4j.io.pagecache.PageCursor;
 import org.neo4j.io.pagecache.PagedFile;
@@ -21,6 +22,8 @@ import java.util.stream.Stream;
  */
 public class Warmup {
 
+    @Context
+    public Transaction tx;
     @Context
     public GraphDatabaseAPI db;
     @Context
@@ -100,9 +103,9 @@ public class Warmup {
 
         WarmupResult result = new WarmupResult(
                 pageCache.pageSize(),
-                Util.nodeCount(db),
+                Util.nodeCount(tx),
                 records.get("neostore.nodestore.db"),
-                Util.relCount(db),
+                Util.relCount(tx),
                 records.get("neostore.relationshipstore.db"),
                 records.get("neostore.relationshipgroupstore.db"),
                 loadProperties,

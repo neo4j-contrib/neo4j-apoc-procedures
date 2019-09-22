@@ -1,6 +1,7 @@
 package apoc;
 
 import org.neo4j.configuration.Config;
+import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.kernel.extension.ExtensionFactory;
 import org.neo4j.kernel.extension.ExtensionType;
 import org.neo4j.kernel.extension.context.ExtensionContext;
@@ -17,6 +18,7 @@ public class ApocConfigExtensionFactory extends ExtensionFactory<ApocConfigExten
         LogService log();
         Config config();
         GlobalProceduresRegistry globalProceduresRegistry();
+        DatabaseManagementService databaseManagementService();
     }
 
     public ApocConfigExtensionFactory() {
@@ -25,7 +27,7 @@ public class ApocConfigExtensionFactory extends ExtensionFactory<ApocConfigExten
 
     @Override
     public Lifecycle newInstance(ExtensionContext context, Dependencies dependencies) {
-        return new ApocConfig(dependencies.config(), dependencies.log(), dependencies.globalProceduresRegistry());
+        return new ApocConfig(dependencies.config(), dependencies.log(), dependencies.globalProceduresRegistry(), dependencies.databaseManagementService());
     }
 
 }

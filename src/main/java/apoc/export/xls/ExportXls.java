@@ -30,24 +30,20 @@ import static apoc.util.FileUtils.getOutputStream;
 
 public class ExportXls {
     @Context
+    public Transaction tx;
+
+    @Context
     public GraphDatabaseService db;
 
     @Context
     public ApocConfig apocConfig;
 
-    public ExportXls(GraphDatabaseService db) {
-        this.db = db;
-    }
-
-    public ExportXls() {
-    }
-
     @Procedure
     @Description("apoc.export.csv.all(file,config) - exports whole database as csv to the provided file")
     public Stream<ProgressInfo> all(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
 
-        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(db), Util.relCount(db));
-        return exportXls(fileName, source, new DatabaseSubGraph(db), config);
+        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
+        return exportXls(fileName, source, new DatabaseSubGraph(db, tx), config);
     }
 
     @Procedure
@@ -72,7 +68,7 @@ public class ExportXls {
     @Description("apoc.export.csv.query(query,file,{config,...,params:{params}}) - exports results from the cypher statement as csv to the provided file")
     public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         Map<String,Object> params = config == null ? Collections.emptyMap() : (Map<String,Object>)config.getOrDefault("params", Collections.emptyMap());
-        Result result = db.execute(query,params);
+        Result result = tx.execute(query,params);
         String source = String.format("statement: cols(%d)", result.columns().size());
         return exportXls(fileName, source,result,config);
     }
@@ -103,7 +99,7 @@ public class ExportXls {
             wb.write(out);
             wb.dispose();
             reporter.done();
-            tx.success();
+            tx.commit();
             return reporter.stream();
         }
     }
@@ -144,12 +140,12 @@ public class ExportXls {
         for (Node node : subgraph.getNodes()) {
             for (Label label : node.getLabels()) {
                 String labelName = label.name();
-                createRowForPropertyContainer(wb, sheetAndPropsForName, node, labelName, reporter, config, styles);
+                createRowForEntity(wb, sheetAndPropsForName, node, labelName, reporter, config, styles);
             }
         }
         for (Relationship relationship: subgraph.getRelationships()) {
             String relationshipType = relationship.getType().name();
-            createRowForPropertyContainer(wb, sheetAndPropsForName, relationship, relationshipType, reporter, config,styles);
+            createRowForEntity(wb, sheetAndPropsForName, relationship, relationshipType, reporter, config,styles);
         }
 
         // spit out header lines
@@ -182,14 +178,14 @@ public class ExportXls {
         return styles;
     }
 
-    private void createRowForPropertyContainer(Workbook wb, Map<String, Triple<SXSSFSheet, List<String>, List<String>>> sheetAndPropsForName, PropertyContainer propertyContainer, String sheetName, ProgressReporter reporter, XlsExportConfig config, Map<Class, CellStyle> styles) {
+    private void createRowForEntity(Workbook wb, Map<String, Triple<SXSSFSheet, List<String>, List<String>>> sheetAndPropsForName, Entity Entity, String sheetName, ProgressReporter reporter, XlsExportConfig config, Map<Class, CellStyle> styles) {
         Triple<SXSSFSheet, List<String>, List<String>> triple = sheetAndPropsForName.computeIfAbsent(sheetName, s -> {
             SXSSFSheet sheet = (SXSSFSheet) wb.createSheet(sheetName);
             sheet.trackAllColumnsForAutoSizing();
             sheet.createRow(0); // placeholder for header line
             return Triple.of(
                     sheet,
-                    propertyContainer instanceof Node ?
+                    Entity instanceof Node ?
                             Arrays.asList(config.getHeaderNodeId()) :
                             Arrays.asList(config.getHeaderRelationshipId(), config.getHeaderStartNodeId(), config.getHeaderEndNodeId()),
                     new ArrayList<>());
@@ -200,15 +196,15 @@ public class ExportXls {
         int lastRowNum = sheet.getLastRowNum();
         Row row = sheet.createRow(lastRowNum+1);
         int cellNum = 0;
-        SortedMap<String, Object> props = new TreeMap<>(propertyContainer.getAllProperties()); // copy props
+        SortedMap<String, Object> props = new TreeMap<>(Entity.getAllProperties()); // copy props
 
-        if (propertyContainer instanceof Node) {
-            Node node = (Node) propertyContainer;
+        if (Entity instanceof Node) {
+            Node node = (Node) Entity;
             Cell idCell = row.createCell(cellNum++);
             idCell.setCellValue(((Long)(node.getId())).doubleValue());
             reporter.update(1, 0, props.size());
-        } else if (propertyContainer instanceof Relationship) {
-            Relationship relationship = (Relationship) propertyContainer;
+        } else if (Entity instanceof Relationship) {
+            Relationship relationship = (Relationship) Entity;
             Cell idCell = row.createCell(cellNum++);
             idCell.setCellValue(((Long)(relationship.getId())).doubleValue());
             Cell fromCell = row.createCell(cellNum++);

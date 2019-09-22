@@ -38,7 +38,7 @@ public class JsonFormat implements Format {
 
             consumer.accept(jsonGenerator);
 
-            tx.success();
+            tx.commit();
             return reporter.getTotal();
         }
     }

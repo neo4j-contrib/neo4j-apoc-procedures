@@ -2,8 +2,8 @@ package apoc.export.util;
 
 import apoc.meta.Meta;
 import org.neo4j.cypher.export.SubGraph;
+import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 
 import java.util.HashSet;
@@ -35,7 +35,7 @@ public class MetaInformation {
         return propTypes;
     }
 
-    public static void updateKeyTypes(Map<String, Class> keyTypes, PropertyContainer pc) {
+    public static void updateKeyTypes(Map<String, Class> keyTypes, Entity pc) {
         for (String prop : pc.getPropertyKeys()) {
             Object value = pc.getProperty(prop);
             Class storedClass = keyTypes.get(prop);

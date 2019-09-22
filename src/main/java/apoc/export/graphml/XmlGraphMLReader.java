@@ -27,7 +27,8 @@ import java.util.function.Function;
 public class XmlGraphMLReader {
 
     public static final String LABEL_SPLIT = " *: *";
-    private final GraphDatabaseService gdb;
+    private final GraphDatabaseService db;
+    private final Transaction tx;
     private boolean storeNodeIds;
     private RelationshipType defaultRelType = RelationshipType.withName("UNKNOWN");
     private int batchSize = 40000;
@@ -174,8 +175,9 @@ public class XmlGraphMLReader {
     public static final QName LIST = QName.valueOf("attr.list");
     public static final QName KEY = QName.valueOf("key");
 
-    public XmlGraphMLReader(GraphDatabaseService gdb) {
-        this.gdb = gdb;
+    public XmlGraphMLReader(GraphDatabaseService db, Transaction tx) {
+        this.db = db;
+        this.tx = tx;
     }
 
     public long parseXML(Reader input) throws XMLStreamException {
@@ -184,11 +186,11 @@ public class XmlGraphMLReader {
         inputFactory.setProperty("javax.xml.stream.isCoalescing", true);
         inputFactory.setProperty(XMLInputFactory.IS_NAMESPACE_AWARE, true);
         XMLEventReader reader = inputFactory.createXMLEventReader(input);
-        PropertyContainer last = null;
+        Entity last = null;
         Map<String, Key> nodeKeys = new HashMap<>();
         Map<String, Key> relKeys = new HashMap<>();
         int count = 0;
-        try (BatchTransaction tx = new BatchTransaction(gdb, batchSize * 10, reporter)) {
+        try (BatchTransaction tx = new BatchTransaction(db, batchSize * 10, reporter)) {
 
             while (reader.hasNext()) {
                 XMLEvent event = (XMLEvent) reader.next();
@@ -238,7 +240,7 @@ public class XmlGraphMLReader {
                     if (name.equals("node")) {
                         tx.increment();
                         String id = getAttribute(element, ID);
-                        Node node = gdb.createNode();
+                        Node node = this.tx.createNode();
                         if (this.labels) {
                             String labels = getAttribute(element, LABELS);
                             addLabels(node, labels);
@@ -256,8 +258,8 @@ public class XmlGraphMLReader {
                         String source = getAttribute(element, SOURCE);
                         String target = getAttribute(element, TARGET);
                         String label = getAttribute(element, LABEL);
-                        Node from = gdb.getNodeById(cache.get(source));
-                        Node to = gdb.getNodeById(cache.get(target));
+                        Node from = this.tx.getNodeById(cache.get(source));
+                        Node to = this.tx.getNodeById(cache.get(target));
 
                         RelationshipType relationshipType = label == null ? getRelationshipType(reader) : RelationshipType.withName(label);
                         Relationship relationship = from.createRelationshipTo(to, relationshipType);
@@ -308,7 +310,7 @@ public class XmlGraphMLReader {
         return peek;
     }
 
-    private void setDefaults(Map<String, Key> keys, PropertyContainer pc) {
+    private void setDefaults(Map<String, Key> keys, Entity pc) {
         if (keys.isEmpty()) return;
         for (Key key : keys.values()) {
             if (key.defaultValue!=null) pc.setProperty(key.name,key.defaultValue);

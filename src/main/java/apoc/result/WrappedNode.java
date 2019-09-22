@@ -170,11 +170,6 @@ public class WrappedNode implements Node {
     }
 
     @Override
-    public GraphDatabaseService getGraphDatabase() {
-        return db;
-    }
-
-    @Override
     public boolean hasProperty(String s) {
         return props.containsKey(s);
     }

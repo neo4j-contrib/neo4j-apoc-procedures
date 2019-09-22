@@ -1,6 +1,6 @@
 package apoc.help;
 
-import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
@@ -13,7 +13,7 @@ import static apoc.util.Util.map;
 public class Help {
 
     @Context
-    public GraphDatabaseService db;
+    public Transaction tx;
 
     @Procedure("apoc.help")
     @Description("Provides descriptions of available procedures. To narrow the results, supply a search string. To also search in the description text, append + to the end of the search string.")
@@ -34,7 +34,7 @@ public class Help {
         String query = "WITH 'procedure' as type CALL dbms.procedures() yield name, description, signature " + filter +
                 " UNION ALL " +
                 "WITH 'function' as type CALL dbms.functions() yield name, description, signature " + filter;
-        return db.execute(query, map("name", name, "desc", searchText ? name : null))
+        return tx.execute(query, map("name", name, "desc", searchText ? name : null))
                 .stream().map(HelpResult::new);
     }
 }

@@ -6,6 +6,7 @@ import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
 import apoc.result.*;
 import apoc.util.Util;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Pair;
@@ -25,7 +26,10 @@ import static apoc.util.Util.map;
 public class Nodes {
 
     @Context
-    public GraphDatabaseService db;
+    GraphDatabaseService db;
+
+    @Context
+    public Transaction tx;
 
     @Context
     public KernelTransaction ktx;
@@ -51,18 +55,18 @@ public class Nodes {
     @Procedure
     @Description("apoc.nodes.get(node|nodes|id|[ids]) - quickly returns all nodes with these ids")
     public Stream<NodeResult> get(@Name("nodes") Object ids) {
-        return Util.nodeStream(db, ids).map(NodeResult::new);
+        return Util.nodeStream(tx, ids).map(NodeResult::new);
     }
 
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.nodes.delete(node|nodes|id|[ids]) - quickly delete all nodes with these ids")
     public Stream<LongResult> delete(@Name("nodes") Object ids, @Name("batchSize") long batchSize) {
-        Iterator<Node> it = Util.nodeStream(db, ids).iterator();
+        Iterator<Node> it = Util.nodeStream(tx, ids).iterator();
         long count = 0;
         while (it.hasNext()) {
             final List<Node> batch = Util.take(it, (int)batchSize);
 //            count += Util.inTx(api,() -> batch.stream().peek( n -> {n.getRelationships().forEach(Relationship::delete);n.delete();}).count());
-            count += Util.inTx(db, pools, () -> {db.execute("FOREACH (n in {nodes} | DETACH DELETE n)",map("nodes",batch)).close();return batch.size();});
+            count += Util.inTx(db, pools, (txInThread) -> {txInThread.execute("FOREACH (n in {nodes} | DETACH DELETE n)",map("nodes",batch)).close();return batch.size();});
         }
         return Stream.of(new LongResult(count));
     }
@@ -70,7 +74,7 @@ public class Nodes {
     @Procedure
     @Description("apoc.get.rels(rel|id|[ids]) - quickly returns all relationships with these ids")
     public Stream<RelationshipResult> rels(@Name("relationships") Object ids) {
-        return Util.relsStream(db, ids).map(RelationshipResult::new);
+        return Util.relsStream(tx, ids).map(RelationshipResult::new);
     }
 
     @UserFunction("apoc.node.relationship.exists")
@@ -400,9 +404,9 @@ public class Nodes {
             if (keys != null) map.keySet().retainAll(keys);
             return map;
         }
-        if (thing instanceof PropertyContainer) {
-            if (keys == null) return ((PropertyContainer) thing).getAllProperties();
-            return ((PropertyContainer) thing).getProperties(keys.toArray(new String[keys.size()]));
+        if (thing instanceof Entity) {
+            if (keys == null) return ((Entity) thing).getAllProperties();
+            return ((Entity) thing).getProperties(keys.toArray(new String[keys.size()]));
         }
         return null;
     }
@@ -414,8 +418,8 @@ public class Nodes {
         if (thing instanceof Map) {
             return ((Map<String, Object>) thing).get(key);
         }
-        if (thing instanceof PropertyContainer) {
-            return ((PropertyContainer) thing).getProperty(key,null);
+        if (thing instanceof Entity) {
+            return ((Entity) thing).getProperty(key,null);
         }
         return null;
     }

@@ -1,17 +1,5 @@
 package org.neo4j.kernel;
 
-import apoc.result.WeightedNodeResult;
-import apoc.result.WeightedRelationshipResult;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author AgileLARUS
  *
@@ -28,11 +16,6 @@ public class KernelApi {
         long endingNode = (endNode == null) ? -1 : endNode;
         return getReadOperation(db).relationshipExplicitIndexQuery(indexName, query, startingNode, endingNode);
     }*/
-
-    public static Node getEndNode(GraphDatabaseService db, long id) {
-        Relationship rel = db.getRelationshipById(id);
-        return rel.getEndNode();
-    }
 
     /*public static Map<String, String> getIndexConfiguration(String indexName, GraphDatabaseService db) {
         Map<String, String> stringStringMap = null;

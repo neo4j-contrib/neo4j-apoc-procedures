@@ -20,7 +20,7 @@ import static java.util.Collections.singletonMap;
 public class Cluster
 {
     @Context
-    public GraphDatabaseService db;
+    public Transaction tx;
     @Context
     public GraphDatabaseAPI api;
 
@@ -38,7 +38,7 @@ public class Cluster
             "roles, and which server in the cluster you are connected to." )
     public Stream<GraphResult> graph()
     {
-        Result execute = db.execute( "CALL dbms.cluster.overview()" );
+        Result execute = tx.execute( "CALL dbms.cluster.overview()" );
         List<Node> servers = new LinkedList<>();
         List<Relationship> relationships = new LinkedList<>();
 
@@ -55,7 +55,7 @@ public class Cluster
             properties.put( boltAddressKey, addresses[0] );
             properties.put( "http_address", addresses[1] );
             properties.put( "cluster_id", id );
-            Node server = new VirtualNode( new Label[]{roleLabel}, properties, db );
+            Node server = new VirtualNode( new Label[]{roleLabel}, properties );
             servers.add( server );
         }
 
@@ -74,7 +74,7 @@ public class Cluster
         }
 
         VirtualNode client =
-                new VirtualNode( new Label[]{Label.label( "CLIENT" )}, singletonMap( "name", "Client" ), db );
+                new VirtualNode( new Label[]{Label.label( "CLIENT" )}, singletonMap( "name", "Client" ) );
         Optional<Relationship> clientConnection = determineClientConnection( servers, client );
         if ( clientConnection.isPresent() )
         {
@@ -106,9 +106,9 @@ public class Cluster
     private Optional<String> getBoltConnector()
     {
         Config config = api.getDependencyResolver().resolveDependency( Config.class );
-        if ( config.get(BoltConnector.group("bolt").enabled) )
+        if ( config.get(BoltConnector.enabled) )
         {
-            SocketAddress advertisedAddress = config.get(BoltConnector.group("bolt").advertised_address);
+            SocketAddress advertisedAddress = config.get(BoltConnector.advertised_address);
             return Optional.of( "neo4j://" + advertisedAddress );
         }
         return Optional.empty();

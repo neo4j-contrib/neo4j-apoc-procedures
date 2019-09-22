@@ -1,11 +1,10 @@
 package apoc.export.cypher;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
 public interface ExportFileManager {
-    PrintWriter getPrintWriter(String type) throws IOException;
+    PrintWriter getPrintWriter(String type);
 
     StringWriter getStringWriter(String type);
 

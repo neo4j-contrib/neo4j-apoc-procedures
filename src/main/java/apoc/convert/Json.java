@@ -3,9 +3,9 @@ package apoc.convert;
 import apoc.result.MapResult;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
+import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
-import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.procedure.*;
 
@@ -81,7 +81,7 @@ public class Json {
 
         Map<Long, Map<String, Object>> maps = new HashMap<>(paths.size() * 100);
         for (Path path : paths) {
-            Iterator<PropertyContainer> it = path.iterator();
+            Iterator<Entity> it = path.iterator();
             while (it.hasNext()) {
                 Node n = (Node) it.next();
                 Map<String, Object> nMap = maps.computeIfAbsent(n.getId(), (id) -> toMap(n, nodes));

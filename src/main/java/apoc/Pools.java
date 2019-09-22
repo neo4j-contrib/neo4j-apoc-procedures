@@ -12,7 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 public class Pools extends LifecycleAdapter {
@@ -120,11 +120,11 @@ public class Pools extends LifecycleAdapter {
         }
     }
 
-    public <T> Future<Void> processBatch(List<T> batch, GraphDatabaseService db, Consumer<T> action) {
+    public <T> Future<Void> processBatch(List<T> batch, GraphDatabaseService db, BiConsumer<Transaction, T> action) {
         return defaultExecutorService.submit(() -> {
                 try (Transaction tx = db.beginTx()) {
-                    batch.forEach(action);
-                    tx.success();
+                    batch.forEach(t -> action.accept(tx, t));
+                    tx.commit();
                 }
                 return null;
             }

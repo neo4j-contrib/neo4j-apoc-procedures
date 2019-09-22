@@ -7,8 +7,12 @@ import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.combined.CombinedConfigurationBuilder;
 import org.apache.commons.configuration2.builder.fluent.Parameters;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.ex.ConversionException;
 import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.config.Setting;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
@@ -18,6 +22,7 @@ import org.neo4j.logging.internal.LogService;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
 import java.net.URL;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -46,7 +51,6 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_CONFIG_JOBS_POOL_NUM_THREADS = "apoc.jobs.pool.num_threads";
 
     public static final List<Setting> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = Arrays.asList(
-            legacy_certificates_directory,
             data_directory,
             load_csv_file_url_root,
             logs_directory,
@@ -64,17 +68,20 @@ public class ApocConfig extends LifecycleAdapter {
     private final Config neo4jConfig;
     private final Log log;
     private final GlobalProceduresRegistry globalProceduresRegistry;
+    private final DatabaseManagementService databaseManagementService;
 
     private Configuration config;
 
     private static ApocConfig theInstance;
     private LoggingType loggingType;
     private SimpleRateLimiter rateLimiter;
+    private GraphDatabaseService systemDb;
 
-    public ApocConfig(Config neo4jConfig, LogService log, GlobalProceduresRegistry globalProceduresRegistry) {
+    public ApocConfig(Config neo4jConfig, LogService log, GlobalProceduresRegistry globalProceduresRegistry, DatabaseManagementService databaseManagementService) {
         this.neo4jConfig = neo4jConfig;
         this.log = log.getInternalLog(ApocConfig.class);
         this.globalProceduresRegistry = globalProceduresRegistry;
+        this.databaseManagementService = databaseManagementService;
         theInstance = this;
 
         // expose this config instance via `@Context ApocConfig config`
@@ -87,6 +94,7 @@ public class ApocConfig extends LifecycleAdapter {
         this.neo4jConfig = null;
         this.log = NullLog.getInstance();
         this.globalProceduresRegistry = null;
+        this.databaseManagementService = null;
         theInstance = this;
         this.config = new PropertiesConfiguration();
     }
@@ -134,7 +142,7 @@ public class ApocConfig extends LifecycleAdapter {
 
             // copy apoc settings from neo4j.conf for legacy support
             neo4jConfig.getDeclaredSettings().entrySet().stream()
-                    .filter(e-> !config.containsKey(e.getKey()))
+                    .filter(e -> !config.containsKey(e.getKey()))
                     .filter(e -> e.getKey().startsWith("apoc."))
                     .forEach(e -> {
                         log.info("setting from neo4j.conf: " + e.getKey() + "=" + neo4jConfig.get(e.getValue()));
@@ -173,6 +181,21 @@ public class ApocConfig extends LifecycleAdapter {
 
     public void setRateLimiter(SimpleRateLimiter rateLimiter) {
         this.rateLimiter = rateLimiter;
+    }
+
+    public GraphDatabaseService getSystemDb() {
+        if (systemDb == null) {
+            try {
+                systemDb = databaseManagementService.database(SYSTEM_DATABASE_NAME);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return systemDb;
+    }
+
+    public enum ApocDbLabels implements Label {
+        Uuid
     }
 
     public enum LoggingType {none, safe, raw}
@@ -245,6 +268,15 @@ public class ApocConfig extends LifecycleAdapter {
     }
 
     public int getInt(String key, int defaultValue) {
-        return getConfig().getInt(key, defaultValue);
+        try {
+            return getConfig().getInt(key, defaultValue);
+        } catch (ConversionException e) {
+            Object o = getConfig().getProperty(key);
+            if (o instanceof Duration) {
+                return (int) ((Duration)o).getSeconds();
+            } else {
+                throw new IllegalArgumentException("don't know how to convert for config option " + key, e);
+            }
+        }
     }
 }

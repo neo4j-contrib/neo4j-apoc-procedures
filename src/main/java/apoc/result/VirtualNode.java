@@ -19,26 +19,22 @@ public class VirtualNode implements Node {
     private final Set<String> labels = new LinkedHashSet<>();
     private final Map<String, Object> props = new HashMap<>();
     private final List<Relationship> rels = new ArrayList<>();
-    private final GraphDatabaseService db;
     private final long id;
 
-    public VirtualNode(Label[] labels, Map<String, Object> props, GraphDatabaseService db) {
+    public VirtualNode(Label[] labels, Map<String, Object> props) {
         this.id = MIN_ID.getAndDecrement();
-        this.db = db;
         addLabels(asList(labels));
         this.props.putAll(props);
     }
 
-    public VirtualNode(long nodeId, Label[] labels, Map<String, Object> props, GraphDatabaseService db) {
+    public VirtualNode(long nodeId, Label[] labels, Map<String, Object> props) {
         this.id = nodeId;
-        this.db = db;
         addLabels(asList(labels));
         this.props.putAll(props);
     }
 
-    public VirtualNode(long nodeId, GraphDatabaseService db) {
+    public VirtualNode(long nodeId) {
         this.id = nodeId;
-        this.db = db;
     }
 
     @Override
@@ -151,7 +147,7 @@ public class VirtualNode implements Node {
 
     @Override
     public int getDegree() {
-        return (int) rels.size();
+        return rels.size();
     }
 
     @Override
@@ -193,11 +189,6 @@ public class VirtualNode implements Node {
     @Override
     public Iterable<Label> getLabels() {
         return labels.stream().map(Label::label).collect(Collectors.toList());
-    }
-
-    @Override
-    public GraphDatabaseService getGraphDatabase() {
-        return db;
     }
 
     @Override

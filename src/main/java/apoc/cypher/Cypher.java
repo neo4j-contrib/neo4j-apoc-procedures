@@ -8,6 +8,7 @@ import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryStatistics;
 import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
@@ -43,6 +44,9 @@ public class Cypher {
     public static final int MAX_BATCH = 10000;
 
     @Context
+    public Transaction tx;
+
+    @Context
     public GraphDatabaseService db;
 
     @Context
@@ -58,7 +62,7 @@ public class Cypher {
     @Description("apoc.cypher.run(fragment, params) yield value - executes reading fragment with the given parameters")
     public Stream<MapResult> run(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         if (params == null) params = Collections.emptyMap();
-        return db.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
+        return tx.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
     }
 
     @Procedure(mode = WRITE)
@@ -123,8 +127,8 @@ public class Cypher {
             if (stmt.trim().isEmpty()) continue;
             if (!isSchemaOperation(stmt)) {
                 if (isPeriodicOperation(stmt))
-                    Util.inThread(pools, () -> executeStatement(queue, stmt, params, addStatistics,timeout));
-                else Util.inTx(db, pools, () -> executeStatement(queue, stmt, params, addStatistics,timeout));
+                    Util.inThread(pools, () -> executeStatement(tx, queue, stmt, params, addStatistics,timeout));
+                else Util.inTx(db, pools, txInThread -> executeStatement(txInThread, queue, stmt, params, addStatistics,timeout));
             }
         }
     }
@@ -136,7 +140,7 @@ public class Cypher {
             String stmt = removeShellControlCommands(scanner.next());
             if (stmt.trim().isEmpty()) continue;
             if (isSchemaOperation(stmt)) {
-                Util.inTx(db, pools, () -> executeStatement(queue, stmt, params, addStatistics, timeout));
+                Util.inTx(db, pools, txInThread -> executeStatement(txInThread, queue, stmt, params, addStatistics, timeout));
             }
         }
     }
@@ -152,8 +156,8 @@ public class Cypher {
 
     private final static Pattern shellControl = Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
 
-    private Object executeStatement(BlockingQueue<RowResult> queue, String stmt, Map<String, Object> params, boolean addStatistics, long timeout) throws InterruptedException {
-        try (Result result = db.execute(stmt,params)) {
+    private Object executeStatement(Transaction thisTx, BlockingQueue<RowResult> queue, String stmt, Map<String, Object> params, boolean addStatistics, long timeout) {
+        try (Result result = thisTx.execute(stmt,params)) {
             long time = System.currentTimeMillis();
             int row = 0;
             while (result.hasNext()) {
@@ -164,6 +168,8 @@ public class Cypher {
                 queue.offer(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)), timeout,TimeUnit.SECONDS);
             }
             return row;
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -243,7 +249,7 @@ public class Cypher {
             terminationGuard.check();
             Map<String, Object> parallelParams = new HashMap<>(params);
             parallelParams.replace(key, v);
-            return db.execute(statement, parallelParams).stream().map(MapResult::new);
+            return tx.execute(statement, parallelParams).stream().map(MapResult::new);
         });
 
         /*
@@ -263,9 +269,9 @@ public class Cypher {
     @Description("apoc.cypher.mapParallel(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _")
     public Stream<MapResult> mapParallel(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data) {
         final String statement = withParamsAndIterator(fragment, params.keySet(), "_");
-        db.execute("EXPLAIN " + statement).close();
+        tx.execute("EXPLAIN " + statement).close();
         return Util.partitionSubList(data, PARTITIONS,null)
-                .flatMap((partition) -> Iterators.addToCollection(db.execute(statement, parallelParams(params, "_", partition)),
+                .flatMap((partition) -> Iterators.addToCollection(tx.execute(statement, parallelParams(params, "_", partition)),
                         new ArrayList<>(partition.size())).stream())
                 .map(MapResult::new);
     }
@@ -273,14 +279,14 @@ public class Cypher {
     @Description("apoc.cypher.mapParallel2(fragment, params, list-to-parallelize) yield value - executes fragment in parallel batches with the list segments being assigned to _")
     public Stream<MapResult> mapParallel2(@Name("fragment") String fragment, @Name("params") Map<String, Object> params, @Name("list") List<Object> data, @Name("partitions") long partitions,@Name(value = "timeout",defaultValue = "10") long timeout) {
         final String statement = withParamsAndIterator(fragment, params.keySet(), "_");
-        db.execute("EXPLAIN " + statement).close();
+        tx.execute("EXPLAIN " + statement).close();
         BlockingQueue<RowResult> queue = new ArrayBlockingQueue<>(100000);
         Stream<List<Object>> parallelPartitions = Util.partitionSubList(data, (int)(partitions <= 0 ? PARTITIONS : partitions), null);
         Util.inFuture(pools, () -> {
             long total = parallelPartitions
                 .map((List<Object> partition) -> {
                     try {
-                        return executeStatement(queue, statement, parallelParams(params, "_", partition),false,timeout);
+                        return executeStatement(tx, queue, statement, parallelParams(params, "_", partition),false,timeout);
                     } catch (Exception e) {throw new RuntimeException(e);}}
                 ).count();
             queue.put(RowResult.TOMBSTONE);
@@ -325,7 +331,7 @@ public class Cypher {
             throw new RuntimeException("Can't parallelize a non collection " + key + " : " + value);
 
         final String statement = withParamsAndIterator(fragment, params.keySet(), key);
-        db.execute("EXPLAIN " + statement).close();
+        tx.execute("EXPLAIN " + statement).close();
         Collection<Object> coll = (Collection<Object>) value;
         int total = coll.size();
         int partitions = PARTITIONS;
@@ -341,12 +347,12 @@ public class Cypher {
             partition.add(o);
             if (partition.size() == batchSize) {
                 terminationGuard.check();
-                futures.add(submit(db, statement, params, key, partition));
+                futures.add(submit(tx, statement, params, key, partition));
                 partition = new ArrayList<>(batchSize);
             }
         }
         if (!partition.isEmpty()) {
-            futures.add(submit(db, statement, params, key, partition));
+            futures.add(submit(tx, statement, params, key, partition));
         }
         return futures.stream().flatMap(f -> {
             try {
@@ -365,15 +371,15 @@ public class Cypher {
         return with + " UNWIND " + param(iterator) + " AS " + quote(iterator) + ' ' + fragment;
     }
 
-    private Future<List<Map<String, Object>>> submit(GraphDatabaseService db, String statement, Map<String, Object> params, String key, List<Object> partition) {
-        return pools.getDefaultExecutorService().submit(() -> Iterators.addToCollection(db.execute(statement, parallelParams(params, key, partition)), new ArrayList<>(partition.size())));
+    private Future<List<Map<String, Object>>> submit(Transaction tx, String statement, Map<String, Object> params, String key, List<Object> partition) {
+        return pools.getDefaultExecutorService().submit(() -> Iterators.addToCollection(tx.execute(statement, parallelParams(params, key, partition)), new ArrayList<>(partition.size())));
     }
 
     @Procedure(mode = WRITE)
     @Description("apoc.cypher.doIt(fragment, params) yield value - executes writing fragment with the given parameters")
     public Stream<MapResult> doIt(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         if (params == null) params = Collections.emptyMap();
-        return db.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
+        return tx.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
     }
 
     @Procedure("apoc.when")
@@ -385,7 +391,7 @@ public class Cypher {
         if (targetQuery.isEmpty()) {
             return Stream.of(new MapResult(Collections.emptyMap()));
         } else {
-            return db.execute(withParamMapping(targetQuery, params.keySet()), params).stream().map(MapResult::new);
+            return tx.execute(withParamMapping(targetQuery, params.keySet()), params).stream().map(MapResult::new);
         }
     }
 
@@ -411,14 +417,14 @@ public class Cypher {
             String ifQuery = (String) caseItr.next();
 
             if (condition) {
-                return db.execute(withParamMapping(ifQuery, params.keySet()), params).stream().map(MapResult::new);
+                return tx.execute(withParamMapping(ifQuery, params.keySet()), params).stream().map(MapResult::new);
             }
         }
 
         if (elseQuery.isEmpty()) {
             return Stream.of(new MapResult(Collections.emptyMap()));
         } else {
-            return db.execute(withParamMapping(elseQuery, params.keySet()), params).stream().map(MapResult::new);
+            return tx.execute(withParamMapping(elseQuery, params.keySet()), params).stream().map(MapResult::new);
         }
     }
 

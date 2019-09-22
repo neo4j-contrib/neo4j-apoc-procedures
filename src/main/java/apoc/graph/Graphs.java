@@ -7,10 +7,10 @@ import apoc.result.RowResult;
 import apoc.result.VirtualGraph;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.procedure.*;
 
@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 public class Graphs {
 
     @Context
-    public GraphDatabaseService db;
+    public Transaction tx;
 
     @Description("apoc.graph.fromData([nodes],[relationships],'name',{properties}) | creates a virtual graph object for later processing")
     @Procedure
@@ -93,7 +93,7 @@ public class Graphs {
     @Description("apoc.graph.fromDB('name',{properties}) - creates a virtual graph object for later processing")
     @Procedure
     public Stream<VirtualGraph> fromDB(@Name("name") String name, @Name("properties") Map<String,Object> properties) {
-        return Stream.of(new VirtualGraph(name,db.getAllNodes(),db.getAllRelationships(),properties));
+        return Stream.of(new VirtualGraph(name,tx.getAllNodes(),tx.getAllRelationships(),properties));
     }
 
     @Description("apoc.graph.fromCypher('kernelTransaction',{params},'name',{properties}) - creates a virtual graph object for later processing")
@@ -103,7 +103,7 @@ public class Graphs {
         Set<Node> nodes = new HashSet<>(1000);
         Set<Relationship> rels = new HashSet<>(1000);
         Map<String,Object> props = new HashMap<>(properties);
-        db.execute(Cypher.withParamMapping(statement, params.keySet()), params).stream().forEach(row -> {
+        tx.execute(Cypher.withParamMapping(statement, params.keySet()), params).stream().forEach(row -> {
             row.forEach((k,v) -> {
                 if (!extract(v,nodes,rels)) {
                     props.put(k,v);
@@ -118,7 +118,7 @@ public class Graphs {
     @Procedure(mode = Mode.WRITE)
     public Stream<VirtualGraph> fromDocument(@Name("json") Object document, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) throws Exception {
         Collection<Map> coll = getDocumentCollection(document);
-        DocumentToGraph documentToGraph = new DocumentToGraph(db, new GraphsConfig(config));
+        DocumentToGraph documentToGraph = new DocumentToGraph(tx, new GraphsConfig(config));
         return Stream.of(documentToGraph.create(coll));
     }
 
@@ -138,7 +138,7 @@ public class Graphs {
     @Description("apoc.graph.validateDocument({json}, {config}) yield row - validates the json, return the result of the validation")
     @Procedure(mode = Mode.READ)
     public Stream<RowResult> validateDocument(@Name("json") Object document, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) throws Exception {
-        DocumentToGraph documentToGraph = new DocumentToGraph(db, new GraphsConfig(config));
+        DocumentToGraph documentToGraph = new DocumentToGraph(tx, new GraphsConfig(config));
         AtomicLong index = new AtomicLong(-1);
         return getDocumentCollection(document).stream()
                 .map(elem -> {

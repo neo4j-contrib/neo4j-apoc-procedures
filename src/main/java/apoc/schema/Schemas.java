@@ -5,13 +5,18 @@ import apoc.result.ConstraintRelationshipInfo;
 import apoc.result.IndexConstraintNodeInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.common.TokenNameLookup;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.internal.helpers.collection.Iterables;
-import org.neo4j.internal.kernel.api.*;
+import org.neo4j.internal.kernel.api.InternalIndexState;
+import org.neo4j.internal.kernel.api.SchemaRead;
+import org.neo4j.internal.kernel.api.TokenRead;
 import org.neo4j.internal.kernel.api.exceptions.LabelNotFoundKernelException;
 import org.neo4j.internal.kernel.api.exceptions.schema.IndexNotFoundKernelException;
 import org.neo4j.internal.schema.ConstraintDescriptor;
@@ -34,7 +39,10 @@ public class Schemas {
     public GraphDatabaseService db;
 
     @Context
-    public KernelTransaction tx;
+    public Transaction tx;
+
+    @Context
+    public KernelTransaction ktx;
 
     @Procedure(value = "apoc.schema.assert", mode = Mode.SCHEMA)
     @Description("apoc.schema.assert({indexLabel:[[indexKeys]], ...}, {constraintLabel:[constraintKeys], ...}, dropExisting : true) yield label, key, keys, unique, action - drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label. Non-constraint indexes can define compound indexes with label:[key1,key2...] pairings.")
@@ -107,7 +115,7 @@ public class Schemas {
         String keyProperties = keys.stream()
                 .map( property -> String.format("n.`%s`", property))
                 .collect( Collectors.joining( "," ) );
-        db.execute(String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT (%s) IS NODE KEY", lbl, keyProperties)).close();
+        tx.execute(String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT (%s) IS NODE KEY", lbl, keyProperties)).close();
         List<String> keysToSting = keys.stream().map(Object::toString).collect(Collectors.toList());
         return new AssertSchemaResult(lbl, keysToSting).unique().created();
     }
@@ -172,7 +180,7 @@ public class Schemas {
         List<String> backTickedKeys = new ArrayList<>();
         keys.forEach(key->backTickedKeys.add(String.format("`%s`", key)));
 
-        db.execute(String.format("CREATE INDEX ON :`%s` (%s)", label, String.join(",", backTickedKeys)));
+        tx.execute(String.format("CREATE INDEX ON :`%s` (%s)", label, String.join(",", backTickedKeys)));
         return new AssertSchemaResult(label, keys).created();
     }
 
@@ -182,18 +190,6 @@ public class Schemas {
         }
 
         HashMap<String, List<Object>> result = new HashMap<>(input.size());
-
-        input.forEach((k, v) -> result.put(k, new ArrayList<>(v)));
-        return result;
-    }
-
-
-    private Map<String, List<String>> copy(Map<String, List<String>> input) {
-        if (input == null) {
-            return Collections.emptyMap();
-        }
-
-        HashMap<String, List<String>> result = new HashMap<>(input.size());
 
         input.forEach((k, v) -> result.put(k, new ArrayList<>(v)));
         return result;
@@ -276,11 +272,11 @@ public class Schemas {
         Set<String> includeLabels = schemaConfig.getLabels();
         Set<String> excludeLabels = schemaConfig.getExcludeLabels();
 
-        try ( Statement ignore = tx.acquireStatement() ) {
-            TokenRead tokenRead = tx.tokenRead();
+        try ( Statement ignore = ktx.acquireStatement() ) {
+            TokenRead tokenRead = ktx.tokenRead();
             TokenNameLookup tokens = new SilentTokenNameLookup(tokenRead);
 
-            SchemaRead schemaRead = tx.schemaRead();
+            SchemaRead schemaRead = ktx.schemaRead();
             Iterable<IndexDescriptor> indexesIterator;
             Iterable<ConstraintDescriptor> constraintsIterator;
 
@@ -329,7 +325,7 @@ public class Schemas {
 
 
             Stream<IndexConstraintNodeInfo> constraintNodeInfoStream = StreamSupport.stream(constraintsIterator.spliterator(), false)
-                    .filter(constraintDescriptor -> constraintDescriptor.type().equals(ConstraintDescriptor.Type.EXISTS))
+                    .filter(constraintDescriptor -> constraintDescriptor.type().equals(ConstraintType.NODE_PROPERTY_EXISTENCE))
                     .map(constraintDescriptor -> this.nodeInfoFromConstraintDescriptor(constraintDescriptor, tokens))
                     .sorted(Comparator.comparing(i -> i.label));
 
@@ -353,8 +349,8 @@ public class Schemas {
         Set<String> includeRelationships = schemaConfig.getRelationships();
         Set<String> excludeRelationships = schemaConfig.getExcludeRelationships();
 
-        try ( Statement ignore = tx.acquireStatement() ) {
-            TokenRead tokenRead = tx.tokenRead();
+        try ( Statement ignore = ktx.acquireStatement() ) {
+            TokenRead tokenRead = ktx.tokenRead();
             Iterable<ConstraintDefinition> constraintsIterator;
 
             if(!includeRelationships.isEmpty()) {

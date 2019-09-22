@@ -33,11 +33,11 @@ public class RefactorUtil {
         PropertiesManager.mergeProperties(properties, target, conf);
     }
 
-    public static <T extends PropertyContainer> T copyProperties(PropertyContainer source, T target) {
+    public static <T extends Entity> T copyProperties(Entity source, T target) {
         return copyProperties(source.getAllProperties(), target);
     }
 
-    public static <T extends PropertyContainer> T copyProperties(Map<String, Object> source, T target) {
+    public static <T extends Entity> T copyProperties(Map<String, Object> source, T target) {
         for (Map.Entry<String, Object> prop : source.entrySet()) {
             target.setProperty(prop.getKey(), prop.getValue());
         }

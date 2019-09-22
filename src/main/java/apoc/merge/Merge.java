@@ -1,13 +1,15 @@
 package apoc.merge;
 
-import apoc.result.*;
+import apoc.result.NodeResult;
+import apoc.result.RelationshipResult;
 import apoc.util.Util;
-import com.google.common.collect.Lists;
-import org.neo4j.graphdb.*;
-import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.*;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,7 +19,7 @@ import static java.util.Collections.emptyMap;
 public class Merge {
 
     @Context
-    public GraphDatabaseService db;
+    public Transaction tx;
 
     @Procedure(value="apoc.merge.node.eager", mode = Mode.WRITE, eager = true)
     @Description("apoc.merge.node.eager(['Label'], identProps:{key:value, ...}, onCreateProps:{key:value,...}, onMatchProps:{key:value,...}}) - merge nodes eagerly, with dynamic labels, with support for setting properties ON CREATE or ON MATCH")
@@ -44,7 +46,7 @@ public class Merge {
         String identPropsString = buildIdentPropsString(identProps);
 
         final String cypher = "MERGE (n:" + labels + "{" + identPropsString + "}) ON CREATE SET n += $onCreateProps ON MATCH SET n += $onMatchProps RETURN n";
-        return db.execute(cypher, params ).columnAs("n").stream().map(node -> new NodeResult((Node) node));
+        return tx.execute(cypher, params ).columnAs("n").stream().map(node -> new NodeResult((Node) node));
     }
 
     @Procedure(value = "apoc.merge.relationship", mode = Mode.WRITE)
@@ -65,7 +67,7 @@ public class Merge {
                 "ON CREATE SET r+= $onCreateProps " +
                 "ON MATCH SET r+= $onMatchProps " +
                 "RETURN r";
-        return db.execute(cypher, params ).columnAs("r").stream().map(rel -> new RelationshipResult((Relationship) rel));
+        return tx.execute(cypher, params ).columnAs("r").stream().map(rel -> new RelationshipResult((Relationship) rel));
     }
     @Procedure(value = "apoc.merge.relationship.eager", mode = Mode.WRITE, eager = true)
     @Description("apoc.merge.relationship(startNode, relType,  identProps:{key:value, ...}, onCreateProps:{key:value, ...}, endNode, onMatchProps:{key:value, ...}) - merge relationship with dynamic type, with support for setting properties ON CREATE or ON MATCH")

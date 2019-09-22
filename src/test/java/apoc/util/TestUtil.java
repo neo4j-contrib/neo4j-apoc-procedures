@@ -2,21 +2,12 @@ package apoc.util;
 
 import com.google.common.io.Files;
 import org.hamcrest.Matcher;
-import org.neo4j.configuration.GraphDatabaseSettings;
-import org.neo4j.dbms.api.DatabaseManagementService;
-import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
 import org.neo4j.exceptions.KernelException;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.collection.Pair;
-import org.neo4j.internal.kernel.api.Kernel;
-import org.neo4j.internal.kernel.api.Procedures;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
-import org.neo4j.kernel.impl.api.KernelImpl;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.procedure.impl.ProcedureRegistry;
-import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +22,6 @@ import java.util.function.Supplier;
 
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeFalse;
-import static org.neo4j.configuration.GraphDatabaseSettings.DEFAULT_DATABASE_NAME;
 
 /**
  * @author mh
@@ -110,7 +100,7 @@ public class TestUtil {
             Map<String, Object> p = (params == null) ? Collections.emptyMap() : params;
             Result result = db.execute(call, p);
             resultConsumer.accept(result);
-            tx.success();
+            tx.commit();
         } catch (RuntimeException e) {
             throw e;
         }
@@ -177,6 +167,7 @@ public class TestUtil {
         return "true".equals(System.getenv("TRAVIS"));
     }
 
+/*
     public static Pair<DatabaseManagementService, GraphDatabaseService> apocGraphDatabaseBuilder() {
         return apocGraphDatabaseBuilder(builder -> {});
     }
@@ -192,6 +183,7 @@ public class TestUtil {
         GraphDatabaseService db = dbms.database(DEFAULT_DATABASE_NAME);
         return Pair.of(dbms, db);
     }
+*/
 
     public static boolean serverListening(String host, int port)
     {

@@ -3,8 +3,8 @@ package apoc.model;
 import apoc.load.util.LoadJdbcConfig;
 import apoc.result.VirtualNode;
 import org.neo4j.graphdb.*;
-import org.neo4j.procedure.*;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.*;
 import schemacrawler.schema.*;
 import schemacrawler.schemacrawler.SchemaCrawlerOptions;
 import schemacrawler.schemacrawler.SchemaCrawlerOptionsBuilder;
@@ -24,15 +24,17 @@ import static apoc.util.Util.map;
 public class Model {
 
     @Context
-    public GraphDatabaseService db;
+    public Transaction tx;
 
     private Node createNode(String label, String name, boolean virtual) {
-        if (virtual)
-            return new VirtualNode(new Label[]{Label.label(label)}, map("name", name), db);
-        Node node = db.createNode();
-        node.addLabel(Label.label(label));
-        node.setProperty("name", name);
-        return node;
+        if (virtual) {
+            return new VirtualNode(new Label[]{Label.label(label)}, map("name", name));
+        } else {
+            Node node = tx.createNode();
+            node.addLabel(Label.label(label));
+            node.setProperty("name", name);
+            return node;
+        }
     }
 
     public static class DatabaseModel {

@@ -7,23 +7,12 @@ import apoc.load.LoadCsv;
 import apoc.load.util.LoadCsvConfig;
 import apoc.util.FileUtils;
 import com.opencsv.CSVReader;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.*;
 
 import java.io.IOException;
-import java.util.AbstractMap;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.Arrays;
 
 public class CsvEntityLoader {
 
@@ -85,7 +74,7 @@ public class CsvEntityLoader {
 
         final String[] loadCsvCompatibleHeader = fields.stream().map(f -> f.getName()).toArray(String[]::new);
         int lineNo = 0;
-        try (BatchTransaction tx = new BatchTransaction(db, clc.getBatchSize(), reporter)) {
+        try (BatchTransaction btx = new BatchTransaction(db, clc.getBatchSize(), reporter)) {
             for (String[] line : csv.readAll()) {
                 lineNo++;
 
@@ -108,7 +97,7 @@ public class CsvEntityLoader {
                 }
 
                 // create node and add its id to the mapping
-                final Node node = db.createNode();
+                final Node node = btx.getTransaction().createNode();
                 if (idField.isPresent()) {
                     idspaceIdMapping.put(nodeCsvId, node.getId());
                 }
@@ -198,7 +187,7 @@ public class CsvEntityLoader {
         final String[] loadCsvCompatibleHeader = fields.stream().map(f -> f.getName()).toArray(String[]::new);
 
         int lineNo = 0;
-        try (BatchTransaction tx = new BatchTransaction(db, clc.getBatchSize(), reporter)) {
+        try (BatchTransaction btx = new BatchTransaction(db, clc.getBatchSize(), reporter)) {
             for (String[] line : csv.readAll()) {
                 lineNo++;
 
@@ -212,14 +201,14 @@ public class CsvEntityLoader {
                 if (startInternalId == null) {
                     throw new IllegalStateException("Node for id space " + endIdField.getIdSpace() + " and id " + startId + " not found");
                 }
-                final Node source = db.getNodeById((long) startInternalId);
+                final Node source = btx.getTransaction().getNodeById((long) startInternalId);
 
                 final Object endId = result.map.get(CsvLoaderConstants.END_ID_ATTR);
                 final Object endInternalId = idMapping.get(endIdField.getIdSpace()).get(endId);
                 if (endInternalId == null) {
                     throw new IllegalStateException("Node for id space " + endIdField.getIdSpace() + " and id " + endId + " not found");
                 }
-                final Node target = db.getNodeById((long) endInternalId);
+                final Node target = btx.getTransaction().getNodeById((long) endInternalId);
 
                 final String currentType;
                 final Object overridingType = result.map.get(CsvLoaderConstants.TYPE_ATTR);

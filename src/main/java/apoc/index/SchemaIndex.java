@@ -73,7 +73,7 @@ public class SchemaIndex {
 
     private Object scanIndexDefinitionForKeys(IndexDefinition indexDefinition, @Name(value = "key", defaultValue = "") String keyName, ThreadToStatementContextBridge ctx, BlockingQueue<PropertyValueCount> queue) {
         try (Transaction threadTx = db.beginTx()) {
-            KernelTransaction ktx = ctx.getKernelTransactionBoundToThisThread(true);
+            KernelTransaction ktx = ctx.getKernelTransactionBoundToThisThread(true, db.databaseId());
             Iterable<String> keys = keyName.isEmpty() ? indexDefinition.getPropertyKeys() : Collections.singletonList(keyName);
             for (String key : keys) {
                 try (KernelStatement ignored = (KernelStatement) ktx.acquireStatement()) {
@@ -90,7 +90,7 @@ public class SchemaIndex {
                     scanIndex(queue, indexDefinition, key, read, cursors, indexDescriptor);
                 }
             }
-            threadTx.success();
+            threadTx.commit();
             return null;
         }
     }
@@ -135,7 +135,7 @@ public class SchemaIndex {
 
     private boolean isIndexCoveringProperty(IndexDefinition indexDefinition, String properttyKeyName) {
         try (Transaction threadTx = db.beginTx()) {
-            threadTx.success();
+            threadTx.commit();
             return properttyKeyName.isEmpty() || contains(indexDefinition.getPropertyKeys(), properttyKeyName);
         }
     }

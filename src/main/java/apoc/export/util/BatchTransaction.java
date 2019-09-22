@@ -2,7 +2,6 @@ package apoc.export.util;
 
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 /**
 * @author mh
@@ -17,7 +16,7 @@ public class BatchTransaction implements AutoCloseable {
     int batchCount = 0;
 
     public BatchTransaction(GraphDatabaseService gdb, int batchSize, Reporter reporter) {
-        this.gdb = (GraphDatabaseAPI) gdb;
+        this.gdb = gdb;
         this.batchSize = batchSize;
         this.reporter = reporter;
         tx = beginTx();
@@ -43,7 +42,7 @@ public class BatchTransaction implements AutoCloseable {
     }
 
     private void doCommit(boolean log) {
-        tx.success();
+        tx.commit();
         tx.close();
         if (log && reporter!=null) reporter.progress("commit after " + count + " row(s) ");
         tx = beginTx();
@@ -57,9 +56,13 @@ public class BatchTransaction implements AutoCloseable {
     @Override
     public void close() {
         if (tx!=null) {
-            tx.success();
+            tx.commit();
             tx.close();
             if (reporter!=null) reporter.progress("finish after " + count + " row(s) ");
         }
+    }
+
+    public Transaction getTransaction() {
+        return tx;
     }
 }

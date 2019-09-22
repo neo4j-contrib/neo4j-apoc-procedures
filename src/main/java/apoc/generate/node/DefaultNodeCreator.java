@@ -1,8 +1,8 @@
 package apoc.generate.node;
 
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
 
 /**
  * A {@link NodeCreator} that assigns every {@link Node} a {@link Label} passed to it in the constructor and a UUID as
@@ -22,11 +22,9 @@ public class DefaultNodeCreator implements NodeCreator {
      * {@inheritDoc}
      */
     @Override
-    public Node createNode(GraphDatabaseService database) {
-        Node node = database.createNode(label);
-
+    public Node createNode(Transaction tx) {
+        Node node = tx.createNode(label);
         node.setProperty(UUID, java.util.UUID.randomUUID().toString());
-
         return node;
     }
 }

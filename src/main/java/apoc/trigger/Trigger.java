@@ -2,28 +2,13 @@ package apoc.trigger;
 
 import apoc.Description;
 import apoc.coll.SetBackedList;
-import apoc.util.Util;
-import org.neo4j.dbms.api.DatabaseManagementService;
-import org.neo4j.graphdb.*;
-import org.neo4j.graphdb.event.LabelEntry;
-import org.neo4j.graphdb.event.PropertyEntry;
-import org.neo4j.graphdb.event.TransactionData;
-import org.neo4j.graphdb.event.TransactionEventListener;
-import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.kernel.impl.core.EmbeddedProxySPI;
-import org.neo4j.kernel.impl.core.GraphProperties;
-import org.neo4j.kernel.internal.GraphDatabaseAPI;
-import org.neo4j.kernel.lifecycle.LifecycleAdapter;
-import org.neo4j.logging.Log;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
 import org.neo4j.procedure.*;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
-
-import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
-import static apoc.ApocConfig.apocConfig;
-import static apoc.util.Util.map;
 
 /**
  * @author mh
@@ -58,6 +43,8 @@ public class Trigger {
     }
 
     @Context public GraphDatabaseService db;
+
+    @Context public TriggerHandler triggerHandler;
 
     @UserFunction
     @Description("function to filter labelEntries by label, to be used within a trigger kernelTransaction with {assignedLabels}, {removedLabels}, {assigned/removedNodeProperties}")
@@ -106,10 +93,10 @@ public class Trigger {
     @Description("add a trigger kernelTransaction under a name, in the kernelTransaction you can use {createdNodes}, {deletedNodes} etc., the selector is {phase:'before/after/rollback'} returns previous and new trigger information. Takes in an optional configuration.")
     public Stream<TriggerInfo> add(@Name("name") String name, @Name("kernelTransaction") String statement, @Name(value = "selector"/*, defaultValue = "{}"*/)  Map<String,Object> selector, @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
-        Map<String, Object> removed = TriggerHandler.add(name, statement, selector, params);
+        Map<String, Object> removed = triggerHandler.add(name, statement, selector, params);
         if (removed != null) {
             return Stream.of(
-                    new TriggerInfo(name,(String)removed.get("kernelTransaction"), (Map<String, Object>) removed.get("selector"), (Map<String, Object>) removed.get("params"),false, false),
+                    new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"), (Map<String, Object>) removed.get("params"),false, false),
                     new TriggerInfo(name,statement,selector, params,true, false));
         }
         return Stream.of(new TriggerInfo(name,statement,selector, params,true, false));
@@ -118,7 +105,7 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("remove previously added trigger, returns trigger information")
     public Stream<TriggerInfo> remove(@Name("name")String name) {
-        Map<String, Object> removed = TriggerHandler.remove(name);
+        Map<String, Object> removed = triggerHandler.remove(name);
         if (removed == null) {
             return Stream.of(new TriggerInfo(name, null, null, false, false));
         }
@@ -128,7 +115,7 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("removes all previously added trigger, returns trigger information")
     public Stream<TriggerInfo> removeAll() {
-        Map<String, Object> removed = TriggerHandler.removeAll();
+        Map<String, Object> removed = triggerHandler.removeAll();
         if (removed == null) {
             return Stream.of(new TriggerInfo(null, null, null, false, false));
         }
@@ -140,7 +127,7 @@ public class Trigger {
         if (e.getValue() instanceof Map) {
             try {
                 Map<String, Object> value = (Map<String, Object>) e.getValue();
-                return new TriggerInfo(name, (String) value.get("kernelTransaction"), (Map<String, Object>) value.get("selector"), (Map<String, Object>) value.get("params"), false, false);
+                return new TriggerInfo(name, (String) value.get("statement"), (Map<String, Object>) value.get("selector"), (Map<String, Object>) value.get("params"), false, false);
             } catch(Exception ex) {
                 return new TriggerInfo(name, ex.getMessage(), null, false, false);
             }
@@ -151,14 +138,14 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("list all installed triggers")
     public Stream<TriggerInfo> list() {
-        return TriggerHandler.list().entrySet().stream()
+        return triggerHandler.list().entrySet().stream()
                 .map( (e) -> new TriggerInfo(e.getKey(),(String)e.getValue().get("kernelTransaction"),(Map<String,Object>)e.getValue().get("selector"), (Map<String, Object>) e.getValue().get("params"),true, (Boolean) e.getValue().get("paused")));
     }
 
     @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.trigger.pause(name) | it pauses the trigger")
     public Stream<TriggerInfo> pause(@Name("name")String name) {
-        Map<String, Object> paused = TriggerHandler.paused(name);
+        Map<String, Object> paused = triggerHandler.updatePaused(name, true);
 
         return Stream.of(new TriggerInfo(name,(String)paused.get("kernelTransaction"), (Map<String,Object>) paused.get("selector"), (Map<String,Object>) paused.get("params"),true, true));
     }
@@ -166,227 +153,9 @@ public class Trigger {
     @Procedure(mode = Mode.WRITE)
     @Description("CALL apoc.trigger.resume(name) | it resumes the paused trigger")
     public Stream<TriggerInfo> resume(@Name("name")String name) {
-        Map<String, Object> resume = TriggerHandler.resume(name);
+        Map<String, Object> resume = triggerHandler.updatePaused(name, false);
 
         return Stream.of(new TriggerInfo(name,(String)resume.get("kernelTransaction"), (Map<String,Object>) resume.get("selector"), (Map<String,Object>) resume.get("params"),true, false));
     }
 
-    public static class TriggerHandler implements TransactionEventListener {
-        public static final String APOC_TRIGGER = "apoc.trigger";
-        static ConcurrentHashMap<String,Map<String,Object>> triggers = new ConcurrentHashMap(map("",map()));
-        private static GraphProperties properties;
-        private final Log log;
-
-        public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
-                " Set 'apoc.trigger.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
-
-        public TriggerHandler(GraphDatabaseAPI api, Log log) {
-            properties = api.getDependencyResolver().resolveDependency(EmbeddedProxySPI.class).newGraphPropertiesProxy();
-//            Pools.SCHEDULED.submit(() -> updateTriggers(null,null));
-            this.log = log;
-        }
-
-        public static void checkEnabled() {
-            if (properties == null) {
-                throw new RuntimeException(NOT_ENABLED_ERROR);
-            }
-        }
-
-        public static Map<String, Object> add(String name, String statement, Map<String,Object> selector) {
-            checkEnabled();
-
-            return add(name, statement, selector, Collections.emptyMap());
-        }
-
-        public static Map<String, Object> add(String name, String statement, Map<String,Object> selector, Map<String,Object> params) {
-            checkEnabled();
-
-            return updateTriggers(name, map("kernelTransaction", statement, "selector", selector, "params", params, "paused", false));
-        }
-
-        public synchronized static Map<String, Object> remove(String name) {
-            return updateTriggers(name,null);
-        }
-
-        public static Map<String, Object> paused(String name) {
-            checkEnabled();
-
-            Map<String, Object> triggerToPause = triggers.get(name);
-            updateTriggers(name, map("kernelTransaction", triggerToPause.get("kernelTransaction"), "selector", triggerToPause.get("selector"), "params", triggerToPause.get("params"), "paused", true));
-            return triggers.get(name);
-        }
-
-        public static Map<String, Object> resume(String name) {
-            checkEnabled();
-
-            Map<String, Object> triggerToResume = triggers.get(name);
-            updateTriggers(name, map("kernelTransaction", triggerToResume.get("kernelTransaction"), "selector", triggerToResume.get("selector"), "params", triggerToResume.get("params"), "paused", false));
-            return triggers.get(name);
-        }
-
-        private synchronized static Map<String, Object> updateTriggers(String name, Map<String, Object> value) {
-            checkEnabled();
-
-            try (Transaction tx = properties.getGraphDatabase().beginTx()) {
-                triggers.clear();
-                String triggerProperty = (String) properties.getProperty(APOC_TRIGGER, "{}");
-                triggers.putAll(Util.fromJson(triggerProperty,Map.class));
-                Map<String,Object> previous = null;
-                if (name != null) {
-                    previous = (value == null) ? triggers.remove(name) : triggers.put(name, value);
-                    if (value != null || previous != null) {
-                        properties.setProperty(APOC_TRIGGER, Util.toJson(triggers));
-                    }
-                }
-                tx.success();
-                return previous;
-            }
-        }
-
-        public synchronized static Map<String, Object> removeAll() {
-            try (Transaction tx = properties.getGraphDatabase().beginTx()) {
-                triggers.clear();
-                String previous = (String) properties.removeProperty(APOC_TRIGGER);
-                tx.success();
-                return previous == null ? null : Util.fromJson(previous, Map.class);
-            } catch (Exception e) {
-                return null;
-            }
-        }
-
-        public static Map<String,Map<String,Object>> list() {
-            checkEnabled();
-
-            updateTriggers(null,null);
-            return triggers;
-        }
-
-        @Override
-        public Object beforeCommit(TransactionData txData, GraphDatabaseService databaseService) throws Exception {
-            executeTriggers(txData, "before");
-            return null;
-        }
-
-        private void executeTriggers(TransactionData txData, String phase) {
-            if (triggers.containsKey("")) updateTriggers(null,null);
-            GraphDatabaseService db = properties.getGraphDatabase();
-            Map<String,String> exceptions = new LinkedHashMap<>();
-            Map<String, Object> params = txDataParams(txData, phase);
-            triggers.forEach((name, data) -> {
-                if( data.get("paused").equals(false)) {
-                    if( data.get( "params" ) != null)
-                    {
-                        params.putAll( (Map<String,Object>) data.get( "params" ) );
-                    }
-                    try (Transaction tx = db.beginTx()) {
-                        Map<String,Object> selector = (Map<String, Object>) data.get("selector");
-                        if (when(selector, phase)) {
-                            params.put("trigger", name);
-                            Result result = db.execute((String) data.get("kernelTransaction"), params);
-                            Iterators.count(result);
-                            result.close();
-                        }
-                        tx.success();
-                    } catch(Exception e) {
-                        log.warn("Error executing trigger "+name+" in phase "+phase,e);
-                        exceptions.put(name, e.getMessage());
-                    }
-                }
-            });
-            if (!exceptions.isEmpty()) {
-                throw new RuntimeException("Error executing triggers "+exceptions.toString());
-            }
-        }
-
-        private boolean when(Map<String, Object> selector, String phase) {
-            if (selector == null) return (phase.equals("before"));
-            return selector.getOrDefault("phase", "before").equals(phase);
-        }
-
-        @Override
-        public void afterCommit(TransactionData txData, Object state, GraphDatabaseService databaseService) {
-            executeTriggers(txData, "after");
-        }
-
-        @Override
-        public void afterRollback(TransactionData txData, Object state, GraphDatabaseService databaseService) {
-            executeTriggers(txData, "rollback");
-        }
-
-    }
-
-    private static Map<String, Object> txDataParams(TransactionData txData, String phase) {
-        return map("transactionId", phase.equals("after") ? txData.getTransactionId() : -1,
-                        "commitTime", phase.equals("after") ? txData.getCommitTime() : -1,
-                        "createdNodes", txData.createdNodes(),
-                        "createdRelationships", txData.createdRelationships(),
-                        "deletedNodes", txData.deletedNodes(),
-                        "deletedRelationships", txData.deletedRelationships(),
-                        "removedLabels", aggregateLabels(txData.removedLabels()),
-                        "removedNodeProperties", aggregatePropertyKeys(txData.removedNodeProperties(),true,true),
-                        "removedRelationshipProperties", aggregatePropertyKeys(txData.removedRelationshipProperties(),false,true),
-                        "assignedLabels", aggregateLabels(txData.assignedLabels()),
-                        "assignedNodeProperties",aggregatePropertyKeys(txData.assignedNodeProperties(),true,false),
-                        "assignedRelationshipProperties",aggregatePropertyKeys(txData.assignedRelationshipProperties(),false,false));
-    }
-
-    private static <T extends PropertyContainer> Map<String,List<Map<String,Object>>> aggregatePropertyKeys(Iterable<PropertyEntry<T>> entries, boolean nodes, boolean removed) {
-        if (!entries.iterator().hasNext()) return Collections.emptyMap();
-        Map<String,List<Map<String,Object>>> result = new HashMap<>();
-        String entityType = nodes ? "node" : "relationship";
-        for (PropertyEntry<T> entry : entries) {
-            result.compute(entry.key(),
-                    (k, v) -> {
-                        if (v == null) v = new ArrayList<>(100);
-                        Map<String, Object> map = map("key", k, entityType, entry.entity(), "old", entry.previouslyCommittedValue());
-                        if (!removed) map.put("new", entry.value());
-                        v.add(map);
-                        return v;
-                    });
-        }
-        return result;
-    }
-    private static Map<String,List<Node>> aggregateLabels(Iterable<LabelEntry> labelEntries) {
-        if (!labelEntries.iterator().hasNext()) return Collections.emptyMap();
-        Map<String,List<Node>> result = new HashMap<>();
-        for (LabelEntry entry : labelEntries) {
-            result.compute(entry.label().name(),
-                    (k, v) -> {
-                        if (v == null) v = new ArrayList<>(100);
-                        v.add(entry.node());
-                        return v;
-                    });
-        }
-        return result;
-    }
-
-    public static class LifeCycle extends LifecycleAdapter {
-        private final Log log;
-        private final GraphDatabaseAPI db;
-        private TriggerHandler triggerHandler;
-        private final DatabaseManagementService databaseManagementService;
-
-        public LifeCycle(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, Log log) {
-            this.db = db;
-            this.databaseManagementService = databaseManagementService;
-            this.log = log;
-        }
-
-        @Override
-        public void start() {
-            boolean enabled = apocConfig().getBoolean(APOC_TRIGGER_ENABLED);
-            if (!enabled) {
-                return;
-            }
-
-            triggerHandler = new Trigger.TriggerHandler(db,log);
-            databaseManagementService.registerTransactionEventListener(db.databaseName(), triggerHandler);
-        }
-
-        @Override
-        public void stop() {
-            if (triggerHandler == null) return;
-            databaseManagementService.unregisterTransactionEventListener(db.databaseName(), triggerHandler);
-        }
-    }
 }

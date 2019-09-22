@@ -1,14 +1,14 @@
 package apoc.search;
 
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.procedure.Description;
 import apoc.result.NodeResult;
 import apoc.util.Util;
+import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
@@ -138,10 +138,10 @@ public class ParallelNodeSearch {
         public <T> List<T> queryForNode(String query, Function<Map<String, Object>, T> transformer) {
             long start = currentTimeMillis();
             try (Transaction tx = db.beginTx()) {
-                try (Result nodes = db.execute(query, singletonMap("value", value))) {
+                try (Result nodes = tx.execute(query, singletonMap("value", value))) {
                     return nodes.stream().map(transformer).collect(Collectors.toList());
                 } finally {
-                    tx.success();
+                    tx.commit();
                     if (log.isDebugEnabled())
                         log.debug(format("(%s) search on label:%s and prop:%s took %d",
                                 Thread.currentThread(), label, prop, currentTimeMillis() - start));

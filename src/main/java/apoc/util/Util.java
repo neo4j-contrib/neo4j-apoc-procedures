@@ -8,7 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.*;
-import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -25,6 +25,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.*;
 import java.util.zip.DeflaterInputStream;
@@ -108,32 +109,32 @@ public class Util {
         return Stream.of(values);
     }
 
-    public static Stream<Node> nodeStream(GraphDatabaseService db, Object ids) {
-        return stream(ids).map(id -> node(db, id));
+    public static Stream<Node> nodeStream(Transaction tx, Object ids) {
+        return stream(ids).map(id -> node(tx, id));
     }
 
-    public static Node node(GraphDatabaseService db, Object id) {
+    public static Node node(Transaction tx, Object id) {
         if (id instanceof Node) return (Node)id;
-        if (id instanceof Number) return db.getNodeById(((Number)id).longValue());
+        if (id instanceof Number) return tx.getNodeById(((Number)id).longValue());
         throw new RuntimeException("Can't convert "+id.getClass()+" to a Node");
     }
 
-    public static Stream<Relationship> relsStream(GraphDatabaseService db, Object ids) {
-        return stream(ids).map(id -> relationship(db, id));
+    public static Stream<Relationship> relsStream(Transaction tx, Object ids) {
+        return stream(ids).map(id -> relationship(tx, id));
     }
 
-    public static Relationship relationship(GraphDatabaseService db, Object id) {
+    public static Relationship relationship(Transaction tx, Object id) {
         if (id instanceof Relationship) return (Relationship)id;
-        if (id instanceof Number) return db.getRelationshipById(((Number)id).longValue());
+        if (id instanceof Number) return tx.getRelationshipById(((Number)id).longValue());
         throw new RuntimeException("Can't convert "+id.getClass()+" to a Relationship");
     }
 
-    public static double doubleValue(PropertyContainer pc, String prop, Number defaultValue) {
+    public static double doubleValue(Entity pc, String prop, Number defaultValue) {
         return toDouble(pc.getProperty(prop, defaultValue));
 
     }
 
-    public static double doubleValue(PropertyContainer pc, String prop) {
+    public static double doubleValue(Entity pc, String prop) {
         return doubleValue(pc, prop, 0);
     }
 
@@ -157,10 +158,6 @@ public class Util {
         return relTypes;
     }
 
-    public static RelationshipType[] allRelationshipTypes(GraphDatabaseService db) {
-        return Iterables.asArray(RelationshipType.class, db.getAllRelationshipTypes());
-    }
-
     public static RelationshipType[] typesAndDirectionsToTypesArray(String typesAndDirections) {
         List<RelationshipType> relationshipTypes = new ArrayList<>();
         for (Pair<RelationshipType, Direction> pair : RelationshipTypeAndDirections.parse(typesAndDirections)) {
@@ -171,12 +168,12 @@ public class Util {
         return relationshipTypes.toArray(new RelationshipType[relationshipTypes.size()]);
     }
 
-    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseService db, Callable<T> callable) {
+    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseService db, Function<Transaction, T> function) {
         try {
             return pool.submit(() -> {
-                try (Transaction tx = db.beginTx()) {
-                    T result = callable.call();
-                    tx.success();
+                try (Transaction txInThread = db.beginTx()) {
+                    T result = function.apply(txInThread);
+                    txInThread.commit();
                     return result;
                 }
             });
@@ -185,9 +182,9 @@ public class Util {
         }
     }
 
-    public static <T> T inTx(GraphDatabaseService db, Pools pools, Callable<T> callable) {
+    public static <T> T inTx(GraphDatabaseService db, Pools pools, Function<Transaction, T> function) {
         try {
-            return inTxFuture(pools.getDefaultExecutorService(), db, callable).get();
+            return inTxFuture(pools.getDefaultExecutorService(), db, function).get();
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {
@@ -425,18 +422,18 @@ public class Util {
         return tombstone == null ? stream : Stream.concat(stream,Stream.of(tombstone));
     }
 
-    public static Long runNumericQuery(GraphDatabaseService db, String query, Map<String, Object> params) {
+    public static Long runNumericQuery(Transaction tx, String query, Map<String, Object> params) {
         if (params == null) params = Collections.emptyMap();
-        try (ResourceIterator<Long> it = db.execute(query,params).<Long>columnAs("result")) {
+        try (ResourceIterator<Long> it = tx.execute(query,params).<Long>columnAs("result")) {
             return it.next();
         }
     }
 
-    public static long nodeCount(GraphDatabaseService db) {
-        return runNumericQuery(db,NODE_COUNT,null);
+    public static long nodeCount(Transaction tx) {
+        return runNumericQuery(tx,NODE_COUNT,null);
     }
-    public static long relCount(GraphDatabaseService db) {
-        return runNumericQuery(db,REL_COUNT,null);
+    public static long relCount(Transaction tx) {
+        return runNumericQuery(tx,REL_COUNT,null);
     }
 
     public static LongStream toLongStream(LongIterator it) {
@@ -622,8 +619,11 @@ public class Util {
             } catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                 /* ignore */
             }
-            String role = db.execute("CALL dbms.cluster.role()").<String>columnAs("role").next();
-            return role.equalsIgnoreCase("LEADER");
+
+            AtomicReference<String> role = new AtomicReference<>();  // TODO: apply planned GDS changes to use function instead of consumer
+            db.executeTransactionally("CALL dbms.cluster.role()", null,
+                    result -> role.set(Iterators.single(result.columnAs("role"))));
+            return role.get().equalsIgnoreCase("LEADER");
         } catch(QueryExecutionException e) {
             if (e.getStatusCode().equalsIgnoreCase("Neo.ClientError.Procedure.ProcedureNotFound")) return true;
             throw e;

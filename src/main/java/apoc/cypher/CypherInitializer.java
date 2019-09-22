@@ -60,7 +60,7 @@ public class CypherInitializer implements AvailabilityListener {
                 for (Object initializer: initializers.values()) {
                     String query = initializer.toString();
                     try {
-                        db.execute(query);
+                        db.executeTransactionally(query);
                         userLog.info("successfully initialized: " + query);
                     } catch (Exception e) {
                         userLog.warn("error upon initialization, running: "+query, e);

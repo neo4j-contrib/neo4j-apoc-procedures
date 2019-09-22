@@ -3,9 +3,11 @@ package apoc;
 import apoc.custom.CypherProcedures;
 import apoc.cypher.CypherInitializer;
 import apoc.trigger.Trigger;
+import apoc.trigger.TriggerHandler;
 import apoc.ttl.TTLLifeCycle;
 import apoc.util.ApocUrlStreamHandlerFactory;
 import apoc.uuid.Uuid;
+import apoc.uuid.UuidHandler;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.internal.kernel.api.Procedures;
@@ -18,6 +20,7 @@ import org.neo4j.kernel.lifecycle.Lifecycle;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
+import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 import org.neo4j.scheduler.JobScheduler;
 
 import java.net.URL;
@@ -52,6 +55,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         AvailabilityGuard availabilityGuard();
         DatabaseManagementService databaseManagementService();
         ApocConfig apocConfig();
+        GlobalProceduresRegistry globalProceduresRegistry();
     }
 
     @Override
@@ -79,7 +83,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         }
 
         public static void withNonSystemDatabase(GraphDatabaseService db, Consumer<Void> consumer) {
-            if (!db.databaseName().equals(SYSTEM_DATABASE_NAME)) {
+            if (!SYSTEM_DATABASE_NAME.equals(db.databaseName())) {
                 consumer.accept(null);
             }
         }
@@ -89,8 +93,18 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
             withNonSystemDatabase(db, aVoid -> {
 
                 services.put("ttl", new TTLLifeCycle(dependencies.scheduler(), db, dependencies.apocConfig(), log.getUserLog(TTLLifeCycle.class)));
-                services.put("uuid", new Uuid.UuidLifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Uuid.class)));
-                services.put("trigger", new Trigger.LifeCycle(db, dependencies.databaseManagementService(), log.getUserLog(Trigger.class)));
+                services.put("uuid", new UuidHandler(db,
+                        dependencies.databaseManagementService(),
+                        log.getUserLog(Uuid.class),
+                        dependencies.apocConfig(),
+                        dependencies.globalProceduresRegistry())
+                );
+                services.put("trigger", new TriggerHandler(db,
+                        dependencies.databaseManagementService(),
+                        dependencies.apocConfig(),
+                        log.getUserLog(Trigger.class),
+                        dependencies.globalProceduresRegistry())
+                );
 
                 services.entrySet().stream().forEach(entry -> {
                     try {

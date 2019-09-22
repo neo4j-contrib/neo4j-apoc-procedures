@@ -2,7 +2,6 @@ package apoc.export.cypher;
 
 import apoc.util.FileUtils;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,7 +36,7 @@ public class FileManagerFactory {
         }
 
         @Override
-        public PrintWriter getPrintWriter(String type) throws IOException {
+        public PrintWriter getPrintWriter(String type) {
 
             if (this.separatedFiles) {
                 return FileUtils.getPrintWriter(normalizeFileName(fileName, type), null);
@@ -80,7 +79,7 @@ public class FileManagerFactory {
         }
 
         @Override
-        public PrintWriter getPrintWriter(String type) throws IOException {
+        public PrintWriter getPrintWriter(String type) {
             if (this.separatedFiles) {
                 return new PrintWriter(writers.compute(type, (key, writer) -> writer == null ? new StringWriter() : writer));
             } else {

@@ -1,20 +1,20 @@
 package apoc.map;
 
-import apoc.result.MapResult;
-import apoc.result.ObjectResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.UserFunction;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Maps {
 
     @Context
-    public GraphDatabaseService db;
+    public Transaction tx;
 
     @UserFunction
     @Description("apoc.map.groupBy([maps/nodes/relationships],'key') yield value - creates a map of the list keyed by the given property, with single values")
@@ -46,8 +46,8 @@ public class Maps {
         if (value instanceof Map) {
             id = ((Map)value).get(key);
         }
-        if (value instanceof PropertyContainer) {
-            id = ((PropertyContainer)value).getProperty(key,null);
+        if (value instanceof Entity) {
+            id = ((Entity)value).getProperty(key,null);
         }
         return id;
     }
@@ -56,7 +56,7 @@ public class Maps {
     @Description("apoc.map.fromNodes(label, property)")
     public Map<String, Node> fromNodes(@Name("label") String label, @Name("property") String property) {
         Map<String, Node> result = new LinkedHashMap<>(10000);
-        try (ResourceIterator<Node> nodes = db.findNodes(Label.label(label))) {
+        try (ResourceIterator<Node> nodes = tx.findNodes(Label.label(label))) {
             while (nodes.hasNext()) {
                 Node node = nodes.next();
                 Object key = node.getProperty(property, null);

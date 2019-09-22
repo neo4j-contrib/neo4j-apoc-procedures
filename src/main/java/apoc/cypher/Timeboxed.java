@@ -48,15 +48,15 @@ public class Timeboxed {
         // run query to be timeboxed in a separate thread to enable proper tx termination
         // if we'd run this in current thread, a tx.terminate would kill the transaction the procedure call uses itself.
         pools.getDefaultExecutorService().submit(() -> {
-            try (Transaction tx = db.beginTx()) {
-                txAtomic.set(tx);
-                Result result = db.execute(cypher, params == null ? Collections.EMPTY_MAP : params);
+            try (Transaction innerTx = db.beginTx()) {
+                txAtomic.set(innerTx);
+                Result result = innerTx.execute(cypher, params == null ? Collections.EMPTY_MAP : params);
                 while (result.hasNext()) {
                     final Map<String, Object> map = result.next();
                     offerToQueue(queue, map, timeout);
                 }
                 offerToQueue(queue, POISON, timeout);
-                tx.success();
+                innerTx.commit();
             } catch (TransactionTerminatedException e) {
                 log.warn("query " + cypher + " has been terminated");
             } finally {

@@ -1,10 +1,10 @@
 package apoc.math;
 
 import org.apache.commons.math3.stat.regression.SimpleRegression;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.*;
 
 import java.util.stream.Stream;
@@ -14,7 +14,7 @@ import java.util.stream.Stream;
  */
 public class Regression {
     @Context
-    public GraphDatabaseService db;
+    public Transaction tx;
 
     // Result class
     public static class Output {
@@ -43,7 +43,7 @@ public class Regression {
         double regrAvgY = 0;
         int count = 0;
 
-        try (ResourceIterator it = db.findNodes(Label.label(label))) {
+        try (ResourceIterator it = tx.findNodes(Label.label(label))) {
             while (it.hasNext()) {
                 Node node = (Node) it.next();
                 Number propX = (Number) node.getProperty(x, null);

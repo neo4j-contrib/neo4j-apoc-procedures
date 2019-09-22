@@ -11,14 +11,10 @@ import apoc.util.Util;
 import org.neo4j.cypher.export.CypherResultSubGraph;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.procedure.*;
 
-import javax.xml.stream.XMLStreamException;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.List;
@@ -36,6 +32,9 @@ public class ExportGraphML {
     public GraphDatabaseService db;
 
     @Context
+    public Transaction tx;
+
+    @Context
     public ApocConfig apocConfig;
 
     @Context
@@ -48,7 +47,7 @@ public class ExportGraphML {
         Util.inThread(pools, () -> {
             ExportConfig exportConfig = new ExportConfig(config);
             ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, "file", "graphml"));
-            XmlGraphMLReader graphMLReader = new XmlGraphMLReader(db).reporter(reporter)
+            XmlGraphMLReader graphMLReader = new XmlGraphMLReader(db, tx).reporter(reporter)
                     .batchSize(exportConfig.getBatchSize())
                     .relType(exportConfig.defaultRelationshipType())
                     .nodeLabels(exportConfig.readLabels());
@@ -65,8 +64,8 @@ public class ExportGraphML {
     @Description("apoc.export.graphml.all(file,config) - exports whole database as graphml to the provided file")
     public Stream<ProgressInfo> all(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
 
-        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(db), Util.relCount(db));
-        return exportGraphML(fileName, source, new DatabaseSubGraph(db), new ExportConfig(config));
+        String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
+        return exportGraphML(fileName, source, new DatabaseSubGraph(db, tx), new ExportConfig(config));
     }
 
     @Procedure
@@ -90,14 +89,14 @@ public class ExportGraphML {
     @Description("apoc.export.graphml.query(query,file,config) - exports nodes and relationships from the cypher statement as graphml to the provided file")
     public Stream<ProgressInfo> query(@Name("query") String query, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         ExportConfig c = new ExportConfig(config);
-        Result result = db.execute(query);
+        Result result = tx.execute(query);
         SubGraph graph = CypherResultSubGraph.from(result, db, c.getRelsInBetween());
         String source = String.format("statement: nodes(%d), rels(%d)",
                 Iterables.count(graph.getNodes()), Iterables.count(graph.getRelationships()));
         return exportGraphML(fileName, source, graph, c);
     }
 
-    private Stream<ProgressInfo> exportGraphML(@Name("file") String fileName, String source, SubGraph graph, ExportConfig config) throws Exception, XMLStreamException {
+    private Stream<ProgressInfo> exportGraphML(@Name("file") String fileName, String source, SubGraph graph, ExportConfig config) throws Exception {
         if (fileName != null) apocConfig.checkWriteAllowed();
         ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "graphml"));
         PrintWriter printWriter = getPrintWriter(fileName, null);

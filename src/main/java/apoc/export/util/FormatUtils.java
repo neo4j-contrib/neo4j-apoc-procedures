@@ -51,7 +51,7 @@ public class FormatUtils {
         return getLabelsAsStream(node).collect(Collectors.joining(delimiter));
     }
 
-    public static Map<String,Object> toMap(PropertyContainer pc) {
+    public static Map<String,Object> toMap(Entity pc) {
         if (pc == null) return null;
         if (pc instanceof Node) {
             Node node = (Node) pc;
@@ -71,8 +71,8 @@ public class FormatUtils {
         if (value instanceof Path) {
             return toString(StreamSupport.stream(((Path)value).spliterator(),false).map(FormatUtils::toMap).collect(Collectors.toList()));
         }
-        if (value instanceof PropertyContainer) {
-            return Util.toJson(toMap((PropertyContainer) value)); // todo id, label, type ?
+        if (value instanceof Entity) {
+            return Util.toJson(toMap((Entity) value)); // todo id, label, type ?
         }
         if (value.getClass().isArray() || value instanceof Iterable || value instanceof Map) {
             return Util.toJson(value);

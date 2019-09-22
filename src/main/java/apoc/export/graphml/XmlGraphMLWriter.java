@@ -2,8 +2,8 @@ package apoc.export.graphml;
 
 import apoc.export.util.*;
 import org.neo4j.cypher.export.SubGraph;
+import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -139,7 +139,7 @@ public class XmlGraphMLWriter {
         newLine(writer);
     }
 
-    private int writeProps(XMLStreamWriter writer, PropertyContainer node) throws XMLStreamException {
+    private int writeProps(XMLStreamWriter writer, Entity node) throws XMLStreamException {
         int count = 0;
         for (String prop : node.getPropertyKeys()) {
             Object value = node.getProperty(prop);

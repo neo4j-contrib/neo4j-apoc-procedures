@@ -9,7 +9,10 @@ import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;
 
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -94,7 +97,7 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 			try (Transaction tx = db.beginTx()) {
 				Set<String> idProperties = CypherFormatterUtils.getNodeIdProperties(node, uniqueConstraints).keySet();
 				Set<String> labels = getLabels(node);
-				tx.success();
+				tx.commit();
 				return new AbstractMap.SimpleImmutableEntry<>(labels, idProperties);
 			}
 		};
@@ -210,7 +213,7 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 						"start", new AbstractMap.SimpleImmutableEntry<>(startLabels, CypherFormatterUtils.getNodeIdProperties(start, uniqueConstraints).keySet()),
 						"end", new AbstractMap.SimpleImmutableEntry<>(endLabels, CypherFormatterUtils.getNodeIdProperties(end, uniqueConstraints).keySet()));
 
-				tx.success();
+				tx.commit();
 				return key;
 			}
 		};
