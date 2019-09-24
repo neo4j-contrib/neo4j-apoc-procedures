@@ -31,10 +31,8 @@ public class NodeFilterTest {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
         TestUtil.registerProcedure(db, PathExplorer.class);
         String movies = Util.readResourceFile("movies.cypher");
-        String bigbrother = "MATCH (per:Person) MERGE (bb:BigBrother {name : 'Big Brother' })  MERGE (bb)-[:FOLLOWS]->(per)";
         try (Transaction tx = db.beginTx()) {
             db.execute(movies);
-            db.execute(bigbrother);
             tx.success();
         }
     }
@@ -326,5 +324,73 @@ public class NodeFilterTest {
                     Node node = (Node) maps.get(0).get("node");
                     assertEquals("Keanu Reeves", node.getProperty("name"));
                 });
+    }
+
+
+
+    @Test
+    public void testStartNodeWithFilterStartNodeFalseIgnoresBlacklistNodes() throws Throwable {
+        String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expandConfig(m,{blacklistNodes:[m], maxLevel:2, filterStartNode:false}) yield path return count(*) as c";
+        TestUtil.testCall(db, query, (row) -> assertEquals(44L,row.get("c")));
+    }
+
+    @Test
+    public void testBlacklistNodesStillAppliesBelowMinLevel() throws Throwable {
+        db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
+
+        TestUtil.testResult(db,
+                "MATCH (k:Person {name:'Keanu Reeves'}), (clint:Person {name:'Clint Eastwood'}), (unforgiven:Movie{title:'Unforgiven'}),  (replacements:Movie{title:'The Replacements'})\n" +
+                        "WITH k, clint, unforgiven\n" +
+                        "CALL apoc.path.expandConfig(clint, {uniqueness:'NODE_GLOBAL', relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', terminatorNodes:[k], blacklistNodes:[unforgiven], minLevel:3}) yield path return last(nodes(path))",
+                result -> {
+
+                    List<Map<String, Object>> maps = Iterators.asList(result);
+                    assertEquals(0, maps.size());
+                });
+    }
+
+    @Test
+    public void testStartNodeWithFilterStartNodeFalseIgnoresWhitelistNodesFilter() throws Throwable {
+        String query = "MATCH (m:Movie {title: 'The Matrix'}), (k:Person {name:'Keanu Reeves'}) CALL apoc.path.expandConfig(m,{whitelistNodes:[k], minLevel:1, maxLevel:1, filterStartNode:false}) yield path return count(*) as c";
+        TestUtil.testCall(db, query, (row) -> assertEquals(1L,row.get("c")));
+    }
+
+    @Test
+    public void testWhitelistNodesStillAppliesBelowMinLevel() throws Throwable {
+        db.execute("MATCH (c:Person) WHERE c.name in ['Clint Eastwood', 'Gene Hackman'] SET c:Western");
+
+        TestUtil.testResult(db,
+                "MATCH (k:Person {name:'Keanu Reeves'}), (replacements:Movie{title:'The Replacements'}), (gene:Person {name:'Gene Hackman'}), (unforgiven:Movie{title:'Unforgiven'}), (clint:Person {name:'Clint Eastwood'})\n" +
+                        "WITH clint, k, [k, replacements, gene, clint] as whitelist\n" +
+                        "CALL apoc.path.expandConfig(clint, {uniqueness:'NODE_GLOBAL', relationshipFilter:'ACTED_IN|PRODUCED|DIRECTED', terminatorNodes:[k], whitelistNodes:whitelist, minLevel:3}) yield path return last(nodes(path))",
+                result -> {
+
+                    List<Map<String, Object>> maps = Iterators.asList(result);
+                    assertEquals(0, maps.size());
+                });
+    }
+
+    @Test
+    public void testStartNodeWithFilterStartNodeFalseIgnoresTerminatorNodesFilter() throws Throwable {
+        String query = "MATCH (m:Movie {title: 'The Matrix'}), (k:Person {name:'Keanu Reeves'}) CALL apoc.path.expandConfig(m,{terminatorNodes:[m,k], maxLevel:2, filterStartNode:false}) yield path WITH k, path WHERE last(nodes(path)) = k RETURN count(*) as c";
+        TestUtil.testCall(db, query, (row) -> assertEquals(1L,row.get("c")));
+    }
+
+    @Test
+    public void testTerminatorNodesDoesNotApplyBelowMinLevel() throws Throwable {
+        String query = "MATCH (m:Movie {title: 'The Matrix'}), (k:Person {name:'Keanu Reeves'}) CALL apoc.path.expandConfig(m,{terminatorNodes:[m,k], minLevel:1, maxLevel:2, filterStartNode:true}) yield path WITH k, path WHERE last(nodes(path)) = k RETURN count(*) as c";
+        TestUtil.testCall(db, query, (row) -> assertEquals(1L,row.get("c")));
+    }
+
+    @Test
+    public void testStartNodeWithFilterStartNodeFalseIgnoresEndNodesFilter() throws Throwable {
+        String query = "MATCH (m:Movie {title: 'The Matrix'}), (k:Person {name:'Keanu Reeves'}) CALL apoc.path.expandConfig(m,{endNodes:[m,k], maxLevel:2, filterStartNode:false}) yield path RETURN count(DISTINCT last(nodes(path))) as c";
+        TestUtil.testCall(db, query, (row) -> assertEquals(1L,row.get("c")));
+    }
+
+    @Test
+    public void testEndNodesDoesNotApplyBelowMinLevel() throws Throwable {
+        String query = "MATCH (m:Movie {title: 'The Matrix'}), (k:Person {name:'Keanu Reeves'}) CALL apoc.path.expandConfig(m,{endNodes:[m,k], minLevel:1, maxLevel:2, filterStartNode:true}) yield path RETURN count(DISTINCT last(nodes(path))) as c";
+        TestUtil.testCall(db, query, (row) -> assertEquals(1L,row.get("c")));
     }
 }
