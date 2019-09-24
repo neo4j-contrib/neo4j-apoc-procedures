@@ -10,6 +10,8 @@ import java.util.Map;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -235,5 +237,85 @@ public class SubgraphTest {
 			assertEquals(subgraph.size(), subgraphNodes.size());
 			assertTrue(subgraph.containsAll(subgraphNodes));
 		});
+	}
+
+	@Test
+	public void testSubgraphNodesAllowsMinLevel0() throws Throwable {
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.subgraphNodes(m,{minLevel:0}) yield node return count(distinct node) as cnt";
+		TestUtil.testCall(db, query, (row) -> assertEquals(fullGraphCount, row.get("cnt")));
+	}
+
+	@Test
+	public void testSubgraphNodesAllowsMinLevel1() throws Throwable {
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.subgraphNodes(m,{minLevel:1}) yield node return count(distinct node) as cnt";
+		TestUtil.testCall(db, query, (row) -> assertEquals(fullGraphCount - 1, row.get("cnt")));
+	}
+
+	@Test
+	public void testSubgraphNodesErrorsAboveMinLevel1() throws Throwable {
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.subgraphNodes(m,{minLevel:2}) yield node return count(distinct node) as cnt";
+		try {
+			db.execute(query);
+		} catch(Throwable t) {
+			assertTrue(TestUtil.hasCauses(t, IllegalArgumentException.class));
+			assertTrue(t.getMessage().contains("minLevel can only be 0 or 1 in subgraphNodes()"));
+			return;
+		}
+
+		fail();
+	}
+
+	@Test
+	public void testSubgraphAllAllowsMinLevel0() throws Throwable {
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.subgraphAll(m,{minLevel:0}) yield nodes return size(nodes) as cnt";
+		TestUtil.testCall(db, query, (row) -> assertEquals(fullGraphCount, row.get("cnt")));
+	}
+
+	@Test
+	public void testSubgraphAllAllowsMinLevel1() throws Throwable {
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.subgraphAll(m,{minLevel:1}) yield nodes return size(nodes) as cnt";
+		TestUtil.testCall(db, query, (row) -> assertEquals(fullGraphCount - 1, row.get("cnt")));
+	}
+
+	@Test
+	public void testSubgraphAllErrorsAboveMinLevel1() throws Throwable {
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.subgraphAll(m,{minLevel:2}) yield nodes return size(nodes) as cnt";
+		try {
+			Result execute = db.execute(query);
+			while (execute.hasNext()) execute.next();
+			execute.close();
+		} catch(Throwable t) {
+			assertTrue(TestUtil.hasCauses(t, IllegalArgumentException.class));
+			assertTrue(t.getMessage().contains("minLevel can only be 0 or 1 in subgraphAll()"));
+			return;
+		}
+
+		fail();
+	}
+
+	@Test
+	public void testSpanningTreeAllowsMinLevel0() throws Throwable {
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.spanningTree(m,{minLevel:0}) yield path return count(distinct path) as cnt";
+		TestUtil.testCall(db, query, (row) -> assertEquals(fullGraphCount, row.get("cnt")));
+	}
+
+	@Test
+	public void testSpanningTreeAllowsMinLevel1() throws Throwable {
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.spanningTree(m,{minLevel:1}) yield path return count(distinct path) as cnt";
+		TestUtil.testCall(db, query, (row) -> assertEquals(fullGraphCount - 1, row.get("cnt")));
+	}
+
+	@Test
+	public void testSpanningTreeErrorsAboveMinLevel1() throws Throwable {
+		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.spanningTree(m,{minLevel:2}) yield path return count(distinct path) as cnt";
+		try {
+			db.execute(query);
+		} catch(Throwable t) {
+			assertTrue(TestUtil.hasCauses(t, IllegalArgumentException.class));
+			assertTrue(t.getMessage().contains("minLevel can only be 0 or 1 in spanningTree()"));
+			return;
+		}
+
+		fail();
 	}
 }
