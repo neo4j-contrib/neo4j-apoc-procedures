@@ -176,6 +176,16 @@ Each of these config parameter accepts a list of nodes, or a list of node ids.
 | blacklistNodes | None of the paths returned will include these nodes. | Spring 2018 APOC releases.
 |===
 
+==== Updated behavior for Fall 2019 releases
+
+The node filters behavior will now more closely match those of the label filters, with respect to the `filterStartNode` and `minLevel` config options.
+
+1. None of the filters will apply to the start node in any way when `filterStartNode=false`.
+
+2. The `endNodes` and `terminatorNodes` filters will not apply when evaluating nodes below the configured `minLevel`.
+(`blacklistNodes` and `whitelistNodes` will continue to apply in all cases, excepting the above mentioned case of the start node when `filterStartNode=false`)
+
+
 === Expand paths
 
 Expand from start node following the given relationships from min to max-level adhering to the label filters. Several variations exist:

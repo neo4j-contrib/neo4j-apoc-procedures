@@ -32,11 +32,9 @@ public class GraphDatabaseState {
 
         try (Transaction tx = graphDatabaseService.beginTx()) {
             long numberOfNodes = Iterables.count(graphDatabaseService.getAllNodes());
-            System.out.println(" we have " + numberOfNodes + " nodes");
             tx.success();
         }
         graphDatabaseService.shutdown();
-//            System.out.println("db stopped.");
     }
 
     public Map<String, String> getGraphDatabaseConfig() {

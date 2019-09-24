@@ -149,7 +149,6 @@ public class Grouping {
             }
         }
         Util.waitForFutures(futures);
-        System.out.println("we have " + futures.size() + " futures");
         futures.clear();
         Iterator<Map.Entry<NodeKey, Set<Node>>> entries = grouped.entrySet().iterator();
         int size = 0;

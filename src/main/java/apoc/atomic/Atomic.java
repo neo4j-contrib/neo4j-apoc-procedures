@@ -13,7 +13,6 @@ import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.*;
 
 import java.lang.reflect.Array;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -149,7 +148,7 @@ public class Atomic {
 
         retry(executionContext, (context) -> {
             Object[] arrayBackedList = new ArrayBackedList(entity.getProperty(property)).toArray();
-            log("array is %s", Arrays.toString(arrayBackedList));
+
             oldValue[0] = arrayBackedList;
             if(position > arrayBackedList.length || position < 0) {
                 throw new RuntimeException("Attention your position out of range or higher than array length, that is " + arrayBackedList.length);
@@ -164,7 +163,6 @@ public class Atomic {
             /*it's not possible to return directly the newArray, we have to create a new array with the specific class*/
             newValue[0] = Array.newInstance(clazz, newArray.length);
             System.arraycopy(newArray, 0, newValue[0], 0, newArray.length);
-            log("new array is %s", Arrays.toString((Object[]) newValue[0]));
             entity.setProperty(property, newValue[0]);
 
             return context.entity.getProperty(property);
@@ -221,38 +219,17 @@ public class Atomic {
         return values;
     }
 
-    private void log(String message, Object... params) {
-        System.out.println(Thread.currentThread().getName() + " " + Instant.now() + " " + System.identityHashCode(tx) + " " +
-                + System.identityHashCode(this) + " " + String.format(message, params));
-    }
-
     private void retry(ExecutionContext executionContext, Function<ExecutionContext, Object> work, Long times){
         try {
-            log("trying to get lock on %d", executionContext.entity.getId());
             tx.acquireWriteLock(executionContext.entity);
-            log("got lock on %d", executionContext.entity.getId());
-            log("applying work");
             work.apply(executionContext);
-//            lock.release();
-            log("applying done");
         } catch (Neo4jException|NotFoundException|AssertionError e) {
-            log("got %s, times %d", e.getMessage(), times);
             if (times > 0) {
                 retry(executionContext, work, times-1);
             } else {
-                log("no more retries, propagating exception");
                 throw e;
             }
         }
-
-/*
-        TransactionTemplate template = new TransactionTemplate().retries(times.intValue()).backoff(10, TimeUnit.MILLISECONDS);
-        template.with(db).execute(tx -> {
-            Lock lock = tx.acquireWriteLock(executionContext.Entity);
-            work.apply(executionContext);
-            lock.release();
-        });
-*/
     }
 
     private void checkIsEntity(Object container) {

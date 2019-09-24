@@ -1,12 +1,10 @@
 package apoc.couchbase;
 
-import java.util.List;
-import java.util.stream.Stream;
-
+import apoc.couchbase.document.CouchbaseJsonDocument;
+import apoc.couchbase.document.CouchbaseQueryResult;
+import apoc.couchbase.document.CouchbaseUtils;
+import apoc.result.BooleanResult;
 import apoc.util.MissingDependencyException;
-import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
-
 import com.couchbase.client.java.Bucket;
 import com.couchbase.client.java.document.Document;
 import com.couchbase.client.java.document.JsonDocument;
@@ -14,12 +12,12 @@ import com.couchbase.client.java.document.json.JsonArray;
 import com.couchbase.client.java.document.json.JsonObject;
 import com.couchbase.client.java.query.N1qlQuery;
 import com.couchbase.client.java.query.Statement;
-
 import org.neo4j.procedure.Description;
-import apoc.couchbase.document.CouchbaseJsonDocument;
-import apoc.couchbase.document.CouchbaseQueryResult;
-import apoc.couchbase.document.CouchbaseUtils;
-import apoc.result.BooleanResult;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Neo4j Procedures for <b>Couchbase integration</b>.
@@ -352,7 +350,6 @@ public class Couchbase {
         try {
             return CouchbaseManager.getConnection(hostOrKey, bucket);
         } catch (NoClassDefFoundError e) {
-            System.out.println(e.getMessage());
             throw new MissingDependencyException("Cannot find the jar into the plugins folder. \n" +
                     "Please put these jar in the plugins folder : \n\n" +
                     "java-client-x.y.z.jar\n" +

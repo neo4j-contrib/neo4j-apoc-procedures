@@ -45,19 +45,8 @@ public class CypherProcedures {
                             @Name(value= "inputs", defaultValue = "null") List<List<String>> inputs,
                             @Name(value= "description", defaultValue = "null") String description
     ) throws ProcedureException {
-//        debug(name,"before", ktx);
         cypherProceduresHandler.storeProcedure(valueMapper, name, statement, mode, outputs, inputs, description);
-//        debug(name, "after", ktx);
     }
-
-    /*public static void debug(@Name("name") String name, String msg, KernelTransaction ktx) {
-        try {
-            org.neo4j.internal.kernel.api.Procedures procedures = ktx.procedures();
-            // ProcedureHandle procedureHandle = procedures.procedureGet(CustomStatementRegistry.qualifiedName(name));
-            // if (procedureHandle != null) System.out.printf("%s name: %s id %d%n", msg, procedureHandle.signature().name().toString(), procedureHandle.id());
-        } catch (Exception e) {
-        }
-    }*/
 
     @Procedure(value = "apoc.custom.asFunction",mode = Mode.WRITE)
     @Description("apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description) - register a custom cypher function")

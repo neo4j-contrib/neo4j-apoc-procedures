@@ -873,7 +873,7 @@ public class GraphsTest {
     @Test
     public void testDeeplyNestedStructures() throws IOException {
         String json = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("deeplyNestedObject.json"), Charset.forName("UTF-8"));
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json, $config) yield graph",
                 map("json", json, "config", map("idField", "name")), result -> {
                     Map<String, Object> map = result.next();
                     assertEquals("Graph", ((Map) map.get("graph")).get("name"));

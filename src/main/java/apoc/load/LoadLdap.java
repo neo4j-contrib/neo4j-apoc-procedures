@@ -121,31 +121,8 @@ public class LoadLdap {
                 }
                 return searchResults;
             } catch (Exception e) {
-                e.printStackTrace();
                 throw new RuntimeException(e);
             }
-        }
-
-        private LDAPEntry read(String dn) throws LDAPException, UnsupportedEncodingException {
-            if (dn == null) return null;
-            LDAPEntry r = null;
-            op("read start for dn: " + dn);
-            LDAPConnection lc = getConnection();
-            r = lc.read(dn);
-            closeIt(lc);
-            // op( r.toString());
-            op("read end");
-            return r;
-        }
-
-        private LDAPSchema getSchema() throws LDAPException, UnsupportedEncodingException {
-            LDAPSchema r = null;
-            LDAPConnection lc = getConnection();
-            r = lc.fetchSchema(lc.getSchemaDN());
-            closeIt(lc);
-            //op( r.toString());
-
-            return r;
         }
 
         public static void closeIt(LDAPConnection lc) {
@@ -177,10 +154,6 @@ public class LoadLdap {
             // LDAPConnection pooling here?
             //
             return lc;
-        }
-
-        private void op(String s) {
-            System.out.println("LDAPManager:>" + s);
         }
 
     }
