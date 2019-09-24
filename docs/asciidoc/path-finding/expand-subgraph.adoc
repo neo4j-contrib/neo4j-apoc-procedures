@@ -7,13 +7,13 @@ This section describes a procedure that expands a subgraph from a set of start n
 --
 
 ----
-apoc.path.subgraphAll(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1}) yield nodes, relationships
+apoc.path.subgraphAll(startNode <id>Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1}) yield nodes, relationships
 ----
 
 Expand to subgraph nodes reachable from the start node following relationships to max-level adhering to the label filters.
 Returns the collection of nodes in the subgraph, and the collection of relationships between all subgraph nodes.
 
-Accepts the same `config` values as in `expandConfig()`, though `uniqueness` and `minLevel` are not configurable.
+Accepts the same `config` values as in `expandConfig()`, though `uniqueness` is not configurable and `minLevel`, if present, must be 0 or 1.
 
 The `optional` config value isn't needed, as empty lists are yielded if there are no results, so rows are never eliminated.
 
