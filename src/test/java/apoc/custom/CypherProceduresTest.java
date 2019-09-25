@@ -33,6 +33,8 @@ public class CypherProceduresTest  {
     public void registerSimpleStatement() throws Exception {
         db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");
         TestUtil.testCall(db, "call custom.answer()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+        db.executeTransactionally("CALL apoc.custom.declareProcedure('answer2() :: (answer::INT)','RETURN 42 as answer')");
+        TestUtil.testCall(db, "call custom.answer2()", (row) -> assertEquals(42L, row.get("answer")));
     }
 
     @Test
@@ -90,6 +92,8 @@ public class CypherProceduresTest  {
     public void registerSimpleStatementFunction() throws Exception {
         db.executeTransactionally("call apoc.custom.asFunction('answer','RETURN 42 as answer')");
         TestUtil.testCall(db, "return custom.answer() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        db.executeTransactionally("CALL apoc.custom.declareFunction('answer2() :: STRING','RETURN 42 as answer')");
+        TestUtil.testCall(db, "return custom.answer2() as row", (row) -> assertEquals(42L, row.get("row")));
     }
 
     @Test
@@ -172,7 +176,7 @@ public class CypherProceduresTest  {
                 if(PROCEDURE.equals(value.get("type"))){
                     assertEquals("answer", value.get("name"));
                     assertEquals(asList(asList("answer", "number")), value.get("outputs"));
-                    assertEquals(asList(asList("input", "int", "42")), value.get("inputs"));
+                    assertEquals(asList(asList("input", "integer", "42")), value.get("inputs"));
                     assertEquals("Procedure that answer to the Ultimate Question of Life, the Universe, and Everything", value.get("description").toString());
                     assertNull(value.get("forceSingle"));
                     assertEquals("read", value.get("mode"));
@@ -180,9 +184,9 @@ public class CypherProceduresTest  {
 
                 if(FUNCTION.equals(value.get("type"))){
                     assertEquals("answer", value.get("name"));
-                    assertEquals("long", value.get("outputs"));
+                    assertEquals("integer", value.get("outputs"));
                     assertEquals(asList(asList("input", "number")), value.get("inputs"));
-                    assertNull(value.get("description"));
+                    assertEquals("", value.get("description"));
                     assertFalse((Boolean) value.get("forceSingle"));
                     assertNull(value.get("mode"));
                 }

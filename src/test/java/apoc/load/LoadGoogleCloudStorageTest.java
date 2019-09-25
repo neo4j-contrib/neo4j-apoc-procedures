@@ -2,8 +2,8 @@ package apoc.load;
 
 import apoc.util.TestUtil;
 import org.junit.*;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.test.TestGraphDatabaseFactory;
+import org.neo4j.test.rule.DbmsRule;
+import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import static apoc.load.LoadCsvTest.assertRow;
 import static apoc.util.MapUtil.map;
@@ -15,8 +15,6 @@ import static org.junit.Assert.assertFalse;
 
 public class LoadGoogleCloudStorageTest {
 
-    private GraphDatabaseService db;
-
     private static final String BUCKET_NAME = System.getenv("APOC_GC_BUCKET_NAME");
 
     @BeforeClass
@@ -24,16 +22,13 @@ public class LoadGoogleCloudStorageTest {
         Assume.assumeNotNull(BUCKET_NAME);
     }
 
+
+    @Rule
+    public DbmsRule db = new ImpermanentDbmsRule();
+
     @Before
     public void setUp() throws Exception {
-        db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder()
-                .newGraphDatabase();
         TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class);
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        db.shutdown();
     }
 
     @Test

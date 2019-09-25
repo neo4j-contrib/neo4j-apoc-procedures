@@ -1,14 +1,23 @@
 package apoc.custom;
 
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
+import org.neo4j.internal.kernel.api.procs.FieldSignature;
+import org.neo4j.internal.kernel.api.procs.Neo4jTypes;
+import org.neo4j.internal.kernel.api.procs.ProcedureSignature;
+import org.neo4j.internal.kernel.api.procs.UserFunctionSignature;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 import org.neo4j.values.ValueMapper;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
+
+import static apoc.custom.CypherProceduresHandler.*;
 
 /**
  * @author mh
@@ -43,10 +52,25 @@ public class CypherProcedures {
                             @Name(value = "mode",defaultValue = "read") String mode,
                             @Name(value= "outputs", defaultValue = "null") List<List<String>> outputs,
                             @Name(value= "inputs", defaultValue = "null") List<List<String>> inputs,
-                            @Name(value= "description", defaultValue = "null") String description
+                            @Name(value= "description", defaultValue = "") String description
     ) throws ProcedureException {
-        cypherProceduresHandler.storeProcedure(valueMapper, name, statement, mode, outputs, inputs, description);
+        ProcedureSignature signature = cypherProceduresHandler.procedureSignature(name, mode, outputs, inputs, description);
+        cypherProceduresHandler.storeProcedure(signature, statement);
     }
+
+    @Procedure(value = "apoc.custom.declareProcedure", mode = Mode.WRITE)
+    @Description("apoc.custom.declareProcedure(signature, statement, mode, description) - register a custom cypher procedure")
+    public void declareProcedure(@Name("signature") String signature, @Name("statement") String statement,
+                                 @Name(value = "mode", defaultValue = "read") String mode,
+                                 @Name(value = "description", defaultValue = "") String description
+    ) {
+        ProcedureSignature procedureSignature = new Signatures(PREFIX).asProcedureSignature(signature, description, cypherProceduresHandler.mode(mode));
+        if (!cypherProceduresHandler.registerProcedure(procedureSignature, statement)) {
+            throw new IllegalStateException("Error registering procedure " + procedureSignature.name() + ", see log.");
+        }
+        cypherProceduresHandler.storeProcedure(procedureSignature, statement);
+    }
+
 
     @Procedure(value = "apoc.custom.asFunction",mode = Mode.WRITE)
     @Description("apoc.custom.asFunction(name, statement, outputs, inputs, forceSingle, description) - register a custom cypher function")
@@ -54,23 +78,72 @@ public class CypherProcedures {
                            @Name(value= "outputs", defaultValue = "") String output,
                            @Name(value= "inputs", defaultValue = "null") List<List<String>> inputs,
                            @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
-                           @Name(value = "description", defaultValue = "null") String description) throws ProcedureException {
-        cypherProceduresHandler.storeFunction(name, statement, output, inputs, forceSingle, description);
+                           @Name(value = "description", defaultValue = "") String description) throws ProcedureException {
+        UserFunctionSignature signature = cypherProceduresHandler.functionSignature(name, output, inputs, description);
+        cypherProceduresHandler.storeFunction(signature, statement, forceSingle);
     }
+
+    @Procedure(value = "apoc.custom.declareFunction", mode = Mode.WRITE)
+    @Description("apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function")
+    public void asFunction(@Name("signature") String signature, @Name("statement") String statement,
+                           @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
+                           @Name(value = "description", defaultValue = "") String description) throws ProcedureException {
+        UserFunctionSignature userFunctionSignature = new Signatures(PREFIX).asFunctionSignature(signature, description);
+        if (!cypherProceduresHandler.registerFunction(userFunctionSignature, statement, forceSingle)) {
+            throw new IllegalStateException("Error registering function " + signature + ", see log.");
+        }
+        cypherProceduresHandler.storeFunction(userFunctionSignature, statement, forceSingle);
+    }
+
 
     @Procedure(value = "apoc.custom.list", mode = Mode.READ)
     @Description("apoc.custom.list() - provide a list of custom procedures/function registered")
     public Stream<CustomProcedureInfo> list() {
-        return cypherProceduresHandler.list().stream().map(m -> new CustomProcedureInfo(
-                (String) m.get("type"),
-                (String) m.get("name"),
-                (String) m.get("description"),
-                (String) m.get("mode"),
-                (String) m.get("statement"),
-                (List<List<String>>) m.get("inputs"),
-                m.get("output"),
-                (Boolean) m.get("forceSingle")
-        ));
+        return cypherProceduresHandler.readSignatures().map( descriptor -> {
+            if (descriptor instanceof CypherProceduresHandler.ProcedureDescriptor) {
+                CypherProceduresHandler.ProcedureDescriptor procedureDescriptor = (CypherProceduresHandler.ProcedureDescriptor) descriptor;
+                ProcedureSignature signature = procedureDescriptor.getSignature();
+                return new CustomProcedureInfo(
+                        PROCEDURE,
+                        signature.name().name(),
+                        signature.description().orElse(null),
+                        signature.mode().toString().toLowerCase(),
+                        procedureDescriptor.getStatement(),
+                        convertInputSignature(signature.inputSignature()),
+                        Iterables.asList(Iterables.map(f -> Arrays.asList(f.name(), prettyPrintType(f.neo4jType())), signature.outputSignature())),
+                        null);
+            } else {
+                CypherProceduresHandler.UserFunctionDescriptor userFunctionDescriptor = (CypherProceduresHandler.UserFunctionDescriptor) descriptor;
+                UserFunctionSignature signature = userFunctionDescriptor.getSignature();
+                return new CustomProcedureInfo(
+                        FUNCTION,
+                        signature.name().name(),
+                        signature.description().orElse(null),
+                        null,
+                        userFunctionDescriptor.getStatement(),
+                        convertInputSignature(signature.inputSignature()),
+                        prettyPrintType(signature.outputType()),
+                        userFunctionDescriptor.isForceSingle());
+            }
+        });
+    }
+
+    private List<List<String>> convertInputSignature(List<FieldSignature> signatures) {
+        return Iterables.asList(Iterables.map(f -> {
+            List<String> list = new ArrayList<>(3);
+            list.add(f.name());
+            list.add(prettyPrintType(f.neo4jType()));
+            f.defaultValue().ifPresent(v -> list.add(v.value().toString()));
+            return list;
+        }, signatures));
+    }
+
+    private String prettyPrintType(Neo4jTypes.AnyType type) {
+        String s = type.toString().toLowerCase();
+        if (s.endsWith("?")) {
+            s = s.substring(0, s.length()-1);
+        }
+        return s;
     }
 
     public static class CustomProcedureInfo {
