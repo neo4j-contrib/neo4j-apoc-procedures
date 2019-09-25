@@ -1,7 +1,5 @@
 package apoc.export.util;
 
-import apoc.export.cypher.formatter.CypherFormatterUtils;
-
 import static java.lang.String.format;
 
 /**
@@ -15,7 +13,7 @@ public enum ExportFormat {
             format("COMMIT%n"), format("BEGIN%n"), format("SCHEMA AWAIT%n"), ""),
 
     CYPHER_SHELL("cypher-shell",
-            format(":commit%n"), format(":begin%n"), "", "CALL db.awaitIndex('%s(%s)');%n"),
+            format(":commit%n"), format(":begin%n"), "", "CALL db.awaitIndexes(%d);%n"),
 
     PLAIN_FORMAT("plain", "", "", "", ""),
 
@@ -63,7 +61,7 @@ public enum ExportFormat {
         return this.schemaAwait;
     }
 
-    public String indexAwait(String label, Iterable<String> properties){
-        return format(this.indexAwait, CypherFormatterUtils.label(label), CypherFormatterUtils.quote(properties));
+    public String indexAwait(long millis){
+        return format(this.indexAwait, millis);
     }
 }

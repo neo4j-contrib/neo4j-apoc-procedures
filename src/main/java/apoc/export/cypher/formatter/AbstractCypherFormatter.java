@@ -29,6 +29,10 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 
 	private static final String STATEMENT_CONSTRAINTS = "CREATE CONSTRAINT ON (node:%s) ASSERT (%s) %s;";
 
+	private static final String STATEMENT_NODE_FULLTEXT_IDX = "CALL db.index.fulltext.createNodeIndex('%s',[%s],[%s]);";
+	private static final String STATEMENT_REL_FULLTEXT_IDX = "CALL db.index.fulltext.createRelationshipIndex('%s',[%s],[%s]);";
+	public static final String PROPERTY_QUOTING_FORMAT = "'%s'";
+
 	@Override
 	public String statementForCleanUp(int batchSize) {
 		return "MATCH (n:" + Q_UNIQUE_ID_LABEL + ") " +
@@ -39,6 +43,34 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 	@Override
 	public String statementForIndex(String label, Iterable<String> keys) {
 		return "CREATE INDEX ON :" + Util.quote(label) + "(" + CypherFormatterUtils.quote(keys) + ");";
+	}
+
+	@Override
+	public String statementForNodeFullTextIndex(String name, Iterable<Label> labels, Iterable<String> keys) {
+		String label = StreamSupport.stream(labels.spliterator(), false)
+				.map(Label::name)
+				.map(Util::quote)
+				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, s))
+				.collect(Collectors.joining(","));
+		String key = StreamSupport.stream(keys.spliterator(), false)
+				.map(Util::quote)
+				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, s))
+				.collect(Collectors.joining(","));
+		return String.format(STATEMENT_NODE_FULLTEXT_IDX, name, label, key);
+	}
+
+	@Override
+	public String statementForRelationshipFullTextIndex(String name, Iterable<RelationshipType> types, Iterable<String> keys) {
+		String type = StreamSupport.stream(types.spliterator(), false)
+				.map(RelationshipType::name)
+				.map(Util::quote)
+				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, s))
+				.collect(Collectors.joining(","));
+		String key = StreamSupport.stream(keys.spliterator(), false)
+				.map(Util::quote)
+				.map(s -> String.format(PROPERTY_QUOTING_FORMAT, s))
+				.collect(Collectors.joining(","));
+		return String.format(STATEMENT_REL_FULLTEXT_IDX, name, type, key);
 	}
 
 	@Override
