@@ -1,10 +1,9 @@
 package apoc.custom;
 
+import apoc.Pools;
 import apoc.util.TestUtil;
-import apoc.util.Util;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -42,6 +41,8 @@ public class CypherProceduresTest {
     public void registerSimpleStatement() throws Exception {
         db.execute("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");
         TestUtil.testCall(db, "call custom.answer()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+        db.execute("CALL apoc.custom.declareProcedure('answer2() :: (answer::INT)','RETURN 42 as answer')");
+        TestUtil.testCall(db, "call custom.answer2()", (row) -> assertEquals(42L, row.get("answer")));
     }
 
     @Test
@@ -100,6 +101,8 @@ public class CypherProceduresTest {
     public void registerSimpleStatementFunction() throws Exception {
         db.execute("call apoc.custom.asFunction('answer','RETURN 42 as answer')");
         TestUtil.testCall(db, "return custom.answer() as row", (row) -> assertEquals(42L, ((Map)((List)row.get("row")).get(0)).get("answer")));
+        db.execute("CALL apoc.custom.declareFunction('answer2() :: STRING','RETURN 42 as answer')");
+        TestUtil.testCall(db, "return custom.answer2() as row", (row) -> assertEquals(42L, row.get("row")));
     }
 
     @Test
@@ -136,7 +139,7 @@ public class CypherProceduresTest {
     @Test
     public void shouldRegisterSimpleStatementWithDescription() throws Exception {
         // given
-        CypherProcedures.CustomProcedureStorage storage = new CypherProcedures.CustomProcedureStorage((GraphDatabaseAPI) db, NullLog.getInstance());
+        CypherProcedures.CustomProcedureStorage storage = new CypherProcedures.CustomProcedureStorage(Pools.NEO4J_SCHEDULER, (GraphDatabaseAPI) db, NullLog.getInstance());
         storage.available();
         db.execute("call apoc.custom.asProcedure('answer','RETURN 42 as answer', 'read', null, null, 'Answer to the Ultimate Question of Life, the Universe, and Everything')");
 
@@ -151,7 +154,7 @@ public class CypherProceduresTest {
     @Test
     public void shouldRegisterSimpleStatementFunctionDescription() throws Exception {
         // given
-        CypherProcedures.CustomProcedureStorage storage = new CypherProcedures.CustomProcedureStorage((GraphDatabaseAPI) db, NullLog.getInstance());
+        CypherProcedures.CustomProcedureStorage storage = new CypherProcedures.CustomProcedureStorage(Pools.NEO4J_SCHEDULER, (GraphDatabaseAPI) db, NullLog.getInstance());
         storage.available();
         db.execute("call apoc.custom.asFunction('answer','RETURN 42 as answer', '', null, false, 'Answer to the Ultimate Question of Life, the Universe, and Everything')");
 

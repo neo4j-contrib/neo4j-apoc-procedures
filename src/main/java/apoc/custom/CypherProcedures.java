@@ -1,6 +1,7 @@
 package apoc.custom;
 
 import apoc.ApocConfiguration;
+import apoc.Pools;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.collection.PrefetchingRawIterator;
@@ -26,10 +27,14 @@ import org.neo4j.kernel.impl.util.ValueUtils;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
+import org.neo4j.scheduler.Group;
+import org.neo4j.scheduler.JobHandle;
+import org.neo4j.scheduler.JobScheduler;
 import org.neo4j.values.AnyValue;
 import org.neo4j.values.virtual.MapValue;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,6 +53,8 @@ public class CypherProcedures {
     public static final String FUNCTION = "function";
     public static final String PROCEDURES = "procedures";
     public static final String PROCEDURE = "procedure";
+    public static final List<FieldSignature> DEFAULT_MAP_OUTPUT = singletonList(FieldSignature.inputField("row", NTMap));
+    public static final List<FieldSignature> DEFAULT_INPUTS = singletonList(FieldSignature.inputField("params", NTMap, DefaultParameterValue.ntMap(Collections.emptyMap())));
     @Context
     public GraphDatabaseAPI api;
     @Context
@@ -68,24 +75,27 @@ public class CypherProcedures {
                             @Name(value= "outputs", defaultValue = "null") List<List<String>> outputs,
                             @Name(value= "inputs", defaultValue = "null") List<List<String>> inputs,
                             @Name(value= "description", defaultValue = "null") String description
-    ) throws ProcedureException {
-        debug(name,"before", ktx);
-
+    ) {
         CustomStatementRegistry registry = new CustomStatementRegistry(api, log);
         if (!registry.registerProcedure(name, statement, mode, outputs, inputs, description)) {
             throw new IllegalStateException("Error registering procedure "+name+", see log.");
         }
         CustomProcedureStorage.storeProcedure(api, name, statement, mode, outputs, inputs, description);
-        debug(name, "after", ktx);
     }
 
-    public static void debug(@Name("name") String name, String msg, KernelTransaction ktx) {
-        try {
-            org.neo4j.internal.kernel.api.Procedures procedures = ktx.procedures();
-            // ProcedureHandle procedureHandle = procedures.procedureGet(CustomStatementRegistry.qualifiedName(name));
-            // if (procedureHandle != null) System.out.printf("%s name: %s id %d%n", msg, procedureHandle.signature().name().toString(), procedureHandle.id());
-        } catch (Exception e) {
+    @Procedure(value = "apoc.custom.declareProcedure", mode = Mode.WRITE)
+    @Description("apoc.custom.declareProcedure(signature, statement, mode, description) - register a custom cypher procedure")
+    public void declareProcedure(@Name("signature") String signature, @Name("statement") String statement,
+                                 @Name(value = "mode", defaultValue = "read") String mode,
+                                 @Name(value = "description", defaultValue = "null") String description
+    ) {
+        ProcedureSignature procedureSignature = new Signatures(PREFIX).asProcedureSignature(signature, description, mode(mode));
+
+        CustomStatementRegistry registry = new CustomStatementRegistry(api, log);
+        if (!registry.registerProcedure(procedureSignature, statement)) {
+            throw new IllegalStateException("Error registering procedure " + procedureSignature.name() + ", see log.");
         }
+        CustomProcedureStorage.storeProcedure(api, procedureSignature, statement);
     }
 
     @Procedure(value = "apoc.custom.asFunction",mode = Mode.WRITE)
@@ -102,10 +112,23 @@ public class CypherProcedures {
         CustomProcedureStorage.storeFunction(api, name, statement, output, inputs, forceSingle, description);
     }
 
+    @Procedure(value = "apoc.custom.declareFunction", mode = Mode.WRITE)
+    @Description("apoc.custom.declareFunction(signature, statement, forceSingle, description) - register a custom cypher function")
+    public void asFunction(@Name("signature") String signature, @Name("statement") String statement,
+                           @Name(value = "forceSingle", defaultValue = "false") boolean forceSingle,
+                           @Name(value = "description", defaultValue = "null") String description) throws ProcedureException {
+        UserFunctionSignature userFunctionSignature = new Signatures(PREFIX).asFunctionSignature(signature, description);
+        CustomStatementRegistry registry = new CustomStatementRegistry(api, log);
+        if (!registry.registerFunction(userFunctionSignature, statement, forceSingle)) {
+            throw new IllegalStateException("Error registering function " + signature + ", see log.");
+        }
+        CustomProcedureStorage.storeFunction(api, userFunctionSignature, statement, forceSingle);
+    }
+
     @Procedure(value = "apoc.custom.list", mode = Mode.READ)
     @Description("apoc.custom.list() - provide a list of custom procedures/function registered")
     public Stream<CustomProcedureInfo> list(){
-        CustomProcedureStorage registry = new CustomProcedureStorage(api, log);
+        CustomProcedureStorage registry = new CustomProcedureStorage(Pools.NEO4J_SCHEDULER, api, log);
         return registry.list().stream();
     }
 
@@ -120,56 +143,64 @@ public class CypherProcedures {
             this.log = log;
         }
 
-        public boolean registerProcedure(@Name("name") String name, @Name("statement") String statement, @Name(value = "mode", defaultValue = "read") String mode, @Name(value = "outputs", defaultValue = "null") List<List<String>> outputs, @Name(value = "inputs", defaultValue = "null") List<List<String>> inputs, @Name(value= "description", defaultValue = "") String description) {
+        public boolean registerProcedure(String name, String statement, String mode, List<List<String>> outputs, List<List<String>> inputs, String description) {
+            boolean admin = false; // TODO
+            ProcedureSignature signature = new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
+                    mode(mode), admin, null, new String[0], description, null, false, true
+            );
+            return registerProcedure(signature, statement);
+
+        }
+
+        public boolean registerProcedure(ProcedureSignature signature, String statement) {
             try {
                 Procedures procedures = api.getDependencyResolver().resolveDependency(Procedures.class);
-                boolean admin = false; // TODO
-                ProcedureSignature signature = new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
-                        Mode.valueOf(mode.toUpperCase()), admin, null, new String[0], description, null, false, true
-                );
                 procedures.register(new CallableProcedure.BasicProcedure(signature) {
                     @Override
                     public RawIterator<Object[], ProcedureException> apply(org.neo4j.kernel.api.proc.Context ctx, Object[] input, ResourceTracker resourceTracker) throws ProcedureException {
                         KernelTransaction ktx = ctx.get(Key.key("KernelTransaction", KernelTransaction.class));
-                        debug(name, "inside", ktx);
-                        Map<String, Object> params = params(input, inputs);
+                        Map<String, Object> params = params(input, signature);
                         Result result = api.execute(statement, params);
                         resourceTracker.registerCloseableResource(result);
-                        String[] names = outputs == null ? null : outputs.stream().map(pair -> pair.get(0)).toArray(String[]::new);
+                        List<FieldSignature> outputs = signature.outputSignature();
+                        String[] names = outputs == null ? null : outputs.stream().map(FieldSignature::name).toArray(String[]::new);
+                        boolean defaultOutputs = outputs == null || outputs.equals(DEFAULT_MAP_OUTPUT);
                         return new PrefetchingRawIterator<Object[], ProcedureException>() {
                             @Override
                             protected Object[] fetchNextOrNull() {
                                 if (!result.hasNext()) return null;
                                 Map<String, Object> row = result.next();
-                                return toResult(row, names);
+                                return toResult(row, names, defaultOutputs);
                             }
                         };
                     }
                 }, true);
                 return true;
             } catch (Exception e) {
-                log.error("Could not register procedure: " + name + " with " + statement + "\n accepting" + inputs + " resulting in " + outputs + " mode " + mode,e);
+                log.error("Could not register procedure: " + signature.name() + " with " + statement + "\n accepting" + signature.inputSignature() + " resulting in " + signature.outputSignature() + " mode " + signature.mode(), e);
                 return false;
             }
-
         }
 
         public boolean registerFunction(String name, String statement, String output, List<List<String>> inputs, boolean forceSingle, String description)  {
+            AnyType outType = typeof(output.isEmpty() ? "LIST OF MAP" : output);
+            UserFunctionSignature signature = new UserFunctionSignature(qualifiedName(name), inputSignatures(inputs), outType,
+                    null, new String[0], description, false);
+            return registerFunction(signature, statement, forceSingle);
+        }
+
+        public boolean registerFunction(UserFunctionSignature signature, String statement, boolean forceSingle) {
             try {
-                AnyType outType = typeof(output.isEmpty() ? "LIST OF MAP" : output);
-                UserFunctionSignature signature = new UserFunctionSignature(qualifiedName(name), inputSignatures(inputs), outType,
-                        null, new String[0], description, false);
-
                 DefaultValueMapper defaultValueMapper = new DefaultValueMapper(api.getDependencyResolver().resolveDependency(GraphDatabaseFacade.class));
-
+                AnyType outType = signature.outputType();
                 procedures.register(new CallableUserFunction.BasicUserFunction(signature) {
                     @Override
-                    public AnyValue apply(org.neo4j.kernel.api.proc.Context ctx, AnyValue[] input) throws ProcedureException {
-                        Map<String, Object> params = functionParams(input, inputs, defaultValueMapper);
+                    public AnyValue apply(org.neo4j.kernel.api.proc.Context ctx, AnyValue[] input) {
+                        Map<String, Object> params = functionParams(input, signature, defaultValueMapper);
                         try (Result result = api.execute(statement, params)) {
 //                resourceTracker.registerCloseableResource(result); // TODO
                             if (!result.hasNext()) return null;
-                            if (output.isEmpty()) {
+                            if (outType.equals(NTAny)) {
                                 return ValueUtils.of(result.stream().collect(Collectors.toList()));
                             }
                             List<String> cols = result.columns();
@@ -186,15 +217,16 @@ public class CypherProcedures {
                                 if (outType instanceof MapType) return ValueUtils.of(row);
                                 if (cols.size() == 1) return ValueUtils.of(row.get(cols.get(0)));
                             }
-                            throw new IllegalStateException("Result mismatch " + cols + " output type is " + output);
+                            throw new IllegalStateException("Result mismatch " + cols + " output type is " + outType);
                         }
                     }
                 }, true);
                 return true;
-            } catch(Exception e) {
-                log.error("Could not register function: "+name+" with "+statement+"\n accepting"+inputs+" resulting in "+output+" single result "+forceSingle,e);
+            } catch (Exception e) {
+                log.error("Could not register function: " + signature + "\nwith: " + statement + "\n single result " + forceSingle, e);
                 return false;
             }
+
         }
 
 
@@ -207,7 +239,7 @@ public class CypherProcedures {
         }
 
         public List<FieldSignature> inputSignatures(@Name(value = "inputs", defaultValue = "null") List<List<String>> inputs) {
-            List<FieldSignature> inputSignature = inputs == null ? singletonList(FieldSignature.inputField("params", NTMap, DefaultParameterValue.ntMap(Collections.emptyMap()))) :
+            List<FieldSignature> inputSignature = inputs == null ? DEFAULT_INPUTS :
                     inputs.stream().map(pair -> {
                         DefaultParameterValue defaultValue = defaultValue(pair.get(1), pair.size() > 2 ? pair.get(2) : null);
                         return defaultValue == null ?
@@ -219,7 +251,7 @@ public class CypherProcedures {
         }
 
         public List<FieldSignature> outputSignatures(@Name(value = "outputs", defaultValue = "null") List<List<String>> outputs) {
-            return outputs == null ?  singletonList(FieldSignature.inputField("row", NTMap)) :
+            return outputs == null ? DEFAULT_MAP_OUTPUT :
                     outputs.stream().map(pair -> FieldSignature.outputField(pair.get(0),typeof(pair.get(1)))).collect(Collectors.toList());
         }
 
@@ -292,8 +324,9 @@ public class CypherProcedures {
                 default: return null;
             }
         }
-        private Object[] toResult(Map<String, Object> row, String[] names) {
-            if (names == null) return new Object[] {row};
+
+        private Object[] toResult(Map<String, Object> row, String[] names, boolean defaultOutputs) {
+            if (defaultOutputs) return new Object[]{row};
             Object[] result = new Object[names.length];
             for (int i = 0; i < names.length; i++) {
                 result[i] = row.get(names[i]);
@@ -301,23 +334,33 @@ public class CypherProcedures {
             return result;
         }
 
-        public Map<String, Object> params(Object[] input, @Name(value = "inputs", defaultValue = "null") List<List<String>> inputs) {
-            if (inputs == null) return (Map<String,Object>)input[0];
+        public Map<String, Object> params(Object[] input, ProcedureSignature signature) {
+            if (input == null || input.length == 0) return Collections.emptyMap();
+            List<FieldSignature> inputs = signature.inputSignature();
+            if (inputs == null || inputs.isEmpty() || inputs.equals(DEFAULT_INPUTS))
+                return (Map<String, Object>) input[0];
             Map<String, Object> params = new HashMap<>(input.length);
             for (int i = 0; i < input.length; i++) {
-                params.put(inputs.get(i).get(0), input[i]);
+                params.put(inputs.get(i).name(), input[i]);
             }
             return params;
         }
 
-        public Map<String, Object> functionParams(Object[] input, @Name(value = "inputs", defaultValue = "null") List<List<String>> inputs, DefaultValueMapper mapper) {
-            if (inputs == null) return (Map<String, Object>)((MapValue)input[0]).map(mapper);
+        public Map<String, Object> functionParams(Object[] input, UserFunctionSignature signature, DefaultValueMapper mapper) {
+            if (input == null || input.length == 0) return Collections.emptyMap();
+            List<FieldSignature> inputs = signature.inputSignature();
+            if (inputs == null || inputs.isEmpty() || inputs.equals(DEFAULT_INPUTS))
+                return (Map<String, Object>) ((MapValue) input[0]).map(mapper);
             Map<String, Object> params = new HashMap<>(input.length);
             for (int i = 0; i < input.length; i++) {
-                params.put(inputs.get(i).get(0), ((AnyValue)input[i]).map(mapper));
+                params.put(inputs.get(i).name(), ((AnyValue) input[i]).map(mapper));
             }
             return params;
         }
+    }
+
+    public static Mode mode(String s) {
+        return s == null ? Mode.READ : Mode.valueOf(s.toUpperCase());
     }
 
     public static class CustomProcedureInfo {
@@ -348,12 +391,16 @@ public class CypherProcedures {
         public static final String APOC_CUSTOM = "apoc.custom";
         public static final String APOC_CUSTOM_UPDATE = "apoc.custom.update";
         private GraphProperties properties;
+        private final JobScheduler scheduler;
         private final GraphDatabaseAPI api;
         private final Log log;
-        private Timer timer = new Timer(getClass().getSimpleName(), true);
         private long lastUpdate;
+        public static Group REFRESH_GROUP = Group.STORAGE_MAINTENANCE;
+        private JobHandle restoreProceduresHandle;
 
-        public CustomProcedureStorage(GraphDatabaseAPI api, Log log) {
+
+        public CustomProcedureStorage(JobScheduler neo4jScheduler, GraphDatabaseAPI api, Log log) {
+            this.scheduler = neo4jScheduler;
             this.api = api;
             this.log = log;
         }
@@ -363,11 +410,7 @@ public class CypherProcedures {
             properties = getProperties(api);
             restoreProcedures();
             long refreshInterval = Long.valueOf(ApocConfiguration.get("custom.procedures.refresh", "60000"));
-            timer.scheduleAtFixedRate(new TimerTask() {
-                public void run() {
-                    restoreProcedures();
-                }
-            }, refreshInterval, refreshInterval);
+            restoreProceduresHandle = scheduler.scheduleRecurring(REFRESH_GROUP, () -> restoreProcedures(), refreshInterval, refreshInterval, TimeUnit.MILLISECONDS);
         }
 
         public static GraphPropertiesProxy getProperties(GraphDatabaseAPI api) {
@@ -379,21 +422,32 @@ public class CypherProcedures {
             lastUpdate = System.currentTimeMillis();
             CustomStatementRegistry registry = new CustomStatementRegistry(api, log);
             Map<String, Map<String, Map<String, Object>>> stored = readData(properties);
+            Signatures sigs = new Signatures("custom");
             stored.get(FUNCTIONS).forEach((name, data) -> {
-                registry.registerFunction(name, (String) data.get("statement"), (String) data.get("output"),
-                        (List<List<String>>) data.get("inputs"), (Boolean) data.get("forceSingle"), (String) data.get("description"));
+                if (data.containsKey("signature")) {
+                    UserFunctionSignature userFunctionSignature = sigs.asFunctionSignature((String) data.get("signature"), (String) data.get("description"));
+                    registry.registerFunction(userFunctionSignature, (String) data.get("statement"), (Boolean) data.get("forceSingle"));
+                } else {
+                    registry.registerFunction(name, (String) data.get("statement"), (String) data.get("output"),
+                            (List<List<String>>) data.get("inputs"), (Boolean) data.get("forceSingle"), (String) data.get("description"));
+                }
             });
             stored.get(PROCEDURES).forEach((name, data) -> {
-                registry.registerProcedure(name, (String) data.get("statement"), (String) data.get("mode"),
-                        (List<List<String>>) data.get("outputs"), (List<List<String>>) data.get("inputs"), (String) data.get("description"));
+                if (data.containsKey("signature")) {
+                    ProcedureSignature procedureSignature = sigs.asProcedureSignature((String) data.get("signature"), (String) data.get("description"), Mode.valueOf((String) data.get("mode")));
+                    registry.registerProcedure(procedureSignature, (String) data.get("statement"));
+                } else {
+                    registry.registerProcedure(name, (String) data.get("statement"), (String) data.get("mode"),
+                            (List<List<String>>) data.get("outputs"), (List<List<String>>) data.get("inputs"), (String) data.get("description"));
+                }
             });
             clearQueryCaches(api);
         }
 
         @Override
         public void unavailable() {
-            if (timer != null) {
-                timer.cancel();
+            if (restoreProceduresHandle != null) {
+                restoreProceduresHandle.cancel(true);
             }
             properties = null;
         }
@@ -403,9 +457,19 @@ public class CypherProcedures {
             Map<String, Object> data = map("statement", statement, "mode", mode, "inputs", inputs, "outputs", outputs, "description", description);
             return updateCustomData(getProperties(api), name, PROCEDURES, data);
         }
+
+        public static Map<String, Object> storeProcedure(GraphDatabaseAPI api, ProcedureSignature signature, String statement) {
+            Map<String, Object> data = map("statement", statement, "mode", signature.mode().toString(), "signature", signature.toString(), "description", signature.description());
+            return updateCustomData(getProperties(api), signature.name().toString(), PROCEDURES, data);
+        }
         public static Map<String, Object> storeFunction(GraphDatabaseAPI api, String name, String statement, String output, List<List<String>> inputs, boolean forceSingle, String description) {
             Map<String, Object> data = map("statement", statement, "forceSingle", forceSingle, "inputs", inputs, "output", output, "description", description);
             return updateCustomData(getProperties(api), name, FUNCTIONS, data);
+        }
+
+        public static Map<String, Object> storeFunction(GraphDatabaseAPI api, UserFunctionSignature signature, String statement, boolean forceSingle) {
+            Map<String, Object> data = map("statement", statement, "forceSingle", forceSingle, "signature", signature.toString(), "description", signature.description());
+            return updateCustomData(getProperties(api), signature.name().toString(), FUNCTIONS, data);
         }
 
         public synchronized static Map<String, Object> remove(GraphDatabaseAPI api, String name, String type) {

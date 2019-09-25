@@ -15,6 +15,16 @@ import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.*;
 
 public class Signatures {
 
+    private final String prefix;
+
+    public Signatures(String prefix) {
+        this.prefix = prefix;
+    }
+
+    public Signatures() {
+        this(null);
+    }
+
     public SignatureParser.ProcedureContext parseProcedure(String procedureSignatureText) {
         return parse(procedureSignatureText).procedure();
     }
@@ -40,7 +50,11 @@ public class Signatures {
     }
 
     public ProcedureSignature toProcedureSignature(SignatureParser.ProcedureContext signature) {
-        QualifiedName name = new QualifiedName(signature.namespace().name().stream().map(this::name).collect(Collectors.toList()), name(signature.name()));
+        return toProcedureSignature(signature, null, Mode.DEFAULT);
+    }
+
+    public ProcedureSignature toProcedureSignature(SignatureParser.ProcedureContext signature, String description, Mode mode) {
+        QualifiedName name = new QualifiedName(namespace(signature.namespace()), name(signature.name()));
 
         if (signature.results() == null) {
             System.out.println("signature = " + signature);
@@ -52,19 +66,29 @@ public class Signatures {
                                 FieldSignature.outputField(name(p.name()), type(p.type()))).collect(Collectors.toList());
         // todo deprecated + default value
         List<FieldSignature> inputSignatures = signature.parameter().stream().map(p -> FieldSignature.inputField(name(p.name()), type(p.type()), defaultValue(p.defaultValue(), type(p.type())))).collect(Collectors.toList());
-        Mode mode = Mode.DEFAULT;
         boolean admin = false;
         String deprecated = "";
-        String[] allowed = null;
-        String description = "todo description";
+        String[] allowed = new String[0];
         String warning = null; // "todo warning";
         boolean eager = false;
         boolean caseInsensitive = true;
         return new ProcedureSignature(name, inputSignatures, outputSignature, mode, admin, deprecated, allowed, description, warning, eager, caseInsensitive);
     }
 
-    public UserFunctionSignature toFunctionSignature(SignatureParser.FunctionContext signature) {
-        QualifiedName name = new QualifiedName(signature.namespace().name().stream().map(this::name).collect(Collectors.toList()), name(signature.name()));
+    public List<String> namespace(SignatureParser.NamespaceContext namespaceContext) {
+        List<String> parsed = namespaceContext == null ? Collections.emptyList() : namespaceContext.name().stream().map(this::name).collect(Collectors.toList());
+        if (prefix == null) {
+            return parsed;
+        } else {
+            ArrayList<String> namespace = new ArrayList<>();
+            namespace.add(prefix);
+            namespace.addAll(parsed);
+            return namespace;
+        }
+    }
+
+    public UserFunctionSignature toFunctionSignature(SignatureParser.FunctionContext signature, String description) {
+        QualifiedName name = new QualifiedName(namespace(signature.namespace()), name(signature.name()));
 
         if (signature.type() == null) {
             System.out.println("signature = " + signature);
@@ -76,8 +100,7 @@ public class Signatures {
         List<FieldSignature> inputSignatures = signature.parameter().stream().map(p -> FieldSignature.inputField(name(p.name()), type(p.type()), defaultValue(p.defaultValue(), type(p.type())))).collect(Collectors.toList());
 
         String deprecated = "";
-        String[] allowed = null;
-        String description = "todo description";
+        String[] allowed = new String[0];
         boolean caseInsensitive = true;
         return new UserFunctionSignature(name, inputSignatures, type, deprecated, allowed, description, caseInsensitive);
     }
@@ -179,5 +202,15 @@ public class Signatures {
             default:
                 return NTString;
         }
+    }
+
+    public UserFunctionSignature asFunctionSignature(String signature, String description) {
+        SignatureParser.FunctionContext functionContext = parseFunction(signature);
+        return toFunctionSignature(functionContext, description);
+    }
+
+    public ProcedureSignature asProcedureSignature(String signature, String description, Mode mode) {
+        SignatureParser.ProcedureContext ctx = parseProcedure(signature);
+        return toProcedureSignature(ctx, description, mode);
     }
 }

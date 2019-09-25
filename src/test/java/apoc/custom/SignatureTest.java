@@ -25,7 +25,7 @@ public class SignatureTest {
     public void parseFunctionSignature() {
         String procedureSignatureText = "db.index.fulltext.queryRelationships(indexName :: STRING?, queryString :: STRING?) :: FLOAT?";
         SignatureParser.FunctionContext signature = sigs.parseFunction(procedureSignatureText);
-        UserFunctionSignature ps = sigs.toFunctionSignature(signature);
+        UserFunctionSignature ps = sigs.toFunctionSignature(signature, null);
         // todo , inputSignature, outputSignature, mode, admin, deprecated, allowed, description, warning, eager, caseInsensitive)
         System.out.println("ps = " + ps);
         assertEquals("queryRelationships", ps.name().name());

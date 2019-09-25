@@ -1,7 +1,7 @@
 grammar Signature;
 
-procedure:	namespace name '(' (parameter',')*(parameter)? ')' '::'  results ;
-function:	namespace name '(' (parameter',')*(parameter)? ')' '::'  type;
+procedure:	namespace? name '(' (parameter',')*(parameter)? ')' '::'  results ;
+function:	namespace? name '(' (parameter',')*(parameter)? ')' '::'  (type | '(' type ')');
 results:	empty | '(' (result',')*(result) ')' ;
 parameter:	name ('=' defaultValue)? '::' type ;
 result:	name '::' type ;
