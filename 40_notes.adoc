@@ -30,3 +30,20 @@ apoc.monitor.locks() (proc deleted, cannot get information via api)
 
 ** mongo calls use `compatibleValue:true` by default. Reason: 4.0 doesn't support java.util.Date as nested value in a map returned from a procedures.
 Side effect: date values are returned as millis since epoc.
+
+
+## changes done 3.5 -> 4.0
+
+NOTE: the following list is incomplete
+
+* Neo4j config does no longer allow adhoc dynamic settings - which apoc uses a lot. Therefore APOC 4.0 uses it's own `apoc.conf`, see `ApocConfig.java`.
+* moving global core API actions from `GraphDatabaseService` to `Transaction` - e.g. `tx.createNode(...)`
+* removal of graph properties. UUIDHandler, CypherProcedures and Triggers used them in APOC. Instead APOC 4.0 uses `systemdb`, e.g. we maintain a separate node for each trigger: `CREATE (n:ApocTrigger{database: <dbname>}, ...)`
+* refactoring lots of `static` datastructure in APOC into `LifeCycles`, so they can exist on a per-database level
+* all calls to AlgoFactory require now a `ExecutionContext` (aka db + tx)
+* `TransactionTemplate` has been removed from Neo4j
+* `org.neo4j.cypher.export.SubGraphExporter` et.al have been removed in Neo4j -> we add the latest version of the sources to apoc
+
+* using `ImpermanentDatabaseRule` instead of `TestGraphDatabaseFactory...`
+
+

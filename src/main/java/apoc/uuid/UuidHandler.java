@@ -5,7 +5,6 @@ import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.ResultConsumer;
 import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventListener;
@@ -160,8 +159,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         Map<String, Object> params = MapUtil.map("label", label, "propertyName", propertyName);
         apocConfig.getSystemDb().executeTransactionally(
                 String.format("merge (node:ApocUuid:%s{label: $label, propertyName: $propertyName})", db.databaseName()),
-                params,
-                ResultConsumer.EMPTY_CONSUMER);
+                params );
     }
 
     public Map<String, String> list() {
@@ -174,20 +172,22 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         apocConfig.getSystemDb().executeTransactionally(
                 String.format("match (node:ApocUuid:%s) return node.label as label, node.propertyName as propertyName", db.databaseName()),
                 null,
-                result -> configuredLabelAndPropertyNames.putAll(result.stream().collect(Collectors.toMap(
-                        m -> (String) (m.get("label")),
-                        m -> (String) (m.get("propertyName"))
-                        )
-                    )
-                )
+                result -> {
+                    configuredLabelAndPropertyNames.putAll(result.stream().collect(Collectors.toMap(
+                            m -> (String) (m.get("label")),
+                            m -> (String) (m.get("propertyName"))
+                            )
+                            )
+                    );
+                    return null;
+                }
         );
     }
 
     public synchronized String remove(String label) {
         apocConfig.getSystemDb().executeTransactionally(
                 String.format("match (node:ApocUuid:%s{label: $label}) delete node", db.databaseName()),
-                Collections.singletonMap("label", label),
-                ResultConsumer.EMPTY_CONSUMER
+                Collections.singletonMap("label", label)
         );
         return configuredLabelAndPropertyNames.remove(label);
     }

@@ -622,7 +622,10 @@ public class Util {
 
             AtomicReference<String> role = new AtomicReference<>();  // TODO: apply planned GDS changes to use function instead of consumer
             db.executeTransactionally("CALL dbms.cluster.role()", null,
-                    result -> role.set(Iterators.single(result.columnAs("role"))));
+                    result -> {
+                        role.set(Iterators.single(result.columnAs("role")));
+                        return null;
+                    });
             return role.get().equalsIgnoreCase("LEADER");
         } catch(QueryExecutionException e) {
             if (e.getStatusCode().equalsIgnoreCase("Neo.ClientError.Procedure.ProcedureNotFound")) return true;

@@ -56,7 +56,7 @@ public class TTLLifeCycle extends LifecycleAdapter {
                         if (stats.getNodesDeleted()>0) {
                             log.info("TTL: Expired %d nodes %d relationships", stats.getNodesDeleted(), stats.getRelationshipsDeleted());
                         }
-
+                        return null;
                     });
         } catch (Exception e) {
             log.error("TTL: Error deleting expired nodes", e);

@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_TRIGGER_ENABLED;
 import static apoc.util.Util.map;
-import static org.neo4j.graphdb.ResultConsumer.EMPTY_CONSUMER;
 
 public class TriggerHandler extends LifecycleAdapter implements TransactionEventListener<Void> {
 
@@ -62,17 +61,20 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         activeTriggers.clear();
         apocConfig.getSystemDb().executeTransactionally("MATCH (trigger:ApocTrigger{database:$database, paused:false}) RETURN trigger",
                 Collections.singletonMap("database", db.databaseName()),
-                result -> result.columnAs("trigger").forEachRemaining(o -> {
-                            Node node = (Node) o;
-                            activeTriggers.put(
-                                    (String) node.getProperty("name"),
-                                    MapUtil.map(
-                                            "statement", (String) node.getProperty("statement"),
-                                            "selector", Util.fromJson((String) node.getProperty("selector"), Map.class),
-                                            "params", Util.fromJson((String) node.getProperty("params"), Map.class)
-                                    )
-                            );
-                        }));
+                result -> {
+                    result.columnAs("trigger").forEachRemaining(o -> {
+                        Node node = (Node) o;
+                        activeTriggers.put(
+                                (String) node.getProperty("name"),
+                                MapUtil.map(
+                                        "statement", (String) node.getProperty("statement"),
+                                        "selector", Util.fromJson((String) node.getProperty("selector"), Map.class),
+                                        "params", Util.fromJson((String) node.getProperty("params"), Map.class)
+                                )
+                        );
+                    });
+                    return null;
+                });
     }
 
     public Map<String, Object> add(String name, String statement, Map<String,Object> selector) {
@@ -90,7 +92,7 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
                 "params", Util.toJson(params),
                 "paused", false
         );
-        apocConfig.getSystemDb().executeTransactionally("merge (trigger:ApocTrigger{database:$params.database, name:$params.name}) set trigger=$params", cypherParams, EMPTY_CONSUMER);
+        apocConfig.getSystemDb().executeTransactionally("merge (trigger:ApocTrigger{database:$params.database, name:$params.name}) set trigger=$params", cypherParams);
         updateCache();
         return previous;
     }
@@ -102,7 +104,7 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
                 "database", db.databaseName(),
                 "name", name
         );
-        apocConfig.getSystemDb().executeTransactionally("MATCH (trigger:ApocTrigger{database:$database, name:$name}) DELETE trigger", params, EMPTY_CONSUMER);
+        apocConfig.getSystemDb().executeTransactionally("MATCH (trigger:ApocTrigger{database:$database, name:$name}) DELETE trigger", params);
         updateCache();
         return previous;
     }
@@ -114,7 +116,7 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
                 "name", name,
                 "paused", paused
         );
-        apocConfig.getSystemDb().executeTransactionally("MATCH (trigger:ApocTrigger{database:$database, name:$name}) SET trigger.paused=$paused", params, EMPTY_CONSUMER);
+        apocConfig.getSystemDb().executeTransactionally("MATCH (trigger:ApocTrigger{database:$database, name:$name}) SET trigger.paused=$paused", params);
         updateCache();
         return activeTriggers.get(name);
     }
@@ -125,8 +127,7 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
                 .entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
         apocConfig.getSystemDb().executeTransactionally(
                 "MATCH (trigger:ApocTrigger{database:$database}) DELETE trigger",
-                Collections.singletonMap("database", db.databaseName()),
-                EMPTY_CONSUMER
+                Collections.singletonMap("database", db.databaseName())
         );
         updateCache();
         return previous;
@@ -137,7 +138,7 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     }
 
     @Override
-    public Void beforeCommit(TransactionData txData, GraphDatabaseService databaseService) throws Exception {
+    public Void beforeCommit(TransactionData txData, GraphDatabaseService databaseService) {
         executeTriggers(txData, "before");
         return null;
     }

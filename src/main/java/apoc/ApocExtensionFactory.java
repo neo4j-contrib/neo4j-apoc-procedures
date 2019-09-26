@@ -1,6 +1,7 @@
 package apoc;
 
 import apoc.custom.CypherProcedures;
+import apoc.custom.CypherProceduresHandler;
 import apoc.cypher.CypherInitializer;
 import apoc.trigger.Trigger;
 import apoc.trigger.TriggerHandler;
@@ -22,6 +23,7 @@ import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 import org.neo4j.scheduler.JobScheduler;
+import org.neo4j.values.ValueMapper;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -56,6 +58,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         DatabaseManagementService databaseManagementService();
         ApocConfig apocConfig();
         GlobalProceduresRegistry globalProceduresRegistry();
+        ValueMapper valueMapper();
     }
 
     @Override
@@ -71,7 +74,6 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         private final GraphDatabaseAPI db;
         private final Dependencies dependencies;
         private Log userLog;
-        private CypherProcedures.CustomProcedureStorage customProcedureStorage;
 
         private final Map<String, Lifecycle> services = new HashMap<>();
 
@@ -105,6 +107,9 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
                         log.getUserLog(Trigger.class),
                         dependencies.globalProceduresRegistry())
                 );
+/*
+                services.put("cypherProcedures", );
+*/
 
                 services.entrySet().stream().forEach(entry -> {
                     try {
@@ -114,9 +119,15 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
                     }
                 });
 
-                customProcedureStorage = new CypherProcedures.CustomProcedureStorage(db, log.getUserLog(CypherProcedures.class));
                 AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
-                availabilityGuard.addListener(customProcedureStorage);
+                availabilityGuard.addListener(new CypherProceduresHandler(
+                        db,
+                        dependencies.databaseManagementService(),
+                        dependencies.apocConfig(),
+                        log.getUserLog(CypherProcedures.class),
+                        dependencies.globalProceduresRegistry(),
+                        dependencies.valueMapper()
+                ));
                 availabilityGuard.addListener(new CypherInitializer(db, log.getUserLog(CypherInitializer.class)));
 
             });

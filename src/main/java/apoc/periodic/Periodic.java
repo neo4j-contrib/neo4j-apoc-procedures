@@ -4,7 +4,6 @@ import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.ResultConsumer;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.Pair;
@@ -267,7 +266,7 @@ public class Periodic {
             String innerStatement = prepared.first();
             iterateList=prepared.other();
             log.info("starting batching from `%s` operation using iteration `%s` in separate thread", cypherIterate,cypherAction);
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, parallel, iterateList, retries, result, (p) -> db.executeTransactionally(innerStatement, merge(params, p), ResultConsumer.EMPTY_CONSUMER), concurrency, failedParams);
+            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, parallel, iterateList, retries, result, (p) -> db.executeTransactionally(innerStatement, merge(params, p)), concurrency, failedParams);
         }
     }
 
@@ -318,7 +317,7 @@ public class Periodic {
 
         log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
         try (Result result = tx.execute(cypherIterate)) {
-            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, p -> db.executeTransactionally(cypherAction, p, ResultConsumer.EMPTY_CONSUMER), 50, -1);
+            return iterateAndExecuteBatchedInSeparateThread((int)batchSize, false, false, 0, result, p -> db.executeTransactionally(cypherAction, p), 50, -1);
         }
     }
 

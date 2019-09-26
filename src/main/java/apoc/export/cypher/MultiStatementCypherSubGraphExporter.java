@@ -14,7 +14,6 @@ import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.internal.helpers.collection.Iterables;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -67,7 +66,7 @@ public class MultiStatementCypherSubGraphExporter {
      * @param reporter
      * @param cypherFileManager
      */
-    public void export(ExportConfig config, Reporter reporter, ExportFileManager cypherFileManager) throws IOException {
+    public void export(ExportConfig config, Reporter reporter, ExportFileManager cypherFileManager) {
 
         int batchSize = config.getBatchSize();
         ExportConfig.OptimizationType useOptimizations = config.getOptimizationType();
