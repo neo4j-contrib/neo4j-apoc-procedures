@@ -1,17 +1,15 @@
 package apoc.mongodb;
 
-import apoc.util.JsonUtil;
-import apoc.util.MapUtil;
-import apoc.util.TestUtil;
-import apoc.util.UrlResolver;
+import apoc.graph.Graphs;
+import apoc.util.*;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.apache.commons.lang3.time.DateUtils;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.junit.*;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.QueryExecutionException;
-import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.*;
 import org.neo4j.test.TestGraphDatabaseFactory;
 import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
@@ -19,12 +17,13 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 import org.testcontainers.utility.Base58;
 
 import java.time.Duration;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.isTravis;
@@ -44,7 +43,9 @@ public class MongoDBTest {
     public static GenericContainer mongo;
 
     private static GraphDatabaseService db;
-    private static MongoCollection<Document> collection;
+    private static MongoCollection<Document> testCollection;
+    private static MongoCollection<Document> productCollection;
+    private static MongoCollection<Document> personCollection;
 
     private static final Date currentTime = new Date();
 
@@ -78,17 +79,34 @@ public class MongoDBTest {
         HOST = String.format("mongodb://%s:%s", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT));
         params = map("host", HOST, "db", "test", "collection", "test");
         MongoDatabase database = mongoClient.getDatabase("test");
-        collection = database.getCollection("test");
-        collection.deleteMany(new Document());
+        testCollection = database.getCollection("test");
+        productCollection = database.getCollection("product");
+        personCollection = database.getCollection("person");
+        testCollection.deleteMany(new Document());
+        productCollection.deleteMany(new Document());
         LongStream.range(0, NUM_OF_RECORDS)
-                .forEach(i -> collection
-                        .insertOne(new Document(map("name", "testDocument",
-                                "date", currentTime, "longValue", longValue))));
-//        collection.insertOne(new Document(map("name", "testDocument", "date", currentTime, "longValue", longValue)));
+                .forEach(i -> testCollection.insertOne(new Document(map("name", "testDocument",
+                                    "date", currentTime, "longValue", longValue))));
+
+        productCollection.insertOne(new Document(map("name", "My Awesome Product",
+                "price", 800,
+                "tags", Arrays.asList("Tech", "Mobile", "Phone", "iOS"))));
+        productCollection.insertOne(new Document(map("name", "My Awesome Product 2",
+                "price", 1200,
+                "tags", Arrays.asList("Tech", "Mobile", "Phone", "Android"))));
+        List<ObjectId> refs = StreamSupport.stream(productCollection.find().spliterator(), false)
+                .map(doc -> (ObjectId) doc.get("_id"))
+                .collect(Collectors.toList());
+        personCollection.insertOne(new Document(map("name", "Andrea Santurbano",
+                "bought", refs,
+                "born", DateUtils.parseDate("11-10-1935", "dd-MM-yyyy"),
+                "coordinates", Arrays.asList(12.345, 67.890))));
+
         db = new TestGraphDatabaseFactory()
                 .newImpermanentDatabaseBuilder()
+                .setConfig("apoc.mongodb.myInstance.url", HOST)
                 .newGraphDatabase();
-        TestUtil.registerProcedure(db, MongoDB.class);
+        TestUtil.registerProcedure(db, MongoDB.class, Graphs.class);
         mongoClient.close();
     }
 
@@ -113,13 +131,44 @@ public class MongoDBTest {
     }
 
     @Test
+    public void shouldExtractObjectIdsAsMaps() {
+        boolean hasException = false;
+        String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
+                .getUrl("mongodb", mongo.getContainerIpAddress());
+        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "person", false, true, false)) {
+            Map<String, Object> document = coll.first(Collections.emptyMap());
+            assertTrue(document.get("_id") instanceof String);
+            assertEquals("Andrea Santurbano", document.get("name"));
+            assertEquals(Arrays.asList(12.345, 67.890), document.get("coordinates"));
+            assertEquals(DateUtils.parseDate("11-10-1935", "dd-MM-yyyy"), document.get("born"));
+            List<Map<String, Object>> bought = (List<Map<String, Object>>) document.get("bought");
+            assertEquals(2, bought.size());
+            Map<String, Object> product1 = bought.get(0);
+            Map<String, Object> product2 = bought.get(1);
+            assertTrue(product1.get("_id") instanceof String);
+            assertTrue(product2.get("_id") instanceof String);
+            assertEquals("My Awesome Product", product1.get("name"));
+            assertEquals("My Awesome Product 2", product2.get("name"));
+            assertEquals(800, product1.get("price"));
+            assertEquals(1200, product2.get("price"));
+            assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "iOS"), product1.get("tags"));
+            assertEquals(Arrays.asList("Tech", "Mobile", "Phone", "Android"), product2.get("tags"));
+        } catch (Exception e) {
+            hasException = true;
+        }
+        assertFalse("should not have an exception", hasException);
+    }
+
+    @Test
     public void testObjectIdToStringMapping() {
         boolean hasException = false;
         String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
                 .getUrl("mongodb", mongo.getContainerIpAddress());
-        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "test", false)) {
-            Map<String, Object> document = coll.first(MapUtil.map("name", "testDocument"));
+        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "person", false, false, false)) {
+            Map<String, Object> document = coll.first(MapUtil.map("name", "Andrea Santurbano"));
             assertTrue(document.get("_id") instanceof String);
+            Collection<String> bought = (Collection<String>) document.get("bought");
+            assertEquals(2, bought.size());
         } catch (Exception e) {
             hasException = true;
         }
@@ -131,10 +180,10 @@ public class MongoDBTest {
         boolean hasException = false;
         String url = new UrlResolver("mongodb", mongo.getContainerIpAddress(), mongo.getMappedPort(MONGO_DEFAULT_PORT))
                 .getUrl("mongodb", mongo.getContainerIpAddress());
-        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "test", true)) {
+        try (MongoDB.Coll coll = MongoDB.Coll.Factory.create(url, "test", "test", true, false, true)) {
             Map<String, Object> document = coll.first(MapUtil.map("name", "testDocument"));
             assertNotNull(((Map<String, Object>) document.get("_id")).get("timestamp"));
-            assertEquals(currentTime.getTime(), document.get("date"));
+            assertEquals(LocalDateTime.from(currentTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()), document.get("date"));
             assertEquals(longValue, document.get("longValue"));
         } catch (Exception e) {
             hasException = true;
@@ -151,7 +200,7 @@ public class MongoDBTest {
     @Test
     public void testGetCompatible() throws Exception {
         TestUtil.testResult(db, "CALL apoc.mongodb.get({host},{db},{collection},null,true)", params,
-                res -> assertResult(res, currentTime.getTime()));
+                res -> assertResult(res, LocalDateTime.from(currentTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime())));
     }
 
     @Test
@@ -259,6 +308,96 @@ public class MongoDBTest {
                 assertFalse("should be empty", r.hasNext());
             });
         }, QueryExecutionException.class);
+    }
+
+    @Test
+    public void shouldInsertDataIntoNeo4jWithFromDocument() throws Exception {
+        Date date = DateUtils.parseDate("11-10-1935", "dd-MM-yyyy");
+        TestUtil.testResult(db, "CALL apoc.mongodb.first({host}, {db}, {collection}, {filter}, {compatibleValues}, {extractReferences}) YIELD value " +
+                        "CALL apoc.graph.fromDocument(value, {fromDocConfig}) YIELD graph AS g1 " +
+                        "RETURN g1",
+                map("host", HOST,
+                        "db", "test",
+                        "collection", "person",
+                        "filter", Collections.emptyMap(),
+                        "compatibleValues", true,
+                        "extractReferences", true,
+                        "fromDocConfig", map("write", true, "skipValidation", true, "mappings", map("$", "Person:Customer{!name,bought,coordinates,born}", "$.bought", "Product{!name,price,tags}"))),
+                r -> {
+                    Map<String, Object> map = r.next();
+                    Map graph = (Map) map.get("g1");
+                    assertEquals("Graph", graph.get("name"));
+                    Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
+
+                    Map<String, List<Node>> nodeMap = nodes.stream()
+                            .collect(Collectors.groupingBy(e -> e.getLabels().iterator().next().name()));
+                    List<Node> persons = nodeMap.get("Person");
+                    assertEquals(1, persons.size());
+                    List<Node> products = nodeMap.get("Product");
+                    assertEquals(2, products.size());
+
+                    Node person = persons.get(0);
+                    Map<String, Object> personMap = map("name", "Andrea Santurbano",
+                            "born", LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()));
+                    assertEquals(personMap, person.getProperties("name", "born"));
+                    assertTrue(Arrays.equals(new double[] {12.345, 67.890}, (double[]) person.getProperty("coordinates")));
+                    assertEquals(Arrays.asList(Label.label("Person"), Label.label("Customer")), person.getLabels());
+
+                    Node product1 = products.get(0);
+                    Map<String, Object> product1Map = map("name", "My Awesome Product",
+                            "price", 800L);
+                    assertEquals(product1Map, product1.getProperties("name", "price"));
+                    assertArrayEquals(new String[]{"Tech", "Mobile", "Phone", "iOS"}, (String[]) product1.getProperty("tags"));
+                    assertEquals(Arrays.asList(Label.label("Product")), product1.getLabels());
+
+                    Node product2 = products.get(1);
+                    Map<String, Object> product2Map = map("name", "My Awesome Product 2",
+                            "price", 1200L);
+                    assertEquals(product2Map, product2.getProperties("name", "price"));
+                    assertArrayEquals(new String[]{"Tech", "Mobile", "Phone", "Android"}, (String[]) product2.getProperty("tags"));
+                    assertEquals(Arrays.asList(Label.label("Product")), product2.getLabels());
+
+
+                    Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
+                    assertEquals(2, rels.size());
+                    Iterator<Relationship> relIt = rels.iterator();
+                    Relationship rel1 = relIt.next();
+                    assertEquals(RelationshipType.withName("BOUGHT"), rel1.getType());
+                    assertEquals(person, rel1.getStartNode());
+                    assertEquals(product1, rel1.getEndNode());
+                    Relationship rel2 = relIt.next();
+                    assertEquals(RelationshipType.withName("BOUGHT"), rel2.getType());
+                    assertEquals(person, rel2.getStartNode());
+                    assertEquals(product2, rel2.getEndNode());
+
+                });
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldFailTheInsertWithoutCompatibleValuesFlag() {
+        TestUtil.testResult(db, "CALL apoc.mongodb.first({host}, {db}, {collection}, {filter}, {compatibleValues}, {extractReferences}) YIELD value " +
+                        "CALL apoc.graph.fromDocument(value, {fromDocConfig}) YIELD graph AS g1 " +
+                        "RETURN g1",
+                map("host", HOST,
+                        "db", "test",
+                        "collection", "person",
+                        "filter", Collections.emptyMap(),
+                        "compatibleValues", false,
+                        "extractReferences", true,
+                        "fromDocConfig", map("write", true, "skipValidation", true, "mappings", map("$", "Person:Customer{!name,bought,coordinates,born}", "$.bought", "Product{!name,price,tags}"))),
+                r -> {});
+    }
+
+    @Test
+    public void shouldUseMongoUrlKey() {
+        TestUtil.testResult(db, "CALL apoc.mongodb.first({host}, {db}, {collection}, {filter}, {compatibleValues}, {extractReferences})",
+                map("host", "myInstance",
+                        "db", "test",
+                        "collection", "person",
+                        "filter", Collections.emptyMap(),
+                        "compatibleValues", false,
+                        "extractReferences", true),
+                r -> assertTrue(r.hasNext()));
     }
 
     /**
