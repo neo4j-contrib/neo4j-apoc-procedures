@@ -14,6 +14,7 @@ import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
+@Ignore("investigate minio error or move the test to Localstack")
 public class LoadS3Test {
 
     private GraphDatabaseService db;

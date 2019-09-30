@@ -2,9 +2,7 @@ package apoc.export.cypher.formatter;
 
 import apoc.export.util.ExportConfig;
 import apoc.export.util.Reporter;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.*;
 
 import java.io.PrintWriter;
 import java.util.Map;
@@ -22,6 +20,10 @@ public interface CypherFormatter {
 	String statementForRelationship(Relationship relationship, Map<String, Set<String>> uniqueConstraints, Set<String> indexedProperties);
 
 	String statementForIndex(String label, Iterable<String> keys);
+
+	String statementForNodeFullTextIndex(String name, Iterable<Label> labels, Iterable<String> keys);
+
+	String statementForRelationshipFullTextIndex(String name, Iterable<RelationshipType> types, Iterable<String> keys);
 
 	String statementForConstraint(String label, Iterable<String> keys);
 
