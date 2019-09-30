@@ -6,11 +6,9 @@ import apoc.export.util.ExportConfig;
 import apoc.export.util.ExportFormat;
 import apoc.export.util.Reporter;
 import apoc.util.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.SubGraph;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.internal.helpers.collection.Iterables;
 
@@ -31,7 +29,33 @@ import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_PROP;
  */
 public class MultiStatementCypherSubGraphExporter {
 
-    private final SubGraph            graph;
+    /*private enum IndexType {
+        NODE_LABEL_PROPERTY("node_label_property"),
+        NODE_UNIQUE_PROPERTY("node_unique_property"),
+        REL_TYPE_PROPERTY("relationship_type_property"),
+        NODE_FULLTEXT("node_fulltext"),
+        RELATIONSHIP_FULLTEXT("relationship_fulltext");
+
+        private final String typeName;
+
+        IndexType(String typeName) {
+            this.typeName = typeName;
+        }
+
+        static IndexType from(String type, String entityType, String uniqueness) {
+            if (uniqueness.equals("UNIQUE") && entityType.equals("NODE")) {
+                return NODE_UNIQUE_PROPERTY
+            }
+
+            return Stream.of(IndexType.values()).filter(type -> type.typeName().equals(stringType)).findFirst().orElseThrow();
+        }
+
+        public String typeName() {
+            return typeName;
+        }
+    }*/
+
+    private final SubGraph graph;
     private final Map<String, Set<String>> uniqueConstraints = new HashMap<>();
     private Set<String> indexNames        = new LinkedHashSet<>();
     private Set<String> indexedProperties = new LinkedHashSet<>();
@@ -169,10 +193,12 @@ public class MultiStatementCypherSubGraphExporter {
     // ---- Schema ----
 
     private void exportSchema(PrintWriter out) {
-        List<String> indexes = exportIndexes();
-        if (indexes.isEmpty() && artificialUniques == 0) return;
+        List<String> indexesAndConstraints = new ArrayList<>();
+        indexesAndConstraints.addAll(exportIndexes());
+        indexesAndConstraints.addAll(exportConstraints());
+        if (indexesAndConstraints.isEmpty() && artificialUniques == 0) return;
         begin(out);
-        for (String index : indexes) {
+        for (String index : indexesAndConstraints) {
             out.println(index);
         }
         if (artificialUniques > 0) {
@@ -182,43 +208,85 @@ public class MultiStatementCypherSubGraphExporter {
             }
         }
         commit(out);
-        List<String> indexesAwait = indexesAwait();
-        for (String indexAwait : indexesAwait) {
-            out.print(indexAwait);
+        if (graph.getIndexes().iterator().hasNext()) {
+            out.print(this.exportFormat.indexAwait(this.exportConfig.getAwaitForIndexes()));
         }
         schemaAwait(out);
         out.flush();
     }
 
     private List<String> exportIndexes() {
-        List<String> result = new ArrayList<>();
-        for (IndexDefinition index : graph.getIndexes()) {
-            String label = Iterables.single(index.getLabels()).name();
-            Iterable<String> props = index.getPropertyKeys();
-            if (index.isConstraintIndex()) {
-                String cypher = this.cypherFormat.statementForConstraint(label, props);
-                if (cypher != null && !"".equals(cypher)) {
-                    result.add(cypher);
-                }
-            } else {
-                String cypher = this.cypherFormat.statementForIndex(label, props);
-                if (cypher != null && !"".equals(cypher)) {
-                    result.add(0, cypher);
-                }
-            }
-        }
-        return result;
+        return db.executeTransactionally("CALL db.indexes()", Collections.emptyMap(), result -> result.stream()
+                .map(map -> {
+                    List<String> props = (List<String>) map.get("properties");
+                    List<String> tokenNames = (List<String>) map.get("labelsOrTypes");
+                    String name = (String) map.get("name");
+                    boolean inGraph = tokensInGraph(tokenNames);
+                    if (!inGraph) {
+                        return null;
+                    }
+
+                    if ("UNIQUE".equals(map.get("uniqueness"))) {
+                        return null;  // delegate to the constraint creation
+                    }
+
+                    if ("FULLTEXT".equals(map.get("type"))) {
+                        if ("NODE".equals(map.get("entityType"))) {
+                            List<Label> labels = toLabels(tokenNames);
+                            return this.cypherFormat.statementForNodeFullTextIndex(name, labels, props);
+                        } else {
+                            List<RelationshipType> types = toRelationshipTypes(tokenNames);
+                            return this.cypherFormat.statementForRelationshipFullTextIndex(name, types, props);
+                        }
+                    }
+                    // "normal" schema index
+                    String tokenName = tokenNames.get(0);
+                    return this.cypherFormat.statementForIndex(tokenName, props);
+
+                })
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList()));
     }
 
-    private List<String> indexesAwait() {
-        List<String> result = new ArrayList<>();
-        for (IndexDefinition index : graph.getIndexes()) {
-            String label = Iterables.single(index.getLabels()).name();
-            String indexAwait = this.exportFormat.indexAwait(label, index.getPropertyKeys());
-            if (indexAwait != null && !"".equals(indexAwait))
-                result.add(indexAwait);
-        }
-        return result;
+    private boolean tokensInGraph(List<String> tokens) {
+        return StreamSupport.stream(graph.getIndexes().spliterator(), false)
+                .anyMatch(indexDefinition -> {
+                    if (indexDefinition.isRelationshipIndex()) {
+                        List<String> typeNames = StreamSupport.stream(indexDefinition.getRelationshipTypes().spliterator(), false)
+                                .map(RelationshipType::name)
+                                .collect(Collectors.toList());
+                        return typeNames.containsAll(tokens);
+                    } else {
+                        List<String> labelNames = StreamSupport.stream(indexDefinition.getLabels().spliterator(), false)
+                                .map(Label::name)
+                                .collect(Collectors.toList());
+                        return labelNames.containsAll(tokens);
+                    }
+                });
+    }
+
+    private List<Label> toLabels(List<String> tokenNames) {
+        return tokenNames.stream()
+                .map(Label::label)
+                .collect(Collectors.toList());
+    }
+
+    private List<RelationshipType> toRelationshipTypes(List<String> tokenNames) {
+        return tokenNames.stream()
+                .map(RelationshipType::withName)
+                .collect(Collectors.toList());
+    }
+
+    private List<String> exportConstraints() {
+        return StreamSupport.stream(graph.getIndexes().spliterator(), false)
+                .filter(index -> index.isConstraintIndex())
+                .map(index -> {
+                    String label = Iterables.single(index.getLabels()).name();
+                    Iterable<String> props = index.getPropertyKeys();
+                    return this.cypherFormat.statementForConstraint(label, props);
+                })
+                .filter(StringUtils::isNotBlank)
+                .collect(Collectors.toList());
     }
 
     // ---- CleanUp ----
@@ -265,14 +333,16 @@ public class MultiStatementCypherSubGraphExporter {
 
     private void gatherUniqueConstraints() {
         for (IndexDefinition indexDefinition : graph.getIndexes()) {
-            String label = Iterables.single(indexDefinition.getLabels()).name();
+            Set<String> label = StreamSupport.stream(indexDefinition.getLabels().spliterator(), false)
+                    .map(Label::name)
+                    .collect(Collectors.toSet());
             Set<String> props = StreamSupport
                     .stream(indexDefinition.getPropertyKeys().spliterator(), false)
                     .collect(Collectors.toSet());
-            indexNames.add(label);
+            indexNames.add(indexDefinition.getName());
             indexedProperties.addAll(props);
             if (indexDefinition.isConstraintIndex()) { // we use the constraint that have few properties
-                uniqueConstraints.compute(label, (k, v) ->  v == null || v.size() > props.size() ? props : v);
+                uniqueConstraints.compute(String.join(":", label), (k, v) ->  v == null || v.size() > props.size() ? props : v);
             }
         }
     }

@@ -12,7 +12,7 @@ import static java.util.Arrays.asList;
  * @author mh
  * @since 19.01.14
  */
-public class  ExportConfig {
+public class ExportConfig {
     public static final char QUOTECHAR = '"';
     public static final String NONE_QUOTES = "none";
     public static final String ALWAYS_QUOTES = "always";
@@ -40,9 +40,11 @@ public class  ExportConfig {
     private boolean separateHeader;
     private String arrayDelim;
     private Map<String, Object> optimizations;
+
     public enum OptimizationType {NONE, UNWIND_BATCH, UNWIND_BATCH_PARAMS}
     private OptimizationType optimizationType;
     private int unwindBatchSize;
+    private long awaitForIndexes;
 
     public int getBatchSize() {
         return batchSize;
@@ -98,6 +100,7 @@ public class  ExportConfig {
         this.optimizationType = OptimizationType.valueOf(optimizations.getOrDefault("type", OptimizationType.UNWIND_BATCH.toString()).toString().toUpperCase());
         this.batchSize = ((Number)config.getOrDefault("batchSize", DEFAULT_BATCH_SIZE)).intValue();
         this.unwindBatchSize = ((Number)getOptimizations().getOrDefault("unwindBatchSize", DEFAULT_UNWIND_BATCH_SIZE)).intValue();
+        this.awaitForIndexes = ((Number)config.getOrDefault("awaitForIndexes", 300)).longValue();
         validate();
     }
 
@@ -186,6 +189,10 @@ public class  ExportConfig {
 
     public OptimizationType getOptimizationType() {
         return optimizationType;
+    }
+
+    public long getAwaitForIndexes() {
+        return awaitForIndexes;
     }
 
 }

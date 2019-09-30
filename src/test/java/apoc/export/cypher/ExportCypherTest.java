@@ -2,12 +2,14 @@ package apoc.export.cypher;
 
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -50,16 +52,13 @@ public class ExportCypherTest {
     public void setUp() throws Exception {
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
+        db.executeTransactionally("CREATE INDEX ON :Bar(first_name, last_name)");
+        db.executeTransactionally("CREATE INDEX ON :Foo(name)");
+        db.executeTransactionally("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE");
         if (testName.getMethodName().endsWith(OPTIMIZED)) {
-            db.executeTransactionally("CREATE INDEX ON :Foo(name)");
-            db.executeTransactionally("CREATE INDEX ON :Bar(first_name, last_name)");
-            db.executeTransactionally("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE");
             db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar:Person {age:12}),(d:Bar {age:12})," +
                     " (t:Foo {name:'foo2', born:date('2017-09-29')})-[:KNOWS {since:2015}]->(e:Bar {name:'bar2',age:44}),({age:99})");
         } else if(testName.getMethodName().endsWith(ODD)) {
-            db.executeTransactionally("CREATE INDEX ON :Foo(name)");
-            db.executeTransactionally("CREATE INDEX ON :Bar(first_name, last_name)");
-            db.executeTransactionally("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE");
             db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})," +
                     "(t:Foo {name:'foo2', born:date('2017-09-29')})," +
                     "(g:Foo {name:'foo3', born:date('2016-03-12')})," +
@@ -69,9 +68,6 @@ public class ExportCypherTest {
                     "(e:Bar {name:'bar2',age:44})," +
                     "(f)-[:KNOWS {since:2016}]->(b)");
         } else {
-            db.executeTransactionally("CREATE INDEX ON :Foo(name)");
-            db.executeTransactionally("CREATE INDEX ON :Bar(first_name, last_name)");
-            db.executeTransactionally("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE");
             db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12})");
         }
     }
@@ -551,6 +547,67 @@ public class ExportCypherTest {
         assertEquals(expected, readFile(fileName));
     }
 
+    @Test
+    public void exportMultiTokenIndex() {
+        // given
+        db.executeTransactionally("CREATE (n:TempNode {value:'value'})");
+        db.executeTransactionally("CREATE (n:TempNode2 {value:'value'})");
+        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('MyCoolNodeFulltextIndex',['TempNode', 'TempNode2'],['value'])");
+
+        String query = "MATCH (t:TempNode) return t";
+        String file = null;
+        Map<String, Object> config = map("awaitForIndexes", 3000);
+        String expected = String.format(":begin%n" +
+                "CALL db.index.fulltext.createNodeIndex('MyCoolNodeFulltextIndex',['TempNode','TempNode2'],['value']);%n" +
+                "CREATE CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                ":commit%n" +
+                "CALL db.awaitIndexes(3000);%n" +
+                ":begin%n" +
+                "UNWIND [{_id:3, properties:{value:\"value\"}}] AS row%n" +
+                "CREATE (n:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:TempNode;%n" +
+                ":commit%n" +
+                ":begin%n" +
+                "MATCH (n:`UNIQUE IMPORT LABEL`)  WITH n LIMIT 20000 REMOVE n:`UNIQUE IMPORT LABEL` REMOVE n.`UNIQUE IMPORT ID`;%n" +
+                ":commit%n" +
+                ":begin%n" +
+                "DROP CONSTRAINT ON (node:`UNIQUE IMPORT LABEL`) ASSERT (node.`UNIQUE IMPORT ID`) IS UNIQUE;%n" +
+                ":commit%n");
+
+        // when
+        TestUtil.testCall(db, "CALL apoc.export.cypher.query($query, $file, $config)",
+                map("query", query, "file", file, "config", config),
+                (r) -> {
+                    // then
+                    assertEquals(expected, r.get("cypherStatements"));
+                });
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void shouldFailExportMultiTokenIndexForRelationship() {
+        // given
+        db.executeTransactionally("CREATE (n:TempNode {value:'value'})");
+        db.executeTransactionally("CREATE (n:TempNode2 {value:'value'})");
+        db.executeTransactionally("CALL db.index.fulltext.createNodeIndex('MyCoolNodeFulltextIndex',['TempNode', 'TempNode2'],['value'])");
+
+        // TODO: We can't manage full-text rel indexes because of this bug: https://github.com/neo4j/neo4j/issues/12304
+        db.executeTransactionally("CREATE (s:TempNode)-[:REL{rel_value: 'the rel value'}]->(e:TempNode2)");
+        db.executeTransactionally("CALL db.index.fulltext.createRelationshipIndex('MyCoolRelFulltextIndex',['REL'],['rel_value'])");
+        String query = "MATCH (t:TempNode) return t";
+        String file = null;
+        Map<String, Object> config = map("awaitForIndexes", 3000);
+
+        try {
+            // when
+            TestUtil.testCall(db, "CALL apoc.export.cypher.query($query, $file, $config)",
+                    map("query", query, "file", file, "config", config),
+                    (r) -> {});
+        } catch (Exception e) {
+            String expected = "Full-text indexes on relationships are not supported, please delete them in order to complete the process";
+            assertEquals(expected, ExceptionUtils.getRootCause(e).getMessage());
+            throw e;
+        }
+    }
+
     private void assertResultsOptimized(String fileName, Map<String, Object> r) {
         assertEquals(7L, r.get("nodes"));
         assertEquals(2L, r.get("relationships"));
@@ -603,13 +660,9 @@ public class ExportCypherTest {
                 "COMMIT%n" +
                 "SCHEMA AWAIT%n");
 
-        public static final String EXPECTED_INDEXES_AWAIT = String.format("CALL db.awaitIndex(':Foo(name)');%n" +
-                "CALL db.awaitIndex(':Bar(first_name,last_name)');%n" +
-                "CALL db.awaitIndex(':Bar(name)');%n");
+        public static final String EXPECTED_INDEXES_AWAIT = String.format("CALL db.awaitIndexes(300);%n");
 
-        private static final String EXPECTED_INDEXES_AWAIT_QUERY = String.format("CALL db.awaitIndex(':Foo(name)');%n" +
-                "CALL db.awaitIndex(':Bar(name)');%n" +
-                "CALL db.awaitIndex(':Bar(first_name,last_name)');%n");
+        private static final String EXPECTED_INDEXES_AWAIT_QUERY = String.format("CALL db.awaitIndex(300);%n");
 
         static final String EXPECTED_RELATIONSHIPS = String.format("BEGIN%n" +
                 "MATCH (n1:`UNIQUE IMPORT LABEL`{`UNIQUE IMPORT ID`:0}), (n2:Bar{name:\"bar\"}) CREATE (n1)-[r:KNOWS {since:2016}]->(n2);%n" +
