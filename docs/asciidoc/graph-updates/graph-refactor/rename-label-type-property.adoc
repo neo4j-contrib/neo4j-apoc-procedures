@@ -9,10 +9,131 @@ This section describes procedures that can be used to rename labels, relationshi
 Procedures set for renaming labels, relationship types, nodes and relationships' properties.
 They return the list of eventually impacted constraints and indexes, the user should take care of.
 
+The available procedures are described in the table below:
+
 [cols="1m,5"]
 |===
 | call apoc.refactor.rename.label(oldLabel, newLabel, [nodes]) | rename a label from 'oldLabel' to 'newLabel' for all nodes. If 'nodes' is provided renaming is applied to this set only
 | call apoc.refactor.rename.type(oldType, newType, [rels]) | rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only
 | call apoc.refactor.rename.nodeProperty(oldName, newName, [nodes]) | rename all node's property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only
 | call apoc.refactor.rename.typeProperty(oldName, newName, [rels]) | rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only
+|===
+
+== Example Usage
+
+The examples below will help us learn how to use these procedures.
+
+.The following creates a graph contains nodes with the label `Engineer` connected by `COLLEAGUES` relationships:
+[source,cypher]
+----
+CREATE (mark:Engineer {name: "Mark", city: "London"})
+CREATE (jennifer:Engineer {name: "Jennifer", city: "St Louis"})
+CREATE (michael:Engineer {name: "Michael", city: "Dresden"})
+CREATE (jim:Engineer {name: "Jim", city: "London"})
+CREATE (alistair:Engineer {name: "Alistair", city: "London"})
+
+MERGE (jim)-[:COLLEAGUES {since: date("2006-05-01")}]->(alistair)
+MERGE (mark)-[:COLLEAGUES {since: date("2018-02-01")}]->(jennifer)
+MERGE (mark)-[:COLLEAGUES {since: date("2013-05-01")}]->(michael)
+----
+
+If we execute this query, it will result in the following graph:
+
+image::apoc.rename-initial.png[scaledwidth="100%"]
+
+[[rename-node-labels]]
+=== Renaming node labels
+
+.The following changes the label on Mark, Jennifer, and Michael from `Engineer` to `DevRel`:
+[source,cypher]
+----
+MATCH (person:Engineer)
+WHERE person.name IN ["Mark", "Jennifer", "Michael"]
+WITH collect(person) AS people
+CALL apoc.refactor.rename.label("Engineer", "DevRel", people)
+YIELD committedOperations
+RETURN committedOperations
+----
+
+If we execute this query, it will result in the following graph:
+
+image::apoc.rename-update-node-labels.png[scaledwidth="100%"]
+
+[[rename-relationship-types]]
+=== Renaming relationship types
+
+.The following changes the relationship type between Jim and Alistair from `COLLEAGUES` to `FROLLEAGUES`:
+[source,cypher]
+----
+MATCH (:Engineer {name: "Jim"})-[rel]->(:Engineer {name: "Alistair"})
+WITH collect(rel) AS rels
+CALL apoc.refactor.rename.type("COLLEAGUES", "FROLLEAGUES", rels)
+YIELD committedOperations
+RETURN committedOperations
+----
+
+
+image::apoc.rename-rename-rel-type.png[scaledwidth="100%"]
+
+[[rename-node-properties]]
+=== Renaming node properties
+
+
+.The following query changes the node property `city` to `location` for all nodes with the `DevRel` label:
+[source,cypher]
+----
+MATCH (person:DevRel)
+WITH collect(person) AS people
+CALL apoc.refactor.rename.nodeProperty("city", "location", people)
+YIELD committedOperations
+RETURN committedOperations
+----
+
+.The following query returns all the nodes in our graph after this refactoring has been done:
+[source,cypher]
+----
+MATCH (n)
+RETURN (n)
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| n
+| (:DevRel {name: "Jennifer", location: "St Louis"})
+| (:DevRel {name: "Michael", location: "Dresden"})
+| (:Engineer {city: "London", name: "Jim"})
+| (:DevRel {name: "Mark", location: "London"})
+| (:Engineer {city: "London", name: "Alistair"})
+|===
+
+
+[[rename-relationship-properties]]
+=== Renaming relationship properties
+
+
+.The following query changes the relationship property `since` to `from` for all relationships:
+[source,cypher]
+----
+MATCH ()-[rel]->()
+WITH collect(rel) AS rels
+CALL apoc.refactor.rename.typeProperty("since", "from", rels)
+YIELD committedOperations
+RETURN committedOperations
+----
+
+.The following query returns all the paths in our graph after this refactoring has been done:
+[source,cypher]
+----
+MATCH path = ()-[]->()
+RETURN path
+----
+
+.Results
+[opts="header",cols="1"]
+|===
+| path
+|[{"name":"Mark","location":"London"},{"from":"2018-02-01"},{"name":"Jennifer","location":"St Louis"}]
+|[{"name":"Mark","location":"London"},{"from":"2013-05-01"},{"name":"Michael","location":"Dresden"}]
+|[{"name":"Jim","city":"London"},{"from":"2006-05-01"},{"name":"Alistair","city":"London"}]
 |===

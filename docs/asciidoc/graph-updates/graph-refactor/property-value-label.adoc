@@ -16,6 +16,7 @@ The available procedure is described in the table below:
 
 == Example Usage
 
+The example below will help us learn how to use this procedure.
 
 .The following creates a `Movie` node with `title` and `genre` properties
 [source,cypher]
