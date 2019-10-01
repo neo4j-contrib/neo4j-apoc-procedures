@@ -55,7 +55,7 @@ CREATE (p:Person {name:'David'})
 RETURN *
 ----
 
-image::apoc.refactor.from.dataset.png[scaledwidth="100%"]
+image::apoc.refactor.from.dataset.png[]
 
 .The following will change the source node of the `FOOBAR2` relationship from the Foo node to the David node:
 [source,cypher]
@@ -69,4 +69,4 @@ RETURN input, output
 
 If we execute this query, it will result in the following graph:
 
-image::apoc.refactor.from.png[scaledwidth="100%"]
+image::apoc.refactor.from.png[]
