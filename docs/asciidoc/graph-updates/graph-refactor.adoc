@@ -13,7 +13,7 @@ The library contains procedures for the following high level refactorings
 
 * <<clone-nodes,cloning nodes>> and <<clone-subgraph,sub graphs>>
 * <<merge-nodes,merging nodes or relationships>>
-* <<redirect-relationships,redirecting relationships to use new start or end nodes>>
+* <<redirect-relationship,redirecting relationships to use new start or end nodes>>
 * <<set-relationship-type,changing relationship's type>> and <<invert-relationship,inverting their direction>>
 * <<extract-node-from-relationship,extracting nodes from relationships>> and <<collapse-node-to-relationship,collapsing nodes to relationships>>
 * <<normalize-boolean,normalizing properties to boolean values>>

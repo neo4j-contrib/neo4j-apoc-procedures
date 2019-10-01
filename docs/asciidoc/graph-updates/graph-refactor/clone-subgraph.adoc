@@ -59,7 +59,7 @@ CREATE  (rootA:Root{name:'A'}),
         CREATE (rootB)-[:LINK]->(n11)
 ----
 
-image::apoc.refactor.cloneSubgraph-tree-example.png[scaledwidth="100%"]
+image::apoc.refactor.cloneSubgraph-tree-example.png[]
 
 .The following query clones a subtree starting from rootA consisting of outgoing `:LINK` relationships, and attaches that subgraph to rootB. rootB acts as a standin for rootA, which is not cloned:
 

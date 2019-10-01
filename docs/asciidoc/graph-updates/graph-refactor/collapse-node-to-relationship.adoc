@@ -27,7 +27,7 @@ CREATE (flight)<-[:OUT]-(origin)
 CREATE (flight)-[:IN]->(destination)
 ----
 
-image::apoc.refactor.collapseNode.dataset.png[scaledwidth="100%"]
+image::apoc.refactor.collapseNode.dataset.png[]
 
 .The following query collapses the `Flight` node, replacing it with a `CONNECTED` to relationship:
 [source,cypher]
@@ -40,5 +40,5 @@ RETURN input, output, error
 
 If we execute this query, it will result in the following graph:
 
-image::apoc.refactor.collapseNode.png[scaledwidth="100%"]
+image::apoc.refactor.collapseNode.png[]
 

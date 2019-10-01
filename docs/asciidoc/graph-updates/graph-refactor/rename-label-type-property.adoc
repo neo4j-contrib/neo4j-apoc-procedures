@@ -39,7 +39,7 @@ MERGE (mark)-[:COLLEAGUES {since: date("2013-05-01")}]->(michael)
 
 If we execute this query, it will result in the following graph:
 
-image::apoc.rename-initial.png[scaledwidth="100%"]
+image::apoc.rename-initial.png[]
 
 [[rename-node-labels]]
 === Renaming node labels
@@ -57,7 +57,7 @@ RETURN committedOperations
 
 If we execute this query, it will result in the following graph:
 
-image::apoc.rename-update-node-labels.png[scaledwidth="100%"]
+image::apoc.rename-update-node-labels.png[]
 
 [[rename-relationship-types]]
 === Renaming relationship types
@@ -73,7 +73,7 @@ RETURN committedOperations
 ----
 
 
-image::apoc.rename-rename-rel-type.png[scaledwidth="100%"]
+image::apoc.rename-rename-rel-type.png[]
 
 [[rename-node-properties]]
 === Renaming node properties

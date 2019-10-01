@@ -34,4 +34,4 @@ CALL apoc.refactor.categorize('favoriteColor', 'FAVORITE_COLOR', true, 'Color', 
 
 If we execute this query, it will result in the following graph:
 
-image::apoc.categorize.png[scaledwidth="100%"]
+image::apoc.categorize.png[]
