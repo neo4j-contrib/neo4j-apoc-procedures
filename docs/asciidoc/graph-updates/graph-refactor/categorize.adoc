@@ -6,11 +6,32 @@
 This section describes a procedure that replaces string property values on nodes with relationship to a unique category node for that property value.
 --
 
-This example will turn all n.color properties into :HAS_ATTRIBUTE relationships to :Color nodes with a matching .colour property.
+The available procedure is described in the table below:
 
+[cols="1m,5"]
+|===
+| CALL apoc.refactor.categorize(sourceKey, type, outgoing, label, targetKey, copiedKeys, batchSize) | turn each unique propertyKey into a category node and connect to it
+|===
+
+
+== Example Usage
+
+The example below will help us learn how to use this procedure.
+
+.The following creates nodes with a `favoriteColor` property:
 [source,cypher]
 ----
-CALL apoc.refactor.categorize('color', 'HAS_ATTRIBUTE', true, 'Color', 'colour', ['popularity'], 1)
+CREATE (:Person {name: "Mark", favoriteColor: "Red"})
+CREATE (:Person {name: "Jennifer", favoriteColor: "Blue"})
+CREATE (:Person {name: "David", favoriteColor: "Red"})
 ----
 
-Additionally, it will also copy over the first 'popularity' property value encountered on any node n for each newly created :Color node and remove any occurrences of that property value on nodes with the same 'Color'.
+.The following turn all `favoriteColor` properties into `FAVORITE_COLOR` relationships to `Color` nodes with a matching `color` property.
+[source,cypher]
+----
+CALL apoc.refactor.categorize('favoriteColor', 'FAVORITE_COLOR', true, 'Color', 'color', [], 100)
+----
+
+If we execute this query, it will result in the following graph:
+
+image::apoc.categorize.png[scaledwidth="100%"]

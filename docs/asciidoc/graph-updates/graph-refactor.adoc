@@ -11,13 +11,15 @@ While many graph refactorings can be done using Cypher directly, the APOC librar
 
 The library contains procedures for the following high level refactorings
 
-* cloning nodes and sub graphs
-* merging nodes or relationships
-* redirecting relationships to use new start or end nodes
-* changing relationship's type and inverting their direction
-* extracting nodes from relationships and collapsing nodes to relationships
-* normalizing properties to boolean values
-* extracting category nodes based on unique property keys.
+* <<clone-nodes,cloning nodes>> and <<clone-subgraph,sub graphs>>
+* <<merge-nodes,merging nodes or relationships>>
+* <<redirect-relationships,redirecting relationships to use new start or end nodes>>
+* <<set-relationship-type,changing relationship's type>> and <<invert-relationship,inverting their direction>>
+* <<extract-node-from-relationship,extracting nodes from relationships>> and <<collapse-node-to-relationship,collapsing nodes to relationships>>
+* <<normalize-boolean,normalizing properties to boolean values>>
+* <<categorize,extracting category nodes based on unique property keys>>
+* <<property-value-label, create label from property value>>
+* <<rename-label-type-property,rename node labels, relationship types, and properties>>
 
 The available algorithms are described in the table below:
 
@@ -41,21 +43,6 @@ and clone the relationships (will exist between cloned nodes only). Relationship
 | call apoc.refactor.normalizeAsBoolean(entity, propertyKey, true_values, false_values) | normalize/convert a property to be boolean
 | call apoc.refactor.categorize(node, propertyKey, type, outgoing, label) | turn each unique propertyKey into a category node and connect to it
 |===
-
-For more information on how to use these procedures, see:
-
-* <<clone-nodes>>
-* <<clone-subgraph>>
-* <<merge-nodes>>
-* <<redirect-relationship>>
-* <<invert-relationship>>
-* <<set-relationship-type>>
-* <<extract-node-from-relationship>>
-* <<collapse-node-to-relationship>>
-* <<normalize-boolean>>
-* <<categorize>>
-* <<property-value-label>>
-* <<rename-label-type-property>>
 
 include::graph-refactor/clone-nodes.adoc[leveloffset=3]
 
