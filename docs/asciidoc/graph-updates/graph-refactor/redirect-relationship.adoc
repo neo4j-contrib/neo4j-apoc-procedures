@@ -29,7 +29,7 @@ CREATE (p:Person {name:'Antony'})
 RETURN *
 ----
 
-image::apoc.refactor.to.dataset.png[scaledwidth="100%"]
+image::apoc.refactor.to.dataset.png[]
 
 .The following will change the target node of the `FOOBAR` relationship from the Bar node to the Antony node:
 [source,cypher]
@@ -43,7 +43,7 @@ RETURN input, output
 
 If we execute this query, it will result in the following graph:
 
-image::apoc.refactor.to.png[scaledwidth="100%"]
+image::apoc.refactor.to.png[]
 
 === Redirect Source Node
 
