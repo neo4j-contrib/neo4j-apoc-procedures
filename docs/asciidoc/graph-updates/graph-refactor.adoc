@@ -6,6 +6,19 @@
 This section describes graph refactoring procedures in the APOC library.
 --
 
+Given the agile approach taken towards building graph models, graph refactoring (or migration) is something that all graph based projects will have to do at some stage.
+While many graph refactorings can be done using Cypher directly, the APOC library provides tools to make the process easier.
+
+The library contains procedures for the following high level refactorings
+
+* cloning nodes and sub graphs
+* merging nodes or relationships
+* redirecting relationships to use new start or end nodes
+* changing relationship's type and inverting their direction
+* extracting nodes from relationships and collapsing nodes to relationships
+* normalizing properties to boolean values
+* extracting category nodes based on unique property keys.
+
 The available algorithms are described in the table below:
 
 [cols="1m,5"]
@@ -43,19 +56,6 @@ For more information on how to use these procedures, see:
 * <<categorize>>
 * <<property-value-label>>
 * <<rename-label-type-property>>
-
-On mergeRelationship and mergeNodes with config properties you can choose from 3 different management:
-
- * "overwrite" or "override": if there is the same property in more relationship, in the new one will have the last relationship's property value
- * "discard" : if there is the same property in more relationship, the new one will have the first relationship's property value
- * "combine" : if there is the same property in more relationship, the new one a value's array with all relationships' values
-
-On mergeNodes procedure there is also a config parameter to merge relationships of the merged nodes:
-
- * "mergeRels: true/false" : give the possibility to merge relationships with same type and direction.
-
-If relationships have same start and end nodes will be merged into one, and properties managed by the properties config.
-If relationships have different start/end nodes (related to direction), relationships will be maintained and properties will be combine in all relationship.
 
 include::graph-refactor/clone-nodes.adoc[leveloffset=3]
 
