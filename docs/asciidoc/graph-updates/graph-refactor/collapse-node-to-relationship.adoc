@@ -6,20 +6,39 @@
 This section describes a procedure that can be used to collapse a node into a relationship.
 --
 
+The available procedure is described in the table below:
+
+[cols="1m,5"]
+|===
+| call apoc.refactor.collapseNode([node1,node2],'TYPE') | collapse nodes with 2 rels to relationship, node with one rel becomes self-relationship
+|===
+
+== Example Usage
+
+The example below will help us learn how to use this procedure.
+
+.The following creates a graph containing a `Flight` and origin and destination `Airport`s:
 [source,cypher]
 ----
-CREATE (f:Foo)-[:FOO {a:1}]->(b:Bar {c:3})-[:BAR {b:2}]->(f)
-WITH id(b) as id
-CALL apoc.refactor.collapseNode(id,'FOOBAR')
-YIELD input, output RETURN *
+CREATE (flight:Flight {number: "BA001"})
+CREATE (origin:Airport {code: "LHR"})
+CREATE (destination:Airport {code: "AMS"})
+CREATE (flight)<-[:OUT]-(origin)
+CREATE (flight)-[:IN]->(destination)
 ----
-
-Before we have this situation
 
 image::apoc.refactor.collapseNode.dataset.png[scaledwidth="100%"]
 
-And the result are
+.The following query collapses the `Flight` node, replacing it with a `CONNECTED` to relationship:
+[source,cypher]
+----
+MATCH (flight:Flight {number: "BA001"})
+CALL apoc.refactor.collapseNode([flight],'CONNECTED_TO')
+YIELD input, output , error
+RETURN input, output, error
+----
+
+If we execute this query, it will result in the following graph:
 
 image::apoc.refactor.collapseNode.png[scaledwidth="100%"]
 
-The property of the two relationship and the property of the node are joined in one relationship that has the  properties `a:1`, `b:2`, `name:Bar`
