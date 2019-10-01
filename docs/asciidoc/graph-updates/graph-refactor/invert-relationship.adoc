@@ -6,7 +6,19 @@
 This section describes a procedure that can be used to invert the direction of relationships.
 --
 
-We start with two nodes connected by a relationship
+The available procedure is described in the table below:
+
+[cols="1m,5"]
+|===
+| call apoc.refactor.invert(rel) | inverts relationship direction
+|===
+
+
+== Example Usage
+
+The example below will help us learn how to use this procedure.
+
+.The following creates a graph containing two nodes connected by a relationship:
 
 [source,cypher]
 ----
@@ -15,15 +27,15 @@ CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
 
 image::apoc.refactor.invert.dataset.png[scaledwidth="100%"]
 
-Now we want to invert the relationship direction
-
+.The following inverts the direction of the relationship:
 [source,cypher]
 ----
-MATCH (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) WITH id(rel) as id
-MATCH ()-[r]->() WHERE id(r) = id
-CALL apoc.refactor.invert(r) yield input, output RETURN *
+MATCH (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
+CALL apoc.refactor.invert(rel)
+yield input, output
+RETURN input, output
 ----
 
-image::apoc.refactor.invert.call.png[scaledwidth="100%"]
+If we execute this query, it will result in the following graph:
 
 image::apoc.refactor.invert.png[scaledwidth="100%"]
