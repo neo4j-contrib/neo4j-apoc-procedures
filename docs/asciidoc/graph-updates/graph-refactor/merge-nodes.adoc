@@ -50,6 +50,12 @@ Relationships properties are managed with the same nodes' method, if properties 
 //If relationships have same start and end nodes will be merged into one, and properties managed by the properties config.
 //If relationships have different start/end nodes (related to direction), relationships will be maintained and properties will be combine in all relationship.
 
+== Example Usage
+
+The examples below will help us learn how to use these procedures.
+
+=== Same start and end nodes
+
 .The following creates a graph containings relationships that have the same start and end nodes
 
 [source,cypher]
@@ -86,7 +92,10 @@ If we execute this query, it will result in the following graph:
 
 image::apoc.refactor.mergeNodes.resultFirstExample.png[scaledwidth="100%"]
 
-Since we have relationships with same start and end nodes, relationships are merged into one and properties are combined.
+Since we have relationships with same start and end nodes, relationships are merged and properties are combined.
+
+
+=== Different start and end nodes
 
 .The following creates a graph containings relationships that have different start or end nodes:
 
