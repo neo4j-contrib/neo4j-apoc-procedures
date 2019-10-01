@@ -6,6 +6,18 @@
 This section describes a procedure that can be used to create nodes from relationships.
 --
 
+The available procedure is described in the table below:
+
+[cols="1m,5"]
+|===
+| call apoc.refactor.extractNode([rel1,rel2,...], [labels], 'OUT','IN') | extract node from relationships
+|===
+
+== Example Usage
+
+The example below will help us learn how to use this procedure.
+
+.The following creates a graph containing two nodes connected by a relationship:
 [source,cypher]
 ----
 CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
@@ -13,13 +25,15 @@ CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
 
 image::apoc.refactor.extractNode.dataset.png[scaledwidth="100%"]
 
-We pass the ID of the relationship as parameter to extract a node
-
+.The following converts the `FOOBAR` relationship into a node with label `FOOBAR` that has an incoming `FOO` relationship and outgoing `BAR` relationship:
 [source,cypher]
 ----
-MATCH (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) WITH id(rel) as id
-CALL apoc.refactor.extractNode(id,['FooBar'],'FOO','BAR')
-YIELD input, output RETURN *
+MATCH (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar)
+CALL apoc.refactor.extractNode(rel,['FooBar'],'FOO','BAR')
+YIELD input, output
+RETURN input, output
 ----
+
+If we execute this query, it will result in the following graph:
 
 image::apoc.refactor.extractNode.png[scaledwidth="100%"]
