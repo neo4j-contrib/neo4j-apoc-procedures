@@ -85,7 +85,7 @@ public class ExportCypher {
         if (Util.isNullOrEmpty(fileName)) fileName=null;
         ExportConfig c = new ExportConfig(config);
         Result result = tx.execute(query);
-        SubGraph graph = CypherResultSubGraph.from(result, db, c.getRelsInBetween());
+        SubGraph graph = CypherResultSubGraph.from(tx, result, c.getRelsInBetween());
         String source = String.format("statement: nodes(%d), rels(%d)",
                 Iterables.count(graph.getNodes()), Iterables.count(graph.getRelationships()));
         return exportCypher(fileName, source, graph, c, false);

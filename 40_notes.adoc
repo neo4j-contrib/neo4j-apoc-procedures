@@ -45,5 +45,6 @@ NOTE: the following list is incomplete
 * `org.neo4j.cypher.export.SubGraphExporter` et.al have been removed in Neo4j -> we add the latest version of the sources to apoc
 
 * using `ImpermanentDatabaseRule` instead of `TestGraphDatabaseFactory...`
+* `ImpermanentDatabaseRule.withSetting()` takes now typed values instead of strings
 
 

@@ -63,7 +63,7 @@ public class CypherResultSubGraph implements SubGraph
         }
     }
 
-    public static SubGraph from( Result result, GraphDatabaseService gds, boolean addBetween )
+    public static SubGraph from(Transaction tx, Result result, boolean addBetween)
     {
         final CypherResultSubGraph graph = new CypherResultSubGraph();
         final List<String> columns = result.columns();
@@ -75,7 +75,7 @@ public class CypherResultSubGraph implements SubGraph
                 graph.addToGraph( value );
             }
         }
-        for ( IndexDefinition def : gds.schema().getIndexes() )
+        for ( IndexDefinition def : tx.schema().getIndexes() )
         {
             for ( Label label : def.getLabels() )
             {
@@ -86,7 +86,7 @@ public class CypherResultSubGraph implements SubGraph
                 }
             }
         }
-        for ( ConstraintDefinition def : gds.schema().getConstraints() )
+        for ( ConstraintDefinition def : tx.schema().getConstraints() )
         {
             if ( graph.getLabels().contains( def.getLabel() ) )
             {

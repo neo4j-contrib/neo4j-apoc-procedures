@@ -57,7 +57,7 @@ public class SchemaIndexTest {
                 .distinct()
                 .mapToObj(Long::new).collect(Collectors.toList());
         try (Transaction tx=db.beginTx()) {
-            db.schema().awaitIndexesOnline(2,TimeUnit.SECONDS);
+            tx.schema().awaitIndexesOnline(2,TimeUnit.SECONDS);
             tx.commit();
         }
     }

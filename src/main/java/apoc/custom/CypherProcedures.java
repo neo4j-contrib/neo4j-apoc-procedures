@@ -5,6 +5,7 @@ import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
+import org.neo4j.values.ValueMapper;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -27,6 +28,9 @@ public class CypherProcedures {
     @Context
     public CypherProceduresHandler cypherProceduresHandler;
 
+    @Context
+    public ValueMapper valueMapper;
+
     /*
      * store in graph properties, load at startup
      * allow to register proper params as procedure-params
@@ -42,7 +46,7 @@ public class CypherProcedures {
                             @Name(value= "description", defaultValue = "null") String description
     ) throws ProcedureException {
 //        debug(name,"before", ktx);
-        cypherProceduresHandler.storeProcedure(name, statement, mode, outputs, inputs, description);
+        cypherProceduresHandler.storeProcedure(valueMapper, name, statement, mode, outputs, inputs, description);
 //        debug(name, "after", ktx);
     }
 

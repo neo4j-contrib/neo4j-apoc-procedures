@@ -23,7 +23,6 @@ import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 import org.neo4j.scheduler.JobScheduler;
-import org.neo4j.values.ValueMapper;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -58,7 +57,6 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         DatabaseManagementService databaseManagementService();
         ApocConfig apocConfig();
         GlobalProceduresRegistry globalProceduresRegistry();
-        ValueMapper valueMapper();
     }
 
     @Override
@@ -125,8 +123,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
                         dependencies.databaseManagementService(),
                         dependencies.apocConfig(),
                         log.getUserLog(CypherProcedures.class),
-                        dependencies.globalProceduresRegistry(),
-                        dependencies.valueMapper()
+                        dependencies.globalProceduresRegistry()
                 ));
                 availabilityGuard.addListener(new CypherInitializer(db, log.getUserLog(CypherInitializer.class)));
 

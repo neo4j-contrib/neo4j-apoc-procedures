@@ -19,7 +19,7 @@ import org.neo4j.kernel.api.procedure.CallableProcedure;
 import org.neo4j.kernel.api.procedure.CallableUserFunction;
 import org.neo4j.kernel.api.procedure.Context;
 import org.neo4j.kernel.availability.AvailabilityListener;
-import org.neo4j.kernel.impl.factory.GraphDatabaseFacade;
+import org.neo4j.kernel.impl.coreapi.InternalTransaction;
 import org.neo4j.kernel.impl.util.DefaultValueMapper;
 import org.neo4j.kernel.impl.util.ValueUtils;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -63,16 +63,14 @@ public class CypherProceduresHandler implements AvailabilityListener {
     private final GlobalProceduresRegistry globalProceduresRegistry;
     private Timer timer = new Timer(getClass().getSimpleName(), true);
     private long lastUpdate;
-    private ValueMapper valueMapper;
     private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
 
 
-    public CypherProceduresHandler(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, ApocConfig apocConfig, Log userLog, GlobalProceduresRegistry globalProceduresRegistry, ValueMapper valueMapper) {
+    public CypherProceduresHandler(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, ApocConfig apocConfig, Log userLog, GlobalProceduresRegistry globalProceduresRegistry) {
         this.api = db;
         this.log = userLog;
         this.systemDb = apocConfig.getSystemDb();
         this.globalProceduresRegistry = globalProceduresRegistry;
-        this.valueMapper = valueMapper;
         cypherProceduresLifecyclesByDatabaseName.put(db.databaseName(), this);
         globalProceduresRegistry.registerComponent(CypherProceduresHandler.class, ctx -> {
             String databaseName = ctx.graphDatabaseAPI().databaseName();
@@ -112,6 +110,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
     private void restoreProcedures() {
         lastUpdate = System.currentTimeMillis();
         try (Transaction tx = systemDb.beginTx()) {
+            final ValueMapper valueMapper = new DefaultValueMapper((InternalTransaction) tx);
             tx.execute("MATCH (proc:ApocCypherProcedures:Procedure{database:$database}) RETURN properties(proc) as props",
                     Collections.singletonMap("database", api.databaseName()))
                     .columnAs("props").forEachRemaining(o -> {
@@ -122,7 +121,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
                             List<List<String>> inputs = Util.fromJson((String) props.get("inputs"), List.class);
                             List<List<String>> outputs = Util.fromJson((String) props.get("outputs"), List.class);
                             String description = (String) props.get("description");
-                            registerProcedure(name, statement, mode, outputs, inputs, description);
+                            registerProcedure(valueMapper, name, statement, mode, outputs, inputs, description);
 //                        String output = (String) props.getOrDefault("output", null);
 //                        boolean forceSingle = Boolean.parseBoolean((String) props.getOrDefault("forceSingle", "false"));
                         });
@@ -137,7 +136,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
                 String output = (String) props.getOrDefault("output", null);
                 boolean forceSingle = Boolean.parseBoolean((String) props.getOrDefault("forceSingle", "false"));
                 String description = (String) props.get("description");
-                registerFunction(name, statement, output, inputs, forceSingle, description);
+                registerFunction((InternalTransaction) tx, name, statement, output, inputs, forceSingle, description);
             });
             tx.commit();
         }
@@ -151,7 +150,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
         }
     }
 
-    public void storeProcedure(String name, String statement, String mode, List<List<String>> outputs, List<List<String>> inputs, String description) {
+    public void storeProcedure(ValueMapper valueMapper, String name, String statement, String mode, List<List<String>> outputs, List<List<String>> inputs, String description) {
         try (Transaction tx = systemDb.beginTx()) {
             Map<String, Object> props = MapUtil.map(
                     "database", api.databaseName(),
@@ -164,7 +163,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
             tx.execute("MERGE (proc:ApocCypherProcedures:Procedure{database:$params.database, name:$params.name) SET proc=$params",
                     Collections.singletonMap("params", props));
             setLastUpdate(tx);
-            registerProcedure(name, statement, mode, outputs, inputs, description);
+            registerProcedure(valueMapper, name, statement, mode, outputs, inputs, description);
             tx.commit();
         }
     }
@@ -182,7 +181,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
             tx.execute("MERGE (func:ApocCypherProcedures:Function{database:$params.database, name:$params.name) SET func=$params",
                     Collections.singletonMap("params", props));
             setLastUpdate(tx);
-            registerFunction(name, statement, output, inputs, forceSingle, description);
+            registerFunction((InternalTransaction) tx, name, statement, output, inputs, forceSingle, description);
             tx.commit();
         }
     }
@@ -268,7 +267,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
                 .collect(Collectors.toList());
     }*/
 
-    public boolean registerProcedure(@Name("name") String name, @Name("statement") String statement, @Name(value = "mode", defaultValue = "read") String mode, @Name(value = "outputs", defaultValue = "null") List<List<String>> outputs, @Name(value = "inputs", defaultValue = "null") List<List<String>> inputs, @Name(value= "description", defaultValue = "") String description) {
+    public boolean registerProcedure(ValueMapper valueMapper, String name, String statement, String mode, List<List<String>> outputs,  List<List<String>> inputs,  String description) {
         try {
             boolean admin = false; // TODO
             ProcedureSignature signature = new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
@@ -299,13 +298,13 @@ public class CypherProceduresHandler implements AvailabilityListener {
 
     }
 
-    public boolean registerFunction(String name, String statement, String output, List<List<String>> inputs, boolean forceSingle, String description)  {
+    public boolean registerFunction(InternalTransaction internalTransaction, String name, String statement, String output, List<List<String>> inputs, boolean forceSingle, String description)  {
         try {
             Neo4jTypes.AnyType outType = typeof(output.isEmpty() ? "LIST OF MAP" : output);
             UserFunctionSignature signature = new UserFunctionSignature(qualifiedName(name), inputSignatures(inputs), outType,
                     null, new String[0], description, false);
 
-            DefaultValueMapper defaultValueMapper = new DefaultValueMapper(api.getDependencyResolver().resolveDependency(GraphDatabaseFacade.class));
+            DefaultValueMapper defaultValueMapper = new DefaultValueMapper(internalTransaction);
 
             globalProceduresRegistry.register(new CallableUserFunction.BasicUserFunction(signature) {
                 @Override
