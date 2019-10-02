@@ -1,23 +1,23 @@
 package apoc.mongodb;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
+import org.bson.types.Binary;
+import org.bson.types.ObjectId;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -28,15 +28,19 @@ import java.util.stream.StreamSupport;
 class MongoDBColl implements MongoDB.Coll {
 
     private static final ObjectMapper jsonMapper = new ObjectMapper().enable(DeserializationFeature.USE_LONG_FOR_INTS);
-    private MongoCollection<Document> collection;
-    private MongoClient mongoClient;
+    public static final String ID = "_id";
+    private final MongoCollection<Document> collection;
+    private final MongoClient mongoClient;
     private boolean compatibleValues = false;
     private boolean doorStop = false;
+    private final MongoDatabase database;
+    private boolean extractReferences = false;
+    private boolean objectIdAsMap = true;
 
     public MongoDBColl(String url, String db, String coll) {
         MongoClientURI connectionString = new MongoClientURI(url);
         mongoClient = new MongoClient(connectionString);
-        MongoDatabase database = mongoClient.getDatabase(db);
+        database = mongoClient.getDatabase(db);
         collection = database.getCollection(coll);
     }
 
@@ -47,9 +51,12 @@ class MongoDBColl implements MongoDB.Coll {
      * @param coll
      * @param compatibleValues if true we convert the document to JSON and than back to a Map
      */
-    public MongoDBColl(String url, String db, String coll, Boolean compatibleValues) {
+    public MongoDBColl(String url, String db, String coll, boolean compatibleValues,
+                       boolean extractReferences, boolean objectIdAsMap) {
         this(url, db, coll);
         this.compatibleValues = compatibleValues;
+        this.extractReferences = extractReferences;
+        this.objectIdAsMap = objectIdAsMap;
     }
 
     @Override
@@ -67,31 +74,76 @@ class MongoDBColl implements MongoDB.Coll {
      * @return
      */
     private Map<String, Object> documentToPackableMap(Map<String, Object> document) {
+        return (Map<String, Object>) convertAndExtract(document);
+    }
+
+    public Object convertAndExtract(Object data) {
+        if (data == null) {
+            return null;
+        }
+        if (data instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) data;
+            return map.entrySet().stream()
+                    .map(e -> {
+                        Object value;
+                        if (ID.equals(e.getKey())) { // avoid circular conversions
+                            if (compatibleValues && objectIdAsMap) {
+                                try {
+                                    value = jsonMapper.readValue(jsonMapper.writeValueAsBytes(e.getValue()), Map.class);
+                                } catch (Exception exc) {
+                                    throw new RuntimeException("Cannot convert document to json and back to Map " + exc.getMessage());
+                                }
+                            } else {
+                                value = e.getValue().toString();
+                            }
+                        } else {
+                            value = convertAndExtract(e.getValue());
+                        }
+                        return new AbstractMap.SimpleEntry(e.getKey(), value);
+                    })
+                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+        }
+        if (data instanceof Collection) {
+            Collection<Object> collection = (Collection<Object>) data;
+            return collection.stream()
+                    .map(elem -> convertAndExtract(elem))
+                    .collect(Collectors.toList());
+        }
+        if (data.getClass().isArray()
+                && !(data.getClass().getComponentType().isPrimitive() || !data.getClass().getComponentType().equals(String.class))) {
+            return Stream.of((Object[]) data)
+                    .map(elem -> convertAndExtract(elem))
+                    .collect(Collectors.toList());
+        }
         if (compatibleValues) {
-            try {
-                return jsonMapper.readValue(jsonMapper.writeValueAsBytes(document), new TypeReference<Map<String, Object>>() {
-                });
-            } catch (Exception e) {
-                throw new RuntimeException("Cannot convert document to json and back to Map " + e.getMessage());
+            if (data instanceof Integer) {
+                return ((Integer) data).longValue();
+            }
+            if (data instanceof Float) {
+                return ((Float) data).doubleValue();
+            }
+            if (data instanceof Date) {
+                return LocalDateTime.ofInstant(((Date) data).toInstant(), ZoneId.systemDefault());
+            }
+            if (data instanceof Binary) {
+                return ((Binary) data).getData();
             }
         }
 
-        /**
-         * A document in MongoDB has a special field "_id" of type ObjectId
-         * This object is not "packable" by Neo4jPacker so it must be converted to a value that Neo4j can deal with
-         *
-         * If the document is not null we simply override the ObjectId instance with its string representation
-         */
-
-        if (document != null) {
-            Object objectId = document.get("_id");
-            if (objectId != null) {
-                document.put("_id", objectId.toString());
-            }
-
+        if (data instanceof ObjectId) {
+            return extractReferences ? extractReference((ObjectId) data) : data.toString();
         }
+        return data;
+    }
 
-        return document;
+    private Object extractReference(ObjectId objectId) {
+        return StreamSupport.stream(database.listCollectionNames().spliterator(), false)
+                .map(collectionName -> database.getCollection(collectionName))
+                .map(collection -> collection.find(new Document(ID, objectId)).first())
+                .filter(result -> result != null && !result.isEmpty())
+                .findFirst()
+                .map(this::documentToPackableMap)
+                .orElse(null);
     }
 
     @Override
