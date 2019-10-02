@@ -372,13 +372,13 @@ RETURN apoc.text.base64Decode("bmVvNGo=") // neo4j
 .Encode base 64 URL
 [source,cypher]
 ----
-RETURN apoc.text.base64EncodeUrl("http://neo4j.com/?test=test") // aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0
+RETURN apoc.text.base64UrlEncode("http://neo4j.com/?test=test") // aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0
 ----
 
 .Decode base 64 URL
 [source,cypher]
 ----
-RETURN apoc.text.base64DecodeUrl("aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0") // http://neo4j.com/?test=test
+RETURN apoc.text.base64UrlDecode("aHR0cDovL25lbzRqLmNvbS8_dGVzdD10ZXN0") // http://neo4j.com/?test=test
 ----
 
 [[text-functions-random-string]]
