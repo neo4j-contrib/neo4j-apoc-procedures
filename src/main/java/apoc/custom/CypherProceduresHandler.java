@@ -1,17 +1,15 @@
 package apoc.custom;
 
 import apoc.ApocConfig;
+import apoc.SystemLabels;
+import apoc.SystemPropertyKeys;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.collection.RawIterator;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.function.ThrowingFunction;
-import org.neo4j.graphdb.DatabaseShutdownException;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Result;
-import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterators;
-import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
 import org.neo4j.internal.kernel.api.procs.*;
 import org.neo4j.kernel.api.ResourceTracker;
@@ -45,7 +43,6 @@ import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
 import static java.util.Collections.singletonList;
-import static java.util.Collections.singletonMap;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.*;
 
 public class CypherProceduresHandler implements AvailabilityListener {
@@ -84,7 +81,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
             Method providerFor = ComponentRegistry.class.getDeclaredMethod("providerFor", Class.class);
             providerFor.setAccessible(true);
             ComponentRegistry safeComponents = (ComponentRegistry) field.get(globalProceduresRegistry);
-            transactionComponentFunction = (ThrowingFunction<Context, Transaction, ProcedureException>) providerFor.invoke(safeComponents);
+            transactionComponentFunction = (ThrowingFunction<Context, Transaction, ProcedureException>) providerFor.invoke(safeComponents, Transaction.class);
         } catch (NoSuchFieldException|NoSuchMethodException|IllegalAccessException| InvocationTargetException e) {
             throw new RuntimeException(e);
         }
@@ -111,33 +108,24 @@ public class CypherProceduresHandler implements AvailabilityListener {
         lastUpdate = System.currentTimeMillis();
         try (Transaction tx = systemDb.beginTx()) {
             final ValueMapper valueMapper = new DefaultValueMapper((InternalTransaction) tx);
-            tx.execute("MATCH (proc:ApocCypherProcedures:Procedure{database:$database}) RETURN properties(proc) as props",
-                    Collections.singletonMap("database", api.databaseName()))
-                    .columnAs("props").forEachRemaining(o -> {
-                            Map<String, Object> props = (Map<String, Object>) o;
-                            String name = (String) props.get("name");
-                            String statement = (String) props.get("statment");
-                            String mode = (String) props.getOrDefault("mode", null);
-                            List<List<String>> inputs = Util.fromJson((String) props.get("inputs"), List.class);
-                            List<List<String>> outputs = Util.fromJson((String) props.get("outputs"), List.class);
-                            String description = (String) props.get("description");
-                            registerProcedure(valueMapper, name, statement, mode, outputs, inputs, description);
-//                        String output = (String) props.getOrDefault("output", null);
-//                        boolean forceSingle = Boolean.parseBoolean((String) props.getOrDefault("forceSingle", "false"));
-                        });
+            tx.findNodes(SystemLabels.ApocCypherProcedures, SystemPropertyKeys.database.name(), api.databaseName())
+                .forEachRemaining(node -> {
 
-            tx.execute("MATCH (func:ApocCypherProcedures:Function{database:$database}) RETURN properties(func) as props",
-                    Collections.singletonMap("database", api.databaseName()))
-                    .columnAs("props").forEachRemaining(o -> {
-                Map<String, Object> props = (Map<String, Object>) o;
-                String name = (String) props.get("name");
-                String statement = (String) props.get("statment");
-                List<List<String>> inputs = Util.fromJson((String) props.get("inputs"), List.class);
-                String output = (String) props.getOrDefault("output", null);
-                boolean forceSingle = Boolean.parseBoolean((String) props.getOrDefault("forceSingle", "false"));
-                String description = (String) props.get("description");
-                registerFunction((InternalTransaction) tx, name, statement, output, inputs, forceSingle, description);
-            });
+                    String name = (String) node.getProperty("name");
+                    String statement = (String) node.getProperty("statment");
+                    List<List<String>> inputs = Util.fromJson((String) node.getProperty("inputs"), List.class);
+                    String description = (String) node.getProperty("description");
+                    if (node.hasLabel(SystemLabels.Procedure)) {
+                        String mode = (String) node.getProperty("mode", null);
+                        List<List<String>> outputs = Util.fromJson((String) node.getProperty("outputs"), List.class);
+                        registerProcedure(valueMapper, name, statement, mode, outputs, inputs, description);
+                    } else if (node.hasLabel(SystemLabels.Function)) {
+                        String output = (String) node.getProperty("output", null);
+                        boolean forceSingle = (boolean) node.getProperty("forceSingle", false);
+                        registerFunction((InternalTransaction) tx, name, statement, output, inputs, forceSingle, description);
+                    }
+                });
+
             tx.commit();
         }
         clearQueryCaches(api);
@@ -150,18 +138,30 @@ public class CypherProceduresHandler implements AvailabilityListener {
         }
     }
 
+    public static Node mergeNode(Transaction tx, Label primaryLabel, Label addtionalLabel,
+                                 String key1, Object value1, String key2, Object value2) {
+        Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, key1, value1, key2, value2).stream().filter(n -> n.hasLabel(addtionalLabel)).iterator());
+        if (node==null) {
+            node = tx.createNode(primaryLabel, addtionalLabel);
+            node.setProperty(key1, value1);
+            node.setProperty(key2, value2);
+        }
+        return node;
+    }
+
     public void storeProcedure(ValueMapper valueMapper, String name, String statement, String mode, List<List<String>> outputs, List<List<String>> inputs, String description) {
         try (Transaction tx = systemDb.beginTx()) {
-            Map<String, Object> props = MapUtil.map(
-                    "database", api.databaseName(),
-                    "name", name,
-                    "mode", mode,
-                    "outputs", Util.toJson(outputs),
-                    "inputs", Util.toJson(inputs),
-                    "description", description
-            );
-            tx.execute("MERGE (proc:ApocCypherProcedures:Procedure{database:$params.database, name:$params.name) SET proc=$params",
-                    Collections.singletonMap("params", props));
+
+            Node node = mergeNode(tx, SystemLabels.ApocCypherProcedures, SystemLabels.Procedure,
+                    SystemPropertyKeys.database.name(), api.databaseName(),
+                    SystemPropertyKeys.name.name(), name);
+
+            node.setProperty("description", description);
+            node.setProperty("inputs", Util.toJson(inputs));
+
+            node.setProperty("mode", mode);
+            node.setProperty("outputs", Util.toJson(outputs));
+
             setLastUpdate(tx);
             registerProcedure(valueMapper, name, statement, mode, outputs, inputs, description);
             tx.commit();
@@ -170,16 +170,17 @@ public class CypherProceduresHandler implements AvailabilityListener {
 
     public void storeFunction(String name, String statement, String output, List<List<String>> inputs, boolean forceSingle, String description) {
         try (Transaction tx = systemDb.beginTx()) {
-            Map<String, Object> props = MapUtil.map(
-                    "database", api.databaseName(),
-                    "name", name,
-                    "output", output,
-                    "inputs", Util.toJson(inputs),
-                    "forceSingle", forceSingle,
-                    "description", description
-            );
-            tx.execute("MERGE (func:ApocCypherProcedures:Function{database:$params.database, name:$params.name) SET func=$params",
-                    Collections.singletonMap("params", props));
+
+            Node node = mergeNode(tx, SystemLabels.ApocCypherProcedures, SystemLabels.Function,
+                    SystemPropertyKeys.database.name(), api.databaseName(),
+                    SystemPropertyKeys.name.name(), name);
+
+            node.setProperty("inputs", Util.toJson(inputs));
+            node.setProperty("description", description);
+
+            node.setProperty("output", output);
+            node.setProperty("forceSingle", forceSingle);
+
             setLastUpdate(tx);
             registerFunction((InternalTransaction) tx, name, statement, output, inputs, forceSingle, description);
             tx.commit();
@@ -206,16 +207,22 @@ public class CypherProceduresHandler implements AvailabilityListener {
     }*/
 
     private void setLastUpdate(Transaction tx) {
-        tx.execute("MERGE (meta:ApocCypherProceduresMeta{database:$database}) SET meta.lastUpdated=timestamp()",
-                Collections.singletonMap("database", api.databaseName()));
+        Node node = tx.findNode(SystemLabels.ApocCypherProceduresMeta, SystemPropertyKeys.database.name(), api.databaseName());
+        if (node == null) {
+            node = tx.createNode(SystemLabels.ApocCypherProceduresMeta);
+            node.setProperty(SystemPropertyKeys.database.name(), api.databaseName());
+        }
+        node.setProperty(SystemPropertyKeys.lastUpdated.name(), System.currentTimeMillis());
     }
 
     private long getLastUpdate() {
-        return systemDb.executeTransactionally("MATCH (meta:ApocCypherProceduresMeta{database:$database}) RETURN meta.lastUpdated as lastUpdated",
-                Collections.singletonMap("database", api.databaseName()),
-                result -> Iterators.single(result.columnAs("lastUpdated"), 0L)
-        );
-    }
+        try (Transaction tx = systemDb.beginTx()) {
+            Node node = tx.findNode(SystemLabels.ApocCypherProceduresMeta, SystemPropertyKeys.database.name(), api.databaseName());
+            long retVal = node == null ? 0L : (long) node.getProperty(SystemPropertyKeys.lastUpdated.name());
+            tx.commit();
+            return retVal;
+        }
+   }
 
     private void clearQueryCaches(GraphDatabaseService db) {
         db.executeTransactionally("call dbms.clearQueryCaches()");
@@ -223,22 +230,19 @@ public class CypherProceduresHandler implements AvailabilityListener {
 
     public Stream<Map<String, Object>> list() {
         try (Transaction tx = systemDb.beginTx()) {
-            Result result = tx.execute("MATCH (procOrFunc:ApocCypherProcedure{database:$database}) RETURN properties(procOrFunc) as props, labels(procOrFunc) as labels",
-                    singletonMap("database", api.databaseName()));
-            tx.commit();
-            return result.stream().map(m -> {
-                List<String> labels = (List<String>) m.get("labels");
-                Map<String, Object> props = (Map<String, Object>) m.get("props");
-                props.put("type", labels.contains("Procedure") ? PROCEDURE : FUNCTION);
+            return tx.findNodes(SystemLabels.ApocCypherProcedures, SystemPropertyKeys.database.name(), api.databaseName())
+                    .stream()
+                    .<Map<String, Object>>map(node -> {
+                        HashMap<String, Object> map = new HashMap<>(node.getAllProperties());
+                        map.put("type", node.hasLabel(SystemLabels.Procedure) ? PROCEDURE : FUNCTION);
+                        map.put("inputs", Util.fromJson((String) map.get("inputs"), List.class));
 
-                props.put("inputs", Util.fromJson((String) props.get("inputs"), List.class));
-
-                props.put("output",
-                        props.containsKey("outputs") ?
-                                Util.fromJson((String) props.get("outputs"), List.class) :
-                                props.get("output"));
-                return props;
-            });
+                        map.put("output",
+                                map.containsKey("outputs") ?
+                                        Util.fromJson((String) map.get("outputs"), List.class) :
+                                        map.get("output"));
+                        return map;
+                    }).onClose(() -> tx.commit());
         }
     }
 
