@@ -24,7 +24,7 @@ public class FileUtilsTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.allow_file_urls, "true");
+            .withSetting(GraphDatabaseSettings.allow_file_urls, true);
 
     @Rule
     public ProvideSystemProperty sysprops = new ProvideSystemProperty("foo", "bar");

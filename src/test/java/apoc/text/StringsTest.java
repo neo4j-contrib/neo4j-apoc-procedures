@@ -722,7 +722,7 @@ public class StringsTest {
     public void testToCypher() throws Exception {
         try (Transaction tx = db.beginTx()) {
             String stmtmt = "CREATE (f:Foo {foo:'foo',answer:42})-[fb:`F B` {fb:'fb',`an swer`:31}]->(b:`B ar` {bar:'bar',answer:41}) RETURN {f:f,fb:fb,b:b} AS data";
-            Map<String, Entity> data = (Map<String, Entity>) db.execute(stmtmt).columnAs("data").next();
+            Map<String, Entity> data = (Map<String, Entity>) tx.execute(stmtmt).columnAs("data").next();
             testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", data.get("f")), (row) -> assertEquals("(:Foo {answer:42,foo:'foo'})", row.get("value")));
             testCall(db, "RETURN apoc.text.toCypher($v,{node:'f'}) AS value", map("v", data.get("f")), (row) -> assertEquals("(f:Foo {answer:42,foo:'foo'})", row.get("value")));
             testCall(db, "RETURN apoc.text.toCypher($v,{skipKeys:['answer']}) AS value", map("v", data.get("f")), (row) -> assertEquals("(:Foo {foo:'foo'})", row.get("value")));

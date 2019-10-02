@@ -32,9 +32,9 @@ public class UtilTest {
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, Utils.class);
         try (Transaction tx = db.beginTx()) {
-            node = db.createNode(Label.label("User"));
+            node = tx.createNode(Label.label("User"));
             node.setProperty("name", "foo");
-            tx.success();
+            tx.commit();
         }
     }
 

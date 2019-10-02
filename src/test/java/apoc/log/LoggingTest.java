@@ -207,7 +207,7 @@ public class LoggingTest {
         TestUtil.registerProcedure(db, Logging.class);
 
         // when
-        db.execute("CALL apoc.log.warn('Prova %s', [1])");
+        db.executeTransactionally("CALL apoc.log.warn('Prova %s', [1])");
 
         // then
         logProvider.print(System.out);

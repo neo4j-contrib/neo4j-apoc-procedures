@@ -25,7 +25,7 @@ public class PathsTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, Paths.class);
-        db.execute("CREATE (a:A)-[:NEXT]->(b:B)-[:NEXT]->(c:C)-[:NEXT]->(d:D)").close();
+        db.executeTransactionally("CREATE (a:A)-[:NEXT]->(b:B)-[:NEXT]->(c:C)-[:NEXT]->(d:D)");
     }
 
     @Test

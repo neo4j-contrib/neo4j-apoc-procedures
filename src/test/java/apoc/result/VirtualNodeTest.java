@@ -1,10 +1,8 @@
 package apoc.result;
 
 import apoc.util.Util;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.exceptions.KernelException;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Relationship;
@@ -27,7 +25,7 @@ public class VirtualNodeTest {
     public void shouldCreateVirtualNode() {
         Map<String, Object> props = Util.map("key", "value");
         Label[] labels = {Label.label("Test")};
-        VirtualNode vn = new VirtualNode(labels, props, db);
+        VirtualNode vn = new VirtualNode(labels, props);
         assertTrue("the id should be < 0", vn.getId() < 0);
         assertEquals(props, vn.getAllProperties());
         Iterator<Label> it = vn.getLabels().iterator();
@@ -39,7 +37,7 @@ public class VirtualNodeTest {
     public void shouldCreateVirtualNodeWithRelationshipsTo() {
         Map<String, Object> startProps = Util.map("key", "value");
         Label[] startLabels = {Label.label("Test")};
-        VirtualNode start = new VirtualNode(startLabels, startProps, db);
+        VirtualNode start = new VirtualNode(startLabels, startProps);
         assertTrue("the node id should be < 0", start.getId() < 0);
         assertEquals(startProps, start.getAllProperties());
         Iterator<Label> startLabelIt = start.getLabels().iterator();
@@ -48,7 +46,7 @@ public class VirtualNodeTest {
 
         Map<String, Object> endProps = Util.map("key", "value");
         Label[] endLabels = {Label.label("Test")};
-        VirtualNode end = new VirtualNode(endLabels, endProps, db);
+        VirtualNode end = new VirtualNode(endLabels, endProps);
         assertTrue("the node id should be < 0", end.getId() < 0);
         assertEquals(endProps, end.getAllProperties());
         Iterator<Label> endLabelIt = end.getLabels().iterator();
@@ -76,7 +74,7 @@ public class VirtualNodeTest {
     public void shouldCreateVirtualNodeWithRelationshipsFrom() {
         Map<String, Object> startProps = Util.map("key", "value");
         Label[] startLabels = {Label.label("Test")};
-        VirtualNode start = new VirtualNode(startLabels, startProps, db);
+        VirtualNode start = new VirtualNode(startLabels, startProps);
         assertTrue("the node id should be < 0", start.getId() < 0);
         assertEquals(startProps, start.getAllProperties());
         Iterator<Label> startLabelIt = start.getLabels().iterator();
@@ -85,7 +83,7 @@ public class VirtualNodeTest {
 
         Map<String, Object> endProps = Util.map("key", "value");
         Label[] endLabels = {Label.label("Test")};
-        VirtualNode end = new VirtualNode(endLabels, endProps, db);
+        VirtualNode end = new VirtualNode(endLabels, endProps);
         assertTrue("the node id should be < 0", end.getId() < 0);
         assertEquals(endProps, end.getAllProperties());
         Iterator<Label> endLabelIt = end.getLabels().iterator();

@@ -23,6 +23,7 @@ import java.util.Map;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -33,7 +34,7 @@ public class MetaTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.procedure_unrestricted, "apoc.*");
+            .withSetting(GraphDatabaseSettings.procedure_unrestricted, singletonList("apoc.*"));
 
     @Before
     public void setUp() throws Exception {
@@ -48,11 +49,11 @@ public class MetaTest {
 
     @Test
     public void testMetaGraphExtraRels() throws Exception {
-        db.execute("CREATE (a:S1 {SomeName1:'aaa'})\n" +
+        db.executeTransactionally("CREATE (a:S1 {SomeName1:'aaa'})\n" +
                 "CREATE (b:S2 {SomeName2:'bbb'})\n" +
                 "CREATE (c:S3 {SomeName3:'ccc'})\n" +
                 "CREATE (a)-[:HAS]->(b)\n" +
-                "CREATE (b)-[:HAS]->(c)").close();
+                "CREATE (b)-[:HAS]->(c)");
 
         testCall(db, "call apoc.meta.graph()",(row) -> {
             List<Node> nodes = (List<Node>) row.get("nodes");
@@ -65,13 +66,13 @@ public class MetaTest {
     @Test
     public void testMetaType() throws Exception {
         try (Transaction tx = db.beginTx()) {
-            Node node = db.createNode();
+            Node node = tx.createNode();
             Relationship rel = node.createRelationshipTo(node, RelationshipType.withName("FOO"));
             testTypeName(node, "NODE");
             testTypeName(rel, "RELATIONSHIP");
-            Path path = db.traversalDescription().evaluator(toDepth(1)).traverse(node).iterator().next();
+            Path path = tx.traversalDescription().evaluator(toDepth(1)).traverse(node).iterator().next();
 // TODO PATH FAILS              testTypeName(path, "PATH");
-            tx.failure();
+            tx.rollback();
         }
         testTypeName(singletonMap("a", 10), "MAP");
         testTypeName(asList(1, 2), "LIST");
@@ -101,13 +102,13 @@ public class MetaTest {
     @Test
     public void testMetaIsType() throws Exception {
         try (Transaction tx = db.beginTx()) {
-            Node node = db.createNode();
+            Node node = tx.createNode();
             Relationship rel = node.createRelationshipTo(node, RelationshipType.withName("FOO"));
             testIsTypeName(node, "NODE");
             testIsTypeName(rel, "RELATIONSHIP");
-            Path path = db.traversalDescription().evaluator(toDepth(1)).traverse(node).iterator().next();
+            Path path = tx.traversalDescription().evaluator(toDepth(1)).traverse(node).iterator().next();
 // TODO PATH FAILS            testIsTypeName(path, "PATH");
-            tx.failure();
+            tx.rollback();
         }
         testIsTypeName(singletonMap("a", 10), "MAP");
         testIsTypeName(asList(1, 2), "LIST");
@@ -149,7 +150,7 @@ public class MetaTest {
 
     @Test
     public void testMetaStats() throws Exception {
-        db.execute("CREATE (:Actor)-[:ACTED_IN]->(:Movie) ").close();
+        db.executeTransactionally("CREATE (:Actor)-[:ACTED_IN]->(:Movie) ");
         TestUtil.testCall(db, "CALL apoc.meta.stats()", r -> {
             assertEquals(2L,r.get("labelCount"));
             assertEquals(1L,r.get("relTypeCount"));
@@ -165,7 +166,7 @@ public class MetaTest {
     }
     @Test
     public void testMetaGraph() throws Exception {
-        db.execute("CREATE (a:Actor)-[:ACTED_IN]->(m1:Movie),(a)-[:ACTED_IN]->(m2:Movie)").close();
+        db.executeTransactionally("CREATE (a:Actor)-[:ACTED_IN]->(m1:Movie),(a)-[:ACTED_IN]->(m2:Movie)");
         TestUtil.testCall(db, "CALL apoc.meta.graph()",
                 (row) -> {
                     List<Node> nodes = (List<Node>) row.get("nodes");
@@ -186,7 +187,7 @@ public class MetaTest {
 
     @Test
     public void testMetaGraph2() throws Exception {
-        db.execute("CREATE (:Actor)-[:ACTED_IN]->(:Movie) ").close();
+        db.executeTransactionally("CREATE (:Actor)-[:ACTED_IN]->(:Movie) ");
         TestUtil.testCall(db, "CALL apoc.meta.graphSample()",
                 (row) -> {
                     List<Node> nodes = (List<Node>) row.get("nodes");
@@ -207,9 +208,9 @@ public class MetaTest {
 
     @Test
     public void testMetaData() throws Exception {
-        db.execute("create index on :Movie(title)").close();
-        db.execute("create constraint on (a:Actor) assert a.name is unique").close();
-        db.execute("CREATE (:Actor {name:'Tom Hanks'})-[:ACTED_IN {roles:'Forrest'}]->(:Movie {title:'Forrest Gump'}) ").close();
+        db.executeTransactionally("create index on :Movie(title)");
+        db.executeTransactionally("create constraint on (a:Actor) assert a.name is unique");
+        db.executeTransactionally("CREATE (:Actor {name:'Tom Hanks'})-[:ACTED_IN {roles:'Forrest'}]->(:Movie {title:'Forrest Gump'}) ");
         TestUtil.testResult(db, "CALL apoc.meta.data()",
                 (r) -> {
                     int count = 0;
@@ -224,9 +225,9 @@ public class MetaTest {
 
     @Test
     public void testMetaSchema() {
-        db.execute("create index on :Movie(title)").close();
-        db.execute("create constraint on (p:Person) assert p.name is unique").close();
-        db.execute("CREATE (:Person:Actor:Director {name:'Tom', born:'05-06-1956', dead:false})-[:ACTED_IN {roles:'Forrest'}]->(:Movie {title:'Forrest Gump'})").close();
+        db.executeTransactionally("create index on :Movie(title)");
+        db.executeTransactionally("create constraint on (p:Person) assert p.name is unique");
+        db.executeTransactionally("CREATE (:Person:Actor:Director {name:'Tom', born:'05-06-1956', dead:false})-[:ACTED_IN {roles:'Forrest'}]->(:Movie {title:'Forrest Gump'})");
         testCall(db, "CALL apoc.meta.schema()",
                 (row) -> {
                     List<String> emprtyList = new ArrayList<String>();
@@ -290,7 +291,7 @@ public class MetaTest {
 
     @Test
     public void testSubGraphNoLimits() throws Exception {
-        db.execute("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)").close();
+        db.executeTransactionally("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)");
         testCall(db,"CALL apoc.meta.subGraph({})", (row) -> {
             List<Node> nodes = (List<Node>) row.get("nodes");
             List<Relationship> rels = (List<Relationship>) row.get("relationships");
@@ -302,7 +303,7 @@ public class MetaTest {
     }
     @Test
     public void testSubGraphLimitLabels() throws Exception {
-        db.execute("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)").close();
+        db.executeTransactionally("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)");
         testCall(db,"CALL apoc.meta.subGraph({labels:['A','B']})", (row) -> {
             List<Node> nodes = (List<Node>) row.get("nodes");
             List<Relationship> rels = (List<Relationship>) row.get("relationships");
@@ -314,7 +315,7 @@ public class MetaTest {
     }
     @Test
     public void testSubGraphLimitRelTypes() throws Exception {
-        db.execute("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)").close();
+        db.executeTransactionally("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)");
         testCall(db,"CALL apoc.meta.subGraph({rels:['X']})", (row) -> {
             List<Node> nodes = (List<Node>) row.get("nodes");
             List<Relationship> rels = (List<Relationship>) row.get("relationships");
@@ -326,7 +327,7 @@ public class MetaTest {
     }
     @Test
     public void testSubGraphExcludes() throws Exception {
-        db.execute("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)").close();
+        db.executeTransactionally("CREATE (:A)-[:X]->(b:B),(b)-[:Y]->(:C)");
         testCall(db,"CALL apoc.meta.subGraph({excludes:['B']})", (row) -> {
             List<Node> nodes = (List<Node>) row.get("nodes");
             List<Relationship> rels = (List<Relationship>) row.get("relationships");
@@ -476,31 +477,31 @@ public class MetaTest {
 
     @Test
     public void testMetaPoint() throws Exception {
-        db.execute("CREATE (:TEST {born:point({ longitude: 56.7, latitude: 12.78, height: 100 })})");
+        db.executeTransactionally("CREATE (:TEST {born:point({ longitude: 56.7, latitude: 12.78, height: 100 })})");
 
         TestUtil.testCall(db, "MATCH (t:TEST) WITH t.born as born RETURN apoc.meta.cypher.type(born) AS value", row -> assertEquals("POINT", row.get("value")));
     }
 
     @Test
     public void testMetaDuration() throws Exception {
-        db.execute("CREATE (:TEST {duration:duration('P5M1DT12H')})");
+        db.executeTransactionally("CREATE (:TEST {duration:duration('P5M1DT12H')})");
 
         TestUtil.testCall(db, "MATCH (t:TEST) WITH t.duration as duration RETURN apoc.meta.cypher.type(duration) AS value", row -> assertEquals("DURATION", row.get("value")));
     }
 
     @Test
     public void testMetaDataWithSample() throws Exception {
-        db.execute("create index on :Person(name)").close();
-        db.execute("CREATE (:Person {name:'Tom'})").close();
-        db.execute("CREATE (:Person {name:'John', surname:'Brown'})").close();
-        db.execute("CREATE (:Person {name:'Nick'})").close();
-        db.execute("CREATE (:Person {name:'Daisy', surname:'Bob'})").close();
-        db.execute("CREATE (:Person {name:'Elizabeth'})").close();
-        db.execute("CREATE (:Person {name:'Jack', surname:'White'})").close();
-        db.execute("CREATE (:Person {name:'Joy'})").close();
-        db.execute("CREATE (:Person {name:'Sarah', surname:'Taylor'})").close();
-        db.execute("CREATE (:Person {name:'Jane'})").close();
-        db.execute("CREATE (:Person {name:'Jeff', surname:'Logan'})").close();
+        db.executeTransactionally("create index on :Person(name)");
+        db.executeTransactionally("CREATE (:Person {name:'Tom'})");
+        db.executeTransactionally("CREATE (:Person {name:'John', surname:'Brown'})");
+        db.executeTransactionally("CREATE (:Person {name:'Nick'})");
+        db.executeTransactionally("CREATE (:Person {name:'Daisy', surname:'Bob'})");
+        db.executeTransactionally("CREATE (:Person {name:'Elizabeth'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jack', surname:'White'})");
+        db.executeTransactionally("CREATE (:Person {name:'Joy'})");
+        db.executeTransactionally("CREATE (:Person {name:'Sarah', surname:'Taylor'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jane'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jeff', surname:'Logan'})");
         TestUtil.testResult(db, "CALL apoc.meta.data({sample:2})",
                 (r) -> {
                     Map<String, Object>  personNameProperty = r.next();
@@ -514,21 +515,21 @@ public class MetaTest {
 
     @Test
     public void testMetaDataWithSampleNormalized() throws Exception {
-        db.execute("create index on :Person(name)").close();
-        db.execute("CREATE (:Person {name:'Tom'})").close();
-        db.execute("CREATE (:Person {name:'John'})").close();
-        db.execute("CREATE (:Person {name:'Nick'})").close();
-        db.execute("CREATE (:Person {name:'Daisy', surname:'Bob'})").close();
-        db.execute("CREATE (:Person {name:'Elizabeth'})").close();
-        db.execute("CREATE (:Person {name:'Jack'})").close();
-        db.execute("CREATE (:Person {name:'Joy'})").close();
-        db.execute("CREATE (:Person {name:'Sarah'})").close();
-        db.execute("CREATE (:Person {name:'Jane'})").close();
-        db.execute("CREATE (:Person {name:'Jeff', surname:'Logan'})").close();
-        db.execute("CREATE (:City {name:'Milano'})").close();
-        db.execute("CREATE (:City {name:'Roma'})").close();
-        db.execute("CREATE (:City {name:'Firenze'})").close();
-        db.execute("CREATE (:City {name:'Taormina', region:'Sicilia'})").close();
+        db.executeTransactionally("create index on :Person(name)");
+        db.executeTransactionally("CREATE (:Person {name:'Tom'})");
+        db.executeTransactionally("CREATE (:Person {name:'John'})");
+        db.executeTransactionally("CREATE (:Person {name:'Nick'})");
+        db.executeTransactionally("CREATE (:Person {name:'Daisy', surname:'Bob'})");
+        db.executeTransactionally("CREATE (:Person {name:'Elizabeth'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jack'})");
+        db.executeTransactionally("CREATE (:Person {name:'Joy'})");
+        db.executeTransactionally("CREATE (:Person {name:'Sarah'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jane'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jeff', surname:'Logan'})");
+        db.executeTransactionally("CREATE (:City {name:'Milano'})");
+        db.executeTransactionally("CREATE (:City {name:'Roma'})");
+        db.executeTransactionally("CREATE (:City {name:'Firenze'})");
+        db.executeTransactionally("CREATE (:City {name:'Taormina', region:'Sicilia'})");
         TestUtil.testResult(db, "CALL apoc.meta.data({sample:5})",
                 (r) -> {
                     Map<String, Object>  personNameProperty = r.next();
@@ -549,17 +550,17 @@ public class MetaTest {
 
     @Test
     public void testMetaDataWithSample5() throws Exception {
-        db.execute("create index on :Person(name)").close();
-        db.execute("CREATE (:Person {name:'John', surname:'Brown'})").close();
-        db.execute("CREATE (:Person {name:'Daisy', surname:'Bob'})").close();
-        db.execute("CREATE (:Person {name:'Nick'})").close();
-        db.execute("CREATE (:Person {name:'Jack', surname:'White'})").close();
-        db.execute("CREATE (:Person {name:'Elizabeth'})").close();
-        db.execute("CREATE (:Person {name:'Joy'})").close();
-        db.execute("CREATE (:Person {name:'Sarah', surname:'Taylor'})").close();
-        db.execute("CREATE (:Person {name:'Jane'})").close();
-        db.execute("CREATE (:Person {name:'Jeff', surname:'Logan'})").close();
-        db.execute("CREATE (:Person {name:'Tom'})").close();
+        db.executeTransactionally("create index on :Person(name)");
+        db.executeTransactionally("CREATE (:Person {name:'John', surname:'Brown'})");
+        db.executeTransactionally("CREATE (:Person {name:'Daisy', surname:'Bob'})");
+        db.executeTransactionally("CREATE (:Person {name:'Nick'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jack', surname:'White'})");
+        db.executeTransactionally("CREATE (:Person {name:'Elizabeth'})");
+        db.executeTransactionally("CREATE (:Person {name:'Joy'})");
+        db.executeTransactionally("CREATE (:Person {name:'Sarah', surname:'Taylor'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jane'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jeff', surname:'Logan'})");
+        db.executeTransactionally("CREATE (:Person {name:'Tom'})");
         TestUtil.testResult(db, "CALL apoc.meta.data({sample:5})",
                 (r) -> {
                     Map<String, Object>  personNameProperty = r.next();
@@ -569,17 +570,17 @@ public class MetaTest {
 
     @Test
     public void testSchemaWithSample() {
-        db.execute("create constraint on (p:Person) assert p.name is unique").close();
-        db.execute("CREATE (:Person {name:'Tom'})").close();
-        db.execute("CREATE (:Person {name:'John', surname:'Brown'})").close();
-        db.execute("CREATE (:Person {name:'Nick'})").close();
-        db.execute("CREATE (:Person {name:'Daisy', surname:'Bob'})").close();
-        db.execute("CREATE (:Person {name:'Elizabeth'})").close();
-        db.execute("CREATE (:Person {name:'Jack', surname:'White'})").close();
-        db.execute("CREATE (:Person {name:'Joy'})").close();
-        db.execute("CREATE (:Person {name:'Sarah', surname:'Taylor'})").close();
-        db.execute("CREATE (:Person {name:'Jane'})").close();
-        db.execute("CREATE (:Person {name:'Jeff', surname:'Logan'})").close();
+        db.executeTransactionally("create constraint on (p:Person) assert p.name is unique");
+        db.executeTransactionally("CREATE (:Person {name:'Tom'})");
+        db.executeTransactionally("CREATE (:Person {name:'John', surname:'Brown'})");
+        db.executeTransactionally("CREATE (:Person {name:'Nick'})");
+        db.executeTransactionally("CREATE (:Person {name:'Daisy', surname:'Bob'})");
+        db.executeTransactionally("CREATE (:Person {name:'Elizabeth'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jack', surname:'White'})");
+        db.executeTransactionally("CREATE (:Person {name:'Joy'})");
+        db.executeTransactionally("CREATE (:Person {name:'Sarah', surname:'Taylor'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jane'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jeff', surname:'Logan'})");
         testCall(db, "CALL apoc.meta.schema({sample:2})",
                 (row) -> {
 
@@ -603,17 +604,17 @@ public class MetaTest {
 
     @Test
     public void testSchemaWithSample5() {
-        db.execute("create constraint on (p:Person) assert p.name is unique").close();
-        db.execute("CREATE (:Person {name:'Tom'})").close();
-        db.execute("CREATE (:Person {name:'John', surname:'Brown'})").close();
-        db.execute("CREATE (:Person {name:'Nick'})").close();
-        db.execute("CREATE (:Person {name:'Daisy', surname:'Bob'})").close();
-        db.execute("CREATE (:Person {name:'Elizabeth'})").close();
-        db.execute("CREATE (:Person {name:'Jack', surname:'White'})").close();
-        db.execute("CREATE (:Person {name:'Joy'})").close();
-        db.execute("CREATE (:Person {name:'Sarah', surname:'Taylor'})").close();
-        db.execute("CREATE (:Person {name:'Jane'})").close();
-        db.execute("CREATE (:Person {name:'Jeff', surname:'Logan'})").close();
+        db.executeTransactionally("create constraint on (p:Person) assert p.name is unique");
+        db.executeTransactionally("CREATE (:Person {name:'Tom'})");
+        db.executeTransactionally("CREATE (:Person {name:'John', surname:'Brown'})");
+        db.executeTransactionally("CREATE (:Person {name:'Nick'})");
+        db.executeTransactionally("CREATE (:Person {name:'Daisy', surname:'Bob'})");
+        db.executeTransactionally("CREATE (:Person {name:'Elizabeth'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jack', surname:'White'})");
+        db.executeTransactionally("CREATE (:Person {name:'Joy'})");
+        db.executeTransactionally("CREATE (:Person {name:'Sarah', surname:'Taylor'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jane'})");
+        db.executeTransactionally("CREATE (:Person {name:'Jeff', surname:'Logan'})");
         testCall(db, "CALL apoc.meta.schema({sample:5})",
                 (row) -> {
 
@@ -634,16 +635,16 @@ public class MetaTest {
 
     @Test
     public void testMetaGraphExtraRelsWithSample() throws Exception {
-        db.execute("CREATE (:S1 {name:'Tom'})").close();
-        db.execute("CREATE (:S2 {name:'John', surname:'Brown'})-[:KNOWS{since:2012}]->(:S7)").close();
-        db.execute("CREATE (:S1 {name:'Nick'})").close();
-        db.execute("CREATE (:S3 {name:'Daisy', surname:'Bob'})-[:KNOWS{since:2012}]->(:S7)").close();
-        db.execute("CREATE (:S1 {name:'Elizabeth'})").close();
-        db.execute("CREATE (:S4 {name:'Jack', surname:'White'})-[:KNOWS{since:2012}]->(:S7)").close();
-        db.execute("CREATE (:S1 {name:'Joy'})").close();
-        db.execute("CREATE (:S5 {name:'Sarah', surname:'Taylor'})-[:KNOWS{since:2012}]->(:S7)").close();
-        db.execute("CREATE (:S1 {name:'Jane'})").close();
-        db.execute("CREATE (:S6 {name:'Jeff', surname:'Logan'})-[:KNOWS{since:2012}]->(:S7)").close();
+        db.executeTransactionally("CREATE (:S1 {name:'Tom'})");
+        db.executeTransactionally("CREATE (:S2 {name:'John', surname:'Brown'})-[:KNOWS{since:2012}]->(:S7)");
+        db.executeTransactionally("CREATE (:S1 {name:'Nick'})");
+        db.executeTransactionally("CREATE (:S3 {name:'Daisy', surname:'Bob'})-[:KNOWS{since:2012}]->(:S7)");
+        db.executeTransactionally("CREATE (:S1 {name:'Elizabeth'})");
+        db.executeTransactionally("CREATE (:S4 {name:'Jack', surname:'White'})-[:KNOWS{since:2012}]->(:S7)");
+        db.executeTransactionally("CREATE (:S1 {name:'Joy'})");
+        db.executeTransactionally("CREATE (:S5 {name:'Sarah', surname:'Taylor'})-[:KNOWS{since:2012}]->(:S7)");
+        db.executeTransactionally("CREATE (:S1 {name:'Jane'})");
+        db.executeTransactionally("CREATE (:S6 {name:'Jeff', surname:'Logan'})-[:KNOWS{since:2012}]->(:S7)");
 
         testCall(db, "call apoc.meta.graph({sample:2})",(row) -> {
             List<Node> nodes = (List<Node>) row.get("nodes");

@@ -5,6 +5,7 @@ import apoc.util.Util;
 import org.junit.*;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.*;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.JdbcDatabaseContainer;
@@ -61,7 +62,8 @@ public class ModelTest {
                         "config", Util.map("schema", "test",
                                 "credentials", Util.map("user", mysql.getUsername(), "password", mysql.getPassword()))),
                 (row) -> {
-                    Long count = (Long) db.execute("MATCH (n) RETURN count(n) AS count").columnAs("count").next();
+                    Long count = db.executeTransactionally("MATCH (n) RETURN count(n) AS count", null,
+                            result -> Iterators.single(result.columnAs("count")));
                     assertEquals(0L, count.longValue());
                     List<Node> nodes = (List<Node>) row.get("nodes");
                     List<Relationship> rels = (List<Relationship>) row.get("relationships");
@@ -115,8 +117,10 @@ public class ModelTest {
                                 "write", true,
                                 "credentials", Util.map("user", mysql.getUsername(), "password", mysql.getPassword()))),
                 (row) -> {
-                    List<Node> nodes = (List<Node>) db.execute("MATCH (n) RETURN collect(distinct n) AS nodes").columnAs("nodes").next();
-                    List<Relationship> rels = (List<Relationship>) db.execute("MATCH ()-[r]-() RETURN collect(distinct r) AS rels").columnAs("rels").next();
+                    List<Node> nodes = db.executeTransactionally("MATCH (n) RETURN collect(distinct n) AS nodes", null,
+                            result -> Iterators.single(result.columnAs("nodes")));
+                    List<Relationship> rels = db.executeTransactionally("MATCH ()-[r]-() RETURN collect(distinct r) AS rels", null,
+                            result -> Iterators.single(result.columnAs("rels")));
                     assertEquals( 28, nodes.size());
                     assertEquals( 27, rels.size());
 

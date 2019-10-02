@@ -8,12 +8,11 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-import org.neo4j.values.storable.LocalDateTimeValue;
 
 import java.net.URL;
 import java.time.LocalDate;
@@ -41,7 +40,7 @@ public class LoadXlsTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, "true");
+            .withSetting(ApocSettings.apoc_import_file_enabled, true);
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadXls.class);
@@ -55,7 +54,11 @@ public class LoadXlsTest {
                 });
     }
     @Test public void testLoadBrokenHeader() throws Exception {
-        BiFunction<String,Boolean,Long> query = (sheet,header) -> db.execute("CALL apoc.load.xls({url},{sheet},{header:{header}}) yield map return count(*) as c", map("header",header,"sheet",sheet,"url", brokenHeader)).<Long>columnAs("c").next();
+        BiFunction<String,Boolean,Long> query = (sheet,header) -> db.executeTransactionally(
+                "CALL apoc.load.xls({url},{sheet},{header:{header}}) yield map return count(*) as c",
+                map("header",header,"sheet",sheet,"url", brokenHeader ),
+                result -> Iterators.single(result.columnAs("c")));
+
         try {
             query.apply("temp",true);
             fail("Should fail with Header Error");

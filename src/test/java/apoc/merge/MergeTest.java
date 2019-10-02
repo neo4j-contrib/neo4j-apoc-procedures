@@ -41,7 +41,7 @@ public class MergeTest {
 
     @Test
     public void testMergeNodeWithPreExisting() throws Exception {
-        db.execute("CREATE (p:Person{ssid:'123', name:'Jim'})");
+        db.executeTransactionally("CREATE (p:Person{ssid:'123', name:'Jim'})");
         testCall(db, "CALL apoc.merge.node(['Person'],{ssid:'123'}, {name:'John'}) YIELD node RETURN node",
                 (row) -> {
                     Node node = (Node) row.get("node");
@@ -57,7 +57,7 @@ public class MergeTest {
 
     @Test
     public void testMergeRelationships() throws Exception {
-        db.execute("create (:Person{name:'Foo'}), (:Person{name:'Bar'})");
+        db.executeTransactionally("create (:Person{name:'Foo'}), (:Person{name:'Bar'})");
 
         testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship(s, 'KNOWS', {rid:123}, {since:'Thu'}, e) YIELD rel RETURN rel",
                 (row) -> {
@@ -144,7 +144,7 @@ public class MergeTest {
 
     @Test
     public void testMergeEagerNodeWithOnMatch() throws Exception {
-        db.execute("CREATE (p:Person:Bastard {ssid:'123'})");
+        db.executeTransactionally("CREATE (p:Person:Bastard {ssid:'123'})");
         testCall(db, "CALL apoc.merge.node.eager(['Person','Bastard'],{ssid:'123'}, {name:'John'}, {occupation:'juggler'}) YIELD node RETURN node",
                 (row) -> {
                     Node node = (Node) row.get("node");
@@ -158,10 +158,10 @@ public class MergeTest {
 
     @Test
     public void testMergeEagerNodesWithOnMatchCanMergeOnMultipleMatches() throws Exception {
-        db.execute("UNWIND range(1,5) as index MERGE (:Person:`Bastard Man`{ssid:'123', index:index})");
+        db.executeTransactionally("UNWIND range(1,5) as index MERGE (:Person:`Bastard Man`{ssid:'123', index:index})");
 
         try (Transaction tx = db.beginTx()) {
-            Result result = db.execute("CALL apoc.merge.node.eager(['Person','Bastard Man'],{ssid:'123'}, {name:'John'}, {occupation:'juggler'}) YIELD node RETURN node");
+            Result result = tx.execute("CALL apoc.merge.node.eager(['Person','Bastard Man'],{ssid:'123'}, {name:'John'}, {occupation:'juggler'}) YIELD node RETURN node");
 
             for (long index = 1; index <= 5; index++) {
                 Node node = (Node) result.next().get("node");
@@ -179,7 +179,7 @@ public class MergeTest {
 
     @Test
     public void testMergeEagerRelationships() throws Exception {
-        db.execute("create (:Person{name:'Foo'}), (:Person{name:'Bar'})");
+        db.executeTransactionally("create (:Person{name:'Foo'}), (:Person{name:'Bar'})");
 
         testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship.eager(s, 'KNOWS', {rid:123}, {since:'Thu'}, e) YIELD rel RETURN rel",
                 (row) -> {
@@ -206,7 +206,7 @@ public class MergeTest {
 
     @Test
     public void testMergeEagerRelationshipsWithOnMatch() throws Exception {
-        db.execute("create (:Person{name:'Foo'}), (:Person{name:'Bar'})");
+        db.executeTransactionally("create (:Person{name:'Foo'}), (:Person{name:'Bar'})");
 
         testCall(db, "MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship.eager(s, 'KNOWS', {rid:123}, {since:'Thu'}, e,{until:'Saturday'}) YIELD rel RETURN rel",
                 (row) -> {
@@ -228,10 +228,10 @@ public class MergeTest {
 
     @Test
     public void testMergeEagerRelationshipsWithOnMatchCanMergeOnMultipleMatches() throws Exception {
-        db.execute("CREATE (foo:Person{name:'Foo'}), (bar:Person{name:'Bar'}) WITH foo, bar UNWIND range(1,3) as index CREATE (foo)-[:KNOWS {rid:123}]->(bar)");
+        db.executeTransactionally("CREATE (foo:Person{name:'Foo'}), (bar:Person{name:'Bar'}) WITH foo, bar UNWIND range(1,3) as index CREATE (foo)-[:KNOWS {rid:123}]->(bar)");
 
         try (Transaction tx = db.beginTx()) {
-            Result result = db.execute("MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship.eager(s, 'KNOWS', {rid:123}, {}, e, {since:'Fri'}) YIELD rel RETURN rel");
+            Result result = tx.execute("MERGE (s:Person{name:'Foo'}) MERGE (e:Person{name:'Bar'}) WITH s,e CALL apoc.merge.relationship.eager(s, 'KNOWS', {rid:123}, {}, e, {since:'Fri'}) YIELD rel RETURN rel");
 
             for (long index = 1; index <= 3; index++) {
                 Relationship rel = (Relationship) result.next().get("rel");

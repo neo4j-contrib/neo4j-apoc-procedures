@@ -20,14 +20,14 @@ public class NeighborsTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Neighbors.class);
-        db.execute("CREATE (a:First), " +
+        db.executeTransactionally("CREATE (a:First), " +
                 "(b:Neighbor), " +
                 "(c:Neighbor), " +
                 "(d:Neighbor), " +
                 "(a)-[:KNOWS]->(b), " +
                 "(b)-[:KNOWS]->(a), " +
                 "(b)-[:KNOWS]->(c), " +
-                "(c)-[:KNOWS]->(d) ").close();
+                "(c)-[:KNOWS]->(d) ");
     }
 
     @Test

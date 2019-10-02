@@ -91,14 +91,14 @@ public class ExportXlsTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
-            .withSetting(ApocSettings.apoc_export_file_enabled, "true");
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath())
+            .withSetting(ApocSettings.apoc_export_file_enabled, true);
 
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, ExportXls.class, Graphs.class);
-        db.execute("CREATE (f:User1:User {name:'foo',age:42,male:true,kids:['a','b','c'],location:point({longitude: 11.8064153, latitude: 48.1716114}),dob:date({ year:1984, month:10, day:11 }), created: datetime()})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})").close();
-        db.execute("CREATE (f:Address1:Address {name:'Andrea', city: 'Milano', street:'Via Garibaldi, 7'})-[:NEXT_DELIVERY]->(a:Address {name: 'Bar Sport'}), (b:Address {street: 'via Benni'})").close();
+        db.executeTransactionally("CREATE (f:User1:User {name:'foo',age:42,male:true,kids:['a','b','c'],location:point({longitude: 11.8064153, latitude: 48.1716114}),dob:date({ year:1984, month:10, day:11 }), created: datetime()})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})");
+        db.executeTransactionally("CREATE (f:Address1:Address {name:'Andrea', city: 'Milano', street:'Via Garibaldi, 7'})-[:NEXT_DELIVERY]->(a:Address {name: 'Bar Sport'}), (b:Address {street: 'via Benni'})");
     }
 
     @Test
@@ -154,14 +154,14 @@ public class ExportXlsTest {
             Workbook wb = WorkbookFactory.create(inp);
 
             int numberOfSheets = wb.getNumberOfSheets();
-            assertEquals(Iterables.count(db.getAllLabels()) + Iterables.count(db.getAllRelationshipTypes()), numberOfSheets);
+            assertEquals(Iterables.count(tx.getAllLabels()) + Iterables.count(tx.getAllRelationshipTypes()), numberOfSheets);
 
-            for (Label label: db.getAllLabels()) {
-                long numberOfNodes = Iterators.count(db.findNodes(label));
+            for (Label label: tx.getAllLabels()) {
+                long numberOfNodes = Iterators.count(tx.findNodes(label));
                 Sheet sheet = wb.getSheet(label.name());
                 assertEquals(numberOfNodes, sheet.getLastRowNum());
             }
-            tx.success();
+            tx.commit();
         } catch (IOException|InvalidFormatException e) {
             throw new RuntimeException(e);
         }

@@ -8,10 +8,10 @@ import org.neo4j.graphdb.Entity;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.Util.map;
@@ -26,14 +26,13 @@ public class GraphAggregationTest {
 
     @BeforeClass public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, apoc.agg.Graph.class);
-        db.execute("CREATE (a:A {id:'a'})-[:AB {id:'ab'}]->(b:B {id:'b'})-[:BC {id:'bc'}]->(c:C {id:'c'}),(a)-[:AC {id:'ac'}]->(c)").close();
+        db.executeTransactionally("CREATE (a:A {id:'a'})-[:AB {id:'ab'}]->(b:B {id:'b'})-[:BC {id:'bc'}]->(c:C {id:'c'}),(a)-[:AC {id:'ac'}]->(c)");
     }
 
     @Test
     public void testGraph() throws Exception {
-        Map<String, Entity> pcs = new HashMap<>();
-        db.execute("MATCH (n) RETURN n.id as id, n UNION ALL MATCH ()-[n]->() RETURN n.id as id, n")
-                .stream().forEach(row -> pcs.put(row.get("id").toString(), (Entity)row.get("n")));
+        Map<String, Entity> pcs = db.executeTransactionally("MATCH (n) RETURN n.id as id, n UNION ALL MATCH ()-[n]->() RETURN n.id as id, n", null,
+                result -> result.stream().collect(Collectors.toMap(row -> row.get("id").toString(), row -> (Entity) row.get("n)"))));
 
         testCall(db, "RETURN apoc.agg.graph(null) as g",
                 (row) -> {

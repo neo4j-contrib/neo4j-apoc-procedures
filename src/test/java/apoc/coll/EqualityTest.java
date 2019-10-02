@@ -2,13 +2,10 @@ package apoc.coll;
 
 import apoc.util.ArrayBackedIterator;
 import apoc.util.ArrayBackedList;
-import apoc.util.TestUtil;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphalgo.impl.util.PathImpl;
 import org.neo4j.graphdb.*;
-import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -166,8 +163,8 @@ public class EqualityTest {
     public void testGraphEntities() throws Exception {
 
         try (Transaction tx = db.beginTx()) {
-            Node n1 = db.createNode();
-            Node n2 = db.createNode();
+            Node n1 = tx.createNode();
+            Node n2 = tx.createNode();
             Relationship r1 = n1.createRelationshipTo(n2, RelationshipType.withName("TEST"));
             Relationship r2 = n2.createRelationshipTo(n1, RelationshipType.withName("TEST"));
 

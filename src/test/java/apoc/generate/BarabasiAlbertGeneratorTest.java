@@ -17,8 +17,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-
 /**
  * Integration test for {@link Neo4jGraphGenerator} with {@link BarabasiAlbertRelationshipGenerator}.
  */
@@ -38,10 +36,10 @@ public class BarabasiAlbertGeneratorTest {
         List<Integer> degrees = new LinkedList<>();
 
         try (Transaction tx = db.beginTx()) {
-            for (Node node : db.getAllNodes()) {
+            for (Node node : tx.getAllNodes()) {
                 degrees.add(node.getDegree());
             }
-            tx.success();
+            tx.commit();
         }
 
         Collections.sort(degrees, Collections.reverseOrder());

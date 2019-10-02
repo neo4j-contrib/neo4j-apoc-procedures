@@ -35,8 +35,8 @@ public class TTLTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, Date.class);
-        db.execute("CREATE (n:Foo:TTL) SET n.ttl = timestamp() + 100").close();
-        db.execute("CREATE (n:Bar) WITH n CALL apoc.date.expireIn(n,500,'ms') RETURN count(*)").close();
+        db.executeTransactionally("CREATE (n:Foo:TTL) SET n.ttl = timestamp() + 100");
+        db.executeTransactionally("CREATE (n:Bar) WITH n CALL apoc.date.expireIn(n,500,'ms') RETURN count(*)");
         testNodes(1,1);
     }
 
@@ -48,10 +48,10 @@ public class TTLTest {
 
     private static void testNodes(int foo, int bar) {
         try (Transaction tx=db.beginTx()) {
-            assertEquals(foo, Iterators.count(db.findNodes(Label.label("Foo"))));
-            assertEquals(bar, Iterators.count(db.findNodes(Label.label("Bar"))));
-            assertEquals(foo + bar, Iterators.count(db.findNodes(Label.label("TTL"))));
-            tx.success();
+            assertEquals(foo, Iterators.count(tx.findNodes(Label.label("Foo"))));
+            assertEquals(bar, Iterators.count(tx.findNodes(Label.label("Bar"))));
+            assertEquals(foo + bar, Iterators.count(tx.findNodes(Label.label("TTL"))));
+            tx.commit();
         }
     }
 }

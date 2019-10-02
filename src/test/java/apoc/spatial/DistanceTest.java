@@ -9,7 +9,10 @@ import org.neo4j.graphdb.*;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -59,7 +62,7 @@ public class DistanceTest {
         int i = 0;
         try (Transaction tx = db.beginTx()) {
             List<Path> paths = new ArrayList<>();
-            Result result = db.execute("MATCH (a:Point {name:'bruges'}), (b:Point {name:'dresden'}) " +
+            Result result = tx.execute("MATCH (a:Point {name:'bruges'}), (b:Point {name:'dresden'}) " +
             "MATCH p=(a)-[*]->(b) RETURN p");
             while (result.hasNext()) {
                 Map<String, Object> record = result.next();
@@ -69,37 +72,35 @@ public class DistanceTest {
             int z = 0;
             SortedSet<DistancePathResult> sorted = distanceProc.sortPaths(paths);
             double lastDistance = 0.0;
-            Iterator<DistancePathResult> it = sorted.iterator();
-            while (it.hasNext()) {
+            for (DistancePathResult distancePathResult : sorted) {
                 ++z;
-                DistancePathResult d = it.next();
-                assertTrue(d.distance > lastDistance);
-                lastDistance = d.distance;
+                assertTrue(distancePathResult.distance > lastDistance);
+                lastDistance = distancePathResult.distance;
             }
             assertEquals(3, z);
-            tx.success();
+            tx.commit();
         }
         assertEquals(3, i);
     }
 
     private void createPoints() {
         try (Transaction tx = db.beginTx()) {
-            Node bruges = db.createNode(Label.label(LABEL));
+            Node bruges = tx.createNode(Label.label(LABEL));
             bruges.setProperty(NAME, "bruges");
             bruges.setProperty(LAT, 51.2605829);
             bruges.setProperty(LONG, 3.0817189);
 
-            Node brussels = db.createNode(Label.label(LABEL));
+            Node brussels = tx.createNode(Label.label(LABEL));
             brussels.setProperty(NAME, "brussels");
             brussels.setProperty(LAT, 50.854954);
             brussels.setProperty(LONG, 4.3051786);
 
-            Node paris = db.createNode(Label.label(LABEL));
+            Node paris = tx.createNode(Label.label(LABEL));
             paris.setProperty(NAME, "paris");
             paris.setProperty(LAT, 48.8588376);
             paris.setProperty(LONG, 2.2773455);
 
-            Node dresden = db.createNode(Label.label(LABEL));
+            Node dresden = tx.createNode(Label.label(LABEL));
             dresden.setProperty(NAME, "dresden");
             dresden.setProperty(LAT, 51.0767496);
             dresden.setProperty(LONG, 13.6321595);
@@ -110,7 +111,7 @@ public class DistanceTest {
             bruges.createRelationshipTo(paris, RelationshipType.withName(RELATES));
             paris.createRelationshipTo(dresden, RelationshipType.withName(RELATES));
 
-            tx.success();
+            tx.commit();
         }
     }
 

@@ -7,8 +7,12 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -35,11 +39,11 @@ public class GraphsTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db,Graphs.class);
-        Result result = db.execute("CREATE (a:Actor {name:'Tom Hanks'})-[r:ACTED_IN {roles:'Forrest'}]->(m:Movie {title:'Forrest Gump'}) RETURN [a,m] as nodes, [r] as relationships");
-        while (result.hasNext()) {
-            graph.putAll(result.next());
-        }
-
+        db.executeTransactionally("CREATE (a:Actor {name:'Tom Hanks'})-[r:ACTED_IN {roles:'Forrest'}]->(m:Movie {title:'Forrest Gump'}) RETURN [a,m] as nodes, [r] as relationships", null,
+                result -> {
+                    result.stream().forEach(m -> graph.putAll(m));
+                    return null;
+                });
     }
 
     @Test
@@ -111,7 +115,7 @@ public class GraphsTest {
                     assertEquals("ALBUMS", rel.getType().name());
                     assertTrue(rel.getId() > 0);
                 });
-        db.execute("MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) detach delete p").close();
+        db.executeTransactionally("MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) detach delete p");
     }
 
     @Test
@@ -262,7 +266,7 @@ public class GraphsTest {
                     assertEquals("ALBUMS", rel.getType().name());
                     assertTrue(rel.getId() > 0);
                 });
-        db.execute("MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) detach delete p").close();
+        db.executeTransactionally("MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) detach delete p");
     }
 
     @Test
@@ -366,7 +370,7 @@ public class GraphsTest {
                     assertEquals("ALBUMS", rel.getType().name());
                     assertTrue(rel.getId() > 0);
                 });
-        db.execute("MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) detach delete p").close();
+        db.executeTransactionally("MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) detach delete p");
     }
 
     @Test(expected = RuntimeException.class)
@@ -535,10 +539,11 @@ public class GraphsTest {
         TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(list), "config", Util.map("write", true)),
                 result -> {
-                    Map<String, Object> res = db.execute("MATCH p = (a:User{id: 1})-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User{id: 2}) RETURN count(p) AS count").next();
-                    assertEquals(1L, res.get("count"));
+                    long count = db.executeTransactionally("MATCH p = (a:User{id: 1})-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User{id: 2}) RETURN count(p) AS count", null,
+                            innerResult -> Iterators.single(innerResult.columnAs("count")));
+                    assertEquals(1L, count);
                 });
-        db.execute("MATCH p = (a:User)-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User) detach delete p").close();
+        db.executeTransactionally("MATCH p = (a:User)-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User) detach delete p");
     }
 
     @Test(expected = RuntimeException.class)

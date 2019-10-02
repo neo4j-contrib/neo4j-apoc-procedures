@@ -14,7 +14,9 @@ import org.neo4j.graphdb.Result;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,11 +34,14 @@ public class LoadRelativePathTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, "true")
-            .withSetting(GraphDatabaseSettings.allow_file_urls, "true")
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, PATH);
+            .withSetting(ApocSettings.apoc_import_file_enabled, true)
+            .withSetting(GraphDatabaseSettings.allow_file_urls, true)
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, Path.of(RESOURCE.toURI()));
 
-    private static String PATH = new File(LoadRelativePathTest.class.getClassLoader().getResource("test.csv").getPath()).getParent();
+    public static final URL RESOURCE = LoadRelativePathTest.class.getClassLoader().getResource("test.csv");
+
+    public LoadRelativePathTest() throws URISyntaxException {
+    }
 
     @Before public void setUp() throws Exception {
         TestUtil.registerProcedure(db, LoadCsv.class, LoadJson.class, Xml.class);

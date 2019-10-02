@@ -55,9 +55,9 @@ public class BarabasiAlbertGeneratorParameterizedTest {
                 new SocialNetworkRelationshipCreator()
         ));
         try (Transaction tx = db.beginTx()) {
-            assertEquals(numberOfNodes, Iterables.count(db.getAllNodes()));
-            assertEquals(numberOfNodes * numberOfEdges - (numberOfEdges * (numberOfEdges + 1) / 2), Iterables.count( db.getAllRelationships()));
-            tx.success();
+            assertEquals(numberOfNodes, Iterables.count(tx.getAllNodes()));
+            assertEquals(numberOfNodes * numberOfEdges - (numberOfEdges * (numberOfEdges + 1) / 2), Iterables.count( tx.getAllRelationships()));
+            tx.commit();
         }
     }
 }

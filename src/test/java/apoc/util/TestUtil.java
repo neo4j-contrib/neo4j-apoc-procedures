@@ -4,8 +4,11 @@ import com.google.common.io.Files;
 import org.hamcrest.Matcher;
 import org.neo4j.exceptions.KernelException;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.api.procedure.GlobalProcedures;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
@@ -16,6 +19,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -66,16 +70,17 @@ public class TestUtil {
         testResult(db, call, params, (res) -> assertFalse("Expected no results", res.hasNext()) );
     }
 
-    public static void testCallCount( GraphDatabaseService db, String call, Map<String,Object> params, final int count ) {
-        testResult( db, call, params, ( res ) -> {
-            int left = count;
-            while ( left > 0 ) {
-                assertTrue( "Expected " + count + " results, but got only " + (count - left), res.hasNext() );
-                res.next();
-                left--;
-            }
-            assertFalse( "Expected " + count + " results, but there are more ", res.hasNext() );
-        } );
+    public static long count(GraphDatabaseService db, String cypher, Map<String, Object> params) {
+        return db.executeTransactionally(cypher, params, result -> Iterators.count(result));
+    }
+
+    public static void testCallCount( GraphDatabaseService db, String call, final int expected ) {
+        testCallCount(db, call, Collections.emptyMap(), expected);
+    }
+
+    public static void testCallCount( GraphDatabaseService db, String call, Map<String,Object> params, final int expected ) {
+        long count = count(db, call, params);
+        assertEquals("expected " + expected + " results, got " + count, (long)expected, count);
     }
 
     public static void testFail(GraphDatabaseService db, String call, Class<? extends Exception> t) {
@@ -98,7 +103,7 @@ public class TestUtil {
     public static void testResult(GraphDatabaseService db, String call, Map<String,Object> params, Consumer<Result> resultConsumer) {
         try (Transaction tx = db.beginTx()) {
             Map<String, Object> p = (params == null) ? Collections.emptyMap() : params;
-            Result result = db.execute(call, p);
+            Result result = tx.execute(call, p);
             resultConsumer.accept(result);
             tx.commit();
         } catch (RuntimeException e) {
@@ -208,5 +213,25 @@ public class TestUtil {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static <T> ResourceIterator<T> iteratorSingleColumn(Result result) {
+        return result.columnAs(Iterables.single(result.columns()));
+    }
+
+    public static <T> T singleResultFirstColumn(GraphDatabaseService db, String cypher) {
+        return singleResultFirstColumn(db, cypher, null);
+    }
+
+    public static <T> T singleResultFirstColumn(GraphDatabaseService db, String cypher, Map<String,Object> params) {
+        return db.executeTransactionally(cypher, params, result -> Iterators.single(iteratorSingleColumn(result)));
+    }
+
+    public static <T> List<T> firstColumn(GraphDatabaseService db, String cypher, Map<String,Object> params) {
+        return db.executeTransactionally(cypher , params, result -> Iterators.asList(iteratorSingleColumn(result)));
+    }
+
+    public static <T> List<T> firstColumn(GraphDatabaseService db, String cypher) {
+        return db.executeTransactionally(cypher , null, result -> Iterators.asList(iteratorSingleColumn(result)));
     }
 }

@@ -94,16 +94,16 @@ public class ExportCsvTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
-            .withSetting(ApocSettings.apoc_export_file_enabled, "true");
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath())
+            .withSetting(ApocSettings.apoc_export_file_enabled, true);
     
     private static MiniDFSCluster miniDFSCluster;
 
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, ExportCSV.class, Graphs.class);
-        db.execute("CREATE (f:User1:User {name:'foo',age:42,male:true,kids:['a','b','c']})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})").close();
-        db.execute("CREATE (f:Address1:Address {name:'Andrea', city: 'Milano', street:'Via Garibaldi, 7'})-[:NEXT_DELIVERY]->(a:Address {name: 'Bar Sport'}), (b:Address {street: 'via Benni'})").close();
+        db.executeTransactionally("CREATE (f:User1:User {name:'foo',age:42,male:true,kids:['a','b','c']})-[:KNOWS]->(b:User {name:'bar',age:42}),(c:User {age:12})");
+        db.executeTransactionally("CREATE (f:Address1:Address {name:'Andrea', city: 'Milano', street:'Via Garibaldi, 7'})-[:NEXT_DELIVERY]->(a:Address {name: 'Bar Sport'}), (b:Address {street: 'via Benni'})");
         miniDFSCluster = HdfsTestUtils.getLocalHDFSCluster();
     }
 
@@ -406,7 +406,7 @@ public class ExportCsvTest {
                 "This article is distributed by The American Society for Cell Biology under license from the author(s). Two months after publication it is available to the public under an Attribution-Noncommercial-Share Alike 3.0 Unported Creative Commons License.\n" +
                 "\n";
         String pk = "5921569";
-        db.execute("CREATE (n:Document{pk:{pk}, copyright: {copyright}})", map("copyright", copyright, "pk", pk)).close();
+        db.executeTransactionally("CREATE (n:Document{pk:{pk}, copyright: {copyright}})", map("copyright", copyright, "pk", pk));
         String query = "MATCH (n:Document{pk:'5921569'}) return n.pk as pk, n.copyright as copyright";
         TestUtil.testCall(db, "CALL apoc.export.csv.query({query}, null, {config})", map("query", query,
                 "config", map("stream", true)),
@@ -416,7 +416,7 @@ public class ExportCsvTest {
                     assertArrayEquals(new String[]{"pk","copyright"}, csv.get(0));
                     assertArrayEquals(new String[]{"5921569",copyright}, csv.get(1));
                 });
-        db.execute("MATCH (d:Document) DETACH DELETE d").close();
+        db.executeTransactionally("MATCH (d:Document) DETACH DELETE d");
 
     }
 

@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
@@ -20,7 +19,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.runners.Parameterized.*;
+import static org.junit.runners.Parameterized.Parameters;
 
 /**
  * Integration test for {@link Neo4jGraphGenerator} with
@@ -61,9 +60,9 @@ public class ErdosRenyiGeneratorTest {
         ));
 
         try (Transaction tx = db.beginTx()) {
-            assertEquals(numberOfNodes, Iterables.count( db.getAllNodes()));
-            assertEquals(numberOfEdges, Iterables.count( db.getAllRelationships()));
-            tx.success();
+            assertEquals(numberOfNodes, Iterables.count( tx.getAllNodes()));
+            assertEquals(numberOfEdges, Iterables.count( tx.getAllRelationships()));
+            tx.commit();
         }
     }
 

@@ -67,7 +67,7 @@ public class PathFindingTest {
 
     @Test
     public void testAStar() {
-        db.execute(SETUP_GEO).close();
+        db.executeTransactionally(SETUP_GEO);
         testResult(db,
                 "MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'}) " +
                         "CALL apoc.algo.aStar(from, to, 'DIRECT', 'dist', 'lat', 'lon') yield path, weight " +
@@ -78,7 +78,7 @@ public class PathFindingTest {
 
     @Test
     public void testAStarConfig() {
-        db.execute(SETUP_GEO).close();
+        db.executeTransactionally(SETUP_GEO);
         testResult(db,
                 "MATCH (from:City {name:'München'}), (to:City {name:'Hamburg'}) " +
                         "CALL apoc.algo.aStarConfig(from, to, 'DIRECT', {weight:'dist',y:'lat', x:'lon',default:100}) yield path, weight " +
@@ -102,7 +102,7 @@ public class PathFindingTest {
 
     @Test
     public void testDijkstra() {
-        db.execute(SETUP_SIMPLE).close();
+        db.executeTransactionally(SETUP_SIMPLE);
         testCall(db,
             "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
             "CALL apoc.algo.dijkstra(from, to, 'ROAD>', 'd') yield path, weight " +
@@ -125,7 +125,7 @@ public class PathFindingTest {
 
     @Test
     public void testDijkstraWithDefaultWeight() {
-        db.execute(SETUP_MISSING_PROPERTY).close();
+        db.executeTransactionally(SETUP_MISSING_PROPERTY);
         testCall(db,
                 "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
                         "CALL apoc.algo.dijkstraWithDefaultWeight(from, to, 'ROAD>', 'd', 10.5) yield path, weight " +
@@ -139,7 +139,7 @@ public class PathFindingTest {
 
     @Test
     public void testDijkstraMultipleShortest() {
-        db.execute(SETUP_SIMPLE).close();
+        db.executeTransactionally(SETUP_SIMPLE);
         testResult(db,
                 "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
                         "CALL apoc.algo.dijkstra(from, to, 'ROAD>', 'd', 99999, 3) yield path, weight " +
@@ -161,7 +161,7 @@ public class PathFindingTest {
 
     @Test
     public void testAllSimplePaths() {
-        db.execute(SETUP_MISSING_PROPERTY).close();
+        db.executeTransactionally(SETUP_MISSING_PROPERTY);
         testResult(db,
                 "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
                         "CALL apoc.algo.allSimplePaths(from, to, 'ROAD>', 3) yield path " +
@@ -180,7 +180,7 @@ public class PathFindingTest {
     }
     @Test
     public void testAllSimplePathResults() {
-        db.execute(SETUP_MISSING_PROPERTY).close();
+        db.executeTransactionally(SETUP_MISSING_PROPERTY);
         testResult(db,
                 "MATCH (from:Loc{name:'A'}), (to:Loc{name:'D'}) " +
                         "CALL apoc.algo.allSimplePaths(from, to, 'ROAD>', 3) yield path " +

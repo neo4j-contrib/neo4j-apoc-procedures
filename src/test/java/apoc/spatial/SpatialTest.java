@@ -1,6 +1,5 @@
 package apoc.spatial;
 
-import apoc.ApocConfig;
 import apoc.ApocSettings;
 import apoc.date.Date;
 import apoc.util.JsonUtil;
@@ -9,7 +8,6 @@ import apoc.util.Util;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.Result;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 import org.neo4j.test.rule.DbmsRule;
@@ -24,14 +22,13 @@ import java.util.stream.Stream;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.*;
 import static java.util.Collections.emptyMap;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class SpatialTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, "true");
+            .withSetting(ApocSettings.apoc_import_file_enabled, true);
 
     private Map<String, Map<String, Object>> eventNodes = new LinkedHashMap<>();
     private Map<String, Map<String, Object>> spaceNodes = new LinkedHashMap<>();
@@ -90,9 +87,9 @@ public class SpatialTest {
 
     private void addEventData(Map<String, Object> event) {
         Map<String, Object> params = map("params", event);
-        Result result = db.execute("CREATE (e:Event {params})", params);
-        int created = result.getQueryStatistics().getNodesCreated();
-        assertTrue("Expected a node to be created", created == 1);
+        int created = db.executeTransactionally("CREATE (e:Event $params)", params,
+                result -> result.getQueryStatistics().getNodesCreated());
+        assertEquals("Expected a node to be created", 1, created);
         String name = event.get("name").toString();
         if (!event.containsKey("toofar")) {
             spaceNodes.put(name, event);

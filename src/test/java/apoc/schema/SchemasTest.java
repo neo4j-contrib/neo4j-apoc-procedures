@@ -15,6 +15,7 @@ import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -32,7 +33,7 @@ public class SchemasTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.procedure_unrestricted, "apoc.*");
+            .withSetting(GraphDatabaseSettings.procedure_unrestricted, Collections.singletonList("apoc.*"));
 
     @Before
     public void setUp() throws Exception {
@@ -75,7 +76,7 @@ public class SchemasTest {
 
     @Test
     public void testDropIndexWhenUsingDropExisting() throws Exception {
-        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testCall(db, "CALL apoc.schema.assert(null,null)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals("bar", r.get("key"));
@@ -90,7 +91,7 @@ public class SchemasTest {
 
     @Test
     public void testDropIndexAndCreateIndexWhenUsingDropExisting() throws Exception {
-        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testResult(db, "CALL apoc.schema.assert({Bar:['foo']},null)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -112,7 +113,7 @@ public class SchemasTest {
 
     @Test
     public void testRetainIndexWhenNotUsingDropExisting() throws Exception {
-        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testResult(db, "CALL apoc.schema.assert({Bar:['foo', 'bar']}, null, false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -140,7 +141,7 @@ public class SchemasTest {
 
     @Test
     public void testDropSchemaWhenUsingDropExisting() throws Exception {
-        db.execute("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE");
         testCall(db, "CALL apoc.schema.assert(null,null)", (r) -> {
             assertEquals("Foo", r.get("label"));
             assertEquals("bar", r.get("key"));
@@ -155,7 +156,7 @@ public class SchemasTest {
 
     @Test
     public void testDropSchemaAndCreateSchemaWhenUsingDropExisting() throws Exception {
-        db.execute("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE");
         testResult(db, "CALL apoc.schema.assert(null, {Bar:['foo']})", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -177,7 +178,7 @@ public class SchemasTest {
 
     @Test
     public void testRetainSchemaWhenNotUsingDropExisting() throws Exception {
-        db.execute("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE");
         testResult(db, "CALL apoc.schema.assert(null, {Bar:['foo', 'bar']}, false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -205,7 +206,7 @@ public class SchemasTest {
 
     @Test
     public void testKeepIndex() throws Exception {
-        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testResult(db, "CALL apoc.schema.assert({Foo:['bar', 'foo']},null,false)", (result) -> { 
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -227,7 +228,7 @@ public class SchemasTest {
 
     @Test
     public void testKeepSchema() throws Exception {
-        db.execute("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (f:Foo) ASSERT f.bar IS UNIQUE");
         testResult(db, "CALL apoc.schema.assert(null,{Foo:['bar', 'foo']})", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -250,10 +251,10 @@ public class SchemasTest {
 
     @Test
     public void testIndexes() {
-        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         try (Transaction tx = db.beginTx()) {
             db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
-            tx.success();
+            tx.commit();
         }
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             // Get the index info
@@ -275,7 +276,7 @@ public class SchemasTest {
 
     @Test
     public void testIndexExists() {
-        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testResult(db, "RETURN apoc.schema.node.indexExists('Foo', ['bar'])", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals(true, r.entrySet().iterator().next().getValue());
@@ -284,7 +285,7 @@ public class SchemasTest {
 
     @Test
     public void testIndexNotExists() {
-        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testResult(db, "RETURN apoc.schema.node.indexExists('Bar', ['foo'])", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals(false, r.entrySet().iterator().next().getValue());
@@ -295,7 +296,7 @@ public class SchemasTest {
 
     @Test
     public void testUniquenessConstraintOnNode() {
-        db.execute("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE");
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             Map<String, Object> r = result.next();
 
@@ -310,8 +311,8 @@ public class SchemasTest {
 
     @Test
     public void testIndexAndUniquenessConstraintOnNode() {
-        db.execute("CREATE INDEX ON :Foo(foo)").close();
-        db.execute("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.bar IS UNIQUE").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(foo)");
+        db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.bar IS UNIQUE");
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             Map<String, Object> r = result.next();
 
@@ -331,7 +332,7 @@ public class SchemasTest {
 
     @Test
     public void testDropCompoundIndexWhenUsingDropExisting() throws Exception {
-        db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         testResult(db, "CALL apoc.schema.assert(null,null,true)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -347,7 +348,7 @@ public class SchemasTest {
 
     @Test
     public void testDropCompoundIndexAndRecreateWithDropExisting() throws Exception {
-        db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,true)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -363,7 +364,7 @@ public class SchemasTest {
 
     @Test
     public void testDoesntDropCompoundIndexWhenSupplyingSameCompoundIndex() throws Exception {
-        db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -381,7 +382,7 @@ public class SchemasTest {
     */
     @Test
     public void testKeepCompoundIndex() throws Exception {
-        db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa'], ['foo','faa']]},null,false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -403,7 +404,7 @@ public class SchemasTest {
 
     @Test
     public void testDropIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
-        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         testResult(db, "CALL apoc.schema.assert({Bar:[['foo','bar']]},null)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -425,7 +426,7 @@ public class SchemasTest {
 
     @Test
     public void testDropCompoundIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
-        db.execute("CREATE INDEX ON :Foo(bar,baa)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -452,13 +453,13 @@ public class SchemasTest {
 
     @Test
     public void testIndexesOneLabel() {
-        db.execute("CREATE INDEX ON :Foo(bar)").close();
-        db.execute("CREATE INDEX ON :Bar(foo)").close();
-        db.execute("CREATE INDEX ON :Person(name)").close();
-        db.execute("CREATE INDEX ON :Movie(title)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
+        db.executeTransactionally("CREATE INDEX ON :Bar(foo)");
+        db.executeTransactionally("CREATE INDEX ON :Person(name)");
+        db.executeTransactionally("CREATE INDEX ON :Movie(title)");
         try (Transaction tx = db.beginTx()) {
             db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
-            tx.success();
+            tx.commit();
         }
         testResult(db, "CALL apoc.schema.nodes({labels:['Foo']})", (result) -> {
             // Get the index info
@@ -480,13 +481,13 @@ public class SchemasTest {
 
     @Test
     public void testIndexesMoreLabels() {
-        db.execute("CREATE INDEX ON :Foo(bar)").close();
-        db.execute("CREATE INDEX ON :Bar(foo)").close();
-        db.execute("CREATE INDEX ON :Person(name)").close();
-        db.execute("CREATE INDEX ON :Movie(title)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
+        db.executeTransactionally("CREATE INDEX ON :Bar(foo)");
+        db.executeTransactionally("CREATE INDEX ON :Person(name)");
+        db.executeTransactionally("CREATE INDEX ON :Movie(title)");
         try (Transaction tx = db.beginTx()) {
             db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
-            tx.success();
+            tx.commit();
         }
         testResult(db, "CALL apoc.schema.nodes({labels:['Foo', 'Person']})", (result) -> {
             // Get the index info
@@ -521,7 +522,7 @@ public class SchemasTest {
     @Test
     public void testSchemaRelationshipsExclude() {
         ignoreException(() -> {
-            db.execute("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)").close();
+            db.executeTransactionally("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
             testResult(db, "CALL apoc.schema.relationships({excludeRelationships:['LIKED']})", (result) -> {
                 assertTrue(!result.hasNext());
             });
@@ -532,7 +533,7 @@ public class SchemasTest {
     @Test
     public void testSchemaNodesExclude() {
         ignoreException(() -> {
-            db.execute("CREATE CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE").close();
+            db.executeTransactionally("CREATE CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE");
             testResult(db, "CALL apoc.schema.nodes({excludeLabels:['Book']})", (result) -> {
                 assertTrue(!result.hasNext());
             });
@@ -542,13 +543,13 @@ public class SchemasTest {
 
     @Test(expected = QueryExecutionException.class)
     public void testIndexesLabelsAndExcludeLabelsValuatedShouldFail() {
-        db.execute("CREATE INDEX ON :Foo(bar)").close();
-        db.execute("CREATE INDEX ON :Bar(foo)").close();
-        db.execute("CREATE INDEX ON :Person(name)").close();
-        db.execute("CREATE INDEX ON :Movie(title)").close();
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
+        db.executeTransactionally("CREATE INDEX ON :Bar(foo)");
+        db.executeTransactionally("CREATE INDEX ON :Person(name)");
+        db.executeTransactionally("CREATE INDEX ON :Movie(title)");
         try (Transaction tx = db.beginTx()) {
             db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
-            tx.success();
+            tx.commit();
             testResult(db, "CALL apoc.schema.nodes({labels:['Foo', 'Person', 'Bar'], excludeLabels:['Bar']})", (result) -> {});
         } catch (IllegalArgumentException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
@@ -561,11 +562,11 @@ public class SchemasTest {
 
     @Test(expected = QueryExecutionException.class)
     public void testConstraintsRelationshipsAndExcludeRelationshipsValuatedShouldFail() {
-        db.execute("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)").close();
-        db.execute("CREATE CONSTRAINT ON ()-[knows:SINCE]-() ASSERT exists(since.year)").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
+        db.executeTransactionally("CREATE CONSTRAINT ON ()-[knows:SINCE]-() ASSERT exists(since.year)");
         try (Transaction tx = db.beginTx()) {
             db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
-            tx.success();
+            tx.commit();
             testResult(db, "CALL apoc.schema.relationships({relationships:['LIKED'], excludeRelationships:['SINCE']})", (result) -> {});
         } catch (IllegalArgumentException e) {
             Throwable except = ExceptionUtils.getRootCause(e);

@@ -48,14 +48,14 @@ public class Neo4jGraphGeneratorTest {
         new Neo4jGraphGenerator(db).generateGraph(config);
 
         try (Transaction tx = db.beginTx()) {
-            assertEquals(4, count(db.getAllNodes()));
-            assertEquals(4, count(db.getAllRelationships()));
+            assertEquals(4, count(tx.getAllNodes()));
+            assertEquals(4, count(tx.getAllRelationships()));
 
-            for (Node node : db.getAllNodes()) {
+            for (Node node : tx.getAllNodes()) {
                 assertEquals(2, node.getDegree());
             }
 
-            tx.success();
+            tx.commit();
         }
     }
 

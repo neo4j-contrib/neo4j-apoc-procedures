@@ -29,26 +29,26 @@ public class LockTest {
 
         Node node;
         try (Transaction tx = db.beginTx()) {
-            node = db.createNode();
-            tx.success();
+            node = tx.createNode();
+            tx.commit();
         }
 
         try (Transaction tx = db.beginTx()) {
-            final Object n = Iterators.single(db.execute("match (n) CALL apoc.lock.read.nodes([n]) return n").columnAs("n"));
+            final Object n = Iterators.single(tx.execute("match (n) CALL apoc.lock.read.nodes([n]) return n").columnAs("n"));
             assertEquals(n, node);
 
             final Thread thread = new Thread(() -> {
-                db.execute("match (n) delete n");
+                db.executeTransactionally("match (n) delete n");
 
             });
             thread.start();
             thread.join(TimeUnit.SECONDS.toMillis(1));
 
             // the blocked thread didn't do any work, so we still have nodes
-            long count = Iterators.count(db.execute("match (n) return n").columnAs("n"));
+            long count = Iterators.count(tx.execute("match (n) return n").columnAs("n"));
             assertEquals(1, count);
 
-            tx.success();
+            tx.commit();
         }
 
 

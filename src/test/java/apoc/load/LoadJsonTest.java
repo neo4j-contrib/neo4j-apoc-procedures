@@ -28,8 +28,8 @@ public class LoadJsonTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, "true")
-            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, "false");
+            .withSetting(ApocSettings.apoc_import_file_enabled, true)
+            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false);
 
 	@Before public void setUp() throws Exception {
 	    apocConfig().setProperty(APOC_JSON_ZIP_URL, "https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.zip?raw=true!person.json");

@@ -26,7 +26,7 @@ import static org.junit.Assert.assertEquals;
 public class LoadHdfsTest {
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule().withSetting(ApocSettings.apoc_import_file_enabled, "true");
+    public DbmsRule db = new ImpermanentDbmsRule().withSetting(ApocSettings.apoc_import_file_enabled, true);
 
     private MiniDFSCluster miniDFSCluster;
     

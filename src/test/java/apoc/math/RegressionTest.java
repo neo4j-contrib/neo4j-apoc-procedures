@@ -25,11 +25,11 @@ public static DbmsRule db = new ImpermanentDbmsRule();
 
     @Test
     public void testCalculateRegr() throws Throwable {
-        db.execute("CREATE " +
+        db.executeTransactionally("CREATE " +
                 "(:REGR_TEST {x_property: 1 , y_property: 2 })," +
                 "(:REGR_TEST {x_property: 2 , y_property: 3 })," +
                 "(:REGR_TEST {y_property: 10000 })," +
-                "(:REGR_TEST {x_property: 3 , y_property: 6 })").close();
+                "(:REGR_TEST {x_property: 3 , y_property: 6 })");
 
         SimpleRegression expectedRegr = new SimpleRegression(false);
         expectedRegr.addData(new double[][]{
@@ -49,11 +49,11 @@ public static DbmsRule db = new ImpermanentDbmsRule();
 
     @Test
     public void testRegrR2isOne() throws Throwable {
-        db.execute("CREATE " +
+        db.executeTransactionally("CREATE " +
                 "(:REGR_TEST2 {x_property: 1 , y_property: 1 })," +
                 "(:REGR_TEST2 {x_property: 1 , y_property: 1 })," +
                 "(:REGR_TEST2 {y_property: 10000 })," +
-                "(:REGR_TEST2 {x_property: 1 , y_property: 1 })").close();
+                "(:REGR_TEST2 {x_property: 1 , y_property: 1 })");
 
         SimpleRegression expectedRegr = new SimpleRegression(false);
         expectedRegr.addData(new double[][]{

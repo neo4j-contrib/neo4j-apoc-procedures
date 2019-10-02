@@ -113,10 +113,10 @@ public class ImportCsvLdbcTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, "true")
-            .withSetting(ApocSettings.apoc_export_file_enabled, "true")
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File("src/test/resources/csv-inputs").getAbsolutePath())
-            .withSetting(GraphDatabaseSettings.allow_file_urls, "true");
+            .withSetting(ApocSettings.apoc_import_file_enabled, true)
+            .withSetting(ApocSettings.apoc_export_file_enabled, true)
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File("src/test/resources/csv-inputs").toPath())
+            .withSetting(GraphDatabaseSettings.allow_file_urls, true);
 
     @Before
     public void setUp() throws Exception {
@@ -164,9 +164,8 @@ public class ImportCsvLdbcTest {
             (r) -> { }
         );
 
-        long nodeCount = (long) db.execute("MATCH (n) RETURN count(n) AS nodeCount").next().get("nodeCount");
-        long relationshipCount = (long) db.execute("MATCH ()-[r]->() RETURN count(r) AS relationshipCount").next().get("relationshipCount");
-
+        long nodeCount = TestUtil.singleResultFirstColumn(db, "MATCH (n) RETURN count(n) AS nodeCount");
+        long relationshipCount = TestUtil.singleResultFirstColumn(db, "MATCH ()-[r]->() RETURN count(r) AS relationshipCount");
         Assert.assertEquals(5, nodeCount);
         Assert.assertEquals(6, relationshipCount);
     }

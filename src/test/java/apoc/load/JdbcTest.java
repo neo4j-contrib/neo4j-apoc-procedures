@@ -120,8 +120,8 @@ public class JdbcTest extends AbstractJdbcTest {
 
     @Test(expected = RuntimeException.class)
     public void testLoadJdbcParamsWithWrongTimezoneValue() throws Exception {
-        db.execute("CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], {timezone: {timezone}})",
-                map("timezone", "Italy/Pescara")).next();
+        db.executeTransactionally("CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], {timezone: {timezone}})",
+                map("timezone", "Italy/Pescara"));
     }
 
     @Test
@@ -144,12 +144,12 @@ public class JdbcTest extends AbstractJdbcTest {
 
     @Test(expected = RuntimeException.class)
     public void testLoadJdbcError() throws Exception {
-        db.execute("CALL apoc.load.jdbc(''jdbc:derby:derbyDB'','PERSON2')").next();
+        db.executeTransactionally("CALL apoc.load.jdbc(''jdbc:derby:derbyDB'','PERSON2')");
         // todo count derby connections?
     }
     @Test(expected = RuntimeException.class)
     public void testLoadJdbcProcessingError() throws Exception {
-        db.execute("CALL apoc.load.jdbc(''jdbc:derby:derbyDB'','PERSON') YIELD row where row.name / 2 = 5 RETURN row").next();
+        db.executeTransactionally("CALL apoc.load.jdbc(''jdbc:derby:derbyDB'','PERSON') YIELD row where row.name / 2 = 5 RETURN row");
         // todo count derby connections?
     }
 
@@ -167,7 +167,7 @@ public class JdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbcWithSpecialCharWithAuthentication() {
-        db.execute("CALL apoc.load.jdbc({url}, 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})", Util.map("url","jdbc:derby:derbyDB")).next();
+        db.executeTransactionally("CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{user:'apoc',password:'Ap0c!#Db'}})", Util.map("url","jdbc:derby:derbyDB"));
     }
 
     @Test
@@ -179,7 +179,7 @@ public class JdbcTest extends AbstractJdbcTest {
     @Test(expected = QueryExecutionException.class)
     public void testLoadJdbcUrlWithSpecialCharWithEmptyUserWithAuthentication() throws Exception {
         try {
-            db.execute("CALL apoc.load.jdbc({url}, 'PERSON',[],{credentials:{user:'',password:'Ap0c!#Db'}})", Util.map("url","jdbc:derby:derbyDB")).next();
+            db.executeTransactionally("CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{user:'',password:'Ap0c!#Db'}})", Util.map("url","jdbc:derby:derbyDB"));
         } catch (IllegalArgumentException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof IllegalArgumentException);
@@ -192,7 +192,7 @@ public class JdbcTest extends AbstractJdbcTest {
     @Test(expected = QueryExecutionException.class)
     public void testLoadJdbcUrlWithSpecialCharWithoutUserWithAuthentication() throws Exception {
         try {
-            db.execute("CALL apoc.load.jdbc({url}, 'PERSON',[],{credentials:{password:'Ap0c!#Db'}})", Util.map("url","jdbc:derby:derbyDB")).next();
+            db.executeTransactionally("CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{password:'Ap0c!#Db'}})", Util.map("url","jdbc:derby:derbyDB"));
         } catch (IllegalArgumentException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof IllegalArgumentException);
@@ -205,7 +205,7 @@ public class JdbcTest extends AbstractJdbcTest {
     @Test(expected = QueryExecutionException.class)
     public void testLoadJdbcUrlWithSpecialCharWithEmptyPasswordWithAuthentication() throws Exception {
         try {
-            db.execute("CALL apoc.load.jdbc({url}, 'PERSON',[],{credentials:{user:'apoc',password:''}})", Util.map("url","jdbc:derby:derbyDB")).next();
+            db.executeTransactionally("CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{user:'apoc',password:''}})", Util.map("url","jdbc:derby:derbyDB"));
         } catch (IllegalArgumentException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof IllegalArgumentException);
@@ -218,7 +218,7 @@ public class JdbcTest extends AbstractJdbcTest {
     @Test(expected = QueryExecutionException.class)
     public void testLoadJdbcUrlWithSpecialCharWithoutPasswordWithAuthentication() throws Exception {
         try {
-            db.execute("CALL apoc.load.jdbc({url}, 'PERSON',[],{credentials:{user:'apoc'}})", Util.map("url","jdbc:derby:derbyDB")).next();
+            db.executeTransactionally("CALL apoc.load.jdbc($url, 'PERSON',[],{credentials:{user:'apoc'}})", Util.map("url","jdbc:derby:derbyDB"));
         } catch (IllegalArgumentException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof IllegalArgumentException);

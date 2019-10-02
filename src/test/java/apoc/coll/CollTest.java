@@ -800,9 +800,9 @@ public class CollTest {
 
     @Test
     public void testDropNeighboursNodes() throws Exception {
-        db.execute("CREATE (n:Person {name:'Foo'}) " +
+        db.executeTransactionally("CREATE (n:Person {name:'Foo'}) " +
                 "CREATE (b:Person {name:'Bar'}) " +
-                "CREATE (n)-[:KNOWS]->(n)-[:LIVES_WITH]->(n)").close();
+                "CREATE (n)-[:KNOWS]->(n)-[:LIVES_WITH]->(n)");
         testResult(db, "MATCH p=(n)-[:KNOWS]->(m)-[:LIVES_WITH]->(h) RETURN apoc.coll.dropDuplicateNeighbors(nodes(p)) as value",
                 (row) -> {
                     assertEquals(true, row.hasNext());

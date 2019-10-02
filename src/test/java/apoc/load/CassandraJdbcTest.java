@@ -37,7 +37,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
         assumeTrue("Cassandra must be running", cassandra.isRunning());
 
         TestUtil.registerProcedure(db,Jdbc.class);
-        db.execute("CALL apoc.load.driver('com.github.adejanovski.cassandra.jdbc.CassandraDriver')").close();
+        db.executeTransactionally("CALL apoc.load.driver('com.github.adejanovski.cassandra.jdbc.CassandraDriver')");
     }
 
     @AfterClass
@@ -66,9 +66,9 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbcUpdate() throws Exception {
-        db.execute("CALL apoc.load.jdbcUpdate({url},'UPDATE \"PERSON\" SET \"SURNAME\" = \\\'DOE\\\' WHERE \"NAME\" = \\\'John\\\'')", Util.map("url", getUrl(),
+        db.executeTransactionally("CALL apoc.load.jdbcUpdate({url},'UPDATE \"PERSON\" SET \"SURNAME\" = \\\'DOE\\\' WHERE \"NAME\" = \\\'John\\\'')", Util.map("url", getUrl(),
                 "config", Util.map("schema", "test","credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
-        )).hasNext();
+        ));
         testCall(db, "CALL apoc.load.jdbc({url},'SELECT * FROM \"PERSON\" WHERE \"NAME\" = ?', ['John'])",
                 Util.map("url", getUrl(),
                         "config", Util.map("schema", "test", "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))

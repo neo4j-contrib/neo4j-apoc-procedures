@@ -34,7 +34,7 @@ public class CloneSubgraphTest {
         TestUtil.registerProcedure(db, GraphRefactoring.class, Coll.class, PathExplorer.class, Cover.class, Meta.class, Maps.class);
 
         // tree structure, testing clone of branches and standins
-        db.execute("CREATE (rA:Root{name:'A'}), \n" +
+        db.executeTransactionally("CREATE (rA:Root{name:'A'}), \n" +
                 "(rB:Root{name:'B'}),\n" +
                 "(n1:Node{name:'node1', id:1}),\n" +
                 "(n2:Node{name:'node2', id:2}),\n" +

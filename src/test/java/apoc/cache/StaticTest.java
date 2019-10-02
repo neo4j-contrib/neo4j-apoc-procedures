@@ -9,6 +9,8 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Collections;
+
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.assertEquals;
 
@@ -26,7 +28,7 @@ public class StaticTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.procedure_unrestricted,"apoc.*");
+            .withSetting(GraphDatabaseSettings.procedure_unrestricted, Collections.singletonList("apoc.*"));
 
     @Before
     public  void setUp() throws Exception {

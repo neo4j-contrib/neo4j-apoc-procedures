@@ -78,8 +78,8 @@ public class XmlTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, "true")
-            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, "false");
+            .withSetting(ApocSettings.apoc_import_file_enabled, true)
+            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false);
 
     @Before
     public void setUp() throws Exception {

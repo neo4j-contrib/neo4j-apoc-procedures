@@ -30,9 +30,9 @@ public class RelSequenceTest {
         String movies = Util.readResourceFile("movies.cypher");
         String additionalLink = "match (p:Person{name:'Nora Ephron'}), (m:Movie{title:'When Harry Met Sally'}) create (p)-[:ACTED_IN]->(m)";
         try (Transaction tx = db.beginTx()) {
-            db.execute(movies);
-            db.execute(additionalLink);
-            tx.success();
+            tx.execute(movies);
+            tx.execute(additionalLink);
+            tx.commit();
         }
     }
 

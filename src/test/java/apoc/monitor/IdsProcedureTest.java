@@ -4,6 +4,7 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -40,10 +41,13 @@ public class IdsProcedureTest {
     }
 
     private void createData() {
-        db.execute("CREATE (n)");
-        db.execute("CREATE (n)-[:REL_TYPE1]->(n2)");
-        db.execute("CREATE (n)-[:REL_TYPE2]->(n2)");
-        db.execute("CREATE (n) SET n.key = 123");
+        try (Transaction tx = db.beginTx()) {
+            tx.execute("CREATE (n)");
+            tx.execute("CREATE (n)-[:REL_TYPE1]->(n2)");
+            tx.execute("CREATE (n)-[:REL_TYPE2]->(n2)");
+            tx.execute("CREATE (n) SET n.key = 123");
+            tx.commit();
+        }
     }
 
 }

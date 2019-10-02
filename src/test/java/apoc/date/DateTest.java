@@ -204,14 +204,14 @@ public class DateTest {
 		SimpleDateFormat format = formatInUtcZone("yyyy-MM-dd HH:mm:ss");
 		try (Transaction tx = db.beginTx()) {
 			for (int i = 0 ; i < 8; i++) {
-				Node datedNode = db.createNode(() -> "Person");
+				Node datedNode = tx.createNode(() -> "Person");
 				datedNode.setProperty("born", format.format(java.util.Date.from(Instant.EPOCH.plus(i, ChronoUnit.DAYS))));
 			}
 			for (int i = 15 ; i >= 8; i--) {
-				Node datedNode = db.createNode(() -> "Person");
+				Node datedNode = tx.createNode(() -> "Person");
 				datedNode.setProperty("born", format.format(java.util.Date.from(Instant.EPOCH.plus(i, ChronoUnit.DAYS))));
 			}
-			tx.success();
+			tx.commit();
 		}
 
 		List<java.util.Date> expected = Stream.iterate(Instant.EPOCH, prev -> prev.plus(1, ChronoUnit.DAYS))
@@ -223,10 +223,10 @@ public class DateTest {
 		List<java.util.Date> actual;
 		try (Transaction tx = db.beginTx()) {
 			String query = "MATCH (p:Person) RETURN p, apoc.date.parse(p.born,'s') as dob ORDER BY dob ";
-			actual = Iterators.asList(db.execute(query).<Long>columnAs("dob")).stream()
+			actual = Iterators.asList(tx.execute(query).<Long>columnAs("dob")).stream()
 					.map(dob -> java.util.Date.from(Instant.ofEpochSecond((long) dob)))
 					.collect(toList());
-			tx.success();
+			tx.commit();
 		}
 
 		assertEquals(expected, actual);

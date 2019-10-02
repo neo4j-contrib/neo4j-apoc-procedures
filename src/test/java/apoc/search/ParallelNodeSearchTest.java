@@ -5,7 +5,6 @@ import apoc.util.Util;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -20,11 +19,7 @@ public class ParallelNodeSearchTest {
     public static void initDb() throws Exception {
 		TestUtil.registerProcedure(db, ParallelNodeSearch.class);
 
-		String movies = Util.readResourceFile("movies.cypher");
-		 try (Transaction tx = db.beginTx()) {
-			db.execute(movies);
-			tx.success();
-		 }
+		db.executeTransactionally(Util.readResourceFile("movies.cypher"));
     }
 
     @Test

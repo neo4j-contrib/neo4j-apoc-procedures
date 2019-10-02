@@ -40,26 +40,26 @@ public class TriggerDisabledTest {
 
     @Test
     public void testTriggerDisabledList() {
-        db.execute("CALL apoc.trigger.list() YIELD name RETURN name").close();
+        db.executeTransactionally("CALL apoc.trigger.list() YIELD name RETURN name");
     }
 
     @Test
     public void testTriggerDisabledAdd() {
-        db.execute("CALL apoc.trigger.add('test-trigger', 'RETURN 1', {phase: 'before'}) YIELD name RETURN name");
+        db.executeTransactionally("CALL apoc.trigger.add('test-trigger', 'RETURN 1', {phase: 'before'}) YIELD name RETURN name");
     }
 
     @Test
     public void testTriggerDisabledRemove() {
-        db.execute("CALL apoc.trigger.remove('test-trigger')").close();
+        db.executeTransactionally("CALL apoc.trigger.remove('test-trigger')");
     }
 
     @Test
     public void testTriggerDisabledResume() {
-        db.execute("CALL apoc.trigger.resume('test-trigger')").close();
+        db.executeTransactionally("CALL apoc.trigger.resume('test-trigger')");
     }
 
     @Test
     public void testTriggerDisabledPause() {
-        db.execute("CALL apoc.trigger.pause('test-trigger')").close();
+        db.executeTransactionally("CALL apoc.trigger.pause('test-trigger')");
     }
 }

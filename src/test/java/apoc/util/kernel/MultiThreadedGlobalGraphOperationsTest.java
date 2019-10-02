@@ -1,9 +1,9 @@
 package apoc.util.kernel;
 
+import apoc.util.TestUtil;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -26,7 +26,7 @@ public class MultiThreadedGlobalGraphOperationsTest {
     }
 
     private static void createData() {
-        db.execute("UNWIND range(1,1000) as x MERGE (s{id:x}) MERGE (e{id:x+1}) merge (s)-[:REL{id:x}]->(e)");
+        db.executeTransactionally("UNWIND range(1,1000) as x MERGE (s{id:x}) MERGE (e{id:x+1}) merge (s)-[:REL{id:x}]->(e)");
     }
 
     @Test
@@ -39,7 +39,7 @@ public class MultiThreadedGlobalGraphOperationsTest {
         assertEquals(Double.valueOf(Math.ceil(highestIdInUse / 10.0)).longValue() , result.getBatches());
         assertEquals( 1001, result.getSucceeded());
 
-        long countOfNodes = Iterators.single(db.execute("match (n) return count(n) as count").columnAs("count"));
+        long countOfNodes = TestUtil.singleResultFirstColumn(db, "match (n) return count(n) as count");
 
         assertEquals( 9, result.getMissing()); // TODO: why do we get 9 missings ?
         assertEquals( 0, result.getFailures());

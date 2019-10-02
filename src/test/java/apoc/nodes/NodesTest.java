@@ -11,7 +11,6 @@ import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -36,7 +35,7 @@ public class NodesTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.procedure_unrestricted, "apoc.*");
+            .withSetting(GraphDatabaseSettings.procedure_unrestricted, singletonList("apoc.*"));
 
     @Before
     public void setUp() throws Exception {
@@ -45,7 +44,7 @@ public class NodesTest {
 
     @Test
     public void isDense() throws Exception {
-        db.execute("CREATE (f:Foo) CREATE (b:Bar) WITH f UNWIND range(1,100) as id CREATE (f)-[:SELF]->(f)").close();
+        db.executeTransactionally("CREATE (f:Foo) CREATE (b:Bar) WITH f UNWIND range(1,100) as id CREATE (f)-[:SELF]->(f)");
 
         TestUtil.testCall(db, "MATCH (n) WITH n, apoc.nodes.isDense(n) as dense " +
                         "WHERE n:Foo AND dense OR n:Bar AND NOT dense RETURN count(*) as c",
@@ -53,29 +52,25 @@ public class NodesTest {
     }
     @Test
     public void link() throws Exception {
-        db.execute("UNWIND range(1,10) as id CREATE (n:Foo {id:id}) WITH collect(n) as nodes call apoc.nodes.link(nodes,'BAR') RETURN size(nodes) as len").close();
+        db.executeTransactionally("UNWIND range(1,10) as id CREATE (n:Foo {id:id}) WITH collect(n) as nodes call apoc.nodes.link(nodes,'BAR') RETURN size(nodes) as len");
 
-        ResourceIterator<Long> it = db.execute("MATCH (n:Foo {id:1})-[r:BAR*9]->() RETURN size(r) as len").columnAs("len");
-        assertEquals(9L,(long)it.next());
-        it.close();
+        long len = TestUtil.singleResultFirstColumn( db,"MATCH (n:Foo {id:1})-[r:BAR*9]->() RETURN size(r) as len");
+        assertEquals(9L, len);
     }
     @Test
     public void delete() throws Exception {
-        db.execute("UNWIND range(1,100) as id CREATE (n:Foo {id:id})-[:X]->(n)").close();
-        ResourceIterator<Long> it =  db.execute("MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.delete(nodes,1) YIELD value as count RETURN count").columnAs("count");
-        long count = it.next();
-        it.close();
+        db.executeTransactionally("UNWIND range(1,100) as id CREATE (n:Foo {id:id})-[:X]->(n)");
 
-        assertEquals(100L,count);
+        long count = TestUtil.singleResultFirstColumn(db, "MATCH (n:Foo) WITH collect(n) as nodes call apoc.nodes.delete(nodes,1) YIELD value as count RETURN count");
+        assertEquals(100L, count);
 
-        it = db.execute("MATCH (n:Foo) RETURN count(*) as c").columnAs("c");
-        assertEquals(0L,(long)it.next());
-        it.close();
+        count = TestUtil.singleResultFirstColumn(db, "MATCH (n:Foo) RETURN count(*) as count");
+        assertEquals(0L, count);
     }
 
     @Test
     public void types() throws Exception {
-        db.execute("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(f) CREATE (f)-[:X]->(f)").close();
+        db.executeTransactionally("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(f) CREATE (f)-[:X]->(f)");
         TestUtil.testCall(db, "MATCH (n:Foo) RETURN apoc.node.relationship.types(n) AS value", (r) -> assertEquals(asSet("X","Y"), asSet(((List)r.get("value")).toArray())));
         TestUtil.testCall(db, "MATCH (n:Foo) RETURN apoc.node.relationship.types(n,'X') AS value", (r) -> assertEquals(asList("X"), r.get("value")));
         TestUtil.testCall(db, "MATCH (n:Foo) RETURN apoc.node.relationship.types(n,'X|Z') AS value", (r) -> assertEquals(asList("X"), r.get("value")));
@@ -85,7 +80,7 @@ public class NodesTest {
 
     @Test
     public void hasRelationhip() throws Exception {
-        db.execute("CREATE (:Foo)-[:Y]->(:Bar),(n:FooBar) WITH n UNWIND range(1,100) as _ CREATE (n)-[:X]->(n)").close();
+        db.executeTransactionally("CREATE (:Foo)-[:Y]->(:Bar),(n:FooBar) WITH n UNWIND range(1,100) as _ CREATE (n)-[:X]->(n)");
         TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.node.relationship.exists(n,'Y') AS value",(r)-> assertEquals(true,r.get("value")));
         TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.node.relationship.exists(n,'Y>') AS value", (r)-> assertEquals(true,r.get("value")));
         TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.node.relationship.exists(n,'<Y') AS value", (r)-> assertEquals(false,r.get("value")));
@@ -104,7 +99,7 @@ public class NodesTest {
     @Test
 
     public void hasRelationhips() throws Exception {
-        db.execute("CREATE (:Foo)-[:Y]->(:Bar),(n:FooBar) WITH n UNWIND range(1,100) as _ CREATE (n)-[:X]->(n)").close();
+        db.executeTransactionally("CREATE (:Foo)-[:Y]->(:Bar),(n:FooBar) WITH n UNWIND range(1,100) as _ CREATE (n)-[:X]->(n)");
         TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.node.relationships.exist(n,'Y') AS value",(r)-> assertEquals(map("Y",true),r.get("value")));
         TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.node.relationships.exist(n,'Y>') AS value", (r)-> assertEquals(map("Y>",true),r.get("value")));
         TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.node.relationships.exist(n,'<Y') AS value", (r)-> assertEquals(map("<Y",false),r.get("value")));
@@ -123,13 +118,13 @@ public class NodesTest {
 
     @Test
     public void testConnected() throws Exception {
-        db.execute("CREATE (st:StartThin),(et:EndThin),(ed:EndDense)").close();
+        db.executeTransactionally("CREATE (st:StartThin),(et:EndThin),(ed:EndDense)");
         int relCount = 20;
         for (int rel=0;rel<relCount;rel++) {
-            db.execute("MATCH (st:StartThin),(et:EndThin),(ed:EndDense) " +
+            db.executeTransactionally("MATCH (st:StartThin),(et:EndThin),(ed:EndDense) " +
                             " CREATE (st)-[:REL"+rel+"]->(et) " +
                             " WITH * UNWIND RANGE(1,{count}) AS id CREATE (st)-[:REL"+rel+"]->(ed)",
-                    map("count",relCount-rel)).close();
+                    map("count",relCount-rel));
         }
 
         TestUtil.testCall(db, "MATCH (s:StartThin),(e:EndThin)  RETURN apoc.nodes.connected(s,e) as value", (r) -> assertEquals(true, r.get("value")));
@@ -161,7 +156,7 @@ public class NodesTest {
 
     @Test
     public void testDegreeTypeAndDirection() {
-        db.execute("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(b) CREATE (f)-[:Y]->(b) CREATE (f)-[:X]->(b) CREATE (f)<-[:X]-(b)").close();
+        db.executeTransactionally("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(b) CREATE (f)-[:Y]->(b) CREATE (f)-[:X]->(b) CREATE (f)<-[:X]-(b)");
 
         TestUtil.testCall(db, "MATCH (f:Foo),(b:Bar)  RETURN apoc.node.degree(f, '<X') as in, apoc.node.degree(f, 'Y>') as out", (r) -> {
             assertEquals(1l, r.get("in"));
@@ -172,7 +167,7 @@ public class NodesTest {
 
     @Test
     public void testDegreeMultiple() {
-        db.execute("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(b) CREATE (f)-[:Y]->(b) CREATE (f)-[:X]->(b) CREATE (f)<-[:X]-(b)").close();
+        db.executeTransactionally("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(b) CREATE (f)-[:Y]->(b) CREATE (f)-[:X]->(b) CREATE (f)<-[:X]-(b)");
 
         TestUtil.testCall(db, "MATCH (f:Foo),(b:Bar)  RETURN apoc.node.degree(f, '<X|Y') as all", (r) -> {
             assertEquals(3l, r.get("all"));
@@ -182,7 +177,7 @@ public class NodesTest {
 
     @Test
     public void testDegreeTypeOnly() {
-        db.execute("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(b) CREATE (f)-[:Y]->(b) CREATE (f)-[:X]->(b) CREATE (f)<-[:X]-(b)").close();
+        db.executeTransactionally("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(b) CREATE (f)-[:Y]->(b) CREATE (f)-[:X]->(b) CREATE (f)<-[:X]-(b)");
 
         TestUtil.testCall(db, "MATCH (f:Foo),(b:Bar)  RETURN apoc.node.degree(f, 'X') as in, apoc.node.degree(f, 'Y') as out", (r) -> {
             assertEquals(2l, r.get("in"));
@@ -193,7 +188,7 @@ public class NodesTest {
 
     @Test
     public void testDegreeDirectionOnly() {
-        db.execute("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(b) CREATE (f)-[:X]->(b) CREATE (f)<-[:X]-(b)").close();
+        db.executeTransactionally("CREATE (f:Foo) CREATE (b:Bar) CREATE (f)-[:Y]->(b) CREATE (f)-[:X]->(b) CREATE (f)<-[:X]-(b)");
 
         TestUtil.testCall(db, "MATCH (f:Foo),(b:Bar)  RETURN apoc.node.degree(f, '<') as in, apoc.node.degree(f, '>') as out", (r) -> {
             assertEquals(1l, r.get("in"));
@@ -204,7 +199,7 @@ public class NodesTest {
 
     @Test
     public void testDegreeInOutDirectionOnly() {
-        db.execute("CREATE (a:Person{name:'test'}) CREATE (b:Person) CREATE (c:Person) CREATE (d:Person) CREATE (a)-[:Rel1]->(b) CREATE (a)-[:Rel1]->(c) CREATE (a)-[:Rel2]->(d) CREATE (a)-[:Rel1]->(b) CREATE (a)<-[:Rel2]-(b) CREATE (a)<-[:Rel2]-(c) CREATE (a)<-[:Rel2]-(d) CREATE (a)<-[:Rel1]-(d)").close();
+        db.executeTransactionally("CREATE (a:Person{name:'test'}) CREATE (b:Person) CREATE (c:Person) CREATE (d:Person) CREATE (a)-[:Rel1]->(b) CREATE (a)-[:Rel1]->(c) CREATE (a)-[:Rel2]->(d) CREATE (a)-[:Rel1]->(b) CREATE (a)<-[:Rel2]-(b) CREATE (a)<-[:Rel2]-(c) CREATE (a)<-[:Rel2]-(d) CREATE (a)<-[:Rel1]-(d)");
 
         TestUtil.testCall(db, "MATCH (a:Person{name:'test'})  RETURN apoc.node.degree.in(a) as in, apoc.node.degree.out(a) as out", (r) -> {
             assertEquals(4l, r.get("in"));
@@ -215,7 +210,7 @@ public class NodesTest {
 
     @Test
     public void testDegreeInOutType() {
-        db.execute("CREATE (a:Person{name:'test'}) CREATE (b:Person) CREATE (c:Person) CREATE (d:Person) CREATE (a)-[:Rel1]->(b) CREATE (a)-[:Rel1]->(c) CREATE (a)-[:Rel2]->(d) CREATE (a)-[:Rel1]->(b) CREATE (a)<-[:Rel2]-(b) CREATE (a)<-[:Rel2]-(c) CREATE (a)<-[:Rel2]-(d) CREATE (a)<-[:Rel1]-(d)").close();
+        db.executeTransactionally("CREATE (a:Person{name:'test'}) CREATE (b:Person) CREATE (c:Person) CREATE (d:Person) CREATE (a)-[:Rel1]->(b) CREATE (a)-[:Rel1]->(c) CREATE (a)-[:Rel2]->(d) CREATE (a)-[:Rel1]->(b) CREATE (a)<-[:Rel2]-(b) CREATE (a)<-[:Rel2]-(c) CREATE (a)<-[:Rel2]-(d) CREATE (a)<-[:Rel1]-(d)");
 
         TestUtil.testCall(db, "MATCH (a:Person{name:'test'})  RETURN apoc.node.degree.in(a, 'Rel1') as in1, apoc.node.degree.out(a, 'Rel1') as out1, apoc.node.degree.in(a, 'Rel2') as in2, apoc.node.degree.out(a, 'Rel2') as out2", (r) -> {
             assertEquals(1l, r.get("in1"));
@@ -228,86 +223,84 @@ public class NodesTest {
 
     @Test
     public void testId() {
-        assertTrue(db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.node.id(f) AS id").<Long>columnAs("id").next() >= 0);
-        assertTrue(db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.node.id(node) AS id").<Long>columnAs("id").next() < 0);
-
-        assertNull(db.execute("RETURN apoc.node.id(null) AS id").<Long>columnAs("id").next());
+        assertTrue(TestUtil.<Long>singleResultFirstColumn(db, "CREATE (f:Foo {foo:'bar'}) RETURN apoc.node.id(f) AS id") >= 0);
+        assertTrue(TestUtil.<Long>singleResultFirstColumn(db, "CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.node.id(node) AS id") < 0);
+        assertNull(TestUtil.singleResultFirstColumn(db, "RETURN apoc.node.id(null) AS id"));
     }
     @Test
     public void testRelId() {
-        assertTrue(db.execute("CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.rel.id(rel) AS id").<Long>columnAs("id").next() >= 0);
-        assertTrue(db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.rel.id(rel) AS id").<Long>columnAs("id").next() < 0);
-
-        assertNull(db.execute("RETURN apoc.rel.id(null) AS id").<Long>columnAs("id").next());
+        assertTrue(TestUtil.<Long>singleResultFirstColumn(db, "CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.rel.id(rel) AS id") >= 0);
+        assertTrue(TestUtil.<Long>singleResultFirstColumn(db, "CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.rel.id(rel) AS id") < 0);
+        assertNull(TestUtil.singleResultFirstColumn(db, "RETURN apoc.rel.id(null) AS id"));
     }
     @Test
     public void testLabels() {
-        assertEquals(singletonList("Foo"), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.node.labels(f) AS labels").columnAs("labels").next());
-        assertEquals(singletonList("Foo"), db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.node.labels(node) AS labels").columnAs("labels").next());
-        assertNull(db.execute("RETURN apoc.node.labels(null) AS labels").columnAs("labels").next());
+        assertEquals(singletonList("Foo"), TestUtil.<List<String>>singleResultFirstColumn(db, "CREATE (f:Foo {foo:'bar'}) RETURN apoc.node.labels(f) AS labels"));
+        assertEquals(singletonList("Foo"), TestUtil.<List<String>>singleResultFirstColumn(db, "CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.node.labels(node) AS labels"));
+        assertNull(TestUtil.singleResultFirstColumn(db, "RETURN apoc.node.labels(null) AS labels"));
     }
 
     @Test
     public void testProperties() {
-        assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f) AS props").columnAs("props").next());
-        assertEquals(singletonMap("foo","bar"), db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.properties(node) AS props").columnAs("props").next());
+        assertEquals(singletonMap("foo","bar"), TestUtil.singleResultFirstColumn(db, "CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f) AS props"));
+        assertEquals(singletonMap("foo","bar"), TestUtil.singleResultFirstColumn(db,"CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.properties(node) AS props"));
 
-        assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.any.properties(rel) AS props").columnAs("props").next());
-        assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.properties(rel) AS props").columnAs("props").next());
+        assertEquals(singletonMap("foo","bar"), TestUtil.singleResultFirstColumn(db,"CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.any.properties(rel) AS props"));
+        assertEquals(singletonMap("foo","bar"), TestUtil.singleResultFirstColumn(db,"CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.properties(rel) AS props"));
 
-        assertNull(db.execute("RETURN apoc.any.properties(null) AS props").columnAs("props").next());
+        assertNull(TestUtil.singleResultFirstColumn(db,"RETURN apoc.any.properties(null) AS props"));
     }
 
     @Test
     public void testSubProperties() {
-        assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f,['foo']) AS props").columnAs("props").next());
-        assertEquals(emptyMap(), db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f,['bar']) AS props").columnAs("props").next());
-        assertNull(db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(null,['foo']) AS props").columnAs("props").next());
-        assertEquals(singletonMap("foo","bar"), db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.properties(node,['foo']) AS props").columnAs("props").next());
-        assertEquals(emptyMap(), db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.properties(node,['bar']) AS props").columnAs("props").next());
+        assertEquals(singletonMap("foo","bar"), TestUtil.singleResultFirstColumn(db,"CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f,['foo']) AS props"));
+        assertEquals(emptyMap(), TestUtil.singleResultFirstColumn(db,"CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(f,['bar']) AS props"));
+        assertNull(TestUtil.singleResultFirstColumn(db,"CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.properties(null,['foo']) AS props"));
+        assertEquals(singletonMap("foo","bar"), TestUtil.singleResultFirstColumn(db,"CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.properties(node,['foo']) AS props"));
+        assertEquals(emptyMap(), TestUtil.singleResultFirstColumn(db,"CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.properties(node,['bar']) AS props"));
 
-        assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.any.properties(rel,['foo']) AS props").columnAs("props").next());
-        assertEquals(emptyMap(), db.execute("CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.any.properties(rel,['bar']) AS props").columnAs("props").next());
-        assertEquals(singletonMap("foo","bar"), db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.properties(rel,['foo']) AS props").columnAs("props").next());
-        assertEquals(emptyMap(), db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.properties(rel,['bar']) AS props").columnAs("props").next());
+        assertEquals(singletonMap("foo","bar"), TestUtil.singleResultFirstColumn(db,"CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.any.properties(rel,['foo']) AS props"));
+        assertEquals(emptyMap(), TestUtil.singleResultFirstColumn(db,"CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.any.properties(rel,['bar']) AS props"));
+        assertEquals(singletonMap("foo","bar"), TestUtil.singleResultFirstColumn(db,"CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.properties(rel,['foo']) AS props"));
+        assertEquals(emptyMap(), TestUtil.singleResultFirstColumn(db,"CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.properties(rel,['bar']) AS props"));
 
-        assertNull(db.execute("RETURN apoc.any.properties(null,['foo']) AS props").columnAs("props").next());
+        assertNull(TestUtil.singleResultFirstColumn(db,"RETURN apoc.any.properties(null,['foo']) AS props"));
     }
 
     @Test
     public void testProperty() {
-        assertEquals("bar", db.execute("RETURN apoc.any.property({foo:'bar'},'foo') AS props").columnAs("props").next());
-        assertNull(db.execute("RETURN apoc.any.property({foo:'bar'},'bar') AS props").columnAs("props").next());
+        assertEquals("bar", TestUtil.singleResultFirstColumn(db,"RETURN apoc.any.property({foo:'bar'},'foo') AS props"));
+        assertNull(TestUtil.singleResultFirstColumn(db,"RETURN apoc.any.property({foo:'bar'},'bar') AS props"));
 
-        assertEquals("bar", db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.property(f,'foo') AS props").columnAs("props").next());
-        assertNull(db.execute("CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.property(f,'bar') AS props").columnAs("props").next());
+        assertEquals("bar", TestUtil.singleResultFirstColumn(db,"CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.property(f,'foo') AS props"));
+        assertNull(TestUtil.singleResultFirstColumn(db,"CREATE (f:Foo {foo:'bar'}) RETURN apoc.any.property(f,'bar') AS props"));
 
-        assertEquals("bar", db.execute("CREATE (f)-[r:REL {foo:'bar'}]->(f) RETURN apoc.any.property(r,'foo') AS props").columnAs("props").next());
-        assertNull(db.execute("CREATE (f)-[r:REL {foo:'bar'}]->(f) RETURN apoc.any.property(r,'bar') AS props").columnAs("props").next());
+        assertEquals("bar", TestUtil.singleResultFirstColumn(db,"CREATE (f)-[r:REL {foo:'bar'}]->(f) RETURN apoc.any.property(r,'foo') AS props"));
+        assertNull(TestUtil.singleResultFirstColumn(db,"CREATE (f)-[r:REL {foo:'bar'}]->(f) RETURN apoc.any.property(r,'bar') AS props"));
 
-        assertEquals("bar", db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.property(node,'foo') AS props").columnAs("props").next());
-        assertNull(db.execute("CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.property(node,'bar') AS props").columnAs("props").next());
+        assertEquals("bar", TestUtil.singleResultFirstColumn(db,"CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.property(node,'foo') AS props"));
+        assertNull(TestUtil.singleResultFirstColumn(db,"CALL apoc.create.vNode(['Foo'],{foo:'bar'}) YIELD node RETURN apoc.any.property(node,'bar') AS props"));
 
-        assertEquals("bar", db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.property(rel,'foo') AS props").columnAs("props").next());
-        assertNull(db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.property(rel,'bar') AS props").columnAs("props").next());
+        assertEquals("bar", TestUtil.singleResultFirstColumn(db,"CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.property(rel,'foo') AS props"));
+        assertNull(TestUtil.singleResultFirstColumn(db,"CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.any.property(rel,'bar') AS props"));
 
-        assertNull(db.execute("RETURN apoc.any.property(null,'foo') AS props").columnAs("props").next());
-        assertNull(db.execute("RETURN apoc.any.property(null,null) AS props").columnAs("props").next());
+        assertNull(TestUtil.singleResultFirstColumn(db,"RETURN apoc.any.property(null,'foo') AS props"));
+        assertNull(TestUtil.singleResultFirstColumn(db,"RETURN apoc.any.property(null,null) AS props"));
     }
 
     @Test
     public void testRelType() {
-        assertEquals("REL", db.execute("CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.rel.type(rel) AS type").columnAs("type").next());
+        assertEquals("REL", TestUtil.singleResultFirstColumn(db,"CREATE (f)-[rel:REL {foo:'bar'}]->(f) RETURN apoc.rel.type(rel) AS type"));
 
-        assertEquals("REL", db.execute("CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.rel.type(rel) AS type").columnAs("type").next());
+        assertEquals("REL", TestUtil.singleResultFirstColumn(db,"CREATE (f) WITH f CALL apoc.create.vRelationship(f,'REL',{foo:'bar'},f) YIELD rel RETURN apoc.rel.type(rel) AS type"));
 
-        assertNull(db.execute("RETURN apoc.rel.type(null) AS type").columnAs("type").next());
+        assertNull(TestUtil.singleResultFirstColumn(db,"RETURN apoc.rel.type(null) AS type"));
     }
 
     @Test
     public void testMergeSelfRelationship() {
-        db.execute("MATCH (n) detach delete (n)");
-        db.execute("CREATE (a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})");
+        db.executeTransactionally("MATCH (n) detach delete (n)");
+        db.executeTransactionally("CREATE (a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})");
 
         Set<Label> label = asSet(label("ALabel"), label("BLabel"));
 
@@ -327,8 +320,8 @@ public class NodesTest {
 
     @Test
     public void testMergeSelfRelationshipInverted() {
-        db.execute("MATCH (n) detach delete (n)");
-        db.execute("CREATE (a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})");
+        db.executeTransactionally("MATCH (n) detach delete (n)");
+        db.executeTransactionally("CREATE (a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})");
 
         Set<Label> label = asSet(label("BLabel"), label("ALabel"));
 
@@ -347,8 +340,8 @@ public class NodesTest {
 
     @Test
     public void testMergeNotSelfRelationship() {
-        db.execute("MATCH (n) detach delete (n)");
-        db.execute("CREATE (a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})");
+        db.executeTransactionally("MATCH (n) detach delete (n)");
+        db.executeTransactionally("CREATE (a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})");
 
         Set<Label> label = asSet(label("ALabel"), label("BLabel"));
 
@@ -369,8 +362,8 @@ public class NodesTest {
 
     @Test
     public void testMergeWithRelationshipDirection() {
-        db.execute("MATCH (n) detach delete (n)");
-        db.execute("CREATE " +
+        db.executeTransactionally("MATCH (n) detach delete (n)");
+        db.executeTransactionally("CREATE " +
                 "(a1:ALabel {name:'a1'})-[:KNOWS]->(b1:BLabel {name:'b1'})," +
                 "(a1)<-[:KNOWS]-(b2:CLabel {name:'c1'})");
 
@@ -402,8 +395,8 @@ public class NodesTest {
 
     @Test
     public void testMergeRelationship() {
-        db.execute("MATCH (n) detach delete (n)");
-        db.execute("CREATE " +
+        db.executeTransactionally("MATCH (n) detach delete (n)");
+        db.executeTransactionally("CREATE " +
                 "(a1:ALabel {name:'a1'})-[:HAS_REL]->(b1:BLabel {name:'b1'})," +
                 "(a2:ALabel {name:'a2'})-[:HAS_REL]->(b1)," +
                 "(a4:ALabel {name:'a4'})-[:HAS_REL]->(b4:BLabel {name:'b4'})");
@@ -431,8 +424,8 @@ public class NodesTest {
 
     @Test
     public void testMergePersonEmployee() {
-        db.execute("MATCH (n) detach delete (n)");
-        db.execute("CREATE " +
+        db.executeTransactionally("MATCH (n) detach delete (n)");
+        db.executeTransactionally("CREATE " +
                 "(:Person {name:'mike'})-[:LIVES_IN]->(:City{name:'rome'}), " +
                 "(:Employee{name:'mike'})-[:WORKS_FOR]->(:Company{name:'Larus'}), " +
                 "(:Person {name:'kate'})-[:LIVES_IN]->(:City{name:'london'}), " +
@@ -473,7 +466,7 @@ public class NodesTest {
 
     @Test
     public void testMergeVirtualNode() {
-        db.execute("CREATE \n" +
+        db.executeTransactionally("CREATE \n" +
                 "(p:Person {name: 'John'})-[:LIVES_IN]->(c:City{name:'London'}),\n" +
                 "(p1:Person {name: 'Mike'})-[:LIVES_IN]->(c),\n" +
                 "(p2:Person {name: 'Kate'})-[:LIVES_IN]->(c),\n" +
@@ -482,7 +475,7 @@ public class NodesTest {
                 "(p1)-[:KNOWS]->(p),\n" +
                 "(p2)-[:KNOWS]->(p1),\n" +
                 "(p2)-[:KNOWS]->(p3),\n" +
-                "(p4)-[:KNOWS]->(p3)\n").close();
+                "(p4)-[:KNOWS]->(p3)\n");
 
         Set<Label> label = asSet(label("City"), label("Person"));
 
@@ -501,9 +494,9 @@ public class NodesTest {
 
     @Test
     public void testMergeVirtualNodeBOTH() {
-        db.execute("CREATE \n" +
+        db.executeTransactionally("CREATE \n" +
                 "(p:Person {name: 'John'})-[:LIVES_IN]->(c:City{name:'London'})," +
-                "(c)-[:LIVES_IN]->(p)").close();
+                "(c)-[:LIVES_IN]->(p)");
 
         Set<Label> label = asSet(label("City"), label("Person"));
 

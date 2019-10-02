@@ -43,7 +43,7 @@ public class SimilarityTest {
     @Before
     public void setUp() throws Exception {
         TestUtil.registerProcedure(db, Similarity.class, Numbers.class);
-        db.execute(SETUP).close();
+        db.executeTransactionally(SETUP);
     }
 
     @Test
@@ -59,8 +59,9 @@ public class SimilarityTest {
                 "RETURN name, apoc.number.format(cosineSim, '0.####') as cosineSim";
         String bobSimilarity;
         String jimSimilarity;
+
         try (Transaction tx = db.beginTx()) {
-            Result result = db.execute(controlQuery);
+            Result result = tx.execute(controlQuery);
             bobSimilarity = (String) result.next().get("cosineSim");
             jimSimilarity = (String) result.next().get("cosineSim");
         }
@@ -93,7 +94,7 @@ public class SimilarityTest {
         String bobSimilarity;
         String jimSimilarity;
         try (Transaction tx = db.beginTx()) {
-            Result result = db.execute(controlQuery);
+            Result result = tx.execute(controlQuery);
             bobSimilarity = (String) result.next().get("cosineSim");
             jimSimilarity = (String) result.next().get("cosineSim");
         }
@@ -124,7 +125,7 @@ public class SimilarityTest {
         String bobDist;
         String jimDist;
         try (Transaction tx = db.beginTx()) {
-            Result result = db.execute(controlQuery);
+            Result result = tx.execute(controlQuery);
             bobDist = (String) result.next().get("euclidDist");
             jimDist = (String) result.next().get("euclidDist");
         }
@@ -156,7 +157,7 @@ public class SimilarityTest {
         String bobSim;
         String jimSim;
         try (Transaction tx = db.beginTx()) {
-            Result result = db.execute(controlQuery);
+            Result result = tx.execute(controlQuery);
             bobSim = (String) result.next().get("euclidSim");
             jimSim = (String) result.next().get("euclidSim");
         }

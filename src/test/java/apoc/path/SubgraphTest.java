@@ -5,7 +5,6 @@ import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.TestUtil;
 import apoc.util.Util;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -33,16 +32,16 @@ public class SubgraphTest {
 		String movies = Util.readResourceFile("movies.cypher");
 		String bigbrother = "MATCH (per:Person) MERGE (bb:BigBrother {name : 'Big Brother' })  MERGE (bb)-[:FOLLOWS]->(per)";
 		try (Transaction tx = db.beginTx()) {
-			db.execute(movies);
-			db.execute(bigbrother);
-			tx.success();
+			tx.execute(movies);
+			tx.execute(bigbrother);
+			tx.commit();
 		}
 		
 		String getCounts = 
 			"match (n) \n" +
 			"return count(n) as graphCount";
 		try (Transaction tx = db.beginTx()) {
-			Result result = db.execute(getCounts);
+			Result result = tx.execute(getCounts);
 			
 			Map<String, Object> row = result.next();
 			fullGraphCount = (Long) row.get("graphCount");
@@ -60,7 +59,7 @@ public class SubgraphTest {
 		String controlQuery = "MATCH (m:Movie {title: 'The Matrix'})-[*0..3]-(subgraphNode) return collect(distinct subgraphNode) as subgraph";
 		List<NodeResult> subgraph;
 		try (Transaction tx = db.beginTx()) {
-			Result result = db.execute(controlQuery);
+			Result result = tx.execute(controlQuery);
 			subgraph = (List<NodeResult>) result.next().get("subgraph");
 		}
 		
@@ -77,7 +76,7 @@ public class SubgraphTest {
 		String controlQuery = "MATCH path = (:Person {name: 'Keanu Reeves'})-[*0..3]-(subgraphNode) where all(node in nodes(path) where node:Person) return collect(distinct subgraphNode) as subgraph";
 		List<NodeResult> subgraph;
 		try (Transaction tx = db.beginTx()) {
-			Result result = db.execute(controlQuery);
+			Result result = tx.execute(controlQuery);
 			subgraph = (List<NodeResult>) result.next().get("subgraph");
 		}
 		
@@ -94,7 +93,7 @@ public class SubgraphTest {
 		String controlQuery = "MATCH path = (:Person {name: 'Keanu Reeves'})-[:ACTED_IN*0..3]-(subgraphNode) return collect(distinct subgraphNode) as subgraph";
 		List<NodeResult> subgraph;
 		try (Transaction tx = db.beginTx()) {
-			Result result = db.execute(controlQuery);
+			Result result = tx.execute(controlQuery);
 			subgraph = (List<NodeResult>) result.next().get("subgraph");
 		}
 		
@@ -129,7 +128,7 @@ public class SubgraphTest {
 		final List<NodeResult> subgraph;
 		final List<RelationshipResult> relationships;
 		try (Transaction tx = db.beginTx()) {
-			Result result = db.execute(controlQuery);
+			Result result = tx.execute(controlQuery);
 			Map<String, Object> row = result.next();
 			subgraph = (List<NodeResult>) row.get("subgraph");
 			relationships = (List<RelationshipResult>) row.get("relationships");
@@ -182,7 +181,7 @@ public class SubgraphTest {
 		String controlQuery = "MATCH (m:Movie {title: 'The Matrix'})-[*0..4]-(subgraphNode) return collect(distinct subgraphNode) as subgraph";
 		List<NodeResult> subgraph;
 		try (Transaction tx = db.beginTx()) {
-			Result result = db.execute(controlQuery);
+			Result result = tx.execute(controlQuery);
 			subgraph = (List<NodeResult>) result.next().get("subgraph");
 		}
 
@@ -222,7 +221,7 @@ public class SubgraphTest {
 		String controlQuery = "MATCH (m:Movie {title: 'The Matrix'})-[*0..3]-(subgraphNode) return collect(distinct subgraphNode) as subgraph";
 		List<NodeResult> subgraph;
 		try (Transaction tx = db.beginTx()) {
-			Result result = db.execute(controlQuery);
+			Result result = tx.execute(controlQuery);
 			subgraph = (List<NodeResult>) result.next().get("subgraph");
 		}
 

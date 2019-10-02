@@ -38,7 +38,7 @@ public class ExportCypherTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath());
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath());
 
     @Rule
     public TestName testName = new TestName();
@@ -51,28 +51,28 @@ public class ExportCypherTest {
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, true);
         TestUtil.registerProcedure(db, ExportCypher.class, Graphs.class);
         if (testName.getMethodName().endsWith(OPTIMIZED)) {
-            db.execute("CREATE INDEX ON :Foo(name)").close();
-            db.execute("CREATE INDEX ON :Bar(first_name, last_name)").close();
-            db.execute("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE").close();
-            db.execute("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar:Person {age:12}),(d:Bar {age:12})," +
-                    " (t:Foo {name:'foo2', born:date('2017-09-29')})-[:KNOWS {since:2015}]->(e:Bar {name:'bar2',age:44}),({age:99})").close();
+            db.executeTransactionally("CREATE INDEX ON :Foo(name)");
+            db.executeTransactionally("CREATE INDEX ON :Bar(first_name, last_name)");
+            db.executeTransactionally("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE");
+            db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar:Person {age:12}),(d:Bar {age:12})," +
+                    " (t:Foo {name:'foo2', born:date('2017-09-29')})-[:KNOWS {since:2015}]->(e:Bar {name:'bar2',age:44}),({age:99})");
         } else if(testName.getMethodName().endsWith(ODD)) {
-            db.execute("CREATE INDEX ON :Foo(name)").close();
-            db.execute("CREATE INDEX ON :Bar(first_name, last_name)").close();
-            db.execute("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE").close();
-            db.execute("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})," +
+            db.executeTransactionally("CREATE INDEX ON :Foo(name)");
+            db.executeTransactionally("CREATE INDEX ON :Bar(first_name, last_name)");
+            db.executeTransactionally("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE");
+            db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})," +
                     "(t:Foo {name:'foo2', born:date('2017-09-29')})," +
                     "(g:Foo {name:'foo3', born:date('2016-03-12')})," +
                     "(b:Bar {name:'bar',age:42})," +
                     "(c:Bar {age:12})," +
                     "(d:Bar {age:4})," +
                     "(e:Bar {name:'bar2',age:44})," +
-                    "(f)-[:KNOWS {since:2016}]->(b)").close();
+                    "(f)-[:KNOWS {since:2016}]->(b)");
         } else {
-            db.execute("CREATE INDEX ON :Foo(name)").close();
-            db.execute("CREATE INDEX ON :Bar(first_name, last_name)").close();
-            db.execute("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE").close();
-            db.execute("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12})").close();
+            db.executeTransactionally("CREATE INDEX ON :Foo(name)");
+            db.executeTransactionally("CREATE INDEX ON :Bar(first_name, last_name)");
+            db.executeTransactionally("CREATE CONSTRAINT ON (b:Bar) ASSERT b.name IS UNIQUE");
+            db.executeTransactionally("CREATE (f:Foo {name:'foo', born:date('2018-10-31')})-[:KNOWS {since:2016}]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12})");
         }
     }
 
@@ -301,11 +301,11 @@ public class ExportCypherTest {
 
     @Test
     public void testExportCypherNodePoint() throws FileNotFoundException {
-        db.execute("CREATE (f:Test {name:'foo'," +
+        db.executeTransactionally("CREATE (f:Test {name:'foo'," +
                 "place2d:point({ x: 2.3, y: 4.5 })," +
                 "place3d1:point({ x: 2.3, y: 4.5 , z: 1.2})})" +
                 "-[:FRIEND_OF {place2d:point({ longitude: 56.7, latitude: 12.78 })}]->" +
-                "(:Bar {place3d:point({ longitude: 12.78, latitude: 56.7, height: 100 })})").close();
+                "(:Bar {place3d:point({ longitude: 12.78, latitude: 56.7, height: 100 })})");
         String fileName = "temporalPoint.cypher";
         String query = "MATCH (n:Test)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
@@ -316,12 +316,12 @@ public class ExportCypherTest {
 
     @Test
     public void testExportCypherNodeDate() throws FileNotFoundException {
-        db.execute("CREATE (f:Test {name:'foo', " +
+        db.executeTransactionally("CREATE (f:Test {name:'foo', " +
                 "date:date('2018-10-30'), " +
                 "datetime:datetime('2018-10-30T12:50:35.556+0100'), " +
                 "localTime:localdatetime('20181030T19:32:24')})" +
                 "-[:FRIEND_OF {date:date('2018-10-30')}]->" +
-                "(:Bar {datetime:datetime('2018-10-30T12:50:35.556')})").close();
+                "(:Bar {datetime:datetime('2018-10-30T12:50:35.556')})");
         String fileName = "temporalDate.cypher";
         String query = "MATCH (n:Test)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
@@ -332,11 +332,11 @@ public class ExportCypherTest {
 
     @Test
     public void testExportCypherNodeTime() throws FileNotFoundException {
-        db.execute("CREATE (f:Test {name:'foo', " +
+        db.executeTransactionally("CREATE (f:Test {name:'foo', " +
                 "local:localtime('12:50:35.556')," +
                 "t:time('125035.556+0100')})" +
                 "-[:FRIEND_OF {t:time('125035.556+0100')}]->" +
-                "(:Bar {datetime:datetime('2018-10-30T12:50:35.556+0100')})").close();
+                "(:Bar {datetime:datetime('2018-10-30T12:50:35.556+0100')})");
         String fileName = "temporalTime.cypher";
         String query = "MATCH (n:Test)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
@@ -347,10 +347,10 @@ public class ExportCypherTest {
 
     @Test
     public void testExportCypherNodeDuration() throws FileNotFoundException {
-        db.execute("CREATE (f:Test {name:'foo', " +
+        db.executeTransactionally("CREATE (f:Test {name:'foo', " +
                 "duration:duration('P5M1.5D')})" +
                 "-[:FRIEND_OF {duration:duration('P5M1.5D')}]->" +
-                "(:Bar {duration:duration('P5M1.5D')})").close();
+                "(:Bar {duration:duration('P5M1.5D')})");
         String fileName = "temporalDuration.cypher";
         String query = "MATCH (n:Test)-[r]-(m) RETURN n,r,m";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",
@@ -361,7 +361,7 @@ public class ExportCypherTest {
 
     @Test
     public void testExportWithAscendingLabels() throws FileNotFoundException {
-        db.execute("CREATE (f:User:User1:User0:User12 {name:'Alan'})").close();
+        db.executeTransactionally("CREATE (f:User:User1:User0:User12 {name:'Alan'})");
         String fileName = "ascendingLabels.cypher";
         String query = "MATCH (f:User) WHERE f.name='Alan' RETURN f";
         TestUtil.testCall(db, "CALL apoc.export.cypher.query({query},{file},{config})",

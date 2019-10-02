@@ -30,9 +30,9 @@ public class MaxAndMinItemsAggregationTest {
         String movies = Util.readResourceFile("movies.cypher");
         String bigbrother = "MATCH (per:Person) MERGE (bb:BigBrother {name : 'Big Brother' })  MERGE (bb)-[:FOLLOWS]->(per)";
         try (Transaction tx = db.beginTx()) {
-            db.execute(movies);
-            db.execute(bigbrother);
-            tx.success();
+            tx.execute(movies);
+            tx.execute(bigbrother);
+            tx.commit();
         }
     }
 

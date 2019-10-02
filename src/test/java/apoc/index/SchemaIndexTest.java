@@ -4,7 +4,6 @@ import apoc.util.TestUtil;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
@@ -12,7 +11,6 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -42,14 +40,14 @@ public class SchemaIndexTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, SchemaIndex.class);
-        db.execute("CREATE (city:City {name:'London'}) WITH city UNWIND range("+firstPerson+","+lastPerson+") as id CREATE (:Person {name:'name'+id, id:id, age:id % 100, address:id+'Main St.'})-[:LIVES_IN]->(city)").close();
+        db.executeTransactionally("CREATE (city:City {name:'London'}) WITH city UNWIND range("+firstPerson+","+lastPerson+") as id CREATE (:Person {name:'name'+id, id:id, age:id % 100, address:id+'Main St.'})-[:LIVES_IN]->(city)");
         //
-        db.execute("CREATE INDEX ON :Person(name)").close();
-        db.execute("CREATE INDEX ON :Person(age)").close();
-        db.execute("CREATE INDEX ON :Person(address)").close();
-        db.execute("CREATE CONSTRAINT ON (p:Person) ASSERT p.id IS UNIQUE").close();
-        db.execute("CREATE INDEX ON :Foo(bar)").close();
-        db.execute("CREATE (f:Foo {bar:'three'}), (f2a:Foo {bar:'four'}), (f2b:Foo {bar:'four'})").close();
+        db.executeTransactionally("CREATE INDEX ON :Person(name)");
+        db.executeTransactionally("CREATE INDEX ON :Person(age)");
+        db.executeTransactionally("CREATE INDEX ON :Person(address)");
+        db.executeTransactionally("CREATE CONSTRAINT ON (p:Person) ASSERT p.id IS UNIQUE");
+        db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
+        db.executeTransactionally("CREATE (f:Foo {bar:'three'}), (f2a:Foo {bar:'four'}), (f2b:Foo {bar:'four'})");
         personIds = LongStream.range(firstPerson, lastPerson+1).boxed().collect(Collectors.toList());
         personNames = IntStream.range(firstPerson, lastPerson+1).mapToObj(Integer::toString).map(i -> "name"+i).sorted().collect(Collectors.toList());
         personAddresses = IntStream.range(firstPerson, lastPerson+1).mapToObj(Integer::toString).map(i -> i+"Main St.").sorted().collect(Collectors.toList());
@@ -60,7 +58,7 @@ public class SchemaIndexTest {
                 .mapToObj(Long::new).collect(Collectors.toList());
         try (Transaction tx=db.beginTx()) {
             db.schema().awaitIndexesOnline(2,TimeUnit.SECONDS);
-            tx.success();
+            tx.commit();
         }
     }
 

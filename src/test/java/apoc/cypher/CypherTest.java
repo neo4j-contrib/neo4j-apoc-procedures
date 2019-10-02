@@ -8,7 +8,6 @@ import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
@@ -40,8 +39,8 @@ public class CypherTest {
 
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.allow_file_urls, "true")
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File("src/test/resources").getAbsolutePath());
+            .withSetting(GraphDatabaseSettings.allow_file_urls, true)
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File("src/test/resources").toPath());
 
     @Rule
     public ExpectedException thrown= ExpectedException.none();
@@ -54,11 +53,11 @@ public class CypherTest {
 
     @After
     public void clearDB() {
-        db.execute("MATCH (n) DETACH DELETE n");
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
         try (Transaction tx = db.beginTx()) {
             db.schema().getIndexes().forEach(IndexDefinition::drop);
             db.schema().getConstraints().forEach(ConstraintDefinition::drop);
-            tx.success();
+            tx.commit();
         }
     }
 
@@ -99,17 +98,17 @@ public class CypherTest {
 
     @Test
     public void testRunFirstColumnBugCompiled() throws Exception {
-        ResourceIterator<Node> it = db.execute("CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'}) RETURN m").columnAs("m");
-        Node movie = it.next();
-        it.close();
+        Node movie = TestUtil.singleResultFirstColumn(db, "CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'}) RETURN m");
         String query = "WITH {m} AS m MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10";
-        System.out.println(db.execute("EXPLAIN "+query).getExecutionPlanDescription().toString());
-        ResourceIterator<Node> rec = db.execute(query, map("m",movie)).columnAs("rec");
-        assertEquals(1, rec.stream().count());
+        String plan = db.executeTransactionally("EXPLAIN " + query, null, result -> result.getExecutionPlanDescription().toString());
+        System.out.println(plan);
+        List<Node> recs = TestUtil.firstColumn(db, query, map("m",movie));
+        assertEquals(1, recs.size());
     }
+
     @Test
     public void testRunFirstColumnBugDirection() throws Exception {
-        db.execute("CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'})").close();
+        db.executeTransactionally("CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'})");
         String query = "MATCH (m:Movie {title:'MovieA'}) RETURN apoc.cypher.runFirstColumn('WITH {m} AS m MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10', {m:m}, true) as rec";
         testCall(db, query,
                 r -> assertEquals("MovieB", ((Node)((List)r.get("rec")).get(0)).getProperty("title")));
@@ -343,20 +342,22 @@ public class CypherTest {
 
     @Test(timeout=9000)
     public void testWithTimeout() {
-        Result result = db.execute("CALL apoc.cypher.runTimeboxed('CALL apoc.util.sleep(10000)', null, {timeout})", singletonMap("timeout", 100));
-        assertFalse(result.hasNext());
+        assertFalse(db.executeTransactionally(
+                "CALL apoc.cypher.runTimeboxed('CALL apoc.util.sleep(10000)', null, {timeout})",
+                singletonMap("timeout", 100),
+                result -> result.hasNext()));
     }
 
     @Test
     public void shouldTimeboxedReturnAllResultsSoFar() {
-        db.execute(Util.readResourceFile("movies.cypher"));
+        db.executeTransactionally(Util.readResourceFile("movies.cypher"));
 //        System.out.println("movies imported");
 
         long start = System.currentTimeMillis();
         try (Transaction tx = db.beginTx()) {
-            Result result = db.execute("CALL apoc.cypher.runTimeboxed('match(n) -[*]-(m) return id(n),id(m)', {}, 1000) YIELD value RETURN value");
+            Result result = tx.execute("CALL apoc.cypher.runTimeboxed('match(n) -[*]-(m) return id(n),id(m)', {}, 1000) YIELD value RETURN value");
             assertTrue(Iterators.count(result)>0);
-            tx.success();
+            tx.commit();
         }
         long duration= System.currentTimeMillis() - start;
         assertThat("test runs in less than 1500 millis", duration, Matchers.lessThan(1500l));
@@ -364,8 +365,7 @@ public class CypherTest {
 
     @Test(timeout=9000)
     public void shouldTooLongTimeboxBeNotHarmful() {
-        Result result = db.execute("CALL apoc.cypher.runTimeboxed('CALL apoc.util.sleep(10)', null, {timeout})", singletonMap("timeout", 10000));
-        assertFalse(result.hasNext());
+        assertFalse(db.executeTransactionally("CALL apoc.cypher.runTimeboxed('CALL apoc.util.sleep(10)', null, {timeout})", singletonMap("timeout", 10000), result -> result.hasNext()));
     }
 
     @Test

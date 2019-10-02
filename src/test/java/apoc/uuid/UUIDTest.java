@@ -17,7 +17,6 @@ import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -31,8 +30,8 @@ public class UUIDTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(GraphDatabaseSettings.auth_enabled, "true")
-            .withSetting(ApocSettings.apoc_uuid_enabled, "true");
+            .withSetting(GraphDatabaseSettings.auth_enabled, true)
+            .withSetting(ApocSettings.apoc_uuid_enabled, true);
 
     private static final String UUID_TEST_REGEXP = "^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
 
@@ -44,106 +43,106 @@ public class UUIDTest {
     @Test
     public void testUUID() {
         // given
-        db.execute("CREATE CONSTRAINT ON (p:Person) ASSERT p.uuid IS UNIQUE").close();
-        db.execute("CALL apoc.uuid.install('Person') YIELD label RETURN label").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (p:Person) ASSERT p.uuid IS UNIQUE");
+        db.executeTransactionally("CALL apoc.uuid.install('Person') YIELD label RETURN label");
 
         // when
-        db.execute("CREATE (p:Person{name:'Daniel'})-[:WORK]->(c:Company{name:'Neo4j'})").close();
+        db.executeTransactionally("CREATE (p:Person{name:'Daniel'})-[:WORK]->(c:Company{name:'Neo4j'})");
 
         // then
         try (Transaction tx = db.beginTx()) {
-            Node company = (Node) db.execute("MATCH (c:Company) return c").next().get("c");
+            Node company = (Node) tx.execute("MATCH (c:Company) return c").next().get("c");
             assertTrue(!company.hasProperty("uuid"));
-            Node person = (Node) db.execute("MATCH (p:Person) return p").next().get("p");
+            Node person = (Node) tx.execute("MATCH (p:Person) return p").next().get("p");
             assertTrue(person.getAllProperties().containsKey("uuid"));
 
             assertTrue(person.getAllProperties().get("uuid").toString().matches(UUID_TEST_REGEXP));
-            tx.success();
+            tx.commit();
         }
     }
 
     @Test
     public void testUUIDWithoutRemovedUuid() {
         // given
-        db.execute("CREATE CONSTRAINT ON (test:Test) ASSERT test.uuid IS UNIQUE").close();
-        db.execute("CALL apoc.uuid.install('Test') YIELD label RETURN label").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.uuid IS UNIQUE");
+        db.executeTransactionally("CALL apoc.uuid.install('Test') YIELD label RETURN label");
 
         // when
-        db.execute("CREATE (n:Test {name:'test', uuid:'dab404ee-391d-11e9-b210-d663bd873d93'})").close(); // Create the uuid manually and except is the same after the trigger
+        db.executeTransactionally("CREATE (n:Test {name:'test', uuid:'dab404ee-391d-11e9-b210-d663bd873d93'})"); // Create the uuid manually and except is the same after the trigger
 
         // then
         try (Transaction tx = db.beginTx()) {
-            Node n = (Node) db.execute("MATCH (n:Test) return n").next().get("n");
+            Node n = (Node) tx.execute("MATCH (n:Test) return n").next().get("n");
             assertTrue(n.getAllProperties().containsKey("uuid"));
             assertEquals("dab404ee-391d-11e9-b210-d663bd873d93", n.getProperty("uuid")); // Check if the uuid if the same when created
-            tx.success();
+            tx.commit();
         }
     }
 
     @Test
     public void testUUIDSetUuidToEmptyAndRestore() {
         // given
-        db.execute("CREATE CONSTRAINT ON (test:Test) ASSERT test.uuid IS UNIQUE").close();
-        db.execute("CALL apoc.uuid.install('Test') YIELD label RETURN label").close();
-        db.execute("CREATE (n:Test {name:'test', uuid:'dab404ee-391d-11e9-b210-d663bd873d93'})").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.uuid IS UNIQUE");
+        db.executeTransactionally("CALL apoc.uuid.install('Test') YIELD label RETURN label");
+        db.executeTransactionally("CREATE (n:Test {name:'test', uuid:'dab404ee-391d-11e9-b210-d663bd873d93'})");
 
         // when
-        db.execute("MATCH (t:Test) SET t.uuid = ''").close();
+        db.executeTransactionally("MATCH (t:Test) SET t.uuid = ''");
 
         // then
         try (Transaction tx = db.beginTx()) {
-            Node n = (Node) db.execute("MATCH (n:Test) return n").next().get("n");
+            Node n = (Node) tx.execute("MATCH (n:Test) return n").next().get("n");
             assertTrue(n.getAllProperties().containsKey("uuid"));
             assertEquals("dab404ee-391d-11e9-b210-d663bd873d93", n.getProperty("uuid"));
-            tx.success();
+            tx.commit();
         }
     }
 
     @Test
     public void testUUIDDeleteUuidAndRestore() {
         // given
-        db.execute("CREATE CONSTRAINT ON (test:Test) ASSERT test.uuid IS UNIQUE").close();
-        db.execute("CALL apoc.uuid.install('Test') YIELD label RETURN label").close();
-        db.execute("CREATE (n:Test {name:'test', uuid:'dab404ee-391d-11e9-b210-d663bd873d93'})").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.uuid IS UNIQUE");
+        db.executeTransactionally("CALL apoc.uuid.install('Test') YIELD label RETURN label");
+        db.executeTransactionally("CREATE (n:Test {name:'test', uuid:'dab404ee-391d-11e9-b210-d663bd873d93'})");
 
         // when
-        db.execute("MATCH (t:Test) remove t.uuid").close();
+        db.executeTransactionally("MATCH (t:Test) remove t.uuid");
 
         // then
         try (Transaction tx = db.beginTx()) {
-            Node n = (Node) db.execute("MATCH (n:Test) return n").next().get("n");
+            Node n = (Node) tx.execute("MATCH (n:Test) return n").next().get("n");
             assertTrue(n.getAllProperties().containsKey("uuid"));
             assertEquals("dab404ee-391d-11e9-b210-d663bd873d93", n.getProperty("uuid"));
-            tx.success();
+            tx.commit();
         }
     }
 
     @Test
     public void testUUIDSetUuidToEmpty() {
         // given
-        db.execute("CREATE CONSTRAINT ON (test:Test) ASSERT test.uuid IS UNIQUE").close();
-        db.execute("CALL apoc.uuid.install('Test') YIELD label RETURN label").close();
-        db.execute("CREATE (n:Test:Empty {name:'empty'})").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.uuid IS UNIQUE");
+        db.executeTransactionally("CALL apoc.uuid.install('Test') YIELD label RETURN label");
+        db.executeTransactionally("CREATE (n:Test:Empty {name:'empty'})");
 
         // when
-        db.execute("MATCH (t:Test:Empty) SET t.uuid = ''").close();
+        db.executeTransactionally("MATCH (t:Test:Empty) SET t.uuid = ''");
 
         // then
         try (Transaction tx = db.beginTx()) {
-            Node n = (Node) db.execute("MATCH (n:Empty) return n").next().get("n");
+            Node n = (Node) tx.execute("MATCH (n:Empty) return n").next().get("n");
             assertTrue(n.getAllProperties().containsKey("uuid"));
             assertTrue(n.getAllProperties().get("uuid").toString().matches("^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"));
-            tx.success();
+            tx.commit();
         }
     }
 
     @Test
     public void testUUIDList() {
         // given
-        db.execute("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.uuid IS UNIQUE").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.uuid IS UNIQUE");
 
         // when
-        db.execute("CALL apoc.uuid.install('Bar') YIELD label RETURN label").close();
+        db.executeTransactionally("CALL apoc.uuid.install('Bar') YIELD label RETURN label");
 
         // then
         TestUtil.testCall(db, "CALL apoc.uuid.list()",
@@ -154,15 +153,14 @@ public class UUIDTest {
     @Test
     public void testUUIDListAddToExistingNodes() {
         // given
-        db.execute("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.uuid IS UNIQUE").close();
-        db.execute("UNWIND Range(1,10) as i CREATE(bar:Bar{id: i})").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.uuid IS UNIQUE");
+        db.executeTransactionally("UNWIND Range(1,10) as i CREATE(bar:Bar{id: i})");
 
         // when
-        db.execute("CALL apoc.uuid.install('Bar')").close();
+        db.executeTransactionally("CALL apoc.uuid.install('Bar')");
 
         // then
-        List<String> uuidList = db.execute("MATCH (n:Bar) RETURN n.uuid AS uuid").<String>columnAs("uuid")
-                .stream().collect(Collectors.toList());
+        List<String> uuidList = TestUtil.firstColumn(db, "MATCH (n:Bar) RETURN n.uuid AS uuid");
         assertEquals(10, uuidList.size());
         assertTrue(uuidList.stream().allMatch(uuid -> uuid.matches(UUID_TEST_REGEXP)));
     }
@@ -170,10 +168,10 @@ public class UUIDTest {
     @Test
     public void testAddRemoveUuid() {
         // given
-        db.execute("CREATE CONSTRAINT ON (test:Test) ASSERT test.foo IS UNIQUE").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.foo IS UNIQUE");
 
         // when
-        db.execute("CALL apoc.uuid.install('Test', {uuidProperty: 'foo'}) YIELD label RETURN label").close();
+        db.executeTransactionally("CALL apoc.uuid.install('Test', {uuidProperty: 'foo'}) YIELD label RETURN label");
 
         // then
         TestUtil.testCall(db, "CALL apoc.uuid.list()",
@@ -187,45 +185,45 @@ public class UUIDTest {
     @Test
     public void testNotAddToExistingNodes() {
         // given
-        db.execute("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})").close();
+        db.executeTransactionally("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})");
 
         // when
-        db.execute("CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE").close();
-        db.execute("CALL apoc.uuid.install('Person', {addToExistingNodes: false}) YIELD label RETURN label").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE");
+        db.executeTransactionally("CALL apoc.uuid.install('Person', {addToExistingNodes: false}) YIELD label RETURN label");
 
         // then
         try (Transaction tx = db.beginTx()) {
-            Node n = (Node) db.execute("MATCH (person:Person) return person").next().get("person");
+            Node n = (Node) tx.execute("MATCH (person:Person) return person").next().get("person");
             assertFalse(n.getAllProperties().containsKey("uuid"));
-            tx.success();
+            tx.commit();
         }
     }
 
     @Test
     public void testAddToExistingNodes() {
         // given
-        db.execute("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})").close();
+        db.executeTransactionally("CREATE (d:Person {name:'Daniel'})-[:WORK]->(l:Company {name:'Neo4j'})");
 
         // when
-        db.execute("CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE").close();
-        db.execute("CALL apoc.uuid.install('Person') YIELD label RETURN label").close();
+        db.executeTransactionally("CREATE CONSTRAINT ON (person:Person) ASSERT person.uuid IS UNIQUE");
+        db.executeTransactionally("CALL apoc.uuid.install('Person') YIELD label RETURN label");
 
         // then
         try (Transaction tx = db.beginTx()) {
-            Node n = (Node) db.execute("MATCH (person:Person) return person").next().get("person");
+            Node n = (Node) tx.execute("MATCH (person:Person) return person").next().get("person");
             assertTrue(n.getAllProperties().containsKey("uuid"));
             assertTrue(n.getAllProperties().get("uuid").toString().matches("^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"));
-            tx.success();
+            tx.commit();
         }
     }
 
     @Test
     public void testRemoveAllUuid() {
         // given
-        db.execute("CREATE CONSTRAINT ON (test:Test) ASSERT test.foo IS UNIQUE").close();
-        db.execute("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.uuid IS UNIQUE").close();
-        db.execute("CALL apoc.uuid.install('Bar') YIELD label RETURN label").close();
-        db.execute("CALL apoc.uuid.install('Test', {addToExistingNodes: false, uuidProperty: 'foo'}) YIELD label RETURN label");
+        db.executeTransactionally("CREATE CONSTRAINT ON (test:Test) ASSERT test.foo IS UNIQUE");
+        db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.uuid IS UNIQUE");
+        db.executeTransactionally("CALL apoc.uuid.install('Bar') YIELD label RETURN label");
+        db.executeTransactionally("CALL apoc.uuid.install('Test', {addToExistingNodes: false, uuidProperty: 'foo'}) YIELD label RETURN label");
 
         // when
         TestUtil.testResult(db, "CALL apoc.uuid.removeAll()",
@@ -244,7 +242,7 @@ public class UUIDTest {
     public void testAddWithError() {
         try {
             // when
-            db.execute("CALL apoc.uuid.install('Wrong') YIELD label RETURN label").close();
+            db.executeTransactionally("CALL apoc.uuid.install('Wrong') YIELD label RETURN label");
         } catch (RuntimeException e) {
             // then
             Throwable except = ExceptionUtils.getRootCause(e);
@@ -258,7 +256,7 @@ public class UUIDTest {
     public void testAddWithErrorAndCustomField() {
         try {
             // when
-            db.execute("CALL apoc.uuid.install('Wrong', {uuidProperty: 'foo'}) YIELD label RETURN label").close();
+            db.executeTransactionally("CALL apoc.uuid.install('Wrong', {uuidProperty: 'foo'}) YIELD label RETURN label");
         } catch (RuntimeException e) {
             // then
             Throwable except = ExceptionUtils.getRootCause(e);

@@ -23,7 +23,7 @@ public class LabelTest {
     @Test
     public void testVerifyNodeLabelExistence() throws Exception {
 
-        db.execute("create (a:Person{name:'Foo'})");
+        db.executeTransactionally("create (a:Person{name:'Foo'})");
 
         testCall(db, "MATCH (a) RETURN apoc.label.exists(a, 'Person') as value",
                 (row) -> {
@@ -38,7 +38,7 @@ public class LabelTest {
     @Test
     public void testVerifyRelTypeExistence() throws Exception {
 
-        db.execute("create (a:Person{name:'Foo'}), (b:Person{name:'Bar'}), (a)-[:LOVE{since:2010}]->(b)");
+        db.executeTransactionally("create (a:Person{name:'Foo'}), (b:Person{name:'Bar'}), (a)-[:LOVE{since:2010}]->(b)");
 
         testCall(db, "MATCH ()-[a]->() RETURN apoc.label.exists(a, 'LOVE') as value",
                 (row) -> {

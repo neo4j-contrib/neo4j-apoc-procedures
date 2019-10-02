@@ -18,12 +18,10 @@ import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-import org.w3c.dom.Element;
 import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.diff.DefaultNodeMatcher;
 import org.xmlunit.diff.Diff;
 import org.xmlunit.diff.ElementSelector;
-import org.xmlunit.diff.ElementSelectors;
 import org.xmlunit.util.Nodes;
 
 import javax.xml.namespace.QName;
@@ -131,8 +129,8 @@ public class ExportGraphMLTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-                .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, "false")
-                .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath());
+                .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false)
+                .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath());
 
     private static File directory = new File("target/import");
 
@@ -147,12 +145,12 @@ public class ExportGraphMLTest {
         apocConfig().setProperty(APOC_EXPORT_FILE_ENABLED, Boolean.toString(!testName.getMethodName().endsWith(TEST_WITH_NO_EXPORT)));
         apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, Boolean.toString(!testName.getMethodName().endsWith(TEST_WITH_NO_IMPORT)));
 
-        db.execute("CREATE (f:Foo:Foo2:Foo0 {name:'foo', born:Date('2018-10-10'), place:point({ longitude: 56.7, latitude: 12.78, height: 100 })})-[:KNOWS]->(b:Bar {name:'bar',age:42, place:point({ longitude: 56.7, latitude: 12.78})}),(c:Bar {age:12,values:[1,2,3]})").close();
+        db.executeTransactionally("CREATE (f:Foo:Foo2:Foo0 {name:'foo', born:Date('2018-10-10'), place:point({ longitude: 56.7, latitude: 12.78, height: 100 })})-[:KNOWS]->(b:Bar {name:'bar',age:42, place:point({ longitude: 56.7, latitude: 12.78})}),(c:Bar {age:12,values:[1,2,3]})");
     }
 
     @Test
     public void testImportGraphML() throws Exception {
-        db.execute("MATCH (n) DETACH DELETE n").close();
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
 
         File output = new File(directory, "import.graphml");
         FileWriter fw = new FileWriter(output);
@@ -189,7 +187,7 @@ public class ExportGraphMLTest {
 
     @Test
     public void testImportGraphMLNodeEdge() throws Exception {
-        db.execute("MATCH (n) DETACH DELETE n").close();
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
 
         File output = new File(directory, "importNodeEdges.graphml");
         FileWriter fw = new FileWriter(output);
@@ -313,15 +311,15 @@ public class ExportGraphMLTest {
 
     @Test
     public void testImportAndExport() throws Exception {
-        db.execute("MATCH (n) detach delete (n)");
+        db.executeTransactionally("MATCH (n) detach delete (n)");
         File output = new File(directory, "graphEmpty.graphml");
-        db.execute("CREATE (n:Test {name : '', limit : 3}) RETURN n");
+        db.executeTransactionally("CREATE (n:Test {name : '', limit : 3}) RETURN n");
         TestUtil.testCall(db, "call apoc.export.graphml.all({file},{storeNodeIds:true, readLabels:true, useTypes:true, defaultRelationshipType:'RELATED'})",
                 map("file", output.getAbsolutePath()),
                 (r) -> assertResultEmpty(output, r));
         assertXMLEquals(output, EXPECTED_TYPES_EMPTY);
 
-        db.execute("MATCH (n) DETACH DELETE n").close();
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
 
         File input = new File(directory, "importEmpty.graphml");
         FileWriter fw = new FileWriter(input);
@@ -334,8 +332,8 @@ public class ExportGraphMLTest {
                 assertEquals(3L, r.get("limit"));
             }
         );
-        db.execute("MATCH (n) detach delete (n)");
-        db.execute("CREATE (f:Foo:Foo2:Foo0 {name:'foo'})-[:KNOWS]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12,values:[1,2,3]})").close();
+        db.executeTransactionally("MATCH (n) detach delete (n)");
+        db.executeTransactionally("CREATE (f:Foo:Foo2:Foo0 {name:'foo'})-[:KNOWS]->(b:Bar {name:'bar',age:42}),(c:Bar {age:12,values:[1,2,3]})");
 
     }
 
@@ -424,8 +422,8 @@ public class ExportGraphMLTest {
 
     @Test
     public void testExportGraphmlQueryWithStringCaptionCamelCase() throws FileNotFoundException {
-        db.execute("MATCH (n) detach delete (n)");
-        db.execute("CREATE (f:Foo:Foo2:Foo0 {firstName:'foo'})-[:KNOWS]->(b:Bar {name:'bar',ageNow:42}),(c:Bar {age:12,values:[1,2,3]})").close();
+        db.executeTransactionally("MATCH (n) detach delete (n)");
+        db.executeTransactionally("CREATE (f:Foo:Foo2:Foo0 {firstName:'foo'})-[:KNOWS]->(b:Bar {name:'bar',ageNow:42}),(c:Bar {age:12,values:[1,2,3]})");
         File output = new File(directory, "query.graphml");
         TestUtil.testCall(db, "call apoc.export.graphml.query('MATCH p=()-[r]->() RETURN p limit 1000',{file},{useTypes:true, format: 'gephi'}) ", map("file", output.getAbsolutePath()),
                 (r) -> {

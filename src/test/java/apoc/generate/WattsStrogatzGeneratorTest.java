@@ -57,10 +57,10 @@ public class WattsStrogatzGeneratorTest {
                 new SocialNetworkRelationshipCreator()
         ));
         try (Transaction tx = db.beginTx()) {
-            assertEquals(numberOfNodes, count(db.getAllNodes()));
-            assertEquals((meanDegree * numberOfNodes) / 2, count(db.getAllRelationships()));
+            assertEquals(numberOfNodes, count(tx.getAllNodes()));
+            assertEquals((meanDegree * numberOfNodes) / 2, count(tx.getAllRelationships()));
 
-            tx.success();
+            tx.commit();
         }
     }
 

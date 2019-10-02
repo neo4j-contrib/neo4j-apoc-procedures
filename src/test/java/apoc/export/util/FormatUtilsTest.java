@@ -34,8 +34,8 @@ public class FormatUtilsTest {
     @Test
     public void joinLabels() throws Exception {
         final String delimiter = ":";
-        try (Transaction t = db.beginTx()) {
-            Node node = db.createNode();
+        try (Transaction tx = db.beginTx()) {
+            Node node = tx.createNode();
             assertEquals("", FormatUtils.joinLabels(node, delimiter));
 
             node.addLabel(Label.label("label_a"));

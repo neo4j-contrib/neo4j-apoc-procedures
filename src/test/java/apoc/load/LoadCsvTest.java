@@ -11,9 +11,9 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.testcontainers.containers.GenericContainer;
 
-import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -28,8 +28,8 @@ public class LoadCsvTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, "true")
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File(getUrlFileName("test.csv").toURI()).getParent());
+                .withSetting(ApocSettings.apoc_import_file_enabled, true)
+                .withSetting(GraphDatabaseSettings.load_csv_file_url_root, Paths.get(getUrlFileName("test.csv").toURI()).getParent());
 
     private GenericContainer httpServer;
 

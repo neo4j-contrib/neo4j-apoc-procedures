@@ -44,7 +44,7 @@ public class GephiTest {
     public static void setUp() throws Exception {
         assumeTrue(isGephiRunning());
         registerProcedure(db, Gephi.class);
-        db.execute("CREATE (:Foo {name:'Foo'})-[:KNOWS{weight:7.2,foo:'foo',bar:3.0,directed:'error',label:'foo'}]->(:Bar {name:'Bar'})").close();
+        db.executeTransactionally("CREATE (:Foo {name:'Foo'})-[:KNOWS{weight:7.2,foo:'foo',bar:3.0,directed:'error',label:'foo'}]->(:Bar {name:'Bar'})");
     }
 
     @Test

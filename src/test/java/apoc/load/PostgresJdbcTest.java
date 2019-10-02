@@ -38,7 +38,7 @@ public class PostgresJdbcTest extends AbstractJdbcTest {
         assumeNotNull("Postgres container has to exist", postgress);
         assumeTrue("Postgres must be running", postgress.isRunning());
         TestUtil.registerProcedure(db,Jdbc.class);
-        db.execute("CALL apoc.load.driver('org.postgresql.Driver')").close();
+        db.executeTransactionally("CALL apoc.load.driver('org.postgresql.Driver')");
     }
 
     @AfterClass

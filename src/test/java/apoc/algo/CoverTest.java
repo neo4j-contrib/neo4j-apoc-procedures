@@ -21,7 +21,7 @@ public class CoverTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db, Cover.class);
-        db.execute("CREATE (a)-[:X]->(b)-[:X]->(c)-[:X]->(d)").close();
+        db.executeTransactionally("CREATE (a)-[:X]->(b)-[:X]->(c)-[:X]->(d)");
     }
 
     @Test

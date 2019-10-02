@@ -2,7 +2,6 @@ package apoc.export.json;
 
 import apoc.ApocSettings;
 import apoc.graph.Graphs;
-import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import org.json.JSONException;
 import org.junit.Before;
@@ -11,7 +10,9 @@ import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
-import org.skyscreamer.jsonassert.*;
+import org.skyscreamer.jsonassert.Customization;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.comparator.CustomComparator;
 
 import java.io.File;
@@ -32,13 +33,13 @@ public class ExportJsonTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-        .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.getAbsolutePath())
-        .withSetting(ApocSettings.apoc_export_file_enabled, "true");
+        .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath())
+        .withSetting(ApocSettings.apoc_export_file_enabled, true);
 
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, ExportJson.class, Graphs.class);
-        db.execute("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[:KNOWS {since: 1993}]->(b:User {name:'Jim',age:42}),(c:User {age:12})").close();
+        db.executeTransactionally("CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[:KNOWS {since: 1993}]->(b:User {name:'Jim',age:42}),(c:User {age:12})");
     }
 
     @Test
@@ -137,7 +138,7 @@ public class ExportJsonTest {
 
     @Test
     public void testExportMapPath() throws Exception {
-        db.execute("CREATE (f:User {name:'Mike',age:78,male:true})-[:KNOWS {since: 1850}]->(b:User {name:'John',age:18}),(c:User {age:39})").close();
+        db.executeTransactionally("CREATE (f:User {name:'Mike',age:78,male:true})-[:KNOWS {since: 1850}]->(b:User {name:'John',age:18}),(c:User {age:39})");
         String filename = "MapPath.json";
 
         String query = "MATCH path = (u:User)-[rel:KNOWS]->(u2:User) RETURN {key:path} as map, 'Kate' as name";
@@ -312,7 +313,7 @@ public class ExportJsonTest {
 
     @Test
     public void testExportQueryOrderJson() throws Exception {
-        db.execute("CREATE (f:User12:User1:User0:User {name:'Alan'})").close();
+        db.executeTransactionally("CREATE (f:User12:User1:User0:User {name:'Alan'})");
         String filename = "query_node_labels.json";
         String query = "MATCH (u:User) WHERE u.name='Alan' RETURN u";
 
