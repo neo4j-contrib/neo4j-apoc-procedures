@@ -756,4 +756,12 @@ public class Util {
         }
         return separator.charAt(0);
     }
+
+    public static Node rebind(Transaction tx, Node node) {
+        return tx.getNodeById(node.getId());
+    }
+
+    public static Relationship rebind(Transaction tx, Relationship rel) {
+        return tx.getRelationshipById(rel.getId());
+    }
 }

@@ -1,16 +1,17 @@
 package apoc.text;
 
 import apoc.util.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.similarity.HammingDistance;
 import org.apache.commons.text.similarity.JaroWinklerDistance;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
-import apoc.result.StringResult;
 import org.neo4j.procedure.Name;
-import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.UserFunction;
 
 import java.io.UnsupportedEncodingException;
@@ -24,10 +25,7 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import org.apache.commons.lang3.StringUtils;
 
 import static apoc.util.Util.quote;
 import static java.lang.Math.toIntExact;
@@ -42,6 +40,9 @@ public class Strings {
     private final static HammingDistance hammingDistance = new HammingDistance();
     private final static JaroWinklerDistance jaroWinklerDistance = new JaroWinklerDistance();
     private final static LevenshteinDistance levenshteinDistance = new LevenshteinDistance();
+
+    @Context
+    public Transaction tx;
 
     @UserFunction
     @Description("apoc.text.indexOf(text, lookup, from=0, to=-1==len) - find the first occurence of the lookup string in the text, from inclusive, to exclusive, -1 if not found, null if text is null.")
@@ -542,14 +543,14 @@ public class Strings {
         if (value instanceof Iterable) return '['+StreamSupport.stream(((Iterable<?>)value).spliterator(),false).map(v -> toCypher(v,config)).filter(Objects::nonNull).collect(Collectors.joining(","))+']';
         if (value.getClass().isArray()) return '['+Arrays.stream((Object[])value).map(v -> toCypher(v,config)).filter(Objects::nonNull).collect(Collectors.joining(","))+']';
         if (value instanceof Node) {
-            Node node = (Node) value;
+            Node node = Util.rebind(tx, (Node)value);
             String labels = StreamSupport.stream(node.getLabels().spliterator(),false).map(l -> quote(l.name())).collect(Collectors.joining(":"));
             if (!labels.isEmpty()) labels = ':'+labels;
             String var = cypherName(config, "node", () -> "", Util::quote);
             return '('+ var +labels+' '+ toCypher(node.getAllProperties(), config)+')';
         }
         if (value instanceof Relationship) {
-            Relationship rel = (Relationship) value;
+            Relationship rel = Util.rebind(tx, (Relationship) value);
             String type = ':'+quote(rel.getType().name());
             String start = cypherName(config, "start", () -> toCypher(rel.getStartNode(), config),(s)->'('+quote(s)+')');
             String relationship = cypherName(config, "relationship", () -> "", Util::quote);
@@ -573,4 +574,5 @@ public class Strings {
         }
         return null;
     }
+
 }

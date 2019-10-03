@@ -4,6 +4,7 @@ import apoc.Description;
 import apoc.Pools;
 import apoc.util.Util;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
@@ -24,12 +25,15 @@ public class Uuid {
     @Context
     public UuidHandler uuidHandler;
 
+    @Context
+    public Transaction tx;
+
     @Procedure(mode = Mode.DBMS)
     @Description("CALL apoc.uuid.install(label, {addToExistingNodes: true/false, uuidProperty: 'uuid'}) yield label, installed, properties, batchComputationResult | it will add the uuid transaction handler\n" +
             "for the provided `label` and `uuidProperty`, in case the UUID handler is already present it will be replaced by the new one")
     public Stream<UuidInfo> install(@Name("label") String label, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         UuidConfig uuidConfig = new UuidConfig(config);
-        uuidHandler.checkConstraintUuid(label, uuidConfig.getUuidProperty());
+        uuidHandler.checkConstraintUuid(tx, label, uuidConfig.getUuidProperty());
 
         Map<String, Object> addToExistingNodesResult = Collections.emptyMap();
         if (uuidConfig.isAddToExistingNodes()) {
@@ -40,7 +44,7 @@ public class Uuid {
                             .next()
             );
         }
-        uuidHandler.add(label, uuidConfig.getUuidProperty());
+        uuidHandler.add(tx, label, uuidConfig.getUuidProperty());
         return Stream.of(new UuidInstallInfo(label, true, Collections.singletonMap("propertyName", uuidConfig.getUuidProperty()), addToExistingNodesResult));
     }
 

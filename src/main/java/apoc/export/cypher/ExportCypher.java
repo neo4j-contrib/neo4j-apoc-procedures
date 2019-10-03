@@ -57,7 +57,7 @@ public class ExportCypher {
     public Stream<DataProgressInfo> all(@Name(value = "file",defaultValue = "") String fileName, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) throws IOException {
         if (Util.isNullOrEmpty(fileName)) fileName=null;
         String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
-        return exportCypher(fileName, source, new DatabaseSubGraph(db, tx), new ExportConfig(config), false);
+        return exportCypher(fileName, source, new DatabaseSubGraph(tx), new ExportConfig(config), false);
     }
 
     @Procedure
@@ -65,7 +65,7 @@ public class ExportCypher {
     public Stream<DataProgressInfo> data(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name(value = "file",defaultValue = "") String fileName, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) throws IOException {
         if (Util.isNullOrEmpty(fileName)) fileName=null;
         String source = String.format("data: nodes(%d), rels(%d)", nodes.size(), rels.size());
-        return exportCypher(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), new ExportConfig(config), false);
+        return exportCypher(fileName, source, new NodesAndRelsSubGraph(tx, nodes, rels), new ExportConfig(config), false);
     }
 
     @Procedure
@@ -76,7 +76,7 @@ public class ExportCypher {
         Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
         Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
         String source = String.format("graph: nodes(%d), rels(%d)", nodes.size(), rels.size());
-        return exportCypher(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), new ExportConfig(config), false);
+        return exportCypher(fileName, source, new NodesAndRelsSubGraph(tx, nodes, rels), new ExportConfig(config), false);
     }
 
     @Procedure
@@ -96,7 +96,7 @@ public class ExportCypher {
     public Stream<DataProgressInfo> schema(@Name(value = "file",defaultValue = "") String fileName, @Name(value = "config",defaultValue = "{}") Map<String, Object> config) throws IOException {
         if (Util.isNullOrEmpty(fileName)) fileName=null;
         String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
-        return exportCypher(fileName, source, new DatabaseSubGraph(db, tx), new ExportConfig(config), true);
+        return exportCypher(fileName, source, new DatabaseSubGraph(tx), new ExportConfig(config), true);
     }
 
     private Stream<DataProgressInfo> exportCypher(@Name("file") String fileName, String source, SubGraph graph, ExportConfig c, boolean onlySchema) throws IOException {

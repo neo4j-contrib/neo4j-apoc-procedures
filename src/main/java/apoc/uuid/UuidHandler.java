@@ -5,6 +5,7 @@ import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.event.PropertyEntry;
 import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventListener;
@@ -136,8 +137,8 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         }
     }
 
-    public void checkConstraintUuid(String label, String propertyName) {
-        Schema schema = db.schema();
+    public void checkConstraintUuid(Transaction tx, String label, String propertyName) {
+        Schema schema = tx.schema();
         Stream<ConstraintDefinition> constraintDefinitionStream = StreamSupport.stream(schema.getConstraints(Label.label(label)).spliterator(), false);
         boolean exists = constraintDefinitionStream.anyMatch(constraint -> {
             Stream<String> streamPropertyKeys = StreamSupport.stream(constraint.getPropertyKeys().spliterator(), false);
@@ -150,9 +151,9 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
         }
     }
 
-    public void add(String label, String propertyName) {
+    public void add(Transaction tx, String label, String propertyName) {
         checkEnabled();
-        checkConstraintUuid(label, propertyName);
+        checkConstraintUuid(tx, label, propertyName);
 
         configuredLabelAndPropertyNames.put(label, propertyName);
 

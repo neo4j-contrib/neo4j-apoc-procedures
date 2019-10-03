@@ -55,8 +55,8 @@ public class CypherTest {
     public void clearDB() {
         db.executeTransactionally("MATCH (n) DETACH DELETE n");
         try (Transaction tx = db.beginTx()) {
-            db.schema().getIndexes().forEach(IndexDefinition::drop);
-            db.schema().getConstraints().forEach(ConstraintDefinition::drop);
+            tx.schema().getIndexes().forEach(IndexDefinition::drop);
+            tx.schema().getConstraints().forEach(ConstraintDefinition::drop);
             tx.commit();
         }
     }
@@ -64,7 +64,7 @@ public class CypherTest {
 
     @Test
     public void testRun() throws Exception {
-        testCall(db, "CALL apoc.cypher.run('RETURN {a} + 7 as b',{a:3})",
+        testCall(db, "CALL apoc.cypher.run('RETURN $a + 7 as b',{a:3})",
                 r -> assertEquals(10L, ((Map) r.get("value")).get("b")));
     }
     @Test
@@ -99,7 +99,7 @@ public class CypherTest {
     @Test
     public void testRunFirstColumnBugCompiled() throws Exception {
         Node movie = TestUtil.singleResultFirstColumn(db, "CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'}) RETURN m");
-        String query = "WITH {m} AS m MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10";
+        String query = "WITH $m AS m MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10";
         String plan = db.executeTransactionally("EXPLAIN " + query, null, result -> result.getExecutionPlanDescription().toString());
         System.out.println(plan);
         List<Node> recs = TestUtil.firstColumn(db, query, map("m",movie));
@@ -109,7 +109,7 @@ public class CypherTest {
     @Test
     public void testRunFirstColumnBugDirection() throws Exception {
         db.executeTransactionally("CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'})");
-        String query = "MATCH (m:Movie {title:'MovieA'}) RETURN apoc.cypher.runFirstColumn('WITH {m} AS m MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10', {m:m}, true) as rec";
+        String query = "MATCH (m:Movie {title:'MovieA'}) RETURN apoc.cypher.runFirstColumn('WITH $m AS m MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10', {m:m}, true) as rec";
         testCall(db, query,
                 r -> assertEquals("MovieB", ((Node)((List)r.get("rec")).get(0)).getProperty("title")));
     }
@@ -124,25 +124,25 @@ public class CypherTest {
     @Test
     public void testParallel() throws Exception {
         int size = 10_000;
-        testResult(db, "CALL apoc.cypher.parallel2('UNWIND range(0,9) as b RETURN b',{a:range(1,{size})},'a')", map("size", size),
+        testResult(db, "CALL apoc.cypher.parallel2('UNWIND range(0,9) as b RETURN b',{a:range(1,$size)},'a')", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
     @Test
     public void testSingular() throws Exception {
         int size = 10_000;
-        testResult(db, "CALL apoc.cypher.run('UNWIND a as row UNWIND range(0,9) as b RETURN b',{a:range(1,{size})})", map("size", size),
+        testResult(db, "CALL apoc.cypher.run('UNWIND a as row UNWIND range(0,9) as b RETURN b',{a:range(1,$size)})", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
     @Test
     public void testMapParallel() throws Exception {
         int size = 10_000;
-        testResult(db, "CALL apoc.cypher.mapParallel('UNWIND range(0,9) as b RETURN b',{},range(1,{size}))", map("size", size),
+        testResult(db, "CALL apoc.cypher.mapParallel('UNWIND range(0,9) as b RETURN b',{},range(1,$size))", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
     @Test
     public void testMapParallel2() throws Exception {
         int size = 10_000;
-        testResult(db, "CALL apoc.cypher.mapParallel2('UNWIND range(0,9) as b RETURN b',{},range(1,{size}),10)", map("size", size),
+        testResult(db, "CALL apoc.cypher.mapParallel2('UNWIND range(0,9) as b RETURN b',{},range(1,$size),10)", map("size", size),
                 r -> assertEquals( size * 10,Iterators.count(r) ));
     }
     @Test
@@ -150,7 +150,7 @@ public class CypherTest {
         int size = 10_0000;
         List<Long> list = new ArrayList<>(size);
         for (int i = 0; i < size; i++) list.add(3L);
-        testCall(db, "CALL apoc.cypher.parallel2('RETURN a + 7 as b',{a:{list}},'a') YIELD value RETURN sum(value.b) as b", map("list", list),
+        testCall(db, "CALL apoc.cypher.parallel2('RETURN a + 7 as b',{a:$list},'a') YIELD value RETURN sum(value.b) as b", map("list", list),
                 r -> {
                     assertEquals( size * 10L, r.get("b") );
                 });
@@ -162,7 +162,7 @@ public class CypherTest {
 
     @Test
     public void testRunMany() throws Exception {
-        testResult(db, "CALL apoc.cypher.runMany('CREATE (n:Node {name:{name}});\nMATCH (n {name:{name}}) CREATE (n)-[:X {name:{name2}}]->(n);',{params})",map("params",map("name","John","name2","Doe")),
+        testResult(db, "CALL apoc.cypher.runMany('CREATE (n:Node {name:$name});\nMATCH (n {name:$name}) CREATE (n)-[:X {name:$name2}]->(n);',$params)",map("params",map("name","John","name2","Doe")),
                 r -> {
                     Map<String, Object> row = r.next();
                     assertEquals(-1L, row.get("row"));
@@ -343,7 +343,7 @@ public class CypherTest {
     @Test(timeout=9000)
     public void testWithTimeout() {
         assertFalse(db.executeTransactionally(
-                "CALL apoc.cypher.runTimeboxed('CALL apoc.util.sleep(10000)', null, {timeout})",
+                "CALL apoc.cypher.runTimeboxed('CALL apoc.util.sleep(10000)', null, $timeout)",
                 singletonMap("timeout", 100),
                 result -> result.hasNext()));
     }
@@ -365,7 +365,7 @@ public class CypherTest {
 
     @Test(timeout=9000)
     public void shouldTooLongTimeboxBeNotHarmful() {
-        assertFalse(db.executeTransactionally("CALL apoc.cypher.runTimeboxed('CALL apoc.util.sleep(10)', null, {timeout})", singletonMap("timeout", 10000), result -> result.hasNext()));
+        assertFalse(db.executeTransactionally("CALL apoc.cypher.runTimeboxed('CALL apoc.util.sleep(10)', null, $timeout)", singletonMap("timeout", 10000), result -> result.hasNext()));
     }
 
     @Test
@@ -382,13 +382,13 @@ public class CypherTest {
 
     @Test
     public void testWhenIfCondition() throws Exception {
-        testCall(db, "CALL apoc.when(true, 'RETURN {a} + 7 as b', 'RETURN {a} as b',{a:3})",
+        testCall(db, "CALL apoc.when(true, 'RETURN $a + 7 as b', 'RETURN $a as b',{a:3})",
                 r -> assertEquals(10L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
     public void testWhenElseCondition() throws Exception {
-        testCall(db, "CALL apoc.when(false, 'RETURN {a} + 7 as b', 'RETURN {a} as b',{a:3})",
+        testCall(db, "CALL apoc.when(false, 'RETURN $a + 7 as b', 'RETURN $a as b',{a:3})",
                 r -> assertEquals(3L, ((Map) r.get("value")).get("b")));
     }
 
@@ -412,13 +412,13 @@ public class CypherTest {
 
     @Test
     public void testCase() throws Exception {
-        testCall(db, "CALL apoc.case([false, 'RETURN {a} + 7 as b', false, 'RETURN {a} as b', true, 'RETURN {a} + 4 as b', false, 'RETURN {a} + 1 as b'], 'RETURN {a} + 10 as b', {a:3})",
+        testCall(db, "CALL apoc.case([false, 'RETURN $a + 7 as b', false, 'RETURN $a as b', true, 'RETURN $a + 4 as b', false, 'RETURN $a + 1 as b'], 'RETURN $a + 10 as b', {a:3})",
                 r -> assertEquals(7L, ((Map) r.get("value")).get("b")));
     }
 
     @Test
     public void testCaseElseCondition() throws Exception {
-        testCall(db, "CALL apoc.case([false, 'RETURN {a} + 7 as b', false, 'RETURN {a} as b', false, 'RETURN {a} + 4 as b'], 'RETURN {a} + 10 as b', {a:3})",
+        testCall(db, "CALL apoc.case([false, 'RETURN $a + 7 as b', false, 'RETURN $a as b', false, 'RETURN $a + 4 as b'], 'RETURN $a + 10 as b', {a:3})",
                 r -> assertEquals(13L, ((Map) r.get("value")).get("b")));
     }
 

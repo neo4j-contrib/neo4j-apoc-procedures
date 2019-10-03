@@ -19,7 +19,6 @@
  */
 package org.neo4j.cypher.export;
 
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
@@ -28,18 +27,16 @@ import org.neo4j.graphdb.schema.IndexDefinition;
 
 public class DatabaseSubGraph implements SubGraph
 {
-    private final GraphDatabaseService gdb;
     private final Transaction transaction;
 
-    public DatabaseSubGraph( GraphDatabaseService gdb, Transaction transaction )
+    public DatabaseSubGraph( Transaction transaction )
     {
-        this.gdb = gdb;
         this.transaction = transaction;
     }
 
-    public static SubGraph from( GraphDatabaseService gdb, Transaction transaction )
+    public static SubGraph from( Transaction transaction )
     {
-        return new DatabaseSubGraph( gdb, transaction );
+        return new DatabaseSubGraph( transaction );
     }
 
     @Override
@@ -63,12 +60,12 @@ public class DatabaseSubGraph implements SubGraph
     @Override
     public Iterable<IndexDefinition> getIndexes()
     {
-        return gdb.schema().getIndexes();
+        return transaction.schema().getIndexes();
     }
 
     @Override
     public Iterable<ConstraintDefinition> getConstraints()
     {
-        return gdb.schema().getConstraints();
+        return transaction.schema().getConstraints();
     }
 }

@@ -51,7 +51,7 @@ public class ExportCSV {
     @Description("apoc.export.csv.all(file,config) - exports whole database as csv to the provided file")
     public Stream<ProgressInfo> all(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
         String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
-        return exportCsv(fileName, source, new DatabaseSubGraph(db, tx), new ExportConfig(config));
+        return exportCsv(fileName, source, new DatabaseSubGraph(tx), new ExportConfig(config));
     }
 
     @Procedure
@@ -60,7 +60,7 @@ public class ExportCSV {
         ExportConfig exportConfig = new ExportConfig(config);
         preventBulkImport(exportConfig);
         String source = String.format("data: nodes(%d), rels(%d)", nodes.size(), rels.size());
-        return exportCsv(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), exportConfig);
+        return exportCsv(fileName, source, new NodesAndRelsSubGraph(tx, nodes, rels), exportConfig);
     }
     @Procedure
     @Description("apoc.export.csv.graph(graph,file,config) - exports given graph object as csv to the provided file")
@@ -68,7 +68,7 @@ public class ExportCSV {
         Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
         Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
         String source = String.format("graph: nodes(%d), rels(%d)", nodes.size(), rels.size());
-        return exportCsv(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), new ExportConfig(config));
+        return exportCsv(fileName, source, new NodesAndRelsSubGraph(tx, nodes, rels), new ExportConfig(config));
     }
 
     @Procedure

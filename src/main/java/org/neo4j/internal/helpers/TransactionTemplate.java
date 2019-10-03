@@ -195,6 +195,7 @@ public class TransactionTemplate
             try ( Transaction tx = gds.beginTx() )
             {
                 T result = txFunction.apply( tx );
+                tx.commit();
                 return result;
             }
             catch ( Throwable ex )

@@ -46,7 +46,7 @@ public class ExportJson {
     public Stream<ProgressInfo> all(@Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
         String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
-        return exportJson(fileName, source, new DatabaseSubGraph(db, tx), config);
+        return exportJson(fileName, source, new DatabaseSubGraph(tx), config);
     }
 
     @Procedure
@@ -54,7 +54,7 @@ public class ExportJson {
     public Stream<ProgressInfo> data(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws Exception {
 
         String source = String.format("data: nodes(%d), rels(%d)", nodes.size(), rels.size());
-        return exportJson(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), config);
+        return exportJson(fileName, source, new NodesAndRelsSubGraph(tx, nodes, rels), config);
     }
     @Procedure
     @Description("apoc.exportJson.json.graph(graph,file,config) - exports given graph object as json to the provided file")
@@ -63,7 +63,7 @@ public class ExportJson {
         Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
         Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
         String source = String.format("graph: nodes(%d), rels(%d)", nodes.size(), rels.size());
-        return exportJson(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), config);
+        return exportJson(fileName, source, new NodesAndRelsSubGraph(tx, nodes, rels), config);
     }
 
     @Procedure

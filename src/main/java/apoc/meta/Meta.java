@@ -41,6 +41,9 @@ public class Meta {
     @Context
     public KernelTransaction kernelTx;
 
+    @Context
+    public Transaction transaction;
+
     public enum Types {
         INTEGER,FLOAT,STRING,BOOLEAN,RELATIONSHIP,NODE,PATH,NULL,ANY,MAP,LIST,POINT,DATE,DATE_TIME,LOCAL_TIME,LOCAL_DATE_TIME,TIME,DURATION;
 
@@ -428,7 +431,7 @@ public class Meta {
 
     private Map<String, Map<String, MetaResult>> collectMetaData (MetaConfig config) {
         Map<String,Map<String,MetaResult>> metaData = new LinkedHashMap<>(100);
-        Schema schema = db.schema();
+        Schema schema = transaction.schema();
 
         Map<String, Iterable<ConstraintDefinition>> relConstraints = new HashMap<>(20);
         for (RelationshipType type : tx.getAllRelationshipTypesInUse()) {

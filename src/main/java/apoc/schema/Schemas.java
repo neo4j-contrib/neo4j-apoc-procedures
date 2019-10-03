@@ -85,7 +85,7 @@ public class Schemas {
     public List<AssertSchemaResult> assertConstraints(Map<String, List<Object>> constraints0, boolean dropExisting) throws ExecutionException, InterruptedException {
         Map<String, List<Object>> constraints = copyMapOfObjects(constraints0);
         List<AssertSchemaResult> result = new ArrayList<>(constraints.size());
-        Schema schema = db.schema();
+        Schema schema = tx.schema();
 
         for (ConstraintDefinition definition : schema.getConstraints()) {
             String label = definition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE) ? definition.getRelationshipType().name() : definition.getLabel().name();
@@ -126,7 +126,7 @@ public class Schemas {
     }
 
     public List<AssertSchemaResult> assertIndexes(Map<String, List<Object>> indexes0, boolean dropExisting) throws ExecutionException, InterruptedException, IllegalArgumentException {
-        Schema schema = db.schema();
+        Schema schema = tx.schema();
         Map<String, List<Object>> indexes = copyMapOfObjects(indexes0);
         List<AssertSchemaResult> result = new ArrayList<>(indexes.size());
 
@@ -204,7 +204,7 @@ public class Schemas {
      * @return true if the index exists otherwise it returns false
      */
     private Boolean indexExists(String labelName, List<String> propertyNames) {
-        Schema schema = db.schema();
+        Schema schema = tx.schema();
 
         for (IndexDefinition indexDefinition : Iterables.asList(schema.getIndexes(Label.label(labelName)))) {
             List<String> properties = Iterables.asList(indexDefinition.getPropertyKeys());
@@ -226,7 +226,7 @@ public class Schemas {
      * @return true if the constraint exists otherwise it returns false
      */
     private Boolean constraintsExists(String labelName, List<String> propertyNames) {
-        Schema schema = db.schema();
+        Schema schema = tx.schema();
 
         for (ConstraintDefinition constraintDefinition : Iterables.asList(schema.getConstraints(Label.label(labelName)))) {
             List<String> properties = Iterables.asList(constraintDefinition.getPropertyKeys());
@@ -248,7 +248,7 @@ public class Schemas {
      * @return true if the constraint exists otherwise it returns false
      */
     private Boolean constraintsExistsForRelationship(String type, List<String> propertyNames) {
-        Schema schema = db.schema();
+        Schema schema = tx.schema();
 
         for (ConstraintDefinition constraintDefinition : Iterables.asList(schema.getConstraints(RelationshipType.withName(type)))) {
             List<String> properties = Iterables.asList(constraintDefinition.getPropertyKeys());
@@ -343,7 +343,7 @@ public class Schemas {
      * @return
      */
     private Stream<ConstraintRelationshipInfo> constraintsForRelationship(Map<String,Object> config) {
-        Schema schema = db.schema();
+        Schema schema = tx.schema();
 
         SchemaConfig schemaConfig = new SchemaConfig(config);
         Set<String> includeRelationships = schemaConfig.getRelationships();

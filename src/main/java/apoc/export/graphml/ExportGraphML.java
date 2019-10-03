@@ -65,7 +65,7 @@ public class ExportGraphML {
     public Stream<ProgressInfo> all(@Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
 
         String source = String.format("database: nodes(%d), rels(%d)", Util.nodeCount(tx), Util.relCount(tx));
-        return exportGraphML(fileName, source, new DatabaseSubGraph(db, tx), new ExportConfig(config));
+        return exportGraphML(fileName, source, new DatabaseSubGraph(tx), new ExportConfig(config));
     }
 
     @Procedure
@@ -73,7 +73,7 @@ public class ExportGraphML {
     public Stream<ProgressInfo> data(@Name("nodes") List<Node> nodes, @Name("rels") List<Relationship> rels, @Name("file") String fileName, @Name("config") Map<String, Object> config) throws Exception {
 
         String source = String.format("data: nodes(%d), rels(%d)", nodes.size(), rels.size());
-        return exportGraphML(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), new ExportConfig(config));
+        return exportGraphML(fileName, source, new NodesAndRelsSubGraph(tx, nodes, rels), new ExportConfig(config));
     }
     @Procedure
     @Description("apoc.export.graphml.graph(graph,file,config) - exports given graph object as graphml to the provided file")
@@ -82,7 +82,7 @@ public class ExportGraphML {
         Collection<Node> nodes = (Collection<Node>) graph.get("nodes");
         Collection<Relationship> rels = (Collection<Relationship>) graph.get("relationships");
         String source = String.format("graph: nodes(%d), rels(%d)", nodes.size(), rels.size());
-        return exportGraphML(fileName, source, new NodesAndRelsSubGraph(db, nodes, rels), new ExportConfig(config));
+        return exportGraphML(fileName, source, new NodesAndRelsSubGraph(tx, nodes, rels), new ExportConfig(config));
     }
 
     @Procedure

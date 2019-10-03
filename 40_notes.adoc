@@ -1,3 +1,4 @@
+
 # list of removed functions and procedures for 4.0
 
 All freetext/fulltext stuff has been removed in favour of 3.5+ productized fulltext indexes.
@@ -46,5 +47,6 @@ NOTE: the following list is incomplete
 
 * using `ImpermanentDatabaseRule` instead of `TestGraphDatabaseFactory...`
 * `ImpermanentDatabaseRule.withSetting()` takes now typed values instead of strings
-
+* curly braces syntax for Cypher parameters no longer supported : `$param` instead of `{param}`
+* cypher's `length` functions doesn't work on strings any longer. use `size` instead
 

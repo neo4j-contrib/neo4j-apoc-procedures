@@ -49,7 +49,7 @@ public class SchemasTest {
             assertEquals("CREATED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes(Label.label("Foo")));
+            List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes(Label.label("Foo")));
             assertEquals(1, indexes.size());
             assertEquals("Foo", indexes.get(0).getLabel().name());
             assertEquals(asList("bar"), indexes.get(0).getPropertyKeys());
@@ -65,7 +65,7 @@ public class SchemasTest {
             assertEquals("CREATED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<ConstraintDefinition> constraints = Iterables.asList(db.schema().getConstraints(Label.label("Foo")));
+            List<ConstraintDefinition> constraints = Iterables.asList(tx.schema().getConstraints(Label.label("Foo")));
             assertEquals(1, constraints.size());
             ConstraintDefinition constraint = constraints.get(0);
             assertEquals(ConstraintType.UNIQUENESS, constraint.getConstraintType());
@@ -84,7 +84,7 @@ public class SchemasTest {
             assertEquals("DROPPED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(0, indexes.size());
         }
     }
@@ -106,7 +106,7 @@ public class SchemasTest {
             assertEquals("CREATED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(1, indexes.size());
         }
     }
@@ -134,7 +134,7 @@ public class SchemasTest {
             assertEquals("CREATED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(3, indexes.size());
         }
     }
@@ -149,7 +149,7 @@ public class SchemasTest {
             assertEquals("DROPPED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<ConstraintDefinition> constraints = Iterables.asList(db.schema().getConstraints());
+            List<ConstraintDefinition> constraints = Iterables.asList(tx.schema().getConstraints());
             assertEquals(0, constraints.size());
         }
     }
@@ -171,7 +171,7 @@ public class SchemasTest {
             assertEquals("CREATED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<ConstraintDefinition> constraints = Iterables.asList(db.schema().getConstraints());
+            List<ConstraintDefinition> constraints = Iterables.asList(tx.schema().getConstraints());
             assertEquals(1, constraints.size());
         }
     }
@@ -199,7 +199,7 @@ public class SchemasTest {
             assertEquals("CREATED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<ConstraintDefinition> constraints = Iterables.asList(db.schema().getConstraints());
+            List<ConstraintDefinition> constraints = Iterables.asList(tx.schema().getConstraints());
             assertEquals(3, constraints.size());
         }
     }
@@ -221,7 +221,7 @@ public class SchemasTest {
             assertEquals("CREATED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(2, indexes.size());
         }
     }
@@ -244,7 +244,7 @@ public class SchemasTest {
             assertEquals("CREATED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<ConstraintDefinition> constraints = Iterables.asList(db.schema().getConstraints());
+            List<ConstraintDefinition> constraints = Iterables.asList(tx.schema().getConstraints());
             assertEquals(2, constraints.size());
         }
     }
@@ -253,7 +253,7 @@ public class SchemasTest {
     public void testIndexes() {
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
         try (Transaction tx = db.beginTx()) {
-            db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
+            tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
             tx.commit();
         }
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
@@ -341,7 +341,7 @@ public class SchemasTest {
             assertEquals("DROPPED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(0, indexes.size());
         }
     }
@@ -357,7 +357,7 @@ public class SchemasTest {
             assertEquals("DROPPED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(1, indexes.size());
         }
     }
@@ -373,7 +373,7 @@ public class SchemasTest {
             assertEquals("KEPT", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(1, indexes.size());
         }
     }
@@ -397,7 +397,7 @@ public class SchemasTest {
             assertEquals("CREATED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(2, indexes.size());
         }
     }
@@ -419,7 +419,7 @@ public class SchemasTest {
             assertEquals("CREATED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(1, indexes.size());
         }
     }
@@ -441,7 +441,7 @@ public class SchemasTest {
             assertEquals("CREATED", r.get("action"));
         });
         try (Transaction tx = db.beginTx()) {
-            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes());
             assertEquals(1, indexes.size());
         }
     }
@@ -458,7 +458,7 @@ public class SchemasTest {
         db.executeTransactionally("CREATE INDEX ON :Person(name)");
         db.executeTransactionally("CREATE INDEX ON :Movie(title)");
         try (Transaction tx = db.beginTx()) {
-            db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
+            tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
             tx.commit();
         }
         testResult(db, "CALL apoc.schema.nodes({labels:['Foo']})", (result) -> {
@@ -486,7 +486,7 @@ public class SchemasTest {
         db.executeTransactionally("CREATE INDEX ON :Person(name)");
         db.executeTransactionally("CREATE INDEX ON :Movie(title)");
         try (Transaction tx = db.beginTx()) {
-            db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
+            tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
             tx.commit();
         }
         testResult(db, "CALL apoc.schema.nodes({labels:['Foo', 'Person']})", (result) -> {
@@ -548,7 +548,7 @@ public class SchemasTest {
         db.executeTransactionally("CREATE INDEX ON :Person(name)");
         db.executeTransactionally("CREATE INDEX ON :Movie(title)");
         try (Transaction tx = db.beginTx()) {
-            db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
+            tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
             tx.commit();
             testResult(db, "CALL apoc.schema.nodes({labels:['Foo', 'Person', 'Bar'], excludeLabels:['Bar']})", (result) -> {});
         } catch (IllegalArgumentException e) {
@@ -565,7 +565,7 @@ public class SchemasTest {
         db.executeTransactionally("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
         db.executeTransactionally("CREATE CONSTRAINT ON ()-[knows:SINCE]-() ASSERT exists(since.year)");
         try (Transaction tx = db.beginTx()) {
-            db.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
+            tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
             tx.commit();
             testResult(db, "CALL apoc.schema.relationships({relationships:['LIKED'], excludeRelationships:['SINCE']})", (result) -> {});
         } catch (IllegalArgumentException e) {

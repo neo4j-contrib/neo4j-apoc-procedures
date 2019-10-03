@@ -24,9 +24,17 @@ import java.util.stream.Stream;
  */
 public class Rename {
 
-	@Context public GraphDatabaseService db;
-    @Context public Log log;
-    @Context public TerminationGuard terminationGuard;
+	@Context
+	public GraphDatabaseService db;
+
+	@Context
+	public Log log;
+
+    @Context
+	public TerminationGuard terminationGuard;
+
+    @Context
+	public Transaction transaction;
 
     @Context
 	public Pools pools;
@@ -99,23 +107,23 @@ public class Rename {
 		List<String> indexes = new ArrayList<>();
 
 		if(label != null){
-			Iterable<ConstraintDefinition> constraintsForLabel = db.schema().getConstraints(Label.label(label));
+			Iterable<ConstraintDefinition> constraintsForLabel = transaction.schema().getConstraints(Label.label(label));
 			constraintsForLabel.forEach((c) -> {
 				constraints.add(c.toString());
 			});
-			Iterable<IndexDefinition> idxs = db.schema().getIndexes(Label.label(label));
+			Iterable<IndexDefinition> idxs = transaction.schema().getIndexes(Label.label(label));
 			idxs.forEach((i) -> {
 				indexes.add(i.toString());
 			});
 		}
 		if(rel != null){
-			Iterable<ConstraintDefinition> constraintsForRel = db.schema().getConstraints(RelationshipType.withName(rel));
+			Iterable<ConstraintDefinition> constraintsForRel = transaction.schema().getConstraints(RelationshipType.withName(rel));
 			constraintsForRel.forEach((c) -> {
 				constraints.add(c.toString());
 			});
 		}
 		if (prop != null) {
-			Iterable<ConstraintDefinition> constraintsForProps = db.schema().getConstraints();
+			Iterable<ConstraintDefinition> constraintsForProps = transaction.schema().getConstraints();
 			constraintsForProps.forEach((c)-> {
 				c.getPropertyKeys().forEach((p) -> {
 					if (p.equals(prop)){
@@ -123,7 +131,7 @@ public class Rename {
 					}
 				});
 			});
-            Iterable<IndexDefinition> idxs = db.schema().getIndexes();
+            Iterable<IndexDefinition> idxs = transaction.schema().getIndexes();
             idxs.forEach((i) -> {
                 i.getPropertyKeys().forEach((p) -> {
                     if(p.equals(prop)){
