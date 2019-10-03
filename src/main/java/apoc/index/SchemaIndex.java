@@ -2,7 +2,6 @@ package apoc.index;
 
 import apoc.result.ListResult;
 import apoc.util.QueueBasedSpliterator;
-import org.neo4j.common.DependencyResolver;
 import org.neo4j.exceptions.KernelException;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
@@ -14,7 +13,7 @@ import org.neo4j.internal.schema.LabelSchemaDescriptor;
 import org.neo4j.internal.schema.SchemaDescriptor;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.impl.api.KernelStatement;
-import org.neo4j.kernel.impl.core.ThreadToStatementContextBridge;
+import org.neo4j.kernel.impl.coreapi.InternalTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.*;
 import org.neo4j.values.storable.Value;
@@ -40,7 +39,7 @@ public class SchemaIndex {
     public GraphDatabaseAPI db;
 
     @Context
-    public KernelTransaction tx;
+    public Transaction tx;
 
     @Context
     public TerminationGuard terminationGuard;
@@ -57,23 +56,22 @@ public class SchemaIndex {
     @Description("apoc.schema.properties.distinctCount([label], [key]) YIELD label, key, value, count - quickly returns all distinct values and counts for a given key")
     public Stream<PropertyValueCount> distinctCount(@Name(value = "label", defaultValue = "") String labelName, @Name(value = "key", defaultValue = "") String keyName) {
 
-        ThreadToStatementContextBridge ctx = db.getDependencyResolver().resolveDependency(ThreadToStatementContextBridge.class, DependencyResolver.SelectionStrategy.FIRST);
         BlockingQueue<PropertyValueCount> queue = new LinkedBlockingDeque<>(100);
-        Iterable<IndexDefinition> indexDefinitions = (labelName.isEmpty()) ? db.schema().getIndexes() : db.schema().getIndexes(Label.label(labelName));
+        Iterable<IndexDefinition> indexDefinitions = (labelName.isEmpty()) ? tx.schema().getIndexes() : tx.schema().getIndexes(Label.label(labelName));
 
         new Thread(() ->
                 StreamSupport.stream(indexDefinitions.spliterator(), true)
                 .filter(indexDefinition -> isIndexCoveringProperty(indexDefinition, keyName))
-                .map(indexDefinition -> scanIndexDefinitionForKeys(indexDefinition, keyName, ctx, queue))
+                .map(indexDefinition -> scanIndexDefinitionForKeys(indexDefinition, keyName, queue))
                 .collect(new QueuePoisoningCollector(queue, POISON))
         ).start();
 
         return StreamSupport.stream(new QueueBasedSpliterator<>(queue, POISON, terminationGuard, Long.MAX_VALUE),false);
     }
 
-    private Object scanIndexDefinitionForKeys(IndexDefinition indexDefinition, @Name(value = "key", defaultValue = "") String keyName, ThreadToStatementContextBridge ctx, BlockingQueue<PropertyValueCount> queue) {
+    private Object scanIndexDefinitionForKeys(IndexDefinition indexDefinition, @Name(value = "key", defaultValue = "") String keyName,  BlockingQueue<PropertyValueCount> queue) {
         try (Transaction threadTx = db.beginTx()) {
-            KernelTransaction ktx = ctx.getKernelTransactionBoundToThisThread(true, db.databaseId());
+            KernelTransaction ktx = ((InternalTransaction)threadTx).kernelTransaction();
             Iterable<String> keys = keyName.isEmpty() ? indexDefinition.getPropertyKeys() : Collections.singletonList(keyName);
             for (String key : keys) {
                 try (KernelStatement ignored = (KernelStatement) ktx.acquireStatement()) {
