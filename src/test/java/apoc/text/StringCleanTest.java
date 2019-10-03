@@ -50,7 +50,7 @@ public class StringCleanTest {
     @Test
     public void testClean() throws Exception {
         testCall(db,
-                "RETURN apoc.text.clean({a}) AS value",
+                "RETURN apoc.text.clean($a) AS value",
                 map("a", dirty),
                 row -> assertEquals(clean, row.get("value")));
     }

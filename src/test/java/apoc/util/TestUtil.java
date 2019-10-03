@@ -220,7 +220,7 @@ public class TestUtil {
     }
 
     public static <T> T singleResultFirstColumn(GraphDatabaseService db, String cypher) {
-        return singleResultFirstColumn(db, cypher, null);
+        return singleResultFirstColumn(db, cypher, Collections.emptyMap());
     }
 
     public static <T> T singleResultFirstColumn(GraphDatabaseService db, String cypher, Map<String,Object> params) {
@@ -232,6 +232,6 @@ public class TestUtil {
     }
 
     public static <T> List<T> firstColumn(GraphDatabaseService db, String cypher) {
-        return db.executeTransactionally(cypher , null, result -> Iterators.asList(iteratorSingleColumn(result)));
+        return db.executeTransactionally(cypher , Collections.emptyMap(), result -> Iterators.asList(iteratorSingleColumn(result)));
     }
 }

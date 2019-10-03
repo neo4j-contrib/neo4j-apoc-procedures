@@ -60,7 +60,7 @@ public class UtilsTest {
 
     @Test
     public void testSleep() {
-        String cypherSleep = "call apoc.util.sleep({duration})";
+        String cypherSleep = "call apoc.util.sleep($duration)";
         testCallEmpty(db, cypherSleep, MapUtil.map("duration", 0l));  // force building query plan
 
         long duration = 300;
@@ -72,7 +72,7 @@ public class UtilsTest {
 
     @Test
     public void testSleepWithTerminate() {
-        String cypherSleep = "call apoc.util.sleep({duration})";
+        String cypherSleep = "call apoc.util.sleep($duration)";
         testCallEmpty(db, cypherSleep, MapUtil.map("duration", 0l));  // force building query plan
 
         long duration = 300;

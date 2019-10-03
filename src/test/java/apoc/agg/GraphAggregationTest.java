@@ -8,6 +8,7 @@ import org.neo4j.graphdb.Entity;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -31,8 +32,8 @@ public class GraphAggregationTest {
 
     @Test
     public void testGraph() throws Exception {
-        Map<String, Entity> pcs = db.executeTransactionally("MATCH (n) RETURN n.id as id, n UNION ALL MATCH ()-[n]->() RETURN n.id as id, n", null,
-                result -> result.stream().collect(Collectors.toMap(row -> row.get("id").toString(), row -> (Entity) row.get("n)"))));
+        Map<String, Entity> pcs = db.executeTransactionally("MATCH (n) RETURN n.id as id, n UNION ALL MATCH ()-[n]->() RETURN n.id as id, n", Collections.emptyMap(),
+                result -> result.stream().collect(Collectors.toMap(row -> row.get("id").toString(), row -> (Entity) row.get("n"))));
 
         testCall(db, "RETURN apoc.agg.graph(null) as g",
                 (row) -> {
