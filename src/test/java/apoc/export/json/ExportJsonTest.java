@@ -33,7 +33,7 @@ public class ExportJsonTest {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
-        .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath())
+        .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath())
         .withSetting(ApocSettings.apoc_export_file_enabled, true);
 
     @Before

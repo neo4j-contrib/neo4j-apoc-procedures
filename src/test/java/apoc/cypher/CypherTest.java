@@ -41,7 +41,7 @@ public class CypherTest {
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.allow_file_urls, true)
-            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File("src/test/resources").toPath());
+            .withSetting(GraphDatabaseSettings.load_csv_file_url_root, new File("src/test/resources").toPath().toAbsolutePath());
 
     @Rule
     public ExpectedException thrown= ExpectedException.none();

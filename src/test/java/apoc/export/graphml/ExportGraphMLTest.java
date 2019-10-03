@@ -130,7 +130,7 @@ public class ExportGraphMLTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
                 .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false)
-                .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath());
+                .withSetting(GraphDatabaseSettings.load_csv_file_url_root, directory.toPath().toAbsolutePath());
 
     private static File directory = new File("target/import");
 
