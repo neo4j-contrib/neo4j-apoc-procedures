@@ -64,7 +64,7 @@ or
 
 == Using Google Cloud Storage
 
-In order to use https://cloud.google.com/storage/?hl=it[Google Cloud Storage] you need that the following jars are included into the plugin dir:
+In order to use https://cloud.google.com/storage/[Google Cloud Storage] you need that the following jars are included into the plugin dir:
 
 * api-common-1.8.1.jar
 * failureaccess-1.0.1.jar
