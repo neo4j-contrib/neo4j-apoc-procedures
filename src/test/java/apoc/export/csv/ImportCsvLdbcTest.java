@@ -155,7 +155,7 @@ public class ImportCsvLdbcTest {
         }
 
         TestUtil.testCall(db,
-            "CALL apoc.import.csv({nodes}, {relationships}, {config})",
+            "CALL apoc.import.csv($nodes, $relationships, $config)",
             map(
                     "nodes", nodes,
                     "relationships", relationships,

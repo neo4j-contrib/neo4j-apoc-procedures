@@ -39,7 +39,7 @@ public class GraphsTest {
     @BeforeClass
     public static void setUp() throws Exception {
         TestUtil.registerProcedure(db,Graphs.class);
-        db.executeTransactionally("CREATE (a:Actor {name:'Tom Hanks'})-[r:ACTED_IN {roles:'Forrest'}]->(m:Movie {title:'Forrest Gump'}) RETURN [a,m] as nodes, [r] as relationships", null,
+        db.executeTransactionally("CREATE (a:Actor {name:'Tom Hanks'})-[r:ACTED_IN {roles:'Forrest'}]->(m:Movie {title:'Forrest Gump'}) RETURN [a,m] as nodes, [r] as relationships", Collections.emptyMap(),
                 result -> {
                     result.stream().forEach(m -> graph.putAll(m));
                     return null;

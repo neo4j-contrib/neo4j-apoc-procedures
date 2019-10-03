@@ -18,7 +18,7 @@ public class BitwiseOperationsTest {
     @ClassRule
     public static DbmsRule db = new ImpermanentDbmsRule();
 
-    public static final String BITWISE_CALL = "return apoc.bitwise.op({a},{op},{b}) as value";
+    public static final String BITWISE_CALL = "return apoc.bitwise.op($a,$op,$b) as value";
 
     private int a,b;
 
@@ -32,7 +32,6 @@ public class BitwiseOperationsTest {
         testCall(db, BITWISE_CALL, params,
                 (row) -> assertEquals("operation " + op, expected, row.get("value")));
     }
-
 
     @Test
     public void testOperations() throws Throwable {

@@ -49,7 +49,7 @@ public class LoadHdfsTest {
     }
 
     @Test public void testLoadCsvFromHDFS() throws Exception {
-        testResult(db, "CALL apoc.load.csv({url},{results:['map','list','stringMap','strings']})", map("url", String.format("hdfs://localhost:12345/user/%s/%s",
+        testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings']})", map("url", String.format("hdfs://localhost:12345/user/%s/%s",
         		System.getProperty("user.name"), "test.csv")), // 'hdfs://localhost:12345/user/<sys_user_name>/test.csv'
                 (r) -> {
                     assertRow(r,0L,"name","Selma","age","8");

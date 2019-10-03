@@ -29,7 +29,8 @@ public class Grouping {
 
     private static final int BATCHSIZE = 10000;
 
-    @Context GraphDatabaseService db;
+    @Context
+    public GraphDatabaseService db;
 
     @Context
     public Transaction tx;

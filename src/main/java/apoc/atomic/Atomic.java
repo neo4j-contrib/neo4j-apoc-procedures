@@ -3,6 +3,7 @@ package apoc.atomic;
 import apoc.atomic.util.AtomicUtils;
 import apoc.util.ArrayBackedList;
 import apoc.util.MapUtil;
+import apoc.util.Util;
 import org.apache.commons.lang3.ArrayUtils;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -39,20 +40,19 @@ public class Atomic {
     @Description("apoc.atomic.add(node/relatonship,propertyName,number) Sums the property's value with the 'number' value ")
     public Stream<AtomicResults> add(@Name("container") Object container, @Name("propertyName") String property, @Name("number") Number number, @Name(value = "times", defaultValue = "5") Long times) {
         checkIsEntity(container);
-        Entity Entity;
         final Number[] newValue = new Number[1];
         final Number[] oldValue = new Number[1];
-        Entity = (Entity) container;
+        Entity entity = Util.rebind(tx, (Entity) container);
 
-        final ExecutionContext executionContext = new ExecutionContext(tx, Entity, property);
+        final ExecutionContext executionContext = new ExecutionContext(tx, entity, property);
         retry(executionContext, (context) -> {
-            oldValue[0] = (Number) Entity.getProperty(property);
-            newValue[0] = AtomicUtils.sum((Number) Entity.getProperty(property), number);
-            Entity.setProperty(property, newValue[0]);
+            oldValue[0] = (Number) entity.getProperty(property);
+            newValue[0] = AtomicUtils.sum((Number) entity.getProperty(property), number);
+            entity.setProperty(property, newValue[0]);
             return context.Entity.getProperty(property);
         }, times);
 
-        return Stream.of(new AtomicResults(Entity,property, oldValue[0], newValue[0]));
+        return Stream.of(new AtomicResults(entity,property, oldValue[0], newValue[0]));
     }
 
     /**

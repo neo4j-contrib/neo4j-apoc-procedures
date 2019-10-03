@@ -58,13 +58,13 @@ public class MathsTest {
     }
 
     public void testRound(double value, double expected) {
-        testCall(db, "RETURN apoc.math.round({value}) as value",map("value",value), (row) -> assertEquals(expected,row.get("value")));
+        testCall(db, "RETURN apoc.math.round($value) as value",map("value",value), (row) -> assertEquals(expected,row.get("value")));
     }
     public void testRound(double value, double expected, int precision) {
-        testCall(db, "RETURN apoc.math.round({value},{prec}) as value",map("value",value,"prec",precision), (row) -> assertEquals(expected,row.get("value")));
+        testCall(db, "RETURN apoc.math.round($value,$prec) as value",map("value",value,"prec",precision), (row) -> assertEquals(expected,row.get("value")));
     }
     public void testRound(double value, double expected, RoundingMode mode) {
-        testCall(db, "RETURN apoc.math.round({value},{prec},{mode}) as value",map("value",value,"prec",0,"mode",mode.name()), (row) -> assertEquals(expected,row.get("value")));
+        testCall(db, "RETURN apoc.math.round($value,$prec,$mode) as value",map("value",value,"prec",0,"mode",mode.name()), (row) -> assertEquals(expected,row.get("value")));
     }
 
     @Test public void testMaxLong(){

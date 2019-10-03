@@ -108,14 +108,14 @@ public class ExtractURLTest {
 
     @Test
     public void testQueryParameter() {
-        testCall(db, "RETURN apoc.data.url({param}).host AS value",
+        testCall(db, "RETURN apoc.data.url($param).host AS value",
                 map("param", "http://www.foo.bar/baz"),
                 row -> assertEquals("www.foo.bar", row.get("value")));
     }
 
     @Test
     public void testShorthandURL() {
-        testCall(db, "RETURN apoc.data.url({param}).host AS value",
+        testCall(db, "RETURN apoc.data.url($param).host AS value",
             map("param", "partial.com/foobar"),
             row -> assertEquals(null, row.get("value")));
     }

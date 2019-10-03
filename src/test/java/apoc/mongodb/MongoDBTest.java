@@ -142,19 +142,19 @@ public class MongoDBTest {
 
     @Test
     public void testGet()  {
-        TestUtil.testResult(db, "CALL apoc.mongodb.get({host},{db},{collection},null)", params,
+        TestUtil.testResult(db, "CALL apoc.mongodb.get($host,$db,$collection,null)", params,
                 res -> assertResult(res));
     }
 
     @Test
     public void testGetCompatible() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongodb.get({host},{db},{collection},null,true)", params,
+        TestUtil.testResult(db, "CALL apoc.mongodb.get($host,$db,$collection,null,true)", params,
                 res -> assertResult(res, currentTime.getTime()));
     }
 
     @Test
     public void testFirst() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.first({host},{db},{collection},{name:'testDocument'})", params, r -> {
+        TestUtil.testCall(db, "CALL apoc.mongodb.first($host,$db,$collection,{name:'testDocument'})", params, r -> {
             Map doc = (Map) r.get("value");
             assertNotNull(doc.get("_id"));
             assertEquals("testDocument", doc.get("name"));
@@ -163,7 +163,7 @@ public class MongoDBTest {
 
     @Test
     public void testFind() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongodb.find({host},{db},{collection},{name:'testDocument'},null,null)",
+        TestUtil.testResult(db, "CALL apoc.mongodb.find($host,$db,$collection,{name:'testDocument'},null,null)",
                 params, res -> assertResult(res));
     }
 
@@ -187,27 +187,27 @@ public class MongoDBTest {
 
     @Test
     public void testFindSort() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongodb.find({host},{db},{collection},{name:'testDocument'},null,{name:1})",
+        TestUtil.testResult(db, "CALL apoc.mongodb.find($host,$db,$collection,{name:'testDocument'},null,{name:1})",
                 params, res -> assertResult(res));
     }
 
     @Test
     public void testCount() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.count({host},{db},{collection},{name:'testDocument'})", params, r -> {
+        TestUtil.testCall(db, "CALL apoc.mongodb.count($host,$db,$collection,{name:'testDocument'})", params, r -> {
             assertEquals(NUM_OF_RECORDS, r.get("value"));
         });
     }
 
     @Test
     public void testCountAll() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.count({host},{db},{collection},null)", params, r -> {
+        TestUtil.testCall(db, "CALL apoc.mongodb.count($host,$db,$collection,null)", params, r -> {
             assertEquals(NUM_OF_RECORDS, r.get("value"));
         });
     }
 
     @Test
     public void testUpdate() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.mongodb.update({host},{db},{collection},{name:'testDocument'},{`$set`:{age:42}})", params, r -> {
+        TestUtil.testCall(db, "CALL apoc.mongodb.update($host,$db,$collection,{name:'testDocument'},{`$set`:{age:42}})", params, r -> {
             long affected = (long) r.get("value");
             assertEquals(NUM_OF_RECORDS, affected);
         });
@@ -215,10 +215,10 @@ public class MongoDBTest {
 
     @Test
     public void testInsert() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongodb.insert({host},{db},{collection},[{John:'Snow'}])", params, (r) -> {
+        TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,$collection,[{John:'Snow'}])", params, (r) -> {
             assertFalse("should be empty", r.hasNext());
         });
-        TestUtil.testCall(db, "CALL apoc.mongodb.first({host},{db},{collection},{John:'Snow'})", params, r -> {
+        TestUtil.testCall(db, "CALL apoc.mongodb.first($host,$db,$collection,{John:'Snow'})", params, r -> {
             Map doc = (Map) r.get("value");
             assertNotNull(doc.get("_id"));
             assertEquals("Snow", doc.get("John"));
@@ -227,14 +227,14 @@ public class MongoDBTest {
 
     @Test
     public void testDelete() throws Exception {
-        TestUtil.testResult(db, "CALL apoc.mongodb.insert({host},{db},{collection},[{foo:'bar'}])", params, (r) -> {
+        TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,$collection,[{foo:'bar'}])", params, (r) -> {
             assertFalse("should be empty", r.hasNext());
         });
-        TestUtil.testCall(db, "CALL apoc.mongodb.delete({host},{db},{collection},{foo:'bar'})", params, r -> {
+        TestUtil.testCall(db, "CALL apoc.mongodb.delete($host,$db,$collection,{foo:'bar'})", params, r -> {
             long affected = (long) r.get("value");
             assertEquals(1L, affected);
         });
-        TestUtil.testResult(db, "CALL apoc.mongodb.first({host},{db},{collection},{foo:'bar'})", params, r -> {
+        TestUtil.testResult(db, "CALL apoc.mongodb.first($host,$db,$collection,{foo:'bar'})", params, r -> {
             assertFalse("should be empty", r.hasNext());
         });
     }
@@ -243,17 +243,17 @@ public class MongoDBTest {
     public void testInsertFailsDupKey() {
         // Three apoc.mongodb.insert each call gets the error: E11000 duplicate key error collection
         TestUtil.ignoreException(() -> {
-            TestUtil.testResult(db, "CALL apoc.mongodb.insert({host},{db},'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", params, (r) -> {
+            TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", params, (r) -> {
                 assertFalse("should be empty", r.hasNext());
             });
         }, QueryExecutionException.class);
         TestUtil.ignoreException(() -> {
-            TestUtil.testResult(db, "CALL apoc.mongodb.insert({host},{db},'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", params, (r) -> {
+            TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", params, (r) -> {
                 assertFalse("should be empty", r.hasNext());
             });
         }, QueryExecutionException.class);
         TestUtil.ignoreException(() -> {
-            TestUtil.testResult(db, "CALL apoc.mongodb.insert({host},{db},'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", params, (r) -> {
+            TestUtil.testResult(db, "CALL apoc.mongodb.insert($host,$db,'error',[{foo:'bar', _id: 1}, {foo:'bar', _id: 1}])", params, (r) -> {
                 assertFalse("should be empty", r.hasNext());
             });
         }, QueryExecutionException.class);

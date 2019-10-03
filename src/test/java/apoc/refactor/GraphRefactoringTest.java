@@ -47,7 +47,7 @@ public class GraphRefactoringTest {
     @Test
     public void testDeleteOneNode() throws Exception {
         long id = db.executeTransactionally("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ", null, result -> Iterators.single(result.columnAs("id")));
-        testCall(db, "MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) DELETE o RETURN n as node",
+        testCall(db, "MATCH (o:Person {ID:$oldID}), (n:Person {ID:$newID}) DELETE o RETURN n as node",
                       map("oldID", 1L, "newID",2L),
                 (r) -> {
                     Node node = (Node) r.get("node");
@@ -61,7 +61,7 @@ public class GraphRefactoringTest {
     public void testEagernessMergeNodesFails() throws Exception {
         db.executeTransactionally("CREATE INDEX ON :Person(ID)");
         long id = db.executeTransactionally("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ", null, result -> Iterators.single(result.columnAs("id")));
-        testCall(db, "MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) CALL apoc.refactor.mergeNodes([o,n]) yield node return node",
+        testCall(db, "MATCH (o:Person {ID:$oldID}), (n:Person {ID:$newID}) CALL apoc.refactor.mergeNodes([o,n]) yield node return node",
                       map("oldID", 1L, "newID",2L),
                 (r) -> {
                     Node node = (Node) r.get("node");
@@ -74,7 +74,7 @@ public class GraphRefactoringTest {
     @Test
     public void testMergeNodesEagerAggregation() throws Exception {
         long id = db.executeTransactionally("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ", null, result -> Iterators.single(result.columnAs("id")));
-        testCall(db, "MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) WITH head(collect([o,n])) as nodes CALL apoc.refactor.mergeNodes(nodes) yield node return node",
+        testCall(db, "MATCH (o:Person {ID:$oldID}), (n:Person {ID:$newID}) WITH head(collect([o,n])) as nodes CALL apoc.refactor.mergeNodes(nodes) yield node return node",
                       map("oldID", 1L, "newID",2L),
                 (r) -> {
                     Node node = (Node) r.get("node");
@@ -89,7 +89,7 @@ public class GraphRefactoringTest {
         db.executeTransactionally("CREATE INDEX ON :Person(ID)");
         db.executeTransactionally("CALL db.awaitIndexes()");
         long id = db.executeTransactionally("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ", null, result -> Iterators.single(result.columnAs("id")));
-        testCall(db, "MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) USING INDEX o:Person(ID) USING INDEX n:Person(ID) CALL apoc.refactor.mergeNodes([o,n]) yield node return node",
+        testCall(db, "MATCH (o:Person {ID:$oldID}), (n:Person {ID:$newID}) USING INDEX o:Person(ID) USING INDEX n:Person(ID) CALL apoc.refactor.mergeNodes([o,n]) yield node return node",
                       map("oldID", 1L, "newID",2L),
                 (r) -> {
                     Node node = (Node) r.get("node");
@@ -208,7 +208,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
     @Test
     public void testExtractNode() throws Exception {
         Long id = db.executeTransactionally("CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) RETURN id(rel) as id", null, result -> Iterators.single(result.columnAs("id")));
-        testCall(db, "CALL apoc.refactor.extractNode({ids},['FooBar'],'FOO','BAR')", map("ids", singletonList(id)),
+        testCall(db, "CALL apoc.refactor.extractNode($ids,['FooBar'],'FOO','BAR')", map("ids", singletonList(id)),
                 (r) -> {
                     assertEquals(id, r.get("input"));
                     Node node = (Node) r.get("output");
@@ -221,7 +221,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
     @Test
     public void testInvertRelationship() throws Exception {
         long id = db.executeTransactionally("CREATE (f:Foo)-[rel:FOOBAR {a:1}]->(b:Bar) RETURN id(rel) as id", null, result -> Iterators.single(result.columnAs("id")));
-        testCall(db, "MATCH ()-[r]->() WHERE id(r) = {id} CALL apoc.refactor.invert(r) yield input, output RETURN *", map("id", id),
+        testCall(db, "MATCH ()-[r]->() WHERE id(r) = $id CALL apoc.refactor.invert(r) yield input, output RETURN *", map("id", id),
                 (r) -> {
                     assertEquals(id, r.get("input"));
                     Relationship rel = (Relationship) r.get("output");
@@ -234,7 +234,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
     @Test
     public void testCollapseNode() throws Exception {
         Long id = db.executeTransactionally("CREATE (f:Foo)-[:FOO {a:1}]->(b:Bar {c:3})-[:BAR {b:2}]->(f) RETURN id(b) as id", null, result -> Iterators.single(result.columnAs("id")));
-        testCall(db, "CALL apoc.refactor.collapseNode({ids},'FOOBAR')", map("ids", singletonList(id)),
+        testCall(db, "CALL apoc.refactor.collapseNode($ids,'FOOBAR')", map("ids", singletonList(id)),
                 (r) -> {
                     assertEquals(id, r.get("input"));
                     Relationship rel = (Relationship) r.get("output");
@@ -630,7 +630,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
         long id = db.executeTransactionally("CREATE (p1:Person {ID:1}), (p2:Person {ID:2}) RETURN id(p1) as id ",
                 null,
                 result -> Iterators.single(result.columnAs("id")));
-        testCall(db, "MATCH (o:Person {ID:{oldID}}), (n:Person {ID:{newID}}) WITH head(collect([o,n])) as nodes CALL apoc.refactor.mergeNodes(nodes, {properties:\"override\"}) yield node return node",
+        testCall(db, "MATCH (o:Person {ID:$oldID}), (n:Person {ID:$newID}) WITH head(collect([o,n])) as nodes CALL apoc.refactor.mergeNodes(nodes, {properties:\"override\"}) yield node return node",
                 map("oldID", 1L, "newID",2L),
                 (r) -> {
                     Node node = (Node) r.get("node");

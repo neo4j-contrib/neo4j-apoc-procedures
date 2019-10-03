@@ -122,7 +122,7 @@ public class ExportCsvTest {
     public void testExportInvalidQuoteValue() throws Exception {
         try {
             String fileName = "all.csv";
-            TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quote: 'Invalid'}, null)",
+            TestUtil.testCall(db, "CALL apoc.export.csv.all($file,{quote: 'Invalid'}, null)",
                     map("file", fileName),
                     (r) -> assertResults(fileName, r, "database"));
             fail();
@@ -134,7 +134,7 @@ public class ExportCsvTest {
     @Test
     public void testExportAllCsv() throws Exception {
         String fileName = "all.csv";
-        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},null)", map("file", fileName),
+        TestUtil.testCall(db, "CALL apoc.export.csv.all($file,null)", map("file", fileName),
                 (r) -> assertResults(fileName, r, "database"));
         assertEquals(EXPECTED, readFile(fileName));
     }
@@ -142,7 +142,7 @@ public class ExportCsvTest {
     @Test
     public void testExportAllCsvWithQuotes() throws Exception {
         String fileName = "all.csv";
-        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quotes: true})",
+        TestUtil.testCall(db, "CALL apoc.export.csv.all($file,{quotes: true})",
                 map("file", fileName),
                 (r) -> assertResults(fileName, r, "database"));
         assertEquals(EXPECTED, readFile(fileName));
@@ -151,7 +151,7 @@ public class ExportCsvTest {
     @Test
     public void testExportAllCsvWithoutQuotes() throws Exception {
         String fileName = "all.csv";
-        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quotes: 'none'})",
+        TestUtil.testCall(db, "CALL apoc.export.csv.all($file,{quotes: 'none'})",
                 map("file", fileName),
                 (r) -> assertResults(fileName, r, "database"));
         assertEquals(EXPECTED_NONE_QUOTES, readFile(fileName));
@@ -160,7 +160,7 @@ public class ExportCsvTest {
     @Test
     public void testExportAllCsvNeededQuotes() throws Exception {
         String fileName = "all.csv";
-        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},{quotes: 'ifNeeded'})",
+        TestUtil.testCall(db, "CALL apoc.export.csv.all($file,{quotes: 'ifNeeded'})",
                 map("file", fileName),
                 (r) -> assertResults(fileName, r, "database"));
         assertEquals(EXPECTED_NEEDED_QUOTES, readFile(fileName));
@@ -169,7 +169,7 @@ public class ExportCsvTest {
     @Test
     public void testExportAllCsvHDFS() throws Exception {
         String hdfsUrl = String.format("hdfs://localhost:12345/user/%s/all.csv", System.getProperty("user.name"));
-        TestUtil.testCall(db, "CALL apoc.export.csv.all({file},null)", map("file", hdfsUrl),
+        TestUtil.testCall(db, "CALL apoc.export.csv.all($file,null)", map("file", hdfsUrl),
                 (r) -> {
                     try {
                         FileSystem fs = miniDFSCluster.getFileSystem();
@@ -193,7 +193,7 @@ public class ExportCsvTest {
     public void testExportGraphCsv() throws Exception {
         String fileName = "graph.csv";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                        "CALL apoc.export.csv.graph(graph, {file},{quotes: 'none'}) " +
+                        "CALL apoc.export.csv.graph(graph, $file,{quotes: 'none'}) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
                         "RETURN *", map("file", fileName),
                 (r) -> assertResults(fileName, r, "graph"));
@@ -204,7 +204,7 @@ public class ExportCsvTest {
     public void testExportGraphCsvWithoutQuotes() throws Exception {
         String fileName = "graph.csv";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                        "CALL apoc.export.csv.graph(graph, {file},null) " +
+                        "CALL apoc.export.csv.graph(graph, $file,null) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
                         "RETURN *", map("file", fileName),
                 (r) -> assertResults(fileName, r, "graph"));
@@ -215,7 +215,7 @@ public class ExportCsvTest {
     public void testExportQueryCsv() throws Exception {
         String fileName = "query.csv";
         String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
-        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},null)",
+        TestUtil.testCall(db, "CALL apoc.export.csv.query($query,$file,null)",
                 map("file", fileName, "query", query),
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(5)"));
@@ -230,7 +230,7 @@ public class ExportCsvTest {
     public void testExportQueryCsvWithoutQuotes() throws Exception {
         String fileName = "query.csv";
         String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
-        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},{quotes: false})",
+        TestUtil.testCall(db, "CALL apoc.export.csv.query($query,$file,{quotes: false})",
                 map("file", fileName, "query", query),
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(5)"));
@@ -245,7 +245,7 @@ public class ExportCsvTest {
     public void testExportQueryNodesCsv() throws Exception {
         String fileName = "query_nodes.csv";
         String query = "MATCH (u:User) return u";
-        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},null)",
+        TestUtil.testCall(db, "CALL apoc.export.csv.query($query,$file,null)",
                 map("file", fileName, "query", query),
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(1)"));
@@ -259,8 +259,8 @@ public class ExportCsvTest {
     @Test
     public void testExportQueryNodesCsvParams() throws Exception {
         String fileName = "query_nodes.csv";
-        String query = "MATCH (u:User) WHERE u.age > {age} return u";
-        TestUtil.testCall(db, "CALL apoc.export.csv.query({query},{file},{params:{age:10}})", map("file", fileName,"query",query),
+        String query = "MATCH (u:User) WHERE u.age > $age return u";
+        TestUtil.testCall(db, "CALL apoc.export.csv.query($query,$file,{params:{age:10}})", map("file", fileName,"query",query),
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(1)"));
                     assertEquals(fileName, r.get("file"));
@@ -329,7 +329,7 @@ public class ExportCsvTest {
     @Test public void testCypherCsvStreaming() throws Exception {
         String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
         StringBuilder sb = new StringBuilder();
-        testResult(db, "CALL apoc.export.csv.query({query},null,{stream:true,batchSize:2})", map("query",query),
+        testResult(db, "CALL apoc.export.csv.query($query,null,{stream:true,batchSize:2})", map("query",query),
                 getAndCheckStreamingMetadataQueryMatchUsers(sb));
         assertEquals(EXPECTED_QUERY, sb.toString());
     }
@@ -337,7 +337,7 @@ public class ExportCsvTest {
     @Test public void testCypherCsvStreamingWithoutQuotes() throws Exception {
         String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
         StringBuilder sb = new StringBuilder();
-        testResult(db, "CALL apoc.export.csv.query({query},null,{quotes: false, stream:true,batchSize:2})", map("query",query),
+        testResult(db, "CALL apoc.export.csv.query($query,null,{quotes: false, stream:true,batchSize:2})", map("query",query),
                 getAndCheckStreamingMetadataQueryMatchUsers(sb));
 
         assertEquals(EXPECTED_QUERY_WITHOUT_QUOTES, sb.toString());
@@ -373,7 +373,7 @@ public class ExportCsvTest {
     @Test public void testCypherCsvStreamingWithAlwaysQuotes() throws Exception {
         String query = "MATCH (a:Address) return a.name, a.city, a.street, labels(a)";
         StringBuilder sb = new StringBuilder();
-        testResult(db, "CALL apoc.export.csv.query({query},null,{quotes: 'always', stream:true,batchSize:2})", map("query",query),
+        testResult(db, "CALL apoc.export.csv.query($query,null,{quotes: 'always', stream:true,batchSize:2})", map("query",query),
                 getAndCheckStreamingMetadataQueryMatchAddress(sb));
 
         assertEquals(EXPECTED_QUERY_QUOTES_ALWAYS, sb.toString());
@@ -382,7 +382,7 @@ public class ExportCsvTest {
     @Test public void testCypherCsvStreamingWithNeededQuotes() throws Exception {
         String query = "MATCH (a:Address) return a.name, a.city, a.street, labels(a)";
         StringBuilder sb = new StringBuilder();
-        testResult(db, "CALL apoc.export.csv.query({query},null,{quotes: 'ifNeeded', stream:true,batchSize:2})", map("query",query),
+        testResult(db, "CALL apoc.export.csv.query($query,null,{quotes: 'ifNeeded', stream:true,batchSize:2})", map("query",query),
                 getAndCheckStreamingMetadataQueryMatchAddress(sb));
 
         assertEquals(EXPECTED_QUERY_QUOTES_NEEDED, sb.toString());
@@ -391,7 +391,7 @@ public class ExportCsvTest {
     @Test public void testCypherCsvStreamingWithNoneQuotes() throws Exception {
         String query = "MATCH (a:Address) return a.name, a.city, a.street, labels(a)";
         StringBuilder sb = new StringBuilder();
-        testResult(db, "CALL apoc.export.csv.query({query},null,{quotes: 'none', stream:true,batchSize:2})", map("query",query),
+        testResult(db, "CALL apoc.export.csv.query($query,null,{quotes: 'none', stream:true,batchSize:2})", map("query",query),
                 getAndCheckStreamingMetadataQueryMatchAddress(sb));
 
         assertEquals(EXPECTED_QUERY_QUOTES_NONE, sb.toString());
@@ -406,9 +406,9 @@ public class ExportCsvTest {
                 "This article is distributed by The American Society for Cell Biology under license from the author(s). Two months after publication it is available to the public under an Attribution-Noncommercial-Share Alike 3.0 Unported Creative Commons License.\n" +
                 "\n";
         String pk = "5921569";
-        db.executeTransactionally("CREATE (n:Document{pk:{pk}, copyright: {copyright}})", map("copyright", copyright, "pk", pk));
+        db.executeTransactionally("CREATE (n:Document{pk:$pk, copyright: $copyright})", map("copyright", copyright, "pk", pk));
         String query = "MATCH (n:Document{pk:'5921569'}) return n.pk as pk, n.copyright as copyright";
-        TestUtil.testCall(db, "CALL apoc.export.csv.query({query}, null, {config})", map("query", query,
+        TestUtil.testCall(db, "CALL apoc.export.csv.query($query, null, $config)", map("query", query,
                 "config", map("stream", true)),
                 (r) -> {
                     List<String[]> csv = CsvTestUtil.toCollection(r.get("data").toString());

@@ -105,7 +105,7 @@ public class GeocodeTest {
 
     private void testReverseGeocodeAddress(Object latitude, Object longitude) {
         try {
-            testResult(db,"CALL apoc.spatial.reverseGeocode({latitude},{longitude})",map("latitude", latitude, "longitude", longitude), (row)->{
+            testResult(db,"CALL apoc.spatial.reverseGeocode($latitude,$longitude)",map("latitude", latitude, "longitude", longitude), (row)->{
                 row.forEachRemaining((r)->{
                     assertNotNull(r.get("description"));
                     assertNotNull(r.get("location"));
@@ -140,13 +140,13 @@ public class GeocodeTest {
                 assertTrue("Expected " + field + " field", map.containsKey(field));
             }
             System.out.println("map = " + map);
-            testCallEmpty(db, "CALL apoc.spatial.geocode({url},0)", map("url", map.get("address").toString()));
+            testCallEmpty(db, "CALL apoc.spatial.geocode($url,0)", map("url", map.get("address").toString()));
         } else if (map.containsKey("count")) {
             if (((Map) map.get("count")).containsKey(provider)) {
                 for (String field : new String[]{"address", "count"}) {
                     assertTrue("Expected " + field + " field", map.containsKey(field));
                 }
-                testCallCount(db, "CALL apoc.spatial.geocode({url},0)",
+                testCallCount(db, "CALL apoc.spatial.geocode($url,0)",
                         map("url", map.get("address").toString()),
                         ((Number) ((Map) map.get("count")).get(provider)).intValue());
             }
@@ -161,7 +161,7 @@ public class GeocodeTest {
     }
 
     private void testGeocodeAddress(String address, double lat, double lon) {
-        testResult(db, "CALL apoc.spatial.geocodeOnce({url})", map("url", address),
+        testResult(db, "CALL apoc.spatial.geocodeOnce($url)", map("url", address),
                 (result) -> {
                     if (result.hasNext()) {
                         Map<String, Object> row = result.next();
@@ -180,7 +180,7 @@ public class GeocodeTest {
 
 /*
     private void testConfig(String provider) {
-        testCall(db, "CALL apoc.spatial.config({config})", map("config", map(GEO_PREFIX + ".test", provider)),
+        testCall(db, "CALL apoc.spatial.config($config)", map("config", map(GEO_PREFIX + ".test", provider)),
                 (row) -> {
                     Map<String, String> value = (Map) row.get("value");
                     assertEquals("Expected provider to be set in '" + GEO_PREFIX + ".test'", provider, value.get(GEO_PREFIX + ".test"));

@@ -6,7 +6,6 @@ import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
 import apoc.result.*;
 import apoc.util.Util;
-import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Pair;
@@ -26,7 +25,7 @@ import static apoc.util.Util.map;
 public class Nodes {
 
     @Context
-    GraphDatabaseService db;
+    public GraphDatabaseService db;
 
     @Context
     public Transaction tx;

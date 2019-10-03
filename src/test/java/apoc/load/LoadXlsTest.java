@@ -47,7 +47,7 @@ public class LoadXlsTest {
     }
 
     @Test public void testLoadXls() throws Exception {
-        testResult(db, "CALL apoc.load.xls({url},'Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})", map("url",loadTest), // 'file:load_test.xlsx'
+        testResult(db, "CALL apoc.load.xls($url,'Full',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})", map("url",loadTest), // 'file:load_test.xlsx'
                 (r) -> {
                     assertRow(r,0L,"String","Test","Boolean",true,"Integer",2L,"Float",1.5d,"Array",asList(1L,2L,3L));
                     assertFalse("Should not have another row",r.hasNext());
@@ -55,7 +55,7 @@ public class LoadXlsTest {
     }
     @Test public void testLoadBrokenHeader() throws Exception {
         BiFunction<String,Boolean,Long> query = (sheet,header) -> db.executeTransactionally(
-                "CALL apoc.load.xls({url},{sheet},{header:{header}}) yield map return count(*) as c",
+                "CALL apoc.load.xls($url,$sheet,{header:$header}) yield map return count(*) as c",
                 map("header",header,"sheet",sheet,"url", brokenHeader ),
                 result -> Iterators.single(result.columnAs("c")));
 
@@ -77,7 +77,7 @@ public class LoadXlsTest {
         assertEquals(2L, (long)query.apply("temp",false));
     }
     @Test public void testLoadXlsMany() throws Exception {
-        testResult(db, "CALL apoc.load.xls({url},'Many',{mapping:{Float:{type:'float'}, Array:{type:'int',array:true,arraySep:';'}}})", map("url",loadTest), // 'file:load_test.xlsx'
+        testResult(db, "CALL apoc.load.xls($url,'Many',{mapping:{Float:{type:'float'}, Array:{type:'int',array:true,arraySep:';'}}})", map("url",loadTest), // 'file:load_test.xlsx'
                 (r) -> {
                     assertRow(r,0L,"String","A","Boolean",true ,"Integer",0L,"Float",0d,"Array", emptyList());
                     assertRow(r,1L,"String","B","Boolean",false,"Integer",1L,"Float",0.5d,"Array", asList(1L));
@@ -89,7 +89,7 @@ public class LoadXlsTest {
     }
 
     @Test public void testLoadXlsOffset() throws Exception {
-        testResult(db, "CALL apoc.load.xls({url},'Offset!B2:F3',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})", map("url",loadTest), // 'file:load_test.xlsx'
+        testResult(db, "CALL apoc.load.xls($url,'Offset!B2:F3',{mapping:{Integer:{type:'int'}, Array:{type:'int',array:true,arraySep:';'}}})", map("url",loadTest), // 'file:load_test.xlsx'
                 (r) -> {
                     assertRow(r,0L,"String","Test","Boolean",true,"Integer",2L,"Float",1.5d,"Array",asList(1L,2L,3L));
                     assertFalse(r.hasNext());
@@ -97,7 +97,7 @@ public class LoadXlsTest {
     }
 
     @Test public void testLoadXlsNoHeaders() throws Exception {
-        testCall(db, "CALL apoc.load.xls({url},'NoHeader',{header:false})", map("url",loadTest), // 'file:load_test.xlsx'
+        testCall(db, "CALL apoc.load.xls($url,'NoHeader',{header:false})", map("url",loadTest), // 'file:load_test.xlsx'
                 (r) -> {
                     assertEquals(0L,r.get("lineNo"));
                     assertEquals(asList("Test",true,2L,1.5d,"1;2;3"),r.get("list"));
@@ -110,7 +110,7 @@ CALL apoc.load.xls(url,) YIELD map AS m
 RETURN m.col_1,m.col_2,m.col_3
      */
     @Test public void testLoadCsvWithEmptyColumns() throws Exception {
-        testResult(db, "CALL apoc.load.xls({url},'Empty',{failOnError:false,mapping:{col_2:{type:'int'}}})", map("url",loadTest), // 'file:load_test.xlsx'
+        testResult(db, "CALL apoc.load.xls($url,'Empty',{failOnError:false,mapping:{col_2:{type:'int'}}})", map("url",loadTest), // 'file:load_test.xlsx'
                 (r) -> {
                     Map<String, Object> row = r.next();
                     assertEquals(map("col_1", 1L,"col_2", null,"col_3", 1L), row.get("map"));
@@ -120,7 +120,7 @@ RETURN m.col_1,m.col_2,m.col_3
                     assertEquals(map("col_1", 3L,"col_2", 3L,"col_3", 3L), row.get("map"));
                     assertFalse("Should not have another row",r.hasNext());
                 });
-        testResult(db, "CALL apoc.load.xls({url},'Empty',{failOnError:false,nullValues:[''], mapping:{col_1:{type:'int'}}})", map("url",loadTest), // 'file:load_test.xlsx'
+        testResult(db, "CALL apoc.load.xls($url,'Empty',{failOnError:false,nullValues:[''], mapping:{col_1:{type:'int'}}})", map("url",loadTest), // 'file:load_test.xlsx'
                 (r) -> {
                     Map<String, Object> row = r.next();
                     assertEquals(map("col_1", 1L,"col_2", null,"col_3", 1L), row.get("map"));
@@ -130,7 +130,7 @@ RETURN m.col_1,m.col_2,m.col_3
                     assertEquals(map("col_1", 3L,"col_2", 3L,"col_3", 3L), row.get("map"));
                     assertFalse("Should not have another row",r.hasNext());
                 });
-        testResult(db, "CALL apoc.load.xls({url},'Empty',{failOnError:false,mapping:{col_3:{type:'int',nullValues:['']}}})", map("url",loadTest), // 'file:load_test.xlsx'
+        testResult(db, "CALL apoc.load.xls($url,'Empty',{failOnError:false,mapping:{col_3:{type:'int',nullValues:['']}}})", map("url",loadTest), // 'file:load_test.xlsx'
                 (r) -> {
                     Map<String, Object> row = r.next();
                     assertEquals(map("col_1", 1L,"col_2", "","col_3", 1L), row.get("map"));
@@ -159,14 +159,14 @@ RETURN m.col_1,m.col_2,m.col_3
     }
 
     @Test public void testLoadCsvSkip() throws Exception {
-        testResult(db, "CALL apoc.load.xls({url},'Kids',{skip:1,limit:1})", map("url",loadTest), // 'file:load_test.xlsx'
+        testResult(db, "CALL apoc.load.xls($url,'Kids',{skip:1,limit:1})", map("url",loadTest), // 'file:load_test.xlsx'
                 (r) -> {
                     assertRow(r, "Rana", 11L, 0L);
                     assertFalse("Should not have another row",r.hasNext());
                 });
     }
     @Test public void testLoadCsvIgnoreFields() throws Exception {
-        testResult(db, "CALL apoc.load.xls({url},'Kids',{ignore:['age']})", map("url",loadTest), // 'file:load_test.xlsx'
+        testResult(db, "CALL apoc.load.xls($url,'Kids',{ignore:['age']})", map("url",loadTest), // 'file:load_test.xlsx'
                 (r) -> {
                     assertRow(r,0L,"name","Selma");
                     assertRow(r,1L,"name","Rana");
@@ -179,7 +179,7 @@ RETURN m.col_1,m.col_2,m.col_3
     @Ignore
     public void testLoadCsvByUrl() throws Exception {
         URL url = new URL("https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/3.3/src/test/resources/load_test.xlsx");
-        testResult(db, "CALL apoc.load.xls({url},'Kids')", map("url", url.toString()),
+        testResult(db, "CALL apoc.load.xls($url,'Kids')", map("url", url.toString()),
                 (r) -> {
                     assertRow(r,0L,"name","Selma","age","8");
                     assertRow(r,1L,"name","Rana","age","11");
@@ -193,7 +193,7 @@ RETURN m.col_1,m.col_2,m.col_3
     @Ignore
     public void testLoadCsvByUrlRedirect() throws Exception {
         URL url = new URL("http://bit.ly/2nXgHA2");
-        testResult(db, "CALL apoc.load.xls({url},'Kids')", map("url", url.toString()),
+        testResult(db, "CALL apoc.load.xls($url,'Kids')", map("url", url.toString()),
                 (r) -> {
                     assertRow(r,0L,"name","Selma","age","8");
                     assertRow(r,1L,"name","Rana","age","11");
@@ -204,7 +204,7 @@ RETURN m.col_1,m.col_2,m.col_3
 
     @Test
     public void testLoadCsvNoFailOnError() throws Exception {
-        testResult(db, "CALL apoc.load.xls({url},'Kids',{failOnError:false})", map("url",loadTest), // 'file:load_test.xlsx'
+        testResult(db, "CALL apoc.load.xls($url,'Kids',{failOnError:false})", map("url",loadTest), // 'file:load_test.xlsx'
                 (r) -> {
                     assertRow(r,0L,"name","Selma","age",8L);
                     assertRow(r,1L,"name","Rana","age",11L);
@@ -219,7 +219,7 @@ RETURN m.col_1,m.col_2,m.col_3
         LocalDateTime date = LocalDateTime.of(2018,10,10, 0, 0, 0);
         LocalDateTime time = LocalDateTime.of(1899,12,31, 12,01,10);
 
-            testResult(db, "CALL apoc.load.xls({url},'sheet',{mapping:{Date:{type:'String', dateFormat: 'iso_date'}}})", map("url", testDate),
+            testResult(db, "CALL apoc.load.xls($url,'sheet',{mapping:{Date:{type:'String', dateFormat: 'iso_date'}}})", map("url", testDate),
                 (r) -> {
                     Map<String, Object> row = r.next();
                     assertEquals(0L, row.get("lineNo"));
@@ -256,7 +256,7 @@ RETURN m.col_1,m.col_2,m.col_3
         LocalDateTime time = LocalDateTime.of(1899,12,31, 12,01,10);
         String elementExpected = "2018-09-10T00:00:00";
 
-        testResult(db, "CALL apoc.load.xls({url},'sheet',{mapping:{Date:{type:'String', dateFormat: '', dateParse: []}}})", map("url",testDate),
+        testResult(db, "CALL apoc.load.xls($url,'sheet',{mapping:{Date:{type:'String', dateFormat: '', dateParse: []}}})", map("url",testDate),
                 (r) -> {
                     Map<String, Object> row = r.next();
                     assertEquals(0L, row.get("lineNo"));
@@ -298,7 +298,7 @@ RETURN m.col_1,m.col_2,m.col_3
 
         List pattern = asList("wrongPath", "dd-MM-yyyy", "dd/MM/yyyy", "yyyy/MM/dd", "yyyy/dd/MM", "yyyy-dd-MM'T'hh:mm:ss");
 
-        testResult(db, "CALL apoc.load.xls({url},'sheet',{mapping:{Data:{type: 'Date', dateParse: {pattern}}}})", map("url",testDate, "pattern", pattern),
+        testResult(db, "CALL apoc.load.xls($url,'sheet',{mapping:{Data:{type: 'Date', dateParse: $pattern}}})", map("url",testDate, "pattern", pattern),
                 (r) -> {
                     Map<String, Object> row = r.next();
                     assertEquals(0L, row.get("lineNo"));
@@ -336,7 +336,7 @@ RETURN m.col_1,m.col_2,m.col_3
 
         List pattern = asList("wrongPath", "dd-MM-yyyy", "dd/MM/yyyy", "yyyy/MM/dd'T'HH:mm:ss", "yyyy/dd/MM", "iso_local_date_time");
 
-        testResult(db, "CALL apoc.load.xls({url},'dateTime',{mapping:{Date:{type: 'LOCAL_DATE_TIME', dateParse: {pattern}}}})", map("url",testDate, "pattern", pattern),
+        testResult(db, "CALL apoc.load.xls($url,'dateTime',{mapping:{Date:{type: 'LOCAL_DATE_TIME', dateParse: $pattern}}})", map("url",testDate, "pattern", pattern),
                 (r) -> {
                     Map<String, Object> row = r.next();
                     assertEquals(0L, row.get("lineNo"));
@@ -358,7 +358,7 @@ RETURN m.col_1,m.col_2,m.col_3
 
         List pattern = asList("wrongPath", "dd-MM-yyyy", "dd/MM/yyyy", "yyyy/MM/dd'T'HH:mm:ss", "yyyy/dd/MM", "iso_zoned_date_time");
 
-        testResult(db, "CALL apoc.load.xls({url},'zonedDateTime',{mapping:{Date:{type: 'DATE_TIME', dateParse: {pattern}}}})", map("url",testDate, "pattern", pattern),
+        testResult(db, "CALL apoc.load.xls($url,'zonedDateTime',{mapping:{Date:{type: 'DATE_TIME', dateParse: $pattern}}})", map("url",testDate, "pattern", pattern),
                 (r) -> {
                     Map<String, Object> row = r.next();
                     assertEquals(0L, row.get("lineNo"));
@@ -374,7 +374,7 @@ RETURN m.col_1,m.col_2,m.col_3
         List pattern = asList("wrongPath", "dd-MM-yyyy", "dd/MM/yyyy", "yyyy/MM/dd'T'HH:mm:ss", "yyyy/dd/MM", "iso_local_date_time");
 
         try {
-            testCall(db, "CALL apoc.load.xls({url},'dateTime',{mapping:{Date:{type: 'DATE_TIME', dateParse: {pattern}}}})", map("url",testDate, "pattern", pattern), (r) -> { });
+            testCall(db, "CALL apoc.load.xls($url,'dateTime',{mapping:{Date:{type: 'DATE_TIME', dateParse: $pattern}}})", map("url",testDate, "pattern", pattern), (r) -> { });
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);

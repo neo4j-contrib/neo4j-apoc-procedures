@@ -226,7 +226,7 @@ public class Cypher {
 
     public static String withParamMapping(String fragment, Collection<String> keys) {
         if (keys.isEmpty()) return fragment;
-        String declaration = " WITH " + join(", ", keys.stream().map(s -> format(" {`%s`} as `%s` ", s, s)).collect(toList()));
+        String declaration = " WITH " + join(", ", keys.stream().map(s -> format(" $`%s` as `%s` ", s, s)).collect(toList()));
         return declaration + fragment;
     }
 

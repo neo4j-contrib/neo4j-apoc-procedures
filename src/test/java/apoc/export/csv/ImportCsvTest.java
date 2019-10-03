@@ -109,7 +109,7 @@ public class ImportCsvTest {
     public void testNodesWithIds() {
         TestUtil.testCall(
                 db,
-                "CALL apoc.import.csv([{fileName: {file}, labels: ['Person']}], [], {config})",
+                "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
                 map(
                         "file", "file:/id.csv",
                         "config", map("delimiter", '|', "stringIds", false)
@@ -152,7 +152,7 @@ public class ImportCsvTest {
     public void testNodesWithIdSpaces() {
         TestUtil.testCall(
                 db,
-                "CALL apoc.import.csv([{fileName: {file}, labels: ['Person']}], [], {config})",
+                "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
                 map(
                         "file", "file:/id-idspaces.csv",
                         "config", map("delimiter", '|')
@@ -171,7 +171,7 @@ public class ImportCsvTest {
     public void testCustomLabels() {
         TestUtil.testCall(
                 db,
-                "CALL apoc.import.csv([{fileName: {file}, labels: ['Person']}], [], {config})",
+                "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
                 map(
                         "file", "file:/label.csv",
                         "config", map("delimiter", '|')
@@ -189,7 +189,7 @@ public class ImportCsvTest {
     public void testArray() {
         TestUtil.testCall(
                 db,
-                "CALL apoc.import.csv([{fileName: {file}, labels: ['Person']}], [], {config})",
+                "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
                 map(
                         "file", "file:/array.csv",
                         "config", map("delimiter", '|')
@@ -208,7 +208,7 @@ public class ImportCsvTest {
     public void testDefaultTypedField() {
         TestUtil.testCall(
                 db,
-                "CALL apoc.import.csv([{fileName: {file}, labels: ['Person']}], [], {config})",
+                "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
                 map(
                         "file", "file:/typeless.csv",
                         "config", map("delimiter", '|')
@@ -227,7 +227,7 @@ public class ImportCsvTest {
     public void testCustomRelationshipTypes() {
         TestUtil.testCall(
                 db,
-                "CALL apoc.import.csv([{fileName: {nodeFile}, labels: ['Person']}], [{fileName: {relFile}, type: 'KNOWS'}], {config})",
+                "CALL apoc.import.csv([{fileName: $nodeFile, labels: ['Person']}], [{fileName: $relFile, type: 'KNOWS'}], $config)",
                 map(
                         "nodeFile", "file:/id.csv",
                         "relFile", "file:/rel-type.csv",
@@ -247,7 +247,7 @@ public class ImportCsvTest {
     public void testRelationshipWithoutIdSpaces() {
         TestUtil.testCall(
                 db,
-                "CALL apoc.import.csv([{fileName: {nodeFile}, labels: ['Person']}], [{fileName: {relFile}, type: 'KNOWS'}], {config})",
+                "CALL apoc.import.csv([{fileName: $nodeFile, labels: ['Person']}], [{fileName: $relFile, type: 'KNOWS'}], $config)",
                 map(
                         "nodeFile", "file:/id.csv",
                         "relFile", "file:/rel-on-ids.csv",
@@ -265,7 +265,7 @@ public class ImportCsvTest {
     public void testRelationshipWithIdSpaces() {
         TestUtil.testCall(
                 db,
-                "CALL apoc.import.csv([{fileName: {nodeFile}, labels: ['Person']}], [{fileName: {relFile}, type: 'KNOWS'}], {config})",
+                "CALL apoc.import.csv([{fileName: $nodeFile, labels: ['Person']}], [{fileName: $relFile, type: 'KNOWS'}], $config)",
                 map(
                         "nodeFile", "file:/id-idspaces.csv",
                         "relFile", "file:/rel-on-ids-idspaces.csv",
@@ -285,14 +285,14 @@ public class ImportCsvTest {
                 db,
                 "CALL apoc.import.csv(" +
                         "[" +
-                        "  {fileName: {personFile}, labels: ['Person']}," +
-                        "  {fileName: {companyFile}, labels: ['Company']}," +
-                        "  {fileName: {universityFile}, labels: ['University']}" +
+                        "  {fileName: $personFile, labels: ['Person']}," +
+                        "  {fileName: $companyFile, labels: ['Company']}," +
+                        "  {fileName: $universityFile, labels: ['University']}" +
                         "]," +
                         "[" +
-                        "  {fileName: {relFile}, type: 'AFFILIATED_WITH'}" +
+                        "  {fileName: $relFile, type: 'AFFILIATED_WITH'}" +
                         "]," +
-                        " {config})",
+                        " $config)",
                 map(
                         "personFile", "file:/custom-ids-basic-persons.csv",
                         "companyFile", "file:/custom-ids-basic-companies.csv",
@@ -316,14 +316,14 @@ public class ImportCsvTest {
                 db,
                 "CALL apoc.import.csv(" +
                         "[" +
-                        "  {fileName: {personFile}, labels: ['Person']}," +
-                        "  {fileName: {companyFile}, labels: ['Company']}," +
-                        "  {fileName: {universityFile}, labels: ['University']}" +
+                        "  {fileName: $personFile, labels: ['Person']}," +
+                        "  {fileName: $companyFile, labels: ['Company']}," +
+                        "  {fileName: $universityFile, labels: ['University']}" +
                         "]," +
                         "[" +
-                        "  {fileName: {relFile}, type: 'AFFILIATED_WITH'}" +
+                        "  {fileName: $relFile, type: 'AFFILIATED_WITH'}" +
                         "]," +
-                        " {config})",
+                        " $config)",
                 map(
                         "personFile", "file:/custom-ids-idspaces-persons.csv",
                         "companyFile", "file:/custom-ids-idspaces-companies.csv",
@@ -345,7 +345,7 @@ public class ImportCsvTest {
     public void ignoreFieldType() {
         TestUtil.testCall(
                 db,
-                "CALL apoc.import.csv([{fileName: {nodeFile}, labels: ['Person']}], [{fileName: {relFile}, type: 'KNOWS'}], {config})",
+                "CALL apoc.import.csv([{fileName: $nodeFile, labels: ['Person']}], [{fileName: $relFile, type: 'KNOWS'}], $config)",
                 map(
                         "nodeFile", "file:/ignore-nodes.csv",
                         "relFile", "file:/ignore-relationships.csv",
@@ -393,7 +393,7 @@ public class ImportCsvTest {
     public void testLoadDuplicateNodes() {
         TestUtil.testCall(
                 db,
-                "CALL apoc.import.csv([{fileName: {file}, labels: ['Person']}], [], {config})",
+                "CALL apoc.import.csv([{fileName: $file, labels: ['Person']}], [], $config)",
                 map(
                         "file", "file:/id-with-duplicates.csv",
                         "config", map("delimiter", '|', "stringIds", false, "ignoreDuplicateNodes", true)

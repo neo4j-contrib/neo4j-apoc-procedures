@@ -33,7 +33,7 @@ public class RenameTest {
 	@Test
 	public void testRenameLabelForSomeNodes() throws Exception {
 		List<Node> nodes = TestUtil.firstColumn(db, "UNWIND range(0,9) as id CREATE (f:Foo {id: id, name: 'name'+id}) RETURN f");
-		testCall(db, "CALL apoc.refactor.rename.label({oldName},{newName}, {nodes})",
+		testCall(db, "CALL apoc.refactor.rename.label($oldName,$newName, $nodes)",
 				map("oldName", "Foo", "newName", "Bar", "nodes", nodes.subList(0,3)), (r) -> {});
 
 		assertEquals(3L, resultNodesMatches("Bar", null));
@@ -43,7 +43,7 @@ public class RenameTest {
 	@Test
 	public void testRenameLabel() throws Exception {
 		db.executeTransactionally("UNWIND range(0,9) AS id CREATE (f:Foo {id: id})");
-		testCall(db, "CALL apoc.refactor.rename.label({oldName},{newName})",
+		testCall(db, "CALL apoc.refactor.rename.label($oldName,$newName)",
 				map("oldName", "Foo", "newName", "Bar"), (r) -> {});
 
 		assertEquals(10L, resultNodesMatches("Bar", null));
@@ -53,7 +53,7 @@ public class RenameTest {
 	@Test
 	public void testRenameRelationship() throws Exception {
 		db.executeTransactionally("UNWIND range(0,9) AS id CREATE (f:Foo {id: id})-[:KNOWS {id: id}]->(l:Fii {id: id})");
-		testCall(db, "CALL apoc.refactor.rename.type({oldType},{newType})",
+		testCall(db, "CALL apoc.refactor.rename.type($oldType,$newType)",
 				map("oldType", "KNOWS", "newType", "LOVES"), (r) -> {});
 
 		assertEquals(10L, resultRelationshipsMatches("LOVES", null));
@@ -65,7 +65,7 @@ public class RenameTest {
 		db.executeTransactionally("UNWIND range(0,9) AS id CREATE (f:Foo {id: id})-[:KNOWS {id: id}]->(l:Fii {id: id})");
 
 		List<Relationship> rels = TestUtil.firstColumn(db, "MATCH (:Foo)-[r:KNOWS]->(:Fii) RETURN r LIMIT 2");
-		testCall(db, "CALL apoc.refactor.rename.type({oldType},{newType}, {rels})",
+		testCall(db, "CALL apoc.refactor.rename.type($oldType,$newType, $rels)",
 				map("oldType", "KNOWS", "newType", "LOVES", "rels", rels), (r) -> {
 		});
 
@@ -76,7 +76,7 @@ public class RenameTest {
 	@Test
 	public void testRenameNodesProperty() throws Exception {
 		List<Node> nodes = TestUtil.firstColumn(db, "UNWIND range(0,9) as id CREATE (f:Foo {id: id, name: 'name'+id}) RETURN f");
-		testCall(db, "CALL apoc.refactor.rename.nodeProperty({oldName},{newName})",
+		testCall(db, "CALL apoc.refactor.rename.nodeProperty($oldName,$newName)",
 				map("oldName", "name", "newName", "surname"), (r) -> {});
 
 		assertEquals(10L, resultNodesMatches(null, "surname"));
@@ -87,7 +87,7 @@ public class RenameTest {
 	public void testRenamePropertyForSomeNodes() throws Exception {
 		List<Node> nodes = TestUtil.firstColumn(db, "UNWIND range(0,9) as id CREATE (f:Foo {id: id, name: 'name'+id}) RETURN f");
 		db.executeTransactionally("Create constraint on (n:Foo) assert n.name is UNIQUE");
-		testCall(db, "CALL apoc.refactor.rename.nodeProperty({oldName},{newName},{nodes})",
+		testCall(db, "CALL apoc.refactor.rename.nodeProperty($oldName,$newName,$nodes)",
 				map("oldName", "name", "newName", "surname","nodes",nodes.subList(0,3)), (r) -> {});
 
 		assertEquals(3L, resultNodesMatches(null, "surname"));
@@ -97,7 +97,7 @@ public class RenameTest {
 	@Test
 	public void testRenameTypeProperty() throws Exception {
 		db.executeTransactionally("UNWIND range(0,9) as id CREATE (f:Foo {id: id})-[:KNOWS {name: 'name' +id}]->(:Fii)");
-		testCall(db, "CALL apoc.refactor.rename.typeProperty({oldName},{newName})",
+		testCall(db, "CALL apoc.refactor.rename.typeProperty($oldName,$newName)",
 				map("oldName", "name", "newName", "surname"), (r) -> {});
 
 		assertEquals(10L, resultRelationshipsMatches(null, "surname"));
@@ -108,7 +108,7 @@ public class RenameTest {
 	public void testRenamePropertyForSomeRelationship() throws Exception {
 		db.executeTransactionally("UNWIND range(0,9) AS id CREATE (f:Foo {id: id})-[:KNOWS {name: 'name' + id}]->(l:Fii {id: id})");
 		List<Relationship> rels = TestUtil.firstColumn(db, "MATCH (:Foo)-[r:KNOWS]->(:Fii) RETURN r LIMIT 2");
-		testCall(db, "CALL apoc.refactor.rename.typeProperty({oldName},{newName},{rels})",
+		testCall(db, "CALL apoc.refactor.rename.typeProperty($oldName,$newName,$rels)",
 				map("oldName", "name", "newName", "surname","rels",rels), (r) -> {});
 
 		assertEquals(2L, resultRelationshipsMatches(null, "surname"));

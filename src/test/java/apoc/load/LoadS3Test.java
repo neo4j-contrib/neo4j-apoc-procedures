@@ -47,7 +47,7 @@ public class LoadS3Test {
     @Test
     public void testLoadCsvS3() throws Exception {
         String url = minio.putFile("src/test/resources/test.csv");
-        testResult(db, "CALL apoc.load.csv({url},{failOnError:false})", map("url", url), (r) -> {
+        testResult(db, "CALL apoc.load.csv($url,{failOnError:false})", map("url", url), (r) -> {
             assertRow(r, "Selma", "8", 0L);
             assertRow(r, "Rana", "11", 1L);
             assertRow(r, "Selina", "18", 2L);
@@ -58,7 +58,7 @@ public class LoadS3Test {
     @Test public void testLoadJsonS3() throws Exception {
         String url = minio.putFile("src/test/resources/map.json");
 
-        testCall(db, "CALL apoc.load.json({url},'')",map("url", url),
+        testCall(db, "CALL apoc.load.json($url,'')",map("url", url),
                 (row) -> {
                     assertEquals(map("foo",asList(1L,2L,3L)), row.get("value"));
                 });
@@ -67,7 +67,7 @@ public class LoadS3Test {
     @Test public void testLoadXmlS3() throws Exception {
         String url = minio.putFile("src/test/resources/xml/books.xml");
 
-        testCall(db, "CALL apoc.load.xml({url},'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", Util.map("url", url), (r) -> {
+        testCall(db, "CALL apoc.load.xml($url,'/catalog/book[title=\"Maeve Ascendant\"]/.',{failOnError:false}) yield value as result", Util.map("url", url), (r) -> {
             Object value = r.values();
             assertEquals(XML_XPATH_AS_NESTED_MAP, value.toString());
         });

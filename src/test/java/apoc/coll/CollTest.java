@@ -236,7 +236,7 @@ public class CollTest {
         params.put("list", list);
         params.put("value", list.get(list.size() - 1));
         long start = System.currentTimeMillis();
-        testCall(db, "RETURN apoc.coll.contains({list},{value}) AS value", params,
+        testCall(db, "RETURN apoc.coll.contains($list,$value) AS value", params,
                 (res) -> assertEquals(true, res.get("value")));
     }
 
@@ -251,7 +251,7 @@ public class CollTest {
         params.put("list", list);
         params.put("value", list.get(list.size() / 2));
         long start = System.currentTimeMillis();
-        testCall(db, "RETURN apoc.coll.containsSorted({list},{value}) AS value", params,
+        testCall(db, "RETURN apoc.coll.containsSorted($list,$value) AS value", params,
                 (res) -> assertEquals(true, res.get("value")));
     }
 
@@ -398,7 +398,7 @@ public class CollTest {
         Map<String, Object> params = new HashMap<>();
         params.put("list", original);
 
-        testCall(db, "RETURN apoc.coll.shuffle({list}) as value", params,
+        testCall(db, "RETURN apoc.coll.shuffle($list) as value", params,
                 (row) -> {
                     List<Object> result = (List<Object>) row.get("value");
                     assertEquals(original.size(), result.size());
@@ -470,7 +470,7 @@ public class CollTest {
         Map<String, Object> params = new HashMap<>();
         params.put("list", original);
 
-        testCall(db, "RETURN apoc.coll.randomItems({list}, 5000) as value", params,
+        testCall(db, "RETURN apoc.coll.randomItems($list, 5000) as value", params,
                 (row) -> {
                     List<Object> result = (List<Object>) row.get("value");
                     assertEquals(result.size(), 5000);
@@ -491,7 +491,7 @@ public class CollTest {
         Map<String, Object> params = new HashMap<>();
         params.put("list", original);
 
-        testCall(db, "RETURN apoc.coll.randomItems({list}, 20000) as value", params,
+        testCall(db, "RETURN apoc.coll.randomItems($list, 20000) as value", params,
                 (row) -> {
                     List<Object> result = (List<Object>) row.get("value");
                     assertEquals(result.size(), 10000);
@@ -512,7 +512,7 @@ public class CollTest {
         Map<String, Object> params = new HashMap<>();
         params.put("list", original);
 
-        testCall(db, "RETURN apoc.coll.randomItems({list}, 11000, true) as value", params,
+        testCall(db, "RETURN apoc.coll.randomItems($list, 11000, true) as value", params,
                 (row) -> {
                     List<Object> result = (List<Object>) row.get("value");
                     assertEquals(result.size(), 11000);

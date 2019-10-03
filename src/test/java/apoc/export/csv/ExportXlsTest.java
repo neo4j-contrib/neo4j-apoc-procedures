@@ -104,7 +104,7 @@ public class ExportXlsTest {
     @Test
     public void testExportAllXls() throws Exception {
         String fileName = "all.xlsx";
-        TestUtil.testCall(db, "CALL apoc.export.xls.all({file},null)",
+        TestUtil.testCall(db, "CALL apoc.export.xls.all($file,null)",
                 map("file", fileName),
                 (r) -> assertResults(fileName, r, "database"));
 
@@ -115,7 +115,7 @@ public class ExportXlsTest {
     public void testExportGraphXls() throws Exception {
         String fileName = "graph.xlsx";
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                        "CALL apoc.export.xls.graph(graph, {file},null) " +
+                        "CALL apoc.export.xls.graph(graph, $file,null) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
                         "RETURN *",
                 map("file", fileName),
@@ -127,7 +127,7 @@ public class ExportXlsTest {
     public void testExportQueryXls() throws Exception {
         String fileName = "query.xlsx";
         String query = "MATCH (u:User) return u.age, u.name, u.male, u.kids, labels(u)";
-        TestUtil.testCall(db, "CALL apoc.export.xls.query({query},{file},null)",
+        TestUtil.testCall(db, "CALL apoc.export.xls.query($query,$file,null)",
                 map("file", fileName, "query", query),
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(5)"));

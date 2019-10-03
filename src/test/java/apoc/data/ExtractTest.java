@@ -61,7 +61,7 @@ public class ExtractTest {
 
     @Test
     public void testQueryParameter() {
-        testCall(db, "RETURN apoc.data.domain({param}) AS value",
+        testCall(db, "RETURN apoc.data.domain($param) AS value",
                 map("param", "www.foo.bar/baz"),
                 row -> assertEquals("www.foo.bar", row.get("value")));
     }

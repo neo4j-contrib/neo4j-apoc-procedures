@@ -55,35 +55,35 @@ public class DateTest {
 
 	@Test public void testToDays() throws Exception {
 		testCall(db,
-				"RETURN apoc.date.parse({date},'d') AS value",
+				"RETURN apoc.date.parse($date,'d') AS value",
 				map("date",testDateAsString),
 				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_DAY * (long) row.get("value"))));
 	}
 
 	@Test public void testToHours() throws Exception {
 		testCall(db,
-				"RETURN apoc.date.parse({date},'h') AS value",
+				"RETURN apoc.date.parse($date,'h') AS value",
 				map("date",testDateAsString),
 				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_HOUR * (long) row.get("value"))));
 	}
 
 	@Test public void testToMinutes() throws Exception {
 		testCall(db,
-				"RETURN apoc.date.parse({date},'m') AS value",
+				"RETURN apoc.date.parse($date,'m') AS value",
 				map("date",testDateAsString),
 				row -> assertEquals(testDate.toInstant(), Instant.ofEpochSecond (SECONDS_PER_MINUTE * (long) row.get("value"))));
 	}
 
 	@Test public void testToUnixtime() throws Exception {
 		testCall(db,
-				"RETURN apoc.date.parse({date},'s') AS value",
+				"RETURN apoc.date.parse($date,'s') AS value",
 				map("date",epochAsString),
 				row -> assertEquals(Instant.EPOCH, Instant.ofEpochSecond((long) row.get("value"))));
 	}
 
 	@Test public void testToMillis() throws Exception {
 		testCall(db,
-				"RETURN apoc.date.parse({date},'ms') AS value",
+				"RETURN apoc.date.parse($date,'ms') AS value",
 				map("date",epochAsString),
 				row -> assertEquals(Instant.EPOCH, Instant.ofEpochMilli((long) row.get("value"))));
 	}
@@ -93,7 +93,7 @@ public class DateTest {
 		SimpleDateFormat customFormat = formatInUtcZone(pattern);
 		String reference = customFormat.format(new java.util.Date(0L));
 		testCall(db,
-				"RETURN apoc.date.parse({date},'s',{pattern}) AS value",
+				"RETURN apoc.date.parse($date,'s',$pattern) AS value",
 				map("date",reference,"pattern",pattern),
 				row -> assertEquals(Instant.EPOCH, Instant.ofEpochSecond((long) row.get("value"))));
 	}
@@ -145,7 +145,7 @@ public class DateTest {
 		String pattern = "MM/dd/yyyy HH:mm:ss";
 		SimpleDateFormat customFormat = formatInUtcZone(pattern);
 		testCall(db,
-				"RETURN apoc.date.format(0,'s',{pattern}) AS value",
+				"RETURN apoc.date.format(0,'s',$pattern) AS value",
 				map("pattern",pattern),
 				row -> {
 					try {
@@ -161,7 +161,7 @@ public class DateTest {
 		String timezone = "America/New_York";
 		SimpleDateFormat customFormat = formatInCustomTimeZone(pattern, timezone);
 		testCall(db,
-				"RETURN apoc.date.format(0,'s',{pattern},{timezone}) AS value",
+				"RETURN apoc.date.format(0,'s',$pattern,$timezone) AS value",
 				map("pattern",pattern,"timezone",timezone),
 				row -> {
 					try {

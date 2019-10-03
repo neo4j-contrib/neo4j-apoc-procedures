@@ -602,7 +602,7 @@ public class Util {
     }
 
     public static String param(String var) {
-        return (var.charAt(0) == '$' || var.charAt(0) == '{') ? var : '{'+quote(var)+'}';
+        return var.charAt(0) == '$' ? var : '$'+quote(var);
     }
 
     public static String withMapping(Stream<String> columns, Function<String, String> withMapping) {
@@ -763,5 +763,13 @@ public class Util {
 
     public static Relationship rebind(Transaction tx, Relationship rel) {
         return tx.getRelationshipById(rel.getId());
+    }
+
+    public static Entity rebind(Transaction tx, Entity e) {
+        if (e instanceof Node) {
+            return rebind(tx, (Node) e);
+        } else {
+            return rebind(tx, (Relationship)e);
+        }
     }
 }

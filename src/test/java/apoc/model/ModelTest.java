@@ -57,7 +57,7 @@ public class ModelTest {
 
     @Test
     public void testLoadJdbcSchema() {
-        testCall(db, "CALL apoc.model.jdbc({url}, {config})",
+        testCall(db, "CALL apoc.model.jdbc($url, $config)",
                 Util.map("url", mysql.getJdbcUrl(),
                         "config", Util.map("schema", "test",
                                 "credentials", Util.map("user", mysql.getUsername(), "password", mysql.getPassword()))),
@@ -111,7 +111,7 @@ public class ModelTest {
 
     @Test
     public void testLoadJdbcSchemaWithWriteOperation() {
-        testCall(db, "CALL apoc.model.jdbc({url}, {config})",
+        testCall(db, "CALL apoc.model.jdbc($url, $config)",
                 Util.map("url", mysql.getJdbcUrl(),
                         "config", Util.map("schema", "test",
                                 "write", true,
@@ -163,7 +163,7 @@ public class ModelTest {
 
     @Test
     public void testLoadJdbcSchemaWithFiltering() {
-        testCall(db, "CALL apoc.model.jdbc({url}, {config})",
+        testCall(db, "CALL apoc.model.jdbc($url, $config)",
                 Util.map("url", mysql.getJdbcUrl(),
                         "config", Util.map("schema", "test",
                                 "credentials", Util.map("user", mysql.getUsername(), "password", mysql.getPassword()),

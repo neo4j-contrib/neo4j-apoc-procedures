@@ -27,6 +27,7 @@ import static apoc.ApocConfig.apocConfig;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
 import static apoc.util.Util.map;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.*;
@@ -100,7 +101,7 @@ public class CypherTest {
     public void testRunFirstColumnBugCompiled() throws Exception {
         Node movie = TestUtil.singleResultFirstColumn(db, "CREATE (m:Movie  {title:'MovieA'})<-[:ACTED_IN]-(p:Person {name:'PersonA'})-[:ACTED_IN]->(m2:Movie {title:'MovieB'}) RETURN m");
         String query = "WITH $m AS m MATCH (m)<-[:ACTED_IN]-(:Person)-[:ACTED_IN]->(rec:Movie) RETURN rec LIMIT 10";
-        String plan = db.executeTransactionally("EXPLAIN " + query, null, result -> result.getExecutionPlanDescription().toString());
+        String plan = db.executeTransactionally("EXPLAIN " + query, emptyMap(), result -> result.getExecutionPlanDescription().toString());
         System.out.println(plan);
         List<Node> recs = TestUtil.firstColumn(db, query, map("m",movie));
         assertEquals(1, recs.size());

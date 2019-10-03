@@ -31,7 +31,7 @@ import java.util.stream.StreamSupport;
 public class ExportCypher {
 
     @Context
-    GraphDatabaseService db;
+    public GraphDatabaseService db;
 
     @Context
     public Transaction tx;

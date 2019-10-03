@@ -89,11 +89,11 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
 
     @Test
     public void testRunDown() throws Exception {
-        db.executeTransactionally("UNWIND range(1,{count}) AS id CREATE (n:Person {id:id})", MapUtil.map("count", RUNDOWN_COUNT));
+        db.executeTransactionally("UNWIND range(1,$count) AS id CREATE (n:Person {id:id})", MapUtil.map("count", RUNDOWN_COUNT));
 
-        String query = "MATCH (p:Person) WHERE NOT p:Processed WITH p LIMIT {limit} SET p:Processed RETURN count(*)";
+        String query = "MATCH (p:Person) WHERE NOT p:Processed WITH p LIMIT $limit SET p:Processed RETURN count(*)";
 
-        testCall(db, "CALL apoc.periodic.commit({query},{params})", MapUtil.map("query", query, "params", MapUtil.map("limit", BATCH_SIZE)), r -> {
+        testCall(db, "CALL apoc.periodic.commit($query,$params)", MapUtil.map("query", query, "params", MapUtil.map("limit", BATCH_SIZE)), r -> {
             assertEquals((long) Math.ceil((double) RUNDOWN_COUNT / BATCH_SIZE), r.get("executions"));
             assertEquals(RUNDOWN_COUNT, r.get("updates"));
         });
@@ -109,7 +109,7 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
 
         // when&then
 
-        testResult(db, "CALL apoc.periodic.rock_n_roll('match (p:Person) return p', 'WITH {p} as p SET p.lastname =p.name REMOVE p.name', 10)", result -> {
+        testResult(db, "CALL apoc.periodic.rock_n_roll('match (p:Person) return p', 'WITH $p as p SET p.lastname =p.name REMOVE p.name', 10)", result -> {
             Map<String, Object> row = Iterators.single(result);
             assertEquals(10L, row.get("batches"));
             assertEquals(100L, row.get("total"));
@@ -199,7 +199,7 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
             Map<String, Object> batchErrors = map("org.neo4j.graphdb.TransactionFailureException: Transaction was marked as successful, but unable to commit transaction so rolled back.", 10L);
             assertEquals(batchErrors, ((Map) row.get("batch")).get("errors"));
             Map<String, Object> operationsErrors = map("Parentheses are required to identify nodes in patterns, i.e. (null) (line 1, column 56 (offset: 55))\n" +
-                    "\"UNWIND {_batch} AS _batch WITH _batch.id AS id  CREATE null\"\n" +
+                    "\"UNWIND $_batch AS _batch WITH _batch.id AS id  CREATE null\"\n" +
                     "                                                        ^", 10L);
             assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
         });
@@ -216,7 +216,7 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
     public void testIteratePrefixGiven() throws Exception {
         db.executeTransactionally("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})");
 
-        testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'WITH {p} as p SET p.lastname =p.name REMOVE p.name', {batchSize:10,parallel:true})", result -> {
+        testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'WITH $p as p SET p.lastname =p.name REMOVE p.name', {batchSize:10,parallel:true})", result -> {
             Map<String, Object> row = Iterators.single(result);
             assertEquals(10L, row.get("batches"));
             assertEquals(100L, row.get("total"));
@@ -311,7 +311,7 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
 
     @Test
     public void testIterateRetries() throws Exception {
-        testResult(db, "CALL apoc.periodic.iterate('return 1', 'CREATE (n {prop: 1/{_retry}})', {retries:1})", result -> {
+        testResult(db, "CALL apoc.periodic.iterate('return 1', 'CREATE (n {prop: 1/$_retry})', {retries:1})", result -> {
             Map<String, Object> row = Iterators.single(result);
             assertEquals(1L, row.get("batches"));
             assertEquals(1L, row.get("total"));
@@ -322,7 +322,7 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
     @Test
     public void testIterateFail() throws Exception {
         db.executeTransactionally("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})");
-        testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'WITH {p} as p SET p.lastname = p.name REMOVE x.name', {batchSize:10,parallel:true})", result -> {
+        testResult(db, "CALL apoc.periodic.iterate('match (p:Person) return p', 'WITH $p as p SET p.lastname = p.name REMOVE x.name', {batchSize:10,parallel:true})", result -> {
             Map<String, Object> row = Iterators.single(result);
             assertEquals(10L, row.get("batches"));
             assertEquals(100L, row.get("total"));
@@ -341,7 +341,7 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
     @Test
     public void testIterateJDBC() throws Exception {
         TestUtil.ignoreException(() -> {
-            testResult(db, "CALL apoc.periodic.iterate('call apoc.load.jdbc(\"jdbc:mysql://localhost:3306/northwind?user=root\",\"customers\")', 'create (c:Customer) SET c += {row}', {batchSize:10,parallel:true})", result -> {
+            testResult(db, "CALL apoc.periodic.iterate('call apoc.load.jdbc(\"jdbc:mysql://localhost:3306/northwind?user=root\",\"customers\")', 'create (c:Customer) SET c += $row', {batchSize:10,parallel:true})", result -> {
                 Map<String, Object> row = Iterators.single(result);
                 assertEquals(3L, row.get("batches"));
                 assertEquals(29L, row.get("total"));
@@ -360,7 +360,7 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
         db.executeTransactionally("UNWIND range(1,100) AS x CREATE (:Person{name:'Person_'+x})");
 
         // when&then
-        testResult(db, "CALL apoc.periodic.rock_n_roll_while('return coalesce({previous},3)-1 as loop', 'match (p:Person) return p', 'MATCH (p) where p={p} SET p.lastname =p.name', 10)", result -> {
+        testResult(db, "CALL apoc.periodic.rock_n_roll_while('return coalesce($previous,3)-1 as loop', 'match (p:Person) return p', 'MATCH (p) where p=$p SET p.lastname =p.name', 10)", result -> {
             long l = 0;
             while (result.hasNext()) {
                 Map<String, Object> row = result.next();
@@ -387,7 +387,7 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
         String statementToRepeat = "MATCH (counter:Counter) SET counter.c = counter.c - 1 RETURN counter.c as count";
 
         Map<String, Object> params = map("kernelTransaction", statementToRepeat, "rate", rate);
-        testResult(db, "CALL apoc.periodic.countdown('decrement',{kernelTransaction}, {rate})", params, r -> {
+        testResult(db, "CALL apoc.periodic.countdown('decrement',$kernelTransaction, $rate)", params, r -> {
             try {
                 // Number of iterations per rate (in seconds)
                 Thread.sleep(startValue * rate * 1000);
@@ -404,7 +404,7 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
     @Test
     public void testRepeatParams() {
         db.executeTransactionally(
-                "CALL apoc.periodic.repeat('repeat-params', 'MERGE (person:Person {name: {nameValue}})', 2, {params: {nameValue: 'John Doe'}} ) YIELD name RETURN name" );
+                "CALL apoc.periodic.repeat('repeat-params', 'MERGE (person:Person {name: $nameValue})', 2, {params: {nameValue: 'John Doe'}} ) YIELD name RETURN name" );
         try {
             Thread.sleep(3000);
         } catch (InterruptedException e) {

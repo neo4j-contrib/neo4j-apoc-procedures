@@ -100,7 +100,7 @@ public class JdbcTest extends AbstractJdbcTest {
 
         ZoneId asiaTokio = ZoneId.of("Asia/Tokyo");
 
-        testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], {config})",
+        testCall(db, "CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], $config)",
                 map("config", map("timezone", asiaTokio.toString())),
                 (row) -> {
                     Map<String, Object> expected = MapUtil.map("NAME", "John", "SURNAME", null,
@@ -120,7 +120,7 @@ public class JdbcTest extends AbstractJdbcTest {
 
     @Test(expected = RuntimeException.class)
     public void testLoadJdbcParamsWithWrongTimezoneValue() throws Exception {
-        db.executeTransactionally("CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], {timezone: {timezone}})",
+        db.executeTransactionally("CALL apoc.load.jdbc('jdbc:derby:derbyDB','SELECT * FROM PERSON WHERE NAME = ?',['John'], {timezone: $timezone})",
                 map("timezone", "Italy/Pescara"));
     }
 

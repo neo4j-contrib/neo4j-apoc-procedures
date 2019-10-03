@@ -221,7 +221,7 @@ public class MapsTest {
         nestedMap = map("anotherkey", "anotherValue", "nested", nestedMap);
         Map<String, Object> map = map("string", "value", "int", 10, "nested", nestedMap);
 
-        TestUtil.testCall(db, "RETURN apoc.map.flatten({map}) AS value", map("map", map), (r) -> {
+        TestUtil.testCall(db, "RETURN apoc.map.flatten($map) AS value", map("map", map), (r) -> {
             Map<String, Object> resultMap = (Map<String, Object>)r.get("value");
             assertEquals(map("string", "value",
                     "int", 10,

@@ -86,7 +86,7 @@ public class CouchbaseIT  {
     @Test
     @SuppressWarnings("unchecked")
     public void testGetViaCall() {
-        testCall(db, "CALL apoc.couchbase.get({host}, {bucket}, 'artist:vincent_van_gogh')",
+        testCall(db, "CALL apoc.couchbase.get($host, $bucket, 'artist:vincent_van_gogh')",
                 map("host", HOST, "bucket", BUCKET_NAME),
                 r -> {
                     assertTrue(r.get("content") instanceof Map);
@@ -103,7 +103,7 @@ public class CouchbaseIT  {
 
     @Test
     public void testExistsViaCall() {
-        testCall(db, "CALL apoc.couchbase.exists({host}, {bucket}, 'artist:vincent_van_gogh')",
+        testCall(db, "CALL apoc.couchbase.exists($host, $bucket, 'artist:vincent_van_gogh')",
                 map("host", HOST, "bucket", BUCKET_NAME),
                 r -> assertTrue((boolean) r.get("value")));
     }
@@ -111,7 +111,7 @@ public class CouchbaseIT  {
     @Test
     @SuppressWarnings("unchecked")
     public void testInsertViaCall() {
-        testCall(db, "CALL apoc.couchbase.insert({host}, {bucket}, 'testInsertViaCall', {data})",
+        testCall(db, "CALL apoc.couchbase.insert($host, $bucket, 'testInsertViaCall', $data)",
                 map("host", HOST, "bucket", BUCKET_NAME, "data", VINCENT_VAN_GOGH.toString()),
                 r -> {
                     assertTrue(r.get("content") instanceof Map);
@@ -130,7 +130,7 @@ public class CouchbaseIT  {
 
     @Test(expected = QueryExecutionException.class)
     public void testInsertWithAlreadyExistingIDViaCall() {
-        testCall(db, "CALL apoc.couchbase.insert({host}, {bucket}, 'artist:vincent_van_gogh', {data})",
+        testCall(db, "CALL apoc.couchbase.insert($host, $bucket, 'artist:vincent_van_gogh', $data)",
                 map("host", HOST, "bucket", BUCKET_NAME, "data", VINCENT_VAN_GOGH.toString()),
                 r -> {});
     }
@@ -138,7 +138,7 @@ public class CouchbaseIT  {
     @Test
     @SuppressWarnings("unchecked")
     public void testUpsertViaCall() {
-        testCall(db, "CALL apoc.couchbase.upsert({host}, {bucket}, 'testUpsertViaCall', {data})",
+        testCall(db, "CALL apoc.couchbase.upsert($host, $bucket, 'testUpsertViaCall', $data)",
                 map("host", HOST, "bucket", BUCKET_NAME, "data", VINCENT_VAN_GOGH.toString()),
                 r -> {
                     assertTrue(r.get("content") instanceof Map);
@@ -158,28 +158,28 @@ public class CouchbaseIT  {
     @Test
     public void testRemoveViaCall() {
         couchbaseBucket.insert(JsonDocument.create("testRemove", JsonObject.empty()));
-        testCall(db, "CALL apoc.couchbase.remove({host}, {bucket}, 'testRemove')",
+        testCall(db, "CALL apoc.couchbase.remove($host, $bucket, 'testRemove')",
                 map("host", HOST, "bucket", BUCKET_NAME),
                 r -> assertFalse(couchbaseBucket.exists("testRemove")));
     }
 
     @Test
     public void testQueryViaCall() {
-        testCall(db, "CALL apoc.couchbase.query({host}, {bucket}, {query})",
+        testCall(db, "CALL apoc.couchbase.query($host, $bucket, $query)",
                 map("host", HOST, "bucket", BUCKET_NAME, "query", "select * from " + BUCKET_NAME + " where lastName = \"Van Gogh\""),
                 r -> checkListResult(r));
     }
 
     @Test
     public void testQueryWithPositionalParamsViaCall() {
-        testCall(db, "CALL apoc.couchbase.posParamsQuery({host}, {bucket}, {query}, ['Van Gogh'])",
+        testCall(db, "CALL apoc.couchbase.posParamsQuery($host, $bucket, $query, ['Van Gogh'])",
                 map("host", HOST, "bucket", BUCKET_NAME, "query", "select * from " + BUCKET_NAME + " where lastName = $1"),
                 r -> checkListResult(r));
     }
 
     @Test
     public void testQueryWithNamedParamsViaCall() {
-        testCall(db, "CALL apoc.couchbase.namedParamsQuery({host}, {bucket}, {query}, ['lastName'], ['Van Gogh'])",
+        testCall(db, "CALL apoc.couchbase.namedParamsQuery($host, $bucket, $query, ['lastName'], ['Van Gogh'])",
                 map("host", HOST, "bucket", BUCKET_NAME, "query", "select * from " + BUCKET_NAME + " where lastName = $lastName"),
                 r -> checkListResult(r));
     }

@@ -49,7 +49,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbc() throws Exception {
-        testCall(db, "CALL apoc.load.jdbc({url},'\"PERSON\"')", Util.map("url", getUrl(),
+        testCall(db, "CALL apoc.load.jdbc($url,'\"PERSON\"')", Util.map("url", getUrl(),
                 "config", Util.map("schema", "test",
                         "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))),
                 (row) -> assertResult(row));
@@ -57,7 +57,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbcSelect() throws Exception {
-        testCall(db, "CALL apoc.load.jdbc({url},'SELECT * FROM \"PERSON\"')",
+        testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM \"PERSON\"')",
                 Util.map("url", getUrl(),
                         "config", Util.map("schema", "test", "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
                 ),
@@ -66,10 +66,10 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbcUpdate() throws Exception {
-        db.executeTransactionally("CALL apoc.load.jdbcUpdate({url},'UPDATE \"PERSON\" SET \"SURNAME\" = \\\'DOE\\\' WHERE \"NAME\" = \\\'John\\\'')", Util.map("url", getUrl(),
+        db.executeTransactionally("CALL apoc.load.jdbcUpdate($url,'UPDATE \"PERSON\" SET \"SURNAME\" = \\\'DOE\\\' WHERE \"NAME\" = \\\'John\\\'')", Util.map("url", getUrl(),
                 "config", Util.map("schema", "test","credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
         ));
-        testCall(db, "CALL apoc.load.jdbc({url},'SELECT * FROM \"PERSON\" WHERE \"NAME\" = ?', ['John'])",
+        testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM \"PERSON\" WHERE \"NAME\" = ?', ['John'])",
                 Util.map("url", getUrl(),
                         "config", Util.map("schema", "test", "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
                 ),
@@ -82,7 +82,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbcParams() throws Exception {
-        testCall(db, "CALL apoc.load.jdbc({url},'SELECT * FROM \"PERSON\" WHERE \"NAME\" = ?', ['John'])",
+        testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM \"PERSON\" WHERE \"NAME\" = ?', ['John'])",
                 Util.map("url", getUrl(),
                         "config", Util.map("schema", "test", "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
                 ),

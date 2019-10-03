@@ -47,7 +47,7 @@ public class LoadHtmlTest {
 
         Map<String, Object> query = map("metadata", "meta", "h2", "h2");
 
-        testResult(db, "CALL apoc.load.html({url},{query}, {config})", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", Collections.emptyMap()),
+        testResult(db, "CALL apoc.load.html($url,$query, $config)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", Collections.emptyMap()),
                 result -> {
                     Map<String, Object> row = result.next();
                     assertEquals(map("metadata",asList(RESULT_QUERY_METADATA)).toString().trim(), row.get("value").toString().trim());
@@ -62,7 +62,7 @@ public class LoadHtmlTest {
 
         Map<String, Object> query = map("metadata", "meta");
 
-        testResult(db, "CALL apoc.load.html({url},{query})", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
+        testResult(db, "CALL apoc.load.html($url,$query)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
                 result -> {
                     Map<String, Object> row = result.next();
                     assertEquals(map("metadata",asList(RESULT_QUERY_METADATA)).toString().trim(), row.get("value").toString().trim());
@@ -75,7 +75,7 @@ public class LoadHtmlTest {
 
         Map<String, Object> query = map("h2", "h2");
 
-        testResult(db, "CALL apoc.load.html({url},{query})", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
+        testResult(db, "CALL apoc.load.html($url,$query)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query),
                 result -> {
                     Map<String, Object> row = result.next();
                     assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());
@@ -89,7 +89,7 @@ public class LoadHtmlTest {
         Map<String, Object> query = map("h2", "h2");
         Map<String, Object> config = map("charset", "UTF-8", "baserUri", "");
 
-        testResult(db, "CALL apoc.load.html({url},{query}, {config})", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
+        testResult(db, "CALL apoc.load.html($url,$query, $config)", map("url",new File("src/test/resources/wikipedia.html").toURI().toString(), "query", query, "config", config),
                 result -> {
                     Map<String, Object> row = result.next();
                     assertEquals(map("h2",asList(RESULT_QUERY_H2)).toString().trim(), row.get("value").toString().trim());

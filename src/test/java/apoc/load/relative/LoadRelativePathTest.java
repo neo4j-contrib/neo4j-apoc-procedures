@@ -50,7 +50,7 @@ public class LoadRelativePathTest {
     //CSV
     @Test public void testLoadRelativePathCsv() {
         String url = "test.csv";
-        testResult(db, "CALL apoc.load.csv({url},{results:['map','list','stringMap','strings']})", map("url",url), // 'file:test.csv'
+        testResult(db, "CALL apoc.load.csv($url,{results:['map','list','stringMap','strings']})", map("url",url), // 'file:test.csv'
                 (r) -> {
                     assertRow(r,0L,"name","Selma","age","8");
                     assertRow(r,1L,"name","Rana","age","11");
@@ -75,7 +75,7 @@ public class LoadRelativePathTest {
     //JSON
     @Test public void testLoadRelativePathJson() {
         String url = "file:/map.json";
-        testCall(db, "CALL apoc.load.json({url})",map("url",url), // 'file:map.json' YIELD value RETURN value
+        testCall(db, "CALL apoc.load.json($url)",map("url",url), // 'file:map.json' YIELD value RETURN value
                 (row) -> assertEquals(map("foo",asList(1L,2L,3L)), row.get("value")));
     }
 

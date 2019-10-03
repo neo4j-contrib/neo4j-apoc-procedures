@@ -131,7 +131,7 @@ public class MetaTest {
                 "STRING", "a",
                 "BOOLEAN", true,
                 "NULL", null);
-        TestUtil.testCall(db, "RETURN apoc.meta.types({param}) AS value", singletonMap("param",param), row -> {
+        TestUtil.testCall(db, "RETURN apoc.meta.types($param) AS value", singletonMap("param",param), row -> {
             Map<String,String> res = (Map) row.get("value");
             res.forEach(Assert::assertEquals);
         });
@@ -139,13 +139,13 @@ public class MetaTest {
     }
 
     private void testTypeName(Object value, String type) {
-        TestUtil.testCall(db, "RETURN apoc.meta.typeName({value}) AS value", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
-//        TestUtil.testCall(db, "RETURN apoc.meta.type({value}) AS value", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
+        TestUtil.testCall(db, "RETURN apoc.meta.typeName($value) AS value", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
+//        TestUtil.testCall(db, "RETURN apoc.meta.type($value) AS value", singletonMap("value", value), row -> assertEquals(type, row.get("value")));
     }
 
     private void testIsTypeName(Object value, String type) {
-        TestUtil.testCall(db, "RETURN apoc.meta.isType({value},{type}) AS value", map("value", value, "type", type), result -> assertEquals("type was not "+type,true, result.get("value")));
-        TestUtil.testCall(db, "RETURN apoc.meta.isType({value},{type}) AS value", map("value", value, "type", type + "foo"), result -> assertEquals(false, result.get("value")));
+        TestUtil.testCall(db, "RETURN apoc.meta.isType($value,$type) AS value", map("value", value, "type", type), result -> assertEquals("type was not "+type,true, result.get("value")));
+        TestUtil.testCall(db, "RETURN apoc.meta.isType($value,$type) AS value", map("value", value, "type", type + "foo"), result -> assertEquals(false, result.get("value")));
     }
 
     @Test
@@ -348,7 +348,7 @@ public class MetaTest {
                 "DATE_TIME", DateTimeValue.now(Clock.systemDefaultZone()),
                 "NULL", null);
 
-        TestUtil.testCall(db, "RETURN apoc.meta.cypher.types({param}) AS value", singletonMap("param",param), row -> {
+        TestUtil.testCall(db, "RETURN apoc.meta.cypher.types($param) AS value", singletonMap("param",param), row -> {
             Map<String, Object>  r = (Map<String, Object>) row.get("value");
 
             assertEquals("DATE", r.get("DATE"));
@@ -374,7 +374,7 @@ public class MetaTest {
                 "ARRAY_ARRAY", new Object[]{1, "a", new Object[]{"a", 1}, isoDuration(5, 1, 43200, 0).asIsoDuration()},
                 "NULL", null);
 
-        TestUtil.testCall(db, "RETURN apoc.meta.cypher.types({param}) AS value", singletonMap("param",param), row -> {
+        TestUtil.testCall(db, "RETURN apoc.meta.cypher.types($param) AS value", singletonMap("param",param), row -> {
             Map<String, Object>  r = (Map<String, Object>) row.get("value");
 
             assertEquals("LIST OF STRING", r.get("ARRAY"));
@@ -398,7 +398,7 @@ public class MetaTest {
                 "DOUBLE", 1.0D,
                 "NULL", null);
 
-        TestUtil.testCall(db, "RETURN apoc.meta.cypher.types({param}) AS value", singletonMap("param",param), row -> {
+        TestUtil.testCall(db, "RETURN apoc.meta.cypher.types($param) AS value", singletonMap("param",param), row -> {
             Map<String, Object>  r = (Map<String, Object>) row.get("value");
 
             assertEquals("INTEGER", r.get("INTEGER"));
@@ -425,7 +425,7 @@ public class MetaTest {
                 "MAP", Util.map("a", "b"),
                 "NULL", null);
 
-        TestUtil.testCall(db, "RETURN apoc.meta.cypher.types({param}) AS value", singletonMap("param",param), row -> {
+        TestUtil.testCall(db, "RETURN apoc.meta.cypher.types($param) AS value", singletonMap("param",param), row -> {
             Map<String, Object>  r = (Map<String, Object>) row.get("value");
 
             assertEquals("LIST OF FLOAT", r.get("LIST"));
@@ -458,7 +458,7 @@ public class MetaTest {
                 "LIST OF LIST", asList(asList("a", "b", "c"),asList("aa", "bb", "cc"),asList("aaa", "bbb", "ccc")),
                 "LIST DOUBLE", asList(1.2D, 2.1D));
 
-        TestUtil.testCall(db, "RETURN apoc.meta.cypher.types({param}) AS value", singletonMap("param",param), row -> {
+        TestUtil.testCall(db, "RETURN apoc.meta.cypher.types($param) AS value", singletonMap("param",param), row -> {
             Map<String, Object>  r = (Map<String, Object>) row.get("value");
 
             assertEquals("LIST OF FLOAT", r.get("LIST FLOAT"));
