@@ -74,12 +74,14 @@ public class Jdbc {
         String query = getSqlOrKey(tableOrSelect);
         try {
             Connection connection = getConnection(url,loadJdbcConfig);
+            // see https://jdbc.postgresql.org/documentation/91/query.html#query-with-cursors
+            connection.setAutoCommit(false);
             try {
-                PreparedStatement stmt = connection.prepareStatement(query);
+                PreparedStatement stmt = connection.prepareStatement(query,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                stmt.setFetchSize(5000);
                 try {
                     for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
                     ResultSet rs = stmt.executeQuery();
-                    rs.setFetchSize(5000);
                     Iterator<Map<String, Object>> supplier = new ResultSetIterator(log, rs, true, loadJdbcConfig);
                     Spliterator<Map<String, Object>> spliterator = Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
                     return StreamSupport.stream(spliterator, false)
@@ -114,7 +116,8 @@ public class Jdbc {
         try {
             Connection connection = getConnection(url,jdbcConfig);
             try {
-                PreparedStatement stmt = connection.prepareStatement(query);
+                PreparedStatement stmt = connection.prepareStatement(query,ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                stmt.setFetchSize(5000);
                 try {
                     for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
                     int updateCount = stmt.executeUpdate();
