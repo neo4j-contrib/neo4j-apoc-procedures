@@ -62,7 +62,6 @@ public class CypherTest {
         }
     }
 
-
     @Test
     public void testRun() throws Exception {
         testCall(db, "CALL apoc.cypher.run('RETURN $a + 7 as b',{a:3})",

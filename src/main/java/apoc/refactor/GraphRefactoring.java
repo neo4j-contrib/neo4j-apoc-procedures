@@ -34,7 +34,7 @@ public class GraphRefactoring {
 
     private Stream<NodeRefactorResult> doCloneNodes(@Name("nodes") List<Node> nodes, @Name("withRelationships") boolean withRelationships, List<String> skipProperties) {
         if (nodes == null) return Stream.empty();
-        return nodes.stream().map((node) -> {
+        return nodes.stream().map(node -> Util.rebind(tx, node)).map(node -> {
             NodeRefactorResult result = new NodeRefactorResult(node.getId());
             try {
                 Node newNode = copyLabels(node, tx.createNode());
@@ -445,11 +445,12 @@ public class GraphRefactoring {
     private Future<Void> categorizeNodes(List<Node> batch, String sourceKey, String relationshipType, Boolean outgoing, String label, String targetKey, List<String> copiedKeys) {
 
         return pools.processBatch(batch, db, (innerTx, node) -> {
+            node = Util.rebind(innerTx, node);
             Object value = node.getProperty(sourceKey, null);
             if (value != null) {
                 String q =
-                        "WITH {node} AS n " +
-                                "MERGE (cat:`" + label + "` {`" + targetKey + "`: {value}}) " +
+                        "WITH $node AS n " +
+                                "MERGE (cat:`" + label + "` {`" + targetKey + "`: $value}) " +
                                 (outgoing ? "MERGE (n)-[:`" + relationshipType + "`]->(cat) "
                                         : "MERGE (n)<-[:`" + relationshipType + "`]-(cat) ") +
                                 "RETURN cat";

@@ -147,44 +147,44 @@ public class GroupingTest {
     @Test
     public void testFilterMin() throws Exception {
         db.executeTransactionally("CREATE (:User {name:'Joe',gender:'male'}), (:User {gender:'female',name:'Jane'}), (:User {gender:'female',name:'Jenny'})");
-        assertEquals("female", TestUtil.singleResultFirstColumn( db, "CALL apoc.nodes.group(['User'],['gender'],null,{filter:{`User.count_*.min`:2}})"));
+        assertEquals("female", TestUtil.singleResultFirstColumn( db, "CALL apoc.nodes.group(['User'],['gender'],null,{filter:{`User.count_*.min`:2}}) yield nodes return [x in nodes|x.gender]"));
         TestUtil.testCallCount(db, "CALL apoc.nodes.group(['User'],['gender'],null,{filter:{`User.count_*.min`:3}})", 0);
     }
 
     @Test
     public void testFilterMax() throws Exception {
         db.executeTransactionally("CREATE (:User {name:'Joe',gender:'male'}), (:User {gender:'female',name:'Jane'}), (:User {gender:'female',name:'Jenny'})");
-        assertEquals("male", TestUtil.singleResultFirstColumn( db, "CALL apoc.nodes.group(['User'],['gender'],null,{filter:{`User.count_*.max`:1}})"));
+        assertEquals("male", TestUtil.singleResultFirstColumn( db, "CALL apoc.nodes.group(['User'],['gender'],null,{filter:{`User.count_*.max`:1}}) yield nodes return [x in nodes|x.gender]"));
         TestUtil.testCallCount(db, "CALL apoc.nodes.group(['User'],['gender'],null,{filter:{`User.count_*.max`:0}})", 0);
     }
 
     @Test
     public void testFilterRelationshipsInclude() throws Exception {
         db.executeTransactionally("CREATE (u:User {name:'Joe',gender:'male'})-[:KNOWS]->(u), (u)-[:LOVES]->(u)");
-        assertEquals("KNOWS", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['User'],['gender'],null,{includeRels:'KNOWS'}) yield relationship return relationship"));
+        assertEquals("KNOWS", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['User'],['gender'],null,{includeRels:'KNOWS'}) yield relationship return type(relationship)"));
     }
 
     @Test
     public void testFilterRelationshipsExclude() throws Exception {
         db.executeTransactionally("CREATE (u:User {name:'Joe',gender:'male'})-[:KNOWS]->(u), (u)-[:LOVES]->(u)");
-        assertEquals("KNOWS", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['User'],['gender'],null,{excludeRels:'LOVES'}) yield relationship return relationship"));
+        assertEquals("KNOWS", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['User'],['gender'],null,{excludeRels:'LOVES'}) yield relationship return type(relationship)"));
     }
 
     @Test
     public void testGroupAllLabels() throws Exception {
         db.executeTransactionally("CREATE (u:User {name:'Joe',gender:'male'})");
-        assertEquals("User", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['*'],['gender']) yield node return node"));
+        assertEquals("User", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['*'],['gender']) yield node return node.gender"));
     }
 
     @Test
     public void testLimitNodes() throws Exception {
         db.executeTransactionally("CREATE (:User {name:'Joe',gender:'male'}), (:User {name:'Jane',gender:'female'})");
-        assertEquals("User", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['User'],['gender'],null, {limitNodes:1}) yield node return node"));
+        assertEquals("User", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['User'],['gender'],null, {limitNodes:1}) yield node return labels(node)"));
     }
 
     @Test
     public void testLimitRelsNodes() throws Exception {
         db.executeTransactionally("CREATE (u:User {name:'Joe',gender:'male'})-[:KNOWS]->(u), (u)-[:LOVES]->(u), (u)-[:HATES]->(u)");
-        assertEquals("User", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['User'],['gender'],null, {relsPerNode:1}) yield node return node"));
+        assertEquals("User", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['User'],['gender'],null, {relsPerNode:1}) yield node return labels(node)"));
     }
 }

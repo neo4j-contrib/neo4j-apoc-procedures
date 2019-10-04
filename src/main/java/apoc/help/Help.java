@@ -27,7 +27,7 @@ public class Help {
             }
         }
         String filter = " WHERE name starts with 'apoc.' " +
-                " AND ({name} IS NULL  OR toLower(name) CONTAINS toLower({name}) " +
+                " AND ($name IS NULL  OR toLower(name) CONTAINS toLower({name}) " +
                 " OR ({desc} IS NOT NULL AND toLower(description) CONTAINS toLower({desc}))) " +
                 "RETURN type, name, description, signature ";
 

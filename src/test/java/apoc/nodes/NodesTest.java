@@ -123,7 +123,7 @@ public class NodesTest {
         for (int rel=0;rel<relCount;rel++) {
             db.executeTransactionally("MATCH (st:StartThin),(et:EndThin),(ed:EndDense) " +
                             " CREATE (st)-[:REL"+rel+"]->(et) " +
-                            " WITH * UNWIND RANGE(1,{count}) AS id CREATE (st)-[:REL"+rel+"]->(ed)",
+                            " WITH * UNWIND RANGE(1,$count) AS id CREATE (st)-[:REL"+rel+"]->(ed)",
                     map("count",relCount-rel));
         }
 

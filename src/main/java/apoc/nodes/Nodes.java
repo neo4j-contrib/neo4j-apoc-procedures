@@ -65,7 +65,7 @@ public class Nodes {
         while (it.hasNext()) {
             final List<Node> batch = Util.take(it, (int)batchSize);
 //            count += Util.inTx(api,() -> batch.stream().peek( n -> {n.getRelationships().forEach(Relationship::delete);n.delete();}).count());
-            count += Util.inTx(db, pools, (txInThread) -> {txInThread.execute("FOREACH (n in {nodes} | DETACH DELETE n)",map("nodes",batch)).close();return batch.size();});
+            count += Util.inTx(db, pools, (txInThread) -> {txInThread.execute("FOREACH (n in $nodes | DETACH DELETE n)",map("nodes",batch)).close();return batch.size();});
         }
         return Stream.of(new LongResult(count));
     }

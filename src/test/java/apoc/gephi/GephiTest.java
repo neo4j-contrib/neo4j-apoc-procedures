@@ -49,7 +49,7 @@ public class GephiTest {
 
     @Test
     public void testAdd() throws Exception {
-        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,{workspace},p) yield nodes, relationships, format return *",
+        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,$workspace,p) yield nodes, relationships, format return *",
                 map("workspace", GEPHI_WORKSPACE),
                 r -> {
                     assertEquals(2L, r.get("nodes"));
@@ -59,7 +59,7 @@ public class GephiTest {
     }
     @Test
     public void testWeightParameter() throws Exception {
-        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,{workspace},p,'weight') yield nodes, relationships, format return *",
+        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,$workspace,p,'weight') yield nodes, relationships, format return *",
                 map("workspace", GEPHI_WORKSPACE),
                 r -> {
                     assertEquals(2L, r.get("nodes"));
@@ -70,7 +70,7 @@ public class GephiTest {
 
     @Test
     public void testWrongWeightParameter() throws Exception {
-        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,{workspace},p,'test') yield nodes, relationships, format return *",
+        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,$workspace,p,'test') yield nodes, relationships, format return *",
                 map("workspace", GEPHI_WORKSPACE),
                 r -> {
                     assertEquals(2L, r.get("nodes"));
@@ -81,7 +81,7 @@ public class GephiTest {
 
     @Test
     public void testRightExportParameter() throws Exception {
-        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,{workspace},p,'weight',['foo']) yield nodes, relationships, format return *",
+        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,$workspace,p,'weight',['foo']) yield nodes, relationships, format return *",
                 map("workspace", GEPHI_WORKSPACE),
                 r -> {
                     assertEquals(2L, r.get("nodes"));
@@ -92,7 +92,7 @@ public class GephiTest {
 
     @Test
     public void testWrongExportParameter() throws Exception {
-        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,{workspace},p,'weight',['faa','fee']) yield nodes, relationships, format return *",
+        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,$workspace,p,'weight',['faa','fee']) yield nodes, relationships, format return *",
                 map("workspace", GEPHI_WORKSPACE),
                 r -> {
                     assertEquals(2L, r.get("nodes"));
@@ -103,7 +103,7 @@ public class GephiTest {
 
     @Test
     public void reservedExportParameter() throws Exception {
-        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,{workspace},p,'weight',['directed','label']) yield nodes, relationships, format return *",
+        testCall(db, "MATCH p = (:Foo)-->() WITH p CALL apoc.gephi.add(null,$workspace,p,'weight',['directed','label']) yield nodes, relationships, format return *",
                 map("workspace", GEPHI_WORKSPACE),
                 r -> {
                     assertEquals(2L, r.get("nodes"));

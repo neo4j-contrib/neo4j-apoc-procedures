@@ -91,7 +91,7 @@ public class GraphsTest {
             put("albums", Arrays.asList(albumGenesisMap));
         }};
 
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json, $config) yield graph",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(artistGenesisMapExt), "config", Util.map("write", true)),
                 stringObjectMap -> {
                     Map<String, Object> map = stringObjectMap.next();
@@ -127,7 +127,7 @@ public class GraphsTest {
             put("albums", Arrays.asList(albumGenesisMap));
         }};
 
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(artistGenesisMapExt)), result -> {
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(artistGenesisMapExt)), result -> {
             Map<String, Object> map = result.next();
             assertEquals("Graph", ((Map) map.get("graph")).get("name"));
             Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
@@ -173,7 +173,7 @@ public class GraphsTest {
             put("albums", Arrays.asList(albumDaftPunkMap));
         }};
 
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(Arrays.asList(artistGenesisMapExt, artistDaftPunkMapExt))),
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(Arrays.asList(artistGenesisMapExt, artistDaftPunkMapExt))),
                 result -> {
                     Map<String, Object> map = result.next();
                     assertEquals("Graph", ((Map) map.get("graph")).get("name"));
@@ -230,7 +230,7 @@ public class GraphsTest {
             put("albums", Arrays.asList(albumDaftPunkMap));
         }};
 
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json, $config) yield graph",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(Arrays.asList(artistGenesisMapExt, artistDaftPunkMapExt)), "config", Util.map("write", true)),
                 result -> {
                     Map<String, Object> map = result.next();
@@ -277,7 +277,7 @@ public class GraphsTest {
             putAll(genesisMap);
             put("albums", Arrays.asList(albumMap));
         }};
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json, $config) yield graph",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisExt), "config",
                         Util.map("labelField", "myCustomType", "idField", "myCustomId")),
                 stringObjectMap -> {
@@ -312,7 +312,7 @@ public class GraphsTest {
             putAll(genesisMap);
             put("albums", Arrays.asList(albumMap, albumMap));
         }};
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph",
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json) yield graph",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisExt)),
                 stringObjectMap -> {
                     Map<String, Object> map = stringObjectMap.next();
@@ -346,7 +346,7 @@ public class GraphsTest {
             putAll(genesisMap);
             put("albums", Arrays.asList(albumMap, albumMap));
         }};
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json, $config) yield graph",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisExt), "config", Util.map("write", true)),
                 stringObjectMap -> {
                     Map<String, Object> map = stringObjectMap.next();
@@ -377,7 +377,7 @@ public class GraphsTest {
     public void testCreateVirtualSimpleNodeWithErrorId() throws Exception{
         Map<String, Object> genesisMap = Util.map("type", "artist", "name", "Genesis");
         try {
-            TestUtil.testCall(db, "CALL apoc.graph.fromDocument({json}) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)), stringObjectMap -> { });
+            TestUtil.testCall(db, "CALL apoc.graph.fromDocument($json) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)), stringObjectMap -> { });
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
@@ -392,7 +392,7 @@ public class GraphsTest {
                 Util.map("id", 1, "type", "artist", "name", "Daft Punk"),
                 Util.map("id", 1, "name", "Daft Punk"));
 
-        TestUtil.testResult(db, "CALL apoc.graph.validateDocument({json}) yield row",
+        TestUtil.testResult(db, "CALL apoc.graph.validateDocument($json) yield row",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(list)), result -> {
                     Map<String, Object> row = (Map<String, Object>) result.next().get("row");
                     assertEquals(0L, row.get("index"));
@@ -422,7 +422,7 @@ public class GraphsTest {
         }};
         List<Map<String, Object>> list = Arrays.asList(johnExt, janeExt);
 
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph",
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json) yield graph",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(list)), result -> {
                     Map<String, Object> map = result.next();
                     Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
@@ -483,7 +483,7 @@ public class GraphsTest {
             putAll(jamesMap);
             put("son", Arrays.asList(johnExt));
         }};
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph",
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json) yield graph",
                 Util.map("json", jamesExt),
                 result -> {
                     Map<String, Object> map = result.next();
@@ -536,7 +536,7 @@ public class GraphsTest {
         }};
         List<Map<String, Object>> list = Arrays.asList(johnExt, janeExt);
 
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json, $config) yield graph",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(list), "config", Util.map("write", true)),
                 result -> {
                     long count = db.executeTransactionally("MATCH p = (a:User{id: 1})-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User{id: 2}) RETURN count(p) AS count", null,
@@ -550,7 +550,7 @@ public class GraphsTest {
     public void testCreateVirtualSimpleNodeWithErrorType() throws Exception{
         Map<String, Object> genesisMap = Util.map("id", 1L, "name", "Genesis");
         try {
-            TestUtil.testCall(db, "CALL apoc.graph.fromDocument({json}) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)), result -> { });
+            TestUtil.testCall(db, "CALL apoc.graph.fromDocument($json) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)), result -> { });
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
@@ -562,7 +562,7 @@ public class GraphsTest {
     @Test
     public void testCreateVirtualSimpleNode() throws Exception {
         Map<String, Object> genesisMap = Util.map("id", 1L, "type", "artist", "name", "Genesis");
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)), result -> {
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)), result -> {
             Map<String, Object> map = result.next();
             assertEquals("Graph", ((Map) map.get("graph")).get("name"));
             Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
@@ -578,7 +578,7 @@ public class GraphsTest {
     @Test
     public void testCreateVirtualSimpleNodeFromCypherMap() {
         Map<String, Object> genesisMap = Util.map("id", 1L, "type", "artist", "name", "Genesis");
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph", Util.map("json", genesisMap), result -> {
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json) yield graph", Util.map("json", genesisMap), result -> {
             Map<String, Object> map = result.next();
             assertEquals("Graph", ((Map) map.get("graph")).get("name"));
             Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
@@ -595,7 +595,7 @@ public class GraphsTest {
     public void testCreateVirtualSimpleNodeFromCypherList() {
         Map<String, Object> genesisMap = Util.map("id", 1L, "type", "artist", "name", "Genesis");
         Map<String, Object> daftPunkMap = Util.map("id", 2L, "type", "artist", "name", "Daft Punk");
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph", Util.map("json", Arrays.asList(genesisMap, daftPunkMap)), result -> {
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json) yield graph", Util.map("json", Arrays.asList(genesisMap, daftPunkMap)), result -> {
             Map<String, Object> map = result.next();
             assertEquals("Graph", ((Map) map.get("graph")).get("name"));
             Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
@@ -623,7 +623,7 @@ public class GraphsTest {
             put("albums", Arrays.asList(album1Map, album2Map));
         }};
 
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph",
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json) yield graph",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisExt)),
                 result -> {
                     Map<String, Object> map = result.next();
@@ -661,7 +661,7 @@ public class GraphsTest {
                 "years", new Long[]{1967L, 1998L, 1999L, 2000L, 2006L},
                 "members", new String[]{"Tony Banks","Mike Rutherford","Phil Collins"});
 
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}) yield graph",
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json) yield graph",
                 Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)),
                 result -> {
                     Map<String, Object> map = result.next();

@@ -126,12 +126,12 @@ public class ParallelNodeSearch {
 
         public Stream<NodeReducedResult> queryForData() {
             List<String> labels = singletonList(label);
-            String query = format("match (n:`%s`) where n.`%s` %s {value} return id(n) as id,  n.`%s` as value", label, prop, operator, prop);
+            String query = format("match (n:`%s`) where n.`%s` %s $value return id(n) as id,  n.`%s` as value", label, prop, operator, prop);
             return queryForNode(query, (row) -> new NodeReducedResult((long) row.get("id"), labels, singletonMap(prop, row.get("value")))).stream();
         }
 
         public Stream<NodeResult> queryForNode() {
-            String query = format("match (n:`%s`) where n.`%s` %s {value} return n", label, prop, operator);
+            String query = format("match (n:`%s`) where n.`%s` %s $value return n", label, prop, operator);
             return queryForNode(query, (row) -> new NodeResult((Node) row.get("n"))).stream();
         }
 
