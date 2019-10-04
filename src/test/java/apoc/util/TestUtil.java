@@ -224,7 +224,7 @@ public class TestUtil {
     }
 
     public static <T> T singleResultFirstColumn(GraphDatabaseService db, String cypher, Map<String,Object> params) {
-        return db.executeTransactionally(cypher, params, result -> Iterators.single(iteratorSingleColumn(result)));
+        return db.executeTransactionally(cypher, params, result -> Iterators.singleOrNull(iteratorSingleColumn(result)));
     }
 
     public static <T> List<T> firstColumn(GraphDatabaseService db, String cypher, Map<String,Object> params) {

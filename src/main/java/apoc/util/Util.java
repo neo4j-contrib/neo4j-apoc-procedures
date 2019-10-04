@@ -25,7 +25,6 @@ import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.*;
 import java.util.zip.DeflaterInputStream;
@@ -114,7 +113,7 @@ public class Util {
     }
 
     public static Node node(Transaction tx, Object id) {
-        if (id instanceof Node) return (Node)id;
+        if (id instanceof Node) return rebind(tx, (Node)id);
         if (id instanceof Number) return tx.getNodeById(((Number)id).longValue());
         throw new RuntimeException("Can't convert "+id.getClass()+" to a Node");
     }
@@ -124,7 +123,7 @@ public class Util {
     }
 
     public static Relationship relationship(Transaction tx, Object id) {
-        if (id instanceof Relationship) return (Relationship)id;
+        if (id instanceof Relationship) return rebind(tx, (Relationship)id);
         if (id instanceof Number) return tx.getRelationshipById(((Number)id).longValue());
         throw new RuntimeException("Can't convert "+id.getClass()+" to a Relationship");
     }
@@ -552,7 +551,8 @@ public class Util {
     public static <T> T getFuture(Future<T> f, Map<String, Long> errorMessages, AtomicInteger errors, T errorValue) {
         try {
             return f.get();
-        } catch (InterruptedException | ExecutionException e) {
+//        } catch (Exception e) {
+        } catch (InterruptedException | ExecutionException | QueryExecutionException e) {
             errors.incrementAndGet();
             errorMessages.compute(e.getMessage(),(s, i) -> i == null ? 1 : i + 1);
             return errorValue;
@@ -565,7 +565,8 @@ public class Util {
                 f.cancel(true);
                 errors.incrementAndGet();
             }
-        } catch (InterruptedException | ExecutionException e) {
+//        } catch (Exception e) {
+        } catch (InterruptedException | ExecutionException | QueryExecutionException e) {
             errors.incrementAndGet();
             errorMessages.compute(e.getMessage(),(s, i) -> i == null ? 1 : i + 1);
         }
@@ -620,13 +621,9 @@ public class Util {
                 /* ignore */
             }
 
-            AtomicReference<String> role = new AtomicReference<>();  // TODO: apply planned GDS changes to use function instead of consumer
-            db.executeTransactionally("CALL dbms.cluster.role()", null,
-                    result -> {
-                        role.set(Iterators.single(result.columnAs("role")));
-                        return null;
-                    });
-            return role.get().equalsIgnoreCase("LEADER");
+            String role = db.executeTransactionally("CALL dbms.cluster.role()", Collections.emptyMap(),
+                    result -> Iterators.single(result.columnAs("role")));
+            return role.equalsIgnoreCase("LEADER");
         } catch(QueryExecutionException e) {
             if (e.getStatusCode().equalsIgnoreCase("Neo.ClientError.Procedure.ProcedureNotFound")) return true;
             throw e;

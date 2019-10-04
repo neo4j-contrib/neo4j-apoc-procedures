@@ -3,6 +3,7 @@ package apoc.refactor.util;
 import apoc.refactor.GraphRefactoring;
 import apoc.util.ArrayBackedList;
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -162,8 +163,9 @@ public class PropertiesManagerTest {
 	public void testMergeProperties() throws Exception {
 		List<Node> nodes = TestUtil.firstColumn(db, "UNWIND [{name:'Joe',age:42,kids:'Jane'},{name:'Jane',age:32,kids:'June'}] AS data CREATE (p:Person) SET p = data RETURN p");
 		try (Transaction tx = db.beginTx()) {
-			Node target = nodes.get(0);
-			PropertiesManager.mergeProperties(nodes.get(1).getAllProperties(), target, new RefactorConfig(
+			Node target = Util.rebind(tx, nodes.get(0));
+			Node source = Util.rebind(tx, nodes.get(1));
+			PropertiesManager.mergeProperties(source.getAllProperties(), target, new RefactorConfig(
 					map("properties",map("nam.*", RefactorConfig.DISCARD, "age", RefactorConfig.OVERWRITE, "kids", RefactorConfig.COMBINE))));
 			assertEquals("Joe", target.getProperty("name"));
 			assertEquals(32L, target.getProperty("age"));

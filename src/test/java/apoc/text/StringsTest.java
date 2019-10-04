@@ -1,13 +1,16 @@
 package apoc.text;
 
 import apoc.util.TestUtil;
+import apoc.util.Util;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -747,8 +750,12 @@ public class StringsTest {
         testCall(db, "RETURN apoc.text.toCypher($v,{start:'f',end:'b', relationship:'fb'}) AS value", map("v", data.get("fb")),
                 (row) -> assertEquals("(f)-[fb:`F B` {`an swer`:31,fb:'fb'}]->(b)", row.get("value")));
 
-        testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", data.get("b").getAllProperties()), (row) -> assertEquals("{answer:41,bar:'bar'}", row.get("value")));
-        testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", data.get("b").getProperties("answer", "bar")), (row) -> assertEquals("{answer:41,bar:'bar'}", row.get("value")));
+
+        try (Transaction tx = db.beginTx()) {
+            Node b = Util.rebind(tx, (Node)data.get("b"));
+            testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", b.getAllProperties()), (row) -> assertEquals("{answer:41,bar:'bar'}", row.get("value")));
+            testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", b.getProperties("answer", "bar")), (row) -> assertEquals("{answer:41,bar:'bar'}", row.get("value")));
+        }
         testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", asList(41, "bar", false, null)), (row) -> assertEquals("[41,'bar',false,null]", row.get("value")));
         testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", 41), (row) -> assertEquals("41", row.get("value")));
         testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", "bar"), (row) -> assertEquals("'bar'", row.get("value")));

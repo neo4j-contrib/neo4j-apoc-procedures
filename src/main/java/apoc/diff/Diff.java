@@ -1,10 +1,12 @@
 package apoc.diff;
 
 import apoc.Description;
-import apoc.util.MapUtil;
-import org.neo4j.graphdb.GraphDatabaseService;
+import apoc.util.Util;
 import org.neo4j.graphdb.Node;
-import org.neo4j.procedure.*;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.UserFunction;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,11 +18,13 @@ import java.util.Map;
 public class Diff {
 
     @Context
-    public GraphDatabaseService db;
+    public Transaction tx;
 
     @UserFunction()
     @Description("apoc.diff.nodes([leftNode],[rightNode]) returns a detailed diff of both nodes")
     public Map<String, Object> nodes(@Name("leftNode") Node leftNode, @Name("rightNode") Node rightNode) {
+        leftNode = Util.rebind(tx, leftNode);
+        rightNode = Util.rebind(tx, rightNode);
         Map<String, Object> allLeftProperties = leftNode.getAllProperties();
         Map<String, Object> allRightProperties = rightNode.getAllProperties();
 
