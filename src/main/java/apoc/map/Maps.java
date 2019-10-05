@@ -1,15 +1,15 @@
 package apoc.map;
 
-import apoc.result.MapResult;
-import apoc.result.ObjectResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.UserFunction;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Maps {
 
@@ -178,18 +178,34 @@ public class Maps {
     }
 
     @UserFunction
-    @Description("apoc.map.removeKey(map,key)")
-    public Map<String,Object> removeKey(@Name("map") Map<String,Object> map, @Name("key") String key) {
+    @Description("apoc.map.removeKey(map,key,recursive:false) - remove the key from the map (recursively if recursive is true)")
+    public Map<String,Object> removeKey(@Name("map") Map<String,Object> map, @Name("key") String key, @Name(value="recursive", defaultValue = "false") boolean recursive) {
         Map<String, Object> res = new LinkedHashMap<>(map);
         res.remove(key);
+        if (recursive) {
+            for (Map.Entry<String, Object> entry : res.entrySet()) {
+                if (entry.getValue() instanceof Map) {
+                    Map<String, Object> updatedMap = removeKey((Map<String, Object>) entry.getValue(), key, true);
+                    entry.setValue(updatedMap);
+                }
+            }
+        }
         return res;
     }
 
     @UserFunction
-    @Description("apoc.map.removeKeys(map,keys)")
-    public Map<String,Object> removeKeys(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys) {
+    @Description("apoc.map.removeKeys(map,[keys],recursive:false) - remove the keys from the map (recursively if recursive is true)")
+    public Map<String,Object> removeKeys(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys, @Name(value="recursive", defaultValue = "false") boolean recursive) {
         Map<String, Object> res = new LinkedHashMap<>(map);
         res.keySet().removeAll(keys);
+        if (recursive) {
+            for (Map.Entry<String, Object> entry : res.entrySet()) {
+                if (entry.getValue() instanceof Map) {
+                    Map<String, Object> updatedMap = removeKeys((Map<String, Object>) entry.getValue(), keys, true);
+                    entry.setValue(updatedMap);
+                }
+            }
+        }
         return res;
     }
 

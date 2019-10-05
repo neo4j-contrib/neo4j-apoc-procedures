@@ -2307,12 +2307,12 @@ CALL apoc.trigger.add('lowercase-by-label','UNWIND apoc.trigger.nodesByLabel({as
 <td class="tableblock halign-left valign-top"><p class="tableblock">returns the map with the value for this key added or replaced</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.removeKey(map,key)</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">returns the map with the key removed</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.removeKey(map,key,recursive:false)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns the map with the key removed (recursively if recursive is true)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.removeKeys(map,[keys])</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">returns the map with the keys removed</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.removeKeys(map,[keys],recursive:false)</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">returns the map with the keys removed (recursively if recursive is true)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>apoc.map.clean(map,[keys],[values]) yield value</code></p></td>

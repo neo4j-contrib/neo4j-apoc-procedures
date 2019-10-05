@@ -195,10 +195,25 @@ public class MapsTest {
             assertEquals(map("b",2L),r.get("value"));
         });
     }
+
+    @Test
+    public void testRemoveKeyRecursively() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1,b:2,c:{a:3,b:4}},'a', true) AS value", (r) -> {
+            assertEquals(map("b",2L, "c", map("b",4L)),r.get("value"));
+        });
+    }
+
     @Test
     public void testRemoveKeys() throws Exception {
         TestUtil.testCall(db, "RETURN apoc.map.removeKeys({a:1,b:2},['a','b']) AS value", (r) -> {
             assertEquals(map(),r.get("value"));
+        });
+    }
+
+    @Test
+    public void testRemoveKeysRecursively() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKeys({a:1,b:2,c:{a:3,b:4}},['a','b'], true) AS value", (r) -> {
+            assertEquals(map("c", map()),r.get("value"));
         });
     }
 
