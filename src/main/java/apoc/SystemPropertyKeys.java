@@ -3,5 +3,12 @@ package apoc;
 public enum SystemPropertyKeys  {
     database,
     lastUpdated,
-    name;
+    name,
+    statement,
+    inputs,
+    description,
+    mode,
+    outputs,
+    output,
+    forceSingle;
 }

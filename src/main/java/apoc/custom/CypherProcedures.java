@@ -71,9 +71,8 @@ public class CypherProcedures {
 
     @Procedure(value = "apoc.custom.list", mode = Mode.READ)
     @Description("apoc.custom.list() - provide a list of custom procedures/function registered")
-    public Stream<CustomProcedureInfo> list(){
-
-        return cypherProceduresHandler.list().map(m -> new CustomProcedureInfo(
+    public Stream<CustomProcedureInfo> list() {
+        return cypherProceduresHandler.list().stream().map(m -> new CustomProcedureInfo(
                 (String) m.get("type"),
                 (String) m.get("name"),
                 (String) m.get("description"),

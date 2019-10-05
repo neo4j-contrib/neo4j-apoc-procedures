@@ -1,20 +1,21 @@
 package apoc.custom;
 
 import apoc.util.TestUtil;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.io.fs.FileUtils;
-import org.neo4j.test.rule.DbmsRule;
-import org.neo4j.test.rule.EmbeddedDbmsRule;
+import org.junit.rules.TemporaryFolder;
+import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.dbms.api.DatabaseManagementService;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.test.TestDatabaseManagementServiceBuilder;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -22,23 +23,31 @@ import static org.junit.Assert.assertEquals;
  */
 public class CypherProceduresStorageTest {
 
-    public static final File STORE_DIR = new File("cypher-storage");
-
     @Rule
-    public DbmsRule db = new EmbeddedDbmsRule();
+    public TemporaryFolder STORE_DIR = new TemporaryFolder();
+
+    private GraphDatabaseService db;
+    private DatabaseManagementService databaseManagementService;
 
     @Before
     public void setUp() throws Exception {
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot()).build();
+        db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         TestUtil.registerProcedure(db, CypherProcedures.class);
     }
 
+/*
     @After
     public void tearDown() throws IOException {
         FileUtils.deleteRecursively(STORE_DIR);
     }
+*/
 
     private void restartDb() throws IOException {
-        db.restartDatabase();
+        databaseManagementService.shutdown();
+        databaseManagementService = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot()).build();
+        db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
+        assertTrue(db.isAvailable(1000));
         TestUtil.registerProcedure(db, CypherProcedures.class); // TODO: maybe that's needed
     }
     @Test

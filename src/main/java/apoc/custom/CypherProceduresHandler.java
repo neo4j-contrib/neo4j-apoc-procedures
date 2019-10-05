@@ -38,6 +38,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -111,17 +112,17 @@ public class CypherProceduresHandler implements AvailabilityListener {
             tx.findNodes(SystemLabels.ApocCypherProcedures, SystemPropertyKeys.database.name(), api.databaseName())
                 .forEachRemaining(node -> {
 
-                    String name = (String) node.getProperty("name");
-                    String statement = (String) node.getProperty("statment");
-                    List<List<String>> inputs = Util.fromJson((String) node.getProperty("inputs"), List.class);
-                    String description = (String) node.getProperty("description");
+                    String name = (String) node.getProperty(SystemPropertyKeys.name.name());
+                    String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
+                    List<List<String>> inputs = Util.fromJson((String) node.getProperty(SystemPropertyKeys.inputs.name()), List.class);
+                    String description = (String) node.getProperty(SystemPropertyKeys.description.name(), null);
                     if (node.hasLabel(SystemLabels.Procedure)) {
-                        String mode = (String) node.getProperty("mode", null);
-                        List<List<String>> outputs = Util.fromJson((String) node.getProperty("outputs"), List.class);
+                        String mode = (String) node.getProperty(SystemPropertyKeys.mode.name(), null);
+                        List<List<String>> outputs = Util.fromJson((String) node.getProperty(SystemPropertyKeys.outputs.name()), List.class);
                         registerProcedure(valueMapper, name, statement, mode, outputs, inputs, description);
                     } else if (node.hasLabel(SystemLabels.Function)) {
-                        String output = (String) node.getProperty("output", null);
-                        boolean forceSingle = (boolean) node.getProperty("forceSingle", false);
+                        String output = (String) node.getProperty(SystemPropertyKeys.output.name(), null);
+                        boolean forceSingle = (boolean) node.getProperty(SystemPropertyKeys.forceSingle.name(), false);
                         registerFunction((InternalTransaction) tx, name, statement, output, inputs, forceSingle, description);
                     }
                 });
@@ -150,39 +151,34 @@ public class CypherProceduresHandler implements AvailabilityListener {
     }
 
     public void storeProcedure(ValueMapper valueMapper, String name, String statement, String mode, List<List<String>> outputs, List<List<String>> inputs, String description) {
-        try (Transaction tx = systemDb.beginTx()) {
-
-            Node node = mergeNode(tx, SystemLabels.ApocCypherProcedures, SystemLabels.Procedure,
-                    SystemPropertyKeys.database.name(), api.databaseName(),
-                    SystemPropertyKeys.name.name(), name);
-
-            node.setProperty("description", description);
-            node.setProperty("inputs", Util.toJson(inputs));
-
-            node.setProperty("mode", mode);
-            node.setProperty("outputs", Util.toJson(outputs));
-
-            setLastUpdate(tx);
+        store(SystemLabels.Procedure, name, statement, inputs, description, (tx, node) -> {
+            node.setProperty(SystemPropertyKeys.mode.name(), mode);
+            node.setProperty(SystemPropertyKeys.outputs.name(), Util.toJson(outputs));
             registerProcedure(valueMapper, name, statement, mode, outputs, inputs, description);
-            tx.commit();
-        }
+        });
     }
 
     public void storeFunction(String name, String statement, String output, List<List<String>> inputs, boolean forceSingle, String description) {
-        try (Transaction tx = systemDb.beginTx()) {
+        store(SystemLabels.Function, name, statement, inputs, description, (tx, node) -> {
+            node.setProperty(SystemPropertyKeys.output.name(), output);
+            node.setProperty(SystemPropertyKeys.forceSingle.name(), forceSingle);
+            registerFunction((InternalTransaction) tx, name, statement, output, inputs, forceSingle, description);
+        });
+    }
 
-            Node node = mergeNode(tx, SystemLabels.ApocCypherProcedures, SystemLabels.Function,
+    private void store(Label secondLabel, String name, String statement, List<List<String>> inputs, String description, BiConsumer<Transaction, Node> typeSpecific) {
+        try (Transaction tx = systemDb.beginTx()) {
+            Node node = mergeNode(tx, SystemLabels.ApocCypherProcedures, secondLabel,
                     SystemPropertyKeys.database.name(), api.databaseName(),
                     SystemPropertyKeys.name.name(), name);
 
-            node.setProperty("inputs", Util.toJson(inputs));
-            node.setProperty("description", description);
-
-            node.setProperty("output", output);
-            node.setProperty("forceSingle", forceSingle);
-
+            if (!"null".equals(description)) {
+                node.setProperty(SystemPropertyKeys.description.name(), description);
+            }
+            node.setProperty(SystemPropertyKeys.inputs.name(), Util.toJson(inputs));
+            node.setProperty(SystemPropertyKeys.statement.name(), statement);
             setLastUpdate(tx);
-            registerFunction((InternalTransaction) tx, name, statement, output, inputs, forceSingle, description);
+            typeSpecific.accept(tx, node);
             tx.commit();
         }
     }
@@ -228,9 +224,9 @@ public class CypherProceduresHandler implements AvailabilityListener {
         db.executeTransactionally("call dbms.clearQueryCaches()");
     }
 
-    public Stream<Map<String, Object>> list() {
+    public List<Map<String, Object>> list() {
         try (Transaction tx = systemDb.beginTx()) {
-            return tx.findNodes(SystemLabels.ApocCypherProcedures, SystemPropertyKeys.database.name(), api.databaseName())
+            List<Map<String, Object>> list = tx.findNodes(SystemLabels.ApocCypherProcedures, SystemPropertyKeys.database.name(), api.databaseName())
                     .stream()
                     .<Map<String, Object>>map(node -> {
                         HashMap<String, Object> map = new HashMap<>(node.getAllProperties());
@@ -242,7 +238,9 @@ public class CypherProceduresHandler implements AvailabilityListener {
                                         Util.fromJson((String) map.get("outputs"), List.class) :
                                         map.get("output"));
                         return map;
-                    }).onClose(() -> tx.commit());
+                    }).collect(Collectors.toList());
+            tx.commit();
+            return list;
         }
     }
 
