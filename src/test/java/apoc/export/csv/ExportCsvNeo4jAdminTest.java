@@ -93,7 +93,7 @@ public class ExportCsvNeo4jAdminTest {
         String fileName = "query_nodes.csv";
         File dir = new File(directory, fileName);
 
-        TestUtil.testCall(db, "CALL apoc.export.csv.all({fileName},{bulkImport: true, separateHeader: true, delim: ';'})",
+        TestUtil.testCall(db, "CALL apoc.export.csv.all($fileName,{bulkImport: true, separateHeader: true, delim: ';'})",
                 map("fileName", fileName), r -> {
                     assertEquals(20000L, r.get("batchSize"));
                     assertEquals(1L, r.get("batches"));
@@ -128,7 +128,7 @@ public class ExportCsvNeo4jAdminTest {
         String fileName = "graph.csv";
         File output = new File(directory, fileName);
         TestUtil.testCall(db, "CALL apoc.graph.fromDB('test',{}) yield graph " +
-                        "CALL apoc.export.csv.graph(graph, {fileName},{bulkImport: true, delim: ';'}) " +
+                        "CALL apoc.export.csv.graph(graph, $fileName,{bulkImport: true, delim: ';'}) " +
                         "YIELD nodes, relationships, properties, file, source,format, time " +
                         "RETURN *", map("fileName", fileName),
                 (r) -> assertResults(fileName, r, "graph"));
@@ -151,7 +151,7 @@ public class ExportCsvNeo4jAdminTest {
     public void testCypherExportCsvForAdminNeo4jImportExceptionBulk() throws Exception {
         String fileName = "query_nodes.csv";
         try {
-            TestUtil.testCall(db, "CALL apoc.export.csv.query('MATCH (n) return (n)',{fileName},{bulkImport: true})",
+            TestUtil.testCall(db, "CALL apoc.export.csv.query('MATCH (n) return (n)',$fileName,{bulkImport: true})",
                     Util.map("fileName", fileName), (r) -> {});
         } catch (Exception e) {
             Throwable except = ExceptionUtils.getRootCause(e);

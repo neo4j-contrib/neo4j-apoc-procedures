@@ -366,7 +366,7 @@ public class ImportCsvTest {
                 "  AND k.prop1 IS NULL\n" +
                 "RETURN p1.firstname + ' ' + p1.age + ' <' + k.prop2 + '> ' + p2.firstname + ' ' + p2.age AS pair ORDER BY pair"
         );
-        assertThat(ages, Matchers.contains("Jane 26 <6> John 25", "John 25 <3> Jane 26"));
+        assertThat(pairs, Matchers.contains("Jane 26 <6> John 25", "John 25 <3> Jane 26"));
     }
 
     @Test(expected = QueryExecutionException.class)

@@ -27,8 +27,8 @@ public class Help {
             }
         }
         String filter = " WHERE name starts with 'apoc.' " +
-                " AND ($name IS NULL  OR toLower(name) CONTAINS toLower({name}) " +
-                " OR ({desc} IS NOT NULL AND toLower(description) CONTAINS toLower({desc}))) " +
+                " AND ($name IS NULL  OR toLower(name) CONTAINS toLower($name) " +
+                " OR ($desc IS NOT NULL AND toLower(description) CONTAINS toLower($desc))) " +
                 "RETURN type, name, description, signature ";
 
         String query = "WITH 'procedure' as type CALL dbms.procedures() yield name, description, signature " + filter +

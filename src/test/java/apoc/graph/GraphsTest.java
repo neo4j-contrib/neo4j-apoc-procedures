@@ -6,13 +6,14 @@ import apoc.util.Util;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.internal.helpers.collection.Iterables;
-import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -45,6 +46,9 @@ public class GraphsTest {
                     return null;
                 });
     }
+
+    @Rule
+    public ExpectedException thrown= ExpectedException.none();
 
     @Test
     public void testFromData() throws Exception {
@@ -536,27 +540,23 @@ public class GraphsTest {
         }};
         List<Map<String, Object>> list = Arrays.asList(johnExt, janeExt);
 
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json, $config) yield graph",
-                Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(list), "config", Util.map("write", true)),
-                result -> {
-                    long count = db.executeTransactionally("MATCH p = (a:User{id: 1})-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User{id: 2}) RETURN count(p) AS count", null,
-                            innerResult -> Iterators.single(innerResult.columnAs("count")));
-                    assertEquals(1L, count);
-                });
+        db.executeTransactionally("CALL apoc.graph.fromDocument($json, $config) yield graph",
+                Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(list), "config", Util.map("write", true)));
+
+        long count = TestUtil.singleResultFirstColumn(db, "MATCH p = (a:User{id: 1})-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User{id: 2}) RETURN count(p) AS count");
+        assertEquals(1L, count);
+
         db.executeTransactionally("MATCH p = (a:User)-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User) detach delete p");
+        count = TestUtil.singleResultFirstColumn( db,"MATCH p = (a:User)-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User) RETURN count(p) AS count");
+        assertEquals(0L, count);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void testCreateVirtualSimpleNodeWithErrorType() throws Exception{
+        thrown.expect(QueryExecutionException.class);
+        thrown.expectMessage("every object must have type as `label` field name");
         Map<String, Object> genesisMap = Util.map("id", 1L, "name", "Genesis");
-        try {
-            TestUtil.testCall(db, "CALL apoc.graph.fromDocument($json) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)), result -> { });
-        } catch (QueryExecutionException e) {
-            Throwable except = ExceptionUtils.getRootCause(e);
-            assertTrue(except instanceof RuntimeException);
-            assertEquals("every object must have type as `label` field name", except.getMessage());
-            throw e;
-        }
+        db.executeTransactionally("CALL apoc.graph.fromDocument($json) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)));
     }
 
     @Test

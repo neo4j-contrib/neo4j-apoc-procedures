@@ -4,8 +4,10 @@ import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.neo4j.driver.internal.util.Iterables;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -140,21 +142,33 @@ public class GroupingTest {
     @Test
     public void testSelfRels() throws Exception {
         db.executeTransactionally("CREATE (u:User {gender:'male'})-[:REL]->(u)");
-        TestUtil.testCallCount(db, "CALL apoc.nodes.group(['User'],['gender'],null,{selfRels:true})", 1);
-        TestUtil.testCallCount(db, "CALL apoc.nodes.group(['User'],['gender'],null,{selfRels:false})", 0);
+
+        Relationship rel = TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['User'],['gender'],null,{selfRels:true}) yield relationship return relationship");
+        assertNotNull(rel);
+
+        rel = TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['User'],['gender'],null,{selfRels:false}) yield relationship return relationship");
+        assertNull(rel);
     }
 
     @Test
     public void testFilterMin() throws Exception {
         db.executeTransactionally("CREATE (:User {name:'Joe',gender:'male'}), (:User {gender:'female',name:'Jane'}), (:User {gender:'female',name:'Jenny'})");
-        assertEquals("female", TestUtil.singleResultFirstColumn( db, "CALL apoc.nodes.group(['User'],['gender'],null,{filter:{`User.count_*.min`:2}}) yield nodes return [x in nodes|x.gender]"));
+        TestUtil.testResult(db, "CALL apoc.nodes.group(['User'],['gender'],null,{filter:{`User.count_*.min`:2}})",
+                result -> {
+                    Node node = Iterators.single(result.columnAs("node"));
+                    assertEquals("female", node.getProperty("gender"));
+                });
         TestUtil.testCallCount(db, "CALL apoc.nodes.group(['User'],['gender'],null,{filter:{`User.count_*.min`:3}})", 0);
     }
 
     @Test
     public void testFilterMax() throws Exception {
         db.executeTransactionally("CREATE (:User {name:'Joe',gender:'male'}), (:User {gender:'female',name:'Jane'}), (:User {gender:'female',name:'Jenny'})");
-        assertEquals("male", TestUtil.singleResultFirstColumn( db, "CALL apoc.nodes.group(['User'],['gender'],null,{filter:{`User.count_*.max`:1}}) yield nodes return [x in nodes|x.gender]"));
+        TestUtil.testResult(db, "CALL apoc.nodes.group(['User'],['gender'],null,{filter:{`User.count_*.max`:1}})",
+                result -> {
+                    Node node = Iterators.single(result.columnAs("node"));
+                    assertEquals("male", node.getProperty("gender"));
+                });
         TestUtil.testCallCount(db, "CALL apoc.nodes.group(['User'],['gender'],null,{filter:{`User.count_*.max`:0}})", 0);
     }
 
@@ -173,18 +187,31 @@ public class GroupingTest {
     @Test
     public void testGroupAllLabels() throws Exception {
         db.executeTransactionally("CREATE (u:User {name:'Joe',gender:'male'})");
-        assertEquals("User", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['*'],['gender']) yield node return node.gender"));
+        TestUtil.testResult(db, "CALL apoc.nodes.group(['*'],['gender'])",
+                result -> {
+                    Node node = Iterators.single(result.columnAs("node"));
+                    assertEquals("User", Iterables.single(node.getLabels()).name());
+                });
     }
 
     @Test
     public void testLimitNodes() throws Exception {
         db.executeTransactionally("CREATE (:User {name:'Joe',gender:'male'}), (:User {name:'Jane',gender:'female'})");
-        assertEquals("User", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['User'],['gender'],null, {limitNodes:1}) yield node return labels(node)"));
+        TestUtil.testResult(db, "CALL apoc.nodes.group(['User'],['gender'],null, {limitNodes:1})",
+                result -> {
+                    Node node = Iterators.single(result.columnAs("node"));
+                    assertEquals("User", Iterables.single(node.getLabels()).name());
+                });
     }
 
     @Test
     public void testLimitRelsNodes() throws Exception {
         db.executeTransactionally("CREATE (u:User {name:'Joe',gender:'male'})-[:KNOWS]->(u), (u)-[:LOVES]->(u), (u)-[:HATES]->(u)");
-        assertEquals("User", TestUtil.singleResultFirstColumn(db, "CALL apoc.nodes.group(['User'],['gender'],null, {relsPerNode:1}) yield node return labels(node)"));
+        TestUtil.testResult(db, "CALL apoc.nodes.group(['User'],['gender'],null, {relsPerNode:1})",
+                result -> {
+                    Node node = Iterators.single(result.columnAs("node"));
+                    assertEquals("User", Iterables.single(node.getLabels()).name());
+                });
+
     }
 }

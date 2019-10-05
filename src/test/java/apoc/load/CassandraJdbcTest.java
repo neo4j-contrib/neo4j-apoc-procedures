@@ -2,6 +2,8 @@ package apoc.load;
 
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.hamcrest.Matchers;
+import org.hamcrest.collection.IsMapContaining;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -16,6 +18,7 @@ import java.util.Map;
 import static apoc.util.TestUtil.isTravis;
 import static apoc.util.TestUtil.testCall;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assume.*;
 
 public class CassandraJdbcTest extends AbstractJdbcTest {
@@ -36,7 +39,7 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
         assumeNotNull("Cassandra container has to exist", cassandra);
         assumeTrue("Cassandra must be running", cassandra.isRunning());
 
-        TestUtil.registerProcedure(db,Jdbc.class);
+        TestUtil.registerProcedure(db, Jdbc.class);
         db.executeTransactionally("CALL apoc.load.driver('com.github.adejanovski.cassandra.jdbc.CassandraDriver')");
     }
 
@@ -66,17 +69,21 @@ public class CassandraJdbcTest extends AbstractJdbcTest {
 
     @Test
     public void testLoadJdbcUpdate() throws Exception {
-        db.executeTransactionally("CALL apoc.load.jdbcUpdate($url,'UPDATE \"PERSON\" SET \"SURNAME\" = \\\'DOE\\\' WHERE \"NAME\" = \\\'John\\\'')", Util.map("url", getUrl(),
-                "config", Util.map("schema", "test","credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
-        ));
+        TestUtil.singleResultFirstColumn(db, "CALL apoc.load.jdbcUpdate($url,'UPDATE \"PERSON\" SET \"SURNAME\" = ? WHERE \"NAME\" = ?', ['DOE', 'John'])",
+                Util.map("url", getUrl(),
+                    "config", Util.map("schema", "test","credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
+                ));
         testCall(db, "CALL apoc.load.jdbc($url,'SELECT * FROM \"PERSON\" WHERE \"NAME\" = ?', ['John'])",
                 Util.map("url", getUrl(),
                         "config", Util.map("schema", "test", "credentials", Util.map("user", cassandra.getUsername(), "password", cassandra.getPassword()))
                 ),
-                (row) -> {
-                    Map<String, Object> expected = Util.map("NAME", "John", "SURNAME", "DOE", "EFFECTIVE_FROM_DATE",
-                            effectiveFromDate.toLocalDateTime());
-                    assertEquals(expected, row.get("row"));
+                (r) -> {
+                    Map<String, Object> row = (Map<String, Object>) r.get("row");
+                    assertThat(row, Matchers.allOf(
+                            IsMapContaining.hasEntry("NAME", "John") ,
+                            IsMapContaining.hasEntry("SURNAME", "DOE"), // FIXME: it seems that cassandra is not updated via first statment in this method
+                            IsMapContaining.hasEntry("EFFECTIVE_FROM_DATE", (Object)effectiveFromDate.toLocalDateTime())
+                            ));
                 });
     }
 
