@@ -32,18 +32,18 @@ public class Coll {
     public Stream<ListResult> zipToRows(@Name("list1") List<Object> list1, @Name("list2") List<Object> list2) {
         if (list1.isEmpty()) return Stream.empty();
         ListIterator<Object> it = list2.listIterator();
-        return list1.stream().map((e) -> new ListResult(asList(e,it.hasNext() ? it.next() : null)));
+        return list1.stream().map((e) -> new ListResult(asList(e, it.hasNext() ? it.next() : null)));
     }
 
     @UserFunction
     @Description("apoc.coll.zip([list1],[list2])")
     public List<List<Object>> zip(@Name("list1") List<Object> list1, @Name("list2") List<Object> list2) {
-		if (list1 == null || list2 == null) return null;
-		if (list1.isEmpty() || list2.isEmpty()) return Collections.emptyList();
+        if (list1 == null || list2 == null) return null;
+        if (list1.isEmpty() || list2.isEmpty()) return Collections.emptyList();
         List<List<Object>> result = new ArrayList<>(list1.size());
         ListIterator it = list2.listIterator();
         for (Object o1 : list1) {
-            result.add(asList(o1,it.hasNext() ? it.next() : null));
+            result.add(asList(o1, it.hasNext() ? it.next() : null));
         }
         return result;
     }
@@ -51,22 +51,23 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.pairs([1,2,3]) returns [1,2],[2,3],[3,null] ")
     public List<List<Object>> pairs(@Name("list") List<Object> list) {
-		if (list == null) return null;
-		if (list.isEmpty()) return Collections.emptyList();
-        return zip(list,list.subList(1,list.size()));
+        if (list == null) return null;
+        if (list.isEmpty()) return Collections.emptyList();
+        return zip(list, list.subList(1, list.size()));
     }
+
     @UserFunction
     @Description("apoc.coll.pairsMin([1,2,3]) returns [1,2],[2,3]")
     public List<List<Object>> pairsMin(@Name("list") List<Object> list) {
-		if (list == null) return null;
-		if (list.isEmpty()) return Collections.emptyList();
-        return zip(list.subList(0,list.size()-1),list.subList(1,list.size()));
+        if (list == null) return null;
+        if (list.isEmpty()) return Collections.emptyList();
+        return zip(list.subList(0, list.size() - 1), list.subList(1, list.size()));
     }
 
     @UserFunction
     @Description("apoc.coll.sum([0.5,1,2.3])")
     public Double sum(@Name("numbers") List<Number> list) {
-		if (list == null || list.isEmpty()) return null;
+        if (list == null || list.isEmpty()) return null;
         double sum = 0;
         for (Number number : list) {
             sum += number.doubleValue();
@@ -77,228 +78,439 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.avg([0.5,1,2.3])")
     public Double avg(@Name("numbers") List<Number> list) {
-		if (list == null || list.isEmpty()) return null;
+        if (list == null || list.isEmpty()) return null;
         double avg = 0;
         for (Number number : list) {
             avg += number.doubleValue();
         }
-        return (avg/(double)list.size());
+        return (avg / (double) list.size());
     }
+
     @UserFunction
     @Description("apoc.coll.min([0.5,1,2.3])")
     public Object min(@Name("values") List<Object> list) {
-		if (list == null || list.isEmpty()) return null;
-        return Collections.min((List)list, Coll::compareAsDoubles);
+        if (list == null || list.isEmpty()) return null;
+        return Collections.min((List) list, Coll::compareAsDoubles);
     }
 
     @UserFunction
     @Description("apoc.coll.max([0.5,1,2.3])")
     public Object max(@Name("values") List<Object> list) {
-		if (list == null || list.isEmpty()) return null;
-        return Collections.max((List)list, Coll::compareAsDoubles);
+        if (list == null || list.isEmpty()) return null;
+        return Collections.max((List) list, Coll::compareAsDoubles);
     }
 
     private static int compareAsDoubles(Object a, Object b) {
-        return Double.compare(((Number)a).doubleValue(), ((Number)b).doubleValue());
+        return Double.compare(((Number) a).doubleValue(), ((Number) b).doubleValue());
     }
 
     @Procedure
     @Description("apoc.coll.elements(list,limit,offset) yield _1,_2,..,_10,_1s,_2i,_3f,_4m,_5l,_6n,_7r,_8p - deconstruct subset of mixed list into identifiers of the correct type")
-    public Stream<ElementsResult> elements(@Name("values") List<Object> list, @Name(value = "limit",defaultValue = "-1") long limit,@Name(value = "offset",defaultValue = "0") long offset) {
-        int elements =  (limit < 0 ? list.size() : Math.min((int)(offset+limit),list.size())) - (int)offset;
+    public Stream<ElementsResult> elements(@Name("values") List<Object> list, @Name(value = "limit", defaultValue = "-1") long limit, @Name(value = "offset", defaultValue = "0") long offset) {
+        int elements = (limit < 0 ? list.size() : Math.min((int) (offset + limit), list.size())) - (int) offset;
         if (elements > ElementsResult.MAX_ELEMENTS) elements = ElementsResult.MAX_ELEMENTS;
         ElementsResult result = new ElementsResult();
-        for (int i=0;i<elements;i++) {
-            result.add(list.get((int)offset+i));
+        for (int i = 0; i < elements; i++) {
+            result.add(list.get((int) offset + i));
         }
         return Stream.of(result);
     }
 
     public static class ElementsResult {
-        public Object       _1,_2,_3,_4,_5,_6,_7,_8,_9,_10;
-        public String       _1s,_2s,_3s,_4s,_5s,_6s,_7s,_8s,_9s,_10s;
-        public Long         _1i,_2i,_3i,_4i,_5i,_6i,_7i,_8i,_9i,_10i;
-        public Double       _1f,_2f,_3f,_4f,_5f,_6f,_7f,_8f,_9f,_10f;
-        public Boolean      _1b,_2b,_3b,_4b,_5b,_6b,_7b,_8b,_9b,_10b;
-        public List<Object> _1l,_2l,_3l,_4l,_5l,_6l,_7l,_8l,_9l,_10l;
-        public Map<String,Object> _1m,_2m,_3m,_4m,_5m,_6m,_7m,_8m,_9m,_10m;
-        public Node         _1n,_2n,_3n,_4n,_5n,_6n,_7n,_8n,_9n,_10n;
-        public Relationship _1r,_2r,_3r,_4r,_5r,_6r,_7r,_8r,_9r,_10r;
-        public Path         _1p,_2p,_3p,_4p,_5p,_6p,_7p,_8p,_9p,_10p;
-        public long         elements;
+        public Object _1, _2, _3, _4, _5, _6, _7, _8, _9, _10;
+        public String _1s, _2s, _3s, _4s, _5s, _6s, _7s, _8s, _9s, _10s;
+        public Long _1i, _2i, _3i, _4i, _5i, _6i, _7i, _8i, _9i, _10i;
+        public Double _1f, _2f, _3f, _4f, _5f, _6f, _7f, _8f, _9f, _10f;
+        public Boolean _1b, _2b, _3b, _4b, _5b, _6b, _7b, _8b, _9b, _10b;
+        public List<Object> _1l, _2l, _3l, _4l, _5l, _6l, _7l, _8l, _9l, _10l;
+        public Map<String, Object> _1m, _2m, _3m, _4m, _5m, _6m, _7m, _8m, _9m, _10m;
+        public Node _1n, _2n, _3n, _4n, _5n, _6n, _7n, _8n, _9n, _10n;
+        public Relationship _1r, _2r, _3r, _4r, _5r, _6r, _7r, _8r, _9r, _10r;
+        public Path _1p, _2p, _3p, _4p, _5p, _6p, _7p, _8p, _9p, _10p;
+        public long elements;
         static final int MAX_ELEMENTS = 10;
+
         void add(Object o) {
-            if (elements==MAX_ELEMENTS) return;
+            if (elements == MAX_ELEMENTS) return;
             setObject(o, (int) elements);
             if (o instanceof String) {
-                setString((String)o, (int) elements);
+                setString((String) o, (int) elements);
             }
             if (o instanceof Number) {
-                setLong(((Number)o).longValue(), (int) elements);
-                setDouble(((Number)o).doubleValue(), (int) elements);
+                setLong(((Number) o).longValue(), (int) elements);
+                setDouble(((Number) o).doubleValue(), (int) elements);
             }
             if (o instanceof Boolean) {
-                setBoolean((Boolean)o, (int) elements);
+                setBoolean((Boolean) o, (int) elements);
             }
             if (o instanceof Map) {
-                setMap((Map)o, (int)elements);
+                setMap((Map) o, (int) elements);
             }
             if (o instanceof Map) {
-                setMap((Map)o, (int)elements);
+                setMap((Map) o, (int) elements);
             }
             if (o instanceof List) {
-                setList((List)o, (int)elements);
+                setList((List) o, (int) elements);
             }
             if (o instanceof Node) {
-                setNode((Node)o, (int)elements);
+                setNode((Node) o, (int) elements);
             }
             if (o instanceof Relationship) {
-                setRelationship((Relationship)o, (int)elements);
+                setRelationship((Relationship) o, (int) elements);
             }
             if (o instanceof Path) {
-                setPath((Path)o, (int)elements);
+                setPath((Path) o, (int) elements);
             }
             elements++;
         }
 
         public void setObject(Object o, int idx) {
             switch (idx) {
-                case 0: _1 = o; break;
-                case 1: _2 = o; break;
-                case 2: _3 = o; break;
-                case 3: _4 = o; break;
-                case 4: _5 = o; break;
-                case 5: _6 = o; break;
-                case 6: _7 = o; break;
-                case 7: _8 = o; break;
-                case 8: _9 = o; break;
-                case 9: _10= o; break;
+                case 0:
+                    _1 = o;
+                    break;
+                case 1:
+                    _2 = o;
+                    break;
+                case 2:
+                    _3 = o;
+                    break;
+                case 3:
+                    _4 = o;
+                    break;
+                case 4:
+                    _5 = o;
+                    break;
+                case 5:
+                    _6 = o;
+                    break;
+                case 6:
+                    _7 = o;
+                    break;
+                case 7:
+                    _8 = o;
+                    break;
+                case 8:
+                    _9 = o;
+                    break;
+                case 9:
+                    _10 = o;
+                    break;
             }
         }
+
         public void setString(String o, int idx) {
             switch (idx) {
-                case 0: _1s = o; break;
-                case 1: _2s = o; break;
-                case 2: _3s = o; break;
-                case 3: _4s = o; break;
-                case 4: _5s = o; break;
-                case 5: _6s = o; break;
-                case 6: _7s = o; break;
-                case 7: _8s = o; break;
-                case 8: _9s = o; break;
-                case 9: _10s= o; break;
+                case 0:
+                    _1s = o;
+                    break;
+                case 1:
+                    _2s = o;
+                    break;
+                case 2:
+                    _3s = o;
+                    break;
+                case 3:
+                    _4s = o;
+                    break;
+                case 4:
+                    _5s = o;
+                    break;
+                case 5:
+                    _6s = o;
+                    break;
+                case 6:
+                    _7s = o;
+                    break;
+                case 7:
+                    _8s = o;
+                    break;
+                case 8:
+                    _9s = o;
+                    break;
+                case 9:
+                    _10s = o;
+                    break;
             }
         }
+
         public void setLong(Long o, int idx) {
             switch (idx) {
-                case 0: _1i = o; break;
-                case 1: _2i = o; break;
-                case 2: _3i = o; break;
-                case 3: _4i = o; break;
-                case 4: _5i = o; break;
-                case 5: _6i = o; break;
-                case 6: _7i = o; break;
-                case 7: _8i = o; break;
-                case 8: _9i = o; break;
-                case 9: _10i= o; break;
+                case 0:
+                    _1i = o;
+                    break;
+                case 1:
+                    _2i = o;
+                    break;
+                case 2:
+                    _3i = o;
+                    break;
+                case 3:
+                    _4i = o;
+                    break;
+                case 4:
+                    _5i = o;
+                    break;
+                case 5:
+                    _6i = o;
+                    break;
+                case 6:
+                    _7i = o;
+                    break;
+                case 7:
+                    _8i = o;
+                    break;
+                case 8:
+                    _9i = o;
+                    break;
+                case 9:
+                    _10i = o;
+                    break;
             }
         }
+
         public void setBoolean(Boolean o, int idx) {
             switch (idx) {
-                case 0: _1b = o; break;
-                case 1: _2b = o; break;
-                case 2: _3b = o; break;
-                case 3: _4b = o; break;
-                case 4: _5b = o; break;
-                case 5: _6b = o; break;
-                case 6: _7b = o; break;
-                case 7: _8b = o; break;
-                case 8: _9b = o; break;
-                case 9: _10b= o; break;
+                case 0:
+                    _1b = o;
+                    break;
+                case 1:
+                    _2b = o;
+                    break;
+                case 2:
+                    _3b = o;
+                    break;
+                case 3:
+                    _4b = o;
+                    break;
+                case 4:
+                    _5b = o;
+                    break;
+                case 5:
+                    _6b = o;
+                    break;
+                case 6:
+                    _7b = o;
+                    break;
+                case 7:
+                    _8b = o;
+                    break;
+                case 8:
+                    _9b = o;
+                    break;
+                case 9:
+                    _10b = o;
+                    break;
             }
         }
+
         public void setDouble(Double o, int idx) {
             switch (idx) {
-                case 0: _1f = o; break;
-                case 1: _2f = o; break;
-                case 2: _3f = o; break;
-                case 3: _4f = o; break;
-                case 4: _5f = o; break;
-                case 5: _6f = o; break;
-                case 6: _7f = o; break;
-                case 7: _8f = o; break;
-                case 8: _9f = o; break;
-                case 9: _10f= o; break;
+                case 0:
+                    _1f = o;
+                    break;
+                case 1:
+                    _2f = o;
+                    break;
+                case 2:
+                    _3f = o;
+                    break;
+                case 3:
+                    _4f = o;
+                    break;
+                case 4:
+                    _5f = o;
+                    break;
+                case 5:
+                    _6f = o;
+                    break;
+                case 6:
+                    _7f = o;
+                    break;
+                case 7:
+                    _8f = o;
+                    break;
+                case 8:
+                    _9f = o;
+                    break;
+                case 9:
+                    _10f = o;
+                    break;
             }
         }
+
         public void setNode(Node o, int idx) {
             switch (idx) {
-                case 0: _1n = o; break;
-                case 1: _2n = o; break;
-                case 2: _3n = o; break;
-                case 3: _4n = o; break;
-                case 4: _5n = o; break;
-                case 5: _6n = o; break;
-                case 6: _7n = o; break;
-                case 7: _8n = o; break;
-                case 8: _9n = o; break;
-                case 9: _10n= o; break;
+                case 0:
+                    _1n = o;
+                    break;
+                case 1:
+                    _2n = o;
+                    break;
+                case 2:
+                    _3n = o;
+                    break;
+                case 3:
+                    _4n = o;
+                    break;
+                case 4:
+                    _5n = o;
+                    break;
+                case 5:
+                    _6n = o;
+                    break;
+                case 6:
+                    _7n = o;
+                    break;
+                case 7:
+                    _8n = o;
+                    break;
+                case 8:
+                    _9n = o;
+                    break;
+                case 9:
+                    _10n = o;
+                    break;
             }
         }
+
         public void setRelationship(Relationship o, int idx) {
             switch (idx) {
-                case 0: _1r = o; break;
-                case 1: _2r = o; break;
-                case 2: _3r = o; break;
-                case 3: _4r = o; break;
-                case 4: _5r = o; break;
-                case 5: _6r = o; break;
-                case 6: _7r = o; break;
-                case 7: _8r = o; break;
-                case 8: _9r = o; break;
-                case 9: _10r= o; break;
+                case 0:
+                    _1r = o;
+                    break;
+                case 1:
+                    _2r = o;
+                    break;
+                case 2:
+                    _3r = o;
+                    break;
+                case 3:
+                    _4r = o;
+                    break;
+                case 4:
+                    _5r = o;
+                    break;
+                case 5:
+                    _6r = o;
+                    break;
+                case 6:
+                    _7r = o;
+                    break;
+                case 7:
+                    _8r = o;
+                    break;
+                case 8:
+                    _9r = o;
+                    break;
+                case 9:
+                    _10r = o;
+                    break;
             }
         }
+
         public void setPath(Path o, int idx) {
             switch (idx) {
-                case 0: _1p = o; break;
-                case 1: _2p = o; break;
-                case 2: _3p = o; break;
-                case 3: _4p = o; break;
-                case 4: _5p = o; break;
-                case 5: _6p = o; break;
-                case 6: _7p = o; break;
-                case 7: _8p = o; break;
-                case 8: _9p = o; break;
-                case 9: _10p= o; break;
+                case 0:
+                    _1p = o;
+                    break;
+                case 1:
+                    _2p = o;
+                    break;
+                case 2:
+                    _3p = o;
+                    break;
+                case 3:
+                    _4p = o;
+                    break;
+                case 4:
+                    _5p = o;
+                    break;
+                case 5:
+                    _6p = o;
+                    break;
+                case 6:
+                    _7p = o;
+                    break;
+                case 7:
+                    _8p = o;
+                    break;
+                case 8:
+                    _9p = o;
+                    break;
+                case 9:
+                    _10p = o;
+                    break;
             }
         }
+
         public void setMap(Map o, int idx) {
             switch (idx) {
-                case 0: _1m = o; break;
-                case 1: _2m = o; break;
-                case 2: _3m = o; break;
-                case 3: _4m = o; break;
-                case 4: _5m = o; break;
-                case 5: _6m = o; break;
-                case 6: _7m = o; break;
-                case 7: _8m = o; break;
-                case 8: _9m = o; break;
-                case 9: _10m= o; break;
+                case 0:
+                    _1m = o;
+                    break;
+                case 1:
+                    _2m = o;
+                    break;
+                case 2:
+                    _3m = o;
+                    break;
+                case 3:
+                    _4m = o;
+                    break;
+                case 4:
+                    _5m = o;
+                    break;
+                case 5:
+                    _6m = o;
+                    break;
+                case 6:
+                    _7m = o;
+                    break;
+                case 7:
+                    _8m = o;
+                    break;
+                case 8:
+                    _9m = o;
+                    break;
+                case 9:
+                    _10m = o;
+                    break;
             }
         }
+
         public void setList(List o, int idx) {
             switch (idx) {
-                case 0: _1l = o; break;
-                case 1: _2l = o; break;
-                case 2: _3l = o; break;
-                case 3: _4l = o; break;
-                case 4: _5l = o; break;
-                case 5: _6l = o; break;
-                case 6: _7l = o; break;
-                case 7: _8l = o; break;
-                case 8: _9l = o; break;
-                case 9: _10l= o; break;
+                case 0:
+                    _1l = o;
+                    break;
+                case 1:
+                    _2l = o;
+                    break;
+                case 2:
+                    _3l = o;
+                    break;
+                case 3:
+                    _4l = o;
+                    break;
+                case 4:
+                    _5l = o;
+                    break;
+                case 5:
+                    _6l = o;
+                    break;
+                case 6:
+                    _7l = o;
+                    break;
+                case 7:
+                    _8l = o;
+                    break;
+                case 8:
+                    _9l = o;
+                    break;
+                case 9:
+                    _10l = o;
+                    break;
             }
         }
     }
@@ -306,21 +518,21 @@ public class Coll {
     @Procedure
     @Description("apoc.coll.partition(list,batchSize)")
     public Stream<ListResult> partition(@Name("values") List<Object> list, @Name("batchSize") long batchSize) {
-	    if (list==null || list.isEmpty()) return Stream.empty();
+        if (list == null || list.isEmpty()) return Stream.empty();
         return partitionList(list, (int) batchSize).map(ListResult::new);
     }
 
     @Procedure
     @Description("apoc.coll.split(list,value) | splits collection on given values rows of lists, value itself will not be part of resulting lists")
     public Stream<ListResult> split(@Name("values") List<Object> list, @Name("value") Object value) {
-	    if (list==null || list.isEmpty()) return Stream.empty();
+        if (list == null || list.isEmpty()) return Stream.empty();
         List<Object> l = new ArrayList<>(list);
         List<List<Object>> result = new ArrayList<>(10);
         int idx = l.indexOf(value);
         while (idx != -1) {
             List<Object> subList = l.subList(0, idx);
             if (!subList.isEmpty()) result.add(subList);
-            l = l.subList(idx+1,l.size());
+            l = l.subList(idx + 1, l.size());
             idx = l.indexOf(value);
         }
         if (!l.isEmpty()) result.add(l);
@@ -329,7 +541,7 @@ public class Coll {
 
     private Stream<List<Object>> partitionList(@Name("values") List list, @Name("batchSize") int batchSize) {
         int total = list.size();
-        int pages = total % batchSize == 0 ? total/batchSize : total/batchSize + 1;
+        int pages = total % batchSize == 0 ? total / batchSize : total / batchSize + 1;
         return IntStream.range(0, pages).parallel().boxed()
                 .map(page -> {
                     int from = page * batchSize;
@@ -341,7 +553,7 @@ public class Coll {
     @Description("apoc.coll.contains(coll, value) optimized contains operation (using a HashSet) (returns single row or not)")
     public boolean contains(@Name("coll") List<Object> coll, @Name("value") Object value) {
         if (coll == null || coll.isEmpty()) return false;
-        return  new HashSet<>(coll).contains(value);
+        return new HashSet<>(coll).contains(value);
 //        int batchSize = 250;
 //        boolean result = (coll.size() < batchSize) ? coll.contains(value) : partitionList(coll, batchSize).parallel().anyMatch(list -> list.contains(value));
     }
@@ -353,7 +565,7 @@ public class Coll {
         if (index < 0 || value == null || index >= coll.size()) return coll;
 
         List<Object> list = new ArrayList<>(coll);
-        list.set( (int) index, value );
+        list.set((int) index, value);
         return list;
     }
 
@@ -364,7 +576,7 @@ public class Coll {
         if (index < 0 || value == null || index > coll.size()) return coll;
 
         List<Object> list = new ArrayList<>(coll);
-        list.add( (int) index, value );
+        list.add((int) index, value);
         return list;
     }
 
@@ -375,20 +587,19 @@ public class Coll {
         if (index < 0 || values == null || values.isEmpty() || index > coll.size()) return coll;
 
         List<Object> list = new ArrayList<>(coll);
-        list.addAll( (int) index, values );
+        list.addAll((int) index, values);
         return list;
     }
 
     @UserFunction
     @Description("apoc.coll.remove(coll, index, [length=1]) | remove range of values from index to length")
-    public List<Object> remove(@Name("coll") List<Object> coll, @Name("index") long index, @Name(value = "length",defaultValue = "1") long length) {
+    public List<Object> remove(@Name("coll") List<Object> coll, @Name("index") long index, @Name(value = "length", defaultValue = "1") long length) {
         if (coll == null) return null;
         if (index < 0 || index >= coll.size() || length <= 0) return coll;
 
         List<Object> list = new ArrayList<>(coll);
-        for (long i = index+length-1; i >= index; i--)
-        {
-            if (i < list.size()) list.remove( (int) i );
+        for (long i = index + length - 1; i >= index; i--) {
+            if (i < list.size()) list.remove((int) i);
         }
         return list;
     }
@@ -397,7 +608,7 @@ public class Coll {
     @Description("apoc.coll.indexOf(coll, value) | position of value in the list")
     public long indexOf(@Name("coll") List<Object> coll, @Name("value") Object value) {
         if (coll == null || coll.isEmpty()) return -1;
-        return  new ArrayList<>(coll).indexOf(value);
+        return new ArrayList<>(coll).indexOf(value);
     }
 
     @UserFunction
@@ -411,7 +622,7 @@ public class Coll {
     @Description("apoc.coll.containsSorted(coll, value) optimized contains on a sorted list operation (Collections.binarySearch) (returns single row or not)")
     public boolean containsSorted(@Name("coll") List<Object> coll, @Name("value") Object value) {
         if (coll == null || coll.isEmpty()) return false;
-        int batchSize = 5000-1; // Collections.binarySearchThreshold
+        int batchSize = 5000 - 1; // Collections.binarySearchThreshold
         List list = (coll instanceof RandomAccess || coll.size() < batchSize) ? coll : new ArrayList(coll);
         return Collections.binarySearch(list, value) >= 0;
 //        Predicate<List> contains = l -> Collections.binarySearch(l, value) >= 0;
@@ -422,7 +633,7 @@ public class Coll {
     @Description("apoc.coll.containsAllSorted(coll, value) optimized contains-all on a sorted list operation (Collections.binarySearch) (returns single row or not)")
     public boolean containsAllSorted(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
         if (coll == null || values == null) return false;
-        int batchSize = 5000-1; // Collections.binarySearchThreshold
+        int batchSize = 5000 - 1; // Collections.binarySearchThreshold
         List list = (coll instanceof RandomAccess || coll.size() < batchSize) ? coll : new ArrayList(coll);
         for (Object value : values) {
             boolean result = Collections.binarySearch(list, value) >= 0;
@@ -431,11 +642,35 @@ public class Coll {
         return true;
     }
 
+    @UserFunction
+    @Description("apoc.coll.isEqualCollection(coll, values) return true if two collections contain the same elements with the same cardinality in any order (using a HashMap)")
+    public boolean isEqualCollection(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
+        if (coll == null || coll.isEmpty() || coll.size() != values.size()) return false;
+
+        Map<Object, Integer> cardinalityMap = new HashMap<>();
+        for (Object o : coll) {
+            cardinalityMap.merge(o, 1, (oldVal, defaultVal) -> oldVal + 1);
+        }
+
+        for (Object value : values) {
+            Integer valueCardinality = cardinalityMap.merge(value, -1, (oldVal, defaultVal) -> {
+                int newCardinality = oldVal - 1;
+                // if we reached 0, we remove the object from the map, we do not expect any others
+                return newCardinality == 0 ? null : newCardinality;
+            });
+            if (Integer.valueOf(-1).equals(valueCardinality)) {
+                // this value instance did not belong to coll
+                return false;
+            }
+        }
+        // instances still in the cardinalityMap are missing from values
+        return cardinalityMap.isEmpty();
+    }
 
     @UserFunction
     @Description("apoc.coll.toSet([list]) returns a unique list backed by a set")
     public List<Object> toSet(@Name("values") List<Object> list) {
-	    if (list == null) return null;
+        if (list == null) return null;
         return new SetBackedList(new LinkedHashSet(list));
     }
 
@@ -453,7 +688,7 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.sort(coll) sort on Collections")
     public List<Object> sort(@Name("coll") List<Object> coll) {
-	    if (coll == null || coll.isEmpty()) return Collections.emptyList();
+        if (coll == null || coll.isEmpty()) return Collections.emptyList();
         List sorted = new ArrayList<>(coll);
         Collections.sort((List<? extends Comparable>) sorted);
         return sorted;
@@ -462,7 +697,7 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.sortNodes([nodes], 'name') sort nodes by property")
     public List<Node> sortNodes(@Name("coll") List<Node> coll, @Name("prop") String prop) {
-	    if (coll == null || coll.isEmpty()) return Collections.emptyList();
+        if (coll == null || coll.isEmpty()) return Collections.emptyList();
         List<Node> sorted = new ArrayList<>(coll);
         int reverseOrder = reverseOrder(prop);
         String cleanedProp = cleanProperty(prop);
@@ -472,9 +707,9 @@ public class Coll {
 
     @UserFunction
     @Description("apoc.coll.sortMaps([maps], 'name') - sort maps by property")
-    public List<Map<String,Object>> sortMaps(@Name("coll") List<Map<String,Object>> coll, @Name("prop") String prop) {
-	    if (coll == null || coll.isEmpty()) return Collections.emptyList();
-        List<Map<String,Object>> sorted = new ArrayList<>(coll);
+    public List<Map<String, Object>> sortMaps(@Name("coll") List<Map<String, Object>> coll, @Name("prop") String prop) {
+        if (coll == null || coll.isEmpty()) return Collections.emptyList();
+        List<Map<String, Object>> sorted = new ArrayList<>(coll);
         int reverseOrder = reverseOrder(prop);
         String cleanedProp = cleanProperty(prop);
         Collections.sort(sorted, (x, y) -> reverseOrder * compare(x.get(cleanedProp), y.get(cleanedProp)));
@@ -499,34 +734,37 @@ public class Coll {
             return Long.compare(((Number) o1).longValue(), ((Number) o2).longValue());
         }
         if (o1 instanceof Boolean && o2 instanceof Boolean) return ((Boolean) o1) ? 1 : -1;
-        if (o1 instanceof Node && o2 instanceof Node) return Long.compare(((Node)o1).getId(),((Node)o2).getId());
-        if (o1 instanceof Relationship && o2 instanceof Relationship) return Long.compare(((Relationship)o1).getId(),((Relationship)o2).getId());
+        if (o1 instanceof Node && o2 instanceof Node) return Long.compare(((Node) o1).getId(), ((Node) o2).getId());
+        if (o1 instanceof Relationship && o2 instanceof Relationship)
+            return Long.compare(((Relationship) o1).getId(), ((Relationship) o2).getId());
         return o1.toString().compareTo(o2.toString());
     }
 
     @UserFunction
     @Description("apoc.coll.union(first, second) - creates the distinct union of the 2 lists")
     public List<Object> union(@Name("first") List<Object> first, @Name("second") List<Object> second) {
-		if (first == null) return second;
-		if (second == null) return first;
+        if (first == null) return second;
+        if (second == null) return first;
         Set<Object> set = new HashSet<>(first);
         set.addAll(second);
         return new SetBackedList(set);
     }
+
     @UserFunction
     @Description("apoc.coll.subtract(first, second) - returns unique set of first list with all elements of second list removed")
     public List<Object> subtract(@Name("first") List<Object> first, @Name("second") List<Object> second) {
-		if (first == null) return null;
+        if (first == null) return null;
         Set<Object> set = new HashSet<>(first);
-        if (second!=null) set.removeAll(second);
+        if (second != null) set.removeAll(second);
         return new SetBackedList(set);
     }
+
     @UserFunction
     @Description("apoc.coll.removeAll(first, second) - returns first list with all elements of second list removed")
     public List<Object> removeAll(@Name("first") List<Object> first, @Name("second") List<Object> second) {
-		if (first == null) return null;
+        if (first == null) return null;
         List<Object> list = new ArrayList<>(first);
-        if (second!=null) list.removeAll(second);
+        if (second != null) list.removeAll(second);
         return list;
     }
 
@@ -551,6 +789,7 @@ public class Coll {
         set.removeAll(intersection);
         return new SetBackedList(set);
     }
+
     @UserFunction
     @Description("apoc.coll.unionAll(first, second) - creates the full union with duplicates of the two lists")
     public List<Object> unionAll(@Name("first") List<Object> first, @Name("second") List<Object> second) {
@@ -595,7 +834,7 @@ public class Coll {
         }
 
         List<Object> pickList = new ArrayList<>(coll);
-        List<Object> randomItems = new ArrayList<>((int)itemCount);
+        List<Object> randomItems = new ArrayList<>((int) itemCount);
         Random random = ThreadLocalRandom.current();
 
         if (!allowRepick && itemCount >= coll.size()) {
@@ -611,6 +850,7 @@ public class Coll {
 
         return randomItems;
     }
+
     @UserFunction
     @Description("apoc.coll.containsDuplicates(coll) - returns true if a collection contains duplicate elements")
     public boolean containsDuplicates(@Name("coll") List<Object> coll) {
@@ -708,8 +948,8 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.frequenciesAsMap(coll) - return a map of frequencies of the items in the collection, key `item`, value `count` (e.g., `{1:2, 2:1}`)")
     public Map<String, Object> frequenciesAsMap(@Name("coll") List<Object> coll) {
-	    if (coll == null) return Collections.emptyMap();
-        return frequencies(coll).stream().collect(Collectors.toMap(t -> t.get("item").toString(), v-> v.get("count")));
+        if (coll == null) return Collections.emptyMap();
+        return frequencies(coll).stream().collect(Collectors.toMap(t -> t.get("item").toString(), v -> v.get("count")));
     }
 
     @UserFunction
@@ -733,7 +973,7 @@ public class Coll {
 
     @UserFunction
     @Description("apoc.coll.flatten(coll, [recursive]) - flattens list (nested if recursive is true)")
-    public List<Object> flatten(@Name("coll") List<Object> coll,  @Name(value="recursive", defaultValue = "false") boolean recursive) {
+    public List<Object> flatten(@Name("coll") List<Object> coll, @Name(value = "recursive", defaultValue = "false") boolean recursive) {
         if (coll == null) return Collections.emptyList();
         if (recursive) return flattenRecursive(coll, 0); // flatten everything
         return flattenRecursive(coll, 0, 2); // flatten one level of lists in the input list if not recursive
@@ -782,11 +1022,11 @@ public class Coll {
 
     @UserFunction("apoc.coll.sortMulti")
     @Description("apoc.coll.sortMulti(coll, ['^name','age'],[limit],[skip]) - sort list of maps by several sort fields (ascending with ^ prefix) and optionally applies limit and skip")
-    public List<Map<String,Object>> sortMulti(@Name("coll") java.util.List<Map<String,Object>> coll,
-                                              @Name(value="orderFields", defaultValue = "[]") java.util.List<String> orderFields,
-                                              @Name(value="limit", defaultValue = "-1") long limit,
-                                              @Name(value="skip", defaultValue = "0") long skip) {
-        List<Map<String,Object>> result = new ArrayList<>(coll);
+    public List<Map<String, Object>> sortMulti(@Name("coll") java.util.List<Map<String, Object>> coll,
+                                               @Name(value = "orderFields", defaultValue = "[]") java.util.List<String> orderFields,
+                                               @Name(value = "limit", defaultValue = "-1") long limit,
+                                               @Name(value = "skip", defaultValue = "0") long skip) {
+        List<Map<String, Object>> result = new ArrayList<>(coll);
 
         if (orderFields != null && !orderFields.isEmpty()) {
 
@@ -812,15 +1052,15 @@ public class Coll {
 
             Collections.sort((List<Map<String, Comparable<Object>>>) (List) result, compare);
         }
-        if (skip > 0 && limit != -1L) return result.subList ((int)skip, (int)(skip + limit));
-        if (skip > 0) return result.subList ((int)skip, result.size());
-        if (limit != -1L) return result.subList (0, (int)limit);
+        if (skip > 0 && limit != -1L) return result.subList((int) skip, (int) (skip + limit));
+        if (skip > 0) return result.subList((int) skip, result.size());
+        if (limit != -1L) return result.subList(0, (int) limit);
         return result;
     }
 
     @UserFunction
     @Description("apoc.coll.combinations(coll, minSelect, maxSelect:minSelect) - Returns collection of all combinations of list elements of selection size between minSelect and maxSelect (default:minSelect), inclusive")
-    public List<List<Object>> combinations(@Name("coll") List<Object> coll, @Name(value="minSelect") long minSelectIn, @Name(value="maxSelect",defaultValue = "-1") long maxSelectIn) {
+    public List<List<Object>> combinations(@Name("coll") List<Object> coll, @Name(value = "minSelect") long minSelectIn, @Name(value = "maxSelect", defaultValue = "-1") long maxSelectIn) {
         int minSelect = (int) minSelectIn;
         int maxSelect = (int) maxSelectIn;
         maxSelect = maxSelect == -1 ? minSelect : maxSelect;
@@ -852,17 +1092,16 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.different(values) - returns true if values are different")
     public boolean different(@Name("values") List<Object> values) {
-		if (values == null) return false;
+        if (values == null) return false;
         return new HashSet(values).size() == values.size();
     }
 
 
-
     @UserFunction
     @Description("apoc.coll.dropDuplicateNeighbors(list) - remove duplicate consecutive objects in a list")
-    public List<Object> dropDuplicateNeighbors(@Name("list") List<Object> list){
+    public List<Object> dropDuplicateNeighbors(@Name("list") List<Object> list) {
         if (list == null) return null;
-	List<Object> newList = new ArrayList<>(list.size());
+        List<Object> newList = new ArrayList<>(list.size());
 
         Object last = null;
         for (Object element : list) {
