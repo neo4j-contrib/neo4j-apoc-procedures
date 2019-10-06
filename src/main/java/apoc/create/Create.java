@@ -62,7 +62,7 @@ public class Create {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.create.setProperties( [node,id,ids,nodes], [keys], [values]) - sets the given property on the nodes(s)")
+    @Description("apoc.create.setProperties( [node,id,ids,nodes], [keys], [values]) - sets the given properties on the nodes(s)")
     public Stream<NodeResult> setProperties(@Name("nodes") Object nodes, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
         return new Get(tx).nodes(nodes).map((r) -> {
             setProperties(r.node, Util.mapFromLists(keys,values));
@@ -71,7 +71,7 @@ public class Create {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.create.removeProperties( [node,id,ids,nodes], [keys]) - removes the given property from the nodes(s)")
+    @Description("apoc.create.removeProperties( [node,id,ids,nodes], [keys]) - removes the given properties from the nodes(s)")
     public Stream<NodeResult> removeProperties(@Name("nodes") Object nodes, @Name("keys") List<String> keys) {
         return new Get(tx).nodes(nodes).map((r) -> {
             keys.forEach( r.node::removeProperty );
@@ -80,7 +80,7 @@ public class Create {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.create.setRelProperties( [rel,id,ids,rels], [keys], [values]) - sets the given property on the relationship(s)")
+    @Description("apoc.create.setRelProperties( [rel,id,ids,rels], [keys], [values]) - sets the given properties on the relationship(s)")
     public Stream<RelationshipResult> setRelProperties(@Name("rels") Object rels, @Name("keys") List<String> keys, @Name("values") List<Object> values) {
         return new Get(tx).rels(rels).map((r) -> {
             setProperties(r.rel, Util.mapFromLists(keys,values));
@@ -89,7 +89,7 @@ public class Create {
     }
 
     @Procedure(mode = Mode.WRITE)
-    @Description("apoc.create.removeRelProperties( [rel,id,ids,rels], [keys], [values]) - removes the given property from the relationship(s)")
+    @Description("apoc.create.removeRelProperties( [rel,id,ids,rels], [keys]) - removes the given properties from the relationship(s)")
     public Stream<RelationshipResult> removeRelProperties(@Name("rels") Object rels, @Name("keys") List<String> keys) {
         return new Get(tx).rels(rels).map((r) -> {
             keys.forEach( r.rel::removeProperty);
