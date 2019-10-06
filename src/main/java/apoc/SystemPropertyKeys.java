@@ -2,13 +2,20 @@ package apoc;
 
 public enum SystemPropertyKeys  {
     database,
-    lastUpdated,
     name,
+
+    // cypher stored procedures/functions
+    lastUpdated,
     statement,
     inputs,
     description,
     mode,
     outputs,
     output,
-    forceSingle;
+    forceSingle,
+
+    // triggers
+    selector,
+    params,
+    paused;
 }

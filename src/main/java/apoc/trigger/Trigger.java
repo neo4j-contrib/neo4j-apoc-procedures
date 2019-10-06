@@ -109,7 +109,7 @@ public class Trigger {
         if (removed == null) {
             return Stream.of(new TriggerInfo(name, null, null, false, false));
         }
-        return Stream.of(new TriggerInfo(name,(String)removed.get("kernelTransaction"), (Map<String, Object>) removed.get("selector"), (Map<String, Object>) removed.get("params"),false, false));
+        return Stream.of(new TriggerInfo(name,(String)removed.get("statement"), (Map<String, Object>) removed.get("selector"), (Map<String, Object>) removed.get("params"),false, false));
     }
 
     @Procedure(mode = Mode.WRITE)
@@ -139,7 +139,13 @@ public class Trigger {
     @Description("list all installed triggers")
     public Stream<TriggerInfo> list() {
         return triggerHandler.list().entrySet().stream()
-                .map( (e) -> new TriggerInfo(e.getKey(),(String)e.getValue().get("kernelTransaction"),(Map<String,Object>)e.getValue().get("selector"), (Map<String, Object>) e.getValue().get("params"),true, (Boolean) e.getValue().get("paused")));
+                .map( (e) -> new TriggerInfo(e.getKey(),
+                        (String)e.getValue().get("statement"),
+                        (Map<String,Object>)e.getValue().get("selector"),
+                        (Map<String, Object>) e.getValue().get("params"),
+                        true,
+                        (Boolean) e.getValue().getOrDefault("paused", false))
+                );
     }
 
     @Procedure(mode = Mode.WRITE)
@@ -147,7 +153,10 @@ public class Trigger {
     public Stream<TriggerInfo> pause(@Name("name")String name) {
         Map<String, Object> paused = triggerHandler.updatePaused(name, true);
 
-        return Stream.of(new TriggerInfo(name,(String)paused.get("kernelTransaction"), (Map<String,Object>) paused.get("selector"), (Map<String,Object>) paused.get("params"),true, true));
+        return Stream.of(new TriggerInfo(name,
+                (String)paused.get("statement"),
+                (Map<String,Object>) paused.get("selector"),
+                (Map<String,Object>) paused.get("params"),true, true));
     }
 
     @Procedure(mode = Mode.WRITE)
@@ -155,7 +164,10 @@ public class Trigger {
     public Stream<TriggerInfo> resume(@Name("name")String name) {
         Map<String, Object> resume = triggerHandler.updatePaused(name, false);
 
-        return Stream.of(new TriggerInfo(name,(String)resume.get("kernelTransaction"), (Map<String,Object>) resume.get("selector"), (Map<String,Object>) resume.get("params"),true, false));
+        return Stream.of(new TriggerInfo(name,
+                (String)resume.get("statement"),
+                (Map<String,Object>) resume.get("selector"),
+                (Map<String,Object>) resume.get("params"),true, false));
     }
 
 }

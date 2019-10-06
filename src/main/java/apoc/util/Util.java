@@ -769,4 +769,19 @@ public class Util {
             return rebind(tx, (Relationship)e);
         }
     }
+
+    public static Node mergeNode(Transaction tx, Label primaryLabel, Label addtionalLabel,
+                                 String key1, Object value1, String key2, Object value2) {
+        Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, key1, value1, key2, value2).stream()
+                .filter(n -> addtionalLabel!=null && n.hasLabel(addtionalLabel)).iterator());
+        if (node==null) {
+            Label[] labels = addtionalLabel == null ?
+                    new Label[]{primaryLabel} :
+                    new Label[]{primaryLabel, addtionalLabel};
+            node = tx.createNode(labels);
+            node.setProperty(key1, value1);
+            node.setProperty(key2, value2);
+        }
+        return node;
+    }
 }

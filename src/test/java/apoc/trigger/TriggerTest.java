@@ -38,7 +38,7 @@ public class TriggerTest {
     public void testListTriggers() throws Exception {
         String query = "MATCH (c:Counter) SET c.count = c.count + size([f IN {deletedNodes} WHERE id(f) > 0])";
 
-        TestUtil.testCallCount(db, "CALL apoc.trigger.add('count-removals',{query},{}) YIELD name RETURN name",
+        TestUtil.testCallCount(db, "CALL apoc.trigger.add('count-removals',$query,{}) YIELD name RETURN name",
                 map("query", query),
                 1);
         TestUtil.testCall(db, "CALL apoc.trigger.list()", (row) -> {
@@ -51,7 +51,7 @@ public class TriggerTest {
     public void testRemoveNode() throws Exception {
         db.executeTransactionally("CREATE (:Counter {count:0})");
         db.executeTransactionally("CREATE (f:Foo)");
-        db.executeTransactionally("CALL apoc.trigger.add('count-removals','MATCH (c:Counter) SET c.count = c.count + size([f IN {deletedNodes} WHERE id(f) > 0])',{})");
+        db.executeTransactionally("CALL apoc.trigger.add('count-removals','MATCH (c:Counter) SET c.count = c.count + size([f IN $deletedNodes WHERE id(f) > 0])',{})");
         db.executeTransactionally("MATCH (f:Foo) DELETE f");
         TestUtil.testCall(db, "MATCH (c:Counter) RETURN c.count as count", (row) -> {
             assertEquals(1L, row.get("count"));
@@ -62,7 +62,7 @@ public class TriggerTest {
     public void testRemoveRelationship() throws Exception {
         db.executeTransactionally("CREATE (:Counter {count:0})");
         db.executeTransactionally("CREATE (f:Foo)-[:X]->(f)");
-        db.executeTransactionally("CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size({deletedRelationships})',{})");
+        db.executeTransactionally("CALL apoc.trigger.add('count-removed-rels','MATCH (c:Counter) SET c.count = c.count + size($deletedRelationships)',{})");
         db.executeTransactionally("MATCH (f:Foo) DETACH DELETE f");
         TestUtil.testCall(db, "MATCH (c:Counter) RETURN c.count as count", (row) -> {
             assertEquals(1L, row.get("count"));
@@ -92,11 +92,7 @@ public class TriggerTest {
     }
     @Test
     public void testRemoveAllTrigger() throws Exception {
-        TestUtil.testCall(db, "CALL apoc.trigger.removeAll()", (row) -> {
-            assertEquals(null, row.get("name"));
-            assertEquals(null, row.get("query"));
-            assertEquals(false, row.get("installed"));
-        });
+        TestUtil.testCallCount(db, "CALL apoc.trigger.removeAll()", 0);
         TestUtil.testCallCount(db, "CALL apoc.trigger.add('to-be-removed-1','RETURN 1',{}) YIELD name RETURN name", 1);
         TestUtil.testCallCount(db, "CALL apoc.trigger.add('to-be-removed-2','RETURN 2',{}) YIELD name RETURN name", 1);
         TestUtil.testCallCount(db, "CALL apoc.trigger.list()", 2);
@@ -112,16 +108,12 @@ public class TriggerTest {
             assertFalse(res.hasNext());
         });
         TestUtil.testCallCount(db, "CALL apoc.trigger.list()", 0);
-        TestUtil.testCall(db, "CALL apoc.trigger.removeAll()", (row) -> {
-            assertEquals(null, row.get("name"));
-            assertEquals(null, row.get("query"));
-            assertEquals(false, row.get("installed"));
-        });
+        TestUtil.testCallCount(db, "CALL apoc.trigger.removeAll()", 0);
     }
 
     @Test
     public void testTimeStampTrigger() throws Exception {
-        db.executeTransactionally("CALL apoc.trigger.add('timestamp','UNWIND {createdNodes} AS n SET n.ts = timestamp()',{})");
+        db.executeTransactionally("CALL apoc.trigger.add('timestamp','UNWIND $createdNodes AS n SET n.ts = timestamp()',{})");
         db.executeTransactionally("CREATE (f:Foo)");
         TestUtil.testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
             assertEquals(true, ((Node)row.get("f")).hasProperty("ts"));
@@ -130,7 +122,7 @@ public class TriggerTest {
 
     @Test
     public void testTimeStampTriggerForUpdatedProperties() throws Exception {
-        db.executeTransactionally("CALL apoc.trigger.add('timestamp','UNWIND apoc.trigger.nodesByLabel({assignedNodeProperties},null) AS n SET n.ts = timestamp()',{})");
+        db.executeTransactionally("CALL apoc.trigger.add('timestamp','UNWIND apoc.trigger.nodesByLabel($assignedNodeProperties,null) AS n SET n.ts = timestamp()',{})");
         db.executeTransactionally("CREATE (f:Foo) SET f.foo='bar'");
         TestUtil.testCall(db, "MATCH (f:Foo) RETURN f", (row) -> {
             assertEquals(true, ((Node)row.get("f")).hasProperty("ts"));
@@ -140,7 +132,7 @@ public class TriggerTest {
     @Test
     public void testLowerCaseName() throws Exception {
         db.executeTransactionally("create constraint on (p:Person) assert p.id is unique");
-        db.executeTransactionally("CALL apoc.trigger.add('lowercase','UNWIND apoc.trigger.nodesByLabel({assignedLabels},\"Person\") AS n SET n.id = toLower(n.name)',{})");
+        db.executeTransactionally("CALL apoc.trigger.add('lowercase','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n.id = toLower(n.name)',{})");
         db.executeTransactionally("CREATE (f:Person {name:'John Doe'})");
         TestUtil.testCall(db, "MATCH (f:Person) RETURN f", (row) -> {
             assertEquals("john doe", ((Node)row.get("f")).getProperty("id"));
@@ -150,7 +142,7 @@ public class TriggerTest {
     @Test
     public void testSetLabels() throws Exception {
         db.executeTransactionally("CREATE (f {name:'John Doe'})");
-        db.executeTransactionally("CALL apoc.trigger.add('setlabels','UNWIND apoc.trigger.nodesByLabel({assignedLabels},\"Person\") AS n SET n:Man',{})");
+        db.executeTransactionally("CALL apoc.trigger.add('setlabels','UNWIND apoc.trigger.nodesByLabel($assignedLabels,\"Person\") AS n SET n:Man',{})");
         db.executeTransactionally("MATCH (f) SET f:Person");
         TestUtil.testCall(db, "MATCH (f:Man) RETURN f", (row) -> {
             assertEquals("John Doe", ((Node)row.get("f")).getProperty("name"));
@@ -172,9 +164,9 @@ public class TriggerTest {
     
     @Test
     public void testPauseResult() throws Exception {
-        db.executeTransactionally("CALL apoc.trigger.add('pausedTest', 'UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime', {phase: 'after'}");
+        db.executeTransactionally("CALL apoc.trigger.add('pausedTest', 'UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime', {phase: 'after'})");
         TestUtil.testCall(db, "CALL apoc.trigger.pause('pausedTest')", (row) -> {
-            assertEquals("test", row.get("name"));
+            assertEquals("pausedTest", row.get("name"));
             assertEquals(true, row.get("installed"));
             assertEquals(true, row.get("paused"));
         });
@@ -182,7 +174,7 @@ public class TriggerTest {
 
     @Test
     public void testPauseOnCallList() throws Exception {
-        db.executeTransactionally("CALL apoc.trigger.add('test', 'UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime', {phase: 'after'}");
+        db.executeTransactionally("CALL apoc.trigger.add('test', 'UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime', {phase: 'after'})");
         db.executeTransactionally("CALL apoc.trigger.pause('test')");
         TestUtil.testCall(db, "CALL apoc.trigger.list()", (row) -> {
             assertEquals("test", row.get("name"));
@@ -193,7 +185,7 @@ public class TriggerTest {
 
     @Test
     public void testResumeResult() throws Exception {
-        db.executeTransactionally("CALL apoc.trigger.add('test', 'UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime', {phase: 'after'}");
+        db.executeTransactionally("CALL apoc.trigger.add('test', 'UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime', {phase: 'after'})");
         db.executeTransactionally("CALL apoc.trigger.pause('test')");
         TestUtil.testCall(db, "CALL apoc.trigger.resume('test')", (row) -> {
             assertEquals("test", row.get("name"));
@@ -216,7 +208,7 @@ public class TriggerTest {
 
     @Test
     public void testTriggerResume() throws Exception {
-        db.executeTransactionally("CALL apoc.trigger.add('test','UNWIND {createdNodes} AS n SET n.txId = {transactionId}, n.txTime = {commitTime}',{})");
+        db.executeTransactionally("CALL apoc.trigger.add('test','UNWIND $createdNodes AS n SET n.txId = $transactionId, n.txTime = $commitTime',{})");
         db.executeTransactionally("CALL apoc.trigger.pause('test')");
         db.executeTransactionally("CALL apoc.trigger.resume('test')");
         db.executeTransactionally("CREATE (f:Foo {name:'Michael'})");

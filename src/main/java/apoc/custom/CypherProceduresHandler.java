@@ -24,7 +24,6 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
-import org.neo4j.procedure.impl.ComponentRegistry;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 import org.neo4j.values.AnyValue;
 import org.neo4j.values.ValueMapper;
@@ -33,9 +32,6 @@ import org.neo4j.values.virtual.MapValue;
 import org.neo4j.values.virtual.MapValueBuilder;
 import org.neo4j.values.virtual.VirtualValues;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
@@ -75,17 +71,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
             return cypherProceduresLifecyclesByDatabaseName.get(databaseName);
         }, true);
 
-        // FIXME: remove reflection once fixed upstream
-        try {
-            Field field = globalProceduresRegistry.getClass().getDeclaredField("safeComponents");
-            field.setAccessible(true);
-            Method providerFor = ComponentRegistry.class.getDeclaredMethod("providerFor", Class.class);
-            providerFor.setAccessible(true);
-            ComponentRegistry safeComponents = (ComponentRegistry) field.get(globalProceduresRegistry);
-            transactionComponentFunction = (ThrowingFunction<Context, Transaction, ProcedureException>) providerFor.invoke(safeComponents, Transaction.class);
-        } catch (NoSuchFieldException|NoSuchMethodException|IllegalAccessException| InvocationTargetException e) {
-            throw new RuntimeException(e);
-        }
+        transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
     }
 
     @Override
@@ -139,17 +125,6 @@ public class CypherProceduresHandler implements AvailabilityListener {
         }
     }
 
-    public static Node mergeNode(Transaction tx, Label primaryLabel, Label addtionalLabel,
-                                 String key1, Object value1, String key2, Object value2) {
-        Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, key1, value1, key2, value2).stream().filter(n -> n.hasLabel(addtionalLabel)).iterator());
-        if (node==null) {
-            node = tx.createNode(primaryLabel, addtionalLabel);
-            node.setProperty(key1, value1);
-            node.setProperty(key2, value2);
-        }
-        return node;
-    }
-
     public void storeProcedure(ValueMapper valueMapper, String name, String statement, String mode, List<List<String>> outputs, List<List<String>> inputs, String description) {
         store(SystemLabels.Procedure, name, statement, inputs, description, (tx, node) -> {
             node.setProperty(SystemPropertyKeys.mode.name(), mode);
@@ -168,7 +143,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
 
     private void store(Label secondLabel, String name, String statement, List<List<String>> inputs, String description, BiConsumer<Transaction, Node> typeSpecific) {
         try (Transaction tx = systemDb.beginTx()) {
-            Node node = mergeNode(tx, SystemLabels.ApocCypherProcedures, secondLabel,
+            Node node = Util.mergeNode(tx, SystemLabels.ApocCypherProcedures, secondLabel,
                     SystemPropertyKeys.database.name(), api.databaseName(),
                     SystemPropertyKeys.name.name(), name);
 
@@ -243,31 +218,6 @@ public class CypherProceduresHandler implements AvailabilityListener {
             return list;
         }
     }
-
-    /*public List<CypherProcedures.CustomProcedureInfo> list() {
-        return readData(getProperties(api)).entrySet().stream()
-                .flatMap(entryProcedureType -> {
-                    Map<String, Map<String, Object>> procedures = entryProcedureType.getValue();
-                    String type = entryProcedureType.getKey();
-                    boolean isProcedure = PROCEDURES.equals(type);
-                    return procedures.entrySet().stream().map(entryProcedure -> {
-                        String typeLabel = isProcedure ? PROCEDURE : FUNCTION;
-                        String outputs = isProcedure ? "outputs" : "output";
-                        String procedureName = entryProcedure.getKey();
-                        Map<String, Object> procedureParams = entryProcedure.getValue();
-                        return new CypherProcedures.CustomProcedureInfo(typeLabel, procedureName,
-                                "null".equals(procedureParams.get("description")) ?
-                                        null : String.valueOf(procedureParams.get("description")),
-                                procedureParams.containsKey("mode")
-                                        ? String.valueOf(procedureParams.get("mode")) : null,
-                                String.valueOf(procedureParams.get("statement")),
-                                (List<List<String>>) procedureParams.get("inputs"),
-                                procedureParams.get(outputs),
-                                (Boolean) procedureParams.get("forceSingle"));
-                    });
-                })
-                .collect(Collectors.toList());
-    }*/
 
     public boolean registerProcedure(ValueMapper valueMapper, String name, String statement, String mode, List<List<String>> outputs,  List<List<String>> inputs,  String description) {
         try {
