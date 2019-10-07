@@ -147,7 +147,7 @@ public class UUIDTest {
         // then
         TestUtil.testCall(db, "CALL apoc.uuid.list()",
                 (row) -> assertResult(row, "Bar", true,
-                        Util.map("addToExistingNodes", true, "uuidProperty", "uuid")));
+                        Util.map("uuidProperty", "uuid")));
     }
 
     @Test
@@ -176,10 +176,10 @@ public class UUIDTest {
         // then
         TestUtil.testCall(db, "CALL apoc.uuid.list()",
                 (row) -> assertResult(row, "Test", true,
-                        Util.map("addToExistingNodes", true, "uuidProperty", "foo")));
+                        Util.map("uuidProperty", "foo")));
         TestUtil.testCall(db, "CALL apoc.uuid.remove('Test')",
                 (row) -> assertResult(row, "Test", false,
-                        Util.map("addToExistingNodes", true, "uuidProperty", "foo")));
+                        Util.map("uuidProperty", "foo")));
     }
 
     @Test
@@ -231,10 +231,10 @@ public class UUIDTest {
                     // then
                     Map<String, Object> row = result.next();
                     assertResult(row, "Test", false,
-                            Util.map("addToExistingNodes", false, "uuidProperty", "foo"));
+                            Util.map("uuidProperty", "foo"));
                     row = result.next();
                     assertResult(row, "Bar", false,
-                            Util.map("addToExistingNodes", true, "uuidProperty", "uuid"));
+                            Util.map("uuidProperty", "uuid"));
                 });
     }
 

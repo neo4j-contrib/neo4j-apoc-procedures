@@ -10,6 +10,7 @@ import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.function.ThrowingFunction;
 import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
 import org.neo4j.internal.kernel.api.procs.*;
 import org.neo4j.kernel.api.ResourceTracker;
@@ -144,8 +145,9 @@ public class CypherProceduresHandler implements AvailabilityListener {
     private void store(Label secondLabel, String name, String statement, List<List<String>> inputs, String description, BiConsumer<Transaction, Node> typeSpecific) {
         try (Transaction tx = systemDb.beginTx()) {
             Node node = Util.mergeNode(tx, SystemLabels.ApocCypherProcedures, secondLabel,
-                    SystemPropertyKeys.database.name(), api.databaseName(),
-                    SystemPropertyKeys.name.name(), name);
+                    Pair.of(SystemPropertyKeys.database.name(), api.databaseName()),
+                    Pair.of(SystemPropertyKeys.name.name(), name)
+            );
 
             if (!"null".equals(description)) {
                 node.setProperty(SystemPropertyKeys.description.name(), description);

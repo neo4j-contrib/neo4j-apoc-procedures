@@ -45,7 +45,7 @@ public class Uuid {
             );
         }
         uuidHandler.add(tx, label, uuidConfig.getUuidProperty());
-        return Stream.of(new UuidInstallInfo(label, true, Collections.singletonMap("propertyName", uuidConfig.getUuidProperty()), addToExistingNodesResult));
+        return Stream.of(new UuidInstallInfo(label, true, Collections.singletonMap("uuidProperty", uuidConfig.getUuidProperty()), addToExistingNodesResult));
     }
 
     @Procedure(mode = Mode.WRITE)
@@ -55,7 +55,7 @@ public class Uuid {
         if (removed == null) {
             return Stream.of(new UuidInfo(null, false));
         }
-        return Stream.of(new UuidInfo(label, false, Collections.singletonMap("propertyName", removed)));
+        return Stream.of(new UuidInfo(label, false, Collections.singletonMap("uuidProperty", removed)));
     }
 
     @Procedure(mode = Mode.WRITE)
@@ -65,14 +65,14 @@ public class Uuid {
         if (removed == null) {
             return Stream.of(new UuidInfo(null, false));
         }
-        return removed.entrySet().stream().map(e -> new UuidInfo(e.getKey(), true, Collections.singletonMap("propertyName", e.getValue())));
+        return removed.entrySet().stream().map(e -> new UuidInfo(e.getKey(), false, Collections.singletonMap("uuidProperty", e.getValue())));
     }
 
     @Procedure(mode = Mode.READ)
     @Description("CALL apoc.uuid.list() yield label, installed, properties | provides a list of all the uuid handlers installed with the related configuration")
     public Stream<UuidInfo> list() {
         return uuidHandler.list().entrySet().stream()
-                .map((e) -> new UuidInfo(e.getKey(),true, Collections.singletonMap("propertyName", e.getValue())));
+                .map((e) -> new UuidInfo(e.getKey(),true, Collections.singletonMap("uuidProperty", e.getValue())));
     }
 
     public static class UuidInfo {

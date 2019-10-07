@@ -771,16 +771,26 @@ public class Util {
     }
 
     public static Node mergeNode(Transaction tx, Label primaryLabel, Label addtionalLabel,
-                                 String key1, Object value1, String key2, Object value2) {
-        Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, key1, value1, key2, value2).stream()
-                .filter(n -> addtionalLabel!=null && n.hasLabel(addtionalLabel)).iterator());
+                                 Pair<String, Object>... pairs ) {
+        Node node = Iterators.singleOrNull(tx.findNodes(primaryLabel, pairs[0].first(), pairs[1].other()).stream()
+                .filter(n -> addtionalLabel!=null && n.hasLabel(addtionalLabel))
+                .filter( n -> {
+                    for (int i=1; i<pairs.length; i++) {
+                        if (!pairs[i].other().equals(n.getProperty(pairs[i].first(), null))) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })
+                .iterator());
         if (node==null) {
             Label[] labels = addtionalLabel == null ?
                     new Label[]{primaryLabel} :
                     new Label[]{primaryLabel, addtionalLabel};
             node = tx.createNode(labels);
-            node.setProperty(key1, value1);
-            node.setProperty(key2, value2);
+            for (int i=0; i<pairs.length; i++) {
+                node.setProperty(pairs[i].first(), pairs[i].other());
+            }
         }
         return node;
     }

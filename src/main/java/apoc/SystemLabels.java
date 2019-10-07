@@ -7,5 +7,6 @@ public enum SystemLabels implements Label {
     ApocCypherProceduresMeta,
     Procedure,
     Function,
+    ApocUuid,
     ApocTrigger
 }

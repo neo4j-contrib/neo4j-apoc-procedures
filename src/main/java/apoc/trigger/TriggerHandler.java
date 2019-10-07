@@ -13,6 +13,7 @@ import org.neo4j.graphdb.event.TransactionData;
 import org.neo4j.graphdb.event.TransactionEventListener;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.MapUtil;
+import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
 import org.neo4j.kernel.api.procedure.Context;
 import org.neo4j.kernel.internal.event.TxStateTransactionDataSnapshot;
@@ -108,8 +109,8 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
 
         try (Transaction tx = apocConfig.getSystemDb().beginTx()) {
             Node node = Util.mergeNode(tx, SystemLabels.ApocTrigger, null,
-                    SystemPropertyKeys.database.name(), db.databaseName(),
-                    SystemPropertyKeys.name.name(), name);
+                    Pair.of(SystemPropertyKeys.database.name(), db.databaseName()),
+                    Pair.of(SystemPropertyKeys.name.name(), name));
             node.setProperty(SystemPropertyKeys.statement.name(), statement);
             node.setProperty(SystemPropertyKeys.selector.name(), Util.toJson(selector));
             node.setProperty(SystemPropertyKeys.params.name(), Util.toJson(params));
@@ -163,6 +164,7 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     }
 
     public Map<String,Map<String,Object>> list() {
+        checkEnabled();
         return activeTriggers;
     }
 

@@ -107,7 +107,7 @@ public class SpatialTest {
                 "CALL apoc.spatial.geocodeOnce(a.address) YIELD location\n" +
                 "RETURN a.name, location.latitude AS latitude, \n" +
                 "location.longitude AS longitude, location.description AS description";
-        testCallCount(db, query, null, eventNodes.size());
+        testCallCount(db, query, eventNodes.size());
     }
 
     @Test
@@ -121,7 +121,7 @@ public class SpatialTest {
                 "RETURN location.description AS description, distance\n" +
                 "ORDER BY distance\n" +
                 "LIMIT 100\n";
-        testCallCount(db, query, null, spaceNodes.size());
+        testCallCount(db, query, spaceNodes.size());
     }
 
     @Test
@@ -132,7 +132,7 @@ public class SpatialTest {
                 "CALL apoc.spatial.geocodeOnce(a.address) YIELD location \n" +
                 "SET a.latitude = location.latitude\n" +
                 "SET a.longitude = location.longitude";
-        testCallEmpty(db, refactorQuery, null);
+        testCallEmpty(db, refactorQuery, emptyMap());
         String query = "WITH point({latitude: 48.8582532, longitude: 2.294287}) AS eiffel\n" +
                 "MATCH (a:Event) \n" +
                 "WHERE exists(a.latitude) AND exists(a.longitude)\n" +
@@ -141,7 +141,7 @@ public class SpatialTest {
                 "RETURN a.name AS event, distance\n" +
                 "ORDER BY distance\n" +
                 "LIMIT 100\n";
-        testCallCount(db, query, null, spaceNodes.size());
+        testCallCount(db, query, spaceNodes.size());
     }
 
     @Test
@@ -183,7 +183,7 @@ public class SpatialTest {
                 "CALL apoc.spatial.reverseGeocode(a.lat, a.lon) YIELD latitude, longitude\n" +
                 "RETURN a.name, latitude, \n" +
                 "longitude, a.description";
-        testCallCount(db, query, null, eventNodes.size());
+        testCallCount(db, query, eventNodes.size());
     }
 
     @Test

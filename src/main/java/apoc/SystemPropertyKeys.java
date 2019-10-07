@@ -17,5 +17,9 @@ public enum SystemPropertyKeys  {
     // triggers
     selector,
     params,
-    paused;
+    paused,
+
+    // uuid handler
+    label,
+    propertyName;
 }
