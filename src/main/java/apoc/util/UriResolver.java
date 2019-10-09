@@ -1,8 +1,8 @@
 package apoc.util;
 
 
-import org.neo4j.driver.v1.AuthToken;
-import org.neo4j.driver.v1.AuthTokens;
+import org.neo4j.driver.AuthToken;
+import org.neo4j.driver.AuthTokens;
 
 import java.net.URI;
 import java.net.URISyntaxException;

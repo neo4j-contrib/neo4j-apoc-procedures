@@ -6,7 +6,7 @@ import apoc.util.Util;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.Session;
 
 import java.util.Map;
 
@@ -51,21 +51,21 @@ public class ExportCypherEnterpriseFeaturesTest {
 
     @Test
     public void testExportWithCompoundConstraintCypherShell() {
-        testCall(session, "CALL apoc.export.cypher.all(null, {config})",
+        testCall(session, "CALL apoc.export.cypher.all(null, $config)",
                 map("config", Util.map("format", "cypher-shell")),
                 (r) -> assertExportStatement(EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT, r));
     }
 
     @Test
     public void testExportWithCompoundConstraintPlain() {
-        testCall(session, "CALL apoc.export.cypher.all(null, {config})",
+        testCall(session, "CALL apoc.export.cypher.all(null, $config)",
                 map("config", Util.map("format", "plain")),
                 (r) -> assertExportStatement(EXPECTED_PLAIN_FORMAT_WITH_COMPOUND_CONSTRAINT, r));
     }
 
     @Test
     public void testExportWithCompoundConstraintNeo4jShell() {
-        testCall(session, "CALL apoc.export.cypher.all(null,{config})",
+        testCall(session, "CALL apoc.export.cypher.all(null,$config)",
                 map("config", Util.map("format", "neo4j-shell")),
                 (r) -> assertExportStatement(EXPECTED_NEO4J_SHELL_WITH_COMPOUND_CONSTRAINT, r));
     }

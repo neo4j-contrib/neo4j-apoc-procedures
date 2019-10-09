@@ -25,8 +25,8 @@ import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
-import static org.neo4j.driver.v1.Values.isoDuration;
-import static org.neo4j.driver.v1.Values.point;
+import static org.neo4j.driver.Values.isoDuration;
+import static org.neo4j.driver.Values.point;
 
 /**
  * @author AgileLARUS

@@ -27,7 +27,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.neo4j.driver.v1.Values.isoDuration;
+import static org.neo4j.driver.Values.isoDuration;
 import static org.neo4j.graphdb.traversal.Evaluators.toDepth;
 
 public class MetaTest {

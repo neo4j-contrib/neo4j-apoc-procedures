@@ -6,14 +6,14 @@ import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.util.UriResolver;
 import apoc.util.Util;
+import org.neo4j.driver.*;
 import org.neo4j.driver.internal.InternalEntity;
 import org.neo4j.driver.internal.InternalPath;
 import org.neo4j.driver.internal.logging.JULogging;
-import org.neo4j.driver.v1.*;
-import org.neo4j.driver.v1.summary.SummaryCounters;
-import org.neo4j.driver.v1.types.Node;
-import org.neo4j.driver.v1.types.Path;
-import org.neo4j.driver.v1.types.Relationship;
+import org.neo4j.driver.summary.SummaryCounters;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
+import org.neo4j.driver.types.Relationship;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.RelationshipType;
@@ -144,32 +144,56 @@ public class Bolt {
     private Config toDriverConfig(Object driverConfig) {
         Map<String, Object> driverConfMap = (Map<String, Object>) driverConfig;
         String logging = (String) driverConfMap.getOrDefault("logging", "INFO");
-        boolean encryption = (boolean) driverConfMap.getOrDefault("encryption", true);
+        boolean encryption = (boolean) driverConfMap.getOrDefault("encryption", false);
         boolean logLeakedSessions = (boolean) driverConfMap.getOrDefault("logLeakedSessions", true);
-        Long maxIdleConnectionPoolSize = (Long) driverConfMap.getOrDefault("maxIdleConnectionPoolSize", 10L);
         Long idleTimeBeforeConnectionTest = (Long) driverConfMap.getOrDefault("idleTimeBeforeConnectionTest", -1L);
         String trustStrategy = (String) driverConfMap.getOrDefault("trustStrategy", "TRUST_ALL_CERTIFICATES");
-        Long routingFailureLimit = (Long) driverConfMap.getOrDefault("routingFailureLimit", 1L);
-        Long routingRetryDelayMillis = (Long) driverConfMap.getOrDefault("routingRetryDelayMillis", 5000L);
-        Long connectionTimeoutMillis = (Long) driverConfMap.getOrDefault("connectionTimeoutMillis", 5000L);
-        Long maxRetryTimeMs = (Long) driverConfMap.getOrDefault("maxRetryTimeMs", 30000L);
-        Config.ConfigBuilder config = Config.build();
+//        Long routingFailureLimit = (Long) driverConfMap.getOrDefault("routingFailureLimit", 1L);
+//        Long routingRetryDelayMillis = (Long) driverConfMap.getOrDefault("routingRetryDelayMillis", 5000L);
+        Long connectionTimeoutMillis = (Long) driverConfMap.get("connectionTimeoutMillis");
+        Long maxRetryTimeMs = (Long) driverConfMap.get("maxRetryTimeMs");
+        Long maxConnectionLifeTime = (Long) driverConfMap.get("maxConnectionLifeTime");
+        Long maxConnectionPoolSize = (Long) driverConfMap.get("maxConnectionPoolSize");
+        Long routingTablePurgeDelay = (Long) driverConfMap.get("routingTablePurgeDelay");
+        Long connectionAcquisitionTimeout = (Long) driverConfMap.get("connectionAcquisitionTimeout");
+
+        Config.ConfigBuilder config = Config.builder();
+
         config.withLogging(new JULogging(Level.parse(logging)));
-        if(!encryption) config.withoutEncryption();
+        if(encryption) config.withEncryption();
         config.withTrustStrategy(Config.TrustStrategy.trustAllCertificates());
         if(!logLeakedSessions) config.withoutEncryption();
-        config.withMaxIdleSessions(maxIdleConnectionPoolSize.intValue());
-        config.withConnectionLivenessCheckTimeout(idleTimeBeforeConnectionTest, TimeUnit.MILLISECONDS);
-        config.withRoutingFailureLimit(routingFailureLimit.intValue());
-        config.withConnectionTimeout(connectionTimeoutMillis, TimeUnit.MILLISECONDS);
-        config.withRoutingRetryDelay(routingRetryDelayMillis,TimeUnit.MILLISECONDS);
-        config.withMaxTransactionRetryTime(maxRetryTimeMs, TimeUnit.MILLISECONDS);
+
+        if (connectionAcquisitionTimeout!=null) {
+            config.withConnectionAcquisitionTimeout(connectionAcquisitionTimeout, TimeUnit.MILLISECONDS);
+        }
+        //config.withDriverMetrics();
+        if (maxConnectionLifeTime!=null) {
+            config.withMaxConnectionLifetime(maxConnectionLifeTime, TimeUnit.MILLISECONDS);
+        }
+        if (maxConnectionPoolSize!=null) {
+            config.withMaxConnectionPoolSize(maxConnectionPoolSize.intValue());
+        }
+        if (routingTablePurgeDelay!=null) {
+            config.withRoutingTablePurgeDelay(routingTablePurgeDelay, TimeUnit.MILLISECONDS);
+        }
+//        config.withRoutingFailureLimit(routingFailureLimit.intValue());
+//        config.withRoutingRetryDelay(routingRetryDelayMillis,TimeUnit.MILLISECONDS);
+        if (idleTimeBeforeConnectionTest!=null) {
+            config.withConnectionLivenessCheckTimeout(idleTimeBeforeConnectionTest, TimeUnit.MILLISECONDS);
+        }
+        if (connectionTimeoutMillis!=null) {
+            config.withConnectionTimeout(connectionTimeoutMillis, TimeUnit.MILLISECONDS);
+        }
+        if (maxRetryTimeMs!=null) {
+            config.withMaxTransactionRetryTime(maxRetryTimeMs, TimeUnit.MILLISECONDS);
+        }
         if(trustStrategy.equals("TRUST_ALL_CERTIFICATES")) config.withTrustStrategy(Config.TrustStrategy.trustAllCertificates());
         else if(trustStrategy.equals("TRUST_SYSTEM_CA_SIGNED_CERTIFICATES")) config.withTrustStrategy(Config.TrustStrategy.trustSystemCertificates());
         else {
             File file = new File(trustStrategy);
             config.withTrustStrategy(Config.TrustStrategy.trustCustomCertificateSignedBy(file));
         }
-        return config.toConfig();
+        return config.build();
     }
 }

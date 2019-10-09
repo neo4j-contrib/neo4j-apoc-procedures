@@ -5,7 +5,7 @@ import apoc.util.TestUtil;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.Session;
 
 import java.io.IOException;
 import java.util.List;
