@@ -125,7 +125,7 @@ public class Periodic {
         JobInfo info = new JobInfo(name);
         Future future = pools.getJobList().remove(info);
         if (future != null) {
-            future.cancel(true);
+            future.cancel(false);
             return Stream.of(info.update(future));
         }
         return Stream.empty();

@@ -1104,7 +1104,7 @@ public class ExportCypherTest {
         static final String EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT = String.format(":begin%n" +
                 "CREATE CONSTRAINT ON (node:Person) ASSERT (node.name, node.surname) IS NODE KEY;%n" +
                 ":commit%n" +
-                "CALL db.awaitIndex(':Person(name,surname)');%n" +
+                "CALL db.awaitIndexes(300);%n" +
                 ":begin%n" +
                 "UNWIND [{surname:\"Snow\", name:\"John\", properties:{}}, {surname:\"Jackson\", name:\"Matt\", properties:{}}, {surname:\"White\", name:\"Jenny\", properties:{}}, {surname:\"Brown\", name:\"Susan\", properties:{}}, {surname:\"Taylor\", name:\"Tom\", properties:{}}] AS row%n" +
                 "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
