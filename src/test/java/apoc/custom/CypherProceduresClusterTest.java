@@ -12,7 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.TestContainerUtil.*;
+import static apoc.util.TestContainerUtil.testCall;
+import static apoc.util.TestContainerUtil.testCallInReadTransaction;
 import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeFalse;
@@ -25,7 +26,6 @@ public class CypherProceduresClusterTest {
     @BeforeClass
     public static void setupCluster() {
         assumeFalse(isTravis());
-        executeGradleTasks("clean", "shadow");
         TestUtil.ignoreException(() ->  cluster = TestContainerUtil
                 .createEnterpriseCluster(3, 1, Collections.emptyMap(), MapUtil.stringMap("apoc.custom.procedures.refresh", "100")),
                 Exception.class);
@@ -37,7 +37,6 @@ public class CypherProceduresClusterTest {
         if (cluster != null) {
             cluster.close();
         }
-        cleanBuild();
     }
 
     @Test

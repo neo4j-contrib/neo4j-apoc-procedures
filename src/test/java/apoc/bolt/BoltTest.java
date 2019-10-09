@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static apoc.util.TestContainerUtil.cleanBuild;
 import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.*;
 import static org.junit.Assume.assumeFalse;
@@ -61,7 +60,6 @@ public class BoltTest {
         if (neo4jContainer != null) {
             neo4jContainer.close();
         }
-        cleanBuild();
     }
 
     @Test

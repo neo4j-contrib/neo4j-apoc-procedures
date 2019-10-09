@@ -29,13 +29,18 @@ public class TestContainerUtil {
     }
 
     public static Neo4jContainerExtension createEnterpriseDB(boolean withLogging) {
+        executeGradleTasks("shadowJar");
         // We define the container with external volumes
-        File importFolder = new File("target/import");
+        File importFolder = new File("import");
         importFolder.mkdirs();
+
+        // TODO: read neo4j version from build.gradle and use this as default
         String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:4.0.0-SNAPSHOT-enterprise");
 
+        File pluginsFolder = new File("build/libs");
+
         Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(neo4jDockerImageVersion)
-                .withPlugins(MountableFile.forHostPath("./target/tests/gradle-build/libs")) // map the apoc's artifact dir as the Neo4j's plugin dir
+                .withPlugins(MountableFile.forHostPath("./build/libs")) // map the apoc's artifact dir as the Neo4j's plugin dir
                 .withAdminPassword("apoc")
 //                .withNeo4jConfig("apoc.export.file.enabled", "true")
                 .withEnv("NEO4J_dbms_memory_heap_max__size", "1G")
@@ -57,17 +62,13 @@ public class TestContainerUtil {
                 .useBuildDistribution()
                 .connect();
         try {
+//            String version = connection.getModel(ProjectPublications.class).getPublications().getAt(0).getId().getVersion();
             connection.newBuild()
-                    .withArguments("-Dorg.gradle.project.buildDir=./target/tests/gradle-build")
                     .forTasks(tasks)
                     .run();
         } finally {
             connection.close();
         }
-    }
-
-    public static void cleanBuild() {
-        executeGradleTasks("clean");
     }
 
     public static void testCall(Session session, String call, Map<String,Object> params, Consumer<Map<String, Object>> consumer) {

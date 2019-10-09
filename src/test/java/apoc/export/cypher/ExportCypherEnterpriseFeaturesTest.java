@@ -12,7 +12,8 @@ import java.util.Map;
 
 import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestContainerUtil.*;
+import static apoc.util.TestContainerUtil.createEnterpriseDB;
+import static apoc.util.TestContainerUtil.testCall;
 import static apoc.util.TestUtil.isTravis;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assume.assumeFalse;
@@ -32,7 +33,6 @@ public class ExportCypherEnterpriseFeaturesTest {
         assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
             // We build the project, the artifact will be placed into ./build/libs
-            executeGradleTasks("clean", "shadow");
             neo4jContainer = createEnterpriseDB(!TestUtil.isTravis())
                     .withInitScript("init_neo4j_export_csv.cypher");
             neo4jContainer.start();
@@ -46,7 +46,6 @@ public class ExportCypherEnterpriseFeaturesTest {
         if (neo4jContainer != null) {
             neo4jContainer.close();
         }
-        cleanBuild();
     }
 
     @Test
