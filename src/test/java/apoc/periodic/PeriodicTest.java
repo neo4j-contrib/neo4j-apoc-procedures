@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.exceptions.Status;
+import org.neo4j.kernel.api.query.ExecutingQuery;
 import org.neo4j.kernel.impl.api.KernelTransactions;
 import org.neo4j.kernel.impl.core.EmbeddedProxySPI;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -17,9 +18,7 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -221,6 +220,58 @@ System.out.println("call list" + db.execute(callList).resultAsString());
         testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:1,parallel:true})");
         testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:true})");
         testTerminatePeriodicQuery("CALL apoc.periodic.iterate('UNWIND range(0,1000) as id RETURN id', 'WITH $id as id CREATE (:Foo {id: $id})', {batchSize:10,iterateList:false})");
+    }
+
+    /**
+     * test for https://github.com/neo4j-contrib/neo4j-apoc-procedures/issues/1314
+     * note that this test might depend on timings on your machine
+     * prior to fixing #1314 this test fails sporadic (~ in 4 out of 5 attempts) with a
+     * java.nio.channels.ClosedChannelException upon db.shutdown
+     */
+    @Test
+    public void terminateIterateShouldNotFailonShutdown() throws Exception {
+
+        long totalNumberOfNodes = 100000;
+        int batchSizeCreate = 10000;
+
+        db.execute("call apoc.periodic.iterate( " +
+                "'unwind range(0,$totalNumberOfNodes) as i return i', " +
+                "'create (p:Person{name:\"person_\" + i})', " +
+                "{batchSize:$batchSizeCreate, parallel:true, params: {totalNumberOfNodes: $totalNumberOfNodes}})",
+                org.neo4j.helpers.collection.MapUtil.map(
+                        "totalNumberOfNodes", totalNumberOfNodes,
+                        "batchSizeCreate", batchSizeCreate
+                ));
+
+        Thread thread = new Thread( () -> {
+            try {
+                db.execute("call apoc.periodic.iterate( " +
+                        "'match (p:Person) return p', " +
+                        "'set p.name = p.name + \"ABCDEF\"', " +
+                        "{batchSize:100, parallel:true, concurrency:20})").next();
+
+            } catch (TransientTransactionFailureException e) {
+                 //this exception is expected due to killPeriodicQueryAsync
+            }
+        });
+        thread.start();
+
+        DependencyResolver dependencyResolver = ((GraphDatabaseAPI) db).getDependencyResolver();
+        KernelTransactions kernelTransactions = dependencyResolver.resolveDependency(KernelTransactions.class, FIRST);
+
+        // wait until we've started processing by checking queryIds incrementing
+        while (maxQueryId(kernelTransactions) < (totalNumberOfNodes / batchSizeCreate) + 20 ) {
+            Thread.sleep(200);
+        }
+
+        killPeriodicQueryAsync();
+        thread.join();
+    }
+
+    private Long maxQueryId(KernelTransactions kernelTransactions) {
+        Stream<Long> longStream = kernelTransactions.activeTransactions().stream()
+                .flatMap(kth -> kth.executingQueries().map(ExecutingQuery::internalQueryId) );
+        return longStream.max(Long::compare).orElse(0l);
     }
 
     @Test

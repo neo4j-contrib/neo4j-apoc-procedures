@@ -362,7 +362,7 @@ public class IndexUpdateTransactionEventHandler extends TransactionEventHandler.
 
     private void stopPeriodicIndexConfigChangeUpdates() {
         if (configUpdateFuture!=null) {
-            configUpdateFuture.cancel(true);
+            configUpdateFuture.cancel(false);
         }
     }
 

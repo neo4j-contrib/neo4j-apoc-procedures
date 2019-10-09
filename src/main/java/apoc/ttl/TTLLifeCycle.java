@@ -68,7 +68,7 @@ public class TTLLifeCycle {
     }
 
     public void stop() {
-        if (ttlIndexJobHandle != null) ttlIndexJobHandle.cancel(true);
-        if (ttlJobHandle != null) ttlJobHandle.cancel(true);
+        if (ttlIndexJobHandle != null) ttlIndexJobHandle.cancel(false);
+        if (ttlJobHandle != null) ttlJobHandle.cancel(false);
     }
 }
