@@ -2,8 +2,8 @@ package apoc.util;
 
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Session;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Session;
 import org.testcontainers.utility.MountableFile;
 
 import java.io.File;
@@ -32,17 +32,19 @@ public class TestContainerUtil {
         // We define the container with external volumes
         File importFolder = new File("target/import");
         importFolder.mkdirs();
-        Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension("neo4j:4.0.0-alpha09mr02-enterprise")
+        String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:4.0.0-SNAPSHOT-enterprise");
+
+        Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(neo4jDockerImageVersion)
                 .withPlugins(MountableFile.forHostPath("./target/tests/gradle-build/libs")) // map the apoc's artifact dir as the Neo4j's plugin dir
                 .withAdminPassword("apoc")
 //                .withNeo4jConfig("apoc.export.file.enabled", "true")
+                .withEnv("NEO4J_dbms_memory_heap_max__size", "1G")
                 .withEnv("apoc.export.file.enabled", "true")
                 .withNeo4jConfig("dbms.security.procedures.unrestricted", "apoc.*")
-//                .withEnv("NEO4J_dbms_jvm_additional","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005")
-//                .withExposedPorts(5005)
                 .withFileSystemBind("./target/import", "/import") // map the "target/import" dir as the Neo4j's import dir
                 .withEnv("NEO4J_ACCEPT_LICENSE_AGREEMENT", "yes")
-                .withCreateContainerCmdModifier(cmd -> cmd.withMemory(512 * 1024 * 1024l));
+//                .withDebugger()  // uncomment this line for remote debbuging inside docker's neo4j instance
+                .withCreateContainerCmdModifier(cmd -> cmd.withMemory(1024 * 1024 * 1024l));
         if (withLogging) {
             neo4jContainer.withLogging();
         }
@@ -95,7 +97,7 @@ public class TestContainerUtil {
         session.writeTransaction(tx -> {
             Map<String, Object> p = (params == null) ? Collections.<String, Object>emptyMap() : params;
             resultConsumer.accept(tx.run(call, p).list().stream().map(Record::asMap).collect(Collectors.toList()).iterator());
-            tx.success();
+            tx.commit();
             return null;
         });
     }
@@ -127,7 +129,7 @@ public class TestContainerUtil {
         session.readTransaction(tx -> {
             Map<String, Object> p = (params == null) ? Collections.<String, Object>emptyMap() : params;
             resultConsumer.accept(tx.run(call, p).list().stream().map(Record::asMap).collect(Collectors.toList()).iterator());
-            tx.success();
+            tx.commit();
             return null;
         });
     }

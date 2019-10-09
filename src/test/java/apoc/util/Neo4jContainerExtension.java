@@ -1,8 +1,6 @@
 package apoc.util;
 
-
-import org.jetbrains.annotations.NotNull;
-import org.neo4j.driver.v1.*;
+import org.neo4j.driver.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.Neo4jContainer;
@@ -69,7 +67,7 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
                 }
                 session.writeTransaction(tx -> {
                     tx.run(statement);
-                    tx.success();
+                    tx.commit();
                     return null;
                 });
             }
@@ -80,7 +78,6 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
         return session;
     }
 
-    @NotNull
     private AuthToken getAuth() {
         return getAdminPassword() != null && !getAdminPassword().isEmpty()
                 ? AuthTokens.basic("neo4j", getAdminPassword()): AuthTokens.none();
@@ -88,6 +85,13 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
 
     public Neo4jContainerExtension withLogging() {
         withLogConsumer(new Slf4jLogConsumer(logger));
+        return this;
+    }
+
+    public Neo4jContainerExtension withDebugger() {
+        withEnv("NEO4J_dbms_jvm_additional","-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0.0.0.0:5005");
+        addFixedExposedPort(5005, 5005);
+        withExposedPorts(5005);
         return this;
     }
 
