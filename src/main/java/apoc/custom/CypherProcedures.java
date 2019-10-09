@@ -447,7 +447,7 @@ public class CypherProcedures {
         @Override
         public void unavailable() {
             if (restoreProceduresHandle != null) {
-                restoreProceduresHandle.cancel(true);
+                restoreProceduresHandle.cancel(false);
             }
             properties = null;
         }

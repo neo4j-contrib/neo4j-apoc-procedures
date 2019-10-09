@@ -564,7 +564,7 @@ public class Util {
         try {
             if (f.isDone()) return f.get();
             else {
-                f.cancel(true);
+                f.cancel(false );
                 errors.incrementAndGet();
             }
         } catch (InterruptedException | ExecutionException e) {
