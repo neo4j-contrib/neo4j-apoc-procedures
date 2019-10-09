@@ -57,6 +57,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         DatabaseManagementService databaseManagementService();
         ApocConfig apocConfig();
         GlobalProceduresRegistry globalProceduresRegistry();
+        RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle();
     }
 
     @Override
@@ -74,6 +75,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         private Log userLog;
 
         private final Map<String, Lifecycle> services = new HashMap<>();
+        private CypherProceduresHandler cypherProceduresHandler;
 
         public ApocLifecycle(LogService log, GraphDatabaseAPI db, Dependencies dependencies) {
             this.log = log;
@@ -89,7 +91,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
         }
 
         @Override
-        public void start() {
+        public void init() throws Exception {
             withNonSystemDatabase(db, aVoid -> {
 
                 services.put("ttl", new TTLLifeCycle(dependencies.scheduler(), db, dependencies.apocConfig(), log.getUserLog(TTLLifeCycle.class)));
@@ -105,10 +107,28 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
                         log.getUserLog(Trigger.class),
                         dependencies.globalProceduresRegistry())
                 );
-/*
-                services.put("cypherProcedures", );
-*/
 
+                RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = dependencies.registerComponentLifecycle();
+                String databaseNamme = db.databaseName();
+                services.values().forEach(lifecycle -> registerComponentLifecycle.addResolver(
+                        databaseNamme,
+                        lifecycle.getClass(),
+                        lifecycle));
+
+                cypherProceduresHandler = new CypherProceduresHandler(
+                        db,
+                        dependencies.databaseManagementService(),
+                        dependencies.apocConfig(),
+                        log.getUserLog(CypherProcedures.class),
+                        dependencies.globalProceduresRegistry()
+                );
+                registerComponentLifecycle.addResolver(databaseNamme, CypherProceduresHandler.class, cypherProceduresHandler);
+            });
+        }
+
+        @Override
+        public void start() {
+            withNonSystemDatabase(db, aVoid -> {
                 services.entrySet().stream().forEach(entry -> {
                     try {
                         entry.getValue().start();
@@ -118,13 +138,7 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
                 });
 
                 AvailabilityGuard availabilityGuard = dependencies.availabilityGuard();
-                availabilityGuard.addListener(new CypherProceduresHandler(
-                        db,
-                        dependencies.databaseManagementService(),
-                        dependencies.apocConfig(),
-                        log.getUserLog(CypherProcedures.class),
-                        dependencies.globalProceduresRegistry()
-                ));
+                availabilityGuard.addListener(cypherProceduresHandler);
                 availabilityGuard.addListener(new CypherInitializer(db, log.getUserLog(CypherInitializer.class)));
 
             });

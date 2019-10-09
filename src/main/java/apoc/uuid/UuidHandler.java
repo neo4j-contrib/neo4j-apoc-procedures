@@ -41,18 +41,11 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     private static final String NOT_ENABLED_ERROR = "UUID have not been enabled." +
             " Set 'apoc.uuid.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
 
-    private static final Map<String, UuidHandler> uuidLifecyclesByDatabaseName = new ConcurrentHashMap<>();
-
     public UuidHandler(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, Log log, ApocConfig apocConfig, GlobalProceduresRegistry globalProceduresRegistry) {
         this.db = db;
         this.databaseManagementService = databaseManagementService;
         this.log = log;
         this.apocConfig = apocConfig;
-        uuidLifecyclesByDatabaseName.put(db.databaseName(), this);
-        globalProceduresRegistry.registerComponent(UuidHandler.class, ctx -> {
-            String databaseName = ctx.graphDatabaseAPI().databaseName();
-            return uuidLifecyclesByDatabaseName.get(databaseName);
-        }, true);
     }
 
     @Override

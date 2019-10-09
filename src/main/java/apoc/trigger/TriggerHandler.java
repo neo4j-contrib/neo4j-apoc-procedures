@@ -39,7 +39,6 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
 
     public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
             " Set 'apoc.trigger.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
-    private static final Map<String, TriggerHandler> triggerLifecyclesByDatabaseName = new ConcurrentHashMap<>();
     private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
     private final Field transactionDatatInternalTransaction;
 
@@ -48,13 +47,7 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         this.db = db;
         this.databaseManagementService = databaseManagementService;
         this.apocConfig = apocConfig;
-//            Pools.SCHEDULED.submit(() -> updateTriggers(null,null));
         this.log = log;
-        triggerLifecyclesByDatabaseName.put(db.databaseName(), this);
-        globalProceduresRegistry.registerComponent(TriggerHandler.class, ctx -> {
-            String databaseName = ctx.graphDatabaseAPI().databaseName();
-            return triggerLifecyclesByDatabaseName.get(databaseName);
-        }, true);
         transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
 
         // FIXME: get rid of reflection once transaction is directly accessible from {@link TransactionData}
@@ -286,4 +279,5 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
             databaseManagementService.unregisterTransactionEventListener(db.databaseName(), this);
         }
     }
+
 }

@@ -34,7 +34,6 @@ import org.neo4j.values.virtual.MapValueBuilder;
 import org.neo4j.values.virtual.VirtualValues;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,8 +47,6 @@ public class CypherProceduresHandler implements AvailabilityListener {
     private static final String PREFIX = "custom";
     public static final String FUNCTION = "function";
     public static final String PROCEDURE = "procedure";
-
-    private static final Map<String, CypherProceduresHandler> cypherProceduresLifecyclesByDatabaseName = new ConcurrentHashMap<>();
 
     public static final String CUSTOM_PROCEDURES_REFRESH = "apoc.custom.procedures.refresh";
     private final GraphDatabaseAPI api;
@@ -66,12 +63,6 @@ public class CypherProceduresHandler implements AvailabilityListener {
         this.log = userLog;
         this.systemDb = apocConfig.getSystemDb();
         this.globalProceduresRegistry = globalProceduresRegistry;
-        cypherProceduresLifecyclesByDatabaseName.put(db.databaseName(), this);
-        globalProceduresRegistry.registerComponent(CypherProceduresHandler.class, ctx -> {
-            String databaseName = ctx.graphDatabaseAPI().databaseName();
-            return cypherProceduresLifecyclesByDatabaseName.get(databaseName);
-        }, true);
-
         transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
     }
 

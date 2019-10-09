@@ -27,7 +27,6 @@ public class CypherProceduresTest  {
     @Before
     public void setup() {
         TestUtil.registerProcedure(db, CypherProcedures.class);
-
     }
 
     @Test
