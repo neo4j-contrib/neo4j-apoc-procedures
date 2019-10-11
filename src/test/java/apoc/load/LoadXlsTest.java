@@ -288,7 +288,6 @@ RETURN m.col_1,m.col_2,m.col_3
 
     @Test
     public void testLoadXlsDateWithMappingArrayTypeDate() throws Exception {
-
         LocalDateTime time = LocalDateTime.of(1899,12,31, 12,01,10);
         LocalDateTime localDateTimeValue = LocalDateTime.of(2018,9,10, 0,0,0);
         LocalDateTime localDateTimeValue1 = LocalDateTime.of(2018,10,10, 0,0,0);

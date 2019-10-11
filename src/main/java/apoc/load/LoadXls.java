@@ -282,7 +282,12 @@ public class LoadXls {
         switch (type) {
             case NUMERIC: // In excel the date is NUMERIC Type
                 if (DateUtil.isCellDateFormatted(cell)) {
-                    return LocalDateTimeValue.localDateTime(cell.getDateCellValue().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(cell.getDateCellValue());
+                    LocalDateTime localDateTime = LocalDateTime.of(cal.get(Calendar.YEAR), cal.get(Calendar.MONTH)+1, cal.get(Calendar.DAY_OF_MONTH),
+                            cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), cal.get(Calendar.SECOND));
+                    return LocalDateTimeValue.localDateTime(localDateTime);
+//                    return LocalDateTimeValue.localDateTime(cell.getDateCellValue().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
                 }
                 double value = cell.getNumericCellValue();
                 if (value == Math.floor(value)) return (long) value;
