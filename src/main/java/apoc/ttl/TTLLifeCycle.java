@@ -73,7 +73,7 @@ public class TTLLifeCycle extends LifecycleAdapter {
 
     @Override
     public void stop() {
-        if (ttlIndexJobHandle != null) ttlIndexJobHandle.cancel(true);
-        if (ttlJobHandle != null) ttlJobHandle.cancel(true);
+        if (ttlIndexJobHandle != null) ttlIndexJobHandle.cancel();
+        if (ttlJobHandle != null) ttlJobHandle.cancel();
     }
 }
