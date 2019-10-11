@@ -88,7 +88,7 @@ public class UuidHandler extends LifecycleAdapter implements TransactionEventLis
     }
 
     @Override
-    public Void beforeCommit(TransactionData txData, GraphDatabaseService databaseService) throws Exception {
+    public Void beforeCommit(TransactionData txData, Transaction transaction, GraphDatabaseService databaseService) throws Exception {
 
         Iterable<Node> createdNodes = txData.createdNodes();
         Iterable<PropertyEntry<Node>> assignedNodeProperties = txData.assignedNodeProperties();

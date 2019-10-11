@@ -162,15 +162,9 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     }
 
     @Override
-    public Void beforeCommit(TransactionData txData, GraphDatabaseService databaseService) {
-        try {
-            TxStateTransactionDataSnapshot txDataImpl = (TxStateTransactionDataSnapshot) txData;
-            Transaction tx = (Transaction) transactionDatatInternalTransaction.get(txDataImpl);
-            executeTriggers(tx, txData, "before");
-            return null;
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+    public Void beforeCommit(TransactionData txData, Transaction transaction, GraphDatabaseService databaseService) {
+        executeTriggers(transaction, txData, "before");
+        return null;
     }
 
     @Override
