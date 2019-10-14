@@ -49,4 +49,8 @@ NOTE: the following list is incomplete
 * `ImpermanentDatabaseRule.withSetting()` takes now typed values instead of strings
 * curly braces syntax for Cypher parameters no longer supported : `$param` instead of `{param}`
 * cypher's `length` functions doesn't work on strings any longer. use `size` instead
+* `TransactionEventHandler` renamed to `TransactionListener`
+* `TransactionListener.beforeCommit` gets an additional parameter `Transaction`
+* `apoc.periodic.iterate` might return different error messages.
 
+* on API level a `IndexDefinition` could have multiple labels. Apoc's `Schema` should reflect that - to be discussed.

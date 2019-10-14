@@ -17,6 +17,7 @@ import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -47,8 +48,7 @@ public class PeriodicTest {
     public void testSubmitStatement() throws Exception {
         String callList = "CALL apoc.periodic.list()";
         // force pre-caching the queryplan
-System.out.println("call list" + db.executeTransactionally(callList, null, Result::resultAsString));
-        assertFalse(db.executeTransactionally(callList, null, Result::hasNext));
+        assertFalse(db.executeTransactionally(callList, Collections.emptyMap(), Result::hasNext));
 
         testCall(db, "CALL apoc.periodic.submit('foo','create (:Foo)')",
                 (row) -> {
@@ -61,7 +61,7 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
 
         long count = tryReadCount(50, "MATCH (:Foo) RETURN COUNT(*) AS count", 1L);
 
-        assertThat(String.format("Expected %d, got %d ", 1L, count), count, equalTo(1L));
+        assertThat(count, equalTo(1L));
 
         testCall(db, callList, (r) -> assertEquals(true, r.get("done")));
     }
@@ -98,7 +98,7 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
             assertEquals(RUNDOWN_COUNT, r.get("updates"));
         });
 
-        assertEquals(RUNDOWN_COUNT, (long)db.executeTransactionally("MATCH (p:Processed) RETURN COUNT(*) AS c", null, result -> Iterators.single(result.columnAs("c"))));
+        assertEquals(RUNDOWN_COUNT, (long)db.executeTransactionally("MATCH (p:Processed) RETURN COUNT(*) AS c", Collections.emptyMap(), result -> Iterators.single(result.columnAs("c"))));
 
     }
 
@@ -197,10 +197,11 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
             assertEquals(100L, row.get("failedOperations"));
             assertEquals(10L, row.get("failedBatches"));
             Map<String, Object> batchErrors = map("org.neo4j.graphdb.TransactionFailureException: Transaction was marked as successful, but unable to commit transaction so rolled back.", 10L);
+
             assertEquals(batchErrors, ((Map) row.get("batch")).get("errors"));
-            Map<String, Object> operationsErrors = map("Parentheses are required to identify nodes in patterns, i.e. (null) (line 1, column 56 (offset: 55))\n" +
+            Map<String, Object> operationsErrors = map("Parentheses are required to identify nodes in patterns, i.e. (null) (line 1, column 55 (offset: 54))\n" +
                     "\"UNWIND $_batch AS _batch WITH _batch.id AS id  CREATE null\"\n" +
-                    "                                                        ^", 10L);
+                    "                                                       ^", 10L);
             assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
         });
     }
@@ -383,11 +384,11 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
         int startValue = 10;
         int rate = 1;
 
-        db.executeTransactionally("CREATE (counter:Counter {c: " + startValue + "})");
+        db.executeTransactionally("CREATE (counter:Counter {c: $startValue})", Collections.singletonMap("startValue", startValue));
         String statementToRepeat = "MATCH (counter:Counter) SET counter.c = counter.c - 1 RETURN counter.c as count";
 
-        Map<String, Object> params = map("kernelTransaction", statementToRepeat, "rate", rate);
-        testResult(db, "CALL apoc.periodic.countdown('decrement',$kernelTransaction, $rate)", params, r -> {
+        Map<String, Object> params = map("statement", statementToRepeat, "rate", rate);
+        testResult(db, "CALL apoc.periodic.countdown('decrement', $statement, $rate)", params, r -> {
             try {
                 // Number of iterations per rate (in seconds)
                 Thread.sleep(startValue * rate * 1000);
@@ -395,8 +396,7 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
 
             }
 
-            long count = db.executeTransactionally("MATCH (counter:Counter) RETURN counter.c as c", null,
-                    result -> Iterators.single(result.columnAs("c")));
+            long count = TestUtil.singleResultFirstColumn(db, "MATCH (counter:Counter) RETURN counter.c as c");
             assertEquals(0L, count);
         });
     }
@@ -423,13 +423,10 @@ System.out.println("call list" + db.executeTransactionally(callList, null, Resul
         do {
             Thread.sleep(100);
             attempts++;
-            count = readCount(statement);
+            count = TestUtil.singleResultFirstColumn(db, statement);
+            System.out.println("for " + statement + " we have "+ count + " results");
         } while (attempts < maxAttempts && count != expected);
         return count;
     }
 
-    private long readCount(String statement) {
-        return db.executeTransactionally(statement, null,
-                result -> Iterators.single(result.columnAs("count")));
-    }
 }
