@@ -126,9 +126,16 @@ public class Cypher {
             String stmt = removeShellControlCommands(scanner.next());
             if (stmt.trim().isEmpty()) continue;
             if (!isSchemaOperation(stmt)) {
-                if (isPeriodicOperation(stmt))
-                    Util.inThread(pools, () -> executeStatement(tx, queue, stmt, params, addStatistics,timeout));
-                else Util.inTx(db, pools, txInThread -> executeStatement(txInThread, queue, stmt, params, addStatistics,timeout));
+                if (isPeriodicOperation(stmt)) {
+                    Util.inThread(pools , () -> db.executeTransactionally(stmt, params, result -> consumeResult(result, queue, addStatistics, timeout)));
+                }
+                else {
+                    Util.inThread(pools, () -> {
+                        try (Result result = tx.execute(stmt, params)) {
+                            return consumeResult(result, queue, addStatistics, timeout);
+                        }
+                    });
+                }
             }
         }
     }
@@ -140,7 +147,11 @@ public class Cypher {
             String stmt = removeShellControlCommands(scanner.next());
             if (stmt.trim().isEmpty()) continue;
             if (isSchemaOperation(stmt)) {
-                Util.inTx(db, pools, txInThread -> executeStatement(txInThread, queue, stmt, params, addStatistics, timeout));
+                Util.inTx(db, pools, txInThread -> {
+                    try (Result result = txInThread.execute(stmt, params)) {
+                        return consumeResult(result, queue, addStatistics, timeout);
+                    }
+                });
             }
         }
     }
@@ -156,8 +167,8 @@ public class Cypher {
 
     private final static Pattern shellControl = Pattern.compile("^:?\\b(begin|commit|rollback)\\b", Pattern.CASE_INSENSITIVE);
 
-    private Object executeStatement(Transaction thisTx, BlockingQueue<RowResult> queue, String stmt, Map<String, Object> params, boolean addStatistics, long timeout) {
-        try (Result result = thisTx.execute(stmt,params)) {
+    private Object consumeResult(Result result, BlockingQueue<RowResult> queue, boolean addStatistics, long timeout) {
+        try {
             long time = System.currentTimeMillis();
             int row = 0;
             while (result.hasNext()) {
@@ -165,7 +176,7 @@ public class Cypher {
                 queue.put(new RowResult(row++, result.next()));
             }
             if (addStatistics) {
-                queue.offer(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)), timeout,TimeUnit.SECONDS);
+                queue.offer(new RowResult(-1, toMap(result.getQueryStatistics(), System.currentTimeMillis() - time, row)), timeout, TimeUnit.SECONDS);
             }
             return row;
         } catch (InterruptedException e) {
@@ -286,7 +297,9 @@ public class Cypher {
             long total = parallelPartitions
                 .map((List<Object> partition) -> {
                     try {
-                        return executeStatement(tx, queue, statement, parallelParams(params, "_", partition),false,timeout);
+                        try (Result result = tx.execute(statement, parallelParams(params, "_", partition))) {
+                            return consumeResult(result, queue, false, timeout);
+                        }
                     } catch (Exception e) {throw new RuntimeException(e);}}
                 ).count();
             queue.put(RowResult.TOMBSTONE);
@@ -372,7 +385,15 @@ public class Cypher {
     }
 
     private Future<List<Map<String, Object>>> submit(Transaction tx, String statement, Map<String, Object> params, String key, List<Object> partition) {
-        return pools.getDefaultExecutorService().submit(() -> Iterators.addToCollection(tx.execute(statement, parallelParams(params, key, partition)), new ArrayList<>(partition.size())));
+        return pools.getDefaultExecutorService().submit(
+                () -> {
+                    try {
+                        return Iterators.addToCollection(tx.execute(statement, parallelParams(params, key, partition)), new ArrayList<>(partition.size()));
+                    } catch (RuntimeException e) {
+                        throw e;  // set breakpoint for debugging here
+                    }
+                }
+        );
     }
 
     @Procedure(mode = WRITE)
