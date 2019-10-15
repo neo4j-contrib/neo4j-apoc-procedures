@@ -14,7 +14,6 @@ import org.neo4j.kernel.internal.GraphDatabaseAPI;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.Socket;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -170,33 +169,6 @@ public class TestUtil {
 
     public static boolean isTravis() {
         return "true".equals(System.getenv("TRAVIS"));
-    }
-
-/*
-    public static Pair<DatabaseManagementService, GraphDatabaseService> apocGraphDatabaseBuilder() {
-        return apocGraphDatabaseBuilder(builder -> {});
-    }
-
-    public static Pair<DatabaseManagementService, GraphDatabaseService> apocGraphDatabaseBuilder(
-            Consumer<DatabaseManagementServiceBuilder> consumer) {
-        DatabaseManagementServiceBuilder builder = new TestDatabaseManagementServiceBuilder()
-                .impermanent()
-                .setConfig("dbms.backup.enabled", "false")
-                .setConfig(GraphDatabaseSettings.procedure_unrestricted, "apoc.*");
-        consumer.accept(builder);
-        DatabaseManagementService dbms = builder.build();
-        GraphDatabaseService db = dbms.database(DEFAULT_DATABASE_NAME);
-        return Pair.of(dbms, db);
-    }
-*/
-
-    public static boolean serverListening(String host, int port)
-    {
-        try (Socket s = new Socket(host, port)){
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
     }
 
     public static URL getUrlFileName(String filename) {
