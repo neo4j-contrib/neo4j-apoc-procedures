@@ -11,6 +11,7 @@ import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
+import org.neo4j.kernel.impl.coreapi.InternalTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
@@ -172,6 +173,12 @@ public class Util {
             return pool.submit(() -> {
                 try (Transaction txInThread = db.beginTx()) {
                     T result = function.apply(txInThread);
+
+                    // to make behaviour of 4.0 similar to 3.x we need to leave the transaction with an exception if any on its statement failed
+                    Map<String, Object> metaData = ((InternalTransaction) txInThread).kernelTransaction().getMetaData();
+                    if ((Boolean)(metaData.getOrDefault("batchFailed", false))) {
+                        throw new TransactionFailureException("Transaction was marked as successful, but unable to commit transaction so rolled back.");
+                    }
                     txInThread.commit();
                     return result;
                 }
@@ -551,8 +558,7 @@ public class Util {
     public static <T> T getFuture(Future<T> f, Map<String, Long> errorMessages, AtomicInteger errors, T errorValue) {
         try {
             return f.get();
-//        } catch (Exception e) {
-        } catch (InterruptedException | ExecutionException | QueryExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             errors.incrementAndGet();
             errorMessages.compute(e.getMessage(),(s, i) -> i == null ? 1 : i + 1);
             return errorValue;
@@ -562,11 +568,10 @@ public class Util {
         try {
             if (f.isDone()) return f.get();
             else {
-                f.cancel(true);
+                f.cancel(false);
                 errors.incrementAndGet();
             }
-//        } catch (Exception e) {
-        } catch (InterruptedException | ExecutionException | QueryExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             errors.incrementAndGet();
             errorMessages.compute(e.getMessage(),(s, i) -> i == null ? 1 : i + 1);
         }
