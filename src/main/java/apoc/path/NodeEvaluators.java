@@ -21,7 +21,7 @@ public final class NodeEvaluators {
      * Returns an evaluator which handles end nodes and terminator nodes
      * Returns null if both lists are empty
      */
-    public static Evaluator endAndTerminatorNodeEvaluator(List<Node> endNodes, List<Node> terminatorNodes) {
+    public static Evaluator endAndTerminatorNodeEvaluator(boolean filterStartNode, int minLevel, List<Node> endNodes, List<Node> terminatorNodes) {
         Evaluator endNodeEvaluator = null;
         Evaluator terminatorNodeEvaluator = null;
 
@@ -36,32 +36,40 @@ public final class NodeEvaluators {
         }
 
         if (endNodeEvaluator != null || terminatorNodeEvaluator != null) {
-            return new EndAndTerminatorNodeEvaluator(endNodeEvaluator, terminatorNodeEvaluator);
+            return new EndAndTerminatorNodeEvaluator(filterStartNode, minLevel, endNodeEvaluator, terminatorNodeEvaluator);
         }
 
         return null;
     }
 
-    public static Evaluator whitelistNodeEvaluator(List<Node> whitelistNodes) {
-        return new WhitelistNodeEvaluator(whitelistNodes);
+    public static Evaluator whitelistNodeEvaluator(boolean filterStartNode, int minLevel, List<Node> whitelistNodes) {
+        return new WhitelistNodeEvaluator(filterStartNode, minLevel, whitelistNodes);
     }
 
-    public static Evaluator blacklistNodeEvaluator(List<Node> blacklistNodes) {
-        return new BlacklistNodeEvaluator(blacklistNodes);
+    public static Evaluator blacklistNodeEvaluator(boolean filterStartNode, int minLevel, List<Node> blacklistNodes) {
+        return new BlacklistNodeEvaluator(filterStartNode, minLevel, blacklistNodes);
     }
 
     // The evaluators from pruneWhereEndNodeIs and includeWhereEndNodeIs interfere with each other, this makes them play nice
     private static class EndAndTerminatorNodeEvaluator implements Evaluator {
+        private boolean filterStartNode;
+        private int minLevel;
         private Evaluator endNodeEvaluator;
         private Evaluator terminatorNodeEvaluator;
 
-        public EndAndTerminatorNodeEvaluator(Evaluator endNodeEvaluator, Evaluator terminatorNodeEvaluator) {
+        public EndAndTerminatorNodeEvaluator(boolean filterStartNode, int minLevel, Evaluator endNodeEvaluator, Evaluator terminatorNodeEvaluator) {
+            this.filterStartNode = filterStartNode;
+            this.minLevel = minLevel;
             this.endNodeEvaluator = endNodeEvaluator;
             this.terminatorNodeEvaluator = terminatorNodeEvaluator;
         }
 
         @Override
         public Evaluation evaluate(Path path) {
+            if ((path.length() == 0 && !filterStartNode) || path.length() < minLevel) {
+                return Evaluation.EXCLUDE_AND_CONTINUE;
+            }
+
             // at least one has to give a thumbs up to include
             boolean includes = evalIncludes(endNodeEvaluator, path) || evalIncludes(terminatorNodeEvaluator, path);
             // prune = terminatorNodeEvaluator != null && !terminatorNodeEvaluator.evaluate(path).continues()
@@ -76,29 +84,43 @@ public final class NodeEvaluators {
         }
     }
 
-    private static class BlacklistNodeEvaluator implements Evaluator {
+    private static class BlacklistNodeEvaluator extends PathExpanderNodeEvaluator {
         private Set<Node> blacklistSet;
 
-        public BlacklistNodeEvaluator(List<Node> blacklistNodes) {
+        public BlacklistNodeEvaluator(boolean filterStartNode, int minLevel, List<Node> blacklistNodes) {
+            super(filterStartNode, minLevel);
             blacklistSet = new HashSet<>(blacklistNodes);
         }
 
         @Override
         public Evaluation evaluate(Path path) {
-            return blacklistSet.contains(path.endNode()) ? Evaluation.EXCLUDE_AND_PRUNE : Evaluation.INCLUDE_AND_CONTINUE;
+            return path.length() == 0 && !filterStartNode ? Evaluation.INCLUDE_AND_CONTINUE :
+                    blacklistSet.contains(path.endNode()) ? Evaluation.EXCLUDE_AND_PRUNE : Evaluation.INCLUDE_AND_CONTINUE;
         }
     }
 
-    private static class WhitelistNodeEvaluator implements Evaluator {
+    private static class WhitelistNodeEvaluator extends PathExpanderNodeEvaluator {
         private Set<Node> whitelistSet;
 
-        public WhitelistNodeEvaluator(List<Node> whitelistNodes) {
+        public WhitelistNodeEvaluator(boolean filterStartNode, int minLevel, List<Node> whitelistNodes) {
+            super(filterStartNode, minLevel);
             whitelistSet = new HashSet<>(whitelistNodes);
         }
 
         @Override
         public Evaluation evaluate(Path path) {
-            return whitelistSet.contains(path.endNode()) ? Evaluation.INCLUDE_AND_CONTINUE : Evaluation.EXCLUDE_AND_PRUNE;
+            return (path.length() == 0 && !filterStartNode) ? Evaluation.INCLUDE_AND_CONTINUE :
+            whitelistSet.contains(path.endNode()) ? Evaluation.INCLUDE_AND_CONTINUE : Evaluation.EXCLUDE_AND_PRUNE;
+        }
+    }
+
+    private static abstract class PathExpanderNodeEvaluator implements Evaluator {
+        public final boolean filterStartNode;
+        public final int minLevel;
+
+        private PathExpanderNodeEvaluator(boolean filterStartNode, int minLevel) {
+            this.filterStartNode = filterStartNode;
+            this.minLevel = minLevel;
         }
     }
 }

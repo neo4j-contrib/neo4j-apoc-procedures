@@ -3,6 +3,7 @@ package apoc.util;
 import apoc.ApocConfiguration;
 import apoc.export.util.CountingInputStream;
 import apoc.export.util.CountingReader;
+import apoc.export.util.ExportConfig;
 import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
 import org.apache.commons.io.output.WriterOutputStream;
@@ -22,11 +23,16 @@ import java.util.regex.Pattern;
  */
 public class FileUtils {
 
+    public static final String HTTP_PROTOCOL = "http";
     public static final String S3_PROTOCOL = "s3";
     public static final boolean S3_ENABLED = Util.classExists("com.amazonaws.services.s3.AmazonS3");
+    public static final String GCS_PROTOCOL = "gs";
+    public static final boolean GCS_ENABLED = Util.classExists("com.google.cloud.storage.Storage");
     public static final String HDFS_PROTOCOL = "hdfs";
     public static final boolean HDFS_ENABLED = Util.classExists("org.apache.hadoop.fs.FileSystem");
     public static final Pattern HDFS_PATTERN = Pattern.compile("^(hdfs:\\/\\/)(?:[^@\\/\\n]+@)?([^\\/\\n]+)");
+
+    public static final List<String> NON_FILE_PROTOCOLS = Arrays.asList(HTTP_PROTOCOL, S3_PROTOCOL, GCS_PROTOCOL, HDFS_PROTOCOL);
 
     public static CountingReader readerFor(String fileName) throws IOException {
         checkReadAllowed(fileName);
@@ -118,10 +124,8 @@ public class FileUtils {
 
     public static boolean isFile(String fileName) {
         if (fileName==null) return false;
-        if (fileName.toLowerCase().startsWith("http")) return false;
-        if (isHdfs(fileName)) return false;
-        if (fileName.toLowerCase().startsWith("file:")) return true;
-        return true;
+        String fileNameLowerCase = fileName.toLowerCase();
+        return !NON_FILE_PROTOCOLS.stream().anyMatch(protocol -> fileNameLowerCase.startsWith(protocol));
     }
 
     public static PrintWriter getPrintWriter(String fileName, Writer out) throws IOException {
@@ -175,9 +179,14 @@ public class FileUtils {
         if (isFile(url) && !ApocConfiguration.isEnabled("import.file.enabled"))
             throw new RuntimeException("Import from files not enabled, please set apoc.import.file.enabled=true in your neo4j.conf");
     }
-    public static void checkWriteAllowed() {
+    public static void checkWriteAllowed(ExportConfig exportConfig) {
         if (!ApocConfiguration.isEnabled("export.file.enabled"))
-            throw new RuntimeException("Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf");
+            if (exportConfig == null || !exportConfig.streamStatements()) {
+                throw new RuntimeException("Export to files not enabled, please set apoc.export.file.enabled=true in your neo4j.conf");
+            }
+    }
+    public static void checkWriteAllowed() {
+        checkWriteAllowed(null);
     }
 
     public static StreamConnection openS3InputStream(URL url) throws IOException {

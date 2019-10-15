@@ -1,0 +1,238 @@
+{
+  "name": "Project1",
+  "type": "Project",
+  "tasks": [{
+    "name": "Task1",
+    "type": "Task",
+    "worker": {
+      "name": "Worker1",
+      "type": "Worker",
+      "company": {
+        "name": "Company1",
+        "type": "Company"
+      }
+    },
+    "subtasks": [{
+      "name": "Subtask1.1",
+      "type": "Task",
+      "worker": {
+        "name": "Worker1",
+        "type": "Worker",
+        "company": {
+          "name": "Company1",
+          "type": "Company"
+        }
+      }
+    },
+      {
+        "name": "Subtask1.2",
+        "type": "Task",
+        "worker": {
+          "name": "Worker2",
+          "type": "Worker",
+          "company": {
+            "name": "Company1",
+            "type": "Company"
+          }
+        }
+      },
+      {
+        "name": "Subtask1.3",
+        "type": "Task",
+        "worker": {
+          "name": "Worker2",
+          "type": "Worker",
+          "company": {
+            "name": "Company1",
+            "type": "Company"
+          }
+        }
+      },
+      {
+        "name": "Subtask1.4",
+        "type": "Task",
+        "worker": {
+          "name": "Worker3",
+          "type": "Worker",
+          "company": {
+            "name": "Company2",
+            "type": "Company"
+          }
+        }
+      }
+    ]
+  },
+    {
+      "name": "Task2",
+      "type": "Task",
+      "worker": {
+        "name": "Worker2",
+        "type": "Worker",
+        "company": {
+          "name": "Company1",
+          "type": "Company"
+        }
+      }
+    },
+    {
+      "name": "Task3",
+      "type": "Task",
+      "worker": {
+        "name": "Worker3",
+        "type": "Worker",
+        "company": {
+          "name": "Company2",
+          "type": "Company"
+        }
+      }
+    },
+    {
+      "name": "Task4",
+      "type": "Task",
+      "worker": {
+        "name": "Worker4",
+        "type": "Worker",
+        "company": {
+          "name": "Company3",
+          "type": "Company"
+        }
+      },
+      "subtasks": [{
+        "name": "Subtask4.1",
+        "type": "Task",
+        "worker": {
+          "name": "Worker4",
+          "type": "Worker",
+          "company": {
+            "name": "Company3",
+            "type": "Company"
+          }
+        }
+      },
+        {
+          "name": "Subtask4.2",
+          "type": "Task",
+          "worker": {
+            "name": "Worker4",
+            "type": "Worker",
+            "company": {
+              "name": "Company3",
+              "type": "Company"
+            }
+          }
+        },
+        {
+          "name": "Subtask4.3",
+          "type": "Task",
+          "worker": {
+            "name": "Worker4",
+            "type": "Worker",
+            "company": {
+              "name": "Company3",
+              "type": "Company"
+            }
+          }
+        },
+        {
+          "name": "Subtask4.4",
+          "type": "Task",
+          "worker": {
+            "name": "Worker5",
+            "type": "Worker",
+            "company": {
+              "name": "Company3",
+              "type": "Company"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Task5",
+      "type": "Task",
+      "worker": {
+        "name": "Worker5",
+        "type": "Worker",
+        "company": {
+          "name": "Company3",
+          "type": "Company"
+        }
+      },
+      "subtasks": [{
+        "name": "Subtask5.1",
+        "type": "Task",
+        "worker": {
+          "name": "Worker4",
+          "type": "Worker",
+          "company": {
+            "name": "Company3",
+            "type": "Company"
+          }
+        },
+        "subtasks": [{
+          "name": "Subtask5.1.1",
+          "type": "Task",
+          "worker": {
+            "name": "Worker4",
+            "type": "Worker",
+            "company": {
+              "name": "Company3",
+              "type": "Company"
+            }
+          }
+        },
+          {
+            "name": "Subtask5.1.2",
+            "type": "Task",
+            "worker": {
+              "name": "Worker4",
+              "type": "Worker",
+              "company": {
+                "name": "Company3",
+                "type": "Company"
+              }
+            }
+          }
+        ]
+      },
+        {
+          "name": "Subtask5.2",
+          "type": "Task",
+          "worker": {
+            "name": "Worker4",
+            "type": "Worker",
+            "company": {
+              "name": "Company3",
+              "type": "Company"
+            }
+          },
+          "subtasks": [{
+            "name": "Subtask5.2.1",
+            "type": "Task",
+            "worker": {
+              "name": "Worker4",
+              "type": "Worker",
+              "company": {
+                "name": "Company3",
+                "type": "Company"
+              }
+            }
+          },
+            {
+              "name": "Subtask5.2.2",
+              "type": "Task",
+              "worker": {
+                "type": "Worker",
+                "name": "Worker4",
+                "company": {
+                  "name": "Company3",
+                  "type": "Company"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,8 +1,10 @@
 package apoc.graph;
 
+import apoc.graph.util.GraphsConfig;
 import apoc.util.JsonUtil;
 import apoc.util.TestUtil;
 import apoc.util.Util;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -11,13 +13,16 @@ import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static apoc.util.MapUtil.map;
 import static java.util.Arrays.asList;
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 import static org.neo4j.graphdb.Label.label;
 
 /**
@@ -135,14 +140,16 @@ public class GraphsTest {
             Iterator<Node> nodeIterator = nodes.iterator();
             Iterator<Relationship> relationshipIterator = relationships.iterator();
 
-            Node albumGenesis = nodeIterator.next();
-            assertEquals(asList(label("Album")), albumGenesis.getLabels());
-            assertTrue(albumGenesis.getId() < 0);
-            assertEquals(albumGenesisMap, albumGenesis.getAllProperties());
             Node artistGenesis = nodeIterator.next();
             assertEquals(asList(label("Artist")), artistGenesis.getLabels());
             assertTrue(artistGenesis.getId() < 0);
             assertEquals(artistGenesisMap, artistGenesis.getAllProperties());
+
+            Node albumGenesis = nodeIterator.next();
+            assertEquals(asList(label("Album")), albumGenesis.getLabels());
+            assertTrue(albumGenesis.getId() < 0);
+            assertEquals(albumGenesisMap, albumGenesis.getAllProperties());
+
             Relationship rel = relationshipIterator.next();
             assertEquals(RelationshipType.withName("ALBUMS"), rel.getType());
             assertTrue(rel.getId() < 0);
@@ -182,26 +189,30 @@ public class GraphsTest {
                     Iterator<Node> nodeIterator = nodes.iterator();
                     Iterator<Relationship> relationshipIterator = relationships.iterator();
 
-                    Node albumGenesis = nodeIterator.next();
-                    assertEquals(asList(label("Album")), albumGenesis.getLabels());
-                    assertTrue(albumGenesis.getId() < 0);
-                    assertEquals(albumGenesisMap, albumGenesis.getAllProperties());
                     Node artistGenesis = nodeIterator.next();
                     assertEquals(asList(label("Artist")), artistGenesis.getLabels());
                     assertTrue(artistGenesis.getId() < 0);
                     assertEquals(artistGenesisMap, artistGenesis.getAllProperties());
-                    Relationship rel = relationshipIterator.next();
-                    assertEquals(RelationshipType.withName("ALBUMS"), rel.getType());
-                    assertTrue(rel.getId() < 0);
+
+                    Node artistDaftPunk = nodeIterator.next();
+                    assertEquals(asList(label("Artist")), artistDaftPunk.getLabels());
+                    assertTrue(artistDaftPunk.getId() < 0);
+                    assertEquals(artistDaftPunkMap, artistDaftPunk.getAllProperties());
+
+                    Node albumGenesis = nodeIterator.next();
+                    assertEquals(asList(label("Album")), albumGenesis.getLabels());
+                    assertTrue(albumGenesis.getId() < 0);
+                    assertEquals(albumGenesisMap, albumGenesis.getAllProperties());
 
                     Node albumDaftPunk = nodeIterator.next();
                     assertEquals(asList(label("Album")), albumDaftPunk.getLabels());
                     assertTrue(albumDaftPunk.getId() < 0);
                     assertEquals(albumDaftPunkMap, albumDaftPunk.getAllProperties());
-                    Node artistDaftPunk = nodeIterator.next();
-                    assertEquals(asList(label("Artist")), artistDaftPunk.getLabels());
-                    assertTrue(artistDaftPunk.getId() < 0);
-                    assertEquals(artistDaftPunkMap, artistDaftPunk.getAllProperties());
+
+                    Relationship rel = relationshipIterator.next();
+                    assertEquals(RelationshipType.withName("ALBUMS"), rel.getType());
+                    assertTrue(rel.getId() < 0);
+
                     rel = relationshipIterator.next();
                     assertEquals(RelationshipType.withName("ALBUMS"), rel.getType());
                     assertTrue(rel.getId() < 0);
@@ -244,27 +255,32 @@ public class GraphsTest {
                     assertEquals(asList(label("Album")), albumGenesis.getLabels());
                     assertTrue(albumGenesis.getId() > 0);
                     assertEquals(albumGenesisMap, albumGenesis.getAllProperties());
-                    Node artistGenesis = nodeIterator.next();
-                    assertEquals(asList(label("Artist")), artistGenesis.getLabels());
-                    assertTrue(artistGenesis.getId() > 0);
-                    assertEquals(artistGenesisMap, artistGenesis.getAllProperties());
-                    Relationship rel = relationshipIterator.next();
-                    assertEquals("ALBUMS", rel.getType().name());
-                    assertTrue(rel.getId() > 0);
 
                     Node albumDaftPunk = nodeIterator.next();
                     assertEquals(asList(label("Album")), albumDaftPunk.getLabels());
                     assertTrue(albumDaftPunk.getId() > 0);
                     assertEquals(albumDaftPunkMap, albumDaftPunk.getAllProperties());
+
+                    Node artistGenesis = nodeIterator.next();
+                    assertEquals(asList(label("Artist")), artistGenesis.getLabels());
+                    assertTrue(artistGenesis.getId() > 0);
+                    assertEquals(artistGenesisMap, artistGenesis.getAllProperties());
+
                     Node artistDaftPunk = nodeIterator.next();
                     assertEquals(asList(label("Artist")), artistDaftPunk.getLabels());
                     assertTrue(artistDaftPunk.getId() > 0);
                     assertEquals(artistDaftPunkMap, artistDaftPunk.getAllProperties());
+
+                    Relationship rel = relationshipIterator.next();
+                    assertEquals("ALBUMS", rel.getType().name());
+                    assertTrue(rel.getId() > 0);
                     rel = relationshipIterator.next();
                     assertEquals("ALBUMS", rel.getType().name());
                     assertTrue(rel.getId() > 0);
                 });
         db.execute("MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) detach delete p").close();
+        long count = db.execute("MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) RETURN count(p) AS count").<Long>columnAs("count").next();
+        assertEquals(0L, count);
     }
 
     @Test
@@ -288,14 +304,16 @@ public class GraphsTest {
                     Iterator<Node> nodeIterator = nodes.iterator();
                     Iterator<Relationship> relationshipIterator = relationships.iterator();
 
-                    Node albumGenesis = nodeIterator.next();
-                    assertEquals(asList(label("Album")), albumGenesis.getLabels());
-                    assertTrue(albumGenesis.getId() < 0);
-                    assertEquals(albumMap, albumGenesis.getAllProperties());
                     Node artistGenesis = nodeIterator.next();
                     assertEquals(asList(label("Artist")), artistGenesis.getLabels());
                     assertTrue(artistGenesis.getId() < 0);
                     assertEquals(genesisMap, artistGenesis.getAllProperties());
+
+                    Node albumGenesis = nodeIterator.next();
+                    assertEquals(asList(label("Album")), albumGenesis.getLabels());
+                    assertTrue(albumGenesis.getId() < 0);
+                    assertEquals(albumMap, albumGenesis.getAllProperties());
+
                     Relationship rel = relationshipIterator.next();
                     assertEquals(RelationshipType.withName("ALBUMS"), rel.getType());
                     assertTrue(rel.getId() < 0);
@@ -322,14 +340,16 @@ public class GraphsTest {
                     Iterator<Node> nodeIterator = nodes.iterator();
                     Iterator<Relationship> relationshipIterator = relationships.iterator();
 
-                    Node albumGenesis = nodeIterator.next();
-                    assertEquals(asList(label("Album")), albumGenesis.getLabels());
-                    assertTrue(albumGenesis.getId() < 0);
-                    assertEquals(albumMap, albumGenesis.getAllProperties());
                     Node artistGenesis = nodeIterator.next();
                     assertEquals(asList(label("Artist")), artistGenesis.getLabels());
                     assertTrue(artistGenesis.getId() < 0);
                     assertEquals(genesisMap, artistGenesis.getAllProperties());
+
+                    Node albumGenesis = nodeIterator.next();
+                    assertEquals(asList(label("Album")), albumGenesis.getLabels());
+                    assertTrue(albumGenesis.getId() < 0);
+                    assertEquals(albumMap, albumGenesis.getAllProperties());
+
                     Relationship rel = relationshipIterator.next();
                     assertEquals(RelationshipType.withName("ALBUMS"), rel.getType());
                     assertTrue(rel.getId() < 0);
@@ -369,13 +389,17 @@ public class GraphsTest {
                     assertTrue(rel.getId() > 0);
                 });
         db.execute("MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) detach delete p").close();
+        long count = db.execute("MATCH p = (a:Artist)-[r:ALBUMS]->(b:Album) RETURN count(p) AS count").<Long>columnAs("count").next();
+        assertEquals(0L, count);
     }
 
     @Test(expected = RuntimeException.class)
     public void testCreateVirtualSimpleNodeWithErrorId() throws Exception{
         Map<String, Object> genesisMap = Util.map("type", "artist", "name", "Genesis");
         try {
-            TestUtil.testCall(db, "CALL apoc.graph.fromDocument({json}) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)), stringObjectMap -> { });
+            TestUtil.testCall(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+                    Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap),
+                            "config", Util.map("generateId", false)), stringObjectMap -> { });
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
@@ -391,8 +415,8 @@ public class GraphsTest {
                 Util.map("id", 1, "name", "Daft Punk"),
                 Util.map("name", "Daft Punk"));
 
-        TestUtil.testResult(db, "CALL apoc.graph.validateDocument({json}) yield row",
-                Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(list)), result -> {
+        TestUtil.testResult(db, "CALL apoc.graph.validateDocument({json}, {config}) yield row",
+                Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(list), "config", Util.map("generateId", false, "defaultLabel", "")), result -> {
                     Map<String, Object> row = (Map<String, Object>) result.next().get("row");
                     assertEquals(0L, row.get("index"));
                     assertEquals("The object `{\"type\":\"artist\",\"name\":\"Daft Punk\"}` must have `id` as id-field name", row.get("message"));
@@ -409,14 +433,27 @@ public class GraphsTest {
     @Test
     public void testValidateDocumentWithCutErrorFormatter() throws Exception {
         String json = "{\"quiz\":{\"sport\":{\"q1\":{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bulls\",\"Los Angeles Kings\",\"Golden State Warriros\",\"Huston Rocket\"],\"answer\":\"Huston Rocket\"}},\"maths\":{\"q1\":{\"question\":\"5 + 7 = ?\",\"options\":[\"10\",\"11\",\"12\",\"13\"],\"answer\":\"12\"},\"q2\":{\"question\":\"12 - 8 = ?\",\"options\":[\"1\",\"2\",\"3\",\"4\"],\"answer\":\"4\"}}}}";
-
-        TestUtil.testResult(db, "CALL apoc.graph.validateDocument({json}) yield row",
-                Util.map("json", json), result -> {
+        Set<String> errors = new HashSet<>();
+        errors.add("The object `{\"quiz\":{\"sport\":{\"q1\":{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bul...}` must have `id` as id-field name and `type` as label-field name");
+        errors.add("The object `{\"sport\":{\"q1\":{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bulls\",\"Los...}` must have `id` as id-field name and `type` as label-field name");
+        errors.add("The object `{\"q1\":{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bulls\",\"Los Angeles ...}` must have `id` as id-field name and `type` as label-field name");
+        errors.add("The object `{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bulls\",\"Los Angeles Kings\"...}` must have `id` as id-field name and `type` as label-field name");
+        errors.add("The object `{\"q1\":{\"question\":\"5 + 7 = ?\",\"options\":[\"10\",\"11\",\"12\",\"13\"],\"answer\":\"12\"},\"q2\":{\"question\":\"12 - ...}` must have `id` as id-field name and `type` as label-field name");
+        errors.add("The object `{\"question\":\"5 + 7 = ?\",\"options\":[\"10\",\"11\",\"12\",\"13\"],\"answer\":\"12\"}` must have `id` as id-field name and `type` as label-field name");
+        errors.add("The object `{\"question\":\"12 - 8 = ?\",\"options\":[\"1\",\"2\",\"3\",\"4\"],\"answer\":\"4\"}` must have `id` as id-field name and `type` as label-field name");
+        TestUtil.testResult(db, "CALL apoc.graph.validateDocument({json}, {config}) yield row",
+                Util.map("json", json, "config", Util.map("generateId", false, "defaultLabel", "")), result -> {
                     Map<String, Object> row = (Map<String, Object>) result.next().get("row");
                     assertEquals(0L, row.get("index"));
-                    assertEquals("The object `{\"quiz\":{\"sport\":{\"q1\":{\"question\":\"Which one is correct team name in NBA?\",\"options\":[\"New York Bul...}` must have `id` as id-field name and `type` as label-field name", row.get("message"));
+                    Set<String> message = messageToSet(row);
+                    assertEquals(errors, message);
                     assertFalse("should not have next", result.hasNext());
                 });
+    }
+
+    private Set<String> messageToSet(Map<String, Object> row) {
+        return Stream.of(row.get("message").toString().split("\n"))
+                .collect(Collectors.toSet());
     }
 
     @Test
@@ -444,11 +481,6 @@ public class GraphsTest {
                     Iterator<Node> nodeIterator = nodes.iterator();
                     Iterator<Relationship> relationshipIterator = relationships.iterator();
 
-                    Node product = nodeIterator.next();
-                    assertEquals(asList(label("Console")), product.getLabels());
-                    assertTrue(product.getId() < 0);
-                    assertEquals(productMap, product.getAllProperties());
-
                     Node john = nodeIterator.next();
                     assertEquals(asList(label("User")), john.getLabels());
                     assertTrue(john.getId() < 0);
@@ -458,6 +490,11 @@ public class GraphsTest {
                     assertEquals(asList(label("User")), jane.getLabels());
                     assertTrue(jane.getId() < 0);
                     assertEquals(janeMap, jane.getAllProperties());
+
+                    Node product = nodeIterator.next();
+                    assertEquals(asList(label("Console")), product.getLabels());
+                    assertTrue(product.getId() < 0);
+                    assertEquals(productMap, product.getAllProperties());
 
                     Relationship rel = relationshipIterator.next();
                     Node startJohn = rel.getStartNode();
@@ -506,20 +543,20 @@ public class GraphsTest {
                     Iterator<Node> nodeIterator = nodes.iterator();
                     Iterator<Relationship> relationshipIterator = relationships.iterator();
 
-                    Node robert = nodeIterator.next();
-                    assertEquals(asList(label("Person")), robert.getLabels());
-                    assertTrue(robert.getId() < 0);
-                    assertEquals(robertMap, robert.getAllProperties());
+                    Node john = nodeIterator.next();
+                    assertEquals(asList(label("Father")), john.getLabels());
+                    assertTrue(john.getId() < 0);
+                    assertEquals(johnMap, john.getAllProperties());
 
                     Node james = nodeIterator.next();
                     assertEquals(asList(label("Father")), james.getLabels());
                     assertTrue(james.getId() < 0);
                     assertEquals(jamesMap, james.getAllProperties());
 
-                    Node john = nodeIterator.next();
-                    assertEquals(asList(label("Father")), john.getLabels());
-                    assertTrue(john.getId() < 0);
-                    assertEquals(johnMap, john.getAllProperties());
+                    Node robert = nodeIterator.next();
+                    assertEquals(asList(label("Person")), robert.getLabels());
+                    assertTrue(robert.getId() < 0);
+                    assertEquals(robertMap, robert.getAllProperties());
 
                     Relationship rel = relationshipIterator.next();
                     assertEquals(RelationshipType.withName("SON"), rel.getType());
@@ -555,13 +592,18 @@ public class GraphsTest {
                     assertEquals(1L, res.get("count"));
                 });
         db.execute("MATCH p = (a:User)-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User) detach delete p").close();
+        long count = db.execute("MATCH p = (a:User)-[r:BOUGHT]->(c:Console)<-[r1:BOUGHT]-(b:User) RETURN count(p) AS count").<Long>columnAs("count").next();
+        assertEquals(0L, count);
     }
 
     @Test(expected = RuntimeException.class)
     public void testCreateVirtualSimpleNodeWithErrorType() throws Exception{
         Map<String, Object> genesisMap = Util.map("id", 1L, "name", "Genesis");
         try {
-            TestUtil.testCall(db, "CALL apoc.graph.fromDocument({json}) yield graph", Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap)), result -> { });
+            TestUtil.testCall(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+                    Util.map("json", JsonUtil.OBJECT_MAPPER.writeValueAsString(genesisMap),
+                            "config", map("defaultLabel", "")),
+                    result -> { });
         } catch (QueryExecutionException e) {
             Throwable except = ExceptionUtils.getRootCause(e);
             assertTrue(except instanceof RuntimeException);
@@ -645,14 +687,14 @@ public class GraphsTest {
                     assertEquals(2, relationships.size());
                     Iterator<Node> nodeIterator = nodes.iterator();
                     Iterator<Relationship> relationshipIterator = relationships.iterator();
-                    Node album = nodeIterator.next();
-                    assertEquals(asList(label("Album")), album.getLabels());
-                    assertTrue(album.getId() < 0);
-                    assertEquals(album1Map, album.getAllProperties());
                     Node artist = nodeIterator.next();
                     assertEquals(asList(label("Artist")), artist.getLabels());
                     assertTrue(artist.getId() < 0);
                     assertEquals(genesisMap, artist.getAllProperties());
+                    Node album = nodeIterator.next();
+                    assertEquals(asList(label("Album")), album.getLabels());
+                    assertTrue(album.getId() < 0);
+                    assertEquals(album1Map, album.getAllProperties());
                     Node album2 = nodeIterator.next();
                     assertEquals(asList(label("Album")), album2.getLabels());
                     assertTrue(album2.getId() < 0);
@@ -685,9 +727,175 @@ public class GraphsTest {
                     assertEquals(genesisMap.get("type"), artist.getProperty("type"));
                     assertEquals(genesisMap.get("name"), artist.getProperty("name"));
                     assertEquals(genesisMap.get("id"), artist.getProperty("id"));
-                    Arrays.equals((Long[]) genesisMap.get("years"), (Long[]) artist.getProperty("years"));
-                    Arrays.equals((String[]) genesisMap.get("members"), (String[]) artist.getProperty("members"));
+                    assertArrayEquals((Long[]) genesisMap.get("years"), (Long[]) artist.getProperty("years"));
+                    assertArrayEquals((String[]) genesisMap.get("members"), (String[]) artist.getProperty("members"));
                 });
     }
 
+    @Test
+    public void shouldFindDuplicatesWithValidation() {
+        Map<String, Object> child = Util.map("key", "childKey");
+        List<Map<String, Object>> data = Arrays.asList(
+                Util.map("key", "value", "key1", "Foo"), // index 0
+                Util.map("key", "value", "key1", "Foo"), // index 1 -> dup of index 0
+                Util.map("key", "value1", "key1", "Foo", "child", child), // index 2
+                Util.map("key", "value1", "key1", "Foo"), // index 3
+                Util.map("key", "value2", "key1", "Foo", "childA", child), // index 4 -> dup of "child" field at index 1
+                Util.map("key", "value2", "key1", "Foo", "childA", Util.map("child", child)) // index 5 -> dup of "child" field at index 1
+        );
+
+        TestUtil.testResult(db, "CALL apoc.graph.validateDocument({json}, {config})",
+                Util.map("json", data, "config", Util.map("generateId", false, "defaultLabel", "")), result -> {
+                    Map<String, Object> row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(0L, row.get("index"));
+                    Set<String> errors = new HashSet<>();
+                    Set<String> messages = messageToSet(row);
+                    errors.add("The object `{\"key1\":\"Foo\",\"key\":\"value\"}` has duplicate at lines [1]");
+                    errors.add("The object `{\"key1\":\"Foo\",\"key\":\"value\"}` must have `id` as id-field name and `type` as label-field name");
+                    assertEquals(errors, messages);
+
+                    row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(1L, row.get("index"));
+                    assertEquals("The object `{\"key1\":\"Foo\",\"key\":\"value\"}` must have `id` as id-field name and `type` as label-field name", row.get("message"));
+
+                    row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(2L, row.get("index"));
+                    errors = new HashSet<>();
+                    messages = messageToSet(row);
+                    errors.add("The object `{\"key\":\"childKey\"}` has duplicate at lines [4,5]");
+                    errors.add("The object `{\"key1\":\"Foo\",\"key\":\"value1\",\"child\":{\"key\":\"childKey\"}}` must have `id` as id-field name and `type` as label-field name");
+                    errors.add("The object `{\"key\":\"childKey\"}` must have `id` as id-field name and `type` as label-field name");
+                    assertEquals(errors, messages);
+
+                    row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(3L, row.get("index"));
+                    assertEquals("The object `{\"key1\":\"Foo\",\"key\":\"value1\"}` must have `id` as id-field name and `type` as label-field name", row.get("message"));
+
+                    row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(4L, row.get("index"));
+                    errors = new HashSet<>();
+                    messages = messageToSet(row);
+                    errors.add("The object `{\"key1\":\"Foo\",\"key\":\"value2\",\"childA\":{\"key\":\"childKey\"}}` must have `id` as id-field name and `type` as label-field name");
+                    errors.add("The object `{\"key\":\"childKey\"}` must have `id` as id-field name and `type` as label-field name");
+                    assertEquals(errors, messages);
+
+                    row = (Map<String, Object>) result.next().get("row");
+                    assertEquals(5L, row.get("index"));
+                    errors = new HashSet<>();
+                    messages = messageToSet(row);
+                    errors.add("The object `{\"key1\":\"Foo\",\"key\":\"value2\",\"childA\":{\"child\":{\"key\":\"childKey\"}}}` must have `id` as id-field name and `type` as label-field name");
+                    errors.add("The object `{\"child\":{\"key\":\"childKey\"}}` must have `id` as id-field name and `type` as label-field name");
+                    errors.add("The object `{\"key\":\"childKey\"}` must have `id` as id-field name and `type` as label-field name");
+                    assertEquals(errors, messages);
+
+                    assertFalse("should not have next", result.hasNext());
+                });
+    }
+
+    @Test
+    public void shouldCreateTheGraphMappingObjectAccordingToThePattern() {
+        GraphsConfig.GraphMapping mapping = GraphsConfig.GraphMapping.from("Person{*,@sizes}");
+        assertEquals(Arrays.asList("sizes"), mapping.getValueObjects());
+        assertEquals(Collections.emptyList(), mapping.getProperties());
+        assertEquals(Collections.emptyList(), mapping.getIds());
+        assertTrue(mapping.isAllProps());
+        assertEquals(Arrays.asList("Person"), mapping.getLabels());
+
+        mapping = GraphsConfig.GraphMapping.from("Book{!title, released}");
+        assertEquals(Collections.emptyList(), mapping.getValueObjects());
+        assertEquals(Arrays.asList("released", "title"), mapping.getProperties());
+        assertEquals(Arrays.asList("title"), mapping.getIds());
+        assertEquals(Arrays.asList("Book"), mapping.getLabels());
+        assertFalse(mapping.isAllProps());
+    }
+
+    @Test
+    public void shouldCreateFlattenValueObjectAndNewNodes() {
+        String[] strings = {"foo", "bar"};
+        Map<String, Object> book1 = map("title", "Flow My Tears, the Policeman Said", "released", 1974);
+        Map<String, Object> book2 = map("title", "The man in the High Castle", "released", 1962);
+        Map<String, Object> inputMap = map("id", 1, "type", "Person", "name", "Andrea",
+                "sizes", map("weight", map("value", 70, "um", "Kg"), "height", map("value", 174, "um", "cm"),
+                        "array", strings),
+                "books", Arrays.asList(book1,book2)
+        );
+        Map<String, Object> expectedMap = map("id", 1, "type", "Person", "name", "Andrea",
+                "sizes.weight.value", 70, "sizes.weight.um", "Kg", "sizes.height.value", 174, "sizes.height.um", "cm");
+
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+                Util.map("json", inputMap, "config", map("mappings", map("$", "Person:Reader{*,@sizes}", "$.books", "Book{!title, released}"))), result -> {
+                    Map<String, Object> map = result.next();
+                    assertEquals("Graph", ((Map) map.get("graph")).get("name"));
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Collection<Relationship> rels = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    assertEquals(3, nodes.size());
+                    assertEquals(2, rels.size());
+                    Iterator<Node> nodeIterator = nodes.iterator();
+                    Iterator<Relationship> relationshipIterator = rels.iterator();
+
+                    Node person = nodeIterator.next();
+                    assertEquals(asList(label("Person"), label("Reader")), person.getLabels());
+                    assertTrue(person.getId() < 0);
+                    Map<String, Object> allProperties = new HashMap<>(person.getAllProperties());
+                    allProperties.remove("sizes.array"); // we test only non-array properties
+                    assertEquals(expectedMap, allProperties);
+                    assertArrayEquals(strings, (String[]) person.getProperty("sizes.array"));
+
+                    Node book1Node = nodeIterator.next();
+                    assertEquals(asList(label("Book")), book1Node.getLabels());
+                    assertTrue(book1Node.getId() < 0);
+                    allProperties = book1Node.getAllProperties();
+                    assertEquals(book1, allProperties);
+
+                    Node book2Node = nodeIterator.next();
+                    assertEquals(asList(label("Book")), book2Node.getLabels());
+                    assertTrue(book2Node.getId() < 0);
+                    allProperties = book2Node.getAllProperties();
+                    assertEquals(book2, allProperties);
+
+                    Relationship rel = relationshipIterator.next();
+                    assertEquals(RelationshipType.withName("BOOKS"), rel.getType());
+                    assertTrue(rel.getId() < 0);
+                    assertEquals(person, rel.getStartNode());
+                    assertEquals(book1Node, rel.getEndNode());
+
+                    rel = relationshipIterator.next();
+                    assertEquals(RelationshipType.withName("BOOKS"), rel.getType());
+                    assertTrue(rel.getId() < 0);
+                    assertEquals(person, rel.getStartNode());
+                    assertEquals(book2Node, rel.getEndNode());
+
+                    assertFalse("should not have next", result.hasNext());
+                });
+    }
+
+    @Test
+    public void testDeeplyNestedStructures() throws IOException {
+        String json = IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("deeplyNestedObject.json"), Charset.forName("UTF-8"));
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+                map("json", json, "config", map("idField", "name")), result -> {
+                    Map<String, Object> map = result.next();
+                    assertEquals("Graph", ((Map) map.get("graph")).get("name"));
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Map<String, List<Node>> nodeMap = nodes.stream()
+                            .collect(Collectors.groupingBy(e -> e.getLabels().iterator().next().name()));
+
+                    assertEquals(1, nodeMap.get("Project").size());
+                    assertEquals(3, nodeMap.get("Company").size());
+                    assertEquals(5, nodeMap.get("Worker").size());
+                    assertEquals(19, nodeMap.get("Task").size());
+
+
+                    Collection<Relationship> rels = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    Map<String, List<Relationship>> relMap = rels.stream()
+                            .collect(Collectors.groupingBy(e -> String.format("(%s)-[%s]-(%s)",
+                                    e.getStartNode().getLabels().iterator().next().name(),
+                                    e.getType().name(),
+                                    e.getEndNode().getLabels().iterator().next().name())));
+                    assertEquals(5, relMap.get("(Project)-[TASKS]-(Task)").size());
+                    assertEquals(19, relMap.get("(Task)-[WORKER]-(Worker)").size());
+                    assertEquals(14, relMap.get("(Task)-[SUBTASKS]-(Task)").size());
+                    assertEquals(5, relMap.get("(Worker)-[COMPANY]-(Company)").size());
+                });
+    }
 }

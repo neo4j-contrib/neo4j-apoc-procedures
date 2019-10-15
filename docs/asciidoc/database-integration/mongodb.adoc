@@ -10,16 +10,117 @@ This section describes procedures that can be used to interact with MongoDB.
 
 [cols="3m,2"]
 |===
-| CALL apoc.mongodb.get(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true\|false],skip-or-null,limit-or-null) yield value | perform a find operation on mongodb collection
-| CALL apoc.mongodb.count(host-or-port,db-or-null,collection-or-null,query-or-null) yield value | perform a find operation on mongodb collection
-| CALL apoc.mongodb.first(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true\|false]) yield value | perform a first operation on mongodb collection
-| CALL apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,[compatibleValues=true\|false],skip-or-null) yield value | perform a find,project,sort operation on mongodb collection
-| CALL apoc.mongodb.insert(host-or-port,db-or-null,collection-or-null,list-of-maps) | inserts the given documents into the mongodb collection
-| CALL apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) yield value | deletes the given documents from the mongodb collection and returns the number of affected documents
-| CALL apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) yield value | updates the given documents from the mongodb collection and returns the number of affected documents
+| CALL apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find operation on mongodb collection | perform a find operation on mongodb collection
+| CALL apoc.mongodb.count(host-or-key,db,collection,query) yield value - perform a find operation on mongodb collection | perform a find operation on mongodb collection
+| CALL apoc.mongodb.first(host-or-key,db,collection,query,[compatibleValues=false|true],[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a first operation on mongodb collection | perform a first operation on mongodb collection
+| CALL apoc.mongodb.find(host-or-key,db,collection,query,projection,sort,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find,project,sort operation on mongodb collection | perform a find,project,sort operation on mongodb collection
+| CALL apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection | inserts the given documents into the mongodb collection
+| CALL apoc.mongodb.delete(host-or-key,db,collection,query) - delete the given documents from the mongodb collection and returns the number of affected documents | deletes the given documents from the mongodb collection and returns the number of affected documents
+| CALL apoc.mongodb.update(host-or-key,db,collection,query,update) - updates the given documents from the mongodb collection and returns the number of affected documents | updates the given documents from the mongodb collection and returns the number of affected documents
 |===
 
-If your documents have date fields or any other type that can be automatically converted by Neo4j, you need to set *compatibleValues* to true. These values will be converted according to Jackson databind default mapping.
+== Field description
+
+ - `hostorkey`: the MongoDB host in the format `mongodb://<HOST_NAME>:<PORT>`
+ or a url defined into the apoc config `apoc.mongodb.myInstance.url=mongodb://<HOST_NAME>:<PORT>`,
+ which can be invoked by simply passing `myInstance`
+ - `db`: the db name
+ - `collection`: the collection name
+ - `query`: query params
+ - `projection`: projection params
+ - `sort`: sort params
+ - `compatibleValues` (false|true): converts MongoDB data types into Neo4j data types
+ - `skip`: num of documents to skip
+ - `limit`: num of documents to limit
+ - `extractReferences` (false|true): if true and a field contains an `ObjectId` it will include the related document instead of the `ObjectId`
+ - `objectIdAsMap` (true|false): extract the `ObjectId` as map
+ - `documents`: the documents to insert
+ - `update`: the updated params
+
+
+Follwing an example that could help to understand the behaviour of `extractReferences`, `compatibleValues` and `objectIdAsMap`:
+
+Given the following collections:
+
+```
+// Product
+...
+{"_id": ObjectId("product1"), "name": "Product 1", "price": 100}
+{"_id": ObjectId("product3"), "name": "Product 2", "price": 200}
+{"_id": ObjectId("product3"), "name": "Product 3", "price": 300}
+...
+```
+
+```
+// Person
+...
+{"_id": ObjectId("person"), "name": "Andrea", "bought": [ObjectId("product1"), ObjectId("product3")]}
+...
+```
+
+With the `extractReferences=true`, `compatibleValues=true` and `objectIdAsMap=false`:
+
+```
+{
+  "_id": "person",
+  "name": "Andrea",
+  "bought": [
+    {"_id": "product1", "name": "Product 1", "price": 100},
+    {"_id": "product3", "name": "Product 3", "price": 300}
+  ]
+}
+```
+
+With the `extractReferences=true`, `compatibleValues=true` and `objectIdAsMap=true`:
+
+```
+{
+  "_id": {
+  	"timestamp": <...>,
+	"machineIdentifier": <...>,
+	"processIdentifier": <...>,
+	"counter": <...>,
+  },
+  "name": "Andrea",
+  "bought": [
+    {
+      "_id": {
+	  	"timestamp": <...>,
+		"machineIdentifier": <...>,
+		"processIdentifier": <...>,
+		"counter": <...>,
+	  },
+	  "name": "Product 1",
+	  "price": 100
+	},
+    {
+      "_id": {
+	  	"timestamp": <...>,
+		"machineIdentifier": <...>,
+		"processIdentifier": <...>,
+		"counter": <...>,
+	  },
+	  "name": "Product 3",
+	  "price": 300
+	},
+  ]
+}
+```
+
+
+With the `extractReferences=false`, `compatibleValues=false` and `objectIdAsMap=false`:
+
+```
+{
+  "_id": "person",
+  "name": "Andrea",
+  "bought": ["product1", "product3"]
+}
+```
+
+
+
+== Dependencies
 
 Copy these jars into the plugins directory:
 
@@ -36,6 +137,8 @@ Or you get them locally from your gradle build of apoc.
 gradle copyRuntimeLibs
 cp lib/mongodb*.jar lib/bson*.jar $NEO4J_HOME/plugins/
 ----
+
+== Example
 
 [source,cypher]
 ----

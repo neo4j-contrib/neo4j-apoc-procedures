@@ -1,8 +1,8 @@
 :readme:
 :branch: 3.5
 :docs: https://neo4j.com/docs/labs/apoc/current
-:apoc-release: 3.5.0.4
-:neo4j-version: 3.5.6
+:apoc-release: 3.5.0.5
+:neo4j-version: 3.5.11
 :img: https://raw.githubusercontent.com/neo4j-contrib/neo4j-apoc-procedures/{branch}/docs/images
 
 = Awesome Procedures for Neo4j {branch}.x
@@ -149,8 +149,7 @@ h| Output Return Columns |
 Since APOC relies in some places on Neo4j's internal APIs you need to use the *matching APOC version* for your Neo4j installaton.
 Make sure that the *first two version numbers match between Neo4j and APOC*.
 
-Go to to http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/{apoc-release}[the latest release] for *Neo4j version {branch}*
- and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
+Go to http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/{apoc-release}[the latest release] for *Neo4j version {branch}* and download the binary jar to place into your `$NEO4J_HOME/plugins` folder.
 
 You can find http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/[all releases here].
 
@@ -183,7 +182,7 @@ The trailing `<apoc>` part of the version number will be incremented with every 
 [opts=header]
 |===
 |apoc version | neo4j version
-| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.4[3.5.0.4^] | 3.5.6 (3.5.x)
+| http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.5.0.5[3.5.0.5^] | 3.5.11 (3.5.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.4.0.4[3.4.0.6^] | 3.4.12 (3.4.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.3.0.4[3.3.0.4^] | 3.3.6 (3.3.x)
 | http://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/3.2.3.6[3.2.3.6^] | 3.2.9 (3.2.x)

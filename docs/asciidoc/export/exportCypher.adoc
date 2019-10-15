@@ -55,6 +55,9 @@ To change the cypher update operation, you have to set it on the config params l
 * `addStructure`: MATCH for nodes + MERGE for rels
 * `updateStructure`: MERGE + MATCH for nodes and rels
 
+In case of `cypher-shell` export format you can also set the timeout of `db.awaitIndexes` with the `awaitIndexes`
+configuration param.
+
 Format and cypherFormat can be used both in the same query giving you complete control over the exact export format:
 
 [source,cypher]

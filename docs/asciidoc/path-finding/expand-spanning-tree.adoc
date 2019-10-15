@@ -7,13 +7,13 @@ This section describes a procedure that finds a spanning tree that starts from a
 --
 
 ----
-apoc.path.spanningTree(startNode <id>Node/list, {maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1, optional:false}) yield path
+apoc.path.spanningTree(startNode <id>Node/list, {minLevel, maxLevel, relationshipFilter, labelFilter, bfs:true, filterStartNode:true, limit:-1, optional:false}) yield path
 ----
 
 Expand a spanning tree reachable from start node following relationships to max-level adhering to the label filters.
 The paths returned collectively form a spanning tree.
 
-Accepts the same `config` values as in `expandConfig()`, though `uniqueness` and `minLevel` are not configurable.
+Accepts the same `config` values as in `expandConfig()`, though `uniqueness` is not configurable and `minLevel`, if present, must be 0 or 1.
 
 .Example
 

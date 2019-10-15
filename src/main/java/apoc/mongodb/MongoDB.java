@@ -11,7 +11,6 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.io.Closeable;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -51,49 +50,60 @@ public class MongoDB {
     @Context
     public Log log;
 
+    @Deprecated
     @Procedure
-    @Description("apoc.mongodb.get(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true|false],skip-or-null,limit-or-null) yield value - perform a find operation on mongodb collection")
+    @Description("apoc.mongodb.get(host-or-key,db,collection,query,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find operation on mongodb collection")
     public Stream<MapResult> get(@Name("host") String hostOrKey,
                                  @Name("db") String db,
                                  @Name("collection") String collection,
                                  @Name("query") Map<String, Object> query,
                                  @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues, 
                                  @Name(value = "skip", defaultValue = "0") Long skip,
-                                 @Name(value = "limit", defaultValue = "0") Long limit) {
+                                 @Name(value = "limit", defaultValue = "0") Long limit,
+                                 @Name(value = "extractReferences", defaultValue = "false") boolean extractReferences,
+                                 @Name(value = "objectIdAsMap", defaultValue = "true") boolean objectIdAsMap) {
         return executeMongoQuery(hostOrKey, db, collection, compatibleValues,
-                coll -> coll.all(query, skip, limit).map(MapResult::new),
+                extractReferences, objectIdAsMap, coll -> coll.all(query, skip, limit).map(MapResult::new),
                 e -> log.error("apoc.mongodb.get - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], compatibleValues = [" + compatibleValues + "], skip = [" + skip + "], limit = [" + limit + "]", e));
     }
 
+    @Deprecated
     @Procedure
-    @Description("apoc.mongodb.count(host-or-port,db-or-null,collection-or-null,query-or-null) yield value - perform a find operation on mongodb collection")
+    @Description("apoc.mongodb.count(host-or-key,db,collection,query) yield value - perform a find operation on mongodb collection")
     public Stream<LongResult> count(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query) {
         return executeMongoQuery(hostOrKey, db, collection, false,
-                coll -> {
+                false,
+                false, coll -> {
                     long count = coll.count(query);
                     return Stream.of(new LongResult(count));
                 },
                 e -> log.error("apoc.mongodb.count - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "]",e));
     }
 
-    private Coll getColl(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, boolean compatibleValues) {
+    private Coll getColl(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection,
+                         boolean compatibleValues, boolean extractReferences, boolean objectIdAsMap) {
         String url = getMongoDBUrl(hostOrKey);
-        return Coll.Factory.create(url, db, collection, compatibleValues);
+        return Coll.Factory.create(url, db, collection, compatibleValues, extractReferences, objectIdAsMap);
     }
 
+    @Deprecated
     @Procedure
-    @Description("apoc.mongodb.first(host-or-port,db-or-null,collection-or-null,query-or-null,[compatibleValues=true|false]) yield value - perform a first operation on mongodb collection")
-    public Stream<MapResult> first(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues) {
+    @Description("apoc.mongodb.first(host-or-key,db,collection,query,[compatibleValues=false|true],[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a first operation on mongodb collection")
+    public Stream<MapResult> first(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues,
+                                   @Name(value = "extractReferences", defaultValue = "false") boolean extractReferences,
+                                   @Name(value = "objectIdAsMap", defaultValue = "true") boolean objectIdAsMap) {
         return executeMongoQuery(hostOrKey, db, collection, compatibleValues,
-                coll -> {
+                extractReferences,
+                objectIdAsMap, coll -> {
                     Map<String, Object> result = coll.first(query);
                     return result == null || result.isEmpty() ? Stream.empty() : Stream.of(new MapResult(result));
                 },
                 e -> log.error("apoc.mongodb.first - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], compatibleValues = [" + compatibleValues + "]",e));
     }
 
+    @Deprecated
     @Procedure
-    @Description("apoc.mongodb.find(host-or-port,db-or-null,collection-or-null,query-or-null,projection-or-null,sort-or-null,pagination,[compatibleValues=true|false],skip-or-null,limit-or-null) yield value - perform a find,project,sort operation on mongodb collection")
+    @Description("apoc.mongodb.find(host-or-key,db,collection,query,projection,sort,[compatibleValues=false|true],skip-or-null,limit-or-null,[extractReferences=false|true],[objectIdAsMap=true|false]) yield value - perform a find,project,sort operation on mongodb collection")
     public Stream<MapResult> find(@Name("host") String hostOrKey,
                                   @Name("db") String db,
                                   @Name("collection") String collection,
@@ -102,16 +112,19 @@ public class MongoDB {
                                   @Name("sort") Map<String, Object> sort,
                                   @Name(value = "compatibleValues", defaultValue = "false") boolean compatibleValues,
                                   @Name(value = "skip", defaultValue = "0") Long skip,
-                                  @Name(value = "limit", defaultValue = "0") Long limit) {
+                                  @Name(value = "limit", defaultValue = "0") Long limit,
+                                  @Name(value = "extractReferences", defaultValue = "false") boolean extractReferences,
+                                  @Name(value = "objectIdAsMap", defaultValue = "true") boolean objectIdAsMap) {
         return executeMongoQuery(hostOrKey, db, collection, compatibleValues,
-                coll -> coll.find(query, project, sort, skip, limit).map(MapResult::new),
+                extractReferences, objectIdAsMap, coll -> coll.find(query, project, sort, skip, limit).map(MapResult::new),
                 e -> log.error("apoc.mongodb.find - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], project = [" + project + "], sort = [" + sort + "], compatibleValues = [" + compatibleValues + "], skip = [" + skip + "], limit = [" + limit + "]",e));
     }
 
+    @Deprecated
     @Procedure
-    @Description("apoc.mongodb.insert(host-or-port,db-or-null,collection-or-null,list-of-maps) - inserts the given documents into the mongodb collection")
+    @Description("apoc.mongodb.insert(host-or-key,db,collection,documents) - inserts the given documents into the mongodb collection")
     public void insert(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("documents") List<Map<String, Object>> documents) {
-        try (Coll coll = getMongoColl(hostOrKey, db, collection, false)) {
+        try (Coll coll = getMongoColl(hostOrKey, db, collection, false, false, false)) {
             coll.insert(documents);
         } catch (Exception e) {
             log.error("apoc.mongodb.insert - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], documents = [" + documents + "]",e);
@@ -119,19 +132,21 @@ public class MongoDB {
         }
     }
 
+    @Deprecated
     @Procedure
-    @Description("apoc.mongodb.delete(host-or-port,db-or-null,collection-or-null,list-of-maps) - delete the given documents from the mongodb collection and returns the number of affected documents")
+    @Description("apoc.mongodb.delete(host-or-key,db,collection,query) - delete the given documents from the mongodb collection and returns the number of affected documents")
     public Stream<LongResult> delete(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query) {
         return executeMongoQuery(hostOrKey, db, collection, false,
-                coll -> Stream.of(new LongResult(coll.delete(query))),
+                false, false, coll -> Stream.of(new LongResult(coll.delete(query))),
                 e -> log.error("apoc.mongodb.delete - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "]",e));
     }
 
+    @Deprecated
     @Procedure
-    @Description("apoc.mongodb.update(host-or-port,db-or-null,collection-or-null,list-of-maps) - updates the given documents from the mongodb collection and returns the number of affected documents")
+    @Description("apoc.mongodb.update(host-or-key,db,collection,query,update) - updates the given documents from the mongodb collection and returns the number of affected documents")
     public Stream<LongResult> update(@Name("host") String hostOrKey, @Name("db") String db, @Name("collection") String collection, @Name("query") Map<String, Object> query, @Name("update") Map<String, Object> update) {
         return executeMongoQuery(hostOrKey, db, collection, false,
-                coll -> Stream.of(new LongResult(coll.update(query, update))),
+                false, false, coll -> Stream.of(new LongResult(coll.update(query, update))),
                 e -> log.error("apoc.mongodb.update - hostOrKey = [" + hostOrKey + "], db = [" + db + "], collection = [" + collection + "], query = [" + query + "], update = [" + update + "]",e));
     }
 
@@ -139,10 +154,11 @@ public class MongoDB {
         return new UrlResolver("mongodb", "localhost", 27017).getUrl("mongodb", hostOrKey);
     }
 
-    private Coll getMongoColl(String hostOrKey, String db, String collection, boolean compatibleValues) {
+    private Coll getMongoColl(String hostOrKey, String db, String collection, boolean compatibleValues,
+                              boolean extractReferences, boolean objectIdAsMap) {
         Coll coll = null;
         try {
-            coll = getColl(hostOrKey, db, collection, compatibleValues);
+            coll = getColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap);
         } catch (NoClassDefFoundError e) {
             throw new MissingDependencyException("Cannot find the jar into the plugins folder. \n" +
                     "Please put these jar in the plugins folder :\n\n" +
@@ -183,11 +199,12 @@ public class MongoDB {
         }
 
         class Factory {
-            public static Coll create(String url, String db, String coll, boolean compatibleValues) {
+            public static Coll create(String url, String db, String coll, boolean compatibleValues,
+                                      boolean extractReferences,
+                                      boolean objectIdAsMap) {
                 try {
-                    return (Coll) Class.forName("apoc.mongodb.MongoDBColl").getConstructor(String.class, String.class, String.class, Boolean.class).newInstance(url, db, coll, compatibleValues);
-                } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException | ClassNotFoundException e) {
-                    e.printStackTrace();
+                    return new MongoDBColl(url, db, coll, compatibleValues, extractReferences, objectIdAsMap);
+                } catch (Exception e) {
                     throw new RuntimeException("Could not create MongoDBClientWrapper instance", e);
                 }
             }
@@ -195,10 +212,10 @@ public class MongoDB {
     }
 
     private <T> Stream<T> executeMongoQuery(String hostOrKey, String db, String collection, boolean compatibleValues,
-                                            Function<Coll, Stream<T>> execute, Consumer<Exception> onError) {
+                                            boolean extractReferences, boolean objectIdAsMap, Function<Coll, Stream<T>> execute, Consumer<Exception> onError) {
         Coll coll = null;
         try {
-            coll = getMongoColl(hostOrKey, db, collection, compatibleValues);
+            coll = getMongoColl(hostOrKey, db, collection, compatibleValues, extractReferences, objectIdAsMap);
             return execute.apply(coll).onClose(coll::safeClose);
         } catch (Exception e) {
             if (coll != null) {

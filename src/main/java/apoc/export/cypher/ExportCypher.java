@@ -10,15 +10,14 @@ import apoc.util.Util;
 import org.neo4j.cypher.export.CypherResultSubGraph;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
-import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.*;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.procedure.*;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Stream;
@@ -77,7 +76,12 @@ public class ExportCypher {
         if (Util.isNullOrEmpty(fileName)) fileName=null;
         ExportConfig c = new ExportConfig(config);
         Result result = db.execute(query);
-        SubGraph graph = CypherResultSubGraph.from(result, db, c.getRelsInBetween());
+        SubGraph graph;
+        try {
+            graph = CypherResultSubGraph.from(result, db, c.getRelsInBetween());
+        } catch (IllegalStateException e) {
+            throw new RuntimeException("Full-text indexes on relationships are not supported, please delete them in order to complete the process");
+        }
         String source = String.format("statement: nodes(%d), rels(%d)",
                 Iterables.count(graph.getNodes()), Iterables.count(graph.getRelationships()));
         return exportCypher(fileName, source, graph, c, false);
@@ -92,7 +96,7 @@ public class ExportCypher {
     }
 
     private Stream<DataProgressInfo> exportCypher(@Name("file") String fileName, String source, SubGraph graph, ExportConfig c, boolean onlySchema) throws IOException {
-        if (fileName != null) checkWriteAllowed();
+        if (fileName != null) checkWriteAllowed(c);
 
         ProgressInfo progressInfo = new ProgressInfo(fileName, source, "cypher");
         progressInfo.batchSize = c.getBatchSize();
