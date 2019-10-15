@@ -51,7 +51,7 @@ public class SchemasTest {
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(tx.schema().getIndexes(Label.label("Foo")));
             assertEquals(1, indexes.size());
-            assertEquals("Foo", indexes.get(0).getLabel().name());
+            assertEquals("Foo", Iterables.single(indexes.get(0).getLabels()).name());
             assertEquals(asList("bar"), indexes.get(0).getPropertyKeys());
         }
     }

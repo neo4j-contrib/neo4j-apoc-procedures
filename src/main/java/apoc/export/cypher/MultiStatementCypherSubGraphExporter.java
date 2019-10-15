@@ -193,7 +193,7 @@ public class MultiStatementCypherSubGraphExporter {
     private List<String> exportIndexes() {
         List<String> result = new ArrayList<>();
         for (IndexDefinition index : graph.getIndexes()) {
-            String label = index.getLabel().name();
+            String label = Iterables.single(index.getLabels()).name();
             Iterable<String> props = index.getPropertyKeys();
             if (index.isConstraintIndex()) {
                 String cypher = this.cypherFormat.statementForConstraint(label, props);
@@ -213,7 +213,7 @@ public class MultiStatementCypherSubGraphExporter {
     private List<String> indexesAwait() {
         List<String> result = new ArrayList<>();
         for (IndexDefinition index : graph.getIndexes()) {
-            String label = index.getLabel().name();
+            String label = Iterables.single(index.getLabels()).name();
             String indexAwait = this.exportFormat.indexAwait(label, index.getPropertyKeys());
             if (indexAwait != null && !"".equals(indexAwait))
                 result.add(indexAwait);
@@ -265,7 +265,7 @@ public class MultiStatementCypherSubGraphExporter {
 
     private void gatherUniqueConstraints() {
         for (IndexDefinition indexDefinition : graph.getIndexes()) {
-            String label = indexDefinition.getLabel().name();
+            String label = Iterables.single(indexDefinition.getLabels()).name();
             Set<String> props = StreamSupport
                     .stream(indexDefinition.getPropertyKeys().spliterator(), false)
                     .collect(Collectors.toSet());

@@ -134,7 +134,7 @@ public class Schemas {
             if (definition.isConstraintIndex())
                 continue;
 
-            String label = definition.getLabel().name();
+            String label = Iterables.single(definition.getLabels()).name();
             List<String> keys = new ArrayList<>();
             definition.getPropertyKeys().forEach(keys::add);
 

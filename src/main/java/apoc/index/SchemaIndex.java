@@ -6,6 +6,8 @@ import org.neo4j.exceptions.KernelException;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.internal.helpers.collection.Iterables;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.kernel.api.*;
 import org.neo4j.internal.schema.IndexDescriptor;
 import org.neo4j.internal.schema.IndexOrder;
@@ -83,8 +85,9 @@ public class SchemaIndex {
                     int[] propertyKeyIds = StreamSupport.stream(indexDefinition.getPropertyKeys().spliterator(), false)
                             .mapToInt(name -> tokenRead.propertyKey(name))
                             .toArray();
-                    LabelSchemaDescriptor schema = SchemaDescriptor.forLabel(tokenRead.nodeLabel(indexDefinition.getLabel().name()), propertyKeyIds);
-                    IndexDescriptor indexDescriptor = schemaRead.index(schema);
+                    String label = Iterables.single(indexDefinition.getLabels()).name();
+                    LabelSchemaDescriptor schema = SchemaDescriptor.forLabel(tokenRead.nodeLabel(label), propertyKeyIds);
+                    IndexDescriptor indexDescriptor = Iterators.single(schemaRead.index(schema));
                     scanIndex(queue, indexDefinition, key, read, cursors, indexDescriptor);
                 }
             }
@@ -125,7 +128,8 @@ public class SchemaIndex {
 
     private void putIntoQueue(BlockingQueue<PropertyValueCount> queue, IndexDefinition indexDefinition, String key, Value value, long count) {
         try {
-            queue.put(new PropertyValueCount(indexDefinition.getLabel().name(), key, value.asObject(), count));
+            String label = Iterables.single(indexDefinition.getLabels()).name();
+            queue.put(new PropertyValueCount(label, key, value.asObject(), count));
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
