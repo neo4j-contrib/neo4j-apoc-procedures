@@ -55,9 +55,9 @@ public class ExportCsvIT {
                 "This article is distributed by The American Society for Cell Biology under license from the author(s). Two months after publication it is available to the public under an Attribution-Noncommercial-Share Alike 3.0 Unported Creative Commons License.\n" +
                 "\n";
         String pk = "5921569";
-        session.writeTransaction(tx -> tx.run("CREATE (n:Document{pk:{pk}, copyright: {copyright}})", map("copyright", copyright, "pk", pk)));
+        session.writeTransaction(tx -> tx.run("CREATE (n:Document{pk:$pk, copyright: $copyright})", map("copyright", copyright, "pk", pk)));
         String query = "MATCH (n:Document{pk:'5921569'}) return n.pk as pk, n.copyright as copyright";
-        testCall(session, "CALL apoc.export.csv.query({query}, null, {config})", map("query", query,
+        testCall(session, "CALL apoc.export.csv.query($query, null, $config)", map("query", query,
                 "config", map("stream", true)),
                 (r) -> {
                     List<String[]> csv = CsvTestUtil.toCollection(r.get("data").toString());
