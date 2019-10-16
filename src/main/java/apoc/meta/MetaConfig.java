@@ -1,5 +1,9 @@
 package apoc.meta;
 
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+
 import java.util.*;
 
 public class MetaConfig {
@@ -50,10 +54,54 @@ public class MetaConfig {
         this.excludes = excludes;
     }
 
+    /**
+     * @param l
+     * @return true if the label matches the mask expressed by this object, false otherwise.
+     */
+    public boolean matches(Label l) {
+        if (getExcludes().contains(l.name())) { return false; }
+        if (getIncludesLabels().isEmpty()) { return true; }
+        return getIncludesLabels().contains(l.name());
+    }
+
+    /**
+     * @param labels
+     * @return true if any of the labels matches the mask expressed by this object, false otherwise.
+     */
+    public boolean matches(Iterable<Label> labels) {
+        // If it matches any label, it gets looked at, because labels can co-occur.
+        boolean match = true;
+
+        for(Label l : labels) {
+            match = match || matches(l);
+        }
+
+        return match;
+    }
+
+    /**
+     * @param r
+     * @return true if the relationship matches the mask expressed by this object, false otherwise.
+     */
+    public boolean matches(Relationship r) {
+        return matches(r.getType());
+    }
+
+    /**
+     * @param rt
+     * @return true if the relationship type matches the mask expressed by this object, false otherwise.
+     */
+    public boolean matches(RelationshipType rt) {
+        String name = rt.name();
+
+        if (getExcludes().contains(name)) { return false; }
+        if (getIncludesRels().isEmpty()) { return true; }
+        return getIncludesRels().contains(name);
+    }
+
     public long getSample() {
         return sample;
     }
-
 
     public long getMaxRels() {
         return maxRels;
