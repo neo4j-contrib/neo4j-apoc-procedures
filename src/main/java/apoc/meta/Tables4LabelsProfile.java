@@ -121,17 +121,20 @@ public class Tables4LabelsProfile {
         Set<String> excludes = config.getExcludes();
         Set<String> includesRels = config.getIncludesRels();
 
-        sawNode(labels);
-        localNodeProfile.observe(n);
+        // Only descend and look at properties if it's in our match list.
+        if (config.matches(n.getLabels())) {
+            sawNode(labels);
+            localNodeProfile.observe(n);
+        }
 
+        // Even if the node isn't in our match list, do rel processing.  This
+        // is because our profiling is "node-first" to get to the relationships,
+        // and if we don't do it this way, it's possible to blacklist nodes and
+        // thereby miss relationships that were of interest.
         for (RelationshipType type : n.getRelationshipTypes()) {
             String typeName = type.name();
-            if (excludes.contains(typeName)) {
-                continue;
-            }
-            if (!includesRels.isEmpty() && !includesRels.contains(typeName)) {
-                continue;
-            }
+
+            if (!config.matches(type)) { continue; }
 
             int out = n.getDegree(type, Direction.OUTGOING);
             if (out == 0) continue;

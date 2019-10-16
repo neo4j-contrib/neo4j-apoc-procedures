@@ -565,20 +565,7 @@ public class Meta {
                 return -1L;
             }
             long randomValue = ThreadLocalRandom.current().nextLong(min, max);
-
-            if (randomValue == 0L) { return -1L; }
-
-            long minMeaningfulSampleSize = 100L;
-
-            // Try to make sure that abnormally low sample sizes don't get generated.
-            // In the math above, if labelCount = 10,000 and sample=1000, you can end up with
-            // an excessively low sample size. This tries to guarantee a minimum sample size so
-            // the sampling result isn't total junk.
-            if (randomValue < minMeaningfulSampleSize) {
-                return Math.min(minMeaningfulSampleSize, labelCount);
-            }
-
-            return randomValue;
+            return randomValue == 0L ? -1L : randomValue; // it can't return zero as it's used in % ops
         } else {
             return sample;
         }
