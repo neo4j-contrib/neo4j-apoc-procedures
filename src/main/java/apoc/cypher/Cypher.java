@@ -360,12 +360,12 @@ public class Cypher {
             partition.add(o);
             if (partition.size() == batchSize) {
                 terminationGuard.check();
-                futures.add(submit(tx, statement, params, key, partition));
+                futures.add(submit(db, statement, params, key, partition));
                 partition = new ArrayList<>(batchSize);
             }
         }
         if (!partition.isEmpty()) {
-            futures.add(submit(tx, statement, params, key, partition));
+            futures.add(submit(db, statement, params, key, partition));
         }
         return futures.stream().flatMap(f -> {
             try {
@@ -384,15 +384,9 @@ public class Cypher {
         return with + " UNWIND " + param(iterator) + " AS " + quote(iterator) + ' ' + fragment;
     }
 
-    private Future<List<Map<String, Object>>> submit(Transaction tx, String statement, Map<String, Object> params, String key, List<Object> partition) {
+    private Future<List<Map<String, Object>>> submit(GraphDatabaseService db, String statement, Map<String, Object> params, String key, List<Object> partition) {
         return pools.getDefaultExecutorService().submit(
-                () -> {
-                    try {
-                        return Iterators.addToCollection(tx.execute(statement, parallelParams(params, key, partition)), new ArrayList<>(partition.size()));
-                    } catch (RuntimeException e) {
-                        throw e;  // set breakpoint for debugging here
-                    }
-                }
+                () -> db.executeTransactionally(statement, parallelParams(params, key, partition), result -> Iterators.asList(result))
         );
     }
 
