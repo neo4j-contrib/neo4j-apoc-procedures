@@ -1,24 +1,25 @@
 package apoc.coll;
 
+import apoc.result.ListResult;
 import org.apache.commons.math3.util.Combinations;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.kernel.impl.util.statistics.IntCounter;
 import org.neo4j.procedure.*;
-import apoc.result.*;
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.Relationship;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import java.lang.reflect.Array;
 
 import static java.util.Arrays.asList;
-import static org.neo4j.helpers.collection.Pair.*;
+import static org.neo4j.helpers.collection.Pair.of;
 
 public class Coll {
 
@@ -433,27 +434,14 @@ public class Coll {
 
     @UserFunction
     @Description("apoc.coll.isEqualCollection(coll, values) return true if two collections contain the same elements with the same cardinality in any order (using a HashMap)")
-    public boolean isEqualCollection(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
-        if (coll == null || coll.isEmpty() || coll.size() != values.size()) return false;
+    public boolean isEqualCollection(@Name("coll") List<Object> first, @Name("values") List<Object> second) {
+        if (first == null || first.isEmpty() || first.size() != second.size()) return false;
 
-        Map<Object, Integer> cardinalityMap = new HashMap<>();
-        for (Object o : coll) {
-            cardinalityMap.merge(o, 1, (oldVal, defaultVal) -> oldVal + 1);
-        }
-
-        for (Object value : values) {
-            Integer valueCardinality = cardinalityMap.merge(value, -1, (oldVal, defaultVal) -> {
-                int newCardinality = oldVal - 1;
-                // if we reached 0, we remove the object from the map, we do not expect any others
-                return newCardinality == 0 ? null : newCardinality;
-            });
-            if (Integer.valueOf(-1).equals(valueCardinality)) {
-                // this value instance did not belong to coll
-                return false;
-            }
-        }
-        // instances still in the cardinalityMap are missing from values
-        return cardinalityMap.isEmpty();
+        Map<Object, Long> map1 = first.stream()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        Map<Object, Long> map2 = second.stream()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        return map1.equals(map2);
     }
 
     @UserFunction
