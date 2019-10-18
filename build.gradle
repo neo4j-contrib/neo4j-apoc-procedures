@@ -190,8 +190,11 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 test {
-//    exclude '**/CypherProceduresClusterTest.class'
-    systemProperties 'user.language': 'en', 'user.country': 'US'
+    exclude '**/CypherProceduresClusterTest.class'//, '**/AtomicTest.class'
+
+    // neo4jDockerImage system property is used in TestContainerUtil
+    systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.0.0-SNAPSHOT-enterprise'
+
     testLogging {
         // taken from https://stackoverflow.com/a/36130467/158701
         events TestLogEvent.FAILED,
