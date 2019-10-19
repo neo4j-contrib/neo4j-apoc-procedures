@@ -5,19 +5,19 @@ import apoc.util.ArrayBackedList;
 import apoc.util.MapUtil;
 import apoc.util.Util;
 import org.apache.commons.lang3.ArrayUtils;
+import org.neo4j.exceptions.Neo4jException;
 import org.neo4j.graphdb.Entity;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Lock;
+import org.neo4j.graphdb.NotFoundException;
 import org.neo4j.graphdb.Transaction;
-import org.neo4j.internal.helpers.TransactionTemplate;
 import org.neo4j.procedure.*;
 
 import java.lang.reflect.Array;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -49,7 +49,7 @@ public class Atomic {
             oldValue[0] = (Number) entity.getProperty(property);
             newValue[0] = AtomicUtils.sum((Number) entity.getProperty(property), number);
             entity.setProperty(property, newValue[0]);
-            return context.Entity.getProperty(property);
+            return context.entity.getProperty(property);
         }, times);
 
         return Stream.of(new AtomicResults(entity,property, oldValue[0], newValue[0]));
@@ -62,20 +62,19 @@ public class Atomic {
     @Description("apoc.atomic.subtract(node/relatonship,propertyName,number) Subtracts the 'number' value to the property's value")
     public Stream<AtomicResults> subtract(@Name("container") Object container, @Name("propertyName") String property, @Name("number") Number number, @Name(value = "times", defaultValue = "5") Long times) {
         checkIsEntity(container);
-        Entity Entity;
+        Entity entity = Util.rebind(tx, (Entity) container);
         final Number[] newValue = new Number[1];
         final Number[] oldValue = new Number[1];
-        Entity = (Entity) container;
 
-        final ExecutionContext executionContext = new ExecutionContext(tx, Entity, property);
+        final ExecutionContext executionContext = new ExecutionContext(tx, entity, property);
         retry(executionContext, (context) -> {
-            oldValue[0] = (Number) Entity.getProperty(property);
-            newValue[0] = AtomicUtils.sub((Number) Entity.getProperty(property), number);
-            Entity.setProperty(property, newValue[0]);
-            return context.Entity.getProperty(property);
+            oldValue[0] = (Number) entity.getProperty(property);
+            newValue[0] = AtomicUtils.sub((Number) entity.getProperty(property), number);
+            entity.setProperty(property, newValue[0]);
+            return context.entity.getProperty(property);
         }, times);
 
-        return Stream.of(new AtomicResults(Entity, property, oldValue[0], newValue[0]));
+        return Stream.of(new AtomicResults(entity, property, oldValue[0], newValue[0]));
     }
 
     /**
@@ -85,21 +84,20 @@ public class Atomic {
     @Description("apoc.atomic.concat(node/relatonship,propertyName,string) Concats the property's value with the 'string' value")
     public Stream<AtomicResults> concat(@Name("container") Object container, @Name("propertyName") String property, @Name("string") String string, @Name(value = "times", defaultValue = "5") Long times) {
         checkIsEntity(container);
-        Entity Entity;
+        Entity entity = Util.rebind(tx, (Entity) container);
         final String[] newValue = new String[1];
         final String[] oldValue = new String[1];
-        Entity = (Entity) container;
 
-        final ExecutionContext executionContext = new ExecutionContext(tx, Entity, property);
+        final ExecutionContext executionContext = new ExecutionContext(tx, entity, property);
         retry(executionContext, (context) -> {
-            oldValue[0] = Entity.getProperty(property).toString();
-            newValue[0] = oldValue[0].toString().concat(string);
-            Entity.setProperty(property, newValue[0]);
+            oldValue[0] = entity.getProperty(property).toString();
+            newValue[0] = oldValue[0].concat(string);
+            entity.setProperty(property, newValue[0]);
 
-            return context.Entity.getProperty(property);
+            return context.entity.getProperty(property);
         }, times);
 
-        return Stream.of(new AtomicResults(Entity, property, oldValue[0], newValue[0]));
+        return Stream.of(new AtomicResults(entity, property, oldValue[0], newValue[0]));
     }
 
     /**
@@ -109,15 +107,14 @@ public class Atomic {
     @Description("apoc.atomic.insert(node/relatonship,propertyName,position,value) insert a value into the property's array value at 'position'")
     public Stream<AtomicResults> insert(@Name("container") Object container, @Name("propertyName") String property, @Name("position") Long position, @Name("value") Object value, @Name(value = "times", defaultValue = "5") Long times) throws ClassNotFoundException {
         checkIsEntity(container);
-        Entity Entity;
+        Entity entity = Util.rebind(tx, (Entity) container);
         final Object[] oldValue = new Object[1];
         final Object[] newValue = new Object[1];
-        Entity = (Entity) container;
-        final ExecutionContext executionContext = new ExecutionContext(tx, Entity, property);
+        final ExecutionContext executionContext = new ExecutionContext(tx, entity, property);
 
         retry(executionContext, (context) -> {
-            oldValue[0] = Entity.getProperty(property);
-            List<Object> values = insertValueIntoArray(Entity.getProperty(property), position, value);
+            oldValue[0] = entity.getProperty(property);
+            List<Object> values = insertValueIntoArray(entity.getProperty(property), position, value);
             Class clazz;
             try {
                 clazz = Class.forName(values.toArray()[0].getClass().getName());
@@ -131,11 +128,11 @@ public class Atomic {
                 String message = "Property's array value has type: " + values.toArray()[0].getClass().getName() + ", and your value to insert has type: " + value.getClass().getName();
                 throw new ArrayStoreException(message);
             }
-            Entity.setProperty(property, newValue[0]);
-            return context.Entity.getProperty(property);
+            entity.setProperty(property, newValue[0]);
+            return context.entity.getProperty(property);
         }, times);
 
-        return Stream.of(new AtomicResults(Entity, property, oldValue[0], newValue[0]));
+        return Stream.of(new AtomicResults(entity, property, oldValue[0], newValue[0]));
     }
 
     /**
@@ -145,14 +142,14 @@ public class Atomic {
     @Description("apoc.atomic.remove(node/relatonship,propertyName,position) remove the element at position 'position'")
     public Stream<AtomicResults> remove(@Name("container") Object container, @Name("propertyName") String property, @Name("position") Long position, @Name(value = "times", defaultValue = "5") Long times) throws ClassNotFoundException {
         checkIsEntity(container);
-        Entity Entity;
+        Entity entity = Util.rebind(tx, (Entity) container);
         final Object[] oldValue = new Object[1];
         final Object[] newValue = new Object[1];
-        Entity = (Entity) container;
-        final ExecutionContext executionContext = new ExecutionContext(tx, Entity, property);
+        final ExecutionContext executionContext = new ExecutionContext(tx, entity, property);
 
         retry(executionContext, (context) -> {
-            Object[] arrayBackedList = new ArrayBackedList(Entity.getProperty(property)).toArray();
+            Object[] arrayBackedList = new ArrayBackedList(entity.getProperty(property)).toArray();
+            log("array is %s", Arrays.toString(arrayBackedList));
             oldValue[0] = arrayBackedList;
             if(position > arrayBackedList.length || position < 0) {
                 throw new RuntimeException("Attention your position out of range or higher than array length, that is " + arrayBackedList.length);
@@ -167,12 +164,13 @@ public class Atomic {
             /*it's not possible to return directly the newArray, we have to create a new array with the specific class*/
             newValue[0] = Array.newInstance(clazz, newArray.length);
             System.arraycopy(newArray, 0, newValue[0], 0, newArray.length);
-            Entity.setProperty(property, newValue[0]);
+            log("new array is %s", Arrays.toString((Object[]) newValue[0]));
+            entity.setProperty(property, newValue[0]);
 
-            return context.Entity.getProperty(property);
+            return context.entity.getProperty(property);
         }, times);
 
-        return Stream.of(new AtomicResults(Entity, property, oldValue[0], newValue[0]));
+        return Stream.of(new AtomicResults(entity, property, oldValue[0], newValue[0]));
     }
 
     /**
@@ -182,7 +180,7 @@ public class Atomic {
     @Description("apoc.atomic.update(node/relatonship,propertyName,updateOperation) update a property's value with a cypher operation (ex. \"n.prop1+n.prop2\")")
     public Stream<AtomicResults> update(@Name("container") Object nodeOrRelationship, @Name("propertyName") String property, @Name("operation") String operation, @Name(value = "times", defaultValue = "5") Long times)  {
         checkIsEntity(nodeOrRelationship);
-        Entity entity = (Entity) nodeOrRelationship;
+        Entity entity = Util.rebind(tx, (Entity) nodeOrRelationship);
         final Object[] oldValue = new Object[1];
         final ExecutionContext executionContext = new ExecutionContext(tx, entity, property);
 
@@ -199,13 +197,13 @@ public class Atomic {
     private static class ExecutionContext {
         private final Transaction tx;
 
-        private final Entity Entity;
+        private final Entity entity;
 
         private final String propertyName;
 
-        public ExecutionContext(Transaction tx, Entity Entity, String propertyName){
+        public ExecutionContext(Transaction tx, Entity entity, String propertyName){
             this.tx = tx;
-            this.Entity = Entity;
+            this.entity = entity;
             this.propertyName = propertyName;
         }
     }
@@ -223,13 +221,38 @@ public class Atomic {
         return values;
     }
 
+    private void log(String message, Object... params) {
+        System.out.println(Thread.currentThread().getName() + " " + Instant.now() + " " + System.identityHashCode(tx) + " " +
+                + System.identityHashCode(this) + " " + String.format(message, params));
+    }
+
     private void retry(ExecutionContext executionContext, Function<ExecutionContext, Object> work, Long times){
+        try {
+            log("trying to get lock on %d", executionContext.entity.getId());
+            tx.acquireWriteLock(executionContext.entity);
+            log("got lock on %d", executionContext.entity.getId());
+            log("applying work");
+            work.apply(executionContext);
+//            lock.release();
+            log("applying done");
+        } catch (Neo4jException|NotFoundException|AssertionError e) {
+            log("got %s, times %d", e.getMessage(), times);
+            if (times > 0) {
+                retry(executionContext, work, times-1);
+            } else {
+                log("no more retries, propagating exception");
+                throw e;
+            }
+        }
+
+/*
         TransactionTemplate template = new TransactionTemplate().retries(times.intValue()).backoff(10, TimeUnit.MILLISECONDS);
         template.with(db).execute(tx -> {
             Lock lock = tx.acquireWriteLock(executionContext.Entity);
             work.apply(executionContext);
             lock.release();
         });
+*/
     }
 
     private void checkIsEntity(Object container) {

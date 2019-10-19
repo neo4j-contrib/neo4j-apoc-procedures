@@ -1,16 +1,17 @@
 package apoc.atomic;
 
 import apoc.util.TestUtil;
+import org.apache.commons.lang.ArrayUtils;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -101,8 +102,8 @@ public class AtomicTest {
 		Node node = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) return n;");
 		testCall(db, "CALL apoc.atomic.remove($node,$property,$position,$times)",map("node",node,"property","age","position",1,"times",5), (r) -> {});
 
-		List<Long> ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
-		assertThat(ages, Matchers.contains(40L, 60L));
+		long[] ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
+        assertThat(ArrayUtils.toObject(ages), Matchers.arrayContaining(40l, 60l));
 	}
 
     @Test
@@ -110,8 +111,8 @@ public class AtomicTest {
         db.executeTransactionally("CREATE (p:Person {name:'Tom',age: [40,50,60]})");
 		Node node = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) return n;");
         testCall(db, "CALL apoc.atomic.remove($node,$property,$position,$times)",map("node",node,"property","age","position",0,"times",5), (r) -> {});
-		List<Long> ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
-		assertThat(ages, Matchers.contains(50L, 60L));
+		long[] ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
+		assertThat(ArrayUtils.toObject(ages), Matchers.arrayContaining(50L, 60L));
     }
 
     @Test
@@ -119,8 +120,8 @@ public class AtomicTest {
         db.executeTransactionally("CREATE (p:Person {name:'Tom',age: [40,50,60]})");
 		Node node = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) return n;");
         testCall(db, "CALL apoc.atomic.remove($node,$property,$position,$times)",map("node",node,"property","age","position",2,"times",5), (r) -> {});
-		List<Long> ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
-		assertThat(ages, Matchers.contains(40L, 50L));
+		long[] ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
+		assertThat(ArrayUtils.toObject(ages), Matchers.arrayContaining(40L, 50L));
     }
 
     @Test
@@ -128,8 +129,8 @@ public class AtomicTest {
         db.executeTransactionally("CREATE (p:Person {name:'Tom',age: [40]})");
 		Node node = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) return n;");
         testCall(db, "CALL apoc.atomic.remove($node,$property,$position,$times)",map("node",node,"property","age","position",0,"times",5), (r) -> {});
-		List<Long> ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
-		assertTrue(ages.isEmpty());
+		long[] ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
+		assertTrue(ages.length == 0);
     }
 
     @Test(expected = RuntimeException.class)
@@ -137,8 +138,8 @@ public class AtomicTest {
         db.executeTransactionally("CREATE (p:Person {name:'Tom',age: [40,50,60]})");
         Node node = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) return n;");
         testCall(db, "CALL apoc.atomic.remove($node,$property,$position,$times)",map("node",node,"property","age","position",5,"times",5), (r) -> {});
-		List<Long> ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
-		assertThat(ages, Matchers.contains(40L, 50L, 60L));
+		long[] ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
+		assertThat(ArrayUtils.toObject(ages), Matchers.arrayContaining(40L, 50L, 60L));
     }
 
     @Test(expected = RuntimeException.class)
@@ -146,7 +147,7 @@ public class AtomicTest {
         db.executeTransactionally("CREATE (p:Person {name:'Tom',age: []})");
 		Node node = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) return n;");
         testCall(db, "CALL apoc.atomic.remove($node,$property,$position,$times)",map("node",node,"property","age","position",5,"times",5), (r) -> {});
-		List<Long> ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
+		long[] ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
     }
 
 	@Test
@@ -154,8 +155,8 @@ public class AtomicTest {
 		db.executeTransactionally("CREATE (p:Person {name:'Tom',age: 40})");
 		Node node = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) return n;");
 		testCall(db, "CALL apoc.atomic.insert($node,$property,$position,$value,$times)",map("node",node,"property","age","position",2,"value",55L,"times",5), (r) -> {});
-		List<Long> ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
-		assertThat(ages, Matchers.contains(40L, 55L));
+		long[] ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'}) RETURN n.age as age;");
+		assertThat(ArrayUtils.toObject(ages), Matchers.arrayContaining(40L, 55L));
 	}
 
 	@Test
@@ -164,8 +165,8 @@ public class AtomicTest {
 		Relationship rel = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'})-[r:KNOWS]-(c) RETURN r;");
 		testCall(db, "CALL apoc.atomic.insert($rel,$property,$position,$value,$times)", map("rel", rel, "property", "since", "position", 2, "value", 55L, "times", 5), (r) -> {
 		});
-		List<Long> ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'})-[r:KNOWS]-(c) RETURN r.since as since;");
-		assertThat(ages, Matchers.contains(40L, 50L, 55L, 60L));
+		long[] ages = TestUtil.singleResultFirstColumn(db, "MATCH (n:Person {name:'Tom'})-[r:KNOWS]-(c) RETURN r.since as since;");
+		assertThat(ArrayUtils.toObject(ages), Matchers.arrayContaining(40L, 50L, 55L, 60L));
 	}
 
 	@Test
@@ -283,11 +284,21 @@ public class AtomicTest {
 		ExecutorService executorService = Executors.newFixedThreadPool(2);
 
 		Runnable task = () -> {
-            db.executeTransactionally("CALL apoc.atomic.remove($node,$property,$position,$times)",map("node",node,"property","age","position",0,"times",5));
+		    try (Transaction tx = db.beginTx()) {
+                System.out.println("tx 1 " + System.identityHashCode(tx));
+		        tx.execute("CALL apoc.atomic.remove($node,$property,$position,$times)",map("node",node,"property","age","position",0,"times",5));
+		        tx.commit();
+            }
+//            db.executeTransactionally("CALL apoc.atomic.remove($node,$property,$position,$times)",map("node",node,"property","age","position",0,"times",5));
         };
 
         Runnable task2 = () -> {
-            db.executeTransactionally("CALL apoc.atomic.remove($node,$property,$position,$times)",map("node",node,"property","age","position",1,"times",5));
+            try (Transaction tx = db.beginTx()) {
+                System.out.println("tx 2 " + System.identityHashCode(tx));
+                tx.execute("CALL apoc.atomic.remove($node,$property,$position,$times)",map("node",node,"property","age","position",1,"times",5));
+                tx.commit();
+            }
+//            db.executeTransactionally("CALL apoc.atomic.remove($node,$property,$position,$times)",map("node",node,"property","age","position",1,"times",5));
 		};
 
 		executorService.execute(task);
