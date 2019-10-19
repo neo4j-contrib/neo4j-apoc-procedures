@@ -625,7 +625,7 @@ public class Meta {
     private void addOtherNodeInfo(Node node, String labelName, int out, RelationshipType type, MetaResult relMeta, Map<String, MetaResult> typeMeta, Iterable<ConstraintDefinition> relConstraints) {
         MetaResult relNodeMeta = typeMeta.get(labelName);
         relMeta.elementType(Types.of(node).name());
-        for (Relationship rel : node.getRelationships(type, Direction.OUTGOING)) {
+        for (Relationship rel : node.getRelationships(Direction.OUTGOING, type)) {
             Node endNode = rel.getEndNode();
             List<String> labels = toStrings(endNode.getLabels());
             int in = endNode.getDegree(type, Direction.INCOMING);

@@ -38,9 +38,11 @@ public class Neighbors {
         seen.addLong(nodeId);
         Iterator<Long> iterator;
 
+        List<Pair<RelationshipType, Direction>> typesAndDirections = parse(types);
+
         // First Hop
-        for (Pair<RelationshipType, Direction> pair : parse(types)) {
-            for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+        for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+            for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                 nextB.addLong(r.getOtherNodeId(nodeId));
             }
         }
@@ -54,8 +56,8 @@ public class Neighbors {
             while (iterator.hasNext()) {
                 nodeId = iterator.next();
                 node = tx.getNodeById(nodeId);
-                for (Pair<RelationshipType, Direction> pair : parse(types)) {
-                    for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+                for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+                    for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                         nextA.add((r.getOtherNodeId(nodeId)));
                     }
                 }
@@ -71,8 +73,8 @@ public class Neighbors {
                 while (iterator.hasNext()) {
                     nodeId = iterator.next();
                     node = tx.getNodeById(nodeId);
-                    for (Pair<RelationshipType, Direction> pair : parse(types)) {
-                        for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+                    for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+                        for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                             nextB.add(r.getOtherNodeId(nodeId));
                         }
                     }
@@ -105,9 +107,10 @@ public class Neighbors {
         seen.add(nodeId);
         Iterator<Long> iterator;
 
+        List<Pair<RelationshipType, Direction>> typesAndDirections = parse(types);
         // First Hop
-        for (Pair<RelationshipType, Direction> pair : parse(types)) {
-            for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+        for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+            for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                 nextB.add(r.getOtherNodeId(nodeId));
             }
         }
@@ -121,8 +124,8 @@ public class Neighbors {
             while (iterator.hasNext()) {
                 nodeId = iterator.next();
                 node = tx.getNodeById(nodeId);
-                for (Pair<RelationshipType, Direction> pair : parse(types)) {
-                    for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+                for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+                    for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                         nextA.add(r.getOtherNodeId(nodeId));
                     }
                 }
@@ -138,8 +141,8 @@ public class Neighbors {
                 while (iterator.hasNext()) {
                     nodeId = iterator.next();
                     node = tx.getNodeById(nodeId);
-                    for (Pair<RelationshipType, Direction> pair : parse(types)) {
-                        for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+                    for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+                        for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                             nextB.add(r.getOtherNodeId(nodeId));
                         }
                     }
@@ -172,9 +175,10 @@ public class Neighbors {
 
         Iterator<Long> iterator;
 
+        List<Pair<RelationshipType, Direction>> typesAndDirections = parse(types);
         // First Hop
-        for (Pair<RelationshipType, Direction> pair : parse(types)) {
-            for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+        for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+            for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                 seen[0].add(r.getOtherNodeId(nodeId));
             }
         }
@@ -183,8 +187,8 @@ public class Neighbors {
             iterator = seen[i-1].iterator();
             while (iterator.hasNext()) {
                 node = tx.getNodeById(iterator.next());
-                for (Pair<RelationshipType, Direction> pair : parse(types)) {
-                    for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+                for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+                    for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                         seen[i].add(r.getOtherNodeId(node.getId()));
                     }
                 }
@@ -216,9 +220,10 @@ public class Neighbors {
 
         Iterator<Long> iterator;
 
+        List<Pair<RelationshipType, Direction>> typesAndDirections = parse(types);
         // First Hop
-        for (Pair<RelationshipType, Direction> pair : parse(types)) {
-            for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+        for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+            for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                 seen[0].add(r.getOtherNodeId(nodeId));
             }
         }
@@ -227,8 +232,8 @@ public class Neighbors {
             iterator = seen[i-1].iterator();
             while (iterator.hasNext()) {
                 node = tx.getNodeById(iterator.next());
-                for (Pair<RelationshipType, Direction> pair : parse(types)) {
-                    for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+                for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+                    for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                         seen[i].add(r.getOtherNodeId(node.getId()));
                     }
                 }
@@ -262,9 +267,10 @@ public class Neighbors {
 
         Iterator<Long> iterator;
 
+        List<Pair<RelationshipType, Direction>> typesAndDirections = parse(types);
         // First Hop
-        for (Pair<RelationshipType, Direction> pair : parse(types)) {
-            for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+        for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+            for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                 seen[0].add(r.getOtherNodeId(nodeId));
             }
         }
@@ -273,8 +279,8 @@ public class Neighbors {
             iterator = seen[i-1].iterator();
             while (iterator.hasNext()) {
                 node = tx.getNodeById(iterator.next());
-                for (Pair<RelationshipType, Direction> pair : parse(types)) {
-                    for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+                for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+                    for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                         seen[i].add(r.getOtherNodeId(node.getId()));
                     }
                 }
@@ -304,9 +310,10 @@ public class Neighbors {
 
         Iterator<Long> iterator;
 
+        List<Pair<RelationshipType, Direction>> typesAndDirections = parse(types);
         // First Hop
-        for (Pair<RelationshipType, Direction> pair : parse(types)) {
-            for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+        for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+            for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                 seen[0].add(r.getOtherNodeId(nodeId));
             }
         }
@@ -315,8 +322,8 @@ public class Neighbors {
             iterator = seen[i - 1].iterator();
             while (iterator.hasNext()) {
                 node = tx.getNodeById(iterator.next());
-                for (Pair<RelationshipType, Direction> pair : parse(types)) {
-                    for (Relationship r : node.getRelationships(pair.first(), pair.other())) {
+                for (Pair<RelationshipType, Direction> pair : typesAndDirections) {
+                    for (Relationship r : node.getRelationships(pair.other(), pair.first())) {
                         seen[i].add(r.getOtherNodeId(node.getId()));
                     }
                 }

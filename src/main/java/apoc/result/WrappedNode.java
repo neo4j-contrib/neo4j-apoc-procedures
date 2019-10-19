@@ -97,16 +97,6 @@ public class WrappedNode implements Node {
     }
 
     @Override
-    public Iterable<Relationship> getRelationships(RelationshipType relationshipType, Direction direction) {
-        return new FilteringIterable<>(rels, (r) -> isType(r, relationshipType) && isDirection(r, direction));
-    }
-
-    @Override
-    public boolean hasRelationship(RelationshipType relationshipType, Direction direction) {
-        return false;
-    }
-
-    @Override
     public Relationship getSingleRelationship(RelationshipType relationshipType, Direction direction) {
         return null;
     }
@@ -140,7 +130,7 @@ public class WrappedNode implements Node {
 
     @Override
     public int getDegree(RelationshipType relationshipType, Direction direction) {
-        return (int) Iterables.count(getRelationships(relationshipType,direction));
+        return (int) Iterables.count(getRelationships(direction, relationshipType));
     }
 
     @Override

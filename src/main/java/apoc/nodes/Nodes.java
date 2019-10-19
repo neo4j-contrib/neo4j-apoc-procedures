@@ -204,7 +204,7 @@ public class Nodes {
     }
 
     private void createOrMergeVirtualRelationship(VirtualNode virtualNode, RefactorConfig refactorConfig, Relationship source, Node node, Direction direction) {
-        Iterable<Relationship> rels = virtualNode.getRelationships(source.getType(), direction);
+        Iterable<Relationship> rels = virtualNode.getRelationships(direction, source.getType());
         Optional<Relationship> first = StreamSupport.stream(rels.spliterator(), false).filter(relationship -> relationship.getOtherNode(virtualNode).equals(node)).findFirst();
         if (refactorConfig.isMergeVirtualRels() && first.isPresent()) {
             mergeRelationship(source, first.get(), refactorConfig);
@@ -468,7 +468,7 @@ public class Nodes {
         List<String> result = new ArrayList<>(relTypes.size());
         for (Pair<RelationshipType, Direction> p : parse(types)) {
             String name = p.first().name();
-            if (relTypes.contains(name) && node.hasRelationship(p.first(),p.other())) {
+            if (relTypes.contains(name) && node.hasRelationship(p.other(),p.first())) {
                 result.add(name);
             }
         }
@@ -483,7 +483,7 @@ public class Nodes {
         Map<String,Boolean> result =  new HashMap<>();
         for (Pair<RelationshipType, Direction> p : parse(types)) {
             String name = p.first().name();
-            boolean hasRelationship = relTypes.contains(name) && node.hasRelationship(p.first(), p.other());
+            boolean hasRelationship = relTypes.contains(name) && node.hasRelationship(p.other(), p.first());
             result.put(format(p), hasRelationship);
         }
         return result;

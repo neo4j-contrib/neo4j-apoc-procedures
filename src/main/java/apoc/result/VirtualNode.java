@@ -101,18 +101,8 @@ public class VirtualNode implements Node {
     }
 
     @Override
-    public Iterable<Relationship> getRelationships(RelationshipType relationshipType, Direction direction) {
-        return new FilteringIterable<>(rels, (r) -> isType(r, relationshipType) && isDirection(r, direction));
-    }
-
-    @Override
-    public boolean hasRelationship(RelationshipType relationshipType, Direction direction) {
-        return getRelationships(relationshipType, direction).iterator().hasNext();
-    }
-
-    @Override
     public Relationship getSingleRelationship(RelationshipType relationshipType, Direction direction) {
-        return Iterables.single(getRelationships(relationshipType, direction));
+        return Iterables.single(getRelationships(direction, relationshipType));
     }
 
     @Override
@@ -162,7 +152,7 @@ public class VirtualNode implements Node {
 
     @Override
     public int getDegree(RelationshipType relationshipType, Direction direction) {
-        return (int) Iterables.count(getRelationships(relationshipType,direction));
+        return (int) Iterables.count(getRelationships(direction, relationshipType));
     }
 
     @Override
