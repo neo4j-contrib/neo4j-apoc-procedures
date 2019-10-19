@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -48,6 +49,7 @@ public class Rename {
 	@Procedure(mode = Mode.WRITE)
 	@Description("apoc.refactor.rename.label(oldLabel, newLabel, [nodes]) | rename a label from 'oldLabel' to 'newLabel' for all nodes. If 'nodes' is provided renaming is applied to this set only")
 	public Stream<BatchAndTotalResultWithInfo> label(@Name("oldLabel") String oldLabel, @Name("newLabel") String newLabel, @Name(value = "nodes", defaultValue = "[]") List<Node> nodes) {
+		nodes = nodes.stream().map(n -> Util.rebind(tx, n)).collect(Collectors.toList());
 		String cypherIterate = nodes != null && !nodes.isEmpty() ? "UNWIND $nodes AS n WITH n WHERE n:`"+oldLabel+"` RETURN n" : "MATCH (n:`"+oldLabel+"`) RETURN n";
         String cypherAction = "SET n:`"+newLabel+"` REMOVE n:`"+oldLabel+"`";
         Map<String, Object> parameters = MapUtil.map("batchSize", 100000, "parallel", true, "iterateList", true, "params", MapUtil.map("nodes", nodes));
@@ -60,7 +62,11 @@ public class Rename {
 	@Procedure(mode = Mode.WRITE)
 	@Description("apoc.refactor.rename.type(oldType, newType, [rels]) | rename all relationships with type 'oldType' to 'newType'. If 'rels' is provided renaming is applied to this set only")
 	public Stream<BatchAndTotalResultWithInfo> type(@Name("oldType") String oldType, @Name("newType") String newType, @Name(value = "rels", defaultValue = "[]") List<Relationship> rels) {
-		String cypherIterate = rels != null && ! rels.isEmpty() ? "UNWIND $rels AS oldRel WITH oldRel WHERE type(oldRel)=\""+oldType+"\" RETURN oldRel,startNode(oldRel) as a,endNode(oldRel) as b" : "MATCH (a)-[oldRel:`"+oldType+"`]->(b) RETURN oldRel,a,b";
+		rels = rels.stream().map(r -> Util.rebind(tx, r)).collect(Collectors.toList());
+		List<Long> relIds = rels.stream().map(r -> r.getId()).collect(Collectors.toList());
+		String cypherIterate = rels != null && ! rels.isEmpty() ?
+				"UNWIND $rels AS oldRel WITH oldRel WHERE type(oldRel)=\""+oldType+"\" RETURN oldRel,startNode(oldRel) as a,endNode(oldRel) as b" :
+				"MATCH (a)-[oldRel:`"+oldType+"`]->(b) RETURN oldRel,a,b";
 		String cypherAction = "CREATE(a)-[newRel:`"+newType+"`]->(b)"+ "SET newRel+=oldRel DELETE oldRel";
 		Map<String, Object> parameters = MapUtil.map("batchSize", 100000, "parallel", true, "iterateList", true, "params", MapUtil.map("rels", rels));
 		return getResultOfBatchAndTotalWithInfo(newPeriodic().iterate(cypherIterate, cypherAction, parameters), db, null, oldType, null);
@@ -71,7 +77,8 @@ public class Rename {
 	 */
 	@Procedure(mode = Mode.WRITE)
 	@Description("apoc.refactor.rename.nodeProperty(oldName, newName, [nodes]) | rename all node's property from 'oldName' to 'newName'. If 'nodes' is provided renaming is applied to this set only")
-	public Stream<BatchAndTotalResultWithInfo> nodeProperty(@Name("oldName") String oldName, @Name("newName") String newName, @Name(value="nodes", defaultValue = "[]") List<Object> nodes) {
+	public Stream<BatchAndTotalResultWithInfo> nodeProperty(@Name("oldName") String oldName, @Name("newName") String newName, @Name(value="nodes", defaultValue = "[]") List<Node> nodes) {
+		nodes = nodes.stream().map(n -> Util.rebind(tx, n)).collect(Collectors.toList());;
 		String cypherIterate = nodes != null && ! nodes.isEmpty() ? "UNWIND $nodes AS n WITH n WHERE exists (n."+oldName+") return n" : "match (n) where exists (n."+oldName+") return n";
 		String cypherAction = "set n."+newName+"= n."+oldName+" remove n."+oldName;
 		Map<String, Object> parameters = MapUtil.map("batchSize", 100000, "parallel", true, "iterateList", true, "params", MapUtil.map("nodes", nodes));
@@ -83,7 +90,8 @@ public class Rename {
 	 */
 	@Procedure(mode = Mode.WRITE)
 	@Description("apoc.refactor.rename.typeProperty(oldName, newName, [rels]) | rename all relationship's property from 'oldName' to 'newName'. If 'rels' is provided renaming is applied to this set only")
-	public Stream<BatchAndTotalResultWithInfo> typeProperty(@Name("oldName") String oldName, @Name("newName") String newName, @Name(value="rels", defaultValue = "[]") List<Object> rels) {
+	public Stream<BatchAndTotalResultWithInfo> typeProperty(@Name("oldName") String oldName, @Name("newName") String newName, @Name(value="rels", defaultValue = "[]") List<Relationship> rels) {
+		rels = rels.stream().map(r -> Util.rebind(tx, r)).collect(Collectors.toList());
 		String cypherIterate = rels != null && ! rels.isEmpty() ? "UNWIND $rels AS r WITH r WHERE exists (r."+oldName+") return r" : "match ()-[r]->() where exists (r."+oldName+") return r";
 		String cypherAction = "set r."+newName+"= r."+oldName+" remove r."+oldName;
 		Map<String, Object> parameters = MapUtil.map("batchSize", 100000, "parallel", true, "iterateList", true, "params", MapUtil.map("rels", rels));
