@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.ConstraintType;
@@ -22,8 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author mh
@@ -34,6 +34,50 @@ public class SchemasTest {
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(GraphDatabaseSettings.procedure_unrestricted, Collections.singletonList("apoc.*"));
+
+    private static void accept(Result result) {
+        Map<String, Object> r = result.next();
+
+        assertEquals(":Foo(bar)", r.get("name"));
+        assertEquals("ONLINE", r.get("status"));
+        assertEquals("Foo", r.get("label"));
+        assertEquals("INDEX", r.get("type"));
+        assertEquals("bar", ((List<String>) r.get("properties")).get(0));
+        assertEquals("NO FAILURE", r.get("failure"));
+        assertEquals(100d, r.get("populationProgress"));
+        assertEquals(1d, r.get("valuesSelectivity"));
+        assertEquals("Index( 1, 'index_70bffdab', GENERAL BTREE, :Foo(bar), native-btree-1.0 )", r.get("userDescription"));
+
+        assertTrue(!result.hasNext());
+    }
+
+    private static void accept2(Result result) {
+        Map<String, Object> r = result.next();
+
+        assertEquals(":Foo(bar)", r.get("name"));
+        assertEquals("ONLINE", r.get("status"));
+        assertEquals("Foo", r.get("label"));
+        assertEquals("INDEX", r.get("type"));
+        assertEquals("bar", ((List<String>) r.get("properties")).get(0));
+        assertEquals("NO FAILURE", r.get("failure"));
+        assertEquals(100d, r.get("populationProgress"));
+        assertEquals(1d, r.get("valuesSelectivity"));
+        assertEquals("Index( 1, 'index_70bffdab', GENERAL BTREE, :Foo(bar), native-btree-1.0 )", r.get("userDescription"));
+
+        r = result.next();
+
+        assertEquals(":Person(name)", r.get("name"));
+        assertEquals("ONLINE", r.get("status"));
+        assertEquals("Person", r.get("label"));
+        assertEquals("INDEX", r.get("type"));
+        assertEquals("name", ((List<String>) r.get("properties")).get(0));
+        assertEquals("NO FAILURE", r.get("failure"));
+        assertEquals(100d, r.get("populationProgress"));
+        assertEquals(1d, r.get("valuesSelectivity"));
+        assertEquals("Index( 3, 'index_5c0607ad', GENERAL BTREE, :Person(name), native-btree-1.0 )", r.get("userDescription"));
+
+        assertTrue(!result.hasNext());
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -266,11 +310,11 @@ public class SchemasTest {
             assertEquals("INDEX", r.get("type"));
             assertEquals("bar", ((List<String>) r.get("properties")).get(0));
             assertEquals("NO FAILURE", r.get("failure"));
-            assertEquals(new Double(100), r.get("populationProgress"));
-            assertEquals(new Double(1), r.get("valuesSelectivity"));
-            assertEquals("Index( 1, 'Index on :Foo (bar)', GENERAL BTREE, :Foo(bar), native-btree-1.0 )", r.get("userDescription"));
+            assertEquals(100d, r.get("populationProgress"));
+            assertEquals(1d, r.get("valuesSelectivity"));
+            assertEquals("Index( 1, 'index_70bffdab', GENERAL BTREE, :Foo(bar), native-btree-1.0 )", r.get("userDescription"));
 
-            assertTrue(!result.hasNext());
+            assertFalse(result.hasNext());
         });
     }
 
@@ -305,7 +349,7 @@ public class SchemasTest {
             assertEquals("UNIQUENESS", r.get("type"));
             assertEquals("foo", ((List<String>) r.get("properties")).get(0));
 
-            assertTrue(!result.hasNext());
+            assertFalse(result.hasNext());
         });
     }
 
@@ -326,7 +370,7 @@ public class SchemasTest {
             assertEquals("foo", ((List<String>) r.get("properties")).get(0));
             assertEquals("ONLINE", r.get("status"));
 
-            assertTrue(!result.hasNext());
+            assertFalse(result.hasNext());
         });
     }
 
@@ -461,22 +505,8 @@ public class SchemasTest {
             tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
             tx.commit();
         }
-        testResult(db, "CALL apoc.schema.nodes({labels:['Foo']})", (result) -> {
-            // Get the index info
-            Map<String, Object> r = result.next();
-
-            assertEquals(":Foo(bar)", r.get("name"));
-            assertEquals("ONLINE", r.get("status"));
-            assertEquals("Foo", r.get("label"));
-            assertEquals("INDEX", r.get("type"));
-            assertEquals("bar", ((List<String>) r.get("properties")).get(0));
-            assertEquals("NO FAILURE", r.get("failure"));
-            assertEquals(new Double(100), r.get("populationProgress"));
-            assertEquals(new Double(1), r.get("valuesSelectivity"));
-            assertEquals("Index( 1, 'Index on :Foo (bar)', GENERAL BTREE, :Foo(bar), native-btree-1.0 )", r.get("userDescription"));
-
-            assertTrue(!result.hasNext());
-        });
+        testResult(db, "CALL apoc.schema.nodes({labels:['Foo']})", // Get the index info
+                SchemasTest::accept);
     }
 
     @Test
@@ -489,44 +519,15 @@ public class SchemasTest {
             tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
             tx.commit();
         }
-        testResult(db, "CALL apoc.schema.nodes({labels:['Foo', 'Person']})", (result) -> {
-            // Get the index info
-            Map<String, Object> r = result.next();
-
-            assertEquals(":Foo(bar)", r.get("name"));
-            assertEquals("ONLINE", r.get("status"));
-            assertEquals("Foo", r.get("label"));
-            assertEquals("INDEX", r.get("type"));
-            assertEquals("bar", ((List<String>) r.get("properties")).get(0));
-            assertEquals("NO FAILURE", r.get("failure"));
-            assertEquals(new Double(100), r.get("populationProgress"));
-            assertEquals(new Double(1), r.get("valuesSelectivity"));
-            assertEquals("Index( 1, 'Index on :Foo (bar)', GENERAL BTREE, :Foo(bar), native-btree-1.0 )", r.get("userDescription"));
-
-            r = result.next();
-
-            assertEquals(":Person(name)", r.get("name"));
-            assertEquals("ONLINE", r.get("status"));
-            assertEquals("Person", r.get("label"));
-            assertEquals("INDEX", r.get("type"));
-            assertEquals("name", ((List<String>) r.get("properties")).get(0));
-            assertEquals("NO FAILURE", r.get("failure"));
-            assertEquals(new Double(100), r.get("populationProgress"));
-            assertEquals(new Double(1), r.get("valuesSelectivity"));
-            assertEquals("Index( 3, 'Index on :Person (name)', GENERAL BTREE, :Person(name), native-btree-1.0 )", r.get("userDescription"));
-
-            assertTrue(!result.hasNext());
-        });
+        testResult(db, "CALL apoc.schema.nodes({labels:['Foo', 'Person']})", // Get the index info
+                SchemasTest::accept2);
     }
 
     @Test
     public void testSchemaRelationshipsExclude() {
         ignoreException(() -> {
             db.executeTransactionally("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
-            testResult(db, "CALL apoc.schema.relationships({excludeRelationships:['LIKED']})", (result) -> {
-                assertTrue(!result.hasNext());
-            });
-
+            testResult(db, "CALL apoc.schema.relationships({excludeRelationships:['LIKED']})", (result) -> assertFalse(result.hasNext()));
         }, QueryExecutionException.class);
     }
 
@@ -534,9 +535,7 @@ public class SchemasTest {
     public void testSchemaNodesExclude() {
         ignoreException(() -> {
             db.executeTransactionally("CREATE CONSTRAINT ON (book:Book) ASSERT book.isbn IS UNIQUE");
-            testResult(db, "CALL apoc.schema.nodes({excludeLabels:['Book']})", (result) -> {
-                assertTrue(!result.hasNext());
-            });
+            testResult(db, "CALL apoc.schema.nodes({excludeLabels:['Book']})", (result) -> assertFalse(result.hasNext()));
 
         }, QueryExecutionException.class);
     }
