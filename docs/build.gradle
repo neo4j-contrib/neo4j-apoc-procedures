@@ -49,6 +49,7 @@ ext {
             'neo4j-streams'  : "${docsBaseUri}/labs/neo4j-streams/current",
             'apoc'              : "${apocBaseUri}/${versions.apocDocs}",
             'java-reference'    : "${docsBaseUri}/java-reference/current",
+            'neo-semantics'  : "${docsBaseUri}/labs/nsmntx/current",
             'rest-docs'         : "${docsBaseUri}/rest-docs/current",
             'ogm-manual'        : "${docsBaseUri}/ogm-manual/current",
             'kerberos-add-on'   : "${docsBaseUri}/add-on/kerberos/current"
@@ -171,14 +172,11 @@ html {
     outputs.dir outputDir
 
     def libraryLinks = [
-        "Operations_Manual=${crossReferenceBase['operations-manual']}",
-        "Developer_Manual=${crossReferenceBase['developer-manual']}/",
-        "OGM_Manual=${crossReferenceBase['ogm-manual']}/",
-        "Graph_Algorithms=${crossReferenceBase['graph-algorithms']}/",
-        "Java_Reference=${crossReferenceBase['java-reference']}/",
-        "APOC=${crossReferenceBase['apoc']}/",
-        "Neo4j_Streams=${crossReferenceBase['neo4j-streams']}/",
-
+            "APOC=${crossReferenceBase['apoc']}/",
+            "Neo4j_Streams=${crossReferenceBase['neo4j-streams']}/",
+            "Neo_Semantics=${crossReferenceBase['neo-semantics']}/",
+            "Graph_Algorithms=${crossReferenceBase['graph-algorithms']}/",
+            "Developer_Manual=${crossReferenceBase['developer-manual']}/",
     ].join(" ")
     def scripts = [
 //        '//ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js',
@@ -215,7 +213,7 @@ html {
           tabTheSource($('body'));
           var $header = $('header').first();
           $header.prepend(
-            $('<a href="" id="logo"><img src="https://s3.amazonaws.com/dev.assets.neo4j.com/wp-content/uploads/20190802073913/labs-logo6.png" alt="Neo4j Labs Logo"/></a>')
+            $('<a href="https://neo4j.com/docs/labs/" id="logo"><img src="https://s3.amazonaws.com/dev.assets.neo4j.com/wp-content/uploads/20190802073913/labs-logo6.png" alt="Neo4j Labs Logo"/></a>')
           );
           var sidebar = $('<div id=\"sidebar-wrapper\"/>');
           $.get('toc.html', function (d){
