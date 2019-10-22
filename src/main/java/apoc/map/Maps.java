@@ -186,7 +186,7 @@ public class Maps {
         Map<String, Object> res = new LinkedHashMap<>(map);
         res.remove(key);
         Map<String, Object> checkedConfig = config == null ? Collections.emptyMap() : config;
-        if (checkedConfig.get("recursive") == Boolean.TRUE) {
+        if (Util.toBoolean(config.getOrDefault("recursive", false))) {
             for (Map.Entry<String, Object> entry : res.entrySet()) {
                 if (entry.getValue() instanceof Map) {
                     Map<String, Object> updatedMap = removeKey((Map<String, Object>) entry.getValue(), key, checkedConfig);
@@ -211,7 +211,7 @@ public class Maps {
         Map<String, Object> res = new LinkedHashMap<>(map);
         res.keySet().removeAll(keys);
         Map<String, Object> checkedConfig = config == null ? Collections.emptyMap() : config;
-        if (checkedConfig.get("recursive") == Boolean.TRUE) {
+        if (Util.toBoolean(config.getOrDefault("recursive", false))) {
             for (Map.Entry<String, Object> entry : res.entrySet()) {
                 if (entry.getValue() instanceof Map) {
                     Map<String, Object> updatedMap = removeKeys((Map<String, Object>) entry.getValue(), keys, checkedConfig);
