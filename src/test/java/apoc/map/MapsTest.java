@@ -196,6 +196,13 @@ public class MapsTest {
     }
 
     @Test
+    public void testRemoveLastKey() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1},'a') AS value", (r) -> {
+            assertEquals(map(),r.get("value"));
+        });
+    }
+
+    @Test
     public void testRemoveKeyRecursively() throws Exception {
         TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1,b:2,c:{a:3,b:4}},'a', {recursive:true}) AS value", (r) -> {
             assertEquals(map("b",2L, "c", map("b",4L)),r.get("value"));
@@ -203,9 +210,23 @@ public class MapsTest {
     }
 
     @Test
-    public void testRemoveKeyRecursivelyIncludingCollection() throws Exception {
+    public void testRemoveLastKeyRecursively() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1,b:2,c:{a:3}},'a', {recursive:true}) AS value", (r) -> {
+            assertEquals(map("b",2L, "c", map()),r.get("value"));
+        });
+    }
+
+    @Test
+    public void testRemoveKeyRecursivelyIncludingCollectionOfMaps() throws Exception {
         TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1,b:2,c:[{a:3,b:4}, {a:4,b:5}]},'a', {recursive:true}) AS value", (r) -> {
             assertEquals(map("b",2L, "c", asList(map("b",4L), map("b",5L))), r.get("value"));
+        });
+    }
+
+    @Test
+    public void testRemoveKeyRecursivelyIncludingCollectionOfStrings() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1,b:2,c:['a', 'b']},'a', {recursive:true}) AS value", (r) -> {
+            assertEquals(map("b", 2L, "c", asList("a", "b")), r.get("value"));
         });
     }
 
@@ -224,9 +245,16 @@ public class MapsTest {
     }
 
     @Test
-    public void testRemoveKeysRecursivelyIncludingCollection() throws Exception {
+    public void testRemoveKeysRecursivelyIncludingCollectionOfMaps() throws Exception {
         TestUtil.testCall(db, "RETURN apoc.map.removeKeys({a:1,b:2,c:[{a:3,b:4,d:1}, {a:4,b:5,d:3}]},['a','b'],{recursive:true}) AS value", (r) -> {
             assertEquals(map("c", asList(map("d",1L),map("d",3L))), r.get("value"));
+        });
+    }
+
+    @Test
+    public void testRemoveKeysRecursivelyIncludingCollectionOfInts() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKeys({a:1,b:2,c:[1,2,3]},['a','b'],{recursive:true}) AS value", (r) -> {
+            assertEquals(map("c", asList(1L, 2L, 3L)), r.get("value"));
         });
     }
 

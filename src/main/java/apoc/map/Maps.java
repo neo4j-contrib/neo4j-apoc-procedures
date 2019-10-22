@@ -185,16 +185,19 @@ public class Maps {
         }
         Map<String, Object> res = new LinkedHashMap<>(map);
         res.remove(key);
-        if (config!=null && config.get("recursive")==Boolean.TRUE) {
+        Map<String, Object> checkedConfig = config == null ? Collections.emptyMap() : config;
+        if (checkedConfig.get("recursive") == Boolean.TRUE) {
             for (Map.Entry<String, Object> entry : res.entrySet()) {
                 if (entry.getValue() instanceof Map) {
-                    Map<String, Object> updatedMap = removeKey((Map<String, Object>) entry.getValue(), key, config);
-                    if (updatedMap!=entry.getValue()) {
+                    Map<String, Object> updatedMap = removeKey((Map<String, Object>) entry.getValue(), key, checkedConfig);
+                    if (updatedMap != entry.getValue()) {
                         entry.setValue(updatedMap);
                     }
                 } else if (entry.getValue() instanceof Collection) {
-                    Collection<Map<String, Object>> values = (Collection<Map<String, Object>>) entry.getValue();
-                    List<Map<String, Object>> updatedValues = values.stream().map(value -> removeKey(value, key, config)).collect(Collectors.toList());
+                    Collection<Object> values = (Collection<Object>) entry.getValue();
+                    List<Object> updatedValues = values.stream()
+                            .map(value -> value instanceof Map ? removeKey((Map<String, Object>) value, key, checkedConfig) : value)
+                            .collect(Collectors.toList());
                     entry.setValue(updatedValues);
                 }
             }
@@ -204,17 +207,20 @@ public class Maps {
 
     @UserFunction
     @Description("apoc.map.removeKeys(map,[keys],{recursive:true/false}) - remove the keys from the map (recursively if recursive is true)")
-    public Map<String,Object> removeKeys(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys, @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
+    public Map<String, Object> removeKeys(@Name("map") Map<String, Object> map, @Name("keys") List<String> keys, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         Map<String, Object> res = new LinkedHashMap<>(map);
         res.keySet().removeAll(keys);
-        if (config!=null && config.get("recursive")==Boolean.TRUE) {
+        Map<String, Object> checkedConfig = config == null ? Collections.emptyMap() : config;
+        if (checkedConfig.get("recursive") == Boolean.TRUE) {
             for (Map.Entry<String, Object> entry : res.entrySet()) {
                 if (entry.getValue() instanceof Map) {
-                    Map<String, Object> updatedMap = removeKeys((Map<String, Object>) entry.getValue(), keys, config);
+                    Map<String, Object> updatedMap = removeKeys((Map<String, Object>) entry.getValue(), keys, checkedConfig);
                     entry.setValue(updatedMap);
                 } else if (entry.getValue() instanceof Collection) {
-                    Collection<Map<String, Object>> values = (Collection<Map<String, Object>>) entry.getValue();
-                    List<Map<String, Object>> updatedValues = values.stream().map(value -> removeKeys(value, keys, config)).collect(Collectors.toList());
+                    Collection<Object> values = (Collection<Object>) entry.getValue();
+                    List<Object> updatedValues = values.stream()
+                            .map(value -> value instanceof Map ? removeKeys((Map<String, Object>) value, keys, checkedConfig) : value)
+                            .collect(Collectors.toList());
                     entry.setValue(updatedValues);
                 }
             }
