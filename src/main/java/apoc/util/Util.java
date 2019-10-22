@@ -7,8 +7,19 @@ import apoc.path.RelationshipTypeAndDirections;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotInTransactionException;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.TransactionGuardException;
+import org.neo4j.graphdb.TransactionTerminatedException;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
@@ -17,17 +28,54 @@ import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
 
 import javax.lang.model.SourceVersion;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.PrimitiveIterator;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.stream.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
@@ -486,8 +534,8 @@ public class Util {
         return combined;
     }
 
-    public static Map<String,Object> map(Object ... values) {
-        Map<String, Object> map = new LinkedHashMap<>();
+    public static <T> Map<String, T> map(T ... values) {
+        Map<String, T> map = new LinkedHashMap<>();
         for (int i = 0; i < values.length; i+=2) {
             if (values[i] == null) continue;
             map.put(values[i].toString(),values[i+1]);
@@ -495,12 +543,12 @@ public class Util {
         return map;
     }
 
-    public static Map<String, Object> map(List<Object> pairs) {
-        Map<String, Object> res = new LinkedHashMap<>(pairs.size() / 2);
-        Iterator<Object> it = pairs.iterator();
+    public static <T> Map<String, T> map(List<T> pairs) {
+        Map<String, T> res = new LinkedHashMap<>(pairs.size() / 2);
+        Iterator<T> it = pairs.iterator();
         while (it.hasNext()) {
             Object key = it.next();
-            Object value = it.next();
+            T value = it.next();
             if (key != null) res.put(key.toString(), value);
         }
         return res;
