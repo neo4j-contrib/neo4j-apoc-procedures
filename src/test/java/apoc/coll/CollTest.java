@@ -242,6 +242,12 @@ public class CollTest {
         testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],[]) AS value", (res) -> assertEquals(false, res.get("value")));
         testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],[1]) AS value", (res) -> assertEquals(false, res.get("value")));
         testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],[1,2,3,4]) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],null) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],[]) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([],null) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([],[]) AS value", (res) -> assertEquals(true, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection(null,null) AS value", (res) -> assertEquals(true, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection(null,[]) AS value", (res) -> assertEquals(false, res.get("value")));
     }
 
     @Test

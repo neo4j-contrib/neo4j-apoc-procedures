@@ -435,7 +435,8 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.isEqualCollection(coll, values) return true if two collections contain the same elements with the same cardinality in any order (using a HashMap)")
     public boolean isEqualCollection(@Name("coll") List<Object> first, @Name("values") List<Object> second) {
-        if (first == null || first.isEmpty() || first.size() != second.size()) return false;
+        if (first == second) return true;
+        if (first == null || second == null || first.size() != second.size()) return false;
 
         Map<Object, Long> map1 = first.stream()
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
