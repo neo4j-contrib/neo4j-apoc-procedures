@@ -12,13 +12,19 @@ import org.neo4j.values.storable.*;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
@@ -230,7 +236,7 @@ public class MetaTest {
         db.execute("CREATE (:Person:Actor:Director {name:'Tom', born:'05-06-1956', dead:false})-[:ACTED_IN {roles:'Forrest'}]->(:Movie {title:'Forrest Gump'})").close();
         testCall(db, "CALL apoc.meta.schema()",
                 (row) -> {
-                    List<String> emprtyList = new ArrayList<String>();
+                    List<String> emptyList = new ArrayList<String>();
                     List<String> fullList = Arrays.asList("Actor","Director");
 
                     Map<String, Object> o = (Map<String, Object>) row.get("value");
@@ -242,9 +248,10 @@ public class MetaTest {
                     assertNotNull(movie);
                     assertEquals("node", movie.get("type"));
                     assertEquals(1L, movie.get("count"));
-                    assertEquals(emprtyList, movie.get("labels"));
-                    assertEquals(4, movieTitleProperties.size());
+                    assertEquals(emptyList, movie.get("labels"));
+                    assertEquals(5, movieTitleProperties.size());
                     assertEquals("STRING", movieTitleProperties.get("type"));
+                    assertEquals(Arrays.asList("STRING"), movieTitleProperties.get("types"));
                     assertEquals(true, movieTitleProperties.get("indexed"));
                     assertEquals(false, movieTitleProperties.get("unique"));
                     Map<String, Object> movieRel = (Map<String, Object>) movie.get("relationships");
@@ -268,14 +275,14 @@ public class MetaTest {
                     assertNotNull(actor);
                     assertEquals("node", actor.get("type"));
                     assertEquals(1L, actor.get("count"));
-                    assertEquals(emprtyList, actor.get("labels"));
+                    assertEquals(emptyList, actor.get("labels"));
 
                     Map<String, Object>  director = (Map<String, Object>) o.get("Director");
                     Map<String, Object>  directorProperties = (Map<String, Object>) director.get("properties");
                     assertNotNull(director);
                     assertEquals("node", director.get("type"));
                     assertEquals(1L, director.get("count"));
-                    assertEquals(emprtyList, director.get("labels"));
+                    assertEquals(emptyList, director.get("labels"));
                     assertEquals(3, directorProperties.size());
 
                     Map<String, Object>  actedIn = (Map<String, Object>) o.get("ACTED_IN");
@@ -284,6 +291,7 @@ public class MetaTest {
                     assertNotNull(actedIn);
                     assertEquals("relationship", actedIn.get("type"));
                     assertEquals("STRING", actedInRoleProperty.get("type"));
+                    assertEquals(Arrays.asList("STRING"), actedInRoleProperty.get("types"));
                     assertEquals(false, actedInRoleProperty.get("array"));
                     assertEquals(false, actedInRoleProperty.get("existence"));
                 });
@@ -650,6 +658,74 @@ public class MetaTest {
             List<Node> nodes = (List<Node>) row.get("nodes");
             assertEquals(7,nodes.size());
         });
+    }
+
+    @Test
+    public void testMetaDataShouldReportArrayOfTypes() {
+        // given
+        db.execute("create (:A { x: 1 }), (:A { x: 'Foo' });").close();
+        db.execute("create (:B { x: 'Foo' }), (:B { x: 'Foo1' }), (:B { x: 1 });").close();
+        db.execute("create (:C { x: 1 }), (:C { x: 1 }), (:C { x: 1, y: 'Y' });").close();
+        Map<String, Object> expected = map("A.x", new AbstractMap.SimpleEntry<>("STRING", new HashSet<>(Arrays.asList("INTEGER", "STRING"))),
+                "B.x", new AbstractMap.SimpleEntry<>("STRING", new HashSet<>(Arrays.asList("INTEGER", "STRING"))),
+                "C.x", new AbstractMap.SimpleEntry<>("INTEGER", new HashSet<>(Arrays.asList("INTEGER"))),
+                "C.y", new AbstractMap.SimpleEntry<>("STRING", new HashSet<>(Arrays.asList("STRING"))));
+
+        // when
+        testResult(db, "CALL apoc.meta.data({sample: -1})",
+                (result) -> {
+                    // then
+                    Map<String, Object> actual = result.stream()
+                            .collect(Collectors.toMap(e -> e.get("label")  + "." + e.get("property"),
+                                    e -> new AbstractMap.SimpleEntry<>(e.get("type"), new HashSet<>((List<String>) e.get("types"))),
+                                    (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); },
+                                    LinkedHashMap::new));
+                    assertEquals(expected, actual);
+                });
+    }
+
+    @Test
+    public void testMetaSchemaShouldReportTypes() {
+        // given
+        db.execute("CREATE (:Person {name:'Tom', age: 35})-[:KNOWS {since: 1993}]->(:Person {name: 'John', age: '35'})").close();
+        db.execute("CREATE (:Person {name:'Andrea'})-[:KNOWS {since: '2014'}]->(:Person {name: 'Michel'})").close();
+
+        // when
+        testCall(db, "CALL apoc.meta.schema({sample: -1})",
+                (row) -> {
+                    // then
+                    Map<String, Object> schema = (Map<String, Object>) row.get("value");
+                    assertEquals(2, schema.size());
+
+                    // Nodes
+                    Map<String, Object> person = (Map<String, Object>) schema.get("Person");
+                    assertEquals("node", person.get("type"));
+                    assertEquals(4L, person.get("count"));
+                    assertEquals(Collections.emptyList(), person.get("labels"));
+
+                    Map<String, Object> personProperties = (Map<String, Object>) person.get("properties");
+
+                    Map<String, Object> personName = (Map<String, Object>) personProperties.get("name");
+                    assertEquals(5, personName.size());
+                    assertEquals("STRING", personName.get("type"));
+                    assertEquals(Arrays.asList("STRING"), personName.get("types"));
+
+                    Map<String, Object> personAge = (Map<String, Object>) personProperties.get("age");
+                    assertEquals(5, personAge.size());
+                    assertEquals("STRING", personAge.get("type"));
+                    assertEquals(new HashSet<>(Arrays.asList("STRING", "INTEGER")), new HashSet<>((List<String>) personAge.get("types")));
+
+                    // Rels
+                    Map<String, Object> knows = (Map<String, Object>) schema.get("KNOWS");
+                    assertEquals("relationship", knows.get("type"));
+                    assertEquals(2L, knows.get("count"));
+
+                    Map<String, Object> knowsProperties = (Map<String, Object>) knows.get("properties");
+                    Map<String, Object> knowsSince = (Map<String, Object>) knowsProperties.get("since");
+                    assertEquals(4, knowsSince.size());
+                    assertEquals("STRING", knowsSince.get("type"));
+                    assertEquals(new HashSet<>(Arrays.asList("STRING", "INTEGER")), new HashSet<>((List<String>) personAge.get("types")));
+                });
     }
 
 }

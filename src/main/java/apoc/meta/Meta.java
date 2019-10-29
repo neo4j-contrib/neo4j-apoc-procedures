@@ -134,6 +134,7 @@ public class Meta {
         public List<String> other = new ArrayList<>();
         public List<String> otherLabels = new ArrayList<>();
         public String elementType;
+        public List<String> types = new ArrayList<>();
 
         public MetaResult addLabel(String label) {
             this.otherLabels.add(label);
@@ -167,7 +168,17 @@ public class Meta {
         }
 
         public MetaResult type(String type) {
-            this.type = type;
+            if (type == null || type.equals(this.type)) {
+                return this;
+            }
+            if (!this.types.contains(type)) {
+                this.types.add(type);
+            }
+            if (!type.equals(this.type) && this.type != null) {
+                this.type = Types.STRING.toString();
+            } else {
+                this.type = type;
+            }
             return this;
         }
 
@@ -426,7 +437,7 @@ public class Meta {
         return Stream.of(new MapResult(nodes));
     }
 
-    private Map<String, Map<String, MetaResult>> collectMetaData (MetaConfig config) {
+    private Map<String, Map<String, MetaResult>> collectMetaData(MetaConfig config) {
         Map<String,Map<String,MetaResult>> metaData = new LinkedHashMap<>(100);
         Schema schema = db.schema();
 
@@ -505,7 +516,11 @@ public class Meta {
                         labels = metaResult.otherLabels;
                     if (!metaResult.type.equals("RELATIONSHIP")) { // NODE PROPERTY
                         entityProperties.put(entityDataKey,
-                                MapUtil.map("type", metaResult.type, "indexed", metaResult.index, "unique", metaResult.unique, "existence", metaResult.existence));
+                                MapUtil.map("type", metaResult.type,
+                                        "indexed", metaResult.index,
+                                        "unique", metaResult.unique,
+                                        "existence", metaResult.existence,
+                                        "types", metaResult.types));
                     } else {
                         entityRelationships.put(metaResult.property,
                                 MapUtil.map("direction", "out", "count", metaResult.rightCount, "labels", metaResult.other,
@@ -577,7 +592,8 @@ public class Meta {
                     entityProperties.put(entityDataKey, MapUtil.map(
                             "type", metaResult.type,
                             "array", metaResult.array,
-                            "existence", metaResult.existence));
+                            "existence", metaResult.existence,
+                            "types", metaResult.types));
                 }
             }
             if (isRelationship) {
@@ -592,11 +608,9 @@ public class Meta {
 
     private void addProperties(Map<String, MetaResult> properties, String labelName, Iterable<ConstraintDefinition> constraints, Set<String> indexed, PropertyContainer pc, Node node) {
         for (String prop : pc.getPropertyKeys()) {
-            if (properties.containsKey(prop)) continue;
-            MetaResult res = metaResultForProp(pc, labelName, prop);
-            res.elementType(Types.of(pc).name());
+            MetaResult res = properties.computeIfAbsent(prop, (key) -> metaResultForProp(pc, labelName, prop));
+            setMetaResultPropertyType(res, pc.getProperty(prop));
             addSchemaInfo(res, prop, constraints, indexed, node);
-            properties.put(prop,res);
         }
     }
 
@@ -659,13 +673,15 @@ public class Meta {
 
     private MetaResult metaResultForProp(PropertyContainer pc, String labelName, String prop) {
         MetaResult res = new MetaResult(labelName, prop);
-        Object value = pc.getProperty(prop);
-        res.type(Types.of(value).name());
         res.elementType(Types.of(pc).name());
+        return res;
+    }
+
+    private void setMetaResultPropertyType(MetaResult res, Object value) {
+        res.type(Types.of(value).name());
         if (value.getClass().isArray()) {
             res.array = true;
         }
-        return res;
     }
 
     private List<String> toStrings(Iterable<Label> labels) {
