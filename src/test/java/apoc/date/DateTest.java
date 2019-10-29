@@ -18,6 +18,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -127,6 +128,41 @@ public class DateTest {
 		testCall(db,
 				"RETURN apoc.date.format(null,'s') AS value",
 				row -> assertEquals(null, row.get("value")));
+	}
+
+	@Test public void testParseAsZonedDateTimeWithCorrectFormat() throws Exception {
+		testCall(db,
+				"RETURN apoc.date.parseAsZonedDateTime('03/23/1965 00:00:00','MM/dd/yyyy HH:mm:ss','America/New_York') AS value",
+				row -> assertEquals(ZonedDateTime.of(LocalDateTime.of(1965, 3, 23, 0, 0), ZoneId.of("America/New_York")),
+						row.get("value")));
+	}
+
+	@Test public void testParseAsZonedDateTimeWithDefaultTimezone() throws Exception {
+		testCall(db,
+				"RETURN apoc.date.parseAsZonedDateTime('03/23/1965 00:00:00','MM/dd/yyyy HH:mm:ss') AS value",
+				row -> assertEquals(ZonedDateTime.of(LocalDateTime.of(1965, 3, 23, 0, 0), ZoneId.of("UTC")),
+						row.get("value")));
+	}
+
+	@Test public void testParseAsZonedDateTimeWithDefaultFormatAndTimezone() throws Exception {
+		testCall(db,
+				"RETURN apoc.date.parseAsZonedDateTime('1965-03-23 00:00:00') AS value",
+				row -> assertEquals(ZonedDateTime.of(LocalDateTime.of(1965, 3, 23, 0, 0), ZoneId.of("UTC")),
+						row.get("value")));
+	}
+
+	@Test public void testParseAsZonedDateTimeWithIncorrectPatternFormat() throws Exception {
+		expected.expect(instanceOf(QueryExecutionException.class));
+		testCall(db,
+				"RETURN apoc.date.parseAsZonedDateTime('03/23/1965 00:00:00','MM/dd/yyyy HH:mm:ss/neo4j','America/New_York') AS value",
+				row -> assertEquals(ZonedDateTime.of(LocalDateTime.of(1965, 3, 23, 0, 0), ZoneId.of("America/New_York")),
+						row.get("value")));
+	}
+
+	@Test public void testToZonedDateTimeWithNullInput() throws Exception {
+		testCall(db,
+				"RETURN apoc.date.parseAsZonedDateTime(NULL) AS value",
+				row -> assertNull(row.get("value")));
 	}
 
 	@Test public void testToISO8601() throws Exception {
