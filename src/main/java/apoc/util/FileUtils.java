@@ -6,6 +6,7 @@ import apoc.export.util.CountingReader;
 import apoc.util.hdfs.HDFSUtils;
 import apoc.util.s3.S3URLConnection;
 import org.apache.commons.io.output.WriterOutputStream;
+import org.neo4j.configuration.GraphDatabaseSettings;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -232,8 +233,8 @@ public class FileUtils {
      * aren't enabled, or aren't readable.
      */
     public static File getMetricsDirectory() {
-        String neo4jHome = apocConfig().getString("unsupported.dbms.directories.neo4j_home", "");
-        String metricsSetting = apocConfig().getString("dbms.directories.metrics", "");
+        String neo4jHome = apocConfig().getString(GraphDatabaseSettings.neo4j_home.name());
+        String metricsSetting = apocConfig().getString("dbms.directories.metrics", neo4jHome + File.separator + "metrics");
 
         File metricsDir = metricsSetting.isEmpty() ? new File(neo4jHome, "metrics") : new File(metricsSetting);
 

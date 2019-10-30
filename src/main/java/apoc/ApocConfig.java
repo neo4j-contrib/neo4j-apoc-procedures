@@ -13,6 +13,7 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.config.Setting;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
@@ -21,8 +22,10 @@ import org.neo4j.logging.NullLog;
 import org.neo4j.logging.internal.LogService;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -50,7 +53,7 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS = "apoc.jobs.scheduled.num_threads";
     public static final String APOC_CONFIG_JOBS_POOL_NUM_THREADS = "apoc.jobs.pool.num_threads";
 
-    public static final List<Setting> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = Arrays.asList(
+    public static final List<Setting> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = new ArrayList<>(Arrays.asList(
             data_directory,
             load_csv_file_url_root,
             logs_directory,
@@ -58,7 +61,7 @@ public class ApocConfig extends LifecycleAdapter {
             logical_logs_location,
             transaction_logs_root_path,
             neo4j_home
-    );
+    ));
 
 // old settings from 3.x that seem to no longer be existent
 //"dbms.directories.lib",
@@ -149,6 +152,7 @@ public class ApocConfig extends LifecycleAdapter {
                         config.setProperty(e.getKey(), neo4jConfig.get(e.getValue()));
                     });
 
+            addDbmsDirectoriesMetricsSettings();
             for (Setting s : NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES) {
                 Object value = neo4jConfig.get(s);
                 if (value!=null) {
@@ -164,6 +168,17 @@ public class ApocConfig extends LifecycleAdapter {
             initLogging();
         } catch (ConfigurationException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private void addDbmsDirectoriesMetricsSettings() {
+        try {
+            Class<?> metricsSettingsClass = Class.forName("com.neo4j.kernel.impl.enterprise.configuration.MetricsSettings");
+            Field csvPathField = metricsSettingsClass.getDeclaredField("csvPath");
+            Setting<Path> dbms_directories_metrics = (Setting<Path>) csvPathField.get(null);
+            NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES.add(dbms_directories_metrics);
+        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
+            // ignore - on community edition that class does not exist
         }
     }
 
