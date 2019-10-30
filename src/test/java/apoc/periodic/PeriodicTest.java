@@ -97,9 +97,7 @@ public class PeriodicTest {
             assertEquals((long) Math.ceil((double) RUNDOWN_COUNT / BATCH_SIZE), r.get("executions"));
             assertEquals(RUNDOWN_COUNT, r.get("updates"));
         });
-
         assertEquals(RUNDOWN_COUNT, (long)db.executeTransactionally("MATCH (p:Processed) RETURN COUNT(*) AS c", Collections.emptyMap(), result -> Iterators.single(result.columnAs("c"))));
-
     }
 
     @Test
@@ -144,7 +142,6 @@ public class PeriodicTest {
             "call dbms.killQuery(queryId) yield queryId as killedId\n" +
             "return killedId";
 
-
     public void killPeriodicQueryAsync() {
         new Thread(() -> {
             int retries = 10;
@@ -178,9 +175,9 @@ public class PeriodicTest {
             assertEquals(10L, row.get("batches"));
             assertEquals(100L, row.get("total"));
             assertEquals(0L, row.get("committedOperations"));
-            assertEquals(10L, row.get("failedOperations"));
+            assertEquals(100L, row.get("failedOperations"));
             assertEquals(10L, row.get("failedBatches"));
-            Map<String, Object> batchErrors = map("org.neo4j.graphdb.TransactionFailureException: Transaction was marked as successful, but unable to commit transaction so rolled back.", 10L);
+            Map<String, Object> batchErrors = map("org.neo4j.graphdb.QueryExecutionException: / by zero", 10L);
             assertEquals(batchErrors, ((Map) row.get("batch")).get("errors"));
             Map<String, Object> operationsErrors = map("/ by zero", 10L);
             assertEquals(operationsErrors, ((Map) row.get("operations")).get("errors"));
@@ -196,7 +193,9 @@ public class PeriodicTest {
             assertEquals(0L, row.get("committedOperations"));
             assertEquals(100L, row.get("failedOperations"));
             assertEquals(10L, row.get("failedBatches"));
-            Map<String, Object> batchErrors = map("org.neo4j.graphdb.TransactionFailureException: Transaction was marked as successful, but unable to commit transaction so rolled back.", 10L);
+            Map<String, Object> batchErrors = map("org.neo4j.graphdb.QueryExecutionException: Parentheses are required to identify nodes in patterns, i.e. (null) (line 1, column 55 (offset: 54))\n" +
+                    "\"UNWIND $_batch AS _batch WITH _batch.id AS id  CREATE null\"\n" +
+                    "                                                       ^", 10L);
 
             assertEquals(batchErrors, ((Map) row.get("batch")).get("errors"));
             Map<String, Object> operationsErrors = map("Parentheses are required to identify nodes in patterns, i.e. (null) (line 1, column 55 (offset: 54))\n" +
@@ -381,7 +380,7 @@ public class PeriodicTest {
 
     @Test
     public void testCountdown() {
-        int startValue = 10;
+        int startValue = 3;
         int rate = 1;
 
         db.executeTransactionally("CREATE (counter:Counter {c: $startValue})", Collections.singletonMap("startValue", startValue));
@@ -393,7 +392,7 @@ public class PeriodicTest {
                 // Number of iterations per rate (in seconds)
                 Thread.sleep(startValue * rate * 1000);
             } catch (InterruptedException e) {
-
+                Thread.currentThread().interrupt();
             }
 
             long count = TestUtil.singleResultFirstColumn(db, "MATCH (counter:Counter) RETURN counter.c as c");

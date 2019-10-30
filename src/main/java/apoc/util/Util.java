@@ -2,7 +2,6 @@ package apoc.util;
 
 import apoc.Pools;
 import apoc.export.util.CountingInputStream;
-import apoc.path.RelationshipTypeAndDirections;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.collections.api.iterator.LongIterator;
@@ -11,7 +10,6 @@ import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
-import org.neo4j.kernel.impl.coreapi.InternalTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
@@ -26,6 +24,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.*;
 import java.util.zip.DeflaterInputStream;
@@ -158,34 +157,38 @@ public class Util {
         return relTypes;
     }
 
-    public static RelationshipType[] typesAndDirectionsToTypesArray(String typesAndDirections) {
-        List<RelationshipType> relationshipTypes = new ArrayList<>();
-        for (Pair<RelationshipType, Direction> pair : RelationshipTypeAndDirections.parse(typesAndDirections)) {
-            if (null != pair.first()) {
-                relationshipTypes.add(pair.first());
+    private static <T> T retryInTx(Log log, GraphDatabaseService db, Function<Transaction, T> function, long retry, long maxRetries, Consumer<Long> callbackForRetry) {
+        try (Transaction tx = db.beginTx()) {
+            T result = function.apply(tx);
+            tx.commit();
+            return result;
+        } catch (Exception e) {
+            if (retry >= maxRetries) throw e;
+            if (log!=null) {
+                log.warn("Retrying operation %d of %d", retry, maxRetries);
             }
+            callbackForRetry.accept(retry);
+            Util.sleep(100);
+            return retryInTx(log, db, function, retry + 1, maxRetries, callbackForRetry);
         }
-        return relationshipTypes.toArray(new RelationshipType[relationshipTypes.size()]);
     }
 
-    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseService db, Function<Transaction, T> function) {
+    public static <T> Future<T> inTxFuture(Log log, ExecutorService pool, GraphDatabaseService db, Function<Transaction, T> function, long maxRetries, Consumer<Long> callbackForRetry, Consumer<Void> callbackAction) {
         try {
             return pool.submit(() -> {
-                try (Transaction txInThread = db.beginTx()) {
-                    T result = function.apply(txInThread);
-
-                    // to make behaviour of 4.0 similar to 3.x we need to leave the transaction with an exception if any on its statement failed
-                    Map<String, Object> metaData = ((InternalTransaction) txInThread).kernelTransaction().getMetaData();
-                    if ((Boolean)(metaData.getOrDefault("batchFailed", false))) {
-                        throw new TransactionFailureException("Transaction was marked as successful, but unable to commit transaction so rolled back.");
-                    }
-                    txInThread.commit();
-                    return result;
+                try {
+                    return retryInTx(log, db, function, 0, maxRetries, callbackForRetry);
+                } finally {
+                    callbackAction.accept(null);
                 }
             });
         } catch (Exception e) {
             throw new RuntimeException("Error executing in separate transaction", e);
         }
+    }
+
+    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseService db, Function<Transaction, T> function) {
+        return inTxFuture(null, pool, db, function, 0, _ignored -> {}, _ignored -> {});
     }
 
     public static <T> T inTx(GraphDatabaseService db, Pools pools, Function<Transaction, T> function) {
@@ -557,8 +560,9 @@ public class Util {
 
     public static <T> T getFuture(Future<T> f, Map<String, Long> errorMessages, AtomicInteger errors, T errorValue) {
         try {
-            return f.get();
-        } catch (InterruptedException | ExecutionException e) {
+            T t = f.get();
+            return t;
+        } catch (Exception e) {
             errors.incrementAndGet();
             errorMessages.compute(e.getMessage(),(s, i) -> i == null ? 1 : i + 1);
             return errorValue;
@@ -571,7 +575,7 @@ public class Util {
                 f.cancel(false);
                 errors.incrementAndGet();
             }
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (Exception e) {
             errors.incrementAndGet();
             errorMessages.compute(e.getMessage(),(s, i) -> i == null ? 1 : i + 1);
         }
@@ -656,7 +660,6 @@ public class Util {
             try {
                 if (future != null) future.get();
             } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
                 // ignore
             }
         }
