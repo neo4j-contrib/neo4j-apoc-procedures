@@ -129,6 +129,48 @@ The the output will look like the following table:
 |===
 
 
+=== Remove a procedure `apoc.custom.removeProcedure`
+
+The procedure `apoc.custom.removeProcedure` allows to delete the targeted custom procedure.
+
+
+Given the this call:
+
+[source,cypher]
+----
+CALL apoc.custom.removeProcedure(<name>)
+----
+
+Fields:
+
+[%autowidth,opts=header]
+|===
+| argument | description
+| name  | the procedure name
+|===
+
+
+=== Remove a procedure `apoc.custom.removeFunction`
+
+The procedure `apoc.custom.removeFunction` allows to delete the targeted custom function.
+
+
+Given the this call:
+
+[source,cypher]
+----
+CALL apoc.custom.removeFunction(<name>)
+----
+
+Fields:
+
+[%autowidth,opts=header]
+|===
+| argument | description
+| name  | the function name
+|===
+
+
 === How to manage procedure/function replication in a Causal Cluster
 
 In order to replicate the procedure/function in a cluster environment you can tune the following parameters:
