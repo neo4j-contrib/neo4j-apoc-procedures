@@ -25,7 +25,7 @@ idea {
 }
 
 group = 'org.neo4j.procedure'
-version = '4.0.0'
+version = '4.0.0-SNAPSHOT'
 archivesBaseName = 'apoc'
 
 jar {
@@ -39,13 +39,17 @@ description = """neo4j-apoc-procedures"""
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
 //    neo4jVersion = "4.0.0-alpha09mr02"
-    neo4jVersion = "4.0.0-SNAPSHOT"
+    neo4jVersion = "4.0.0-beta02"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.12.2'
 }
 
 repositories {
+
+    maven {  // this contains the neo4j 4.0.0-beta jars
+        url "https://neo4j.bintray.com/community/"
+    }
     jcenter()
     mavenCentral()
     maven {
@@ -190,10 +194,10 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 test {
-    exclude '**/CypherProceduresClusterTest.class'//, '**/AtomicTest.class'
+    //exclude '**/CypherProceduresClusterTest.class'//, '**/AtomicTest.class'
 
     // neo4jDockerImage system property is used in TestContainerUtil
-    systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.0.0-SNAPSHOT-enterprise'
+    systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.0.0-beta02-enterprise'
 
     testLogging {
         // taken from https://stackoverflow.com/a/36130467/158701
@@ -231,9 +235,8 @@ test {
     }
 
     maxHeapSize = "8G"
-    forkEvery = 100
-    //maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
-//}
+    forkEvery = 50
+    maxParallelForks = 1 //Runtime.runtime.availableProcessors().intdiv(2) + 1
 
     if (System.env.TRAVIS !=null) {
         minHeapSize = "128m"
