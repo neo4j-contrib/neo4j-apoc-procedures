@@ -1,4 +1,4 @@
-= APOC User Guide {apoc-release}
+= APOC User Guide {apoc-release-absolute}
 :toc: left
 :experimental:
 :sectid:
