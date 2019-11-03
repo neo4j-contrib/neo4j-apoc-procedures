@@ -16,12 +16,10 @@ import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
 import org.neo4j.kernel.api.procedure.Context;
-import org.neo4j.kernel.internal.event.TxStateTransactionDataSnapshot;
 import org.neo4j.kernel.lifecycle.LifecycleAdapter;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -40,7 +38,6 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
     public static final String NOT_ENABLED_ERROR = "Triggers have not been enabled." +
             " Set 'apoc.trigger.enabled=true' in your apoc.conf file located in the $NEO4J_HOME/conf/ directory.";
     private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
-    private final Field transactionDatatInternalTransaction;
 
     public TriggerHandler(GraphDatabaseService db, DatabaseManagementService databaseManagementService,
                           ApocConfig apocConfig, Log log, GlobalProceduresRegistry globalProceduresRegistry) {
@@ -49,14 +46,6 @@ public class TriggerHandler extends LifecycleAdapter implements TransactionEvent
         this.apocConfig = apocConfig;
         this.log = log;
         transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
-
-        // FIXME: get rid of reflection once transaction is directly accessible from {@link TransactionData}
-        try {
-            transactionDatatInternalTransaction = TxStateTransactionDataSnapshot.class.getDeclaredField("internalTransaction");
-            transactionDatatInternalTransaction.setAccessible(true);
-        } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private boolean isEnabled() {

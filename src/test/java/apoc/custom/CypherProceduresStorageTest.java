@@ -36,19 +36,11 @@ public class CypherProceduresStorageTest {
         TestUtil.registerProcedure(db, CypherProcedures.class);
     }
 
-/*
-    @After
-    public void tearDown() throws IOException {
-        FileUtils.deleteRecursively(STORE_DIR);
-    }
-*/
-
     private void restartDb() throws IOException {
         databaseManagementService.shutdown();
         databaseManagementService = new TestDatabaseManagementServiceBuilder(STORE_DIR.getRoot()).build();
         db = databaseManagementService.database(GraphDatabaseSettings.DEFAULT_DATABASE_NAME);
         assertTrue(db.isAvailable(1000));
-        TestUtil.registerProcedure(db, CypherProcedures.class); // TODO: maybe that's needed
     }
     @Test
     public void registerSimpleStatement() throws Exception {

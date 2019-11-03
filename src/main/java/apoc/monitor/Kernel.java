@@ -42,10 +42,10 @@ public class Kernel {
         return Stream.of(new KernelInfoResult(
                 database.isReadOnly(),
                 Version.getKernelVersion(),
-                database.getStoreId().toString(),  // TODO: get correct info from kernel
-                startDate,// TODO: get correct info from kernel
+                database.getStoreId().toString(),
+                startDate,
                 graphDatabaseService.databaseName(),
-                database.getStoreId().getStoreVersion(), // TODO: get correct info from kernel
+                database.getStoreId().getStoreVersion(),
                 new Date(database.getStoreId().getCreationTime())
         ));
     }

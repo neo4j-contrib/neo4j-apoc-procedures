@@ -308,24 +308,6 @@ public class Cypher {
         return StreamSupport.stream(new QueueBasedSpliterator<>(queue, RowResult.TOMBSTONE, terminationGuard, timeout),true).map((rowResult) -> new MapResult(rowResult.result));
     }
 
-    // todo proper Collector
-    public Stream<List<Object>> partitionColl(@Name("list") Collection<Object> list, int partitions) {
-        int total = list.size();
-        int batchSize = Math.max(total / partitions, 1);
-        List<List<Object>> result = new ArrayList<>(PARTITIONS);
-        List<Object> partition = new ArrayList<>(batchSize);
-        for (Object o : list) {
-            partition.add(o);
-            if (partition.size() < batchSize) continue;
-            result.add(partition);
-            partition = new ArrayList<>(batchSize);
-        }
-        if (!partition.isEmpty()) {
-            result.add(partition);
-        }
-        return result.stream();
-    }
-
     public Map<String, Object> parallelParams(@Name("params") Map<String, Object> params, String key, List<Object> partition) {
         if (params.isEmpty()) return Collections.singletonMap(key, partition);
 

@@ -63,11 +63,6 @@ public class ApocConfig extends LifecycleAdapter {
             neo4j_home
     ));
 
-// old settings from 3.x that seem to no longer be existent
-//"dbms.directories.lib",
-//            "dbms.directories.metrics",  // metrics is only in EE
-//            "dbms.directories.run",
-
     private final Config neo4jConfig;
     private final Log log;
     private final GlobalProceduresRegistry globalProceduresRegistry;

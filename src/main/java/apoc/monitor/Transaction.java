@@ -21,7 +21,7 @@ public class Transaction {
         return Stream.of(new TransactionInfoResult(
                 stats.getNumberOfRolledBackTransactions(),
                 stats.getPeakConcurrentNumberOfTransactions(),
-                stats.getNumberOfStartedTransactions(), // TODO: not sure if this is the correct metric
+                stats.getNumberOfStartedTransactions(),
                 stats.getNumberOfActiveTransactions(),
                 stats.getNumberOfStartedTransactions(),
                 stats.getNumberOfCommittedTransactions()

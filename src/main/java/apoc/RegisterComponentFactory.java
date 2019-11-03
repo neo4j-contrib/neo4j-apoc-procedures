@@ -61,23 +61,18 @@ public class RegisterComponentFactory extends ExtensionFactory<RegisterComponent
                         return instance;
                     }, true)
             );
-
-            log.warn("INIT");
         }
 
         @Override
         public void start() throws Exception {
-            log.warn("START");
         }
 
         @Override
         public void stop() throws Exception {
-            log.warn("STOP");
         }
 
         @Override
         public void shutdown() throws Exception {
-            log.warn("SHUTDOWN");
         }
     }
 }
