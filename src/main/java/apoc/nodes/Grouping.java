@@ -120,26 +120,27 @@ public class Grouping {
                     futures.add(Util.inTxFuture(pool, db, txInThread -> {
                         try {
                             for (Node node : batch) {
-                                NodeKey key = keyFor(node, labelName, keys);
+                                final Node boundNode = Util.rebind(txInThread, node);
+                                NodeKey key = keyFor(boundNode, labelName, keys);
                                 grouped.compute(key, (k, v) -> {
                                     if (v == null) v = new HashSet<>();
-                                    v.add(node);
+                                    v.add(boundNode);
                                     return v;
                                 });
                                 virtualNodes.compute(key, (k, v) -> {
                                             if (v == null) {
-                                                v = new VirtualNode(singleLabel, propertiesFor(node, keys));
+                                                v = new VirtualNode(singleLabel, propertiesFor(boundNode, keys));
                                             }
                                             VirtualNode vn = v;
                                             if (!nodeAggNames.isEmpty()) {
-                                                aggregate(vn, nodeAggNames, nodeAggKeys.length > 0 ? node.getProperties(nodeAggKeys) : Collections.emptyMap());
+                                                aggregate(vn, nodeAggNames, nodeAggKeys.length > 0 ? boundNode.getProperties(nodeAggKeys) : Collections.emptyMap());
                                             }
                                             return vn;
                                         }
                                 );
                             }
                         } catch (Exception e) {
-                            log.debug("Error grouping nodes", e);
+                            log.error("Error grouping nodes", e);
                         }
                         return null;
                     }));
@@ -148,6 +149,7 @@ public class Grouping {
             }
         }
         Util.waitForFutures(futures);
+        System.out.println("we have " + futures.size() + " futures");
         futures.clear();
         Iterator<Map.Entry<NodeKey, Set<Node>>> entries = grouped.entrySet().iterator();
         int size = 0;
@@ -164,6 +166,7 @@ public class Grouping {
                     try {
                         for (Map.Entry<NodeKey, Set<Node>> entry : submitted) {
                             for (Node node : entry.getValue()) {
+                                node = Util.rebind(txInThread, node);
                                 NodeKey startKey = entry.getKey();
                                 VirtualNode v1 = virtualNodes.get(startKey);
                                 for (Relationship rel : node.getRelationships(Direction.OUTGOING)) {
@@ -185,7 +188,7 @@ public class Grouping {
                             }
                         }
                     } catch (Exception e) {
-                        log.debug("Error grouping relationships", e);
+                        log.error("Error grouping relationships", e);
                     }
                     return null;
                 }));
