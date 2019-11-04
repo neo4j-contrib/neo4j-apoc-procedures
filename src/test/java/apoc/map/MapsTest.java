@@ -210,6 +210,13 @@ public class MapsTest {
     }
 
     @Test
+    public void testRemoveKeyRecursivelySimpleProperties() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1,b:2},'b', {recursive:true}) AS value", (r) -> {
+            assertEquals(map("a",1L), r.get("value"));
+        });
+    }
+
+    @Test
     public void testRemoveLastKeyRecursively() throws Exception {
         TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1,b:2,c:{a:3}},'a', {recursive:true}) AS value", (r) -> {
             assertEquals(map("b",2L, "c", map()),r.get("value"));
