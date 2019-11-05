@@ -34,6 +34,7 @@ endif::[]
 | apoc.coll.containsAll(coll, values) | optimized contains-all operation (using a HashSet) returns true or false
 | apoc.coll.containsSorted(coll, value) | optimized contains on a sorted list operation (Collections.binarySearch) (returns true or false)
 | apoc.coll.containsAllSorted(coll, value) | optimized contains-all on a sorted list operation (Collections.binarySearch) (returns true or false)
+| apoc.coll.isEqualCollection(coll, values) | return true if two collections contain the same elements with the same cardinality in any order (using a HashMap)
 | apoc.coll.union(first, second) | creates the distinct union of the 2 lists
 | apoc.coll.unionAll(first, second) | creates the full union with duplicates of the two lists
 | apoc.coll.subtract(first, second) | returns unique set of first list with all elements of second list removed

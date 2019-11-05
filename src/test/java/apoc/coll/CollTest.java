@@ -2,14 +2,11 @@ package apoc.coll;
 
 import apoc.convert.Json;
 import apoc.util.TestUtil;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
-import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
 import java.util.*;
@@ -217,10 +214,15 @@ public class CollTest {
     @Test
     public void testContainsAll() throws Exception {
         testCall(db, "RETURN apoc.coll.containsAll([1,2,3],[1,2]) AS value", (res) -> assertEquals(true, res.get("value")));
+        testCall(db, "RETURN apoc.coll.containsAll([1,2,3],[2,1]) AS value", (res) -> assertEquals(true, res.get("value")));
         testCall(db, "RETURN apoc.coll.containsAll([1,2,3],[1,4]) AS value", (res) -> assertEquals(false, res.get("value")));
         testCall(db, "RETURN apoc.coll.containsAll([1,2,3],[]) AS value", (res) -> assertEquals(true, res.get("value")));
         testCall(db, "RETURN apoc.coll.containsAll([1,2,3],[1]) AS value", (res) -> assertEquals(true, res.get("value")));
         testCall(db, "RETURN apoc.coll.containsAll([1,2,3],[1,2,3,4]) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.containsAll([1,1,2,3],[1,2,2,3]) AS value", (res) -> assertEquals(true, res.get("value")));
+        testCall(db, "RETURN apoc.coll.containsAll(null,[1,2,3]) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.containsAll(null,null) AS value", (res) -> assertEquals(true, res.get("value")));
+        testCall(db, "RETURN apoc.coll.containsAll([1,2,3],null) AS value", (res) -> assertEquals(false, res.get("value")));
     }
 
     @Test
@@ -230,6 +232,25 @@ public class CollTest {
         testCall(db, "RETURN apoc.coll.containsAllSorted([1,2,3],[]) AS value", (res) -> assertEquals(true, res.get("value")));
         testCall(db, "RETURN apoc.coll.containsAllSorted([1,2,3],[1]) AS value", (res) -> assertEquals(true, res.get("value")));
         testCall(db, "RETURN apoc.coll.containsAllSorted([1,2,3],[1,2,3,4]) AS value", (res) -> assertEquals(false, res.get("value")));
+    }
+
+    @Test
+    public void testIsEqualCollection() throws Exception {
+        testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],[1,2,3]) AS value", (res) -> assertEquals(true, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],[3,2,1]) AS value", (res) -> assertEquals(true, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([1,1,2,2,3],[1,1,2,2,3]) AS value", (res) -> assertEquals(true, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([1,1,2,3],[1,2,2,3]) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],[1,2]) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],[1,4]) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],[]) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],[1]) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],[1,2,3,4]) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],null) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([1,2,3],[]) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([],null) AS value", (res) -> assertEquals(false, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection([],[]) AS value", (res) -> assertEquals(true, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection(null,null) AS value", (res) -> assertEquals(true, res.get("value")));
+        testCall(db, "RETURN apoc.coll.isEqualCollection(null,[]) AS value", (res) -> assertEquals(false, res.get("value")));
     }
 
     @Test
