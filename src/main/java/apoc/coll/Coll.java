@@ -1,21 +1,22 @@
 package apoc.coll;
 
+import apoc.result.ListResult;
 import org.apache.commons.math3.util.Combinations;
-import org.neo4j.graphdb.Path;
-import org.neo4j.internal.helpers.collection.Pair;
-import org.neo4j.procedure.*;
-import apoc.result.*;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
+import org.neo4j.internal.helpers.collection.Pair;
+import org.neo4j.procedure.*;
 import org.neo4j.util.IntCounter;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import java.lang.reflect.Array;
 
 import static java.util.Arrays.asList;
 
@@ -402,7 +403,7 @@ public class Coll {
     @UserFunction
     @Description("apoc.coll.containsAll(coll, values) optimized contains-all operation (using a HashSet) (returns single row or not)")
     public boolean containsAll(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
-        if (coll == null || coll.isEmpty()) return false;
+        if (coll == null || coll.isEmpty() || values == null) return false;
         return new HashSet<>(coll).containsAll(values);
     }
 
@@ -430,6 +431,18 @@ public class Coll {
         return true;
     }
 
+    @UserFunction
+    @Description("apoc.coll.isEqualCollection(coll, values) return true if two collections contain the same elements with the same cardinality in any order (using a HashMap)")
+    public boolean isEqualCollection(@Name("coll") List<Object> first, @Name("values") List<Object> second) {
+        if (first == null && second == null) return true;
+        if (first == null || second == null || first.size() != second.size()) return false;
+
+        Map<Object, Long> map1 = first.stream()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        Map<Object, Long> map2 = second.stream()
+                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+        return map1.equals(map2);
+    }
 
     @UserFunction
     @Description("apoc.coll.toSet([list]) returns a unique list backed by a set")
