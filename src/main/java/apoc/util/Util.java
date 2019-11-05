@@ -493,8 +493,8 @@ public class Util {
         return combined;
     }
 
-    public static Map<String,Object> map(Object ... values) {
-        Map<String, Object> map = new LinkedHashMap<>();
+    public static <T> Map<String, T> map(T ... values) {
+        Map<String, T> map = new LinkedHashMap<>();
         for (int i = 0; i < values.length; i+=2) {
             if (values[i] == null) continue;
             map.put(values[i].toString(),values[i+1]);
@@ -502,12 +502,12 @@ public class Util {
         return map;
     }
 
-    public static Map<String, Object> map(List<Object> pairs) {
-        Map<String, Object> res = new LinkedHashMap<>(pairs.size() / 2);
-        Iterator<Object> it = pairs.iterator();
+    public static <T> Map<String, T> map(List<T> pairs) {
+        Map<String, T> res = new LinkedHashMap<>(pairs.size() / 2);
+        Iterator<T> it = pairs.iterator();
         while (it.hasNext()) {
             Object key = it.next();
-            Object value = it.next();
+            T value = it.next();
             if (key != null) res.put(key.toString(), value);
         }
         return res;

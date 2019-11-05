@@ -48,6 +48,7 @@ public class Periodic {
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.commit(statement,params) - runs the given statement in separate transactions until it returns 0")
     public Stream<RundownResult> commit(@Name("statement") String statement, @Name(value = "params", defaultValue = "{}") Map<String,Object> parameters) throws ExecutionException, InterruptedException {
+        validateQuery(statement);
         Map<String,Object> params = parameters == null ? Collections.emptyMap() : parameters;
         long total = 0, executions = 0, updates = 0;
         long start = System.nanoTime();
@@ -134,6 +135,7 @@ public class Periodic {
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.submit('name',statement) - submit a one-off background statement")
     public Stream<JobInfo> submit(@Name("name") String name, @Name("statement") String statement) {
+        validateQuery(statement);
         JobInfo info = submit(name, () -> {
             try {
                 db.executeTransactionally(statement);
@@ -148,6 +150,7 @@ public class Periodic {
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.repeat('name',statement,repeat-rate-in-seconds, config) submit a repeatedly-called background statement. Fourth parameter 'config' is optional and can contain 'params' entry for nested statement.")
     public Stream<JobInfo> repeat(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate, @Name(value = "config", defaultValue = "{}") Map<String,Object> config ) {
+        validateQuery(statement);
         Map<String,Object> params = (Map)config.getOrDefault("params", Collections.emptyMap());
         JobInfo info = schedule(name, () -> {
             db.executeTransactionally(statement, params);
@@ -155,9 +158,14 @@ public class Periodic {
         return Stream.of(info);
     }
 
+    private void validateQuery(String statement) {
+        db.executeTransactionally("EXPLAIN " + statement);
+    }
+
     @Procedure(mode = Mode.WRITE)
     @Description("apoc.periodic.countdown('name',statement,repeat-rate-in-seconds) submit a repeatedly-called background statement until it returns 0")
     public Stream<JobInfo> countdown(@Name("name") String name, @Name("statement") String statement, @Name("rate") long rate) {
+        validateQuery(statement);
         JobInfo info = submit(name, new Countdown(name, statement, rate));
         info.rate = rate;
         return Stream.of(info);
@@ -207,7 +215,10 @@ public class Periodic {
             @Name("cypherIterate") String cypherIterate,
             @Name("cypherAction") String cypherAction,
             @Name("batchSize") long batchSize) {
-
+        Map<String, String> fieldStatement = Util.map(
+                "cypherLoop", cypherLoop,
+                "cypherIterate", cypherIterate);
+        validateQueries(fieldStatement);
         Stream<LoopingBatchAndTotalResult> allResults = Stream.empty();
 
         Map<String,Object> loopParams = new HashMap<>(1);
@@ -231,6 +242,24 @@ public class Periodic {
         }
     }
 
+    private void validateQueries(Map<String, String> fieldStatement) {
+        String error = fieldStatement.entrySet()
+                .stream()
+                .map(e -> {
+                    try {
+                        validateQuery(e.getValue());
+                        return null;
+                    } catch (Exception exception) {
+                        return String.format("Exception for field `%s`, message: %s", e.getKey(), exception.getMessage());
+                    }
+                })
+                .filter(e -> e != null)
+                .collect(Collectors.joining("\n"));
+        if (!error.isEmpty()) {
+            throw new RuntimeException(error);
+        }
+    }
+
     /**
      * invoke cypherAction in batched transactions being feeded from cypherIteration running in main thread
      * @param cypherIterate
@@ -242,6 +271,7 @@ public class Periodic {
             @Name("cypherIterate") String cypherIterate,
             @Name("cypherAction") String cypherAction,
             @Name("config") Map<String,Object> config) {
+        validateQuery(cypherIterate);
 
         long batchSize = Util.toLong(config.getOrDefault("batchSize", 10000));
         int concurrency = Util.toInteger(config.getOrDefault("concurrency", 50));
@@ -291,6 +321,10 @@ public class Periodic {
             @Name("cypherIterate") String cypherIterate,
             @Name("cypherAction") String cypherAction,
             @Name("batchSize") long batchSize) {
+        Map<String, String> fieldStatement = Util.map(
+                "cypherIterate", cypherIterate,
+                "cypherAction", cypherAction);
+        validateQueries(fieldStatement);
 
         log.info("starting batched operation using iteration `%s` in separate thread", cypherIterate);
         try (Result result = tx.execute(cypherIterate)) {
