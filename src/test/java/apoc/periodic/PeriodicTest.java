@@ -6,7 +6,11 @@ import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.DependencyResolver;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.TransientTransactionFailureException;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.api.query.ExecutingQuery;
@@ -26,7 +30,11 @@ import static apoc.util.Util.map;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.neo4j.graphdb.DependencyResolver.SelectionStrategy.FIRST;
 
 public class PeriodicTest {
@@ -493,5 +501,95 @@ System.out.println("call list" + db.execute(callList).resultAsString());
         try (ResourceIterator<Long> it = db.execute(statement).columnAs("count")) {
             return Iterators.single(it);
         }
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testCommitFail() {
+        final String query = "CALL apoc.periodic.commit('UNWIND range(0,1000) as id WITH id CREATE (::Foo {id: id}) limit 1000', {})";
+        testFail(query);
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testSubmitFail() {
+        final String query = "CALL apoc.periodic.submit('foo','create (::Foo)')";
+        testFail(query);
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testRepeatFail() {
+        final String query = "CALL apoc.periodic.repeat('repeat-params', 'MERGE (person:Person {name: {nameValue}})', 2, {params: {nameValue: 'John Doe'}}) YIELD name RETURN nam";
+        testFail(query);
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testCountdownFail() {
+        final String query = "CALL apoc.periodic.countdown('decrement', 'MATCH (counter:Counter) SET counter.c == counter.c - 1 RETURN counter.c as count', 1)";
+        testFail(query);
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testRockNRollWhileLoopFail() {
+        final String query = "CALL apoc.periodic.rock_n_roll_while('return coalescence({previous}, 3) - 1 as loop', " +
+                "'match (p:Person) return p', " +
+                "'MATCH (p) where p = {p} SET p.lastname = p.name', " +
+                "10)";
+        testFail(query);
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testRockNRollWhileIterateFail() {
+        final String query = "CALL apoc.periodic.rock_n_roll_while('return coalesce({previous}, 3) - 1 as loop', " +
+                "'match (p:Person) return pp', " +
+                "'MATCH (p) where p = {p} SET p.lastname = p.name', " +
+                "10)";
+        testFail(query);
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testIterateQueryFail() {
+        final String query = "CALL apoc.periodic.iterate('UNWIND range(0, 1000) as id RETURN ids', " +
+                "'WITH $id as id CREATE (:Foo {id: $id})', " +
+                "{batchSize:1,parallel:true})";
+        testFail(query);
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testRockNRollIterateFail() {
+        final String query = "CALL apoc.periodic.rock_n_roll('match (pp:Person) return p', " +
+                "'WITH {p} as p SET p.lastname = p.name REMOVE p.name', " +
+                "10)";
+        testFail(query);
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testRockNRollActionFail() {
+        final String query = "CALL apoc.periodic.rock_n_roll('match (p:Person) return p', " +
+                "'WITH {p} as p SET pp.lastname = p.name REMOVE p.name', " +
+                "10)";
+        testFail(query);
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testRockNRollWhileFail() {
+        final String query = "CALL apoc.periodic.rock_n_roll_while('return coalescence({previous}, 3) - 1 as loop', " +
+                "'match (p:Person) return pp', " +
+                "'MATCH (p) where p = {p} SET p.lastname = p.name', " +
+                "10)";
+        try {
+            testFail(query);
+        } catch (QueryExecutionException e) {
+            String expected = "Failed to invoke procedure `apoc.periodic.rock_n_roll_while`: Caused by: java.lang.RuntimeException: Exception for field `cypherLoop`, message: Unknown function 'coalescence' (line 1, column 16 (offset: 15))\n" +
+                    "\"return coalescence({previous}, 3) - 1 as loop\"\n" +
+                    "                ^\n" +
+                    "Exception for field `cypherIterate`, message: Variable `pp` not defined (line 1, column 33 (offset: 32))\n" +
+                    "\"EXPLAIN match (p:Person) return pp\"\n" +
+                    "                                 ^";
+            assertEquals(expected, e.getMessage());
+            throw e;
+        }
+    }
+
+    private void testFail(String query) {
+        testCall(db, query, row -> fail("The test should fail but it didn't"));
     }
 }
