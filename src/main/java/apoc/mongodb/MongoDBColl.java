@@ -101,7 +101,7 @@ class MongoDBColl implements MongoDB.Coll {
                         }
                         return new AbstractMap.SimpleEntry(e.getKey(), value);
                     })
-                    .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+                    .collect(HashMap::new, (m, e)-> m.put(e.getKey(), e.getValue()), HashMap::putAll); // please look at https://bugs.openjdk.java.net/browse/JDK-8148463
         }
         if (data instanceof Collection) {
             Collection<Object> collection = (Collection<Object>) data;
