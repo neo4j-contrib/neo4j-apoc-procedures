@@ -187,18 +187,26 @@ public class Maps {
         res.remove(key);
         Map<String, Object> checkedConfig = config == null ? Collections.emptyMap() : config;
         if (Util.toBoolean(config.getOrDefault("recursive", false))) {
-            for (Map.Entry<String, Object> entry : res.entrySet()) {
+            for (Iterator<Map.Entry<String, Object>> iterator = res.entrySet().iterator(); iterator.hasNext(); ) {
+                Map.Entry<String, Object> entry = iterator.next();
                 if (entry.getValue() instanceof Map) {
                     Map<String, Object> updatedMap = removeKey((Map<String, Object>) entry.getValue(), key, checkedConfig);
-                    if (updatedMap != entry.getValue()) {
+                    if (updatedMap.isEmpty()) {
+                        iterator.remove();
+                    } else if (!updatedMap.equals(entry.getValue())) {
                         entry.setValue(updatedMap);
                     }
                 } else if (entry.getValue() instanceof Collection) {
                     Collection<Object> values = (Collection<Object>) entry.getValue();
                     List<Object> updatedValues = values.stream()
                             .map(value -> value instanceof Map ? removeKey((Map<String, Object>) value, key, checkedConfig) : value)
+                            .filter(value -> value instanceof Map ? !((Map<String, Object>) value).isEmpty() : true)
                             .collect(Collectors.toList());
-                    entry.setValue(updatedValues);
+                    if (updatedValues.isEmpty()) {
+                        iterator.remove();
+                    } else  {
+                        entry.setValue(updatedValues);
+                    }
                 }
             }
         }
@@ -212,16 +220,26 @@ public class Maps {
         res.keySet().removeAll(keys);
         Map<String, Object> checkedConfig = config == null ? Collections.emptyMap() : config;
         if (Util.toBoolean(config.getOrDefault("recursive", false))) {
-            for (Map.Entry<String, Object> entry : res.entrySet()) {
+            for (Iterator<Map.Entry<String, Object>> iterator = res.entrySet().iterator(); iterator.hasNext(); ) {
+                Map.Entry<String, Object> entry = iterator.next();
                 if (entry.getValue() instanceof Map) {
                     Map<String, Object> updatedMap = removeKeys((Map<String, Object>) entry.getValue(), keys, checkedConfig);
-                    entry.setValue(updatedMap);
+                    if (updatedMap.isEmpty()) {
+                        iterator.remove();
+                    } else if (!updatedMap.equals(entry.getValue())) {
+                        entry.setValue(updatedMap);
+                    }
                 } else if (entry.getValue() instanceof Collection) {
                     Collection<Object> values = (Collection<Object>) entry.getValue();
                     List<Object> updatedValues = values.stream()
                             .map(value -> value instanceof Map ? removeKeys((Map<String, Object>) value, keys, checkedConfig) : value)
+                            .filter(value -> value instanceof Map ? !((Map<String, Object>) value).isEmpty() : true)
                             .collect(Collectors.toList());
-                    entry.setValue(updatedValues);
+                    if (updatedValues.isEmpty()) {
+                        iterator.remove();
+                    } else {
+                        entry.setValue(updatedValues);
+                    }
                 }
             }
         }
