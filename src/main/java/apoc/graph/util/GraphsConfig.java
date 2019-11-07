@@ -162,7 +162,20 @@ public class GraphsConfig {
     }
 
     public List<String> propertiesForPath(String path) {
-        return mappings.getOrDefault(path, GraphMapping.EMPTY).getProperties();
+        if (allPropertiesForPath(path)) {
+            return Collections.emptyList();
+        }
+        // We also need to consider the properties defined in the mapping fields
+        final List<String> pathProperties = mappings.keySet()
+                .stream()
+                .filter(key -> key.startsWith(path))
+                .map(key -> path.length() >= key.length() ? "" : key.substring(path.length() + 1))
+                .map(key -> key.split("\\.")[0])
+                .filter(key -> !key.isEmpty())
+                .collect(Collectors.toList());
+        List<String> properties = mappings.getOrDefault(path, GraphMapping.EMPTY).getProperties();
+        properties.addAll(pathProperties);
+        return properties;
     }
 
     public boolean allPropertiesForPath(String path) {
