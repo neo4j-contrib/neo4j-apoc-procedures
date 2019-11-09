@@ -573,4 +573,10 @@ public class Strings {
         }
         return null;
     }
+
+    @UserFunction
+    @Description("apoc.text.repeat(item, count) - string multiplication")
+    public String repeat(@Name("item") String item, @Name("count") long count) {
+        return new String(new char[(int) count]).replace("\0", item);
+    }
 }

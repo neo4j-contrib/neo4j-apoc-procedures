@@ -744,4 +744,10 @@ public class StringsTest {
             testCall(db, "RETURN apoc.text.toCypher($v) AS value", map("v", false), (row) -> assertEquals("false", row.get("value")));
         }
     }
+
+    @Test
+    public void testRepeat() {
+        testCall(db, "RETURN apoc.text.repeat('a',3)", row -> assertEquals("aaa"));
+        testCall(db, "RETURN apoc.text.repeat('ab',3)", row -> assertEquals("ababab"));
+    }
 }
