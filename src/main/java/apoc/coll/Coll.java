@@ -887,4 +887,11 @@ public class Coll {
 
         return newList;
     }
+
+    @UserFunction
+    @Description("apoc.coll.fill(item, count) - returns a list with the given count of items")
+    public List<Object> fill(@Name("item") String item, @Name("count") long count) {
+        List<Object> newList = new ArrayList<Object>(Collections.nCopies((int) count, item));
+        return newList;
+    }
 }
