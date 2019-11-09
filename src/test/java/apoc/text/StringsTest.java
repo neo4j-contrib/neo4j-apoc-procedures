@@ -747,7 +747,7 @@ public class StringsTest {
 
     @Test
     public void testRepeat() {
-        testCall(db, "RETURN apoc.text.repeat('a',3)", row -> assertEquals("aaa"));
-        testCall(db, "RETURN apoc.text.repeat('ab',3)", row -> assertEquals("ababab"));
+        testCall(db, "RETURN apoc.text.repeat('a',3) as value", (row) -> assertEquals("aaa", row.get("value")));
+        testCall(db, "RETURN apoc.text.repeat('ab',3) as value", (row) -> assertEquals("ababab", row.get("value")));
     }
 }
