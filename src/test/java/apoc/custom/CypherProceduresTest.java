@@ -6,6 +6,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.NullLog;
 import org.neo4j.test.TestGraphDatabaseFactory;
@@ -210,5 +211,48 @@ public class CypherProceduresTest {
             // then
             assertFalse(row.hasNext())
         );
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void shouldRemoveTheCustomProcedure() throws Exception {
+        // given
+        db.execute("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");
+        TestUtil.testCall(db, "call custom.answer()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+
+        // when
+        db.execute("call apoc.custom.removeProcedure('answer')").close();
+        db.execute("call dbms.clearQueryCaches()").close();
+
+        // then
+        try {
+            TestUtil.testCall(db, "call custom.answer()", (row) -> {});
+        } catch (QueryExecutionException e) {
+            String expected = "There is no procedure with the name `custom.answer` registered for this database instance. " +
+                    "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.";
+            assertEquals(expected, e.getMessage());
+            assertEquals("Neo.ClientError.Procedure.ProcedureNotFound", e.getStatusCode());
+            throw e;
+        }
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void shouldRemoveTheCustomFunction() throws Exception {
+        // given
+        db.execute("call apoc.custom.asFunction('answer','RETURN 42','long')");
+        TestUtil.testCall(db, "return custom.answer() as answer", (row) -> assertEquals(42L, row.get("answer")));
+
+        // when
+        db.execute("call apoc.custom.removeFunction('answer')").close();
+        db.execute("call dbms.clearQueryCaches()").close();
+
+        // then
+        try {
+            TestUtil.testCall(db, "return custom.answer()", (row) -> {});
+        } catch (QueryExecutionException e) {
+            String expected = "Unknown function 'custom.answer'";
+            assertEquals(expected, e.getMessage());
+            assertEquals("Neo.ClientError.Statement.SyntaxError", e.getStatusCode());
+            throw e;
+        }
     }
 }
