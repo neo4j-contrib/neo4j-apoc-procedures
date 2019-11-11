@@ -1,8 +1,8 @@
 package apoc.schema;
 
+import apoc.Pools;
 import apoc.result.AssertSchemaResult;
 import apoc.result.ConstraintRelationshipInfo;
-import apoc.result.GraphResult;
 import apoc.result.IndexConstraintNodeInfo;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
@@ -19,10 +19,15 @@ import org.neo4j.internal.kernel.api.schema.constraints.ConstraintDescriptor;
 import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.api.SilentTokenNameLookup;
 import org.neo4j.kernel.api.Statement;
+import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.procedure.*;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -35,6 +40,17 @@ public class Schemas {
 
     @Context
     public KernelTransaction tx;
+
+    @Procedure(value = "apoc.schema.recreate", mode = Mode.SCHEMA)
+    @Description("apoc.schema.recreate() - recreates indexes and constraints")
+    public Stream<AssertSchemaResult> schemaRecreate() throws ExecutionException, InterruptedException {
+        StatementApi statementApi = new StatementApi((GraphDatabaseAPI) db);
+
+        return Stream.concat(
+                recreateIndexes().stream(),
+                recreateConstraints().stream());
+    }
+
 
     @Procedure(value = "apoc.schema.assert", mode = Mode.SCHEMA)
     @Description("apoc.schema.assert({indexLabel:[[indexKeys]], ...}, {constraintLabel:[constraintKeys], ...}, dropExisting : true) yield label, key, keys, unique, action - drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label. Non-constraint indexes can define compound indexes with label:[key1,key2...] pairings.")
@@ -103,6 +119,40 @@ public class Schemas {
         return result;
     }
 
+    public List<AssertSchemaResult> recreateConstraints() throws ExecutionException, InterruptedException {
+        List<AssertSchemaResult> result = new ArrayList<>();
+        Schema schema = db.schema();
+
+        List<ConstraintDefinition> constraints = new ArrayList<>();
+        for (ConstraintDefinition constraint : schema.getConstraints()) {
+            constraints.add(constraint);
+        }
+
+        for (ConstraintDefinition definition : constraints) {
+            String label = definition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE) ? definition.getRelationshipType().name() : definition.getLabel().name();
+            AssertSchemaResult info = new AssertSchemaResult(label, Iterables.asList(definition.getPropertyKeys())).unique();
+            definition.drop();
+            info.dropped();
+            result.add(info);
+        }
+
+        for (ConstraintDefinition constraint : constraints) {
+            List<Object> propertyKeys = new ArrayList<>();
+            for (String propertyKey : constraint.getPropertyKeys()) {
+                propertyKeys.add(propertyKey);
+            }
+
+            if (propertyKeys.size() == 1) {
+                result.add(createUniqueConstraint(schema, constraint.getLabel().name(), propertyKeys.get(0).toString()));
+            } else {
+                result.add(createNodeKeyConstraint(constraint.getLabel().name(), propertyKeys));
+            }
+        }
+
+        return result;
+    }
+
+
     private AssertSchemaResult createNodeKeyConstraint(String lbl, List<Object> keys) {
         String keyProperties = keys.stream()
                 .map( property -> String.format("n.`%s`", property))
@@ -115,6 +165,85 @@ public class Schemas {
     private AssertSchemaResult createUniqueConstraint(Schema schema, String lbl, String key) {
         schema.constraintFor(label(lbl)).assertPropertyIsUnique(key).create();
         return new AssertSchemaResult(lbl, key).unique().created();
+    }
+
+    public List<AssertSchemaResult> recreateIndexes() throws ExecutionException, InterruptedException, IllegalArgumentException {
+        List<Future<Void>> futures = new ArrayList<>();
+
+        Schema schema = db.schema();
+        List<AssertSchemaResult> result = new ArrayList<>();
+
+        List<Map<String, List<String>>> indexesToRecreate = new ArrayList<>();
+        Iterable<IndexDefinition> outerIndexes = schema.getIndexes();
+        for (Iterator<IndexDefinition> it = outerIndexes.iterator(); it.hasNext(); ) {
+            IndexDefinition index = it.next();
+            if (!index.isConstraintIndex()) {
+                List<String> propertyKeys = new ArrayList<>();
+                for (String propertyKey : index.getPropertyKeys()) {
+                    propertyKeys.add(propertyKey);
+                }
+                Map<String, List<String>> value = new HashMap<>();
+                value.put(index.getLabel().name(), propertyKeys);
+                indexesToRecreate.add(value);
+            }
+        }
+
+        ExecutorService single = Pools.SINGLE;
+//        futures.add(Util.inTxFuture(single, db, () -> {
+//            List<IndexDefinition> indexes = new ArrayList<>();
+//            for (IndexDefinition index : schema.getIndexes()) {
+//                indexes.add(index);
+//            }
+//
+//            for (IndexDefinition definition : indexes) {
+//                if (definition.isConstraintIndex())
+//                    continue;
+//
+//                String label = definition.getLabel().name();
+//                List<String> keys = new ArrayList<>();
+//                definition.getPropertyKeys().forEach(keys::add);
+//
+//                AssertSchemaResult info = new AssertSchemaResult(label, keys);
+//
+//                definition.drop();
+//
+//                info.dropped();
+//                result.add(info);
+//            }
+//            return null;
+//        }));
+
+        futures.add(Util.inTxFuture(single, db, () -> {
+            for (Map<String, List<String>> index : indexesToRecreate) {
+                for (String key : index.keySet()) {
+                    List<String> propertyKeys = new ArrayList<>(index.get(key));
+
+                    if (propertyKeys.size() == 1) {
+                        result.add(createSinglePropertyIndex(schema, key, propertyKeys.get(0)));
+
+                    } else {
+                        result.add(createCompoundIndex(key, propertyKeys));
+                    }
+                }
+
+
+            }
+            return null;
+        }));
+
+        while (futures.stream().noneMatch(Future::isDone)) { // none done yet, block for a bit
+            LockSupport.parkNanos(1000);
+        }
+        Iterator<Future<Void>> it = futures.iterator();
+        while (it.hasNext()) {
+            Future<Void> future = it.next();
+            if (future.isDone()) {
+                Util.getFuture(future, new HashMap<>(), new AtomicInteger(0), null);
+                it.remove();
+            }
+        }
+
+        return result;
     }
 
     public List<AssertSchemaResult> assertIndexes(Map<String, List<Object>> indexes0, boolean dropExisting) throws ExecutionException, InterruptedException, IllegalArgumentException {

@@ -42,6 +42,36 @@ public class SchemasTest {
     }
 
     @Test
+    public void recreateIndexes() {
+        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.execute("CREATE INDEX ON :Foo(baz)").close();
+        testResult(db, "CALL apoc.schema.recreate()", (result) -> {
+            while(result.hasNext()) {
+                System.out.println("result.next() = " + result.next());
+            }
+        });
+        try (Transaction tx = db.beginTx()) {
+            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            assertEquals(2, indexes.size());
+        }
+    }
+
+    @Test
+    public void recreateSchema() {
+        db.execute("CREATE CONSTRAINT ON (p:Person) ASSERT p.name IS UNIQUE").close();
+        db.execute("CREATE CONSTRAINT ON (m:Movie) ASSERT m.title IS UNIQUE").close();
+        testResult(db, "CALL apoc.schema.recreate()", (result) -> {
+            while(result.hasNext()) {
+                System.out.println("result.next() = " + result.next());
+            }
+        });
+        try (Transaction tx = db.beginTx()) {
+            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            assertEquals(2, indexes.size());
+        }
+    }
+
+    @Test
     public void testCreateIndex() throws Exception {
         testCall(db, "CALL apoc.schema.assert({Foo:['bar']},null)", (r) -> {
             assertEquals("Foo", r.get("label"));

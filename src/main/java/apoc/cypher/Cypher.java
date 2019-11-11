@@ -31,6 +31,7 @@ import static java.lang.String.format;
 import static java.lang.String.join;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.neo4j.procedure.Mode.SCHEMA;
 import static org.neo4j.procedure.Mode.WRITE;
 
 /**
@@ -84,13 +85,13 @@ public class Cypher {
         return result.stream();
     }
 
-    @Procedure(mode=Mode.SCHEMA)
+    @Procedure(mode= SCHEMA)
     @Description("apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated")
     public Stream<RowResult> runSchemaFile(@Name("file") String fileName, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         return runSchemaFiles(singletonList(fileName),config);
     }
 
-    @Procedure(mode=Mode.SCHEMA)
+    @Procedure(mode= SCHEMA)
     @Description("apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema statement in the files, all semicolon separated")
     public Stream<RowResult> runSchemaFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
@@ -383,6 +384,12 @@ public class Cypher {
     public Stream<MapResult> doIt(@Name("cypher") String statement, @Name("params") Map<String, Object> params) {
         if (params == null) params = Collections.emptyMap();
         return db.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
+    }
+
+    @Procedure(mode = SCHEMA)
+    @Description("apoc.cypher.doItSchema(fragment, params) yield value - executes writing fragment with the given parameters")
+    public Stream<MapResult> doItSchema(@Name("cypher") String statement) {
+        return db.execute(statement).stream().map(MapResult::new);
     }
 
     @Procedure("apoc.when")
