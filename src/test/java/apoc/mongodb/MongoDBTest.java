@@ -86,7 +86,7 @@ public class MongoDBTest {
         productCollection.deleteMany(new Document());
         LongStream.range(0, NUM_OF_RECORDS)
                 .forEach(i -> testCollection.insertOne(new Document(map("name", "testDocument",
-                                    "date", currentTime, "longValue", longValue))));
+                                    "date", currentTime, "longValue", longValue, "nullField", null))));
 
         productCollection.insertOne(new Document(map("name", "My Awesome Product",
                 "price", 800,

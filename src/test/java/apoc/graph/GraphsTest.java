@@ -898,4 +898,70 @@ public class GraphsTest {
                     assertEquals(5, relMap.get("(Worker)-[COMPANY]-(Company)").size());
                 });
     }
+
+    @Test
+    public void testIncludeMappingsAsProperties() throws IOException {
+        Map<String, Object> json = map("id", 1,
+                "text", "Text",
+                "data", "02-11-2019",
+                "user", map("id", 1, "screenName", "conker84"),
+                "geo", map("latitude", 11.45, "longitude", -12.3));
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+                map("json", json, "config",
+                        map("skipValidation", false, "mappings", map("$", "Tweet{!id, text}", "$.user", "User{!id, screenName}"))), result -> {
+                    Map<String, Object> map = result.next();
+                    assertEquals("Graph", ((Map) map.get("graph")).get("name"));
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Map<String, List<Node>> nodeMap = nodes.stream()
+                            .collect(Collectors.groupingBy(e -> e.getLabels().iterator().next().name()));
+
+                    final List<Node> tweets = nodeMap.getOrDefault("Tweet", Collections.emptyList());
+                    assertEquals(1, tweets.size());
+                    assertEquals(new HashSet<>(Arrays.asList("id", "text")), tweets.get(0).getAllProperties().keySet());
+                    final List<Node> users = nodeMap.getOrDefault("User", Collections.emptyList());
+                    assertEquals(1, users.size());
+                    assertEquals(new HashSet<>(Arrays.asList("id","screenName")), users.get(0).getAllProperties().keySet());
+
+                    Collection<Relationship> rels = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    Map<String, List<Relationship>> relMap = rels.stream()
+                            .collect(Collectors.groupingBy(e -> String.format("(%s)-[%s]-(%s)",
+                                    e.getStartNode().getLabels().iterator().next().name(),
+                                    e.getType().name(),
+                                    e.getEndNode().getLabels().iterator().next().name())));
+                    assertEquals(1, relMap.get("(Tweet)-[USER]-(User)").size());
+                });
+    }
+
+    @Test
+    public void testValidationCustomIdAsProperties() throws IOException {
+        Map<String, Object> json = map("id", 1,
+                "text", "Text",
+                "data", "02-11-2019",
+                "user", map("id", 1, "screenName", "conker84"),
+                "geo", map("latitude", 11.45, "longitude", -12.3));
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+                map("json", json, "config",
+                        map("skipValidation", false, "idField", "foo", "mappings", map("$", "Tweet{!id, text}", "$.user", "User{!screenName}"))), result -> {
+                    Map<String, Object> map = result.next();
+                    assertEquals("Graph", ((Map) map.get("graph")).get("name"));
+                    Collection<Node> nodes = (Collection<Node>) ((Map) map.get("graph")).get("nodes");
+                    Map<String, List<Node>> nodeMap = nodes.stream()
+                            .collect(Collectors.groupingBy(e -> e.getLabels().iterator().next().name()));
+
+                    final List<Node> tweets = nodeMap.getOrDefault("Tweet", Collections.emptyList());
+                    assertEquals(1, tweets.size());
+                    assertEquals(new HashSet<>(Arrays.asList("id", "text")), tweets.get(0).getAllProperties().keySet());
+                    final List<Node> users = nodeMap.getOrDefault("User", Collections.emptyList());
+                    assertEquals(1, users.size());
+                    assertEquals(new HashSet<>(Arrays.asList("screenName")), users.get(0).getAllProperties().keySet());
+
+                    Collection<Relationship> rels = (Collection<Relationship>) ((Map) map.get("graph")).get("relationships");
+                    Map<String, List<Relationship>> relMap = rels.stream()
+                            .collect(Collectors.groupingBy(e -> String.format("(%s)-[%s]-(%s)",
+                                    e.getStartNode().getLabels().iterator().next().name(),
+                                    e.getType().name(),
+                                    e.getEndNode().getLabels().iterator().next().name())));
+                    assertEquals(1, relMap.get("(Tweet)-[USER]-(User)").size());
+                });
+    }
 }
