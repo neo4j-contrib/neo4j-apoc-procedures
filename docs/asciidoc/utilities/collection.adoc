@@ -61,6 +61,7 @@ endif::[]
 | apoc.coll.insertAll(coll, index, values) | insert values at index
 | apoc.coll.remove(coll, index, [length=1]) | remove range of values from index to length
 | apoc.coll.different(values) | returns true if value are different
+| apoc.coll.fill(item, count) | returns a list with the given count of items
 |===
 
 .The following computes the sum of values in a list:
