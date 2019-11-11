@@ -44,8 +44,6 @@ public class Schemas {
     @Procedure(value = "apoc.schema.recreate", mode = Mode.SCHEMA)
     @Description("apoc.schema.recreate() - recreates indexes and constraints")
     public Stream<AssertSchemaResult> schemaRecreate() throws ExecutionException, InterruptedException {
-        StatementApi statementApi = new StatementApi((GraphDatabaseAPI) db);
-
         return Stream.concat(
                 recreateIndexes().stream(),
                 recreateConstraints().stream());
