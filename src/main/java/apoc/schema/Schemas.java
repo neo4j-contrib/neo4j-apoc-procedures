@@ -187,34 +187,44 @@ public class Schemas {
     }
 
     public List<AssertSchemaResult> recreateConstraints() throws ExecutionException, InterruptedException {
-        List<AssertSchemaResult> result = new ArrayList<>();
         Schema schema = db.schema();
-
-        List<ConstraintDefinition> constraints = new ArrayList<>();
-        for (ConstraintDefinition constraint : schema.getConstraints()) {
-            constraints.add(constraint);
-        }
-
-        for (ConstraintDefinition definition : constraints) {
-            String label = definition.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE) ? definition.getRelationshipType().name() : definition.getLabel().name();
-            AssertSchemaResult info = new AssertSchemaResult(label, Iterables.asList(definition.getPropertyKeys())).unique();
-            definition.drop();
-            info.dropped();
-            result.add(info);
-        }
-
-        for (ConstraintDefinition constraint : constraints) {
-            List<Object> propertyKeys = new ArrayList<>();
-            for (String propertyKey : constraint.getPropertyKeys()) {
-                propertyKeys.add(propertyKey);
+        List<AssertSchemaResult> result = Collections.synchronizedList(new ArrayList<>());
+        ExecutorService executorService = Pools.SINGLE;
+        List<ConstraintDefinition> constraintsToRecreate = Util.inTxFuture(executorService, db, () -> {
+            List<ConstraintDefinition> idx = new ArrayList<>();
+            Iterable<ConstraintDefinition> outerIndexes = schema.getConstraints();
+            for (ConstraintDefinition index : outerIndexes) {
+                idx.add(index);
             }
+            return idx;
+        }).get();
 
-            if (propertyKeys.size() == 1) {
-                result.add(createUniqueConstraint(schema, constraint.getLabel().name(), propertyKeys.get(0).toString()));
-            } else {
-                result.add(createNodeKeyConstraint(constraint.getLabel().name(), propertyKeys));
+        Util.inTxFuture(executorService, db, () -> {
+            for (ConstraintDefinition constraint : constraintsToRecreate) {
+                String label = constraint.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE) ? constraint.getRelationshipType().name() : constraint.getLabel().name();
+                AssertSchemaResult info = new AssertSchemaResult(label, Iterables.asList(constraint.getPropertyKeys())).unique();
+                constraint.drop();
+                info.dropped();
+                result.add(info);
             }
-        }
+            return null;
+        }).get();
+
+        Util.inTxFuture(executorService, db, () -> {
+            for (ConstraintDefinition constraint : constraintsToRecreate) {
+                List<Object> propertyKeys = new ArrayList<>();
+                for (String propertyKey : constraint.getPropertyKeys()) {
+                    propertyKeys.add(propertyKey);
+                }
+
+                if (propertyKeys.size() == 1) {
+                    result.add(createUniqueConstraint(schema, constraint.getLabel().name(), propertyKeys.get(0).toString()));
+                } else {
+                    result.add(createNodeKeyConstraint(constraint.getLabel().name(), propertyKeys));
+                }
+            }
+            return null;
+        }).get();
 
         return result;
     }

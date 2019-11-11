@@ -2,6 +2,7 @@ package apoc.schema;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hamcrest.core.IsNot;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,14 +15,20 @@ import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.helpers.collection.Iterables;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static apoc.util.TestUtil.*;
 import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.parboiled.common.Predicates.equalTo;
 
 /**
  * @author mh
@@ -45,6 +52,12 @@ public class SchemasTest {
     public void recreateIndexes() {
         db.execute("CREATE INDEX ON :Foo(bar)").close();
         db.execute("CREATE INDEX ON :Foo(baz)").close();
+
+        List<String> initialIndexNames;
+        try (Transaction tx = db.beginTx()) {
+            initialIndexNames = Iterables.asList(db.schema().getIndexes()).stream().map(Object::toString).collect(Collectors.toList());
+        }
+
         testResult(db, "CALL apoc.schema.recreate()", (result) -> {
             while(result.hasNext()) {
                 System.out.println("result.next() = " + result.next());
@@ -53,6 +66,9 @@ public class SchemasTest {
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
             assertEquals(2, indexes.size());
+
+            List<String> newIndexNames = indexes.stream().map(Object::toString).collect(Collectors.toList());
+            assertThat(newIndexNames, IsNot.not(containsInAnyOrder(initialIndexNames.toArray())));
         }
     }
 
@@ -60,6 +76,12 @@ public class SchemasTest {
     public void recreateSchema() {
         db.execute("CREATE CONSTRAINT ON (p:Person) ASSERT p.name IS UNIQUE").close();
         db.execute("CREATE CONSTRAINT ON (m:Movie) ASSERT m.title IS UNIQUE").close();
+
+        List<String> initialIndexNames;
+        try (Transaction tx = db.beginTx()) {
+            initialIndexNames = Iterables.asList(db.schema().getIndexes()).stream().map(IndexDefinition::getName).collect(Collectors.toList());
+        }
+
         testResult(db, "CALL apoc.schema.recreate()", (result) -> {
             while(result.hasNext()) {
                 System.out.println("result.next() = " + result.next());
@@ -68,6 +90,9 @@ public class SchemasTest {
         try (Transaction tx = db.beginTx()) {
             List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
             assertEquals(2, indexes.size());
+
+            List<String> newIndexNames = indexes.stream().map(IndexDefinition::getName).collect(Collectors.toList());
+            assertThat(newIndexNames, IsNot.not(containsInAnyOrder(initialIndexNames.toArray())));
         }
     }
 
