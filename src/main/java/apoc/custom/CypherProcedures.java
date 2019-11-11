@@ -7,6 +7,7 @@ import apoc.util.Util;
 import org.neo4j.collection.PrefetchingRawIterator;
 import org.neo4j.collection.RawIterator;
 import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.kernel.api.exceptions.ProcedureException;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.util.Util.map;
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.*;
 
@@ -55,6 +57,7 @@ public class CypherProcedures {
     public static final String PROCEDURE = "procedure";
     public static final List<FieldSignature> DEFAULT_MAP_OUTPUT = singletonList(FieldSignature.inputField("row", NTMap));
     public static final List<FieldSignature> DEFAULT_INPUTS = singletonList(FieldSignature.inputField("params", NTMap, DefaultParameterValue.ntMap(Collections.emptyMap())));
+    public static final String REMOVED = "removed";
     @Context
     public GraphDatabaseAPI api;
     @Context
@@ -126,10 +129,37 @@ public class CypherProcedures {
     }
 
     @Procedure(value = "apoc.custom.list", mode = Mode.READ)
-    @Description("apoc.custom.list() - provide a list of custom procedures/function registered")
+    @Description("apoc.custom.list() - provide a list of custom procedures/functions registered")
     public Stream<CustomProcedureInfo> list(){
         CustomProcedureStorage registry = new CustomProcedureStorage(Pools.NEO4J_SCHEDULER, api, log);
         return registry.list().stream();
+    }
+
+    @Procedure(value = "apoc.custom.removeProcedure", mode = Mode.WRITE)
+    @Description("apoc.custom.removeProcedure(name) - remove the targeted custom procedure")
+    public void removeProcedure(@Name("name") String name) {
+        Objects.requireNonNull(name, "name");
+        Map<String, Object> old = CustomProcedureStorage.remove(api, name, PROCEDURES);
+        if (old != null && !old.isEmpty()) {
+            CustomStatementRegistry registry = new CustomStatementRegistry(api, log);
+            if (!registry.removeProcedure(name, old)) {
+                throw new IllegalStateException("Error removing custom procedure:" + name + ", see log.");
+            }
+        }
+    }
+
+
+    @Procedure(value = "apoc.custom.removeFunction", mode = Mode.WRITE)
+    @Description("apoc.custom.removeFunction(name, type) - remove the targeted custom function")
+    public void removeFunction(@Name("name") String name) {
+        Objects.requireNonNull(name, "name");
+        Map<String, Object> old = CustomProcedureStorage.remove(api, name, FUNCTIONS);
+        if (old != null && !old.isEmpty()) {
+            CustomStatementRegistry registry = new CustomStatementRegistry(api, log);
+            if (!registry.removeFunction(name, old)) {
+                throw new IllegalStateException("Error removing custom function:" + name + ", see log.");
+            }
+        }
     }
 
     static class CustomStatementRegistry {
@@ -182,6 +212,49 @@ public class CypherProcedures {
             }
         }
 
+        public boolean removeProcedure(String name, List<List<String>> inputs, List<List<String>> outputs, String description, String mode) {
+            boolean admin = false; // TODO
+            ProcedureSignature signature = new ProcedureSignature(qualifiedName(name), inputSignatures(inputs), outputSignatures(outputs),
+                    mode(mode), admin, null, new String[0], description, null, false, true
+            );
+            return removeProcedure(signature);
+        }
+
+        private boolean removeProcedure(ProcedureSignature signature) {
+            try {
+                Procedures procedures = api.getDependencyResolver().resolveDependency(Procedures.class);
+                procedures.register(new CallableProcedure.BasicProcedure(signature) {
+                    @Override
+                    public RawIterator<Object[], ProcedureException> apply(org.neo4j.kernel.api.proc.Context ctx, Object[] input, ResourceTracker resourceTracker) throws ProcedureException {
+                        final String error = String.format("There is no procedure with the name `%s` registered for this database instance. " +
+                                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", signature.name());
+                        throw new QueryExecutionException(error, null, "Neo.ClientError.Procedure.ProcedureNotFound");
+                    }
+                }, true);
+                return true;
+            } catch (Exception e) {
+                log.error("Could not remove procedure: " + signature, e);
+                return false;
+            }
+        }
+
+        private boolean removeProcedure(String procedureName, Map<String, Object> procedureMetadata) {
+            boolean deleted;
+            if (procedureMetadata.containsKey("signature")) {
+                Signatures sigs = new Signatures("custom");
+                ProcedureSignature procedureSignature = sigs.asProcedureSignature((String) procedureMetadata.get("signature"),
+                        (String) procedureMetadata.get("description"),
+                        Mode.valueOf((String) procedureMetadata.get("mode")));
+                deleted = removeProcedure(procedureSignature);
+            } else {
+                deleted = removeProcedure(procedureName, (List<List<String>>) procedureMetadata.get("inputs"),
+                        (List<List<String>>) procedureMetadata.get("outputs"),
+                        (String) procedureMetadata.get("description"),
+                        (String) procedureMetadata.get("mode"));
+            }
+            return deleted;
+        }
+
         public boolean registerFunction(String name, String statement, String output, List<List<String>> inputs, boolean forceSingle, String description)  {
             AnyType outType = typeof(output.isEmpty() ? "LIST OF MAP" : output);
             UserFunctionSignature signature = new UserFunctionSignature(qualifiedName(name), inputSignatures(inputs), outType,
@@ -229,6 +302,43 @@ public class CypherProcedures {
 
         }
 
+        public boolean removeFunction(String name, String output, List<List<String>> inputs, String description)  {
+            AnyType outType = typeof(output.isEmpty() ? "LIST OF MAP" : output);
+            UserFunctionSignature signature = new UserFunctionSignature(qualifiedName(name), inputSignatures(inputs), outType,
+                    null, new String[0], description, false);
+            return removeFunction(signature);
+        }
+
+        private boolean removeFunction(UserFunctionSignature signature) {
+            try {
+                procedures.register(new CallableUserFunction.BasicUserFunction(signature) {
+                    @Override
+                    public AnyValue apply(org.neo4j.kernel.api.proc.Context ctx, AnyValue[] input) {
+                        final String error = String.format("Unknown function '%s'", signature.name());
+                        throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
+                    }
+                }, true);
+                return true;
+            } catch (Exception e) {
+                log.error("Could not remove function: " + signature, e);
+                return false;
+            }
+        }
+
+        private boolean removeFunction(String functionName, Map<String, Object> functionMetadata) {
+            boolean deleted;
+            if (functionMetadata.containsKey("signature")) {
+                Signatures sigs = new Signatures("custom");
+                UserFunctionSignature userFunctionSignature = sigs.asFunctionSignature((String) functionMetadata.get("signature"),
+                        (String) functionMetadata.get("description"));
+                deleted = removeFunction(userFunctionSignature);
+            } else {
+                deleted = removeFunction(functionName, (String) functionMetadata.get("output"),
+                        (List<List<String>>) functionMetadata.get("inputs"),
+                        (String) functionMetadata.get("description"));
+            }
+            return deleted;
+        }
 
         public static QualifiedName qualifiedName(@Name("name") String name) {
             String[] names = name.split("\\.");
@@ -441,6 +551,17 @@ public class CypherProcedures {
                             (List<List<String>>) data.get("outputs"), (List<List<String>>) data.get("inputs"), (String) data.get("description"));
                 }
             });
+            stored.getOrDefault(REMOVED, emptyMap())
+                    .forEach((type, data) -> data.forEach((name, metadata) -> {
+                        switch (type) {
+                            case PROCEDURES:
+                                registry.removeProcedure(name, (Map<String, Object>) metadata);
+                                break;
+                            case FUNCTIONS:
+                                registry.removeFunction(name, (Map<String, Object>) metadata);
+                                break;
+                        }
+                    }));
             clearQueryCaches(api);
         }
 
@@ -481,7 +602,15 @@ public class CypherProcedures {
             try (Transaction tx = properties.getGraphDatabase().beginTx()) {
                 Map<String, Map<String, Map<String, Object>>> data = readData(properties);
                 Map<String, Map<String, Object>> procData = data.get(type);
-                Map<String, Object> previous = (value == null) ? procData.remove(name) : procData.put(name, value);
+                Map<String, Object> previous;
+                if (value != null) {
+                    previous = procData.put(name, value);
+                } else {
+                    previous = procData.remove(name);
+                    data.computeIfAbsent(REMOVED, (key) -> new HashMap<>())
+                            .computeIfAbsent(type, (key) -> new HashMap<>())
+                            .put(name, previous);
+                }
                 if (value != null || previous != null) {
                     properties.setProperty(APOC_CUSTOM, Util.toJson(data));
                     properties.setProperty(APOC_CUSTOM_UPDATE, System.currentTimeMillis());
@@ -517,6 +646,7 @@ public class CypherProcedures {
 
         public List<CustomProcedureInfo> list() {
             return readData(getProperties(api)).entrySet().stream()
+                    .filter(entry -> !REMOVED.equals(entry.getKey()))
                     .flatMap(entryProcedureType -> {
                         Map<String, Map<String, Object>> procedures = entryProcedureType.getValue();
                         String type = entryProcedureType.getKey();
