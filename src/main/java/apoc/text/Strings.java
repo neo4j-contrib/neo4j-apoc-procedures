@@ -576,7 +576,7 @@ public class Strings {
 
     @UserFunction
     @Description("apoc.text.repeat(item, count) - string multiplication")
-    public StringBuilder repeat(@Name("item") String item, @Name("count") long count) {
+    public String repeat(@Name("item") String item, @Name("count") long count) {
         StringBuilder result = new StringBuilder((int) count * item.length());
         for (int i=0; i<count; i++) {
             result.append(item);
