@@ -172,7 +172,9 @@ public class Cypher {
     private String removeShellControlCommands(String stmt) {
         Matcher matcher = shellControl.matcher(stmt.trim());
         if (matcher.find()) {
-            stmt = matcher.replaceAll("");
+            // an empty file get transformed into ":begin\n:commit" and that statement is not matched by the pattern
+            // because ":begin\n:commit".replaceAll("") => "\n:commit" with the recursion we avoid the problem
+            return removeShellControlCommands(matcher.replaceAll(""));
         }
         return stmt;
     }
