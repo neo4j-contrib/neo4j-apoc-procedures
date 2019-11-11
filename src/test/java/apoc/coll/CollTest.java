@@ -229,7 +229,7 @@ public class CollTest {
         testCall(db, "RETURN apoc.coll.containsAll([1,2,3],[1,2,3,4]) AS value", (res) -> assertEquals(false, res.get("value")));
         testCall(db, "RETURN apoc.coll.containsAll([1,1,2,3],[1,2,2,3]) AS value", (res) -> assertEquals(true, res.get("value")));
         testCall(db, "RETURN apoc.coll.containsAll(null,[1,2,3]) AS value", (res) -> assertEquals(false, res.get("value")));
-        testCall(db, "RETURN apoc.coll.containsAll(null,null) AS value", (res) -> assertEquals(true, res.get("value")));
+        testCall(db, "RETURN apoc.coll.containsAll(null,null) AS value", (res) -> assertEquals(false, res.get("value")));
         testCall(db, "RETURN apoc.coll.containsAll([1,2,3],null) AS value", (res) -> assertEquals(false, res.get("value")));
     }
 

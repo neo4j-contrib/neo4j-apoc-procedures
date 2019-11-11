@@ -405,6 +405,7 @@ public class Coll {
     @Description("apoc.coll.containsAll(coll, values) optimized contains-all operation (using a HashSet) (returns single row or not)")
     public boolean containsAll(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
         if (coll == null || coll.isEmpty()) return false;
+        if(values == null) return false;
         return new HashSet<>(coll).containsAll(values);
     }
 
