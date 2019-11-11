@@ -62,13 +62,13 @@ public class Schemas {
 
     @Procedure(value = "apoc.schema.nodes", mode = Mode.SCHEMA)
     @Description("CALL apoc.schema.nodes([config]) yield name, label, properties, status, type")
-    public Stream<IndexConstraintNodeInfo> nodes(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) throws IndexNotFoundKernelException {
+    public Stream<IndexConstraintNodeInfo> nodes(@Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws IndexNotFoundKernelException {
         return indexesAndConstraintsForNode(config);
     }
 
     @Procedure(value = "apoc.schema.relationships", mode = Mode.SCHEMA)
     @Description("CALL apoc.schema.relationships([config]) yield name, startLabel, type, endLabel, properties, status")
-    public Stream<ConstraintRelationshipInfo> relationships(@Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
+    public Stream<ConstraintRelationshipInfo> relationships(@Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         return constraintsForRelationship(config);
     }
 
@@ -119,6 +119,73 @@ public class Schemas {
         return result;
     }
 
+
+    private AssertSchemaResult createNodeKeyConstraint(String lbl, List<Object> keys) {
+        String keyProperties = keys.stream()
+                .map(property -> String.format("n.`%s`", property))
+                .collect(Collectors.joining(","));
+        db.execute(String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT (%s) IS NODE KEY", lbl, keyProperties)).close();
+        List<String> keysToSting = keys.stream().map(Object::toString).collect(Collectors.toList());
+        return new AssertSchemaResult(lbl, keysToSting).unique().created();
+    }
+
+    private AssertSchemaResult createUniqueConstraint(Schema schema, String lbl, String key) {
+        schema.constraintFor(label(lbl)).assertPropertyIsUnique(key).create();
+        return new AssertSchemaResult(lbl, key).unique().created();
+    }
+
+    public List<AssertSchemaResult> recreateIndexes() throws ExecutionException, InterruptedException, IllegalArgumentException {
+        Schema schema = db.schema();
+        List<AssertSchemaResult> result = Collections.synchronizedList(new ArrayList<>());
+        ExecutorService executorService = Pools.SINGLE;
+        List<IndexDefinition> indexesToRecreate = Util.inTxFuture(executorService, db, () -> {
+            List<IndexDefinition> idx = new ArrayList<>();
+            Iterable<IndexDefinition> outerIndexes = schema.getIndexes();
+            for (Iterator<IndexDefinition> it = outerIndexes.iterator(); it.hasNext(); ) {
+                IndexDefinition index = it.next();
+                if (!index.isConstraintIndex()) {
+                    idx.add(index);
+                }
+            }
+            return idx;
+        }).get();
+
+        Util.inTxFuture(executorService, db, () -> {
+            for (IndexDefinition definition : indexesToRecreate) {
+                String label = definition.getLabel().name();
+                List<String> keys = new ArrayList<>();
+                definition.getPropertyKeys().forEach(keys::add);
+
+                AssertSchemaResult info = new AssertSchemaResult(label, keys);
+
+                definition.drop();
+
+                info.dropped();
+                result.add(info);
+            }
+            return null;
+        }).get();
+
+        Util.inTxFuture(executorService, db, () -> {
+            for (IndexDefinition definition : indexesToRecreate) {
+                List<String> propertyKeys = new ArrayList<>();
+                for (String propertyKey : definition.getPropertyKeys()) {
+                    propertyKeys.add(propertyKey);
+                }
+
+                if (propertyKeys.size() == 1) {
+                    result.add(createSinglePropertyIndex(schema, definition.getLabel().name(), propertyKeys.get(0)));
+
+                } else {
+                    result.add(createCompoundIndex(definition.getLabel().name(), propertyKeys));
+                }
+            }
+            return null;
+        }).get();
+
+        return result;
+    }
+
     public List<AssertSchemaResult> recreateConstraints() throws ExecutionException, InterruptedException {
         List<AssertSchemaResult> result = new ArrayList<>();
         Schema schema = db.schema();
@@ -152,100 +219,6 @@ public class Schemas {
         return result;
     }
 
-
-    private AssertSchemaResult createNodeKeyConstraint(String lbl, List<Object> keys) {
-        String keyProperties = keys.stream()
-                .map( property -> String.format("n.`%s`", property))
-                .collect( Collectors.joining( "," ) );
-        db.execute(String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT (%s) IS NODE KEY", lbl, keyProperties)).close();
-        List<String> keysToSting = keys.stream().map(Object::toString).collect(Collectors.toList());
-        return new AssertSchemaResult(lbl, keysToSting).unique().created();
-    }
-
-    private AssertSchemaResult createUniqueConstraint(Schema schema, String lbl, String key) {
-        schema.constraintFor(label(lbl)).assertPropertyIsUnique(key).create();
-        return new AssertSchemaResult(lbl, key).unique().created();
-    }
-
-    public List<AssertSchemaResult> recreateIndexes() throws ExecutionException, InterruptedException, IllegalArgumentException {
-        List<Future<Void>> futures = new ArrayList<>();
-
-        Schema schema = db.schema();
-        List<AssertSchemaResult> result = new ArrayList<>();
-
-        List<Map<String, List<String>>> indexesToRecreate = new ArrayList<>();
-        Iterable<IndexDefinition> outerIndexes = schema.getIndexes();
-        for (Iterator<IndexDefinition> it = outerIndexes.iterator(); it.hasNext(); ) {
-            IndexDefinition index = it.next();
-            if (!index.isConstraintIndex()) {
-                List<String> propertyKeys = new ArrayList<>();
-                for (String propertyKey : index.getPropertyKeys()) {
-                    propertyKeys.add(propertyKey);
-                }
-                Map<String, List<String>> value = new HashMap<>();
-                value.put(index.getLabel().name(), propertyKeys);
-                indexesToRecreate.add(value);
-            }
-        }
-
-        ExecutorService single = Pools.SINGLE;
-//        futures.add(Util.inTxFuture(single, db, () -> {
-//            List<IndexDefinition> indexes = new ArrayList<>();
-//            for (IndexDefinition index : schema.getIndexes()) {
-//                indexes.add(index);
-//            }
-//
-//            for (IndexDefinition definition : indexes) {
-//                if (definition.isConstraintIndex())
-//                    continue;
-//
-//                String label = definition.getLabel().name();
-//                List<String> keys = new ArrayList<>();
-//                definition.getPropertyKeys().forEach(keys::add);
-//
-//                AssertSchemaResult info = new AssertSchemaResult(label, keys);
-//
-//                definition.drop();
-//
-//                info.dropped();
-//                result.add(info);
-//            }
-//            return null;
-//        }));
-
-        futures.add(Util.inTxFuture(single, db, () -> {
-            for (Map<String, List<String>> index : indexesToRecreate) {
-                for (String key : index.keySet()) {
-                    List<String> propertyKeys = new ArrayList<>(index.get(key));
-
-                    if (propertyKeys.size() == 1) {
-                        result.add(createSinglePropertyIndex(schema, key, propertyKeys.get(0)));
-
-                    } else {
-                        result.add(createCompoundIndex(key, propertyKeys));
-                    }
-                }
-
-
-            }
-            return null;
-        }));
-
-        while (futures.stream().noneMatch(Future::isDone)) { // none done yet, block for a bit
-            LockSupport.parkNanos(1000);
-        }
-        Iterator<Future<Void>> it = futures.iterator();
-        while (it.hasNext()) {
-            Future<Void> future = it.next();
-            if (future.isDone()) {
-                Util.getFuture(future, new HashMap<>(), new AtomicInteger(0), null);
-                it.remove();
-            }
-        }
-
-        return result;
-    }
-
     public List<AssertSchemaResult> assertIndexes(Map<String, List<Object>> indexes0, boolean dropExisting) throws ExecutionException, InterruptedException, IllegalArgumentException {
         Schema schema = db.schema();
         Map<String, List<Object>> indexes = copyMapOfObjects(indexes0);
@@ -260,7 +233,7 @@ public class Schemas {
             definition.getPropertyKeys().forEach(keys::add);
 
             AssertSchemaResult info = new AssertSchemaResult(label, keys);
-            if(indexes.containsKey(label)) {
+            if (indexes.containsKey(label)) {
                 if (keys.size() > 1) {
                     indexes.get(label).remove(keys);
                 } else if (keys.size() == 1) {
@@ -299,7 +272,7 @@ public class Schemas {
 
     private AssertSchemaResult createCompoundIndex(String label, List<String> keys) {
         List<String> backTickedKeys = new ArrayList<>();
-        keys.forEach(key->backTickedKeys.add(String.format("`%s`", key)));
+        keys.forEach(key -> backTickedKeys.add(String.format("`%s`", key)));
 
         db.execute(String.format("CREATE INDEX ON :`%s` (%s)", label, String.join(",", backTickedKeys)));
         return new AssertSchemaResult(label, keys).created();
@@ -399,13 +372,13 @@ public class Schemas {
      *
      * @return
      */
-    private Stream<IndexConstraintNodeInfo> indexesAndConstraintsForNode(Map<String,Object> config) {
+    private Stream<IndexConstraintNodeInfo> indexesAndConstraintsForNode(Map<String, Object> config) {
 
         SchemaConfig schemaConfig = new SchemaConfig(config);
         Set<String> includeLabels = schemaConfig.getLabels();
         Set<String> excludeLabels = schemaConfig.getExcludeLabels();
 
-        try ( Statement ignore = tx.acquireStatement() ) {
+        try (Statement ignore = tx.acquireStatement()) {
             TokenRead tokenRead = tx.tokenRead();
             TokenNameLookup tokens = new SilentTokenNameLookup(tokenRead);
 
@@ -415,7 +388,7 @@ public class Schemas {
 
             if (includeLabels.isEmpty()) {
                 Iterable<IndexReference> allIndex = () -> schemaRead.indexesGetAll();
-                indexesIterator = StreamSupport.stream(allIndex.spliterator(),false)
+                indexesIterator = StreamSupport.stream(allIndex.spliterator(), false)
                         .filter(index -> Arrays.stream(index.schema().getEntityTokenIds()).noneMatch(id -> {
                             try {
                                 return excludeLabels.contains(tokenRead.nodeLabelName(id));
@@ -425,15 +398,15 @@ public class Schemas {
                         })).collect(Collectors.toList());
 
                 Iterable<ConstraintDescriptor> allConstraints = () -> schemaRead.constraintsGetAll();
-                constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
+                constraintsIterator = StreamSupport.stream(allConstraints.spliterator(), false)
                         .filter(constraint -> Arrays.stream(constraint.schema().getEntityTokenIds()).noneMatch(id -> {
                             try {
                                 return excludeLabels.contains(tokenRead.nodeLabelName(id));
                             } catch (LabelNotFoundKernelException e) {
                                 return false;
                             }
-                            }))
-                            .collect(Collectors.toList());
+                        }))
+                        .collect(Collectors.toList());
             } else {
                 constraintsIterator = includeLabels.stream()
                         .filter(label -> !excludeLabels.contains(label) && tokenRead.nodeLabel(label) != -1)
@@ -471,18 +444,18 @@ public class Schemas {
      *
      * @return
      */
-    private Stream<ConstraintRelationshipInfo> constraintsForRelationship(Map<String,Object> config) {
+    private Stream<ConstraintRelationshipInfo> constraintsForRelationship(Map<String, Object> config) {
         Schema schema = db.schema();
 
         SchemaConfig schemaConfig = new SchemaConfig(config);
         Set<String> includeRelationships = schemaConfig.getRelationships();
         Set<String> excludeRelationships = schemaConfig.getExcludeRelationships();
 
-        try ( Statement ignore = tx.acquireStatement() ) {
+        try (Statement ignore = tx.acquireStatement()) {
             TokenRead tokenRead = tx.tokenRead();
             Iterable<ConstraintDefinition> constraintsIterator;
 
-            if(!includeRelationships.isEmpty()) {
+            if (!includeRelationships.isEmpty()) {
                 constraintsIterator = includeRelationships.stream()
                         .filter(type -> !excludeRelationships.contains(type) && tokenRead.relationshipType(type) != -1)
                         .flatMap(type -> {
@@ -492,7 +465,7 @@ public class Schemas {
                         .collect(Collectors.toList());
             } else {
                 Iterable<ConstraintDefinition> allConstraints = schema.getConstraints();
-                constraintsIterator = StreamSupport.stream(allConstraints.spliterator(),false)
+                constraintsIterator = StreamSupport.stream(allConstraints.spliterator(), false)
                         .filter(index -> !excludeRelationships.contains(index.getRelationshipType().name()))
                         .collect(Collectors.toList());
             }
@@ -513,7 +486,7 @@ public class Schemas {
      * @return
      */
     private IndexConstraintNodeInfo nodeInfoFromConstraintDescriptor(ConstraintDescriptor constraintDescriptor, TokenNameLookup tokens) {
-        String labelName =  tokens.labelGetName(constraintDescriptor.schema().keyId());
+        String labelName = tokens.labelGetName(constraintDescriptor.schema().keyId());
         List<String> properties = new ArrayList<>();
         Arrays.stream(constraintDescriptor.schema().getPropertyIds()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
         return new IndexConstraintNodeInfo(
@@ -539,10 +512,10 @@ public class Schemas {
      * @param tokens
      * @return
      */
-    private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexReference indexReference, SchemaRead schemaRead, TokenNameLookup tokens){
+    private IndexConstraintNodeInfo nodeInfoFromIndexDefinition(IndexReference indexReference, SchemaRead schemaRead, TokenNameLookup tokens) {
         int[] labelIds = indexReference.schema().getEntityTokenIds();
         if (labelIds.length != 1) throw new IllegalStateException("Index with more than one label");
-        String labelName =  tokens.labelGetName(labelIds[0]);
+        String labelName = tokens.labelGetName(labelIds[0]);
         List<String> properties = new ArrayList<>();
         Arrays.stream(indexReference.properties()).forEach((i) -> properties.add(tokens.propertyKeyGetName(i)));
         try {
@@ -559,7 +532,7 @@ public class Schemas {
                     schemaRead.indexUniqueValuesSelectivity(indexReference),
                     indexReference.userDescription(tokens)
             );
-        } catch(IndexNotFoundKernelException e) {
+        } catch (IndexNotFoundKernelException e) {
             return new IndexConstraintNodeInfo(
                     // Pretty print for index name
                     String.format(":%s(%s)", labelName, StringUtils.join(properties, ",")),
@@ -568,7 +541,7 @@ public class Schemas {
                     "NOT_FOUND",
                     !indexReference.isUnique() ? "INDEX" : "UNIQUENESS",
                     "NOT_FOUND",
-                    0,0,0,
+                    0, 0, 0,
                     indexReference.userDescription(tokens)
             );
         }
