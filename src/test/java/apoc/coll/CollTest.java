@@ -870,5 +870,13 @@ public class CollTest {
                 });
     }
 
+    @Test
+    public void testFill() throws Exception {
+        testResult(db, "RETURN apoc.coll.fill('abc',2) as value",
+                (row) -> {
+                    assertEquals(asList("abc","abc"), row.next().get("value"));
+                });
+    }
+
 }
 
