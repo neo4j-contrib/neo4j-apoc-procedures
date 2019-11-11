@@ -43,6 +43,7 @@ This section includes:
 | apoc.text.replace(text, regex, replacement)| replace each substring of the given string that matches the given regular expression with the given replacement.
 | apoc.text.regexGroups(text, regex) | returns an array containing a nested array for each match. The inner array contains all match groups.
 | apoc.text.join(['text1','text2',...], delimiter) | join the given strings with the given delimiter.
+| apoc.text.repeat('item',count) | multiply the given string with the given count
 | apoc.text.format(text,[params],language) | sprintf format the string with the params given, and optional param language (default value is 'en').
 | apoc.text.lpad(text,count,delim) | left pad the string to the given width
 | apoc.text.rpad(text,count,delim) | right pad the string to the given width
