@@ -6,7 +6,6 @@ import apoc.SystemPropertyKeys;
 import apoc.util.JsonUtil;
 import apoc.util.Util;
 import org.neo4j.collection.RawIterator;
-import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.function.ThrowingFunction;
 import org.neo4j.graphdb.*;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -30,12 +29,14 @@ import org.neo4j.values.storable.Values;
 import org.neo4j.values.virtual.MapValueBuilder;
 import org.neo4j.values.virtual.VirtualValues;
 
+import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static apoc.ApocConfig.apocConfig;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.neo4j.internal.helpers.collection.MapUtil.map;
 import static org.neo4j.internal.kernel.api.procs.Neo4jTypes.*;
@@ -56,9 +57,10 @@ public class CypherProceduresHandler implements AvailabilityListener {
     private Timer timer = new Timer(getClass().getSimpleName(), true);
     private long lastUpdate;
     private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
+    private Set<ProcedureSignature> registeredProcedureSignatures = emptySet();
+    private Set<UserFunctionSignature> registeredUserFunctionSignatures = emptySet();
 
-
-    public CypherProceduresHandler(GraphDatabaseAPI db, DatabaseManagementService databaseManagementService, ApocConfig apocConfig, Log userLog, GlobalProceduresRegistry globalProceduresRegistry) {
+    public CypherProceduresHandler(GraphDatabaseAPI db, ApocConfig apocConfig, Log userLog, GlobalProceduresRegistry globalProceduresRegistry) {
         this.api = db;
         this.log = userLog;
         this.systemDb = apocConfig.getSystemDb();
@@ -74,6 +76,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
             public void run() {
                 try {
                     if (getLastUpdate() > lastUpdate) {
+                        System.out.println(LocalDateTime.now() + " running scheduled restore");
                         restoreProceduresAndFunctions();
                     }
                 } catch (DatabaseShutdownException e) {
@@ -98,58 +101,96 @@ public class CypherProceduresHandler implements AvailabilityListener {
         Transaction tx = systemDb.beginTx();
         return tx.findNodes(SystemLabels.ApocCypherProcedures, SystemPropertyKeys.database.name(), api.databaseName())
                 .stream().map(node -> {
-
-                    String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
-
-                    String name = (String) node.getProperty(SystemPropertyKeys.name.name());
-                    String description = (String) node.getProperty(SystemPropertyKeys.description.name(), null);
-
-                    String property = (String) node.getProperty(SystemPropertyKeys.inputs.name());
-                    List<FieldSignature> inputs = deserializeSignatures(property);
-
                     if (node.hasLabel(SystemLabels.Procedure)) {
-                        List<FieldSignature> outputSignature = deserializeSignatures((String) node.getProperty(SystemPropertyKeys.outputs.name()));
-                        return new ProcedureDescriptor(new ProcedureSignature(
-                                new QualifiedName(new String[]{PREFIX}, name),
-                                inputs,
-                                outputSignature,
-                                Mode.valueOf((String) node.getProperty(SystemPropertyKeys.mode.name())),
-                                false,
-                                null,
-                                new String[0],
-                                description,
-                                null,
-                                false,
-                                false,
-                                false
-                        ), statement);
+                        return procedureDescriptor(node);
                     } else if (node.hasLabel(SystemLabels.Function)) {
-                        boolean forceSingle = (boolean) node.getProperty(SystemPropertyKeys.forceSingle.name(), false);
-                        return new UserFunctionDescriptor(new UserFunctionSignature(
-                                new QualifiedName(new String[]{PREFIX}, name),
-                                inputs,
-                                typeof((String) node.getProperty(SystemPropertyKeys.output.name())),
-                                null,
-                                new String[0],
-                                description,
-                                false
-                        ), statement, forceSingle);
+                        return userFunctionDescriptor(node);
                     } else {
                         throw new IllegalStateException("don't know what to do with systemdb node " + node);
                     }
                 }).onClose(() -> tx.close());
     }
 
-    private void restoreProceduresAndFunctions() {
+    private ProcedureDescriptor procedureDescriptor(Node node) {
+        String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
+
+        String name = (String) node.getProperty(SystemPropertyKeys.name.name());
+        String description = (String) node.getProperty(SystemPropertyKeys.description.name(), null);
+
+        String property = (String) node.getProperty(SystemPropertyKeys.inputs.name());
+        List<FieldSignature> inputs = deserializeSignatures(property);
+
+        List<FieldSignature> outputSignature = deserializeSignatures((String) node.getProperty(SystemPropertyKeys.outputs.name()));
+        return new ProcedureDescriptor(new ProcedureSignature(
+                new QualifiedName(new String[]{PREFIX}, name),
+                inputs,
+                outputSignature,
+                Mode.valueOf((String) node.getProperty(SystemPropertyKeys.mode.name())),
+                false,
+                null,
+                new String[0],
+                description,
+                null,
+                false,
+                false,
+                false
+        ), statement);
+    }
+
+    private UserFunctionDescriptor userFunctionDescriptor(Node node) {
+        String statement = (String) node.getProperty(SystemPropertyKeys.statement.name());
+
+        String name = (String) node.getProperty(SystemPropertyKeys.name.name());
+        String description = (String) node.getProperty(SystemPropertyKeys.description.name(), null);
+
+        String property = (String) node.getProperty(SystemPropertyKeys.inputs.name());
+        List<FieldSignature> inputs = deserializeSignatures(property);
+
+        boolean forceSingle = (boolean) node.getProperty(SystemPropertyKeys.forceSingle.name(), false);
+        return new UserFunctionDescriptor(new UserFunctionSignature(
+                new QualifiedName(new String[]{PREFIX}, name),
+                inputs,
+                typeof((String) node.getProperty(SystemPropertyKeys.output.name())),
+                null,
+                new String[0],
+                description,
+                false
+        ), statement, forceSingle);
+    }
+
+    public void restoreProceduresAndFunctions() {
         lastUpdate = System.currentTimeMillis();
-        readSignatures().forEach(descriptor -> descriptor.register());
+        Set<ProcedureSignature> currentProcedureSignatures = Collections.synchronizedSet(new HashSet<>());
+        Set<UserFunctionSignature> currentUserFunctionSignatures = Collections.synchronizedSet(new HashSet<>());
+
+        readSignatures().forEach(descriptor -> {
+            descriptor.register();
+            if (descriptor instanceof ProcedureDescriptor) {
+                ProcedureSignature signature = ((ProcedureDescriptor) descriptor).getSignature();
+                currentProcedureSignatures.add(signature);
+                registeredProcedureSignatures.remove(signature);
+            } else {
+                UserFunctionSignature signature = ((UserFunctionDescriptor) descriptor).getSignature();
+                currentUserFunctionSignatures.add(signature);
+                registeredUserFunctionSignatures.remove(signature);
+            }
+        });
+
+        // de-register removed procs/functions
+        registeredProcedureSignatures.forEach(signature -> registerProcedure(signature, null));
+        registeredUserFunctionSignatures.forEach(signature -> registerFunction(signature, null, false));
+
+        registeredProcedureSignatures = currentProcedureSignatures;
+        registeredUserFunctionSignatures = currentUserFunctionSignatures;
+
         api.executeTransactionally("call dbms.clearQueryCaches()");
     }
 
-    private void withSystemDb(Consumer<Transaction> action) {
+    private <T> T withSystemDb(Function<Transaction, T> action) {
         try (Transaction tx = systemDb.beginTx()) {
-            action.accept(tx);
+            T result = action.apply(tx);
             tx.commit();
+            return result;
         }
     }
 
@@ -168,6 +209,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
 
             setLastUpdate(tx);
             registerFunction(signature, statement, forceSingle);
+            return null;
         });
     }
 
@@ -184,7 +226,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
             node.setProperty(SystemPropertyKeys.mode.name(), signature.mode().name());
             setLastUpdate(tx);
             registerProcedure(signature, statement);
-
+            return null;
         });
     }
 
@@ -225,12 +267,11 @@ public class CypherProceduresHandler implements AvailabilityListener {
     }
 
     private long getLastUpdate() {
-        try (Transaction tx = systemDb.beginTx()) {
+        return withSystemDb( tx -> {
             Node node = tx.findNode(SystemLabels.ApocCypherProceduresMeta, SystemPropertyKeys.database.name(), api.databaseName());
             long retVal = node == null ? 0L : (long) node.getProperty(SystemPropertyKeys.lastUpdated.name());
-            tx.commit();
             return retVal;
-        }
+        });
     }
 
     public ProcedureSignature procedureSignature(String name, String mode, List<List<String>> outputs, List<List<String>> inputs, String description) {
@@ -245,25 +286,37 @@ public class CypherProceduresHandler implements AvailabilityListener {
         return new UserFunctionSignature(qualifiedName(name), inputSignatures(inputs), outType, null, new String[0], description, false);
     }
 
+    /**
+     *
+     * @param signature
+     * @param statement null indicates a removed procedure
+     * @return
+     */
     public boolean registerProcedure(ProcedureSignature signature, String statement) {
-
         try {
             globalProceduresRegistry.register(new CallableProcedure.BasicProcedure(signature) {
                 @Override
                 public RawIterator<AnyValue[], ProcedureException> apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input, ResourceTracker resourceTracker) throws ProcedureException {
-                    Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
-                    Transaction tx = transactionComponentFunction.apply(ctx);
-                    Result result = tx.execute(statement, params);
-                    resourceTracker.registerCloseableResource(result);
+                    if (statement == null) {
+                        final String error = String.format("There is no procedure with the name `%s` registered for this database instance. " +
+                                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.", signature.name());
+                        throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
+                    } else {
+                        Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
+                        Transaction tx = transactionComponentFunction.apply(ctx);
+                        Result result = tx.execute(statement, params);
+                        resourceTracker.registerCloseableResource(result);
 
-                    List<FieldSignature> outputs = signature.outputSignature();
-                    String[] names = outputs == null ? null : outputs.stream().map(FieldSignature::name).toArray(String[]::new);
-                    boolean defaultOutputs = outputs == null || outputs.equals(DEFAULT_MAP_OUTPUT);
+                        List<FieldSignature> outputs = signature.outputSignature();
+                        String[] names = outputs == null ? null : outputs.stream().map(FieldSignature::name).toArray(String[]::new);
+                        boolean defaultOutputs = outputs == null || outputs.equals(DEFAULT_MAP_OUTPUT);
 
-                    Stream<AnyValue[]> stream = result.stream().map(row -> toResult(row, names, defaultOutputs));
-                    return Iterators.asRawIterator(stream);
+                        Stream<AnyValue[]> stream = result.stream().map(row -> toResult(row, names, defaultOutputs));
+                        return Iterators.asRawIterator(stream);
+                    }
                 }
             }, true);
+            registeredProcedureSignatures.add(signature);
             return true;
         } catch (Exception e) {
             log.error("Could not register procedure: " + signature.name() + " with " + statement + "\n accepting" + signature.inputSignature() + " resulting in " + signature.outputSignature() + " mode " + signature.mode(), e);
@@ -276,34 +329,41 @@ public class CypherProceduresHandler implements AvailabilityListener {
             globalProceduresRegistry.register(new CallableUserFunction.BasicUserFunction(signature) {
                 @Override
                 public AnyValue apply(org.neo4j.kernel.api.procedure.Context ctx, AnyValue[] input) throws ProcedureException {
-                    Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
-                    AnyType outType = signature.outputType();
+                    if (statement == null) {
+                        final String error = String.format("Unknown function '%s'", signature.name());
+                        throw new QueryExecutionException(error, null, "Neo.ClientError.Statement.SyntaxError");
+                    } else {
+                        Map<String, Object> params = params(input, signature.inputSignature(), ctx.valueMapper());
+                        AnyType outType = signature.outputType();
 
-                    Transaction tx = transactionComponentFunction.apply(ctx);
-                    try (Result result = tx.execute(statement, params)) {
+                        Transaction tx = transactionComponentFunction.apply(ctx);
+                        try (Result result = tx.execute(statement, params)) {
 //                resourceTracker.registerCloseableResource(result); // TODO
-                        if (!result.hasNext()) return null;
-                        if (outType.equals(NTAny)) {
-                            return ValueUtils.of(result.stream().collect(Collectors.toList()));
-                        }
-                        List<String> cols = result.columns();
-                        if (cols.isEmpty()) return null;
-                        if (!forceSingle && outType instanceof Neo4jTypes.ListType) {
-                            Neo4jTypes.ListType listType = (Neo4jTypes.ListType) outType;
-                            Neo4jTypes.AnyType innerType = listType.innerType();
-                            if (innerType instanceof Neo4jTypes.MapType)
+                            if (!result.hasNext()) return null;
+                            if (outType.equals(NTAny)) {
                                 return ValueUtils.of(result.stream().collect(Collectors.toList()));
-                            if (cols.size() == 1)
-                                return ValueUtils.of(result.stream().map(row -> row.get(cols.get(0))).collect(Collectors.toList()));
-                        } else {
-                            Map<String, Object> row = result.next();
-                            if (outType instanceof Neo4jTypes.MapType) return ValueUtils.of(row);
-                            if (cols.size() == 1) return ValueUtils.of(row.get(cols.get(0)));
+                            }
+                            List<String> cols = result.columns();
+                            if (cols.isEmpty()) return null;
+                            if (!forceSingle && outType instanceof Neo4jTypes.ListType) {
+                                Neo4jTypes.ListType listType = (Neo4jTypes.ListType) outType;
+                                Neo4jTypes.AnyType innerType = listType.innerType();
+                                if (innerType instanceof Neo4jTypes.MapType)
+                                    return ValueUtils.of(result.stream().collect(Collectors.toList()));
+                                if (cols.size() == 1)
+                                    return ValueUtils.of(result.stream().map(row -> row.get(cols.get(0))).collect(Collectors.toList()));
+                            } else {
+                                Map<String, Object> row = result.next();
+                                if (outType instanceof Neo4jTypes.MapType) return ValueUtils.of(row);
+                                if (cols.size() == 1) return ValueUtils.of(row.get(cols.get(0)));
+                            }
+                            throw new IllegalStateException("Result mismatch " + cols + " output type is " + outType);
                         }
-                        throw new IllegalStateException("Result mismatch " + cols + " output type is " + outType);
                     }
+
                 }
             }, true);
+            registeredUserFunctionSignatures.add(signature);
             return true;
         } catch (Exception e) {
             log.error("Could not register function: " + signature + "\nwith: " + statement + "\n single result " + forceSingle, e);
@@ -495,12 +555,42 @@ public class CypherProceduresHandler implements AvailabilityListener {
         return params;
     }
 
+    public void removeProcedure(String name) {
+        withSystemDb(tx -> {
+            Node node = Iterators.single(tx.findNodes(SystemLabels.ApocCypherProcedures,
+                    SystemPropertyKeys.database.name(), api.databaseName(),
+                    SystemPropertyKeys.name.name(), name
+            ).stream().filter(n -> n.hasLabel(SystemLabels.Procedure)).iterator());
+            ProcedureDescriptor descriptor = procedureDescriptor(node);
+            registerProcedure(descriptor.getSignature(), null);
+            registeredProcedureSignatures.remove(descriptor.getSignature());
+            node.delete();
+            setLastUpdate(tx);
+            return null;
+        });
+    }
+
+    public void removeFunction(String name) {
+        withSystemDb(tx -> {
+            Node node = Iterators.single(tx.findNodes(SystemLabels.ApocCypherProcedures,
+                    SystemPropertyKeys.database.name(), api.databaseName(),
+                    SystemPropertyKeys.name.name(), name
+            ).stream().filter(n -> n.hasLabel(SystemLabels.Function)).iterator());
+            UserFunctionDescriptor descriptor = userFunctionDescriptor(node);
+            registerFunction(descriptor.getSignature(), null, false);
+            registeredUserFunctionSignatures.remove(descriptor.getSignature());
+            node.delete();
+            setLastUpdate(tx);
+            return null;
+        });
+
+    }
+
     public abstract class ProcedureOrFunctionDescriptor {
         private final String statement;
 
         protected ProcedureOrFunctionDescriptor(String statement) {
             this.statement = statement;
-
         }
 
         public String getStatement() {

@@ -117,7 +117,6 @@ public class ApocExtensionFactory extends ExtensionFactory<ApocExtensionFactory.
 
                 cypherProceduresHandler = new CypherProceduresHandler(
                         db,
-                        dependencies.databaseManagementService(),
                         dependencies.apocConfig(),
                         log.getUserLog(CypherProcedures.class),
                         dependencies.globalProceduresRegistry()

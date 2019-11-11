@@ -45,6 +45,10 @@ public class RegisterComponentFactory extends ExtensionFactory<RegisterComponent
             classInstanceMap.put(databaseNamme, instance);
         }
 
+        public Map<Class, Map<String, Object>> getResolvers() {
+            return resolvers;
+        }
+
         @Override
         public void init() throws Exception {
             // FIXME: after lifecycle issue has been resolved upstream

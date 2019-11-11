@@ -907,7 +907,7 @@ public class GraphsTest {
                 "data", "02-11-2019",
                 "user", map("id", 1, "screenName", "conker84"),
                 "geo", map("latitude", 11.45, "longitude", -12.3));
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json, $config) yield graph",
                 map("json", json, "config",
                         map("skipValidation", false, "mappings", map("$", "Tweet{!id, text}", "$.user", "User{!id, screenName}"))), result -> {
                     Map<String, Object> map = result.next();
@@ -940,7 +940,7 @@ public class GraphsTest {
                 "data", "02-11-2019",
                 "user", map("id", 1, "screenName", "conker84"),
                 "geo", map("latitude", 11.45, "longitude", -12.3));
-        TestUtil.testResult(db, "CALL apoc.graph.fromDocument({json}, {config}) yield graph",
+        TestUtil.testResult(db, "CALL apoc.graph.fromDocument($json, $config) yield graph",
                 map("json", json, "config",
                         map("skipValidation", false, "idField", "foo", "mappings", map("$", "Tweet{!id, text}", "$.user", "User{!screenName}"))), result -> {
                     Map<String, Object> map = result.next();

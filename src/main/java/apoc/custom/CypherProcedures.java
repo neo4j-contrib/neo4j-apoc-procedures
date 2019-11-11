@@ -10,11 +10,11 @@ import org.neo4j.kernel.api.KernelTransaction;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
-import org.neo4j.values.ValueMapper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static apoc.custom.CypherProceduresHandler.*;
@@ -36,9 +36,6 @@ public class CypherProcedures {
 
     @Context
     public CypherProceduresHandler cypherProceduresHandler;
-
-    @Context
-    public ValueMapper valueMapper;
 
     /*
      * store in graph properties, load at startup
@@ -126,6 +123,21 @@ public class CypherProcedures {
                         userFunctionDescriptor.isForceSingle());
             }
         });
+    }
+
+    @Procedure(value = "apoc.custom.removeProcedure", mode = Mode.WRITE)
+    @Description("apoc.custom.removeProcedure(name) - remove the targeted custom procedure")
+    public void removeProcedure(@Name("name") String name) {
+        Objects.requireNonNull(name, "name");
+        cypherProceduresHandler.removeProcedure(name);
+    }
+
+
+    @Procedure(value = "apoc.custom.removeFunction", mode = Mode.WRITE)
+    @Description("apoc.custom.removeFunction(name, type) - remove the targeted custom function")
+    public void removeFunction(@Name("name") String name) {
+        Objects.requireNonNull(name, "name");
+        cypherProceduresHandler.removeFunction(name);
     }
 
     private List<List<String>> convertInputSignature(List<FieldSignature> signatures) {

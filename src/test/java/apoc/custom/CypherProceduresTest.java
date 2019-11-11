@@ -1,9 +1,18 @@
 package apoc.custom;
 
+import apoc.RegisterComponentFactory;
+import apoc.SystemLabels;
+import apoc.SystemPropertyKeys;
+import apoc.util.StatusCodeMatcher;
 import apoc.util.TestUtil;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -23,6 +32,9 @@ public class CypherProceduresTest  {
 
     @Rule
     public DbmsRule db = new ImpermanentDbmsRule();
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Before
     public void setup() {
@@ -201,5 +213,99 @@ public class CypherProceduresTest  {
             // then
             assertFalse(row.hasNext())
         );
+    }
+
+    @Test
+    public void shouldRemoveTheCustomProcedure() throws Exception {
+        thrown.expect(QueryExecutionException.class);
+        thrown.expectMessage("There is no procedure with the name `custom.answer` registered for this database instance. " +
+                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.");
+        thrown.expect(new StatusCodeMatcher("Neo.ClientError.Statement.SyntaxError"));
+
+        // given
+        db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");
+        TestUtil.testCall(db, "call custom.answer()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+
+        // when
+        db.executeTransactionally("call apoc.custom.removeProcedure('answer')");
+        db.executeTransactionally("call dbms.clearQueryCaches()");
+
+        // then
+        TestUtil.count(db, "call custom.answer()");
+    }
+
+    @Test
+    public void shouldRemoveTheCustomFunction() throws Exception {
+        thrown.expect(QueryExecutionException.class);
+        thrown.expectMessage("Unknown function 'custom.answer'");
+        thrown.expect(new StatusCodeMatcher("Neo.ClientError.Statement.SyntaxError"));
+
+        // given
+        db.executeTransactionally("call apoc.custom.asFunction('answer','RETURN 42','long')");
+        TestUtil.testCall(db, "return custom.answer() as answer", (row) -> assertEquals(42L, row.get("answer")));
+
+        // when
+        db.executeTransactionally("call apoc.custom.removeFunction('answer')");
+        db.executeTransactionally("call dbms.clearQueryCaches()");
+
+        // then
+        TestUtil.count(db, "return custom.answer()");
+    }
+
+    @Test
+    public void shouldRemovalOfProcedureNodeDeactivate() {
+        thrown.expect(QueryExecutionException.class);
+        thrown.expectMessage("There is no procedure with the name `custom.answer` registered for this database instance. " +
+                "Please ensure you've spelled the procedure name correctly and that the procedure is properly deployed.");
+        thrown.expect(new StatusCodeMatcher("Neo.ClientError.Statement.SyntaxError"));
+
+        //given
+        db.executeTransactionally("call apoc.custom.asProcedure('answer', 'RETURN 42 as answer')");
+        TestUtil.testCall(db, "call custom.answer()", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
+
+        // remove the node in systemdb
+        GraphDatabaseService systemDb = db.getManagementService().database("system");
+        try (Transaction tx = systemDb.beginTx()) {
+            Node node = tx.findNode(SystemLabels.ApocCypherProcedures, SystemPropertyKeys.name.name(), "answer");
+            node.delete();
+            tx.commit();
+        }
+
+        // refresh procedures
+        RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = db.getDependencyResolver().resolveDependency(RegisterComponentFactory.RegisterComponentLifecycle.class);
+        CypherProceduresHandler cypherProceduresHandler = (CypherProceduresHandler) registerComponentLifecycle.getResolvers().get(CypherProceduresHandler.class).get(db.databaseName());
+        cypherProceduresHandler.restoreProceduresAndFunctions();
+
+        // when
+        TestUtil.count(db, "call custom.answer()");
+    }
+
+    @Test
+    public void shouldRemovalOfFunctionNodeDeactivate() {
+        thrown.expect(QueryExecutionException.class);
+        thrown.expectMessage("Unknown function 'custom.answer'");
+        thrown.expect(new StatusCodeMatcher("Neo.ClientError.Statement.SyntaxError"));
+
+        //given
+        db.executeTransactionally("call apoc.custom.asFunction('answer','RETURN 42','long')");
+
+        long answer = TestUtil.singleResultFirstColumn(db, "return custom.answer()");
+        assertEquals(42L, answer);
+
+        // remove the node in systemdb
+        GraphDatabaseService systemDb = db.getManagementService().database("system");
+        try (Transaction tx = systemDb.beginTx()) {
+            Node node = tx.findNode(SystemLabels.ApocCypherProcedures, SystemPropertyKeys.name.name(), "answer");
+            node.delete();
+            tx.commit();
+        }
+
+        // refresh procedures
+        RegisterComponentFactory.RegisterComponentLifecycle registerComponentLifecycle = db.getDependencyResolver().resolveDependency(RegisterComponentFactory.RegisterComponentLifecycle.class);
+        CypherProceduresHandler cypherProceduresHandler = (CypherProceduresHandler) registerComponentLifecycle.getResolvers().get(CypherProceduresHandler.class).get(db.databaseName());
+        cypherProceduresHandler.restoreProceduresAndFunctions();
+
+        // when
+        TestUtil.singleResultFirstColumn(db, "return custom.answer()");
     }
 }

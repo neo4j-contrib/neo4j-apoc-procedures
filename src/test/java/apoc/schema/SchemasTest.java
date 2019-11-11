@@ -296,10 +296,7 @@ public class SchemasTest {
     @Test
     public void testIndexes() {
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
-        try (Transaction tx = db.beginTx()) {
-            tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
-            tx.commit();
-        }
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             // Get the index info
             Map<String, Object> r = result.next();
@@ -341,6 +338,8 @@ public class SchemasTest {
     @Test
     public void testUniquenessConstraintOnNode() {
         db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.foo IS UNIQUE");
+        awaitIndexesOnline();
+
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             Map<String, Object> r = result.next();
 
@@ -357,6 +356,8 @@ public class SchemasTest {
     public void testIndexAndUniquenessConstraintOnNode() {
         db.executeTransactionally("CREATE INDEX ON :Foo(foo)");
         db.executeTransactionally("CREATE CONSTRAINT ON (bar:Bar) ASSERT bar.bar IS UNIQUE");
+        awaitIndexesOnline();
+
         testResult(db, "CALL apoc.schema.nodes()", (result) -> {
             Map<String, Object> r = result.next();
 
@@ -377,6 +378,7 @@ public class SchemasTest {
     @Test
     public void testDropCompoundIndexWhenUsingDropExisting() throws Exception {
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert(null,null,true)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -393,6 +395,7 @@ public class SchemasTest {
     @Test
     public void testDropCompoundIndexAndRecreateWithDropExisting() throws Exception {
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,true)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -409,6 +412,7 @@ public class SchemasTest {
     @Test
     public void testDoesntDropCompoundIndexWhenSupplyingSameCompoundIndex() throws Exception {
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null,false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -427,6 +431,7 @@ public class SchemasTest {
     @Test
     public void testKeepCompoundIndex() throws Exception {
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa'], ['foo','faa']]},null,false)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -449,6 +454,7 @@ public class SchemasTest {
     @Test
     public void testDropIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
         db.executeTransactionally("CREATE INDEX ON :Foo(bar)");
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Bar:[['foo','bar']]},null)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -471,6 +477,7 @@ public class SchemasTest {
     @Test
     public void testDropCompoundIndexAndCreateCompoundIndexWhenUsingDropExisting() throws Exception {
         db.executeTransactionally("CREATE INDEX ON :Foo(bar,baa)");
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.assert({Foo:[['bar','baa']]},null)", (result) -> {
             Map<String, Object> r = result.next();
             assertEquals("Foo", r.get("label"));
@@ -501,12 +508,16 @@ public class SchemasTest {
         db.executeTransactionally("CREATE INDEX ON :Bar(foo)");
         db.executeTransactionally("CREATE INDEX ON :Person(name)");
         db.executeTransactionally("CREATE INDEX ON :Movie(title)");
+        awaitIndexesOnline();
+        testResult(db, "CALL apoc.schema.nodes({labels:['Foo']})", // Get the index info
+                SchemasTest::accept);
+    }
+
+    private void awaitIndexesOnline() {
         try (Transaction tx = db.beginTx()) {
             tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
             tx.commit();
         }
-        testResult(db, "CALL apoc.schema.nodes({labels:['Foo']})", // Get the index info
-                SchemasTest::accept);
     }
 
     @Test
@@ -515,10 +526,7 @@ public class SchemasTest {
         db.executeTransactionally("CREATE INDEX ON :Bar(foo)");
         db.executeTransactionally("CREATE INDEX ON :Person(name)");
         db.executeTransactionally("CREATE INDEX ON :Movie(title)");
-        try (Transaction tx = db.beginTx()) {
-            tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
-            tx.commit();
-        }
+        awaitIndexesOnline();
         testResult(db, "CALL apoc.schema.nodes({labels:['Foo', 'Person']})", // Get the index info
                 SchemasTest::accept2);
     }
@@ -546,6 +554,7 @@ public class SchemasTest {
         db.executeTransactionally("CREATE INDEX ON :Bar(foo)");
         db.executeTransactionally("CREATE INDEX ON :Person(name)");
         db.executeTransactionally("CREATE INDEX ON :Movie(title)");
+        awaitIndexesOnline();
         try (Transaction tx = db.beginTx()) {
             tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
             tx.commit();
@@ -563,6 +572,7 @@ public class SchemasTest {
     public void testConstraintsRelationshipsAndExcludeRelationshipsValuatedShouldFail() {
         db.executeTransactionally("CREATE CONSTRAINT ON ()-[like:LIKED]-() ASSERT exists(like.day)");
         db.executeTransactionally("CREATE CONSTRAINT ON ()-[knows:SINCE]-() ASSERT exists(since.year)");
+        awaitIndexesOnline();
         try (Transaction tx = db.beginTx()) {
             tx.schema().awaitIndexesOnline(5, TimeUnit.SECONDS);
             tx.commit();

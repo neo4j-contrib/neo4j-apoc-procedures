@@ -73,6 +73,10 @@ public class TestUtil {
         return db.executeTransactionally(cypher, params, result -> Iterators.count(result));
     }
 
+    public static long count(GraphDatabaseService db, String cypher) {
+        return count(db, cypher, Collections.emptyMap());
+    }
+
     public static void testCallCount( GraphDatabaseService db, String call, final int expected ) {
         testCallCount(db, call, Collections.emptyMap(), expected);
     }

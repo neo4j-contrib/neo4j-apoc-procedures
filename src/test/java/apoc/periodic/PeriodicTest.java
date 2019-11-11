@@ -11,6 +11,7 @@ import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.TransientTransactionFailureException;
 import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.kernel.api.KernelTransactionHandle;
 import org.neo4j.kernel.api.exceptions.Status;
 import org.neo4j.kernel.impl.api.KernelTransactions;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
@@ -21,6 +22,7 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
@@ -262,7 +264,10 @@ public class PeriodicTest {
 
     private Long maxQueryId(KernelTransactions kernelTransactions) {
         LongStream longStream = kernelTransactions.activeTransactions().stream()
-                .mapToLong(kth -> kth.executingQuery().get().internalQueryId() );
+                .map(KernelTransactionHandle::executingQuery)
+                .filter(Optional::isPresent)
+                .mapToLong(executingQuery ->  executingQuery.get().internalQueryId()
+                );
         return longStream.max().orElse(0l);
     }
 
