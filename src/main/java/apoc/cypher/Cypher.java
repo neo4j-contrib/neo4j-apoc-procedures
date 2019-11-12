@@ -85,13 +85,13 @@ public class Cypher {
         return result.stream();
     }
 
-    @Procedure(mode= SCHEMA)
+    @Procedure(mode= Mode.SCHEMA)
     @Description("apoc.cypher.runSchemaFile(file or url,[{statistics:true,timeout:10}]) - allows only schema operations, runs each schema statement in the file, all semicolon separated")
     public Stream<RowResult> runSchemaFile(@Name("file") String fileName, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         return runSchemaFiles(singletonList(fileName),config);
     }
 
-    @Procedure(mode= SCHEMA)
+    @Procedure(mode= Mode.SCHEMA)
     @Description("apoc.cypher.runSchemaFiles([files or urls],{statistics:true,timeout:10}) - allows only schema operations, runs each schema statement in the files, all semicolon separated")
     public Stream<RowResult> runSchemaFiles(@Name("file") List<String> fileNames, @Name(value = "config",defaultValue = "{}") Map<String,Object> config) {
         boolean addStatistics = Util.toBoolean(config.getOrDefault("statistics",true));
@@ -386,12 +386,7 @@ public class Cypher {
         return db.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
     }
 
-    @Procedure(mode = SCHEMA)
-    @Description("apoc.cypher.doItSchema(fragment, params) yield value - executes writing fragment with the given parameters")
-    public Stream<MapResult> doItSchema(@Name("cypher") String statement) {
-        return db.execute(statement).stream().map(MapResult::new);
-    }
-
+    
     @Procedure("apoc.when")
     @Description("apoc.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes read-only ifQuery or elseQuery with the given parameters")
     public Stream<MapResult> when(@Name("condition") boolean condition, @Name("ifQuery") String ifQuery, @Name(value="elseQuery", defaultValue = "") String elseQuery, @Name(value="params", defaultValue = "") Map<String, Object> params) {
