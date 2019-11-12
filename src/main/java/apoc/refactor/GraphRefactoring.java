@@ -7,17 +7,43 @@ import apoc.refactor.util.RefactorConfig;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static apoc.refactor.util.RefactorUtil.*;
+import static apoc.refactor.util.RefactorUtil.copyProperties;
+import static apoc.refactor.util.RefactorUtil.mergeRels;
+import static apoc.refactor.util.RefactorUtil.mergeRelsWithSameTypeAndDirectionInMergeNodes;
 
 public class GraphRefactoring {
     @Context
@@ -416,65 +442,81 @@ public class GraphRefactoring {
 
         copiedKeys.remove(targetKey); // Just to be sure
 
-        // Create batches of nodes
-        List<Node> batch = null;
-        List<Future<Void>> futures = new ArrayList<>();
-        try (Transaction tx = db.beginTx()) {
-            for (Node node : db.getAllNodes()) {
-                if (batch == null) {
-                    batch = new ArrayList<>((int) batchSize);
-                }
-                batch.add(node);
-                if (batch.size() == batchSize) {
-                    futures.add(categorizeNodes(batch, sourceKey, relationshipType, outgoing, label, targetKey, copiedKeys));
-                    batch = null;
-                }
-            }
-            if (batch != null) {
-                futures.add(categorizeNodes(batch, sourceKey, relationshipType, outgoing, label, targetKey, copiedKeys));
-            }
+        final String[] copiedKeysArray = copiedKeys.toArray(new String[copiedKeys.size()]);
 
-            // Await processing of node batches
-            for (Future<Void> future : futures) {
-                Pools.force(future);
-            }
-            tx.success();
-        }
+        // We group the nodes by the sourceKey property value
+        Map<Object, Collection<List<Node>>> catChunksMap = getNodeCategoryMap(sourceKey, batchSize);
+
+        // first step we create the categorized nodes
+        final Label nodeLabel = Label.label(label);
+        final Map<Object, Node> catMap = createCategorizedNodes(targetKey, catChunksMap, nodeLabel);
+
+        // second step we create the relationships
+        final RelationshipType type = RelationshipType.withName(relationshipType);
+        catChunksMap
+                .entrySet()
+                .stream()
+                .flatMap(e -> e.getValue()
+                        .stream()
+                        .map(nodes -> {
+                            Node cat = catMap.get(e.getKey());
+                            return connectCatNodeToNodes(cat, nodes, sourceKey, type, outgoing, copiedKeysArray);
+                        }))
+                .forEach(Pools::forceSilently);
     }
 
-    private Future<Void> categorizeNodes(List<Node> batch, String sourceKey, String relationshipType, Boolean outgoing, String label, String targetKey, List<String> copiedKeys) {
-        return Pools.processBatch(batch, db, (Node node) -> {
-            Object value = node.getProperty(sourceKey, null);
-            if (value != null) {
-                String q =
-                        "WITH {node} AS n " +
-                                "MERGE (cat:`" + label + "` {`" + targetKey + "`: {value}}) " +
-                                (outgoing ? "MERGE (n)-[:`" + relationshipType + "`]->(cat) "
-                                        : "MERGE (n)<-[:`" + relationshipType + "`]-(cat) ") +
-                                "RETURN cat";
-                Map<String, Object> params = new HashMap<>(2);
-                params.put("node", node);
-                params.put("value", value);
-                Result result = db.execute(q, params);
-                if (result.hasNext()) {
-                    Node cat = (Node) result.next().get("cat");
-                    for (String copiedKey : copiedKeys) {
-                        Object copiedValue = node.getProperty(copiedKey, null);
-                        if (copiedValue != null) {
-                            Object catValue = cat.getProperty(copiedKey, null);
-                            if (catValue == null) {
-                                cat.setProperty(copiedKey, copiedValue);
-                                node.removeProperty(copiedKey);
-                            } else if (copiedValue.equals(catValue)) {
-                                node.removeProperty(copiedKey);
-                            }
-                        }
-                    }
-                }
-                assert (!result.hasNext());
-                result.close();
-                node.removeProperty(sourceKey);
+    private Map<Object, Node> createCategorizedNodes(String targetKey, Map<Object, Collection<List<Node>>> catChunksMap, Label nodeLabel) {
+        return catChunksMap
+                .keySet()
+                .stream()
+                .map(cat -> Util.inTxFuture(Pools.DEFAULT, db, () -> {
+                    Node node = db.createNode(nodeLabel);
+                    node.setProperty(targetKey, cat);
+                    return new AbstractMap.SimpleEntry<>(cat, node);
+                }))
+                .map(Pools::forceSilently)
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+    }
+
+
+    private Map<Object, Collection<List<Node>>> getNodeCategoryMap(String sourceKey,
+                                                                   long batchSize) {
+        return db.getAllNodes()
+                .stream()
+                .filter(n -> n.hasProperty(sourceKey) && n.getProperty(sourceKey, null) != null) // under-the-hood groupingBy uses Map#merge so we need to manage null keys
+                .collect(Collectors.groupingBy(n -> n.getProperty(sourceKey))) // group the nodes by the sourceKey property value
+                .entrySet()
+                .stream()
+                .map(e -> {
+                    // we create the chunks according to the batchSize value
+                    final AtomicInteger counter = new AtomicInteger();
+                    Collection<List<Node>> chunks = e.getValue()
+                            .stream()
+                            .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / batchSize))
+                            .values();
+                    return new AbstractMap.SimpleEntry<>(e.getKey(), chunks);
+                })
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
+    }
+
+    private Future<Void> connectCatNodeToNodes(Node cat,
+                                               List<Node> nodes,
+                                               String sourceKey,
+                                               RelationshipType relationshipType,
+                                               boolean outgoing,
+                                               String[] copiedKeys) {
+        return Pools.processBatch(nodes, db, (Node node) -> {
+            if (outgoing) {
+                node.createRelationshipTo(cat, relationshipType);
+            } else {
+                cat.createRelationshipTo(node, relationshipType);
             }
+            final Map<String, Object> properties = node.getProperties(copiedKeys);
+            properties.forEach((key, value) -> {
+                cat.setProperty(key, value);
+                node.removeProperty(key);
+            });
+            node.removeProperty(sourceKey);
         });
     }
 

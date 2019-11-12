@@ -1,16 +1,27 @@
 package apoc.refactor;
 
+import apoc.create.Create;
 import apoc.util.ArrayBackedList;
 import apoc.util.TestUtil;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Result;
 import org.neo4j.helpers.collection.Iterators;
 import org.neo4j.test.TestGraphDatabaseFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
@@ -20,7 +31,11 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -33,7 +48,7 @@ public class GraphRefactoringTest {
     @Before
     public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory().newImpermanentDatabase();
-        TestUtil.registerProcedure(db, GraphRefactoring.class);
+        TestUtil.registerProcedure(db, GraphRefactoring.class, Create.class);
     }
 
     /*
@@ -624,6 +639,28 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
                     assertEquals(true, node.hasLabel(Label.label("Person")));
                     assertEquals(2L, node.getProperty("ID"));
                 });
+    }
+
+    @Test
+    public void testRefactorCategorizeNoDups() {
+        // given
+        db.execute("with [\"IT\", \"DE\"] as countries\n" +
+                "unwind countries as country\n" +
+                "foreach (no in RANGE(1, 4) |\n" +
+                "  create (n:Company {name: country + no, country: country})\n" +
+                ")").close();
+
+        // when
+        db.execute("CALL apoc.refactor.categorize('country', 'OPERATES_IN', true, 'Country', 'name', [], 1)").close();
+
+        // then
+        final long countries = db.execute("MATCH (c:Country) RETURN count(c) AS countries").<Long>columnAs("countries").next();
+        assertEquals(2, countries);
+        final List<String> countryNames = db.execute("MATCH (c:Country) RETURN collect(c.name) AS countries").<List<String>>columnAs("countries").next();
+        assertEquals(new HashSet<>(Arrays.asList("IT", "DE")), new HashSet<>(countryNames));
+
+        final long relsCount = db.execute("MATCH p = (c:Company)-[:OPERATES_IN]->(cc:Country) RETURN count(p) AS relsCount").<Long>columnAs("relsCount").next();
+        assertEquals(8, relsCount);
     }
 }
 
