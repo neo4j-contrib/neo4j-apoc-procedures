@@ -80,13 +80,13 @@ RETURN apoc.mqtt.unSubscribe('mqttBrokerId', '/mqtt/topic/path' )
 Add MqTT broker connection and publish
 [source,bash]
 ----
-# start MqTT client
+# --- Mosquitto MqTT client - start client ---
 mosquitto_sub  --verbose --host localhost --port 1883 --topic mqtt/topic/# --id msqSub
 ----
 
 [source,bash]
 ----
-// register localhost mqtt broker viaNeo4j console
+// --- register localhost mqtt broker viaNeo4j console ---
 RETURN apoc.mqtt.addBroker(
  'mqttLocalhostBroker', 
  {
@@ -94,8 +94,11 @@ RETURN apoc.mqtt.addBroker(
     clientId:'neo4jClient01'
   }
 )
+----
 
-// publish messages
+[source,bash]
+----
+// --- publish messages ---
 RETURN apoc.mqtt.publish(
     'mqttLocalhostBroker', 
     'mqtt/topic/json', 
@@ -129,7 +132,7 @@ RETURN apoc.mqtt.publish(
     true
 )
 
-CREATE (neo4jNode:TestMqttNode {string:"string", int:123, boolean:true})
+CREATE (neo4jNode:TestMqttNode:TestNode {string:"string", int:123, boolean:true})
 WITH neo4jNode
 RETURN apoc.mqtt.publish(
     'mqttLocalhostBroker', 
@@ -145,7 +148,23 @@ RETURN apoc.mqtt.publish(
     neo4jRelation
 )
 
+----
 
+[source,bash]
+----
+# --- Mosquitto MqTT client - check messages ---
+mqtt/topic/json {"boolean":true,"string":"string","int":123}
+mqtt/topic/valueString stringValue
+mqtt/topic/valueInteger 123
+mqtt/topic/valueNumber 123.456
+mqtt/topic/valueBoolean true
+mqtt/topic/neo4jNode {"id":80,"properties":{"boolean":true,"string":"string","int":123},"labels":"TestMqttNode:TestNode"}
+mqtt/topic/neo4jRelation {"startNodeId":60,"id":8,"type":"TEST_MQTT_RELATION","endNodeId":61,"properties":{"boolean":true,"string":"string","int":123}}
+
+----
+
+[source,bash]
+----
 
 
 // succesful mqtt registration
@@ -170,7 +189,10 @@ RETURN apoc.mqtt.publish(
   "statusMessage": "Failed to Connect MqTT Broker: MqttException",
   "status": "error"
 }
+----
 
+[source,bash]
+----
 // succesful mqtt publish
 {
   "options": {
@@ -205,16 +227,7 @@ RETURN apoc.mqtt.publish(
 
 ----
 
-[source,bash]
-----
-# check response on mqtt client
-mqtt/topic/json {"boolean":true,"string":"string","int":123}
-mqtt/topic/valueString stringValue
-mqtt/topic/valueInteger 123
-mqtt/topic/valueNumber 123.456
-mqtt/topic/valueBoolean true
-mqtt/topic/neo4jNode {"id":40,"properties":{"boolean":true,"string":"string","int":123},"labels":"[TestMqttNode]"}
-----
+
 
 
 

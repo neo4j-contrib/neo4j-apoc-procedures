@@ -63,19 +63,19 @@ shadowJar {
 
 compileJava {
     options.annotationProcessorPath = configurations.apt
-	// type¦qualified name¦signature¦description¦execution mode¦location¦deprecated by
+    // type¦qualified name¦signature¦description¦execution mode¦location¦deprecated by
 
     options.compilerArgs += [
             "-AIgnoreContextWarnings"]
 
-//    options.compilerArgs += [
-//            "-AIgnoreContextWarnings",
-//            "-AGeneratedDocumentationPath=" + projectDir + "/build/generated-documentation",
-//            "-ADocumentation.FieldDelimiter=¦",
-//            "-ADocumentation.ExportedHeaders=type¦qualified name¦description",
-//            "-ADocumentation.QuotedFields=false",
-//            "-ADocumentation.DelimitedFirstField=true",
-//            "-ADocumentation.ExportGrouping=SINGLE,PACKAGE"]
+    //    options.compilerArgs += [
+    //            "-AIgnoreContextWarnings",
+    //            "-AGeneratedDocumentationPath=" + projectDir + "/build/generated-documentation",
+    //            "-ADocumentation.FieldDelimiter=¦",
+    //            "-ADocumentation.ExportedHeaders=type¦qualified name¦description",
+    //            "-ADocumentation.QuotedFields=false",
+    //            "-ADocumentation.DelimitedFirstField=true",
+    //            "-ADocumentation.ExportGrouping=SINGLE,PACKAGE"]
 }
 
 generateGrammarSource {
@@ -84,7 +84,7 @@ generateGrammarSource {
 
 dependencies {
 
-//    apt 'net.biville.florent:neo4j-sproc-compiler:1.2'  // temporarily disabled until byte[] is supported by sproc compiler
+    //    apt 'net.biville.florent:neo4j-sproc-compiler:1.2'  // temporarily disabled until byte[] is supported by sproc compiler
     apt group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective	
     compile group: 'commons-codec', name: 'commons-codec', version: '1.9'
     compileOnly group: 'com.sun.mail', name: 'javax.mail', version: '1.6.0'
@@ -93,6 +93,7 @@ dependencies {
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.7.3'
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
+    compile group: 'org.eclipse.paho', name: 'org.eclipse.paho.client.mqttv3', version: '1.2.2'
 
     def withoutAntlr =  {
         exclude group: 'org.glassfish'
@@ -136,7 +137,7 @@ dependencies {
     }
 
     def withoutServers = {
-//        exclude group: 'org.mortbay.jetty'
+        //        exclude group: 'org.mortbay.jetty'
         exclude group: 'org.eclipse.jetty'
         exclude group: 'org.eclipse.jetty.aggregate'
         exclude group: 'com.sun.jersey'
@@ -155,8 +156,8 @@ dependencies {
     compileOnly group: 'com.couchbase.client', name: 'java-client', version: '2.7.2'
     testCompile group: 'com.couchbase.client', name: 'java-client', version: '2.7.2'
 
-//    compileOnly 'com.couchbase.client:java-client:2.5.9'
-//    testCompile 'com.couchbase.client:java-client:2.5.9'
+    //    compileOnly 'com.couchbase.client:java-client:2.5.9'
+    //    testCompile 'com.couchbase.client:java-client:2.5.9'
 
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compileOnly group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
@@ -211,15 +212,15 @@ import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 test {
-//    exclude '**/CypherProceduresClusterTest.class'
+    //    exclude '**/CypherProceduresClusterTest.class'
     systemProperties 'user.language': 'en', 'user.country': 'US'
     testLogging {
         // taken from https://stackoverflow.com/a/36130467/158701
         events TestLogEvent.FAILED,
-//                TestLogEvent.PASSED,
-                TestLogEvent.SKIPPED,
-                TestLogEvent.STANDARD_OUT,
-                TestLogEvent.STANDARD_ERROR
+        //                TestLogEvent.PASSED,
+        TestLogEvent.SKIPPED,
+        TestLogEvent.STANDARD_OUT,
+        TestLogEvent.STANDARD_ERROR
         exceptionFormat TestExceptionFormat.FULL
         showExceptions true
         showCauses true
@@ -228,11 +229,11 @@ test {
         // set options for log level DEBUG and INFO
         debug {
             events TestLogEvent.STARTED,
-                    TestLogEvent.FAILED,
-                    TestLogEvent.PASSED,
-                    TestLogEvent.SKIPPED,
-                    TestLogEvent.STANDARD_ERROR,
-                    TestLogEvent.STANDARD_OUT
+            TestLogEvent.FAILED,
+            TestLogEvent.PASSED,
+            TestLogEvent.SKIPPED,
+            TestLogEvent.STANDARD_ERROR,
+            TestLogEvent.STANDARD_OUT
             exceptionFormat TestExceptionFormat.FULL
         }
         info.events = debug.events
@@ -261,8 +262,8 @@ javadoc {
 }
 
 /**************
-* ASCIIDOCTOR *
-**************/
+ * ASCIIDOCTOR *
+ **************/
 
 asciidoctor {
     sourceDir = file('docs')
@@ -284,8 +285,8 @@ asciidoctor.doLast {
 assemble.dependsOn(asciidoctor)
 
 /******
-* END *
-******/
+ * END *
+ ******/
 
 // publishing
 
@@ -338,16 +339,16 @@ and not for its dependencies."""
 
 // tweaks for travis
 if (System.env.TRAVIS == 'true') {
-  allprojects {
-    tasks.withType(GroovyCompile) {
-      groovyOptions.fork = false
+    allprojects {
+        tasks.withType(GroovyCompile) {
+            groovyOptions.fork = false
+        }
+        tasks.withType(Test) {
+            // containers (currently) have 2 dedicated cores and 4GB of memory
+            maxParallelForks = 2
+            minHeapSize = '128m'
+        }
     }
-    tasks.withType(Test) {
-      // containers (currently) have 2 dedicated cores and 4GB of memory
-      maxParallelForks = 2
-      minHeapSize = '128m'
-    }
-  }
 }
 
 task copyRuntimeLibs(type: Copy) {
@@ -356,42 +357,42 @@ task copyRuntimeLibs(type: Copy) {
 }
 
 jmh {
-//    include = ['some regular expression'] // include pattern (regular expression) for benchmarks to be executed
-//    exclude = ['some regular expression'] // exclude pattern (regular expression) for benchmarks to be executed
+    //    include = ['some regular expression'] // include pattern (regular expression) for benchmarks to be executed
+    //    exclude = ['some regular expression'] // exclude pattern (regular expression) for benchmarks to be executed
     iterations = 5 // Number of measurement iterations to do.
     benchmarkMode = ['ss']
-//    benchmarkMode = ['thrpt','ss'] // Benchmark mode. Available modes are: [Throughput/thrpt, AverageTime/avgt, SampleTime/sample, SingleShotTime/ss, All/all]
-//    batchSize = 1 // Batch size: number of benchmark method calls per operation. (some benchmark modes can ignore this setting)
+    //    benchmarkMode = ['thrpt','ss'] // Benchmark mode. Available modes are: [Throughput/thrpt, AverageTime/avgt, SampleTime/sample, SingleShotTime/ss, All/all]
+    //    batchSize = 1 // Batch size: number of benchmark method calls per operation. (some benchmark modes can ignore this setting)
     fork = 1 // How many times to forks a single benchmark. Use 0 to disable forking altogether
-//    failOnError = false // Should JMH fail immediately if any benchmark had experienced the unrecoverable error?
-//    forceGC = false // Should JMH force GC between iterations?
-//    jvm = 'myjvm' // Custom JVM to use when forking.
-//    jvmArgs = ['Custom JVM args to use when forking.']
-//    jvmArgsAppend = ['Custom JVM args to use when forking (append these)']
-//    jvmArgsPrepend =[ 'Custom JVM args to use when forking (prepend these)']
-//    humanOutputFile = project.file("${project.buildDir}/reports/jmh/human.txt") // human-readable output file
-//    resultsFile = project.file("${project.buildDir}/reports/jmh/results.txt") // results file
-//    operationsPerInvocation = 10 // Operations per invocation.
-//    benchmarkParameters =  [:] // Benchmark parameters.
-//    profilers = [] // Use profilers to collect additional data. Supported profilers: [cl, comp, gc, stack, perf, perfnorm, perfasm, xperf, xperfasm, hs_cl, hs_comp, hs_gc, hs_rt, hs_thr]
-//    timeOnIteration = '1s' // Time to spend at each measurement iteration.
-//    resultFormat = 'CSV' // Result format type (one of CSV, JSON, NONE, SCSV, TEXT)
-//    synchronizeIterations = false // Synchronize iterations?
-//    threads = 4 // Number of worker threads to run with.
-//    threadGroups = [2,3,4] //Override thread group distribution for asymmetric benchmarks.
-//    timeout = '1s' // Timeout for benchmark iteration.
-//    timeUnit = 'ms' // Output time unit. Available time units are: [m, s, ms, us, ns].
-//    verbosity = 'NORMAL' // Verbosity mode. Available modes are: [SILENT, NORMAL, EXTRA]
-//    warmup = '1s' // Time to spend at each warmup iteration.
-//    warmupBatchSize = 2 // Warmup batch size: number of benchmark method calls per operation.
+    //    failOnError = false // Should JMH fail immediately if any benchmark had experienced the unrecoverable error?
+    //    forceGC = false // Should JMH force GC between iterations?
+    //    jvm = 'myjvm' // Custom JVM to use when forking.
+    //    jvmArgs = ['Custom JVM args to use when forking.']
+    //    jvmArgsAppend = ['Custom JVM args to use when forking (append these)']
+    //    jvmArgsPrepend =[ 'Custom JVM args to use when forking (prepend these)']
+    //    humanOutputFile = project.file("${project.buildDir}/reports/jmh/human.txt") // human-readable output file
+    //    resultsFile = project.file("${project.buildDir}/reports/jmh/results.txt") // results file
+    //    operationsPerInvocation = 10 // Operations per invocation.
+    //    benchmarkParameters =  [:] // Benchmark parameters.
+    //    profilers = [] // Use profilers to collect additional data. Supported profilers: [cl, comp, gc, stack, perf, perfnorm, perfasm, xperf, xperfasm, hs_cl, hs_comp, hs_gc, hs_rt, hs_thr]
+    //    timeOnIteration = '1s' // Time to spend at each measurement iteration.
+    //    resultFormat = 'CSV' // Result format type (one of CSV, JSON, NONE, SCSV, TEXT)
+    //    synchronizeIterations = false // Synchronize iterations?
+    //    threads = 4 // Number of worker threads to run with.
+    //    threadGroups = [2,3,4] //Override thread group distribution for asymmetric benchmarks.
+    //    timeout = '1s' // Timeout for benchmark iteration.
+    //    timeUnit = 'ms' // Output time unit. Available time units are: [m, s, ms, us, ns].
+    //    verbosity = 'NORMAL' // Verbosity mode. Available modes are: [SILENT, NORMAL, EXTRA]
+    //    warmup = '1s' // Time to spend at each warmup iteration.
+    //    warmupBatchSize = 2 // Warmup batch size: number of benchmark method calls per operation.
     warmupForks = 1 // How many warmup forks to make for a single benchmark. 0 to disable warmup forks.
     warmupIterations = 1 // Number of warmup iterations to do.
-//    warmupMode = 'INDI' // Warmup mode for warming up selected benchmarks. Warmup modes are: [INDI, BULK, BULK_INDI].
-//    warmupBenchmarks = ['.*Warmup'] // Warmup benchmarks to include in the run in addition to already selected. JMH will not measure these benchmarks, but only use them for the warmup.
+    //    warmupMode = 'INDI' // Warmup mode for warming up selected benchmarks. Warmup modes are: [INDI, BULK, BULK_INDI].
+    //    warmupBenchmarks = ['.*Warmup'] // Warmup benchmarks to include in the run in addition to already selected. JMH will not measure these benchmarks, but only use them for the warmup.
     zip64 = true // Use ZIP64 format for bigger archives
-//    jmhVersion = '1.15' // Specifies JMH version
-//    includeTests = true // Allows to include test sources into generate JMH jar, i.e. use it when benchmarks depend on the test classes.
-//    duplicateClassesStrategy = 'fail' // Strategy to apply when encountring duplicate classes during creation of the fat jar (i.e. while executing jmhJar task)
+    //    jmhVersion = '1.15' // Specifies JMH version
+    //    includeTests = true // Allows to include test sources into generate JMH jar, i.e. use it when benchmarks depend on the test classes.
+    //    duplicateClassesStrategy = 'fail' // Strategy to apply when encountring duplicate classes during creation of the fat jar (i.e. while executing jmhJar task)
 }
 
 jmhJar {

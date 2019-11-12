@@ -36,6 +36,7 @@ import org.neo4j.procedure.UserFunction;
 import apoc.result.MapResult;
 import apoc.util.Util;
 import apoc.result.VirtualNode;
+import static apoc.util.Util.labelString;
 import apoc.result.VirtualRelationship;
 import apoc.result.VirtualPathResult;
 import org.neo4j.graphdb.RelationshipType;
@@ -469,7 +470,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                 } else if (message instanceof Node) {
                     //jsonParams = (Map<String, Object>) ((Node) message).getAllProperties();
                     jsonParams.put("id", (int)((Node) message).getId());
-                    jsonParams.put("labels", (String)((Node) message).getLabels().toString());
+                    jsonParams.put("labels", (String) labelString((Node) message)); // (String)((Node) message).getLabels().toString());
                     jsonParams.put("properties", (Map<String, Object>) ((Node) message).getAllProperties());
                     mqttMesageString = mapper.writeValueAsString(jsonParams).toString();
                 } else if (message instanceof Relationship) {
@@ -477,7 +478,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                     jsonParams.put("id", (int)((Relationship) message).getId());
                     jsonParams.put("startNodeId", (int)((Relationship) message).getStartNodeId());
                     jsonParams.put("endNodeId", (int)((Relationship) message).getEndNodeId());
-                    jsonParams.put("type",  (String)((Relationship) ((List<String>) message)).getType().name());
+                    jsonParams.put("type",  (String)((Relationship) message).getType().toString());
                     jsonParams.put("properties", (Map<String, Object>) ((Relationship) message).getAllProperties());
                     mqttMesageString = mapper.writeValueAsString(jsonParams).toString();
                 } else if (message instanceof String) {
