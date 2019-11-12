@@ -1,0 +1,107 @@
+==== Neo4j MqTT Cypher Client - functions/procedures
+MqTT publish subscribe from Neo4j - based on org.eclipse.paho.client.mqttv3 library.
+
+Managing MqTT brokers
+[source,cypher]
+----
+// --- Register MqTT Broker ---
+// all values under connect options are optional - default values are shown
+RETURN apoc.mqtt.addBroker(
+ 'mqttBrokerId', 
+ {
+    serverURI:'tcp://localhost:1883',
+    clientId:'mqttBrokerId'+'Client'+random,
+    qos:0, 
+    automaticReconnect:true, 
+    cleanSession:false, 
+    connectionTimeout:1  
+ }
+)
+
+// --- List MqTT Brokers ---
+// basic statistics are shown
+RETURN apoc.mqtt.listBrokers()
+
+// --- List MqTT Brokers vNode returned ---
+// basic statistics are shown
+RETURN apoc.mqtt.listBrokersAsVnode()
+
+// --- Remove MqTT Broker ---
+RETURN apoc.mqtt.deleteBroker('mqttBrokerLocalhost')
+----
+
+
+
+
+
+
+
+MqTT publish
+[source,cypher]
+----
+// --- Publish MqTT message ---
+RETURN apoc.mqtt.publish(
+    'mqttBrokerId', 
+    'mqtt/topic/path', 
+    {mqttMessageValue:"message as json or value"}, 
+    {options:"options - currently not used"}
+)
+----
+
+MqTT subscribe
+[source,cypher]
+----
+// --- Subscribe to MqTT toppic ---
+CALL apoc.mqtt.subscribe(
+    'mqttBrokerId', 
+    'mqtt/topic/path',
+    'MERGE (n:CypherMqttCreated) 
+        ON CREATE SET n.count=1, n.mqttMessageValue=$mqttMessageValue 
+        ON MATCH SET n.count = n.count +1, n.mqttMessageValue=$mqttMessageValue 
+     RETURN n', 
+    {messageType:'json'}
+ )
+
+// --- List Subscriptions ---
+// basic subscription statistics are shown
+RETURN apoc.mqtt.listSubscriptions('optionalBrokerIdDefaultToAll')
+
+// --- List Subscriptions vNode Returned ---
+// basic subscription statistics are shown
+RETURN apoc.mqtt.listSubscriptionsAsVnode('optionalBrokerIdDefaultToAll')
+
+// --- Remove MqTT subscription ---
+RETURN apoc.mqtt.unSubscribe('mqttBrokerId', '/mqtt/topic/path' )
+----
+
+
+====== Examples
+Add MqTT broker connection, subscribe to topic and publish:
+[source,cypher]
+----
+
+----
+
+Check Nodes created by Neo4j MqTT subsciber.
+[source,cypher]
+----
+
+----
+
+List MqTT broker connections.
+[source,cypher]
+----
+
+----
+
+Remove MqTT subscription.
+[source,cypher]
+----
+
+----
+
+[source,cypher]
+----
+ RETURN apoc.mqtt.delete('mqttBrokerId')
+----
+
