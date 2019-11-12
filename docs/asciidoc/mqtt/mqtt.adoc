@@ -1,5 +1,11 @@
-==== Neo4j MqTT Cypher Client - functions/procedures
-MqTT publish subscribe from Neo4j - based on org.eclipse.paho.client.mqttv3 library.
+==== Neo4j MqTT Cypher Client
+MqTT publish subscribe from Neo4j 
+
+[NOTE]
+====
+ based on org.eclipse.paho.client.mqttv3 library 
+ tested with Eclipse Mosquitto MqTT broker
+====
 
 Managing MqTT brokers
 [source,cypher]
@@ -31,11 +37,6 @@ RETURN apoc.mqtt.deleteBroker('mqttBrokerLocalhost')
 ----
 
 
-
-
-
-
-
 MqTT publish
 [source,cypher]
 ----
@@ -51,7 +52,7 @@ RETURN apoc.mqtt.publish(
 MqTT subscribe
 [source,cypher]
 ----
-// --- Subscribe to MqTT toppic ---
+// --- Subscribe to MqTT Topic Procedure ---
 CALL apoc.mqtt.subscribe(
     'mqttBrokerId', 
     'mqtt/topic/path',
