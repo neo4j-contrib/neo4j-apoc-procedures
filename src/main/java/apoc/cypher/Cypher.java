@@ -384,7 +384,7 @@ public class Cypher {
         if (params == null) params = Collections.emptyMap();
         return db.execute(withParamMapping(statement, params.keySet()), params).stream().map(MapResult::new);
     }
-    
+
     @Procedure("apoc.when")
     @Description("apoc.when(condition, ifQuery, elseQuery:'', params:{}) yield value - based on the conditional, executes read-only ifQuery or elseQuery with the given parameters")
     public Stream<MapResult> when(@Name("condition") boolean condition, @Name("ifQuery") String ifQuery, @Name(value="elseQuery", defaultValue = "") String elseQuery, @Name(value="params", defaultValue = "") Map<String, Object> params) {
