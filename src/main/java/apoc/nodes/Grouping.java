@@ -73,7 +73,7 @@ public class Grouping {
                                      @Name(value = "config", defaultValue = "{}") Map<String,Object> config) {
 
         Set<String> labels = new HashSet<>(labelNames);
-        if (labels.remove("*")) labels.addAll(tx.getAllLabels().stream().map(Label::name).collect(Collectors.toSet()));
+        if (labels.remove("*")) labels.addAll(Iterables.stream(tx.getAllLabels()).map(Label::name).collect(Collectors.toSet()));
 
         String[] keys = groupByProperties.toArray(new String[groupByProperties.size()]);
 
@@ -250,7 +250,7 @@ public class Grouping {
     public Set<String> computeIncludedRels(@Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         if (!config.containsKey("includeRels") && !config.containsKey("excludeRels")) return null;
 
-        Set<String> includeRels = tx.getAllRelationshipTypes().stream().map(RelationshipType::name).collect(Collectors.toSet());
+        Set<String> includeRels = Iterables.stream(tx.getAllRelationshipTypes()).map(RelationshipType::name).collect(Collectors.toSet());
         if (config.containsKey("includeRels")) {
             Object rels = config.get("includeRels");
             if (rels instanceof Collection) includeRels.retainAll((Collection<String>) rels);

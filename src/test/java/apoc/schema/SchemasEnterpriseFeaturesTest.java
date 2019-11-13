@@ -9,6 +9,7 @@ import org.junit.Test;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Session;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -147,13 +148,15 @@ public class SchemasEnterpriseFeaturesTest {
 
     @Test
     public void testIndexOnMultipleProperties() {
-        session.writeTransaction(tx -> {
+        String indexName = session.writeTransaction(tx -> {
             tx.run("CREATE INDEX ON :Foo(bar, foo)");
+            String name = tx.run("CALL db.indexes() YIELD name RETURN name").single().get("name").asString();
             tx.commit();
-            return null;
+            return name;
         });
+
         session.writeTransaction(tx -> {
-            tx.run("CALL db.awaitIndex(':Foo(bar, foo)')");
+            tx.run("CALL db.awaitIndex($indexName)", Collections.singletonMap("indexName", indexName));
             tx.commit();
             return null;
         });

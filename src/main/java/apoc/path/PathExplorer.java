@@ -10,6 +10,7 @@ import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Transaction;
 import org.neo4j.graphdb.traversal.*;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -193,9 +194,9 @@ public class PathExplorer {
 		Traverser traverser = traverse(tx.traversalDescription(), startNodes, pathFilter, labelFilter, minLevel, maxLevel, uniqueness,bfs,filterStartNode, nodeFilter, sequence, beginSequenceAtStart);
 
 		if (limit == -1) {
-			return traverser.stream();
+			return Iterables.stream(traverser);
 		} else {
-			return traverser.stream().limit(limit);
+			return Iterables.stream(traverser).limit(limit);
 		}
 	}
 

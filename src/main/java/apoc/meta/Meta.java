@@ -10,6 +10,7 @@ import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
 import org.neo4j.graphdb.spatial.Point;
+import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.Read;
 import org.neo4j.internal.kernel.api.TokenRead;
@@ -395,13 +396,13 @@ public class Meta {
 
     private Map<String, Integer> relTypesInUse(TokenRead ops, Collection<String> relTypeNames) {
         Stream<String> types = (relTypeNames == null || relTypeNames.isEmpty()) ?
-                tx.getAllRelationshipTypesInUse().stream().map(RelationshipType::name) : relTypeNames.stream();
+                Iterables.stream(tx.getAllRelationshipTypesInUse()).map(RelationshipType::name) : relTypeNames.stream();
         return types.collect(toMap(t -> t, ops::relationshipType));
     }
 
     private Map<String, Integer> labelsInUse(TokenRead ops, Collection<String> labelNames) {
         Stream<String> labels = (labelNames == null || labelNames.isEmpty()) ?
-                tx.getAllLabelsInUse().stream().map(Label::name) :
+                Iterables.stream(tx.getAllLabelsInUse()).map(Label::name) :
                 labelNames.stream();
         return labels.collect(toMap(t -> t, ops::nodeLabel));
     }
@@ -467,7 +468,7 @@ public class Meta {
     }
 
     private Map<String, Long> getLabelCountStore() {
-        List<String> labels = tx.getAllLabelsInUse().stream().map(label -> label.name()).collect(Collectors.toList());
+        List<String> labels = Iterables.stream(tx.getAllLabelsInUse()).map(label -> label.name()).collect(Collectors.toList());
         TokenRead tokenRead = kernelTx.tokenRead();
         return labels
                 .stream()

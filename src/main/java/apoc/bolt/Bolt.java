@@ -27,7 +27,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static apoc.util.MapUtil.map;
 
@@ -55,9 +54,12 @@ public class Bolt {
 
         try (Driver driver = GraphDatabase.driver(uri.getConfiguredUri(), uri.getToken(), driverConfig);
              Session session = driver.session()) {
-            if (addStatistics)
-                return Stream.of(new RowResult(toMap(runStatement(statement, session, params, readOnly).summary().counters())));
-            else
+            if (addStatistics) {
+                StatementResult statementResult = runStatement(statement, session, params, readOnly);
+                statementResult.list();
+                SummaryCounters counters = statementResult.consume().counters();
+                return Stream.of(new RowResult(toMap(counters)));
+            } else
                 return getRowResultStream(virtual, session, params, statement, readOnly);
         } catch (Exception e) {
             throw new RuntimeException("It's not possible to create a connection due to: " + e.getMessage());
@@ -79,7 +81,7 @@ public class Bolt {
 
     private Stream<RowResult> getRowResultStream(boolean virtual, Session session, Map<String, Object> params, String statement, boolean read) {
         Map<Long, Object> nodesCache = new HashMap<>();
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(runStatement(statement, session, params, read), 0), true)
+        return runStatement(statement, session, params, read).stream()
                 .map(record -> new RowResult(record.asMap(value -> {
                     Object entity = value.asObject();
                     if (entity instanceof Node) return toNode(entity, virtual, nodesCache);
