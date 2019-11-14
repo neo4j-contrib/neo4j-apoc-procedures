@@ -43,7 +43,6 @@ import apoc.result.VirtualRelationship;
 import apoc.result.VirtualPathResult;
 import apoc.result.GraphResult;
 
-
 /**
  * @author bz
  * @since 29.05.16

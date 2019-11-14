@@ -1,6 +1,7 @@
 [[mqtt]]
 == Neo4j MqTT Cypher Client
 
+ 
 [abstract]
 --
 MqTT publish subscribe from Neo4j to MqTT broker
