@@ -1,5 +1,10 @@
-==== Neo4j MqTT Cypher Client
-MqTT publish subscribe from Neo4j 
+[[mqtt]]
+= Neo4j MqTT Cypher Client
+
+[abstract]
+--
+MqTT publish subscribe from Neo4j to MqTT broker
+--
 
 [NOTE]
 ====
@@ -7,7 +12,11 @@ MqTT publish subscribe from Neo4j
  tested with Eclipse Mosquitto 1.5.8 MqTT broker
 ====
 
-Managing MqTT brokers
+// end::mqtt[]
+
+== Managing MqTT brokers
+
+MqTT broker - add, list, delete
 [source,cypher]
 ----
 // --- Register MqTT Broker ---
@@ -36,8 +45,36 @@ RETURN apoc.mqtt.listBrokersAsVnode()
 RETURN apoc.mqtt.deleteBroker('mqttBrokerLocalhost')
 ----
 
+Neo4j MqTT broker registration response messages
+[source,cypher]
+----
+// --- succesful mqtt registration ---
+{
+  "mqttBrokerId": "mqttLocalhostBroker",
+  "serverURI": "tcp://localhost:1883",
+  "statusMessage": "Connect MqTT OK",
+  "status": "ok"
+}
 
-MqTT publish
+// --- failed mqtt registration ---
+{
+  "mqttBrokerId": "mqttLocalhostBroker",
+  "serverURI": "tcp://localhost:1883",
+  "statusMessage": "Broker with this name exists!",
+  "status": "error"
+}
+
+// --- failed mqtt registration ---
+{
+  "mqttBrokerId": "mqttLocalhostBrokerError",
+  "serverURI": "tcp://localhostNotExists:1883",
+  "statusMessage": "Failed to Connect MqTT Broker: MqttException",
+  "status": "error"
+}
+----
+
+== MqTT publish
+MqTT publish from Neo4j
 [source,cypher]
 ----
 // --- Publish MqTT message ---
@@ -49,7 +86,45 @@ RETURN apoc.mqtt.publish(
 )
 ----
 
-MqTT subscribe
+Neo4j MqTT publish response messages
+[source,bash]
+----
+// --- succesful mqtt publish ---
+{
+  "options": {
+
+  },
+  "mqttBrokerId": "mqttLocalhostBroker",
+  "topic": "mqtt/topic/json",
+  "message": {
+    "string": "string",
+    "int": 123,
+    "boolean": true
+  },
+  "statusMessage": "MqTT Publish OK",
+  "status": "ok"
+}
+
+// --- failed mqtt publish ---
+{
+  "options": {
+
+  },
+  "mqttBrokerId": "mqttLocalhostBrokerNotExist",
+  "topic": "mqtt/topic/json",
+  "message": {
+    "string": "string",
+    "int": 123,
+    "boolean": true
+  },
+  "statusMessage": "Failed to find MqTT Broker - Check Connection",
+  "status": "error"
+}
+
+----
+
+== MqTT subscribe
+Subscribe, list, unsubscribe MqTT topics and run Neo4j cypher
 [source,cypher]
 ----
 // --- Subscribe to MqTT Topic Procedure ---
@@ -76,17 +151,24 @@ RETURN apoc.mqtt.unSubscribe('mqttBrokerId', '/mqtt/topic/path' )
 ----
 
 
-====== Examples
-Add MqTT broker connection and publish
+== Examples
+=== Add MqTT broker connection and publish
+[NOTE]
+====
+ MqTT broker should be operational!
+====
+
+
+Start Mosquitto MqTT subscription client
 [source,bash]
 ----
-# --- Mosquitto MqTT client - start client ---
 mosquitto_sub  --verbose --host localhost --port 1883 --topic mqtt/topic/# --id msqSub
+
 ----
 
-[source,bash]
+Register localhost MqTT broker via Neo4j console
+[source,cypher]
 ----
-// --- register localhost mqtt broker viaNeo4j console ---
 RETURN apoc.mqtt.addBroker(
  'mqttLocalhostBroker', 
  {
@@ -96,9 +178,10 @@ RETURN apoc.mqtt.addBroker(
 )
 ----
 
-[source,bash]
+Publish MqTT messages via Neo4j console
+[source,cypher]
 ----
-// --- publish messages ---
+// --- json ---
 RETURN apoc.mqtt.publish(
     'mqttLocalhostBroker', 
     'mqtt/topic/json', 
@@ -109,29 +192,35 @@ RETURN apoc.mqtt.publish(
     }
 )
 
+// --- string value ---
 RETURN apoc.mqtt.publish(
     'mqttLocalhostBroker', 
     'mqtt/topic/valueString', 
     "stringValue"
 )
 
+// --- integer value ---
 RETURN apoc.mqtt.publish(
     'mqttLocalhostBroker', 
     'mqtt/topic/valueInteger', 
     123
 )
+
+// --- number value ---
 RETURN apoc.mqtt.publish(
     'mqttLocalhostBroker', 
     'mqtt/topic/valueNumber', 
     123.456
 )
 
+// --- boolean value ---
 RETURN apoc.mqtt.publish(
     'mqttLocalhostBroker', 
     'mqtt/topic/valueBoolean', 
     true
 )
 
+// --- Neo4j node ---
 CREATE (neo4jNode:TestMqttNode:TestNode {string:"string", int:123, boolean:true})
 WITH neo4jNode
 RETURN apoc.mqtt.publish(
@@ -140,6 +229,7 @@ RETURN apoc.mqtt.publish(
     neo4jNode
 )
 
+// --- Neo4j relation ---
 CREATE (s)-[r:TEST_MQTT_RELATION {string:"string", int:123, boolean:true}]->(e) 
 WITH r AS neo4jRelation
 RETURN apoc.mqtt.publish(
@@ -150,9 +240,10 @@ RETURN apoc.mqtt.publish(
 
 ----
 
+Check MqTT messages received by Mosquitto MqTT client
 [source,bash]
 ----
-# --- Mosquitto MqTT client - check messages ---
+mosquitto_sub  --verbose --host localhost --port 1883 --topic mqtt/topic/# --id msqSub
 mqtt/topic/json {"boolean":true,"string":"string","int":123}
 mqtt/topic/valueString stringValue
 mqtt/topic/valueInteger 123
@@ -163,99 +254,141 @@ mqtt/topic/neo4jRelation {"startNodeId":60,"id":8,"type":"TEST_MQTT_RELATION","e
 
 ----
 
+
+
+
+
+=== Add MqTT broker connection and subscribe
+
+Register localhost MqTT broker via Neo4j console
+[source,cypher]
+----
+RETURN apoc.mqtt.addBroker(
+ 'mqttLocalhostBroker', 
+ {
+    serverURI:'tcp://localhost:1883',
+    clientId:'neo4jClient01'
+  }
+)
+----
+
+Subscribe to MqTT messages via Neo4j console
+[source,cypher]
+----
+// --- json mqtt message subscription ---
+CALL apoc.mqtt.subscribe(
+    'mqttLocalhostBroker', 
+    'mqtt/topic/json',
+    'MERGE (n:MqttCreatedNodeJson) 
+        ON CREATE SET 
+            n.count=1, 
+            n.string=$string,
+            n.int=$int,
+            n.boolean=$boolean
+        ON MATCH SET 
+            n.count = n.count +1, 
+            n.string=$string,
+            n.int=$int,
+            n.boolean=$boolean 
+     RETURN n'
+ )
+ 
+ // --- "value" mqtt message subscription ---
+ CALL apoc.mqtt.subscribe(
+    'mqttLocalhostBroker', 
+    'mqtt/topic/value/#',
+    'CREATE (n:MqttCreatedNodeValue) SET  n.value=$value   RETURN n'
+ )
+
+----
+ 
+ 
+Send MqTT messages
 [source,bash]
 ----
-
-
-// succesful mqtt registration
-{
-  "mqttBrokerId": "mqttLocalhostBroker",
-  "serverURI": "tcp://localhost:1883",
-  "statusMessage": "Connect MqTT OK",
-  "status": "ok"
-}
-
-// failed mqtt registrations
-{
-  "mqttBrokerId": "mqttLocalhostBroker",
-  "serverURI": "tcp://localhost:1883",
-  "statusMessage": "Broker with this name exists!",
-  "status": "error"
-}
-
-{
-  "mqttBrokerId": "mqttLocalhostBrokerError",
-  "serverURI": "tcp://localhostNotExists:1883",
-  "statusMessage": "Failed to Connect MqTT Broker: MqttException",
-  "status": "error"
-}
+# send json message
+mosquitto_pub  --id msqPub --host localhost --port 1883 --topic mqtt/topic/json --message "{\"string\":\"string\",\"int\":123,\"boolean\":true}" 
+# send "value" message
+mosquitto_pub  --id msqPub --host localhost --port 1883 --topic mqtt/topic/value/string --message "string"
+mosquitto_pub  --id msqPub --host localhost --port 1883 --topic mqtt/topic/value/int --message 123
+mosquitto_pub  --id msqPub --host localhost --port 1883 --topic mqtt/topic/value/float --message 123.456
 ----
 
+ 
+ 
+Check Subscriptions
 [source,bash]
 ----
-// succesful mqtt publish
+// --- list subscriptions 
+RETURN apoc.mqtt.listSubscriptions()
+ 
+// --- expected response 
+[
 {
-  "options": {
-
-  },
   "mqttBrokerId": "mqttLocalhostBroker",
   "topic": "mqtt/topic/json",
-  "message": {
-    "string": "string",
-    "int": 123,
-    "boolean": true
-  },
-  "statusMessage": "MqTT Publish OK",
-  "status": "ok"
+  "type": "MqttSubscription",
+  "subscribeOptions": {
+    "lastMessageReceived": "
+{"string":"string","int":123,"boolean":true}",
+    "lastMessageProcessedResults": "+----------------------------------------------------------+
+| n                                                        |
++----------------------------------------------------------+
+| Node[82]{boolean:true,string:"string",count:1,int:123.0} |
++----------------------------------------------------------+
+1 row
+Nodes created: 1
+Properties set: 4
+Labels added: 1
+",
+    "messageReceivedOk": 2,
+    "messageType": "json",
+    "messageReceivedError": 1,
+    "query": "MERGE (n:MqttCreatedNodeJson) 
+        ON CREATE SET 
+            n.count=1, 
+            n.string=$string,
+            n.int=$int,
+            n.boolean=$boolean
+        ON MATCH SET 
+            n.count = n.count +1, 
+            n.string=$string,
+            n.int=$int,
+            n.boolean=$boolean 
+     RETURN n"
+  }
 }
-
-// failed mqtt publish
+,
 {
-  "options": {
-
-  },
-  "mqttBrokerId": "mqttLocalhostBrokerNotExist",
-  "topic": "mqtt/topic/json",
-  "message": {
-    "string": "string",
-    "int": 123,
-    "boolean": true
-  },
-  "statusMessage": "Failed to find MqTT Broker - Check Connection",
-  "status": "error"
+  "mqttBrokerId": "mqttLocalhostBroker",
+  "topic": "mqtt/topic/value/#",
+  "type": "MqttSubscription",
+  "subscribeOptions": {
+    "lastMessageReceived": "
+123.456",
+    "lastMessageProcessedResults": "+----------------------------+
+| n                          |
++----------------------------+
+| Node[122]{value:"123.456"} |
++----------------------------+
+1 row
+Nodes created: 1
+Properties set: 1
+Labels added: 1
+",
+    "messageReceivedOk": 3,
+    "messageType": "json",
+    "messageReceivedError": 0,
+    "query": "CREATE (n:MqttCreatedNodeValue) SET  n.value=$value   RETURN n"
+  }
 }
-
+]
 ----
 
-
-
-
-
-
-
-
-
-
-Check Nodes created by Neo4j MqTT subsciber.
-[source,cypher]
+Check Nodes
 ----
-
+// --- get created nodes
+MATCH (n) 
+WHERE n::MqttCreatedNodeJson OR n:MqttCreatedNodeValue
+RETURN n
 ----
-
-List MqTT broker connections.
-[source,cypher]
-----
-
-----
-
-Remove MqTT subscription.
-[source,cypher]
-----
-
-----
-
-[source,cypher]
-----
- RETURN apoc.mqtt.delete('mqttBrokerId')
-----
-

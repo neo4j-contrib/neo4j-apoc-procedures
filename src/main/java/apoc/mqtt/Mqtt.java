@@ -41,6 +41,7 @@ import apoc.result.VirtualRelationship;
 import apoc.result.VirtualPathResult;
 import org.neo4j.graphdb.RelationshipType;
 import apoc.result.GraphResult;
+import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 
 /**
  * @author bz
@@ -469,16 +470,16 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                     mqttMesageString = mapper.writeValueAsString(jsonParams).toString();
                 } else if (message instanceof Node) {
                     //jsonParams = (Map<String, Object>) ((Node) message).getAllProperties();
-                    jsonParams.put("id", (int)((Node) message).getId());
+                    jsonParams.put("id", (int) ((Node) message).getId());
                     jsonParams.put("labels", (String) labelString((Node) message)); // (String)((Node) message).getLabels().toString());
                     jsonParams.put("properties", (Map<String, Object>) ((Node) message).getAllProperties());
                     mqttMesageString = mapper.writeValueAsString(jsonParams).toString();
                 } else if (message instanceof Relationship) {
                     //jsonParams = (Map<String, Object>) ((Relationship) message).getAllProperties();
-                    jsonParams.put("id", (int)((Relationship) message).getId());
-                    jsonParams.put("startNodeId", (int)((Relationship) message).getStartNodeId());
-                    jsonParams.put("endNodeId", (int)((Relationship) message).getEndNodeId());
-                    jsonParams.put("type",  (String)((Relationship) message).getType().toString());
+                    jsonParams.put("id", (int) ((Relationship) message).getId());
+                    jsonParams.put("startNodeId", (int) ((Relationship) message).getStartNodeId());
+                    jsonParams.put("endNodeId", (int) ((Relationship) message).getEndNodeId());
+                    jsonParams.put("type", (String) ((Relationship) message).getType().toString());
                     jsonParams.put("properties", (Map<String, Object>) ((Relationship) message).getAllProperties());
                     mqttMesageString = mapper.writeValueAsString(jsonParams).toString();
                 } else if (message instanceof String) {
@@ -587,6 +588,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                 return Stream.of(returnMessage).map(MapResult::new);
             } catch (Exception ex) {
                 mqttBroker.put("messageSubscribeError", 1 + (int) mqttBroker.get("messageSubscribeError"));
+
                 Map<String, Object> returnMessage = new HashMap<String, Object>();
                 returnMessage.put("status", "error");
                 returnMessage.put("mqttBrokerId", mqttBrokerId);
@@ -657,11 +659,27 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
             try {
                 Map<String, Object> retMap = new Gson().fromJson(jsonInString.toString(), new TypeToken<HashMap<String, Object>>() {
                 }.getType());
-                //gson.fromJson(jsonInString, Object.class);
                 return retMap;
             } catch (JsonSyntaxException ex) {
-                //System.out.println("This is finally block");
-                return null;
+                Object input = (Object) jsonInString;
+                Map<String, Object> returnMap = new HashMap<String, Object>();
+                // --- map values ---
+                if (input instanceof String) {
+                    returnMap.put("value", (String) jsonInString);
+                } else if (input instanceof Integer) {
+                    returnMap.put("value", (Integer) input);
+                } else if (input instanceof Boolean) {
+                    returnMap.put("value", (Boolean) input);
+                } else if (input instanceof Float) {
+                    returnMap.put("value", (Float) input);
+                } else if (input instanceof Double) {
+                    returnMap.put("value", (Double) input);
+                } else if (input instanceof Map) {
+                    returnMap.put("value", (String) input);
+                } else {
+                    returnMap.put("value", (String) input);
+                }
+                return returnMap;
             }
         }
     }
@@ -669,44 +687,36 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
     // --- ProcessMqttMessage
     public class ProcessMqttMessage {
 
-        Map<String, Object> options = new HashMap<String, Object>();
+        public Map<String, Object> options = new HashMap<String, Object>();
 
         public ProcessMqttMessage(Map<String, Object> optionsIn) {
-//                                 subscribeOptions.put("query", query);
-//                subscribeOptions.put("messageReceivedOk", 0);
-//                subscribeOptions.put("messageReceivedError", 0);
-//
-//            this.processType = options.get("query");
             options = optionsIn;
             log.info("apoc.mqtt - ProcessMqttMessage registration: " + options.toString());
         }
 
         public void run(String topic, String message) {
-            log.info("apoc.mqtt - ProcessMqttMessage run:\n" + this.options.toString());
+            options.remove("lastMessageProcessedResults");
+            log.info("apoc.mqtt - ProcessMqttMessage run:\n" + options.toString());
 
-            Map<String, Object> cypherParams = new HashMap();
-            if ((String) this.options.get("messageType") == "json") {
-                JSONUtils checkJson = new JSONUtils();
-                cypherParams = (Map<String, Object>) checkJson.jsonStringToMap(message);
-            } else if ((String) this.options.get("messageType") == "value") {
-                cypherParams.put("value", message);
-            } else {
-                cypherParams.put("value", message.toString());
-            }
+            // --- check message - get key-value 
+            JSONUtils checkJson = new JSONUtils();
+            Map<String, Object> cypherParams = (Map<String, Object>) checkJson.jsonStringToMap(message);
 
-            log.info("apoc.mqtt - message received: \n" + this.options.get("query") + "\n" + message + "\n" + this.options.get("messageType") + "\n" + cypherParams.toString());
+            log.info("apoc.mqtt - ProcessMqttMessage cypherParams: " + cypherParams.toString());
+
+            log.info("apoc.mqtt - message received: \n" + options.get("query") + "\n" + message + "\n" + options.get("messageType") + "\n" + cypherParams.toString());
             try (Transaction tx = db.beginTx()) {
-                Result dbResult = db.execute((String) this.options.get("query"), cypherParams);
+                Result dbResult = db.execute((String) options.get("query"), cypherParams);
                 String dbResultString = dbResult.resultAsString();
                 log.info("apoc.mqtt - cypherQuery results:\n" + "\n" + dbResultString);
-                this.options.put("messageReceivedOk", (int) this.options.get("messageReceivedOk") + 1);
-                this.options.put("lastMessageReceived", "\n"+message.toString());
-                this.options.put("lastMessageProcessedResults", dbResultString);
+                options.put("messageReceivedOk", (int) options.get("messageReceivedOk") + 1);
+                options.put("lastMessageReceived", message.toString());
+                options.put("lastMessageProcessedResults", dbResultString);
                 tx.success();
             } catch (Exception ex) {
-                this.options.put("lastMessageReceived", "\n"+message.toString());
-                this.options.put("lastMessageProcessedResults", (String) ex.toString());
-                this.options.put("messageReceivedError", (int) this.options.get("messageReceivedError") + 1);
+                options.put("lastMessageReceived", message.toString());
+                options.put("lastMessageProcessedResults", (String) ex.toString());
+                options.put("messageReceivedError", (int) options.get("messageReceivedError") + 1);
                 log.error("apoc.mqtt - cypherQuery error:\n" + ex.toString());
             }
         }
@@ -718,7 +728,6 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
 
         int qos = 0;
         public MqttClient neo4jMqttClient;
-        Map<String, Object> mapMqttTopicTask = new HashMap<>();
 
         public MqttClientNeo(Map<String, Object> mqttConnectOptions) throws MqttException {
             log.debug("apoc.mqtt - MqttClientNeo: " + mqttConnectOptions.toString());
@@ -744,40 +753,33 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
 
                 public void messageArrived(String topic, MqttMessage message) {
                     log.debug("apoc.mqtt - messageArrived " + topic + " " + message.toString());
-                    ProcessMqttMessage task = (ProcessMqttMessage) mapMqttTopicTask.get(topic);
-                    //log.debug("aaa" + task.toString() + task.cypherQuery + task.processType);
-                    task.run(topic, message.toString());
                 }
 
                 public void deliveryComplete(IMqttDeliveryToken token) {
                     log.debug("apoc.mqtt - deliveryComplete");
                 }
             });
-
             // --- send connect message
             log.info("apoc.mqtt - connecting to broker: " + mqttConnectOptions.get("serverURI") + " as " + mqttConnectOptions.get("clientId"));
-
         }
 
         private void publish(String topic, String content) throws MqttException {
             log.debug("apoc.mqtt - publish" + topic, content);
             MqttMessage message = new MqttMessage(content.getBytes());
             message.setQos(qos);
-            String clientId = this.neo4jMqttClient.getClientId();
-            String broker = this.neo4jMqttClient.getServerURI();
+            String clientId = neo4jMqttClient.getClientId();
+            String broker = neo4jMqttClient.getServerURI();
 
-            this.neo4jMqttClient.publish(topic, message);
-
-            log.debug("apoc.mqtt - publish" + mapMqttTopicTask.toString());
-
+            neo4jMqttClient.publish(topic, message);
+            log.debug("apoc.mqtt - publish" + topic + content.toString());
         }
 
         private void unsubscribeAll() {
-            String clientId = this.neo4jMqttClient.getClientId();
-            String broker = this.neo4jMqttClient.getServerURI();
-            mapMqttTopicTask = null;
+            String clientId = neo4jMqttClient.getClientId();
+            String broker = neo4jMqttClient.getServerURI();
+
             try {
-                this.neo4jMqttClient.unsubscribe("#");
+                neo4jMqttClient.unsubscribe("#");
                 log.info("apoc.mqtt -  unsubscribeAll ok: " + clientId + " " + broker);
             } catch (MqttException ex) {
                 log.error("apoc.mqtt -  unsubscribeAll error: " + clientId + " " + broker + " " + ex.toString());
@@ -785,11 +787,11 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
         }
 
         private void unsubscribe(String topic) {
-            String clientId = this.neo4jMqttClient.getClientId();
-            String broker = this.neo4jMqttClient.getServerURI();
-            mapMqttTopicTask.remove(topic);
+            String clientId = neo4jMqttClient.getClientId();
+            String broker = neo4jMqttClient.getServerURI();
+
             try {
-                this.neo4jMqttClient.unsubscribe(topic);
+                neo4jMqttClient.unsubscribe(topic);
                 log.info("apoc.mqtt -  unsubscribe ok: " + topic + " " + clientId + " " + broker);
             } catch (MqttException ex) {
                 log.error("apoc.mqtt -  unsubscribe error: " + topic + " " + clientId + " " + broker + " " + ex.toString());
@@ -797,40 +799,34 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
         }
 
         private void disconnect() {
-            String clientId = this.neo4jMqttClient.getClientId();
-            String broker = this.neo4jMqttClient.getServerURI();
-            mapMqttTopicTask = null;
+            String clientId = neo4jMqttClient.getClientId();
+            String broker = neo4jMqttClient.getServerURI();
+
             try {
-                this.neo4jMqttClient.disconnect();
+                neo4jMqttClient.unsubscribe("#");
+                neo4jMqttClient.disconnect();
                 log.info("apoc.mqtt -  disconnect ok: " + clientId + " " + broker);
             } catch (MqttException ex) {
                 log.error("apoc.mqtt -  disconnect error: " + clientId + " " + broker + " " + ex.toString());
             }
         }
 
-        public void subscribe(String topic, Map<String, Object> subscribeOptions) throws MqttException {
-            String clientId = this.neo4jMqttClient.getClientId();
-            String broker = this.neo4jMqttClient.getServerURI();
-            log.info("apoc.mqtt - subscribe: " + topic + " " + clientId + " " + broker);
-
-            // --- set processor
-            ProcessMqttMessage task = new ProcessMqttMessage(subscribeOptions);
-
-            mapMqttTopicTask.put(topic, task);
-            this.neo4jMqttClient.subscribe(topic);
-        }
-
         public void subscribe(String topic, ProcessMqttMessage task) throws MqttException {
-            String clientId = this.neo4jMqttClient.getClientId();
-            String broker = this.neo4jMqttClient.getServerURI();
+            String clientId = neo4jMqttClient.getClientId();
+            String broker = neo4jMqttClient.getServerURI();
             log.info("apoc.mqtt - subscribe: " + topic + " " + clientId + " " + broker);
 
             // --- set processor
-            //ProcessMqttMessage task = new ProcessMqttMessage(subscribeOptions);
-            mapMqttTopicTask.put(topic, task);
-            this.neo4jMqttClient.subscribe(topic);
-        }
+            IMqttMessageListener topicProcesor = new IMqttMessageListener() {
+                @Override
+                public void messageArrived(String topic, MqttMessage message) throws Exception {
+                    task.run(topic, message.toString());
+                }
+            };
 
+            // --- subscribe 
+            neo4jMqttClient.subscribe(topic, qos, topicProcesor);
+        }
     }
 
     // --- MapProcess
