@@ -329,32 +329,22 @@ RETURN apoc.mqtt.listSubscriptions()
   "topic": "mqtt/topic/json",
   "type": "MqttSubscription",
   "subscribeOptions": {
-    "lastMessageReceived": "
-{"string":"string","int":123,"boolean":true}",
-    "lastMessageProcessedResults": "+----------------------------------------------------------+
-| n                                                        |
-+----------------------------------------------------------+
-| Node[82]{boolean:true,string:"string",count:1,int:123.0} |
-+----------------------------------------------------------+
-1 row
-Nodes created: 1
-Properties set: 4
-Labels added: 1
-",
-    "messageReceivedOk": 2,
+    "lastMessageReceived": "{"string":"string","int":123,"boolean":true}",
+    "lastMessageProcessedResults": "org.neo4j.graphdb.TransactionFailureException: Transaction was marked as successful, but unable to commit transaction so rolled back.",
+    "messageReceivedOk": 1,
     "messageType": "json",
     "messageReceivedError": 1,
-    "query": "MERGE (n:MqttCreatedNodeJson) 
-        ON CREATE SET 
-            n.count=1, 
+    "query": "MERGE (n:MqttCreatedNodeJson)
+        ON CREATE SET
+            n.count=1,
             n.string=$string,
             n.int=$int,
             n.boolean=$boolean
-        ON MATCH SET 
-            n.count = n.count +1, 
+        ON MATCH SET
+            n.count = n.count +1,
             n.string=$string,
             n.int=$int,
-            n.boolean=$boolean 
+            n.boolean=$boolean
      RETURN n"
   }
 }
@@ -364,12 +354,11 @@ Labels added: 1
   "topic": "mqtt/topic/value/#",
   "type": "MqttSubscription",
   "subscribeOptions": {
-    "lastMessageReceived": "
-123.456",
+    "lastMessageReceived": "123.456",
     "lastMessageProcessedResults": "+----------------------------+
 | n                          |
 +----------------------------+
-| Node[122]{value:"123.456"} |
+| Node[125]{value:"123.456"} |
 +----------------------------+
 1 row
 Nodes created: 1
@@ -389,6 +378,75 @@ Check Nodes
 ----
 // --- get created nodes
 MATCH (n) 
-WHERE n::MqttCreatedNodeJson OR n:MqttCreatedNodeValue
-RETURN n
+WHERE n:MqttCreatedNodeJson OR n:MqttCreatedNodeValue
+RETURN {id:id(n), labels:labels(n), properties:properties(n)}
+
+// --- response
+{id:id(n), labels:labels(n), properties:properties(n)}
+{
+  "id": 82,
+  "properties": {
+    "boolean": true,
+    "string": "string",
+    "count": 1,
+    "int": 123.0
+  },
+  "labels": [
+    "MqttCreatedNodeJson"
+  ]
+}
+{
+  "id": 102,
+  "properties": {
+    "value": "string"
+  },
+  "labels": [
+    "MqttCreatedNodeValue"
+  ]
+}
+{
+  "id": 121,
+  "properties": {
+    "value": "123"
+  },
+  "labels": [
+    "MqttCreatedNodeValue"
+  ]
+}
+{
+  "id": 122,
+  "properties": {
+    "value": "123.456"
+  },
+  "labels": [
+    "MqttCreatedNodeValue"
+  ]
+}
+{
+  "id": 123,
+  "properties": {
+    "value": "string"
+  },
+  "labels": [
+    "MqttCreatedNodeValue"
+  ]
+}
+{
+  "id": 124,
+  "properties": {
+    "value": "123"
+  },
+  "labels": [
+    "MqttCreatedNodeValue"
+  ]
+}
+{
+  "id": 125,
+  "properties": {
+    "value": "123.456"
+  },
+  "labels": [
+    "MqttCreatedNodeValue"
+  ]
+}
 ----
