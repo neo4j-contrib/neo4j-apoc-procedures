@@ -19,6 +19,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
 
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
@@ -32,6 +33,7 @@ import org.neo4j.procedure.Procedure;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.UserFunction;
+import org.neo4j.graphdb.RelationshipType;
 
 import apoc.result.MapResult;
 import apoc.util.Util;
@@ -39,9 +41,8 @@ import apoc.result.VirtualNode;
 import static apoc.util.Util.labelString;
 import apoc.result.VirtualRelationship;
 import apoc.result.VirtualPathResult;
-import org.neo4j.graphdb.RelationshipType;
 import apoc.result.GraphResult;
-import org.eclipse.paho.client.mqttv3.IMqttMessageListener;
+
 
 /**
  * @author bz
@@ -107,7 +108,6 @@ public class Mqtt {
                 } else {
                     log.debug("apoc.mqtt.listSubscriptions ignoring : " + mqttBrokerId + "  " + broker.get("name"));
                 }
-
             }
         }
         log.debug("apoc.mqtt.listSubscriptions for " + mqttBrokerId + ": " + subscribeList.toString());
@@ -299,7 +299,7 @@ public class Mqtt {
 
         log.debug("apoc.mqtt.addBroker  - mqttConnectOptions: " + mqttConnectOptions.toString());
 
-        /*    TO DO ...
+        /*    TODO ...
 
 MqttClient(java.lang.String serverURI, java.lang.String clientId, MqttClientPersistence persistence)
 Create an MqttClient that can be used to communicate with an MQTT server.
@@ -424,7 +424,6 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
             log.info("apoc.mqtt.deleteBroker: " + returnMessage);
             return returnMessage;
         }
-
     }
 
     // ----------------------------------------------------------------------------------
@@ -720,7 +719,6 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                 log.error("apoc.mqtt - cypherQuery error:\n" + ex.toString());
             }
         }
-
     }
 
     // --- MqttClientNeo
@@ -959,7 +957,5 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                 return nodes;
             }
         }
-
     }
-
 }
