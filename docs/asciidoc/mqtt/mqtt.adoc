@@ -1,5 +1,5 @@
 [[mqtt]]
-= Neo4j MqTT Cypher Client
+== Neo4j MqTT Cypher Client
 
 [abstract]
 --
@@ -14,7 +14,7 @@ MqTT publish subscribe from Neo4j to MqTT broker
 
 // end::mqtt[]
 
-== Managing MqTT brokers
+=== Managing MqTT brokers
 
 MqTT broker - add, list, delete
 [source,cypher]
@@ -73,7 +73,7 @@ Neo4j MqTT broker registration response messages
 }
 ----
 
-== MqTT publish
+=== MqTT publish
 MqTT publish from Neo4j
 [source,cypher]
 ----
@@ -123,7 +123,7 @@ Neo4j MqTT publish response messages
 
 ----
 
-== MqTT subscribe
+=== MqTT subscribe
 Subscribe, list, unsubscribe MqTT topics and run Neo4j cypher
 [source,cypher]
 ----
@@ -151,8 +151,8 @@ RETURN apoc.mqtt.unSubscribe('mqttBrokerId', '/mqtt/topic/path' )
 ----
 
 
-== Examples
-=== Add MqTT broker connection and publish
+=== Examples
+==== Add MqTT broker connection and publish
 [NOTE]
 ====
  MqTT broker should be operational!
@@ -258,7 +258,7 @@ mqtt/topic/neo4jRelation {"startNodeId":60,"id":8,"type":"TEST_MQTT_RELATION","e
 
 
 
-=== Add MqTT broker connection and subscribe
+==== Add MqTT broker connection and subscribe
 
 Register localhost MqTT broker via Neo4j console
 [source,cypher]
