@@ -34,6 +34,7 @@ public class LoadXlsTest {
     private static String loadTest = Thread.currentThread().getContextClassLoader().getResource("load_test.xlsx").getPath();
     private static String testDate = Thread.currentThread().getContextClassLoader().getResource("test_date.xlsx").getPath();
     private static String brokenHeader = Thread.currentThread().getContextClassLoader().getResource("brokenHeader.xls").getPath();
+    private static String testColumnsAfterZ = Thread.currentThread().getContextClassLoader().getResource("testLoadXlsColumnsAfterZ.xlsx").getPath();
 
     @Before public void setUp() throws Exception {
         db = new TestGraphDatabaseFactory()
@@ -379,4 +380,17 @@ RETURN m.col_1,m.col_2,m.col_3
             throw e;
         }
     }
+
+    @Test
+    public void testLoadXlsColumnsAfterZ() {
+        testCall(db, "CALL apoc.load.xls($url, 'Sheet1!A1:AY10') yield list\n" +
+                "return *",
+                map("url", testColumnsAfterZ),
+                (row) -> {
+                    List<String> list = (List<String>) row.get("list");
+                    assertEquals(51, list.size());
+                    assertEquals("Details Value", list.get(50));
+                });
+    }
+
 }
