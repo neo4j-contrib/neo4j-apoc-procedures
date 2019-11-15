@@ -2,12 +2,16 @@ package apoc.export.graphml;
 
 import apoc.ApocConfig;
 import apoc.Pools;
+import apoc.export.cypher.ExportFileManager;
+import apoc.export.cypher.FileManagerFactory;
 import apoc.export.util.ExportConfig;
+import apoc.export.util.ExportUtils;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
 import apoc.util.FileUtils;
 import apoc.util.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.CypherResultSubGraph;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
@@ -20,8 +24,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-
-import static apoc.util.FileUtils.getPrintWriter;
 
 /**
  * @author mh
@@ -39,6 +41,9 @@ public class ExportGraphML {
 
     @Context
     public Pools pools;
+
+    @Context
+    public TerminationGuard terminationGuard;
 
     @Procedure(name = "apoc.import.graphml",mode = Mode.WRITE)
     @Description("apoc.import.graphml(file,config) - imports graphml file")
@@ -96,14 +101,36 @@ public class ExportGraphML {
         return exportGraphML(fileName, source, graph, c);
     }
 
-    private Stream<ProgressInfo> exportGraphML(@Name("file") String fileName, String source, SubGraph graph, ExportConfig config) throws Exception {
-        if (fileName != null) apocConfig.checkWriteAllowed(config);
-        ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "graphml"));
-        PrintWriter printWriter = getPrintWriter(fileName, null);
+    private Stream<ProgressInfo> exportGraphML(@Name("file") String fileName, String source, SubGraph graph, ExportConfig exportConfig) throws Exception {
+        if (StringUtils.isNotBlank(fileName)) apocConfig.checkWriteAllowed(exportConfig);
+        final String format = "graphml";
+        ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, format));
         XmlGraphMLWriter exporter = new XmlGraphMLWriter();
-        exporter.write(graph, printWriter, reporter, config);
-        printWriter.flush();
-        printWriter.close();
-        return reporter.stream();
+        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, false);
+        final PrintWriter graphMl = cypherFileManager.getPrintWriter(format);
+        if (exportConfig.streamStatements()) {
+            return ExportUtils.getProgressInfoStream(db, pools.getDefaultExecutorService() ,terminationGuard, format, exportConfig, reporter, cypherFileManager,
+                    (reporterWithConsumer) -> {
+                        try {
+                            exporter.write(graph, graphMl, reporterWithConsumer, exportConfig);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+        } else {
+            exporter.write(graph, graphMl, reporter, exportConfig);
+            closeWriter(graphMl);
+            return reporter.stream();
+        }
     }
+
+    private void closeWriter(PrintWriter writer) {
+        writer.flush();
+        try {
+            writer.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

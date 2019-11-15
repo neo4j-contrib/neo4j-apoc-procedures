@@ -55,3 +55,7 @@ NOTE: the following list is incomplete
 
 * on API level a `IndexDefinition` could have multiple labels. Apoc's `Schema` should reflect that - to be discussed.
 * nodes/rels acquired in one tx need to be rebound when used in another tx `tx.getNodeByid(node.getId())`
+
+## todos
+
+* make test (esp. for export functions) independent of internal node ids.

@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentMap;
  * @since 06.12.17
  */
 public class FileManagerFactory {
-    public static ExportFileManager createFileManager(String fileName, boolean separatedFiles, boolean b) {
+    public static ExportFileManager createFileManager(String fileName, boolean separatedFiles) {
         if (fileName == null) {
             return new StringExportCypherFileManager(separatedFiles);
         }
@@ -81,15 +81,23 @@ public class FileManagerFactory {
         @Override
         public PrintWriter getPrintWriter(String type) {
             if (this.separatedFiles) {
-                return new PrintWriter(writers.compute(type, (key, writer) -> writer == null ? new StringWriter() : writer));
+                return new PrintWriter(getStringWriter(type));
             } else {
-                return new PrintWriter(writers.compute(type.equals("csv") ? type : "cypher", (key, writer) -> writer == null ? new StringWriter() : writer));
+                switch (type) {
+                    case "csv":
+                    case "json":
+                    case "graphml":
+                        break;
+                    default:
+                        type = "cypher";
+                }
+                return new PrintWriter(getStringWriter(type));
             }
         }
 
         @Override
         public StringWriter getStringWriter(String type) {
-            return writers.get(type);
+            return writers.computeIfAbsent(type, (key) -> new StringWriter());
         }
 
         @Override

@@ -5,11 +5,12 @@ import apoc.Pools;
 import apoc.export.cypher.ExportFileManager;
 import apoc.export.cypher.FileManagerFactory;
 import apoc.export.util.ExportConfig;
+import apoc.export.util.ExportUtils;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
-import apoc.util.QueueBasedSpliterator;
 import apoc.util.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.*;
@@ -23,9 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * @author mh
@@ -93,27 +92,19 @@ public class ExportCSV {
     }
 
     private Stream<ProgressInfo> exportCsv(@Name("file") String fileName, String source, Object data, ExportConfig exportConfig) throws Exception {
-        apocConfig.checkWriteAllowed(exportConfig);
-        ProgressInfo progressInfo = new ProgressInfo(fileName, source, "csv");
+        if (StringUtils.isNotBlank(fileName)) apocConfig.checkWriteAllowed(exportConfig);
+        final String format = "csv";
+        ProgressInfo progressInfo = new ProgressInfo(fileName, source, format);
         progressInfo.batchSize = exportConfig.getBatchSize();
         ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
         CsvFormat exporter = new CsvFormat(db);
 
         ExportFileManager cypherFileManager = FileManagerFactory
-                .createFileManager(fileName, exportConfig.isBulkImport(), exportConfig.streamStatements());
+                .createFileManager(fileName, exportConfig.isBulkImport());
 
         if (exportConfig.streamStatements()) {
-            long timeout = exportConfig.getTimeoutSeconds();
-            final ArrayBlockingQueue<ProgressInfo> queue = new ArrayBlockingQueue<>(1000);
-            ProgressReporter reporterWithConsumer = reporter.withConsumer(
-                    (pi) -> Util.put(queue, pi == ProgressInfo.EMPTY ? ProgressInfo.EMPTY : new ProgressInfo(pi).drain(cypherFileManager.getStringWriter("csv")), timeout)
-            );
-            Util.inTxFuture(pools.getDefaultExecutorService(), db, txInThread -> {
-                dump(data, exportConfig, reporterWithConsumer, cypherFileManager, exporter);
-                return true;
-            });
-            QueueBasedSpliterator<ProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, ProgressInfo.EMPTY, terminationGuard, timeout);
-            return StreamSupport.stream(spliterator, false);
+            return ExportUtils.getProgressInfoStream(db, pools.getDefaultExecutorService(), terminationGuard, format, exportConfig, reporter, cypherFileManager,
+                    (reporterWithConsumer) -> dump(data, exportConfig, reporterWithConsumer, cypherFileManager, exporter));
         } else {
             dump(data, exportConfig, reporter, cypherFileManager, exporter);
             return reporter.stream();

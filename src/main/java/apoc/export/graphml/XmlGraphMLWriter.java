@@ -36,6 +36,7 @@ public class XmlGraphMLWriter {
             reporter.update(0, 1, props);
         }
         writeFooter(xmlWriter);
+        reporter.done();
     }
 
     private void writeKey(XMLStreamWriter writer, SubGraph ops, ExportConfig config) throws Exception {
