@@ -1,29 +1,31 @@
 package apoc.export.csv;
 
-import apoc.Pools;
 import apoc.export.cypher.ExportFileManager;
 import apoc.export.cypher.FileManagerFactory;
 import apoc.export.util.ExportConfig;
+import apoc.export.util.ExportUtils;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
-import apoc.util.QueueBasedSpliterator;
 import apoc.util.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.Result;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.TerminationGuard;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import static apoc.util.FileUtils.checkWriteAllowed;
 
@@ -88,37 +90,33 @@ public class ExportCSV {
     }
 
     private Stream<ProgressInfo> exportCsv(@Name("file") String fileName, String source, Object data, ExportConfig exportConfig) throws Exception {
-        checkWriteAllowed(exportConfig);
-        ProgressInfo progressInfo = new ProgressInfo(fileName, source, "csv");
+        if (StringUtils.isNotBlank(fileName)) checkWriteAllowed(exportConfig);
+        final String format = "csv";
+        ProgressInfo progressInfo = new ProgressInfo(fileName, source, format);
         progressInfo.batchSize = exportConfig.getBatchSize();
         ProgressReporter reporter = new ProgressReporter(null, null, progressInfo);
         CsvFormat exporter = new CsvFormat(db);
 
         ExportFileManager cypherFileManager = FileManagerFactory
-                .createFileManager(fileName, exportConfig.isBulkImport(), exportConfig.streamStatements());
+                .createFileManager(fileName, exportConfig.isBulkImport());
 
         if (exportConfig.streamStatements()) {
-            long timeout = exportConfig.getTimeoutSeconds();
-            final ArrayBlockingQueue<ProgressInfo> queue = new ArrayBlockingQueue<>(1000);
-            ProgressReporter reporterWithConsumer = reporter.withConsumer(
-                    (pi) -> Util.put(queue, pi == ProgressInfo.EMPTY ? ProgressInfo.EMPTY : new ProgressInfo(pi).drain(cypherFileManager.getStringWriter("csv")), timeout)
-            );
-            Util.inTxFuture(Pools.DEFAULT, db, () -> {
-                dump(data, exportConfig, reporterWithConsumer, cypherFileManager, exporter);
-                return true;
-            });
-            QueueBasedSpliterator<ProgressInfo> spliterator = new QueueBasedSpliterator<>(queue, ProgressInfo.EMPTY, terminationGuard, timeout);
-            return StreamSupport.stream(spliterator, false);
+            return ExportUtils.getProgressInfoStream(db, terminationGuard, format, exportConfig, reporter, cypherFileManager,
+                    (reporterWithConsumer) -> dump(data, exportConfig, reporterWithConsumer, cypherFileManager, exporter));
         } else {
             dump(data, exportConfig, reporter, cypherFileManager, exporter);
             return reporter.stream();
         }
     }
 
-    private void dump(Object data, ExportConfig c, ProgressReporter reporter, ExportFileManager printWriter, CsvFormat exporter) throws Exception {
-        if (data instanceof SubGraph)
-            exporter.dump((SubGraph)data,printWriter,reporter,c);
-        if (data instanceof Result)
-            exporter.dump((Result)data,printWriter,reporter,c);
+    private void dump(Object data, ExportConfig c, ProgressReporter reporter, ExportFileManager printWriter, CsvFormat exporter) {
+        try {
+            if (data instanceof SubGraph)
+                exporter.dump((SubGraph)data,printWriter,reporter,c);
+            if (data instanceof Result)
+                exporter.dump((Result)data,printWriter,reporter,c);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

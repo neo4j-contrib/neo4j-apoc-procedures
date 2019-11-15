@@ -155,16 +155,7 @@ public class ExportGraphMLTest {
         fw.write(EXPECTED_TYPES); fw.close();
         TestUtil.testCall(db, "CALL apoc.import.graphml({file},{readLabels:true})", map("file", output.getAbsolutePath()),
                 (r) -> {
-                    assertEquals(3L, r.get("nodes"));
-                    assertEquals(1L, r.get("relationships"));
-                    assertEquals(8L, r.get("properties"));
-                    assertEquals(output.getAbsolutePath(), r.get("file"));
-                    if (r.get("source").toString().contains(":"))
-                        assertEquals("statement" + ": nodes(2), rels(1)", r.get("source"));
-                    else
-                        assertEquals("file", r.get("source"));
-                    assertEquals("graphml", r.get("format"));
-                    assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
+                    assertResults(output, r, "statement");
                 });
 
         TestUtil.testCall(db, "MATCH  (c:Bar {age: 12, values: [1,2,3]}) RETURN COUNT(c) AS c", null, (r) -> assertEquals(1L, r.get("c")));
@@ -253,7 +244,7 @@ public class ExportGraphMLTest {
         assertXMLEquals(output, EXPECTED_FALSE);
     }
 
-    private void assertXMLEquals(File output, String xmlString) {
+    private void assertXMLEquals(Object output, String xmlString) {
         Diff myDiff = DiffBuilder.compare(xmlString)
                 .withTest(output)
                 .checkForSimilar()
@@ -420,15 +411,36 @@ public class ExportGraphMLTest {
     }
 
     private void assertResults(File output, Map<String, Object> r, final String source) {
-        assertEquals(3L, r.get("nodes"));
-        assertEquals(1L, r.get("relationships"));
-        assertEquals(8L, r.get("properties"));
+        assertCommons(r);
         assertEquals(output.getAbsolutePath(), r.get("file"));
         if (r.get("source").toString().contains(":"))
             assertEquals(source + ": nodes(3), rels(1)", r.get("source"));
         else
             assertEquals("file", r.get("source"));
+        assertNull("data should be null", r.get("data"));
+    }
+
+    private void assertCommons(Map<String, Object> r) {
+        assertEquals(3L, r.get("nodes"));
+        assertEquals(1L, r.get("relationships"));
+        assertEquals(8L, r.get("properties"));
         assertEquals("graphml", r.get("format"));
         assertTrue("Should get time greater than 0",((long) r.get("time")) > 0);
+    }
+
+    private void assertStreamResults(Map<String, Object> r, final String source) {
+        assertCommons(r);
+        assertEquals(source + ": nodes(3), rels(1)", r.get("source"));
+        assertNull("file should be null", r.get("file"));
+        assertNotNull("data should be not null", r.get("data"));
+    }
+
+    @Test
+    public void testExportAllGraphMLStream() throws Exception {
+        TestUtil.testCall(db, "CALL apoc.export.graphml.all(null, {stream: true})",
+                (r) -> {
+                    assertStreamResults(r, "database");
+                    assertXMLEquals(r.get("data"), EXPECTED_FALSE);
+                });
     }
 }
