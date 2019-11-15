@@ -39,17 +39,11 @@ public class Schemas {
     @Procedure(value = "apoc.schema.recreate", mode = Mode.SCHEMA)
     @Description("apoc.schema.recreate() - recreates indexes and constraints")
     public Stream<AssertSchemaResult> schemaRecreate(@Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws ExecutionException, InterruptedException, TimeoutException {
-        long allIndexesTimeout = (long) config.getOrDefault("retrieveIndexesTimeout", 10000L);
-        long dropAllIndexesTimeout =  (long) config.getOrDefault("dropAllIndexesTimeout", 30000L);
-        long createAllIndexesTimeout = (long) config.getOrDefault("createAllIndexesTimeout", 30000L);
 
-        long allConstraintsTimeout = (long) config.getOrDefault("retrieveConstraintsTimeout", 10000L);
-        long dropAllConstraintsTimeout =  (long) config.getOrDefault("dropAllConstraintsTimeout", 30000L);
-        long createAllConstraintsTimeout = (long) config.getOrDefault("createAllConstraintsTimeout", 30000L);
-
+        SchemaRecreationConfig schemaRecreationConfig = new SchemaRecreationConfig(config);
         return Stream.concat(
-                recreateIndexes(allIndexesTimeout, dropAllIndexesTimeout, createAllIndexesTimeout).stream(),
-                recreateConstraints(allConstraintsTimeout, dropAllConstraintsTimeout, createAllConstraintsTimeout).stream());
+                recreateIndexes(schemaRecreationConfig).stream(),
+                recreateConstraints(schemaRecreationConfig).stream());
     }
 
 
@@ -135,7 +129,7 @@ public class Schemas {
         return new AssertSchemaResult(lbl, key).unique().created();
     }
 
-    public List<AssertSchemaResult> recreateIndexes(long allIndexesTimeout, long dropAllIndexesTimeout, long recreateAllIndexesTimeout) throws ExecutionException, InterruptedException, IllegalArgumentException, TimeoutException {
+    public List<AssertSchemaResult> recreateIndexes(SchemaRecreationConfig config) throws ExecutionException, InterruptedException, IllegalArgumentException, TimeoutException {
         Schema schema = db.schema();
         List<AssertSchemaResult> result = Collections.synchronizedList(new ArrayList<>());
         ExecutorService executorService = Pools.SINGLE;
@@ -149,7 +143,7 @@ public class Schemas {
                 }
             }
             return idx;
-        }).get(allIndexesTimeout, TimeUnit.MILLISECONDS);
+        }).get(config.allIndexesTimeout(), TimeUnit.MILLISECONDS);
 
         Util.inTxFuture(executorService, db, () -> {
             for (IndexDefinition definition : indexesToRecreate) {
@@ -165,7 +159,7 @@ public class Schemas {
                 result.add(info);
             }
             return null;
-        }).get(dropAllIndexesTimeout,TimeUnit.MILLISECONDS);
+        }).get(config.dropAllIndexesTimeout(),TimeUnit.MILLISECONDS);
 
         Util.inTxFuture(executorService, db, () -> {
             for (IndexDefinition definition : indexesToRecreate) {
@@ -182,12 +176,12 @@ public class Schemas {
                 }
             }
             return null;
-        }).get(recreateAllIndexesTimeout, TimeUnit.MILLISECONDS);
+        }).get(config.createAllIndexesTimeout(), TimeUnit.MILLISECONDS);
 
         return result;
     }
 
-    public List<AssertSchemaResult> recreateConstraints(long allConstraintsTimeout, long dropAllConstraintsTimeout, long recreateAllConstraintsTimeout) throws ExecutionException, InterruptedException, TimeoutException {
+    public List<AssertSchemaResult> recreateConstraints(SchemaRecreationConfig config) throws ExecutionException, InterruptedException, TimeoutException {
         Schema schema = db.schema();
         List<AssertSchemaResult> result = Collections.synchronizedList(new ArrayList<>());
         ExecutorService executorService = Pools.SINGLE;
@@ -198,7 +192,7 @@ public class Schemas {
                 idx.add(index);
             }
             return idx;
-        }).get(allConstraintsTimeout, TimeUnit.MILLISECONDS);
+        }).get(config.allConstraintsTimeout(), TimeUnit.MILLISECONDS);
 
         Util.inTxFuture(executorService, db, () -> {
             for (ConstraintDefinition constraint : constraintsToRecreate) {
@@ -209,7 +203,7 @@ public class Schemas {
                 result.add(info);
             }
             return null;
-        }).get(dropAllConstraintsTimeout,TimeUnit.MILLISECONDS);
+        }).get(config.dropAllConstraintsTimeout(),TimeUnit.MILLISECONDS);
 
         Util.inTxFuture(executorService, db, () -> {
             for (ConstraintDefinition constraint : constraintsToRecreate) {
@@ -225,7 +219,7 @@ public class Schemas {
                 }
             }
             return null;
-        }).get(recreateAllConstraintsTimeout, TimeUnit.MILLISECONDS);
+        }).get(config.createAllConstraintsTimeout(), TimeUnit.MILLISECONDS);
 
         return result;
     }
