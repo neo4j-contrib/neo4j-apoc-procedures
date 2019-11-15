@@ -46,7 +46,6 @@ public class Schemas {
                 recreateConstraints(schemaRecreationConfig).stream());
     }
 
-
     @Procedure(value = "apoc.schema.assert", mode = Mode.SCHEMA)
     @Description("apoc.schema.assert({indexLabel:[[indexKeys]], ...}, {constraintLabel:[constraintKeys], ...}, dropExisting : true) yield label, key, keys, unique, action - drops all other existing indexes and constraints when `dropExisting` is `true` (default is `true`), and asserts that at the end of the operation the given indexes and unique constraints are there, each label:key pair is considered one constraint/label. Non-constraint indexes can define compound indexes with label:[key1,key2...] pairings.")
     public Stream<AssertSchemaResult> schemaAssert(@Name("indexes") Map<String, List<Object>> indexes, @Name("constraints") Map<String, List<Object>> constraints, @Name(value = "dropExisting", defaultValue = "true") boolean dropExisting) throws ExecutionException, InterruptedException {
@@ -131,7 +130,6 @@ public class Schemas {
 
     public List<AssertSchemaResult> recreateIndexes(SchemaRecreationConfig config) throws ExecutionException, InterruptedException, IllegalArgumentException, TimeoutException {
         Schema schema = db.schema();
-        List<AssertSchemaResult> result = Collections.synchronizedList(new ArrayList<>());
         ExecutorService executorService = Pools.SINGLE;
         List<IndexDefinition> indexesToRecreate = Util.inTxFuture(executorService, db, () -> {
             List<IndexDefinition> idx = new ArrayList<>();
@@ -145,7 +143,8 @@ public class Schemas {
             return idx;
         }).get(config.allIndexesTimeout(), TimeUnit.MILLISECONDS);
 
-        Util.inTxFuture(executorService, db, () -> {
+        List<AssertSchemaResult> dropResult = Util.inTxFuture(executorService, db, () -> {
+            List<AssertSchemaResult> result = new ArrayList<>();
             for (IndexDefinition definition : indexesToRecreate) {
                 String label = definition.getLabel().name();
                 List<String> keys = new ArrayList<>();
@@ -158,10 +157,11 @@ public class Schemas {
                 info.dropped();
                 result.add(info);
             }
-            return null;
-        }).get(config.dropAllIndexesTimeout(),TimeUnit.MILLISECONDS);
+            return result;
+        }).get(config.dropAllIndexesTimeout(), TimeUnit.MILLISECONDS);
 
-        Util.inTxFuture(executorService, db, () -> {
+        List<AssertSchemaResult> createResult = Util.inTxFuture(executorService, db, () -> {
+            List<AssertSchemaResult> result = new ArrayList<>();
             for (IndexDefinition definition : indexesToRecreate) {
                 List<String> propertyKeys = new ArrayList<>();
                 for (String propertyKey : definition.getPropertyKeys()) {
@@ -175,15 +175,17 @@ public class Schemas {
                     result.add(createCompoundIndex(definition.getLabel().name(), propertyKeys));
                 }
             }
-            return null;
+            return result;
         }).get(config.createAllIndexesTimeout(), TimeUnit.MILLISECONDS);
 
+
+        List<AssertSchemaResult> result = new ArrayList<>(dropResult);
+        result.addAll(createResult);
         return result;
     }
 
     public List<AssertSchemaResult> recreateConstraints(SchemaRecreationConfig config) throws ExecutionException, InterruptedException, TimeoutException {
         Schema schema = db.schema();
-        List<AssertSchemaResult> result = Collections.synchronizedList(new ArrayList<>());
         ExecutorService executorService = Pools.SINGLE;
         List<ConstraintDefinition> constraintsToRecreate = Util.inTxFuture(executorService, db, () -> {
             List<ConstraintDefinition> idx = new ArrayList<>();
@@ -194,7 +196,8 @@ public class Schemas {
             return idx;
         }).get(config.allConstraintsTimeout(), TimeUnit.MILLISECONDS);
 
-        Util.inTxFuture(executorService, db, () -> {
+        List<AssertSchemaResult> dropResult = Util.inTxFuture(executorService, db, () -> {
+            List<AssertSchemaResult> result = new ArrayList<>();
             for (ConstraintDefinition constraint : constraintsToRecreate) {
                 String label = constraint.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE) ? constraint.getRelationshipType().name() : constraint.getLabel().name();
                 AssertSchemaResult info = new AssertSchemaResult(label, Iterables.asList(constraint.getPropertyKeys())).unique();
@@ -202,10 +205,12 @@ public class Schemas {
                 info.dropped();
                 result.add(info);
             }
-            return null;
-        }).get(config.dropAllConstraintsTimeout(),TimeUnit.MILLISECONDS);
+            return result;
+        }).get(config.dropAllConstraintsTimeout(), TimeUnit.MILLISECONDS);
 
-        Util.inTxFuture(executorService, db, () -> {
+        List<AssertSchemaResult> createResult = Util.inTxFuture(executorService, db, () -> {
+            List<AssertSchemaResult> result = new ArrayList<>();
+
             for (ConstraintDefinition constraint : constraintsToRecreate) {
                 List<Object> propertyKeys = new ArrayList<>();
                 for (String propertyKey : constraint.getPropertyKeys()) {
@@ -218,9 +223,11 @@ public class Schemas {
                     result.add(createNodeKeyConstraint(constraint.getLabel().name(), propertyKeys));
                 }
             }
-            return null;
+            return result;
         }).get(config.createAllConstraintsTimeout(), TimeUnit.MILLISECONDS);
 
+        List<AssertSchemaResult> result = new ArrayList<>(dropResult);
+        result.addAll(createResult);
         return result;
     }
 
