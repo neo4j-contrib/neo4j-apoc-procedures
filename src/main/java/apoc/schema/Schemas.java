@@ -160,10 +160,7 @@ public class Schemas {
         List<AssertSchemaResult> createResult = Util.inTxFuture(executorService, db, () -> {
             List<AssertSchemaResult> result = new ArrayList<>();
             for (IndexDefinition definition : indexesToRecreate) {
-                List<String> propertyKeys = new ArrayList<>();
-                for (String propertyKey : definition.getPropertyKeys()) {
-                    propertyKeys.add(propertyKey);
-                }
+                List<String> propertyKeys = Iterables.asList(definition.getPropertyKeys());
 
                 if (propertyKeys.size() == 1) {
                     result.add(createSinglePropertyIndex(schema, definition.getLabel().name(), propertyKeys.get(0)));
