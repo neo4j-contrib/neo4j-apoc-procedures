@@ -87,6 +87,28 @@ public class SchemasTest {
     }
 
     @Test
+    public void recreateIndexesAndSchema() {
+        db.execute("CREATE INDEX ON :Foo(bar)").close();
+        db.execute("CREATE INDEX ON :Foo(baz)").close();
+        db.execute("CREATE CONSTRAINT ON (p:Person) ASSERT p.name IS UNIQUE").close();
+
+        List<String> initialIndexNames;
+        try (Transaction tx = db.beginTx()) {
+            initialIndexNames = Iterables.asList(db.schema().getIndexes()).stream().map(Object::toString).collect(Collectors.toList());
+        }
+
+        db.execute("CALL apoc.schema.recreate()");
+
+        try (Transaction tx = db.beginTx()) {
+            List<IndexDefinition> indexes = Iterables.asList(db.schema().getIndexes());
+            assertEquals(3, indexes.size());
+
+            List<String> newIndexNames = indexes.stream().map(Object::toString).collect(Collectors.toList());
+            assertThat(newIndexNames, IsNot.not(containsInAnyOrder(initialIndexNames.toArray())));
+        }
+    }
+
+    @Test
     public void testCreateIndex() throws Exception {
         testCall(db, "CALL apoc.schema.assert({Foo:['bar']},null)", (r) -> {
             assertEquals("Foo", r.get("label"));
