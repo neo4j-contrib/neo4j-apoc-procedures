@@ -98,7 +98,6 @@ public class ExportJsonTest {
                     assertTrue("Should get statement", r.get("source").toString().contains("statement: cols(7)"));
                     assertStreamEquals(filename, r.get("data").toString());
                 });
-        assertFileEquals(filename);
     }
 
     @Test
