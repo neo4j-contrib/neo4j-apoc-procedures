@@ -131,11 +131,11 @@ public class Schemas {
     public List<AssertSchemaResult> recreateIndexes(SchemaRecreationConfig config) throws ExecutionException, InterruptedException, IllegalArgumentException, TimeoutException {
         Schema schema = db.schema();
         ExecutorService executorService = Pools.SINGLE;
+
         List<IndexDefinition> indexesToRecreate = Util.inTxFuture(executorService, db, () -> {
             List<IndexDefinition> idx = new ArrayList<>();
             Iterable<IndexDefinition> outerIndexes = schema.getIndexes();
-            for (Iterator<IndexDefinition> it = outerIndexes.iterator(); it.hasNext(); ) {
-                IndexDefinition index = it.next();
+            for (IndexDefinition index : outerIndexes) {
                 if (!index.isConstraintIndex()) {
                     idx.add(index);
                 }
@@ -147,10 +147,7 @@ public class Schemas {
             List<AssertSchemaResult> result = new ArrayList<>();
             for (IndexDefinition definition : indexesToRecreate) {
                 String label = definition.getLabel().name();
-                List<String> keys = new ArrayList<>();
-                definition.getPropertyKeys().forEach(keys::add);
-
-                AssertSchemaResult info = new AssertSchemaResult(label, keys);
+                AssertSchemaResult info = new AssertSchemaResult(label, Iterables.asList(definition.getPropertyKeys()));
 
                 definition.drop();
 
