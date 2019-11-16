@@ -26,7 +26,7 @@ RETURN apoc.mqtt.addBroker(
  'mqttBrokerId', 
  {
     serverURI:'tcp://localhost:1883',
-    clientId:'mqttBrokerId'+'Client'+random,
+    clientId:'mqttBrokerId'+'-'+random,
     qos:0, 
     automaticReconnect:true, 
     cleanSession:false, 
