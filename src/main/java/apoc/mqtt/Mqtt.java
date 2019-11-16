@@ -423,7 +423,14 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
             @Name(value = "options", defaultValue = "{debug:false}") Map<String, Object> options
     ) {
         // --- get broker
-        log.debug("apoc.mqtt.publish request: " + mqttBrokerId + " " + topic + " " + message.toString());
+
+        String debugMessage = "apoc.mqtt.publish - mqttBrokerId: " + mqttBrokerId + " topic: " + topic + " message: " + message.toString();
+        if (options.get("debug").equals(true)) {
+            log.info(debugMessage);
+        } else {
+            log.debug(debugMessage);
+        }
+
         Map<String, Object> mqttBroker = mqttBrokersMap.getMapElementById(mqttBrokerId);
         // --- no broker found
         if (mqttBroker == null) {
@@ -482,7 +489,11 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                 returnMessage.put("message", message);
                 returnMessage.put("options", options);
                 returnMessage.put("statusMessage", "MqTT Publish OK");
-                log.debug("apoc.mqtt.publish: " + returnMessage);
+                if (options.get("debug").equals(true)) {
+                    log.info("apoc.mqtt.publish: " + returnMessage);
+                } else {
+                    log.debug("apoc.mqtt.publish: " + returnMessage);
+                }
                 return returnMessage;
             } catch (Exception ex) {
                 // ---  set statistics
@@ -536,6 +547,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                 Map<String, Object> subscribeOptions = new HashMap<String, Object>();
                 // --- set options
                 subscribeOptions.put("query", query);
+                subscribeOptions.put("debug", options.get("debug"));
                 subscribeOptions.put("lastMessageReceived", "subscribed");
                 subscribeOptions.put("messageReceivedOk", 0);
                 subscribeOptions.put("messageReceivedError", 0);
@@ -685,7 +697,19 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                 options.put("lastMessageReceived", message.toString());
                 options.put("lastMessageProcessedResults", dbResultString);
                 // --- log
-                log.debug("apoc.mqtt - ProcessMqttMessage cypherQuery results:\n" + "\n" + dbResultString);
+                String lastMessageProcessedResults = "apoc.mqtt - ProcessMqttMessage "
+                        + "\n--- toppic: \n" + topic
+                        + "\n--- message\n" + message.toString()
+                        + "\n--- cypherQuery\n" + options.get("query")
+                        + "\n--- cypherParams\n" + cypherParams.toString()
+                        + "\n--- message cypherQuery results:\n" + dbResultString
+                        + "\n";
+                if (options.get("debug").equals(true)) {
+                    log.info(lastMessageProcessedResults
+                    );
+                } else {
+                    log.debug(lastMessageProcessedResults);
+                }
                 tx.success();
             } catch (Exception ex) {
                 // --- statistics
@@ -693,7 +717,14 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                 options.put("lastMessageReceived", message.toString());
                 options.put("lastMessageProcessedResults", (String) ex.toString());
                 // --- log
-                log.error("apoc.mqtt - ProcessMqttMessage cypherQuery error: " + ex.toString());
+                String lastMessageProcessedResults = "apoc.mqtt - ProcessMqttMessage "
+                        + "\n--- toppic: \n" + topic
+                        + "\n--- message\n" + message.toString()
+                        + "\n--- cypherQuery\n" + options.get("query")
+                        + "\n--- cypherParams\n" + cypherParams.toString()
+                        + "\n--- message cypherQuery results:\n" + ex.toString()
+                        + "\n";
+                log.error(lastMessageProcessedResults);
             }
         }
     }
