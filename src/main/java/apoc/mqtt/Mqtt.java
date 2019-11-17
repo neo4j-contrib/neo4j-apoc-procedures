@@ -106,7 +106,7 @@ public class Mqtt {
         for (int i = 0; i < mqttBrokersMap.getListFromMapAllClean().size(); i++) {
             // --- get broker
             Map<String, Object> broker = mqttBrokersMap.getListFromMapAllClean().get(i);
-            // --- return requested  
+            // --- return requested
             if ((mqttBrokerId.equals("all")) || (broker.get("name").equals(mqttBrokerId))) {
                 // --- get subscriptions
                 Map<String, Object> brokerSubscriptions = (Map<String, Object>) broker.get("subscribeList");
@@ -142,7 +142,7 @@ public class Mqtt {
 
             // --- get broker
             Map<String, Object> broker = mqttBrokersMap.getListFromMapAllClean().get(i);
-            // --- return requested  
+            // --- return requested
             if ((mqttBrokerId.equals("all")) || (broker.get("name").equals(mqttBrokerId))) {
                 Map<String, Object> subscribeList = (Map<String, Object>) broker.get("subscribeList");
                 // --- get subscriptions
@@ -236,12 +236,12 @@ public class Mqtt {
     // add mqtt broker
     // ----------------------------------------------------------------------------------
     @UserFunction
-    @Description("RETURN apoc.mqtt.addBroker('mqttBrokerId', {serverURI:'tcp://localhost:1883',clientId:'mqttBrokerIdClient+random',qos:0, automaticReconnect:true, cleanSession:false, connectionTimeout:1  })")
-    public Map<String, Object> addBroker(
+    @Description("RETURN apoc.mqtt.connectBroker('mqttBrokerId', {serverURI:'tcp://localhost:1883',clientId:'mqttBrokerIdClient+random',qos:0, automaticReconnect:true, cleanSession:false, connectionTimeout:1  })")
+    public Map<String, Object> connectBroker(
             @Name("mqttBrokerId") String mqttBrokerId,
             @Name("mqttConnectOptions") Map<String, Object> mqttConnectOptions
     ) {
-        log.debug("apoc.mqtt.addBroker - initialization: " + mqttBrokerId + " " + mqttConnectOptions.toString());
+        log.debug("apoc.mqtt.connectBroker - initialization: " + mqttBrokerId + " " + mqttConnectOptions.toString());
 
         // --- check if already exists
         Map<String, Object> mqttBroker = mqttBrokersMap.getMapElementById(mqttBrokerId);
@@ -251,7 +251,7 @@ public class Mqtt {
             returnMessage.put("mqttBrokerId", mqttBrokerId);
             returnMessage.put("serverURI", mqttConnectOptions.get("serverURI"));
             returnMessage.put("statusMessage", "Broker with this name exists!");
-            log.error("apoc.mqtt.addBroker: " + returnMessage);
+            log.error("apoc.mqtt.connectBroker: " + returnMessage);
             return returnMessage;
         }
         // --- set connections options
@@ -281,7 +281,7 @@ public class Mqtt {
         if (!mqttConnectOptions.containsKey("connectionTimeout")) {
             mqttConnectOptions.put("connectionTimeout", (int) 1);
         }
-        log.debug("apoc.mqtt.addBroker - mqttConnectOptions: " + mqttConnectOptions.toString());
+        log.debug("apoc.mqtt.connectBroker - mqttConnectOptions: " + mqttConnectOptions.toString() + "\n");
 
         /*    TODO ...
 
@@ -338,12 +338,12 @@ See Also:
 IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.setRetained(boolean)
 
          */
-        // --- 
+        // ---
         try {
             // --- register boker
             MqttClientNeo mqttBrokerNeo4jClient = new MqttClientNeo(mqttConnectOptions);
 
-            log.debug("apoc.mqtt.addBroker - connect ok: " + mqttBrokerId + " " + mqttConnectOptions.get("serverURI") + " " + mqttConnectOptions.get("clientId"));
+            log.debug("apoc.mqtt.connectBroker - connect ok: " + mqttBrokerId + " " + mqttConnectOptions.get("serverURI") + " " + mqttConnectOptions.get("clientId"));
 
             // --- store broker info
             mqttConnectOptions.put("connected", true);
@@ -362,7 +362,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
             returnMessage.put("mqttBrokerId", mqttBrokerId);
             returnMessage.put("serverURI", mqttConnectOptions.get("serverURI"));
             returnMessage.put("statusMessage", "Connect MqTT OK");
-            log.info("apoc.mqtt.addBroker: " + returnMessage);
+            log.info("apoc.mqtt.connectBroker: " + returnMessage);
             return returnMessage;
         } catch (Exception ex) {
             Map<String, Object> returnMessage = new HashMap<String, Object>();
@@ -370,7 +370,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
             returnMessage.put("mqttBrokerId", mqttBrokerId);
             returnMessage.put("serverURI", mqttConnectOptions.get("serverURI"));
             returnMessage.put("statusMessage", "Failed to Connect MqTT Broker: " + ex.getMessage());
-            log.error("apoc.mqtt.addBroker: " + returnMessage);
+            log.error("apoc.mqtt.connectBroker: " + returnMessage);
             return returnMessage;
         }
     }
@@ -379,12 +379,12 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
     // delete mqtt broker
     // ----------------------------------------------------------------------------------
     @UserFunction
-    @Description("RETURN apoc.mqtt.deleteBroker('mqttBrokerId')")
-    public Map<String, Object> deleteBroker(
+    @Description("RETURN apoc.mqtt.disconnectBroker('mqttBrokerId')")
+    public Map<String, Object> disconnectBroker(
             @Name("mqttBrokerId") String mqttBrokerId
     ) {
         // --- delete broker if exists
-        log.debug("apoc.mqtt.deleteBroker initialization: " + mqttBrokerId);
+        log.debug("apoc.mqtt.disconnectBroker initialization: " + mqttBrokerId);
         Map<String, Object> mqttBroker = mqttBrokersMap.getMapElementById(mqttBrokerId);
         if (!(mqttBroker == null)) {
             if (!(mqttBroker.get("mqttBrokerNeo4jClient") == null)) {
@@ -398,7 +398,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
             returnMessage.put("status", "ok");
             returnMessage.put("mqttBrokerId", mqttBrokerId);
             returnMessage.put("statusMessage", "Broker removed.");
-            log.info("apoc.mqtt.deleteBroker: " + returnMessage);
+            log.info("apoc.mqtt.disconnectBroker: " + returnMessage);
             return returnMessage;
         } else {
             // --- return info
@@ -406,7 +406,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
             returnMessage.put("status", "ok");
             returnMessage.put("mqttBrokerId", mqttBrokerId);
             returnMessage.put("statusMessage", "NO broker to remove.");
-            log.info("apoc.mqtt.deleteBroker: " + returnMessage);
+            log.info("apoc.mqtt.disconnectBroker: " + returnMessage);
             return returnMessage;
         }
     }
@@ -424,7 +424,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
     ) {
         // --- get broker
 
-        String debugMessage = "apoc.mqtt.publish - mqttBrokerId: " + mqttBrokerId + " topic: " + topic + " message: " + message.toString();
+        String debugMessage = "apoc.mqtt.publish - initialization: mqttBrokerId: " + mqttBrokerId + " topic: " + topic + " message: " + message.toString();
         if (options.get("debug").equals(true)) {
             log.info(debugMessage);
         } else {
@@ -442,6 +442,15 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
             returnMessage.put("message", message);
             returnMessage.put("options", options);
             returnMessage.put("statusMessage", "Failed to find MqTT Broker - Check Connection");
+            if (options.get("debug").equals(true)) {
+                String lastMessagePublished = ""
+                        + "\n mqttBrokerId: " + mqttBrokerId
+                        + "\n toppic: " + topic
+                        + "\n message: " + message.toString()
+                        + "\n publish status: ERROR - " + "Failed to find MqTT Broker - Check Connection"
+                        + "\n";
+                log.info("apoc.mqtt.publish: " + lastMessagePublished);
+            }
             log.error("apoc.mqtt.publish: " + returnMessage);
             return returnMessage;
         } else {
@@ -490,10 +499,15 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                 returnMessage.put("options", options);
                 returnMessage.put("statusMessage", "MqTT Publish OK");
                 if (options.get("debug").equals(true)) {
-                    log.info("apoc.mqtt.publish: " + returnMessage);
-                } else {
-                    log.debug("apoc.mqtt.publish: " + returnMessage);
+                    String lastMessagePublished = ""
+                            + "\n mqttBrokerId: " + mqttBrokerId
+                            + "\n toppic: " + topic
+                            + "\n message: " + message.toString()
+                            + "\n publish status: OK"
+                            + "\n";
+                    log.info("apoc.mqtt.publish: " + lastMessagePublished);
                 }
+                log.debug("apoc.mqtt.publish: " + returnMessage);
                 return returnMessage;
             } catch (Exception ex) {
                 // ---  set statistics
@@ -507,6 +521,16 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                 returnMessage.put("message", message);
                 returnMessage.put("options", options);
                 returnMessage.put("statusMessage", "MqTT Publish Error: " + ex.getMessage());
+                log.error("apoc.mqtt.publish: debug" + options.get("debug"));
+                if (options.get("debug").equals(true)) {
+                    String lastMessagePublished = ""
+                            + "\n mqttBrokerId: " + mqttBrokerId
+                            + "\n toppic: " + topic
+                            + "\n message: " + message.toString()
+                            + "\n publish status: ERROR - " + ex.getMessage()
+                            + "\n";
+                    log.info("apoc.mqtt.publish: " + lastMessagePublished);
+                }
                 log.error("apoc.mqtt.publish: " + returnMessage);
                 return returnMessage;
             }
@@ -537,21 +561,31 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
             returnMessage.put("query", query);
             returnMessage.put("options", options);
             returnMessage.put("statusMessage", "Failed to find MqTT Broker - Check Connection");
+            if (options.get("debug").equals(true)) {
+                String lastMessagePublished = ""
+                        + "\n mqttBrokerId: " + mqttBrokerId
+                        + "\n toppic: " + topic
+                        + "\n query: " + query.toString()
+                        + "\n publish status: ERROR " + "Failed to find MqTT Broker - Check Connection"
+                        + "\n";
+                log.error("apoc.mqtt.publish: " + lastMessagePublished);
+            }
             log.error("apoc.mqtt.subscribe: " + returnMessage);
             return Stream.of(returnMessage).map(MapResult::new);
         } else {
             log.debug("apoc.mqtt.subscribe - mqttBroker ok");
             MqttClientNeo mqttBrokerNeo4jClient = (MqttClientNeo) mqttBroker.get("mqttBrokerNeo4jClient");
-            // --- subscribe 
+            // --- subscribe
             try {
                 Map<String, Object> subscribeOptions = new HashMap<String, Object>();
                 // --- set options
+                subscribeOptions.put("mqttBrokerId", mqttBrokerId);
                 subscribeOptions.put("query", query);
                 subscribeOptions.put("debug", options.get("debug"));
                 subscribeOptions.put("lastMessageReceived", "subscribed");
                 subscribeOptions.put("messageReceivedOk", 0);
                 subscribeOptions.put("messageReceivedError", 0);
-                // --- create cypher task                
+                // --- create cypher task
                 ProcessMqttMessage task = new ProcessMqttMessage(subscribeOptions);
                 // --- subscribe to mqtt
                 mqttBrokerNeo4jClient.subscribe(topic, task);
@@ -650,7 +684,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                 // --- set as object
                 Object input = (Object) jsonInString;
                 Map<String, Object> returnMap = new HashMap<String, Object>();
-                // --- map values 
+                // --- map values
                 if (input instanceof String) {
                     returnMap.put("value", (String) jsonInString);
                 } else if (input instanceof Integer) {
@@ -684,7 +718,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
         public void run(String topic, String message) {
             options.remove("lastMessageProcessedResults");
             log.debug("apoc.mqtt - ProcessMqttMessage run: " + options.toString());
-            // --- check message - get key-value 
+            // --- check message - get key-value
             JSONUtils checkJson = new JSONUtils();
             Map<String, Object> cypherParams = (Map<String, Object>) checkJson.jsonStringToMap(message);
             log.debug("apoc.mqtt - ProcessMqttMessage cypherParams: " + cypherParams.toString());
@@ -698,11 +732,12 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                 options.put("lastMessageProcessedResults", dbResultString);
                 // --- log
                 String lastMessageProcessedResults = "apoc.mqtt - ProcessMqttMessage "
-                        + "\n--- toppic: \n" + topic
-                        + "\n--- message\n" + message.toString()
-                        + "\n--- cypherQuery\n" + options.get("query")
-                        + "\n--- cypherParams\n" + cypherParams.toString()
-                        + "\n--- message cypherQuery results:\n" + dbResultString
+                        + "\n mqttBrokerId: " + options.get("mqttBrokerId")
+                        + "\n toppic: " + topic
+                        + "\n message: " + message.toString()
+                        + "\n cypherQuery: \n  " + options.get("query")
+                        + "\n cypherParams: \n  " + cypherParams.toString()
+                        + "\n cypherQuery results:\n  " + dbResultString
                         + "\n";
                 if (options.get("debug").equals(true)) {
                     log.info(lastMessageProcessedResults
@@ -718,11 +753,12 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                 options.put("lastMessageProcessedResults", (String) ex.toString());
                 // --- log
                 String lastMessageProcessedResults = "apoc.mqtt - ProcessMqttMessage "
-                        + "\n--- toppic: \n" + topic
-                        + "\n--- message\n" + message.toString()
-                        + "\n--- cypherQuery\n" + options.get("query")
-                        + "\n--- cypherParams\n" + cypherParams.toString()
-                        + "\n--- message cypherQuery results:\n" + ex.toString()
+                        + "\n mqttBrokerId: " + options.get("mqttBrokerId")
+                        + "\n toppic: " + topic
+                        + "\n message: " + message.toString()
+                        + "\n cypherQuery: \n  " + options.get("query")
+                        + "\n cypherParams: \n  " + cypherParams.toString()
+                        + "\n cypherQuery results:\n  " + ex.toString()
                         + "\n";
                 log.error(lastMessageProcessedResults);
             }
@@ -826,7 +862,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                     task.run(topic, message.toString());
                 }
             };
-            // --- subscribe 
+            // --- subscribe
             neo4jMqttClient.subscribe(topic, qos, topicProcesor);
         }
     }
