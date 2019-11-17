@@ -236,7 +236,7 @@ public class Mqtt {
     // add mqtt broker
     // ----------------------------------------------------------------------------------
     @UserFunction
-    @Description("RETURN apoc.mqtt.connectBroker('mqttBrokerId', {serverURI:'tcp://localhost:1883',clientId:'mqttBrokerIdClient+random',qos:0, automaticReconnect:true, cleanSession:false, connectionTimeout:1  })")
+    @Description("RETURN apoc.mqtt.connectBroker('mqttBrokerId', {serverURI:'tcp://localhost:1883',clientId:'mqttBrokerIdClient+random',qos:0, automaticReconnect:true, cleanSession:false, connectionTimeout:1, keepAliveInterval:3  })")
     public Map<String, Object> connectBroker(
             @Name("mqttBrokerId") String mqttBrokerId,
             @Name("mqttConnectOptions") Map<String, Object> mqttConnectOptions
@@ -281,6 +281,11 @@ public class Mqtt {
         if (!mqttConnectOptions.containsKey("connectionTimeout")) {
             mqttConnectOptions.put("connectionTimeout", (int) 1);
         }
+        // --- setKeepAliveInterval
+        if (!mqttConnectOptions.containsKey("keepAliveInterval")) {
+            mqttConnectOptions.put("keepAliveInterval", (int) 3);
+        }
+
         log.debug("apoc.mqtt.connectBroker - mqttConnectOptions: " + mqttConnectOptions.toString() + "\n");
 
         /*    TODO ...
@@ -781,6 +786,8 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
             connOpts.setAutomaticReconnect((Boolean) mqttConnectOptions.get("automaticReconnect"));
             connOpts.setCleanSession((Boolean) mqttConnectOptions.get("cleanSession"));
             connOpts.setConnectionTimeout((int) mqttConnectOptions.get("connectionTimeout"));
+            connOpts.setKeepAliveInterval((int) mqttConnectOptions.get("keepAliveInterval"));
+            
             // --- connect to broker
             log.debug("apoc.mqtt - MqttClientNeo connOpts: " + connOpts.toString());
             // --- connect
