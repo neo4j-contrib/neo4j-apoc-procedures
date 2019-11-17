@@ -405,6 +405,7 @@ public class Coll {
     @Description("apoc.coll.containsAll(coll, values) optimized contains-all operation (using a HashSet) (returns single row or not)")
     public boolean containsAll(@Name("coll") List<Object> coll, @Name("values") List<Object> values) {
         if (coll == null || coll.isEmpty()) return false;
+        if(values == null) return false;
         return new HashSet<>(coll).containsAll(values);
     }
 
@@ -886,5 +887,11 @@ public class Coll {
         }
 
         return newList;
+    }
+
+    @UserFunction
+    @Description("apoc.coll.fill(item, count) - returns a list with the given count of items")
+    public List<Object> fill(@Name("item") String item, @Name("count") long count) {
+        return Collections.nCopies((int) count, item);
     }
 }

@@ -15,6 +15,8 @@ import java.util.Map;
 
 import static apoc.util.MapUtil.map;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class ExportJsonTest {
@@ -56,6 +58,18 @@ public class ExportJsonTest {
     }
 
     @Test
+    public void testExportAllJsonStream() throws Exception {
+        String filename = "all.json";
+        TestUtil.testCall(db, "CALL apoc.export.json.all(null, {stream: true})",
+                map("file", filename),
+                (r) -> {
+                    assertStreamResults(r, "database");
+                    assertStreamEquals(filename, r.get("data").toString());
+                }
+        );
+    }
+
+    @Test
     public void testExportPointMapDatetimeJson() throws Exception {
         String filename = "mapPointDatetime.json";
         String query = "return {data: 1, value: {age: 12, name:'Mike', data: {number: [1,3,5], born: date('2018-10-29'), place: point({latitude: 13.1, longitude: 33.46789})}}} as map, " +
@@ -71,8 +85,27 @@ public class ExportJsonTest {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(7)"));
                     assertEquals(filename, r.get("file"));
                     assertEquals("json", r.get("format"));
+                    assertFileEquals(filename);
                 });
         assertFileEquals(filename);
+    }
+
+    @Test
+    public void testExportPointMapDatetimeStreamJson() throws Exception {
+        String filename = "mapPointDatetime.json";
+        String query = "return {data: 1, value: {age: 12, name:'Mike', data: {number: [1,3,5], born: date('2018-10-29'), place: point({latitude: 13.1, longitude: 33.46789})}}} as map, " +
+                "datetime('2015-06-24T12:50:35.556+0100') AS theDateTime, " +
+                "localdatetime('2015185T19:32:24') AS theLocalDateTime," +
+                "point({latitude: 13.1, longitude: 33.46789}) as point," +
+                "date('+2015-W13-4') as date," +
+                "time('125035.556+0100') as time," +
+                "localTime('12:50:35.556') as localTime";
+        TestUtil.testCall(db, "CALL apoc.export.json.query({query}, null, {stream: true})",
+                map("file", filename, "query", query),
+                (r) -> {
+                    assertTrue("Should get statement", r.get("source").toString().contains("statement: cols(7)"));
+                    assertStreamEquals(filename, r.get("data").toString());
+                });
     }
 
     @Test
@@ -81,7 +114,7 @@ public class ExportJsonTest {
 
         String query = "MATCH (u:User) RETURN COLLECT(u) as list";
 
-        TestUtil.testCall(db, "CALL apoc.export.json.query({query},{file})",
+        TestUtil.testCall(db, "CALL apoc.export.json.query({query}, {file})",
                 map("file", filename, "query", query),
                 (r) -> {
                     assertTrue("Should get statement",r.get("source").toString().contains("statement: cols(1)"));
@@ -338,8 +371,28 @@ public class ExportJsonTest {
     }
 
     private void assertFileEquals(String fileName) {
-        String expectedText = TestUtil.readFileToString(new File(directoryExpected, fileName));
         String actualText = TestUtil.readFileToString(new File(directory, fileName));
-        assertEquals(JsonUtil.parse(expectedText,null,Object.class), JsonUtil.parse(actualText,null,Object.class));
+        assertStreamEquals(fileName, actualText);
+    }
+
+    private void assertStreamResults(Map<String, Object> r, final String source) {
+        assertEquals(3L, r.get("nodes"));
+        assertEquals(1L, r.get("relationships"));
+        assertEquals(10L, r.get("properties"));
+        assertEquals(source + ": nodes(3), rels(1)", r.get("source"));
+        assertNull("file should be null", r.get("file"));
+        assertNotNull("data should be not null", r.get("data"));
+        assertEquals("json", r.get("format"));
+        assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
+    }
+
+    private void assertStreamEquals(String fileName, String actualText) {
+        String expectedText = TestUtil.readFileToString(new File(directoryExpected, fileName));
+        String[] actualArray = actualText.split("\n");
+        String[] expectArray = expectedText.split("\n");
+        assertEquals(expectArray.length, actualArray.length);
+        for (int i = 0; i < actualArray.length; i++) {
+            assertEquals(JsonUtil.parse(expectArray[i],null, Object.class), JsonUtil.parse(actualArray[i],null, Object.class));
+        }
     }
 }

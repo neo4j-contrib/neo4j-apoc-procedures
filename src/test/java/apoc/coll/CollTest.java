@@ -229,7 +229,7 @@ public class CollTest {
         testCall(db, "RETURN apoc.coll.containsAll([1,2,3],[1,2,3,4]) AS value", (res) -> assertEquals(false, res.get("value")));
         testCall(db, "RETURN apoc.coll.containsAll([1,1,2,3],[1,2,2,3]) AS value", (res) -> assertEquals(true, res.get("value")));
         testCall(db, "RETURN apoc.coll.containsAll(null,[1,2,3]) AS value", (res) -> assertEquals(false, res.get("value")));
-        testCall(db, "RETURN apoc.coll.containsAll(null,null) AS value", (res) -> assertEquals(true, res.get("value")));
+        testCall(db, "RETURN apoc.coll.containsAll(null,null) AS value", (res) -> assertEquals(false, res.get("value")));
         testCall(db, "RETURN apoc.coll.containsAll([1,2,3],null) AS value", (res) -> assertEquals(false, res.get("value")));
     }
 
@@ -867,6 +867,14 @@ public class CollTest {
         testResult(db, "WITH ['a','a',1,1,'hello','foo','bar','apoc','apoc!',1] AS values RETURN apoc.coll.dropDuplicateNeighbors(values) as value",
                 (row) -> {
                     assertEquals(asList("a",1L,"hello","foo","bar","apoc","apoc!",1L), row.next().get("value"));
+                });
+    }
+
+    @Test
+    public void testFill() throws Exception {
+        testResult(db, "RETURN apoc.coll.fill('abc',2) as value",
+                (row) -> {
+                    assertEquals(asList("abc","abc"), row.next().get("value"));
                 });
     }
 

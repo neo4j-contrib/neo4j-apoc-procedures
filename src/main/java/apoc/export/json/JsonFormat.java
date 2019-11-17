@@ -11,7 +11,12 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
 import org.neo4j.cypher.export.SubGraph;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -34,12 +39,15 @@ public class JsonFormat implements Format {
     }
 
     private ProgressInfo dump(Writer writer, Reporter reporter, Consumer<JsonGenerator> consumer) throws Exception {
-        try (Transaction tx = db.beginTx(); JsonGenerator jsonGenerator = getJsonGenerator(writer);) {
-
+        try (Transaction tx = db.beginTx();
+             JsonGenerator jsonGenerator = getJsonGenerator(writer)) {
             consumer.accept(jsonGenerator);
-
+            jsonGenerator.flush();
             tx.success();
+            reporter.done();
             return reporter.getTotal();
+        } finally {
+            writer.close();
         }
     }
 
@@ -56,7 +64,7 @@ public class JsonFormat implements Format {
         return dump(writer.getPrintWriter("json"), reporter, consumer);
     }
 
-    public ProgressInfo dump(Result result, Writer writer, Reporter reporter, ExportConfig config) throws Exception {
+    public ProgressInfo dump(Result result, ExportFileManager writer, Reporter reporter, ExportConfig config) throws Exception {
         Consumer<JsonGenerator> consumer = (jsonGenerator) -> {
             try {
                 String[] header = result.columns().toArray(new String[result.columns().size()]);
@@ -69,14 +77,14 @@ public class JsonFormat implements Format {
                 throw new RuntimeException(e);
             }
         };
-        return dump(writer, reporter, consumer);
+        return dump(writer.getPrintWriter("json"), reporter, consumer);
     }
 
     private JsonGenerator getJsonGenerator(Writer writer) throws IOException {
-        JsonFactory jsonF = new JsonFactory();
-        JsonGenerator jsonGenerator = jsonF.createGenerator(writer);
-        jsonGenerator.setCodec(JsonUtil.OBJECT_MAPPER);
-        jsonGenerator.setPrettyPrinter(new MinimalPrettyPrinter("\n"));
+        JsonGenerator jsonGenerator = new JsonFactory()
+                .createGenerator(writer)
+                .setCodec(JsonUtil.OBJECT_MAPPER)
+                .setPrettyPrinter(new MinimalPrettyPrinter("\n"));
         return jsonGenerator;
     }
 
@@ -158,7 +166,6 @@ public class JsonFormat implements Format {
                 JsonFormatSerializer.DEFAULT.serializeProperty(jsonGenerator, keyName, value, writeKey);
                 reporter.update(0, 0, 1);
                 break;
-
         }
     }
 

@@ -3,10 +3,12 @@ package apoc.export.json;
 import apoc.export.cypher.ExportFileManager;
 import apoc.export.cypher.FileManagerFactory;
 import apoc.export.util.ExportConfig;
+import apoc.export.util.ExportUtils;
 import apoc.export.util.NodesAndRelsSubGraph;
 import apoc.export.util.ProgressReporter;
 import apoc.result.ProgressInfo;
 import apoc.util.Util;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.cypher.export.DatabaseSubGraph;
 import org.neo4j.cypher.export.SubGraph;
 import org.neo4j.graphdb.GraphDatabaseService;
@@ -17,8 +19,8 @@ import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.TerminationGuard;
 
-import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -30,6 +32,9 @@ import static apoc.util.FileUtils.checkWriteAllowed;
 public class ExportJson {
     @Context
     public GraphDatabaseService db;
+
+    @Context
+    public TerminationGuard terminationGuard;
 
     public ExportJson(GraphDatabaseService db) {
         this.db = db;
@@ -72,20 +77,30 @@ public class ExportJson {
         return exportJson(fileName, source,result,config);
     }
 
-    private Stream<ProgressInfo> exportJson(@Name("file") String fileName, String source, Object data, Map<String,Object> config) throws Exception {
-        ExportConfig c = new ExportConfig(config);
-        checkWriteAllowed(c);
-        ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, "json"));
+    private Stream<ProgressInfo> exportJson(String fileName, String source, Object data, Map<String,Object> config) throws Exception {
+        ExportConfig exportConfig = new ExportConfig(config);
+        if (StringUtils.isNotBlank(fileName)) checkWriteAllowed(exportConfig);
+        final String format = "json";
+        ProgressReporter reporter = new ProgressReporter(null, null, new ProgressInfo(fileName, source, format));
         JsonFormat exporter = new JsonFormat(db);
+        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, false);
+        if (exportConfig.streamStatements()) {
+            return ExportUtils.getProgressInfoStream(db, terminationGuard, format, exportConfig, reporter, cypherFileManager,
+                    (reporterWithConsumer) -> dump(data, exportConfig, reporterWithConsumer, exporter, cypherFileManager));
+        } else {
+            dump(data, exportConfig, reporter, exporter, cypherFileManager);
+            return reporter.stream();
+        }
+    }
 
-        ExportFileManager cypherFileManager = FileManagerFactory.createFileManager(fileName, false, c.streamStatements());
-
-        try (PrintWriter printWriter = cypherFileManager.getPrintWriter("json")) {
+    private void dump(Object data, ExportConfig c, ProgressReporter reporter, JsonFormat exporter, ExportFileManager cypherFileManager) {
+        try {
             if (data instanceof SubGraph)
                 exporter.dump(((SubGraph)data),cypherFileManager,reporter,c);
             if (data instanceof Result)
-                exporter.dump(((Result)data),printWriter,reporter,c);
+                exporter.dump(((Result)data),cypherFileManager,reporter,c);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        return reporter.stream();
     }
 }
