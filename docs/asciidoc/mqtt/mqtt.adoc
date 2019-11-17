@@ -30,7 +30,8 @@ RETURN apoc.mqtt.connectBroker(
     qos:0, 
     automaticReconnect:true, 
     cleanSession:false, 
-    connectionTimeout:1  
+    connectionTimeout:1,
+    keepAliveInterval:3
  }
 )
 
