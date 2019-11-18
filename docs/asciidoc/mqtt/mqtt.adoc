@@ -315,7 +315,7 @@ CALL apoc.trigger.add(
     WITH prop.node as n
     RETURN apoc.mqtt.publish(
         "mqttLocalhostBroker", 
-        "graph/node/status/update", 
+        "graph/node/update/status", 
         n
     )',    
     {phase:'after'}
