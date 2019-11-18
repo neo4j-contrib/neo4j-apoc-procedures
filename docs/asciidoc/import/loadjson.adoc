@@ -172,3 +172,26 @@ UNWIND doc.route_instructions as instruction
 
 RETURN instruction
 ----
+
+== POST JSON values
+
+You can also perform a POST request by executing a query like the following:
+
+[source,cypher]
+----
+CALL apoc.load.jsonParams("https://neo4j.com/docs/search/",
+  {method: "POST"},
+  apoc.convert.toJson({query: "pagecache", version: "3.5"}))
+----
+
+You will get and as response a map like this:
+
+[source,json]
+----
+{
+  "description": "This section describes the Neo4j Admin tool.",
+  "title": "12.1. Neo4j Admin - Chapter 12. Tools",
+  "uri": "https://neo4j.com/docs/operations-manual/3.5/tools/neo4j-admin/",
+  "weight": 0.02548018842935562
+}
+----
