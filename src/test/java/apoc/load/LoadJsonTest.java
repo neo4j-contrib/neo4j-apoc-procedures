@@ -246,4 +246,16 @@ public class LoadJsonTest {
             throw e;
         }
     }
+
+    @Test
+    public void testLoadJsonParams() throws Exception {
+        testCall(db, "call apoc.load.jsonParams($url, $config, $json)",
+                map("json", "{\"query\":\"pagecache\",\"version\":\"3.5\"}",
+                        "url", "https://neo4j.com/docs/search/",
+                        "config", map("method", "POST")),
+                (row) -> {
+                    Map<String, Object> value = (Map<String, Object>) row.get("value");
+                    assertFalse("value should be not empty", value.isEmpty());
+                });
+    }
 }
