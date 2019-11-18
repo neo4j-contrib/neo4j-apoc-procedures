@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.time.*;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,10 +70,11 @@ public class LoadXls {
 
         private int toCol(String col, int defaultValue) {
             if (col == null || col.trim().isEmpty()) return defaultValue;
-            col = col.trim().toUpperCase();
-            int result  = 0;
-            for (int i=col.length()-1;i >= 0;i--) result = result * 26 + (col.charAt(i) - 'A');
-            return result;
+            AtomicInteger index = new AtomicInteger(0);
+            return Stream.of(col.trim().toUpperCase().split(""))
+                    .map(str -> new AbstractMap.SimpleEntry<>(index.getAndIncrement(), str.charAt(0) - 65))
+                    .map(e -> (26 * e.getKey()) + e.getValue())
+                    .reduce(0, Math::addExact);
         }
         private int toRow(String row, int defaultValue) {
             if (row == null || row.trim().isEmpty()) return defaultValue;
