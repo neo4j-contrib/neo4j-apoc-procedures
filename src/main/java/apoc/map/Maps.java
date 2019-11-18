@@ -1,15 +1,15 @@
 package apoc.map;
 
-import apoc.result.MapResult;
-import apoc.result.ObjectResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.UserFunction;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Maps {
 
@@ -178,18 +178,71 @@ public class Maps {
     }
 
     @UserFunction
-    @Description("apoc.map.removeKey(map,key)")
-    public Map<String,Object> removeKey(@Name("map") Map<String,Object> map, @Name("key") String key) {
+    @Description("apoc.map.removeKey(map,key,{recursive:true/false}) - remove the key from the map (recursively if recursive is true)")
+    public Map<String,Object> removeKey(@Name("map") Map<String,Object> map, @Name("key") String key,  @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
+        if (!map.containsKey(key)) {
+            return map;
+        }
         Map<String, Object> res = new LinkedHashMap<>(map);
         res.remove(key);
+        Map<String, Object> checkedConfig = config == null ? Collections.emptyMap() : config;
+        if (Util.toBoolean(config.getOrDefault("recursive", false))) {
+            for (Iterator<Map.Entry<String, Object>> iterator = res.entrySet().iterator(); iterator.hasNext(); ) {
+                Map.Entry<String, Object> entry = iterator.next();
+                if (entry.getValue() instanceof Map) {
+                    Map<String, Object> updatedMap = removeKey((Map<String, Object>) entry.getValue(), key, checkedConfig);
+                    if (updatedMap.isEmpty()) {
+                        iterator.remove();
+                    } else if (!updatedMap.equals(entry.getValue())) {
+                        entry.setValue(updatedMap);
+                    }
+                } else if (entry.getValue() instanceof Collection) {
+                    Collection<Object> values = (Collection<Object>) entry.getValue();
+                    List<Object> updatedValues = values.stream()
+                            .map(value -> value instanceof Map ? removeKey((Map<String, Object>) value, key, checkedConfig) : value)
+                            .filter(value -> value instanceof Map ? !((Map<String, Object>) value).isEmpty() : true)
+                            .collect(Collectors.toList());
+                    if (updatedValues.isEmpty()) {
+                        iterator.remove();
+                    } else  {
+                        entry.setValue(updatedValues);
+                    }
+                }
+            }
+        }
         return res;
     }
 
     @UserFunction
-    @Description("apoc.map.removeKeys(map,keys)")
-    public Map<String,Object> removeKeys(@Name("map") Map<String,Object> map, @Name("keys") List<String> keys) {
+    @Description("apoc.map.removeKeys(map,[keys],{recursive:true/false}) - remove the keys from the map (recursively if recursive is true)")
+    public Map<String, Object> removeKeys(@Name("map") Map<String, Object> map, @Name("keys") List<String> keys, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) {
         Map<String, Object> res = new LinkedHashMap<>(map);
         res.keySet().removeAll(keys);
+        Map<String, Object> checkedConfig = config == null ? Collections.emptyMap() : config;
+        if (Util.toBoolean(config.getOrDefault("recursive", false))) {
+            for (Iterator<Map.Entry<String, Object>> iterator = res.entrySet().iterator(); iterator.hasNext(); ) {
+                Map.Entry<String, Object> entry = iterator.next();
+                if (entry.getValue() instanceof Map) {
+                    Map<String, Object> updatedMap = removeKeys((Map<String, Object>) entry.getValue(), keys, checkedConfig);
+                    if (updatedMap.isEmpty()) {
+                        iterator.remove();
+                    } else if (!updatedMap.equals(entry.getValue())) {
+                        entry.setValue(updatedMap);
+                    }
+                } else if (entry.getValue() instanceof Collection) {
+                    Collection<Object> values = (Collection<Object>) entry.getValue();
+                    List<Object> updatedValues = values.stream()
+                            .map(value -> value instanceof Map ? removeKeys((Map<String, Object>) value, keys, checkedConfig) : value)
+                            .filter(value -> value instanceof Map ? !((Map<String, Object>) value).isEmpty() : true)
+                            .collect(Collectors.toList());
+                    if (updatedValues.isEmpty()) {
+                        iterator.remove();
+                    } else {
+                        entry.setValue(updatedValues);
+                    }
+                }
+            }
+        }
         return res;
     }
 

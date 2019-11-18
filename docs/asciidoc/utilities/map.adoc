@@ -22,8 +22,8 @@ endif::[]
 | apoc.map.merge({first},{second}) yield value | creates map from merging the two source maps
 | apoc.map.mergeList([{maps}]) yield value | merges all maps in the list into one
 | apoc.map.setKey(map,key,value) | returns the map with the value for this key added or replaced
-| apoc.map.removeKey(map,key) | returns the map with the key removed
-| apoc.map.removeKeys(map,[keys]) | returns the map with the keys removed
+| apoc.map.removeKey(map,key,{recursive:true/false}) | returns the map with the key removed (recursively if recursive is true)
+| apoc.map.removeKeys(map,[keys],{recursive:true/false}) | returns the map with the keys removed (recursively if recursive is true)
 | apoc.map.clean(map,[keys],[values]) yield value | removes the keys and values (e.g. null-placeholders) contained in those lists, good for data cleaning from CSV/JSON
 | apoc.map.groupBy([maps/nodes/relationships],'key') yield value | creates a map of the list keyed by the given property, with single values
 | apoc.map.groupByMulti([maps/nodes/relationships],'key') yield value | creates a map of the list keyed by the given property, with list values

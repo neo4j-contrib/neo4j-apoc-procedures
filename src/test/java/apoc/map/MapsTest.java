@@ -12,8 +12,7 @@ import java.util.*;
 
 import static apoc.util.MapUtil.map;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 import static org.junit.Assert.*;
 import static org.neo4j.helpers.collection.Iterators.asSet;
 
@@ -195,10 +194,80 @@ public class MapsTest {
             assertEquals(map("b",2L),r.get("value"));
         });
     }
+
     @Test
-    public void testRemoveKeys() throws Exception {
+    public void testRemoveLastKey() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1},'a') AS value", (r) -> {
+            assertEquals(map(),r.get("value"));
+        });
+    }
+
+    @Test
+    public void testRemoveKeyRecursively() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1,b:2,c:{a:3,b:4}},'a', {recursive:true}) AS value", (r) -> {
+            assertEquals(map("b",2L, "c", map("b",4L)),r.get("value"));
+        });
+    }
+
+    @Test
+    public void testRemoveKeyRecursivelySimpleProperties() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1,b:2},'b', {recursive:true}) AS value", (r) -> {
+            assertEquals(map("a",1L), r.get("value"));
+        });
+    }
+
+    @Test
+    public void testRemoveLastKeyRecursively() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1,b:2,c:{a:3}},'a', {recursive:true}) AS value", (r) -> {
+            assertEquals(map("b",2L),r.get("value"));
+        });
+    }
+
+    @Test
+    public void testRemoveKeyRecursivelyIncludingCollectionOfMaps() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1,b:2,c:[{a:3,b:4}, {a:4,b:5}]},'a', {recursive:true}) AS value", (r) -> {
+            assertEquals(map("b",2L, "c", asList(map("b",4L), map("b",5L))), r.get("value"));
+        });
+    }
+
+    @Test
+    public void testRemoveKeyRecursivelyIncludingCollectionOfStrings() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKey({a:1,b:2,c:['a', 'b']},'a', {recursive:true}) AS value", (r) -> {
+            assertEquals(map("b", 2L, "c", asList("a", "b")), r.get("value"));
+        });
+    }
+
+    @Test
+    public void testRemoveAllKeys() throws Exception {
         TestUtil.testCall(db, "RETURN apoc.map.removeKeys({a:1,b:2},['a','b']) AS value", (r) -> {
             assertEquals(map(),r.get("value"));
+        });
+    }
+
+    @Test
+    public void testRemoveKeysRecursively() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKeys({a:1,b:2,c:{a:3,b:4}},['a','b'], {recursive:true}) AS value", (r) -> {
+            assertEquals(map(),r.get("value"));
+        });
+    }
+
+    @Test
+    public void testRemoveKeysRecursivelyIncludingCollectionOfMaps() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKeys({a:1,b:2,c:[{a:3,b:4,d:1}, {a:4,b:5,d:3}]},['a','b'],{recursive:true}) AS value", (r) -> {
+            assertEquals(map("c", asList(map("d",1L),map("d",3L))), r.get("value"));
+        });
+    }
+    @Test
+    public void testRemoveKeysRecursivelyRemovingCollectionCompletely() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKeys({a:1,b:2,c:[{d:1}, {b:5,d:3}]},['d','b'],{recursive:true}) AS value", (r) -> {
+            assertEquals(map("a", 1L), r.get("value"));
+        });
+    }
+
+    @Test
+    public void testRemoveKeysRecursivelyIncludingCollectionOfInts() throws Exception {
+        TestUtil.testCall(db, "RETURN apoc.map.removeKeys({a:1,b:2,c:[1,2,3]},['a','b'],{recursive:true}) AS value", (r) -> {
+            assertEquals(map("c", asList(1L, 2L, 3L)), r.get("value"));
         });
     }
 
