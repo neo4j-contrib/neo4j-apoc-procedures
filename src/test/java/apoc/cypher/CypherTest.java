@@ -457,4 +457,10 @@ public class CypherTest {
                     assertEquals("C", ((Map) r.get("value")).get("cName"));
                 });
     }
+
+    @Test
+    public void testRunFileWithEmptyFile() throws Exception {
+        testResult(db, "CALL apoc.cypher.runFile('src/test/resources/empty.cypher')",
+                r -> assertFalse("should be empty", r.hasNext()));
+    }
 }
