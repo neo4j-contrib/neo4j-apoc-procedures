@@ -14,17 +14,18 @@ import org.neo4j.driver.summary.SummaryCounters;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 import org.neo4j.driver.types.Relationship;
-import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.RelationshipType;
-import org.neo4j.procedure.Context;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.io.File;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
@@ -36,13 +37,9 @@ import static apoc.util.MapUtil.map;
  */
 public class Bolt {
 
-    @Context
-    public GraphDatabaseService db;
-
     @Procedure()
     @Description("apoc.bolt.load(url-or-key, kernelTransaction, params, config) - access to other databases via bolt for read")
     public Stream<RowResult> load(@Name("url") String url, @Name("kernelTransaction") String statement, @Name(value = "params", defaultValue = "{}") Map<String, Object> params, @Name(value = "config", defaultValue = "{}") Map<String, Object> config) throws URISyntaxException {
-        if (params == null) params = Collections.emptyMap();
         if (config == null) config = Collections.emptyMap();
         boolean virtual = (boolean) config.getOrDefault("virtual", false);
         boolean addStatistics = (boolean) config.getOrDefault("statistics", false);
@@ -52,18 +49,37 @@ public class Bolt {
         UriResolver uri = new UriResolver(url, "bolt");
         uri.initialize();
 
-        try (Driver driver = GraphDatabase.driver(uri.getConfiguredUri(), uri.getToken(), driverConfig);
-             Session session = driver.session()) {
-            if (addStatistics) {
-                StatementResult statementResult = runStatement(statement, session, params, readOnly);
-                statementResult.list();
-                SummaryCounters counters = statementResult.consume().counters();
-                return Stream.of(new RowResult(toMap(counters)));
-            } else
-                return getRowResultStream(virtual, session, params, statement, readOnly);
-        } catch (Exception e) {
-            throw new RuntimeException("It's not possible to create a connection due to: " + e.getMessage());
-        }
+        SessionConfig sessionConfig = SessionConfig.builder().withDefaultAccessMode(readOnly ? AccessMode.READ : AccessMode.WRITE).build();
+
+        return withDriver(uri.getConfiguredUri(), uri.getToken(), driverConfig, driver ->
+                withSession(driver, sessionConfig, session -> {
+                    if (addStatistics) {
+                        StatementResult statementResult = session.run(statement, params);
+                        SummaryCounters counters = statementResult.consume().counters();
+                        return Stream.of(new RowResult(toMap(counters)));
+                    } else
+                        return getRowResultStream(virtual, session, params, statement);
+                }));
+    }
+
+    private <T> Stream<T> withDriver(URI uri, AuthToken token, Config config, Function<Driver, Stream<T>> function) {
+        Driver driver = GraphDatabase.driver(uri, token, config);
+        return function.apply(driver).onClose(() -> driver.close());
+    }
+
+    private <T> Stream<T> withSession(Driver driver, SessionConfig sessionConfig, Function<Session, Stream<T>> function) {
+        Session session = driver.session(sessionConfig);
+        return function.apply(session).onClose(() -> session.close());
+    }
+
+    private <T> Stream<T> withSession(Driver driver, Function<Session, Stream<T>> function) {
+        Session session = driver.session();
+        return function.apply(session).onClose(() -> session.close());
+    }
+
+    private <T> Stream<T> withTransaction(Session session, Function<Transaction, Stream<T>> function) {
+        Transaction transaction = session.beginTransaction();
+        return function.apply(transaction).onClose(() -> transaction.commit()).onClose(() -> transaction.close());
     }
 
     @Procedure()
@@ -74,21 +90,23 @@ public class Bolt {
         return load(url, statement, params, configuration);
     }
 
-    private StatementResult runStatement(@Name("kernelTransaction") String statement, Session session, Map<String, Object> finalParams, boolean read) {
-        if (read) return session.readTransaction((Transaction tx) -> tx.run(statement, finalParams));
-        else return session.writeTransaction((Transaction tx) -> tx.run(statement, finalParams));
+    private RowResult buildRowResult(Record record, Map<Long,Object> nodesCache, boolean virtual) {
+        return new RowResult(record.asMap(value -> {
+            Object entity = value.asObject();
+            if (entity instanceof Node) return toNode(entity, virtual, nodesCache);
+            if (entity instanceof Relationship) return toRelationship(entity, virtual, nodesCache);
+            if (entity instanceof Path) return toPath(entity, virtual, nodesCache);
+            return entity;
+        }));
     }
 
-    private Stream<RowResult> getRowResultStream(boolean virtual, Session session, Map<String, Object> params, String statement, boolean read) {
+    private Stream<RowResult> getRowResultStream(boolean virtual, Session session, Map<String, Object> params, String statement) {
         Map<Long, Object> nodesCache = new HashMap<>();
-        return runStatement(statement, session, params, read).stream()
-                .map(record -> new RowResult(record.asMap(value -> {
-                    Object entity = value.asObject();
-                    if (entity instanceof Node) return toNode(entity, virtual, nodesCache);
-                    if (entity instanceof Relationship) return toRelationship(entity, virtual, nodesCache);
-                    if (entity instanceof Path) return toPath(entity, virtual, nodesCache);
-                    return entity;
-                })));
+
+        return withTransaction(session, tx -> {
+            ClosedAwareDelegatingIterator<Record> iterator = new ClosedAwareDelegatingIterator(tx.run(statement, params));
+            return Iterators.stream(iterator).map(record -> buildRowResult(record, nodesCache, virtual));
+        });
     }
 
     private Object toNode(Object value, boolean virtual, Map<Long, Object> nodesCache) {
@@ -198,4 +216,5 @@ public class Bolt {
         }
         return config.build();
     }
+
 }
