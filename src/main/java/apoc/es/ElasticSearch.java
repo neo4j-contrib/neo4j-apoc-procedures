@@ -1,11 +1,10 @@
 package apoc.es;
 
-import org.apache.commons.lang3.StringUtils;
-import org.neo4j.procedure.Description;
 import apoc.load.LoadJson;
 import apoc.result.MapResult;
 import apoc.util.UrlResolver;
 import apoc.util.Util;
+import org.neo4j.procedure.Description;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
