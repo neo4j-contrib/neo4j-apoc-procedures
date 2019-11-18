@@ -183,34 +183,8 @@ public class Maps {
         if (!map.containsKey(key)) {
             return map;
         }
-        Map<String, Object> res = new LinkedHashMap<>(map);
-        res.remove(key);
-        Map<String, Object> checkedConfig = config == null ? Collections.emptyMap() : config;
-        if (Util.toBoolean(config.getOrDefault("recursive", false))) {
-            for (Iterator<Map.Entry<String, Object>> iterator = res.entrySet().iterator(); iterator.hasNext(); ) {
-                Map.Entry<String, Object> entry = iterator.next();
-                if (entry.getValue() instanceof Map) {
-                    Map<String, Object> updatedMap = removeKey((Map<String, Object>) entry.getValue(), key, checkedConfig);
-                    if (updatedMap.isEmpty()) {
-                        iterator.remove();
-                    } else if (!updatedMap.equals(entry.getValue())) {
-                        entry.setValue(updatedMap);
-                    }
-                } else if (entry.getValue() instanceof Collection) {
-                    Collection<Object> values = (Collection<Object>) entry.getValue();
-                    List<Object> updatedValues = values.stream()
-                            .map(value -> value instanceof Map ? removeKey((Map<String, Object>) value, key, checkedConfig) : value)
-                            .filter(value -> value instanceof Map ? !((Map<String, Object>) value).isEmpty() : true)
-                            .collect(Collectors.toList());
-                    if (updatedValues.isEmpty()) {
-                        iterator.remove();
-                    } else  {
-                        entry.setValue(updatedValues);
-                    }
-                }
-            }
-        }
-        return res;
+
+        return removeKeys(map, Collections.singletonList(key), config);
     }
 
     @UserFunction
@@ -219,7 +193,8 @@ public class Maps {
         Map<String, Object> res = new LinkedHashMap<>(map);
         res.keySet().removeAll(keys);
         Map<String, Object> checkedConfig = config == null ? Collections.emptyMap() : config;
-        if (Util.toBoolean(config.getOrDefault("recursive", false))) {
+        boolean removeRecursively = Util.toBoolean(checkedConfig.getOrDefault("recursive", false));
+        if (removeRecursively) {
             for (Iterator<Map.Entry<String, Object>> iterator = res.entrySet().iterator(); iterator.hasNext(); ) {
                 Map.Entry<String, Object> entry = iterator.next();
                 if (entry.getValue() instanceof Map) {
