@@ -184,7 +184,7 @@ CALL apoc.load.jsonParams("https://neo4j.com/docs/search/",
   apoc.convert.toJson({query: "pagecache", version: "3.5"}))
 ----
 
-You will get and as response a map like this:
+You will receive the following response:
 
 [source,json]
 ----
