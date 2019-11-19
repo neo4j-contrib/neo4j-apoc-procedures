@@ -10,6 +10,8 @@ MqTT publish subscribe from Neo4j graph database
 ====
  based on org.eclipse.paho.client.mqttv3 library 
  tested with Eclipse Mosquitto 1.5.8 MqTT broker
+ tested with Neo4j 3.5.12 community
+ only MqTT version 3.1.1 and 3.1 supported
  only tcp protocol currently supported
 ====
 
@@ -234,7 +236,7 @@ RETURN apoc.mqtt.publish(
 )
 
 // --- neo4j relation ---
-CREATE (s)-[r:TEST_MQTT_RELATION {string:"string", int:123, boolean:true}]->(e) 
+CREATE (s:TestMqttNode)-[r:TEST_MQTT_RELATION {string:"string", int:123, boolean:true}]->(e:TestMqttNode) 
 WITH r AS neo4jRelation
 RETURN apoc.mqtt.publish(
     'mqttLocalhostBroker', 
@@ -256,6 +258,26 @@ mqtt/topic/valueBoolean true
 mqtt/topic/neo4jNode {"id":80,"properties":{"boolean":true,"string":"string","int":123},"labels":"TestMqttNode:TestNode"}
 mqtt/topic/neo4jRelation {"startNodeId":60,"id":8,"type":"TEST_MQTT_RELATION","endNodeId":61,"properties":{"boolean":true,"string":"string","int":123}}
 
+----
+
+==== Send MqTT messages stream on graph query 
+[source,cypher]
+----
+// --- node query to mqtt ---
+MATCH (n:Device) RETURN apoc.mqtt.publish( "mqttLocalhostBroker", "graph/query/node", n)
+
+// --- setup test graph ---
+CREATE (s:TestMqttNode)-[r:TEST_MQTT_RELATION {string:"string", int:123, boolean:true}]->(e:TestMqttNode) 
+CREATE (s:TestMqttNode)-[r:TEST_MQTT_RELATION {string:"string", int:222, boolean:false}]->(e:TestMqttNode) 
+
+// --- stream mqtt messages on cypher query ---
+MATCH p=(  (start)-[:TEST_MQTT_RELATION]->(end) )  
+WITH  nodes(p) AS nodes, relationships(p) AS links
+UNWIND nodes AS n 
+WITH apoc.mqtt.publish( "mqttLocalhostBroker", "graph/query/node", n) AS a, links
+UNWIND links AS l 
+WITH apoc.mqtt.publish( "mqttLocalhostBroker", "graph/query/relation", l) AS b
+RETURN *
 ----
 
 
