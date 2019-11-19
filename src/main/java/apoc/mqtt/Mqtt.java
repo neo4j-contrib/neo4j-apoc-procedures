@@ -289,7 +289,8 @@ public class Mqtt {
         log.debug("apoc.mqtt.connectBroker - mqttConnectOptions: " + mqttConnectOptions.toString() + "\n");
 
         /*    TODO ...
-
+https://www.eclipse.org/paho/files/javadoc/org/eclipse/paho/client/mqttv3/MqttConnectOptions.html
+        
 MqttClient(java.lang.String serverURI, java.lang.String clientId, MqttClientPersistence persistence)
 Create an MqttClient that can be used to communicate with an MQTT server.
 void	setAutomaticReconnect(boolean automaticReconnect)
@@ -474,7 +475,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                     mqttMesageString = mapper.writeValueAsString(jsonParams).toString();
                 } else if (message instanceof Node) {
                     jsonParams.put("id", (int) ((Node) message).getId());
-                    jsonParams.put("labels", (String) labelString((Node) message)); // (String)((Node) message).getLabels().toString());
+                    jsonParams.put("labels", (List) ((Node) message).getLabels()); // (String)((Node) message).getLabels().toString());
                     jsonParams.put("properties", (Map<String, Object>) ((Node) message).getAllProperties());
                     mqttMesageString = mapper.writeValueAsString(jsonParams).toString();
                 } else if (message instanceof Relationship) {
