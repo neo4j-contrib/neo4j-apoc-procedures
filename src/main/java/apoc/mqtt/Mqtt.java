@@ -475,7 +475,7 @@ IMqttClient.publish(String, MqttMessage), MqttMessage.setQos(int), MqttMessage.s
                     mqttMesageString = mapper.writeValueAsString(jsonParams).toString();
                 } else if (message instanceof Node) {
                     jsonParams.put("id", (int) ((Node) message).getId());
-                    jsonParams.put("labels", (List) ((Node) message).getLabels()); // (String)((Node) message).getLabels().toString());
+                    jsonParams.put("labels", (List<String>) Util.labelStrings((Node) message)); // (String)((Node) message).getLabels().toString());
                     jsonParams.put("properties", (Map<String, Object>) ((Node) message).getAllProperties());
                     mqttMesageString = mapper.writeValueAsString(jsonParams).toString();
                 } else if (message instanceof Relationship) {
