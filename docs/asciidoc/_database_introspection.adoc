@@ -13,9 +13,12 @@ For more on these procedures, see:
 * <<meta-graph>>
 * <<neo4j-config>>
 * <<monitoring>>
+* <<systemdb>>
 
 include::introspection/meta.adoc[leveloffset=2]
 
 include::introspection/config.adoc[leveloffset=2]
 
 include::introspection/monitoring.adoc[leveloffset=2]
+
+include::introspection/systemdb.adoc[leveloffset=2]
