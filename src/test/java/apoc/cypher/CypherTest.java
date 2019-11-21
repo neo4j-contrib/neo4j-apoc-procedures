@@ -456,7 +456,7 @@ public class CypherTest {
 
     @Test
     public void testRunFileWithEmptyFile() throws Exception {
-        testResult(db, "CALL apoc.cypher.runFile('src/test/resources/empty.cypher')",
+        testResult(db, "CALL apoc.cypher.runFile('empty.cypher')",
                 r -> assertFalse("should be empty", r.hasNext()));
     }
 }
