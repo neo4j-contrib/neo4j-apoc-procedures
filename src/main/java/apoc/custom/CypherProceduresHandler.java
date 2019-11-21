@@ -23,14 +23,17 @@ import org.neo4j.logging.Log;
 import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
+import org.neo4j.scheduler.Group;
+import org.neo4j.scheduler.JobHandle;
+import org.neo4j.scheduler.JobScheduler;
 import org.neo4j.values.AnyValue;
 import org.neo4j.values.ValueMapper;
 import org.neo4j.values.storable.Values;
 import org.neo4j.values.virtual.MapValueBuilder;
 import org.neo4j.values.virtual.VirtualValues;
 
-import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,42 +57,40 @@ public class CypherProceduresHandler implements AvailabilityListener {
     private final Log log;
     private final GraphDatabaseService systemDb;
     private final GlobalProceduresRegistry globalProceduresRegistry;
-    private Timer timer = new Timer(getClass().getSimpleName(), true);
+    private final JobScheduler jobScheduler;
     private long lastUpdate;
     private final ThrowingFunction<Context, Transaction, ProcedureException> transactionComponentFunction;
     private Set<ProcedureSignature> registeredProcedureSignatures = emptySet();
     private Set<UserFunctionSignature> registeredUserFunctionSignatures = emptySet();
+    public static Group REFRESH_GROUP = Group.STORAGE_MAINTENANCE;
+    private JobHandle restoreProceduresHandle;
 
-    public CypherProceduresHandler(GraphDatabaseAPI db, ApocConfig apocConfig, Log userLog, GlobalProceduresRegistry globalProceduresRegistry) {
+
+    public CypherProceduresHandler(GraphDatabaseAPI db, JobScheduler jobScheduler, ApocConfig apocConfig, Log userLog, GlobalProceduresRegistry globalProceduresRegistry) {
         this.api = db;
         this.log = userLog;
+        this.jobScheduler = jobScheduler;
         this.systemDb = apocConfig.getSystemDb();
         this.globalProceduresRegistry = globalProceduresRegistry;
         transactionComponentFunction = globalProceduresRegistry.lookupComponentProvider(Transaction.class, true);
+
     }
 
     @Override
     public void available() {
         restoreProceduresAndFunctions();
         long refreshInterval = apocConfig().getInt(CUSTOM_PROCEDURES_REFRESH, 60000);
-        timer.scheduleAtFixedRate(new TimerTask() {
-            public void run() {
-                try {
-                    if (getLastUpdate() > lastUpdate) {
-                        System.out.println(LocalDateTime.now() + " running scheduled restore");
-                        restoreProceduresAndFunctions();
-                    }
-                } catch (DatabaseShutdownException e) {
-                    // ignore
-                }
+        restoreProceduresHandle = jobScheduler.scheduleRecurring(REFRESH_GROUP, () -> {
+            if (getLastUpdate() > lastUpdate) {
+                restoreProceduresAndFunctions();
             }
-        }, refreshInterval, refreshInterval);
+        }, refreshInterval, refreshInterval, TimeUnit.MILLISECONDS);
     }
 
     @Override
     public void unavailable() {
-        if (timer != null) {
-            timer.cancel();
+        if (restoreProceduresHandle != null) {
+            restoreProceduresHandle.cancel();
         }
     }
 
@@ -108,7 +109,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
                     } else {
                         throw new IllegalStateException("don't know what to do with systemdb node " + node);
                     }
-                }).onClose(() -> tx.close());
+                }).onClose(tx::close);
     }
 
     private ProcedureDescriptor procedureDescriptor(Node node) {
@@ -269,8 +270,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
     private long getLastUpdate() {
         return withSystemDb( tx -> {
             Node node = tx.findNode(SystemLabels.ApocCypherProceduresMeta, SystemPropertyKeys.database.name(), api.databaseName());
-            long retVal = node == null ? 0L : (long) node.getProperty(SystemPropertyKeys.lastUpdated.name());
-            return retVal;
+            return node == null ? 0L : (long) node.getProperty(SystemPropertyKeys.lastUpdated.name());
         });
     }
 
@@ -387,7 +387,6 @@ public class CypherProceduresHandler implements AvailabilityListener {
                             FieldSignature.inputField(pair.get(0), typeof(pair.get(1))) :
                             FieldSignature.inputField(pair.get(0), typeof(pair.get(1)), defaultValue);
                 }).collect(Collectors.toList());
-        ;
         return inputSignature;
     }
 
