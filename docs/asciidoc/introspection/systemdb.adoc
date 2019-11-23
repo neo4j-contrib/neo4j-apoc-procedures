@@ -18,10 +18,12 @@ and might change within minor release updates.
 [cols="1m,5"]
 |===
 | apoc.systemdb.graph | returns a `nodes` and `relationships` stored in systemdb.
+| apoc.systemdb.execute | executes an DDL command on system db, yields `row` for further processing
 |===
 
 .isType example
 [source,cypher]
 ----
-CALL apoc.systemdb.graph() YIELD nodes, relationships RETURN *
+CALL apoc.systemdb.graph() YIELD nodes, relationships RETURN *;
+CALL apoc.systemdb.execute('SHOW DATABASES') YIELD row RETURN row.name as dbName;
 ----
