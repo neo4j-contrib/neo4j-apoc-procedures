@@ -9,6 +9,7 @@ import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
+import org.neo4j.internal.helpers.collection.MapUtil;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
@@ -41,6 +42,17 @@ public class SystemDbTest {
             assertThat( names, Matchers.containsInAnyOrder("neo4j", "system"));
 
             assertTrue(relationships.isEmpty());
+        });
+    }
+
+    @Test
+    public void testExecute() {
+        TestUtil.testResult(db, "CALL apoc.systemdb.execute('SHOW DATABASES') YIELD row RETURN row", result -> {
+            List<Map<String, Object>> rows = Iterators.asList(result.columnAs("row"));
+            assertThat(rows, Matchers.containsInAnyOrder(
+                    MapUtil.map("name", "system", "default", false, "status", "online"),
+                    MapUtil.map("name", "neo4j", "default", true, "status", "online")
+            ));
         });
     }
 }
