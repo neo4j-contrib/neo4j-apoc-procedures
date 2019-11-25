@@ -9,8 +9,6 @@ This chapter describes indexing procedures in the APOC library.
 These procedures complement the indexing functionality that comes out of the box.
 
 * <<schema-index-operations>>
-* <<manual-indexes>>
-* <<fulltext-index>>
 
 [[schema-index-operations]]
 === Schema Index Procedures
@@ -30,7 +28,3 @@ This section describes procedures that can be used to create and query schema in
 |===
 
 include::indexing/schema-index.adoc[leveloffset=4]
-
-include::indexing/manual.adoc[leveloffset=2]
-
-include::indexing/fulltext.adoc[leveloffset=2]
