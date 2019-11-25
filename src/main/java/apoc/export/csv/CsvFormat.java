@@ -1,23 +1,44 @@
 package apoc.export.csv;
 
 import apoc.export.cypher.ExportFileManager;
-import apoc.export.util.*;
+import apoc.export.util.ExportConfig;
+import apoc.export.util.Format;
+import apoc.export.util.FormatUtils;
+import apoc.export.util.MetaInformation;
+import apoc.export.util.Reporter;
 import apoc.result.ProgressInfo;
 import com.opencsv.CSVWriter;
 import org.neo4j.cypher.export.SubGraph;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Entity;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static apoc.export.util.BulkImportUtil.formatHeader;
-import static apoc.export.util.MetaInformation.*;
+import static apoc.export.util.MetaInformation.collectPropTypesForNodes;
+import static apoc.export.util.MetaInformation.collectPropTypesForRelationships;
+import static apoc.export.util.MetaInformation.getLabelsString;
+import static apoc.export.util.MetaInformation.updateKeyTypes;
 import static apoc.util.Util.joinLabels;
 
 /**
@@ -25,6 +46,7 @@ import static apoc.util.Util.joinLabels;
  * @since 22.11.16
  */
 public class CsvFormat implements Format {
+    public static final String ID = "id";
     private final GraphDatabaseService db;
     private boolean applyQuotesToAll = true;
 
@@ -146,7 +168,7 @@ public class CsvFormat implements Format {
 
     private void writeNodesBulkImport(Reporter reporter, ExportConfig config, ExportFileManager writer, Map<Iterable<Label>, List<Node>> objectNode) {
         objectNode.entrySet().forEach(entrySet -> {
-            Set<String> headerNode = generateHeaderNode(entrySet);
+            Set<String> headerNode = generateHeaderNodeBulkImport(entrySet);
 
             List<List<String>> rows = entrySet.getValue()
                     .stream()
@@ -157,7 +179,7 @@ public class CsvFormat implements Format {
                                 return joinLabels(entrySet.getKey(), config.getArrayDelim());
                             }
                             String prop = s.split(":")[0];
-                            return prop.equals("id") ? String.valueOf(n.getId()) : cleanPoint(FormatUtils.toString(n.getProperty(prop, "")));
+                            return "".equals(prop) ? String.valueOf(n.getId()) : cleanPoint(FormatUtils.toString(n.getProperty(prop, "")));
                         }).collect(Collectors.toList());
                     })
                     .collect(Collectors.toList());
@@ -169,7 +191,7 @@ public class CsvFormat implements Format {
 
     private void writeRelsBulkImport(Reporter reporter, ExportConfig config, ExportFileManager writer, Map<RelationshipType, List<Relationship>> objectRel) {
         objectRel.entrySet().forEach(entrySet -> {
-            Set<String> headerRel = generateHeaderRelationship(entrySet);
+            Set<String> headerRel = generateHeaderRelationshipBulkImport(entrySet);
 
             List<List<String>> rows = entrySet.getValue()
                     .stream()
@@ -185,7 +207,7 @@ public class CsvFormat implements Format {
                                     return entrySet.getKey().name();
                                 default:
                                     String prop = s.split(":")[0];
-                                    return prop.equals("id") ? String.valueOf(r.getId()) : cleanPoint(FormatUtils.toString(r.getProperty(prop, "")));
+                                    return "".equals(prop) ? String.valueOf(r.getId()) : cleanPoint(FormatUtils.toString(r.getProperty(prop, "")));
                             }
                         }).collect(Collectors.toList());
                     })
@@ -201,24 +223,27 @@ public class CsvFormat implements Format {
         return point;
     }
 
-    private Set<String> generateHeaderNode(Map.Entry<Iterable<Label>, List<Node>> entrySet) {
+    private Set<String> generateHeaderNodeBulkImport(Map.Entry<Iterable<Label>, List<Node>> entrySet) {
         Set<String> headerNode = new LinkedHashSet<>();
-        headerNode.add("id:ID");
+        headerNode.add(":ID");
         Map<String,Class> keyTypes = new LinkedHashMap<>();
         entrySet.getValue().forEach(node -> updateKeyTypes(keyTypes, node));
-        headerNode.addAll(keyTypes.entrySet().stream().map(stringClassEntry -> formatHeader(stringClassEntry)).collect(Collectors.toCollection(LinkedHashSet::new)));
+        final LinkedHashSet<String> otherFields = keyTypes.entrySet().stream()
+                .map(stringClassEntry -> formatHeader(stringClassEntry))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        headerNode.addAll(otherFields);
         headerNode.add(":LABEL");
         return headerNode;
     }
 
-    private Set<String> generateHeaderRelationship(Map.Entry<RelationshipType, List<Relationship>> entrySet) {
+    private Set<String> generateHeaderRelationshipBulkImport(Map.Entry<RelationshipType, List<Relationship>> entrySet) {
         Set<String> headerNode = new LinkedHashSet<>();
         Map<String,Class> keyTypes = new LinkedHashMap<>();
         entrySet.getValue().forEach(relationship -> updateKeyTypes(keyTypes, relationship));
-        headerNode.addAll(keyTypes.entrySet().stream().map(stringClassEntry -> formatHeader(stringClassEntry)).collect(Collectors.toCollection(LinkedHashSet::new)));
         headerNode.add(":START_ID");
         headerNode.add(":END_ID");
         headerNode.add(":TYPE");
+        headerNode.addAll(keyTypes.entrySet().stream().map(stringClassEntry -> formatHeader(stringClassEntry)).collect(Collectors.toCollection(LinkedHashSet::new)));
         return headerNode;
     }
 

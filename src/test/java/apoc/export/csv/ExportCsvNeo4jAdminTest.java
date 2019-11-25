@@ -25,22 +25,22 @@ import static org.junit.Assert.assertEquals;
 public class ExportCsvNeo4jAdminTest {
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_TYPES_NODE = String
-            .format("id:ID;born_3D:point;localtime:localtime;time:time;localDateTime:localdatetime;duration:duration;dateTime:datetime;born_2D:point;date:date;:LABEL%n");
+            .format(":ID;born_3D:point;localtime:localtime;time:time;localDateTime:localdatetime;duration:duration;dateTime:datetime;born_2D:point;date:date;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_TYPES_NODE = String
             .format("6;{crs:wgs-84-3d,latitude:56.7,longitude:12.78,height:100.0};12:50:35.556;12:50:35.556+01:00;2018-10-30T19:32:24;P5M1DT12H;2018-10-30T12:50:35.556+01:00;{crs:cartesian,x:2.3,y:4.5};2018-10-30;Types%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS = String
-            .format("id:ID;name;street;:LABEL%n");
+            .format(":ID;name;street;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_ADDRESS1 = String
-            .format("id:ID;street;name;city;:LABEL%n");
+            .format(":ID;street;name;city;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER = String
-            .format("id:ID;name;age:long;:LABEL%n");
+            .format(":ID;name;age:long;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_NODE_USER1 = String
-            .format("id:ID;name;age:long;male:boolean;kids;:LABEL%n");
+            .format(":ID;name;age:long;male:boolean;kids;:LABEL%n");
 
     private static final String EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_RELATIONSHIP_KNOWS = String
             .format(":START_ID;:END_ID;:TYPE%n");
@@ -169,6 +169,44 @@ public class ExportCsvNeo4jAdminTest {
         assertEquals(fileName, r.get("file"));
         assertEquals("csv", r.get("format"));
         assertTrue("Should get time greater than 0",((long) r.get("time")) >= 0);
+    }
+
+    @Test
+    public void testExportCypherWithIdField() throws Exception {
+        // given
+        db.executeTransactionally("MATCH (n) DETACH DELETE n");
+        final Map<String, Object> map = db.executeTransactionally("CREATE (source:User:Larus{id: 1, name: 'Andrea'})-[:KNOWS{id: 10}]->(target:User:Neo4j{id: 2, name: 'Michael'})\n" +
+                "RETURN id(source) as sourceId, id(target) as targetId", Collections.emptyMap(), result ->  Iterators.single(result) );
+        final String fileName = "export_id_field";
+        String fileNameWithExtension = fileName + ".csv";
+        File dir = new File(directory, fileNameWithExtension);
+
+        // when
+        TestUtil.testCall(db, "CALL apoc.export.csv.all($fileNameWithExtension,{bulkImport: true})",
+                map("fileNameWithExtension", fileNameWithExtension), r -> {
+                    // then
+                    assertEquals(20000L, r.get("batchSize"));
+                    assertEquals(1L, r.get("batches"));
+                    assertEquals(2L, r.get("nodes"));
+                    assertEquals(3L, r.get("rows"));
+                    assertEquals(1L, r.get("relationships"));
+                    assertEquals(5L, r.get("properties"));
+                    assertTrue("Should get time greater than 0",
+                            ((long) r.get("time")) >= 0);
+
+                    String file = dir.getParent() + File.separator;
+                    String expectedNodesLarus = String.format(":ID,name,id:long,:LABEL%n"
+                            + "%s,Andrea,1,User;Larus%n", map.get("sourceId"));
+                    String expectedNodesNeo4j = String.format(":ID,name,id:long,:LABEL%n"
+                            +"%s,Michael,2,User;Neo4j%n", map.get("targetId"));
+                    String expectedRelsNeo4j = String.format(":START_ID,:END_ID,:TYPE,id:long%n"
+                            + "%s,%s,KNOWS,10%n", map.get("sourceId"), map.get("targetId"));
+
+                    assertFileEquals(file, expectedNodesLarus, fileName + ".nodes.User.Larus.csv");
+                    assertFileEquals(file, expectedNodesNeo4j, fileName + ".nodes.User.Neo4j.csv");
+                    assertFileEquals(file, expectedRelsNeo4j, fileName + ".relationships.KNOWS.csv");
+                }
+        );
     }
 }
 
