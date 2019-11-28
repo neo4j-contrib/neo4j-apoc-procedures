@@ -24,8 +24,6 @@ public abstract class RelationshipTypeAndDirections {
                 return type + ">";
             case INCOMING:
                 return "<" + type;
-            case BOTH:
-                return type;
             default:
                 return type;
         }

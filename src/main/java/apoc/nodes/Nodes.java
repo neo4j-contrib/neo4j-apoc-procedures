@@ -3,16 +3,45 @@ package apoc.nodes;
 import apoc.create.Create;
 import apoc.refactor.util.PropertiesManager;
 import apoc.refactor.util.RefactorConfig;
-import apoc.result.*;
+import apoc.result.LongResult;
+import apoc.result.NodeResult;
+import apoc.result.RelationshipResult;
+import apoc.result.VirtualNode;
+import apoc.result.VirtualPathResult;
 import apoc.util.Util;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
-import org.neo4j.internal.kernel.api.*;
+import org.neo4j.internal.kernel.api.CursorFactory;
+import org.neo4j.internal.kernel.api.NodeCursor;
+import org.neo4j.internal.kernel.api.Read;
+import org.neo4j.internal.kernel.api.RelationshipGroupCursor;
+import org.neo4j.internal.kernel.api.RelationshipTraversalCursor;
+import org.neo4j.internal.kernel.api.TokenRead;
 import org.neo4j.kernel.api.KernelTransaction;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
+import org.neo4j.procedure.UserFunction;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -466,10 +495,29 @@ public class Nodes {
         return result;
     }
 
+    @UserFunction("apoc.nodes.relationship.types")
+    @Description("apoc.nodes.relationship.types(node|nodes|id|[ids], rel-direction-pattern) - returns " +
+            "a list of maps where each one has two fields: `node` which is the node subject of the analysis " +
+            "and `types` which is a list of distinct relationship types")
+    public List<Map<String, Object>> nodesRelationshipTypes(@Name("ids") Object ids, @Name(value = "types",defaultValue = "") String types) {
+        if (ids == null) return null;
+        return Util.nodeStream(db, ids)
+                .map(node -> {
+                    final List<String> relationshipTypes = relationshipTypes(node, types);
+                    if (relationshipTypes == null) {
+                        // in order to avoid possible NullPointerException because we'll use Collectors#toMap which uses Map#merge
+                        return null;
+                    }
+                    return map("node", node, "types", relationshipTypes);
+                })
+                .filter(e -> e != null)
+                .collect(Collectors.toList());
+    }
+
     @UserFunction("apoc.node.relationships.exist")
     @Description("apoc.node.relationships.exist(node, rel-direction-pattern) - returns a map with rel-pattern, boolean for the given relationship patterns")
-    public Map<String,Boolean> relationshipExists(@Name("node") Node node, @Name(value = "types",defaultValue = "") String types) {
-        if (node==null) return null;
+    public Map<String,Boolean> relationshipExists(@Name("node") Node node, @Name(value = "types", defaultValue = "") String types) {
+        if (node == null || types == null || types.isEmpty()) return null;
         List<String> relTypes = Iterables.asList(Iterables.map(RelationshipType::name, node.getRelationshipTypes()));
         Map<String,Boolean> result =  new HashMap<>();
         for (Pair<RelationshipType, Direction> p : parse(types)) {
@@ -478,6 +526,25 @@ public class Nodes {
             result.put(format(p), hasRelationship);
         }
         return result;
+    }
+
+    @UserFunction("apoc.nodes.relationships.exist")
+    @Description("apoc.nodes.relationships.exist(node|nodes|id|[ids], rel-direction-pattern) - returns " +
+            "a list of maps where each one has two fields: `node` which is the node subject of the analysis " +
+            "and `exists` which is a map with rel-pattern, boolean for the given relationship patterns")
+    public List<Map<String, Object>> nodesRelationshipExists(@Name("ids") Object ids, @Name(value = "types", defaultValue = "") String types) {
+        if (ids == null) return null;
+        return Util.nodeStream(db, ids)
+                .map(node -> {
+                    final Map<String, Boolean> existsMap = relationshipExists(node, types);
+                    if (existsMap == null) {
+                        // in order to avoid possible NullPointerException because we'll use Collectors#toMap which uses Map#merge
+                        return null;
+                    }
+                    return map("node", node, "exists", existsMap);
+                })
+                .filter(e -> e != null)
+                .collect(Collectors.toList());
     }
 
     @UserFunction
