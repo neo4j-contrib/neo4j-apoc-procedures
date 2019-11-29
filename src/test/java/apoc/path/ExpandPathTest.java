@@ -47,6 +47,23 @@ public class ExpandPathTest {
 	}
 
 	@Test
+	public void testExplorePathAnyRelTypeTest() throws Throwable {
+		TestUtil.testCall(db,
+				"MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,'>','',0,2) yield path return count(*) as c",
+				(row) -> assertEquals(1L,row.get("c")));
+
+		TestUtil.testCall(db,
+				"MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,'<','',0,2) yield path return count(*) as c",
+				(row) -> assertEquals(17L,row.get("c")));
+		TestUtil.testCall(db,
+				"MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,'','',0,2) yield path return count(*) as c",
+				(row) -> assertEquals(52L,row.get("c")));
+		TestUtil.testCall(db,
+				"MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,null,'',0,2) yield path return count(*) as c",
+				(row) -> assertEquals(52L,row.get("c")));
+	}
+
+	@Test
 	public void testExplorePathRelationshipsTest() throws Throwable {
 		String query = "MATCH (m:Movie {title: 'The Matrix'}) CALL apoc.path.expand(m,'<ACTED_IN|PRODUCED>|FOLLOWS','',0,2) yield path return count(*) as c";
 		TestUtil.testCall(db, query, (row) -> assertEquals(11L,row.get("c")));

@@ -34,7 +34,7 @@ public abstract class RelationshipTypeAndDirections {
 	public static List<Pair<RelationshipType, Direction>> parse(String pathFilter) {
 		List<Pair<RelationshipType, Direction>> relsAndDirs = new ArrayList<>();
 		if (pathFilter == null) {
-			relsAndDirs.add(Pair.of(null, BOTH)); // todo can we remove this?
+			relsAndDirs.add(Pair.of(null, BOTH));
 		} else {
 			String[] defs = pathFilter.split("\\|");
 			for (String def : defs) {
