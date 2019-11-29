@@ -26,14 +26,14 @@ public class CypherInitializerTest {
     public void init(String... initializers) {
 
         Configuration config = db.resolveDependency(ApocConfig.class).getConfig();
-        Iterators.stream(config.getKeys(CypherInitializer.CONFIG_APOC_INITIALIZER_CYPHER)).forEach(k -> config.clearProperty(k));
+        Iterators.stream(config.getKeys(ApocConfig.APOC_CONFIG_INITIALIZER_CYPHER)).forEach(k -> config.clearProperty(k));
 
         if (initializers.length == 1) {
-            config.setProperty(CypherInitializer.CONFIG_APOC_INITIALIZER_CYPHER, initializers[0]);
+            config.setProperty(ApocConfig.APOC_CONFIG_INITIALIZER_CYPHER, initializers[0]);
         } else {
             int index = 1;
             for (String initializer : initializers) {
-                config.setProperty(CypherInitializer.CONFIG_APOC_INITIALIZER_CYPHER + "." + index++, initializer);
+                config.setProperty(ApocConfig.APOC_CONFIG_INITIALIZER_CYPHER + "." + index++, initializer);
             }
         }
 

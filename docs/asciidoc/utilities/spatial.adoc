@@ -65,7 +65,7 @@ RETURN location.description;
 
 ==== Configuring Geocode
 
-There are a few options that can be set in the neo4j.conf file to control the service:
+There are a few options that can be set in the apoc.conf file to control the service:
 
 * apoc.spatial.geocode.provider=osm (osm, google, opencage, etc.)
 * apoc.spatial.geocode.osm.throttle=5000 (ms to delay between queries to not overload OSM servers)
@@ -95,7 +95,7 @@ The 'LAT' will be replaced with the latitude and 'LNG' will be replaced with the
 For example, to get the service working with OpenCage, perform the following steps:
 
 * Register your own application key at https://geocoder.opencagedata.com/
-* Once you have a key, add the following three lines to neo4j.conf
+* Once you have a key, add the following three lines to apoc.conf
 
 ----
 apoc.spatial.geocode.provider=opencage

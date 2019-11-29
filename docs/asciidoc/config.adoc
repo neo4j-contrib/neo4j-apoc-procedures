@@ -6,28 +6,52 @@
 This chapter gives an overview of all the configuration options used by the APOC library.
 --
 
+=== Location of config options
 
-Set these config options in `$NEO4J_HOME/neo4j.conf`
+APOC for 4.0 introduces new configuration management. All config options from <<config-reference>> can be provided either in:
+
+|===
+| environment variables | set them either via `export key=val` or via `--env` settings when used for docker.
+| system properties | best to use via `dbms.jvm.additional` form `conf/neo4j.conf`
+| `conf/apoc.conf` | located side-by-side with `conf/neo4j.conf` using the very same property style notation
+|===
+
+The order of this table matches their config option precedence. E.g. any env setting will orverride options set in `apoc.conf`.
+
+NOTE:: internally APOC relies on Apache commons-config for resolving config settings, the meta-configuration is located in `src/main/resources/apoc-config.xml`.
+
+[[config-reference]]
+=== Reference of config options
+
+Set these config options in `$NEO4J_HOME/conf/apoc.conf`, via system properties or environment variables.
 
 All boolean options have default value set to **false**. This means that they are *disabled*, unless mentioned otherwise.
 
 [cols="1m,5"]
 |===
-| apoc.trigger.enabled=false/true | Enable triggers
-| apoc.ttl.enabled=false/true | Enable time to live background task
-| apoc.ttl.schedule=5 (default `60`) | Set frequency in seconds to run ttl background task
-| apoc.import.file.use_neo4j_config=true/false (default `true`) | the procedures check whether file system access is
-allowed and possibly constrained to a specific directory by reading the two configuration parameters
-`dbms.security.allow_csv_import_from_file_urls` and `dbms.directories.import` respectively
-| apoc.import.file.enabled=false/true | Enable reading local files from disk
-| apoc.export.file.enabled=false/true | Enable writing local files to disk
-| apoc.jdbc.<key>.uri=jdbc-url-with-credentials | store jdbc-urls under a key to be used by apoc.load.jdbc
-| apoc.es.<key>.uri=es-url-with-credentials | store es-urls under a key to be used by elasticsearch procedures
-| apoc.mongodb.<key>.uri=mongodb-url-with-credentials | store mongodb-urls under a key to be used by mongodb procedures
 | apoc.couchbase.<key>.uri=couchbase-url-with-credentials | store couchbase-urls under a key to be used by couchbase
 procedures
-| apoc.jobs.scheduled.num_threads=number-of-threads | Many periodic procedures rely on a scheduled executor that has
+| apoc.es.<key>.uri=es-url-with-credentials | store es-urls under a key to be used by elasticsearch procedures
+| apoc.export.file.enabled=false/true | Enable writing local files to disk
+| apoc.import.file.enabled=false/true | Enable reading local files from disk
+| apoc.import.file.use_neo4j_config=true/false (default `true`) | the procedures check whether file system access is allowed and possibly constrained to a specific directory by reading the two configuration parameters `dbms.security.allow_csv_import_from_file_urls` and `dbms.directories.import` respectively
+| apoc.initializer.cypher | a cypher statment to be executed once the database is started
+| apoc.initializer.cypher.<key> | multiple cypher statements to be executed once the database is started
+| apoc.jdbc.<key>.uri=jdbc-url-with-credentials | store jdbc-urls under a key to be used by apoc.load.jdbc
+| apoc.jobs.scheduled.num_threads=number-of-threads (default: number of CPU cores / 4) | Many periodic procedures rely on a scheduled executor that has
 a pool of threads with a default fixed size. You can configure the pool size using this configuration property
-| apoc.jobs.pool.num_threads=number-of-threads | Number of threads in the default APOC thread pool used for background
-executions.
+| apoc.jobs.pool.num_threads=number-of-threads (default: number of CPU cores * 2) | Number of threads in the default APOC thread pool used for background executions.
+| apoc.mongodb.<key>.uri=mongodb-url-with-credentials | store mongodb-urls under a key to be used by mongodb procedures
+| apoc.spatial.geocode.provider=<providername>
+apoc.spatial.geocode.<providerName>.<key>=<value>
+| configuration for geocoding providers, keys and values are provider specific, see <<spatial>>
+| apoc.trigger.enabled=false/true | Enable triggers
+| apoc.ttl.enabled=false/true | Enable time to live background task
+| apoc.ttl.schedule=<secs> (default `60`) | Set frequency in seconds to run ttl background task
+| apoc.ttl.limit=<number> (default 1000) | Maximum number of nodes being deleted in one background transaction
+| apoc.uuid.enabled=false/true (default false) | global switch to enable uuid handlers
+
+//public static final String APOC_JSON_ZIP_URL = "apoc.json.zip.url";
+//public static final String APOC_JSON_SIMPLE_JSON_URL = "apoc.json.simpleJson.url";
+
 |===

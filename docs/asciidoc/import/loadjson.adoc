@@ -51,7 +51,7 @@ If used, this path is applied to the json and can be used to extract sub-documen
 
 There is also a direct `apoc.json.path(json,path)` function.
 
-To simplify the JSON URL syntax, you can configure aliases in `conf/neo4j.conf`:
+To simplify the JSON URL syntax, you can configure aliases in `conf/apoc.conf`:
 
 ----
 apoc.json.myJson.url=https://api.stackexchange.com/2.2/questions?pagesize=100&order=desc&sort=creation&tagged=neo4j&site=stackoverflow&filter=!5-i6Zw8Y)4W7vpy91PMYsKM-k9yzEsSC1_Uxlf
@@ -131,7 +131,7 @@ image::apoc.load.json-so-result.png[scaledwidth="100%"]
 
 With `apoc.load.jsonParams` you can send additional headers or payload with your JSON GET request, e.g. for the Twitter API:
 
-.Configure Bearer and Twitter Search Url token in `neo4j.conf`
+.Configure Bearer and Twitter Search Url token in `apoc.conf`
 
 ----
 apoc.static.twitter.bearer=XXXX

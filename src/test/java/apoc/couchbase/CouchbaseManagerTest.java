@@ -80,7 +80,7 @@ public class CouchbaseManagerTest {
         String hostOrKey = "localhost";
 
         exceptionRule.expect(RuntimeException.class);
-        exceptionRule.expectMessage("Please check neo4j.conf file 'apoc.couchbase." + hostOrKey + "' is missing");
+        exceptionRule.expectMessage("Please check apoc.conf file 'apoc.couchbase." + hostOrKey + "' is missing");
 
         CouchbaseManager.getConnectionObjectsFromConfigurationKey(hostOrKey);
     }

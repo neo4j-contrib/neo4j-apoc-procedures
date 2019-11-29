@@ -59,7 +59,7 @@ There are also procedures that handle automatic adding of UUID properties, via t
 The UUID handler is a transaction event handler that automatically adds the UUID property to a provided label and for the provided property name.
 Please check the following documentation to an in-depth description.
 
-Enable `apoc.uuid.enabled=true` in `$NEO4J_HOME/config/neo4j.conf` first.
+Enable `apoc.uuid.enabled=true` in `$NEO4J_HOME/config/apoc.conf` first.
 
 [cols="1m,5"]
 |===

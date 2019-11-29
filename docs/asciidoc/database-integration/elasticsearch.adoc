@@ -102,7 +102,7 @@ call apoc.es.post(host-or-port,index-or-null,type-or-null,id-or-null,query-or-nu
 
 === host or port parameter
 
-The parameter can be a direct host or url, or an entry to be lookup up in neo4j.conf
+The parameter can be a direct host or url, or an entry to be lookup up in apoc.conf
 
 * host
 * host:port

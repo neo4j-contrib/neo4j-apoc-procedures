@@ -16,7 +16,7 @@ Bolt procedures allows to accessing other databases via bolt protocol.
 | CALL apoc.bolt.load(urlOrKey, statement, params, config) YIELD row | access to other databases via bolt for read
 |===
 
-**urlOrKey** param allows users to decide if send url by apoc or if put it into neo4j.conf file.
+**urlOrKey** param allows users to decide if send url by apoc or if put it into apoc.conf file.
 
 * **apoc** : write the complete url in his right position on the apoc.
 
@@ -25,7 +25,7 @@ Bolt procedures allows to accessing other databases via bolt protocol.
 call apoc.bolt.load("bolt://user:password@localhost:7687","match(p:Person {name:{name}}) return p", {name:'Michael'})
 ----
 
-* **neo4j.conf** : here the are two choices:
+* **apoc.conf** : here the are two choices:
 
 1) **complete url**: write the complete url with the param apoc.bolt.url;
 

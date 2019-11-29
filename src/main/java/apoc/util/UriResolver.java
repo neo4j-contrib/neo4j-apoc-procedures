@@ -56,7 +56,7 @@ public class UriResolver {
         String user = userInfoArray[0];
         String password = userInfoArray[1];
         if(user != null && password == null || user == null && password != null)
-            throw new RuntimeException("user and password don't defined check your URL or if you use a key the property in your neo4j.conf file");
+            throw new RuntimeException("user and password don't defined check your URL or if you use a key the property in your apoc.conf file");
         this.token = (user != null && password != null) ? AuthTokens.basic(user, password) : AuthTokens.none();
     }
 }

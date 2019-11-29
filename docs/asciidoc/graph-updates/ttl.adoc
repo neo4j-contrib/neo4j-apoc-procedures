@@ -16,7 +16,7 @@ ifdef::backend-html5[]
 ++++
 endif::[]
 
-Enable TTL with setting in `neo4j.conf` : `apoc.ttl.enabled=true`
+Enable TTL with setting in `apoc.conf` : `apoc.ttl.enabled=true`
 
 There are some convenience procedures to expire nodes.
 
@@ -45,7 +45,7 @@ Optionally set `apoc.ttl.schedule=5` as repeat frequency.
 CREATE INDEX ON :TTL(ttl)
 ----
 
-At startup a statement is scheduled to run every 60s (or configure in `neo4j.conf` -  `apoc.ttl.schedule=120`)
+At startup a statement is scheduled to run every 60s (or configure in `apoc.conf` -  `apoc.ttl.schedule=120`)
 
 [source,cypher]
 ----

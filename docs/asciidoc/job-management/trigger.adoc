@@ -11,7 +11,7 @@ In a trigger you register Cypher statements that are called when data in Neo4j i
 You can run them before or after commit.
 
 
-Enable `apoc.trigger.enabled=true` in `$NEO4J_HOME/config/neo4j.conf` first.
+Enable `apoc.trigger.enabled=true` in `$NEO4J_HOME/conf/apoc.conf` first.
 
 [cols="1m,5"]
 |===

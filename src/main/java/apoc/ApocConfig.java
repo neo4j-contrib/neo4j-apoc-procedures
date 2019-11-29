@@ -13,7 +13,6 @@ import org.neo4j.configuration.Config;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.config.Setting;
 import org.neo4j.internal.helpers.collection.Iterators;
@@ -48,11 +47,12 @@ public class ApocConfig extends LifecycleAdapter {
     public static final String APOC_TTL_LIMIT = "apoc.ttl.limit";
     public static final String APOC_TRIGGER_ENABLED = "apoc.trigger.enabled";
     public static final String APOC_UUID_ENABLED = "apoc.uuid.enabled";
-    public static final String APOC_JSON_ZIP_URL = "apoc.json.zip.url";
-    public static final String APOC_JSON_SIMPLE_JSON_URL = "apoc.json.simpleJson.url";
+    public static final String APOC_JSON_ZIP_URL = "apoc.json.zip.url";  // TODO: check if really needed
+    public static final String APOC_JSON_SIMPLE_JSON_URL = "apoc.json.simpleJson.url"; // TODO: check if really needed
     public static final String APOC_IMPORT_FILE_ALLOW__READ__FROM__FILESYSTEM = "apoc.import.file.allow_read_from_filesystem";
     public static final String APOC_CONFIG_JOBS_SCHEDULED_NUM_THREADS = "apoc.jobs.scheduled.num_threads";
     public static final String APOC_CONFIG_JOBS_POOL_NUM_THREADS = "apoc.jobs.pool.num_threads";
+    public static final String APOC_CONFIG_INITIALIZER_CYPHER = "apoc.initializer.cypher";
 
     public static final List<Setting> NEO4J_DIRECTORY_CONFIGURATION_SETTING_NAMES = new ArrayList<>(Arrays.asList(
             data_directory,
@@ -203,10 +203,6 @@ public class ApocConfig extends LifecycleAdapter {
             }
         }
         return systemDb;
-    }
-
-    public enum ApocDbLabels implements Label {
-        Uuid
     }
 
     public enum LoggingType {none, safe, raw}

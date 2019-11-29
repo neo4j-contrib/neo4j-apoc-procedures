@@ -74,15 +74,14 @@ foreach (member in entry.uniqueMember |
 
 === Credentials
 
-To protect credentials, you can configure aliases in `conf/neo4j.conf`:
+To protect credentials, you can configure aliases in `conf/apoc.conf`:
 
-.neo4j.conf Syntax
+.apoc.conf Syntax
 ----
 apoc.loadldap.myldap.config=<host>:<port> <loginDN> <loginPW>
 ----
 
-
-.neo4j.conf:
+.apoc.conf:
 ----
 apoc.loadldap.myldap.config=ldap.forumsys.com:389 cn=read-only-admin,dc=example,dc=com password
 ----
