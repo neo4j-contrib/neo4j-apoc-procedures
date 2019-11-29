@@ -6,11 +6,8 @@ import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 import org.reflections.Reflections;
-import org.reflections.scanners.ResourcesScanner;
 import org.reflections.scanners.SubTypesScanner;
-import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,6 +19,7 @@ import java.util.stream.Collectors;
 
 import static apoc.ApocConfig.APOC_UUID_ENABLED;
 import static apoc.ApocConfig.apocConfig;
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author ab-larus
@@ -38,6 +36,8 @@ public class DocsTest {
         apocConfig().setProperty(APOC_UUID_ENABLED, true);
 
         Set<Class<?>> allClasses = allClasses();
+        assertFalse(allClasses.isEmpty());
+
         for (Class<?> klass : allClasses) {
             if(!klass.getName().endsWith("Test")) {
                 TestUtil.registerProcedure(db, klass);
@@ -119,19 +119,14 @@ public class DocsTest {
                 throw new RuntimeException( e.getMessage(), e );
             }
         }
-
     }
 
     private Set<Class<?>> allClasses() {
-        List<ClassLoader> classLoadersList = new LinkedList<>();
-        classLoadersList.add(ClasspathHelper.contextClassLoader());
-        classLoadersList.add(ClasspathHelper.staticClassLoader());
-
         Reflections reflections = new Reflections(new ConfigurationBuilder()
-                .setScanners(new SubTypesScanner(false /* don't exclude Object.class */), new ResourcesScanner())
-                .setUrls(ClasspathHelper.forClassLoader(classLoadersList.toArray(new ClassLoader[0])))
-                .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix("apoc"))));
-
+                .forPackages("apoc")
+                .setScanners(new SubTypesScanner(false))
+                .filterInputsBy(input -> !input.endsWith("Test.class") && !input.endsWith("Result.class") && !input.contains("$"))
+        );
 
         return reflections.getSubTypesOf(Object.class);
     }
