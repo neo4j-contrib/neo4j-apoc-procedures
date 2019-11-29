@@ -70,7 +70,7 @@ public class CouchbaseManager {
     /**
      * Creates a {@link Pair} containing a {@link PasswordAuthenticator} and a {@link List} of (cluster) nodes from configuration properties
      *
-     * @param configurationKey the configuration key in neo4j.conf that should be defined as apoc.couchbase.[configurationKey]
+     * @param configurationKey the configuration key in apoc.conf that should be defined as apoc.couchbase.[configurationKey]
      * @return a tuple2, the connections objects that we need to establish a connection to a Couchbase Server
      */
     protected static Pair<PasswordAuthenticator, List<String>> getConnectionObjectsFromConfigurationKey(String configurationKey) {
@@ -120,7 +120,7 @@ public class CouchbaseManager {
      * This method verifies if the variable hostOrKey has "couchbase" as a scheme if not then it consider hostOrKey as a configuration key
      * If it's a URI then the credentials should be defined according to the URI specifications
      *
-     * @param hostOrKey a configuration key (in the neo4j.conf file) or a URI
+     * @param hostOrKey a configuration key (in the apoc.conf file) or a URI
      * @return
      */
     protected static Pair<PasswordAuthenticator, List<String>> getConnectionObjectsFromHostOrKey(String hostOrKey) {
@@ -213,7 +213,7 @@ public class CouchbaseManager {
         Configuration couchbaseConfig = apocConfig().getConfig().subset("apoc." + COUCHBASE_CONFIG_KEY + hostOrKey);
 
         if (couchbaseConfig.isEmpty()) {
-            throw new RuntimeException("Please check neo4j.conf file 'apoc.couchbase." + hostOrKey + "' is missing");
+            throw new RuntimeException("Please check apoc.conf file 'apoc.couchbase." + hostOrKey + "' is missing");
         }
 
         return couchbaseConfig;

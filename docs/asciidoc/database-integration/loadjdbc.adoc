@@ -35,7 +35,7 @@ image::apoc-jdbc-northwind-load.jpg[scaledwidth="100%"]
 |===
 ////
 
-To simplify the JDBC URL syntax and protect credentials, you can configure aliases in `conf/neo4j.conf`:
+To simplify the JDBC URL syntax and protect credentials, you can configure aliases in `conf/apoc.conf`:
 
 ----
 apoc.jdbc.myDB.url=jdbc:derby:derbyDB
@@ -179,9 +179,9 @@ $CASSANDRA_HOME/bin/cqlsh -f playlist.cql
 ----
 
 Download the https://github.com/adejanovski/cassandra-jdbc-wrapper#installing[Cassandra JDBC Wrapper], and put it into your `$NEO4J_HOME/plugins` directory.
-Add this config option to `$NEO4J_HOME/conf/neo4j.conf` to make it easier to interact with the cassandra instance.
+Add this config option to `$NEO4J_HOME/conf/apoc.conf` to make it easier to interact with the cassandra instance.
 
-.Add to conf/neo4j.conf
+.Add to conf/apoc.conf
 ----
 apoc.jdbc.cassandra_songs.url=jdbc:cassandra://localhost:9042/playlist
 ----
@@ -322,9 +322,9 @@ KerberosClient {
 };
 ----
 
-Add these options to your `conf/neo4j.conf`
+Add these options to your `conf/apoc.conf`
 
-.neo4j.conf
+.apoc.conf
 ----
 dbms.jvm.additional=-Djava.security.auth.login.config=/path/to/login.conf
 dbms.jvm.additional=-Djava.security.auth.login.config.client=KerberosClient
@@ -368,9 +368,9 @@ YIELD row
 RETURN row.name, row.price;
 ----
 
-You can also set it in your `conf/neo4j.conf` as a key:
+You can also set it in your `conf/apoc.conf` as a key:
 
-.neo4j.conf
+.apoc.conf
 ----
 apoc.jdbc.my-hive.url=jdbc:hive2://username%40krb-realm:password@hive-hostname:10000/default;principal=hive/hostname@krb-realm;auth=kerberos;kerberosAuthType=fromSubject
 ----
@@ -386,7 +386,7 @@ CALL apoc.load.jdbc('my-hive','SELECT * PRODUCTS');
 == LOAD JDBC - Resources
 
 To use other JDBC drivers use these download links and JDBC URL.
-Put the JDBC driver into the `$NEO4J_HOME/plugins` directory and configure the JDBC-URL in `$NEO4J_HOME/conf/neo4j.conf` with `apoc.jdbc.<alias>.url=<jdbc-url>`
+Put the JDBC driver into the `$NEO4J_HOME/plugins` directory and configure the JDBC-URL in `$NEO4J_HOME/conf/apoc.conf` with `apoc.jdbc.<alias>.url=<jdbc-url>`
 
 Credentials can be passed in two ways:
 

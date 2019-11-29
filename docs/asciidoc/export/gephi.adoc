@@ -14,7 +14,7 @@ You can provide your workspace name (you might want to rename it before you star
 
 The default Gephi-URL is http://localhost:8080, resulting in `http://localhost:8080/workspace0?operation=updateGraph`
 
-You can also configure it in `conf/neo4j.conf` via  `apoc.gephi.url=url` or `apoc.gephi.<key>.url=url`
+You can also configure it in `conf/apoc.conf` via  `apoc.gephi.url=url` or `apoc.gephi.<key>.url=url`
 
 image::apoc-gephi.gif[scaledwidth="100%"]
 

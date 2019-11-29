@@ -42,7 +42,7 @@ CALL apoc.couchbase.get('couchbase://Administrator:password@localhost', 'default
 ----
 // end::couchbase[]
 
-Otherwise you can use configuration properties in the same way as MongoDB. For example, you can add the following properties to the neo4j.conf file:
+Otherwise you can use configuration properties in the same way as MongoDB. For example, you can add the following properties to the apoc.conf file:
 
 ----
 apoc.couchbase.mykey.username=Administrator
@@ -56,7 +56,7 @@ apoc.couchbase.mykey.port=8091 // the bootstrapHttpDirectPort (optional)
 CALL apoc.couchbase.get('mykey', 'default', 'artist:vincent_van_gogh')
 ----
 
-You can also define some CouchbaseEnvironment parameters in the neo4j.conf:
+You can also define some CouchbaseEnvironment parameters in the apoc.conf:
 ----
 apoc.couchbase.connectTimeout=<default=5000>
 apoc.couchbase.socketConnectTimeout=<default=1500>

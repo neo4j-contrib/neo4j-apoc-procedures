@@ -15,8 +15,6 @@ import java.util.stream.Collectors;
 
 public class CypherInitializer implements AvailabilityListener {
 
-    public static final String CONFIG_APOC_INITIALIZER_CYPHER = "apoc.initializer.cypher";
-
     private final GraphDatabaseAPI db;
     private final Log userLog;
     private final GlobalProcedures procs;
@@ -50,7 +48,7 @@ public class CypherInitializer implements AvailabilityListener {
                 awaitApocProceduresRegistered();
                 Configuration config = dependencyResolver.resolveDependency(ApocConfig.class).getConfig();
 
-                TreeMap<String, String> initializers = Iterators.stream(config.getKeys(CONFIG_APOC_INITIALIZER_CYPHER))
+                TreeMap<String, String> initializers = Iterators.stream(config.getKeys(ApocConfig.APOC_CONFIG_INITIALIZER_CYPHER))
                         .collect(Collectors.toMap(k -> k, k -> config.getString(k),
                                 (v1, v2) -> {
                                     throw new RuntimeException(String.format("Duplicate key for values %s and %s", v1, v2));

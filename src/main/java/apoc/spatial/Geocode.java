@@ -238,7 +238,7 @@ public class Geocode {
             } else if (config.containsKey("google.key")) {
                 return "key=" + config.getString("google.key");
             } else {
-                return "auth=free"; // throw new RuntimeException("apoc.spatial.geocode: No google client or key specified in neo4j.conf config file");
+                return "auth=free"; // throw new RuntimeException("apoc.spatial.geocode: No google client or key specified in apoc.conf config file");
             }
         }
 

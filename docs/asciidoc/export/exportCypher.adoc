@@ -14,9 +14,9 @@ Also check the memory configuration of your Neo4j instance, you might want to up
 And provide more memory to cypher-shell itself by prefixing the command with: `JAVA_OPTS=-Xmx4G bin/cypher-shell …`
 ====
 
-Make sure to set the config options in your `neo4j.conf`
+Make sure to set the config options in your `apoc.conf`
 
-.neo4j.conf
+.apoc.conf
 ----
 apoc.export.file.enabled=true
 apoc.import.file.enabled=true
@@ -85,9 +85,9 @@ The output of `labels()` function is not sorted, use it in combination with `apo
 
 You can use this roundtrip example e.g. on the `:play movies` movie graph.
 
-Make sure to set the config options in your `neo4j.conf`
+Make sure to set the config options in your `apoc.conf`
 
-.neo4j.conf
+.apoc.conf
 ----
 apoc.export.file.enabled=true
 apoc.import.file.enabled=true
