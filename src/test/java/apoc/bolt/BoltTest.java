@@ -1,5 +1,6 @@
 package apoc.bolt;
 
+import apoc.export.cypher.ExportCypher;
 import apoc.util.Neo4jContainerExtension;
 import apoc.util.TestUtil;
 import apoc.util.Util;
@@ -11,6 +12,7 @@ import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.test.TestGraphDatabaseFactory;
+import org.testcontainers.utility.MountableFile;
 
 import java.time.LocalTime;
 import java.time.OffsetTime;
@@ -20,8 +22,11 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.util.TestContainerUtil.cleanBuild;
+import static apoc.util.TestContainerUtil.executeGradleTasks;
 import static apoc.util.TestUtil.isTravis;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeNotNull;
 import static org.neo4j.driver.v1.Values.isoDuration;
@@ -42,8 +47,10 @@ public class BoltTest {
     public static void setUp() throws Exception {
         assumeFalse(isTravis());
         TestUtil.ignoreException(() -> {
+            executeGradleTasks("shadow");
             neo4jContainer = new Neo4jContainerExtension()
                     .withInitScript("init_neo4j_bolt.cypher")
+                    .withPlugins(MountableFile.forHostPath("./target/tests/gradle-build/libs")) // map the apoc's artifact dir as the Neo4j's plugin dir
                     .withLogging()
                     .withoutAuthentication();
             neo4jContainer.start();
@@ -52,7 +59,7 @@ public class BoltTest {
         BOLT_URL = "'" + neo4jContainer.getBoltUrl() + "'";
 
         db = new TestGraphDatabaseFactory().newImpermanentDatabaseBuilder().newGraphDatabase();
-        TestUtil.registerProcedure(db, Bolt.class);
+        TestUtil.registerProcedure(db, Bolt.class, ExportCypher.class);
     }
 
     @AfterClass
@@ -397,6 +404,74 @@ public class BoltTest {
                 assertEquals("Olsson", end.getProperty("surname"));
                 assertEquals(point(9157,2.3, 4.5, 1.2).asPoint(), end.getProperty("born"));
             });
+    }
+
+    @Test
+    public void testCloneAll() throws Exception {
+        final String countQuery = "MATCH p = (s:Source{id:1})-[:REL]->(t:Target{id: 2}) RETURN count(p) AS count";
+        long localCount = db.execute(countQuery).<Long>columnAs("count").next();
+        assertEquals(0L, localCount);
+        db.execute("CREATE (s:Source{id:1})-[:REL]->(t:Target{id: 2})").close();
+        TestUtil.testCall(db, "call apoc.bolt.clone.all(" + BOLT_URL + ")", r -> {
+            final long remoteCount = neo4jContainer.getSession()
+                    .readTransaction(tx -> (long) tx.run(countQuery)
+                            .next().asMap().get("count"));
+            assertEquals(1L, remoteCount);
+        });
+
+        final String deleteQuery = "MATCH p = (s:Source{id:1})-[:REL]->(t:Target{id: 2}) DELETE p";
+        db.execute(deleteQuery).close();
+        neo4jContainer.getSession().readTransaction(tx -> tx.run(deleteQuery));
+    }
+
+
+    @Test
+    public void testLoadFromLocal() throws Exception {
+        final String countQuery = "MATCH p = (s:Source{id:1})-[:REL]->(t:Target{id: 2}) RETURN count(p) AS count";
+        long localCount = db.execute(countQuery).<Long>columnAs("count").next();
+        assertEquals(0L, localCount);
+        db.execute("CREATE (s:Source{id:1})-[:REL]->(t:Target{id: 2})");
+        String localStatement = "call apoc.export.cypher.all(null, {format:'plain', stream:true}) YIELD cypherStatements\n" +
+                "UNWIND [statement IN split(cypherStatements, \";\\n\") WHERE statement STARTS WITH 'UNWIND'] AS statement\n" +
+                "RETURN statement";
+        String remoteStatement =
+                "CALL apoc.cypher.run(statement, {}) YIELD value\n" +
+                        "RETURN value";
+        final Map<String, Object> map = Util.map("url", neo4jContainer.getBoltUrl(),
+                "localStatement", localStatement,
+                "remoteStatement", remoteStatement,
+                "config", Util.map("readOnly", false));
+        db.execute("call apoc.bolt.load.fromLocal($url, $localStatement, $remoteStatement, $config)", map).close();
+        final long remoteCount = neo4jContainer.getSession()
+                .readTransaction(tx -> (long) tx.run("MATCH p = (s:Source{id:1})-[:REL]->(t:Target{id: 2}) RETURN count(p) AS count")
+                        .next().asMap().get("count"));
+        assertEquals(1L, remoteCount);
+        final String deleteQuery = "MATCH p = (s:Source{id:1})-[:REL]->(t:Target{id: 2}) DELETE p";
+        db.execute(deleteQuery).close();
+        neo4jContainer.getSession().readTransaction(tx -> tx.run(deleteQuery));
+    }
+
+    @Test
+    public void testLoadFromLocalStream() throws Exception {
+        final String countQuery = "MATCH p = (s:Source{id:1})-[:REL]->(t:Target{id: 2}) RETURN count(p) AS count";
+        long localCount = db.execute(countQuery).<Long>columnAs("count").next();
+        assertEquals(0L, localCount);
+        db.execute("CREATE (s:Source{id:1})-[:REL]->(t:Target{id: 2})");
+        String localStatement = "call apoc.export.cypher.all(null, {format:'plain', stream:true}) YIELD cypherStatements\n" +
+                "UNWIND split(cypherStatements, \";\\n\") AS statement\n" +
+                "RETURN statement";
+        final Map<String, Object> map = Util.map("url", neo4jContainer.getBoltUrl(),
+                "localStatement", localStatement,
+                "remoteStatement", null,
+                "config", Util.map("readOnly", false, "streamStatements", true));
+        db.execute("call apoc.bolt.load.fromLocal($url, $localStatement, $remoteStatement, $config)", map).close();
+        final long remoteCount = neo4jContainer.getSession()
+                .readTransaction(tx -> (long) tx.run("MATCH p = (s:Source{id:1})-[:REL]->(t:Target{id: 2}) RETURN count(p) AS count")
+                        .next().asMap().get("count"));
+        assertEquals(1L, remoteCount);
+        final String deleteQuery = "MATCH p = (s:Source{id:1})-[:REL]->(t:Target{id: 2}) DELETE p";
+        db.execute(deleteQuery).close();
+        neo4jContainer.getSession().readTransaction(tx -> tx.run(deleteQuery));
     }
 
 }
