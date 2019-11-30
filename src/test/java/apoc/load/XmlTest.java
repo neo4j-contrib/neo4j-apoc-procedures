@@ -6,6 +6,8 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.neo4j.graphdb.QueryExecutionException;
 import org.neo4j.internal.helpers.collection.Iterables;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
@@ -92,6 +94,9 @@ public class XmlTest {
     public DbmsRule db = new ImpermanentDbmsRule()
             .withSetting(ApocSettings.apoc_import_file_enabled, true)
             .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false);
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Before
     public void setUp() throws Exception {
@@ -281,8 +286,17 @@ public class XmlTest {
 
     @Test
     public void testLoadXmlWithNextWordRels() {
+        thrown.expect(QueryExecutionException.class);
+        thrown.expectMessage("usage of `createNextWordRelationships` is no longer allowed. Use `{relType:'NEXT_WORD', label:'XmlWord'}` instead.");
+
+        db.executeTransactionally("call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5-shortened.xml', " +
+                "{createNextWordRelationships: true, filterLeadingWhitespace: true}) yield node");
+    }
+
+    @Test
+    public void testLoadXmlWithNextWordRelsWithNewConfigOptions() {
         testCall(db, "call apoc.xml.import('file:src/test/resources/xml/humboldt_soemmering01_1791.TEI-P5-shortened.xml', " +
-                        "{createNextWordRelationships: true, filterLeadingWhitespace: true}) yield node",
+                        "{relType: 'NEXT_WORD', label: 'XmlWord', filterLeadingWhitespace: true}) yield node",
                 row -> assertNotNull(row.get("node")));
         testResult(db, "match (n) return labels(n)[0] as label, count(*) as count", result -> {
             final Map<String, Long> resultMap = result.stream().collect(Collectors.toMap(o -> (String)o.get("label"), o -> (Long)o.get("count")));
@@ -307,6 +321,7 @@ public class XmlTest {
                     assertEquals(369L, r.get("len"));
                 });
     }
+
 
     @Test
     public void testLoadXmlWithNextEntityRels() {

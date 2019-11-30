@@ -2,6 +2,7 @@ package apoc.load;
 
 import apoc.ApocConfig;
 import apoc.export.util.CountingInputStream;
+import apoc.generate.config.InvalidConfigException;
 import apoc.result.MapResult;
 import apoc.result.NodeResult;
 import apoc.util.FileUtils;
@@ -449,14 +450,8 @@ public class Xml {
                 charactersForTag = _charactersForTag;
             }
 
-            // legacy mode
-            // TODO: remove this at some time in future
-            Boolean createNextWordRelationship = (Boolean) config.get("createNextWordRelationships");
-            if (createNextWordRelationship != null) {
-                //delimiter = Pattern.compile("\\s";
-                relType = RelationshipType.withName("NEXT_WORD");
-                label = Label.label("XmlWord");
-                connectCharacters = true;
+            if (config.containsKey("createNextWordRelationships")) {
+                throw new InvalidConfigException("usage of `createNextWordRelationships` is no longer allowed. Use `{relType:'NEXT_WORD', label:'XmlWord'}` instead.");
             }
         }
 
