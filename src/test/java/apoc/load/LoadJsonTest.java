@@ -1,6 +1,5 @@
 package apoc.load;
 
-import apoc.ApocSettings;
 import apoc.util.TestUtil;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Before;
@@ -15,6 +14,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+import static apoc.ApocConfig.*;
 import static apoc.util.MapUtil.map;
 import static apoc.util.TestUtil.testCall;
 import static apoc.util.TestUtil.testResult;
@@ -26,13 +26,15 @@ import static org.junit.Assert.assertFalse;
 public class LoadJsonTest {
 
     @Rule
-    public DbmsRule db = new ImpermanentDbmsRule()
-            .withSetting(ApocSettings.apoc_import_file_enabled, true)
-            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false);
+    public DbmsRule db = new ImpermanentDbmsRule();
+//            .withSetting(ApocSettings.apoc_import_file_enabled, true)
+//            .withSetting(ApocSettings.apoc_import_file_use__neo4j__config, false);
 
 	@Before public void setUp() throws Exception {
-//	    apocConfig().setProperty(APOC_JSON_ZIP_URL, "https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.zip?raw=true!person.json");
-//	    apocConfig().setProperty(APOC_JSON_SIMPLE_JSON_URL, ClassLoader.getSystemResource("map.json").toString());
+	    apocConfig().setProperty(APOC_IMPORT_FILE_ENABLED, true);
+	    apocConfig().setProperty(APOC_IMPORT_FILE_USE_NEO4J_CONFIG, false);
+	    apocConfig().setProperty("apoc.json.zip.url", "https://github.com/neo4j-contrib/neo4j-apoc-procedures/blob/3.4/src/test/resources/testload.zip?raw=true!person.json");
+	    apocConfig().setProperty("apoc.json.simpleJson.url", ClassLoader.getSystemResource("map.json").toString());
         TestUtil.registerProcedure(db, LoadJson.class);
     }
 
