@@ -1,5 +1,7 @@
 package apoc.util;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.neo4j.driver.Record;
@@ -8,9 +10,11 @@ import org.testcontainers.utility.MountableFile;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,10 +43,21 @@ public class TestContainerUtil {
         // read neo4j version from build.gradle and use this as default
         String neo4jDockerImageVersion = System.getProperty("neo4jDockerImage", "neo4j:4.0.0-beta03mr03-enterprise");
 
-        File pluginsFolder = new File("build/libs");
+        // use a separate folder for mounting plugins jar - build/libs might contain other jars as well.
+        File pluginsFolder = new File("build/plugins");
+        pluginsFolder.mkdirs();
+
+        Collection<File> files = FileUtils.listFiles(new File("build/libs"), new WildcardFileFilter("*-all.jar"), null);
+        for (File file: files) {
+            try {
+                FileUtils.copyFileToDirectory(file, pluginsFolder);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         Neo4jContainerExtension neo4jContainer = new Neo4jContainerExtension(neo4jDockerImageVersion)
-                .withPlugins(MountableFile.forHostPath("./build/libs")) // map the apoc's artifact dir as the Neo4j's plugin dir
+                .withPlugins(MountableFile.forHostPath(pluginsFolder.toPath()))
                 .withAdminPassword("apoc")
                 .withEnv("NEO4J_dbms_memory_heap_max__size", "1G")
                 .withEnv("apoc.export.file.enabled", "true")
