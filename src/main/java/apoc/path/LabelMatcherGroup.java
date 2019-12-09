@@ -8,7 +8,7 @@ import static org.neo4j.graphdb.traversal.Evaluation.*;
 /**
  * A matcher for evaluating whether or not a node is accepted by a group of matchers comprised of a blacklist, whitelist, endNode and termination node matchers.
  * Unlike a LabelMatcher, LabelMatcherGroups interpret context for labels according to filter symbols provided.
- * Labels can be added that are prefixed with filter symbols (+, -, /, >) (for whitelist, blacklist, terminator, and end node respectively).
+ * Labels can be added that are prefixed with filter symbols (+, -, /, &gt;) (for whitelist, blacklist, terminator, and end node respectively).
  * Lack of a symbol is interpreted as whitelisted.
  * If no labels are set as whitelisted, then all labels are considered whitelisted (if not otherwise disallowed by the blacklist).
  * The node will not be included if blacklisted, or not matched via the whitelist, end node, or termination node matchers.

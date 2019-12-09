@@ -3,7 +3,7 @@ package apoc.generate.config;
 /**
  * {@link RelationshipGeneratorConfig} for {@link apoc.generate.relationship.BarabasiAlbertRelationshipGenerator}.
  * <p/>
- * Permitted values: 0 < edgesPerNode < numberOfNodes
+ * Permitted values: 0 &lt; edgesPerNode &lt; numberOfNodes
  * Recommended values: Interested in phenomenological model? Use low edgesPerNode value (2 ~ 3)
  * Real nets can have more than that. Usually choose less than half of a "mean" degree.
  * Precision is not crucial here.

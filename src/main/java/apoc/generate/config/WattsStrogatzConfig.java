@@ -3,15 +3,15 @@ package apoc.generate.config;
 /**
  * {@link RelationshipGeneratorConfig} for {@link apoc.generate.relationship.WattsStrogatzRelationshipGenerator}.
  *
- * meanDegree: degree which a node in the graph has on average (best to choose something < 10)
+ * meanDegree: degree which a node in the graph has on average (best to choose something &lt; 10)
  * numberOfNodes: number of nodes present in the graph
  * beta: probability an edge will be rewired. Rewiring means that an edge is removed and replaced by another edge
  *       created from a pair chosen at random from a set of unconnected node pairs. Controls the clustering of the graph.
  *       beta = 1.0: Erdos-Renyi model
  *       beta = 0.0: Ring graph
- *       0.0 < beta < 1.0: Fast convergence towards a random graph, but still sufficiently clustered.
+ *       0.0 &lt; beta &lt; 1.0: Fast convergence towards a random graph, but still sufficiently clustered.
  *
- * Recommended value of beta to exploit typical (randomness & clustering) properties of the W-S model: 0.4 < beta < 0.6
+ * Recommended value of beta to exploit typical (randomness &amp; clustering) properties of the W-S model: 0.4 &lt; beta &lt; 0.6
  */
 public class WattsStrogatzConfig extends NumberOfNodesBasedConfig {
 

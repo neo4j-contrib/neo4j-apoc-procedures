@@ -10,19 +10,23 @@ import java.util.List;
  * Aggregation functions for collecting items with only the minimal or maximal values.
  * This is meant to replace queries like this:
 
+ <pre>
  MATCH (p:Person)
- WHERE p.born >= 1930
+ WHERE p.born &gt;= 1930
  WITH p.born as born, collect(p.name) as persons
  WITH min(born) as minBorn, collect({born:born, persons:persons}) as bornInfoList
  UNWIND [info in bornInfoList WHERE info.born = minBorn] as bornInfo
  RETURN bornInfo.born as born, [person in bornInfo.persons | person.name] as persons
+ </pre>
 
  * with an aggregation like this:
 
+ <pre>
  MATCH (p:Person)
- WHERE p.born >= 1930
+ WHERE p.born &gt;= 1930
  WITH apoc.agg.minItems(p, p.born) as minResult
  RETURN minResult.value as born, [person in minResult.items | person.name] as persons
+ </pre>
 
  * returns {born:1930, persons:["Gene Hackman", "Richard Harris", "Clint Eastwood"]}
 
