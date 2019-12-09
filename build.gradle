@@ -1,41 +1,27 @@
 plugins {
     id 'java'
-    id 'idea'
     id 'com.github.johnrengelman.shadow' version '4.0.2'
-    id "org.asciidoctor.convert" version "2.3.0"
     id "com.bmuschko.nexus" version "2.3.1"
 //    id "me.champeau.gradle.jmh" version "0.4.8"
-    id "io.codearte.nexus-staging" version "0.20.0"
     id 'maven-publish'
     id 'antlr'
 }
-asciidoctorj {
-    version = '2.1.0'
-}
-apply plugin: 'io.codearte.nexus-staging'
 
-
-sourceCompatibility = 11
-targetCompatibility = 11
-
-idea {
-    project {
-        ext.jdkName = '11'
-        ext.languageLevel = '11'
-    }
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
 
 group = 'org.neo4j.procedure'
 version = '4.0.0-SNAPSHOT'
 archivesBaseName = 'apoc'
+description = """neo4j-apoc-procedures"""
 
 jar {
     manifest {
         attributes 'Implementation-Version': version
     }
 }
-
-description = """neo4j-apoc-procedures"""
 
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
@@ -52,11 +38,11 @@ repositories {
         url "https://neo4j.bintray.com/community/"
     }
     jcenter()
-    mavenCentral()
+    //mavenCentral()
     maven {
         url "https://repo.gradle.org/gradle/libs-releases"
     }
-    mavenLocal()
+    //mavenLocal()
 }
 
 configurations {
@@ -69,8 +55,6 @@ shadowJar {
 
 compileJava {
     options.annotationProcessorPath = configurations.apt
-	// type¦qualified name¦signature¦description¦execution mode¦location¦deprecated by
-
     options.compilerArgs += [
             "-AIgnoreContextWarnings"]
 
@@ -100,12 +84,11 @@ dependencies {
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '4.0.0-beta03'
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
 
-    def withoutAntlr =  {
+    antlr "org.antlr:antlr4:4.7.2", {
         exclude group: 'org.glassfish'
         exclude group: 'com.ibm.icu'
         exclude group: 'org.abego.treelayout'
     }
-    antlr "org.antlr:antlr4:4.7.2", withoutAntlr
     // compileOnly "org.antlr:antlr4-runtime:4.7.2"
     // testCompile "org.antlr:antlr4-runtime:4.7.2"
 
@@ -146,10 +129,8 @@ dependencies {
     }
 
     def withoutServers = {
-//        exclude group: 'org.mortbay.jetty'
         exclude group: 'org.eclipse.jetty'
         exclude group: 'org.eclipse.jetty.aggregate'
-//        exclude group: 'com.sun.jersey'
         exclude group: 'org.apache.hive', module: 'hive-service'
     }
 
@@ -165,9 +146,6 @@ dependencies {
     compileOnly group: 'com.couchbase.client', name: 'java-client', version: '2.7.2'
     testCompile group: 'com.couchbase.client', name: 'java-client', version: '2.7.2'
 
-//    compileOnly 'com.couchbase.client:java-client:2.5.9'
-//    testCompile 'com.couchbase.client:java-client:2.5.9'
-
     compileOnly group: 'org.neo4j', name: 'neo4j', version: neo4jVersionEffective
     compileOnly group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
     testCompile group: 'org.codehaus.jackson', name: 'jackson-mapper-asl', version: '1.9.7'
@@ -180,7 +158,6 @@ dependencies {
     compile group: 'us.fatehi', name: 'schemacrawler', version: '15.04.01'
     testCompile group: 'us.fatehi', name: 'schemacrawler-mysql', version: '15.04.01'
 
-
     testCompile group: 'org.apache.hive', name: 'hive-jdbc', version: '1.2.2', withoutServers
 
     compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
@@ -188,7 +165,7 @@ dependencies {
 //    jmh group: 'org.neo4j', name: 'neo4j-lucene-index', version: neo4jVersionEffective
 //    jmh group: 'org.neo4j', name: 'neo4j-kernel', version: neo4jVersionEffective, classifier: "tests"
 
-    testCompile group: 'org.gradle', name: 'gradle-tooling-api', version: '5.2'
+    testCompile group: 'org.gradle', name: 'gradle-tooling-api', version: '6.0.1'
 
     testCompile group: 'org.xmlunit', name: 'xmlunit-core', version: '2.2.1'
     testCompile group: 'com.github.adejanovski', name: 'cassandra-jdbc-wrapper', version: '3.1.0'
@@ -219,15 +196,13 @@ dependencies {
     }
 }
 
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
 test {
     //exclude '**/CypherProceduresClusterTest.class'//, '**/AtomicTest.class'
 
     // neo4jDockerImage system property is used in TestContainerUtil
     systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.0.0-beta03mr03-enterprise'
 
+/*
     testLogging {
         // taken from https://stackoverflow.com/a/36130467/158701
         events TestLogEvent.FAILED,
@@ -262,6 +237,7 @@ test {
             }
         }
     }
+*/
 
     maxHeapSize = "8G"
     forkEvery = 50
@@ -278,45 +254,6 @@ javadoc {
     options.addStringOption('Xdoclint:none', '-quiet')
 }
 
-/**************
-* ASCIIDOCTOR *
-**************/
-
-asciidoctor {
-    sourceDir = file('docs')
-    sources { include 'index.adoc' }
-    outputDir = file('build/docs')
-    attributes  'apoc-version' : version,
-                'apoc-release' : "3.5.0.5",
-                'neo4j-version' : neo4jVersionEffective,
-                'branch' : "3.5"
-}
-
-asciidoctor.doLast {
-    copy {
-        from 'build/docs/html5/index.html'
-        into "build/docs"
-        rename { String filename -> filename.replace("index","index35") }
-    }
-}
-assemble.dependsOn(asciidoctor)
-
-/******
-* END *
-******/
-
-// publishing
-
-nexusStaging {
-    packageGroup = "org.neo4j"
-    stagingProfileId = "acdc2431d20c3d"
-
-    //serverUrl = stable release repository - by default Sonatype OSSRH - https://oss.sonatype.org/service/local/
-    //username  = (optional) - username to the server
-    // password = (optional) - password
-    //numberOfRetries (optional) - number of retries when waiting for a repository to change a state - by default 7
-    //delayBetweenRetriesInMillis (optional) - delay between retries - by default 1000 milliseconds
-}
 
 modifyPom {
     project {
@@ -428,51 +365,3 @@ task myJavadocJar(type: Jar) {
     from javadoc
     archiveClassifier = 'javadoc'
 }
-
-
-publishing {
-
-
-    repositories {
-        maven {
-            name = 'pipeline'
-            url = "file://${rootProject.buildDir}/repo"
-        }
-    }
-    publications {
-        full(MavenPublication) {
-            pom {
-                name = "neo4j-apoc-procedure"
-                description = "A collection of useful Neo4j Procedures"
-                groupId = groupId
-                artifactId = archivesBaseName
-                version = version
-                scm { url = "http://github.com/neo4j-contrib/neo4j-apoc-procedures" }
-                url = 'http://github.com/neo4j-contrib/neo4j-apoc-procedures'
-
-                licenses {
-                    license {
-                        name ='The Apache Software License, Version 2.0'
-                        url ='http://www.apache.org/licenses/LICENSE-2.0.txt'
-                        comments ="""Note that this license is for the project itself, and not for its dependencies."""
-                        distribution= "repo"
-                    }
-                }
-
-                developers {
-                    developer {
-                        id ='michaelhunger'
-                        name= 'Michael Hunger'
-                        email= 'michael.hunger@neo4j.com'
-                    }
-                }
-                
-                from(components.java)
-                artifact(mySourcesJar)
-                artifact(myJavadocJar)
-            }
-
-        }
-    }
-}
-
