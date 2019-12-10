@@ -184,7 +184,7 @@ public class CypherProceduresHandler implements AvailabilityListener {
         registeredProcedureSignatures = currentProcedureSignatures;
         registeredUserFunctionSignatures = currentUserFunctionSignatures;
 
-        api.executeTransactionally("call dbms.clearQueryCaches()");
+        api.executeTransactionally("call db.clearQueryCaches()");
     }
 
     private <T> T withSystemDb(Function<Transaction, T> action) {

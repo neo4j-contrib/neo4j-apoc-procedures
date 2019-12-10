@@ -433,7 +433,7 @@ db.stats.status,"db.stats.status() :: (section :: STRING?, status :: STRING?, da
 db.stats.stop,"db.stats.stop(section :: STRING?) :: (section :: STRING?, success :: BOOLEAN?, message :: STRING?)"
 dbms.changePassword,dbms.changePassword(password :: STRING?) :: VOID
 dbms.checkpoint,"dbms.checkpoint() :: (success :: BOOLEAN?, message :: STRING?)"
-dbms.clearQueryCaches,dbms.clearQueryCaches() :: (value :: STRING?)
+db.clearQueryCaches,db.clearQueryCaches() :: (value :: STRING?)
 dbms.components,"dbms.components() :: (name :: STRING?, versions :: LIST? OF STRING?, edition :: STRING?)"
 dbms.functions,"dbms.functions() :: (name :: STRING?, signature :: STRING?, description :: STRING?)"
 dbms.functions,"dbms.functions() :: (name :: STRING?, signature :: STRING?, description :: STRING?, roles :: LIST? OF STRING?)"

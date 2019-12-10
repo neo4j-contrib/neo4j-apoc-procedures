@@ -50,8 +50,8 @@ public class SystemDbTest {
         TestUtil.testResult(db, "CALL apoc.systemdb.execute('SHOW DATABASES') YIELD row RETURN row", result -> {
             List<Map<String, Object>> rows = Iterators.asList(result.columnAs("row"));
             assertThat(rows, Matchers.containsInAnyOrder(
-                    MapUtil.map("name", "system", "default", false, "status", "online"),
-                    MapUtil.map("name", "neo4j", "default", true, "status", "online")
+                    MapUtil.map("name", "system", "default", false, "currentStatus", "online", "role", "standalone", "requestedStatus", "online", "error", "", "address", "localhost:7687"),
+                    MapUtil.map("name", "neo4j", "default", true, "currentStatus", "online", "role", "standalone", "requestedStatus", "online", "error", "", "address", "localhost:7687")
             ));
         });
     }

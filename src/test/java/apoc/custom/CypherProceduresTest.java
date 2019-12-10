@@ -53,7 +53,7 @@ public class CypherProceduresTest  {
     public void overrideSingleCallStatement() throws Exception {
         db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");
         TestUtil.testCall(db, "call custom.answer() yield row return row", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
-        db.executeTransactionally("call dbms.clearQueryCaches()");
+        db.executeTransactionally("call db.clearQueryCaches()");
 
         db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN 43 as answer')");
         TestUtil.testCall(db, "call custom.answer() yield row return row", (row) -> assertEquals(43L, ((Map)row.get("row")).get("answer")));
@@ -63,7 +63,7 @@ public class CypherProceduresTest  {
     public void overrideCypherCallStatement() throws Exception {
         db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN 42 as answer')");
         TestUtil.testCall(db, "with 1 as foo call custom.answer() yield row return row", (row) -> assertEquals(42L, ((Map)row.get("row")).get("answer")));
-        db.executeTransactionally("call dbms.clearQueryCaches()");
+        db.executeTransactionally("call db.clearQueryCaches()");
 
         db.executeTransactionally("call apoc.custom.asProcedure('answer','RETURN 43 as answer')");
         TestUtil.testCall(db, "with 1 as foo call custom.answer() yield row return row", (row) -> assertEquals(43L, ((Map)row.get("row")).get("answer")));
@@ -228,7 +228,7 @@ public class CypherProceduresTest  {
 
         // when
         db.executeTransactionally("call apoc.custom.removeProcedure('answer')");
-        db.executeTransactionally("call dbms.clearQueryCaches()");
+        db.executeTransactionally("call db.clearQueryCaches()");
 
         // then
         TestUtil.count(db, "call custom.answer()");
@@ -246,7 +246,7 @@ public class CypherProceduresTest  {
 
         // when
         db.executeTransactionally("call apoc.custom.removeFunction('answer')");
-        db.executeTransactionally("call dbms.clearQueryCaches()");
+        db.executeTransactionally("call db.clearQueryCaches()");
 
         // then
         TestUtil.count(db, "return custom.answer()");

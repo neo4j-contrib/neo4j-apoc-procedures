@@ -1,6 +1,7 @@
 package apoc.coll;
 
 import apoc.result.ListResult;
+import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.commons.math3.util.Combinations;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Node;
@@ -8,7 +9,6 @@ import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.internal.helpers.collection.Pair;
 import org.neo4j.procedure.*;
-import org.neo4j.util.IntCounter;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -661,20 +661,20 @@ public class Coll {
         }
 
         // mimicking a counted bag
-        Map<Object, IntCounter> duplicates = new LinkedHashMap<>(coll.size());
+        Map<Object, MutableInt> duplicates = new LinkedHashMap<>(coll.size());
         List<Map<String, Object>> resultList = new ArrayList<>();
 
         for (Object obj : coll) {
-            IntCounter counter = duplicates.get(obj);
+            MutableInt counter = duplicates.get(obj);
             if (counter == null) {
-                counter = new IntCounter();
+                counter = new MutableInt();
                 duplicates.put(obj, counter);
             }
             counter.increment();
         }
 
         duplicates.forEach((o, intCounter) -> {
-            int count = intCounter.value();
+            int count = intCounter.intValue();
             if (count > 1) {
                 Map<String, Object> entry = new LinkedHashMap<>(2);
                 entry.put("item", o);
@@ -694,20 +694,20 @@ public class Coll {
         }
 
         // mimicking a counted bag
-        Map<Object, IntCounter> counts = new LinkedHashMap<>(coll.size());
+        Map<Object, MutableInt> counts = new LinkedHashMap<>(coll.size());
         List<Map<String, Object>> resultList = new ArrayList<>();
 
         for (Object obj : coll) {
-            IntCounter counter = counts.get(obj);
+            MutableInt counter = counts.get(obj);
             if (counter == null) {
-                counter = new IntCounter();
+                counter = new MutableInt();
                 counts.put(obj, counter);
             }
             counter.increment();
         }
 
         counts.forEach((o, intCounter) -> {
-            int count = intCounter.value();
+            int count = intCounter.intValue();
             Map<String, Object> entry = new LinkedHashMap<>(2);
             entry.put("item", o);
             entry.put("count", Long.valueOf(count));

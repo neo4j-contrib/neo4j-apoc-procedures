@@ -26,7 +26,7 @@ jar {
 ext {
     // NB: due to version.json generation by parsing this file, the next line must not have any if/then/else logic
 //    neo4jVersion = "4.0.0-alpha09mr02"
-    neo4jVersion = "4.0.0-beta03mr03"
+    neo4jVersion = "4.0.0-rc01"
     // instead we apply the override logic here
     neo4jVersionEffective = project.hasProperty("neo4jVersionOverride") ? project.getProperty("neo4jVersionOverride") : neo4jVersion
     testContainersVersion = '1.12.2'
@@ -34,9 +34,9 @@ ext {
 
 repositories {
 
-    maven {  // this contains the neo4j 4.0.0-beta jars
+    /*maven {  // this contains the neo4j 4.0.0-beta jars
         url "https://neo4j.bintray.com/community/"
-    }
+    }*/
     jcenter()
     //mavenCentral()
     maven {
@@ -200,7 +200,7 @@ test {
     //exclude '**/CypherProceduresClusterTest.class'//, '**/AtomicTest.class'
 
     // neo4jDockerImage system property is used in TestContainerUtil
-    systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.0.0-beta03mr03-enterprise'
+    systemProperties 'user.language' : 'en' , 'user.country ' : 'US', 'neo4jDockerImage' : 'neo4j:4.0.0-rc01-enterprise'
 
 /*
     testLogging {

@@ -125,7 +125,7 @@ public class PathFinding {
         return WeightedPathResult.streamWeightedPathResult(startNode, endNode, algo);
     }
 
-    private PathExpander<Object> buildPathExpander(String relationshipsAndDirections) {
+    private PathExpander<Double> buildPathExpander(String relationshipsAndDirections) {
         PathExpanderBuilder builder = PathExpanderBuilder.empty();
         for (Pair<RelationshipType, Direction> pair : RelationshipTypeAndDirections
                 .parse(relationshipsAndDirections)) {
