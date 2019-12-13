@@ -12,6 +12,7 @@ import org.neo4j.values.storable.Values;
 import java.lang.reflect.Array;
 import java.time.temporal.Temporal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static apoc.export.util.FormatUtils.getLabelsSorted;
 
@@ -54,19 +55,17 @@ public class CypherFormatterUtils {
 
     public static Map<String, Object> getNodeIdProperties(Node node, Map<String, Set<String>> uniqueConstraints) {
         Map<String, Object> nodeIdProperties = new LinkedHashMap<>();
-        boolean uniqueLabelFound = false;
         List<String> list = getLabelsSorted(node);
 
         for (String labelName : list) {
-            uniqueLabelFound = isUniqueLabelFound(node, uniqueConstraints, labelName);
-            if (!uniqueLabelFound) {
+            if (!isUniqueLabelFound(node, uniqueConstraints, labelName)) {
                 continue;
             }
             uniqueConstraints.get(labelName).forEach(prop -> {
                 nodeIdProperties.put(prop, node.getProperty(prop));
             });
         }
-        if (!uniqueLabelFound) {
+        if (nodeIdProperties.isEmpty()) {
             nodeIdProperties.put(UNIQUE_ID_PROP, node.getId());
         }
         return nodeIdProperties;
@@ -80,7 +79,9 @@ public class CypherFormatterUtils {
         List<String> list = getLabelsSorted(node);
 
         for (String labelName : list) {
-            uniqueLabelFound = isUniqueLabelFound(node, uniqueConstraints, labelName);
+            if (!uniqueLabelFound) {
+                uniqueLabelFound = isUniqueLabelFound(node, uniqueConstraints, labelName);
+            }
             if (indexNames != null && indexNames.contains(labelName))
                 result.insert(0, label(labelName));
             else
@@ -108,24 +109,19 @@ public class CypherFormatterUtils {
 
     private static String getNodeIdLabels(Node node, Map<String, Set<String>> uniqueConstraints, Set<String> indexNames) {
         StringBuilder result = new StringBuilder(100);
-        boolean uniqueLabelFound = false;
-        List<String> list = getLabelsSorted(node);
-
-        for (String labelName : list) {
-            uniqueLabelFound = isUniqueLabelFound(node, uniqueConstraints, labelName);
-
-            if (!uniqueLabelFound) {
-                continue;
-            }
-
-            if (indexNames != null && indexNames.contains(labelName)) {
-                result.insert(0, label(labelName));
-            }
-            else
-                result.append(label(labelName));
-        }
-        if (!uniqueLabelFound) {
+        List<String> list = getLabelsSorted(node).stream()
+                .filter(labelName -> isUniqueLabelFound(node, uniqueConstraints, labelName))
+                .collect(Collectors.toList());
+        if (list.isEmpty()) {
             result.append(label(UNIQUE_ID_LABEL));
+        } else {
+            list.forEach(labelName -> {
+                if (indexNames != null && indexNames.contains(labelName)) {
+                    result.insert(0, label(labelName));
+                } else {
+                    result.append(label(labelName));
+                }
+            });
         }
         return result.toString();
     }
