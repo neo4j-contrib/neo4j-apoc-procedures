@@ -68,7 +68,7 @@ public class Timeboxed {
         pools.getScheduledExecutorService().schedule(() -> {
             Transaction tx = txAtomic.get();
             if (tx==null) {
-                log.info("tx is null, either the other transaction finished gracefully or has not yet been start.");
+                log.debug("tx is null, either the other transaction finished gracefully or has not yet been start.");
             } else {
                 tx.terminate();
                 offerToQueue(queue, POISON, timeout);
