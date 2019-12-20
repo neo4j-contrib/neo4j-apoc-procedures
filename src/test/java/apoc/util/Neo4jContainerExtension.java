@@ -2,7 +2,9 @@ package apoc.util;
 
 
 import org.jetbrains.annotations.NotNull;
+import org.neo4j.driver.internal.summary.InternalSummaryCounters;
 import org.neo4j.driver.v1.*;
+import org.neo4j.driver.v1.summary.SummaryCounters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.Neo4jContainer;
@@ -10,6 +12,8 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.ext.ScriptUtils;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -61,19 +65,43 @@ public class Neo4jContainerExtension extends Neo4jContainer<Neo4jContainerExtens
             throw new ScriptUtils.ScriptLoadException("Could not load classpath init script: " + filePath + ". Resource not found.");
         }
 
+        List<SummaryCounters> counters = new ArrayList<>();
         try (Scanner scanner = new Scanner(resource).useDelimiter(";")) {
             while (scanner.hasNext()) {
                 String statement = scanner.next().trim();
                 if (statement.isEmpty()) {
                     continue;
                 }
-                session.writeTransaction(tx -> {
-                    tx.run(statement);
-                    tx.success();
-                    return null;
-                });
+                counters.add(session.writeTransaction(tx -> tx.run(statement).consume().counters()));
             }
         }
+        if (counters.isEmpty()) return;
+
+        SummaryCounters sum = counters.stream().reduce(InternalSummaryCounters.EMPTY_STATS, (x, y) ->
+                new InternalSummaryCounters(x.nodesCreated() + y.nodesCreated(),
+                        x.nodesDeleted() + y.nodesDeleted(),
+                        x.relationshipsCreated() + y.relationshipsCreated(),
+                        x.relationshipsDeleted() + y.relationshipsDeleted(),
+                        x.propertiesSet() + y.propertiesSet(),
+                        x.labelsAdded() + y.labelsAdded(),
+                        x.labelsRemoved() + y.labelsRemoved(),
+                        x.indexesAdded() + y.indexesAdded(),
+                        x.indexesRemoved() + y.indexesRemoved(),
+                        x.constraintsAdded() + y.constraintsAdded(),
+                        x.constraintsRemoved() + y.constraintsRemoved())
+        );
+        logger().info("Dataset creation report:\n" +
+                "\tnodesCreated: " + sum.nodesCreated() + "\n" +
+                "\tnodesDeleted: " + sum.nodesDeleted() + "\n" +
+                "\trelationshipsCreated: " + sum.relationshipsCreated() + "\n" +
+                "\trelationshipsDeleted: " + sum.relationshipsDeleted() + "\n" +
+                "\tpropertiesSet: " + sum.propertiesSet() + "\n" +
+                "\tlabelsAdded: " + sum.labelsAdded() + "\n" +
+                "\tlabelsRemoved: " + sum.labelsRemoved() + "\n" +
+                "\tindexesAdded: " + sum.indexesAdded() + "\n" +
+                "\tindexesRemoved: " + sum.indexesRemoved() + "\n" +
+                "\tconstraintsAdded: " + sum.constraintsAdded() + "\n" +
+                "\tconstraintsRemoved: " + sum.constraintsRemoved());
     }
 
     public Session getSession() {
