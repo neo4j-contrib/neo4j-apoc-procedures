@@ -44,7 +44,7 @@ ext {
 }
 
 repositories {
-    maven { url "https://m2.neo4j.org/content/repositories/snapshots" }
+    jcenter()
     mavenCentral()
     maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
     flatDir { dirs 'lib' }
