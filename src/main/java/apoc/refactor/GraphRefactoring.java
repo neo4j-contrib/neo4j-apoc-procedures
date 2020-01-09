@@ -16,7 +16,9 @@ import org.neo4j.graphdb.Path;
 import org.neo4j.graphdb.PropertyContainer;
 import org.neo4j.graphdb.Relationship;
 import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.Context;
 import org.neo4j.procedure.Description;
@@ -24,9 +26,7 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -37,9 +37,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.refactor.util.RefactorUtil.copyProperties;
 import static apoc.refactor.util.RefactorUtil.mergeRels;
@@ -157,7 +157,7 @@ public class GraphRefactoring {
             "Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), " +
             "an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.")
     public Stream<NodeRefactorResult> cloneSubgraphFromPaths(@Name("paths") List<Path> paths,
-                                                    @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
+                                                             @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
 
         if (paths == null || paths.isEmpty()) return Stream.empty();
 
@@ -442,81 +442,82 @@ public class GraphRefactoring {
 
         copiedKeys.remove(targetKey); // Just to be sure
 
-        final String[] copiedKeysArray = copiedKeys.toArray(new String[copiedKeys.size()]);
-
-        // We group the nodes by the sourceKey property value
-        Map<Object, Collection<List<Node>>> catChunksMap = getNodeCategoryMap(sourceKey, batchSize);
-
-        // first step we create the categorized nodes
-        final Label nodeLabel = Label.label(label);
-        final Map<Object, Node> catMap = createCategorizedNodes(targetKey, catChunksMap, nodeLabel);
-
-        // second step we create the relationships
-        final RelationshipType type = RelationshipType.withName(relationshipType);
-        catChunksMap
-                .entrySet()
-                .stream()
-                .flatMap(e -> e.getValue()
-                        .stream()
-                        .map(nodes -> {
-                            Node cat = catMap.get(e.getKey());
-                            return connectCatNodeToNodes(cat, nodes, sourceKey, type, outgoing, copiedKeysArray);
-                        }))
-                .forEach(Pools::forceSilently);
-    }
-
-    private Map<Object, Node> createCategorizedNodes(String targetKey, Map<Object, Collection<List<Node>>> catChunksMap, Label nodeLabel) {
-        return catChunksMap
-                .keySet()
-                .stream()
-                .map(cat -> Util.inTxFuture(Pools.DEFAULT, db, () -> {
-                    Node node = db.createNode(nodeLabel);
-                    node.setProperty(targetKey, cat);
-                    return new AbstractMap.SimpleEntry<>(cat, node);
-                }))
-                .map(Pools::forceSilently)
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-    }
+        if (!isUniqueConstraintDefinedFor(label, targetKey)) {
+            throw new IllegalArgumentException("Before execute this procedure you must define an unique constraint for the label and the targetKey:\n"
+                + String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT n.`%s` IS UNIQUE", label, targetKey));
+        }
 
 
-    private Map<Object, Collection<List<Node>>> getNodeCategoryMap(String sourceKey,
-                                                                   long batchSize) {
-        return db.getAllNodes()
-                .stream()
-                .filter(n -> n.hasProperty(sourceKey) && n.getProperty(sourceKey, null) != null) // under-the-hood groupingBy uses Map#merge so we need to manage null keys
-                .collect(Collectors.groupingBy(n -> n.getProperty(sourceKey))) // group the nodes by the sourceKey property value
-                .entrySet()
-                .stream()
-                .map(e -> {
-                    // we create the chunks according to the batchSize value
-                    final AtomicInteger counter = new AtomicInteger();
-                    Collection<List<Node>> chunks = e.getValue()
-                            .stream()
-                            .collect(Collectors.groupingBy(it -> counter.getAndIncrement() / batchSize))
-                            .values();
-                    return new AbstractMap.SimpleEntry<>(e.getKey(), chunks);
-                })
-                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue()));
-    }
-
-    private Future<Void> connectCatNodeToNodes(Node cat,
-                                               List<Node> nodes,
-                                               String sourceKey,
-                                               RelationshipType relationshipType,
-                                               boolean outgoing,
-                                               String[] copiedKeys) {
-        return Pools.processBatch(nodes, db, (Node node) -> {
-            if (outgoing) {
-                node.createRelationshipTo(cat, relationshipType);
-            } else {
-                cat.createRelationshipTo(node, relationshipType);
+        // Create batches of nodes
+        List<Node> batch = null;
+        List<Future<Void>> futures = new ArrayList<>();
+        try (Transaction tx = db.beginTx()) {
+            for (Node node : db.getAllNodes()) {
+                if (batch == null) {
+                    batch = new ArrayList<>((int) batchSize);
+                }
+                batch.add(node);
+                if (batch.size() == batchSize) {
+                    futures.add(categorizeNodes(batch, sourceKey, relationshipType, outgoing, label, targetKey, copiedKeys));
+                    batch = null;
+                }
             }
-            final Map<String, Object> properties = node.getProperties(copiedKeys);
-            properties.forEach((key, value) -> {
-                cat.setProperty(key, value);
-                node.removeProperty(key);
+            if (batch != null) {
+                futures.add(categorizeNodes(batch, sourceKey, relationshipType, outgoing, label, targetKey, copiedKeys));
+            }
+
+            // Await processing of node batches
+            for (Future<Void> future : futures) {
+                Pools.force(future);
+            }
+            tx.success();
+        }
+    }
+
+    private boolean isUniqueConstraintDefinedFor(String label, String key) {
+        return StreamSupport.stream(db.schema().getConstraints(Label.label(label)).spliterator(), false)
+            .anyMatch(c ->  {
+                if (!c.isConstraintType(ConstraintType.UNIQUENESS)) {
+                    return false;
+                }
+                return StreamSupport.stream(c.getPropertyKeys().spliterator(), false)
+                    .allMatch(k -> k.equals(key));
             });
-            node.removeProperty(sourceKey);
+    }
+
+    private Future<Void> categorizeNodes(List<Node> batch, String sourceKey, String relationshipType, Boolean outgoing, String label, String targetKey, List<String> copiedKeys) {
+        return Pools.processBatch(batch, db, (Node node) -> {
+            Object value = node.getProperty(sourceKey, null);
+            if (value != null) {
+                String q =
+                        "WITH $node AS n " +
+                                "MERGE (cat:`" + label + "` {`" + targetKey + "`: $value}) " +
+                                (outgoing ? "MERGE (n)-[:`" + relationshipType + "`]->(cat) "
+                                        : "MERGE (n)<-[:`" + relationshipType + "`]-(cat) ") +
+                                "RETURN cat";
+                Map<String, Object> params = new HashMap<>(2);
+                params.put("node", node);
+                params.put("value", value);
+                Result result = db.execute(q, params);
+                if (result.hasNext()) {
+                    Node cat = (Node) result.next().get("cat");
+                    for (String copiedKey : copiedKeys) {
+                        Object copiedValue = node.getProperty(copiedKey, null);
+                        if (copiedValue != null) {
+                            Object catValue = cat.getProperty(copiedKey, null);
+                            if (catValue == null) {
+                                cat.setProperty(copiedKey, copiedValue);
+                                node.removeProperty(copiedKey);
+                            } else if (copiedValue.equals(catValue)) {
+                                node.removeProperty(copiedKey);
+                            }
+                        }
+                    }
+                }
+                assert (!result.hasNext());
+                result.close();
+                node.removeProperty(sourceKey);
+            }
         });
     }
 
