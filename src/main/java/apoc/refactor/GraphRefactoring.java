@@ -8,6 +8,7 @@ import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.*;
 
@@ -16,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static apoc.refactor.util.RefactorUtil.*;
 
@@ -137,7 +139,7 @@ public class GraphRefactoring {
             "Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), " +
             "an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.")
     public Stream<NodeRefactorResult> cloneSubgraphFromPaths(@Name("paths") List<Path> paths,
-                                                    @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
+                                                             @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
 
         if (paths == null || paths.isEmpty()) return Stream.empty();
 
@@ -419,6 +421,11 @@ public class GraphRefactoring {
 
         copiedKeys.remove(targetKey); // Just to be sure
 
+        if (!isUniqueConstraintDefinedFor(label, targetKey)) {
+            throw new IllegalArgumentException("Before execute this procedure you must define an unique constraint for the label and the targetKey:\n"
+                    + String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT n.`%s` IS UNIQUE", label, targetKey));
+        }
+
         // Create batches of nodes
         List<Node> batch = null;
         List<Future<Void>> futures = new ArrayList<>();
@@ -440,6 +447,17 @@ public class GraphRefactoring {
         for (Future<Void> future : futures) {
             Pools.force(future);
         }
+    }
+
+    private boolean isUniqueConstraintDefinedFor(String label, String key) {
+        return StreamSupport.stream(tx.schema().getConstraints(Label.label(label)).spliterator(), false)
+                .anyMatch(c ->  {
+                    if (!c.isConstraintType(ConstraintType.UNIQUENESS)) {
+                        return false;
+                    }
+                    return StreamSupport.stream(c.getPropertyKeys().spliterator(), false)
+                            .allMatch(k -> k.equals(key));
+                });
     }
 
     private Future<Void> categorizeNodes(List<Node> batch, String sourceKey, String relationshipType, Boolean outgoing, String label, String targetKey, List<String> copiedKeys) {

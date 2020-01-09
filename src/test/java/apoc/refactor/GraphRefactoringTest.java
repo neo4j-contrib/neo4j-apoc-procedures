@@ -271,10 +271,14 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
 
 
         final boolean outgoing = direction == Direction.OUTGOING ? true : false;
+        final String label = "Letter";
+        final String targetKey = "name";
+        db.executeTransactionally("CREATE CONSTRAINT ON (n:`" + label + "`) ASSERT n.`" + targetKey + "` IS UNIQUE");
+
         testCallEmpty(
                 db,
-                "CALL apoc.refactor.categorize('prop','IS_A', $direction, 'Letter','name',['k'],1)",
-                map("direction", outgoing)
+                "CALL apoc.refactor.categorize('prop', 'IS_A', $direction, $label, $targetKey, ['k'], 1)",
+                map("direction", outgoing, "label", label, "targetKey", targetKey)
         );
 
         String traversePattern = (outgoing ? "" : "<") + "-[:IS_A]-" + (outgoing ? ">" : "");
@@ -294,6 +298,7 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
         }
 
         testCall(db, "MATCH (n) WHERE n.prop IS NOT NULL RETURN count(n) AS count", (r) -> assertThat(((Number)r.get("count")).longValue(), equalTo(0L)));
+        db.executeTransactionally("DROP CONSTRAINT ON (n:`" + label + "`) ASSERT n.`" + targetKey + "` IS UNIQUE");
     }
 
     @Test
@@ -635,6 +640,57 @@ MATCH (a:A {prop1:1}) MATCH (b:B {prop2:99}) CALL apoc.refactor.mergeNodes([a, b
                     assertEquals(true, node.hasLabel(Label.label("Person")));
                     assertEquals(2L, node.getProperty("ID"));
                 });
+    }
+
+    @Test(expected = QueryExecutionException.class)
+    public void testRefactorCategorizeExceptionWithNoConstraint() {
+        // given
+        final String label = "Country";
+        final String targetKey = "name";
+        db.executeTransactionally("with [\"IT\", \"DE\"] as countries\n" +
+                "unwind countries as country\n" +
+                "foreach (no in RANGE(1, 4) |\n" +
+                "  create (n:Company {name: country + no, country: country})\n" +
+                ")");
+
+        // when
+        try {
+            db.executeTransactionally("CALL apoc.refactor.categorize('country', 'OPERATES_IN', true, $label, $targetKey, [], 1)",
+                    map("label", label, "targetKey", targetKey));
+        } catch (QueryExecutionException e) {
+            // then
+            String expectedMessage = "Before execute this procedure you must define an unique constraint for the label and the targetKey:\n" +
+                    "CREATE CONSTRAINT ON (n:`" + label + "`) ASSERT n.`" + targetKey + "` IS UNIQUE";
+            assertEquals(expectedMessage, ExceptionUtils.getRootCause(e).getMessage());
+            throw e;
+        }
+    }
+
+    @Test
+    public void testRefactorCategorizeNoDups() {
+        // given
+        final String label = "Country";
+        final String targetKey = "name";
+        db.executeTransactionally("CREATE CONSTRAINT ON (n:`" + label + "`) ASSERT n.`" + targetKey + "` IS UNIQUE");
+        db.executeTransactionally("with [\"IT\", \"DE\"] as countries\n" +
+                "unwind countries as country\n" +
+                "foreach (no in RANGE(1, 4) |\n" +
+                "  create (n:Company {name: country + no, country: country})\n" +
+                ")");
+
+        // when
+        db.executeTransactionally("CALL apoc.refactor.categorize('country', 'OPERATES_IN', true, $label, $targetKey, [], 1)",
+                map("label", label, "targetKey", targetKey));
+
+        // then
+        final long countries = TestUtil.singleResultFirstColumn(db, "MATCH (c:Country) RETURN count(c) AS countries");
+        assertEquals(2, countries);
+        final List<String> countryNames = TestUtil.firstColumn(db, "MATCH (c:Country) RETURN c.name");
+        assertThat(countryNames, Matchers.containsInAnyOrder("IT", "DE"));
+
+        final long relsCount = TestUtil.singleResultFirstColumn(db, "MATCH p = (c:Company)-[:OPERATES_IN]->(cc:Country) RETURN count(p) AS relsCount");
+        assertEquals(8, relsCount);
+        db.executeTransactionally("DROP CONSTRAINT ON (n:`" + label + "`) ASSERT n.`" + targetKey + "` IS UNIQUE");
     }
 }
 
