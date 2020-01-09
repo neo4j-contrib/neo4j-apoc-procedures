@@ -3,7 +3,11 @@ package apoc.export.cypher;
 import apoc.graph.Graphs;
 import apoc.util.TestUtil;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.TestName;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.QueryExecutionException;
@@ -13,11 +17,53 @@ import org.neo4j.test.TestGraphDatabaseFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Map;
+import java.util.stream.Stream;
 
-import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.*;
-import static apoc.export.util.ExportFormat.*;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_CLEAN_UP;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_CLEAN_UP_EMPTY;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_CYPHER_DATE;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_CYPHER_DURATION;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_CYPHER_LABELS_ASCENDEND;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_CYPHER_POINT;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_CYPHER_SHELL;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_CYPHER_SHELL_OPTIMIZED;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_CYPHER_SHELL_OPTIMIZED_BATCH_SIZE;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_CYPHER_TIME;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_INDEXES_AWAIT;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_NEO4J_MERGE;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_NEO4J_OPTIMIZED;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_NEO4J_OPTIMIZED_BATCH_SIZE;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_NEO4J_SHELL;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_NODES;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_NODES_EMPTY;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_NODES_MERGE_ON_CREATE_SET;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_NODES_OPTIMIZED;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_ONLY_SCHEMA_CYPHER_SHELL;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_ONLY_SCHEMA_NEO4J_SHELL;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_PLAIN;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_PLAIN_ADD_STRUCTURE_UNWIND;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_PLAIN_OPTIMIZED_BATCH_SIZE;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_PLAIN_UPDATE_STRUCTURE_UNWIND;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED2;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED_ODD;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_QUERY_CYPHER_SHELL_OPTIMIZED_UNWIND;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_QUERY_CYPHER_SHELL_PARAMS_OPTIMIZED_ODD;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_RELATIONSHIPS;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_RELATIONSHIPS_MERGE_ON_CREATE_SET;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_RELATIONSHIPS_OPTIMIZED;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_RELATIONSHIPS_PARAMS_ODD;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_SCHEMA;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_SCHEMA_EMPTY;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_SCHEMA_OPTIMIZED;
+import static apoc.export.cypher.ExportCypherTest.ExportCypherResults.EXPECTED_UPDATE_ALL_UNWIND;
+import static apoc.export.util.ExportFormat.CYPHER_SHELL;
+import static apoc.export.util.ExportFormat.NEO4J_SHELL;
+import static apoc.export.util.ExportFormat.PLAIN_FORMAT;
 import static apoc.util.Util.map;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh
@@ -608,6 +654,30 @@ public class ExportCypherTest {
         }
     }
 
+    @Test
+    public void shouldNotCreateUniqueImportIdForUniqueConstraint() {
+        db.execute("CREATE (n:Bar:Baz{name: 'A'})").close();
+        String query = "MATCH (n:Baz) RETURN n";
+        /* The bug was:
+        UNWIND [{name:"A", _id:20, properties:{}}] AS row
+        CREATE (n:Bar{name: row.name, `UNIQUE IMPORT ID`: row._id}) SET n += row.properties SET n:Baz;
+        But should be the expected variable
+         */
+        final String expected = "UNWIND [{name:\"A\", properties:{}}] AS row\n" +
+                "CREATE (n:Bar{name: row.name}) SET n += row.properties SET n:Baz";
+        TestUtil.testCall(db, "CALL apoc.export.cypher.query($query, $file, $config)",
+                map("file", null, "query", query, "config", map("format", "plain", "stream", true)), (r) -> {
+                    final String cypherStatements = (String) r.get("cypherStatements");
+                    String unwind = Stream.of(cypherStatements.split(";"))
+                            .map(String::trim)
+                            .filter(s -> s.startsWith("UNWIND"))
+                            .findFirst()
+                            .orElse(null);
+                    assertEquals(expected, unwind);
+                });
+
+    }
+
     private void assertResultsOptimized(String fileName, Map<String, Object> r) {
         assertEquals(7L, r.get("nodes"));
         assertEquals(2L, r.get("relationships"));
@@ -1104,7 +1174,7 @@ public class ExportCypherTest {
         static final String EXPECTED_CYPHER_SHELL_WITH_COMPOUND_CONSTRAINT = String.format(":begin%n" +
                 "CREATE CONSTRAINT ON (node:Person) ASSERT (node.name, node.surname) IS NODE KEY;%n" +
                 ":commit%n" +
-                "CALL db.awaitIndex(':Person(name,surname)');%n" +
+                "CALL db.awaitIndexes(300);%n" +
                 ":begin%n" +
                 "UNWIND [{surname:\"Snow\", name:\"John\", properties:{}}, {surname:\"Jackson\", name:\"Matt\", properties:{}}, {surname:\"White\", name:\"Jenny\", properties:{}}, {surname:\"Brown\", name:\"Susan\", properties:{}}, {surname:\"Taylor\", name:\"Tom\", properties:{}}] AS row%n" +
                 "CREATE (n:Person{surname: row.surname, name: row.name}) SET n += row.properties;%n" +
