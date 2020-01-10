@@ -117,21 +117,27 @@ public class NodesTest {
     @Test
     public void nodesHasRelationship() throws Exception {
         // given
-        db.execute("CREATE (:Foo)-[:Y]->(:Bar),(n:FooBar) WITH n UNWIND range(1,100) as _ CREATE (n)-[:X]->(n)").close();
+        db.execute("CREATE (f:Foo), (f)-[:X]->(f)").close();
+        db.execute("CREATE (b:Bar), (b)-[:Y]->(b)").close();
 
         // when
-        TestUtil.testCall(db,"MATCH (n) RETURN apoc.nodes.relationships.exist(collect(n), 'Y|X') AS value", (result) -> {
+        TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.nodes.relationships.exist(collect(n), 'X|Y') AS value", (result) -> {
             // then
             List<Map<String, Object>> list = (List<Map<String, Object>>) result.get("value");
             assertFalse("value should not be empty", list.isEmpty());
             list.forEach(map -> {
-                Node node = (Node) map.get("node");
                 Map<String, Boolean> data = (Map<String, Boolean>) map.get("exists");
-                if (node.hasLabel(Label.label("Foo")) || node.hasLabel(Label.label("Bar"))) {
-                    assertEquals(map("Y", true, "X", false), data);
-                } else {
-                    assertEquals(map("Y", false, "X", true), data);
-                }
+                assertEquals(map("X", true, "Y", false), data);
+            });
+        });
+
+        TestUtil.testCall(db,"MATCH (n:Bar) RETURN apoc.nodes.relationships.exist(collect(n), 'X|Y') AS value", (result) -> {
+            // then
+            List<Map<String, Object>> list = (List<Map<String, Object>>) result.get("value");
+            assertFalse("value should not be empty", list.isEmpty());
+            list.forEach(map -> {
+                Map<String, Boolean> data = (Map<String, Boolean>) map.get("exists");
+                assertEquals(map("X", false, "Y", true), data);
             });
         });
     }
