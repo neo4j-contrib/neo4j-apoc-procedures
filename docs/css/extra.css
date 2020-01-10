@@ -135,3 +135,7 @@ a {
 #toc ul.sectlevel0 > li > a {
     font-style: normal;
 }
+
+p.simpara {
+    margin-bottom: 0;
+}
