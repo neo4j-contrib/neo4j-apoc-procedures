@@ -7,17 +7,43 @@ import apoc.refactor.util.RefactorConfig;
 import apoc.result.NodeResult;
 import apoc.result.RelationshipResult;
 import apoc.util.Util;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotFoundException;
+import org.neo4j.graphdb.Path;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Result;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.logging.Log;
-import org.neo4j.procedure.*;
+import org.neo4j.procedure.Context;
+import org.neo4j.procedure.Description;
+import org.neo4j.procedure.Mode;
+import org.neo4j.procedure.Name;
+import org.neo4j.procedure.Procedure;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import static apoc.refactor.util.RefactorUtil.*;
+import static apoc.refactor.util.RefactorUtil.copyProperties;
+import static apoc.refactor.util.RefactorUtil.mergeRels;
+import static apoc.refactor.util.RefactorUtil.mergeRelsWithSameTypeAndDirectionInMergeNodes;
 
 public class GraphRefactoring {
     @Context
@@ -131,7 +157,7 @@ public class GraphRefactoring {
             "Relationships can be optionally redirected according to standinNodes node pairings (this is a list of list-pairs of nodes), so given a node in the original subgraph (first of the pair), " +
             "an existing node (second of the pair) can act as a standin for it within the cloned subgraph. Cloned relationships will be redirected to the standin.")
     public Stream<NodeRefactorResult> cloneSubgraphFromPaths(@Name("paths") List<Path> paths,
-                                                    @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
+                                                             @Name(value="config", defaultValue = "{}") Map<String, Object> config) {
 
         if (paths == null || paths.isEmpty()) return Stream.empty();
 
@@ -416,6 +442,12 @@ public class GraphRefactoring {
 
         copiedKeys.remove(targetKey); // Just to be sure
 
+        if (!isUniqueConstraintDefinedFor(label, targetKey)) {
+            throw new IllegalArgumentException("Before execute this procedure you must define an unique constraint for the label and the targetKey:\n"
+                + String.format("CREATE CONSTRAINT ON (n:`%s`) ASSERT n.`%s` IS UNIQUE", label, targetKey));
+        }
+
+
         // Create batches of nodes
         List<Node> batch = null;
         List<Future<Void>> futures = new ArrayList<>();
@@ -442,13 +474,24 @@ public class GraphRefactoring {
         }
     }
 
+    private boolean isUniqueConstraintDefinedFor(String label, String key) {
+        return StreamSupport.stream(db.schema().getConstraints(Label.label(label)).spliterator(), false)
+            .anyMatch(c ->  {
+                if (!c.isConstraintType(ConstraintType.UNIQUENESS)) {
+                    return false;
+                }
+                return StreamSupport.stream(c.getPropertyKeys().spliterator(), false)
+                    .allMatch(k -> k.equals(key));
+            });
+    }
+
     private Future<Void> categorizeNodes(List<Node> batch, String sourceKey, String relationshipType, Boolean outgoing, String label, String targetKey, List<String> copiedKeys) {
         return Pools.processBatch(batch, db, (Node node) -> {
             Object value = node.getProperty(sourceKey, null);
             if (value != null) {
                 String q =
-                        "WITH {node} AS n " +
-                                "MERGE (cat:`" + label + "` {`" + targetKey + "`: {value}}) " +
+                        "WITH $node AS n " +
+                                "MERGE (cat:`" + label + "` {`" + targetKey + "`: $value}) " +
                                 (outgoing ? "MERGE (n)-[:`" + relationshipType + "`]->(cat) "
                                         : "MERGE (n)<-[:`" + relationshipType + "`]-(cat) ") +
                                 "RETURN cat";

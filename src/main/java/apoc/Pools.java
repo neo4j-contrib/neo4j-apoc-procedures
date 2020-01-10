@@ -1,6 +1,9 @@
 package apoc;
 
 import apoc.util.Util;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.scheduler.JobScheduler;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,10 +21,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
-
-import org.neo4j.graphdb.GraphDatabaseService;
-import org.neo4j.graphdb.Transaction;
-import org.neo4j.scheduler.JobScheduler;
 
 public class Pools {
 
@@ -124,6 +123,18 @@ public class Pools {
                 return future.get();
             } catch (InterruptedException e) {
                 Thread.interrupted();
+            }
+        }
+    }
+
+    public static <T> T forceSilently(Future<T> future)  {
+        while (true) {
+            try {
+                return future.get();
+            } catch (InterruptedException e) {
+                Thread.interrupted();
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
             }
         }
     }
