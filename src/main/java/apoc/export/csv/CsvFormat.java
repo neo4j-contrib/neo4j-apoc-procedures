@@ -25,6 +25,7 @@ import static apoc.util.Util.joinLabels;
  * @since 22.11.16
  */
 public class CsvFormat implements Format {
+    public static final String ID = "id";
     private final GraphDatabaseService db;
     private boolean applyQuotesToAll = true;
 
@@ -146,7 +147,7 @@ public class CsvFormat implements Format {
 
     private void writeNodesBulkImport(Reporter reporter, ExportConfig config, ExportFileManager writer, Map<Iterable<Label>, List<Node>> objectNode) {
         objectNode.entrySet().forEach(entrySet -> {
-            Set<String> headerNode = generateHeaderNode(entrySet);
+            Set<String> headerNode = generateHeaderNodeBulkImport(entrySet);
 
             List<List<String>> rows = entrySet.getValue()
                     .stream()
@@ -157,7 +158,7 @@ public class CsvFormat implements Format {
                                 return joinLabels(entrySet.getKey(), config.getArrayDelim());
                             }
                             String prop = s.split(":")[0];
-                            return prop.equals("id") ? String.valueOf(n.getId()) : cleanPoint(FormatUtils.toString(n.getProperty(prop, "")));
+                            return "".equals(prop) ? String.valueOf(n.getId()) : cleanPoint(FormatUtils.toString(n.getProperty(prop, "")));
                         }).collect(Collectors.toList());
                     })
                     .collect(Collectors.toList());
@@ -169,7 +170,7 @@ public class CsvFormat implements Format {
 
     private void writeRelsBulkImport(Reporter reporter, ExportConfig config, ExportFileManager writer, Map<RelationshipType, List<Relationship>> objectRel) {
         objectRel.entrySet().forEach(entrySet -> {
-            Set<String> headerRel = generateHeaderRelationship(entrySet);
+            Set<String> headerRel = generateHeaderRelationshipBulkImport(entrySet);
 
             List<List<String>> rows = entrySet.getValue()
                     .stream()
@@ -185,7 +186,7 @@ public class CsvFormat implements Format {
                                     return entrySet.getKey().name();
                                 default:
                                     String prop = s.split(":")[0];
-                                    return prop.equals("id") ? String.valueOf(r.getId()) : cleanPoint(FormatUtils.toString(r.getProperty(prop, "")));
+                                    return "".equals(prop) ? String.valueOf(r.getId()) : cleanPoint(FormatUtils.toString(r.getProperty(prop, "")));
                             }
                         }).collect(Collectors.toList());
                     })
@@ -201,24 +202,27 @@ public class CsvFormat implements Format {
         return point;
     }
 
-    private Set<String> generateHeaderNode(Map.Entry<Iterable<Label>, List<Node>> entrySet) {
+    private Set<String> generateHeaderNodeBulkImport(Map.Entry<Iterable<Label>, List<Node>> entrySet) {
         Set<String> headerNode = new LinkedHashSet<>();
-        headerNode.add("id:ID");
+        headerNode.add(":ID");
         Map<String,Class> keyTypes = new LinkedHashMap<>();
         entrySet.getValue().forEach(node -> updateKeyTypes(keyTypes, node));
-        headerNode.addAll(keyTypes.entrySet().stream().map(stringClassEntry -> formatHeader(stringClassEntry)).collect(Collectors.toCollection(LinkedHashSet::new)));
+        final LinkedHashSet<String> otherFields = keyTypes.entrySet().stream()
+                .map(stringClassEntry -> formatHeader(stringClassEntry))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        headerNode.addAll(otherFields);
         headerNode.add(":LABEL");
         return headerNode;
     }
 
-    private Set<String> generateHeaderRelationship(Map.Entry<RelationshipType, List<Relationship>> entrySet) {
+    private Set<String> generateHeaderRelationshipBulkImport(Map.Entry<RelationshipType, List<Relationship>> entrySet) {
         Set<String> headerNode = new LinkedHashSet<>();
         Map<String,Class> keyTypes = new LinkedHashMap<>();
         entrySet.getValue().forEach(relationship -> updateKeyTypes(keyTypes, relationship));
-        headerNode.addAll(keyTypes.entrySet().stream().map(stringClassEntry -> formatHeader(stringClassEntry)).collect(Collectors.toCollection(LinkedHashSet::new)));
         headerNode.add(":START_ID");
         headerNode.add(":END_ID");
         headerNode.add(":TYPE");
+        headerNode.addAll(keyTypes.entrySet().stream().map(stringClassEntry -> formatHeader(stringClassEntry)).collect(Collectors.toCollection(LinkedHashSet::new)));
         return headerNode;
     }
 
