@@ -124,10 +124,10 @@ CALL apoc.export.csv.all(null, {stream:true})
 ----
 
 .Results
-[opts="header", cols="1,2,1,1,1,1,1,1,1,1,1,5"]
+[opts="header"]
 |===
-| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
-| NULL | "database: nodes(8), rels(7)" | "csv"  | 8     | 7             | 21         | 12   | 15   | 20000     | 1       | TRUE | "\"_id\",\"_labels\",\"born\",\"name\",\"released\",\"tagline\",\"title\",\"_start\",\"_end\",\"_type\",\"roles\"
+| file         | nodes | relationships | properties | data 
+| NULL | 8     | 7             | 21         | "\"_id\",\"_labels\",\"born\",\"name\",\"released\",\"tagline\",\"title\",\"_start\",\"_end\",\"_type\",\"roles\"
 \"188\",\":Movie\",\"\",\"\",\"1999\",\"Welcome to the Real World\",\"The Matrix\",,,,
 \"189\",\":Person\",\"1964\",\"Keanu Reeves\",\"\",\"\",\"\",,,,
 \"190\",\":Person\",\"1967\",\"Carrie-Anne Moss\",\"\",\"\",\"\",,,,
@@ -221,15 +221,15 @@ The contents of `movies-actedIn.csv` are shown below:
 MATCH (person:Person)-[actedIn:ACTED_IN]->(movie:Movie)
 WITH collect(DISTINCT person) AS people, collect(DISTINCT movie) AS movies, collect(actedIn) AS actedInRels
 CALL apoc.export.csv.data(people + movies, actedInRels, null, {stream: true})
-YIELD file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
-RETURN file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data
 ----
 
 .Results
-[opts="header", cols="1,2,1,1,1,1,1,1,1,1,1,5"]
+[opts="header"]
 |===
-| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
-| NULL | "data: nodes(5), rels(4)" | "csv"  | 5     | 4             | 15         | 2    | 9    | 20000     | 1       | TRUE | "\"_id\",\"_labels\",\"born\",\"name\",\"released\",\"tagline\",\"title\",\"_start\",\"_end\",\"_type\",\"roles\"
+| file         | nodes | relationships | properties | data 
+| NULL | 5     | 4             | 15          | "\"_id\",\"_labels\",\"born\",\"name\",\"released\",\"tagline\",\"title\",\"_start\",\"_end\",\"_type\",\"roles\"
 \"190\",\":Person\",\"1967\",\"Carrie-Anne Moss\",\"\",\"\",\"\",,,,
 \"189\",\":Person\",\"1964\",\"Keanu Reeves\",\"\",\"\",\"\",,,,
 \"191\",\":Person\",\"1961\",\"Laurence Fishburne\",\"\",\"\",\"\",,,,
@@ -296,13 +296,15 @@ The contents of `movies-producers.csv` are shown below:
 [source,cypher]
 ----
 CALL apoc.export.csv.graph(apoc.static.get("producers.cached"), null, {stream: true})
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data
 ----
 
 .Results
-[opts="header", cols="1,2,1,1,1,1,1,1,1,1,1,5"]
+[opts="header"]
 |===
-| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
-| NULL | "graph: nodes(2), rels(1)" | "csv"  | 2     | 1             | 5          | 3    | 3    | 20000     | 1       | TRUE | "\"_id\",\"_labels\",\"born\",\"name\",\"released\",\"tagline\",\"title\",\"_start\",\"_end\",\"_type\"
+| file         | nodes | relationships | properties | data 
+| NULL | 2     | 1             | 5          | "\"_id\",\"_labels\",\"born\",\"name\",\"released\",\"tagline\",\"title\",\"_start\",\"_end\",\"_type\"
 \"195\",\":Person\",\"1952\",\"Joel Silver\",\"\",\"\",\"\",,,
 \"188\",\":Movie\",\"\",\"\",\"1999\",\"Welcome to the Real World\",\"The Matrix\",,,
 ,,,,,,,\"195\",\"188\",\"PRODUCED\"
@@ -351,18 +353,17 @@ WITH "MATCH path = (person:Person)-[directed:DIRECTED]->(movie)
              actedIn.roles AS role, 
              movie.title AS title, movie.tagline AS tagline, movie.released AS released" AS query
 CALL apoc.export.csv.query(query, null, {stream: true})
-YIELD file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
-RETURN file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data
 ----
 
 .Results
-[opts="header", cols="1,2,1,1,1,1,1,1,1,1,1,5"]
+[opts="header"]
 |===
-| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
-| NULL | "statement: cols(6)" | "csv"  | 0     | 0             | 12         | 2    | 2    | 20000     | 1       | TRUE | "\"name\",\"born\",\"role\",\"title\",\"tagline\",\"released\"
+| file       | nodes | relationships | properties | data 
+| NULL  | 0     | 0             | 12        | "\"name\",\"born\",\"role\",\"title\",\"tagline\",\"released\"
 \"Lilly Wachowski\",\"1967\",\"\",\"The Matrix\",\"Welcome to the Real World\",\"1999\"
 \"Lana Wachowski\",\"1965\",\"\",\"The Matrix\",\"Welcome to the Real World\",\"1999\"
 "
 |===
-
 // end::export.csv[]
