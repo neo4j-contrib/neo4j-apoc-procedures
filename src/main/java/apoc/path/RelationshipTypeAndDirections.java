@@ -7,7 +7,9 @@ import org.neo4j.internal.helpers.collection.Pair;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.neo4j.graphdb.Direction.*;
+import static org.neo4j.graphdb.Direction.BOTH;
+import static org.neo4j.graphdb.Direction.INCOMING;
+import static org.neo4j.graphdb.Direction.OUTGOING;
 
 /**
  * helper class parsing relationship types and directions
@@ -24,8 +26,6 @@ public abstract class RelationshipTypeAndDirections {
                 return type + ">";
             case INCOMING:
                 return "<" + type;
-            case BOTH:
-                return type;
             default:
                 return type;
         }

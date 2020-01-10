@@ -2,11 +2,18 @@ package apoc.refactor;
 
 import apoc.util.ArrayBackedList;
 import apoc.util.TestUtil;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
 import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
@@ -17,11 +24,19 @@ import java.util.List;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
-import static apoc.util.TestUtil.*;
+import static apoc.util.TestUtil.testCall;
+import static apoc.util.TestUtil.testCallEmpty;
+import static apoc.util.TestUtil.testResult;
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author mh

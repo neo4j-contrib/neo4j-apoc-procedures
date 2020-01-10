@@ -22,8 +22,13 @@ import java.util.Set;
 
 import static apoc.util.Util.map;
 import static java.util.Arrays.asList;
-import static java.util.Collections.*;
-import static org.junit.Assert.*;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonList;
+import static java.util.Collections.singletonMap;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.neo4j.graphdb.Label.label;
 import static org.neo4j.internal.helpers.collection.Iterators.asSet;
 
@@ -79,6 +84,59 @@ public class NodesTest {
     }
 
     @Test
+    public void nodesTypes() throws Exception {
+        // given
+        db.executeTransactionally("CREATE (f:Foo), (f)-[:Y]->(f), (f)-[:X]->(f)");
+        db.executeTransactionally("CREATE (f:Bar), (f)-[:YY]->(f), (f)-[:XX]->(f)");
+
+        // when
+        TestUtil.testCall(db, "MATCH (n) RETURN apoc.nodes.relationship.types(collect(n)) AS value",
+                (result) -> {
+                    // then
+                    List<Map<String, Object>> list = (List<Map<String, Object>>) result.get("value");
+                    assertFalse("value should not be empty", list.isEmpty());
+                    list.forEach(map -> {
+                        Node node = (Node) map.get("node");
+                        List<String> data = (List<String>) map.get("types");
+                        if (node.hasLabel(Label.label("Foo"))) {
+                            assertEquals(asSet("X", "Y"), asSet(data.iterator()));
+                        } else {
+                            assertEquals(asSet("XX", "YY"), asSet(data.iterator()));
+                        }
+                    });
+                });
+    }
+
+    @Test
+    public void nodesHasRelationship() throws Exception {
+        // given
+        db.executeTransactionally("CREATE (f:Foo), (f)-[:X]->(f)");
+        db.executeTransactionally("CREATE (b:Bar), (b)-[:Y]->(b)");
+
+        // when
+        TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.nodes.relationships.exist(collect(n), 'X|Y') AS value", (result) -> {
+            // then
+            List<Map<String, Object>> list = (List<Map<String, Object>>) result.get("value");
+            assertFalse("value should not be empty", list.isEmpty());
+            list.forEach(map -> {
+                Map<String, Boolean> data = (Map<String, Boolean>) map.get("exists");
+                assertEquals(map("X", true, "Y", false), data);
+            });
+        });
+
+        TestUtil.testCall(db,"MATCH (n:Bar) RETURN apoc.nodes.relationships.exist(collect(n), 'X|Y') AS value", (result) -> {
+            // then
+            List<Map<String, Object>> list = (List<Map<String, Object>>) result.get("value");
+            assertFalse("value should not be empty", list.isEmpty());
+            list.forEach(map -> {
+                Map<String, Boolean> data = (Map<String, Boolean>) map.get("exists");
+                assertEquals(map("X", false, "Y", true), data);
+            });
+        });
+    }
+
+
+    @Test
     public void hasRelationhip() throws Exception {
         db.executeTransactionally("CREATE (:Foo)-[:Y]->(:Bar),(n:FooBar) WITH n UNWIND range(1,100) as _ CREATE (n)-[:X]->(n)");
         TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.node.relationship.exists(n,'Y') AS value",(r)-> assertEquals(true,r.get("value")));
@@ -96,8 +154,8 @@ public class NodesTest {
         TestUtil.testCall(db,"MATCH (n:FooBar) RETURN apoc.node.relationship.exists(n,'<X') AS value", (r)-> assertEquals(true,r.get("value")));
         TestUtil.testCall(db,"MATCH (n:FooBar) RETURN apoc.node.relationship.exists(n,'Y') AS value", (r)-> assertEquals(false,r.get("value")));
     }
-    @Test
 
+    @Test
     public void hasRelationhips() throws Exception {
         db.executeTransactionally("CREATE (:Foo)-[:Y]->(:Bar),(n:FooBar) WITH n UNWIND range(1,100) as _ CREATE (n)-[:X]->(n)");
         TestUtil.testCall(db,"MATCH (n:Foo) RETURN apoc.node.relationships.exist(n,'Y') AS value",(r)-> assertEquals(map("Y",true),r.get("value")));
