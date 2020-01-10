@@ -150,3 +150,7 @@ footer {
     grid-row-start: 2;
     grid-row-end: 3;
 }
+
+p.simpara {
+    margin-bottom: 0;
+}
