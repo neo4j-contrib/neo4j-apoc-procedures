@@ -79,7 +79,10 @@ This section describes functions that can be used to query nodes.
 | apoc.nodes.isDense(node) | returns true if it is a dense node
 | apoc.nodes.connected(start, end, rel-direction-pattern) | returns true when the node is connected to the other node, optimized for dense nodes
 | apoc.node.relationship.exists(node, rel-direction-pattern) | returns true when the node has the relationships of the pattern
+| apoc.node.relationships.exist(node, rel-direction-pattern) | returns a map with rel-pattern, boolean for the given relationship patterns
+| apoc.nodes.relationships.exist(node\|nodes\|id\|[ids], rel-direction-pattern) | returns a list of maps where each one has two fields: `node` which is the node subject of the analysis and `exists` which is a map with <rel-pattern, boolean> for the given relationship patterns
 | apoc.node.relationship.types(node, rel-direction-pattern) | returns a list of distinct relationship types
+| apoc.nodes.relationship.types(node\|nodes\|id\|[ids], rel-direction-pattern) | returns a list of maps where each one has two fields: `node` which is the node subject of the analysis and `types` which is a list of distinct relationship types
 | apoc.node.degree(node, rel-direction-pattern) | returns total degrees of the given relationships in the pattern, can use `'>'` or `'<'` for all outgoing or incoming relationships
 | apoc.node.id(node) | returns id for (virtual) nodes
 | apoc.node.degree.in(node, relationshipName) | returns total number of incoming relationship
