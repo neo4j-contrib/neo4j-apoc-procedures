@@ -181,6 +181,13 @@ public class Date {
 	}
 
 	@UserFunction
+	@Description("apoc.date.parseAsZonedDateTime('2012-12-23 23:59:59','yyyy-MM-dd HH:mm:ss', 'UTC') parse date string using the specified format at the specified timezone")
+	public ZonedDateTime parseAsZonedDateTime(@Name("time") String time, @Name(value = "format", defaultValue = DEFAULT_FORMAT) String format, final @Name(value = "timezone", defaultValue = "UTC") String timezone) {
+		Long value = parseOrThrow(time, getFormat(format, timezone));
+		return value == null ? null : Instant.ofEpochMilli(value).atZone(ZoneId.of(timezone));
+	}
+
+	@UserFunction
 	@Description("apoc.date.systemTimezone() returns the system timezone display name")
 	public String systemTimezone() {
 		return TimeZone.getDefault().getID();
