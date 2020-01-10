@@ -173,6 +173,7 @@ RETURN file, source, format, nodes, relationships, properties, time, rows, batch
 
 The contents of `movies-l.csv` are shown below:
 
+.movies-l.csv
 [source,csv]
 ----
 "_id","_labels","born","name","_start","_end","_type"
@@ -201,6 +202,7 @@ RETURN file, source, format, nodes, relationships, properties, time, rows, batch
 
 The contents of `movies-actedIn.csv` are shown below:
 
+.movies-actedIn.csv
 [source,csv]
 ----
 "_id","_labels","born","name","released","tagline","title","_start","_end","_type","roles"
@@ -284,6 +286,7 @@ CALL apoc.export.csv.graph(apoc.static.get("producers.cached"), "movies-producer
 
 The contents of `movies-producers.csv` are shown below:
 
+.movies-producers.csv
 [source,csv]
 ----
 "_id","_labels","born","name","released","tagline","title","_start","_end","_type"
@@ -338,6 +341,7 @@ RETURN file, source, format, nodes, relationships, properties, time, rows, batch
 
 The contents of `movies-directed.csv` are shown below:
 
+.movies-directed.csv
 [source,csv]
 ----
 "name","born","role","title","tagline","released"
