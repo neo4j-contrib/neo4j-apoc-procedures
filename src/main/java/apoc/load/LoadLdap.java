@@ -8,6 +8,7 @@ import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -15,72 +16,73 @@ import java.util.stream.StreamSupport;
 public class LoadLdap {
 
     @Procedure(name = "apoc.load.ldap", mode = Mode.READ)
-    @Description("apoc.load.ldap(\"key\" or {connectionMap},{searchMap}) Load entries from an ldap source (yield entry)")
-    public Stream<LDAPResult> ldapQuery(@Name("connection") final Object conn, @Name("search") final Map<String,Object> search) {
+    @Description("apoc.load.ldap(\"key\" or {connectionMap}) Load entries from an ldap source (yield entry)")
+    public Stream<LDAPResult> ldapQuery(@Name("connection") final Object conn) throws MalformedURLException {
 
         LDAPManager mgr = new LDAPManager(getConnectionMap(conn));
 
-        return mgr.executeSearch(search);
+        return mgr.executeSearch();
     }
 
-    public static Map<String, Object> getConnectionMap(Object conn) {
+    public static Map<String, String> getConnectionMap(Object conn) {
+        Map<String, String> config = new HashMap<>();
+        String loginDN = "";
+        String loginPW = "";
+        String ldapUrl = "";
+
         if (conn instanceof String) {
-            //String value = "ldap.forumsys.com cn=read-only-admin,dc=example,dc=com password";
             Object value = ApocConfiguration.get("loadldap").get(conn.toString() + ".config");
-            // format <ldaphost:port> <logindn> <loginpw>
-            if (value == null) throw new RuntimeException("No apoc.loadldap."+conn+".config ldap access configuration specified");
-            Map<String, Object> config = new HashMap<>();
-            String[] sConf = ((String) value).split(" ");
-            config.put("ldapHost", sConf[0]);
-            config.put("loginDN", sConf[1]);
-            config.put("loginPW", sConf[2]);
+            // format <ldapURL>[;<logindn>;<loginpw>]
+            // format <ldapURL>
+            if (value == null)
+                throw new RuntimeException("No apoc.loadldap." + conn + ".config ldap access configuration specified");
 
-            return config;
+            String[] sConf = ((String) value).split(";");
 
-        } else {
-            return (Map<String,Object> ) conn;
+            if (sConf.length == 3) {
+                ldapUrl = sConf[0];
+                loginDN = sConf[1];
+                loginPW = sConf[2];
+            } else {
+                ldapUrl = sConf[0];
+            }
+        } else if (conn instanceof Map){
+            Map tempConn = (Map) conn;
+            ldapUrl = (null != tempConn.get("ldapURL")) ? (String) tempConn.get("ldapURL") : "";
+            loginDN = (null != tempConn.get("loginDN")) ? (String) tempConn.get("loginDN") : "";
+            loginPW = (null != tempConn.get("loginPW")) ? (String) tempConn.get("loginPW") : "";
         }
+
+        if (ldapUrl.equals("")) {
+            throw new RuntimeException("LDAP URL cannot be empty");
+        }
+
+        config.put("ldapURL", ldapUrl);
+        config.put("loginPW", loginPW);
+        config.put("loginDN", loginDN);
+        return config;
     }
 
     public static class LDAPManager {
-        private static final String LDAP_HOST_P = "ldapHost";
         private static final String LDAP_LOGIN_DN_P = "loginDN";
         private static final String LDAP_LOGIN_PW_P = "loginPW";
-        private static final String SEARCH_BASE_P = "searchBase";
-        private static final String SEARCH_SCOPE_P = "searchScope";
-        private static final String SEARCH_FILTER_P = "searchFilter";
-        private static final String SEARCH_ATTRIBUTES_P = "attributes";
+        private static final String LDAP_URL = "ldapURL";
 
-        private static final String SCOPE_BASE = "SCOPE_BASE";
-        private static final String SCOPE_ONE = "SCOPE_ONE";
-        private static final String SCOPE_SUB = "SCOPE_SUB";
-
-        private int ldapPort;
         private int ldapVersion = LDAPConnection.LDAP_V3;
-        private String ldapHost;
         private String loginDN;
         private String password;
         private LDAPConnection lc;
-        private List<String> attributeList;
+        private LDAPUrl ldapUrl;
 
-        public LDAPManager(Map<String, Object> connParms) {
-
-            String sLdapHostPort = (String) connParms.get(LDAP_HOST_P);
-            if (sLdapHostPort.indexOf(":") > -1) {
-                this.ldapHost = sLdapHostPort.substring(0, sLdapHostPort.indexOf(":"));
-                this.ldapPort = Integer.parseInt(sLdapHostPort.substring(sLdapHostPort.indexOf(":") + 1));
-            } else {
-                this.ldapHost = sLdapHostPort;
-                this.ldapPort = 389; // default
-            }
-
-            this.loginDN = (String) connParms.get(LDAP_LOGIN_DN_P);
-            this.password = (String) connParms.get(LDAP_LOGIN_PW_P);
+        public LDAPManager(Map<String, String> connParms) throws MalformedURLException {
+            this.ldapUrl = new LDAPUrl(connParms.get(LDAP_URL));
+            this.loginDN = (null != connParms.get(LDAP_LOGIN_DN_P)) ? connParms.get(LDAP_LOGIN_DN_P) : "";
+            this.password = (null != connParms.get(LDAP_LOGIN_PW_P)) ? connParms.get(LDAP_LOGIN_PW_P) : "";
         }
 
-        public Stream<LDAPResult> executeSearch(Map<String, Object> search) {
+        public Stream<LDAPResult> executeSearch() {
             try {
-                Iterator<Map<String, Object>> supplier = new SearchResultsIterator(doSearch(search), attributeList);
+                Iterator<Map<String, Object>> supplier = new SearchResultsIterator(doSearch(), this.ldapUrl.getAttributeArray());
                 Spliterator<Map<String, Object>> spliterator = Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
                 return StreamSupport.stream(spliterator, false).map(LDAPResult::new).onClose(() -> closeIt(lc));
             } catch (Exception e) {
@@ -89,23 +91,7 @@ public class LoadLdap {
             }
         }
 
-        public LDAPSearchResults doSearch(Map<String, Object> search) {
-            // parse search parameters
-            String searchBase = (String) search.get(SEARCH_BASE_P);
-            String searchFilter = (String) search.get(SEARCH_FILTER_P);
-            String sScope = (String) search.get(SEARCH_SCOPE_P);
-            attributeList = (List<String>) search.get(SEARCH_ATTRIBUTES_P);
-            if (attributeList == null) attributeList = new ArrayList<>();
-            int searchScope = LDAPConnection.SCOPE_SUB;
-            if (sScope.equals(SCOPE_BASE)) {
-                searchScope = LDAPConnection.SCOPE_BASE;
-            } else if (sScope.equals(SCOPE_ONE)) {
-                searchScope = LDAPConnection.SCOPE_ONE;
-            } else if (sScope.equals(SCOPE_SUB)) {
-                searchScope = LDAPConnection.SCOPE_SUB;
-            } else {
-                throw new RuntimeException("Invalid scope:" + sScope + ". value scopes are SCOPE_BASE, SCOPE_ONE and SCOPE_SUB");
-            }
+        public LDAPSearchResults doSearch() {
             // getting an ldap connection
             try {
                 lc = getConnection();
@@ -113,11 +99,13 @@ public class LoadLdap {
                 LDAPSearchConstraints cons = new LDAPSearchConstraints();
                 cons.setMaxResults(0); // no limit
                 LDAPSearchResults searchResults = null;
-                if (attributeList == null || attributeList.size() == 0) {
-                    searchResults = lc.search(searchBase, searchScope, searchFilter, null, false, cons);
-                } else {
-                    searchResults = lc.search(searchBase, searchScope, searchFilter, attributeList.toArray(new String[0]), false, cons);
-                }
+                searchResults = lc.search(
+                        this.ldapUrl.getDN(),
+                        this.ldapUrl.getScope(),
+                        this.ldapUrl.getFilter(),
+                        this.ldapUrl.getAttributeArray(),
+                        false,
+                        cons);
                 return searchResults;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -157,18 +145,15 @@ public class LoadLdap {
         }
 
         private LDAPConnection getConnection() throws LDAPException, UnsupportedEncodingException {
-//        LDAPSocketFactory ssf;
-//        Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
-            // String path ="C:\\j2sdk1.4.2_09\\jre\\lib\\security\\cacerts";
-            //op("the trustStore: " + System.getProperty("javax.net.ssl.trustStore"));
-            // System.setProperty("javax.net.ssl.trustStore", path);
-//        op(" reading the strustStore: " + System.getProperty("javax.net.ssl.trustStore"));
-//        ssf = new LDAPJSSESecureSocketFactory();
-//        LDAPConnection.setSocketFactory(ssf);
-
-
-            LDAPConnection lc = new LDAPConnection();
-            lc.connect(ldapHost, ldapPort);
+            LDAPConnection lc;
+            if (this.ldapUrl.isSecure()) {
+                // Use the truststore that Neo4J is using when connecting over TLS
+                LDAPSocketFactory ssf = new LDAPJSSESecureSocketFactory();
+                lc = new LDAPConnection(ssf);
+            } else {
+                lc = new LDAPConnection();
+            }
+            lc.connect(this.ldapUrl.getHost(), this.ldapUrl.getPort());
 
             // bind to the server
             lc.bind(ldapVersion, loginDN, password.getBytes("UTF8"));
@@ -185,9 +170,9 @@ public class LoadLdap {
     }
     private static class SearchResultsIterator implements Iterator<Map<String, Object>> {
         private final LDAPSearchResults lsr;
-        private final List<String> attributes;
+        private final String[] attributes;
         private Map<String,Object> map;
-        public SearchResultsIterator(LDAPSearchResults lsr, List<String> attributes) {
+        public SearchResultsIterator(LDAPSearchResults lsr, String[] attributes) {
             this.lsr = lsr;
             this.attributes = attributes;
             this.map = get();
@@ -208,20 +193,20 @@ public class LoadLdap {
         public Map<String, Object> get() {
             if (handleEndOfResults()) return null;
             try {
-                Map<String, Object> entry = new LinkedHashMap<>(attributes.size() + 1);
+                Map<String, Object> entry = new LinkedHashMap<>(attributes.length + 1);
                 LDAPEntry en = null;
                 en = lsr.next();
                 entry.put("dn", en.getDN());
-                if (attributes != null && attributes.size() > 0) {
-                    for (int col = 0; col < attributes.size(); col++) {
-                        Object val = readValue(en.getAttributeSet().getAttribute(attributes.get(col)));
-                        if (val != null) entry.put(attributes.get(col),val );
+                if (attributes != null && attributes.length > 0) {
+                    for (int col = 0; col < attributes.length; col++) {
+                        Object val = readValue(en.getAttributeSet().getAttribute(attributes[col]));
+                        if (val != null) entry.put(attributes[col],val );
                     }
                 } else {
                     // make it dynamic
-                    Iterator<LDAPAttribute> iter = en.getAttributeSet().iterator();
+                    Iterator iter = en.getAttributeSet().iterator();
                     while (iter.hasNext()) {
-                        LDAPAttribute attr = iter.next();
+                        LDAPAttribute attr = (LDAPAttribute) iter.next();
                         Object val = readValue(attr);
                         if (val != null) entry.put(attr.getName(), readValue(attr));
                     }

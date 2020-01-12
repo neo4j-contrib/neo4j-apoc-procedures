@@ -22,27 +22,21 @@ include::../../../build/generated-documentation/apoc.load.csv[lines=1;12]
 [options="header",cols="a,3m,a"]
 |===
 |Parameter | Property | Description
-|{connectionMap} | ldapHost | the ldapserver:port if port is omitted the default port 389 will be used
-|  | loginDN | This is the dn of the ldap server user who has read access on the ldap server
-|  | loginPW | This is the password used by the loginDN
-|{searchMap} | searchBase | From this entry a search is executed
-|  | searchScope | SCOPE_ONE (one level) or
-                   SCOPE_SUB (all sub levels) or
-                   SCOPE_BASE (only the base node)
-|  | searchFilter | Place here a standard ldap search filter for example: (objectClass=*) means that the ldap entry must have an objectClass attribute.
-|  | attributes | optional. If omitted all the attributes of the entries will be returned.
-                            When specified only the specified attributes will be returned. Regardless the attributes setting a returned entry will always have a "dn" property.
+|{connectionMap} | ldapURL | a URL formatted according to https://tools.ietf.org/html/rfc2255[RFC2255]
+|  | loginDN | OPTIONAL: This is the dn of the ldap server user who has read access on the ldap server
+|  | loginPW | OPTIONAL: This is the password used by the loginDN
+
 |===
+
+If credentials are not provided, an anonymous bind will be attempted.
 
 === Load LDAP Example
 
 .Retrieve group member information from the ldap server
 [source,cypher]
 ----
-call apoc.load.ldap({ldapHost : "ldap.forumsys.com", loginDN : "cn=read-only-admin,dc=example,dc=com", loginPW : "password"},
-{searchBase : "dc=example,dc=com",searchScope : "SCOPE_SUB"
-,attributes : ["uniqueMember","cn","uid","objectClass"]
-,searchFilter: "(&(objectClass=*)(uniqueMember=*))"}) yield entry
+call apoc.load.ldap({ldapURL : "ldap://ldap.forumsys.com:389/dc=example,dc=com?uid?one?(&(objectClass=*)(uid=training))", loginDN : "cn=read-only-admin,dc=example,dc=com", loginPW : "password"})
+yield entry
 return entry.dn,  entry.uniqueMember
 ----
 
@@ -59,10 +53,8 @@ return entry.dn,  entry.uniqueMember
 .Retrieve group member information from the ldap server and create structure in Neo4j
 [source,cypher]
 ----
-call apoc.load.ldap({ldapHost : "ldap.forumsys.com", loginDN : "cn=read-only-admin,dc=example,dc=com", loginPW : "password"},
-{searchBase : "dc=example,dc=com",searchScope : "SCOPE_SUB"
-,attributes : ["uniqueMember","cn","uid","objectClass"]
-,searchFilter: "(&(objectClass=*)(uniqueMember=*))"}) yield entry
+call apoc.load.ldap({ldapURL : "ldap://ldap.forumsys.com:389/dc=example,dc=com?uid?one?(&(objectClass=*)(uid=training))", loginDN : "cn=read-only-admin,dc=example,dc=com", loginPW : "password"})
+yield entry
 merge (g:Group {dn : entry.dn})
 on create set g.cn = entry.cn
 foreach (member in entry.uniqueMember |
@@ -78,25 +70,21 @@ To protect credentials, you can configure aliases in `conf/neo4j.conf`:
 
 .neo4j.conf Syntax
 ----
-apoc.loadldap.myldap.config=<host>:<port> <loginDN> <loginPW>
+apoc.loadldap.myldap.config=<ldapURL>[;<loginDN>;<loginPW>]
 ----
 
 
 .neo4j.conf:
 ----
-apoc.loadldap.myldap.config=ldap.forumsys.com:389 cn=read-only-admin,dc=example,dc=com password
+apoc.loadldap.myldap.config=ldap://ldap.forumsys.com:389/dc=example,dc=com?uid?one?(&(objectClass=*)(uid=training));cn=read-only-admin,dc=example,dc=com;password
 ----
 
 Then
 
 [source,cypher]
 ----
-call apoc.load.ldap({ldapHost : "ldap.forumsys.com", loginDN : "cn=read-only-admin,dc=example,dc=com", loginPW : "password"}
-, {searchBase : "dc=example,dc=com"
-  ,searchScope : "SCOPE_SUB"
-  ,attributes : ["cn","uid","objectClass"]
-  ,searchFilter: "(&(objectClass=*))"
-  }) yield entry
+call apoc.load.ldap({ldapURL : "ldap://ldap.forumsys.com:389/dc=example,dc=com?uid?one?(&(objectClass=*)(uid=training))", loginDN : "cn=read-only-admin,dc=example,dc=com", loginPW : "password"})
+yield entry
 return entry.dn,  entry
 ----
 
@@ -104,11 +92,7 @@ becomes
 
 [source,cypher]
 ----
-call apoc.load.ldap("myldap"
-,{searchBase : "dc=example,dc=com"
- ,searchScope : "SCOPE_SUB"
- ,attributes : ["cn","uid","objectClass"]
- ,searchFilter: "(&(objectClass=*))"
- }) yield entry
+call apoc.load.ldap("myldap")
+yield entry
 return entry.dn,  entry
 ----
