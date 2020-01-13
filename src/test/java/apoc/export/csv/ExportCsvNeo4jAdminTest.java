@@ -10,12 +10,14 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.neo4j.configuration.GraphDatabaseSettings;
+import org.neo4j.internal.helpers.collection.Iterators;
 import org.neo4j.test.rule.DbmsRule;
 import org.neo4j.test.rule.ImpermanentDbmsRule;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.Map;
 
 import static apoc.util.MapUtil.map;
@@ -143,8 +145,12 @@ public class ExportCsvNeo4jAdminTest {
         assertFileEquals(file,EXPECTED_NEO4J_ADMIN_IMPORT_HEADER_RELATIONSHIP_NEXT_DELIVERY + EXPECTED_NEO4J_ADMIN_IMPORT_RELATIONSHIP_NEXT_DELIVERY, "graph.relationships.NEXT_DELIVERY.csv");
     }
 
-    private void assertFileEquals(String file, String expectedNeo4jAdminImportNodeProduct, String s) throws IOException {
-        assertEquals(expectedNeo4jAdminImportNodeProduct, FileUtils.readFileToString(new File(file + s), Charset.forName("UTF-8")));
+    private void assertFileEquals(String base, String expected, String file)  {
+        try {
+            assertEquals(expected, FileUtils.readFileToString(new File(base + file), Charset.forName("UTF-8")));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test(expected = RuntimeException.class)
