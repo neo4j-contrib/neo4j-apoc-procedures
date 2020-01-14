@@ -21,7 +21,7 @@ For more information on how to use these procedures, see:
 
 include::export/csv.adoc[leveloffset=2]
 
-include::export/exportJson.adoc[leveloffset=1]
+include::export/exportJson.adoc[leveloffset=2]
 
 include::export/exportCypher.adoc[leveloffset=1]
 

@@ -1,21 +1,34 @@
 [[export-json]]
-== Export to JSON File
+= Export to JSON
 
 [abstract]
 --
 This section describes procedures that can be used to export data in JSON format.
 --
 
-Make sure to set the config options in your `neo4j.conf`
+The export JSON procedures export data into a format that's supported by JavaScript based visualisation tools.
+We may also want to export data into JSON format for importing into other tools or for general sharing of query results.
+The procedures described in this section support exporting to a file or as a stream.
 
-.Neo4j.conf
+This section includes:
 
-----
-apoc.export.file.enabled=true
-----
+* <<export-json-available-procedures, Available Procedures>>
+* <<export-json-file-export, Exporting to a file>>
+* <<export-json-stream-export, Exporting a stream>>
+* <<export-json-examples, Examples>>
+    ** <<export-database-json, Export whole database>>
+    ** <<export-nodes-relationships-json, Export specified nodes and relationships>>
+    ** <<export-graph-json, Export virtual graph>>    
+    ** <<export-cypher-query-json, Export results of Cypher query>>
+
+
+
+[[export-json-available-procedures]]
+== Available Procedures
+
+The table below describes the available procedures:
 
 // tag::export.json[]
-`YIELD file, source, format, nodes, relationships, properties, time, rows`
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
 include::../../../build/generated-documentation/apoc.export.json.csv[]
@@ -37,131 +50,377 @@ The labels exported are ordered alphabetically.
 The output of `labels()` function is not sorted, use it in combination with `apoc.coll.sort()`.
 ====
 
-=== Examples
+[[export-json-file-export]]
+== Exporting to a file
 
-For the examples below we create the following dataset:
+include::enableFileExport.adoc[]
 
-[source,cypher]
-----
-CREATE (f:User {name:'Adam',age:42,male:true,kids:['Sam','Anna','Grace'], born:localdatetime('2015185T19:32:24'), place:point({latitude: 13.1, longitude: 33.46789})})-[:KNOWS {since: 1993}]->(b:User {name:'Jim',age:42}),(c:User {age:12})
-----
+[[export-json-stream-export]]
+== Exporting a stream
 
-.Export query
+include::streamExport.adoc[]
 
-[source,cypher]
-----
-CALL apoc.export.json.query("MATCH (u:User) WHERE age > {age} return u","/tmp/query.json",{params:{age:10}})
-----
+[[export-json-examples]]
+== Examples
 
-result:
-
-[source,json]
-----
-include::../data/exportJSON/query_nodes_param.json[leveloffset]
-----
-
-.Export query Complex
+This section includes examples showing how to use the export to JSON procedures.
+These examples are based on a people dataset, which can be imported by running the following Cypher query:
 
 [source,cypher]
 ----
-CALL apoc.export.json.query("RETURN {value:1, data:[10,'car',null, point({ longitude: 56.7, latitude: 12.78 }), point({ longitude: 56.7, latitude: 12.78, height: 8 }), point({ x: 2.3, y: 4.5 }), point({ x: 2.3, y: 4.5, z: 2 }),date('2018-10-10'), datetime('2018-10-18T14:21:40.004Z'), localdatetime({ year:1984, week:10, dayOfWeek:3, hour:12, minute:31, second:14, millisecond: 645 }), {x:1, y:[1,2,3,{age:10}]}]} as key","/tmp/complex.json")
+CREATE (a:User {
+    name:'Adam', age:42, male:true, kids:['Sam','Anna','Grace'], 
+    born:localdatetime('2015185T19:32:24'), 
+    place:point({latitude: 13.1, longitude: 33.46789})
+})
+CREATE (b:User {name:'Jim', age:42})
+CREATE (c:User {age:12})
+
+CREATE (a)-[:KNOWS {since: 1993}]->(b)
 ----
 
-result:
 
-[source,json]
-----
-include::../data/exportJSON/MapComplex.json[leveloffset]
-----
+The Neo4j Browser visualization below shows the imported graph:
 
-.Export queryList
+image::export-json.png[]
 
+[[export-database-json]]
+=== Export whole database to JSON
+
+The `apoc.export.json.all` procedure exports the whole database to a JSON file or as a stream.
+
+
+.The following query exports the whole database to the file `all.json`
 [source,cypher]
 ----
-CALL apoc.export.json.query("MATCH (u:User) RETURN COLLECT(u) as list","/tmp/list.json",{params:{age:10}})
+CALL apoc.export.json.all("all.json",{useTypes:true})
 ----
 
-result:
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
+| "all.json" | "database: nodes(3), rels(1)" | "json" | 3     | 1             | 10         | 7    | 0    | -1        | 0       | TRUE | NULL 
+|===
 
-[source,json]
-----
-include::../data/exportJSON/listNode.json[leveloffset]
-----
+The contents of `all.json` are shown below:
 
-.Export queryMap
-
-[source,cypher]
-----
-CALL apoc.export.json.query("MATCH (u:User)-[r:KNOWS]->(d:User) RETURN u {.*}, d {.*}, r {.*}","/tmp/map.json",{params:{age:10}})
-----
-
-result:
-
-[source,json]
-----
-include::../data/exportJSON/MapNode.json[leveloffset]
-----
-
-.Export all
-
-[source,cypher]
-----
-CALL apoc.export.json.all("/tmp/all.json",{useTypes:true})
-----
-
-result:
-
+.all.json
 [source,json]
 ----
 include::../data/exportJSON/all.json[leveloffset]
 ----
 
-.Export graph
-
+.The following query returns a stream of the whole database in the `data` column
 [source,cypher]
 ----
-CALL apoc.graph.fromDB('test',{}) yield graph
-CALL apoc.export.json.graph(graph,"tmp/graph.json",{})
-YIELD nodes, relationships, properties, file, source,format, time
-RETURN *
+CALL apoc.export.json.all(null,{useTypes:true, stream: true})
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data
 ----
 
-result:
+.Results
+[opts="header"]
+|===
+| file         | nodes | relationships | properties | data 
+| NULL | 3     | 1             | 10         | "{\"type\":\"node\",\"id\":\"0\",\"labels\":[\"User\"],\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"age\":42,\"male\":true,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]}}
+{\"type\":\"node\",\"id\":\"1\",\"labels\":[\"User\"],\"properties\":{\"name\":\"Jim\",\"age\":42}}
+{\"type\":\"node\",\"id\":\"2\",\"labels\":[\"User\"],\"properties\":{\"age\":12}}
+{\"id\":\"50000\",\"type\":\"relationship\",\"label\":\"KNOWS\",\"properties\":{\"since\":1993},\"start\":{\"id\":\"0\",\"labels\":[\"User\"]},\"end\":{\"id\":\"1\",\"labels\":[\"User\"]}}"
+|===
 
-[source,json]
-----
-include::../data/exportJSON/graph.json[leveloffset]
-----
 
-.Export data
+[[export-nodes-relationships-json]]
+=== Export specified nodes and relationships to JSON
 
+The `apoc.export.json.data` procedure exports the specified nodes and relationships to a JSON file or as a stream.
+
+.The following query exports all `KNOWS` relationships and `User` nodes to the file `knows.json`
 [source,cypher]
 ----
 MATCH (nod:User)
 MATCH ()-[rels:KNOWS]->()
 WITH collect(nod) as a, collect(rels) as b
-CALL apoc.export.json.data(a, b, "tmp/data.json", null)
-YIELD nodes, relationships, properties, file, source,format, time
-RETURN *
+CALL apoc.export.json.data(a, b, "knows.json", null)
+YIELD file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data 
+RETURN file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
 ----
 
-result:
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
+|  "knows.json" | "data: nodes(3), rels(3)" | "json" | 3     | 1             | 10         | 1    | 0    | -1        | 0       | TRUE | NULL 
+|===
 
+The contents of `knows.json` are shown below:
+
+.knows.json
 [source,json]
 ----
 include::../data/exportJSON/data.json[leveloffset]
 ----
 
-.Export query with config `writeNodeProperties`
+
+.The following query return a stream of all `KNOWS` relationships and `User` nodes in the `data` column
+[source,cypher]
+----
+MATCH (nod:User)
+MATCH ()-[rels:KNOWS]->()
+WITH collect(nod) as a, collect(rels) as b
+CALL apoc.export.json.data(a, b, null, {stream: true})
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data
+----
+
+.Results
+[opts="header"]
+|===
+| file         | nodes | relationships | properties | data 
+
+|   NULL | 3     | 1             | 10         | "{\"type\":\"node\",\"id\":\"0\",\"labels\":[\"User\"],\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"age\":42,\"male\":true,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]}}
+{\"type\":\"node\",\"id\":\"1\",\"labels\":[\"User\"],\"properties\":{\"name\":\"Jim\",\"age\":42}}
+{\"type\":\"node\",\"id\":\"2\",\"labels\":[\"User\"],\"properties\":{\"age\":12}}
+{\"id\":\"50000\",\"type\":\"rel
+|===
+
+
+[[export-graph-json]]
+=== Export virtual graph to JSON
+
+The `apoc.export.json.graph` procedure exports a <<virtual-graph,virtual graph>> to a CSV file or as a stream.
+
+The examples in this section are based on a virtual graph that contains all `KNOWS` relationships and the nodes either side of that relationship.
+The query below creates a virtual graph and stores it in memory with the name `knows.cached` using <<static-values, Static Value Storage>>.
 
 [source,cypher]
 ----
-CALL apoc.export.json.query("MATCH p = (u:User)-[rel:KNOWS]->(u2:User) RETURN rel","/tmp/writeNodeProperties.json",{writeNodeProperties:true}})
+MATCH path = (:User)-[:KNOWS]->(:User)
+WITH collect(path) AS paths
+CALL apoc.graph.fromPaths(paths, "knows", {})
+YIELD graph AS g
+CALL apoc.static.set("knows.cached", g)
+YIELD value
+RETURN value, g
 ----
 
-result:
+.Results
+[opts="header"]
+|===
+| value | g
+| NULL | {name: "knows", relationships: [[:KNOWS {since: 1993}]], nodes: [(:User {born: 2015-07-04T19:32:24, name: "Adam", place: point({srid:4326, x:33.46789, y:13.1}), age: 42, male: TRUE, kids: ["Sam", "Anna", "Grace"]}), (:User {name: "Jim", age: 42})], properties: {}} 
+|===
 
+
+.The following query exports the virtual graph from static value storage to the file `graph.json`
+[source,cypher]
+----
+CALL apoc.export.json.graph(apoc.static.get("knows.cached"),"graph.json",{})
+YIELD file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data 
+RETURN file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data
+----
+
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
+|   "graph.json" | "graph: nodes(2), rels(1)" | "json" | 2     | 1             | 9          | 2    | 3    | -1        | 0       | TRUE | NULL
+|===
+
+
+The contents of `graph.json` are shown below:
+
+.graph.json
+[source,json]
+----
+include::../data/exportJSON/graph.json[leveloffset]
+----
+
+.The following query returns a streams of the virtual graph from static value storage to the `data` column
+[source,cypher]
+----
+CALL apoc.export.json.graph(apoc.static.get("knows.cached"), null, {stream: true})
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data
+----
+
+.Results
+[opts="header"]
+|===
+| file         | nodes | relationships | properties | data 
+| NULL | 2     | 1             | 9          | "{\"type\":\"node\",\"id\":\"0\",\"labels\":[\"User\"],\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"age\":42,\"male\":true,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]}}
+{\"type\":\"node\",\"id\":\"1\",\"labels\":[\"User\"],\"properties\":{\"name\":\"Jim\",\"age\":42}}
+{\"id\":\"50000\",\"type\":\"relationship\",\"label\":\"KNOWS\",\"properties\":{\"since\":1993},\"start\":{\"id\":\"0\",\"labels\":[\"User\"]},\"end\":{\"id\":\"1\",\"labels\":[\"User\"]}}"
+" 
+|===
+
+
+[[export-cypher-query-json]]
+=== Export results of Cypher query to JSON
+
+The `apoc.export.json.query` procedure exports the results of a Cypher query to a JSON file or as a stream.
+
+.The following query exports all `User` nodes with an `age` property greater than `10` to the file `users-age.json`
+[source,cypher]
+----
+CALL apoc.export.json.query(
+    "MATCH (u:User) WHERE u.age > $age return u", 
+    "users-age.json", 
+    {params:{age:15}}
+)
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
+| "users-age.json" | "statement: cols(1)" | "json" | 2     | 0             | 8          | 3    | 2    | -1        | 0       | TRUE | NULL
+|===
+
+The contents of `users-age.json` are shown below:
+
+.users-age.json
+[source,json]
+----
+include::../data/exportJSON/query_nodes_param.json[leveloffset]
+----
+
+.The following query returns a stream of `User` nodes with an `age` property greater than `10` to the `data` column
+[source,cypher]
+----
+CALL apoc.export.json.query(
+    "MATCH (u:User) WHERE u.age > $age return u", 
+    null, 
+    {params:{age:15}, stream: true}
+)
+YIELD file, nodes, relationships, properties, data
+RETURN file, nodes, relationships, properties, data
+----
+
+.Results
+[opts="header"]
+|===
+| file         | nodes | relationships | properties | data 
+| NULL | 2     | 0             | 8          | "{\"u\":{\"type\":\"node\",\"id\":\"0\",\"labels\":[\"User\"],\"properties\":{\"born\":\"2015-07-04T19:32:24\",\"name\":\"Adam\",\"place\":{\"crs\":\"wgs-84\",\"latitude\":33.46789,\"longitude\":13.1,\"height\":null},\"age\":42,\"male\":true,\"kids\":[\"Sam\",\"Anna\",\"Grace\"]}}}
+{\"u\":{\"type\":\"node\",\"id\":\"1\",\"labels\":[\"User\"],\"properties\":{\"name\":\"Jim\",\"age\":42}}}" 
+|===
+
+.The following query exports a complex Cypher map structure to the file `complex-cypher-structure.json`
+[source,cypher]
+----
+WITH "RETURN {
+	value:1, 
+    data:[
+    	10, 'car', null, 
+        point({ longitude: 56.7, latitude: 12.78 }), 
+        point({ longitude: 56.7, latitude: 12.78, height: 8 }), 
+        point({ x: 2.3, y: 4.5 }), 
+        point({ x: 2.3, y: 4.5, z: 2 }),
+        date('2018-10-10'), 
+        datetime('2018-10-18T14:21:40.004Z'), 
+        localdatetime({ year:1984, week:10, dayOfWeek:3, hour:12, minute:31, second:14, millisecond: 645 }), 
+        {x:1, y:[1,2,3,{age:10}]}
+    ]
+} as key" AS query
+CALL apoc.export.json.query(query, "complex-cypher-structure.json")
+YIELD file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data 
+RETURN file, source, format, nodes, relationships, properties, time, rows, batchSize, batches, done, data  
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
+| "complex-cypher-structure.json" | "statement: cols(1)" | "json" | 0     | 0             | 16         | 2    | 1    | -1        | 0       | TRUE | NULL
+|===
+
+The contents of `complex-cypher-structure.json` are shown below:
+
+.complex-cypher-structure.json
+[source,json]
+----
+include::../data/exportJSON/MapComplex.json[leveloffset]
+----
+
+.The following query exports a list of `User` nodes with an `age` property is greater than `10` to the file `users-list.json`
+[source,cypher]
+----
+CALL apoc.export.json.query(
+    "MATCH (u:User) RETURN COLLECT(u) as list",
+    "users-list.json",
+    {params:{age:10}}
+)
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
+| "users-list.json" | "statement: cols(1)" | "json" | 3     | 0             | 9          | 1    | 1    | -1        | 0       | TRUE | NULL
+|===
+
+The contents of `users-list.json` are shown below:
+
+.users-list.json
+[source,json]
+----
+include::../data/exportJSON/listNode.json[leveloffset]
+----
+
+.The following query exports the map representation of `User` nodes connected by a `KNOWS` relationship to the file `users-map.json`
+[source,cypher]
+----
+CALL apoc.export.json.query(
+    "MATCH (u:User)-[r:KNOWS]->(d:User) RETURN u {.*}, d {.*}, r {.*}",
+    "users-map.json",
+    {params:{age:10}}
+)
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
+| "users-map.json" | "statement: cols(3)" | "json" | 0     | 0             | 11         | 8    | 1    | -1        | 0       | TRUE | NULL 
+|===
+
+The contents of `users-map.json` are shown below:
+
+.users-map.json
+[source,json]
+----
+include::../data/exportJSON/MapNode.json[leveloffset]
+----
+
+In this example we use the `{.*}` syntax when returning graph entities in the Cypher statement.
+This syntax returns a map representation of graph entities, meaning that only properties will be exported; labels and relationship types are excluded. 
+
+.The following query exports all `KNOWS` relationship, including start and end nodes and their properties, to the file `knows-with-node-properties.json`
+[source,cypher]
+----
+CALL apoc.export.json.query(
+    "MATCH p = (u:User)-[rel:KNOWS]->(u2:User) RETURN rel",
+    "knows-with-node-properties.json",
+    {writeNodeProperties:true}
+)
+----
+
+.Results
+[opts="header"]
+|===
+| file         | source                        | format | nodes | relationships | properties | time | rows | batchSize | batches | done | data 
+| "knows-with-node-properties.json" | "statement: cols(1)" | "json" | 0     | 1             | 1          | 20   | 2    | -1        | 0       | TRUE | NULL
+|===
+
+The contents of `knows-with-node-properties.json` are shown below:
+
+.knows-with-node-properties.json
 [source,json]
 ----
 include::../data/exportJSON/writeNodeProperties.json[leveloffset]
 ----
+
+
+
+

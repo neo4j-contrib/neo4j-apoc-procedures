@@ -6,8 +6,9 @@
 This section describes procedures that can be used to export data in CSV format.
 --
 
-The export CSV procedures may be used to export data into a format more supported by Data Science libraries in the Python and R ecosystems.
-We may also want to export data into CSV format for importing into other tools or for general sharing of a the output of a graph query.
+The export CSV procedures export data into a format more supported by Data Science libraries in the Python and R ecosystems.
+We may also want to export data into JSON format for importing into other tool sor for general sharing of query results.
+The procedures described in this section support exporting to a file or as a stream.
 
 For `apoc.export.csv.all`, `apoc.export.csv.data` and `apoc.export.csv.graph`, nodes and relationships properties are ordered alphabetically, using the following structure:
 
@@ -20,14 +21,11 @@ For a graph containing node properties `age`, `city`, `kids`, `male`, `name`, an
 Labels exported are ordered alphabetically.
 The output of `labels()` function is not sorted, use it in combination with `apoc.coll.sort()`.
 
-[NOTE]
-====
-If we don't want to export to a file, we can stream results back in the `data` column instead by passing a file name of `null` and providing the `stream:true` config.
-====
-
 This section includes:
 
 * <<export-csv-available-procedures, Available Procedures>>
+* <<export-csv-file-export, Exporting to a file>>
+* <<export-csv-stream-export, Exporting a stream>>
 * <<export-csv-examples, Examples>>
     ** <<export-database-csv, Export whole database>>
     ** <<export-nodes-relationships-csv, Export specified nodes and relationships>>
@@ -45,6 +43,15 @@ The table below describes the available procedures:
 include::../../../build/generated-documentation/apoc.export.csv.csv[]
 |===
 
+[[export-csv-file-export]]
+== Exporting to a file
+
+include::enableFileExport.adoc[]
+
+[[export-csv-stream-export]]
+== Exporting a stream
+
+include::streamExport.adoc[]
 
 [[export-csv-examples]]
 == Examples
@@ -151,7 +158,7 @@ CALL apoc.export.csv.all(null, {stream:true})
 === Export specified nodes and relationships to CSV
 
 
-The `apoc.export.csv.all` procedure exports the specified nodes and relationships to a CSV file or as a stream.
+The `apoc.export.csv.data` procedure exports the specified nodes and relationships to a CSV file or as a stream.
 
 .The following query exports all nodes with the `:Person` label with a `name` property that starts with `L` to the file `movies-l.csv`
 [source,cypher]
@@ -261,14 +268,14 @@ CALL apoc.graph.fromPaths(paths, "producers", {})
 YIELD graph AS g
 CALL apoc.static.set("producers.cached", g)
 YIELD value
-RETURN value
+RETURN value, g
 ----
 
 .Results
 [opts="header"]
 |===
-| value
-| {name: "producers", relationships: [[:PRODUCED]], nodes: [(:Person {name: "Joel Silver", born: 1952}), (:Movie {tagline: "Welcome to the Real World", title: "The Matrix", released: 1999})], properties: {}}
+| value | g
+| NULL |{name: "producers", relationships: [[:PRODUCED]], nodes: [(:Person {name: "Joel Silver", born: 1952}), (:Movie {tagline: "Welcome to the Real World", title: "The Matrix", released: 1999})], properties: {}}
 |===
 
 .The following query exports the virtual graph from static value storage to the file `movies-producers.csv`
