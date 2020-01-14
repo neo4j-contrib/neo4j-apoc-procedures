@@ -1,0 +1,1 @@
+If we don't want to export to a file, we can stream results back in the `data` column instead by passing a file name of `null` and providing the `stream:true` config.
