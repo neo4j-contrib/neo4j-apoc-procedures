@@ -172,7 +172,7 @@ Result:
 begin
 CREATE (:Foo:`UNIQUE IMPORT LABEL` {name:"foo", `UNIQUE IMPORT ID`:0});
 CREATE (:Bar {name:"bar", age:42});
-CREATE (:Bar:`UNIQUE IMPORT LABEL` {age:12, `UNIQUE IMPORT ID`:2});
+CREATE (:Bar:`UNIQUE IMPORT LABEL` {age:12, `UNIQUE IMPORT ID`:2});3
 commit
 begin
 CREATE INDEX ON :Foo(name);
