@@ -21,8 +21,6 @@ This section includes:
     ** <<export-graph-json, Export virtual graph>>    
     ** <<export-cypher-query-json, Export results of Cypher query>>
 
-
-
 [[export-json-available-procedures]]
 == Available Procedures
 
