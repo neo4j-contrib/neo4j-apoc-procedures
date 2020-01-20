@@ -106,10 +106,10 @@ public class ExportConfig {
 
     private void validate() {
         if (OptimizationType.UNWIND_BATCH_PARAMS.equals(this.optimizationType) && !ExportFormat.CYPHER_SHELL.equals(this.format)) {
-            throw new RuntimeException("`useOptimizations: 'UNWIND_BATCH_PARAMS'` can be used only in combination with `format: 'CYPHER_SHELL'`");
+            throw new RuntimeException("`useOptimizations: 'UNWIND_BATCH_PARAMS'` can be used only in combination with `format: 'CYPHER_SHELL' but got [format:`" + this.format + "]");
         }
         if (!OptimizationType.NONE.equals(this.optimizationType) && this.unwindBatchSize > this.batchSize) {
-            throw new RuntimeException("`unwindBatchSize` must be <= `batchSize`");
+            throw new RuntimeException("`unwindBatchSize` must be <= `batchSize`, but got [unwindBatchSize:" + unwindBatchSize + ", batchSize:" + batchSize + "]");
         }
     }
 
