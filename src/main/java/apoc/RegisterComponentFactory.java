@@ -11,7 +11,7 @@ import org.neo4j.logging.Log;
 import org.neo4j.logging.internal.LogService;
 import org.neo4j.procedure.impl.GlobalProceduresRegistry;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 public class RegisterComponentFactory extends ExtensionFactory<RegisterComponentFactory.Dependencies> {
@@ -38,10 +38,10 @@ public class RegisterComponentFactory extends ExtensionFactory<RegisterComponent
 
     public class RegisterComponentLifecycle implements Lifecycle {
 
-        private final Map<Class, Map<String, Object>> resolvers = new HashMap<>();
+        private final Map<Class, Map<String, Object>> resolvers = new ConcurrentHashMap<>();
 
         public void addResolver(String databaseNamme, Class clazz, Object instance) {
-            Map<String, Object> classInstanceMap = resolvers.computeIfAbsent(clazz, s -> new HashMap<>());
+            Map<String, Object> classInstanceMap = resolvers.computeIfAbsent(clazz, s -> new ConcurrentHashMap<>());
             classInstanceMap.put(databaseNamme, instance);
         }
 
@@ -52,9 +52,9 @@ public class RegisterComponentFactory extends ExtensionFactory<RegisterComponent
         @Override
         public void init() throws Exception {
             // FIXME: after lifecycle issue has been resolved upstream
-            resolvers.put(UuidHandler.class, new HashMap<>());
-            resolvers.put(TriggerHandler.class, new HashMap<>());
-            resolvers.put(CypherProceduresHandler.class, new HashMap<>());
+            resolvers.put(UuidHandler.class, new ConcurrentHashMap<>());
+            resolvers.put(TriggerHandler.class, new ConcurrentHashMap<>());
+            resolvers.put(CypherProceduresHandler.class, new ConcurrentHashMap<>());
             resolvers.forEach(
                     (clazz, dbFunctionMap) -> globalProceduresRegistry.registerComponent(clazz, context -> {
                         String databaseName = context.graphDatabaseAPI().databaseName();
