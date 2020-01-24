@@ -394,7 +394,7 @@ RETURN file, nodes, relationships, properties, data;
 //| caption | | It's an array of string (i.e. ['name','title']) that define an ordered set of properties eligible as value for the `Label` value, if no match is found the there is a fallback to the node label, if the node label is missing the then the ID is used
 //| useTypes | false | Write the attribute type information to the graphml output
 //| batchSize | 20000 | define the batch size
-//// | silent | false | if enabled write progress output
+// | silent | false | if enabled write progress output
 //| delim | "," | define the delimiter character (export csv)
 //| arrayDelim | ";" | define the delimiter character for arrays (used in the bulk import)
 //| quotes | 'always' a| quote-character used for CSV, possible values are:
