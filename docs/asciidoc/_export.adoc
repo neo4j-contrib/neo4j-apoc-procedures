@@ -6,10 +6,12 @@
 This chapter describes procedures in the APOC library that can be used to export data from Neo4j.
 --
 
-The APOC library adds support for exporting data into various data formats, including JSON, CSV, and Cypher script.
+Neo4j supports exporting whole databases via the https://neo4j.com/docs/operations-manual/current/backup/performing/[backup^] and https://neo4j.com/docs/operations-manual/current/tools/dump-load/[dump^] commands.
+It doesn't have support for exporting sub graphs or exporting data into standard data formats, which is where the APOC library comes in.
 
-[NOTE]
-In case you have the default configuration with `apoc.import.file.use_neo4j_config=true` the export consider as root the directory defined into the `dbms.directories.import` property
+APOC adds support for exporting data into various data formats, including JSON, CSV, GraphML, and Cypher script.
+
+In addition to exporting data in these formats, we can choose to export the whole database, specified nodes and relationships, a virtual graph, or the results of a Cypher query.
 
 For more information on how to use these procedures, see:
 
