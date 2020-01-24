@@ -33,7 +33,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static apoc.util.FileUtils.isFile;
-import static org.neo4j.configuration.GraphDatabaseSettings.*;
+import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
+import static org.neo4j.configuration.GraphDatabaseSettings.data_directory;
+import static org.neo4j.configuration.GraphDatabaseSettings.load_csv_file_url_root;
+import static org.neo4j.configuration.GraphDatabaseSettings.logical_logs_location;
+import static org.neo4j.configuration.GraphDatabaseSettings.logs_directory;
+import static org.neo4j.configuration.GraphDatabaseSettings.neo4j_home;
+import static org.neo4j.configuration.GraphDatabaseSettings.plugin_dir;
+import static org.neo4j.configuration.GraphDatabaseSettings.transaction_logs_root_path;
 
 public class ApocConfig extends LifecycleAdapter {
 
@@ -113,16 +120,20 @@ public class ApocConfig extends LifecycleAdapter {
     }
 
     protected String determineNeo4jConfFolder() {
-        // sun.java.command=com.neo4j.server.enterprise.CommercialEntryPoint --home-dir=/home/myid/neo4j-enterprise-4.0.0-alpha09mr02 --config-dir=/home/myid/neo4j-enterprise-4.0.0-alpha09mr02/conf
         String command = System.getProperty(SUN_JAVA_COMMAND);
-        Matcher matcher = CONF_DIR_PATTERN.matcher(command);
-        if (matcher.find()) {
-            String neo4jConfFolder = matcher.group(1);
-            log.info("from system properties: NEO4J_CONF=%s", neo4jConfFolder);
-            return neo4jConfFolder;
-        } else {
-            log.info("cannot determine conf folder from sys property %s, assuming '.' ", command);
+        if (command==null) {
+            log.warn("system property %s is not set, assuming '.' as conf dir. This might cause `apoc.conf` not getting loaded.", SUN_JAVA_COMMAND);
             return ".";
+        } else {
+            Matcher matcher = CONF_DIR_PATTERN.matcher(command);
+            if (matcher.find()) {
+                String neo4jConfFolder = matcher.group(1);
+                log.info("from system properties: NEO4J_CONF=%s", neo4jConfFolder);
+                return neo4jConfFolder;
+            } else {
+                log.info("cannot determine conf folder from sys property %s, assuming '.' ", command);
+                return ".";
+            }
         }
     }
 
