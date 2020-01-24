@@ -517,7 +517,7 @@ public class Meta {
 							}
 						}
 						if (skipNode != true) {
-                        	profile.observe(node, config);
+                        	profile.observe(node, config, constraints, relConstraints);
 						}
                     }
                 }

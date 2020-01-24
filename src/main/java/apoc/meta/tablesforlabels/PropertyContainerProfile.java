@@ -2,7 +2,9 @@ package apoc.meta.tablesforlabels;
 
 import org.neo4j.graphdb.Node;
 import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.schema.ConstraintDefinition;
 
+import java.util.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -23,7 +25,7 @@ public class PropertyContainerProfile {
     public Set<String> propertyNames() { return profile.keySet(); }
     public PropertyTracker trackerFor(String propName) { return profile.get(propName); }
 
-    public void observe(PropertyContainer n) {
+    public void observe(PropertyContainer n, Iterable<ConstraintDefinition> constraints, Map<String, Iterable<ConstraintDefinition>> relConstraints, boolean isNode) {
         observations++;
 
         for (String propName : n.getPropertyKeys()) {
@@ -37,6 +39,34 @@ public class PropertyContainerProfile {
             }
 
             tracker.addObservation(n.getProperty(propName));
+
+            if (isNode) {
+
+                // Check for node constraints
+
+                tracker.mandatory = false;
+                for (ConstraintDefinition cd : constraints) {
+                    for (String pk : cd.getPropertyKeys()) {
+                        if (pk == propName) {
+                            tracker.mandatory = true;
+                        }
+                    }
+                }
+            } else {
+
+                // Check for relationship constraints - NOTE: Could probably improve the efficiency here a bit. Too many nested loops.
+
+                tracker.mandatory = false;
+                for (Map.Entry<String,Iterable<ConstraintDefinition>> entry : relConstraints.entrySet()) {
+                    for (ConstraintDefinition cd : entry.getValue()) {
+                        for (String pk : cd.getPropertyKeys()) {
+                            if (pk == propName) {
+                                tracker.mandatory = true;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

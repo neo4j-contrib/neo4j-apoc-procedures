@@ -6,6 +6,7 @@ import apoc.meta.tablesforlabels.PropertyTracker;
 import org.neo4j.graphdb.*;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
+import org.neo4j.graphdb.schema.*;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -114,7 +115,7 @@ public class Tables4LabelsProfile {
         }
     }
 
-    public void observe(Node n, MetaConfig config) {
+    public void observe(Node n, MetaConfig config, Iterable<ConstraintDefinition> constraints, Map<String, Iterable<ConstraintDefinition>> relConstraints) {
         OrderedLabels labels = new OrderedLabels(n.getLabels());
         PropertyContainerProfile localNodeProfile = getNodeProfile(labels);
 
@@ -124,7 +125,7 @@ public class Tables4LabelsProfile {
         // Only descend and look at properties if it's in our match list.
         if (config.matches(n.getLabels())) {
             sawNode(labels);
-            localNodeProfile.observe(n);
+            localNodeProfile.observe(n, constraints, relConstraints, true);
         }
 
         // Even if the node isn't in our match list, do rel processing.  This
@@ -150,7 +151,7 @@ public class Tables4LabelsProfile {
             PropertyContainerProfile localRelProfile = getRelProfile(typeName);
 
             for(Relationship r : n.getRelationships(type, Direction.OUTGOING)) {
-                localRelProfile.observe(r);
+                localRelProfile.observe(r, constraints, relConstraints, false);
             }
         }
     }

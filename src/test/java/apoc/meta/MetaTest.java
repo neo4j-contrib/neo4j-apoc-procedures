@@ -289,9 +289,10 @@ public class MetaTest {
     @Test
     public void testNodeTypePropertiesBasic() throws Exception {
         db.execute("CREATE (:Foo { l: 1, s: 'foo', d: datetime(), ll: ['a', 'b'], dl: [2.0, 3.0] });").close();
+        db.execute("CREATE CONSTRAINT ON (f:Foo) ASSERT EXISTS (f.s);").close();
 
         // Missing most properties to make almost everything non-mandatory.
-        db.execute("CREATE (:Foo { l: 1 });").close();
+        // db.execute("CREATE (:Foo { l: 1 });").close();
 
         TestUtil.testResult(db, "CALL apoc.meta.nodeTypeProperties()",
                 (r) -> {
@@ -300,12 +301,18 @@ public class MetaTest {
                     assertEquals(true, hasRecordMatching(records, m ->
                         m.get("nodeType").equals(":`Foo`") &&
                                 ((List)m.get("nodeLabels")).get(0).equals("Foo") &&
-                                m.get("propertyName").equals("dl") &&
-                                m.get("mandatory").equals(false)));
+                                m.get("propertyName").equals("s") &&
+                                m.get("mandatory").equals(true)));
 
                     assertEquals(true, hasRecordMatching(records, m ->
                             m.get("propertyName").equals("s") &&
                                     ((List)m.get("propertyTypes")).get(0).equals("String")));
+
+                    assertEquals(true, hasRecordMatching(records, m ->
+                        m.get("nodeType").equals(":`Foo`") &&
+                                ((List)m.get("nodeLabels")).get(0).equals("Foo") &&
+                                m.get("propertyName").equals("dl") &&
+                                m.get("mandatory").equals(false)));
 
                     assertEquals(5, records.size());
                 });
