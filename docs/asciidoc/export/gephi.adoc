@@ -1,5 +1,5 @@
 [[gephi]]
-= Streaming Data to Gephi
+= Export to Gephi
 
 [abstract]
 --
@@ -7,6 +7,19 @@ This section describes a procedure that can be used to export data into the Geph
 --
 
 Gephi has a https://marketplace.gephi.org/plugin/graph-streaming/[streaming plugin], that can provide and accept https://github.com/gephi/gephi/wiki/GraphStreaming#Gephi_as_Master[JSON-graph-data] in a streaming fashion.
+The export to Gephi procedure sends data to this end point.
+
+image::apoc-gephi.gif[scaledwidth="100%"]
+
+This section includes:
+
+* <<export-gephi-install-plugin, Installing the plugin>>
+* <<export-gephi-available-procedures, Available Procedures>>
+* <<export-gephi-format, Export Format>>
+* <<export-gephi-examples, Examples>>
+
+[[export-gephi-install-plugin]]
+== Installing the plugin
 
 Make sure to install the plugin first and activate it for your workspace (there is a new "Streaming"-tab besides "Layout"), right-click "Master"->"start" to start the server.
 
@@ -14,9 +27,27 @@ You can provide your workspace name (you might want to rename it before you star
 
 The default Gephi-URL is http://localhost:8080, resulting in `http://localhost:8080/workspace0?operation=updateGraph`
 
-You can also configure it in `conf/neo4j.conf` via  `apoc.gephi.url=url` or `apoc.gephi.<key>.url=url`
+It can also be configured by adding the following to `neo4j.conf`:
 
-image::apoc-gephi.gif[scaledwidth="100%"]
+.neo4j.conf
+[source,properties]
+----
+apoc.gephi.url=url
+----
+
+or
+
+.neo4j.conf
+[source,properties]
+----
+apoc.gephi.<key>.url=url
+----
+
+[[export-gephi-available-procedures]]
+== Available Procedure
+
+The table below describes the available procedure:
+
 
 // tag::gephi[]
 
@@ -27,11 +58,35 @@ include::../../../build/generated-documentation/apoc.gephi.csv[]
 
 // end::gephi[]
 
+[[export-gephi-format]]
+== Export Format
 
-== Example
+All nodes and relationships of the passed in data are converted into individual Gephi-Streaming JSON fragements, separated by \r\n. `\r\n`.
+
+.Example of exported JSON
+[source,javascript]
+----
+{"an":{"123":{"TYPE":"Person:Actor","label":"Tom Hanks",                           x:333,y:222,r:0.1,g:0.3,b:0.5}}}\r\n
+{"an":{"345":{"TYPE":"Movie","label":"Forrest Gump",                               x:234,y:122,r:0.2,g:0.2,b:0.7}}}\r\n
+{"ae":{"3344":{"TYPE":"ACTED_IN","label":"Tom Hanks",source:"123",target:"345","directed":true,"weight":1.0,r:0.1,g:0.3,b:0.5}}}
+----
+
+[NOTE]
+====
+Gephi doesn't render the graph data unless you also provide x,y coordinates in the payload, so the procedures send random ones within a 1000x1000 grid.
+
+Colors are generated per label combination and relationship-type, both of which are also transferred as `TYPE` property.
+
+Weight properties are stored as a number (integer,float) or a string.
+If the weight property is invalid or null, a default value of 1.0 will be used.
+====
+
+[[export-gephi-examples]]
+== Examples
 
 You can export your graph as an unweighted network.
 
+.The following exports `ACTED_IN` paths
 [source,cypher]
 ----
 match path = (:Person)-[:ACTED_IN]->(:Movie)
@@ -43,6 +98,7 @@ return nodes, relationships, time
 
 You can export your graph as a weighted network, by specifying the property of a relationship, that holds the weight value.
 
+.The following exports `ACTED_IN` paths where the `weightproperty` property exists on the relationship type
 [source,cypher]
 ----
 match path = (:Person)-[r:ACTED_IN]->(:Movie) where exists r.weightproperty
@@ -53,8 +109,8 @@ return nodes, relationships, time
 ----
 
 You can also export with your graph other properties of your nodes and/or relationship by adding an optional array with the property names you want to export.
-Example for exporting `birthYear` and `role` property.
 
+.The following exports `ACTED_IN` paths, but only includes the `birthYear` and `role` properties
 [source,cypher]
 ----
 match path = (:Person)-[r:ACTED_IN]->(:Movie) where exists r.weightproperty
@@ -63,23 +119,3 @@ with collect(path) as paths
 call apoc.gephi.add(null,'workspace0', paths, 'weightproperty',['birthYear', 'role']) yield nodes, relationships, time
 return nodes, relationships, time
 ----
-
-=== Format
-
-We send all nodes and relationships of the passed in data convert into individual Gephi-Streaming JSON fragements, separated by `\r\n`.
-
-[source,javascript]
-----
-{"an":{"123":{"TYPE":"Person:Actor","label":"Tom Hanks",                           x:333,y:222,r:0.1,g:0.3,b:0.5}}}\r\n
-{"an":{"345":{"TYPE":"Movie","label":"Forrest Gump",                               x:234,y:122,r:0.2,g:0.2,b:0.7}}}\r\n
-{"ae":{"3344":{"TYPE":"ACTED_IN","label":"Tom Hanks",source:"123",target:"345","directed":true,"weight":1.0,r:0.1,g:0.3,b:0.5}}}
-----
-
-== Specifics Details
-
-Gephi doesn't render the graph data unless you also provide x,y coordinates in the payload, so we just send random ones within a 1000x1000 grid.
-
-We also generate colors per label combination and relationship-type, both of which are also transferred as `TYPE` property.
-
-You can have your weight property stored as a number (integer,float) or a string. If the weight property is invalid or null, it will use the default 1.0 value.  
-// TODO also generate clustering information.
