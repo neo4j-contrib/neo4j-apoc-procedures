@@ -1,16 +1,21 @@
 package apoc.meta.tablesforlabels;
+import org.neo4j.graphdb.Label;
 
 import java.util.*;
 
 public class PropertyTracker {
     public String name;
     public Set<String> types;
+    public List<String> sourceNodeLabels;
+    public List<String> targetNodeLabels;
     public boolean mandatory;
     public long observations;
     public long nulls;
 
     public PropertyTracker(String name) {
         this.name = name;
+        sourceNodeLabels = new ArrayList<String>();
+        targetNodeLabels = new ArrayList<String>();
         types = new HashSet<>(3);
         mandatory = true;
         observations = 0L;

@@ -42,14 +42,18 @@ public class Tables4LabelsProfile {
 
     public class RelTypePropertiesEntry {
         public String relType;
+        public List<String> sourceNodeLabels;
+        public List<String> targetNodeLabels;
         public String propertyName;
         public List<String>propertyTypes;
         public boolean mandatory;
         public long propertyObservations;
         public long totalObservations;
 
-        public RelTypePropertiesEntry(String relType, String propertyName, List<String>propertyTypes, boolean mandatory, long propertyObservations, long totalObservations) {
+        public RelTypePropertiesEntry(String relType, List<String> sourceNodeLabels, List<String> targetNodeLabels, String propertyName, List<String>propertyTypes, boolean mandatory, long propertyObservations, long totalObservations) {
             this.relType = relType;
+            this.sourceNodeLabels = sourceNodeLabels;
+            this.targetNodeLabels = targetNodeLabels;
             this.propertyName = propertyName;
             this.propertyTypes = propertyTypes;
             this.mandatory = mandatory;
@@ -125,7 +129,7 @@ public class Tables4LabelsProfile {
         // Only descend and look at properties if it's in our match list.
         if (config.matches(n.getLabels())) {
             sawNode(labels);
-            localNodeProfile.observe(n, constraints, relConstraints, true);
+            localNodeProfile.observe(n, constraints, true, relConstraints, null, null);
         }
 
         // Even if the node isn't in our match list, do rel processing.  This
@@ -151,7 +155,10 @@ public class Tables4LabelsProfile {
             PropertyContainerProfile localRelProfile = getRelProfile(typeName);
 
             for(Relationship r : n.getRelationships(type, Direction.OUTGOING)) {
-                localRelProfile.observe(r, constraints, relConstraints, false);
+                Iterable<Label> relStartNode = r.getStartNode().getLabels();
+                Iterable<Label> relEndNode = r.getEndNode().getLabels();
+                boolean isNode = false;
+                localRelProfile.observe(r, constraints, isNode, relConstraints, relStartNode, relEndNode);
             }
         }
     }
@@ -221,6 +228,8 @@ public class Tables4LabelsProfile {
                         ":`" + relType + "`",
                         null,
                         null,
+                        null,
+                        null,
                         false,
                         0L,
                         totalObservations));
@@ -232,6 +241,8 @@ public class Tables4LabelsProfile {
 
                 results.add(new RelTypePropertiesEntry(
                         ":`" + relType + "`",
+                        tracker.sourceNodeLabels,
+                        tracker.targetNodeLabels,
                         propertyName,
                         tracker.propertyTypes(),
                         tracker.mandatory,
