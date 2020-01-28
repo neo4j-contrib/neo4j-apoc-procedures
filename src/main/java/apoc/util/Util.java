@@ -7,6 +7,7 @@ import apoc.path.RelationshipTypeAndDirections;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
+import org.neo4j.graphdb.DependencyResolver;
 import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
@@ -25,6 +26,7 @@ import org.neo4j.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
+import org.neo4j.logging.internal.LogService;
 import org.neo4j.procedure.TerminationGuard;
 
 import javax.lang.model.SourceVersion;
@@ -220,12 +222,24 @@ public class Util {
     }
 
     public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseService db, Callable<T> callable) {
+        GraphDatabaseAPI api = (GraphDatabaseAPI) db;
+        final LogService logService = api
+                .getDependencyResolver()
+                .resolveDependency(LogService.class, DependencyResolver.SelectionStrategy.FIRST);
+        final Log userLog = logService.getUserLog(Util.class);
+        return inTxFuture(pool, db, userLog, callable);
+    }
+
+    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseService db, Log log, Callable<T> callable) {
         try {
             return pool.submit(() -> {
                 try (Transaction tx = db.beginTx()) {
                     T result = callable.call();
                     tx.success();
                     return result;
+                } catch (Exception e) {
+                    log.error("Error while executing background job because of the following exception (the task will be killed):", e);
+                    throw e;
                 }
             });
         } catch (Exception e) {
