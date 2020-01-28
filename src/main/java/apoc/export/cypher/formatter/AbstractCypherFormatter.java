@@ -5,7 +5,12 @@ import apoc.export.util.ExportFormat;
 import apoc.export.util.Reporter;
 import apoc.util.Util;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.Transaction;
 import org.neo4j.internal.helpers.collection.Iterables;
 
 import java.io.PrintWriter;
@@ -18,7 +23,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static apoc.export.cypher.formatter.CypherFormatterUtils.*;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.Q_UNIQUE_ID_LABEL;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.UNIQUE_ID_PROP;
+import static apoc.export.cypher.formatter.CypherFormatterUtils.quote;
 
 /**
  * @author AgileLARUS
@@ -124,6 +131,7 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 		AtomicInteger nodeCount = new AtomicInteger(0);
 		Function<Node, Map.Entry<Set<String>, Set<String>>> keyMapper = (node) -> {
 			try (Transaction tx = db.beginTx()) {
+				node = tx.getNodeById(node.getId());
 				Set<String> idProperties = CypherFormatterUtils.getNodeIdProperties(node, uniqueConstraints).keySet();
 				Set<String> labels = getLabels(node);
 				tx.commit();
@@ -233,6 +241,7 @@ abstract class AbstractCypherFormatter implements CypherFormatter {
 
 		Function<Relationship, Map<String, Object>> keyMapper = (rel) -> {
 			try (Transaction tx = db.beginTx()) {
+				rel = tx.getRelationshipById(rel.getId());
 				Node start = rel.getStartNode();
 				Set<String> startLabels = getLabels(start);
 
