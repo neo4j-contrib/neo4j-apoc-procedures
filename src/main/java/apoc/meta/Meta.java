@@ -6,6 +6,7 @@ import apoc.result.VirtualNode;
 import apoc.result.VirtualRelationship;
 import apoc.util.MapUtil;
 import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.schema.ConstraintType;
 import org.neo4j.graphdb.schema.ConstraintDefinition;
 import org.neo4j.graphdb.schema.IndexDefinition;
 import org.neo4j.graphdb.schema.Schema;
@@ -468,8 +469,15 @@ public class Meta {
         Schema schema = db.schema();
 
         Map<String, Iterable<ConstraintDefinition>> relConstraints = new HashMap<>(20);
+        
         for (RelationshipType type : db.getAllRelationshipTypesInUse()) {
-            relConstraints.put(type.name(),schema.getConstraints(type));
+            List<ConstraintDefinition> tcd = new ArrayList<ConstraintDefinition>();
+            for (ConstraintDefinition cd : schema.getConstraints(type)) {
+                if (cd.isConstraintType(ConstraintType.RELATIONSHIP_PROPERTY_EXISTENCE)) {
+                    tcd.add(cd);
+                }
+            }
+            relConstraints.put(type.name(),tcd);
         }
 
         Map<String, Long> countStore = getLabelCountStore();
@@ -491,14 +499,21 @@ public class Meta {
                 continue;
             }
 
-            Iterable<ConstraintDefinition> constraints = schema.getConstraints(label);
+            List<ConstraintDefinition> constraints = new ArrayList<ConstraintDefinition>();
+
+            for (ConstraintDefinition cd : schema.getConstraints(label)) {
+                if (cd.isConstraintType(ConstraintType.NODE_PROPERTY_EXISTENCE)) {
+                    constraints.add(cd);
+                }
+            }
+
             for (ConstraintDefinition cd : schema.getConstraints(label)) { profile.noteConstraint(label, cd); }
             for (IndexDefinition index : schema.getIndexes(label)) { profile.noteIndex(label, index); }
 
             long labelCount = countStore.get(labelName);
             long sample = getSampleForLabelCount(labelCount, config.getSample());
 
-            System.out.println("Sampling " + sample + " for " + labelName);
+            //System.out.println("Sampling " + sample + " for " + labelName);
 
             try (ResourceIterator<Node> nodes = db.findNodes(label)) {
                 int count = 1;

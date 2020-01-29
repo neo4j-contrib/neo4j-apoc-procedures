@@ -26,7 +26,7 @@ public class PropertyContainerProfile {
     public Set<String> propertyNames() { return profile.keySet(); }
     public PropertyTracker trackerFor(String propName) { return profile.get(propName); }
 
-    public void observe(PropertyContainer n, Iterable<ConstraintDefinition> constraints, boolean isNode, Map<String, Iterable<ConstraintDefinition>> relConstraints, Iterable<Label> relStartNode, Iterable<Label> relEndNode) {
+    public void observe(PropertyContainer n, Iterable<ConstraintDefinition> constraints, boolean isNode, Map<String, Iterable<ConstraintDefinition>> relConstraints) {
         observations++;
 
         for (String propName : n.getPropertyKeys()) {
@@ -57,25 +57,7 @@ public class PropertyContainerProfile {
 
                 // Check for relationship constraints - NOTE: Could probably improve the efficiency here a bit. Too many nested loops.
 
-                List<String> sourceNodeLabels = new ArrayList<String>();
-                List<String> targetNodeLabels = new ArrayList<String>();
-
-                Iterator<Label> rsn = relStartNode.iterator();
-                Iterator<Label> ren = relEndNode.iterator();
-
-                while (rsn.hasNext()) {
-                    sourceNodeLabels.add(rsn.next().name());
-                }
-
-                while (ren.hasNext()) {
-                    targetNodeLabels.add(ren.next().name());
-                }
-
-                tracker.sourceNodeLabels = sourceNodeLabels;
-                tracker.targetNodeLabels = targetNodeLabels;
-                
                 tracker.mandatory = false;
-
                 for (Map.Entry<String,Iterable<ConstraintDefinition>> entry : relConstraints.entrySet()) {
                     for (ConstraintDefinition cd : entry.getValue()) {
                         for (String pk : cd.getPropertyKeys()) {
@@ -90,9 +72,6 @@ public class PropertyContainerProfile {
     }
 
     public PropertyContainerProfile finished() {
-        for(PropertyTracker tracker: profile.values()) {
-            tracker.finished(observations);
-        }
         return this;
     }
 }

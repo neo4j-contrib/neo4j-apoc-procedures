@@ -6,28 +6,21 @@ import java.util.*;
 public class PropertyTracker {
     public String name;
     public Set<String> types;
-    public List<String> sourceNodeLabels;
-    public List<String> targetNodeLabels;
     public boolean mandatory;
     public long observations;
     public long nulls;
 
     public PropertyTracker(String name) {
         this.name = name;
-        sourceNodeLabels = new ArrayList<String>();
-        targetNodeLabels = new ArrayList<String>();
         types = new HashSet<>(3);
-        mandatory = true;
+        mandatory = false;
         observations = 0L;
         nulls = 0L;
     }
 
     public void addObservation(Object value) {
         observations++;
-
         if (value == null) { nulls++; }
-
-        this.mandatory = this.mandatory && (value != null);
         types.add(assignTypeName(value));
     }
 
@@ -44,17 +37,6 @@ public class PropertyTracker {
         List<String> ret = new ArrayList<>(types);
         Collections.sort(ret);
         return ret;
-    }
-
-    /** Call when completed with the total number of nodes observed */
-    public void finished(long totalObservations) {
-        // As a final step, a given property can be missing on some nodes.
-        // If that occurred it wasn't tracked, and we need to mark it as optional
-        // because while it may always be populated *when its present* it can be missing
-        // from some nodes.
-        if (totalObservations > observations) {
-            mandatory = false;
-        }
     }
 
     public static final Map<String,String> typeMappings = new HashMap<String,String>();
