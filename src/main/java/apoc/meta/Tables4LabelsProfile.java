@@ -10,6 +10,8 @@ import org.neo4j.graphdb.schema.*;
 
 import java.util.*;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+import java.util.stream.Collectors;
 
 public class Tables4LabelsProfile {
     Map<OrderedLabels, PropertyContainerProfile> labelMap;
@@ -141,7 +143,29 @@ public class Tables4LabelsProfile {
         }
     }
 
-    public int observationIndex = 1;
+    public static String labelJoin(Iterable<Label> labels) {
+        return StreamSupport.stream(labels.spliterator(), true)
+        .map(Label::name)
+        .collect(Collectors.joining("__"));
+    }
+
+    public static class decipherRelMap {
+        public static List<String> getSourceLabels(String relMapIdentifier) {
+            String[] components = relMapIdentifier.split("###");
+            List<String> sourceNodeLabels = Arrays.asList(components[0].split("__"));
+            return sourceNodeLabels;
+        }
+        public static List<String> getTargetLabels(String relMapIdentifier) {
+            String[] components = relMapIdentifier.split("###");
+            List<String> targetNodeLabels = Arrays.asList(components[1].split("__"));
+            return targetNodeLabels;
+        }
+        public static String getRelType(String relMapIdentifier) {
+            String[] components = relMapIdentifier.split("###");
+            String relTypeName = components[2];
+            return relTypeName;
+        }
+    }
 
     public void observe(Node n, MetaConfig config, Iterable<ConstraintDefinition> constraints, Map<String, Iterable<ConstraintDefinition>> relConstraints) {
         OrderedLabels labels = new OrderedLabels(n.getLabels());
@@ -156,81 +180,39 @@ public class Tables4LabelsProfile {
             localNodeProfile.observe(n, constraints, true, relConstraints);
         }
 
+        for (RelationshipType type : n.getRelationshipTypes()) {
+            String labelString = "";
+            for (Label label : n.getLabels()) {
+                labelString += "__" + label.name();
+            }
+        }
+
         // Even if the node isn't in our match list, do rel processing.  This
         // is because our profiling is "node-first" to get to the relationships,
         // and if we don't do it this way, it's possible to blacklist nodes and
         // thereby miss relationships that were of interest.
         for (RelationshipType type : n.getRelationshipTypes()) {
             String typeName = type.name();
-            String typeNameIndex = Integer.toString(observationIndex) + typeName; // Using leading number as leading numbers are illegal for relationship naming and won't cause collisions
 
             if (!config.matches(type)) { continue; }
 
             int out = n.getDegree(type, Direction.OUTGOING);
             if (out == 0) continue;
 
-            long seenSoFar = sawRel(typeName);
-
-            if (seenSoFar > config.getMaxRels()) {
-                // We've seen more than the maximum sample size for this rel, so
-                // we don't need to keep looking.
-                continue;
-            }
-
-            PropertyContainerProfile localRelProfile = getRelProfile(typeName);
-
             for(Relationship r : n.getRelationships(type, Direction.OUTGOING)) {
-                Iterable<Label> relStartNode = r.getStartNode().getLabels();
-                Iterable<Label> relEndNode = r.getEndNode().getLabels();
+                Iterable relStartNode = r.getStartNode().getLabels();
+                Iterable relEndNode = r.getEndNode().getLabels();
+
+                String relIdentifier = labelJoin(relStartNode) + "###" + labelJoin(relEndNode) + "###" + typeName;
+
+                PropertyContainerProfile localRelProfile = getRelProfile(relIdentifier);
+                long seenSoFar = sawRel(relIdentifier);
                 boolean isNode = false;
-                Map<String, List<String>> relNodeLabels = new LinkedHashMap(100);
-                Iterator<Label> rsn = relStartNode.iterator();
-                Iterator<Label> ren = relEndNode.iterator();
-                List<String> rsl = new ArrayList<String>();
-                List<String> rel = new ArrayList<String>();
 
-                // Grab labels from start node
-
-                while (rsn.hasNext()) {
-                    rsl.add(rsn.next().name());
-                }
-
-                // Grab labels from end node
-
-                while (ren.hasNext()) {
-                    rel.add(ren.next().name());
-                }
-
-                // Put the found label strings into a map (so we can have a 3D map)
-
-                if (relNodeLabels.containsKey("sourceNodeLabels")) {
-                    relNodeLabels.replace("sourceNodeLabels", rsl);
-                } else {
-                    relNodeLabels.put("sourceNodeLabels", rsl);
-                }
-
-                if (relNodeLabels.containsKey("targetNodeLabels")) {
-                    relNodeLabels.replace("targetNodeLabels", rel);
-                } else {
-                    relNodeLabels.put("targetNodeLabels", rel);
-                }
-                // Put the map in to our global meta for the relationship
-
-                // First check we don't already have this one
-                boolean skip = false;
-                for (Map.Entry<String,Map<String,List<String>>> rgm : relGlobalMeta.entrySet()) {
-                    String originalType = rgm.getKey().replaceAll("^\\d+", "");
-                    if (originalType.equals(typeName) && compareLabelLists(rgm.getValue(), relNodeLabels)) {
-                        skip = true;
-                    }
-                }
-
-                // This looks unique, add it with a unique index to the global meta for relationships
-
-                if (!skip) {
-                    relGlobalMeta.put(typeNameIndex, relNodeLabels);
-                    observationIndex++;
-                    typeNameIndex = Integer.toString(observationIndex) + typeName;
+                if (seenSoFar > config.getMaxRels()) {
+                    // We've seen more than the maximum sample size for this rel, so
+                    // we don't need to keep looking.
+                    continue;
                 }
 
                 localRelProfile.observe(r, constraints, isNode, relConstraints);
@@ -294,49 +276,35 @@ public class Tables4LabelsProfile {
         List<RelTypePropertiesEntry> results = new ArrayList<>(100);
 
         for (String relType : relTypes) {
-            for (Map.Entry<String,Map<String,List<String>>> rgm : relGlobalMeta.entrySet()) {
-                PropertyContainerProfile prof = relMap.get(relType);
-                Long totalObservations = obsByRelType.get(relType);
-                List<String> sourceNodeLabels = new ArrayList<String>();
-                List<String> targetNodeLabels = new ArrayList<String>();
-                String originalTypeName = rgm.getKey().replaceAll("^\\d+", "");
-                if (!relType.equals(originalTypeName)) {
-                    continue;
-                }
-                if (rgm.getValue().containsKey("sourceNodeLabels")) {
-                    sourceNodeLabels = rgm.getValue().get("sourceNodeLabels");
-                }
-                if (rgm.getValue().containsKey("targetNodeLabels")) {
-                    targetNodeLabels = rgm.getValue().get("targetNodeLabels");
-                }
+            PropertyContainerProfile prof = relMap.get(relType);
+            Long totalObservations = obsByRelType.get(relType);
 
-                // Base case: the rel type never had any properties.
-                if (prof.propertyNames().size() == 0) {
-                    results.add(new RelTypePropertiesEntry(
-                            ":`" + relType + "`",
-                            sourceNodeLabels,
-                            targetNodeLabels,
-                            null,
-                            null,
-                            false,
-                            0L,
-                            totalObservations));
-                    continue;
-                }
+            // Base case: the rel type never had any properties.
+            if (prof.propertyNames().size() == 0) {
+                results.add(new RelTypePropertiesEntry(
+                        ":`" + decipherRelMap.getRelType(relType) + "`",
+                        decipherRelMap.getSourceLabels(relType),
+                        decipherRelMap.getTargetLabels(relType),
+                        null,
+                        null,
+                        false,
+                        0L,
+                        totalObservations));
+                continue;
+            }
 
-                for (String propertyName : prof.propertyNames()) {
-                    PropertyTracker tracker = prof.trackerFor(propertyName);
+            for (String propertyName : prof.propertyNames()) {
+                PropertyTracker tracker = prof.trackerFor(propertyName);
 
-                    results.add(new RelTypePropertiesEntry(
-                            ":`" + relType + "`",
-                            sourceNodeLabels,
-                            targetNodeLabels,
-                            propertyName,
-                            tracker.propertyTypes(),
-                            tracker.mandatory,
-                            tracker.observations,
-                            totalObservations));
-                }
+                results.add(new RelTypePropertiesEntry(
+                        ":`" + decipherRelMap.getRelType(relType) + "`",
+                        decipherRelMap.getSourceLabels(relType),
+                        decipherRelMap.getTargetLabels(relType),
+                        propertyName,
+                        tracker.propertyTypes(),
+                        tracker.mandatory,
+                        tracker.observations,
+                        totalObservations));
             }
         }
 
