@@ -21,7 +21,7 @@ public class MetaConfig {
      * is specified **only these labels** will be examined.
      * - rels: a list of strings, which are whitelisted rel types.  If this list is
      * specified, **only these reltypes** will be examined.
-     * - excludes: a list of strings, which can be either node labels or reltypes.  This
+     * - excludes: a list of strings, which are node labels.  This
      * works like a blacklist: if listed here, the thing won't be considered.  Everything
      * else (subject to the whitelist) will be.
      * - sample: a long number, i.e. "1 in (SAMPLE)".  If set to 1000 this means that
@@ -32,9 +32,9 @@ public class MetaConfig {
      */
     public MetaConfig(Map<String,Object> config) {
         config = config != null ? config : Collections.emptyMap();
-        this.includesLabels = new HashSet<>((Collection<String>)config.getOrDefault("labels",Collections.EMPTY_SET));
-        this.includesRels = new HashSet<>((Collection<String>)config.getOrDefault("rels",Collections.EMPTY_SET));
-        this.excludes = new HashSet<>((Collection<String>)config.getOrDefault("excludes",Collections.EMPTY_SET));
+        this.includesLabels = new HashSet<>((Collection<String>)config.getOrDefault("includeLabels",Collections.EMPTY_SET));
+        this.includesRels = new HashSet<>((Collection<String>)config.getOrDefault("includeRels",Collections.EMPTY_SET));
+        this.excludes = new HashSet<>((Collection<String>)config.getOrDefault("excludeLabels",Collections.EMPTY_SET));
 		this.excludeRels = new HashSet<>((Collection<String>)config.getOrDefault("excludeRels",Collections.EMPTY_SET));
         this.sample = (long) config.getOrDefault("sample", 1000L);
         this.maxRels = (long) config.getOrDefault("maxRels", 100L);
@@ -100,7 +100,7 @@ public class MetaConfig {
     public boolean matches(RelationshipType rt) {
         String name = rt.name();
 
-        if (getExcludes().contains(name)) { return false; }
+        if (getExcludeRels().contains(name)) { return false; }
         if (getIncludesRels().isEmpty()) { return true; }
         return getIncludesRels().contains(name);
     }
