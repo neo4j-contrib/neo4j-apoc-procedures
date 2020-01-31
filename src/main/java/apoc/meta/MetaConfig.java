@@ -32,9 +32,26 @@ public class MetaConfig {
      */
     public MetaConfig(Map<String,Object> config) {
         config = config != null ? config : Collections.emptyMap();
-        this.includesLabels = new HashSet<>((Collection<String>)config.getOrDefault("includeLabels",Collections.EMPTY_SET));
-        this.includesRels = new HashSet<>((Collection<String>)config.getOrDefault("includeRels",Collections.EMPTY_SET));
-        this.excludes = new HashSet<>((Collection<String>)config.getOrDefault("excludeLabels",Collections.EMPTY_SET));
+
+        // To maintain backwards compatibility, need to still support "labels", "rels" and "excludes" for "includeLabels", "includeRels" and "excludeLabels" respectively.
+
+        Set<String> includesLabelsLocal = new HashSet<>((Collection<String>)config.getOrDefault("labels",Collections.EMPTY_SET));
+        Set<String> includesRelsLocal = new HashSet<>((Collection<String>)config.getOrDefault("rels",Collections.EMPTY_SET));
+        Set<String> excludesLocal = new HashSet<>((Collection<String>)config.getOrDefault("excludes",Collections.EMPTY_SET));
+
+        if (includesLabelsLocal.isEmpty()) {
+            includesLabelsLocal = new HashSet<>((Collection<String>)config.getOrDefault("includeLabels",Collections.EMPTY_SET));
+        }
+        if (includesRelsLocal.isEmpty()) {
+            includesRelsLocal = new HashSet<>((Collection<String>)config.getOrDefault("includeRels",Collections.EMPTY_SET));
+        }
+        if (excludesLocal.isEmpty()) {
+            excludesLocal = new HashSet<>((Collection<String>)config.getOrDefault("excludeLabels",Collections.EMPTY_SET));
+        }
+
+        this.includesLabels = includesLabelsLocal;
+        this.includesRels = includesRelsLocal;
+        this.excludes = excludesLocal;
 		this.excludeRels = new HashSet<>((Collection<String>)config.getOrDefault("excludeRels",Collections.EMPTY_SET));
         this.sample = (long) config.getOrDefault("sample", 1000L);
         this.maxRels = (long) config.getOrDefault("maxRels", 100L);
