@@ -11,12 +11,22 @@ We can use Cypher as safe, graph-aware, partially compiled scripting language wi
 
 // include::overview.adoc[tags=cypher,labeloffset=-1]
 
+The supported procedures are described in the table below:
+
 [separator=¦,opts=header,cols="1,1m,1m,5"]
 |===
 include::../../../build/generated-documentation/apoc.cypher.csv[]
 |===
 
+This section includes:
 
+* <<cypher-fast-node-count-by-label, Fast Node-Counts by Label>>
+* <<cypher-timeboxed, Running a Cypher statement timeboxed>>
+* <<cypher-multiple-statements, Run multiple statements>>
+* <<run-cypher-scripts, Run Cypher Script Files>>
+* <<conditionals, Conditional Cypher Execution>>
+
+[[cypher-fast-node-count-by-label]]
 == Example: Fast Node-Counts by Label
 
 Counts by label are quickly provided by the counts-store, but only if they are the the single thing in the query, like
@@ -63,7 +73,7 @@ RETURN label, value.keys as keys
 ----
 
 [[cypher-timeboxed]]
-== Running a cypher statement timeboxed
+== Running a Cypher statement timeboxed
 
 There's a way to terminate a cypher statement if it takes longer than a given threshold. Consider an expensive statement calculating cross product of shortestpaths for each pair of nodes:
 
@@ -75,12 +85,14 @@ return value.p
 
 This will return all results being returned within 10000 milliseconds. The expensive statement will be terminated after that period.
 
+[[cypher-multiple-statements]]
 == Run multiple Statements
 
 This procedure runs each semicolon separated statement and returns summary - currently no schema operations.
 
+[source,cypher]
 ----
-apoc.cypher.runMany('cypher;\nstatements;',{params},[{statistics:true,timeout:10}])
+CALL apoc.cypher.runMany('cypher;\nstatements;',{params},[{statistics:true,timeout:10}])
 ----
 
 [[run-cypher-scripts]]
