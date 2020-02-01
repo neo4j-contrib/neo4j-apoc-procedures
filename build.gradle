@@ -93,6 +93,7 @@ dependencies {
     compile group: 'org.hdrhistogram', name: 'HdrHistogram', version: '2.1.9'
     compile group: 'org.neo4j.driver', name: 'neo4j-java-driver', version: '1.7.3'
     compile group: 'com.novell.ldap', name: 'jldap', version: '2009-10-07'
+    compile group: 'org.apache.directory.api', name: 'api-all', version: '2.0.0'
 
     def withoutAntlr =  {
         exclude group: 'org.glassfish'
