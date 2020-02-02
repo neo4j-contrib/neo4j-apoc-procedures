@@ -132,7 +132,6 @@ public class LoadLdap {
 
         private LdapConnection getConnection() throws LdapException {
             LdapConnection lc = new LdapNetworkConnection(this.ldapUrl.getHost(), this.ldapUrl.getPort(), this.ldapUrl.getScheme().equals("ldaps"));
-            lc.loadSchemaRelaxed();
 
             // Start out binding with a DN and password
             if (!this.loginDN.equals("") && !this.password.equals("")) {
@@ -144,6 +143,9 @@ public class LoadLdap {
             } else {
                 lc.anonymousBind();
             }
+
+            // Active Directory won't let you load the schema until bound
+            lc.loadSchemaRelaxed();
             return lc;
         }
 
