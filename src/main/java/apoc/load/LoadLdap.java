@@ -3,13 +3,16 @@ package apoc.load;
 import apoc.ApocConfiguration;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.cursor.SearchCursor;
+import org.apache.directory.api.ldap.model.entry.Attribute;
 import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.entry.Value;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.exception.LdapURLEncodingException;
 import org.apache.directory.api.ldap.model.message.Response;
 import org.apache.directory.api.ldap.model.message.SearchRequest;
 import org.apache.directory.api.ldap.model.message.SearchRequestImpl;
 import org.apache.directory.api.ldap.model.message.SearchResultEntry;
+import org.apache.directory.api.ldap.model.schema.AttributeType;
 import org.apache.directory.api.ldap.model.url.LdapUrl;
 import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
@@ -18,7 +21,6 @@ import org.neo4j.procedure.Mode;
 import org.neo4j.procedure.Name;
 import org.neo4j.procedure.Procedure;
 
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -66,9 +68,9 @@ public class LoadLdap {
             throw new LdapURLEncodingException("LDAP URL cannot be empty");
         }
 
-        config.put("ldapHost", sConf[0]);
-        config.put("loginDN", sConf[1]);
-        config.put("loginPW", sConf[2]);
+        config.put("ldapURL", ldapUrl);
+        config.put("loginDN", loginDN);
+        config.put("loginPW", loginPW);
         return config;
     }
 
@@ -90,7 +92,7 @@ public class LoadLdap {
 
         public Stream<LDAPResult> executeSearch() {
             try {
-                Iterator<Map<String, Object>> supplier = new SearchResultsIterator(doSearch());
+                Iterator<Map<String, Object>> supplier = new SearchResultsIterator(doSearch(), this.ldapUrl.getAttributes());
                 Spliterator<Map<String, Object>> spliterator = Spliterators.spliteratorUnknownSize(supplier, Spliterator.ORDERED);
                 return StreamSupport.stream(spliterator, false).map(LDAPResult::new).onClose(() -> closeIt(lc));
             } catch (Exception e) {
@@ -108,7 +110,7 @@ public class LoadLdap {
                 req.setScope(this.ldapUrl.getScope());
                 req.setSizeLimit(0);
                 req.setFilter(this.ldapUrl.getFilter());
-                req.addAttributes(String.valueOf(this.ldapUrl.getAttributes()));
+                req.addAttributes(String.join(",", this.ldapUrl.getAttributes()));
                 req.setBase(this.ldapUrl.getDn());
 
                 return lc.search(req);
@@ -118,31 +120,10 @@ public class LoadLdap {
             }
         }
 
-        private LDAPEntry read(String dn) throws LDAPException, UnsupportedEncodingException {
-            if (dn == null) return null;
-            LDAPEntry r = null;
-            op("read start for dn: " + dn);
-            LDAPConnection lc = getConnection();
-            r = lc.read(dn);
-            closeIt(lc);
-            // op( r.toString());
-            op("read end");
-            return r;
-        }
-
-        private LDAPSchema getSchema() throws LDAPException, UnsupportedEncodingException {
-            LDAPSchema r = null;
-            LDAPConnection lc = getConnection();
-            r = lc.fetchSchema(lc.getSchemaDN());
-            closeIt(lc);
-            //op( r.toString());
-
-            return r;
-        }
-
-        public static void closeIt(LDAPConnection lc) {
+        public static void closeIt(LdapConnection lc) {
             try {
-                lc.disconnect();
+                lc.unBind();
+                lc.close();
             } catch (Exception e) {
                 // ignore
                 e.printStackTrace();
@@ -151,6 +132,7 @@ public class LoadLdap {
 
         private LdapConnection getConnection() throws LdapException {
             LdapConnection lc = new LdapNetworkConnection(this.ldapUrl.getHost(), this.ldapUrl.getPort(), this.ldapUrl.getScheme().equals("ldaps"));
+            lc.loadSchemaRelaxed();
 
             // Start out binding with a DN and password
             if (!this.loginDN.equals("") && !this.password.equals("")) {
@@ -193,53 +175,68 @@ public class LoadLdap {
         }
 
         public Map<String, Object> get() {
-            if (handleEndOfResults()) return null;
+            Map<String, Object> entryMap = new LinkedHashMap<>(attributes.size() + 1);
+            /*
+                Advance the cursor now primarily so we can detect if this is the last entry
+                and the call to available() will return false
+             */
+            try  {
+                this.lsr.next();
+            } catch (LdapException | CursorException e) {
+                e.printStackTrace();
+                throw new RuntimeException("Error requesting next ldap entry " + e.getMessage());
+            }
+            boolean doneYet = handleEndOfResults();
+            if (doneYet && !this.lsr.available()) return null;
             try {
-                Map<String, Object> entry = new LinkedHashMap<>(attributes.size() + 1);
                 Response resp = lsr.get();
                 if (resp instanceof SearchResultEntry) {
-                    Entry en = ((SearchResultEntry) resp).getEntry();
-                    entry.put("dn", en.getDn());
-                    if (attributes != null && attributes.size() > 0) {
-                        for (int col = 0; col < attributes.size(); col++) {
-                            Object val = readValue(en.getAttributes().get(attributes.get(col)));
-                            if (val != null) entry.put(attributes.get(col), val);
-                        }
-                    } else {
-                        // make it dynamic
-                        Iterator<LDAPAttribute> iter = en.getAttributeSet().iterator();
-                        while (iter.hasNext()) {
-                            LDAPAttribute attr = iter.next();
-                            Object val = readValue(attr);
-                            if (val != null) entry.put(attr.getName(), readValue(attr));
-                        }
+                    Entry ldapEntry = ((SearchResultEntry) resp).getEntry();
+                    entryMap.put("dn", ldapEntry.getDn());
+                    for (Attribute attribute : ldapEntry) {
+                        String attrName = attribute.getId();
+                        entryMap.put(attrName, readValue(attribute));
                     }
-                    //System.out.println("entry " + entry);
-                    return entry;
                 }
-
             } catch (CursorException e) {
                 e.printStackTrace();
-                throw new RuntimeException("Error getting next ldap entry " + e.getLDAPErrorMessage());
+                throw new RuntimeException("Error getting next ldap entry " + e.getMessage());
             }
+            return entryMap;
         }
 
         private boolean handleEndOfResults()  {
-            if (!lsr.hasMore()) {
-                return true;
-            }
-            return false;
+            return this.lsr.isDone();
         }
-        private Object readValue(LDAPAttribute att) {
+
+
+        /**
+         * Attempt to do an analysis on the attribute values and return a sane
+         * value. Use the LDAP schema to determine if an attribute is single
+         * valued and if it's a String or Boolean. We use the schema rather than the
+         * size of the values since a multivalued attribute might indeed have
+         * only one value
+         * TODO: Better handling of LDAP Integer objects. Numeric strings are off the
+         * table because the formatting allows spaces i.e "1 2 3 4"
+         * @param att Attribute whose values will be returned
+         * @return Probably either an bool, String, or List<Object> or null
+         */
+        private Object readValue(Attribute att) {
+            AttributeType attributeType = att.getAttributeType();
             if (att == null) return null;
-            if (att.size() == 1) {
-                // single value
-                // for now everything is string
-                return att.getStringValue();
+            if (attributeType.isSingleValued()) {
+                // Are we boolean (LDAP or AD)?
+                if ( (attributeType.getSyntaxOid().equals("1.3.6.1.4.1.1466.115.121.1.7")) || (attributeType.getSyntaxOid().equals("2.5.5.8")) ) {
+                    return (att.get().toString().equals("TRUE"));
+                }
+                return att.get().toString();
             } else {
-                return att.getStringValueArray();
+                List<String> vals = new ArrayList<>();
+                for (Value val : att) {
+                    vals.add(val.toString());
+                }
+                return vals;
             }
         }
     }
-
 }
