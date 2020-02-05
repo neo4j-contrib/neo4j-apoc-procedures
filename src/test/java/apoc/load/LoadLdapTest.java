@@ -18,7 +18,7 @@ public class LoadLdapTest {
     public void testAnonBindViaNoDNorPW() throws LdapException, CursorException {
         Map<String, String> connParms = new HashMap<>();
         connParms.put("ldapURL", "ldap://ldap.forumsys.com:389/dc=example,dc=com?uid?one?(&(objectClass=*)(uid=training))");
-        LoadLdap.LDAPManager mgr = new LoadLdap.LDAPManager(connParms);
+        LoadLdap.LDAPManager mgr = new LoadLdap.LDAPManager(connParms, log);
         SearchCursor results = mgr.doSearch();
         results.next();
         SearchResultEntry le = (SearchResultEntry) results.get();
@@ -32,7 +32,7 @@ public class LoadLdapTest {
         connParms.put("ldapURL", "ldap://ldap.forumsys.com:389/dc=example,dc=com?uid?one?(&(objectClass=*)(uid=training))");
         connParms.put("loginDN", "cn=read-only-admin,dc=example,dc=com");
         connParms.put("loginPW", "password");
-        LoadLdap.LDAPManager mgr = new LoadLdap.LDAPManager(connParms);
+        LoadLdap.LDAPManager mgr = new LoadLdap.LDAPManager(connParms, log);
         SearchCursor results = mgr.doSearch();
         results.next();
         SearchResultEntry le = (SearchResultEntry) results.get();
@@ -46,7 +46,7 @@ public class LoadLdapTest {
         connParms.put("ldapURL", "ldap://ipa.demo1.freeipa.org/dc=demo1,dc=freeipa,dc=org?uid?sub?(objectClass=posixAccount)");
         connParms.put("loginDN", "uid=admin,cn=users,cn=accounts,dc=demo1,dc=freeipa,dc=org");
         connParms.put("loginPW", "Secret123");
-        LoadLdap.LDAPManager mgr = new LoadLdap.LDAPManager(connParms);
+        LoadLdap.LDAPManager mgr = new LoadLdap.LDAPManager(connParms, log);
         Stream<LDAPResult> result = mgr.executeSearch();
         /*
             Note, the expect result is prone to changing as the server is refreshed
@@ -63,7 +63,7 @@ public class LoadLdapTest {
         connParms.put("ldapURL", "ldaps://db.debian.org/dc=debian,dc=org?uid?sub?(uid=dbharris)");
         connParms.put("loginDN", "");
         connParms.put("loginPW", "");
-        LoadLdap.LDAPManager mgr = new LoadLdap.LDAPManager(connParms);
+        LoadLdap.LDAPManager mgr = new LoadLdap.LDAPManager(connParms, log);
         Stream<LDAPResult> result = mgr.executeSearch();
         assertEquals(1, result.count());
     }
