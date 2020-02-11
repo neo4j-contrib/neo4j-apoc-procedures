@@ -146,18 +146,18 @@ public class Tables4LabelsProfile {
     public static String labelJoin(Iterable<Label> labels) {
         return StreamSupport.stream(labels.spliterator(), true)
         .map(Label::name)
-        .collect(Collectors.joining("__"));
+        .collect(Collectors.joining("@@@"));
     }
 
     public static class decipherRelMap {
         public static List<String> getSourceLabels(String relMapIdentifier) {
             String[] components = relMapIdentifier.split("###");
-            List<String> sourceNodeLabels = Arrays.asList(components[0].split("__"));
+            List<String> sourceNodeLabels = Arrays.asList(components[0].split("@@@"));
             return sourceNodeLabels;
         }
         public static List<String> getTargetLabels(String relMapIdentifier) {
             String[] components = relMapIdentifier.split("###");
-            List<String> targetNodeLabels = Arrays.asList(components[1].split("__"));
+            List<String> targetNodeLabels = Arrays.asList(components[1].split("@@@"));
             return targetNodeLabels;
         }
         public static String getRelType(String relMapIdentifier) {
@@ -183,7 +183,7 @@ public class Tables4LabelsProfile {
         for (RelationshipType type : n.getRelationshipTypes()) {
             String labelString = "";
             for (Label label : n.getLabels()) {
-                labelString += "__" + label.name();
+                labelString += "@@@" + label.name();
             }
         }
 
