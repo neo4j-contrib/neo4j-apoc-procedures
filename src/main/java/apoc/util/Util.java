@@ -7,27 +7,76 @@ import apoc.path.RelationshipTypeAndDirections;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.collection.primitive.PrimitiveLongIterator;
-import org.neo4j.graphdb.*;
+import org.neo4j.graphdb.DependencyResolver;
+import org.neo4j.graphdb.Direction;
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.NotInTransactionException;
+import org.neo4j.graphdb.PropertyContainer;
+import org.neo4j.graphdb.QueryExecutionException;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.RelationshipType;
+import org.neo4j.graphdb.ResourceIterator;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.TransactionGuardException;
+import org.neo4j.graphdb.TransactionTerminatedException;
 import org.neo4j.helpers.collection.Iterables;
 import org.neo4j.helpers.collection.Pair;
 import org.neo4j.internal.kernel.api.security.SecurityContext;
+import org.neo4j.kernel.impl.logging.LogService;
 import org.neo4j.kernel.internal.GraphDatabaseAPI;
 import org.neo4j.logging.Log;
 import org.neo4j.procedure.TerminationGuard;
 
 import javax.lang.model.SourceVersion;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.Closeable;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.PrimitiveIterator;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.stream.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
@@ -172,12 +221,24 @@ public class Util {
     }
 
     public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseService db, Callable<T> callable) {
+        GraphDatabaseAPI api = (GraphDatabaseAPI) db;
+        final LogService logService = api
+                .getDependencyResolver()
+                .resolveDependency(LogService.class, DependencyResolver.SelectionStrategy.FIRST);
+        final Log userLog = logService.getUserLog(Util.class);
+        return inTxFuture(pool, db, userLog, callable);
+    }
+
+    public static <T> Future<T> inTxFuture(ExecutorService pool, GraphDatabaseService db, Log log, Callable<T> callable) {
         try {
             return pool.submit(() -> {
                 try (Transaction tx = db.beginTx()) {
                     T result = callable.call();
                     tx.success();
                     return result;
+                } catch (Exception e) {
+                    log.error("Error while executing background job because of the following exception (the task will be killed):", e);
+                    throw e;
                 }
             });
         } catch (Exception e) {
