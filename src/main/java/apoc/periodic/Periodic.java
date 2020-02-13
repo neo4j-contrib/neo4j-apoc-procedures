@@ -100,7 +100,7 @@ public class Periodic {
         do {
             errors.add(e.getMessage());
             e = e.getCause();
-        } while (e.getCause() != null && !e.getCause().equals(e));
+        } while (e != null && e.getCause() != null && !e.getCause().equals(e));
         return String.join("\n",errors);
     }
 
@@ -437,7 +437,7 @@ public class Periodic {
                         }).mapToLong(l -> l).sum();
                 };
             }
-            futures.add(Util.inTxFuture(pool, db, task));
+            futures.add(Util.inTxFuture(pool, db, log, task));
             batches++;
             if (futures.size() > concurrency) {
                 while (futures.stream().noneMatch(Future::isDone)) { // none done yet, block for a bit
