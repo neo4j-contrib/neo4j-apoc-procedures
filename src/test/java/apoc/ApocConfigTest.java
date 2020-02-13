@@ -58,4 +58,11 @@ public class ApocConfigTest {
 
         assertEquals("bar", cut.getConfig().getString("foo"));
     }
+
+    @Test
+    public void testDetermineNeo4jConfFolderWithWhitespaces() {
+        System.setProperty(SUN_JAVA_COMMAND, "com.neo4j.server.enterprise.CommercialEntryPoint --config-dir=/home/stefan/neo4j enterprise-4.0.0-alpha09mr02/conf --home-dir=/home/stefan/neo4j enterprise-4.0.0-alpha09mr02");
+
+        assertEquals("/home/stefan/neo4j enterprise-4.0.0-alpha09mr02/conf", cut.determineNeo4jConfFolder());
+    }
 }

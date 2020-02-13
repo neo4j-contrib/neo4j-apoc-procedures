@@ -29,8 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static apoc.util.FileUtils.isFile;
 import static org.neo4j.configuration.GraphDatabaseSettings.SYSTEM_DATABASE_NAME;
@@ -45,7 +44,6 @@ import static org.neo4j.configuration.GraphDatabaseSettings.transaction_logs_roo
 public class ApocConfig extends LifecycleAdapter {
 
     public static final String SUN_JAVA_COMMAND = "sun.java.command";
-    public static final Pattern CONF_DIR_PATTERN = Pattern.compile("--config-dir=(\\S+)");
     public static final String APOC_IMPORT_FILE_ENABLED = "apoc.import.file.enabled";
     public static final String APOC_EXPORT_FILE_ENABLED = "apoc.export.file.enabled";
     public static final String APOC_IMPORT_FILE_USE_NEO4J_CONFIG = "apoc.import.file.use_neo4j_config";
@@ -70,6 +68,8 @@ public class ApocConfig extends LifecycleAdapter {
             transaction_logs_root_path,
             neo4j_home
     ));
+    private static final String DEFAULT_PATH = ".";
+    private static final String CONFIG_DIR = "config-dir=";
 
     private final Config neo4jConfig;
     private final Log log;
@@ -121,19 +121,22 @@ public class ApocConfig extends LifecycleAdapter {
 
     protected String determineNeo4jConfFolder() {
         String command = System.getProperty(SUN_JAVA_COMMAND);
-        if (command==null) {
+        if (command == null) {
             log.warn("system property %s is not set, assuming '.' as conf dir. This might cause `apoc.conf` not getting loaded.", SUN_JAVA_COMMAND);
-            return ".";
+            return DEFAULT_PATH;
         } else {
-            Matcher matcher = CONF_DIR_PATTERN.matcher(command);
-            if (matcher.find()) {
-                String neo4jConfFolder = matcher.group(1);
-                log.info("from system properties: NEO4J_CONF=%s", neo4jConfFolder);
-                return neo4jConfFolder;
-            } else {
+            final String neo4jConfFolder = Stream.of(command.split("--"))
+                    .map(String::trim)
+                    .filter(s -> s.startsWith(CONFIG_DIR))
+                    .map(s -> s.substring(CONFIG_DIR.length()))
+                    .findFirst()
+                    .orElse(DEFAULT_PATH);
+            if (DEFAULT_PATH.equals(neo4jConfFolder)) {
                 log.info("cannot determine conf folder from sys property %s, assuming '.' ", command);
-                return ".";
+            } else {
+                log.info("from system properties: NEO4J_CONF=%s", neo4jConfFolder);
             }
+            return neo4jConfFolder;
         }
     }
 
